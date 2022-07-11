@@ -385,8 +385,8 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
                 }
 
                 /* XXX: for cloned object, we need to move in the cloned keys,
-                 * cause purc_variant_container_clone_recursively() does not
-                 * clone the keys */
+                 * cause purc_variant_container_clone_recursively() only
+                 * references the keys */
                 PC_DEBUG("a container cloned for key %s: %s (%u)\n",
                         purc_variant_get_string_const(k),
                         purc_variant_typename(retv->type),
@@ -662,6 +662,13 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
         }
         else {
             retv = purc_variant_container_clone_recursively(v);
+
+            if (v->type == PURC_VARIANT_TYPE_OBJECT) {
+                /* XXX: for cloned object, we need to move in the cloned keys,
+                 * cause purc_variant_container_clone_recursively() only
+                 * references the keys */
+                move_keys_in_cloned_object(&ctxt, retv);
+            }
         }
 
         move_or_clone_immutable_descendants(&ctxt, retv);

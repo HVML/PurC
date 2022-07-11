@@ -563,6 +563,9 @@ pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
         list_del(&pr.list);
         purc_variant_unref(pr.request_id);
     }
+    else if (*response_msg == MSG_POINTER_INVALID) {
+        *response_msg = NULL;   /* reset response messge to NULL */
+    }
 
     return retval;
 }

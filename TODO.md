@@ -19,13 +19,16 @@
 
 1. 不可捕获错误的产生及处理机制：
    - `error` 标签支持 `type` 属性。
+1. `update` 标签。
+   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
+   - `at` 属性支持 `content`。
 1. `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
 
 ## 1) 当前（202207）
 
 ### 1.1) 变体
 
-1. 容器子孙成员变化后在容器变体上产生 `change` 事件。
+（无）
 
 ### 1.2) 预定义变量
 
@@ -85,6 +88,7 @@
    - `init` 动作元素其结果数据同绑定的变量数据（甚至可支持 `as` 可选？）
 1. 渲染器对接：
    - HVML 协程对应的页面类型为 `NULL`，不创建页面，不同步 eDOM 的更新信息。
+1. 移除 `sync` 线程，采用其他机制同步主线程的退出。
 1. 完善如下标签从外部数据源获取数据的功能：
    - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
    - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
@@ -93,14 +97,14 @@
    - `except` 标签：`src`、`param` 和 `method` 属性的支持。
    - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
    - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-1. `update` 标签。
-   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
-   - `at` 属性支持 `content`。
 
 ### 1.6) 其他
 
-1. `purc` 命令行工具
-1. 文档整理
+1. 代码清理
+   - API 描述
+   - 测试程序的许可声明
+1. `purc` 命令行工具。
+1. 文档整理。
 
 ## 过往（202206）
 
