@@ -33,12 +33,14 @@
 #include "private/instance.h"
 #include "private/utils.h"
 #include "private/variant.h"
+#include "private/ports.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include <sys/time.h>
 
+#define SCHEDULE_TIMEOUT        10000           // usec
 
 static inline
 double current_time()
@@ -55,6 +57,6 @@ pcintr_schedule(void *ctxt)
     if (!inst) {
         return;
     }
-    purc_runloop_dispatch_after(inst->running_loop, 10, pcintr_schedule, inst);
+    pcutils_usleep(SCHEDULE_TIMEOUT);
 }
 
