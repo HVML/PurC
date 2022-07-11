@@ -139,14 +139,6 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
-#if 0 // VW
-// experimental: currently for test-case-only
-struct pcintr_supervisor_ops {
-    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
-    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
-};
-#endif
-
 struct pcintr_exception {
     int                      errcode;
     purc_atom_t              error_except;
@@ -202,14 +194,8 @@ struct pcintr_stack {
     struct list_head              dynamic_observers;
     struct list_head              native_observers;
 
-#if 0 // VW
-    // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops  ops;
-    void                         *ctxt;  // no-owner-ship!!!
-#endif
     // async request ids (array)
     purc_variant_t                async_request_ids;
-
 
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
@@ -697,24 +683,6 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
 
 bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
-
-#if 0
-purc_vdom_t
-purc_load_hvml_from_string_ex(const char* string,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_file_ex(const char* file,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_url_ex(const char* url,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-#endif
 
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack);
