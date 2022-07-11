@@ -52,6 +52,7 @@ set(PurC_PLATFORM_INDEPENDENT_DIRS
     "interpreter"
     "fetchers"
     "pcrdr"
+    "document"
 )
 
 # This macro will append all C/CXX source files in ${PurC_PLATFORM_INDEPENDENT_DIRS}
