@@ -2500,6 +2500,8 @@ purc_run(purc_cond_handler handler)
 
     heap->keep_alive = 0;
     heap->cond_handler = handler;
+
+    purc_runloop_dispatch(runloop, pcintr_schedule, inst);
     purc_runloop_run();
 
     return 0;

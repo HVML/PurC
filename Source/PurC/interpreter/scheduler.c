@@ -37,3 +37,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/time.h>
+
+
+static inline
+double current_time()
+{
+    struct timeval now;
+    gettimeofday(&now, 0);
+    return now.tv_sec * 1000 + now.tv_usec / 1000;
+}
+
+void
+pcintr_schedule(void *ctxt)
+{
+    struct pcinst *inst = (struct pcinst *)ctxt;
+    if (!inst) {
+        return;
+    }
+    purc_runloop_dispatch_after(inst->running_loop, 10, pcintr_schedule, inst);
+}
+
