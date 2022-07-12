@@ -31,6 +31,19 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+
+enum math_pre_defined_var {
+    MATH_PI,
+    MATH_E,
+    MATH_LN2,
+    MATH_LN10,
+    MATH_LOG2E,
+    MATH_LOG10E,
+    MATH_SQRT1_2,
+    MATH_SQRT2,
+    MATH_PRE_DEFINED_MAX,
+};
+
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
 int
@@ -42,11 +55,76 @@ math_eval_l(const char *input, long double *d, purc_variant_t param)
 __attribute__((visibility("hidden")));
 
 int
+math_voi(double *r, double (*f)(void))
+__attribute__((visibility("hidden")));
+
+int
+math_voi_l(long double *r, long double (*f)(void))
+__attribute__((visibility("hidden")));
+
+int
 math_uni(double *r, double (*f)(double a), double a)
 __attribute__((visibility("hidden")));
 
 int
-math_unil(long double *r, long double (*f)(long double a), long double a)
+math_uni_l(long double *r, long double (*f)(long double a), long double a)
+__attribute__((visibility("hidden")));
+
+int
+math_bin(double *r, double (*f)(double a, double b), double a, double b)
+__attribute__((visibility("hidden")));
+
+int
+math_bin_l(long double *r, long double (*f)(long double a, long double b),
+        long double a, long double b)
+__attribute__((visibility("hidden")));
+
+double
+math_max(double a, double b)
+__attribute__((visibility("hidden")));
+
+long double
+math_max_l(long double a, long double b)
+__attribute__((visibility("hidden")));
+
+double
+math_min(double a, double b)
+__attribute__((visibility("hidden")));
+
+long double
+math_min_l(long double a, long double b)
+__attribute__((visibility("hidden")));
+
+double
+math_abs(double a)
+__attribute__((visibility("hidden")));
+
+long double
+math_abs_l(long double a)
+__attribute__((visibility("hidden")));
+
+double
+math_sign(double a)
+__attribute__((visibility("hidden")));
+
+long double
+math_sign_l(long double a)
+__attribute__((visibility("hidden")));
+
+double
+math_random(void)
+__attribute__((visibility("hidden")));
+
+long double
+math_random_l(void)
+__attribute__((visibility("hidden")));
+
+double
+math_pre_defined(enum math_pre_defined_var v)
+__attribute__((visibility("hidden")));
+
+long double
+math_pre_defined_l(enum math_pre_defined_var v)
 __attribute__((visibility("hidden")));
 
 #ifdef __cplusplus

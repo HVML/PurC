@@ -10,6 +10,18 @@
             <update on="$@" to="append" with="$MATH.eval("sin(3)")"/>
             <update on="$@" to="append" with=","/>
             <update on="$@" to="append" with="$MATH.eval("log(3)")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("(500 + 10) * (700 + 30)")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * pi * r", { pi: $MATH.pi, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { PI: $MATH.pi, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { PI: 3, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("LN2")"/>
         </div>
     </body>
 </hvml>

@@ -234,6 +234,42 @@ struct travel_context {
 };
 
 static bool
+move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t obj)
+{
+    purc_variant_t k,v;
+    foreach_key_value_in_variant_object(obj, k, v) {
+
+        if (IS_CONTAINER(v->type)) {
+            PC_DEBUG("Move in a key %s (%u): %s\n",
+                    purc_variant_typename(k->type),
+                    (unsigned)move_heap.stat.nr_values[k->type],
+                    purc_variant_get_string_const(k));
+        }
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            move_variant_in(ctxt->inst, k);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            move_variant_in(ctxt->inst, k);
+            move_keys_in_cloned_object(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            move_variant_in(ctxt->inst, k);
+            break;
+
+        default:
+            break;
+        }
+
+    } end_foreach;
+
+    return true;
+}
+
+static bool
 move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
         purc_variant_t v);
 static bool
@@ -287,44 +323,10 @@ move_or_clone_mutable_descendants_in_array(struct travel_context *ctxt,
                 return false;
             }
 
+            move_keys_in_cloned_object(ctxt, retv);
+
             _p->val = retv;
             pcutils_arrlist_append(ctxt->vrts_to_unref, v);
-        }
-
-    } end_foreach;
-
-    return true;
-}
-
-static bool
-move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t obj)
-{
-    purc_variant_t k,v;
-    foreach_key_value_in_variant_object(obj, k, v) {
-
-        if (IS_CONTAINER(v->type)) {
-            PC_DEBUG("Move in a key %s (%u): %s\n",
-                    purc_variant_typename(k->type),
-                    (unsigned)move_heap.stat.nr_values[k->type],
-                    purc_variant_get_string_const(k));
-        }
-
-        switch (v->type) {
-        case PURC_VARIANT_TYPE_ARRAY:
-            move_variant_in(ctxt->inst, k);
-            break;
-
-        case PURC_VARIANT_TYPE_OBJECT:
-            move_variant_in(ctxt->inst, k);
-            move_keys_in_cloned_object(ctxt, v);
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            move_variant_in(ctxt->inst, k);
-            break;
-
-        default:
-            break;
         }
 
     } end_foreach;
@@ -444,6 +446,8 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 return false;
             }
+
+            move_keys_in_cloned_object(ctxt, retv);
 
             _sn->val = retv;
             pcutils_arrlist_append(ctxt->vrts_to_unref, v);
@@ -663,12 +667,10 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
         else {
             retv = purc_variant_container_clone_recursively(v);
 
-            if (v->type == PURC_VARIANT_TYPE_OBJECT) {
-                /* XXX: for cloned object, we need to move in the cloned keys,
-                 * cause purc_variant_container_clone_recursively() only
-                 * references the keys */
-                move_keys_in_cloned_object(&ctxt, retv);
-            }
+            /* XXX: for cloned object, we need to move in the cloned keys,
+             * cause purc_variant_container_clone_recursively() only
+             * references the keys */
+            move_keys_in_cloned_object(&ctxt, retv);
         }
 
         move_or_clone_immutable_descendants(&ctxt, retv);

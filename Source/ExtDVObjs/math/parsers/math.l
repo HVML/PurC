@@ -105,7 +105,39 @@ tan              { C(); R(); return MKT(TAN); }
 asin             { C(); R(); return MKT(ASIN); }
 acos             { C(); R(); return MKT(ACOS); }
 atan             { C(); R(); return MKT(ATAN); }
+sinh             { C(); R(); return MKT(SINH); }
+cosh             { C(); R(); return MKT(COSH); }
+tanh             { C(); R(); return MKT(TANH); }
+asinh            { C(); R(); return MKT(ASINH); }
+acosh            { C(); R(); return MKT(ACOSH); }
+atanh            { C(); R(); return MKT(ATANH); }
+atan2            { C(); R(); return MKT(ATAN2); }
+cbrt             { C(); R(); return MKT(CBRT); }
+exp              { C(); R(); return MKT(EXP); }
+hypot            { C(); R(); return MKT(HYPOT); }
 log              { C(); R(); return MKT(LOG); }
+log10            { C(); R(); return MKT(LOG10); }
+log2             { C(); R(); return MKT(LOG2); }
+pow              { C(); R(); return MKT(POW); }
+sqrt             { C(); R(); return MKT(SQRT); }
+ceil             { C(); R(); return MKT(CEIL); }
+floor            { C(); R(); return MKT(FLOOR); }
+round            { C(); R(); return MKT(ROUND); }
+trunc            { C(); R(); return MKT(TRUNC); }
+abs              { C(); R(); return MKT(ABS); }
+max              { C(); R(); return MKT(MAX); }
+min              { C(); R(); return MKT(MIN); }
+random           { C(); R(); return MKT(RANDOM); }
+sign             { C(); R(); return MKT(SIGN); }
+
+PI               { C(); SET_TOKEN(); R(); return MKT(PI); }
+E                { C(); SET_TOKEN(); R(); return MKT(E); }
+LN2              { C(); SET_TOKEN(); R(); return MKT(LN2); }
+LN10             { C(); SET_TOKEN(); R(); return MKT(LN10); }
+LOG2E            { C(); SET_TOKEN(); R(); return MKT(LOG2E); }
+LOG10E           { C(); SET_TOKEN(); R(); return MKT(LOG10E); }
+SQRT1_2          { C(); SET_TOKEN(); R(); return MKT(SQRT1_2); }
+SQRT2            { C(); SET_TOKEN(); R(); return MKT(SQRT2); }
 
 [_[:alpha:]][[:alnum:]]*  { C(); SET_TOKEN(); R(); return MKT(VAR); }
 
