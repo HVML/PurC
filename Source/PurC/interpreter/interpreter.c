@@ -3455,18 +3455,6 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
 
     PC_ASSERT(pcintr_get_heap());
 
-//    struct pcinst *inst = (struct pcinst *)data;
-    struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
-
-    if (conn) {
-        pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
-        if (!handle) {
-            pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
-        }
-        pcrdr_wait_and_dispatch_message(conn, 1);
-        purc_clr_error();
-    }
-
     pcintr_dispatch_msg();
 
     pcintr_coroutine_t co = pcintr_get_coroutine();

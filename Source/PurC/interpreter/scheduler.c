@@ -301,12 +301,29 @@ execute_one_step(struct pcinst *inst)
     return nr_ready;
 }
 
+
+void
+check_and_dispatch_event_from_conn()
+{
+    struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
+
+    if (conn) {
+        pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
+        if (!handle) {
+            pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
+        }
+        pcrdr_wait_and_dispatch_message(conn, 1);
+        purc_clr_error();
+    }
+}
+
 static size_t
 dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(nr_stopped);
     UNUSED_PARAM(nr_observing);
+    check_and_dispatch_event_from_conn();
     return 0;
 }
 
