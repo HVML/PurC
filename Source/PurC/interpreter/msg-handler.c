@@ -95,8 +95,7 @@ on_observer_matched(void *ud)
         purc_variant_unref(p->source);
     }
 
-    //pcintr_execute_one_step_for_ready_co(co);
-    // wait scheduler by pcintr_schedule
+    // scheduler by pcintr_schedule
     co->state = CO_STATE_READY;
 
     free(p);
