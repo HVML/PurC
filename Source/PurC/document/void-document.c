@@ -114,23 +114,27 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
     return NULL;
 }
 
-static size_t children_count(purc_document_t doc, pcdoc_element_t elem)
+static size_t
+children_count(purc_document_t doc, pcdoc_element_t elem, pcdoc_node_type type)
 {
     UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
+    UNUSED_PARAM(type);
 
     return 0;
 }
 
-static pcdoc_node get_child(purc_document_t doc,
-            pcdoc_element_t elem, size_t idx)
+static pcdoc_node
+get_child(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_node_type type, size_t idx)
 {
     UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
+    UNUSED_PARAM(type);
     UNUSED_PARAM(idx);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_ELEMENT;
+    node.type = PCDOC_NODE_NULL;
     node.elem = (pcdoc_element_t)NULL;
     return node;
 }

@@ -162,13 +162,13 @@ pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
 size_t
 pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem)
 {
-    return doc->ops->children_count(doc, elem);
+    return doc->ops->children_count(doc, elem, PCDOC_NODE_ELEMENT);
 }
 
 pcdoc_node
 pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem, size_t idx)
 {
-    return doc->ops->get_child(doc, elem, idx);
+    return doc->ops->get_child(doc, elem, PCDOC_NODE_ELEMENT, idx);
 }
 
 pcdoc_element_t

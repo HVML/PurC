@@ -71,9 +71,10 @@ typedef struct pcdoc_node_others *pcdoc_node_others_t;
 typedef enum {
     PCDOC_NODE_NULL = 0,
     PCDOC_NODE_ELEMENT,
-    PCDOC_NODE_TEXT_CONTENT,
-    PCDOC_NODE_DATA_CONTENT,
+    PCDOC_NODE_TEXT,
+    PCDOC_NODE_DATA,
     PCDOC_NODE_OTHERS,
+    PCDOC_NODE_ANY = -1,
 } pcdoc_node_type;
 
 typedef struct {

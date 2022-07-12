@@ -64,9 +64,10 @@ struct purc_document_ops {
 
     pcdoc_element_t (*get_parent)(purc_document_t doc, pcdoc_node node);
 
-    size_t (*children_count)(purc_document_t doc, pcdoc_element_t elem);
+    size_t (*children_count)(purc_document_t doc, pcdoc_element_t elem,
+            pcdoc_node_type type);
     pcdoc_node (*get_child)(purc_document_t doc,
-            pcdoc_element_t elem, size_t idx);
+            pcdoc_element_t elem, pcdoc_node_type type, size_t idx);
 
     bool (*get_attribute)(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len);

@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "purc-document.h"
 #include "purc-errors.h"
 #include "purc-html.h"
@@ -438,38 +440,120 @@ static bool set_attribute(purc_document_t doc,
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
-            pcdoc_special_elem elem)
+            pcdoc_special_elem which)
 {
-    UNUSED_PARAM(elem);
+    pchtml_html_document_t *html_doc = (pchtml_html_document_t *)doc->impl;
 
-    return (pcdoc_element_t)doc;
+    switch (which) {
+    case PCDOC_SPECIAL_ELEM_ROOT:
+        return (pcdoc_element_t)pchtml_doc_get_document(html_doc)->element;
+
+    case PCDOC_SPECIAL_ELEM_HEAD:
+        return (pcdoc_element_t)pchtml_doc_get_head(html_doc);
+
+    case PCDOC_SPECIAL_ELEM_BODY:
+        return (pcdoc_element_t)pchtml_doc_get_body(html_doc);
+    }
+
+    return NULL;
 }
 
 static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(doc);
-    UNUSED_PARAM(node);
-    return NULL;
+
+    assert(node.type != PCDOC_NODE_NULL && node.type != PCDOC_NODE_OTHERS);
+
+    pcdom_node_t *dom_node = pcdom_interface_node(node.elem);
+
+    assert(dom_node->parent->type == PCDOM_NODE_TYPE_ELEMENT);
+
+    return (pcdoc_element_t)dom_node->parent;
 }
 
-static size_t children_count(purc_document_t doc, pcdoc_element_t elem)
+static size_t children_count(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_node_type type)
 {
     UNUSED_PARAM(doc);
-    UNUSED_PARAM(elem);
 
-    return 0;
+    size_t n = 0;
+    pcdom_node_t *dom_node = pcdom_interface_node(elem);
+
+    pcdom_node_t *child = dom_node->first_child;
+    while (child) {
+        // TODO: CDATA Section
+        if (type == PCDOC_NODE_ANY ||
+                (type == PCDOC_NODE_ELEMENT &&
+                 child->type == PCDOM_NODE_TYPE_ELEMENT) ||
+                (type == PCDOC_NODE_TEXT &&
+                 child->type == PCDOM_NODE_TYPE_TEXT)) {
+            n++;
+        }
+
+        child = child->next;
+    }
+
+    return n;
+}
+
+static inline pcdoc_node_type
+node_type(pcdom_node_type_t type)
+{
+    switch (type) {
+        case PCDOM_NODE_TYPE_ELEMENT:
+            return PCDOC_NODE_ELEMENT;
+        case PCDOM_NODE_TYPE_TEXT:
+            return PCDOC_NODE_TEXT;
+        case PCDOM_NODE_TYPE_CDATA_SECTION:
+        case PCDOM_NODE_TYPE_COMMENT:
+            break;
+        default:
+            assert(0);
+            break;
+    }
+
+    return PCDOC_NODE_OTHERS;
 }
 
 static pcdoc_node get_child(purc_document_t doc,
-            pcdoc_element_t elem, size_t idx)
+            pcdoc_element_t elem, pcdoc_node_type type, size_t idx)
 {
     UNUSED_PARAM(doc);
-    UNUSED_PARAM(elem);
-    UNUSED_PARAM(idx);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_ELEMENT;
+    node.type = PCDOC_NODE_NULL;
     node.elem = (pcdoc_element_t)NULL;
+
+    size_t i = 0;
+    pcdom_node_t *dom_node = pcdom_interface_node(elem);
+
+    pcdom_node_t *child = dom_node->first_child;
+    while (child) {
+        // TODO: CDATA Section
+        if (type == PCDOC_NODE_ANY) {
+            if (i == idx) {
+                node.type = node_type(child->type);
+                node.elem = (pcdoc_element_t)child;
+                return node;
+            }
+
+            i++;
+        }
+        else if ((type == PCDOC_NODE_ELEMENT ||
+                    type == PCDOC_NODE_TEXT) &&
+                node_type(child->type) == type) {
+            if (i == idx) {
+                node.type = type;
+                node.elem = (pcdoc_element_t)child;
+                return node;
+            }
+
+            i++;
+        }
+
+        child = child->next;
+    }
+
     return node;
 }
 
@@ -477,22 +561,39 @@ static bool get_attribute(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len)
 {
     UNUSED_PARAM(doc);
-    UNUSED_PARAM(elem);
-    UNUSED_PARAM(name);
 
-    *val = "";
-    if (len) *len = 0;
-    return true;
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+    pcdom_attr_t *attr = pcdom_element_first_attribute(dom_elem);
+
+    while (attr) {
+        const char *str;
+        size_t sz;
+
+        str = (const char *)pcdom_attr_local_name(attr, &sz);
+        if (strcasecmp(name, str) == 0) {
+            *val = (const char *)pcdom_attr_value(attr, &sz);
+            if (len)
+                *len = sz;
+            return true;
+        }
+
+        attr = pcdom_element_next_attribute(attr);
+    }
+
+    return false;
 }
 
 static bool get_text(purc_document_t doc, pcdoc_text_node_t text_node,
             const char **text, size_t *len)
 {
     UNUSED_PARAM(doc);
-    UNUSED_PARAM(text_node);
 
-    *text = "";
-    if (len) *len = 0;
+    pcdom_text_t *dom_text;
+    dom_text = pcdom_interface_text(text_node);
+    *text = (const char *)dom_text->char_data.data.data;
+    if (len)
+        *len = dom_text->char_data.data.length;
+
     return true;
 }
 
