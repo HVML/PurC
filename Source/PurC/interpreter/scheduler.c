@@ -294,11 +294,9 @@ execute_one_step(struct pcinst *inst)
 
         execute_one_step_for_ready_co(inst, co);
 
-#if 0
         if (co->state == CO_STATE_READY) {
             nr_ready++;
         }
-#endif
     }
     return nr_ready;
 }
