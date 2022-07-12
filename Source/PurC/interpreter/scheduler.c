@@ -86,7 +86,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         case CO_STATE_READY:
             break;
         case CO_STATE_RUNNING:
-            pcintr_coroutine_set_state(co, CO_STATE_READY);
             break;
         case CO_STATE_STOPPED:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
@@ -113,6 +112,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (frame) {
+        pcintr_coroutine_set_state(co, CO_STATE_READY);
         if (co->execution_pending == 0) {
             co->execution_pending = 1;
             //pcintr_wakeup_target(co, run_ready_co);
@@ -182,6 +182,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         PC_ASSERT(list_empty(&co->stack.native_observers));
         pcintr_revoke_all_common_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.common_observers));
+        pcintr_coroutine_set_state(co, CO_STATE_EXITED);
     }
 
     bool still_observed = pcintr_co_is_observed(co);
@@ -255,7 +256,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_READY);
     pcintr_run_exiting_co(co);
 }
 

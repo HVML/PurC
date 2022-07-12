@@ -1782,6 +1782,7 @@ void pcintr_run_exiting_co(void *ctxt)
     PC_ASSERT(co);
     switch (co->state) {
         case CO_STATE_READY:
+        case CO_STATE_EXITED:
             pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
             coroutine_set_current(co);
             execute_one_step_for_exiting_co(co);
@@ -1914,7 +1915,7 @@ pcintr_on_msg(void *ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
 
     PC_ASSERT(co->msg_pending);
     co->msg_pending = 0;

@@ -53,8 +53,7 @@ on_observer_matched(void *ud)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
 
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    //PC_ASSERT(co->state == CO_STATE_RUNNING);
 
     // FIXME:
     // push stack frame
