@@ -30,10 +30,10 @@
 #include "config.h"
 
 #include "purc-document.h"
+#include "purc-utils.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/sorted-array.h"
 #include "private/html.h"
 
 struct purc_document_ops {
@@ -77,18 +77,19 @@ struct purc_document_ops {
     bool (*get_data)(purc_document_t doc, pcdoc_data_node_t data_node,
         purc_variant_t *data);
 
+    pcdoc_element_t (*find_elem)(purc_document_t doc, pcdoc_element_t scope,
+            const char *selector);
+
     bool (*elem_coll_select)(purc_document_t doc,
             pcdoc_elem_coll_t coll, pcdoc_element_t scope,
-            const char *css_selector);
+            const char *selector);
 
     bool (*elem_coll_filter)(purc_document_t doc,
             pcdoc_elem_coll_t dst_coll,
-            pcdoc_elem_coll_t src_coll, const char *css_selector);
+            pcdoc_elem_coll_t src_coll, const char *selector);
 };
 
 struct purc_document {
-    uintptr_t age;
-
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;
@@ -99,22 +100,12 @@ struct purc_document {
 };
 
 struct pcdoc_elem_coll {
-    /* the document age when this collection created */
-    uintptr_t   doc_age;
-
     /* the CSS selector */
     char       *selector;
-
-    /* the reference count of the collection */
     unsigned    refc;
-    bool        scope_or_coll;
 
-    union {
-        pcdoc_element_t     scope_elem;
-        pcdoc_elem_coll_t   super_coll;
-    };
-
-    struct sorted_array *sa_elems;
+    /* the elements in the collection */
+    struct pcutils_arrlist *elems;
 };
 
 #ifdef __cplusplus

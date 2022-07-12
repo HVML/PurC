@@ -280,14 +280,24 @@ PCA_EXPORT pcdoc_element_t
 pcdoc_node_get_parent(purc_document_t doc, pcdoc_node_t node);
 
 /**
- * Create an element collection by selecting the elements from
- * the whole document according to the CSS selector.
+ * Find the first element matching the CSS selector from the descendants.
  *
- * Returns: A pointer to the element collection; @NULL on failure.
+ * Returns: the pointer to the matching element or @NULL if no such one.
  */
-PCA_EXPORT pcdoc_elem_coll_t
-pcdoc_elem_coll_new_from_document(purc_document_t doc,
-        const char *css_selector);
+PCA_EXPORT pcdoc_element_t
+pcdoc_find_element_in_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *selector);
+
+/**
+ * Find the first element matching the CSS selector in the document.
+ *
+ * Returns: the pointer to the matching element or @NULL if no such one.
+ */
+static inline pcdoc_element_t
+pcdoc_find_element_in_document(purc_document_t doc, const char *selector)
+{
+    return pcdoc_find_element_in_descendants(doc, NULL, selector);
+}
 
 /**
  * Create an element collection by selecting the elements from the descendants
@@ -297,7 +307,20 @@ pcdoc_elem_coll_new_from_document(purc_document_t doc,
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *css_selector);
+        pcdoc_element_t ancestor, const char *selector);
+
+/**
+ * Create an element collection by selecting the elements from
+ * the whole document according to the CSS selector.
+ *
+ * Returns: A pointer to the element collection; @NULL on failure.
+ */
+static inline pcdoc_elem_coll_t
+pcdoc_elem_coll_new_from_document(purc_document_t doc,
+        const char *selector)
+{
+    return pcdoc_elem_coll_new_from_descendants(doc, NULL, selector);
+}
 
 /**
  * Create a new element collection by selecting a part of elements
@@ -307,7 +330,7 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_select(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll, const char *css_selector);
+        pcdoc_elem_coll_t elem_coll, const char *selector);
 
 /**
  * Delete the speicified element collection.

@@ -166,26 +166,89 @@ pcdoc_node_get_parent(purc_document_t doc, pcdoc_node_t node)
     return doc->ops->get_parent(doc, node);
 }
 
+pcdoc_element_t
+pcdoc_find_element_in_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *selector)
+{
+    pcdoc_element_t found;
+
+    if (doc->ops->find_elem) {
+        if (ancestor == NULL)
+            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+
+        found = doc->ops->find_elem(doc, ancestor, selector);
+    }
+    else {
+        found = NULL;
+    }
+
+    return found;
+}
+
 static pcdoc_elem_coll_t
-element_collection_new(purc_document_t doc, bool scope_or_coll,
-        const char *selector)
+element_collection_new(const char *selector)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
     coll->selector = selector ? strdup(selector) : NULL;
-    coll->doc_age = doc->age;
     coll->refc = 1;
-    coll->scope_or_coll = scope_or_coll;
-
-    coll->sa_elems = pcutils_sorted_array_create(SAFLAG_DEFAULT,
-            0, NULL, NULL);
+    coll->elems = pcutils_arrlist_new_ex(NULL, 4);
 
     return coll;
 }
 
+pcdoc_elem_coll_t
+pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *selector)
+{
+    pcdoc_elem_coll_t coll = element_collection_new(selector);
+
+    if (doc->ops->elem_coll_select) {
+        if (ancestor == NULL) {
+            ancestor = doc->ops->special_elem(doc,
+                    PCDOC_SPECIAL_ELEM_ROOT);
+        }
+
+        if (!doc->ops->elem_coll_select(doc, coll, ancestor, selector)) {
+            pcdoc_elem_coll_delete(doc, coll);
+            coll = NULL;
+        }
+    }
+
+    return coll;
+}
+
+pcdoc_elem_coll_t
+pcdoc_elem_coll_filter(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll, const char *selector)
+{
+    pcdoc_elem_coll_t dst_coll = element_collection_new(selector);
+
+    if (doc->ops->elem_coll_filter) {
+        if (!doc->ops->elem_coll_filter(doc, dst_coll,
+                elem_coll, selector)) {
+            pcdoc_elem_coll_delete(doc, dst_coll);
+            dst_coll = NULL;
+        }
+    }
+
+    return dst_coll;
+}
+
+void
+pcdoc_elem_coll_delete(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll)
+{
+    UNUSED_PARAM(doc);
+
+    pcutils_arrlist_free(elem_coll->elems);
+    return free(elem_coll);
+}
+
+#if 0
 static void
 element_collection_delete(pcdoc_elem_coll_t coll)
 {
-    pcutils_sorted_array_destroy(coll->sa_elems);
+    pcutils_arrlist_free(coll->elems);
     return free(coll);
 }
 
@@ -203,10 +266,6 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
 {
     UNUSED_PARAM(doc);
 
-    if (!coll->scope_or_coll) {
-        element_collection_unref(doc, coll->super_coll);
-    }
-
     if (coll->refc <= 1) {
         element_collection_delete(coll);
     }
@@ -214,69 +273,5 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
         coll->refc--;
     }
 }
-
-pcdoc_elem_coll_t
-pcdoc_elem_coll_new_from_document(purc_document_t doc,
-        const char *css_selector)
-{
-    pcdoc_elem_coll_t coll = element_collection_new(doc, true, css_selector);
-
-    if (doc->ops->elem_coll_select) {
-        coll->scope_elem = doc->ops->special_elem(doc,
-                PCDOC_SPECIAL_ELEM_ROOT);
-
-        if (!doc->ops->elem_coll_select(doc,
-                    coll, coll->scope_elem, css_selector)) {
-            element_collection_delete(coll);
-            coll = NULL;
-        }
-    }
-
-    return coll;
-}
-
-pcdoc_elem_coll_t
-pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *css_selector)
-{
-    pcdoc_elem_coll_t coll = element_collection_new(doc, true, css_selector);
-
-    if (doc->ops->elem_coll_select) {
-        coll->scope_elem = ancestor;
-
-        if (!doc->ops->elem_coll_select(doc,
-                    coll, coll->scope_elem, css_selector)) {
-            element_collection_delete(coll);
-            coll = NULL;
-        }
-    }
-
-    return coll;
-}
-
-pcdoc_elem_coll_t
-pcdoc_elem_coll_filter(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll, const char *css_selector)
-{
-    pcdoc_elem_coll_t dst_coll =
-        element_collection_new(doc, false, css_selector);
-
-    if (doc->ops->elem_coll_filter) {
-        dst_coll->super_coll = element_collection_ref(doc, elem_coll);
-        if (!doc->ops->elem_coll_filter(doc, dst_coll,
-                elem_coll, css_selector)) {
-            element_collection_delete(dst_coll);
-            dst_coll = NULL;
-        }
-    }
-
-    return dst_coll;
-}
-
-void
-pcdoc_elem_coll_delete(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll)
-{
-    element_collection_unref(doc, elem_coll);
-}
+#endif
 
