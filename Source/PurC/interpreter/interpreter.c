@@ -2226,51 +2226,23 @@ static void run_ready_co(void)
     }
 }
 
-static void execute_main_for_ready_co(pcintr_coroutine_t co)
+static void init_frame_for_co(pcintr_coroutine_t co)
 {
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
-
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
-
     struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = pcintr_push_stack_frame_normal(stack);
-    if (!frame_normal)
+    if (!frame_normal) {
         return;
+    }
 
     frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
-}
-
-static void run_co_main(void)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
-            execute_main_for_ready_co(co);
-            check_after_execution(co);
-            break;
-        case CO_STATE_RUN:
-            PC_ASSERT(0);
-            break;
-        case CO_STATE_WAIT:
-            PC_ASSERT(0);
-            break;
-        default:
-            PC_ASSERT(0);
-    }
+    co->execution_pending = 1;
 }
 
 static int set_coroutine_id(pcintr_coroutine_t coroutine)
@@ -2439,7 +2411,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
         return NULL;
     }
 
-    pcintr_wakeup_target(co, run_co_main);
+    init_frame_for_co(co);
+    pcintr_wakeup_target(co, run_ready_co);
     return co;
 }
 
@@ -3883,7 +3856,8 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
 
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
-        pcintr_wakeup_target(child, run_co_main);
+        init_frame_for_co(child);
+        pcintr_wakeup_target(child, run_ready_co);
     } while (0);
 
     return child;
@@ -3913,7 +3887,8 @@ pcintr_load_child_co(const char *hvml,
         PC_ASSERT(co->stack.vdom);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
-        pcintr_wakeup_target(child, run_co_main);
+        init_frame_for_co(child);
+        pcintr_wakeup_target(child, run_ready_co);
     } while (0);
 
     return child;

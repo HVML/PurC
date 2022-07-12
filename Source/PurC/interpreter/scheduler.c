@@ -87,6 +87,11 @@ pcintr_schedule(void *ctxt)
     }
 
 
+    // 1. exec one step for all ready coroutine
+
+    // 2. check message queue
+
+    // 3. if no event, try generate idle event
     // check if all coroutine STACK_STAGE_EVENT_LOOP
     struct rb_root *coroutines = &heap->coroutines;
     struct rb_node *p, *n;
