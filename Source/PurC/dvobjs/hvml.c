@@ -41,15 +41,15 @@
 #define DEFAULT_HVML_TIMEOUT_NSEC   (long)((DEFAULT_HVML_TIMEOUT -  \
             DEFAULT_HVML_TIMEOUT_SEC) * 1000000000)
 
-static inline struct purc_hvml_ctrl_props *
-hvml_ctrl_props(purc_variant_t root)
+static inline pcintr_coroutine_t
+hvml_ctrl_coroutine(purc_variant_t root)
 {
     purc_variant_t var;
 
     var = purc_variant_object_get_by_ckey(root, DVOBJ_HVML_DATA_NAME);
     assert(var && purc_variant_is_native(var));
 
-    return (struct purc_hvml_ctrl_props *)purc_variant_native_get_entity(var);
+    return (pcintr_coroutine_t)purc_variant_native_get_entity(var);
 }
 
 static purc_variant_t
@@ -61,10 +61,10 @@ target_getter(purc_variant_t root,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    return purc_variant_make_string_static(ctrl_props->target, false);
+    return purc_variant_make_string_static(cor->target, false);
 }
 
 static purc_variant_t
@@ -86,10 +86,10 @@ base_getter(purc_variant_t root,
     }
 #endif
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    return purc_variant_make_string_static(ctrl_props->base_url_string, false);
+    return purc_variant_make_string_static(cor->base_url_string, false);
 }
 
 static purc_variant_t
@@ -122,11 +122,11 @@ base_setter(purc_variant_t root,
         goto failed;
     }
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
     /*
-     * If the url is invalid, ctrl_props->base_url_broken_down should not
+     * If the url is invalid, cor->base_url_broken_down should not
      * be changed. If the url is valid, perhaps the string returned
      * by pcutils_url_assemble() is not identical to the input string.
      *
@@ -135,11 +135,11 @@ base_setter(purc_variant_t root,
      * The input string is `http://www.minigui.org`, but the the output string
      * of pcutils_url_assemble() is `http://www.minigui.org/`
      */
-    if (pcutils_url_break_down(&(ctrl_props->base_url_broken_down), url)) {
-        char *url = pcutils_url_assemble(&ctrl_props->base_url_broken_down);
+    if (pcutils_url_break_down(&(cor->base_url_broken_down), url)) {
+        char *url = pcutils_url_assemble(&cor->base_url_broken_down);
         if (url) {
-            free(ctrl_props->base_url_string);
-            ctrl_props->base_url_string = url;
+            free(cor->base_url_string);
+            cor->base_url_string = url;
             return purc_variant_make_string_static(url, false);
         }
         else {
@@ -177,10 +177,10 @@ max_iteration_count_getter(purc_variant_t root,
     }
 #endif
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    return purc_variant_make_ulongint(ctrl_props->max_iteration_count);
+    return purc_variant_make_ulongint(cor->max_iteration_count);
 }
 
 static purc_variant_t
@@ -211,10 +211,10 @@ max_iteration_count_setter(purc_variant_t root,
 
     uint64_t u64;
     if (purc_variant_cast_to_ulongint(argv[0], &u64, false) && u64 > 0) {
-        struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-        assert(ctrl_props);
+        pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+        assert(cor);
 
-        ctrl_props->max_iteration_count = u64;
+        cor->max_iteration_count = u64;
         return purc_variant_make_ulongint(u64);
     }
     else {
@@ -246,10 +246,10 @@ max_recursion_depth_getter(purc_variant_t root,
     }
 #endif
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    return purc_variant_make_ulongint(ctrl_props->max_recursion_depth);
+    return purc_variant_make_ulongint(cor->max_recursion_depth);
 }
 
 static purc_variant_t
@@ -279,10 +279,10 @@ max_recursion_depth_setter(purc_variant_t root,
     uint64_t u64;
     if (purc_variant_cast_to_ulongint(argv[0], &u64, false) &&
             u64 > 0 && u64 <= USHRT_MAX) {
-        struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-        assert(ctrl_props);
+        pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+        assert(cor);
 
-        ctrl_props->max_recursion_depth = u64;
+        cor->max_recursion_depth = u64;
         return purc_variant_make_ulongint(u64);
     }
 
@@ -302,10 +302,10 @@ max_embedded_levels_getter(purc_variant_t root,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    return purc_variant_make_ulongint(ctrl_props->max_embedded_levels);
+    return purc_variant_make_ulongint(cor->max_embedded_levels);
 }
 
 static purc_variant_t
@@ -320,10 +320,10 @@ max_embedded_levels_setter(purc_variant_t root,
     uint64_t u64;
     if (purc_variant_cast_to_ulongint(argv[0], &u64, false) &&
             u64 > 0 && u64 <= MAX_EMBEDDED_LEVELS) {
-        struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-        assert(ctrl_props);
+        pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+        assert(cor);
 
-        ctrl_props->max_embedded_levels = u64;
+        cor->max_embedded_levels = u64;
         return purc_variant_make_ulongint(u64);
     }
     else {
@@ -355,11 +355,11 @@ timeout_getter(purc_variant_t root,
     }
 #endif
 
-    struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-    assert(ctrl_props);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    assert(cor);
 
-    double number = (double)ctrl_props->timeout.tv_sec +
-                (double)ctrl_props->timeout.tv_nsec / 1000000000.0;
+    double number = (double)cor->timeout.tv_sec +
+                (double)cor->timeout.tv_nsec / 1000000000.0;
     return purc_variant_make_number(number);
 }
 
@@ -391,13 +391,13 @@ timeout_setter(purc_variant_t root,
 
     double number = 0.0;
     if (purc_variant_cast_to_number(argv[0], &number, false)) {
-        struct purc_hvml_ctrl_props *ctrl_props = hvml_ctrl_props(root);
-        assert(ctrl_props);
+        pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+        assert(cor);
 
         if (number > 0.0) {
-            ctrl_props->timeout.tv_sec = (long)number;
-            ctrl_props->timeout.tv_nsec = (long)
-                ((number - ctrl_props->timeout.tv_sec) * 1000000000);
+            cor->timeout.tv_sec = (long)number;
+            cor->timeout.tv_nsec = (long)
+                ((number - cor->timeout.tv_sec) * 1000000000);
 
             return purc_variant_make_number(number);
         }
@@ -411,66 +411,56 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static void
-on_release(void* native_entity)
+static purc_variant_t
+cid_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
 {
-    struct purc_hvml_ctrl_props *ctrl_props;
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
-    assert(native_entity);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    return purc_variant_make_ulongint(cor->cid);
+}
 
-    ctrl_props = (struct purc_hvml_ctrl_props*)native_entity;
-    struct purc_broken_down_url *url = &ctrl_props->base_url_broken_down;
+static purc_variant_t
+uri_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
-    if (url->schema)
-        free(url->schema);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    const char *uri = pcintr_coroutine_get_uri(cor);
+    return purc_variant_make_string(uri, false);
+}
 
-    if (url->user)
-        free(url->user);
+static purc_variant_t
+token_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
 
-    if (url->passwd)
-        free(url->passwd);
-
-    if (url->host)
-        free(url->host);
-
-    if (url->path)
-        free(url->path);
-
-    if (url->query)
-        free(url->query);
-
-    if (url->fragment)
-        free(url->fragment);
-
-    if (ctrl_props->target)
-        free(ctrl_props->target);
-
-    if (ctrl_props->base_url_string)
-        free(ctrl_props->base_url_string);
-
-    free(native_entity);
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    const char *uri = pcintr_coroutine_get_uri(cor);
+    const char *token = pcutils_basename(uri);
+    if (token) {
+        return purc_variant_make_string(token, false);
+    }
+    return purc_variant_make_string(uri, false);
 }
 
 purc_variant_t
-purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
+purc_dvobj_hvml_new(pcintr_coroutine_t cor)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
-    struct purc_hvml_ctrl_props *my_props = NULL;
-
-    static const struct purc_native_ops ops = {
-        .property_getter        = NULL,
-        .property_setter        = NULL,
-        .property_eraser        = NULL,
-        .property_cleaner       = NULL,
-
-        .updater                = NULL,
-        .cleaner                = NULL,
-        .eraser                 = NULL,
-
-        .on_observe            = NULL,
-        .on_release            = on_release,
-    };
 
     static const struct purc_dvobj_method method [] = {
         { "target", target_getter, NULL },
@@ -482,6 +472,9 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
         { "max_embedded_levels",
             max_embedded_levels_getter, max_embedded_levels_setter },
         { "timeout", timeout_getter, timeout_setter },
+        { "cid",     cid_getter,     NULL },
+        { "uri",     uri_getter,     NULL },
+        { "token",   token_getter,   NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
@@ -490,33 +483,27 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
         goto failed;
     }
 
-    my_props = calloc(1, sizeof(struct purc_hvml_ctrl_props));
-    if (my_props == NULL) {
+    cor->target = strdup(DEFAULT_HVML_TARGET);
+    if (cor->target == NULL) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
-    my_props->target = strdup(DEFAULT_HVML_TARGET);
-    if (my_props->target == NULL) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    my_props->base_url_string = strdup(DEFAULT_HVML_BASE);
-    if (my_props->base_url_string == NULL ||
-            !pcutils_url_break_down(&my_props->base_url_broken_down,
+    cor->base_url_string = strdup(DEFAULT_HVML_BASE);
+    if (cor->base_url_string == NULL ||
+            !pcutils_url_break_down(&cor->base_url_broken_down,
                 DEFAULT_HVML_BASE)) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
-    my_props->max_iteration_count = UINT64_MAX;
-    my_props->max_recursion_depth = UINT16_MAX;
-    my_props->max_embedded_levels = DEF_EMBEDDED_LEVELS;
-    my_props->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
-    my_props->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
+    cor->max_iteration_count = UINT64_MAX;
+    cor->max_recursion_depth = UINT16_MAX;
+    cor->max_embedded_levels = DEF_EMBEDDED_LEVELS;
+    cor->timeout.tv_sec = DEFAULT_HVML_TIMEOUT_SEC;
+    cor->timeout.tv_nsec = DEFAULT_HVML_TIMEOUT_NSEC;
 
-    val = purc_variant_make_native((void *)my_props, &ops);
+    val = purc_variant_make_native((void *)cor, NULL);
     if (val == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
@@ -529,8 +516,6 @@ purc_dvobj_hvml_new(const struct purc_hvml_ctrl_props **ctrl_props)
     }
     purc_variant_unref(val);
 
-    if (ctrl_props)
-        *ctrl_props = my_props;
     return retv;
 
 failed:
@@ -538,8 +523,6 @@ failed:
         purc_variant_unref(val);
     if (retv)
         purc_variant_unref(retv);
-    if (my_props)
-        on_release(my_props);
 
     return PURC_VARIANT_INVALID;
 }

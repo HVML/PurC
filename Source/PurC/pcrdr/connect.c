@@ -309,10 +309,12 @@ handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
                 free(pr);
         }
         else {
+            purc_log_error("response not matched the first pending request\n");
             purc_set_error(PCRDR_ERROR_UNEXPECTED);
         }
     }
     else {
+        purc_log_error("no pending request?\n");
         purc_set_error(PCRDR_ERROR_UNEXPECTED);
     }
 

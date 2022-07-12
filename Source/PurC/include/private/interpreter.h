@@ -39,6 +39,8 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 
+#define PCINTR_MOVE_BUFFER_SIZE 64
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;
@@ -90,14 +92,14 @@ struct pcintr_heap {
     struct rb_root        coroutines;
 
     pthread_mutex_t       locker;
-    volatile bool         exiting;
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;
     purc_atom_t           move_buff;
     pcintr_timer_t        *event_timer; // 10ms
 
-    purc_event_handler    event_handler;
+    purc_cond_handler    cond_handler;
+    unsigned int         keep_alive:1;
 };
 
 struct pcintr_stack_frame;
@@ -155,74 +157,62 @@ struct pcintr_exception {
 };
 
 struct pcintr_stack {
-    struct pcintr_heap           *owning_heap;
-    struct list_head frames;
+    enum pcintr_stack_stage       stage;
 
+    struct list_head              frames;
     // the number of stack frames.
-    size_t nr_frames;
+    size_t                        nr_frames;
 
     // the pointer to the vDOM tree.
-    purc_vdom_t vdom;
-    struct pcvdom_element         *entry;
+    purc_vdom_t                   vdom;
+    struct pcvdom_element        *entry;
+    pchtml_html_document_t       *doc;
+
+    // for `back` to use
+    struct pcintr_stack_frame    *back_anchor;
 
     enum pcintr_stack_vdom_insertion_mode        mode;
 
-    // the returned variant
-    purc_variant_t ret_var;
-
     // executing state
     // FIXME: move to struct pcintr_coroutine?
-    // uint32_t        error:1;
-    uint32_t        except:1;
-    uint32_t        exited:1;
-    uint32_t volatile       last_msg_sent:1;
-    uint32_t volatile       last_msg_read:1;
-    /* uint32_t        paused:1; */
-
-    enum pcintr_stack_stage       stage;
+    // uint32_t                   error:1;
+    uint32_t                      except:1;
+    uint32_t                      exited:1;
+    uint32_t volatile             last_msg_sent:1;
+    uint32_t volatile             last_msg_read:1;
+    /* uint32_t                   paused:1; */
 
     // error or except info
     // valid only when except == 1
     struct pcintr_exception       exception;
 
-    // for `back` to use
-    struct pcintr_stack_frame         *back_anchor;
-
     // executing statistics
-    struct timespec time_executed;
-    struct timespec time_idle;
-    size_t          peak_mem_use;
-    size_t          peak_nr_variants;
+    struct timespec               time_executed;
+    struct timespec               time_idle;
+    size_t                        peak_mem_use;
+    size_t                        peak_nr_variants;
 
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
-    struct pcintr_coroutine       *co;
+    struct pcintr_coroutine      *co;
 
     // for observe
     // struct pcintr_observer
-    struct list_head common_variant_observer_list;
-    struct list_head dynamic_variant_observer_list;
-    struct list_head native_variant_observer_list;
-
-    pchtml_html_document_t     *doc;
-
-    // for loaded dynamic variants
-    struct rb_root             loaded_vars;  // struct pcintr_loaded_var*
-
-    // base uri
-    char* base_uri;
+    struct list_head              common_observers;
+    struct list_head              dynamic_observers;
+    struct list_head              native_observers;
 
 #if 0 // VW
     // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops         ops;
-    void                                *ctxt;  // no-owner-ship!!!
+    struct pcintr_supervisor_ops  ops;
+    void                         *ctxt;  // no-owner-ship!!!
 #endif
+    // async request ids (array)
+    purc_variant_t                async_request_ids;
 
-    purc_variant_t async_request_ids;       // async request ids (array)
 
-    struct rb_root  scoped_variables; // key: vdom_node
-                                      // val: pcvarmgr_t
-    struct pcintr_timers  *timers;
+    // key: vdom_node  val: pcvarmgr_t
+    struct rb_root                scoped_variables;
 };
 
 enum pcintr_coroutine_state {
@@ -256,23 +246,21 @@ struct pcintr_coroutine_result {
 
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
-    char                       *full_name;   /* prefixed with runnerName/ */
-    purc_atom_t                 ident;
+    purc_atom_t                 cid;
+    purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
 
-    const struct purc_hvml_ctrl_props     *hvml_ctrl_props;
-    char **dump_buff;
+    char                      **dump_buff;
 
     /* fields for renderer */
-    pcrdr_page_type target_page_type;
-    uint64_t        target_workspace_handle;
-    uint64_t        target_page_handle;
-    uint64_t        target_dom_handle;
+    pcrdr_page_type             target_page_type;
+    uint64_t                    target_workspace_handle;
+    uint64_t                    target_page_handle;
+    uint64_t                    target_dom_handle;
 
     struct rb_node              node;     /* heap::coroutines */
 
-    pcintr_coroutine_t          parent;
     struct list_head            children; /* struct pcintr_coroutine_result */
 
     pcintr_coroutine_result_t   result;
@@ -294,6 +282,33 @@ struct pcintr_coroutine {
     struct pcinst_msg_queue    *mq;     /* message queue */
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
+
+    /* $HVML  begin */
+    /** The target as a null-terminated string. */
+    char                       *target;
+
+    /** The base URL as a null-terminated string. */
+    char                       *base_url_string;
+
+    /** The base URL broken down. */
+    struct purc_broken_down_url base_url_broken_down;
+
+    /** The maximal iteration count. */
+    uint64_t                    max_iteration_count;
+    /** The maximal recursion depth. */
+    uint64_t                    max_recursion_depth;
+    /** The maximal embedded levels of a EJSON container. */
+    uint64_t                    max_embedded_levels;
+
+    /** The timeout value for a remote request. */
+    struct timespec             timeout;
+    /* $HVML  end */
+
+    struct pcintr_timers       *timers;     // $TIMERS
+    struct pcvarmgr            *variables;  // coroutine level named variable
+
+    // for loaded dynamic variants
+    struct rb_root              loaded_vars;  // struct pcintr_loaded_var*
 
     void                       *user_data;
 };
@@ -399,6 +414,7 @@ struct pcintr_dynamic_args {
 struct pcintr_observer {
     struct list_head            node;
 
+    pcintr_stack_t              stack;
     // the observed variant.
     purc_variant_t observed;
 
@@ -413,9 +429,6 @@ struct pcintr_observer {
 
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
-
-    // keep at_symbol
-    purc_variant_t at_symbol;
 
     // the arraylist containing this struct pointer
     struct list_head* list;
@@ -520,14 +533,14 @@ pcintr_get_coroutine_variable(purc_coroutine_t cor, const char* name)
     return purc_coroutine_get_variable(cor, name);
 }
 
-pcvarmgr_t
-pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node);
-
 static inline pcvarmgr_t
 pcintr_get_coroutine_variables(purc_coroutine_t cor)
 {
-    return pcintr_get_scoped_variables(cor, pcvdom_doc_cast_to_node(cor->vdom));
+    return cor->variables;
 }
+
+pcvarmgr_t
+pcintr_get_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node);
 
 static inline pcvarmgr_t
 pcintr_get_scope_variables(purc_coroutine_t cor, pcvdom_element_t elem)
@@ -572,14 +585,14 @@ bool
 pcintr_is_named_var_for_event(purc_variant_t val);
 
 // $TIMERS
-struct pcintr_timers*
-pcintr_timers_init(pcintr_stack_t stack);
+struct pcintr_timers *
+pcintr_timers_init(purc_coroutine_t cor);
 
 void
 pcintr_timers_destroy(struct pcintr_timers* timers);
 
 bool
-pcintr_is_timers(pcintr_stack_t stack, purc_variant_t v);
+pcintr_is_timers(purc_coroutine_t cor, purc_variant_t v);
 
 // type:sub_type
 bool
@@ -587,13 +600,13 @@ pcintr_parse_event(const char *event, purc_variant_t *type,
         purc_variant_t *sub_type);
 
 struct pcintr_observer*
-pcintr_register_observer(purc_variant_t observed,
+pcintr_register_observer(pcintr_stack_t stack,
+        purc_variant_t observed,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
         pcdom_element_t *edom_element,
         pcvdom_element_t pos,
-        purc_variant_t at_symbol,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
         );
@@ -602,7 +615,7 @@ void
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
 void
-pcintr_revoke_observer_ex(purc_variant_t observed,
+pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
 
 void
@@ -617,7 +630,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
         purc_variant_t payload);
 
 bool
-pcintr_load_dynamic_variant(pcintr_stack_t stack,
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len);
 
 // utilities
@@ -706,9 +719,6 @@ purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
 int
 pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 
-pcvarmgr_t
-pcintr_create_scoped_variables(struct pcvdom_node *node);
-
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
@@ -747,16 +757,28 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         purc_renderer_extra_info *extra_info);
 
 int
-pcintr_post_event(purc_atom_t co_id,
+pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
         purc_variant_t data);
 
 int
-pcintr_post_event_by_ctype(purc_atom_t co_id,
+pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
         const char *event_sub_type, purc_variant_t data);
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
 
 PCA_EXTERN_C_END
 

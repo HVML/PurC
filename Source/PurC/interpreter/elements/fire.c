@@ -244,7 +244,8 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(name);
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    purc_variant_t val = pcintr_eval_vdom_attr(pcintr_get_stack(), attr);
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
+    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -258,7 +259,6 @@ static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
     PC_ASSERT(stack && pos);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     if (stack->except)
         return NULL;
@@ -284,7 +284,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, NULL, attr_found);
+    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
 
@@ -308,13 +308,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t observed = pcintr_get_named_var_for_event(stack, name);
         if (observed) {
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co->ident,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+            int ret = pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     observed, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
-            purc_variant_unref(source_uri);
             purc_variant_unref(observed);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
@@ -327,26 +324,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // XXX: optimization
             // CSS selector used string
             // handle by elements.c match_observe
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co->ident,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+            int ret = pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
-            purc_variant_unref(source_uri);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }
         }
         else
         {
-            purc_variant_t source_uri = purc_variant_make_string(
-                    stack->co->full_name, false);
-            int ret = pcintr_post_event_by_ctype(stack->co->ident,
-                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE, source_uri,
+            int ret = pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     on, ctxt->msg_type, ctxt->sub_type,
                     ctxt->with);
-            purc_variant_unref(source_uri);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }
@@ -363,7 +354,6 @@ static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -443,7 +433,6 @@ static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;

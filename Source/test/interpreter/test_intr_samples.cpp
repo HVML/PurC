@@ -95,8 +95,8 @@ on_cleanup(pcintr_stack_t stack, void *ctxt)
 }
 #endif
 
-static int my_event_handler(purc_coroutine_t cor,
-        purc_event_t event, void *data)
+static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+        void *data)
 {
     void *user_data = purc_coroutine_get_user_data(cor);
     if (!user_data) {
@@ -105,7 +105,7 @@ static int my_event_handler(purc_coroutine_t cor,
 
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
-    if (event == PURC_EVENT_EXIT) {
+    if (event == PURC_COND_COR_EXITED) {
         pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
 
         if (ud->terminated) {
@@ -135,7 +135,7 @@ static int my_event_handler(purc_coroutine_t cor,
                 free(p);
         }
     }
-    else if (event == PURC_EVENT_DESTROY) {
+    else if (event == PURC_COND_COR_DESTROYED) {
         sample_destroy(ud);
     }
 
@@ -297,7 +297,7 @@ TEST(samples, files)
             }
             if (r)
                 break;
-            purc_run(my_event_handler);
+            purc_run((purc_cond_handler)my_cond_handler);
         } while (0);
         globfree(&globbuf);
     }

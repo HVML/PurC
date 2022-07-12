@@ -8,6 +8,7 @@
 #include "private/utils.h"
 #include "private/dvobjs.h"
 #include "private/vdom.h"
+#include "private/interpreter.h"
 
 #include "../helpers.h"
 
@@ -51,7 +52,11 @@ TEST(dvobjs, dvobjs_hvml_setter)
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t hvml = purc_dvobj_hvml_new(NULL);
+
+    purc_coroutine_t cor = (pcintr_coroutine_t)calloc(1, sizeof(*cor));
+    ASSERT_NE(cor, nullptr);
+
+    purc_variant_t hvml = purc_dvobj_hvml_new(cor);
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 
@@ -212,5 +217,45 @@ TEST(dvobjs, dvobjs_hvml_setter)
     }
 
     purc_variant_unref(hvml);
+
+    struct purc_broken_down_url *url = &cor->base_url_broken_down;
+
+    if (url->schema) {
+        free(url->schema);
+    }
+
+    if (url->user) {
+        free(url->user);
+    }
+
+    if (url->passwd) {
+        free(url->passwd);
+    }
+
+    if (url->host) {
+        free(url->host);
+    }
+
+    if (url->path) {
+        free(url->path);
+    }
+
+    if (url->query) {
+        free(url->query);
+    }
+
+    if (url->fragment) {
+        free(url->fragment);
+    }
+
+    if (cor->target) {
+        free(cor->target);
+    }
+
+    if (cor->base_url_string) {
+        free(cor->base_url_string);
+    }
+
+    free(cor);
     purc_cleanup ();
 }

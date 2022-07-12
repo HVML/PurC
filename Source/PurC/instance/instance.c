@@ -42,6 +42,7 @@
 #include "private/fetcher.h"
 #include "private/pcrdr.h"
 #include "private/msg-queue.h"
+#include "private/runners.h"
 #include "purc-runloop.h"
 
 #include "../interpreter/internal.h"
@@ -246,8 +247,6 @@ struct pcmodule* _pc_modules[] = {
 
     &_module_errmsg,
 
-    &_module_runloop,
-
     &_module_rwstream,
     &_module_dom,
     &_module_html,
@@ -259,6 +258,8 @@ struct pcmodule* _pc_modules[] = {
     &_module_ejson,
     &_module_dvobjs,
     &_module_hvml,
+
+    &_module_runloop,
 
     &_module_executor,
     &_module_interpreter,
@@ -352,7 +353,9 @@ static int init_modules(struct pcinst *curr_inst,
 
     curr_inst->max_conns                  = FETCHER_MAX_CONNS;
     curr_inst->cache_quota                = FETCHER_CACHE_QUOTA;
-    curr_inst->enable_remote_fetcher      = modules & PURC_HAVE_FETCHER_R;
+    if (modules & PURC_HAVE_FETCHER_R) {
+        curr_inst->enable_remote_fetcher      =  1;
+    }
 
     // call mdule initializers
     for (size_t i = 0; i < PCA_TABLESIZE(_pc_modules); ++i) {
@@ -361,8 +364,10 @@ static int init_modules(struct pcinst *curr_inst,
             continue;
         if (m->init_instance == NULL)
             continue;
-        if (m->init_instance(curr_inst, extra_info))
+        if (m->init_instance(curr_inst, extra_info)) {
+            abort();
             return PURC_ERROR_OUT_OF_MEMORY;
+        }
 
         curr_inst->modules_inited |= m->id;
     }
@@ -538,6 +543,13 @@ int purc_init_ex(unsigned int modules,
         return ret;
     }
 
+    struct pcrdr_conn *conn = purc_get_conn_to_renderer();
+    if (conn) {
+        pcrdr_conn_set_extra_message_source(conn, pcrun_extra_message_source,
+                NULL, NULL);
+        pcrdr_conn_set_request_handler(conn, pcrun_request_handler);
+    }
+
     /* it is ready now */
     curr_inst->errcode = PURC_ERROR_OK;
 
@@ -660,7 +672,7 @@ pcvarmgr_t pcinst_get_variables(void)
     return inst->variables;
 }
 
-purc_variant_t purc_get_variable(const char* name)
+purc_variant_t pcinst_get_variable(const char* name)
 {
     pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);

@@ -24,6 +24,7 @@ struct TestCase {
     char *html_path;
 };
 
+static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
 static inline void
 add_test_case(std::vector<TestCase> &test_cases,
         const char *name, const char *hvml,
@@ -110,8 +111,21 @@ TEST_P(TestHVMLTag, hvml_tags)
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);
 
-    purc_coroutine_t co = purc_schedule_vdom_null(vdom);
+    purc_variant_t request =
+        purc_variant_make_from_json_string(request_json,
+                strlen(request_json));
+    ASSERT_NE(request, nullptr);
+
+    purc_renderer_extra_info rdr_info = {};
+    rdr_info.title = "def_page_title";
+    purc_coroutine_t co = purc_schedule_vdom(vdom,
+            0, request, PCRDR_PAGE_TYPE_NULL,
+            "main",   /* target_workspace */
+            NULL,     /* target_group */
+            NULL,     /* page_name */
+            &rdr_info, NULL, NULL);
     ASSERT_NE(co, nullptr);
+    purc_variant_unref(request);
 
     pcintr_coroutine_set_dump_buff(co, &buf.dump_buff);
 

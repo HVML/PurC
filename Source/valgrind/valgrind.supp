@@ -10,7 +10,6 @@
    fun:call_init.part.0
    fun:call_init
    fun:_dl_init
-   obj:/usr/lib/x86_64-linux-gnu/ld-2.31.so
 }
 {
    <fun:_ZN7PurCWTF6Thread6createEPKcONS_8FunctionIFvvEEENS_10ThreadTypeE>
@@ -160,5 +159,23 @@
    obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0.6400.6
    fun:g_subprocess_launcher_spawnv
    fun:_ZN11PurCFetcher15ProcessLauncher13launchProcessEv
+}
+{
+   <_ZN7PurCWTF6Thread7didExitEv>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:_ZN7PurCWTF10fastMallocEm
+   fun:_ZN7PurCWTF16fastZeroedMallocEm
+   fun:_ZN7PurCWTF10FastMalloc12zeroedMallocEm
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E13allocateTableEj
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E6rehashEjPS2_
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E6shrinkEv
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E6removeEPS2_
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E47removeAndInvalidateWithoutEntryConsistencyCheckEPS2_
+   fun:_ZN7PurCWTF9HashTableIPNS_6ThreadES2_NS_17IdentityExtractorENS_7PtrHashIS2_EENS_10HashTraitsIS2_EES7_E34removeWithoutEntryConsistencyCheckENS_22HashTableConstIteratorIS2_S2_S3_S5_S7_S7_EE
+   fun:_ZN7PurCWTF7HashSetIPNS_6ThreadENS_7PtrHashIS2_EENS_10HashTraitsIS2_EEE6removeENS_29HashTableConstIteratorAdapterINS_9HashTableIS2_S2_NS_17IdentityExtractorES4_S6_S6_EES2_EE
+   fun:_ZN7PurCWTF7HashSetIPNS_6ThreadENS_7PtrHashIS2_EENS_10HashTraitsIS2_EEE6removeERKS2_
+   fun:_ZN7PurCWTF6Thread7didExitEv
 }
 

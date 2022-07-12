@@ -1,0 +1,23 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <div id='foo'/>
+            <div id="c_value">
+                <ul>
+                    <choose on="hello" in="#foo" with="world" by="FUNC: to_array@FUNC_DEMO">
+                        <update on="$@" to="append" with="$?" />
+                    </choose>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
+
+

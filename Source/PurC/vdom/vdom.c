@@ -128,7 +128,7 @@ pcvdom_document_unref(struct pcvdom_document *doc)
     assert(doc);
 
     unsigned long refc = atomic_fetch_sub(&doc->refc, 1);
-    if (refc <= 1) {
+    if (refc <= 2) {
         document_destroy(doc);
     }
 }
@@ -1308,6 +1308,14 @@ pcvdom_element_is_hvml_native(struct pcvdom_element *element)
     return cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB);
 }
 
+bool
+pcvdom_element_is_hvml_operation(struct pcvdom_element *element)
+{
+    enum pchvml_tag_category cats;
+    cats = pcvdom_element_categories(element);
+    return cats & PCHVML_TAGCAT_VERB;
+}
+
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 {
@@ -1328,7 +1336,8 @@ pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 }
 
 purc_variant_t
-pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
+pcvdom_element_eval_attr_val(pcintr_stack_t stack, pcvdom_element_t element,
+        const char *key)
 {
     struct pcvdom_attr *attr;
     attr = pcvdom_element_find_attr(element, key);
@@ -1337,9 +1346,6 @@ pcvdom_element_eval_attr_val(pcvdom_element_t element, const char *key)
 
     enum pchvml_attr_operator  op  = attr->op;
     struct pcvcm_node           *val = attr->val;
-
-    pcintr_stack_t stack;
-    stack = pcintr_get_stack();
 
     purc_variant_t v;
     v = pcvcm_eval(val, stack, pcvdom_element_is_silently(element));

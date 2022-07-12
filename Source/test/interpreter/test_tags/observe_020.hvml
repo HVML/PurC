@@ -12,7 +12,7 @@
         <div id="calculator">
 
             <div id="c_title">
-                <observe on="$TIMERS" for="expired:clock" in="#clock">
+                <observe on="$TIMERS" for="expired:clock">
                     <forget on="$TIMERS" for="expired:clock"/>
                 </observe>
                 <p>this is after observe</p>

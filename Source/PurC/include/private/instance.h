@@ -63,12 +63,16 @@ struct pcmodule {
 
 struct pcinst {
     int                     errcode;
-    purc_variant_t          err_exinfo;
     purc_atom_t             error_except;
+    purc_variant_t          err_exinfo;
     struct pcvdom_element  *err_element;
 
     unsigned int            modules;
     unsigned int            modules_inited;
+
+    // flags go here
+    unsigned int            enable_remote_fetcher:1;
+    unsigned int            is_instmgr:1;
 
     char                   *app_name;
     char                   *runner_name;
@@ -78,7 +82,6 @@ struct pcinst {
     // fetcher related
     size_t                  max_conns;
     size_t                  cache_quota;
-    bool                    enable_remote_fetcher;
 
 #define LOG_FILE_SYSLOG     ((FILE *)-1)
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
@@ -102,16 +105,29 @@ struct pcinst {
 
     /* FIXME: enable the fields ONLY when NDEBUG is undefined */
     struct pcdebug_backtrace  *bt;
-
-    unsigned int               keep_alive:1;
 };
+
+PCA_EXTERN_C_BEGIN
 
 /* gets the current instance */
 struct pcinst* pcinst_current(void) WTF_INTERNAL;
 pcvarmgr_t pcinst_get_variables(void) WTF_INTERNAL;
+purc_variant_t pcinst_get_variable(const char* name);
+
+static inline purc_variant_t
+pcinst_get_session_variables(const char* name)
+{
+    return pcinst_get_variable(name);
+}
 
 struct pcrdr_msg *pcinst_get_message(void) WTF_INTERNAL;
 void pcinst_put_message(struct pcrdr_msg *msg) WTF_INTERNAL;
+
+int
+pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t source_uri, purc_variant_t observed,
+        const char *event_type, const char *event_sub_type,
+        purc_variant_t data);
 
 void pcinst_clear_error(struct pcinst *inst) WTF_INTERNAL;
 
@@ -124,6 +140,8 @@ pcinst_dump_err_except_info(purc_variant_t err_except_info) WTF_INTERNAL;
 
 void
 pcinst_dump_err_info(void) WTF_INTERNAL;
+
+PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PRIVATE_INSTANCE_H */
 

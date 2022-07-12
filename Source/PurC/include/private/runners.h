@@ -27,12 +27,22 @@
 
 #include <stdbool.h>
 
-#define PCRUN_LOCAL_DATA    "inst-info"
+#include "purc-pcrdr.h"
+#include "private/utils.h"
+
+#define PCRUN_INSTMGR_APP_NAME      "cn.fmsoft.hvml"
+#define PCRUN_INSTMGR_RUN_NAME      "instmgr"
 
 /* operations */
 enum {
     PCRUN_K_OPERATION_FIRST = 0,
-    PCRUN_K_OPERATION_createCoroutine = PCRUN_K_OPERATION_FIRST,
+    PCRUN_K_OPERATION_createInstance = PCRUN_K_OPERATION_FIRST,
+#define PCRUN_OPERATION_createInstance      "createInstance"
+    PCRUN_K_OPERATION_cancelInstance,
+#define PCRUN_OPERATION_cancelInstance      "cancelInstance"
+    PCRUN_K_OPERATION_killInstance,
+#define PCRUN_OPERATION_killInstance        "killInstance"
+    PCRUN_K_OPERATION_createCoroutine,
 #define PCRUN_OPERATION_createCoroutine     "createCoroutine"
     PCRUN_K_OPERATION_killCoroutine,
 #define PCRUN_OPERATION_killCoroutine       "killCoroutine"
@@ -50,11 +60,31 @@ enum {
 #define PCRUN_NR_OPERATIONS \
     (PCRUN_K_OPERATION_LAST - PCRUN_K_OPERATION_FIRST + 1)
 
-struct pcrun_inst_info {
-    bool request_to_shutdown;
+#define PCRUN_EVENT_inst_stopped            "inst:stopped"
+
+struct instmgr_info {
+    unsigned nr_insts;
+    struct sorted_array *sa_insts;
 };
 
 PCA_EXTERN_C_BEGIN
+
+pcrdr_msg *
+pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt) WTF_INTERNAL;
+
+void
+pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg) WTF_INTERNAL;
+
+purc_atom_t
+pcrun_create_inst_thread(const char *app_name, const char *runner_name,
+        purc_cond_handler cond_handler,
+        struct purc_instance_extra_info *extra_info, void **th) WTF_INTERNAL;
+
+void
+pcrun_instmgr_handle_message(void *ctxt) WTF_INTERNAL;
+
+void
+pcrun_notify_instmgr(const char* event, purc_atom_t inst_crtn_id) WTF_INTERNAL;
 
 PCA_EXTERN_C_END
 

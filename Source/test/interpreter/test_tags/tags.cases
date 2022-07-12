@@ -3,6 +3,9 @@ hvml_001
 hvml_002
 hvml_003
 hvml_004
+hvml_005
+hvml_006
+hvml_007
 
 # head
 head_001
@@ -130,6 +133,7 @@ sort_027
 # choose
 choose_001
 choose_002
+choose_003
 
 # reduce
 reduce_001
@@ -197,6 +201,9 @@ observe_019
 observe_020
 observe_021
 observe_022
+observe_023
+#####observe_024
+observe_025
 
 fire_001
 fire_002

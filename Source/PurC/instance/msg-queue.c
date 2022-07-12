@@ -85,7 +85,7 @@ grind_msg_list(struct list_head *msgs)
         struct pcinst_msg_hdr *hdr;
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         list_del(p);
-        pcinst_put_message((pcrdr_msg *)hdr);
+        pcrdr_release_message((pcrdr_msg *)hdr);
         nr++;
     }
     return nr;
@@ -336,7 +336,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
             pcutils_rbtree_for_each_safe(first, p, n) {
                 pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                         node);
-                if (co->ident == msg->targetValue) {
+                if (co->cid == msg->targetValue) {
                     return pcinst_msg_queue_append(co->mq, msg);
                 }
             }
@@ -347,14 +347,82 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
                         node);
 
                 pcrdr_msg *my_msg = pcrdr_clone_message(msg);
-                my_msg->targetValue = co->ident;
+                my_msg->targetValue = co->cid;
                 pcinst_msg_queue_append(co->mq, my_msg);
             }
-            pcinst_put_message(msg);
+            pcrdr_release_message(msg);
         }
 
         return 0;
     }
 
-    return (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    int ret = (purc_inst_move_message(inst_to, msg) != 0) ? 0 : -1;
+    pcrdr_release_message(msg);
+    return ret;
+}
+
+int
+pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t source_uri, purc_variant_t observed,
+        const char *event_type, const char *event_sub_type,
+        purc_variant_t data)
+{
+    if (!event_type) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    size_t n = strlen(event_type) + 1;
+    if (event_sub_type) {
+        n = n +  strlen(event_sub_type) + 2;
+    }
+
+    char *p = (char*)malloc(n);
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    if (event_sub_type) {
+        sprintf(p, "%s:%s", event_type, event_sub_type);
+    }
+    else {
+        sprintf(p, "%s", event_type);
+    }
+
+    purc_variant_t event_name = purc_variant_make_string_reuse_buff(p,
+            strlen(p), true);
+    if (!event_name) {
+        free(p);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    pcrdr_msg *msg = pcinst_get_message();
+    if (msg == NULL) {
+        purc_variant_unref(event_name);
+        return -1;
+    }
+
+    msg->type = PCRDR_MSG_TYPE_EVENT;
+    msg->target = PCRDR_MSG_TARGET_COROUTINE;
+    msg->targetValue = PURC_EVENT_TARGET_BROADCAST;
+    msg->reduceOpt = reduce_op;
+
+    if (source_uri) {
+        msg->sourceURI = source_uri;
+        purc_variant_ref(msg->sourceURI);
+    }
+
+    msg->elementType = PCRDR_MSG_ELEMENT_TYPE_VARIANT;
+    msg->elementValue = observed;
+    purc_variant_ref(msg->elementValue);
+
+    msg->eventName = event_name;
+
+    if (data) {
+        msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+        msg->data = data;
+        purc_variant_ref(msg->data);
+    }
+
+    return purc_inst_post_event(PURC_EVENT_TARGET_BROADCAST, msg);
 }

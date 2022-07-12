@@ -122,7 +122,8 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -131,15 +132,10 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
                 PURC_VARIANT_INVALID);
-        purc_variant_unref(source_uri);
         purc_variant_unref(dest);
     }
 
@@ -153,7 +149,8 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -162,14 +159,10 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
                 PURC_VARIANT_INVALID);
-        purc_variant_unref(source_uri);
         purc_variant_unref(dest);
     }
 
@@ -183,7 +176,8 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     UNUSED_PARAM(msg_type);
     UNUSED_PARAM(nr_args);
 
-    if (ctxt == NULL) {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (ctxt == NULL || !stack) {
         return true;
     }
 
@@ -192,15 +186,10 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     const char* name = purc_variant_get_string_const(argv[0]);
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
                 PURC_VARIANT_INVALID);
-        purc_variant_unref(source_uri);
         purc_variant_unref(dest);
     }
 
@@ -255,12 +244,9 @@ pcvarmgr_t pcvarmgr_create(void)
         goto err_free_mgr;
     }
 
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (stack) {
-        int ret = add_listener_for_co_variables(mgr);
-        if (ret != 0) {
-            goto err_clear_object;
-        }
+    int ret = add_listener_for_co_variables(mgr);
+    if (ret != 0) {
+        goto err_clear_object;
     }
 
 
@@ -362,17 +348,16 @@ bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         const char* except)
 {
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (!stack) {
+        return true;
+    }
     purc_variant_t dest = pcvarmgr_build_event_observed(name, mgr);
     if (dest) {
-        pcintr_stack_t stack = pcintr_get_stack();
-
-        purc_variant_t source_uri = purc_variant_make_string(
-                stack->co->full_name, false);
-        pcintr_post_event_by_ctype(stack->co->ident,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, except,
                 PURC_VARIANT_INVALID);
-        purc_variant_unref(source_uri);
         purc_variant_unref(dest);
     }
 
@@ -632,7 +617,8 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
     while (frame) {
         pcvdom_element_t elem = frame->pos;
-        purc_variant_t elem_id = pcvdom_element_eval_attr_val(elem, ATTR_KEY_ID);
+        purc_variant_t elem_id = pcvdom_element_eval_attr_val(stack, elem,
+                ATTR_KEY_ID);
         if (!elem_id) {
             frame = pcintr_stack_frame_get_parent(frame);
             continue;

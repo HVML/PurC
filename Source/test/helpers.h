@@ -84,7 +84,7 @@ private:
     std::vector<char *>         allocates;
 };
 
-#define APP_NAME            "cn.fmsoft.hybridos.test"
+#define APP_NAME            "cn.fmsoft.hvml.test"
 #define RUNNER_NAME         "test_init"
 
 class PurCInstance
