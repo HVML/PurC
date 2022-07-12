@@ -442,41 +442,6 @@ out:
     }
 }
 
-
-void
-handle_coroutine_msg(pcintr_coroutine_t co)
-{
-    UNUSED_PARAM(co);
-    if (co == NULL
-            || co->state == CO_STATE_STOPPED
-            || co->state == CO_STATE_RUNNING) {
-        return;
-    }
-
-    struct pcinst_msg_queue *queue = co->mq;
-    pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
-    while (msg) {
-        dispatch_coroutine_msg(co, msg);
-        pcrdr_release_message(msg);
-        msg = pcinst_msg_queue_get_msg(queue);
-    }
-}
-
-void
-pcintr_dispatch_msg(void)
-{
-    // handle msg from message queue of the current co
-    struct pcintr_heap *heap = pcintr_get_heap();
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
-        handle_coroutine_msg(co);
-    }
-}
-
 int
 pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,

@@ -3455,8 +3455,6 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
 
     PC_ASSERT(pcintr_get_heap());
 
-//    pcintr_dispatch_msg();
-
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co == NULL) {
         return;
