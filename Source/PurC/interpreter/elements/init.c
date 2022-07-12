@@ -991,7 +991,7 @@ static void on_sync_continuation(void *ud, void *extra)
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 
@@ -1257,7 +1257,7 @@ static void on_async_resume(void *ud)
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == data->co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1352,7 +1352,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     data->async_id = purc_variant_ref(data->async_id);
 
     pcintr_register_cancel(&data->cancel);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
 
     return 0;
 }

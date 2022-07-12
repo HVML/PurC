@@ -53,8 +53,8 @@ on_observer_matched(void *ud)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
 
-    PC_ASSERT(co->state == CO_STATE_RUN);
-    co->state = CO_STATE_RUN;
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
+    co->state = CO_STATE_RUNNING;
 
     // FIXME:
     // push stack frame
@@ -449,8 +449,8 @@ handle_coroutine_msg(pcintr_coroutine_t co)
 {
     UNUSED_PARAM(co);
     if (co == NULL
-            || co->state == CO_STATE_WAIT
-            || co->state == CO_STATE_RUN) {
+            || co->state == CO_STATE_STOPPED
+            || co->state == CO_STATE_RUNNING) {
         return;
     }
 

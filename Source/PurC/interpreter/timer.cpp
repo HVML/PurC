@@ -161,7 +161,7 @@ class PurcTimer : public Timer {
             PC_ASSERT(m_coroutine);
 
             pcintr_coroutine_t co = m_coroutine;
-            if (co->state == CO_STATE_WAIT) {
+            if (co->state == CO_STATE_STOPPED) {
                 if (m_for_yielded) {
                     ++m_fired;
                     stop();
@@ -175,7 +175,7 @@ class PurcTimer : public Timer {
 
                 pcintr_set_current_co(m_coroutine);
                 pcintr_post_msg_to_target(co, &m_data, on_event_fire);
-                PC_ASSERT(co->state == CO_STATE_WAIT);
+                PC_ASSERT(co->state == CO_STATE_STOPPED);
                 pcintr_set_current_co(NULL);
                 return;
             }

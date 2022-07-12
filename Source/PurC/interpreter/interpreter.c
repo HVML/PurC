@@ -1349,7 +1349,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
-        if (co->state == CO_STATE_WAIT) {
+        if (co->state == CO_STATE_STOPPED) {
             PC_ASSERT(co->yielded_ctxt);
             PC_ASSERT(co->continuation);
         }
@@ -1782,15 +1782,15 @@ void pcintr_run_exiting_co(void *ctxt)
     PC_ASSERT(co);
     switch (co->state) {
         case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
+            co->state = CO_STATE_RUNNING;
             coroutine_set_current(co);
             execute_one_step_for_exiting_co(co);
             coroutine_set_current(NULL);
             break;
-        case CO_STATE_RUN:
+        case CO_STATE_RUNNING:
             PC_ASSERT(0);
             break;
-        case CO_STATE_WAIT:
+        case CO_STATE_STOPPED:
             PC_ASSERT(0);
             break;
         default:
@@ -1860,11 +1860,11 @@ bool pcintr_is_ready_for_event(void)
     switch (co->state) {
         case CO_STATE_READY:
             break;
-        case CO_STATE_RUN:
+        case CO_STATE_RUNNING:
             purc_set_error_with_info(PURC_ERROR_NOT_READY,
                     "coroutine context is not READY but RUN");
             return false;
-        case CO_STATE_WAIT:
+        case CO_STATE_STOPPED:
             purc_set_error_with_info(PURC_ERROR_NOT_READY,
                     "coroutine context is not READY but WAIT");
             return false;
@@ -1914,7 +1914,7 @@ pcintr_on_msg(void *ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    co->state = CO_STATE_RUN;
+    co->state = CO_STATE_RUNNING;
 
     PC_ASSERT(co->msg_pending);
     co->msg_pending = 0;
@@ -1943,7 +1943,7 @@ pcintr_on_last_msg(void *ctxt)
     PC_ASSERT(co->stack.last_msg_read == 0);
     co->stack.last_msg_read = 1;
     PC_ASSERT(co->state == CO_STATE_READY);
-    co->state = CO_STATE_RUN;
+    co->state = CO_STATE_RUNNING;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);
     PC_ASSERT(frame == NULL);
@@ -2040,14 +2040,14 @@ static void run_ready_co(void)
 
     switch (co->state) {
         case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
+            co->state = CO_STATE_RUNNING;
             pcintr_execute_one_step_for_ready_co(co);
             pcintr_check_after_execution_full(pcinst_current(), co);
             break;
-        case CO_STATE_RUN:
+        case CO_STATE_RUNNING:
             PC_ASSERT(0);
             break;
-        case CO_STATE_WAIT:
+        case CO_STATE_STOPPED:
             PC_ASSERT(0);
             break;
         default:
@@ -3472,7 +3472,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     if (co == NULL) {
         return;
     }
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
 
     pcintr_stack_t stack = &co->stack;
     if (stack->exited)
@@ -3608,7 +3608,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
     PC_ASSERT(continuation);
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     PC_ASSERT(co->yielded_ctxt == NULL);
     PC_ASSERT(co->continuation == NULL);
     pcintr_stack_t stack = &co->stack;
@@ -3616,7 +3616,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    co->state = CO_STATE_WAIT;
+    co->state = CO_STATE_STOPPED;
     co->yielded_ctxt = ctxt;
     co->continuation = continuation;
     if (request_id) {
@@ -3633,7 +3633,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
 void pcintr_resume(pcintr_coroutine_t co, void *extra)
 {
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_WAIT);
+    PC_ASSERT(co->state == CO_STATE_STOPPED);
     PC_ASSERT(co->yielded_ctxt);
     PC_ASSERT(co->continuation);
     pcintr_stack_t stack = &co->stack;
@@ -3644,7 +3644,7 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
     void *ctxt = co->yielded_ctxt;
     void (*continuation)(void *ctxt, void *extra) = co->continuation;
 
-    co->state = CO_STATE_RUN;
+    co->state = CO_STATE_RUNNING;
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
     if (co->wait_request_id) {

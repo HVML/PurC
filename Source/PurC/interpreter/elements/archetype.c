@@ -344,7 +344,7 @@ static void on_sync_continuation(void *ud, void *extra)
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 

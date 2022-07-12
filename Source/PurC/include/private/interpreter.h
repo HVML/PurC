@@ -219,9 +219,12 @@ struct pcintr_stack {
 
 enum pcintr_coroutine_state {
     CO_STATE_READY,            /* ready to run next step */
-    CO_STATE_RUN,              /* is running */
-    CO_STATE_WAIT,             /* is waiting for event */
-    /* STATE_PAUSED, */
+    CO_STATE_RUNNING,         /* is running */
+    CO_STATE_OBSERVING,        /* observing */
+    CO_STATE_EXITED,           /* exit */
+    CO_STATE_TERMINATED,
+    CO_STATE_STOPPED,          /* is waiting for event */
+    CO_STATE_TRACKED,
 };
 
 typedef void (pcintr_msg_callback_f)(void *ctxt);
