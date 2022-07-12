@@ -1909,7 +1909,7 @@ pcintr_on_msg(void *ctxt)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_READY);
+    //PC_ASSERT(co->state == CO_STATE_READY);
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
@@ -1942,7 +1942,7 @@ pcintr_on_last_msg(void *ctxt)
     PC_ASSERT(co->stack.last_msg_sent);
     PC_ASSERT(co->stack.last_msg_read == 0);
     co->stack.last_msg_read = 1;
-    PC_ASSERT(co->state == CO_STATE_READY);
+    //PC_ASSERT(co->state == CO_STATE_READY);
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);

@@ -94,6 +94,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             PC_ASSERT(co->yielded_ctxt);
             PC_ASSERT(co->continuation);
             return;
+        case CO_STATE_OBSERVING:
+            break;
         default:
             PC_ASSERT(0);
     }
@@ -133,6 +135,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     pcintr_dump_document(stack);
     stack->stage = STACK_STAGE_EVENT_LOOP;
 
+    if (pcintr_co_is_observed(co)) {
+        pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
+    }
 
     if (co->stack.except) {
         const char *error_except = NULL;
@@ -154,7 +159,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
+        //PC_ASSERT(co->state == CO_STATE_READY);
         struct pcintr_stack_frame *frame;
         frame = pcintr_stack_get_bottom_frame(stack);
         PC_ASSERT(frame == NULL);

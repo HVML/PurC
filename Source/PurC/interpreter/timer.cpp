@@ -180,7 +180,7 @@ class PurcTimer : public Timer {
                 return;
             }
 
-            PC_ASSERT(co->state == CO_STATE_READY);
+            //PC_ASSERT(co->state == CO_STATE_READY);
 
             ++m_fired;
 
@@ -189,7 +189,7 @@ class PurcTimer : public Timer {
             pcintr_post_msg_to_target(m_coroutine, &m_data, on_event_fire);
             pcintr_check_after_execution();
 
-            PC_ASSERT(co->state == CO_STATE_READY);
+            //PC_ASSERT(co->state == CO_STATE_READY);
 
             pcintr_set_current_co(NULL);
         }
