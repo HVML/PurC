@@ -4009,5 +4009,9 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
         const char *file, int line, const char *func)
 {
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
     co->state = state;
 }
+
