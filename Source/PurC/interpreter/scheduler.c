@@ -34,6 +34,7 @@
 #include "private/utils.h"
 #include "private/variant.h"
 #include "private/ports.h"
+#include "private/msg-queue.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -323,8 +324,32 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
     UNUSED_PARAM(inst);
     UNUSED_PARAM(nr_stopped);
     UNUSED_PARAM(nr_observing);
+
+    size_t nr_stop = 0;
+    size_t nr_observe = 0;
+    size_t nr_event = 0;
+
     check_and_dispatch_event_from_conn();
-    return 0;
+
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co;
+        co = container_of(p, struct pcintr_coroutine, node);
+        if (co->state == CO_STATE_STOPPED) {
+            nr_stop++;
+        }
+        else if (co->state == CO_STATE_OBSERVING) {
+            nr_observe++;
+        }
+        nr_event += pcinst_msg_queue_count(co->mq);
+    }
+
+    *nr_stopped = nr_stop;
+    *nr_observing = nr_observe;
+    return nr_event;
 }
 
 void
