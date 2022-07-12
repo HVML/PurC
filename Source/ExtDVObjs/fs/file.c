@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define BUFFER_SIZE         1024
+#define BUFFER_SIZE         4096
 #define ENDIAN_PLATFORM     0
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
@@ -219,44 +219,30 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    int64_t line_num = 0;
+    int64_t     line_num = 0;
     const char *filename = NULL;
-    FILE *fp = NULL;
-    size_t pos = 0;
-    struct stat filestat;
+    FILE       *fp = NULL;
+    purc_variant_t val;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
-    if (nr_args != 2) {
+    if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
-
-    if (argv[0] == PURC_VARIANT_INVALID ||
-            (!purc_variant_is_string (argv[0]))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
-
-    // check whether the file exists
-    if((access(filename, F_OK | R_OK)) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
+    if (filename == NULL) {
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
         return PURC_VARIANT_INVALID;
     }
 
-    // get the file length
-    if(stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+    if (nr_args > 1) {
+        if (! purc_variant_cast_to_longint (argv[1], &line_num, false))
+        {
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
+            return PURC_VARIANT_INVALID;
+        }
     }
-    if (filestat.st_size == 0) {
-        return purc_variant_make_string ("", false);
-    }
-
-    if (argv[1] != PURC_VARIANT_INVALID)
-        purc_variant_cast_to_longint (argv[1], &line_num, false);
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
@@ -264,24 +250,96 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    if (line_num == 0)
-        pos = filestat.st_size;
-    else
-        pos = find_line (fp, line_num, filestat.st_size);
+    ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
 
-    char *content = malloc (pos + 1);
-    if (content == NULL) {
-        fclose (fp);
-        return purc_variant_make_string ("", false);
+    if (line_num >= 0) {
+        // ==0: Read all lines.
+        // > 0: Read the first line_num lines.
+
+        char    buffer[BUFFER_SIZE];
+        ssize_t read_size = 0;
+        char   *content = NULL;
+        size_t  content_len = 0;
+
+        while (1) {
+            read_size = fread (buffer, 1, BUFFER_SIZE, fp);
+            if (read_size < 0)
+                break;
+
+            size_t i;
+            size_t buffer_line_start = 0;
+            size_t buffer_line_end = 0;
+            for (i = 0; i < (size_t)read_size; i++) {
+                if (buffer[i] == '\n')
+                {
+                    buffer_line_end = i - 1;
+                    
+                    if (content_len > 0) {
+                        content = realloc (content,
+                                content_len + buffer_line_end - buffer_line_start + 1);
+                        memcpy (content + content_len,
+                                buffer + buffer_line_start,
+                                buffer_line_end - buffer_line_start);
+                        content_len += (buffer_line_end - buffer_line_start);
+                        content[content_len] = 0x0;
+                        if (content[content_len - 1] == '\r')
+                            content[content_len - 1] = 0x0;
+
+                        val = purc_variant_make_string_ex (content, content_len, false);
+                        purc_variant_array_append (ret_var, val);
+                        purc_variant_unref (val);
+
+                        free (content);
+                        content = NULL;
+                        content_len = 0;
+
+                        if (line_num > 0) {
+                            line_num --;
+                            if (line_num == 0)
+                                goto out;
+                        }
+                    }
+                    else {
+                        val = purc_variant_make_string_ex (buffer + buffer_line_start,
+                                buffer_line_end - buffer_line_start, false);
+                        purc_variant_array_append (ret_var, val);
+                        purc_variant_unref (val);
+
+                        if (line_num > 0) {
+                            line_num --;
+                            if (line_num == 0)
+                                goto out;
+                        }
+                    }
+
+                    buffer_line_start = i + 1;
+                }
+            }
+
+            if (i > buffer_line_start) {
+                content = realloc (content,
+                        content_len + read_size - buffer_line_start + 1);
+                memcpy (content + content_len,
+                        buffer + buffer_line_start,
+                        read_size - buffer_line_start);
+                content_len += (read_size - buffer_line_start);
+                content[content_len] = 0x0;
+            }
+
+            if (read_size < BUFFER_SIZE) // No more content.
+                break;
+        }
+    }
+    else {
+        // line_num < 0: Read all but the last -line_num lines.
+        // Scan the file and tell me how many lines there will be.
+        line_num = -line_num;
+        
+        // Wait for code.
     }
 
-    fseek (fp, 0L, SEEK_SET);
-    pos = fread (content, 1, pos, fp);
-    *(content + pos) = 0x00;
-
-    ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
+out:
     fclose (fp);
-
     return ret_var;
 }
 
