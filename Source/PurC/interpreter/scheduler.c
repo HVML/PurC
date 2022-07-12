@@ -40,7 +40,7 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_TIMEOUT        10000           // usec
+#define SCHEDULE_SLEEP        10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
 #define MSG_TYPE_IDLE           "idle"
@@ -54,7 +54,8 @@ double current_time()
     return now.tv_sec * 1000 + now.tv_usec / 1000;
 }
 
-void broadcast_idle_event(struct pcinst *inst)
+static void
+broadcast_idle_event(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     struct rb_root *coroutines = &heap->coroutines;
@@ -74,6 +75,43 @@ void broadcast_idle_event(struct pcinst *inst)
     }
 }
 
+// execute one step for all ready coroutines of the inst
+// return the number of ready coroutines
+static size_t
+execute_one_step(struct pcinst *inst)
+{
+    struct pcintr_heap *heap = inst->intr_heap;
+    size_t nr_ready = 0;
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                node);
+        if (co->state != CO_STATE_READY) {
+            continue;
+        }
+        // TODO:execute ont step
+
+        // calc state
+#if 0
+        if (co->state == CO_STATE_READY) {
+            nr_ready++;
+        }
+#endif
+    }
+    return nr_ready;
+}
+
+static size_t
+dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
+{
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(nr_stopped);
+    UNUSED_PARAM(nr_observing);
+    return 0;
+}
+
 void
 pcintr_schedule(void *ctxt)
 {
@@ -87,36 +125,37 @@ pcintr_schedule(void *ctxt)
     }
 
 
-    // 1. exec one step for all ready coroutine
+    // 1. exec one step for all ready coroutines
+    size_t nr_ready = execute_one_step(inst);
 
-    // 2. check message queue
+    // 2. dispatch event for observing / stopped coroutines
+    size_t nr_stopped = 0;
+    size_t nr_observing = 0;
+    size_t nr_event = dispatch_event(inst, &nr_stopped, &nr_observing);
 
-    // 3. if no event, try generate idle event
-    // check if all coroutine STACK_STAGE_EVENT_LOOP
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
-        pcintr_stack_t stack = &co->stack;
-        if (stack->stage != STACK_STAGE_EVENT_LOOP) {
-            goto out;
-        }
+    // 3. its busy, goto next scheduler without sleep
+    if (nr_ready || nr_event) {
+        heap->timeout = current_time();
+        goto out;
     }
 
+    // 4. wating for something, sleep SCHEDULE_SLEEP before next scheduler
+    if (nr_stopped) {
+        heap->timeout = current_time();
+        goto out_sleep;
+    }
+
+    // 5. broadcast idle event
     double now = current_time();
-    // first update timeout
-    if (heap->timeout == 0) {
+    if (now - IDLE_EVENT_TIMEOUT > heap->timeout) {
+        broadcast_idle_event(inst);
         heap->timeout = now;
     }
 
-    if (now - IDLE_EVENT_TIMEOUT > heap->timeout) {
-        broadcast_idle_event(inst);
-        heap->timeout =now;
-    }
+out_sleep:
+    pcutils_usleep(SCHEDULE_SLEEP);
 
 out:
-    pcutils_usleep(SCHEDULE_TIMEOUT);
+    return;
 }
 
