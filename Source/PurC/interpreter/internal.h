@@ -428,6 +428,9 @@ void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
     pcintr_coroutine_set_state_with_location(co, state,\
             __FILE__, __LINE__, __func__)
 
+int
+dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
