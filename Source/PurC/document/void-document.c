@@ -1,5 +1,5 @@
 /**
- * @file document-void.c
+ * @file void-document.c
  * @author Vincent Wei
  * @date 2022/07/11
  * @brief The implementation of void document.
@@ -33,6 +33,11 @@ static purc_document_t create(const char *content, size_t length)
     UNUSED_PARAM(length);
 
     purc_document_t doc = calloc(1, sizeof(*doc));
+    doc->data_content = 0;
+    doc->have_head = 0;
+    doc->have_body = 0;
+    doc->ops = &_pcdoc_void_ops;
+    doc->impl = NULL;
     return doc;
 }
 
@@ -41,7 +46,7 @@ static void destroy(purc_document_t doc)
     free (doc);
 }
 
-static pcdoc_element_t new_element(purc_document_t doc,
+static pcdoc_element_t operate_element(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *tag, bool self_close)
 {
@@ -65,17 +70,17 @@ static pcdoc_text_node_t new_text_content(purc_document_t doc,
     return (pcdoc_text_node_t)doc;
 }
 
-static pcdoc_node_t new_content(purc_document_t doc,
+static pcdoc_node new_content(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
-            const char *content, size_t length, pcdoc_node_type *type)
+            const char *content, size_t length)
 {
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(content);
     UNUSED_PARAM(length);
 
-    *type = PCDOC_NODE_ELEMENT;
-    pcdoc_node_t node;
+    pcdoc_node node;
+    node.type = PCDOC_NODE_ELEMENT;
     node.elem = (pcdoc_element_t)doc;
     return node;
 }
@@ -102,14 +107,14 @@ static pcdoc_element_t special_elem(purc_document_t doc,
     return (pcdoc_element_t)doc;
 }
 
-static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node_t node)
+static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(doc);
     UNUSED_PARAM(node);
     return NULL;
 }
 
-size_t children_count(purc_document_t doc, pcdoc_element_t elem)
+static size_t children_count(purc_document_t doc, pcdoc_element_t elem)
 {
     UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
@@ -117,15 +122,15 @@ size_t children_count(purc_document_t doc, pcdoc_element_t elem)
     return 0;
 }
 
-static pcdoc_node_t get_child(purc_document_t doc,
-            pcdoc_element_t elem, size_t idx, pcdoc_node_type *type)
+static pcdoc_node get_child(purc_document_t doc,
+            pcdoc_element_t elem, size_t idx)
 {
     UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(idx);
 
-    *type = PCDOC_NODE_ELEMENT;
-    pcdoc_node_t node;
+    pcdoc_node node;
+    node.type = PCDOC_NODE_ELEMENT;
     node.elem = (pcdoc_element_t)NULL;
     return node;
 }
@@ -156,7 +161,7 @@ static bool get_text(purc_document_t doc, pcdoc_text_node_t text_node,
 struct purc_document_ops _pcdoc_void_ops = {
     .create = create,
     .destroy = destroy,
-    .new_element = new_element,
+    .operate_element = operate_element,
     .new_text_content = new_text_content,
     .new_data_content = NULL,
     .new_content = new_content,

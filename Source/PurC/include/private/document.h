@@ -34,27 +34,26 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/html.h"
 
 struct purc_document_ops {
     purc_document_t (*create)(const char *content, size_t length);
     void (*destroy)(purc_document_t doc);
 
-    pcdoc_element_t (*new_element)(purc_document_t doc,
+    pcdoc_element_t (*operate_element)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *tag, bool self_close);
 
     pcdoc_text_node_t (*new_text_content)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
-            const char *content, size_t length);
+            const char *text, size_t length);
 
     pcdoc_data_node_t (*new_data_content)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             purc_variant_t data);
 
-    pcdoc_node_t (*new_content)(purc_document_t doc,
+    pcdoc_node (*new_content)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
-            const char *content, size_t length, pcdoc_node_type *type);
+            const char *content, size_t length);
 
     bool (*set_attribute)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
@@ -63,11 +62,11 @@ struct purc_document_ops {
     pcdoc_element_t (*special_elem)(purc_document_t doc,
             pcdoc_special_elem elem);
 
-    pcdoc_element_t (*get_parent)(purc_document_t doc, pcdoc_node_t node);
+    pcdoc_element_t (*get_parent)(purc_document_t doc, pcdoc_node node);
 
     size_t (*children_count)(purc_document_t doc, pcdoc_element_t elem);
-    pcdoc_node_t (*get_child)(purc_document_t doc,
-            pcdoc_element_t elem, size_t idx, pcdoc_node_type *type);
+    pcdoc_node (*get_child)(purc_document_t doc,
+            pcdoc_element_t elem, size_t idx);
 
     bool (*get_attribute)(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len);
@@ -96,7 +95,7 @@ struct purc_document {
 
     struct purc_document_ops *ops;
 
-    void *impl_data;
+    void *impl;
 };
 
 struct pcdoc_elem_coll {

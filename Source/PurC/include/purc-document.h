@@ -68,12 +68,23 @@ struct pcdoc_node_others;
 typedef struct pcdoc_node_others pcdoc_node_others;
 typedef struct pcdoc_node_others *pcdoc_node_others_t;
 
-typedef union {
-    pcdoc_element_t     elem;
-    pcdoc_text_node_t   text_node;
-    pcdoc_data_node_t   data_node;
-    pcdoc_node_others_t others;
-} pcdoc_node_t;
+typedef enum {
+    PCDOC_NODE_NULL = 0,
+    PCDOC_NODE_ELEMENT,
+    PCDOC_NODE_TEXT_CONTENT,
+    PCDOC_NODE_DATA_CONTENT,
+    PCDOC_NODE_OTHERS,
+} pcdoc_node_type;
+
+typedef struct {
+    pcdoc_node_type         type;
+    union {
+        pcdoc_element_t     elem;
+        pcdoc_text_node_t   text_node;
+        pcdoc_data_node_t   data_node;
+        pcdoc_node_others_t others;
+    };
+} pcdoc_node;
 
 struct pcdoc_elem_coll;
 typedef struct pcdoc_elem_coll pcdoc_elem_coll;
@@ -140,17 +151,9 @@ typedef enum {
     PCDOC_OP_INSERTBEFORE,
     PCDOC_OP_INSERTAFTER,
     PCDOC_OP_DISPLACE,
-    PCDOC_OP_UPDATE,
     PCDOC_OP_ERASE,
     PCDOC_OP_CLEAR,
 } pcdoc_operation;
-
-typedef enum {
-    PCDOC_NODE_ELEMENT = 0,
-    PCDOC_NODE_TEXT_CONTENT,
-    PCDOC_NODE_DATA_CONTENT,
-    PCDOC_NODE_OTHERS,
-} pcdoc_node_type;
 
 /**
  * Create a new element with specific tag and insert it to
@@ -169,6 +172,26 @@ PCA_EXPORT pcdoc_element_t
 pcdoc_element_new_element(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
         const char *tag, bool self_close);
+
+/**
+ * Clear the content of an element.
+ *
+ * @param elem: the pointer to an element.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT void
+pcdoc_element_clear(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Remove an element.
+ *
+ * @param elem: the pointer to an element.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT void
+pcdoc_element_remove(purc_document_t doc, pcdoc_element_t elem);
 
 /**
  * Create a new text content and insert it to the specified position related
@@ -218,17 +241,17 @@ pcdoc_element_set_data_content(purc_document_t doc,
  *
  * Since: 0.2.0
  */
-PCA_EXPORT pcdoc_node_t
+PCA_EXPORT pcdoc_node
 pcdoc_element_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len, pcdoc_node_type *type);
+        const char *content, size_t len);
 
 /**
  * Set an attribute of the specified element.
  *
  * @param elem: the pointer to the element.
  * @param op: The operation, can be one of the following values:
- *  - PCDOC_OP_UPDATE: change the attribute value.
+ *  - PCDOC_OP_DISPLACE: change the attribute value.
  *  - PCDOC_OP_ERASE: remove the attribute.
  *  - PCDOC_OP_CLEAR: clear the attribute value.
  * @param name: the name of the attribute.
@@ -267,9 +290,8 @@ pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
 PCA_EXPORT size_t
 pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem);
 
-PCA_EXPORT pcdoc_node_t
-pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem,
-        size_t idx, pcdoc_node_type *type);
+PCA_EXPORT pcdoc_node
+pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem, size_t idx);
 
 /**
  * Get the parent element of a document node.
@@ -277,7 +299,7 @@ pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem,
  * Returns: the pointer to the parent element or @NULL if the node is the root.
  */
 PCA_EXPORT pcdoc_element_t
-pcdoc_node_get_parent(purc_document_t doc, pcdoc_node_t node);
+pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node);
 
 /**
  * Find the first element matching the CSS selector from the descendants.

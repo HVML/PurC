@@ -87,7 +87,19 @@ pcdoc_element_new_element(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
         const char *tag, bool self_close)
 {
-    return doc->ops->new_element(doc, elem, op, tag, self_close);
+    return doc->ops->operate_element(doc, elem, op, tag, self_close);
+}
+
+void
+pcdoc_element_clear(purc_document_t doc, pcdoc_element_t elem)
+{
+    doc->ops->operate_element(doc, elem, PCDOC_OP_CLEAR, NULL, 0);
+}
+
+void
+pcdoc_element_remove(purc_document_t doc, pcdoc_element_t elem)
+{
+    doc->ops->operate_element(doc, elem, PCDOC_OP_ERASE, NULL, 0);
 }
 
 pcdoc_text_node_t
@@ -110,12 +122,12 @@ pcdoc_element_set_data_content(purc_document_t doc,
     return NULL;
 }
 
-pcdoc_node_t
+pcdoc_node
 pcdoc_element_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len, pcdoc_node_type *type)
+        const char *content, size_t len)
 {
-    return doc->ops->new_content(doc, elem, op, content, len, type);
+    return doc->ops->new_content(doc, elem, op, content, len);
 }
 
 bool
@@ -153,15 +165,14 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem)
     return doc->ops->children_count(doc, elem);
 }
 
-pcdoc_node_t
-pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem,
-        size_t idx, pcdoc_node_type *type)
+pcdoc_node
+pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem, size_t idx)
 {
-    return doc->ops->get_child(doc, elem, idx, type);
+    return doc->ops->get_child(doc, elem, idx);
 }
 
 pcdoc_element_t
-pcdoc_node_get_parent(purc_document_t doc, pcdoc_node_t node)
+pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node)
 {
     return doc->ops->get_parent(doc, node);
 }
