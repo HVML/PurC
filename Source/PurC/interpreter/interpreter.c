@@ -708,7 +708,7 @@ coroutine_set_current_with_location(struct pcintr_coroutine *co,
             basename((char*)file), line, func,
             ">>>>>>>>>>>>>start>>>>>>>>>>>>>>>>>>>>>>>>>>");
 #endif          /* } */
-        PC_ASSERT(heap->running_coroutine == NULL);
+        //PC_ASSERT(heap->running_coroutine == NULL);
     }
     else {
 #if 0           /* { */
@@ -716,7 +716,7 @@ coroutine_set_current_with_location(struct pcintr_coroutine *co,
             basename((char*)file), line, func,
             "<<<<<<<<<<<<<stop<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 #endif          /* } */
-        PC_ASSERT(heap->running_coroutine);
+        //PC_ASSERT(heap->running_coroutine);
     }
 
     heap->running_coroutine = co;
@@ -1708,8 +1708,6 @@ static void on_sub_exit_event(void *ctxt)
     free(child_result);
 }
 
-static void check_after_execution(pcintr_coroutine_t co);
-
 static void on_sub_exit(void *ctxt)
 {
     pcintr_coroutine_result_t child_result;
@@ -1723,7 +1721,7 @@ static void on_sub_exit(void *ctxt)
     PRINT_VARIANT(child_result->result);
 
     pcintr_post_msg(ctxt, on_sub_exit_event);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
@@ -1775,7 +1773,7 @@ void pcintr_check_after_execution(void)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 void pcintr_run_exiting_co(void *ctxt)
@@ -1922,7 +1920,7 @@ pcintr_on_msg(void *ctxt)
     co->msg_pending = 0;
     msg->on_msg(msg->ctxt);
     free(msg);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 // XXX: multiple inst
@@ -1949,7 +1947,7 @@ pcintr_on_last_msg(void *ctxt)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);
     PC_ASSERT(frame == NULL);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 void
@@ -2015,185 +2013,6 @@ pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_exce
     PURC_VARIANT_SAFE_CLEAR(payload);
 }
 
-static void check_after_execution(pcintr_coroutine_t co)
-{
-    struct pcinst *inst = pcinst_current();
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            break;
-        case CO_STATE_RUN:
-            co->state = CO_STATE_READY;
-            break;
-        case CO_STATE_WAIT:
-            PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
-            PC_ASSERT(inst->errcode == 0);
-            PC_ASSERT(co->yielded_ctxt);
-            PC_ASSERT(co->continuation);
-            return;
-        default:
-            PC_ASSERT(0);
-    }
-
-    if (inst->errcode) {
-        PC_ASSERT(stack->except == 0);
-        pcintr_exception_copy(&stack->exception);
-        stack->except = 1;
-        pcinst_clear_error(inst);
-        PC_ASSERT(inst->errcode == 0);
-#ifndef NDEBUG                     /* { */
-        pcintr_dump_stack(stack);
-#endif                             /* } */
-        PC_ASSERT(inst->errcode == 0);
-    }
-
-    if (frame) {
-        if (co->execution_pending == 0) {
-            co->execution_pending = 1;
-            pcintr_wakeup_target(co, run_ready_co);
-        }
-        return;
-    }
-
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
-
-    /* send doc to rdr */
-    if (stack->stage == STACK_STAGE_FIRST_ROUND &&
-            !pcintr_rdr_page_control_load(stack))
-    {
-        PC_ASSERT(0); // TODO:
-        // stack->exited = 1;
-        return;
-    }
-
-    pcintr_dump_document(stack);
-    stack->stage = STACK_STAGE_EVENT_LOOP;
-
-
-    if (co->stack.except) {
-        const char *error_except = NULL;
-        purc_atom_t atom;
-        atom = co->stack.exception.error_except;
-        PC_ASSERT(atom);
-        error_except = purc_atom_to_string(atom);
-
-        PC_ASSERT(co->error_except == NULL);
-        co->error_except = error_except;
-
-        pcintr_dump_c_stack(co->stack.exception.bt);
-        co->stack.except = 0;
-
-        if (!co->stack.exited) {
-            co->stack.exited = 1;
-            pcintr_notify_to_stop(co);
-        }
-    }
-
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
-    if (!list_empty(&co->children)) {
-        return;
-    }
-
-    if (co->stack.exited) {
-        pcintr_revoke_all_dynamic_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.dynamic_observers));
-        pcintr_revoke_all_native_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.native_observers));
-        pcintr_revoke_all_common_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.common_observers));
-    }
-
-    bool still_observed = pcintr_co_is_observed(co);
-    if (!still_observed) {
-        if (!co->stack.exited) {
-            co->stack.exited = 1;
-            pcintr_notify_to_stop(co);
-        }
-    }
-
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
-    if (still_observed) {
-        return;
-    }
-
-    if (!co->stack.exited) {
-        co->stack.exited = 1;
-        pcintr_notify_to_stop(co);
-    }
-
-    if (!list_empty(&co->msgs)) {
-        return;
-    }
-
-    if (co->msg_pending) {
-        return;
-    }
-
-// #define PRINT_DEBUG
-    if (co->stack.last_msg_sent == 0) {
-        co->stack.last_msg_sent = 1;
-
-#ifdef PRINT_DEBUG              /* { */
-        PC_DEBUGX("last msg was sent");
-#endif                          /* } */
-        pcintr_wakeup_target_with(co, &last_msg, pcintr_on_last_msg);
-        return;
-    }
-
-    if (co->stack.last_msg_read == 0) {
-        return;
-    }
-
-
-#ifdef PRINT_DEBUG              /* { */
-    PC_DEBUGX("last msg was processed");
-#endif                          /* } */
-
-    if (co->curator) {
-        if (co->error_except) {
-            // TODO: which is error, which is except?
-            // currently, we treat all as except
-            pcintr_post_callstate_except_event(co, co->error_except);
-        }
-        else {
-            PC_ASSERT(co->val_from_return_or_exit);
-            pcintr_post_callstate_success_event(co, co->val_from_return_or_exit);
-        }
-    }
-
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_READY);
-    purc_runloop_dispatch(inst->running_loop, pcintr_run_exiting_co, co);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -2223,7 +2042,7 @@ static void run_ready_co(void)
         case CO_STATE_READY:
             co->state = CO_STATE_RUN;
             pcintr_execute_one_step_for_ready_co(co);
-            check_after_execution(co);
+            pcintr_check_after_execution_full(pcinst_current(), co);
             break;
         case CO_STATE_RUN:
             PC_ASSERT(0);
@@ -2422,7 +2241,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
     }
 
     init_frame_for_co(co);
-    pcintr_wakeup_target(co, run_ready_co);
     return co;
 }
 
@@ -3840,7 +3658,7 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
     }
 
     continuation(ctxt, extra);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 pcintr_coroutine_t

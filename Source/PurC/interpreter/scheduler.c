@@ -76,7 +76,7 @@ broadcast_idle_event(struct pcinst *inst)
 }
 
 void
-check_after_execution(struct pcinst *inst, pcintr_coroutine_t co)
+pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -251,7 +251,7 @@ check_after_execution(struct pcinst *inst, pcintr_coroutine_t co)
 
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
-    purc_runloop_dispatch(inst->running_loop, pcintr_run_exiting_co, co);
+    pcintr_run_exiting_co(co);
 }
 
 static void
@@ -259,6 +259,15 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(co);
+
+    pcintr_set_current_co(co);
+
+    co->state = CO_STATE_RUN;
+    co->execution_pending = 0;
+    pcintr_execute_one_step_for_ready_co(co);
+    pcintr_check_after_execution_full(inst, co);
+
+    pcintr_set_current_co(NULL);
 }
 
 // execute one step for all ready coroutines of the inst

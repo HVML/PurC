@@ -416,6 +416,10 @@ pcintr_on_last_msg(void *ctxt);
 struct pcintr_msg *
 pcintr_last_msg();
 
+
+void
+pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
