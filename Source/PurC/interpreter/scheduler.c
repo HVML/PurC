@@ -117,11 +117,12 @@ pcintr_schedule(void *ctxt)
 {
     struct pcinst *inst = (struct pcinst *)ctxt;
     if (!inst) {
-        return;
+        goto out_sleep;
     }
+
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap) {
-        return;
+        goto out_sleep;
     }
 
 
