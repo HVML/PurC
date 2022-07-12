@@ -40,7 +40,7 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_SLEEP        10000           // usec
+#define SCHEDULE_SLEEP          10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
 #define MSG_TYPE_IDLE           "idle"
