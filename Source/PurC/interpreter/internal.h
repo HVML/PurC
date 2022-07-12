@@ -370,6 +370,52 @@ pcintr_template_expansion(purc_variant_t val);
 pcintr_coroutine_t
 pcintr_coroutine_get_by_id(purc_atom_t id);
 
+
+void
+pcintr_exception_copy(struct pcintr_exception *exception);
+
+void
+pcintr_dump_stack(pcintr_stack_t stack);
+
+void
+pcintr_dump_c_stack(struct pcdebug_backtrace *bt);
+
+void
+pcintr_notify_to_stop(pcintr_coroutine_t co);
+
+void
+pcintr_on_msg(void *ctxt);
+
+
+void
+pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack);
+
+void
+pcintr_revoke_all_native_observers(pcintr_stack_t stack);
+
+void
+pcintr_revoke_all_common_observers(pcintr_stack_t stack);
+
+
+void
+pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except);
+
+void
+pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with);
+
+void
+pcintr_run_exiting_co(void *ctxt);
+
+bool
+pcintr_co_is_observed(pcintr_coroutine_t co);
+
+void
+pcintr_on_last_msg(void *ctxt);
+
+
+struct pcintr_msg *
+pcintr_last_msg();
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

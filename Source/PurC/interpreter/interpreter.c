@@ -1264,8 +1264,8 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         (pos ? pos->tag_name : NULL));
 }
 
-static void
-dump_stack(pcintr_stack_t stack)
+void
+pcintr_dump_stack(pcintr_stack_t stack)
 {
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
@@ -1299,8 +1299,8 @@ dump_stack(pcintr_stack_t stack)
 }
 #endif                             /* } */
 
-static void
-dump_c_stack(struct pcdebug_backtrace *bt)
+void
+pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
 {
     if (!bt)
         return;
@@ -1475,8 +1475,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 }
 
-static void
-exception_copy(struct pcintr_exception *exception)
+void
+pcintr_exception_copy(struct pcintr_exception *exception)
 {
     if (!exception)
         return;
@@ -1499,7 +1499,7 @@ exception_copy(struct pcintr_exception *exception)
     exception->bt = inst->bt;
 }
 
-static bool co_is_observed(pcintr_coroutine_t co)
+bool pcintr_co_is_observed(pcintr_coroutine_t co)
 {
     if (!list_empty(&co->stack.common_observers))
         return true;
@@ -1778,7 +1778,7 @@ void pcintr_check_after_execution(void)
     check_after_execution(co);
 }
 
-static void run_exiting_co(void *ctxt)
+void pcintr_run_exiting_co(void *ctxt)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
     PC_ASSERT(co);
@@ -1802,8 +1802,8 @@ static void run_exiting_co(void *ctxt)
 
 static void run_ready_co(void);
 
-static void
-revoke_all_dynamic_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->dynamic_observers;
@@ -1813,8 +1813,8 @@ revoke_all_dynamic_observers(pcintr_stack_t stack)
     }
 }
 
-static void
-revoke_all_native_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_native_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->native_observers;
@@ -1824,8 +1824,8 @@ revoke_all_native_observers(pcintr_stack_t stack)
     }
 }
 
-static void
-revoke_all_common_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_common_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->common_observers;
@@ -1887,7 +1887,8 @@ bool pcintr_is_ready_for_event(void)
     return true;
 }
 
-static void notify_to_stop(pcintr_coroutine_t co)
+void
+pcintr_notify_to_stop(pcintr_coroutine_t co)
 {
     if (!co)
         return;
@@ -1900,7 +1901,8 @@ static void notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-static void on_msg(void *ctxt)
+void
+pcintr_on_msg(void *ctxt)
 {
     pcintr_msg_t msg;
     msg = (pcintr_msg_t)ctxt;
@@ -1923,9 +1925,17 @@ static void on_msg(void *ctxt)
     check_after_execution(co);
 }
 
+// XXX: multiple inst
 static struct pcintr_msg            last_msg;
 
-static void on_last_msg(void *ctxt)
+struct pcintr_msg *
+pcintr_last_msg()
+{
+    return &last_msg;
+}
+
+void
+pcintr_on_last_msg(void *ctxt)
 {
     PC_ASSERT(ctxt == &last_msg);
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -1942,8 +1952,8 @@ static void on_last_msg(void *ctxt)
     check_after_execution(co);
 }
 
-static void
-post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
+void
+pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
 {
     if (!co->curator)
         return;
@@ -1976,8 +1986,8 @@ post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
     PURC_VARIANT_SAFE_CLEAR(payload);
 }
 
-static void
-post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
+void
+pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
 {
     if (!co->curator)
         return;
@@ -2030,12 +2040,12 @@ static void check_after_execution(pcintr_coroutine_t co)
 
     if (inst->errcode) {
         PC_ASSERT(stack->except == 0);
-        exception_copy(&stack->exception);
+        pcintr_exception_copy(&stack->exception);
         stack->except = 1;
         pcinst_clear_error(inst);
         PC_ASSERT(inst->errcode == 0);
 #ifndef NDEBUG                     /* { */
-        dump_stack(stack);
+        pcintr_dump_stack(stack);
 #endif                             /* } */
         PC_ASSERT(inst->errcode == 0);
     }
@@ -2074,12 +2084,12 @@ static void check_after_execution(pcintr_coroutine_t co)
         PC_ASSERT(co->error_except == NULL);
         co->error_except = error_except;
 
-        dump_c_stack(co->stack.exception.bt);
+        pcintr_dump_c_stack(co->stack.exception.bt);
         co->stack.except = 0;
 
         if (!co->stack.exited) {
             co->stack.exited = 1;
-            notify_to_stop(co);
+            pcintr_notify_to_stop(co);
         }
     }
 
@@ -2092,7 +2102,7 @@ static void check_after_execution(pcintr_coroutine_t co)
         msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
         list_del(&msg->node);
         co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, on_msg);
+        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
         return;
     }
 
@@ -2101,19 +2111,19 @@ static void check_after_execution(pcintr_coroutine_t co)
     }
 
     if (co->stack.exited) {
-        revoke_all_dynamic_observers(&co->stack);
+        pcintr_revoke_all_dynamic_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.dynamic_observers));
-        revoke_all_native_observers(&co->stack);
+        pcintr_revoke_all_native_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.native_observers));
-        revoke_all_common_observers(&co->stack);
+        pcintr_revoke_all_common_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.common_observers));
     }
 
-    bool still_observed = co_is_observed(co);
+    bool still_observed = pcintr_co_is_observed(co);
     if (!still_observed) {
         if (!co->stack.exited) {
             co->stack.exited = 1;
-            notify_to_stop(co);
+            pcintr_notify_to_stop(co);
         }
     }
 
@@ -2126,7 +2136,7 @@ static void check_after_execution(pcintr_coroutine_t co)
         msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
         list_del(&msg->node);
         co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, on_msg);
+        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
         return;
     }
 
@@ -2136,7 +2146,7 @@ static void check_after_execution(pcintr_coroutine_t co)
 
     if (!co->stack.exited) {
         co->stack.exited = 1;
-        notify_to_stop(co);
+        pcintr_notify_to_stop(co);
     }
 
     if (!list_empty(&co->msgs)) {
@@ -2154,7 +2164,7 @@ static void check_after_execution(pcintr_coroutine_t co)
 #ifdef PRINT_DEBUG              /* { */
         PC_DEBUGX("last msg was sent");
 #endif                          /* } */
-        pcintr_wakeup_target_with(co, &last_msg, on_last_msg);
+        pcintr_wakeup_target_with(co, &last_msg, pcintr_on_last_msg);
         return;
     }
 
@@ -2171,17 +2181,17 @@ static void check_after_execution(pcintr_coroutine_t co)
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
-            post_callstate_except_event(co, co->error_except);
+            pcintr_post_callstate_except_event(co, co->error_except);
         }
         else {
             PC_ASSERT(co->val_from_return_or_exit);
-            post_callstate_success_event(co, co->val_from_return_or_exit);
+            pcintr_post_callstate_success_event(co, co->val_from_return_or_exit);
         }
     }
 
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_READY);
-    purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
+    purc_runloop_dispatch(inst->running_loop, pcintr_run_exiting_co, co);
 }
 
 void pcintr_set_exit(purc_variant_t val)
@@ -2196,7 +2206,7 @@ void pcintr_set_exit(purc_variant_t val)
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
-        notify_to_stop(co);
+        pcintr_notify_to_stop(co);
     }
 }
 
