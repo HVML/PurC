@@ -195,7 +195,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
                     data->ctxt = ctxt;
 
                     pcintr_set_current_co(co);
-                    co->state = CO_STATE_RUNNING;
+                    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
                     pcintr_post_msg(data, on_io_event);
                     pcintr_check_after_execution();
                     pcintr_set_current_co(nullptr);

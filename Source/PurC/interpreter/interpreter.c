@@ -1782,7 +1782,7 @@ void pcintr_run_exiting_co(void *ctxt)
     PC_ASSERT(co);
     switch (co->state) {
         case CO_STATE_READY:
-            co->state = CO_STATE_RUNNING;
+            pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
             coroutine_set_current(co);
             execute_one_step_for_exiting_co(co);
             coroutine_set_current(NULL);
@@ -1914,7 +1914,7 @@ pcintr_on_msg(void *ctxt)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    co->state = CO_STATE_RUNNING;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
 
     PC_ASSERT(co->msg_pending);
     co->msg_pending = 0;
@@ -1943,7 +1943,7 @@ pcintr_on_last_msg(void *ctxt)
     PC_ASSERT(co->stack.last_msg_read == 0);
     co->stack.last_msg_read = 1;
     PC_ASSERT(co->state == CO_STATE_READY);
-    co->state = CO_STATE_RUNNING;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);
     PC_ASSERT(frame == NULL);
@@ -2040,7 +2040,7 @@ static void run_ready_co(void)
 
     switch (co->state) {
         case CO_STATE_READY:
-            co->state = CO_STATE_RUNNING;
+            pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
             pcintr_execute_one_step_for_ready_co(co);
             pcintr_check_after_execution_full(pcinst_current(), co);
             break;
@@ -2142,7 +2142,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
-    co->state = CO_STATE_READY;
+    pcintr_coroutine_set_state(co, CO_STATE_READY);
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
@@ -3616,7 +3616,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    co->state = CO_STATE_STOPPED;
+    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
     co->yielded_ctxt = ctxt;
     co->continuation = continuation;
     if (request_id) {
@@ -3644,7 +3644,7 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
     void *ctxt = co->yielded_ctxt;
     void (*continuation)(void *ctxt, void *extra) = co->continuation;
 
-    co->state = CO_STATE_RUNNING;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
     if (co->wait_request_id) {
@@ -4003,3 +4003,10 @@ pcintr_template_expansion(purc_variant_t val)
     return v;
 }
 
+void 
+pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
+        enum pcintr_coroutine_state state,
+        const char *file, int line, const char *func)
+{
+    co->state = state;
+}

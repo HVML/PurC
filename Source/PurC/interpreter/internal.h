@@ -420,6 +420,14 @@ pcintr_last_msg();
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
 
+void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
+        enum pcintr_coroutine_state state,
+        const char *file, int line, const char *func);
+
+#define pcintr_coroutine_set_state(co, state) \
+    pcintr_coroutine_set_state_with_location(co, state,\
+            __FILE__, __LINE__, __func__)
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

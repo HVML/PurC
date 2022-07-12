@@ -54,7 +54,7 @@ on_observer_matched(void *ud)
     pcintr_coroutine_t co = stack->co;
 
     PC_ASSERT(co->state == CO_STATE_RUNNING);
-    co->state = CO_STATE_RUNNING;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
 
     // FIXME:
     // push stack frame
@@ -96,7 +96,7 @@ on_observer_matched(void *ud)
     }
 
     // scheduler by pcintr_schedule
-    co->state = CO_STATE_READY;
+    pcintr_coroutine_set_state(co, CO_STATE_READY);
 
     free(p);
 }

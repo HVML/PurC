@@ -86,7 +86,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         case CO_STATE_READY:
             break;
         case CO_STATE_RUNNING:
-            co->state = CO_STATE_READY;
+            pcintr_coroutine_set_state(co, CO_STATE_READY);
             break;
         case CO_STATE_STOPPED:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
@@ -262,7 +262,7 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 
     pcintr_set_current_co(co);
 
-    co->state = CO_STATE_RUNNING;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     co->execution_pending = 0;
     pcintr_execute_one_step_for_ready_co(co);
     pcintr_check_after_execution_full(inst, co);
