@@ -81,6 +81,9 @@ pcinst_msg_queue_prepend(struct pcinst_msg_queue *queue, pcrdr_msg *msg);
 pcrdr_msg *
 pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue);
 
+size_t
+pcinst_msg_queue_count(struct pcinst_msg_queue *queue);
+
 
 PCA_EXTERN_C_END
 
