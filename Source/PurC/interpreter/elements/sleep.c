@@ -254,7 +254,6 @@ static void on_continuation(void *ud, void *extra)
     ctxt = (struct ctxt_for_sleep*)frame->ctxt;
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->timer);
-    pcintr_timer_processed(ctxt->timer);
 
     // NOTE: not interrupted
     purc_variant_t result = purc_variant_make_ulongint(0);
@@ -339,9 +338,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     ctxt->co = stack->co;
-    bool for_yielded = true;
-    ctxt->timer = pcintr_timer_create(NULL, for_yielded, false, NULL,
-            on_sleep_timeout, ctxt);
+    ctxt->timer = pcintr_timer_create(NULL, NULL, on_sleep_timeout, ctxt);
     if (!ctxt->timer)
         return ctxt;
 

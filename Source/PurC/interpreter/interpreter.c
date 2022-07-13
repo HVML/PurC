@@ -635,8 +635,7 @@ static int _init_instance(struct pcinst* inst,
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
 
-    heap->event_timer = pcintr_timer_create(NULL, false, true,
-            NULL, event_timer_fire, inst);
+    heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
         purc_inst_destroy_move_buffer();
         heap->move_buff = 0;

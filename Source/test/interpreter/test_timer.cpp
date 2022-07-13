@@ -13,7 +13,6 @@ void one_shot_timer_fire(pcintr_timer_t timer, const char* id, void* ctxt)
 {
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);
-    pcintr_timer_processed(timer);
     purc_runloop_stop(purc_runloop_get_current());
 }
 
@@ -22,7 +21,6 @@ void interval_timer_fire(pcintr_timer_t timer, const char* id, void* ctxt)
     static int i = 0;
     UNUSED_PARAM(id);
     UNUSED_PARAM(ctxt);
-    pcintr_timer_processed(timer);
     if (i > 5) {
         purc_runloop_stop(purc_runloop_get_current());
     }
