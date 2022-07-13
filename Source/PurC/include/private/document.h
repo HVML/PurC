@@ -110,6 +110,7 @@ struct purc_document_ops {
 struct purc_document {
     purc_document_type type;
 
+    unsigned need_rdr:1;
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;

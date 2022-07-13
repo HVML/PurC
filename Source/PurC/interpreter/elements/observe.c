@@ -1082,10 +1082,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         // FIXME: copy from undefined.c
         char *sv = pcvariant_to_string(v);
         PC_ASSERT(sv);
-        pcdoc_node node;
-        node = pcintr_util_new_content(frame->owner->doc,
+        pcintr_util_new_content(frame->owner->doc,
                 frame->edom_element, PCDOC_OP_APPEND, sv, 0);
-        PC_ASSERT(node.type != PCDOC_NODE_UNKNOWN);
         free(sv);
         purc_variant_unref(v);
     }

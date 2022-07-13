@@ -382,14 +382,11 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     pcdoc_operation op = convert_operation(to);
     if (op != PCDOC_OP_UNKNOWN) {
-        pcdoc_node node;
-        node = pcintr_util_new_content(stack->doc, target, op, s, 0);
+        pcintr_util_new_content(stack->doc, target, op, s, 0);
         if (t)
             free(t);
 
-        if (node.type != PCDOC_NODE_UNKNOWN)
-            return 0;
-        return -1;
+        return 0;
     }
 
     if (t)

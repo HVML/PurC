@@ -57,6 +57,7 @@ static purc_document_t create(const char *content, size_t length)
     }
 
     purc_document_t doc = calloc(1, sizeof(*doc));
+    doc->need_rdr = 1;
     doc->data_content = 0;
     doc->have_head = 1;
     doc->have_body = 1;
@@ -368,7 +369,7 @@ static pcdoc_node new_content(purc_document_t doc,
 
     if (UNLIKELY(op >= PCA_TABLESIZE(dom_subtree_ops))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        node.type = PCDOC_NODE_UNKNOWN;
+        node.type = PCDOC_NODE_VOID;
         node.elem = NULL;
         goto done;
     }
@@ -462,7 +463,7 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(doc);
 
-    assert(node.type != PCDOC_NODE_UNKNOWN && node.type != PCDOC_NODE_OTHERS);
+    assert(node.type != PCDOC_NODE_VOID && node.type != PCDOC_NODE_OTHERS);
 
     pcdom_node_t *dom_node = pcdom_interface_node(node.elem);
 
@@ -522,7 +523,7 @@ static pcdoc_node get_child(purc_document_t doc,
     UNUSED_PARAM(doc);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_UNKNOWN;
+    node.type = PCDOC_NODE_VOID;
     node.elem = NULL;
 
     size_t i = 0;

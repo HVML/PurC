@@ -33,6 +33,8 @@ static purc_document_t create(const char *content, size_t length)
     UNUSED_PARAM(length);
 
     purc_document_t doc = calloc(1, sizeof(*doc));
+
+    doc->need_rdr = 0;
     doc->data_content = 0;
     doc->have_head = 0;
     doc->have_body = 0;
@@ -43,54 +45,58 @@ static purc_document_t create(const char *content, size_t length)
 
 static void destroy(purc_document_t doc)
 {
-    free (doc);
+    free(doc);
 }
 
 static pcdoc_element_t operate_element(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *tag, bool self_close)
 {
+    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(tag);
     UNUSED_PARAM(self_close);
 
-    return (pcdoc_element_t)doc;
+    return NULL;
 }
 
 static pcdoc_text_node_t new_text_content(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *content, size_t length)
 {
+    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(content);
     UNUSED_PARAM(length);
 
-    return (pcdoc_text_node_t)doc;
+    return NULL;
 }
 
 static pcdoc_node new_content(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *content, size_t length)
 {
+    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(content);
     UNUSED_PARAM(length);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_ELEMENT;
-    node.elem = (pcdoc_element_t)doc;
+    node.type = PCDOC_NODE_VOID;
+    node.elem = NULL;
     return node;
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
             pcdoc_special_elem elem)
 {
+    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
 
-    return (pcdoc_element_t)doc;
+    return NULL;
 }
 
 static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)

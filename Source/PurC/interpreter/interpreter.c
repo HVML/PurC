@@ -3825,7 +3825,7 @@ pcintr_util_new_content(purc_document_t doc,
 {
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
-    if (node.type != PCDOC_NODE_UNKNOWN) {
+    if (node.type != PCDOC_NODE_VOID) {
         pcintr_rdr_send_dom_req_simple_raw(pcintr_get_stack(), op,
                 elem, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, len);
     }

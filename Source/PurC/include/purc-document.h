@@ -74,7 +74,7 @@ typedef enum {
     PCDOC_NODE_DATA,
     PCDOC_NODE_CDATA_SECTION,
     PCDOC_NODE_OTHERS,  // DOCUMENT, DOCTYPE, COMMENT, ...
-    PCDOC_NODE_UNKNOWN = -1,
+    PCDOC_NODE_VOID,    // NOTHING
 } pcdoc_node_type;
 
 typedef struct {
