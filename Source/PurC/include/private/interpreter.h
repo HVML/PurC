@@ -738,14 +738,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
-typedef void (*co_routine_f)(void);
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
-
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
-
 void
 pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));

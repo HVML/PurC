@@ -3405,23 +3405,6 @@ pcintr_co_get_runloop(pcintr_coroutine_t co)
     return inst->running_loop;
 }
 
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target)
-{
-    struct pcintr_heap *heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    struct pcinst *inst = heap->owner;
-    PC_ASSERT(inst);
-    purc_runloop_t runloop = purc_runloop_get_current();
-    PC_ASSERT(runloop);
-    PC_ASSERT(inst->running_loop == runloop);
-    PC_ASSERT(heap->running_coroutine == NULL);
-
-    coroutine_set_current(target);
-    routine();
-    coroutine_set_current(NULL);
-}
-
 struct timer_data {
     pcintr_timer_t               timer;
     char                        *id;

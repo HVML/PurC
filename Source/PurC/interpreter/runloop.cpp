@@ -178,18 +178,6 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 
-static void apply_none(void *ctxt)
-{
-    co_routine_f routine = (co_routine_f)ctxt;
-    routine();
-}
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine)
-{
-    pcintr_wakeup_target_with(target, (void*)routine, apply_none);
-}
-
 void
 pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt))
