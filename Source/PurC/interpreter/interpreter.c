@@ -453,6 +453,9 @@ coroutine_release(pcintr_coroutine_t co)
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
         }
+
+        pcintr_coroutine_clear_tasks(co);
+
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
         }
@@ -1911,9 +1914,9 @@ pcintr_on_msg(void *ctxt)
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
     //PC_ASSERT(co->state == CO_STATE_READY);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
+    //struct pcintr_stack_frame *frame;
+    //frame = pcintr_stack_get_bottom_frame(stack);
+    //PC_ASSERT(frame == NULL);
 
     //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
 

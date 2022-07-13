@@ -433,6 +433,9 @@ int
 pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
         size_t *nr_event);
 
+int
+pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
+
 
 PCA_EXTERN_C_END
 

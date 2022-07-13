@@ -43,6 +43,28 @@
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 
 static void
+destroy_task(struct pcintr_observer_task *task)
+{
+    if (!task) {
+        return;
+    }
+
+    if (task->payload) {
+        purc_variant_unref(task->payload);
+    }
+
+    if (task->event_name) {
+        purc_variant_unref(task->event_name);
+    }
+
+    if (task->source) {
+        purc_variant_unref(task->source);
+    }
+
+    free(task);
+}
+
+static void
 handle_task(struct pcintr_observer_task *task)
 {
     pcintr_stack_t stack = task->stack;
@@ -69,7 +91,6 @@ handle_task(struct pcintr_observer_task *task)
 
     if (task->payload) {
         pcintr_set_question_var(frame, task->payload);
-        purc_variant_unref(task->payload);
     }
 
     PC_ASSERT(frame->edom_element);
@@ -80,20 +101,18 @@ handle_task(struct pcintr_observer_task *task)
     if (task->event_name) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
                 EXCLAMATION_EVENT_NAME, task->event_name);
-        purc_variant_unref(task->event_name);
     }
 
     // set $! _eventSource
     if (task->source) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
                 EXCLAMATION_EVENT_SOURCE, task->source);
-        purc_variant_unref(task->source);
     }
 
     // scheduler by pcintr_schedule
     pcintr_coroutine_set_state(co, CO_STATE_READY);
 
-    free(task);
+    destroy_task(task);
 }
 
 void
@@ -257,6 +276,21 @@ pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
         }
     }
 
+    return 0;
+}
+
+int
+pcintr_coroutine_clear_tasks(pcintr_coroutine_t co)
+{
+    if (list_empty(&co->tasks)) {
+        return 0;
+    }
+    struct list_head *tasks = &co->tasks;
+    struct pcintr_observer_task *p, *n;
+    list_for_each_entry_safe(p, n, tasks, ln) {
+        list_del(&p->ln);
+        destroy_task(p);
+    }
     return 0;
 }
 
