@@ -43,13 +43,9 @@
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 
 static void
-on_observer_matched(void *ud)
+handle_task(struct pcintr_observer_task *task)
 {
-    struct pcintr_observer_task *p;
-    p = (struct pcintr_observer_task*)ud;
-    PC_ASSERT(p);
-
-    pcintr_stack_t stack = p->stack;
+    pcintr_stack_t stack = task->stack;
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
 
@@ -64,16 +60,16 @@ on_observer_matched(void *ud)
     struct pcintr_stack_frame *frame;
     frame = &frame_normal->frame;
 
-    frame->ops = pcintr_get_ops_by_element(p->pos);
-    frame->scope = p->scope;
-    frame->pos = p->pos;
+    frame->ops = pcintr_get_ops_by_element(task->pos);
+    frame->scope = task->scope;
+    frame->pos = task->pos;
     frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
-    frame->edom_element = p->edom_element;
+    frame->edom_element = task->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
-    if (p->payload) {
-        pcintr_set_question_var(frame, p->payload);
-        purc_variant_unref(p->payload);
+    if (task->payload) {
+        pcintr_set_question_var(frame, task->payload);
+        purc_variant_unref(task->payload);
     }
 
     PC_ASSERT(frame->edom_element);
@@ -81,65 +77,52 @@ on_observer_matched(void *ud)
 
     purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
     // set $! _eventName
-    if (p->event_name) {
+    if (task->event_name) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
-                EXCLAMATION_EVENT_NAME, p->event_name);
-        purc_variant_unref(p->event_name);
+                EXCLAMATION_EVENT_NAME, task->event_name);
+        purc_variant_unref(task->event_name);
     }
 
     // set $! _eventSource
-    if (p->source) {
+    if (task->source) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
-                EXCLAMATION_EVENT_SOURCE, p->source);
-        purc_variant_unref(p->source);
+                EXCLAMATION_EVENT_SOURCE, task->source);
+        purc_variant_unref(task->source);
     }
 
     // scheduler by pcintr_schedule
     pcintr_coroutine_set_state(co, CO_STATE_READY);
 
-    free(p);
+    free(task);
 }
 
 void
-observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
+add_task(pcintr_coroutine_t co, struct pcintr_observer *p,
         purc_variant_t payload, purc_variant_t source, purc_variant_t event_name)
 {
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(&co->stack == stack);
+    struct pcintr_observer_task *task;
+    task = (struct pcintr_observer_task*)calloc(1, sizeof(*task));
 
-    pcintr_coroutine_t cco = pcintr_get_coroutine();
-    if (!cco) {
-        pcintr_set_current_co(co);
-    }
-
-    struct pcintr_observer_task *data;
-    data = (struct pcintr_observer_task*)calloc(1, sizeof(*data));
-    PC_ASSERT(data);
-    data->pos = p->pos;
-    data->scope = p->scope;
-    data->edom_element = p->edom_element;
-    data->stack = stack;
+    task->pos = p->pos;
+    task->scope = p->scope;
+    task->edom_element = p->edom_element;
+    task->stack = &co->stack;
 
     if (event_name) {
-        data->event_name = event_name;
-        purc_variant_ref(data->event_name);
+        task->event_name = event_name;
+        purc_variant_ref(task->event_name);
     }
 
     if (source) {
-        data->source = source;
-        purc_variant_ref(data->source);
+        task->source = source;
+        purc_variant_ref(task->source);
     }
     if (payload) {
-        data->payload = payload;
-        purc_variant_ref(data->payload);
+        task->payload = payload;
+        purc_variant_ref(task->payload);
     }
 
-    pcintr_post_msg(data, on_observer_matched);
-    pcintr_check_after_execution();
-    if (!cco) {
-        pcintr_set_current_co(NULL);
-    }
+    list_add_tail(&task->ln, &co->tasks);
 }
 
 static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
@@ -164,12 +147,6 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
     if (!cco) {
         pcintr_set_current_co(co);
     }
-
-#if 0
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
-#endif
 
     purc_variant_t msg_type = PURC_VARIANT_INVALID;
     purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
@@ -198,7 +175,7 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
     list_for_each_entry_safe(p, n, list, node) {
         if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
             handle = true;
-            observer_matched(stack, p, msg->data, msg->sourceURI, msg->eventName);
+            add_task(co, p, msg->data, msg->sourceURI, msg->eventName);
         }
     }
 
@@ -261,12 +238,25 @@ pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
     UNUSED_PARAM(co);
     UNUSED_PARAM(nr_task);
     UNUSED_PARAM(nr_event);
-    struct pcinst_msg_queue *queue = co->mq;
-    pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
-    if(msg) {
-        dispatch_coroutine_msg(co, msg);
-        pcrdr_release_message(msg);
+
+    if (list_empty(&co->tasks)) {
+        struct pcinst_msg_queue *queue = co->mq;
+        pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
+        if(msg) {
+            dispatch_coroutine_msg(co, msg);
+            pcrdr_release_message(msg);
+        }
     }
+
+    if (!list_empty(&co->tasks)) {
+        struct pcintr_observer_task *task =
+            list_first_entry(&co->tasks, struct pcintr_observer_task, ln);
+        if (task) {
+            list_del(&task->ln);
+            handle_task(task);
+        }
+    }
+
     return 0;
 }
 

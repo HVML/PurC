@@ -430,9 +430,6 @@ void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
             __FILE__, __LINE__, __func__)
 
 int
-dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg);
-
-int
 pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
         size_t *nr_event);
 
