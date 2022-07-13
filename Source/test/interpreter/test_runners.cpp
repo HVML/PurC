@@ -102,8 +102,8 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 }
 
 static const char *hvml = "<hvml><body><sleep for 2s /></body></hvml>";
-static const char *request_json = "{ name: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
-static const char *toolkit_style_json = "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0 } }";
+static const char *request_json = "{ name: 'PurC', os: ['Linux', 'macOS', 'HybridOS', 'Windows'], emptyObject: {} }";
+static const char *toolkit_style_json = "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0, emptyArray: [{x: 1}], emptyObject: {} }, emptyArray: [] }";
 
 static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
         purc_variant_t request, purc_variant_t toolkit_style)

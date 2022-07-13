@@ -979,7 +979,7 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 1, &response);
+            request_id, 0, &response);  // wait forever
     purc_variant_unref(request_id);
 
     if (ret) {
@@ -1031,7 +1031,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 1, &response);
+            request_id, 0, &response);  // wait forever
     purc_variant_unref(request_id);
 
     int retv = 0;

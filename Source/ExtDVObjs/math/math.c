@@ -1721,6 +1721,26 @@ static int post_check(void)
 }
 
 int
+math_voi(double *r, double (*f)(void))
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f();
+
+    return post_check();
+}
+
+int
+math_voi_l(long double *r, long double (*f)(void))
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f();
+
+    return post_check();
+}
+
+int
 math_uni(double *r, double (*f)(double a), double a)
 {
     feclearexcept(FE_ALL_EXCEPT);
@@ -1731,7 +1751,7 @@ math_uni(double *r, double (*f)(double a), double a)
 }
 
 int
-math_unil(long double *r, long double (*f)(long double a), long double a)
+math_uni_l(long double *r, long double (*f)(long double a), long double a)
 {
     feclearexcept(FE_ALL_EXCEPT);
 
@@ -1740,9 +1760,210 @@ math_unil(long double *r, long double (*f)(long double a), long double a)
     return post_check();
 }
 
-/*
-#undef div
-#undef frexp
-#undef ldexp
-#undef modf
-*/
+int
+math_bin(double *r, double (*f)(double a, double b), double a, double b)
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f(a, b);
+
+    return post_check();
+}
+
+int
+math_bin_l(long double *r, long double (*f)(long double a, long double b),
+        long double a, long double b)
+{
+    feclearexcept(FE_ALL_EXCEPT);
+
+    *r = f(a, b);
+
+    return post_check();
+}
+
+double
+math_max(double a, double b)
+{
+    if (isnan(a) || isnan(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a) ||isinf(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > b ? a : b;
+}
+
+long double
+math_max_l(long double a, long double b)
+{
+    if (isnan(a) || isnan(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a) ||isinf(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > b ? a : b;
+}
+
+double
+math_min(double a, double b)
+{
+    if (isnan(a) || isnan(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a) ||isinf(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > b ? b : a;
+}
+
+long double
+math_min_l(long double a, long double b)
+{
+    if (isnan(a) || isnan(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a) ||isinf(b)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > b ? b : a;
+}
+
+double
+math_abs(double a)
+{
+    if (isnan(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > 0 ? a : 0.0 - a;
+}
+
+long double
+math_abs_l(long double a)
+{
+    if (isnan(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    return a > 0 ? a : 0.0 - a;
+}
+
+double
+math_sign(double a)
+{
+    if (isnan(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    if (a > 0)
+        return 1;
+    if (a < 0)
+        return -1;
+    return 0;
+}
+
+long double
+math_sign_l(long double a)
+{
+    if (isnan(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+    if (isinf(a)) {
+        purc_set_error(PURC_ERROR_INVALID_FLOAT);
+        return 0.0;
+    }
+
+    if (a > 0)
+        return 1;
+    if (a < 0)
+        return -1;
+    return 0;
+}
+
+double
+math_random(void)
+{
+    double v = random();
+    v /= RAND_MAX;
+    return v;
+}
+
+long double
+math_random_l(void)
+{
+    long double v = random();
+    v /= RAND_MAX;
+    return v;
+}
+
+struct pre_defined_data {
+    double           d;
+    long double      ld;
+};
+
+static struct pre_defined_data pre_defines[] = {
+    // NOTE: keep the same order as in enum `math_pre_defined_var`
+    {M_PI,         M_PIl},
+    {M_E,          M_El},
+    {M_LN2,        M_LN2l},
+    {M_LN10,       M_LN10l},
+    {M_LOG2E,      M_LOG2El},
+    {M_LOG10E,     M_LOG10El},
+    {M_SQRT1_2,    M_SQRT1_2l},
+    {M_SQRT2,      M_SQRT2l},
+};
+
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(predefines,
+        PCA_TABLESIZE(pre_defines) == MATH_PRE_DEFINED_MAX);
+
+#undef _COMPILE_TIME_ASSERT
+
+double
+math_pre_defined(enum math_pre_defined_var v)
+{
+    if (v<0 || v>=MATH_PRE_DEFINED_MAX)
+        abort();
+    return pre_defines[v].d;
+}
+
+long double
+math_pre_defined_l(enum math_pre_defined_var v)
+{
+    if (v<0 || v>=MATH_PRE_DEFINED_MAX)
+        abort();
+    return pre_defines[v].ld;
+}
+
