@@ -862,78 +862,6 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void load_response_handler(purc_variant_t request_id, void *ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
-{
-    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
-    struct fetcher_for_init *fetcher = (struct fetcher_for_init*)ctxt;
-    pthread_t current = pthread_self();
-    PC_ASSERT(current == fetcher->current);
-
-    if (resp_header->ret_code == RESP_CODE_USER_STOP) {
-        goto clean_rws;
-    }
-
-    pcintr_remove_async_request_id(fetcher->stack, request_id);
-    bool has_except = false;
-    if (!resp || resp_header->ret_code != 200) {
-        has_except = true;
-        goto dispatch_except;
-    }
-
-    bool ok;
-    struct pcvdom_element *element = fetcher->element;
-    purc_variant_t ret = purc_variant_load_from_json_stream(resp);
-    const char *s_name = purc_variant_get_string_const(fetcher->name);
-    if (ret != PURC_VARIANT_INVALID) {
-        if (fetcher->under_head) {
-            ok = purc_coroutine_bind_variable(fetcher->stack->co, s_name,
-                    ret);
-        } else {
-            element = pcvdom_element_parent(element);
-            ok = pcintr_bind_scope_variable(fetcher->stack->co, element,
-                    s_name, ret);
-        }
-        purc_variant_unref(ret);
-        if (ok) {
-            goto clean_rws;
-        }
-        has_except = true;
-        goto dispatch_except;
-    }
-    else {
-        has_except = true;
-        goto dispatch_except;
-    }
-
-dispatch_except:
-    if (has_except) {
-        purc_atom_t atom = purc_get_error_exception(purc_get_last_error());
-        pcvarmgr_t varmgr;
-        if (fetcher->under_head) {
-            varmgr = pcintr_get_coroutine_variables(fetcher->stack->co);
-        }
-        else {
-            element = pcvdom_element_parent(element);
-            varmgr = pcintr_get_scope_variables(fetcher->stack->co, element);
-        }
-        pcvarmgr_dispatch_except(varmgr, s_name, purc_atom_to_string(atom));
-    }
-
-clean_rws:
-    if (resp) {
-        purc_rwstream_destroy(resp);
-    }
-
-    if (request_id != PURC_VARIANT_INVALID) {
-        purc_variant_unref(request_id);
-    }
-    free(fetcher);
-}
-
 static void on_sync_complete_on_frame(struct ctxt_for_init *ctxt,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -1517,51 +1445,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
-    purc_variant_t from = ctxt->from;
 
     if (ctxt->with && !ctxt->from) {
         r = pcintr_set_question_var(frame, ctxt->with);
         if (r)
             return ctxt;
-    }
-
-    if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)
-            && pcfetcher_is_init()) {
-        const char* uri = purc_variant_get_string_const(from);
-        if (!ctxt->async) {
-            PC_ASSERT(0);
-            purc_variant_t v = pcintr_load_from_uri(stack, uri);
-            if (v == PURC_VARIANT_INVALID)
-                return ctxt;
-            PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-            ctxt->from_result = v;
-        }
-        else {
-            struct fetcher_for_init *fetcher = (struct fetcher_for_init*)
-                malloc(sizeof(struct fetcher_for_init));
-            if (!fetcher) {
-                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-                return ctxt;
-            }
-            fetcher->stack = stack;
-            fetcher->element = element;
-            fetcher->name = ctxt->as;
-            fetcher->current = pthread_self();
-            purc_variant_ref(fetcher->name);
-            fetcher->under_head = ctxt->under_head;
-
-            enum pcfetcher_request_method method;
-            method = method_from_via(ctxt->via);
-
-            purc_variant_t params;
-            params = params_from_with(ctxt);
-
-            purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
-                    method, params, load_response_handler, fetcher);
-            if (v == PURC_VARIANT_INVALID)
-                return ctxt;
-            pcintr_save_async_request_id(stack, v);
-        }
     }
 
     if (r)
