@@ -1807,8 +1807,6 @@ void pcintr_run_exiting_co(void *ctxt)
     }
 }
 
-static void run_ready_co(void);
-
 void
 pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack)
 {
@@ -2035,32 +2033,6 @@ void pcintr_set_exit(purc_variant_t val)
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
         pcintr_notify_to_stop(co);
-    }
-}
-
-static void run_ready_co(void)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->execution_pending == 1);
-    co->execution_pending = 0;
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-            pcintr_execute_one_step_for_ready_co(co);
-            pcintr_check_after_execution_full(pcinst_current(), co);
-            break;
-        case CO_STATE_RUNNING:
-            PC_ASSERT(0);
-            break;
-        case CO_STATE_STOPPED:
-            PC_ASSERT(0);
-            break;
-        default:
-            PC_ASSERT(0);
     }
 }
 
@@ -3692,7 +3664,6 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
         init_frame_for_co(child);
-        pcintr_wakeup_target(child, run_ready_co);
     } while (0);
 
     return child;
@@ -3723,7 +3694,6 @@ pcintr_load_child_co(const char *hvml,
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
         init_frame_for_co(child);
-        pcintr_wakeup_target(child, run_ready_co);
     } while (0);
 
     return child;
