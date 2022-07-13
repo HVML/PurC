@@ -104,7 +104,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         PC_ASSERT(0);
     }
 
-    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    int r = pcintr_util_set_attribute(frame->owner->doc,
+            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
     PC_ASSERT(r == 0);
 
     if (name) {
@@ -200,9 +201,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     PC_ASSERT(frame->edom_element);
-    pcdom_element_t *child;
-    child = pcintr_util_append_element(frame->edom_element,
-            frame->pos->tag_name);
+    pcdoc_element_t child;
+    child = pcintr_util_new_element(frame->owner->doc, frame->edom_element,
+            PCDOC_OP_APPEND, frame->pos->tag_name, false);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;
@@ -229,16 +230,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
-            const char *sv = purc_variant_get_string_const(v);
-            int r = pcintr_util_set_child_chunk(frame->edom_element, sv);
-            PC_ASSERT(r == 0);
+            size_t sz;
+            const char *sv = purc_variant_get_string_const_ex(v, &sz);
+            pcdoc_node node;
+            node = pcintr_util_new_content(frame->owner->doc,
+                    frame->edom_element, PCDOC_OP_DISPLACE, sv, sz);
+            PC_ASSERT(node.type != PCDOC_NODE_UNKNOWN);
         }
         else {
             char *sv = pcvariant_to_string(v);
             PC_ASSERT(sv);
-            int r;
-            r = pcintr_util_set_child_chunk(frame->edom_element, sv);
-            PC_ASSERT(r == 0);
+            pcdoc_node node;
+            node = pcintr_util_new_content(frame->owner->doc,
+                    frame->edom_element, PCDOC_OP_DISPLACE, sv, 0);
+            PC_ASSERT(node.type != PCDOC_NODE_UNKNOWN);
             free(sv);
         }
         purc_variant_unref(v);
@@ -307,18 +312,21 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_clr_error();
 
     if (purc_variant_is_string(v)) {
-        const char *text = purc_variant_get_string_const(v);
-        pcdom_text_t *content;
-        content = pcintr_util_append_content(frame->edom_element, text);
+        size_t sz;
+        const char *text = purc_variant_get_string_const_ex(v, &sz);
+        pcdoc_text_node_t content;
+        content = pcintr_util_new_text_content(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_APPEND, text, sz);
         PC_ASSERT(content);
         purc_variant_unref(v);
     }
     else {
         char *sv = pcvariant_to_string(v);
         PC_ASSERT(sv);
-        int r;
-        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
-        PC_ASSERT(r == 0);
+        pcdoc_node node;
+        node = pcintr_util_new_content(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_APPEND, sv, 0);
+        PC_ASSERT(node.type != PCDOC_NODE_UNKNOWN);
         free(sv);
         purc_variant_unref(v);
     }

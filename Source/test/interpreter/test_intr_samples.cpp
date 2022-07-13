@@ -3,6 +3,7 @@
 #include "private/interpreter.h"
 
 #include "../helpers.h"
+#include "tools.h"
 
 #include <glob.h>
 #include <gtest/gtest.h>
@@ -13,11 +14,10 @@ struct sample_data {
 };
 
 struct sample_ctxt {
-    char                   *input_hvml;
-    char                   *expected_html;
-    pchtml_html_document_t *html;
-
-    int                     terminated;
+    char               *input_hvml;
+    char               *expected_html;
+    purc_document_t     html;
+    int                 terminated;
 };
 
 static void
@@ -37,7 +37,7 @@ sample_release(struct sample_ctxt *ud)
     }
 
     if (ud->html) {
-        pchtml_html_document_destroy(ud->html);
+        purc_document_delete(ud->html);
         ud->html =  NULL;
     }
 }
@@ -52,49 +52,6 @@ sample_destroy(struct sample_ctxt *ud)
     free(ud);
 }
 
-#if 0 // VW: use event handler instead
-static void
-on_terminated(pcintr_stack_t stack, void *ctxt)
-{
-    struct sample_ctxt *ud = (struct sample_ctxt*)ctxt;
-    pchtml_html_document_t *doc = stack->doc;
-
-    if (ud->terminated) {
-        ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
-        return;
-    }
-    ud->terminated = 1;
-
-    if (ud->html) {
-        int diff = 0;
-        int r = 0;
-        pcintr_util_comp_docs(doc, ud->html, &diff);
-        if (r == 0 && diff == 0)
-            return;
-
-        char buf[8192];
-        size_t nr = sizeof(nr);
-        char *p = pchtml_doc_snprintf_plain(doc, buf, &nr, "");
-
-        ADD_FAILURE()
-            << "failed to compare:" << std::endl
-            << "input:" << std::endl << ud->input_hvml << std::endl
-            << "output:" << std::endl << p << std::endl
-            << "expected:" << std::endl << ud->expected_html << std::endl;
-
-        if (p != buf)
-            free(p);
-    }
-}
-
-static void
-on_cleanup(pcintr_stack_t stack, void *ctxt)
-{
-    UNUSED_PARAM(stack);
-
-}
-#endif
-
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
@@ -106,7 +63,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
     if (event == PURC_COND_COR_EXITED) {
-        pchtml_html_document_t *doc = (pchtml_html_document_t *)data;
+        purc_document_t doc = (purc_document_t)data;
 
         if (ud->terminated) {
             ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
@@ -116,23 +73,20 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
         if (ud->html) {
             int diff = 0;
-            int r = 0;
-            pcintr_util_comp_docs(doc, ud->html, &diff);
-            if (r == 0 && diff == 0)
+            char *ctnt;
+            ctnt = intr_util_comp_docs(doc, ud->html, &diff);
+            if (ctnt != NULL && diff == 0) {
+                free(ctnt);
                 return 0;
-
-            char buf[8192];
-            size_t nr = sizeof(nr);
-            char *p = pchtml_doc_snprintf_plain(doc, buf, &nr, "");
+            }
 
             ADD_FAILURE()
                 << "failed to compare:" << std::endl
                 << "input:" << std::endl << ud->input_hvml << std::endl
-                << "output:" << std::endl << p << std::endl
+                << "output:" << std::endl << ctnt << std::endl
                 << "expected:" << std::endl << ud->expected_html << std::endl;
 
-            if (p != buf)
-                free(p);
+            free(ctnt);
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
@@ -154,9 +108,8 @@ add_sample(const struct sample_data *sample)
     }
 
     if (sample->expected_html) {
-        ud->html = pchmtl_html_load_document_with_buf(
-                (const unsigned char*)sample->expected_html,
-                strlen(sample->expected_html));
+        ud->html = purc_document_load(PCDOC_K_TYPE_HTML,
+                sample->expected_html, strlen(sample->expected_html));
         if (!ud->html) {
             ADD_FAILURE()
                 << "failed to parsing html:" << std::endl

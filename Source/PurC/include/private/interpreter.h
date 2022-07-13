@@ -33,7 +33,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/html.h"
+#include "private/document.h"
 #include "private/utils.h"
 #include "private/list.h"
 #include "private/vdom.h"
@@ -158,7 +158,8 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     struct pcvdom_element        *entry;
-    pchtml_html_document_t       *doc;
+    // VW pchtml_html_document_t       *doc;
+    purc_document_t               doc;
 
     // for `back` to use
     struct pcintr_stack_frame    *back_anchor;
@@ -237,7 +238,8 @@ struct pcintr_coroutine {
 
     purc_vdom_t                 vdom;
 
-    char                      **dump_buff;
+    // VW: use cond_handler instead
+    // char                      **dump_buff;
 
     /* fields for renderer */
     pcrdr_page_type             target_page_type;
@@ -344,8 +346,9 @@ struct pcintr_stack_frame {
     struct list_head node;
     // the current scope.
     pcvdom_element_t scope;
+
     // the current edom element;
-    pcdom_element_t *edom_element;
+    pcdoc_element_t edom_element;
 
     // the current execution position.
     pcvdom_element_t pos;
@@ -411,7 +414,7 @@ struct pcintr_observer {
     char* sub_type;
 
     pcvdom_element_t scope;
-    pcdom_element_t *edom_element;
+    pcdoc_element_t  edom_element;
 
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
@@ -591,7 +594,7 @@ pcintr_register_observer(pcintr_stack_t stack,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
-        pcdom_element_t *edom_element,
+        pcdoc_element_t edom_element,
         pcvdom_element_t pos,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
@@ -620,8 +623,97 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len);
 
 // utilities
+
+pcdoc_element_t
+pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *tag, bool self_close);
+
+pcdoc_text_node_t
+pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *txt, size_t len);
+
+pcdoc_node
+pcintr_util_new_content(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *content, size_t len);
+
+int
+pcintr_util_set_attribute(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *name, const char *val, size_t len);
+
+static inline int pcintr_util_remove_attribute(purc_document_t doc,
+        pcdoc_element_t elem, const char *name)
+{
+    return pcintr_util_set_attribute(doc, elem, PCDOC_OP_ERASE,
+        name, NULL, 0);
+}
+
+int
+pcintr_init_vdom_under_stack(pcintr_stack_t stack);
+
+purc_runloop_t
+pcintr_co_get_runloop(pcintr_coroutine_t co);
+
+typedef void (*co_routine_f)(void);
+
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
+pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
+
+void
+pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
+
+void
+pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt));
+
+void*
+pcintr_load_module(const char *module,
+        const char *env_name, const char *prefix);
+
+void
+pcintr_unload_module(void *handle);
+
+int
+pcintr_init_loader_once(void);
+
+bool
+pcintr_attach_to_renderer(pcintr_coroutine_t cor,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info);
+
+int
+pcintr_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, purc_variant_t event_name,
+        purc_variant_t data);
+
+int
+pcintr_post_event_by_ctype(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
+
+PCA_EXTERN_C_END
+
+#endif  /* PURC_PRIVATE_INTERPRETER_H */
+
+#if 0 // VW: deprecated
+void
+pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
     const char *file, int line, const char *func);
 
 void
@@ -684,71 +776,10 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
 bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
-int
-pcintr_init_vdom_under_stack(pcintr_stack_t stack);
-
-purc_runloop_t
-pcintr_co_get_runloop(pcintr_coroutine_t co);
-
-typedef void (*co_routine_f)(void);
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
-
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
-
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt));
-
-void*
-pcintr_load_module(const char *module,
-        const char *env_name, const char *prefix);
-
-void
-pcintr_unload_module(void *handle);
-
-int
-pcintr_init_loader_once(void);
-
 static inline void
 pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
 {
     co->dump_buff = dump_buff;
 }
-
-bool
-pcintr_attach_to_renderer(pcintr_coroutine_t cor,
-        pcrdr_page_type page_type, const char *target_workspace,
-        const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info);
-
-int
-pcintr_post_event(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, purc_variant_t event_name,
-        purc_variant_t data);
-
-int
-pcintr_post_event_by_ctype(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
-
-int
-pcintr_coroutine_post_event(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op,
-        purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
-
-static inline const char*
-pcintr_coroutine_get_uri(pcintr_coroutine_t co)
-{
-    return purc_atom_to_string(co->cid);
-}
-
-PCA_EXTERN_C_END
-
-#endif  /* PURC_PRIVATE_INTERPRETER_H */
+#endif // VW: deprecated
 

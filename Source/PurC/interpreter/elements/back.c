@@ -150,12 +150,12 @@ post_process_to_by_id(struct pcintr_stack_frame *frame,
 
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     while (p) {
-        pcdom_element_t *edom_element;
+        pcdoc_element *edom_element;
         edom_element = p->edom_element;
         if (edom_element) {
             const char *s;
             size_t len;
-            s = (const char*)pcdom_element_id(edom_element, &len);
+            s = pcdoc_element_id(frame->owner->doc, edom_element, &len);
             if (s && strncmp(s, id, len)==0 && id[len] == '\0') {
                 break;
             }

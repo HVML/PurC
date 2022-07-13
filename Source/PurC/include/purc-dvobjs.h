@@ -36,7 +36,7 @@
 
 #include "purc-macros.h"
 #include "purc-variant.h"
-#include "purc-dom.h"
+#include "purc-document.h"
 #include "purc-utils.h"
 
 #define PURC_TFORMAT_PREFIX_UTC       "{UTC}"
@@ -88,7 +88,7 @@ purc_dvobj_hvml_new(pcintr_coroutine_t cor);
 
 /** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_doc_new(struct pcdom_document *doc);
+purc_dvobj_doc_new(purc_document_t doc);
 
 /** Make a dynamic variant object for built-in `$EJSON` variable. */
 PCA_EXPORT purc_variant_t

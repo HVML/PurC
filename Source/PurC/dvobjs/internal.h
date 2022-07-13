@@ -31,16 +31,18 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/dom.h"
+#include "private/document.h"
 
 struct pcdvobjs_element
 {
-    struct pcdom_element          *elem;       // NOTE: no ownership
+    purc_document_t doc;
+    pcdoc_element_t elem;
 };
 
 struct pcdvobjs_elements {
-    pcutils_array_t          *elements; // struct pcdvobjs_element *
-    char                     *css;
+    purc_document_t         doc;
+    pcutils_array_t        *elements;
+    char                   *css;
 };
 
 struct native_property_cfg {
@@ -55,40 +57,39 @@ struct native_property_cfg {
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
-pcdvobjs_query_elements(struct pcdom_element *root,
+pcdvobjs_query_elements(purc_document_t doc, pcdoc_element_t root,
     const char *css) WTF_INTERNAL;
 
-
 purc_variant_t
-pcdvobjs_element_attr_getter(pcdom_element_t *element,
+pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t *argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_prop_getter(pcdom_element_t *element,
+pcdvobjs_element_prop_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t *argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_style_getter(pcdom_element_t *element,
+pcdvobjs_element_style_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_content_getter(pcdom_element_t *element,
+pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_text_content_getter(pcdom_element_t *element,
+pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_json_content_getter(pcdom_element_t *element,
+pcdvobjs_element_json_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_val_getter(pcdom_element_t *element,
+pcdvobjs_element_val_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_has_class_getter(pcdom_element_t *element,
+pcdvobjs_element_has_class_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 PCA_EXTERN_C_END

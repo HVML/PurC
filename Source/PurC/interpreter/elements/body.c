@@ -123,7 +123,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    frame->edom_element = pchtml_doc_get_body(stack->doc);
+    frame->edom_element = purc_document_body(stack->doc);
     int r;
     r = pcintr_refresh_at_var(frame);
     if (r)
@@ -191,8 +191,22 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(v != PURC_VARIANT_INVALID);
     purc_clr_error();
 
+    assert(purc_variant_is_string(v));
+
+    size_t sz;
+    const char *text = purc_variant_get_string_const_ex(v, &sz);
+    if (sz > 0) {
+        pcdoc_text_node_t text_node;
+        text_node = pcintr_util_new_text_content(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_APPEND, text, sz);
+        PC_ASSERT(text_node);
+    }
+    purc_variant_unref(v);
+
+#if 0 // VW
     if (purc_variant_is_string(v)) {
-        const char *text = purc_variant_get_string_const(v);
+        size_t sz;
+        const char *text = purc_variant_get_string_const_ex(v, &sz);
         pcdom_text_t *content;
         content = pcintr_util_append_content(frame->edom_element, text);
         PC_ASSERT(content);
@@ -208,6 +222,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         free(sv);
         purc_variant_unref(v);
     }
+#endif
 }
 
 static void

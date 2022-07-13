@@ -23,6 +23,7 @@
  */
 
 #include "purc-variant.h"
+#include "purc-errors.h"
 #include "purc-helpers.h"
 
 #include "private/utils.h"

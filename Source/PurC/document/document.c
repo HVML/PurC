@@ -26,11 +26,12 @@
 #include "purc-errors.h"
 
 #include "private/document.h"
+#include "private/stringbuilder.h"
 
 static struct purc_document_ops *doc_ops[] = {
     &_pcdoc_void_ops,
     NULL, // &_pcdoc_plain_ops,
-    NULL, // &_pcdoc_html_ops,
+    &_pcdoc_html_ops,
     NULL,
     NULL,
 };
@@ -62,6 +63,7 @@ purc_document_load(purc_document_type type, const char *content, size_t len)
 {
     struct purc_document_ops *ops = doc_ops[type];
     if (ops == NULL) {
+        PC_WARN("document type %d is not implemented\n", type);
         purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
         return NULL;
     }
@@ -97,7 +99,7 @@ pcdoc_element_clear(purc_document_t doc, pcdoc_element_t elem)
 }
 
 void
-pcdoc_element_remove(purc_document_t doc, pcdoc_element_t elem)
+pcdoc_element_erase(purc_document_t doc, pcdoc_element_t elem)
 {
     doc->ops->operate_element(doc, elem, PCDOC_OP_ERASE, NULL, 0);
 }
@@ -130,51 +132,317 @@ pcdoc_element_new_content(purc_document_t doc,
     return doc->ops->new_content(doc, elem, op, content, len);
 }
 
-bool
+int
 pcdoc_element_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
         const char *name, const char *val, size_t len)
 {
-    return doc->ops->set_attribute(doc, elem, op, name, val, len);
+    if (doc->ops->set_attribute) {
+        return doc->ops->set_attribute(doc, elem, op, name, val, len);
+    }
+
+    return 0;
 }
 
-bool
+int
 pcdoc_element_get_attribute(purc_document_t doc, pcdoc_element_t elem,
         const char *name, const char **val, size_t *len)
 {
-    return doc->ops->get_attribute(doc, elem, name, val, len);
+    if (doc->ops->get_attribute) {
+        return doc->ops->get_attribute(doc, elem, name, val, len);
+    }
+
+    *val = "";
+    if (len) *len = 0;
+    return 0;
 }
 
-bool
+int
+pcdoc_element_get_special_attr(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_special_attr which, const char **val, size_t *len)
+{
+    if (doc->ops->get_special_attr) {
+        return doc->ops->get_special_attr(doc, elem, which, val, len);
+    }
+
+    *val = "";
+    if (len) *len = 0;
+    return 0;
+}
+
+struct class_token_info {
+    const char *klass;
+    size_t      length;
+
+    bool        found;
+};
+
+static int
+class_token_finder(const char *token, const char *end, void *ud)
+{
+    struct class_token_info *info = (struct class_token_info *)ud;
+
+    if ((size_t)(end - token) != info->length)
+        return 0;
+
+    if (strncmp(token, info->klass, info->length))
+        return 0;
+
+    info->found = true;
+    return 1;
+}
+
+int
+pcdoc_element_has_class(purc_document_t doc, pcdoc_element_t elem,
+        const char *klass, bool *found)
+{
+    const char *s;
+    size_t len;
+    s = pcdoc_element_class(doc, elem, &len);
+
+    if (s && len > 0) {
+        struct class_token_info info = {
+            .klass      = klass,
+            .length     = strlen(klass),
+            .found      = false,
+        };
+
+        pcutils_token_by_delim(s, s + len, ' ',
+                &info, class_token_finder);
+        *found = info.found;
+        return 0;
+    }
+
+    return -1;
+}
+
+int
 pcdoc_text_content_get_text(purc_document_t doc, pcdoc_text_node_t text_node,
         const char **text, size_t *len)
 {
-    return doc->ops->get_text(doc, text_node, text, len);
+    if (doc->ops->get_text) {
+        return doc->ops->get_text(doc, text_node, text, len);
+    }
+
+    *text = "";
+    if (len) *len = 0;
+    return 0;
 }
 
-bool
+int
 pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
         purc_variant_t *data)
 {
-    return doc->ops->get_data(doc, data_node, data);
+    if (doc->ops->get_data) {
+        return doc->ops->get_data(doc, data_node, data);
+    }
+
+    *data = PURC_VARIANT_INVALID;
+    return -1;
 }
 
-size_t
-pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem)
+int
+pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
+        size_t *nr_elements, size_t *nr_text_nodes, size_t *nr_data_nodes)
 {
-    return doc->ops->children_count(doc, elem, PCDOC_NODE_ELEMENT);
+    size_t nrs[PCDOC_NODE_OTHERS + 1] = { };
+
+    if (doc->ops->children_count) {
+        if (doc->ops->children_count(doc, elem, nrs) == 0) {
+            if (nr_elements)
+                *nr_elements = nrs[PCDOC_NODE_ELEMENT];
+            if (nr_text_nodes)
+                *nr_text_nodes = nrs[PCDOC_NODE_TEXT];
+            if (nr_data_nodes)
+                *nr_data_nodes = nrs[PCDOC_NODE_DATA];
+        }
+        else {
+            return -1;
+        }
+    }
+
+    if (nr_elements)
+        *nr_elements = 0;
+    if (nr_text_nodes)
+        *nr_text_nodes = 0;
+    if (nr_data_nodes)
+        *nr_data_nodes = 0;
+
+    return 0;
 }
 
-pcdoc_node
-pcdoc_element_get_child(purc_document_t doc, pcdoc_element_t elem, size_t idx)
+pcdoc_element_t
+pcdoc_element_get_child_element(purc_document_t doc, pcdoc_element_t elem,
+        size_t idx)
 {
-    return doc->ops->get_child(doc, elem, PCDOC_NODE_ELEMENT, idx);
+    if (doc->ops->children_count) {
+        pcdoc_node node;
+        node = doc->ops->get_child(doc, elem, PCDOC_NODE_ELEMENT, idx);
+        if (node.type == PCDOC_NODE_ELEMENT)
+            return node.elem;
+    }
+
+    return NULL;
+}
+
+pcdoc_text_node_t
+pcdoc_element_get_child_text_node(purc_document_t doc, pcdoc_element_t elem,
+        size_t idx)
+{
+    if (doc->ops->children_count) {
+        pcdoc_node node;
+        node = doc->ops->get_child(doc, elem, PCDOC_NODE_TEXT, idx);
+        if (node.type == PCDOC_NODE_TEXT)
+            return node.text_node;
+    }
+
+    return NULL;
+}
+
+pcdoc_data_node_t
+pcdoc_element_get_child_data_node(purc_document_t doc, pcdoc_element_t elem,
+        size_t idx)
+{
+    if (doc->ops->children_count) {
+        pcdoc_node node;
+        node = doc->ops->get_child(doc, elem, PCDOC_NODE_DATA, idx);
+        if (node.type == PCDOC_NODE_DATA)
+            return node.data_node;
+    }
+
+    return NULL;
 }
 
 pcdoc_element_t
 pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node)
 {
     return doc->ops->get_parent(doc, node);
+}
+
+int
+pcdoc_travel_descendant_elements(purc_document_t doc,
+        pcdoc_element_t ancestor, pcdoc_element_cb cb, void *ctxt, size_t *n)
+{
+    if (doc->ops->travel) {
+        if (ancestor == NULL)
+            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+
+        struct pcdoc_travel_info info = { PCDOC_NODE_ELEMENT, 0, ctxt };
+        int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
+        if (n)
+            *n = info.nr;
+        return r;
+    }
+
+    if (n)
+        *n = 0;
+    return 0;
+}
+
+int
+pcdoc_travel_descendant_text_nodes(purc_document_t doc,
+        pcdoc_element_t ancestor, pcdoc_text_node_cb cb, void *ctxt, size_t *n)
+{
+    if (doc->ops->travel) {
+        if (ancestor == NULL)
+            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+
+        struct pcdoc_travel_info info = { PCDOC_NODE_TEXT, 0, ctxt };
+        int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
+        if (n)
+            *n = info.nr;
+        return r;
+    }
+
+    if (n)
+        *n = 0;
+    return 0;
+}
+
+int
+pcdoc_travel_descendant_data_nodes(purc_document_t doc,
+        pcdoc_element_t ancestor, pcdoc_data_node_cb cb, void *ctxt, size_t *n)
+{
+    if (doc->ops->travel) {
+        if (ancestor == NULL)
+            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+
+        struct pcdoc_travel_info info = { PCDOC_NODE_DATA, 0, ctxt };
+        int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
+        if (n)
+            *n = info.nr;
+        return r;
+    }
+
+    if (n)
+        *n = 0;
+    return 0;
+}
+
+struct serialize_info {
+    unsigned        opts;
+    purc_rwstream_t stm;
+};
+
+static int serialize_text_node(purc_document_t doc,
+        pcdoc_text_node_t text_node, void *ctxt)
+{
+    struct serialize_info *info = ctxt;
+
+    const char *text;
+    size_t len;
+    int r = pcdoc_text_content_get_text(doc, text_node, &text, &len);
+    if (r)
+        return r;
+
+    if (purc_rwstream_write(info->stm, text, len) < 0)
+        return -1;
+    return 0;
+}
+
+int
+pcdoc_serialize_text_contents_to_stream(purc_document_t doc,
+        pcdoc_element_t ancestor, unsigned opts, purc_rwstream_t out)
+{
+    if (doc->ops->travel) {
+        if (ancestor == NULL)
+            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+
+        struct serialize_info info = { opts, out };
+        struct pcdoc_travel_info travel_info = { PCDOC_NODE_TEXT, 0, &info };
+        int r = doc->ops->travel(doc, ancestor,
+                (pcdoc_node_cb)serialize_text_node, &travel_info);
+        return r;
+    }
+
+    return 0;
+}
+
+int
+pcdoc_serialize_descendants_to_stream(purc_document_t doc,
+        pcdoc_element_t ancestor, unsigned opts, purc_rwstream_t out)
+{
+    if (doc->ops->serialize) {
+        pcdoc_node node = { PCDOC_NODE_ELEMENT };
+        node.elem = ancestor;
+        return doc->ops->serialize(doc, node, opts, out);
+    }
+
+    return 0;
+}
+
+int
+purc_document_serialize_contents_to_stream(purc_document_t doc,
+        unsigned opts, purc_rwstream_t out)
+{
+    if (doc->ops->serialize) {
+        pcdoc_node node;
+        node.type = PCDOC_NODE_OTHERS;
+        node.others = doc->impl;
+        return doc->ops->serialize(doc, node, opts, out);
+    }
+
+    return 0;
 }
 
 pcdoc_element_t

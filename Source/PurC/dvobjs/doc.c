@@ -22,12 +22,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "internal.h"
+#include "purc-errors.h"
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/dom.h"
+#include "private/document.h"
 #include "private/avl.h"
+
+#include "internal.h"
 
 struct dynamic_args {
     const char              *name;
@@ -35,6 +37,7 @@ struct dynamic_args {
     purc_dvariant_method     setter;
 };
 
+#if 0 // VW
 static inline purc_variant_t
 doctype_system(struct pcdom_document *doc)
 {
@@ -74,19 +77,44 @@ doctype_public(struct pcdom_document *doc)
     // NOTE: we don't hold ownership
     return purc_variant_make_string_static(s, false);
 }
+#endif // VW
 
 static inline purc_variant_t
 doctype_getter(void *entity,
         size_t nr_args, purc_variant_t *argv, bool silently)
 {
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
-    PC_ASSERT(entity);
-    struct pcdom_document *doc = (struct pcdom_document*)entity;
 
-    if (nr_args == 0) {
-        return purc_variant_make_string_static("html", false);
+    PC_ASSERT(entity);
+    purc_document_t doc = (purc_document_t)entity;
+
+    const char *doctype = "";
+    switch (doc->type) {
+    case PCDOC_K_TYPE_VOID:
+        doctype = PCDOC_TYPE_VOID;
+        break;
+    case PCDOC_K_TYPE_PLAIN:
+        doctype = PCDOC_TYPE_PLAIN;
+        break;
+    case PCDOC_K_TYPE_HTML:
+        doctype = PCDOC_TYPE_HTML;
+        break;
+    case PCDOC_K_TYPE_XML:
+        doctype = PCDOC_TYPE_XML;
+        break;
+    case PCDOC_K_TYPE_XGML:
+        doctype = PCDOC_TYPE_XGML;
+        break;
+    default:
+        assert(0);
+        break;
     }
 
+    return purc_variant_make_string_static(doctype, false);
+
+#if 0 // VW
     if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -108,19 +136,19 @@ doctype_getter(void *entity,
 
     pcinst_set_error(PURC_ERROR_NOT_EXISTS);
     return PURC_VARIANT_INVALID;
+#endif // VW
 }
 
 static inline purc_variant_t
-query(struct pcdom_document *doc, const char *css)
+query(purc_document_t doc, const char *css)
 {
     PC_ASSERT(doc);
     PC_ASSERT(css);
 
-    pcdom_element_t *root;
-    root = doc->element;
+    pcdoc_element_t root = purc_document_root(doc);
     PC_ASSERT(root);
 
-    return pcdvobjs_query_elements(root, css);
+    return pcdvobjs_query_elements(doc, root, css);
 }
 
 static inline purc_variant_t
@@ -129,7 +157,7 @@ query_getter(void *entity,
 {
     UNUSED_PARAM(silently);
     PC_ASSERT(entity);
-    struct pcdom_document *doc = (struct pcdom_document*)entity;
+    purc_document_t doc = (purc_document_t)entity;
 
     if (nr_args > 0) {
         if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
@@ -231,7 +259,7 @@ eraser(void* native_entity,
 #endif
 
 purc_variant_t
-purc_dvobj_doc_new(struct pcdom_document *doc)
+purc_dvobj_doc_new(purc_document_t doc)
 {
     static struct purc_native_ops ops = {
         .property_getter            = property_getter,

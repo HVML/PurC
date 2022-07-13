@@ -7,6 +7,7 @@
 #include "purc-html.h"
 #include "./html/interfaces/document.h"
 #include "private/interpreter.h"
+#include "html_ops.h"
 
 #include <gtest/gtest.h>
 
@@ -23,16 +24,16 @@
     abort();                                       \
 } while (0)
 
-#define serialize_node(_node) pcintr_util_dump_edom_node(_node)
+#define serialize_node(_node) html_dom_dump_node(_node)
 
 #define serializer_callback 0
-#define pchtml_html_serialize_pretty_tree_cb(_node, _opt, _n, _cb, _ext)    \
+#define pchtml_html_serialize_pretty_tree_cb(_node, _opt, _n, _cb, _ext) \
 ({                                                                       \
     (void)_opt;                                                          \
     (void)_n;                                                            \
     (void)_cb;                                                           \
     (void)_ext;                                                          \
-    pcintr_util_dump_edom_node(_node);                                   \
+    html_dom_dump_node(_node);                                           \
     0;                                                                   \
 })
 

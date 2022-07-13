@@ -35,6 +35,14 @@
 #include "private/debug.h"
 #include "private/errors.h"
 
+struct pcdoc_travel_info {
+    pcdoc_node_type type;
+    size_t nr;
+    void *ctxt;
+};
+
+typedef int (*pcdoc_node_cb)(purc_document_t doc, void *node, void *ctxt);
+
 struct purc_document_ops {
     purc_document_t (*create)(const char *content, size_t length);
     void (*destroy)(purc_document_t doc);
@@ -55,7 +63,7 @@ struct purc_document_ops {
             pcdoc_element_t elem, pcdoc_operation op,
             const char *content, size_t length);
 
-    bool (*set_attribute)(purc_document_t doc,
+    int (*set_attribute)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *name, const char *val, size_t len);
 
@@ -64,32 +72,44 @@ struct purc_document_ops {
 
     pcdoc_element_t (*get_parent)(purc_document_t doc, pcdoc_node node);
 
-    size_t (*children_count)(purc_document_t doc, pcdoc_element_t elem,
-            pcdoc_node_type type);
+    // nullable
+    int (*children_count)(purc_document_t doc, pcdoc_element_t elem,
+            size_t *nrs);
+    // null if `children_count` is null
     pcdoc_node (*get_child)(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_node_type type, size_t idx);
 
-    bool (*get_attribute)(purc_document_t doc, pcdoc_element_t elem,
+    int (*get_attribute)(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len);
+    int (*get_special_attr)(purc_document_t doc, pcdoc_element_t elem,
+            pcdoc_special_attr which, const char **val, size_t *len);
 
-    bool (*get_text)(purc_document_t doc, pcdoc_text_node_t text_node,
+    int (*get_text)(purc_document_t doc, pcdoc_text_node_t text_node,
             const char **text, size_t *len);
-    bool (*get_data)(purc_document_t doc, pcdoc_data_node_t data_node,
+    int (*get_data)(purc_document_t doc, pcdoc_data_node_t data_node,
         purc_variant_t *data);
+
+    int (*travel)(purc_document_t doc, pcdoc_element_t ancestor,
+            pcdoc_node_cb cb, struct pcdoc_travel_info *info);
+
+    int (*serialize)(purc_document_t doc, pcdoc_node node,
+            unsigned opts, purc_rwstream_t stm);
 
     pcdoc_element_t (*find_elem)(purc_document_t doc, pcdoc_element_t scope,
             const char *selector);
 
-    bool (*elem_coll_select)(purc_document_t doc,
+    int (*elem_coll_select)(purc_document_t doc,
             pcdoc_elem_coll_t coll, pcdoc_element_t scope,
             const char *selector);
 
-    bool (*elem_coll_filter)(purc_document_t doc,
+    int (*elem_coll_filter)(purc_document_t doc,
             pcdoc_elem_coll_t dst_coll,
             pcdoc_elem_coll_t src_coll, const char *selector);
 };
 
 struct purc_document {
+    purc_document_type type;
+
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;

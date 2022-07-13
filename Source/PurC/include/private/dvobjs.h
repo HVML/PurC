@@ -25,12 +25,12 @@
 #ifndef PURC_PRIVATE_DVOBJS_H
 #define PURC_PRIVATE_DVOBJS_H
 
-#include "config.h"
-#include "purc-dom.h"
-#include "purc-html.h"
+#include "purc-document.h"
 #include "purc-rwstream.h"
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
+
+#include "config.h"
 
 #include "private/utils.h"
 
@@ -220,12 +220,12 @@ struct wildcard_list {
 int32_t pcdvobjs_get_random(void) WTF_INTERNAL;
 
 purc_variant_t
-pcdvobjs_make_elements(struct pcdom_element *element);
+pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element);
 
 purc_variant_t
-pcdvobjs_elements_by_css(pchtml_html_document_t *doc, const char *css);
+pcdvobjs_elements_by_css(purc_document_t doc, const char *css);
 
-struct pcdom_element*
+pcdoc_element_t
 pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);
 
 /* return the number of left characters cannot be decoded */

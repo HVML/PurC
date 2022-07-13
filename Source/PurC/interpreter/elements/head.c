@@ -99,7 +99,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    frame->edom_element = pchtml_doc_get_head(stack->doc);
+    frame->edom_element = purc_document_head(stack->doc);
     int r;
     r = pcintr_refresh_at_var(frame);
     if (r)

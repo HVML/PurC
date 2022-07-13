@@ -244,6 +244,7 @@ list(APPEND test_intr_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_intr_samples)
 
 set(test_intr_samples_SOURCES
+    tools.c
     test_intr_samples.cpp
 )
 
@@ -300,6 +301,7 @@ list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_samples)
 
 set(test_samples_SOURCES
+    tools.c
     test_samples.cpp
 )
 
@@ -330,6 +332,7 @@ list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_hvml_tag)
 
 set(test_hvml_tag_SOURCES
+    tools.c
     test_hvml_tag.cpp
 )
 

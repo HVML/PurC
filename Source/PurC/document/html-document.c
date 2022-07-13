@@ -29,6 +29,7 @@
 #include "purc-html.h"
 
 #include "private/document.h"
+#include "private/debug.h"
 
 static purc_document_t create(const char *content, size_t length)
 {
@@ -52,9 +53,7 @@ static purc_document_t create(const char *content, size_t length)
     r = pchtml_html_document_parse_with_buf(html_doc,
             (const unsigned char*)content, length);
     if (r) {
-        pchtml_html_document_destroy(html_doc);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        PC_WARN("bad content\n");
     }
 
     purc_document_t doc = calloc(1, sizeof(*doc));
@@ -186,6 +185,7 @@ static pcdoc_text_node_t new_text_content(purc_document_t doc,
             const char *text, size_t length)
 {
     if (UNLIKELY(op >= PCA_TABLESIZE(dom_node_ops))) {
+        PC_DEBUG("invalid op: %d\n", op);
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
@@ -368,7 +368,7 @@ static pcdoc_node new_content(purc_document_t doc,
 
     if (UNLIKELY(op >= PCA_TABLESIZE(dom_subtree_ops))) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        node.type = PCDOC_NODE_NULL;
+        node.type = PCDOC_NODE_UNKNOWN;
         node.elem = NULL;
         goto done;
     }
@@ -392,7 +392,7 @@ done:
     return node;
 }
 
-static inline bool
+static inline int
 dom_set_element_attribute(pcdom_element_t *element,
         const char* name, const char* value, size_t length)
 {
@@ -400,22 +400,22 @@ dom_set_element_attribute(pcdom_element_t *element,
     attr = pcdom_element_set_attribute(element,
             (const unsigned char*)name, strlen(name),
             (const unsigned char*)value, length);
-    return attr ? true : false;
+    return attr ? 0 : -1;
 }
 
-static inline bool
+static inline int
 dom_remove_element_attr(pcdom_element_t *element, const char* name)
 {
-    bool retv = false;
+    int retv = -1;
 
     if (pcdom_element_remove_attribute(element,
                 (const unsigned char*)name, strlen(name)) == PURC_ERROR_OK)
-        retv = true;
+        retv = 0;
 
     return retv;
 }
 
-static bool set_attribute(purc_document_t doc,
+static int set_attribute(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *name, const char *val, size_t len)
 {
@@ -436,7 +436,7 @@ static bool set_attribute(purc_document_t doc,
         purc_set_error(PURC_ERROR_INVALID_VALUE);
     }
 
-    return false;
+    return -1;
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
@@ -462,7 +462,7 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(doc);
 
-    assert(node.type != PCDOC_NODE_NULL && node.type != PCDOC_NODE_OTHERS);
+    assert(node.type != PCDOC_NODE_UNKNOWN && node.type != PCDOC_NODE_OTHERS);
 
     pcdom_node_t *dom_node = pcdom_interface_node(node.elem);
 
@@ -471,29 +471,31 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
     return (pcdoc_element_t)dom_node->parent;
 }
 
-static size_t children_count(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_node_type type)
+static int children_count(purc_document_t doc, pcdoc_element_t elem,
+        size_t *nrs)
 {
     UNUSED_PARAM(doc);
 
-    size_t n = 0;
     pcdom_node_t *dom_node = pcdom_interface_node(elem);
-
     pcdom_node_t *child = dom_node->first_child;
     while (child) {
-        // TODO: CDATA Section
-        if (type == PCDOC_NODE_ANY ||
-                (type == PCDOC_NODE_ELEMENT &&
-                 child->type == PCDOM_NODE_TYPE_ELEMENT) ||
-                (type == PCDOC_NODE_TEXT &&
-                 child->type == PCDOM_NODE_TYPE_TEXT)) {
-            n++;
+        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
+            nrs[PCDOC_NODE_ELEMENT]++;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_TEXT) {
+            nrs[PCDOC_NODE_TEXT]++;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_CDATA_SECTION) {
+            nrs[PCDOC_NODE_CDATA_SECTION]++;
+        }
+        else {
+            nrs[PCDOC_NODE_OTHERS]++;
         }
 
         child = child->next;
     }
 
-    return n;
+    return 0;
 }
 
 static inline pcdoc_node_type
@@ -505,10 +507,9 @@ node_type(pcdom_node_type_t type)
         case PCDOM_NODE_TYPE_TEXT:
             return PCDOC_NODE_TEXT;
         case PCDOM_NODE_TYPE_CDATA_SECTION:
+            return PCDOC_NODE_CDATA_SECTION;
         case PCDOM_NODE_TYPE_COMMENT:
-            break;
         default:
-            assert(0);
             break;
     }
 
@@ -521,27 +522,14 @@ static pcdoc_node get_child(purc_document_t doc,
     UNUSED_PARAM(doc);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_NULL;
-    node.elem = (pcdoc_element_t)NULL;
+    node.type = PCDOC_NODE_UNKNOWN;
+    node.elem = NULL;
 
     size_t i = 0;
     pcdom_node_t *dom_node = pcdom_interface_node(elem);
-
     pcdom_node_t *child = dom_node->first_child;
     while (child) {
-        // TODO: CDATA Section
-        if (type == PCDOC_NODE_ANY) {
-            if (i == idx) {
-                node.type = node_type(child->type);
-                node.elem = (pcdoc_element_t)child;
-                return node;
-            }
-
-            i++;
-        }
-        else if ((type == PCDOC_NODE_ELEMENT ||
-                    type == PCDOC_NODE_TEXT) &&
-                node_type(child->type) == type) {
+        if (node_type(child->type) == type) {
             if (i == idx) {
                 node.type = type;
                 node.elem = (pcdoc_element_t)child;
@@ -557,7 +545,7 @@ static pcdoc_node get_child(purc_document_t doc,
     return node;
 }
 
-static bool get_attribute(purc_document_t doc, pcdoc_element_t elem,
+static int get_attribute(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len)
 {
     UNUSED_PARAM(doc);
@@ -574,16 +562,46 @@ static bool get_attribute(purc_document_t doc, pcdoc_element_t elem,
             *val = (const char *)pcdom_attr_value(attr, &sz);
             if (len)
                 *len = sz;
-            return true;
+            return 0;
         }
 
         attr = pcdom_element_next_attribute(attr);
     }
 
-    return false;
+    return -1;
 }
 
-static bool get_text(purc_document_t doc, pcdoc_text_node_t text_node,
+static int get_special_attr(purc_document_t doc, pcdoc_element_t elem,
+            pcdoc_special_attr which, const char **val, size_t *len)
+{
+    UNUSED_PARAM(doc);
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+
+    if (which == PCDOC_ATTR_ID) {
+        if (dom_elem->attr_id == NULL) {
+            return -1;
+        }
+
+        size_t sz;
+        *val = (const char *)pcdom_attr_value(dom_elem->attr_id, &sz);
+        if (len)
+            *len = sz;
+    }
+    else if (which == PCDOC_ATTR_CLASS) {
+        if (dom_elem->attr_class == NULL) {
+            return -1;
+        }
+
+        size_t sz;
+        *val = (const char *)pcdom_attr_value(dom_elem->attr_class, &sz);
+        if (len)
+            *len = sz;
+    }
+
+    return 0;
+}
+
+static int get_text(purc_document_t doc, pcdoc_text_node_t text_node,
             const char **text, size_t *len)
 {
     UNUSED_PARAM(doc);
@@ -594,7 +612,53 @@ static bool get_text(purc_document_t doc, pcdoc_text_node_t text_node,
     if (len)
         *len = dom_text->char_data.data.length;
 
-    return true;
+    return 0;
+}
+
+static int
+travel(purc_document_t doc, pcdoc_element_t ancestor,
+            pcdoc_node_cb cb, struct pcdoc_travel_info *info)
+{
+    if (info->type == PCDOC_NODE_ELEMENT) {
+        int r = cb(doc, ancestor, info->ctxt);
+        if (r)
+            return -1;
+        info->nr++;
+    }
+
+    pcdom_node_t *dom_node = pcdom_interface_node(ancestor);
+
+    pcdom_node_t *child = dom_node->first_child;
+    for (; child; child = child->next) {
+        if (node_type(child->type) == info->type) {
+            int r = cb(doc, child, info->ctxt);
+            if (r)
+                return -1;
+            info->nr++;
+        }
+
+        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
+            pcdoc_element_t elem = (pcdoc_element_t)child;
+            if (child->first_child) {
+                int r = travel(doc, elem, cb, info);
+                if (r)
+                    return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int serialize(purc_document_t doc, pcdoc_node node,
+            unsigned opts, purc_rwstream_t stm)
+{
+    if (node.type == PCDOC_NODE_OTHERS)
+        return pchtml_doc_write_to_stream_ex(doc->impl, opts, stm);
+    else {
+        pcdom_node_t *dom_node = pcdom_interface_node(node.elem);
+        return pcdom_node_write_to_stream_ex(dom_node, opts, stm);
+    }
 }
 
 struct purc_document_ops _pcdoc_html_ops = {
@@ -610,8 +674,11 @@ struct purc_document_ops _pcdoc_html_ops = {
     .children_count = children_count,
     .get_child = get_child,
     .get_attribute = get_attribute,
+    .get_special_attr = get_special_attr,
     .get_text = get_text,
     .get_data = NULL,
+    .travel = travel,
+    .serialize = serialize,
     .elem_coll_select = NULL,
     .elem_coll_filter = NULL,
 };
