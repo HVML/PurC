@@ -287,6 +287,8 @@ struct pcintr_coroutine {
     struct list_head            msgs;   /* struct pcintr_msg */
 
     struct pcinst_msg_queue    *mq;     /* message queue */
+    struct list_head            tasks;  /* one event with multiple observers */
+
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 

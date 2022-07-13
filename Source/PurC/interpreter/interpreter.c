@@ -2147,6 +2147,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
+    INIT_LIST_HEAD(&co->tasks);
     co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();

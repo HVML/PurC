@@ -45,8 +45,8 @@
 static void
 on_observer_matched(void *ud)
 {
-    struct pcintr_observer_matched_data *p;
-    p = (struct pcintr_observer_matched_data*)ud;
+    struct pcintr_observer_task *p;
+    p = (struct pcintr_observer_task*)ud;
     PC_ASSERT(p);
 
     pcintr_stack_t stack = p->stack;
@@ -113,8 +113,8 @@ observer_matched(pcintr_stack_t stack, struct pcintr_observer *p,
         pcintr_set_current_co(co);
     }
 
-    struct pcintr_observer_matched_data *data;
-    data = (struct pcintr_observer_matched_data*)calloc(1, sizeof(*data));
+    struct pcintr_observer_task *data;
+    data = (struct pcintr_observer_task*)calloc(1, sizeof(*data));
     PC_ASSERT(data);
     data->pos = p->pos;
     data->scope = p->scope;
