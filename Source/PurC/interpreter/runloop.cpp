@@ -150,22 +150,6 @@ to_gio_condition(purc_runloop_io_event event)
     return (GIOCondition)condition;
 }
 
-struct fd_monitor_data {
-    pcintr_coroutine_t                  co;
-    int                                 fd;
-    purc_runloop_io_event               io_event;
-    purc_runloop_io_callback            callback;
-    void                               *ctxt;
-};
-
-static void on_io_event(void *ud)
-{
-    struct fd_monitor_data *data;
-    data = (struct fd_monitor_data*)ud;
-    data->callback(data->fd, data->io_event, data->ctxt);
-    free(data);
-}
-
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         purc_runloop_io_event event, purc_runloop_io_callback callback,
         void *ctxt)
@@ -181,25 +165,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
             PC_ASSERT(pcintr_get_runloop()==nullptr);
             purc_runloop_io_event io_event;
             io_event = to_runloop_io_event(condition);
-            runLoop->dispatch([fd, io_event, ctxt, co, callback] {
-                    PC_ASSERT(pcintr_get_heap());
-                    PC_ASSERT(co);
-                    PC_ASSERT(co->state == CO_STATE_READY);
-
-                    struct fd_monitor_data *data;
-                    data = (struct fd_monitor_data*)calloc(1, sizeof(*data));
-                    PC_ASSERT(data);
-                    data->co = co;
-                    data->fd = fd;
-                    data->callback = callback;
-                    data->ctxt = ctxt;
-
-                    pcintr_set_current_co(co);
-                    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-                    pcintr_post_msg(data, on_io_event);
-                    pcintr_check_after_execution();
-                    pcintr_set_current_co(nullptr);
-            });
+            callback(fd, io_event, ctxt);
             return true;
         });
 }
