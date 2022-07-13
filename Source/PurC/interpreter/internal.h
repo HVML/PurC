@@ -34,6 +34,12 @@
 #include "keywords.h"
 
 
+#define PLOG(...) do {                                                        \
+    FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
+    fprintf(fp, ##__VA_ARGS__);                                               \
+    fclose(fp);                                                               \
+} while (0)
+
 #ifndef __cplusplus                        /* { */
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */

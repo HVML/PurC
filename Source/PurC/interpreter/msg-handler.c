@@ -32,13 +32,6 @@
 #include "private/interpreter.h"
 #include "private/regex.h"
 
-#define PLOG(...) do {                                                        \
-    FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
-    fprintf(fp, ##__VA_ARGS__);                                               \
-    fclose(fp);                                                               \
-} while (0)
-
-
 #define EXCLAMATION_EVENT_NAME     "_eventName"
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 
