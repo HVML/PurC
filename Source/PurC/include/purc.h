@@ -39,6 +39,7 @@
 #include "purc-variant.h"
 #include "purc-dom.h"
 #include "purc-html.h"
+#include "purc-document.h"
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
 #include "purc-dvobjs.h"
