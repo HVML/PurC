@@ -41,6 +41,9 @@
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
+#define MSG_TYPE_SLEEP          "sleep"
+#define MSG_SUB_TYPE_TIMEOUT    "timeout"
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;

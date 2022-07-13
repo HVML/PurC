@@ -207,14 +207,19 @@ pcintr_timer_t
 pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
         const char* id, pcintr_timer_fire_func func, void *data)
 {
+    UNUSED_PARAM(for_yielded);
+    UNUSED_PARAM(raw);
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current();
     Timer* timer = NULL;
+    timer = new Timer(id, func, *loop, data);
+#if 0
     if (raw) {
         timer = new Timer(id, func, *loop, data);
     }
     else {
         timer = new PurcTimer(for_yielded, id, func, *loop, data);
     }
+#endif
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;

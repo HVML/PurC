@@ -340,6 +340,15 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
         co = container_of(p, struct pcintr_coroutine, node);
         if (co->state == CO_STATE_STOPPED) {
             nr_stop++;
+
+            pcrdr_msg *msg = pcinst_msg_queue_get_event_by_element(co->mq,
+                    co->wait_request_id, co->wait_event);
+            if (msg) {
+                pcintr_set_current_co(co);
+                pcintr_resume(co, NULL);
+                pcintr_set_current_co(NULL);
+                pcrdr_release_message(msg);
+            }
         }
         else if (co->state == CO_STATE_OBSERVING) {
             nr_observe++;

@@ -43,6 +43,8 @@ struct ctxt_for_sleep {
     int64_t                       for_ns;
 
     pcintr_timer_t                timer;
+    pcintr_coroutine_t            co;
+    purc_variant_t                request_id; // yield
 };
 
 static void
@@ -55,6 +57,7 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
             pcintr_timer_destroy(ctxt->timer);
             ctxt->timer = NULL;
         }
+        PURC_VARIANT_SAFE_CLEAR(ctxt->request_id);
 
         free(ctxt);
     }
@@ -261,6 +264,22 @@ static void on_continuation(void *ud, void *extra)
     }
 }
 
+static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
+{
+    UNUSED_PARAM(timer);
+    UNUSED_PARAM(id);
+    struct ctxt_for_sleep *ctxt = data;
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->request_id,
+        MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT,
+        PURC_VARIANT_INVALID);
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -300,16 +319,37 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->for_ns = 1 * 1000 * 1000;
     }
 
+
+    ctxt->request_id = purc_variant_make_native(frame, NULL);
+    if (!ctxt->request_id) {
+        return ctxt;
+    }
+
+    char *event =
+        malloc(strlen(MSG_TYPE_SLEEP) + strlen(MSG_SUB_TYPE_TIMEOUT) + 2);
+    if (!event) {
+        return ctxt;
+    }
+    sprintf(event, "%s:%s", MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT);
+    purc_variant_t event_name = purc_variant_make_string_reuse_buff(event,
+            strlen(event), false);
+    if (!event_name) {
+        free(event);
+        return ctxt;
+    }
+
+    ctxt->co = stack->co;
     bool for_yielded = true;
-    ctxt->timer = pcintr_timer_create(NULL, for_yielded, false, NULL, NULL, NULL);
+    ctxt->timer = pcintr_timer_create(NULL, for_yielded, false, NULL,
+            on_sleep_timeout, ctxt);
     if (!ctxt->timer)
         return ctxt;
 
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
+    pcintr_yield(frame, on_continuation, ctxt->request_id, event_name);
+    purc_variant_unref(event_name);
 
     purc_clr_error();
 

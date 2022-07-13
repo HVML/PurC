@@ -315,6 +315,31 @@ done:
     return msg;
 }
 
+pcrdr_msg *
+pcinst_msg_queue_get_event_by_element(struct pcinst_msg_queue *queue,
+        purc_variant_t elem_value, purc_variant_t event_name)
+{
+    pcrdr_msg *msg = NULL;
+    purc_rwlock_writer_lock(&queue->lock);
+
+    struct list_head *msgs = &queue->event_msgs;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, msgs) {
+        struct pcinst_msg_hdr *hdr;
+        hdr = list_entry(p, struct pcinst_msg_hdr, ln);
+        pcrdr_msg *m = (pcrdr_msg*) hdr;
+        if (purc_variant_is_equal_to(m->elementValue, elem_value)
+                && purc_variant_is_equal_to(m->eventName, event_name)) {
+            msg = m;
+            list_del(&hdr->ln);
+            break;
+        }
+    }
+
+    purc_rwlock_writer_unlock(&queue->lock);
+    return msg;
+}
+
 int
 purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
 {
