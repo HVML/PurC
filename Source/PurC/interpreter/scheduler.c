@@ -342,7 +342,8 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
             nr_stop++;
 
             pcrdr_msg *msg = pcinst_msg_queue_get_event_by_element(co->mq,
-                    co->wait_request_id, co->wait_event);
+                    co->wait_request_id, co->wait_element_value,
+                    co->wait_event_name);
             if (msg) {
                 pcintr_set_current_co(co);
                 pcintr_resume(co, NULL);

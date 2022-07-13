@@ -44,7 +44,7 @@ struct ctxt_for_sleep {
 
     pcintr_timer_t                timer;
     pcintr_coroutine_t            co;
-    purc_variant_t                request_id; // yield
+    purc_variant_t                element_value; // yield
 };
 
 static void
@@ -57,7 +57,7 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
             pcintr_timer_destroy(ctxt->timer);
             ctxt->timer = NULL;
         }
-        PURC_VARIANT_SAFE_CLEAR(ctxt->request_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->element_value);
 
         free(ctxt);
     }
@@ -274,7 +274,7 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 
     pcintr_coroutine_post_event(ctxt->co->cid,
         PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-        ctxt->request_id,
+        ctxt->element_value,
         MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT,
         PURC_VARIANT_INVALID);
 }
@@ -319,8 +319,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
 
-    ctxt->request_id = purc_variant_make_native(frame, NULL);
-    if (!ctxt->request_id) {
+    ctxt->element_value = purc_variant_make_native(frame, NULL);
+    if (!ctxt->element_value) {
         return ctxt;
     }
 
@@ -345,7 +345,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation, ctxt->request_id, event_name);
+    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+            ctxt->element_value, event_name);
     purc_variant_unref(event_name);
 
     purc_clr_error();

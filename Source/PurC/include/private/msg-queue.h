@@ -83,7 +83,8 @@ pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue);
 
 pcrdr_msg *
 pcinst_msg_queue_get_event_by_element(struct pcinst_msg_queue *queue,
-        purc_variant_t elem_value, purc_variant_t event_name);
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name);
 
 size_t
 pcinst_msg_queue_count(struct pcinst_msg_queue *queue);

@@ -457,7 +457,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     ctxt->sync_id = purc_variant_ref(v);
 
     pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 static void*

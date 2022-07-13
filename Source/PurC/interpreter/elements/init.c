@@ -1133,7 +1133,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     ctxt->sync_id = purc_variant_ref(v);
 
     pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     purc_clr_error();
 

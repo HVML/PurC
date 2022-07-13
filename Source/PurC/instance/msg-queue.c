@@ -317,7 +317,8 @@ done:
 
 pcrdr_msg *
 pcinst_msg_queue_get_event_by_element(struct pcinst_msg_queue *queue,
-        purc_variant_t elem_value, purc_variant_t event_name)
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name)
 {
     pcrdr_msg *msg = NULL;
     purc_rwlock_writer_lock(&queue->lock);
@@ -328,8 +329,9 @@ pcinst_msg_queue_get_event_by_element(struct pcinst_msg_queue *queue,
         struct pcinst_msg_hdr *hdr;
         hdr = list_entry(p, struct pcinst_msg_hdr, ln);
         pcrdr_msg *m = (pcrdr_msg*) hdr;
-        if (purc_variant_is_equal_to(m->elementValue, elem_value)
-                && purc_variant_is_equal_to(m->eventName, event_name)) {
+        if (purc_variant_is_equal_to(m->requestId, request_id) &&
+                purc_variant_is_equal_to(m->elementValue, element_value) &&
+                purc_variant_is_equal_to(m->eventName, event_name)) {
             msg = m;
             list_del(&hdr->ln);
             break;

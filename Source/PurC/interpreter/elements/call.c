@@ -230,7 +230,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         if (ctxt->synchronously) {
             pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
             return 0;
         }
         PC_ASSERT(0); // Not implemented yet
@@ -245,7 +245,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ctxt->synchronously) {
         pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         return 0;
     }
 

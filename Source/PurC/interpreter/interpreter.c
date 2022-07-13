@@ -464,8 +464,12 @@ coroutine_release(pcintr_coroutine_t co)
             purc_variant_unref(co->wait_request_id);
         }
 
-        if (co->wait_event) {
-            purc_variant_unref(co->wait_event);
+        if (co->wait_element_value) {
+            purc_variant_unref(co->wait_element_value);
+        }
+
+        if (co->wait_event_name) {
+            purc_variant_unref(co->wait_event_name);
         }
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
@@ -3590,7 +3594,8 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
 }
 
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
-        purc_variant_t request_id, purc_variant_t event_name)
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name)
 {
     UNUSED_PARAM(request_id);
     UNUSED_PARAM(event_name);
@@ -3614,9 +3619,14 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
         purc_variant_ref(co->wait_request_id);
     }
 
+    if (element_value) {
+        co->wait_element_value = element_value;
+        purc_variant_ref(co->wait_element_value);
+    }
+
     if (event_name) {
-        co->wait_event = event_name;
-        purc_variant_ref(co->wait_event);
+        co->wait_event_name = event_name;
+        purc_variant_ref(co->wait_event_name);
     }
 }
 
@@ -3642,9 +3652,14 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
         co->wait_request_id = NULL;
     }
 
-    if (co->wait_event) {
-        purc_variant_unref(co->wait_event);
-        co->wait_event = NULL;
+    if (co->wait_element_value) {
+        purc_variant_unref(co->wait_element_value);
+        co->wait_element_value = NULL;
+    }
+
+    if (co->wait_event_name) {
+        purc_variant_unref(co->wait_event_name);
+        co->wait_event_name = NULL;
     }
 
     continuation(ctxt, extra);
