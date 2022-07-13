@@ -1024,6 +1024,8 @@ push_stack_frame_pseudo(pcintr_stack_t stack,
         return frame_pseudo;
     } while (0);
 
+    // FIXME:  ??  reached here!!!
+    PC_ASSERT(0);
     pop_stack_frame(stack);
     return NULL;
 }
