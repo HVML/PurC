@@ -255,6 +255,22 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 }
 
 int
+pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
+        size_t *nr_event)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(nr_task);
+    UNUSED_PARAM(nr_event);
+    struct pcinst_msg_queue *queue = co->mq;
+    pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
+    if(msg) {
+        dispatch_coroutine_msg(co, msg);
+        pcrdr_release_message(msg);
+    }
+    return 0;
+}
+
+int
 dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
 {
     UNUSED_PARAM(inst);

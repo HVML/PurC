@@ -343,12 +343,7 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
         }
         else if (co->state == CO_STATE_OBSERVING) {
             nr_observe++;
-            struct pcinst_msg_queue *queue = co->mq;
-            pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
-            if(msg) {
-                dispatch_coroutine_msg(co, msg);
-                pcrdr_release_message(msg);
-            }
+            pcintr_schedule_coroutine_msg(co, NULL, NULL);
         }
         nr_event += pcinst_msg_queue_count(co->mq);
     }
