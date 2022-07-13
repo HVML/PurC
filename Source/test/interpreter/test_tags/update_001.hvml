@@ -5,11 +5,87 @@
 
     <body>
         <div>
+            <update on="$@" to="append" with="$MATH.eval("E")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("LN2")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("LN10")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("LOG2E")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("LOG10E")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("PI")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("SQRT1_2")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("SQRT2")"/>
+        </div>
+        <div>
             <update on="$@" to="append" with="$MATH.eval("3")"/>
             <update on="$@" to="append" with=","/>
             <update on="$@" to="append" with="$MATH.eval("sin(3)")"/>
             <update on="$@" to="append" with=","/>
             <update on="$@" to="append" with="$MATH.eval("log(3)")"/>
+        </div>
+        <div>
+            <update on="$@" to="append" with="$MATH.eval("(500 + 10) * (700 + 30)")"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * pi * r", { pi: $MATH.pi, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { PI: $MATH.pi, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("2 * PI * r", { PI: 3, r: 3 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("pi * r * r", { pi: $MATH.pi, r: 5 })"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.eval("PI * pow(r, 2)", { r: 5 })"/>
+        </div>
+        <div>
+            <update on="$@" to="append" with="$MATH.sin($MATH.const('pi/4'))"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.cos($MATH.const('pi/4'))"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.tan($MATH.const('pi/4'))"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.sinh(1.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.cosh(1.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.tanh(1.0)"/>
+        </div>
+        <div>
+            <update on="$@" to="append" with="$MATH.asin(0.707107)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.acos(0.707107)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.atan(1.0)"/>
+        </div>
+        <div>
+            <update on="$@" to="append" with="$MATH.asinh(1.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.acosh(1.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.atanh(0.5)"/>
+        </div>
+        <div>
+            <update on="$@" to="append" with="$MATH.fmod(4.5, 2.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.fabs(-2.5)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.log($MATH.const('e'))"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.pow(3.0, 2.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.exp(1.0)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.floor(-2.3)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.ceil(-2.3)"/>
+            <update on="$@" to="append" with=","/>
+            <update on="$@" to="append" with="$MATH.sqrt(9.0)"/>
         </div>
     </body>
 </hvml>

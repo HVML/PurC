@@ -39,12 +39,15 @@
         #define VALUE_TYPE     double
         #define FUNC_NAME      math_eval
 
-        #define POW            pow
         #define STRTOD         strtod
         #define CAST_TO_NUMBER purc_variant_cast_to_number
         #define MAKE_NUMBER    purc_variant_make_number
 
+        #define VOI_FUNC       math_voi
         #define UNI_FUNC       math_uni
+        #define BIN_FUNC       math_bin
+
+        #define RANDOM         math_random
 
         #define SIN            sin
         #define COS            cos
@@ -52,7 +55,33 @@
         #define ASIN           asin
         #define ACOS           acos
         #define ATAN           atan
+        #define SINH           sinh
+        #define COSH           cosh
+        #define TANH           tanh
+        #define ASINH          asinh
+        #define ACOSH          acosh
+        #define ATANH          atanh
         #define LOG            log
+        #define LOG10          log10
+        #define LOG2           log2
+
+        #define CBRT           cbrt
+        #define SQRT           sqrt
+        #define EXP            exp
+        #define CEIL           ceil
+        #define FLOOR          floor
+        #define ROUND          round
+        #define TRUNC          trunc
+        #define ABS            math_abs
+        #define SIGN           math_sign
+
+        #define ATAN2          atan2
+        #define HYPOT          hypot
+        #define MAX            math_max
+        #define MIN            math_min
+        #define POW            pow
+
+        #define PRE_DEFINED    math_pre_defined
 
     #elif defined(M_math_l)
         #define YYSTYPE        MATH_L_YYSTYPE
@@ -61,12 +90,15 @@
         #define VALUE_TYPE     long double
         #define FUNC_NAME      math_eval_l
 
-        #define POW            powl
         #define STRTOD         strtold
         #define CAST_TO_NUMBER purc_variant_cast_to_longdouble
         #define MAKE_NUMBER    purc_variant_make_longdouble
 
-        #define UNI_FUNC       math_unil
+        #define VOI_FUNC       math_voi_l
+        #define UNI_FUNC       math_uni_l
+        #define BIN_FUNC       math_bin_l
+
+        #define RANDOM         math_random_l
 
         #define SIN            sinl
         #define COS            cosl
@@ -74,7 +106,34 @@
         #define ASIN           asinl
         #define ACOS           acosl
         #define ATAN           atanl
+        #define SINH           sinhl
+        #define COSH           coshl
+        #define TANH           tanhl
+        #define ASINH          asinhl
+        #define ACOSH          acoshl
+        #define ATANH          atanhl
         #define LOG            logl
+        #define LOG10          log10l
+        #define LOG2           log2l
+
+        #define CBRT           cbrtl
+        #define SQRT           sqrtl
+        #define EXP            expl
+        #define CEIL           ceill
+        #define FLOOR          floorl
+        #define ROUND          roundl
+        #define TRUNC          truncl
+        #define ABS            math_abs_l
+        #define SIGN           math_sign_l
+
+        #define ATAN2          atan2l
+        #define HYPOT          hypotl
+        #define MAX            math_max_l
+        #define MIN            math_min_l
+        #define POW            powl
+
+        #define PRE_DEFINED    math_pre_defined_l
+
     #endif
 
     struct internal_value {
@@ -137,10 +196,6 @@
             _r.d = _a.d / _b.d;                               \
     } while (0)
 
-    #define EXP(_r, _a, _b) do {                       \
-            _r.d = POW(_a.d, _b.d);                    \
-    } while (0)
-
     #define SET_BY_NUM(_r, _a) do {                                 \
             /* TODO: strtod sort of func */                         \
             char *_s = (char*)_a.text;                              \
@@ -154,10 +209,10 @@
     } while (0)
 
     #define SET_BY_VAR(_r, _a) do {                                      \
+        purc_variant_t _v;                                               \
         char *_s = (char*)_a.text;                                       \
         const char _c = _s[_a.leng];                                     \
         if (param->variables) {                                          \
-            purc_variant_t _v;                                           \
             _s[_a.leng] = '\0';                                          \
             _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
             _s[_a.leng] = _c;                                            \
@@ -167,23 +222,56 @@
                     break;                                               \
             }                                                            \
         }                                                                \
+        if (param->param && purc_variant_is_object(param->param)) {      \
+            _s[_a.leng] = '\0';                                          \
+            _v = purc_variant_object_get_by_ckey(param->param, _s);      \
+            _s[_a.leng] = _c;                                            \
+            if (_v) {                                                    \
+                bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
+                if (ok)                                                  \
+                    break;                                               \
+            }                                                            \
+        }                                                                \
+        YYABORT;                                                         \
+    } while (0)
+
+    #define SET_BY_PRE_DEFINED(_r, _a, _s) do {                          \
         purc_variant_t _v;                                               \
-        if (!param->param || !purc_variant_is_object(param->param))      \
-            YYABORT;                                                     \
-                                                                         \
-        _s[_a.leng] = '\0';                                              \
-        _v = purc_variant_object_get_by_ckey(param->param, _s);          \
-        _s[_a.leng] = _c;                                                \
-        if (!_v)                                                         \
-            YYABORT;                                                     \
-                                                                         \
-        bool ok = CAST_TO_NUMBER(_v, &_r.d, false);                      \
-        if (!ok)                                                         \
+        if (param->variables) {                                          \
+            _v = purc_variant_object_get_by_ckey(param->variables, _s);  \
+            if (_v) {                                                    \
+                bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
+                if (ok)                                                  \
+                    break;                                               \
+            }                                                            \
+        }                                                                \
+        if (param->param && purc_variant_is_object(param->param)) {      \
+            _v = purc_variant_object_get_by_ckey(param->param, _s);      \
+            if (_v) {                                                    \
+                bool ok = CAST_TO_NUMBER(_v, &_r.d, false);              \
+                fprintf(stderr, "_s: %s; ok: %d\n", _s, ok); \
+                if (ok)                                                  \
+                    break;                                               \
+            }                                                            \
+        }                                                                \
+        _r.d = PRE_DEFINED(_a);                                          \
+        purc_clr_error();                                                \
+    } while (0)
+
+    #define EVAL_BY_VOI_FUNC(_r, _f) do {                                \
+        int r = VOI_FUNC(&_r.d, _f);                                     \
+        if (r)                                                           \
             YYABORT;                                                     \
     } while (0)
 
     #define EVAL_BY_UNI_FUNC(_r, _f, _a) do {                            \
         int r = UNI_FUNC(&_r.d, _f, _a.d);                               \
+        if (r)                                                           \
+            YYABORT;                                                     \
+    } while (0)
+
+    #define EVAL_BY_BIN_FUNC(_r, _f, _a, _b) do {                        \
+        int r = BIN_FUNC(&_r.d, _f, _a.d, _b.d);                         \
         if (r)                                                           \
             YYABORT;                                                     \
     } while (0)
@@ -212,7 +300,9 @@
 
 %union { struct math_token token; }
 %union { struct internal_value v; }
+%union { VALUE_TYPE (*voi_func)(void); }
 %union { VALUE_TYPE (*uni_func)(VALUE_TYPE a); }
+%union { VALUE_TYPE (*bin_func)(VALUE_TYPE a, VALUE_TYPE b); }
 
 %precedence '='
 %left '-' '+'
@@ -220,10 +310,20 @@
 %precedence NEG /* negation--unary minus */
 %right '^'      /* exponentiation */
 
-%token SIN COS TAN ASIN ACOS ATAN LOG
+%token SIN COS TAN ASIN ACOS ATAN
+%token SINH COSH TANH ASINH ACOSH ATANH ATAN2
+%token CBRT EXP HYPOT
+%token LOG LOG10 LOG2
+%token POW SQRT
+%token CEIL FLOOR ROUND TRUNC
+%token ABS MAX MIN RANDOM SIGN
+%token PI E LN2 LN10 LOG2E LOG10E SQRT1_2 SQRT2
+
 %token <token> NUMBER VAR
-%nterm <v> exp term
+%nterm <v> exp term pre_defined
+%nterm <voi_func> voi_func
 %nterm <uni_func> uni_func
+%nterm <bin_func> bin_func
 
 
 %% /* The grammar follows. */
@@ -243,15 +343,33 @@ exp:
 | exp '-' exp   { SUB($$, $1, $3); }
 | exp '*' exp   { MUL($$, $1, $3); }
 | exp '/' exp   { DIV($$, $1, $3, &(@3)); }
-| exp '^' exp   { EXP($$, $1, $3); }
+| exp '^' exp   { EVAL_BY_BIN_FUNC($$, POW, $1, $3); }
 | '-' exp %prec NEG { NEG($$, $2); }
 ;
 
 term:
   NUMBER      { SET_BY_NUM($$, $1); }
 | VAR         { SET_BY_VAR($$, $1); }
+| pre_defined { $$ = $1; }
+| voi_func '(' ')' { EVAL_BY_VOI_FUNC($$, $1); }
 | uni_func '(' term ')' { EVAL_BY_UNI_FUNC($$, $1, $3); }
+| bin_func '(' term ',' term ')' { EVAL_BY_BIN_FUNC($$, $1, $3, $5); }
 | '(' exp ')' { $$ = $2; }
+;
+
+pre_defined:
+  PI          { SET_BY_PRE_DEFINED($$, MATH_PI,      "PI"); }
+| E           { SET_BY_PRE_DEFINED($$, MATH_E,       "E"); }
+| LN2         { SET_BY_PRE_DEFINED($$, MATH_LN2,     "LN2"); }
+| LN10        { SET_BY_PRE_DEFINED($$, MATH_LN10,    "LN10"); }
+| LOG2E       { SET_BY_PRE_DEFINED($$, MATH_LOG2E,   "LOG2E"); }
+| LOG10E      { SET_BY_PRE_DEFINED($$, MATH_LOG10E,  "LOG10E"); }
+| SQRT1_2     { SET_BY_PRE_DEFINED($$, MATH_SQRT1_2, "SQRT1_2"); }
+| SQRT2       { SET_BY_PRE_DEFINED($$, MATH_SQRT2,   "SQRT2"); }
+
+
+voi_func:
+  RANDOM      { $$ = RANDOM; }
 ;
 
 uni_func:
@@ -261,7 +379,32 @@ uni_func:
 | ASIN        { $$ = ASIN; }
 | ACOS        { $$ = ACOS; }
 | ATAN        { $$ = ATAN; }
+| SINH        { $$ = SINH; }
+| COSH        { $$ = COSH; }
+| TANH        { $$ = TANH; }
+| ASINH       { $$ = ASINH; }
+| ACOSH       { $$ = ACOSH; }
+| ATANH       { $$ = ATANH; }
 | LOG         { $$ = LOG; }
+| LOG10       { $$ = LOG10; }
+| LOG2        { $$ = LOG2; }
+| CBRT        { $$ = CBRT; }
+| EXP         { $$ = EXP; }
+| SQRT        { $$ = SQRT; }
+| CEIL        { $$ = CEIL; }
+| FLOOR       { $$ = FLOOR; }
+| ROUND       { $$ = ROUND; }
+| TRUNC       { $$ = TRUNC; }
+| ABS         { $$ = ABS; }
+| SIGN        { $$ = SIGN; }
+;
+
+bin_func:
+  ATAN2       { $$ = ATAN2; }
+| HYPOT       { $$ = HYPOT; }
+| POW         { $$ = POW; }
+| MAX         { $$ = MAX; }
+| MIN         { $$ = MIN; }
 ;
 
 %%
@@ -316,5 +459,4 @@ int FUNC_NAME(const char *input, VALUE_TYPE *d, purc_variant_t param)
     }
     return ret ? 1 : 0;
 }
-
 
