@@ -588,8 +588,10 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         PC_ASSERT(elems != PURC_VARIANT_INVALID);
         pcdoc_element_t elem;
         elem = pcdvobjs_get_element_from_elements(elems, 0);
-        PC_ASSERT(elem);
-        int r = update_elements(&co->stack, elems, at, to, src, with_eval);
+        int r = 0;
+        if (elem) {
+            r = update_elements(&co->stack, elems, at, to, src, with_eval);
+        }
         purc_variant_unref(elems);
         return r ? -1 : 0;
     }
