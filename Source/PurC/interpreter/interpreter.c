@@ -455,6 +455,7 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         pcintr_coroutine_clear_tasks(co);
+        pcintr_coroutine_clear_event_handlers(co);
 
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
@@ -2128,6 +2129,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
     INIT_LIST_HEAD(&co->tasks);
+    INIT_LIST_HEAD(&co->event_handlers);
     co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();

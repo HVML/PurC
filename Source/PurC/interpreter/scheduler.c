@@ -411,3 +411,50 @@ out:
     return;
 }
 
+struct pcintr_event_handler *
+pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
+        int stage, int state, void *data, event_handle_fn fn)
+{
+    struct pcintr_event_handler *handler =
+        (struct pcintr_event_handler *)calloc(1, sizeof(*handler));
+    if (!handler) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    handler->name = name ? strdup(name) : NULL;
+    handler->cor_stage = stage;
+    handler->cor_exec_state = state;
+    handler->data = data;
+    handler->handle = fn;
+
+    list_add_tail(&handler->ln, &co->event_handlers);
+out:
+    return handler;
+}
+
+int
+pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler)
+{
+    UNUSED_PARAM(handler);
+    list_del(&handler->ln);
+    if (handler->name) {
+        free(handler->name);
+    }
+    free(handler);
+    return 0;
+}
+
+int
+pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
+{
+    struct list_head *handlers = &co->event_handlers;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, handlers) {
+        struct pcintr_event_handler *handler;
+        handler = list_entry(p, struct pcintr_event_handler, ln);
+        pcintr_coroutine_remove_event_hander(handler);
+    }
+    return 0;
+}
+

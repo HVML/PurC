@@ -33,6 +33,9 @@
 
 #include "keywords.h"
 
+#ifndef __cplusplus                        /* { */
+#include "../vdom/vdom-internal.h"
+#endif                                    /* } */
 
 #define PLOG(...) do {                                                        \
     FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
@@ -40,9 +43,8 @@
     fclose(fp);                                                               \
 } while (0)
 
-#ifndef __cplusplus                        /* { */
-#include "../vdom/vdom-internal.h"
-#endif                                    /* } */
+
+#define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
@@ -55,10 +57,25 @@ struct pcintr_observer_task {
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
     struct pcdom_element         *edom_element;
-    purc_variant_t               payload;
-    purc_variant_t               event_name;
-    purc_variant_t               source;
+    purc_variant_t                payload;
+    purc_variant_t                event_name;
+    purc_variant_t                source;
 };
+
+struct pcintr_event_handler;
+
+typedef int (*event_handle_fn)(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg, void *data);
+
+struct pcintr_event_handler {
+    struct list_head              ln;
+    int                           cor_stage;
+    int                           cor_exec_state;
+    char                         *name;
+    void                         *data;
+    event_handle_fn               handle;
+};
+
 
 
 PCA_EXTERN_C_BEGIN
@@ -441,6 +458,16 @@ pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
 
 int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
+
+struct pcintr_event_handler *
+pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
+        int stage, int state, void *data, event_handle_fn fn);
+
+int
+pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
+
+int
+pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
 
 
 PCA_EXTERN_C_END
