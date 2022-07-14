@@ -2137,6 +2137,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
+    pcintr_coroutine_add_observer_event_handler(co);
+
     co->variables = pcvarmgr_create();
     if (!co->variables) {
         goto fail_variables;

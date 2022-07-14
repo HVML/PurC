@@ -34,6 +34,7 @@
 
 #define EXCLAMATION_EVENT_NAME     "_eventName"
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
+#define OBSERVER_EVENT_HANDER      "_observer_event_handler"
 
 static void
 destroy_task(struct pcintr_observer_task *task)
@@ -243,21 +244,20 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     return 0;
 }
 
-int
-pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
-        size_t *nr_event)
+int observer_event_handle(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler)
 {
     UNUSED_PARAM(co);
-    UNUSED_PARAM(nr_task);
-    UNUSED_PARAM(nr_event);
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(data);
 
-    if (list_empty(&co->tasks)) {
-        struct pcinst_msg_queue *queue = co->mq;
-        pcrdr_msg *msg = pcinst_msg_queue_get_msg(queue);
-        if(msg) {
-            dispatch_coroutine_msg(co, msg);
-            pcrdr_release_message(msg);
-        }
+    int ret = PURC_ERROR_INCOMPLETED;
+    *remove_handler = false;
+    if (list_empty(&co->tasks) && msg) {
+        dispatch_coroutine_msg(co, msg);
+        ret = PURC_ERROR_OK;
     }
 
     if (!list_empty(&co->tasks)) {
@@ -268,8 +268,16 @@ pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
             handle_task(task);
         }
     }
+    return ret;
+}
 
-    return 0;
+void pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co)
+{
+    struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
+            co,  OBSERVER_EVENT_HANDER,
+            CO_STATE_OBSERVING, CO_STATE_OBSERVING,
+            NULL, observer_event_handle, true);
+    PC_ASSERT(handler);
 }
 
 int

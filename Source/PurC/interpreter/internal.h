@@ -41,6 +41,7 @@
     FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
     fprintf(fp, ##__VA_ARGS__);                                               \
     fclose(fp);                                                               \
+    fprintf(stderr, ##__VA_ARGS__);                                           \
 } while (0)
 
 
@@ -65,12 +66,14 @@ struct pcintr_observer_task {
 struct pcintr_event_handler;
 
 typedef int (*event_handle_fn)(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg, void *data);
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler);
 
 struct pcintr_event_handler {
     struct list_head              ln;
     int                           cor_stage;
     int                           cor_exec_state;
+    unsigned int                  support_null_event:1; /* support null event */
     char                         *name;
     void                         *data;
     event_handle_fn               handle;
@@ -453,15 +456,12 @@ void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
             __FILE__, __LINE__, __func__)
 
 int
-pcintr_schedule_coroutine_msg(pcintr_coroutine_t co, size_t *nr_task,
-        size_t *nr_event);
-
-int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 
 struct pcintr_event_handler *
-pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
-        int stage, int state, void *data, event_handle_fn fn);
+pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
+        int stage, int state, void *data, event_handle_fn fn,
+        bool support_null_event);
 
 int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
@@ -469,6 +469,8 @@ pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
 int
 pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
 
+void
+pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

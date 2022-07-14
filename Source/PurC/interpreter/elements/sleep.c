@@ -35,6 +35,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#define SLEEP_EVENT_HANDER  "_sleep_event_handler"
+
 struct ctxt_for_sleep {
     struct pcvdom_node           *curr;
     purc_variant_t                with;
@@ -45,6 +47,7 @@ struct ctxt_for_sleep {
     pcintr_timer_t                timer;
     pcintr_coroutine_t            co;
     purc_variant_t                element_value; // yield
+    purc_variant_t                event_name;    // yield
 };
 
 static void
@@ -58,6 +61,7 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
             ctxt->timer = NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->element_value);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->event_name);
 
         free(ctxt);
     }
@@ -279,6 +283,32 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PURC_VARIANT_INVALID);
 }
 
+int sleep_event_handle(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+
+    *remove_handler = false;
+    int ret = PURC_ERROR_INCOMPLETED;
+    struct ctxt_for_sleep *ctxt = data;
+    // sleep timeout return PURC_ERROR_OK to clear msg
+    if (msg->requestId == PURC_VARIANT_INVALID &&
+            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
+            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        pcintr_set_current_co(co);
+        pcintr_resume(co, NULL);
+        pcintr_set_current_co(NULL);
+        *remove_handler = true;
+        ret = PURC_ERROR_OK;
+    }
+    else {
+        //TODO: wake up by other event return INCOMPLETED to keep msg for other handler
+    }
+
+    return ret;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -330,9 +360,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
     sprintf(event, "%s:%s", MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT);
-    purc_variant_t event_name = purc_variant_make_string_reuse_buff(event,
+    ctxt->event_name = purc_variant_make_string_reuse_buff(event,
             strlen(event), false);
-    if (!event_name) {
+    if (!ctxt->event_name) {
         free(event);
         return ctxt;
     }
@@ -346,8 +376,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_start_oneshot(ctxt->timer);
 
     pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-            ctxt->element_value, event_name);
-    purc_variant_unref(event_name);
+            ctxt->element_value, ctxt->event_name);
+
+    pcintr_coroutine_add_event_handler(
+            ctxt->co,  SLEEP_EVENT_HANDER,
+            CO_STATE_STOPPED, CO_STATE_STOPPED,
+            ctxt, sleep_event_handle, false);
 
     purc_clr_error();
 
