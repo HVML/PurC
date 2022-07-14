@@ -876,7 +876,8 @@ int init_sync_event_handle(pcintr_coroutine_t co,
 
     struct ctxt_for_init *ctxt = data;
 
-    if (msg->requestId == ctxt->sync_id) {
+    if (msg->requestId == ctxt->sync_id
+            && msg->elementValue == ctxt->sync_id) {
         pcintr_set_current_co(co);
         pcintr_resume(co, NULL);
         pcintr_set_current_co(NULL);
