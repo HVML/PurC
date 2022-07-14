@@ -380,7 +380,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     pcintr_coroutine_add_event_handler(
             ctxt->co,  SLEEP_EVENT_HANDER,
-            CO_STATE_STOPPED, CO_STATE_STOPPED,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
             ctxt, sleep_event_handle, false);
 
     purc_clr_error();

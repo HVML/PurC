@@ -94,8 +94,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             PC_ASSERT(co->yielded_ctxt);
             PC_ASSERT(co->continuation);
             return;
-        case CO_STATE_OBSERVING:
-            break;
         default:
             PC_ASSERT(0);
     }
@@ -135,10 +133,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 
     pcintr_dump_document(stack);
     stack->co->stage = CO_STAGE_OBSERVING;
+    pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
 
-    if (pcintr_co_is_observed(co)) {
-        pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
-    }
 
     if (co->stack.except) {
         const char *error_except = NULL;
@@ -332,7 +328,8 @@ handle_coroutine_event(pcintr_coroutine_t co)
         handler = list_entry(p, struct pcintr_event_handler, ln);
 
         // verify coroutine stage and state
-        if ((co->state & handler->cor_exec_state) == 0) {
+        if ((co->stage & handler->cor_stage) == 0  ||
+                (co->state & handler->cor_exec_state) == 0) {
             continue;
         }
 
@@ -385,7 +382,7 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
         if (co->state == CO_STATE_STOPPED) {
             nr_stop++;
         }
-        else if (co->state == CO_STATE_OBSERVING) {
+        if (co->stage == CO_STAGE_OBSERVING) {
             nr_observe++;
         }
     }
@@ -398,6 +395,7 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
 void
 pcintr_schedule(void *ctxt)
 {
+    static int i = 0;
     struct pcinst *inst = (struct pcinst *)ctxt;
     if (!inst) {
         goto out_sleep;
@@ -440,6 +438,7 @@ out_sleep:
     pcutils_usleep(SCHEDULE_SLEEP);
 
 out:
+    i++;
     return;
 }
 

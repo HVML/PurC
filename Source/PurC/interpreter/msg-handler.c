@@ -275,7 +275,7 @@ void pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co)
 {
     struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
             co,  OBSERVER_EVENT_HANDER,
-            CO_STATE_OBSERVING, CO_STATE_OBSERVING,
+            CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             NULL, observer_event_handle, true);
     PC_ASSERT(handler);
 }

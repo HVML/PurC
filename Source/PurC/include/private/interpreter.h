@@ -221,13 +221,13 @@ enum pcintr_coroutine_stage {
 };
 
 enum pcintr_coroutine_state {
-    CO_STATE_READY,            /* ready to run next step */
-    CO_STATE_RUNNING,         /* is running */
-    CO_STATE_OBSERVING,        /* observing */
-    CO_STATE_EXITED,           /* exit */
-    CO_STATE_TERMINATED,
-    CO_STATE_STOPPED,          /* is waiting for event */
-    CO_STATE_TRACKED,
+    CO_STATE_READY      = 0x01,          /* ready to run next step */
+    CO_STATE_RUNNING    = 0x02,          /* is running */
+    CO_STATE_STOPPED    = 0x04,          /* is waiting for event */
+    CO_STATE_OBSERVING  = 0x08,
+    CO_STATE_EXITED     = 0x10,
+    CO_STATE_TERMINATED = 0x20,
+    CO_STATE_TRACKED    = 0x40,
 };
 
 typedef void (pcintr_msg_callback_f)(void *ctxt);
