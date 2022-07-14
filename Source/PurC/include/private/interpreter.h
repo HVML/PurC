@@ -82,8 +82,9 @@ struct pcintr_heap {
     struct pcinst        *owner;
 
 #if 0 // VW: deprecated
-    // struct list_head     *owning_heaps;
-    // struct list_head      sibling;         // struct pcintr_heap
+    struct list_head     *owning_heaps;
+    struct list_head      sibling;         // struct pcintr_heap
+    pthread_mutex_t       locker;
 #endif
 
     // currently running coroutine
@@ -93,7 +94,6 @@ struct pcintr_heap {
     // key as atom, val as struct pcintr_coroutine
     struct rb_root        coroutines;
 
-    pthread_mutex_t       locker;
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;

@@ -449,6 +449,7 @@ stack_init(pcintr_stack_t stack)
     stack->mode = STACK_VDOM_BEFORE_HVML;
 }
 
+#if 0 // VW: deprecated
 void pcintr_heap_lock(struct pcintr_heap *heap)
 {
     int r = pthread_mutex_lock(&heap->locker);
@@ -461,7 +462,8 @@ void pcintr_heap_unlock(struct pcintr_heap *heap)
     PC_ASSERT(r == 0);
 }
 
-// VW: static struct list_head                       _all_heaps;
+static struct list_head                       _all_heaps;
+#endif // VW: deprecated
 
 static void _cleanup_instance(struct pcinst* inst)
 {
@@ -529,6 +531,7 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
+#if 0 // VW: deprecated
     int r;
     r = pthread_mutex_init(&heap->locker, NULL);
     if (r) {
@@ -537,6 +540,7 @@ static int _init_instance(struct pcinst* inst,
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
+#endif
 
     inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
