@@ -33,7 +33,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
-#include "private/html.h"
+#include "private/document.h"
 #include "private/utils.h"
 #include "private/list.h"
 #include "private/vdom.h"
@@ -81,8 +81,11 @@ struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
 
+#if 0 // VW: deprecated
     struct list_head     *owning_heaps;
     struct list_head      sibling;         // struct pcintr_heap
+    pthread_mutex_t       locker;
+#endif
 
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
@@ -91,7 +94,6 @@ struct pcintr_heap {
     // key as atom, val as struct pcintr_coroutine
     struct rb_root        coroutines;
 
-    pthread_mutex_t       locker;
     struct list_head      routines;     // struct pcintr_routine
 
     int64_t               next_coroutine_id;
@@ -139,14 +141,6 @@ enum pcintr_stack_vdom_insertion_mode {
     STACK_VDOM_AFTER_HVML,
 };
 
-#if 0 // VW
-// experimental: currently for test-case-only
-struct pcintr_supervisor_ops {
-    void (*on_terminated)(pcintr_stack_t stack, void *ctxt);
-    void (*on_cleanup)(pcintr_stack_t stack, void *ctxt);
-};
-#endif
-
 struct pcintr_exception {
     int                      errcode;
     purc_atom_t              error_except;
@@ -166,7 +160,8 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     struct pcvdom_element        *entry;
-    pchtml_html_document_t       *doc;
+    // VW pchtml_html_document_t       *doc;
+    purc_document_t               doc;
 
     // for `back` to use
     struct pcintr_stack_frame    *back_anchor;
@@ -202,14 +197,8 @@ struct pcintr_stack {
     struct list_head              dynamic_observers;
     struct list_head              native_observers;
 
-#if 0 // VW
-    // experimental: currently for test-case-only
-    struct pcintr_supervisor_ops  ops;
-    void                         *ctxt;  // no-owner-ship!!!
-#endif
     // async request ids (array)
     purc_variant_t                async_request_ids;
-
 
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
@@ -250,8 +239,6 @@ struct pcintr_coroutine {
     purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
-
-    char                      **dump_buff;
 
     /* fields for renderer */
     pcrdr_page_type             target_page_type;
@@ -358,8 +345,9 @@ struct pcintr_stack_frame {
     struct list_head node;
     // the current scope.
     pcvdom_element_t scope;
+
     // the current edom element;
-    pcdom_element_t *edom_element;
+    pcdoc_element_t edom_element;
 
     // the current execution position.
     pcvdom_element_t pos;
@@ -425,7 +413,7 @@ struct pcintr_observer {
     char* sub_type;
 
     pcvdom_element_t scope;
-    pcdom_element_t *edom_element;
+    pcdoc_element_t  edom_element;
 
     // the `observe` element who creates this observer.
     pcvdom_element_t pos;
@@ -445,18 +433,20 @@ struct pcintr_timers;
 PCA_EXTERN_C_BEGIN
 
 struct pcintr_heap* pcintr_get_heap(void);
+
+#if 0 // VW: deprecated
 bool pcintr_is_current_thread(void);
 
 void pcintr_add_heap(struct list_head *all_heaps);
 void pcintr_remove_heap(struct list_head *all_heaps);
 
+const char* pcintr_get_first_app_name(void);
+#endif // VW: deprecated
+
 pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
-
-const char*
-pcintr_get_first_app_name(void);
 
 void pcintr_check_after_execution(void);
 void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
@@ -605,7 +595,7 @@ pcintr_register_observer(pcintr_stack_t stack,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
-        pcdom_element_t *edom_element,
+        pcdoc_element_t edom_element,
         pcvdom_element_t pos,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data
@@ -634,8 +624,97 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len);
 
 // utilities
+
+pcdoc_element_t
+pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *tag, bool self_close);
+
+pcdoc_text_node_t
+pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *txt, size_t len);
+
+pcdoc_node
+pcintr_util_new_content(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *content, size_t len);
+
+int
+pcintr_util_set_attribute(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *name, const char *val, size_t len);
+
+static inline int pcintr_util_remove_attribute(purc_document_t doc,
+        pcdoc_element_t elem, const char *name)
+{
+    return pcintr_util_set_attribute(doc, elem, PCDOC_OP_ERASE,
+        name, NULL, 0);
+}
+
+int
+pcintr_init_vdom_under_stack(pcintr_stack_t stack);
+
+purc_runloop_t
+pcintr_co_get_runloop(pcintr_coroutine_t co);
+
+typedef void (*co_routine_f)(void);
+
 void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
+pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
+
+void
+pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
+
+void
+pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
+        void (*func)(void *ctxt));
+
+void*
+pcintr_load_module(const char *module,
+        const char *env_name, const char *prefix);
+
+void
+pcintr_unload_module(void *handle);
+
+int
+pcintr_init_loader_once(void);
+
+bool
+pcintr_attach_to_renderer(pcintr_coroutine_t cor,
+        pcrdr_page_type page_type, const char *target_workspace,
+        const char *target_group, const char *page_name,
+        purc_renderer_extra_info *extra_info);
+
+int
+pcintr_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, purc_variant_t event_name,
+        purc_variant_t data);
+
+int
+pcintr_post_event_by_ctype(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+int
+pcintr_coroutine_post_event(purc_atom_t cid,
+        pcrdr_msg_event_reduce_opt reduce_op,
+        purc_variant_t observed, const char *event_type,
+        const char *event_sub_type, purc_variant_t data);
+
+static inline const char*
+pcintr_coroutine_get_uri(pcintr_coroutine_t co)
+{
+    return purc_atom_to_string(co->cid);
+}
+
+PCA_EXTERN_C_END
+
+#endif  /* PURC_PRIVATE_INTERPRETER_H */
+
+#if 0 // VW: deprecated
+void
+pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
     const char *file, int line, const char *func);
 
 void
@@ -698,89 +777,10 @@ pcintr_util_comp_docs(pchtml_html_document_t *docl,
 bool
 pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
 
-#if 0
-purc_vdom_t
-purc_load_hvml_from_string_ex(const char* string,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_file_ex(const char* file,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_url_ex(const char* url,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-
-purc_vdom_t
-purc_load_hvml_from_rwstream_ex(purc_rwstream_t stream,
-        struct pcintr_supervisor_ops *ops, void *ctxt);
-#endif
-
-int
-pcintr_init_vdom_under_stack(pcintr_stack_t stack);
-
-purc_runloop_t
-pcintr_co_get_runloop(pcintr_coroutine_t co);
-
-typedef void (*co_routine_f)(void);
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
-
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
-
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt));
-
-void*
-pcintr_load_module(const char *module,
-        const char *env_name, const char *prefix);
-
-void
-pcintr_unload_module(void *handle);
-
-int
-pcintr_init_loader_once(void);
-
 static inline void
 pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
 {
     co->dump_buff = dump_buff;
 }
-
-bool
-pcintr_attach_to_renderer(pcintr_coroutine_t cor,
-        pcrdr_page_type page_type, const char *target_workspace,
-        const char *target_group, const char *page_name,
-        purc_renderer_extra_info *extra_info);
-
-int
-pcintr_post_event(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, purc_variant_t event_name,
-        purc_variant_t data);
-
-int
-pcintr_post_event_by_ctype(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
-
-int
-pcintr_coroutine_post_event(purc_atom_t cid,
-        pcrdr_msg_event_reduce_opt reduce_op,
-        purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
-
-static inline const char*
-pcintr_coroutine_get_uri(pcintr_coroutine_t co)
-{
-    return purc_atom_to_string(co->cid);
-}
-
-PCA_EXTERN_C_END
-
-#endif  /* PURC_PRIVATE_INTERPRETER_H */
+#endif // VW: deprecated
 

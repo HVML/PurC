@@ -92,9 +92,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     PC_ASSERT(frame->edom_element);
-    pcdom_element_t *child;
-    child = pcintr_util_append_element(frame->edom_element,
-            frame->pos->tag_name);
+    pcdoc_element_t child;
+    child = pcintr_util_new_element(frame->owner->doc,
+            frame->edom_element, PCDOC_OP_APPEND, frame->pos->tag_name, false);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;

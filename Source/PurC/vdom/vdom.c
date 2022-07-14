@@ -1344,15 +1344,17 @@ pcvdom_element_eval_attr_val(pcintr_stack_t stack, pcvdom_element_t element,
     if (!attr)
         return purc_variant_make_undefined();
 
-    enum pchvml_attr_operator  op  = attr->op;
     struct pcvcm_node           *val = attr->val;
 
     purc_variant_t v;
     v = pcvcm_eval(val, stack, pcvdom_element_is_silently(element));
+#if 0 // VW
     PC_ASSERT(v != PURC_VARIANT_INVALID);
 
+    enum pchvml_attr_operator  op  = attr->op;
     UNUSED_PARAM(op);
     PC_ASSERT(0); // FIXME: how to use op????
+#endif
 
     return v;
 }

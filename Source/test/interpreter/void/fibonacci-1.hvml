@@ -1,0 +1,34 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="void" lang="en">
+    <head>
+        <title>Fibonacci Numbers</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>Fibonacci Numbers less than 2000</h1>
+            <p hvml:raw>Using named array variable ($fibonacci), $MATH, and $EJSON</p>
+        </header>
+
+        <init as="fibonacci">
+            [0, 1, ]
+        </init>
+
+        <iterate on 1 by="ADD: LT 2000 BY $fibonacci[$MATH.sub($EJSON.count($fibonacci), 2)]">
+            <update on="$fibonacci" to="append" with="$?" />
+        </iterate>
+
+        <section>
+            <ol>
+                <iterate on="$fibonacci">
+                    <li>$?</li>
+                </iterate>
+            </ol>
+        </section>
+
+        <footer>
+            <p>Totally $EJSON.count($fibonacci) numbers.</p>
+        </footer>
+    </body>
+
+</hvml>

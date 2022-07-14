@@ -458,6 +458,7 @@ static void _runloop_stop_main(void)
     }
 }
 
+#if 0 // VW: deprecated
 static RefPtr<Thread> _sync_thread;
 static RunLoop *_sync_runloop = nullptr;
 
@@ -533,11 +534,14 @@ void pcintr_remove_heap(struct list_head *all_heaps)
     });
     sema.wait();
 }
+#endif // VW: deprecated
 
 static int _init_once(void)
 {
+#if 0 // VW: deprecated
     _runloop_init_sync();
     atexit(_runloop_stop_sync);
+#endif
 
     atexit(_runloop_stop_main);
     return 0;

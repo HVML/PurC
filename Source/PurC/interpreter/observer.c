@@ -173,7 +173,7 @@ pcintr_register_observer(pcintr_stack_t stack,
         purc_variant_t for_value,
         purc_atom_t msg_type_atom, const char *sub_type,
         pcvdom_element_t scope,
-        pcdom_element_t *edom_element,
+        pcdoc_element_t edom_element,
         pcvdom_element_t pos,
         pcintr_on_revoke_observer on_revoke,
         void *on_revoke_data

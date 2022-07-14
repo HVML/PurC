@@ -168,7 +168,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
     UNUSED_PARAM(silently);
     purc_variant_t ret = PURC_VARIANT_INVALID;
     const char *s = purc_variant_get_string_const(on);
-    pchtml_html_document_t *doc = stack->doc;
+    purc_document_t doc = stack->doc;
     purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
     if (!elems) {
         ret = purc_variant_make_ulongint(0);
@@ -207,14 +207,13 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         int nr_remove = 0;
         size_t idx = 0;
         while (1) {
-            struct pcdom_element *target;
+            pcdoc_element_t target;
             target = pcdvobjs_get_element_from_elements(elems, idx++);
             if (!target) {
                 break;
             }
 
-            int r = pcintr_util_remove_attribute(target, s_at);
-            if (r == PURC_ERROR_OK) {
+            if (pcintr_util_remove_attribute(doc, target, s_at) == 0) {
                 nr_remove++;
             }
         }

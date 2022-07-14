@@ -39,6 +39,7 @@
 #include "purc-variant.h"
 #include "purc-dom.h"
 #include "purc-html.h"
+#include "purc-document.h"
 #include "purc-helpers.h"
 #include "purc-pcrdr.h"
 #include "purc-dvobjs.h"
@@ -616,6 +617,15 @@ typedef enum purc_cond {
      * `data` is the coroutine indentifier.
      */
     PURC_COND_COR_CREATED,
+
+    /**
+     * Indicating that a coroutine finished the first round run and
+     * is entering the obeserving stage.
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the pointer to the targe document genenerated by the
+     * HVML coroutine.
+     */
+    PURC_COND_COR_AFTER_FIRSTRUN,
 
     /**
      * Indicating that a coroutine exited or teminated.

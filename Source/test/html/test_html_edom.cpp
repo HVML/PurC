@@ -1,3 +1,22 @@
+/*
+** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+**
+** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+**
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "purc.h"
 #include "private/list.h"
 #include "private/html.h"
@@ -6,19 +25,21 @@
 #include "./html/interfaces/document.h"
 #include "private/interpreter.h"
 
+#include "html_ops.h"
+
 #include <gtest/gtest.h>
 
 #include <stdarg.h>
 
 #define ASSERT_DOC_DOC_EQ(_l, _r) do {                               \
     int _diff = 0;                                                   \
-    ASSERT_EQ(pcintr_util_comp_docs(_l, _r, &_diff), 0);             \
+    ASSERT_EQ(html_dom_comp_docs(_l, _r, &_diff), 0);             \
     ASSERT_EQ(_diff, 0);                                             \
 } while (0)
 
 #define ASSERT_DOC_HTML_EQ(_doc, _html) do {         \
     pchtml_html_document_t *_tmp;                    \
-    _tmp = pcintr_util_load_document(_html);         \
+    _tmp = html_dom_load_document(_html);         \
     ASSERT_NE(_tmp, nullptr);                        \
     ASSERT_DOC_DOC_EQ(_doc, _tmp);                   \
     pchtml_html_document_destroy(_tmp);              \
@@ -310,7 +331,7 @@ TEST(html, edom_parse_and_add)
     ASSERT_STREQ(buf, "<body></body>");
 
     pcdom_element_t *div;
-    div = pcintr_util_append_element(pcdom_interface_element(body), "div");
+    div = html_dom_append_element(pcdom_interface_element(body), "div");
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(div));
     ASSERT_STREQ(buf, "<div></div>");
     write_edom_node(buf, sizeof(buf), pcdom_interface_node(body));
@@ -583,20 +604,20 @@ TEST(html, edom_gen)
                 pcdom_interface_node(html));
 
     pcdom_element_t *head;
-    head = pcintr_util_append_element(html, "head");
+    head = html_dom_append_element(html, "head");
     ASSERT_NE(head, nullptr);
     pcdom_element_t *body;
-    body = pcintr_util_append_element(html, "body");
+    body = html_dom_append_element(html, "body");
     ASSERT_NE(body, nullptr);
 #endif
 
     pcdom_element_t *div;
-    div = pcintr_util_append_element(body, "div");
+    div = html_dom_append_element(body, "div");
     ASSERT_NE(div, nullptr);
 
 
     pcdom_element_t *foo;
-    foo = pcintr_util_append_element(body, "foo");
+    foo = html_dom_append_element(body, "foo");
     ASSERT_NE(foo, nullptr);
 
     key = pcdom_element_set_attribute(div,
@@ -958,7 +979,7 @@ TEST(html, buggy)
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
     pchtml_html_document_t *doc;
-    doc = pcintr_util_load_document("<html/>");
+    doc = html_dom_load_document("<html/>");
     ASSERT_NE(doc, nullptr);
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body></body></html>");
 
@@ -973,29 +994,29 @@ TEST(html, buggy)
     ASSERT_EQ(doc, pchtml_html_interface_document(body->node.owner_document));
 
     pcdom_element_t *span;
-    span = pcintr_util_append_element(body, "span");
+    span = html_dom_append_element(body, "span");
     ASSERT_NE(span, nullptr);
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span></span></body></html>");
 
-    ASSERT_EQ(0, pcintr_util_set_attribute(span, "id", "clock"));
+    ASSERT_EQ(0, html_dom_set_attribute(span, "id", "clock"));
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\"></span></body></html>");
 
-    ASSERT_NE(nullptr, pcintr_util_append_content(span, "xyz"));
+    ASSERT_NE(nullptr, html_dom_append_content(span, "xyz"));
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span></body></html>");
 
     pcdom_element_t *xinput;
-    xinput = pcintr_util_append_element(body, "xinput");
+    xinput = html_dom_append_element(body, "xinput");
     ASSERT_NE(xinput, nullptr);
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span><xinput></xinput></body></html>");
 
-    ASSERT_EQ(0, pcintr_util_set_attribute(xinput, "xid", "xexp"));
+    ASSERT_EQ(0, html_dom_set_attribute(xinput, "xid", "xexp"));
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">xyz</span><xinput xid=\"xexp\"></xinput></body></html>");
 
     pcdom_document_t *document = pcdom_interface_document(doc);
     pcdom_collection_t *collection;
     collection = pcdom_collection_create(document);
     ASSERT_NE(collection, nullptr);
-    ASSERT_EQ(0, pcintr_util_set_child_chunk(span, "def"));
+    ASSERT_EQ(0, html_dom_set_child_chunk(span, "def"));
     ASSERT_DOC_HTML_EQ(doc, "<html><head></head><body><span id=\"clock\">def</span><xinput xid=\"xexp\"></xinput></body></html>");
     unsigned int ui;
     ui = pcdom_collection_init(collection, 10);

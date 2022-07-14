@@ -71,12 +71,18 @@ struct pcutils_arrlist *pcutils_arrlist_new_ex(array_list_free_fn *free_fn,
     return arr;
 }
 
-extern void pcutils_arrlist_free(struct pcutils_arrlist *arr)
+void pcutils_arrlist_free(struct pcutils_arrlist *arr)
 {
     size_t i;
-    for (i = 0; i < arr->length; i++)
-        if (arr->array[i] && arr->free_fn)
-            arr->free_fn(arr->array[i]);
+
+    if (arr->free_fn) {
+        for (i = 0; i < arr->length; i++) {
+            if (arr->array[i]) {
+                arr->free_fn(arr->array[i]);
+            }
+        }
+    }
+
     free(arr->array);
     free(arr);
 }
@@ -146,7 +152,6 @@ int pcutils_arrlist_shrink(struct pcutils_arrlist *arr, size_t empty_slots)
     return 0;
 }
 
-//static inline int _pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
 int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
 {
     if (idx > SIZE_MAX - 1)
@@ -160,8 +165,7 @@ int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
         }
     }
     arr->array[idx] = data;
-    if (idx > arr->length)
-    {
+    if (idx > arr->length) {
         /* Zero out the arraylist slots in between the old length
            and the newly added entry so we know those entries are
            empty.
@@ -169,7 +173,7 @@ int pcutils_arrlist_put_idx(struct pcutils_arrlist *arr, size_t idx, void *data)
            only 5 elements longs, array[5] and array[6] need to be
            set to 0.
          */
-        memset(arr->array + arr->length, 0, (idx - arr->length) * sizeof(void *));
+        memset(arr->array + arr->length, 0, (idx - arr->length)*sizeof(void *));
     }
     if (arr->length <= idx)
         arr->length = idx + 1;
@@ -191,7 +195,8 @@ int pcutils_arrlist_append(struct pcutils_arrlist *arr, void *data)
     return 0;
 }
 
-void pcutils_arrlist_sort(struct pcutils_arrlist *arr, int (*compar)(const void *, const void *))
+void pcutils_arrlist_sort(struct pcutils_arrlist *arr,
+        int (*compar)(const void *, const void *))
 {
     qsort(arr->array, arr->length, sizeof(arr->array[0]), compar);
 }
@@ -199,7 +204,8 @@ void pcutils_arrlist_sort(struct pcutils_arrlist *arr, int (*compar)(const void 
 void *pcutils_arrlist_bsearch(const void **key, struct pcutils_arrlist *arr,
                          int (*compar)(const void *, const void *))
 {
-    return bsearch(key, arr->array, arr->length, sizeof(arr->array[0]), compar);
+    return bsearch(key, arr->array, arr->length,
+            sizeof(arr->array[0]), compar);
 }
 
 size_t pcutils_arrlist_length(struct pcutils_arrlist *arr)
@@ -207,7 +213,8 @@ size_t pcutils_arrlist_length(struct pcutils_arrlist *arr)
     return arr->length;
 }
 
-int pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t count)
+int
+pcutils_arrlist_del_idx(struct pcutils_arrlist *arr, size_t idx, size_t count)
 {
     size_t i, stop;
 

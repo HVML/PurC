@@ -2,7 +2,7 @@
  * @file purc-dom.h
  * @author Vincent Wei
  * @date 2022/01/02
- * @brief The API of eDOM.
+ * @brief The API of DOM.
  *
  * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *

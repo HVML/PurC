@@ -1,3 +1,23 @@
+/*
+** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+**
+** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+**
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 #include "purc.h"
 
 #include <stdio.h>
@@ -20,20 +40,34 @@ struct thread_arg {
     int     nr;
 };
 
+static const char *jsons[] = {
+    "true",
+    "100",
+    "[100, 200, 300]",
+    "[100, 200, 300, [100, 200, 300]]",
+    "{ }",
+    "[ ]",
+    "{ 'r': 0, 'g': 0, 'b': 0 }",
+    "[ {x: 0 } ]",
+    "{ name: 'PurC', os: ['Linux', 'macOS', 'HybridOS', 'Windows'], emptyObject: {} }",
+    "{ 'darkMode': true, 'backgroudColor': { 'r': 0, 'g': 0, 'b': 0, emptyArray: [{x: 1}], emptyObject: {} }, emptyArray: [] }",
+};
+
 static void* general_thread_entry(void* arg)
 {
     struct thread_arg *my_arg = (struct thread_arg *)arg;
     char runner_name[32];
 
     sprintf(runner_name, "thread%d", my_arg->nr);
+    int th_no = my_arg->nr;
 
     // initial purc instance
-    int ret = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.purc.test",
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.purc.test",
             runner_name, NULL);
     assert(ret == PURC_ERROR_OK);
 
     if (ret == PURC_ERROR_OK) {
-        purc_enable_log(true, false);
+        purc_enable_log(false, false);
         other_inst[my_arg->nr] =
             purc_inst_create_move_buffer(PCINST_MOVE_BUFFER_BROADCAST, 16);
         purc_log_info("purc_inst_create_move_buffer returns: %x\n",
@@ -61,7 +95,14 @@ static void* general_thread_entry(void* arg)
             purc_log_info("    sourceURI: %s\n",
                     purc_variant_get_string_const(msg->sourceURI));
 
+            purc_log_info("use the json: %s\n", jsons[th_no]);
+            purc_variant_t data = purc_variant_make_from_json_string(
+                    jsons[th_no], strlen(jsons[th_no]));
+
+            msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+            msg->data = purc_variant_ref(data);
             purc_inst_move_message(main_inst, msg);
+            purc_variant_unref(data);
             pcrdr_release_message(msg);
             break;
         }
