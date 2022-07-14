@@ -934,7 +934,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    if (stack->stage != STACK_STAGE_FIRST_ROUND) {
+    if (stack->co->stage != CO_STAGE_FIRST_RUN) {
         purc_clr_error();
         return ctxt;
     }
@@ -1103,7 +1103,7 @@ select_child(pcintr_stack_t stack, void* ud)
 {
     PC_ASSERT(stack);
 
-    if (stack->stage == STACK_STAGE_FIRST_ROUND) {
+    if (stack->co->stage == CO_STAGE_FIRST_RUN) {
         return NULL;
     }
 

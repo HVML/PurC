@@ -125,7 +125,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     PC_ASSERT(co->continuation == NULL);
 
     /* send doc to rdr */
-    if (stack->stage == STACK_STAGE_FIRST_ROUND &&
+    if (stack->co->stage == CO_STAGE_FIRST_RUN &&
             !pcintr_rdr_page_control_load(stack))
     {
         PC_ASSERT(0); // TODO:
@@ -134,7 +134,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     pcintr_dump_document(stack);
-    stack->stage = STACK_STAGE_EVENT_LOOP;
+    stack->co->stage = CO_STAGE_OBSERVING;
 
     if (pcintr_co_is_observed(co)) {
         pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);

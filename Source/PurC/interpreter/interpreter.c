@@ -539,7 +539,6 @@ stack_init(pcintr_stack_t stack)
     INIT_LIST_HEAD(&stack->native_observers);
     stack->scoped_variables = RB_ROOT;
 
-    stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->mode = STACK_VDOM_BEFORE_HVML;
 }
 
@@ -1324,7 +1323,7 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
 
-    if (stack->stage != STACK_STAGE_FIRST_ROUND)
+    if (stack->co->stage != CO_STAGE_FIRST_RUN)
         return;
 
     switch (stack->mode) {
@@ -2054,6 +2053,7 @@ static void init_frame_for_co(pcintr_coroutine_t co)
 
     frame->ops = *pcintr_get_document_ops();
     co->execution_pending = 1;
+    co->stage = CO_STAGE_FIRST_RUN;
 }
 
 static int set_coroutine_id(pcintr_coroutine_t coroutine)
@@ -2208,6 +2208,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
         return NULL;
     }
 
+    co->stage = CO_STAGE_SCHEDULED;
     PC_ASSERT(co->stack.vdom);
 
     if (page_type != PCRDR_PAGE_TYPE_NULL &&

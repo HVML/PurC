@@ -867,7 +867,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return NULL;
     }
 
@@ -920,7 +920,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
         pcrdr_msg_data_type data_type, const char *data)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return NULL;
     }
 
@@ -1038,7 +1038,7 @@ pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return true;
     }
     purc_variant_t data = serialize_node(child);
@@ -1055,7 +1055,7 @@ pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return true;
     }
 

@@ -122,11 +122,6 @@ struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
 
-enum pcintr_stack_stage {
-    STACK_STAGE_FIRST_ROUND                = 0x00,
-    STACK_STAGE_EVENT_LOOP                 = 0x01,
-};
-
 struct pcintr_loaded_var {
     struct rb_node              node;
     char                       *name;
@@ -161,8 +156,6 @@ struct pcintr_exception {
 };
 
 struct pcintr_stack {
-    enum pcintr_stack_stage       stage;
-
     struct list_head              frames;
     // the number of stack frames.
     size_t                        nr_frames;
@@ -218,6 +211,13 @@ struct pcintr_stack {
 
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
+};
+
+enum pcintr_coroutine_stage {
+    CO_STAGE_SCHEDULED  = 0x01,
+    CO_STAGE_FIRST_RUN  = 0x02,
+    CO_STAGE_OBSERVING  = 0x04,
+    CO_STAGE_CLEANUP    = 0x08,
 };
 
 enum pcintr_coroutine_state {
@@ -278,6 +278,7 @@ struct pcintr_coroutine {
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
+    enum pcintr_coroutine_stage stage;
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
 
