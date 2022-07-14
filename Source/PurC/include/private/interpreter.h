@@ -238,9 +238,6 @@ struct pcintr_coroutine {
 
     purc_vdom_t                 vdom;
 
-    // VW: use cond_handler instead
-    // char                      **dump_buff;
-
     /* fields for renderer */
     pcrdr_page_type             target_page_type;
     uint64_t                    target_workspace_handle;

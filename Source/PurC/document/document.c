@@ -28,27 +28,48 @@
 #include "private/document.h"
 #include "private/stringbuilder.h"
 
-static struct purc_document_ops *doc_ops[] = {
-    &_pcdoc_void_ops,
-    NULL, // &_pcdoc_plain_ops,
-    &_pcdoc_html_ops,
-    NULL,
-    NULL,
+static struct doc_type {
+    const char                 *target_name;
+    struct purc_document_ops   *ops;
+} doc_types[] = {
+    { PCDOC_TYPE_VOID,    &_pcdoc_void_ops },
+    { PCDOC_TYPE_PLAIN,   NULL /* &_pcdoc_plain_ops */ },
+    { PCDOC_TYPE_HTML,    &_pcdoc_html_ops },
+    { PCDOC_TYPE_XML,     NULL /* &_pcdoc_xml_ops */ },
+    { PCDOC_TYPE_XGML,    NULL /* &_pcdoc_xgml_ops */ },
 };
 
-/* Make sure the number of doc_ops matches the number of target doc types */
+/* Make sure the size of doc_types matches the number of document types */
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
 
-_COMPILE_TIME_ASSERT(ops,
-        PCA_TABLESIZE(doc_ops) == PCDOC_NR_TYPES);
+_COMPILE_TIME_ASSERT(types,
+        PCA_TABLESIZE(doc_types) == PCDOC_NR_TYPES);
 
 #undef _COMPILE_TIME_ASSERT
+
+purc_document_type
+purc_document_retrieve_type(const char *target_name)
+{
+    if (UNLIKELY(target_name == NULL))
+        goto fallback;
+
+    for (size_t i = 0; i < PCA_TABLESIZE(doc_types); i++) {
+        if (strcmp(target_name, doc_types[i].target_name) == 0) {
+            if (doc_types[i].ops)
+                return PCDOC_K_TYPE_FIRST + i;
+            break;
+        }
+    }
+
+fallback:
+    return PCDOC_K_TYPE_VOID;   // fallback
+}
 
 purc_document_t
 purc_document_new(purc_document_type type)
 {
-    struct purc_document_ops *ops = doc_ops[type];
+    struct purc_document_ops *ops = doc_types[type].ops;
     if (ops == NULL) {
         purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
         return NULL;
@@ -61,7 +82,7 @@ purc_document_new(purc_document_type type)
 purc_document_t
 purc_document_load(purc_document_type type, const char *content, size_t len)
 {
-    struct purc_document_ops *ops = doc_ops[type];
+    struct purc_document_ops *ops = doc_types[type].ops;
     if (ops == NULL) {
         PC_WARN("document type %d is not implemented\n", type);
         purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);

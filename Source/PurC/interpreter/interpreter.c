@@ -124,33 +124,30 @@ stack_frame_normal_destroy(struct pcintr_stack_frame_normal *frame_normal)
 static int
 doc_init(pcintr_stack_t stack)
 {
-#if 0
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    if (!doc) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    struct pcvdom_element* hvml_elem =
+        pcvdom_document_get_root(stack->co->vdom);
+    if (UNLIKELY(hvml_elem == NULL)) {
+        purc_set_error(PURC_ERROR_INCOMPLETED);
         return -1;
     }
 
-    const char *html = "<html/>";
-    unsigned int r;
-    r = pchtml_html_document_parse_with_buf(doc,
-            (const unsigned char*)html, strlen(html));
-    if (r) {
-        pchtml_html_document_destroy(doc);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    // XXX: may use the coroutine-level variables.
+    purc_variant_t target = pcvdom_element_eval_attr_val(stack,
+            hvml_elem, "target");
+    if (UNLIKELY(target == PURC_VARIANT_INVALID)) {
+        purc_set_error(PURC_ERROR_INCOMPLETED);
         return -1;
     }
 
-    stack->doc = doc;
-#else
-    // TODO: target document type
-    stack->doc = purc_document_new(PCDOC_K_TYPE_HTML);
+    const char *target_name = purc_variant_get_string_const(target);
+    PC_DEBUG("Retrieved target name: %s\n", target_name);
+    stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
+    purc_variant_unref(target);
+
     if (stack->doc == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return -1;
     }
-#endif
 
     return 0;
 }
@@ -1566,15 +1563,9 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if (doc_init(stack)) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
     // $DOC
-    purc_document_t doc = stack->doc;
     if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_DOC,
-                purc_dvobj_doc_new(doc))) {
+                purc_dvobj_doc_new(stack->doc))) {
         return -1;
     }
 
@@ -2337,32 +2328,44 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
-        pcvdom_document_unref(vdom);
         purc_log_error("Failed to create coroutine\n");
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto failed;
     }
 
-    PC_ASSERT(co->stack.vdom);
+    if (doc_init(&co->stack)) {
+        goto failed;
+    }
 
-    if (page_type != PCRDR_PAGE_TYPE_NULL &&
+    /* Attach to rdr only if the document needs rdr and
+       the page type is not null. */
+    if (co->stack.doc->need_rdr &&
+            page_type != PCRDR_PAGE_TYPE_NULL &&
             !pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
                 target_group, page_name, extra_info)) {
         purc_log_warn("Failed to attach to renderer\n");
     }
 
-    /* TODO: handle entry here */
+    /* TODO: handle entry and request here */
     UNUSED_PARAM(body_id);
     UNUSED_PARAM(request);
 
     if (!bind_builtin_coroutine_variables(co, request)) {
-        coroutine_destroy(co);
-        return NULL;
+        goto failed;
     }
 
     pcintr_wakeup_target(co, run_co_main);
     return co;
+
+failed:
+    if (co == NULL) {
+        pcvdom_document_unref(vdom);
+    }
+    else {
+        coroutine_destroy(co);
+    }
+
+    return NULL;
 }
 
 purc_cond_handler
