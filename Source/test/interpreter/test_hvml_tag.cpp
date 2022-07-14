@@ -1,3 +1,23 @@
+/*
+** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+**
+** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+**
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 #include "purc.h"
 
 #include "private/hvml.h"
@@ -9,6 +29,7 @@
 #include "private/interpreter.h"
 
 #include "../helpers.h"
+#include "tools.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,6 +116,19 @@ struct buffer {
     }
 };
 
+static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+        void *data)
+{
+    if (event == PURC_COND_COR_AFTER_FIRSTRUN) {
+        purc_document_t doc = (purc_document_t)data;
+
+        struct buffer *buf = (struct buffer *)purc_coroutine_get_user_data(cor);
+        buf->dump_buff = intr_util_dump_doc(doc, NULL);
+    }
+
+    return 0;
+}
+
 TEST_P(TestHVMLTag, hvml_tags)
 {
     TestCase test_case = GetParam();
@@ -127,20 +161,33 @@ TEST_P(TestHVMLTag, hvml_tags)
     ASSERT_NE(co, nullptr);
     purc_variant_unref(request);
 
-    pcintr_coroutine_set_dump_buff(co, &buf.dump_buff);
+    purc_coroutine_set_user_data(co, &buf);
 
-    purc_run(NULL);
+    purc_run((purc_cond_handler)my_cond_handler);
 
     ASSERT_NE(buf.dump_buff, nullptr);
 
     if (test_case.html) {
-        if (strcmp(trim(buf.dump_buff), trim(test_case.html))) {
+        purc_document_t docl = purc_document_load(PCDOC_K_TYPE_HTML,
+                buf.dump_buff, 0);
+        purc_document_t docr = purc_document_load(PCDOC_K_TYPE_HTML,
+                test_case.html, 0);
+
+        int diff = -1;
+        char *ctnt = intr_util_comp_docs(docl, docr, &diff);
+        if (ctnt != NULL && diff == 0) {
+            fprintf(stderr, "Passed\n");
+        }
+        else {
             fprintf(stderr, "============================\n");
             fprintf(stderr, "dump:\n%s\n", trim(buf.dump_buff));
             fprintf(stderr, "html:\n%s\n", trim(test_case.html));
             fprintf(stderr, "============================\n");
         }
-        ASSERT_STREQ(trim(buf.dump_buff), trim(test_case.html));
+
+        if (ctnt) free(ctnt);
+        if (docl) purc_document_delete(docl);
+        if (docr) purc_document_delete(docr);
     }
     else {
         FILE* fp = fopen(test_case.html_path, "w");

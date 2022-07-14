@@ -489,7 +489,7 @@ register_named_var_observer(pcintr_stack_t stack,
     }
 
     purc_variant_t at = pcintr_get_at_var(frame);
-    struct pcdom_element *edom_element;
+    pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
@@ -525,7 +525,7 @@ register_native_var_observer(pcintr_stack_t stack,
     }
 
     purc_variant_t at = pcintr_get_at_var(frame);
-    struct pcdom_element *edom_element;
+    pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
@@ -548,7 +548,7 @@ register_timer_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     purc_variant_t at = pcintr_get_at_var(frame);
-    struct pcdom_element *edom_element;
+    pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     if (edom_element == NULL) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -585,7 +585,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
         return NULL;
 
     purc_variant_t at = pcintr_get_at_var(frame);
-    struct pcdom_element *edom_element;
+    pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
@@ -612,7 +612,7 @@ register_elements_observer(pcintr_stack_t stack,
 {
     struct pcintr_observer *observer = NULL;
     const char *s = purc_variant_get_string_const(observed);
-    pchtml_html_document_t *doc = stack->doc;
+    purc_document_t doc = stack->doc;
     purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
     if (elems) {
         observer = register_native_var_observer(stack, frame, elems);
@@ -631,7 +631,7 @@ register_default_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     purc_variant_t at = pcintr_get_at_var(frame);
-    struct pcdom_element *edom_element;
+    pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
@@ -1071,9 +1071,11 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_clr_error();
 
     if (purc_variant_is_string(v)) {
-        const char *text = purc_variant_get_string_const(v);
-        pcdom_text_t *content;
-        content = pcintr_util_append_content(frame->edom_element, text);
+        size_t sz;
+        const char *text = purc_variant_get_string_const_ex(v, &sz);
+        pcdoc_text_node_t content;
+        content = pcintr_util_new_text_content(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_APPEND, text, sz);
         PC_ASSERT(content);
         purc_variant_unref(v);
     }
@@ -1081,9 +1083,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         // FIXME: copy from undefined.c
         char *sv = pcvariant_to_string(v);
         PC_ASSERT(sv);
-        int r;
-        r = pcintr_util_add_child_chunk(frame->edom_element, sv);
-        PC_ASSERT(r == 0);
+        pcintr_util_new_content(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_APPEND, sv, 0);
         free(sv);
         purc_variant_unref(v);
     }

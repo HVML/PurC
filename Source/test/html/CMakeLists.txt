@@ -74,6 +74,7 @@ list(APPEND test_html_edom_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_html_edom)
 
 set(test_html_edom_SOURCES
+    html_ops.c
     test_html_edom.cpp
 )
 
@@ -102,6 +103,7 @@ list(APPEND test_dom_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_dom)
 
 set(test_dom_SOURCES
+    html_ops.c
     test_dom.cpp
 )
 

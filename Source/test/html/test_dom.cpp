@@ -1,3 +1,22 @@
+/*
+** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+**
+** This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+**
+** This program is free software: you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published by
+** the Free Software Foundation, either version 3 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+**
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #undef NDEBUG
 
 #include "purc.h"
@@ -7,6 +26,7 @@
 #include "purc-html.h"
 #include "./html/interfaces/document.h"
 #include "private/interpreter.h"
+#include "html_ops.h"
 
 #include <gtest/gtest.h>
 
@@ -23,16 +43,16 @@
     abort();                                       \
 } while (0)
 
-#define serialize_node(_node) pcintr_util_dump_edom_node(_node)
+#define serialize_node(_node) html_dom_dump_node(_node)
 
 #define serializer_callback 0
-#define pchtml_html_serialize_pretty_tree_cb(_node, _opt, _n, _cb, _ext)    \
+#define pchtml_html_serialize_pretty_tree_cb(_node, _opt, _n, _cb, _ext) \
 ({                                                                       \
     (void)_opt;                                                          \
     (void)_n;                                                            \
     (void)_cb;                                                           \
     (void)_ext;                                                          \
-    pcintr_util_dump_edom_node(_node);                                   \
+    html_dom_dump_node(_node);                                           \
     0;                                                                   \
 })
 

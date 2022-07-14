@@ -61,35 +61,6 @@ PURC_COMPUTE_SOURCES(test_interpreter)
 PURC_FRAMEWORK(test_interpreter)
 GTEST_DISCOVER_TESTS(test_interpreter DISCOVERY_TIMEOUT 10)
 
-
-# test_timer
-PURC_EXECUTABLE_DECLARE(test_timer)
-
-list(APPEND test_timer_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
-
-PURC_EXECUTABLE(test_timer)
-
-set(test_timer_SOURCES
-    test_timer.cpp
-)
-
-set(test_timer_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
-
-PURC_COMPUTE_SOURCES(test_timer)
-PURC_FRAMEWORK(test_timer)
-GTEST_DISCOVER_TESTS(test_timer DISCOVERY_TIMEOUT 10)
-
 ## test_observe
 PURC_EXECUTABLE_DECLARE(test_observe)
 
@@ -216,6 +187,7 @@ list(APPEND test_intr_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_intr_samples)
 
 set(test_intr_samples_SOURCES
+    tools.c
     test_intr_samples.cpp
 )
 
@@ -272,6 +244,7 @@ list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_samples)
 
 set(test_samples_SOURCES
+    tools.c
     test_samples.cpp
 )
 
@@ -302,6 +275,7 @@ list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(test_hvml_tag)
 
 set(test_hvml_tag_SOURCES
+    tools.c
     test_hvml_tag.cpp
 )
 
@@ -373,4 +347,31 @@ set(test_runners_LIBRARIES
 PURC_COMPUTE_SOURCES(test_runners)
 PURC_FRAMEWORK(test_runners)
 GTEST_DISCOVER_TESTS(test_runners DISCOVERY_TIMEOUT 10)
+
+# test_void_document
+PURC_EXECUTABLE_DECLARE(test_void_document)
+
+list(APPEND test_void_document_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_void_document)
+
+set(test_void_document_SOURCES
+    test_void_document.cpp
+)
+
+set(test_void_document_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_void_document)
+PURC_FRAMEWORK(test_void_document)
 

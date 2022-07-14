@@ -83,7 +83,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         }
     }
 
-    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    int r = pcintr_util_set_attribute(frame->owner->doc,
+            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
     PC_ASSERT(r == 0);
 
     return 0;
@@ -134,7 +135,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
-    frame->edom_element = pcdom_interface_document(stack->doc)->element;
+    frame->edom_element = purc_document_root(stack->doc);
     int r;
     r = pcintr_refresh_at_var(frame);
     if (r)

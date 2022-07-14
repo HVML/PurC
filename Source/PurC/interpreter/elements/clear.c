@@ -171,7 +171,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     case PURC_VARIANT_TYPE_STRING:
         {
             const char *s = purc_variant_get_string_const(ctxt->on);
-            pchtml_html_document_t *doc = stack->doc;
+            purc_document_t doc = stack->doc;
             purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
             if (!elems) {
                 ret = purc_variant_make_boolean(false);

@@ -23,9 +23,12 @@
  *
  */
 
-#include "internal.h"
+#include "purc-errors.h"
 
 #include "private/dvobjs.h"
+#include "private/stringbuilder.h"
+
+#include "internal.h"
 
 static int
 elements_init(struct pcdvobjs_elements *elements)
@@ -112,14 +115,14 @@ at_getter(void *entity,
         return PURC_VARIANT_INVALID;
     }
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, uidx);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, uidx);
     PC_ASSERT(elem);
 
-    return pcdvobjs_make_elements(elem);
+    return pcdvobjs_make_elements(elements->doc, elem);
 }
 
-static inline purc_variant_t
+static purc_variant_t
 attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
         bool silently)
 {
@@ -134,55 +137,12 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     if (nr == 0)
         return PURC_VARIANT_INVALID;
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
     PC_ASSERT(elem);
 
-    return pcdvobjs_element_attr_getter(elem, nr_args, argv, silently);
-}
-
-static inline purc_variant_t
-prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
-{
-    UNUSED_PARAM(silently);
-    PC_ASSERT(native_entity);
-
-    struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)native_entity;
-    PC_ASSERT(elements && elements->elements);
-
-    size_t nr = pcutils_array_length(elements->elements);
-    if (nr == 0)
-        return PURC_VARIANT_INVALID;
-
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
-    PC_ASSERT(elem);
-
-    return pcdvobjs_element_prop_getter(elem, nr_args, argv, silently);
-}
-
-static inline purc_variant_t
-style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
-{
-    UNUSED_PARAM(silently);
-    PC_ASSERT(native_entity);
-
-    struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)native_entity;
-    PC_ASSERT(elements && elements->elements);
-
-    size_t nr = pcutils_array_length(elements->elements);
-    if (nr == 0)
-        return PURC_VARIANT_INVALID;
-
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
-    PC_ASSERT(elem);
-
-    return pcdvobjs_element_style_getter(elem, nr_args, argv, silently);
+    return pcdvobjs_element_attr_getter(elements->doc, elem,
+            nr_args, argv, silently);
 }
 
 static inline purc_variant_t
@@ -200,11 +160,12 @@ content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     if (nr == 0)
         return PURC_VARIANT_INVALID;
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
     PC_ASSERT(elem);
 
-    return pcdvobjs_element_content_getter(elem, nr_args, argv, silently);
+    return pcdvobjs_element_content_getter(elements->doc, elem,
+            nr_args, argv, silently);
 }
 
 static inline purc_variant_t
@@ -222,11 +183,12 @@ text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     if (nr == 0)
         return PURC_VARIANT_INVALID;
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
     PC_ASSERT(elem);
 
-    return pcdvobjs_element_text_content_getter(elem, nr_args, argv, silently);
+    return pcdvobjs_element_text_content_getter(elements->doc, elem,
+            nr_args, argv, silently);
 }
 
 static inline purc_variant_t
@@ -244,33 +206,12 @@ json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     if (nr == 0)
         return PURC_VARIANT_INVALID;
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
     PC_ASSERT(elem);
 
-    return pcdvobjs_element_json_content_getter(elem, nr_args, argv, silently);
-}
-
-static inline purc_variant_t
-val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
-{
-    UNUSED_PARAM(silently);
-    PC_ASSERT(native_entity);
-
-    struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)native_entity;
-    PC_ASSERT(elements && elements->elements);
-
-    size_t nr = pcutils_array_length(elements->elements);
-    if (nr == 0)
-        return PURC_VARIANT_INVALID;
-
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, 0);
-    PC_ASSERT(elem);
-
-    return pcdvobjs_element_val_getter(elem, nr_args, argv, silently);
+    return pcdvobjs_element_json_content_getter(elements->doc, elem,
+            nr_args, argv, silently);
 }
 
 static inline purc_variant_t
@@ -289,12 +230,12 @@ has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
         return purc_variant_make_boolean(false);
 
     for (size_t i=0; i<nr; ++i) {
-        struct pcdom_element *elem;
-        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        pcdoc_element_t elem;
+        elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
         PC_ASSERT(elem);
 
-        purc_variant_t v = pcdvobjs_element_has_class_getter(elem,
-                nr_args, argv, silently);
+        purc_variant_t v = pcdvobjs_element_has_class_getter(elements->doc,
+                elem, nr_args, argv, silently);
         if (v == PURC_VARIANT_INVALID)
             continue;
         PC_ASSERT(purc_variant_is_boolean(v));
@@ -311,12 +252,12 @@ static struct native_property_cfg configs[] = {
     {"count", count_getter, NULL, NULL, NULL},
     {"at", at_getter, NULL, NULL, NULL},
     {"attr", attr_getter, NULL, NULL, NULL},
-    {"prop", prop_getter, NULL, NULL, NULL},
-    {"style", style_getter, NULL, NULL, NULL},
+    // VW {"prop", prop_getter, NULL, NULL, NULL},
+    // VW {"style", style_getter, NULL, NULL, NULL},
     {"content", content_getter, NULL, NULL, NULL},
     {"text_content", text_content_getter, NULL, NULL, NULL},
     {"json_content", json_content_getter, NULL, NULL, NULL},
-    {"val", val_getter, NULL, NULL, NULL},
+    // VW {"val", val_getter, NULL, NULL, NULL},
     {"has_class", has_class_getter, NULL, NULL, NULL},
 };
 
@@ -388,18 +329,22 @@ cleaner(void *native_entity, bool silently)
     pcutils_array_t *arr = elements->elements;
     PC_ASSERT(arr);
 
-    struct pcdom_element *elem = NULL;
+    pcdoc_element_t elem = NULL;
     size_t len = pcutils_array_length(arr);
     for (size_t i = 0; i < len; i++) {
-        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
+        elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
         if (!elem) {
             continue;
         }
+
+        pcdoc_element_clear(elements->doc, elem);
+#if 0 // VW
         pcdom_node_t *node = pcdom_interface_node(elem);
         while(node->first_child) {
             pcdom_node_t *child = node->first_child;
             pcdom_node_remove(child);
         }
+#endif
     }
 
     return purc_variant_make_boolean(true);
@@ -415,15 +360,13 @@ eraser(void* native_entity, bool silently)
     pcutils_array_t *arr = elements->elements;
     PC_ASSERT(arr);
 
-    struct pcdom_element *elem = NULL;
+    pcdoc_element_t elem = NULL;
     size_t len = pcutils_array_length(arr);
     size_t nr_erase = 0;
     for (size_t i = 0; i < len; i++) {
-        elem = (struct pcdom_element*)pcutils_array_get(elements->elements, i);
-        if (elem) {
-            pcdom_node_remove(pcdom_interface_node(elem));
-            nr_erase++;
-        }
+        elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
+        pcdoc_element_erase(elements->doc, elem);
+        nr_erase++;
     }
 
     return purc_variant_make_ulongint(nr_erase);
@@ -450,11 +393,10 @@ match_observe(void* native_entity, purc_variant_t val)
         pcutils_array_t *arr = elements->elements;
         PC_ASSERT(arr);
 
-        struct pcdom_element *elem = NULL;
+        pcdoc_element_t elem = NULL;
         size_t len = pcutils_array_length(arr);
         for (size_t i = 0; i < len; i++) {
-            elem = (struct pcdom_element*)pcutils_array_get(elements->elements,
-                    i);
+            elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
             if (elem == comp) {
                 return true;
             }
@@ -527,7 +469,7 @@ make_elements(void)
 }
 
 static inline bool
-add_element(struct pcdvobjs_elements *elements, struct pcdom_element *elem)
+add_element(struct pcdvobjs_elements *elements, pcdoc_element_t elem)
 {
     PC_ASSERT(elements);
     PC_ASSERT(elements->elements);
@@ -544,44 +486,30 @@ add_element(struct pcdvobjs_elements *elements, struct pcdom_element *elem)
     return true;
 }
 
-typedef int (*traverse_cb)(struct pcdom_element *element, void *ud);
-
 struct visit_args {
-    struct pcdvobjs_elements   *elements;
+    struct pcdvobjs_elements *elements;
     const char               *css;
 };
 
-static inline bool
-match_by_class(struct pcdom_element *element, struct visit_args *args)
+static bool
+match_by_class(purc_document_t doc, pcdoc_element_t element,
+        struct visit_args *args)
 {
-#if 1
-    bool has = false;
-    pcdom_element_has_class(element, args->css+1, &has);
-    return has;
-#else
-    const unsigned char *s;
-    size_t len;
-    s = pcdom_element_class(element, &len);
-
-    if (s && s[len]=='\0' &&
-            strncmp((const char*)s, args->css+1, len)==0 &&
-            args->css[1+len]=='\0')
-    {
-        return true;
-    }
-    return false;
-#endif
+    bool found = false;
+    pcdoc_element_has_class(doc, element, args->css + 1, &found);
+    return found;
 }
 
-static inline bool
-match_by_id(struct pcdom_element *element, struct visit_args *args)
+static bool
+match_by_id(purc_document_t doc, pcdoc_element_t element,
+        struct visit_args *args)
 {
-    const unsigned char *s;
+    const char *s;
     size_t len;
-    s = pcdom_element_id(element, &len);
+    s = pcdoc_element_id(doc, element, &len);
 
     if (s && s[len]=='\0' &&
-            strncmp((const char*)s, args->css+1, len)==0 &&
+            strncmp(s, args->css + 1, len)==0 &&
             args->css[1+len]=='\0')
     {
         return true;
@@ -591,16 +519,16 @@ match_by_id(struct pcdom_element *element, struct visit_args *args)
 }
 
 static int
-visit_element(struct pcdom_element *element, void *ud)
+visit_element(purc_document_t doc, pcdoc_element_t element, void *ud)
 {
     struct visit_args *args = (struct visit_args*)ud;
 
     if (args->css[0] == '.') {
-        if (!match_by_class(element, args))
+        if (!match_by_class(doc, element, args))
             return 0;
     }
     else if (args->css[0] == '#') {
-        if (!match_by_id(element, args))
+        if (!match_by_id(doc, element, args))
             return 0;
     }
 
@@ -609,6 +537,107 @@ visit_element(struct pcdom_element *element, void *ud)
 
     return 0;
 }
+
+purc_variant_t
+pcdvobjs_query_elements(purc_document_t doc, pcdoc_element_t root,
+        const char *css)
+{
+    if (strcmp(css, "*") != 0) {
+        if (css[0] != '.' && css[0] != '#') {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            return PURC_VARIANT_INVALID;
+        }
+        if (css[1] == '\0') {
+            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    purc_variant_t elements = make_elements();
+    if (elements == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
+    void *entity = purc_variant_native_get_entity(elements);
+    PC_ASSERT(entity);
+
+    struct pcdvobjs_elements* elems = (struct pcdvobjs_elements*)entity;
+    elems->doc = doc;
+    elems->css = strdup(css);
+    if (elems->css == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_variant_unref(elements);
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct visit_args args;
+    args.elements = (struct pcdvobjs_elements*)entity;
+    args.css      = css;
+
+    int r = pcdoc_travel_descendant_elements(doc, root,
+            visit_element, &args, NULL);
+    if (r) {
+        purc_variant_unref(elements);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return elements;
+}
+
+purc_variant_t
+pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element)
+{
+    PC_ASSERT(element);
+
+    purc_variant_t elements = make_elements();
+    if (elements == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
+    void *entity = purc_variant_native_get_entity(elements);
+    PC_ASSERT(entity);
+
+    struct pcdvobjs_elements *elems;
+    elems = (struct pcdvobjs_elements*)entity;
+    elems->doc = doc;
+
+    if (!add_element(elems, element)) {
+        purc_variant_unref(elements);
+        return PURC_VARIANT_INVALID;
+    }
+
+    return elements;
+}
+
+purc_variant_t
+pcdvobjs_elements_by_css(purc_document_t doc, const char *css)
+{
+    return pcdvobjs_query_elements(doc, NULL, css);
+}
+
+pcdoc_element_t
+pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
+{
+    PC_ASSERT(elems);
+
+    PC_ASSERT(purc_variant_is_type(elems, PURC_VARIANT_TYPE_NATIVE));
+    void *entity = purc_variant_native_get_entity(elems);
+    PC_ASSERT(entity);
+
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)entity;
+
+    pcutils_array_t *arr = elements->elements;
+    PC_ASSERT(arr);
+
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, idx);
+
+    return elem;
+}
+
+#if 0 // VW
+typedef int (*traverse_cb)(struct pcdom_element *element, void *ud);
 
 static inline int
 traverse_elements(struct pcdom_element *root, traverse_cb cb, void *ud)
@@ -634,101 +663,73 @@ traverse_elements(struct pcdom_element *root, traverse_cb cb, void *ud)
 
     return 0;
 }
+#endif
 
-purc_variant_t
-pcdvobjs_query_elements(struct pcdom_element *root, const char *css)
+#if 0 // VW: deprecated
+static inline purc_variant_t
+prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
 {
-    PC_ASSERT(root);
-
-    if (strcmp(css, "*") != 0) {
-        if (css[0] != '.' && css[0] != '#') {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        if (css[1] == '\0') {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-    }
-
-    purc_variant_t elements = make_elements();
-    if (elements == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
-    void *entity = purc_variant_native_get_entity(elements);
-    PC_ASSERT(entity);
-
-    struct pcdvobjs_elements* elems = (struct pcdvobjs_elements*)entity;
-    elems->css = strdup(css);
-    if (elems->css == NULL) {
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        purc_variant_unref(elements);
-        return PURC_VARIANT_INVALID;
-    }
-
-    struct visit_args args;
-    args.elements = (struct pcdvobjs_elements*)entity;
-    args.css      = css;
-
-    int r = traverse_elements(root, visit_element, &args);
-    if (r) {
-        purc_variant_unref(elements);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return elements;
-}
-
-purc_variant_t
-pcdvobjs_make_elements(struct pcdom_element *element)
-{
-    PC_ASSERT(element);
-
-    purc_variant_t elements = make_elements();
-    if (elements == PURC_VARIANT_INVALID)
-        return PURC_VARIANT_INVALID;
-
-    PC_ASSERT(purc_variant_is_type(elements, PURC_VARIANT_TYPE_NATIVE));
-    void *entity = purc_variant_native_get_entity(elements);
-    PC_ASSERT(entity);
-
-    struct pcdvobjs_elements *elems;
-    elems = (struct pcdvobjs_elements*)entity;
-
-    if (!add_element(elems, element)) {
-        purc_variant_unref(elements);
-        return PURC_VARIANT_INVALID;
-    }
-
-    return elements;
-}
-
-purc_variant_t
-pcdvobjs_elements_by_css(pchtml_html_document_t *doc, const char *css)
-{
-    pcdom_element_t *root = pcdom_interface_document(doc)->element;
-    return pcdvobjs_query_elements(root, css);
-}
-
-struct pcdom_element*
-pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
-{
-    PC_ASSERT(elems);
-
-    PC_ASSERT(purc_variant_is_type(elems, PURC_VARIANT_TYPE_NATIVE));
-    void *entity = purc_variant_native_get_entity(elems);
-    PC_ASSERT(entity);
+    UNUSED_PARAM(silently);
+    PC_ASSERT(native_entity);
 
     struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)entity;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
 
-    pcutils_array_t *arr = elements->elements;
-    PC_ASSERT(arr);
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
 
-    struct pcdom_element *elem;
-    elem = (struct pcdom_element*)pcutils_array_get(elements->elements, idx);
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(elem);
 
-    return elem;
+    return pcdvobjs_element_prop_getter(elem, nr_args, argv, silently);
 }
+
+static inline purc_variant_t
+style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
+{
+    UNUSED_PARAM(silently);
+    PC_ASSERT(native_entity);
+
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(elem);
+
+    return pcdvobjs_element_style_getter(elem, nr_args, argv, silently);
+}
+
+static inline purc_variant_t
+val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        bool silently)
+{
+    UNUSED_PARAM(silently);
+    PC_ASSERT(native_entity);
+
+    struct pcdvobjs_elements *elements;
+    elements = (struct pcdvobjs_elements*)native_entity;
+    PC_ASSERT(elements && elements->elements);
+
+    size_t nr = pcutils_array_length(elements->elements);
+    if (nr == 0)
+        return PURC_VARIANT_INVALID;
+
+    pcdoc_element_t elem;
+    elem = (pcdoc_element_t)pcutils_array_get(elements->elements, 0);
+    PC_ASSERT(elem);
+
+    return pcdvobjs_element_val_getter(elem, nr_args, argv, silently);
+}
+#endif // VW: deprecated
 

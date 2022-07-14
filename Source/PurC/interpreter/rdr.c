@@ -779,8 +779,8 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_TEXT;
     purc_variant_t req_data = PURC_VARIANT_INVALID;
 
-    pchtml_html_document_t *doc = stack->doc;
-    int opt = 0;
+    purc_document_t doc = stack->doc;
+    unsigned opt = 0;
     purc_rwstream_t out = NULL;
 
     switch (stack->co->target_page_type) {
@@ -802,13 +802,13 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         goto failed;
     }
 
-    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+    opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
 
-    if(0 != pchtml_doc_write_to_stream_ex(doc, opt, out)) {
+    if (0 != purc_document_serialize_contents_to_stream(doc, opt, out)) {
         goto failed;
     }
 
@@ -861,15 +861,29 @@ failed:
     return false;
 }
 
+static const char *rdr_ops[] = {
+    "",     // unknown
+    PCRDR_OPERATION_APPEND,
+    PCRDR_OPERATION_PREPEND,
+    PCRDR_OPERATION_INSERTBEFORE,
+    PCRDR_OPERATION_INSERTAFTER,
+    PCRDR_OPERATION_DISPLACE,
+    PCRDR_OPERATION_UPDATE,
+    PCRDR_OPERATION_ERASE,
+    PCRDR_OPERATION_CLEAR,
+};
+
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char* property,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
+        pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack || stack->co->target_page_handle == 0
             || stack->co->stage != CO_STAGE_OBSERVING) {
         return NULL;
     }
+
+    const char *operation = rdr_ops[op];
 
     pcrdr_msg *response_msg = NULL;
 
@@ -915,9 +929,9 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char* property,
-        pcrdr_msg_data_type data_type, const char *data)
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
+        pcdoc_element_t element, const char* property,
+        pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
     if (!stack || stack->co->target_page_handle == 0
             || stack->co->stage != CO_STAGE_OBSERVING) {
@@ -934,14 +948,14 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, const char *operation,
         }
     }
     else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
-        req_data = purc_variant_make_from_json_string(data, strlen(data));
+        req_data = purc_variant_make_from_json_string(data, len);
         if (req_data == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(stack, operation, element,
+    ret = pcintr_rdr_send_dom_req(stack, op, element,
             property, data_type, req_data);
     return ret;
 
@@ -953,11 +967,11 @@ failed:
 }
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, const char *operation,
-        pcdom_element_t *element, const char *property,
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
+        pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
-    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, operation,
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, op,
             element, property, data_type, data);
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -968,26 +982,20 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, const char *operation,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        const char *operation, pcdom_element_t *element,
-        const char *property, pcrdr_msg_data_type data_type, const char *data)
+        pcdoc_operation op, pcdoc_element_t element,
+        const char *property, pcrdr_msg_data_type data_type,
+        const char *data, size_t len)
 {
-    char *attr = NULL;
-    if (property) {
-
-        attr = (char*)malloc(strlen(property) + 10);
-        strcpy(attr, "attr.");
-        strcat(attr, property);
+    if (data && len == 0) {
+        len = strlen(data);
     }
 
-    if (data && strlen(data) == 0) {
+    if (len == 0) {
         data = " ";
+        len = 1;
     }
-    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, operation,
-            element, attr, data_type, data);
-
-    if (attr) {
-        free(attr);
-    }
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, op,
+            element, property, data_type, data, len);
 
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -996,6 +1004,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
     return false;
 }
 
+#if 0 // VW: deprecated
 static purc_variant_t
 serialize_node(pcdom_node_t *node)
 {
@@ -1034,7 +1043,7 @@ failed:
 }
 
 bool
-pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
+pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdoc_element_t element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
@@ -1046,12 +1055,12 @@ pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdom_element_t *element,
         return false;
     }
 
-    return pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_APPEND,
+    return pcintr_rdr_send_dom_req_simple(stack, PCDOC_OP_APPEND,
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
 }
 
 bool
-pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
+pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdoc_element_t element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
@@ -1064,7 +1073,8 @@ pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdom_element_t *element,
         return false;
     }
 
-    return pcintr_rdr_send_dom_req_simple(stack, PCRDR_OPERATION_DISPLACE,
+    return pcintr_rdr_send_dom_req_simple(stack, PCDOC_OP_DISPLACE,
             element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, data);
 }
 
+#endif // VW: deprecated

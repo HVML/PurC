@@ -121,112 +121,34 @@ stack_frame_normal_destroy(struct pcintr_stack_frame_normal *frame_normal)
     free(frame_normal);
 }
 
-void
-pcintr_util_dump_document_ex(pchtml_html_document_t *doc, char **dump_buff,
-    const char *file, int line, const char *func)
-{
-    PC_ASSERT(doc);
-    UNUSED_PARAM(dump_buff);
-    UNUSED_PARAM(file);
-    UNUSED_PARAM(line);
-    UNUSED_PARAM(func);
-
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    int opt = 0;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    if (!dump_buff) {
-        opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
-    }
-    char *p = pchtml_doc_snprintf_ex(doc,
-            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
-    if (!p)
-        return;
-
-    doc = pchmtl_html_load_document_with_buf((const unsigned char*)p, nr);
-    if (doc) {
-        if (p != buf)
-            free(p);
-        nr = sizeof(buf);
-        p = pchtml_doc_snprintf(doc, buf, &nr, "");
-        pchtml_html_document_destroy(doc);
-    }
-    if (!p)
-        return;
-
-    if (dump_buff) {
-        if (*dump_buff) {
-            free(*dump_buff);
-        }
-        *dump_buff = strdup(p);
-    }
-#if 0
-    else {
-        fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
-                pcutils_basename((char*)file), line, func, doc, p);
-    }
-#endif
-    if (p != buf)
-        free(p);
-}
-
-void
-pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
-    const char *file, int line, const char *func)
-{
-    PC_ASSERT(node);
-
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    int opt = 0;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    char *p = pcdom_node_snprintf_ex(node,
-            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
-    if (p) {
-        fprintf(stderr, "%s[%d]:%s():%p\n%s\n",
-                pcutils_basename((char*)file), line, func, node, p);
-        if (p != buf)
-            free(p);
-    }
-}
-
-void
-pcintr_dump_frame_edom_node(pcintr_stack_t stack)
-{
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->edom_element);
-    pcintr_dump_edom_node(stack, pcdom_interface_node(frame->edom_element));
-}
-
 static int
 doc_init(pcintr_stack_t stack)
 {
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    if (!doc) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    struct pcvdom_element* hvml_elem =
+        pcvdom_document_get_root(stack->co->vdom);
+    if (UNLIKELY(hvml_elem == NULL)) {
+        purc_set_error(PURC_ERROR_INCOMPLETED);
         return -1;
     }
 
-    const char *html = "<html/>";
-    unsigned int r;
-    r = pchtml_html_document_parse_with_buf(doc,
-            (const unsigned char*)html, strlen(html));
-    if (r) {
-        pchtml_html_document_destroy(doc);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    // XXX: may use the coroutine-level variables.
+    purc_variant_t target = pcvdom_element_eval_attr_val(stack,
+            hvml_elem, "target");
+    if (UNLIKELY(target == PURC_VARIANT_INVALID)) {
+        purc_set_error(PURC_ERROR_INCOMPLETED);
         return -1;
     }
 
-    stack->doc = doc;
+    const char *target_name = purc_variant_get_string_const(target);
+    PC_DEBUG("Retrieved target name: %s\n", target_name);
+    stack->doc = purc_document_new(purc_document_retrieve_type(target_name));
+    purc_variant_unref(target);
+
+    if (stack->doc == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        PC_ASSERT(0);
+        return -1;
+    }
 
     return 0;
 }
@@ -400,7 +322,7 @@ stack_release(pcintr_stack_t stack)
     pcintr_destroy_observer_list(&stack->native_observers);
 
     if (stack->doc) {
-        pchtml_html_document_destroy(stack->doc);
+        purc_document_delete(stack->doc);
         stack->doc = NULL;
     }
 
@@ -542,6 +464,7 @@ stack_init(pcintr_stack_t stack)
     stack->mode = STACK_VDOM_BEFORE_HVML;
 }
 
+#if 0 // VW: deprecated
 void pcintr_heap_lock(struct pcintr_heap *heap)
 {
     int r = pthread_mutex_lock(&heap->locker);
@@ -555,6 +478,7 @@ void pcintr_heap_unlock(struct pcintr_heap *heap)
 }
 
 static struct list_head                       _all_heaps;
+#endif // VW: deprecated
 
 static void _cleanup_instance(struct pcinst* inst)
 {
@@ -562,12 +486,12 @@ static void _cleanup_instance(struct pcinst* inst)
     if (!heap)
         return;
 
+#if 0 // VW
     if (heap->owning_heaps) {
         pcintr_remove_heap(&_all_heaps);
         PC_ASSERT(heap->owning_heaps == NULL);
     }
 
-#if 0 // VW
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 #endif
@@ -622,6 +546,7 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
+#if 0 // VW: deprecated
     int r;
     r = pthread_mutex_init(&heap->locker, NULL);
     if (r) {
@@ -630,6 +555,7 @@ static int _init_instance(struct pcinst* inst,
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
     }
+#endif
 
     inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
@@ -650,8 +576,10 @@ static int _init_instance(struct pcinst* inst,
     pcintr_timer_set_interval(heap->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(heap->event_timer);
 
+#if 0 // VW: deprecated
     PC_ASSERT(pcintr_get_heap());
     pcintr_add_heap(&_all_heaps);
+#endif // VW: deprecated
 
     return 0;
 }
@@ -662,7 +590,7 @@ static int _init_once(void)
     PC_ASSERT(runloop);
     init_ops();
 
-    INIT_LIST_HEAD(&_all_heaps);
+    // VW: INIT_LIST_HEAD(&_all_heaps);
 
     return pcintr_init_loader_once();
 }
@@ -1158,6 +1086,7 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
 
     PC_ASSERT(attr);
     PC_ASSERT(attr->key);
+    size_t len = 0;
     const char *sv = "";
 
     purc_variant_t val = eval_vdom_attr(stack, attr);
@@ -1166,11 +1095,12 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
 
     if (!purc_variant_is_undefined(val)) {
         PC_ASSERT(purc_variant_is_string(val));
-        sv = purc_variant_get_string_const(val);
+        sv = purc_variant_get_string_const_ex(val, &len);
         PC_ASSERT(sv);
     }
 
-    int r = pcintr_util_set_attribute(frame->edom_element, attr->key, sv);
+    int r = pcdoc_element_set_attribute(stack->doc, frame->edom_element,
+            PCDOC_OP_DISPLACE, attr->key, sv, len);
     PC_ASSERT(r == 0);
     PURC_VARIANT_SAFE_CLEAR(val);
 
@@ -1400,11 +1330,14 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         pcintr_exception_clear(&stack->exception);
         stack->except = 0;
 
-        pcdom_element_t *target;
+        pcdoc_element_t target;
         target = frame->edom_element;
-        const char *s = purc_variant_get_string_const(content);
-        pcdom_text_t *txt;
-        txt = pcintr_util_append_content(target, s);
+        size_t len;
+        const char *s = purc_variant_get_string_const_ex(content, &len);
+
+        pcdoc_text_node_t txt;
+        txt = pcdoc_element_new_text_content(stack->doc, target,
+                PCDOC_OP_APPEND, s, len);
         PURC_VARIANT_SAFE_CLEAR(content);
 
         if (txt == NULL) {
@@ -1465,7 +1398,7 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_t at = pcintr_get_at_var(frame);
         PC_ASSERT(at != PURC_VARIANT_INVALID);
 
-        pcdom_element_t *edom_element = NULL;
+        pcdoc_element_t edom_element = NULL;
         if (!purc_variant_is_undefined(at))
             edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
@@ -1653,16 +1586,9 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
         return -1;
     }
 
-    if (doc_init(stack)) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
     // $DOC
-    pchtml_html_document_t *doc = stack->doc;
-    pcdom_document_t *document = (pcdom_document_t*)doc;
     if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_DOC,
-                purc_dvobj_doc_new(document))) {
+                purc_dvobj_doc_new(stack->doc))) {
         return -1;
     }
 
@@ -2166,6 +2092,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     stack_init(stack);
 
+    if (doc_init(stack)) {
+        goto fail_variables;
+    }
+
     stack->vdom = vdom;
     if (heap->cond_handler) {
         heap->cond_handler(PURC_COND_COR_CREATED, co,
@@ -2202,33 +2132,42 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
-        pcvdom_document_unref(vdom);
         purc_log_error("Failed to create coroutine\n");
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        goto failed;
     }
 
     co->stage = CO_STAGE_SCHEDULED;
-    PC_ASSERT(co->stack.vdom);
 
-    if (page_type != PCRDR_PAGE_TYPE_NULL &&
+    /* Attach to rdr only if the document needs rdr and
+       the page type is not null. */
+    if (co->stack.doc->need_rdr &&
+            page_type != PCRDR_PAGE_TYPE_NULL &&
             !pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
                 target_group, page_name, extra_info)) {
         purc_log_warn("Failed to attach to renderer\n");
     }
 
-    /* TODO: handle entry here */
+    /* TODO: handle entry and request here */
     UNUSED_PARAM(body_id);
     UNUSED_PARAM(request);
 
     if (!bind_builtin_coroutine_variables(co, request)) {
-        coroutine_destroy(co);
-        return NULL;
+        goto failed;
     }
 
     init_frame_for_co(co);
     return co;
+
+failed:
+    if (co == NULL) {
+        pcvdom_document_unref(vdom);
+    }
+    else {
+        coroutine_destroy(co);
+    }
+
+    return NULL;
 }
 
 purc_cond_handler
@@ -2674,156 +2613,6 @@ error:
     return false;
 }
 
-pcdom_element_t*
-pcintr_util_append_element(pcdom_element_t* parent, const char *tag)
-{
-    pcdom_node_t *node = pcdom_interface_node(parent);
-    pcdom_document_t *dom_doc = node->owner_document;
-    pcdom_element_t *elem;
-    elem = pcdom_document_create_element(dom_doc,
-            (const unsigned char*)tag, strlen(tag), NULL);
-    if (!elem)
-        return NULL;
-
-    pcdom_node_append_child(node, pcdom_interface_node(elem));
-
-    return elem;
-}
-
-static pcdom_text_t*
-pcintr_util_append_content_inner(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_document_t *doc = pcdom_interface_node(parent)->owner_document;
-    const unsigned char *content = (const unsigned char*)txt;
-    size_t content_len = strlen(txt);
-
-    pcdom_text_t *text_node;
-    text_node = pcdom_document_create_text_node(doc, content, content_len);
-    if (text_node == NULL)
-        return NULL;
-
-    pcdom_node_append_child(pcdom_interface_node(parent),
-            pcdom_interface_node(text_node));
-
-    return text_node;
-}
-
-pcdom_text_t*
-pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
-    if (text_node == NULL) {
-        return NULL;
-    }
-
-    pcintr_rdr_dom_append_content(pcintr_get_stack(), parent, txt);
-    return text_node;
-}
-
-pcdom_text_t*
-pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_node_t *parent_node = pcdom_interface_node(parent);
-    while (parent_node->first_child)
-        pcdom_node_destroy_deep(parent_node->first_child);
-
-    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
-    if (text_node == NULL) {
-        return NULL;
-    }
-
-    pcintr_rdr_dom_displace_content(pcintr_get_stack(), parent, txt);
-    return text_node;
-}
-
-int
-pcintr_util_set_attribute(pcdom_element_t *elem,
-        const char *key, const char *val)
-{
-    pcdom_attr_t *attr;
-    attr = pcdom_element_set_attribute(elem,
-            (const unsigned char*)key, strlen(key),
-            (const unsigned char*)val, strlen(val));
-    if (!attr) {
-        return -1;
-    }
-    if (!val) {
-        pcintr_rdr_dom_erase_element_property(pcintr_get_stack(), elem, key);
-    }
-    else {
-        pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key,
-                val);
-    }
-    return 0;
-}
-
-int
-pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key)
-{
-    unsigned int ret = pcdom_element_remove_attribute(elem,
-            (const unsigned char *)key, strlen(key));
-
-    //TODO: send to rdr
-    return ret;
-}
-
-pchtml_html_document_t*
-pcintr_util_load_document(const char *html)
-{
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    if (!doc)
-        return NULL;
-
-    unsigned int r;
-    r = pchtml_html_document_parse_with_buf(doc,
-            (const unsigned char*)html, strlen(html));
-    if (r) {
-        pchtml_html_document_destroy(doc);
-        return NULL;
-    }
-
-    return doc;
-}
-
-int
-pcintr_util_comp_docs(pchtml_html_document_t *docl,
-    pchtml_html_document_t *docr, int *diff)
-{
-    char lbuf[1024], rbuf[1024];
-    size_t lsz = sizeof(lbuf), rsz = sizeof(rbuf);
-    char *pl = pchtml_doc_snprintf_plain(docl, lbuf, &lsz, "");
-    char *pr = pchtml_doc_snprintf_plain(docr, rbuf, &rsz, "");
-    int err = -1;
-    if (pl && pr) {
-        *diff = strcmp(pl, pr);
-        if (*diff) {
-            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
-        }
-        err = 0;
-    }
-
-    if (pl != lbuf)
-        free(pl);
-    if (pr != rbuf)
-        free(pr);
-
-    return err;
-}
-
-bool
-pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
-{
-    pcdom_node_t *node = descendant;
-    do {
-        if (node->parent && node->parent == ancestor)
-            return true;
-        node = node->parent;
-    } while (node);
-
-    return false;
-}
-
 static struct pcvdom_template*
 template_create(void)
 {
@@ -2969,170 +2758,6 @@ pcintr_template_walk(purc_variant_t val, void *ctxt,
 }
 
 
-int
-pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
-{
-    int r = -1;
-
-    size_t nr = strlen(chunk);
-
-    pcdom_node_t *root = NULL;
-    do {
-        pchtml_html_document_t *doc;
-        doc = pchtml_html_interface_document(
-                pcdom_interface_node(parent)->owner_document);
-        unsigned int ui;
-        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
-        if (ui == 0) {
-            do {
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"<div>", 5);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)chunk, nr);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"</div>", 6);
-            } while (0);
-        }
-        pcdom_node_t *div;
-        root = pchtml_html_document_parse_fragment_chunk_end(doc);
-        if (root) {
-            PC_ASSERT(root->first_child == root->last_child);
-            PC_ASSERT(root->first_child);
-            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
-            div = root->first_child;
-        }
-        if (ui)
-            break;
-
-        while (div->first_child) {
-            pcdom_node_t *child = div->first_child;
-            pcdom_node_remove(child);
-            pcdom_node_append_child(pcdom_interface_node(parent), child);
-            pcintr_rdr_dom_append_child(pcintr_get_stack(), parent, child);
-        }
-        r = 0;
-    } while (0);
-
-    if (root)
-        pcdom_node_destroy(pcdom_interface_node(root));
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
-{
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    char *p;
-    va_list ap;
-    va_start(ap, fmt);
-    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
-    va_end(ap);
-
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = pcintr_util_add_child_chunk(parent, p);
-
-    if (p != buf)
-        free(p);
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
-{
-    int r = -1;
-
-    size_t nr = strlen(chunk);
-
-    pcdom_node_t *root = NULL;
-    do {
-        pchtml_html_document_t *doc;
-        doc = pchtml_html_interface_document(
-                pcdom_interface_node(parent)->owner_document);
-        unsigned int ui;
-        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
-        if (ui == 0) {
-            do {
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"<div>", 5);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)chunk, nr);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"</div>", 6);
-            } while (0);
-        }
-        pcdom_node_t *div;
-        root = pchtml_html_document_parse_fragment_chunk_end(doc);
-        if (root) {
-            PC_ASSERT(root->first_child == root->last_child);
-            PC_ASSERT(root->first_child);
-            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
-            div = root->first_child;
-        }
-        if (ui)
-            break;
-
-        pcdom_node_remove(div);
-        while (pcdom_interface_node(parent)->first_child)
-            pcdom_node_destroy_deep(pcdom_interface_node(parent)->first_child);
-
-        while (div->first_child) {
-            pcdom_node_t *child = div->first_child;
-            pcdom_node_remove(child);
-            pcdom_node_append_child(pcdom_interface_node(parent), child);
-            pcintr_rdr_dom_displace_child(pcintr_get_stack(), parent, child);
-        }
-        r = 0;
-    } while (0);
-
-    if (root)
-        pcdom_node_destroy(pcdom_interface_node(root));
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
-{
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    char *p;
-    va_list ap;
-    va_start(ap, fmt);
-    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
-    va_end(ap);
-
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = pcintr_util_set_child_chunk(parent, p);
-
-    if (p != buf)
-        free(p);
-
-    return r ? -1 : 0;
-}
-
 static purc_variant_t
 attribute_assign(purc_variant_t left, purc_variant_t right)
 {
@@ -3266,7 +2891,8 @@ pcintr_get_symbol_var(struct pcintr_stack_frame *frame,
 int
 pcintr_refresh_at_var(struct pcintr_stack_frame *frame)
 {
-    purc_variant_t at = pcdvobjs_make_elements(frame->edom_element);
+    purc_variant_t at =
+        pcdvobjs_make_elements(frame->owner->doc, frame->edom_element);
     if (at == PURC_VARIANT_INVALID)
         return -1;
 
@@ -3968,7 +3594,7 @@ pcintr_template_expansion(purc_variant_t val)
     return v;
 }
 
-void 
+void
 pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
         const char *file, int line, const char *func)
@@ -3978,4 +3604,479 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
     UNUSED_PARAM(func);
     co->state = state;
 }
+
+pcdoc_element_t
+pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *tag, bool self_close)
+{
+    pcdoc_element_t new_elem;
+
+    new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
+    if (new_elem) {
+        // TODO check stage and send message to rdr
+    }
+
+    return new_elem;
+}
+
+pcdoc_text_node_t
+pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
+        pcdoc_operation op, const char *txt, size_t len)
+{
+    pcdoc_text_node_t text_node;
+
+    text_node = pcdoc_element_new_text_content(doc, elem, op,
+            txt, len);
+
+    // TODO: append/prepend textContent?
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (text_node && stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, "textContent", PCRDR_MSG_DATA_TYPE_TEXT,
+                txt, len);
+    }
+
+    return text_node;
+}
+
+pcdoc_node
+pcintr_util_new_content(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *content, size_t len)
+{
+    pcdoc_node node;
+    node = pcdoc_element_new_content(doc, elem, op, content, len);
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (node.type != PCDOC_NODE_VOID &&
+            stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, len);
+    }
+
+    return node;
+}
+
+int
+pcintr_util_set_attribute(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation op,
+        const char *name, const char *val, size_t len)
+{
+    if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
+        return -1;
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (stack && stack->co->target_page_handle) {
+        char property[strlen(name) + 8];
+        strcpy(property, "attr.");
+        strcat(property, name);
+
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, property, PCRDR_MSG_DATA_TYPE_TEXT, val, len);
+    }
+
+    return 0;
+}
+
+#if 0 // VW: deprecated
+pcdom_element_t*
+pcintr_util_append_element(pcdom_element_t* parent, const char *tag)
+{
+    pcdom_node_t *node = pcdom_interface_node(parent);
+    pcdom_document_t *dom_doc = node->owner_document;
+    pcdom_element_t *elem;
+    elem = pcdom_document_create_element(dom_doc,
+            (const unsigned char*)tag, strlen(tag), NULL);
+    if (!elem)
+        return NULL;
+
+    pcdom_node_append_child(node, pcdom_interface_node(elem));
+
+    return elem;
+}
+
+static pcdom_text_t*
+pcintr_util_append_content_inner(pcdom_element_t* parent, const char *txt)
+{
+    pcdom_document_t *doc = pcdom_interface_node(parent)->owner_document;
+    const unsigned char *content = (const unsigned char*)txt;
+    size_t content_len = strlen(txt);
+
+    pcdom_text_t *text_node;
+    text_node = pcdom_document_create_text_node(doc, content, content_len);
+    if (text_node == NULL)
+        return NULL;
+
+    pcdom_node_append_child(pcdom_interface_node(parent),
+            pcdom_interface_node(text_node));
+
+    return text_node;
+}
+
+pcdom_text_t*
+pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
+{
+    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
+    if (text_node == NULL) {
+        return NULL;
+    }
+
+    pcintr_rdr_dom_append_content(pcintr_get_stack(), parent, txt);
+    return text_node;
+}
+
+pcdom_text_t*
+pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
+{
+    pcdom_node_t *parent_node = pcdom_interface_node(parent);
+    while (parent_node->first_child)
+        pcdom_node_destroy_deep(parent_node->first_child);
+
+    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
+    if (text_node == NULL) {
+        return NULL;
+    }
+
+    pcintr_rdr_dom_displace_content(pcintr_get_stack(), parent, txt);
+    return text_node;
+}
+
+int
+pcintr_util_set_attribute(pcdom_element_t *elem,
+        const char *key, const char *val)
+{
+    pcdom_attr_t *attr;
+    attr = pcdom_element_set_attribute(elem,
+            (const unsigned char*)key, strlen(key),
+            (const unsigned char*)val, strlen(val));
+    if (!attr) {
+        return -1;
+    }
+    if (!val) {
+        pcintr_rdr_dom_erase_element_property(pcintr_get_stack(), elem, key);
+    }
+    else {
+        pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key,
+                val);
+    }
+    return 0;
+}
+
+int
+pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key)
+{
+    unsigned int ret = pcdom_element_remove_attribute(elem,
+            (const unsigned char *)key, strlen(key));
+
+    //TODO: send to rdr
+    return ret;
+}
+
+pchtml_html_document_t*
+pcintr_util_load_document(const char *html)
+{
+    pchtml_html_document_t *doc;
+    doc = pchtml_html_document_create();
+    if (!doc)
+        return NULL;
+
+    unsigned int r;
+    r = pchtml_html_document_parse_with_buf(doc,
+            (const unsigned char*)html, strlen(html));
+    if (r) {
+        pchtml_html_document_destroy(doc);
+        return NULL;
+    }
+
+    return doc;
+}
+
+int
+pcintr_util_comp_docs(pchtml_html_document_t *docl,
+    pchtml_html_document_t *docr, int *diff)
+{
+    char lbuf[1024], rbuf[1024];
+    size_t lsz = sizeof(lbuf), rsz = sizeof(rbuf);
+    char *pl = pchtml_doc_snprintf_plain(docl, lbuf, &lsz, "");
+    char *pr = pchtml_doc_snprintf_plain(docr, rbuf, &rsz, "");
+    int err = -1;
+    if (pl && pr) {
+        *diff = strcmp(pl, pr);
+        if (*diff) {
+            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
+        }
+        err = 0;
+    }
+
+    if (pl != lbuf)
+        free(pl);
+    if (pr != rbuf)
+        free(pr);
+
+    return err;
+}
+
+bool
+pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
+{
+    pcdom_node_t *node = descendant;
+    do {
+        if (node->parent && node->parent == ancestor)
+            return true;
+        node = node->parent;
+    } while (node);
+
+    return false;
+}
+
+int
+pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
+{
+    int r = -1;
+
+    size_t nr = strlen(chunk);
+
+    pcdom_node_t *root = NULL;
+    do {
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)chunk, nr);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
+        }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
+            break;
+
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
+            pcdom_node_remove(child);
+            pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_append_child(pcintr_get_stack(), parent, child);
+        }
+        r = 0;
+    } while (0);
+
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
+{
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p;
+    va_list ap;
+    va_start(ap, fmt);
+    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
+    va_end(ap);
+
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int r = pcintr_util_add_child_chunk(parent, p);
+
+    if (p != buf)
+        free(p);
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
+{
+    int r = -1;
+
+    size_t nr = strlen(chunk);
+
+    pcdom_node_t *root = NULL;
+    do {
+        pchtml_html_document_t *doc;
+        doc = pchtml_html_interface_document(
+                pcdom_interface_node(parent)->owner_document);
+        unsigned int ui;
+        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
+        if (ui == 0) {
+            do {
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"<div>", 5);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)chunk, nr);
+                if (ui)
+                    break;
+
+                ui = pchtml_html_document_parse_fragment_chunk(doc,
+                        (const unsigned char*)"</div>", 6);
+            } while (0);
+        }
+        pcdom_node_t *div;
+        root = pchtml_html_document_parse_fragment_chunk_end(doc);
+        if (root) {
+            PC_ASSERT(root->first_child == root->last_child);
+            PC_ASSERT(root->first_child);
+            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
+            div = root->first_child;
+        }
+        if (ui)
+            break;
+
+        pcdom_node_remove(div);
+        while (pcdom_interface_node(parent)->first_child)
+            pcdom_node_destroy_deep(pcdom_interface_node(parent)->first_child);
+
+        while (div->first_child) {
+            pcdom_node_t *child = div->first_child;
+            pcdom_node_remove(child);
+            pcdom_node_append_child(pcdom_interface_node(parent), child);
+            pcintr_rdr_dom_displace_child(pcintr_get_stack(), parent, child);
+        }
+        r = 0;
+    } while (0);
+
+    if (root)
+        pcdom_node_destroy(pcdom_interface_node(root));
+
+    return r ? -1 : 0;
+}
+
+int
+pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
+{
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    char *p;
+    va_list ap;
+    va_start(ap, fmt);
+    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
+    va_end(ap);
+
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+
+    int r = pcintr_util_set_child_chunk(parent, p);
+
+    if (p != buf)
+        free(p);
+
+    return r ? -1 : 0;
+}
+
+void
+pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
+    const char *file, int line, const char *func)
+{
+    PC_ASSERT(doc);
+    UNUSED_PARAM(dump_buff);
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
+
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    if (!dump_buff) {
+        opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    }
+    char *p = pchtml_doc_snprintf_ex(doc,
+            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
+    if (!p)
+        return;
+
+    doc = pchmtl_html_load_document_with_buf((const unsigned char*)p, nr);
+    if (doc) {
+        if (p != buf)
+            free(p);
+        nr = sizeof(buf);
+        p = pchtml_doc_snprintf(doc, buf, &nr, "");
+        pchtml_html_document_destroy(doc);
+    }
+    if (!p)
+        return;
+
+    if (dump_buff) {
+        if (*dump_buff) {
+            free(*dump_buff);
+        }
+        *dump_buff = strdup(p);
+    }
+#if 0
+    else {
+        fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
+                pcutils_basename((char*)file), line, func, doc, p);
+    }
+#endif
+    if (p != buf)
+        free(p);
+}
+
+void
+pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
+    const char *file, int line, const char *func)
+{
+    PC_ASSERT(node);
+
+    char buf[1024];
+    size_t nr = sizeof(buf);
+    int opt = 0;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
+    char *p = pcdom_node_snprintf_ex(node,
+            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
+    if (p) {
+        fprintf(stderr, "%s[%d]:%s():%p\n%s\n",
+                pcutils_basename((char*)file), line, func, node, p);
+        if (p != buf)
+            free(p);
+    }
+}
+
+void
+pcintr_dump_frame_edom_node(pcintr_stack_t stack)
+{
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+    PC_ASSERT(frame->edom_element);
+    pcintr_dump_edom_node(stack, pcdom_interface_node(frame->edom_element));
+}
+
+#endif // VW: deprecated
 
