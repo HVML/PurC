@@ -461,7 +461,7 @@ void pcintr_heap_unlock(struct pcintr_heap *heap)
     PC_ASSERT(r == 0);
 }
 
-static struct list_head                       _all_heaps;
+// VW: static struct list_head                       _all_heaps;
 
 static void _cleanup_instance(struct pcinst* inst)
 {
@@ -469,12 +469,12 @@ static void _cleanup_instance(struct pcinst* inst)
     if (!heap)
         return;
 
+#if 0 // VW
     if (heap->owning_heaps) {
         pcintr_remove_heap(&_all_heaps);
         PC_ASSERT(heap->owning_heaps == NULL);
     }
 
-#if 0 // VW
     PC_ASSERT(heap->exiting == false);
     heap->exiting = true;
 #endif
@@ -558,8 +558,10 @@ static int _init_instance(struct pcinst* inst,
     pcintr_timer_set_interval(heap->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(heap->event_timer);
 
+#if 0 // VW: deprecated
     PC_ASSERT(pcintr_get_heap());
     pcintr_add_heap(&_all_heaps);
+#endif // VW: deprecated
 
     return 0;
 }
@@ -570,7 +572,7 @@ static int _init_once(void)
     PC_ASSERT(runloop);
     init_ops();
 
-    INIT_LIST_HEAD(&_all_heaps);
+    // VW: INIT_LIST_HEAD(&_all_heaps);
 
     return pcintr_init_loader_once();
 }

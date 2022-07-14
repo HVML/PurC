@@ -81,8 +81,10 @@ struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
 
-    struct list_head     *owning_heaps;
-    struct list_head      sibling;         // struct pcintr_heap
+#if 0 // VW: deprecated
+    // struct list_head     *owning_heaps;
+    // struct list_head      sibling;         // struct pcintr_heap
+#endif
 
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
@@ -431,18 +433,20 @@ struct pcintr_timers;
 PCA_EXTERN_C_BEGIN
 
 struct pcintr_heap* pcintr_get_heap(void);
+
+#if 0 // VW: deprecated
 bool pcintr_is_current_thread(void);
 
 void pcintr_add_heap(struct list_head *all_heaps);
 void pcintr_remove_heap(struct list_head *all_heaps);
 
+const char* pcintr_get_first_app_name(void);
+#endif // VW: deprecated
+
 pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
-
-const char*
-pcintr_get_first_app_name(void);
 
 void pcintr_check_after_execution(void);
 void pcintr_set_current_co_with_location(pcintr_coroutine_t co,
