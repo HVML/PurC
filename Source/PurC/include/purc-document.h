@@ -94,6 +94,18 @@ typedef struct pcdoc_elem_coll *pcdoc_elem_coll_t;
 PCA_EXTERN_C_BEGIN
 
 /**
+ * Retrieve the document type for a specific target name.
+ *
+ * @param target_name: the target name.
+ *
+ * Returns: A supported document type.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT purc_document_type
+purc_document_retrieve_type(const char *target_name);
+
+/**
  * Create a new empty document.
  *
  * @param type: the type of the document.

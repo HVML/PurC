@@ -58,52 +58,49 @@ static pcdoc_element_t operate_element(purc_document_t doc,
     UNUSED_PARAM(tag);
     UNUSED_PARAM(self_close);
 
-    return NULL;
+    return (pcdoc_element_t)doc;
 }
 
 static pcdoc_text_node_t new_text_content(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *content, size_t length)
 {
-    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(content);
     UNUSED_PARAM(length);
 
-    return NULL;
+    return (pcdoc_text_node_t)doc;
 }
 
 static pcdoc_node new_content(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_operation op,
             const char *content, size_t length)
 {
-    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
     UNUSED_PARAM(op);
     UNUSED_PARAM(content);
     UNUSED_PARAM(length);
 
     pcdoc_node node;
-    node.type = PCDOC_NODE_VOID;
-    node.elem = NULL;
+    node.type = PCDOC_NODE_ELEMENT;
+    node.elem = (pcdoc_element_t)doc;
     return node;
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
             pcdoc_special_elem elem)
 {
-    UNUSED_PARAM(doc);
     UNUSED_PARAM(elem);
 
-    return NULL;
+    return (pcdoc_element_t)doc;
 }
 
 static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
-    UNUSED_PARAM(doc);
     UNUSED_PARAM(node);
-    return NULL;
+
+    return (pcdoc_element_t)doc;
 }
 
 struct purc_document_ops _pcdoc_void_ops = {
