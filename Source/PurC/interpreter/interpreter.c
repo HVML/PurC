@@ -146,6 +146,7 @@ doc_init(pcintr_stack_t stack)
 
     if (stack->doc == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        PC_ASSERT(0);
         return -1;
     }
 
@@ -1964,6 +1965,7 @@ static void check_after_execution(pcintr_coroutine_t co)
 
     /* send doc to rdr */
     if (stack->stage == STACK_STAGE_FIRST_ROUND &&
+            stack->co->target_page_handle != 0 &&
             !pcintr_rdr_page_control_load(stack))
     {
         PC_ASSERT(0); // TODO:
@@ -2292,6 +2294,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     stack_init(stack);
 
+    if (doc_init(stack)) {
+        goto fail_variables;
+    }
+
     stack->vdom = vdom;
     if (heap->cond_handler) {
         heap->cond_handler(PURC_COND_COR_CREATED, co,
@@ -2329,10 +2335,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
     co = coroutine_create(vdom, NULL, NULL, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
-        goto failed;
-    }
-
-    if (doc_init(&co->stack)) {
         goto failed;
     }
 
@@ -3812,8 +3814,10 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
     text_node = pcdoc_element_new_text_content(doc, elem, op,
             txt, len);
 
-    if (text_node) {
-        pcintr_rdr_send_dom_req_simple_raw(pcintr_get_stack(), op,
+    // TODO: append/prepend textContent?
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (text_node && stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
                 elem, "textContent", PCRDR_MSG_DATA_TYPE_TEXT,
                 txt, len);
     }
@@ -3828,8 +3832,11 @@ pcintr_util_new_content(purc_document_t doc,
 {
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
-    if (node.type != PCDOC_NODE_VOID) {
-        pcintr_rdr_send_dom_req_simple_raw(pcintr_get_stack(), op,
+
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (node.type != PCDOC_NODE_VOID &&
+            stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
                 elem, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, len);
     }
 
@@ -3844,12 +3851,15 @@ pcintr_util_set_attribute(purc_document_t doc,
     if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
         return -1;
 
-    char property[strlen(name) + 8];
-    strcpy(property, "attr.");
-    strcat(property, name);
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (stack && stack->co->target_page_handle) {
+        char property[strlen(name) + 8];
+        strcpy(property, "attr.");
+        strcat(property, name);
 
-    pcintr_rdr_send_dom_req_simple_raw(pcintr_get_stack(), op,
-            elem, property, PCRDR_MSG_DATA_TYPE_TEXT, val, len);
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, property, PCRDR_MSG_DATA_TYPE_TEXT, val, len);
+    }
 
     return 0;
 }

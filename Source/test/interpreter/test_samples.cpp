@@ -167,8 +167,8 @@ TEST(samples, basic)
     ASSERT_TRUE(purc);
 
     struct sample_data sample = {
-        .input_hvml = "<hvml><head></head><body>hello</body></hvml>",
-        .expected_html = "hello",
+        .input_hvml = "<hvml target=\"html\"><head></head><body>hello</body></hvml>",
+        .expected_html = "<html target=\"html\"><head></head><body>hello</body></html>",
     };
 
     add_sample(&sample);
@@ -446,8 +446,8 @@ TEST(samples, samples)
             "</html>",
         },
         {
-            "<hvml><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
-            "<div id='owner'>world</div>",
+            "<hvml target=\"html\"><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
+            "<html target=\"html\"><head></head><body><div id=\"owner\">world</div></body></html>",
         },
     };
 
