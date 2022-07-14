@@ -280,7 +280,7 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
         ctxt->element_value,
         MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT,
-        PURC_VARIANT_INVALID);
+        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 int sleep_event_handle(pcintr_coroutine_t co,

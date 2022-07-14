@@ -36,6 +36,9 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define INIT_SYNC_FETCHER_EVENT_HANDLER    "__init_sync_fetcher_event_handler"
+#define INIT_ASYNC_FETCHER_EVENT_HANDLER  "__init_async_fetcher_event_handler"
+
 enum VIA {
     VIA_UNDEFINED,
     VIA_LOAD,
@@ -862,22 +865,26 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void on_sync_complete_on_frame(struct ctxt_for_init *ctxt,
-        const struct pcfetcher_resp_header *resp_header,
-        purc_rwstream_t resp)
+int init_sync_event_handle(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler)
 {
-    UNUSED_PARAM(resp_header);
-    UNUSED_PARAM(resp);
+    UNUSED_PARAM(handler);
 
-    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
-    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
-    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+    *remove_handler = false;
+    int ret = PURC_ERROR_INCOMPLETED;
 
-    ctxt->ret_code = resp_header->ret_code;
-    ctxt->resp = resp;
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+    struct ctxt_for_init *ctxt = data;
 
-    pcintr_resume(ctxt->co, NULL);
+    if (msg->requestId == ctxt->sync_id) {
+        pcintr_set_current_co(co);
+        pcintr_resume(co, NULL);
+        pcintr_set_current_co(NULL);
+        *remove_handler = true;
+        ret = PURC_ERROR_OK;
+    }
+
+    return ret;
 }
 
 static void on_sync_complete(purc_variant_t request_id, void *ud,
@@ -904,9 +911,21 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
     PC_ASSERT(co->owner == heap);
     PC_ASSERT(ctxt->sync_id == request_id);
 
-    pcintr_set_current_co(co);
-    on_sync_complete_on_frame(ctxt, resp_header, resp);
-    pcintr_set_current_co(NULL);
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->sync_id, "", "", PURC_VARIANT_INVALID, ctxt->sync_id);
 }
 
 static void on_sync_continuation(void *ud, void *extra)
@@ -1059,6 +1078,11 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
         return -1;
 
     ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_coroutine_add_event_handler(
+            co,  INIT_SYNC_FETCHER_EVENT_HANDLER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+            ctxt, init_sync_event_handle, false);
 
     pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

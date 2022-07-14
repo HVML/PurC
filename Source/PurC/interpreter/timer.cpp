@@ -229,7 +229,7 @@ static void timer_fire_func(pcintr_timer_t timer, const char *id, void *data)
     pcintr_coroutine_post_event(cor->cid,
         PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
         cor->timers->timers_var, TIMERS_STR_EXPIRED, id,
-        PURC_VARIANT_INVALID);
+        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 static bool

@@ -971,7 +971,7 @@ static void on_stream_io_callback(struct io_callback_data *data)
         pcintr_coroutine_post_event(stream->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 stream->observed, STREAM_EVENT_NAME, sub,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     }
 
     free(data);

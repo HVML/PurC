@@ -59,7 +59,7 @@ post_event(purc_variant_t source, purc_variant_t key, purc_variant_t value)
             inst->endpoint_name, false);
     pcintr_post_event_by_ctype(PURC_EVENT_TARGET_BROADCAST,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
-            source, MSG_TYPE_CHANGE, k, value);
+            source, MSG_TYPE_CHANGE, k, value, PURC_VARIANT_INVALID);
     purc_variant_unref(source_uri);
 }
 

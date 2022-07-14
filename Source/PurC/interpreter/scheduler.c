@@ -71,7 +71,8 @@ broadcast_idle_event(struct pcinst *inst)
                     BUILDIN_VAR_HVML);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                    hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID);
+                    hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID,
+                    PURC_VARIANT_INVALID);
         }
     }
 }
@@ -95,7 +96,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             PC_ASSERT(co->continuation);
             return;
         default:
-            PC_ASSERT(0);
+            break;
     }
 
     if (inst->errcode) {

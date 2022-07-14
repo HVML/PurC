@@ -3390,7 +3390,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     pcintr_coroutine_post_event(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
-            PURC_VARIANT_INVALID);
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 purc_runloop_t
