@@ -1610,7 +1610,7 @@ static void on_sub_exit(void *ctxt)
 
     PRINT_VARIANT(child_result->result);
 
-    pcintr_post_msg(ctxt, on_sub_exit_event);
+    pcintr_post_msg_to_target(co, ctxt, on_sub_exit_event);
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
@@ -3012,28 +3012,6 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     }
 
     return (pcvdom_element_t)native;
-}
-
-void
-pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    if (1) {
-        pcintr_post_msg_to_target(co, ctxt, cb);
-        return;
-    }
-
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-    PC_ASSERT(msg);
-
-    msg->ctxt        = ctxt;
-    msg->on_msg      = cb;
-
-    list_add_tail(&msg->node, &co->msgs);
 }
 
 void pcintr_cancel_init(pcintr_cancel_t cancel,

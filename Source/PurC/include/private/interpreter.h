@@ -485,9 +485,6 @@ pcintr_exception_move(struct pcintr_exception *dst,
         struct pcintr_exception *src);
 
 void
-pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
-
-void
 pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
         pcintr_msg_callback_f cb);
 
