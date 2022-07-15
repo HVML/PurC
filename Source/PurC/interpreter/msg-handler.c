@@ -36,6 +36,7 @@
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 #define OBSERVER_EVENT_HANDER      "_observer_event_handler"
 #define SUB_EXIT_EVENT_HANDER      "_sub_exit_event_handler"
+#define LAST_MSG_EVENT_HANDER      "_last_msg_event_handler"
 
 static void
 destroy_task(struct pcintr_observer_task *task)
@@ -328,6 +329,54 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co)
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_READY | CO_STATE_OBSERVING,
             NULL, sub_exit_event_handle, is_sub_exit_event_handler_match, false);
+    PC_ASSERT(handler);
+}
+
+static bool
+is_last_msg_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+
+    const char *event_name = purc_variant_get_string_const(msg->eventName);
+    if (strcmp(event_name, MSG_TYPE_LAST_MSG) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static int
+last_msg_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+    *remove_handler = true;
+
+    PC_ASSERT(co);
+    PC_ASSERT(co->stack.exited);
+    PC_ASSERT(co->stack.last_msg_sent);
+    PC_ASSERT(co->stack.last_msg_read == 0);
+    co->stack.last_msg_read = 1;
+
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(&co->stack);
+    PC_ASSERT(frame == NULL);
+    pcintr_check_after_execution_full(pcinst_current(), co);
+    return PURC_ERROR_OK;
+}
+
+void
+pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co)
+{
+    UNUSED_PARAM(co);
+    struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
+            co,  LAST_MSG_EVENT_HANDER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING | CO_STATE_EXITED,
+            NULL, last_msg_event_handle, is_last_msg_event_handler_match, false);
     PC_ASSERT(handler);
 }
 

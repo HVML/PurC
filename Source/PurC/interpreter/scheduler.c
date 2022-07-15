@@ -210,7 +210,13 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifdef PRINT_DEBUG              /* { */
         PC_DEBUGX("last msg was sent");
 #endif                          /* } */
-        pcintr_wakeup_target_with(co, pcintr_last_msg(), pcintr_on_last_msg);
+        purc_variant_t elementValue = purc_variant_make_native(co, NULL);
+        pcintr_coroutine_post_event(co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                elementValue,           /* elementValue must set */
+                MSG_TYPE_LAST_MSG, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(elementValue);
         return;
     }
 
@@ -247,9 +253,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     co->val_from_return_or_exit, target->wait_request_id);
         }
     }
-
-    PC_ASSERT(co);
-    pcintr_run_exiting_co(co);
 }
 
 static void
@@ -345,6 +348,10 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
     if (msg) {
         pcinst_msg_queue_append(co->mq, msg);
+    }
+    if (co->stack.exited && co->stack.last_msg_read) {
+        pcintr_run_exiting_co(co);
+        return 0;
     }
     return pcinst_msg_queue_count(co->mq);
 }

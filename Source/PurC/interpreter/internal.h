@@ -49,6 +49,7 @@
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
 #define MSG_TYPE_SUB_EXIT          "subExit"
+#define MSG_TYPE_LAST_MSG          "lastMsg"
 
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
@@ -428,14 +429,6 @@ bool
 pcintr_co_is_observed(pcintr_coroutine_t co);
 
 void
-pcintr_on_last_msg(void *ctxt);
-
-
-struct pcintr_msg *
-pcintr_last_msg();
-
-
-void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
 
 void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
@@ -465,6 +458,9 @@ pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
+
+void
+pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

@@ -1579,7 +1579,8 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
     }
 }
 
-static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
+static void
+execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -1760,32 +1761,6 @@ pcintr_notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-static struct pcintr_msg            last_msg;
-
-struct pcintr_msg *
-pcintr_last_msg()
-{
-    return &last_msg;
-}
-
-void
-pcintr_on_last_msg(void *ctxt)
-{
-    PC_ASSERT(ctxt == &last_msg);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->stack.exited);
-    PC_ASSERT(co->stack.last_msg_sent);
-    PC_ASSERT(co->stack.last_msg_read == 0);
-    co->stack.last_msg_read = 1;
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    PC_ASSERT(frame == NULL);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -1902,8 +1877,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
-    pcintr_coroutine_add_observer_event_handler(co);
     pcintr_coroutine_add_sub_exit_event_handler(co);
+    pcintr_coroutine_add_last_msg_event_handler(co);
+    pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {

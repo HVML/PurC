@@ -178,22 +178,6 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt))
-{
-    purc_runloop_t target_runloop;
-    target_runloop = pcintr_co_get_runloop(target);
-    PC_ASSERT(target_runloop);
-    // FIXME: try catch ?
-    ((RunLoop*)target_runloop)->dispatch([target, ctxt, func]() {
-            PC_ASSERT(pcintr_get_heap());
-            pcintr_set_current_co(target);
-            func(ctxt);
-            pcintr_set_current_co(nullptr);
-        });
-}
-
 extern "C" purc_atom_t
 pcrun_create_inst_thread(const char *app_name, const char *runner_name,
         purc_cond_handler cond_handler,

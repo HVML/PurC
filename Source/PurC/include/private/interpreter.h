@@ -627,10 +627,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt));
-
 void*
 pcintr_load_module(const char *module,
         const char *env_name, const char *prefix);
