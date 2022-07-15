@@ -353,11 +353,9 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
         // verify coroutine stage and state
         if ((co->stage & handler->cor_stage) == 0  ||
-                (co->state & handler->cor_state) == 0) {
-            continue;
-        }
-
-        if ((msg == NULL) && !handler->support_null_event) {
+                (co->state & handler->cor_state) == 0 ||
+                ((msg == NULL) && !handler->support_null_event) ||
+                (!handler->is_match(handler, co, msg))) {
             continue;
         }
 
