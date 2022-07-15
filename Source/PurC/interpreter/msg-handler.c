@@ -244,14 +244,12 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     return 0;
 }
 
-int observer_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+int observer_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
-    UNUSED_PARAM(data);
 
     int ret = PURC_ERROR_INCOMPLETED;
     *remove_handler = false;

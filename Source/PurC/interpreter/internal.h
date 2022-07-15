@@ -66,14 +66,17 @@ struct pcintr_observer_task {
 
 struct pcintr_event_handler;
 
-typedef int (*event_handle_fn)(pcintr_coroutine_t co,
+typedef bool (*event_match_fn)(pcintr_coroutine_t co,
         struct pcintr_event_handler *handler, pcrdr_msg *msg,
         void *data, bool *remove_handler);
+
+typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler);
 
 struct pcintr_event_handler {
     struct list_head              ln;
     int                           cor_stage;
-    int                           cor_exec_state;
+    int                           cor_state;
     unsigned int                  support_null_event:1; /* support null event */
     char                         *name;
     void                         *data;

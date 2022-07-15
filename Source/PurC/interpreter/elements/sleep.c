@@ -283,15 +283,14 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
-int sleep_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+int sleep_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
 
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
-    struct ctxt_for_sleep *ctxt = data;
+    struct ctxt_for_sleep *ctxt = handler->data;
     // sleep timeout return PURC_ERROR_OK to clear msg
     if (msg->requestId == PURC_VARIANT_INVALID &&
             purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&

@@ -353,7 +353,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
         // verify coroutine stage and state
         if ((co->stage & handler->cor_stage) == 0  ||
-                (co->state & handler->cor_exec_state) == 0) {
+                (co->state & handler->cor_state) == 0) {
             continue;
         }
 
@@ -361,8 +361,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
             continue;
         }
 
-        handle_ret = handler->handle(co, handler, msg, handler->data,
-                &remove_handler);
+        handle_ret = handler->handle(handler, co, msg, &remove_handler);
 
         if (remove_handler) {
             pcintr_coroutine_remove_event_hander(handler);
@@ -480,7 +479,7 @@ pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
 
     handler->name = name ? strdup(name) : NULL;
     handler->cor_stage = stage;
-    handler->cor_exec_state = state;
+    handler->cor_state = state;
     handler->data = data;
     handler->handle = fn;
     handler->support_null_event = support_null_event;

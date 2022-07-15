@@ -127,16 +127,15 @@ on_continuation(void *ud, void *extra)
     PC_ASSERT(0);
 }
 
-int call_state_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+int call_state_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
 
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
 
-    struct ctxt_for_call *ctxt = data;
+    struct ctxt_for_call *ctxt = handler->data;
 
     if (msg->requestId == ctxt->request_id
             && msg->elementValue == ctxt->request_id) {

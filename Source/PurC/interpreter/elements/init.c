@@ -865,16 +865,15 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-int init_sync_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+int init_sync_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
 
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
 
-    struct ctxt_for_init *ctxt = data;
+    struct ctxt_for_init *ctxt = handler->data;
 
     if (msg->requestId == ctxt->sync_id
             && msg->elementValue == ctxt->sync_id) {

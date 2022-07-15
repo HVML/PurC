@@ -289,16 +289,15 @@ method_by_method(const char *s_method, enum pcfetcher_request_method *method)
     return 0;
 }
 
-int sync_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+int sync_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
 
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
 
-    struct ctxt_for_archetype *ctxt = data;
+    struct ctxt_for_archetype *ctxt = handler->data;
 
     if (msg->requestId == ctxt->sync_id
             && msg->elementValue == ctxt->sync_id) {
