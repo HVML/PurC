@@ -786,6 +786,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     switch (stack->co->target_page_type) {
     case PCRDR_PAGE_TYPE_NULL:
         goto failed;
+        break;
 
     case PCRDR_PAGE_TYPE_PLAINWIN:
         target = PCRDR_MSG_TARGET_PLAINWINDOW;
@@ -793,6 +794,10 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     case PCRDR_PAGE_TYPE_WIDGET:
         target = PCRDR_MSG_TARGET_WIDGET;
+        break;
+
+    default:
+        PC_ASSERT(0); // TODO
         break;
     }
     target_value = stack->co->target_page_handle;

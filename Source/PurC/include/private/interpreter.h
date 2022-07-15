@@ -84,12 +84,6 @@ struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
 
-#if 0 // VW: deprecated
-    struct list_head     *owning_heaps;
-    struct list_head      sibling;         // struct pcintr_heap
-    pthread_mutex_t       locker;
-#endif
-
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
 
@@ -157,7 +151,6 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     struct pcvdom_element        *entry;
-    // VW pchtml_html_document_t       *doc;
     purc_document_t               doc;
 
     // for `back` to use
@@ -450,15 +443,6 @@ PCA_EXTERN_C_BEGIN
 
 struct pcintr_heap* pcintr_get_heap(void);
 
-#if 0 // VW: deprecated
-bool pcintr_is_current_thread(void);
-
-void pcintr_add_heap(struct list_head *all_heaps);
-void pcintr_remove_heap(struct list_head *all_heaps);
-
-const char* pcintr_get_first_app_name(void);
-#endif // VW: deprecated
-
 pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
@@ -726,76 +710,4 @@ pcintr_schedule(void *ctxt);
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
-
-#if 0 // VW: deprecated
-void
-pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
-    const char *file, int line, const char *func);
-
-void
-pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
-    const char *file, int line, const char *func);
-
-#define pcintr_util_dump_document(_doc)          \
-    pcintr_util_dump_document_ex(_doc, NULL, __FILE__, __LINE__, __func__)
-
-#define pcintr_util_dump_edom_node(_node)        \
-    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
-
-#define pcintr_dump_document(_stack)             \
-    pcintr_util_dump_document_ex(_stack->doc, _stack->co->dump_buff, \
-            __FILE__, __LINE__, __func__)
-
-#define pcintr_dump_edom_node(_stack, _node)      \
-    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
-
-void
-pcintr_dump_frame_edom_node(pcintr_stack_t stack);
-
-pcdom_element_t*
-pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
-
-pcdom_text_t*
-pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
-
-pcdom_text_t*
-pcintr_util_displace_content(pcdom_element_t* parent, const char *txt);
-
-int
-pcintr_util_set_attribute(pcdom_element_t *elem,
-        const char *key, const char *val);
-
-int
-pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key);
-
-int
-pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
-
-int
-pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk);
-
-WTF_ATTRIBUTE_PRINTF(2, 3)
-int
-pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
-
-WTF_ATTRIBUTE_PRINTF(2, 3)
-int
-pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
-
-pchtml_html_document_t*
-pcintr_util_load_document(const char *html);
-
-int
-pcintr_util_comp_docs(pchtml_html_document_t *docl,
-    pchtml_html_document_t *docr, int *diff);
-
-bool
-pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
-
-static inline void
-pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
-{
-    co->dump_buff = dump_buff;
-}
-#endif // VW: deprecated
 
