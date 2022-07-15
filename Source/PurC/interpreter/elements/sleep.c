@@ -240,9 +240,9 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void on_continuation(void *ud, void *extra)
+static void on_continuation(void *ud, pcrdr_msg *msg)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(msg);
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;

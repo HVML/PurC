@@ -253,7 +253,7 @@ struct pcintr_coroutine {
 
     struct list_head            registered_cancels;
     void                       *yielded_ctxt;
-    void (*continuation)(void *ctxt, void *extra);
+    void (*continuation)(void *ctxt, pcrdr_msg *msg);
 
     purc_variant_t              wait_request_id;    /* pcrdr_msg.requestId */
     purc_variant_t              wait_element_value; /* pcrdr_msg.elementValue */
@@ -459,10 +459,10 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
         purc_variant_t event_name);
-void pcintr_resume(pcintr_coroutine_t cor, void *extra);
+void pcintr_resume(pcintr_coroutine_t cor, pcrdr_msg *msg);
 
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);

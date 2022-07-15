@@ -928,9 +928,9 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
         ctxt->sync_id, "", "", PURC_VARIANT_INVALID, ctxt->sync_id);
 }
 
-static void on_sync_continuation(void *ud, void *extra)
+static void on_sync_continuation(void *ud, pcrdr_msg *msg)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(msg);
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;

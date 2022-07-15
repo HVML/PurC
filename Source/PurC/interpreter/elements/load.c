@@ -93,10 +93,8 @@ ctxt_destroy(void *ctxt)
 }
 
 static void
-on_continuation(void *ud, void *extra)
+on_continuation(void *ud, pcrdr_msg *msg)
 {
-    pcrdr_msg *msg = (pcrdr_msg *)extra;
-
     pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
     PC_ASSERT(frame);
 

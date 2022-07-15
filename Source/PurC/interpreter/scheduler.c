@@ -523,7 +523,7 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
     return 0;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
         purc_variant_t event_name)
 {
@@ -560,7 +560,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
     }
 }
 
-void pcintr_resume(pcintr_coroutine_t co, void *extra)
+void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_STOPPED);
@@ -572,7 +572,7 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
     PC_ASSERT(frame);
 
     void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt, void *extra) = co->continuation;
+    void (*continuation)(void *ctxt, pcrdr_msg *msg) = co->continuation;
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     co->yielded_ctxt = NULL;
@@ -592,7 +592,7 @@ void pcintr_resume(pcintr_coroutine_t co, void *extra)
         co->wait_event_name = NULL;
     }
 
-    continuation(ctxt, extra);
+    continuation(ctxt, msg);
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
