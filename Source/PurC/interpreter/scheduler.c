@@ -349,10 +349,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
     if (msg) {
         pcinst_msg_queue_append(co->mq, msg);
     }
-    if (co->stack.exited && co->stack.last_msg_read) {
-        pcintr_run_exiting_co(co);
-        return 0;
-    }
     return pcinst_msg_queue_count(co->mq);
 }
 
@@ -384,6 +380,9 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
         }
         if (co->stage == CO_STAGE_OBSERVING) {
             nr_observe++;
+        }
+        if (co->stack.exited && co->stack.last_msg_read) {
+            pcintr_run_exiting_co(co);
         }
     }
 

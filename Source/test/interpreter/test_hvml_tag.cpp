@@ -123,6 +123,10 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         purc_document_t doc = (purc_document_t)data;
 
         struct buffer *buf = (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (buf->dump_buff) {
+            free(buf->dump_buff);
+            buf->dump_buff = nullptr;
+        }
         buf->dump_buff = intr_util_dump_doc(doc, NULL);
     }
 
