@@ -38,20 +38,48 @@
 #include "../vdom/vdom-internal.h"
 #endif                                    /* } */
 
+#define PLOG(...) do {                                                        \
+    FILE *fp = fopen("/tmp/plog.log", "a+");                                  \
+    fprintf(fp, ##__VA_ARGS__);                                               \
+    fclose(fp);                                                               \
+    fprintf(stderr, ##__VA_ARGS__);                                           \
+} while (0)
+
+
+#define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
 };
 
-struct pcintr_observer_matched_data {
-    pcintr_stack_t              stack;
-    pcvdom_element_t            pos;
-    pcvdom_element_t            scope;
-    pcdoc_element_t             edom_element;
-    purc_variant_t              payload;
-    purc_variant_t              event_name;
-    purc_variant_t              source;
+struct pcintr_observer_task {
+    struct list_head              ln;
+    pcintr_stack_t                stack;
+    pcvdom_element_t              pos;
+    pcvdom_element_t              scope;
+    pcdoc_element_t               edom_element;
+    purc_variant_t                payload;
+    purc_variant_t                event_name;
+    purc_variant_t                source;
 };
+
+struct pcintr_event_handler;
+
+typedef int (*event_handle_fn)(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler);
+
+struct pcintr_event_handler {
+    struct list_head              ln;
+    int                           cor_stage;
+    int                           cor_exec_state;
+    unsigned int                  support_null_event:1; /* support null event */
+    char                         *name;
+    void                         *data;
+    event_handle_fn               handle;
+};
+
 
 
 PCA_EXTERN_C_BEGIN
@@ -365,6 +393,81 @@ pcintr_template_expansion(purc_variant_t val);
 
 pcintr_coroutine_t
 pcintr_coroutine_get_by_id(purc_atom_t id);
+
+
+void
+pcintr_exception_copy(struct pcintr_exception *exception);
+
+void
+pcintr_dump_stack(pcintr_stack_t stack);
+
+void
+pcintr_dump_c_stack(struct pcdebug_backtrace *bt);
+
+void
+pcintr_notify_to_stop(pcintr_coroutine_t co);
+
+void
+pcintr_on_msg(void *ctxt);
+
+
+void
+pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack);
+
+void
+pcintr_revoke_all_native_observers(pcintr_stack_t stack);
+
+void
+pcintr_revoke_all_common_observers(pcintr_stack_t stack);
+
+
+void
+pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except);
+
+void
+pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with);
+
+void
+pcintr_run_exiting_co(void *ctxt);
+
+bool
+pcintr_co_is_observed(pcintr_coroutine_t co);
+
+void
+pcintr_on_last_msg(void *ctxt);
+
+
+struct pcintr_msg *
+pcintr_last_msg();
+
+
+void
+pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
+
+void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
+        enum pcintr_coroutine_state state,
+        const char *file, int line, const char *func);
+
+#define pcintr_coroutine_set_state(co, state) \
+    pcintr_coroutine_set_state_with_location(co, state,\
+            __FILE__, __LINE__, __func__)
+
+int
+pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
+
+struct pcintr_event_handler *
+pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
+        int stage, int state, void *data, event_handle_fn fn,
+        bool support_null_event);
+
+int
+pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
+
+int
+pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
+
+void
+pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

@@ -100,11 +100,8 @@ void RunLoop::setIdleCallback(PurCWTF::Function<void()>&& function)
 {
     RunLoop& runloop = RunLoop::current();
     runloop.m_idleCallback = WTFMove(function);
-    if (runloop.m_idleCallback) {
+    if (runloop.m_idleCallback && runloop.m_idleSource->context == NULL) {
         g_source_attach(runloop.m_idleSource.get(), runloop.m_mainContext.get());
-    }
-    else {
-        g_source_destroy(m_idleSource.get());
     }
 }
 

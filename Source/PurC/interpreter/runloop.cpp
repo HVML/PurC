@@ -77,6 +77,19 @@ void purc_runloop_dispatch(purc_runloop_t runloop, purc_runloop_func func,
     }
 }
 
+void purc_runloop_dispatch_after(purc_runloop_t runloop, long time_ms,
+        purc_runloop_func func, void *ctxt)
+{
+    if (runloop) {
+        ((RunLoop*)runloop)->dispatchAfter(
+            PurCWTF::Seconds::fromMilliseconds(time_ms),
+            [func, ctxt]() {
+                func(ctxt);
+            }
+        );
+    }
+}
+
 void purc_runloop_set_idle_func(purc_runloop_t runloop, purc_runloop_func func,
         void* ctxt)
 {
@@ -137,22 +150,6 @@ to_gio_condition(purc_runloop_io_event event)
     return (GIOCondition)condition;
 }
 
-struct fd_monitor_data {
-    pcintr_coroutine_t                  co;
-    int                                 fd;
-    purc_runloop_io_event               io_event;
-    purc_runloop_io_callback            callback;
-    void                               *ctxt;
-};
-
-static void on_io_event(void *ud)
-{
-    struct fd_monitor_data *data;
-    data = (struct fd_monitor_data*)ud;
-    data->callback(data->fd, data->io_event, data->ctxt);
-    free(data);
-}
-
 uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
         purc_runloop_io_event event, purc_runloop_io_callback callback,
         void *ctxt)
@@ -168,25 +165,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
             PC_ASSERT(pcintr_get_runloop()==nullptr);
             purc_runloop_io_event io_event;
             io_event = to_runloop_io_event(condition);
-            runLoop->dispatch([fd, io_event, ctxt, co, callback] {
-                    PC_ASSERT(pcintr_get_heap());
-                    PC_ASSERT(co);
-                    PC_ASSERT(co->state == CO_STATE_READY);
-
-                    struct fd_monitor_data *data;
-                    data = (struct fd_monitor_data*)calloc(1, sizeof(*data));
-                    PC_ASSERT(data);
-                    data->co = co;
-                    data->fd = fd;
-                    data->callback = callback;
-                    data->ctxt = ctxt;
-
-                    pcintr_set_current_co(co);
-                    co->state = CO_STATE_RUN;
-                    pcintr_post_msg(data, on_io_event);
-                    pcintr_check_after_execution();
-                    pcintr_set_current_co(nullptr);
-            });
+            callback(fd, io_event, ctxt);
             return true;
         });
 }
@@ -197,18 +176,6 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
         runloop = purc_runloop_get_current();
     }
     ((RunLoop*)runloop)->removeFdMonitor(handle);
-}
-
-static void apply_none(void *ctxt)
-{
-    co_routine_f routine = (co_routine_f)ctxt;
-    routine();
-}
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine)
-{
-    pcintr_wakeup_target_with(target, (void*)routine, apply_none);
 }
 
 void
@@ -320,7 +287,7 @@ pcintr_fire_event_to_target(pcintr_coroutine_t target,
     ((RunLoop*)target_runloop)->dispatch([target, event]() {
             pcintr_set_current_co(target);
             if (target->continuation) {
-                pcintr_resume(event);
+                pcintr_resume(target, event);
             }
             else {
                 PC_ASSERT(0);
@@ -458,91 +425,8 @@ static void _runloop_stop_main(void)
     }
 }
 
-#if 0 // VW: deprecated
-static RefPtr<Thread> _sync_thread;
-static RunLoop *_sync_runloop = nullptr;
-
-void
-pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt))
-{
-    PC_ASSERT(_sync_runloop);
-    BinarySemaphore semaphore;
-    _sync_runloop->dispatch([&] () {
-        if (routine == NULL)
-            return;
-
-        routine(ctxt);
-        semaphore.signal();
-    });
-    semaphore.wait();
-}
-
-static void _runloop_init_sync(void)
-{
-    BinarySemaphore semaphore;
-    _sync_thread = Thread::create("_sync_runloop", [&] {
-            RunLoop& runloop = RunLoop::current();
-            _sync_runloop = &runloop;
-            semaphore.signal();
-            runloop.run();
-            });
-
-    semaphore.wait();
-}
-
-static void _runloop_stop_sync(void)
-{
-    if (_sync_runloop) {
-        _sync_runloop->dispatch([&] {
-                if (_sync_runloop) {
-                    _sync_runloop->stop();
-                }
-                });
-        _sync_thread->waitForCompletion();
-        _sync_runloop = nullptr;
-    }
-}
-
-void pcintr_add_heap(struct list_head *all_heaps)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    PC_ASSERT(heap->owning_heaps == nullptr);
-    PC_ASSERT(_sync_runloop);
-    BinarySemaphore sema;
-    _sync_runloop->dispatch([heap, all_heaps, &sema]() {
-            PC_ASSERT(heap->owning_heaps == nullptr);
-            list_add_tail(&heap->sibling, all_heaps);
-            heap->owning_heaps = all_heaps;
-            sema.signal();
-    });
-    sema.wait();
-}
-
-void pcintr_remove_heap(struct list_head *all_heaps)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    PC_ASSERT(heap->owning_heaps == all_heaps);
-    PC_ASSERT(_sync_runloop);
-    BinarySemaphore sema;
-    _sync_runloop->dispatch([heap, all_heaps, &sema]() {
-            PC_ASSERT(heap->owning_heaps == all_heaps);
-            list_del(&heap->sibling);
-            heap->owning_heaps = nullptr;
-            sema.signal();
-    });
-    sema.wait();
-}
-#endif // VW: deprecated
-
 static int _init_once(void)
 {
-#if 0 // VW: deprecated
-    _runloop_init_sync();
-    atexit(_runloop_stop_sync);
-#endif
-
     atexit(_runloop_stop_main);
     return 0;
 }

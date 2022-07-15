@@ -375,8 +375,24 @@ coroutine_release(pcintr_coroutine_t co)
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
         }
+
+        pcintr_coroutine_clear_tasks(co);
+        pcintr_coroutine_clear_event_handlers(co);
+
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
+        }
+
+        if (co->wait_request_id) {
+            purc_variant_unref(co->wait_request_id);
+        }
+
+        if (co->wait_element_value) {
+            purc_variant_unref(co->wait_element_value);
+        }
+
+        if (co->wait_event_name) {
+            purc_variant_unref(co->wait_event_name);
         }
 
         struct purc_broken_down_url *url = &co->base_url_broken_down;
@@ -445,41 +461,14 @@ stack_init(pcintr_stack_t stack)
     INIT_LIST_HEAD(&stack->native_observers);
     stack->scoped_variables = RB_ROOT;
 
-    stack->stage = STACK_STAGE_FIRST_ROUND;
     stack->mode = STACK_VDOM_BEFORE_HVML;
 }
-
-#if 0 // VW: deprecated
-void pcintr_heap_lock(struct pcintr_heap *heap)
-{
-    int r = pthread_mutex_lock(&heap->locker);
-    PC_ASSERT(r == 0);
-}
-
-void pcintr_heap_unlock(struct pcintr_heap *heap)
-{
-    int r = pthread_mutex_unlock(&heap->locker);
-    PC_ASSERT(r == 0);
-}
-
-static struct list_head                       _all_heaps;
-#endif // VW: deprecated
 
 static void _cleanup_instance(struct pcinst* inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     if (!heap)
         return;
-
-#if 0 // VW
-    if (heap->owning_heaps) {
-        pcintr_remove_heap(&_all_heaps);
-        PC_ASSERT(heap->owning_heaps == NULL);
-    }
-
-    PC_ASSERT(heap->exiting == false);
-    heap->exiting = true;
-#endif
 
     struct rb_root *coroutines = &heap->coroutines;
 
@@ -531,17 +520,6 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
-#if 0 // VW: deprecated
-    int r;
-    r = pthread_mutex_init(&heap->locker, NULL);
-    if (r) {
-        purc_inst_destroy_move_buffer();
-        heap->move_buff = 0;
-        free(heap);
-        return PURC_ERROR_OUT_OF_MEMORY;
-    }
-#endif
-
     inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
     heap->owner     = inst;
@@ -550,8 +528,7 @@ static int _init_instance(struct pcinst* inst,
     heap->running_coroutine = NULL;
     heap->next_coroutine_id = 1;
 
-    heap->event_timer = pcintr_timer_create(NULL, false, true,
-            NULL, event_timer_fire, inst);
+    heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
         purc_inst_destroy_move_buffer();
         heap->move_buff = 0;
@@ -562,11 +539,6 @@ static int _init_instance(struct pcinst* inst,
     pcintr_timer_set_interval(heap->event_timer, EVENT_TIMER_INTRVAL);
     pcintr_timer_start(heap->event_timer);
 
-#if 0 // VW: deprecated
-    PC_ASSERT(pcintr_get_heap());
-    pcintr_add_heap(&_all_heaps);
-#endif // VW: deprecated
-
     return 0;
 }
 
@@ -575,8 +547,6 @@ static int _init_once(void)
     purc_runloop_t runloop = purc_runloop_get_current();
     PC_ASSERT(runloop);
     init_ops();
-
-    // VW: INIT_LIST_HEAD(&_all_heaps);
 
     return pcintr_init_loader_once();
 }
@@ -628,7 +598,7 @@ coroutine_set_current_with_location(struct pcintr_coroutine *co,
             basename((char*)file), line, func,
             ">>>>>>>>>>>>>start>>>>>>>>>>>>>>>>>>>>>>>>>>");
 #endif          /* } */
-        PC_ASSERT(heap->running_coroutine == NULL);
+        //PC_ASSERT(heap->running_coroutine == NULL);
     }
     else {
 #if 0           /* { */
@@ -636,7 +606,7 @@ coroutine_set_current_with_location(struct pcintr_coroutine *co,
             basename((char*)file), line, func,
             "<<<<<<<<<<<<<stop<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 #endif          /* } */
-        PC_ASSERT(heap->running_coroutine);
+        //PC_ASSERT(heap->running_coroutine);
     }
 
     heap->running_coroutine = co;
@@ -938,6 +908,8 @@ push_stack_frame_pseudo(pcintr_stack_t stack,
         return frame_pseudo;
     } while (0);
 
+    // FIXME:  ??  reached here!!!
+    PC_ASSERT(0);
     pop_stack_frame(stack);
     return NULL;
 }
@@ -1186,8 +1158,8 @@ dump_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         (pos ? pos->tag_name : NULL));
 }
 
-static void
-dump_stack(pcintr_stack_t stack)
+void
+pcintr_dump_stack(pcintr_stack_t stack)
 {
     fprintf(stderr, "dumping stacks of corroutine [%p] ......\n", &stack->co);
     PC_ASSERT(stack);
@@ -1221,8 +1193,8 @@ dump_stack(pcintr_stack_t stack)
 }
 #endif                             /* } */
 
-static void
-dump_c_stack(struct pcdebug_backtrace *bt)
+void
+pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
 {
     if (!bt)
         return;
@@ -1237,7 +1209,7 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
 
-    if (stack->stage != STACK_STAGE_FIRST_ROUND)
+    if (stack->co->stage != CO_STAGE_FIRST_RUN)
         return;
 
     switch (stack->mode) {
@@ -1271,7 +1243,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
-        if (co->state == CO_STATE_WAIT) {
+        if (co->state == CO_STATE_STOPPED) {
             PC_ASSERT(co->yielded_ctxt);
             PC_ASSERT(co->continuation);
         }
@@ -1400,8 +1372,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 }
 
-static void
-exception_copy(struct pcintr_exception *exception)
+void
+pcintr_exception_copy(struct pcintr_exception *exception)
 {
     if (!exception)
         return;
@@ -1424,7 +1396,7 @@ exception_copy(struct pcintr_exception *exception)
     exception->bt = inst->bt;
 }
 
-static bool co_is_observed(pcintr_coroutine_t co)
+bool pcintr_co_is_observed(pcintr_coroutine_t co)
 {
     if (!list_empty(&co->stack.common_observers))
         return true;
@@ -1626,8 +1598,6 @@ static void on_sub_exit_event(void *ctxt)
     free(child_result);
 }
 
-static void check_after_execution(pcintr_coroutine_t co);
-
 static void on_sub_exit(void *ctxt)
 {
     pcintr_coroutine_result_t child_result;
@@ -1641,7 +1611,7 @@ static void on_sub_exit(void *ctxt)
     PRINT_VARIANT(child_result->result);
 
     pcintr_post_msg(ctxt, on_sub_exit_event);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
@@ -1693,24 +1663,25 @@ void pcintr_check_after_execution(void)
 {
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
-static void run_exiting_co(void *ctxt)
+void pcintr_run_exiting_co(void *ctxt)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)ctxt;
     PC_ASSERT(co);
     switch (co->state) {
         case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
+        case CO_STATE_EXITED:
+            pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
             coroutine_set_current(co);
             execute_one_step_for_exiting_co(co);
             coroutine_set_current(NULL);
             break;
-        case CO_STATE_RUN:
+        case CO_STATE_RUNNING:
             PC_ASSERT(0);
             break;
-        case CO_STATE_WAIT:
+        case CO_STATE_STOPPED:
             PC_ASSERT(0);
             break;
         default:
@@ -1718,10 +1689,8 @@ static void run_exiting_co(void *ctxt)
     }
 }
 
-static void run_ready_co(void);
-
-static void
-revoke_all_dynamic_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->dynamic_observers;
@@ -1731,8 +1700,8 @@ revoke_all_dynamic_observers(pcintr_stack_t stack)
     }
 }
 
-static void
-revoke_all_native_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_native_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->native_observers;
@@ -1742,8 +1711,8 @@ revoke_all_native_observers(pcintr_stack_t stack)
     }
 }
 
-static void
-revoke_all_common_observers(pcintr_stack_t stack)
+void
+pcintr_revoke_all_common_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
     struct list_head *observers = &stack->common_observers;
@@ -1780,11 +1749,11 @@ bool pcintr_is_ready_for_event(void)
     switch (co->state) {
         case CO_STATE_READY:
             break;
-        case CO_STATE_RUN:
+        case CO_STATE_RUNNING:
             purc_set_error_with_info(PURC_ERROR_NOT_READY,
                     "coroutine context is not READY but RUN");
             return false;
-        case CO_STATE_WAIT:
+        case CO_STATE_STOPPED:
             purc_set_error_with_info(PURC_ERROR_NOT_READY,
                     "coroutine context is not READY but WAIT");
             return false;
@@ -1805,7 +1774,8 @@ bool pcintr_is_ready_for_event(void)
     return true;
 }
 
-static void notify_to_stop(pcintr_coroutine_t co)
+void
+pcintr_notify_to_stop(pcintr_coroutine_t co)
 {
     if (!co)
         return;
@@ -1818,7 +1788,8 @@ static void notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-static void on_msg(void *ctxt)
+void
+pcintr_on_msg(void *ctxt)
 {
     pcintr_msg_t msg;
     msg = (pcintr_msg_t)ctxt;
@@ -1827,23 +1798,31 @@ static void on_msg(void *ctxt)
     PC_ASSERT(stack);
     pcintr_coroutine_t co = stack->co;
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_READY);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
+    //PC_ASSERT(co->state == CO_STATE_READY);
+    //struct pcintr_stack_frame *frame;
+    //frame = pcintr_stack_get_bottom_frame(stack);
+    //PC_ASSERT(frame == NULL);
 
-    co->state = CO_STATE_RUN;
+    //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
 
     PC_ASSERT(co->msg_pending);
     co->msg_pending = 0;
     msg->on_msg(msg->ctxt);
     free(msg);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
+// XXX: multiple inst
 static struct pcintr_msg            last_msg;
 
-static void on_last_msg(void *ctxt)
+struct pcintr_msg *
+pcintr_last_msg()
+{
+    return &last_msg;
+}
+
+void
+pcintr_on_last_msg(void *ctxt)
 {
     PC_ASSERT(ctxt == &last_msg);
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -1852,16 +1831,16 @@ static void on_last_msg(void *ctxt)
     PC_ASSERT(co->stack.last_msg_sent);
     PC_ASSERT(co->stack.last_msg_read == 0);
     co->stack.last_msg_read = 1;
-    PC_ASSERT(co->state == CO_STATE_READY);
-    co->state = CO_STATE_RUN;
+    //PC_ASSERT(co->state == CO_STATE_READY);
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);
     PC_ASSERT(frame == NULL);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
-static void
-post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
+void
+pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
 {
     if (!co->curator)
         return;
@@ -1894,8 +1873,8 @@ post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
     PURC_VARIANT_SAFE_CLEAR(payload);
 }
 
-static void
-post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
+void
+pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
 {
     if (!co->curator)
         return;
@@ -1923,188 +1902,6 @@ post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
     PURC_VARIANT_SAFE_CLEAR(payload);
 }
 
-static void check_after_execution(pcintr_coroutine_t co)
-{
-    struct pcinst *inst = pcinst_current();
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            break;
-        case CO_STATE_RUN:
-            co->state = CO_STATE_READY;
-            break;
-        case CO_STATE_WAIT:
-            PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
-            PC_ASSERT(inst->errcode == 0);
-            PC_ASSERT(co->yielded_ctxt);
-            PC_ASSERT(co->continuation);
-            return;
-        default:
-            PC_ASSERT(0);
-    }
-
-    if (inst->errcode) {
-        PC_ASSERT(stack->except == 0);
-        exception_copy(&stack->exception);
-        stack->except = 1;
-        pcinst_clear_error(inst);
-        PC_ASSERT(inst->errcode == 0);
-#ifndef NDEBUG                     /* { */
-        dump_stack(stack);
-#endif                             /* } */
-        PC_ASSERT(inst->errcode == 0);
-    }
-
-    if (frame) {
-        if (co->execution_pending == 0) {
-            co->execution_pending = 1;
-            pcintr_wakeup_target(co, run_ready_co);
-        }
-        return;
-    }
-
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
-
-    /* send doc to rdr */
-    if (stack->stage == STACK_STAGE_FIRST_ROUND &&
-            stack->co->target_page_handle != 0 &&
-            !pcintr_rdr_page_control_load(stack))
-    {
-        PC_ASSERT(0); // TODO:
-        // stack->exited = 1;
-        return;
-    }
-
-    // VW: pcintr_dump_document(stack);
-    if (co->owner->cond_handler) {
-        co->owner->cond_handler(PURC_COND_COR_AFTER_FIRSTRUN, co, stack->doc);
-    }
-    stack->stage = STACK_STAGE_EVENT_LOOP;
-
-    if (co->stack.except) {
-        const char *error_except = NULL;
-        purc_atom_t atom;
-        atom = co->stack.exception.error_except;
-        PC_ASSERT(atom);
-        error_except = purc_atom_to_string(atom);
-
-        PC_ASSERT(co->error_except == NULL);
-        co->error_except = error_except;
-
-        dump_c_stack(co->stack.exception.bt);
-        co->stack.except = 0;
-
-        if (!co->stack.exited) {
-            co->stack.exited = 1;
-            notify_to_stop(co);
-        }
-    }
-
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, on_msg);
-        return;
-    }
-
-    if (!list_empty(&co->children)) {
-        return;
-    }
-
-    if (co->stack.exited) {
-        revoke_all_dynamic_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.dynamic_observers));
-        revoke_all_native_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.native_observers));
-        revoke_all_common_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.common_observers));
-    }
-
-    bool still_observed = co_is_observed(co);
-    if (!still_observed) {
-        if (!co->stack.exited) {
-            co->stack.exited = 1;
-            notify_to_stop(co);
-        }
-    }
-
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, on_msg);
-        return;
-    }
-
-    if (still_observed) {
-        return;
-    }
-
-    if (!co->stack.exited) {
-        co->stack.exited = 1;
-        notify_to_stop(co);
-    }
-
-    if (!list_empty(&co->msgs)) {
-        return;
-    }
-
-    if (co->msg_pending) {
-        return;
-    }
-
-// #define PRINT_DEBUG
-    if (co->stack.last_msg_sent == 0) {
-        co->stack.last_msg_sent = 1;
-
-#ifdef PRINT_DEBUG              /* { */
-        PC_DEBUGX("last msg was sent");
-#endif                          /* } */
-        pcintr_wakeup_target_with(co, &last_msg, on_last_msg);
-        return;
-    }
-
-    if (co->stack.last_msg_read == 0) {
-        return;
-    }
-
-
-#ifdef PRINT_DEBUG              /* { */
-    PC_DEBUGX("last msg was processed");
-#endif                          /* } */
-
-    if (co->curator) {
-        if (co->error_except) {
-            // TODO: which is error, which is except?
-            // currently, we treat all as except
-            post_callstate_except_event(co, co->error_except);
-        }
-        else {
-            PC_ASSERT(co->val_from_return_or_exit);
-            post_callstate_success_event(co, co->val_from_return_or_exit);
-        }
-    }
-
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_READY);
-    purc_runloop_dispatch(inst->running_loop, run_exiting_co, co);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -2117,81 +1914,28 @@ void pcintr_set_exit(purc_variant_t val)
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
-        notify_to_stop(co);
+        pcintr_notify_to_stop(co);
     }
 }
 
-static void run_ready_co(void)
+static void init_frame_for_co(pcintr_coroutine_t co)
 {
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->execution_pending == 1);
-    co->execution_pending = 0;
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
-            pcintr_execute_one_step_for_ready_co(co);
-            check_after_execution(co);
-            break;
-        case CO_STATE_RUN:
-            PC_ASSERT(0);
-            break;
-        case CO_STATE_WAIT:
-            PC_ASSERT(0);
-            break;
-        default:
-            PC_ASSERT(0);
-    }
-}
-
-static void execute_main_for_ready_co(pcintr_coroutine_t co)
-{
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
-
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    PC_ASSERT(stack);
-    PC_ASSERT(stack == pcintr_get_stack());
-
     struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = pcintr_push_stack_frame_normal(stack);
-    if (!frame_normal)
+    if (!frame_normal) {
         return;
+    }
 
     frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
-}
-
-static void run_co_main(void)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-
-    switch (co->state) {
-        case CO_STATE_READY:
-            co->state = CO_STATE_RUN;
-            execute_main_for_ready_co(co);
-            check_after_execution(co);
-            break;
-        case CO_STATE_RUN:
-            PC_ASSERT(0);
-            break;
-        case CO_STATE_WAIT:
-            PC_ASSERT(0);
-            break;
-        default:
-            PC_ASSERT(0);
-    }
+    co->execution_pending = 1;
+    co->stage = CO_STAGE_FIRST_RUN;
 }
 
 static int set_coroutine_id(pcintr_coroutine_t coroutine)
@@ -2262,16 +2006,20 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
-    co->state = CO_STATE_READY;
+    pcintr_coroutine_set_state(co, CO_STATE_READY);
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->msgs);
+    INIT_LIST_HEAD(&co->tasks);
+    INIT_LIST_HEAD(&co->event_handlers);
     co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
         goto fail_name;
     }
+
+    pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {
@@ -2344,6 +2092,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
         goto failed;
     }
 
+    co->stage = CO_STAGE_SCHEDULED;
+
     /* Attach to rdr only if the document needs rdr and
        the page type is not null. */
     if (co->stack.doc->need_rdr &&
@@ -2362,7 +2112,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
         goto failed;
     }
 
-    pcintr_wakeup_target(co, run_co_main);
+    init_frame_for_co(co);
     return co;
 
 failed:
@@ -2433,6 +2183,8 @@ purc_run(purc_cond_handler handler)
 
     heap->keep_alive = 0;
     heap->cond_handler = handler;
+
+    purc_runloop_set_idle_func(runloop, pcintr_schedule, inst);
     purc_runloop_run();
 
     return 0;
@@ -3220,7 +2972,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     pcintr_coroutine_post_event(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
-            PURC_VARIANT_INVALID);
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 purc_runloop_t
@@ -3240,23 +2992,6 @@ pcintr_co_get_runloop(pcintr_coroutine_t co)
     return inst->running_loop;
 }
 
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target)
-{
-    struct pcintr_heap *heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    struct pcinst *inst = heap->owner;
-    PC_ASSERT(inst);
-    purc_runloop_t runloop = purc_runloop_get_current();
-    PC_ASSERT(runloop);
-    PC_ASSERT(inst->running_loop == runloop);
-    PC_ASSERT(heap->running_coroutine == NULL);
-
-    coroutine_set_current(target);
-    routine();
-    coroutine_set_current(NULL);
-}
-
 struct timer_data {
     pcintr_timer_t               timer;
     char                        *id;
@@ -3271,25 +3006,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
 
     PC_ASSERT(pcintr_get_heap());
 
-//    struct pcinst *inst = (struct pcinst *)data;
-    struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
-
-    if (conn) {
-        pcrdr_event_handler handle = pcrdr_conn_get_event_handler(conn);
-        if (!handle) {
-            pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
-        }
-        pcrdr_wait_and_dispatch_message(conn, 1);
-        purc_clr_error();
-    }
-
-    pcintr_dispatch_msg();
-
     pcintr_coroutine_t co = pcintr_get_coroutine();
     if (co == NULL) {
         return;
     }
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
 
     pcintr_stack_t stack = &co->stack;
     if (stack->exited)
@@ -3416,13 +3137,17 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name)
 {
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(event_name);
     PC_ASSERT(ctxt);
     PC_ASSERT(continuation);
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     PC_ASSERT(co->yielded_ctxt == NULL);
     PC_ASSERT(co->continuation == NULL);
     pcintr_stack_t stack = &co->stack;
@@ -3430,16 +3155,29 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra))
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    co->state = CO_STATE_WAIT;
+    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
     co->yielded_ctxt = ctxt;
     co->continuation = continuation;
+    if (request_id) {
+        co->wait_request_id = request_id;
+        purc_variant_ref(co->wait_request_id);
+    }
+
+    if (element_value) {
+        co->wait_element_value = element_value;
+        purc_variant_ref(co->wait_element_value);
+    }
+
+    if (event_name) {
+        co->wait_event_name = event_name;
+        purc_variant_ref(co->wait_event_name);
+    }
 }
 
-void pcintr_resume(void *extra)
+void pcintr_resume(pcintr_coroutine_t co, void *extra)
 {
-    pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_WAIT);
+    PC_ASSERT(co->state == CO_STATE_STOPPED);
     PC_ASSERT(co->yielded_ctxt);
     PC_ASSERT(co->continuation);
     pcintr_stack_t stack = &co->stack;
@@ -3450,11 +3188,26 @@ void pcintr_resume(void *extra)
     void *ctxt = co->yielded_ctxt;
     void (*continuation)(void *ctxt, void *extra) = co->continuation;
 
-    co->state = CO_STATE_RUN;
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     co->yielded_ctxt = NULL;
     co->continuation = NULL;
+    if (co->wait_request_id) {
+        purc_variant_unref(co->wait_request_id);
+        co->wait_request_id = NULL;
+    }
+
+    if (co->wait_element_value) {
+        purc_variant_unref(co->wait_element_value);
+        co->wait_element_value = NULL;
+    }
+
+    if (co->wait_event_name) {
+        purc_variant_unref(co->wait_event_name);
+        co->wait_event_name = NULL;
+    }
+
     continuation(ctxt, extra);
-    check_after_execution(co);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 pcintr_coroutine_t
@@ -3480,7 +3233,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
 
         purc_log_debug("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
-        pcintr_wakeup_target(child, run_co_main);
+        init_frame_for_co(child);
     } while (0);
 
     return child;
@@ -3510,7 +3263,7 @@ pcintr_load_child_co(const char *hvml,
         PC_ASSERT(co->stack.vdom);
 
         PC_DEBUGX("running parent/child: %p/%p", co, child);
-        pcintr_wakeup_target(child, run_co_main);
+        init_frame_for_co(child);
     } while (0);
 
     return child;
@@ -3797,6 +3550,17 @@ pcintr_template_expansion(purc_variant_t val)
     return v;
 }
 
+void
+pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
+        enum pcintr_coroutine_state state,
+        const char *file, int line, const char *func)
+{
+    UNUSED_PARAM(file);
+    UNUSED_PARAM(line);
+    UNUSED_PARAM(func);
+    co->state = state;
+}
+
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *tag, bool self_close)
@@ -3869,406 +3633,4 @@ pcintr_util_set_attribute(purc_document_t doc,
 
     return 0;
 }
-
-#if 0 // VW: deprecated
-pcdom_element_t*
-pcintr_util_append_element(pcdom_element_t* parent, const char *tag)
-{
-    pcdom_node_t *node = pcdom_interface_node(parent);
-    pcdom_document_t *dom_doc = node->owner_document;
-    pcdom_element_t *elem;
-    elem = pcdom_document_create_element(dom_doc,
-            (const unsigned char*)tag, strlen(tag), NULL);
-    if (!elem)
-        return NULL;
-
-    pcdom_node_append_child(node, pcdom_interface_node(elem));
-
-    return elem;
-}
-
-static pcdom_text_t*
-pcintr_util_append_content_inner(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_document_t *doc = pcdom_interface_node(parent)->owner_document;
-    const unsigned char *content = (const unsigned char*)txt;
-    size_t content_len = strlen(txt);
-
-    pcdom_text_t *text_node;
-    text_node = pcdom_document_create_text_node(doc, content, content_len);
-    if (text_node == NULL)
-        return NULL;
-
-    pcdom_node_append_child(pcdom_interface_node(parent),
-            pcdom_interface_node(text_node));
-
-    return text_node;
-}
-
-pcdom_text_t*
-pcintr_util_append_content(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
-    if (text_node == NULL) {
-        return NULL;
-    }
-
-    pcintr_rdr_dom_append_content(pcintr_get_stack(), parent, txt);
-    return text_node;
-}
-
-pcdom_text_t*
-pcintr_util_displace_content(pcdom_element_t* parent, const char *txt)
-{
-    pcdom_node_t *parent_node = pcdom_interface_node(parent);
-    while (parent_node->first_child)
-        pcdom_node_destroy_deep(parent_node->first_child);
-
-    pcdom_text_t* text_node = pcintr_util_append_content_inner(parent, txt);
-    if (text_node == NULL) {
-        return NULL;
-    }
-
-    pcintr_rdr_dom_displace_content(pcintr_get_stack(), parent, txt);
-    return text_node;
-}
-
-int
-pcintr_util_set_attribute(pcdom_element_t *elem,
-        const char *key, const char *val)
-{
-    pcdom_attr_t *attr;
-    attr = pcdom_element_set_attribute(elem,
-            (const unsigned char*)key, strlen(key),
-            (const unsigned char*)val, strlen(val));
-    if (!attr) {
-        return -1;
-    }
-    if (!val) {
-        pcintr_rdr_dom_erase_element_property(pcintr_get_stack(), elem, key);
-    }
-    else {
-        pcintr_rdr_dom_update_element_property(pcintr_get_stack(), elem, key,
-                val);
-    }
-    return 0;
-}
-
-int
-pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key)
-{
-    unsigned int ret = pcdom_element_remove_attribute(elem,
-            (const unsigned char *)key, strlen(key));
-
-    //TODO: send to rdr
-    return ret;
-}
-
-pchtml_html_document_t*
-pcintr_util_load_document(const char *html)
-{
-    pchtml_html_document_t *doc;
-    doc = pchtml_html_document_create();
-    if (!doc)
-        return NULL;
-
-    unsigned int r;
-    r = pchtml_html_document_parse_with_buf(doc,
-            (const unsigned char*)html, strlen(html));
-    if (r) {
-        pchtml_html_document_destroy(doc);
-        return NULL;
-    }
-
-    return doc;
-}
-
-int
-pcintr_util_comp_docs(pchtml_html_document_t *docl,
-    pchtml_html_document_t *docr, int *diff)
-{
-    char lbuf[1024], rbuf[1024];
-    size_t lsz = sizeof(lbuf), rsz = sizeof(rbuf);
-    char *pl = pchtml_doc_snprintf_plain(docl, lbuf, &lsz, "");
-    char *pr = pchtml_doc_snprintf_plain(docr, rbuf, &rsz, "");
-    int err = -1;
-    if (pl && pr) {
-        *diff = strcmp(pl, pr);
-        if (*diff) {
-            PC_DEBUGX("diff:\n%s\n%s", pl, pr);
-        }
-        err = 0;
-    }
-
-    if (pl != lbuf)
-        free(pl);
-    if (pr != rbuf)
-        free(pr);
-
-    return err;
-}
-
-bool
-pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant)
-{
-    pcdom_node_t *node = descendant;
-    do {
-        if (node->parent && node->parent == ancestor)
-            return true;
-        node = node->parent;
-    } while (node);
-
-    return false;
-}
-
-int
-pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk)
-{
-    int r = -1;
-
-    size_t nr = strlen(chunk);
-
-    pcdom_node_t *root = NULL;
-    do {
-        pchtml_html_document_t *doc;
-        doc = pchtml_html_interface_document(
-                pcdom_interface_node(parent)->owner_document);
-        unsigned int ui;
-        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
-        if (ui == 0) {
-            do {
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"<div>", 5);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)chunk, nr);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"</div>", 6);
-            } while (0);
-        }
-        pcdom_node_t *div;
-        root = pchtml_html_document_parse_fragment_chunk_end(doc);
-        if (root) {
-            PC_ASSERT(root->first_child == root->last_child);
-            PC_ASSERT(root->first_child);
-            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
-            div = root->first_child;
-        }
-        if (ui)
-            break;
-
-        while (div->first_child) {
-            pcdom_node_t *child = div->first_child;
-            pcdom_node_remove(child);
-            pcdom_node_append_child(pcdom_interface_node(parent), child);
-            pcintr_rdr_dom_append_child(pcintr_get_stack(), parent, child);
-        }
-        r = 0;
-    } while (0);
-
-    if (root)
-        pcdom_node_destroy(pcdom_interface_node(root));
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...)
-{
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    char *p;
-    va_list ap;
-    va_start(ap, fmt);
-    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
-    va_end(ap);
-
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = pcintr_util_add_child_chunk(parent, p);
-
-    if (p != buf)
-        free(p);
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk)
-{
-    int r = -1;
-
-    size_t nr = strlen(chunk);
-
-    pcdom_node_t *root = NULL;
-    do {
-        pchtml_html_document_t *doc;
-        doc = pchtml_html_interface_document(
-                pcdom_interface_node(parent)->owner_document);
-        unsigned int ui;
-        ui = pchtml_html_document_parse_fragment_chunk_begin(doc, parent);
-        if (ui == 0) {
-            do {
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"<div>", 5);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)chunk, nr);
-                if (ui)
-                    break;
-
-                ui = pchtml_html_document_parse_fragment_chunk(doc,
-                        (const unsigned char*)"</div>", 6);
-            } while (0);
-        }
-        pcdom_node_t *div;
-        root = pchtml_html_document_parse_fragment_chunk_end(doc);
-        if (root) {
-            PC_ASSERT(root->first_child == root->last_child);
-            PC_ASSERT(root->first_child);
-            PC_ASSERT(root->first_child->type == PCDOM_NODE_TYPE_ELEMENT);
-            div = root->first_child;
-        }
-        if (ui)
-            break;
-
-        pcdom_node_remove(div);
-        while (pcdom_interface_node(parent)->first_child)
-            pcdom_node_destroy_deep(pcdom_interface_node(parent)->first_child);
-
-        while (div->first_child) {
-            pcdom_node_t *child = div->first_child;
-            pcdom_node_remove(child);
-            pcdom_node_append_child(pcdom_interface_node(parent), child);
-            pcintr_rdr_dom_displace_child(pcintr_get_stack(), parent, child);
-        }
-        r = 0;
-    } while (0);
-
-    if (root)
-        pcdom_node_destroy(pcdom_interface_node(root));
-
-    return r ? -1 : 0;
-}
-
-int
-pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...)
-{
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    char *p;
-    va_list ap;
-    va_start(ap, fmt);
-    p = pcutils_vsnprintf(buf, &nr, fmt, ap);
-    va_end(ap);
-
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return -1;
-    }
-
-    int r = pcintr_util_set_child_chunk(parent, p);
-
-    if (p != buf)
-        free(p);
-
-    return r ? -1 : 0;
-}
-
-void
-pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
-    const char *file, int line, const char *func)
-{
-    PC_ASSERT(doc);
-    UNUSED_PARAM(dump_buff);
-    UNUSED_PARAM(file);
-    UNUSED_PARAM(line);
-    UNUSED_PARAM(func);
-
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    int opt = 0;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    if (!dump_buff) {
-        opt |= PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE;
-    }
-    char *p = pchtml_doc_snprintf_ex(doc,
-            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
-    if (!p)
-        return;
-
-    doc = pchmtl_html_load_document_with_buf((const unsigned char*)p, nr);
-    if (doc) {
-        if (p != buf)
-            free(p);
-        nr = sizeof(buf);
-        p = pchtml_doc_snprintf(doc, buf, &nr, "");
-        pchtml_html_document_destroy(doc);
-    }
-    if (!p)
-        return;
-
-    if (dump_buff) {
-        if (*dump_buff) {
-            free(*dump_buff);
-        }
-        *dump_buff = strdup(p);
-    }
-#if 0
-    else {
-        fprintf(stderr, "%s[%d]:%s(): #document %p\n%s\n",
-                pcutils_basename((char*)file), line, func, doc, p);
-    }
-#endif
-    if (p != buf)
-        free(p);
-}
-
-void
-pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
-    const char *file, int line, const char *func)
-{
-    PC_ASSERT(node);
-
-    char buf[1024];
-    size_t nr = sizeof(buf);
-    int opt = 0;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_UNDEF;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCHTML_HTML_SERIALIZE_OPT_FULL_DOCTYPE;
-    char *p = pcdom_node_snprintf_ex(node,
-            (enum pchtml_html_serialize_opt)opt, buf, &nr, "");
-    if (p) {
-        fprintf(stderr, "%s[%d]:%s():%p\n%s\n",
-                pcutils_basename((char*)file), line, func, node, p);
-        if (p != buf)
-            free(p);
-    }
-}
-
-void
-pcintr_dump_frame_edom_node(pcintr_stack_t stack)
-{
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->edom_element);
-    pcintr_dump_edom_node(stack, pcdom_interface_node(frame->edom_element));
-}
-
-#endif // VW: deprecated
 

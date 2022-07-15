@@ -39,28 +39,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct event_timer_data {
-    pcintr_timer_t            timer;
-    const char               *id;
-    pcintr_timer_fire_func    func;
-    void                     *data;
-};
-
-static void on_event_fire(void *ud)
-{
-    struct event_timer_data *data;
-    data = (struct event_timer_data*)ud;
-    pcintr_timer_processed(data->timer);
-    data->func(data->timer, data->id, data->data);
-}
-
-static void cancel_timer(void *ctxt)
-{
-    pcintr_timer_t timer = (pcintr_timer_t)ctxt;
-    PC_ASSERT(timer);
-    pcintr_timer_stop(timer);
-}
-
 class Timer : public PurCWTF::RunLoop::TimerBase {
     public:
         Timer(const char *id, pcintr_timer_fire_func func, RunLoop& runLoop,
@@ -100,121 +78,12 @@ class Timer : public PurCWTF::RunLoop::TimerBase {
         uint32_t m_interval;
 };
 
-class PurcTimer : public Timer {
-    public:
-        PurcTimer(bool for_yielded, const char* id, pcintr_timer_fire_func func,
-                RunLoop& runLoop, void *data)
-            : Timer(id, func, runLoop, data)
-            , m_coroutine(pcintr_get_coroutine())
-            , m_fired(0)
-            , m_for_yielded(for_yielded)
-        {
-            if (!m_for_yielded) {
-                m_cancel = {};
-                pcintr_cancel_init(&m_cancel, this, cancel_timer);
-
-                m_data.timer = this;
-                m_data.id    = getId();
-                m_data.func  = func;
-                m_data.data = getData();
-
-                pcintr_register_cancel(&m_cancel);
-            }
-            else {
-                PC_ASSERT(id == NULL);
-                PC_ASSERT(func == NULL);
-            }
-
-            PC_ASSERT(m_coroutine);
-        }
-
-        ~PurcTimer()
-        {
-            PC_ASSERT(m_fired == 0);
-            if (!m_for_yielded) {
-                pcintr_unregister_cancel(&m_cancel);
-                stop();
-            }
-        }
-
-        void processed(void) {
-            --m_fired;
-            PC_ASSERT(m_fired >= 0);
-        }
-
-    private:
-        void fired() final {
-            if (m_fired)
-                return;
-
-            if (m_coroutine->stack.exited) {
-                PC_ASSERT(!m_for_yielded);
-                pcintr_unregister_cancel(&m_cancel);
-                stop();
-                return;
-            }
-
-            PC_ASSERT(pcintr_get_coroutine() == NULL);
-
-            pcintr_heap_t heap = pcintr_get_heap();
-            PC_ASSERT(heap);
-            PC_ASSERT(m_coroutine);
-
-            pcintr_coroutine_t co = m_coroutine;
-            if (co->state == CO_STATE_WAIT) {
-                if (m_for_yielded) {
-                    ++m_fired;
-                    stop();
-                    pcintr_set_current_co(m_coroutine);
-                    pcintr_resume(NULL);
-                    pcintr_set_current_co(NULL);
-                    return;
-                }
-
-                ++m_fired;
-
-                pcintr_set_current_co(m_coroutine);
-                pcintr_post_msg_to_target(co, &m_data, on_event_fire);
-                PC_ASSERT(co->state == CO_STATE_WAIT);
-                pcintr_set_current_co(NULL);
-                return;
-            }
-
-            PC_ASSERT(co->state == CO_STATE_READY);
-
-            ++m_fired;
-
-            pcintr_set_current_co(m_coroutine);
-
-            pcintr_post_msg_to_target(m_coroutine, &m_data, on_event_fire);
-            pcintr_check_after_execution();
-
-            PC_ASSERT(co->state == CO_STATE_READY);
-
-            pcintr_set_current_co(NULL);
-        }
-
-    private:
-        pcintr_coroutine_t     m_coroutine;
-
-        int m_fired;
-        struct event_timer_data         m_data;
-        struct pcintr_cancel            m_cancel;
-        bool                            m_for_yielded;
-};
-
 pcintr_timer_t
-pcintr_timer_create(purc_runloop_t runloop, bool for_yielded, bool raw,
-        const char* id, pcintr_timer_fire_func func, void *data)
+pcintr_timer_create(purc_runloop_t runloop, const char* id,
+        pcintr_timer_fire_func func, void *data)
 {
     RunLoop* loop = runloop ? (RunLoop*)runloop : &RunLoop::current();
-    Timer* timer = NULL;
-    if (raw) {
-        timer = new Timer(id, func, *loop, data);
-    }
-    else {
-        timer = new PurcTimer(for_yielded, id, func, *loop, data);
-    }
+    Timer* timer = new Timer(id, func, *loop, data);
     if (!timer) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -228,13 +97,6 @@ pcintr_timer_set_interval(pcintr_timer_t timer, uint32_t interval)
     if (timer) {
         ((Timer*)timer)->setInterval(interval);
     }
-}
-
-void
-pcintr_timer_processed(pcintr_timer_t timer)
-{
-    Timer *p = (Timer*)timer;
-    p->processed();
 }
 
 uint32_t
@@ -367,7 +229,7 @@ static void timer_fire_func(pcintr_timer_t timer, const char *id, void *data)
     pcintr_coroutine_post_event(cor->cid,
         PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
         cor->timers->timers_var, TIMERS_STR_EXPIRED, id,
-        PURC_VARIANT_INVALID);
+        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
 static bool
@@ -419,9 +281,7 @@ get_inner_timer(purc_coroutine_t cor , purc_variant_t timer_var)
         return timer;
     }
 
-    bool for_yielded = false;
-    timer = pcintr_timer_create(NULL, for_yielded, false, idstr,
-            timer_fire_func, cor);
+    timer = pcintr_timer_create(NULL, idstr, timer_fire_func, cor);
     if (timer == NULL) {
         return NULL;
     }

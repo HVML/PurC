@@ -40,8 +40,8 @@ using namespace std;
 
 #define PRINTF(...)                                                       \
     do {                                                                  \
-        fprintf(stderr, "\e[0;32m[          ] \e[0m");                    \
-        fprintf(stderr, __VA_ARGS__);                                     \
+        fprintf(stdout, "\e[0;32m[          ] \e[0m");                    \
+        fprintf(stdout, __VA_ARGS__);                                     \
     } while(false)
 
 #if OS(LINUX) || OS(UNIX)

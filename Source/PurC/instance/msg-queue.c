@@ -270,6 +270,7 @@ get_msg(struct pcinst_msg_queue *queue, struct list_head *msgs)
             struct pcinst_msg_hdr, ln);
     pcrdr_msg *msg = (pcrdr_msg *)hdr;
     list_del(&hdr->ln);
+    queue->nr_msgs--;
     if (list_empty(msgs)) {
         queue->state &= ~MSG_QS_RES;
     }
@@ -279,6 +280,7 @@ get_msg(struct pcinst_msg_queue *queue, struct list_head *msgs)
 pcrdr_msg *
 pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue)
 {
+    purc_rwlock_writer_lock(&queue->lock);
     pcrdr_msg *msg = NULL;
     if (queue->state & MSG_QS_RES) {
         msg = get_msg(queue, &queue->res_msgs);
@@ -309,6 +311,34 @@ pcinst_msg_queue_get_msg(struct pcinst_msg_queue *queue)
     }
 
 done:
+    purc_rwlock_writer_unlock(&queue->lock);
+    return msg;
+}
+
+pcrdr_msg *
+pcinst_msg_queue_get_event_by_element(struct pcinst_msg_queue *queue,
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name)
+{
+    pcrdr_msg *msg = NULL;
+    purc_rwlock_writer_lock(&queue->lock);
+
+    struct list_head *msgs = &queue->event_msgs;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, msgs) {
+        struct pcinst_msg_hdr *hdr;
+        hdr = list_entry(p, struct pcinst_msg_hdr, ln);
+        pcrdr_msg *m = (pcrdr_msg*) hdr;
+        if (purc_variant_is_equal_to(m->requestId, request_id) &&
+                purc_variant_is_equal_to(m->elementValue, element_value) &&
+                purc_variant_is_equal_to(m->eventName, event_name)) {
+            msg = m;
+            list_del(&hdr->ln);
+            break;
+        }
+    }
+
+    purc_rwlock_writer_unlock(&queue->lock);
     return msg;
 }
 
@@ -426,3 +456,14 @@ pcinst_broadcast_event(pcrdr_msg_event_reduce_opt reduce_op,
 
     return purc_inst_post_event(PURC_EVENT_TARGET_BROADCAST, msg);
 }
+
+size_t
+pcinst_msg_queue_count(struct pcinst_msg_queue *queue)
+{
+    size_t nr = 0;
+    purc_rwlock_writer_lock(&queue->lock);
+    nr = queue->nr_msgs;
+    purc_rwlock_writer_unlock(&queue->lock);
+    return nr;
+}
+

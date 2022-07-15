@@ -41,6 +41,9 @@
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
+#define MSG_TYPE_SLEEP          "sleep"
+#define MSG_SUB_TYPE_TIMEOUT    "timeout"
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;
@@ -81,12 +84,6 @@ struct pcintr_heap {
     // owner instance
     struct pcinst        *owner;
 
-#if 0 // VW: deprecated
-    struct list_head     *owning_heaps;
-    struct list_head      sibling;         // struct pcintr_heap
-    pthread_mutex_t       locker;
-#endif
-
     // currently running coroutine
     pcintr_coroutine_t    running_coroutine;
 
@@ -102,6 +99,7 @@ struct pcintr_heap {
 
     purc_cond_handler    cond_handler;
     unsigned int         keep_alive:1;
+    double               timeout;
 };
 
 struct pcintr_stack_frame;
@@ -119,11 +117,6 @@ typedef struct pcintr_stack_frame_pseudo *pcintr_stack_frame_pseudo_t;
 struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
-
-enum pcintr_stack_stage {
-    STACK_STAGE_FIRST_ROUND                = 0x00,
-    STACK_STAGE_EVENT_LOOP                 = 0x01,
-};
 
 struct pcintr_loaded_var {
     struct rb_node              node;
@@ -151,8 +144,6 @@ struct pcintr_exception {
 };
 
 struct pcintr_stack {
-    enum pcintr_stack_stage       stage;
-
     struct list_head              frames;
     // the number of stack frames.
     size_t                        nr_frames;
@@ -160,7 +151,6 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     struct pcvdom_element        *entry;
-    // VW pchtml_html_document_t       *doc;
     purc_document_t               doc;
 
     // for `back` to use
@@ -176,6 +166,7 @@ struct pcintr_stack {
     uint32_t volatile             last_msg_sent:1;
     uint32_t volatile             last_msg_read:1;
     /* uint32_t                   paused:1; */
+    uint32_t                      observe_idle:1;
 
     // error or except info
     // valid only when except == 1
@@ -204,11 +195,21 @@ struct pcintr_stack {
     struct rb_root                scoped_variables;
 };
 
+enum pcintr_coroutine_stage {
+    CO_STAGE_SCHEDULED  = 0x01,
+    CO_STAGE_FIRST_RUN  = 0x02,
+    CO_STAGE_OBSERVING  = 0x04,
+    CO_STAGE_CLEANUP    = 0x08,
+};
+
 enum pcintr_coroutine_state {
-    CO_STATE_READY,            /* ready to run next step */
-    CO_STATE_RUN,              /* is running */
-    CO_STATE_WAIT,             /* is waiting for event */
-    /* STATE_PAUSED, */
+    CO_STATE_READY      = 0x01,          /* ready to run next step */
+    CO_STATE_RUNNING    = 0x02,          /* is running */
+    CO_STATE_STOPPED    = 0x04,          /* is waiting for event */
+    CO_STATE_OBSERVING  = 0x08,
+    CO_STATE_EXITED     = 0x10,
+    CO_STATE_TERMINATED = 0x20,
+    CO_STATE_TRACKED    = 0x40,
 };
 
 typedef void (pcintr_msg_callback_f)(void *ctxt);
@@ -257,6 +258,7 @@ struct pcintr_coroutine {
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
 
+    enum pcintr_coroutine_stage stage;
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
 
@@ -264,9 +266,16 @@ struct pcintr_coroutine {
     void                       *yielded_ctxt;
     void (*continuation)(void *ctxt, void *extra);
 
+    purc_variant_t              wait_request_id;    /* pcrdr_msg.requestId */
+    purc_variant_t              wait_element_value; /* pcrdr_msg.elementValue */
+    purc_variant_t              wait_event_name;    /* pcrdr_msg.eventName */
+
     struct list_head            msgs;   /* struct pcintr_msg */
 
     struct pcinst_msg_queue    *mq;     /* message queue */
+    struct list_head            tasks;  /* one event with multiple observers */
+    struct list_head            event_handlers; /* struct pcintr_event_handler */
+
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 
@@ -434,15 +443,6 @@ PCA_EXTERN_C_BEGIN
 
 struct pcintr_heap* pcintr_get_heap(void);
 
-#if 0 // VW: deprecated
-bool pcintr_is_current_thread(void);
-
-void pcintr_add_heap(struct list_head *all_heaps);
-void pcintr_remove_heap(struct list_head *all_heaps);
-
-const char* pcintr_get_first_app_name(void);
-#endif // VW: deprecated
-
 pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
@@ -470,8 +470,10 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra));
-void pcintr_resume(void *extra);
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name);
+void pcintr_resume(pcintr_coroutine_t cor, void *extra);
 
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
@@ -656,14 +658,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
 
-typedef void (*co_routine_f)(void);
-
-void
-pcintr_wakeup_target(pcintr_coroutine_t target, co_routine_f routine);
-
-void
-pcintr_apply_routine(co_routine_f routine, pcintr_coroutine_t target);
-
 void
 pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
         void (*func)(void *ctxt));
@@ -688,19 +682,21 @@ int
 pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, purc_variant_t event_name,
-        purc_variant_t data);
+        purc_variant_t data, purc_variant_t request_id);
 
 int
 pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
+        const char *event_sub_type, purc_variant_t data,
+        purc_variant_t request_id);
 
 int
 pcintr_coroutine_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op,
         purc_variant_t observed, const char *event_type,
-        const char *event_sub_type, purc_variant_t data);
+        const char *event_sub_type, purc_variant_t data,
+        purc_variant_t request_id);
 
 static inline const char*
 pcintr_coroutine_get_uri(pcintr_coroutine_t co)
@@ -708,79 +704,10 @@ pcintr_coroutine_get_uri(pcintr_coroutine_t co)
     return purc_atom_to_string(co->cid);
 }
 
+void
+pcintr_schedule(void *ctxt);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */
-
-#if 0 // VW: deprecated
-void
-pcintr_util_dump_document_ex(purc_document_t doc, char **dump_buff,
-    const char *file, int line, const char *func);
-
-void
-pcintr_util_dump_edom_node_ex(pcdom_node_t *node,
-    const char *file, int line, const char *func);
-
-#define pcintr_util_dump_document(_doc)          \
-    pcintr_util_dump_document_ex(_doc, NULL, __FILE__, __LINE__, __func__)
-
-#define pcintr_util_dump_edom_node(_node)        \
-    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
-
-#define pcintr_dump_document(_stack)             \
-    pcintr_util_dump_document_ex(_stack->doc, _stack->co->dump_buff, \
-            __FILE__, __LINE__, __func__)
-
-#define pcintr_dump_edom_node(_stack, _node)      \
-    pcintr_util_dump_edom_node_ex(_node, __FILE__, __LINE__, __func__)
-
-void
-pcintr_dump_frame_edom_node(pcintr_stack_t stack);
-
-pcdom_element_t*
-pcintr_util_append_element(pcdom_element_t* parent, const char *tag);
-
-pcdom_text_t*
-pcintr_util_append_content(pcdom_element_t* parent, const char *txt);
-
-pcdom_text_t*
-pcintr_util_displace_content(pcdom_element_t* parent, const char *txt);
-
-int
-pcintr_util_set_attribute(pcdom_element_t *elem,
-        const char *key, const char *val);
-
-int
-pcintr_util_remove_attribute(pcdom_element_t *elem, const char *key);
-
-int
-pcintr_util_add_child_chunk(pcdom_element_t *parent, const char *chunk);
-
-int
-pcintr_util_set_child_chunk(pcdom_element_t *parent, const char *chunk);
-
-WTF_ATTRIBUTE_PRINTF(2, 3)
-int
-pcintr_util_add_child(pcdom_element_t *parent, const char *fmt, ...);
-
-WTF_ATTRIBUTE_PRINTF(2, 3)
-int
-pcintr_util_set_child(pcdom_element_t *parent, const char *fmt, ...);
-
-pchtml_html_document_t*
-pcintr_util_load_document(const char *html);
-
-int
-pcintr_util_comp_docs(pchtml_html_document_t *docl,
-    pchtml_html_document_t *docr, int *diff);
-
-bool
-pcintr_util_is_ancestor(pcdom_node_t *ancestor, pcdom_node_t *descendant);
-
-static inline void
-pcintr_coroutine_set_dump_buff(purc_coroutine_t co, char **dump_buff)
-{
-    co->dump_buff = dump_buff;
-}
-#endif // VW: deprecated
 

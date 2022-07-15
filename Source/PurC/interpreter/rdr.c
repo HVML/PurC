@@ -786,6 +786,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     switch (stack->co->target_page_type) {
     case PCRDR_PAGE_TYPE_NULL:
         goto failed;
+        break;
 
     case PCRDR_PAGE_TYPE_PLAINWIN:
         target = PCRDR_MSG_TARGET_PLAINWINDOW;
@@ -793,6 +794,10 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
     case PCRDR_PAGE_TYPE_WIDGET:
         target = PCRDR_MSG_TARGET_WIDGET;
+        break;
+
+    default:
+        PC_ASSERT(0); // TODO
         break;
     }
     target_value = stack->co->target_page_handle;
@@ -879,7 +884,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return NULL;
     }
 
@@ -934,7 +939,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return NULL;
     }
 
@@ -1047,7 +1052,7 @@ pcintr_rdr_dom_append_child(pcintr_stack_t stack, pcdoc_element_t element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return true;
     }
     purc_variant_t data = serialize_node(child);
@@ -1064,7 +1069,7 @@ pcintr_rdr_dom_displace_child(pcintr_stack_t stack, pcdoc_element_t element,
         pcdom_node_t *child)
 {
     if (!stack || stack->co->target_page_handle == 0
-            || stack->stage != STACK_STAGE_EVENT_LOOP) {
+            || stack->co->stage != CO_STAGE_OBSERVING) {
         return true;
     }
 

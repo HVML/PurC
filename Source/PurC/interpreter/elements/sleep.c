@@ -35,6 +35,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#define SLEEP_EVENT_HANDER  "_sleep_event_handler"
+
 struct ctxt_for_sleep {
     struct pcvdom_node           *curr;
     purc_variant_t                with;
@@ -43,6 +45,9 @@ struct ctxt_for_sleep {
     int64_t                       for_ns;
 
     pcintr_timer_t                timer;
+    pcintr_coroutine_t            co;
+    purc_variant_t                element_value; // yield
+    purc_variant_t                event_name;    // yield
 };
 
 static void
@@ -55,6 +60,8 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
             pcintr_timer_destroy(ctxt->timer);
             ctxt->timer = NULL;
         }
+        PURC_VARIANT_SAFE_CLEAR(ctxt->element_value);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->event_name);
 
         free(ctxt);
     }
@@ -243,7 +250,7 @@ static void on_continuation(void *ud, void *extra)
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUN);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 
@@ -251,7 +258,6 @@ static void on_continuation(void *ud, void *extra)
     ctxt = (struct ctxt_for_sleep*)frame->ctxt;
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->timer);
-    pcintr_timer_processed(ctxt->timer);
 
     // NOTE: not interrupted
     purc_variant_t result = purc_variant_make_ulongint(0);
@@ -259,6 +265,48 @@ static void on_continuation(void *ud, void *extra)
         pcintr_set_question_var(frame, result);
         purc_variant_unref(result);
     }
+}
+
+static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
+{
+    UNUSED_PARAM(timer);
+    UNUSED_PARAM(id);
+    struct ctxt_for_sleep *ctxt = data;
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->element_value,
+        MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT,
+        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+}
+
+int sleep_event_handle(pcintr_coroutine_t co,
+        struct pcintr_event_handler *handler, pcrdr_msg *msg,
+        void *data, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+
+    *remove_handler = false;
+    int ret = PURC_ERROR_INCOMPLETED;
+    struct ctxt_for_sleep *ctxt = data;
+    // sleep timeout return PURC_ERROR_OK to clear msg
+    if (msg->requestId == PURC_VARIANT_INVALID &&
+            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
+            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        pcintr_set_current_co(co);
+        pcintr_resume(co, NULL);
+        pcintr_set_current_co(NULL);
+        *remove_handler = true;
+        ret = PURC_ERROR_OK;
+    }
+    else {
+        //TODO: wake up by other event return INCOMPLETED to keep msg for other handler
+    }
+
+    return ret;
 }
 
 static void*
@@ -300,15 +348,40 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->for_ns = 1 * 1000 * 1000;
     }
 
-    bool for_yielded = true;
-    ctxt->timer = pcintr_timer_create(NULL, for_yielded, false, NULL, NULL, NULL);
+
+    ctxt->element_value = purc_variant_make_native(frame, NULL);
+    if (!ctxt->element_value) {
+        return ctxt;
+    }
+
+    char *event =
+        malloc(strlen(MSG_TYPE_SLEEP) + strlen(MSG_SUB_TYPE_TIMEOUT) + 2);
+    if (!event) {
+        return ctxt;
+    }
+    sprintf(event, "%s:%s", MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT);
+    ctxt->event_name = purc_variant_make_string_reuse_buff(event,
+            strlen(event), false);
+    if (!ctxt->event_name) {
+        free(event);
+        return ctxt;
+    }
+
+    ctxt->co = stack->co;
+    ctxt->timer = pcintr_timer_create(NULL, NULL, on_sleep_timeout, ctxt);
     if (!ctxt->timer)
         return ctxt;
 
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation);
+    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+            ctxt->element_value, ctxt->event_name);
+
+    pcintr_coroutine_add_event_handler(
+            ctxt->co,  SLEEP_EVENT_HANDER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+            ctxt, sleep_event_handle, false);
 
     purc_clr_error();
 

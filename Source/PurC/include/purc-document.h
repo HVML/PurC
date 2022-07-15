@@ -28,7 +28,7 @@
 #include "purc-macros.h"
 #include "purc-variant.h"
 
-/* document type */
+/** document types */
 typedef enum {
     PCDOC_K_TYPE_FIRST = 0,
     PCDOC_K_TYPE_VOID = PCDOC_K_TYPE_FIRST,
@@ -47,6 +47,9 @@ typedef enum {
 } purc_document_type;
 
 #define PCDOC_NR_TYPES (PCDOC_K_TYPE_LAST - PCDOC_K_TYPE_FIRST + 1)
+
+/* Special document type */
+#define PCDOC_K_STYPE_INHERIT           "_inherit"
 
 struct purc_document;
 typedef struct purc_document purc_document;
@@ -281,7 +284,7 @@ pcdoc_element_new_content(purc_document_t doc,
  *
  * @param elem: the pointer to the element.
  * @param op: The operation, can be one of the following values:
- *  - PCDOC_OP_DISPLACE: change the attribute value.
+ *  - PCDOC_OP_UPDATE: update the attribute value.
  *  - PCDOC_OP_ERASE: remove the attribute.
  *  - PCDOC_OP_CLEAR: clear the attribute value.
  * @param name: the name of the attribute.

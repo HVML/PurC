@@ -135,7 +135,7 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
 
@@ -162,7 +162,7 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
 
@@ -189,7 +189,7 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
 
@@ -357,7 +357,7 @@ bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 dest, MSG_TYPE_CHANGE, except,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
 

@@ -251,7 +251,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  * @param local_data: The value of the local data.
  * @param cb_free: A callback function which will be called automatically
  *  by PurC to free the local data when the PurC instance is being destroyed
- *  or the local data is being removed or overwritten. If it is NULL,
+ *  or the local data is being removed or overwritten. If it is @NULL,
  *  the system does nothing to the local data.
  *
  * This function sets the local data as @local_data which is bound with the
@@ -287,7 +287,7 @@ purc_set_local_data(const char* data_name, uintptr_t locale_data,
  * \param data_name The name for the local data.
  *
  * This function removes the local data which is bound with the
- * name \a data_name for the current PurC instance. When you pass NULL
+ * name \a data_name for the current PurC instance. When you pass @NULL
  * for \a data_name, this function will remove all local data of it.
  * Note that this function will call the callback procedure for releasing
  * the local data, if you had set it, when removing the local data.
@@ -436,11 +436,26 @@ typedef struct purc_renderer_extra_info {
 
 /** The rendere page type */
 typedef enum pcrdr_page_type {
-    /** Do not create any page for the HVML coroutine. */
+#define PCRDR_PAGE_TYPE_NAME_NULL       "_null"
+    /** Do not create or use any page for the HVML coroutine. */
     PCRDR_PAGE_TYPE_NULL = 0,
-    /** Create a plain window for the HVML coroutine. */
+#define PCRDR_PAGE_TYPE_NAME_SELF       "_self"
+    /** Use the page of curator. */
+    PCRDR_PAGE_TYPE_SELF,
+#define PCRDR_PAGE_TYPE_NAME_FIRST      "_first"
+    /** Use the first page in the specified page group. */
+    PCRDR_PAGE_TYPE_FIRST,
+#define PCRDR_PAGE_TYPE_NAME_LAST       "_last"
+    /** Use the last page in the specified page group. */
+    PCRDR_PAGE_TYPE_LAST,
+#define PCRDR_PAGE_TYPE_NAME_ACTIVE     "_active"
+    /** Use the current active page in the specified page group. */
+    PCRDR_PAGE_TYPE_ACTIVE,
+#define PCRDR_PAGE_TYPE_NAME_PLAINWIN   "plainwin"
+    /** Create a new plain window in the specified page group. */
     PCRDR_PAGE_TYPE_PLAINWIN,
-    /** Create a widget in the specified page group for the HVML coroutine. */
+#define PCRDR_PAGE_TYPE_NAME_WIDGET     "widget"
+    /** Create a new widget in the specified page group. */
     PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type;
 
@@ -459,7 +474,7 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
  *  HTML contents. When @NULL given, the renderer will create an ungrouped
- *  plainw window for this coroutine.
+ *  plain window for this coroutine.
  * @page_name: The page name (nullable). When @NULL given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
  * @extra_info: The extra renderer information.

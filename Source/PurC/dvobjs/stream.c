@@ -955,12 +955,8 @@ struct io_callback_data {
     struct pcdvobjs_stream       *stream;
 };
 
-static void on_stream_io_callback(void *ctxt)
+static void on_stream_io_callback(struct io_callback_data *data)
 {
-    struct io_callback_data *data;
-    data = (struct io_callback_data*)ctxt;
-    PC_ASSERT(data);
-
     purc_runloop_io_event event = data->io_event;
     struct pcdvobjs_stream *stream = data->stream;
 
@@ -975,7 +971,7 @@ static void on_stream_io_callback(void *ctxt)
         pcintr_coroutine_post_event(stream->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 stream->observed, STREAM_EVENT_NAME, sub,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     }
 
     free(data);
@@ -995,7 +991,7 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     data->io_event = event;
     data->stream = stream;
 
-    pcintr_post_msg(data, on_stream_io_callback);
+    on_stream_io_callback(data);
 
     return true;
 }

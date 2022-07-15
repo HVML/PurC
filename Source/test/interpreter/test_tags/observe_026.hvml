@@ -1,0 +1,20 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" type="text/css" href="calculator.css" />
+
+    </head>
+
+    <body>
+        <div id="calculator">
+
+            <div id="c_title">
+                <observe on="$HVML" for="idle">
+                    <forget on="$HVML" for="idle"/>
+                </observe>
+                <p>this is after observe</p>
+            </div>
+        </div>
+    </body>
+</hvml>
+

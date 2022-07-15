@@ -311,7 +311,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             int ret = pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     observed, ctxt->msg_type, ctxt->sub_type,
-                    ctxt->with);
+                    ctxt->with, PURC_VARIANT_INVALID);
             purc_variant_unref(observed);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
@@ -327,7 +327,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             int ret = pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     on, ctxt->msg_type, ctxt->sub_type,
-                    ctxt->with);
+                    ctxt->with, PURC_VARIANT_INVALID);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }
@@ -337,7 +337,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             int ret = pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     on, ctxt->msg_type, ctxt->sub_type,
-                    ctxt->with);
+                    ctxt->with, PURC_VARIANT_INVALID);
             if (ret != PURC_ERROR_OK) {
                 return ctxt;
             }
