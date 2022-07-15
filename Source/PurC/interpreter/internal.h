@@ -48,6 +48,8 @@
 
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
+#define MSG_TYPE_SUB_EXIT          "subExit"
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -464,6 +466,9 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
+
+void
+pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

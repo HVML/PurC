@@ -1579,41 +1579,6 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
     }
 }
 
-static void on_sub_exit_event(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->as);
-    PRINT_VARIANT(child_result->result);
-
-    list_del(&child_result->node);
-    PURC_VARIANT_SAFE_CLEAR(child_result->as);
-    PURC_VARIANT_SAFE_CLEAR(child_result->result);
-    free(child_result);
-}
-
-static void on_sub_exit(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->result);
-
-    pcintr_post_msg_to_target(co, ctxt, on_sub_exit_event);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
 static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
@@ -1644,7 +1609,14 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         co->result = NULL;
         PC_ASSERT(parent);
         PC_ASSERT(co_result);
-        pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
+
+        purc_variant_t payload = purc_variant_make_native(co_result, NULL);
+        pcintr_coroutine_post_event(parent->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                payload,                        /* elementValue must set */
+                MSG_TYPE_SUB_EXIT, NULL,
+                payload, PURC_VARIANT_INVALID);
+        purc_variant_unref(payload);
     }
 
     pcutils_rbtree_erase(&co->node, &heap->coroutines);
@@ -1957,6 +1929,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     pcintr_coroutine_add_observer_event_handler(co);
+    pcintr_coroutine_add_sub_exit_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {
