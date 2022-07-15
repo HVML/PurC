@@ -461,7 +461,7 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name);
+        purc_variant_t event_name, bool custom_event_handler);
 void pcintr_resume(pcintr_coroutine_t cor, pcrdr_msg *msg);
 
 void

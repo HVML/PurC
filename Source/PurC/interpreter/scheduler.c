@@ -558,7 +558,7 @@ yield_event_handle(struct pcintr_event_handler *handler,
 
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name)
+        purc_variant_t event_name, bool custom_event_handler)
 {
     UNUSED_PARAM(request_id);
     UNUSED_PARAM(event_name);
@@ -592,10 +592,12 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_ref(co->wait_event_name);
     }
 
-    pcintr_coroutine_add_event_handler(
-            co,  YIELD_EVENT_HANDLER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, yield_event_handle, is_yield_event_handler_match, false);
+    if (!custom_event_handler) {
+        pcintr_coroutine_add_event_handler(
+                co,  YIELD_EVENT_HANDLER,
+                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+                ctxt, yield_event_handle, is_yield_event_handler_match, false);
+    }
 }
 
 void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)

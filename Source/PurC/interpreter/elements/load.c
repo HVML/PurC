@@ -158,7 +158,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (ctxt->synchronously) {
         ctxt->request_id = purc_variant_make_native(ctxt, NULL);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
         return 0;
     }
 

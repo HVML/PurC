@@ -283,7 +283,7 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
-int sleep_event_handle(struct pcintr_event_handler *handler,
+static int sleep_event_handle(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
@@ -291,10 +291,10 @@ int sleep_event_handle(struct pcintr_event_handler *handler,
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
     struct ctxt_for_sleep *ctxt = handler->data;
-    // sleep timeout return PURC_ERROR_OK to clear msg
     if (msg->requestId == PURC_VARIANT_INVALID &&
             purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
             purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        // sleep timeout return PURC_ERROR_OK to clear msg
         pcintr_set_current_co(co);
         pcintr_resume(co, NULL);
         pcintr_set_current_co(NULL);
@@ -374,13 +374,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-            ctxt->element_value, ctxt->event_name);
-
     pcintr_coroutine_add_event_handler(
             ctxt->co,  SLEEP_EVENT_HANDER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
             ctxt, sleep_event_handle, NULL, false);
+
+    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+            ctxt->element_value, ctxt->event_name, true);
 
     purc_clr_error();
 
