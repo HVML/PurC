@@ -185,6 +185,8 @@ static size_t scan_lines (FILE *fp)
     size_t  total_line = 0;
     bool    new_line_flag = false;
 
+    fseek (fp, 0, SEEK_SET);
+
     while (1) {
         read_size = fread (buffer, 1, BUFFER_SIZE, fp);
         if (read_size == 0)
@@ -208,6 +210,7 @@ static size_t scan_lines (FILE *fp)
     if (new_line_flag)
         total_line ++;
 
+    fseek (fp, 0, SEEK_SET);
     return total_line;
 }
 
@@ -237,43 +240,42 @@ static purc_variant_t read_lines (FILE *fp, ssize_t line_num)
                 if (line_num < 0) {
                     // Skip the first line_num lines.
                     line_num ++;
-                    buffer_line_start = i + 1;
-                    continue;
-                }
-
-                buffer_line_end = i - 1;
-                
-                if (content_len > 0) {
-                    content = realloc (content,
-                            content_len + buffer_line_end - buffer_line_start + 1);
-                    memcpy (content + content_len,
-                            buffer + buffer_line_start,
-                            buffer_line_end - buffer_line_start);
-                    content_len += (buffer_line_end - buffer_line_start);
-                    content[content_len] = 0x0;
-                    if (content[content_len - 1] == '\r')
-                        content[content_len - 1] = 0x0;
-
-                    val = purc_variant_make_string_ex (content, content_len, false);
-                    purc_variant_array_append (ret_var, val);
-                    purc_variant_unref (val);
-
-                    free (content);
-                    content = NULL;
-                    content_len = 0;
                 }
                 else {
-                    val = purc_variant_make_string_ex (buffer + buffer_line_start,
-                            buffer_line_end - buffer_line_start, false);
-                    purc_variant_array_append (ret_var, val);
-                    purc_variant_unref (val);
-                }
+                    buffer_line_end = i - 1;
+                    
+                    if (content_len > 0) {
+                        content = realloc (content,
+                                content_len + buffer_line_end - buffer_line_start + 1);
+                        memcpy (content + content_len,
+                                buffer + buffer_line_start,
+                                buffer_line_end - buffer_line_start);
+                        content_len += (buffer_line_end - buffer_line_start);
+                        content[content_len] = 0x0;
+                        if (content[content_len - 1] == '\r')
+                            content[content_len - 1] = 0x0;
 
-                if (line_num > 0) {
-                    // Read the first line_num lines.
-                    line_num --;
-                    if (line_num == 0)
-                        goto out;
+                        val = purc_variant_make_string_ex (content, content_len, false);
+                        purc_variant_array_append (ret_var, val);
+                        purc_variant_unref (val);
+
+                        free (content);
+                        content = NULL;
+                        content_len = 0;
+                    }
+                    else {
+                        val = purc_variant_make_string_ex (buffer + buffer_line_start,
+                                buffer_line_end - buffer_line_start, false);
+                        purc_variant_array_append (ret_var, val);
+                        purc_variant_unref (val);
+                    }
+
+                    if (line_num > 0) {
+                        // Read the first line_num lines.
+                        line_num --;
+                        if (line_num == 0)
+                            goto out;
+                    }
                 }
 
                 buffer_line_start = i + 1;
@@ -291,7 +293,19 @@ static purc_variant_t read_lines (FILE *fp, ssize_t line_num)
         }
 
         if (read_size < BUFFER_SIZE) // No more content.
+        {
+            if (content && line_num >= 0) {
+                val = purc_variant_make_string_ex (content, content_len, false);
+                purc_variant_array_append (ret_var, val);
+                purc_variant_unref (val);
+
+                free (content);
+                content = NULL;
+                content_len = 0;
+            }
+
             break;
+        }
     }
 
 out:
@@ -453,7 +467,8 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (line_num <= 0)
             ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
         else
-            ret_var = read_lines (fp, line_num);
+            // Skip line_num lines.
+            ret_var = read_lines (fp, -line_num);
     }
 
     fclose (fp);

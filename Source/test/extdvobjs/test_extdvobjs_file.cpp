@@ -51,6 +51,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
+    size_t nr_return_line;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -78,12 +79,15 @@ TEST(dvobjs, dvobjs_file_text_head)
     ASSERT_NE(func, nullptr);
 
     stat("/etc/passwd", &filestat);
+    ASSERT_GE(filestat.st_size, 0);
 
     printf ("TEST text_head: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_string_size (ret_var)-1, filestat.st_size);
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
+    //printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -92,7 +96,9 @@ TEST(dvobjs, dvobjs_file_text_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     ret_var = func (NULL, 2, param, false);
-    printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
+    //printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -101,7 +107,9 @@ TEST(dvobjs, dvobjs_file_text_head)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     ret_var = func (NULL, 2, param, false);
-    printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
+    //printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -128,6 +136,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     size_t sz_total_mem_after = 0;
     size_t sz_total_values_after = 0;
     size_t nr_reserved_after = 0;
+    size_t nr_return_line;
 
     purc_instance_extra_info info = {};
     int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -155,12 +164,14 @@ TEST(dvobjs, dvobjs_file_text_tail)
     ASSERT_NE(func, nullptr);
 
     stat("/etc/passwd", &filestat);
+    ASSERT_GE(filestat.st_size, 0);
 
     printf ("TEST text_tail: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_EQ(purc_variant_string_size (ret_var)-1, 0);
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -169,7 +180,8 @@ TEST(dvobjs, dvobjs_file_text_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (3);
     ret_var = func (NULL, 2, param, false);
-    printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -178,7 +190,8 @@ TEST(dvobjs, dvobjs_file_text_tail)
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (-3);
     ret_var = func (NULL, 2, param, false);
-    printf("\t\tReturn : %s\n", purc_variant_get_string_const (ret_var));
+    ASSERT_TRUE(purc_variant_array_size (ret_var, &nr_return_line));
+    printf("\t\tReturn : %ld\n", nr_return_line);
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -233,7 +246,7 @@ TEST(dvobjs, dvobjs_file_bin_head)
 
     stat("/etc/passwd", &filestat);
 
-    printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=0 :\n");
+    printf ("TEST bin_head: nr_args=2, param1=\"/etc/passwd\", param2=0:\n");
     param[0] = purc_variant_make_string ("/etc/passwd", false);
     param[1] = purc_variant_make_number (0);
     ret_var = func (NULL, 2, param, false);
