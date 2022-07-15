@@ -52,6 +52,8 @@
 #define MSG_SUB_TYPE_SUCCESS    "success"
 #define MSG_SUB_TYPE_EXCEPT     "except"
 
+#define YIELD_EVENT_HANDLER     "_yield_event_handler"
+
 
 static inline
 double current_time()
@@ -523,6 +525,37 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
     return 0;
 }
 
+bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    if (co->wait_request_id) {
+        return purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
+    }
+
+    if (purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
+            purc_variant_is_equal_to(co->wait_event_name, msg->eventName)) {
+        return true;
+    }
+    return false;
+}
+
+static int
+yield_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+
+    *remove_handler = true;
+
+    pcintr_set_current_co(co);
+    pcintr_resume(co, msg);
+    pcintr_set_current_co(NULL);
+
+    return PURC_ERROR_OK;
+}
+
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
         purc_variant_t event_name)
@@ -558,6 +591,11 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         co->wait_event_name = event_name;
         purc_variant_ref(co->wait_event_name);
     }
+
+    pcintr_coroutine_add_event_handler(
+            co,  YIELD_EVENT_HANDLER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+            ctxt, yield_event_handle, is_yield_event_handler_match, false);
 }
 
 void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)

@@ -36,7 +36,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define CALL_STATE_EVENT_HANDLER        "__call_state_event_handler"
 #define EVENT_SEPARATOR                 ':'
 
 struct ctxt_for_call {
@@ -125,29 +124,6 @@ on_continuation(void *ud, pcrdr_msg *msg)
     PC_ASSERT(0);
 }
 
-int call_state_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
-{
-    UNUSED_PARAM(handler);
-
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-
-    struct ctxt_for_call *ctxt = handler->data;
-
-    if (msg->requestId == ctxt->request_id
-            && msg->elementValue == ctxt->request_id) {
-        pcintr_set_current_co(co);
-        pcintr_resume(co, msg);
-        pcintr_check_after_execution_full(pcinst_current(), co);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        ret = PURC_ERROR_OK;
-    }
-
-    return ret;
-}
-
 static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -214,10 +190,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         if (ctxt->synchronously) {
             ctxt->request_id = purc_variant_make_native(ctxt, NULL);
-            pcintr_coroutine_add_event_handler(
-                    co,  CALL_STATE_EVENT_HANDLER,
-                    CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-                    ctxt, call_state_event_handle, NULL, false);
             pcintr_yield(frame, on_continuation, ctxt->request_id,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
             return 0;
@@ -234,11 +206,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     if (ctxt->synchronously) {
         ctxt->request_id = purc_variant_make_native(ctxt, NULL);
-        pcintr_coroutine_add_event_handler(
-                co,  CALL_STATE_EVENT_HANDLER,
-                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-                ctxt, call_state_event_handle, NULL, false);
-        pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+        pcintr_yield(frame, on_continuation, ctxt->request_id ,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         return 0;
     }

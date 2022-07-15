@@ -36,7 +36,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define ARCHETYPE_SYNC_FETCHER_EVENT_HANDLER  "__archetype_sync_fetcher_event_handler"
 
 struct ctxt_for_archetype {
     struct pcvdom_node           *curr;
@@ -289,28 +288,6 @@ method_by_method(const char *s_method, enum pcfetcher_request_method *method)
     return 0;
 }
 
-int sync_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
-{
-    UNUSED_PARAM(handler);
-
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-
-    struct ctxt_for_archetype *ctxt = handler->data;
-
-    if (msg->requestId == ctxt->sync_id
-            && msg->elementValue == ctxt->sync_id) {
-        pcintr_set_current_co(co);
-        pcintr_resume(co, NULL);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        ret = PURC_ERROR_OK;
-    }
-
-    return ret;
-}
-
 static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -472,13 +449,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         return;
 
     ctxt->sync_id = purc_variant_ref(v);
-
-    pcintr_coroutine_add_event_handler(
-            ctxt->co,  ARCHETYPE_SYNC_FETCHER_EVENT_HANDLER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sync_event_handle, NULL, false);
-
-    pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
+    pcintr_yield(frame, on_sync_continuation, ctxt->sync_id,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 

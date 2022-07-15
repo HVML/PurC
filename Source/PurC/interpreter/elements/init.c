@@ -36,9 +36,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define INIT_SYNC_FETCHER_EVENT_HANDLER    "__init_sync_fetcher_event_handler"
-#define INIT_ASYNC_FETCHER_EVENT_HANDLER  "__init_async_fetcher_event_handler"
-
 enum VIA {
     VIA_UNDEFINED,
     VIA_LOAD,
@@ -865,28 +862,6 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-int init_sync_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
-{
-    UNUSED_PARAM(handler);
-
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-
-    struct ctxt_for_init *ctxt = handler->data;
-
-    if (msg->requestId == ctxt->sync_id
-            && msg->elementValue == ctxt->sync_id) {
-        pcintr_set_current_co(co);
-        pcintr_resume(co, NULL);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        ret = PURC_ERROR_OK;
-    }
-
-    return ret;
-}
-
 static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -1079,12 +1054,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     ctxt->sync_id = purc_variant_ref(v);
 
-    pcintr_coroutine_add_event_handler(
-            co,  INIT_SYNC_FETCHER_EVENT_HANDLER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, init_sync_event_handle, NULL, false);
-
-    pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
+    pcintr_yield(frame, on_sync_continuation, ctxt->sync_id,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 
     purc_clr_error();
