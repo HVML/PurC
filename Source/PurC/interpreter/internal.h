@@ -413,10 +413,6 @@ void
 pcintr_notify_to_stop(pcintr_coroutine_t co);
 
 void
-pcintr_on_msg(void *ctxt);
-
-
-void
 pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack);
 
 void

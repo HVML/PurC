@@ -1760,31 +1760,6 @@ pcintr_notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-void
-pcintr_on_msg(void *ctxt)
-{
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)ctxt;
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    //struct pcintr_stack_frame *frame;
-    //frame = pcintr_stack_get_bottom_frame(stack);
-    //PC_ASSERT(frame == NULL);
-
-    //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-
-    PC_ASSERT(co->msg_pending);
-    co->msg_pending = 0;
-    msg->on_msg(msg->ctxt);
-    free(msg);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-// XXX: multiple inst
 static struct pcintr_msg            last_msg;
 
 struct pcintr_msg *
@@ -1918,7 +1893,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_coroutine_set_state(co, CO_STATE_READY);
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
-    INIT_LIST_HEAD(&co->msgs);
     INIT_LIST_HEAD(&co->tasks);
     INIT_LIST_HEAD(&co->event_handlers);
     co->msg_pending = 0;

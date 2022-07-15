@@ -168,19 +168,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
     }
 
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        //PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
     if (!list_empty(&co->children)) {
         return;
     }
@@ -203,19 +190,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
     }
 
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
     if (still_observed) {
         return;
     }
@@ -223,10 +197,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (!co->stack.exited) {
         co->stack.exited = 1;
         pcintr_notify_to_stop(co);
-    }
-
-    if (!list_empty(&co->msgs)) {
-        return;
     }
 
     if (co->msg_pending) {

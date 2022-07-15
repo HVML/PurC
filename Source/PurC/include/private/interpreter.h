@@ -259,8 +259,6 @@ struct pcintr_coroutine {
     purc_variant_t              wait_element_value; /* pcrdr_msg.elementValue */
     purc_variant_t              wait_event_name;    /* pcrdr_msg.eventName */
 
-    struct list_head            msgs;   /* struct pcintr_msg */
-
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
     struct list_head            event_handlers; /* struct pcintr_event_handler */
