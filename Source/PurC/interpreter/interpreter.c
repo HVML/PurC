@@ -3206,25 +3206,6 @@ pcintr_load_child_co(const char *hvml,
     return child;
 }
 
-void
-pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
-        purc_variant_t src, purc_variant_t payload)
-{
-    PC_ASSERT(0);
-    UNUSED_PARAM(msg_sub_type);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(payload);
-
-    if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
-        if (0)
-            PC_ASSERT(0);
-    }
-    else {
-        if (0)
-            PC_ASSERT(0);
-    }
-}
-
 void*
 pcintr_load_module(const char *module,
         const char *env_name, const char *prefix)

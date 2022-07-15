@@ -60,10 +60,6 @@ struct pcintr_msg;
 typedef struct pcintr_msg pcintr_msg;
 typedef struct pcintr_msg *pcintr_msg_t;
 
-struct pcintr_event;
-typedef struct pcintr_event pcintr_event;
-typedef struct pcintr_event *pcintr_event_t;
-
 struct pcintr_cancel;
 typedef struct pcintr_cancel pcintr_cancel;
 typedef struct pcintr_cancel *pcintr_cancel_t;
@@ -219,13 +215,6 @@ struct pcintr_msg {
     void (*on_msg)(void *ctxt);
 
     struct list_head            node;
-};
-
-struct pcintr_event {
-    purc_atom_t msg_type;
-    purc_variant_t msg_sub_type;
-    purc_variant_t src;
-    purc_variant_t payload;
 };
 
 struct pcintr_coroutine_result {
@@ -609,17 +598,6 @@ pcintr_revoke_observer(struct pcintr_observer* observer);
 void
 pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
-
-void
-pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
-        purc_variant_t src, purc_variant_t payload);
-
-void
-pcintr_fire_event_to_target(pcintr_coroutine_t target,
-        purc_atom_t msg_type,
-        purc_variant_t msg_sub_type,
-        purc_variant_t src,
-        purc_variant_t payload);
 
 bool
 pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
