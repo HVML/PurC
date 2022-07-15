@@ -1839,69 +1839,6 @@ pcintr_on_last_msg(void *ctxt)
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
-void
-pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    PC_ASSERT(co->result);
-    PC_ASSERT(co->owner && target->owner);
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(with);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("success", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_ref(with);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
-void
-pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("except", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_make_string(error_except, false);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);

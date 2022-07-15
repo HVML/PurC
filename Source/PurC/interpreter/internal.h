@@ -420,13 +420,6 @@ pcintr_revoke_all_native_observers(pcintr_stack_t stack);
 void
 pcintr_revoke_all_common_observers(pcintr_stack_t stack);
 
-
-void
-pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except);
-
-void
-pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with);
-
 void
 pcintr_run_exiting_co(void *ctxt);
 

@@ -44,8 +44,14 @@
 #define SCHEDULE_SLEEP          10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
-#define MSG_TYPE_IDLE           "idle"
 #define BUILDIN_VAR_HVML        "HVML"
+
+#define MSG_TYPE_IDLE           "idle"
+#define MSG_TYPE_CALL_STATE     "callState"
+
+#define MSG_SUB_TYPE_SUCCESS    "success"
+#define MSG_SUB_TYPE_EXCEPT     "except"
+
 
 static inline
 double current_time()
@@ -249,11 +255,24 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
-            pcintr_post_callstate_except_event(co, co->error_except);
+            pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
+            purc_variant_t payload = purc_variant_make_string(
+                    co->error_except, false);
+            pcintr_coroutine_post_event(target->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    target->wait_request_id,
+                    MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_EXCEPT,
+                    payload, target->wait_request_id);
+            purc_variant_unref(payload);
         }
         else {
             PC_ASSERT(co->val_from_return_or_exit);
-            pcintr_post_callstate_success_event(co, co->val_from_return_or_exit);
+            pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
+            pcintr_coroutine_post_event(target->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    target->wait_request_id,
+                    MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
+                    co->val_from_return_or_exit, target->wait_request_id);
         }
     }
 
