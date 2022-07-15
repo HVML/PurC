@@ -477,7 +477,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     pcintr_coroutine_add_event_handler(
             ctxt->co,  ARCHETYPE_SYNC_FETCHER_EVENT_HANDLER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sync_event_handle, false);
+            ctxt, sync_event_handle, NULL, false);
 
     pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

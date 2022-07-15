@@ -465,10 +465,21 @@ out:
     return;
 }
 
+static bool
+default_event_match(struct pcintr_event_handler *handler, pcintr_coroutine_t co,
+        pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(msg);
+    return true;
+}
+
+
 struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
         int stage, int state, void *data, event_handle_fn fn,
-        bool support_null_event)
+        event_match_fn is_match_fn, bool support_null_event)
 {
     struct pcintr_event_handler *handler =
         (struct pcintr_event_handler *)calloc(1, sizeof(*handler));
@@ -482,6 +493,7 @@ pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
     handler->cor_state = state;
     handler->data = data;
     handler->handle = fn;
+    handler->is_match = is_match_fn ? is_match_fn : default_event_match;
     handler->support_null_event = support_null_event;
 
     list_add_tail(&handler->ln, &co->event_handlers);

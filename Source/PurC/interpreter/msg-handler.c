@@ -244,7 +244,8 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     return 0;
 }
 
-int observer_event_handle(struct pcintr_event_handler *handler,
+static int
+observer_event_handle(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
     UNUSED_PARAM(handler);
@@ -274,7 +275,7 @@ void pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co)
     struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
             co,  OBSERVER_EVENT_HANDER,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            NULL, observer_event_handle, true);
+            NULL, observer_event_handle, NULL, true);
     PC_ASSERT(handler);
 }
 

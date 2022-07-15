@@ -186,7 +186,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         pcintr_coroutine_add_event_handler(
                 co,  LOAD_EVENT_HANDLER,
                 CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-                ctxt, event_handle, false);
+                ctxt, event_handle, NULL, false);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         return 0;

@@ -1082,7 +1082,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     pcintr_coroutine_add_event_handler(
             co,  INIT_SYNC_FETCHER_EVENT_HANDLER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, init_sync_event_handle, false);
+            ctxt, init_sync_event_handle, NULL, false);
 
     pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

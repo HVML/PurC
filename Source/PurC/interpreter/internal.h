@@ -66,9 +66,8 @@ struct pcintr_observer_task {
 
 struct pcintr_event_handler;
 
-typedef bool (*event_match_fn)(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler);
+typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg);
 
 typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler);
@@ -81,6 +80,7 @@ struct pcintr_event_handler {
     char                         *name;
     void                         *data;
     event_handle_fn               handle;
+    event_match_fn                is_match;
 };
 
 
@@ -454,7 +454,7 @@ pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
         int stage, int state, void *data, event_handle_fn fn,
-        bool support_null_event);
+        event_match_fn is_match_fn, bool support_null_event);
 
 int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
