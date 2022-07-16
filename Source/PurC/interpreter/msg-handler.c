@@ -180,7 +180,9 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 
     purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             msg_type_s);
-    PC_ASSERT(msg_type_atom);
+    if (!msg_type_atom) {
+        return -1;
+    }
 
     purc_variant_t observed = msg->elementValue;
 
@@ -257,8 +259,9 @@ observer_event_handle(struct pcintr_event_handler *handler,
     int ret = PURC_ERROR_INCOMPLETED;
     *remove_handler = false;
     if (list_empty(&co->tasks) && msg) {
-        dispatch_coroutine_msg(co, msg);
-        ret = PURC_ERROR_OK;
+        if (PURC_ERROR_OK == dispatch_coroutine_msg(co, msg)) {
+            ret = PURC_ERROR_OK;
+        }
     }
 
     if (!list_empty(&co->tasks)) {

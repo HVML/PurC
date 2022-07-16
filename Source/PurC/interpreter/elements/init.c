@@ -1206,8 +1206,8 @@ bool is_async_event_handler_match(struct pcintr_event_handler *handler,
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
-    struct ctxt_for_init *ctxt = handler->data;
-    if (purc_variant_is_equal_to(ctxt->sync_id, msg->requestId)) {
+    struct load_data *data = (struct load_data *)handler->data;
+    if (purc_variant_is_equal_to(data->async_id, msg->requestId)) {
         return true;
     }
     return false;
@@ -1317,8 +1317,9 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     ctxt->sync_id = purc_variant_ref(data->async_id);
     pcintr_coroutine_add_event_handler(
             co,  INIT_ASYNC_EVENT_HANDLER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_READY,
-            ctxt, async_event_handle, is_async_event_handler_match, false);
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING,
+            data, async_event_handle, is_async_event_handler_match, false);
 
     pcintr_register_cancel(&data->cancel);
     PC_ASSERT(co->state == CO_STATE_RUNNING);

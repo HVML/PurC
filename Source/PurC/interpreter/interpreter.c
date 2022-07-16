@@ -2870,7 +2870,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     if (co == NULL) {
         return;
     }
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
+
+    if (co->state != CO_STATE_OBSERVING)
+    {
+        return;
+    }
 
     pcintr_stack_t stack = &co->stack;
     if (stack->exited)
@@ -3301,6 +3305,7 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
         const char *file, int line, const char *func)
 {
+    //PLOG(">%s:%d:%s state=%d\n", file, line, func, state);
     UNUSED_PARAM(file);
     UNUSED_PARAM(line);
     UNUSED_PARAM(func);

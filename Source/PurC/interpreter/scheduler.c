@@ -317,6 +317,12 @@ size_t
 handle_coroutine_event(pcintr_coroutine_t co)
 {
     int handle_ret = PURC_ERROR_INCOMPLETED;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(&co->stack);
+    if (frame != NULL && co->state != CO_STATE_STOPPED) {
+        goto out;
+    }
+
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
     bool remove_handler = false;
 
@@ -349,6 +355,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
     if (msg) {
         pcinst_msg_queue_append(co->mq, msg);
     }
+out:
     return pcinst_msg_queue_count(co->mq);
 }
 
