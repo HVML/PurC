@@ -60,10 +60,6 @@ struct pcintr_msg;
 typedef struct pcintr_msg pcintr_msg;
 typedef struct pcintr_msg *pcintr_msg_t;
 
-struct pcintr_event;
-typedef struct pcintr_event pcintr_event;
-typedef struct pcintr_event *pcintr_event_t;
-
 struct pcintr_cancel;
 typedef struct pcintr_cancel pcintr_cancel;
 typedef struct pcintr_cancel *pcintr_cancel_t;
@@ -221,13 +217,6 @@ struct pcintr_msg {
     struct list_head            node;
 };
 
-struct pcintr_event {
-    purc_atom_t msg_type;
-    purc_variant_t msg_sub_type;
-    purc_variant_t src;
-    purc_variant_t payload;
-};
-
 struct pcintr_coroutine_result {
     purc_variant_t              as;
     purc_variant_t              result;
@@ -264,13 +253,11 @@ struct pcintr_coroutine {
 
     struct list_head            registered_cancels;
     void                       *yielded_ctxt;
-    void (*continuation)(void *ctxt, void *extra);
+    void (*continuation)(void *ctxt, pcrdr_msg *msg);
 
     purc_variant_t              wait_request_id;    /* pcrdr_msg.requestId */
     purc_variant_t              wait_element_value; /* pcrdr_msg.elementValue */
     purc_variant_t              wait_event_name;    /* pcrdr_msg.eventName */
-
-    struct list_head            msgs;   /* struct pcintr_msg */
 
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
@@ -470,10 +457,10 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name);
-void pcintr_resume(pcintr_coroutine_t cor, void *extra);
+        purc_variant_t event_name, bool custom_event_handler);
+void pcintr_resume(pcintr_coroutine_t cor, pcrdr_msg *msg);
 
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
@@ -494,13 +481,6 @@ pcintr_exception_clear(struct pcintr_exception *exception);
 void
 pcintr_exception_move(struct pcintr_exception *dst,
         struct pcintr_exception *src);
-
-void
-pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb);
-
-void
-pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
-        pcintr_msg_callback_f cb);
 
 purc_variant_t
 pcintr_make_object_of_dynamic_variants(size_t nr_args,
@@ -610,17 +590,6 @@ void
 pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
 
-void
-pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
-        purc_variant_t src, purc_variant_t payload);
-
-void
-pcintr_fire_event_to_target(pcintr_coroutine_t target,
-        purc_atom_t msg_type,
-        purc_variant_t msg_sub_type,
-        purc_variant_t src,
-        purc_variant_t payload);
-
 bool
 pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len);
@@ -657,10 +626,6 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack);
 
 purc_runloop_t
 pcintr_co_get_runloop(pcintr_coroutine_t co);
-
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt));
 
 void*
 pcintr_load_module(const char *module,

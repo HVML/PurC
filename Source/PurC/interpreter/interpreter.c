@@ -1579,42 +1579,8 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
     }
 }
 
-static void on_sub_exit_event(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->as);
-    PRINT_VARIANT(child_result->result);
-
-    list_del(&child_result->node);
-    PURC_VARIANT_SAFE_CLEAR(child_result->as);
-    PURC_VARIANT_SAFE_CLEAR(child_result->result);
-    free(child_result);
-}
-
-static void on_sub_exit(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->result);
-
-    pcintr_post_msg(ctxt, on_sub_exit_event);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
+static void
+execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -1644,7 +1610,14 @@ static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         co->result = NULL;
         PC_ASSERT(parent);
         PC_ASSERT(co_result);
-        pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
+
+        purc_variant_t payload = purc_variant_make_native(co_result, NULL);
+        pcintr_coroutine_post_event(parent->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                payload,                        /* elementValue must set */
+                MSG_TYPE_SUB_EXIT, NULL,
+                payload, PURC_VARIANT_INVALID);
+        purc_variant_unref(payload);
     }
 
     pcutils_rbtree_erase(&co->node, &heap->coroutines);
@@ -1788,120 +1761,6 @@ pcintr_notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-void
-pcintr_on_msg(void *ctxt)
-{
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)ctxt;
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    //struct pcintr_stack_frame *frame;
-    //frame = pcintr_stack_get_bottom_frame(stack);
-    //PC_ASSERT(frame == NULL);
-
-    //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-
-    PC_ASSERT(co->msg_pending);
-    co->msg_pending = 0;
-    msg->on_msg(msg->ctxt);
-    free(msg);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-// XXX: multiple inst
-static struct pcintr_msg            last_msg;
-
-struct pcintr_msg *
-pcintr_last_msg()
-{
-    return &last_msg;
-}
-
-void
-pcintr_on_last_msg(void *ctxt)
-{
-    PC_ASSERT(ctxt == &last_msg);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->stack.exited);
-    PC_ASSERT(co->stack.last_msg_sent);
-    PC_ASSERT(co->stack.last_msg_read == 0);
-    co->stack.last_msg_read = 1;
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    PC_ASSERT(frame == NULL);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-void
-pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    PC_ASSERT(co->result);
-    PC_ASSERT(co->owner && target->owner);
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(with);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("success", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_ref(with);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
-void
-pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("except", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_make_string(error_except, false);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -2009,7 +1868,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_coroutine_set_state(co, CO_STATE_READY);
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
-    INIT_LIST_HEAD(&co->msgs);
     INIT_LIST_HEAD(&co->tasks);
     INIT_LIST_HEAD(&co->event_handlers);
     co->msg_pending = 0;
@@ -2019,6 +1877,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_name;
     }
 
+    pcintr_coroutine_add_sub_exit_event_handler(co);
+    pcintr_coroutine_add_last_msg_event_handler(co);
     pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
@@ -3010,7 +2870,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     if (co == NULL) {
         return;
     }
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
+
+    if (co->state != CO_STATE_OBSERVING)
+    {
+        return;
+    }
 
     pcintr_stack_t stack = &co->stack;
     if (stack->exited)
@@ -3077,28 +2941,6 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     return (pcvdom_element_t)native;
 }
 
-void
-pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    if (1) {
-        pcintr_post_msg_to_target(co, ctxt, cb);
-        return;
-    }
-
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-    PC_ASSERT(msg);
-
-    msg->ctxt        = ctxt;
-    msg->on_msg      = cb;
-
-    list_add_tail(&msg->node, &co->msgs);
-}
-
 void pcintr_cancel_init(pcintr_cancel_t cancel,
         void *ctxt, void (*cancel_routine)(void *ctxt))
 {
@@ -3135,79 +2977,6 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     PC_ASSERT(cancel->list == &co->registered_cancels);
     list_del(&cancel->node);
     cancel->list = NULL;
-}
-
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
-        purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name)
-{
-    UNUSED_PARAM(request_id);
-    UNUSED_PARAM(event_name);
-    PC_ASSERT(ctxt);
-    PC_ASSERT(continuation);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
-    co->yielded_ctxt = ctxt;
-    co->continuation = continuation;
-    if (request_id) {
-        co->wait_request_id = request_id;
-        purc_variant_ref(co->wait_request_id);
-    }
-
-    if (element_value) {
-        co->wait_element_value = element_value;
-        purc_variant_ref(co->wait_element_value);
-    }
-
-    if (event_name) {
-        co->wait_event_name = event_name;
-        purc_variant_ref(co->wait_event_name);
-    }
-}
-
-void pcintr_resume(pcintr_coroutine_t co, void *extra)
-{
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_STOPPED);
-    PC_ASSERT(co->yielded_ctxt);
-    PC_ASSERT(co->continuation);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt, void *extra) = co->continuation;
-
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->yielded_ctxt = NULL;
-    co->continuation = NULL;
-    if (co->wait_request_id) {
-        purc_variant_unref(co->wait_request_id);
-        co->wait_request_id = NULL;
-    }
-
-    if (co->wait_element_value) {
-        purc_variant_unref(co->wait_element_value);
-        co->wait_element_value = NULL;
-    }
-
-    if (co->wait_event_name) {
-        purc_variant_unref(co->wait_event_name);
-        co->wait_event_name = NULL;
-    }
-
-    continuation(ctxt, extra);
-    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
 pcintr_coroutine_t
@@ -3267,25 +3036,6 @@ pcintr_load_child_co(const char *hvml,
     } while (0);
 
     return child;
-}
-
-void
-pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
-        purc_variant_t src, purc_variant_t payload)
-{
-    PC_ASSERT(0);
-    UNUSED_PARAM(msg_sub_type);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(payload);
-
-    if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
-        if (0)
-            PC_ASSERT(0);
-    }
-    else {
-        if (0)
-            PC_ASSERT(0);
-    }
 }
 
 void*
@@ -3555,6 +3305,7 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
         const char *file, int line, const char *func)
 {
+    //PLOG(">%s:%d:%s state=%d\n", file, line, func, state);
     UNUSED_PARAM(file);
     UNUSED_PARAM(line);
     UNUSED_PARAM(func);

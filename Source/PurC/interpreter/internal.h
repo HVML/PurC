@@ -48,6 +48,9 @@
 
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
+#define MSG_TYPE_SUB_EXIT          "subExit"
+#define MSG_TYPE_LAST_MSG          "lastMsg"
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -66,18 +69,21 @@ struct pcintr_observer_task {
 
 struct pcintr_event_handler;
 
-typedef int (*event_handle_fn)(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler);
+typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg);
+
+typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler);
 
 struct pcintr_event_handler {
     struct list_head              ln;
     int                           cor_stage;
-    int                           cor_exec_state;
+    int                           cor_state;
     unsigned int                  support_null_event:1; /* support null event */
     char                         *name;
     void                         *data;
     event_handle_fn               handle;
+    event_match_fn                is_match;
 };
 
 
@@ -408,10 +414,6 @@ void
 pcintr_notify_to_stop(pcintr_coroutine_t co);
 
 void
-pcintr_on_msg(void *ctxt);
-
-
-void
 pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack);
 
 void
@@ -420,26 +422,11 @@ pcintr_revoke_all_native_observers(pcintr_stack_t stack);
 void
 pcintr_revoke_all_common_observers(pcintr_stack_t stack);
 
-
-void
-pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except);
-
-void
-pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with);
-
 void
 pcintr_run_exiting_co(void *ctxt);
 
 bool
 pcintr_co_is_observed(pcintr_coroutine_t co);
-
-void
-pcintr_on_last_msg(void *ctxt);
-
-
-struct pcintr_msg *
-pcintr_last_msg();
-
 
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
@@ -458,7 +445,7 @@ pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
         int stage, int state, void *data, event_handle_fn fn,
-        bool support_null_event);
+        event_match_fn is_match_fn, bool support_null_event);
 
 int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
@@ -468,6 +455,12 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
+
+void
+pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
+
+void
+pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 
