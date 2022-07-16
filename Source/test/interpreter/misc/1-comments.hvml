@@ -7,7 +7,7 @@
 # Note that this HVML program DOES generate a void document.
 # Therefore, the `title` and `p` elements will be ignored completely.
 
-<!-- The output of this HVML program:
+<!-- The expected output of this HVML program:
 
 Start of `Hello, world!`
 14:25

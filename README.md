@@ -174,7 +174,7 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 ```html
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) nosetotail >
         $STREAM.stdout.writelines(
                 $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
     </iterate>

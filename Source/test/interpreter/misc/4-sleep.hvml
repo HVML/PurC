@@ -1,0 +1,26 @@
+#!/usr/bin/purc
+
+<!-- The expected output of this HVML program:
+
+Finish the first-round run at 2021-08-15T15:52:01.000+00:00
+Got the idle event at 2021-08-15T15:52:01.100+00:00
+
+-->
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <observe on $HVML for "idle" >
+        $STREAM.stdout.writelines($STR.join("Got the idle event at ",
+                    $SYSTEM.time_prt('rfc3339-ex')))
+
+        <!-- After this element, the coroutine will exit -->
+        <forget on $HVML for "idle" />
+    </observe>
+
+    <!-- this sleep will be interrupted by the `idle` event -->
+    <sleep for "1d" />
+
+    $STREAM.stdout.writelines($STR.join("Finish the first-round run at ",
+                $SYSTEM.time_prt('rfc3339-ex')))
+</hvml>
