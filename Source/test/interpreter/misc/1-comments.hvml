@@ -1,11 +1,14 @@
-#!/user/bin/purc
+#!/usr/bin/purc
 
 # The above line makes the HVML program can have the execute permission,
 # so that we can run it directly on the command line if you installed
-# a correct HVML interpreter, e.g., `/bin/purc` in you system.
+# a correct HVML interpreter, e.g., `purc` to the directory `/usr/bin/`
+# in your system.
 
 # Note that this HVML program DOES generate a void document.
 # Therefore, the `title` and `p` elements will be ignored completely.
+
+# RESULT: $STR.nr_bytes('00:00')
 
 <!-- The expected output of this HVML program:
 

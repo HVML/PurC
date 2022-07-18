@@ -117,7 +117,7 @@
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
    - `$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）
    - `$HVML` 更名为 `$CRTN`
-   - `$SYSTEM` 更名为 `$SYS`
+   - `$REQUEST` 更名为 `$REQ`
 1. `purc` 命令行工具。
 1. 文档整理。
 

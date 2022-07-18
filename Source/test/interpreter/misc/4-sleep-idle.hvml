@@ -1,6 +1,8 @@
 #!/usr/bin/purc
 
-<!-- The expected output of this HVML program:
+# RESULT: undefined
+
+<!-- The expected output of this HVML program should be like
 
 Finish the first-round run at 2021-08-15T15:52:01.000+00:00
 Got the idle event at 2021-08-15T15:52:01.100+00:00

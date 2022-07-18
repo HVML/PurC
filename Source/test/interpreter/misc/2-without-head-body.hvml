@@ -1,5 +1,7 @@
 #!/user/bin/purc
 
+# RESULT: "-- by $SYS.const('HVML_INTRPR_NAME')"
+
 <!-- The expected output of this HVML program:
 
 0) Hello, world! -- from COROUTINE-01
@@ -14,10 +16,12 @@
 9) Hello, world! -- from COROUTINE-01
 -->
 
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml SYSTEM 'v:'>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith_calc('+', $0<, 1) nosetotail>
         $STREAM.stdout.writelines(
                 $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
     </iterate>
+
+    "-- by $SYS.const('HVML_INTRPR_NAME')"
 </hvml>
