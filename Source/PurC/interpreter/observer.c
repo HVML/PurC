@@ -31,7 +31,7 @@
 #include "private/interpreter.h"
 #include "private/regex.h"
 
-#define BUILDIN_VAR_HVML        "HVML"
+#define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 static void
 release_observer(struct pcintr_observer *observer)
@@ -215,7 +215,7 @@ pcintr_register_observer(pcintr_stack_t stack,
 
     // observe idle
     purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-            BUILDIN_VAR_HVML);
+            BUILTIN_VAR_CRTN);
     if (observed == hvml) {
         stack->observe_idle = 1;
     }
@@ -237,7 +237,7 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 
     // observe idle
     purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-            BUILDIN_VAR_HVML);
+            BUILTIN_VAR_CRTN);
     if (observer->observed == hvml) {
         stack->observe_idle = 0;
     }

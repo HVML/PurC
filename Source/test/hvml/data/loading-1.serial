@@ -15,7 +15,7 @@ PCHVML_TOKEN_START_TAG|<meta name="viewport" content="width=device-width, initia
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("HVML"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/"))/>
+PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/"))/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

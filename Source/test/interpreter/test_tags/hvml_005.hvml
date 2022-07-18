@@ -1,6 +1,6 @@
 <hvml target="html" id="ab" value="test" custom="cust">
     <body>
-        <div>$HVML.target</div>
+        <div>$CRTN.target</div>
         <div>$RUNNER.app</div>
         <div>$RUNNER.runner</div>
         <div>$EJSON.type($RUNNER.rid)</div>

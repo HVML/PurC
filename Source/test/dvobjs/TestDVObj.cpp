@@ -73,8 +73,8 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "DATETIME") == 0) {
         dvobj = purc_dvobj_datetime_new();
     }
-    else if (strcmp(name, "HVML") == 0) {
-        dvobj = purc_dvobj_hvml_new(NULL);
+    else if (strcmp(name, "CRTN") == 0) {
+        dvobj = purc_dvobj_coroutine_new(NULL);
     }
     else if (strcmp(name, "EJSON") == 0) {
         dvobj = purc_dvobj_ejson_new();

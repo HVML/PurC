@@ -12,12 +12,12 @@ Got the idle event at 2021-08-15T15:52:01.100+00:00
 <!DOCTYPE hvml SYSTEM "v: MATH">
 <hvml target="void">
 
-    <observe on $HVML for "idle" >
+    <observe on $CRTN for "idle" >
         $STREAM.stdout.writelines($STR.join("Got the idle event at ",
                     $SYS.time_prt('rfc3339-ex')))
 
         <!-- After this element, the coroutine will exit -->
-        <forget on $HVML for "idle" />
+        <forget on $CRTN for "idle" />
 
         <exit with true >
     </observe>

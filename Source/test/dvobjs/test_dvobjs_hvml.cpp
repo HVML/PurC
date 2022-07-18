@@ -75,7 +75,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
     purc_coroutine_t cor = (pcintr_coroutine_t)calloc(1, sizeof(*cor));
     ASSERT_NE(cor, nullptr);
 
-    purc_variant_t hvml = purc_dvobj_hvml_new(cor);
+    purc_variant_t hvml = purc_dvobj_coroutine_new(cor);
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 

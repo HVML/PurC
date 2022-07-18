@@ -104,9 +104,9 @@ purc_dvobj_runner_new(void);
 PCA_EXPORT purc_variant_t
 purc_dvobj_datetime_new(void);
 
-/** Make a dynamic variant object for built-in `$HVML` variable. */
+/** Make a dynamic variant object for built-in `$CRTN` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_hvml_new(pcintr_coroutine_t cor);
+purc_dvobj_coroutine_new(pcintr_coroutine_t cor);
 
 /** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t

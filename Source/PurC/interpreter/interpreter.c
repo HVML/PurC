@@ -1441,15 +1441,17 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
-#define BUILDIN_VAR_HVML        "HVML"
-#define BUILDIN_VAR_DATETIME    "DATETIME"
-#define BUILDIN_VAR_T           "T"
-#define BUILDIN_VAR_L           "L"
-#define BUILDIN_VAR_DOC         "DOC"
-#define BUILDIN_VAR_EJSON       "EJSON"
-#define BUILDIN_VAR_STR         "STR"
-#define BUILDIN_VAR_STREAM      "STREAM"
-#define BUILDIN_VAR_REQUEST     "REQUEST"
+#define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
+#define BUILTIN_VAR_T           PURC_PREDEF_VARNAME_T
+#define BUILTIN_VAR_DOC         PURC_PREDEF_VARNAME_DOC
+#define BUILTIN_VAR_REQ         PURC_PREDEF_VARNAME_REQ
+
+// TODO: the following variables are runner-level variables.
+#define BUILTIN_VAR_L           PURC_PREDEF_VARNAME_L
+#define BUILTIN_VAR_STR         PURC_PREDEF_VARNAME_STR
+#define BUILTIN_VAR_STREAM      PURC_PREDEF_VARNAME_STREAM
+#define BUILTIN_VAR_EJSON       PURC_PREDEF_VARNAME_EJSON
+#define BUILTIN_VAR_DATETIME    PURC_PREDEF_VARNAME_DATETIME
 
 static bool
 bind_cor_named_variable(purc_coroutine_t cor, const char* name,
@@ -1477,46 +1479,46 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
         return false;
     }
 
-    // $REQUEST
+    // $REQ
     if (request && !pcintr_bind_coroutine_variable(
-                cor, BUILDIN_VAR_REQUEST, request)) {
+                cor, BUILTIN_VAR_REQ, request)) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
 
-    // $HVML
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(cor))) {
+    // $CRTN
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_CRTN,
+                purc_dvobj_coroutine_new(cor))) {
         return false;
     }
 
     // $DATETIME
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_DATETIME,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_DATETIME,
                 purc_dvobj_datetime_new())) {
         return false;
     }
 
     // $T
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_T,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_T,
                 purc_dvobj_text_new())) {
         return false;
     }
 
     // $L
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_L,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_L,
                 purc_dvobj_logical_new())) {
         return false;
     }
 
     // FIXME: document-wide-variant???
     // $STR
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STR,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_STR,
                 purc_dvobj_string_new())) {
         return false;
     }
 
     // $STREAM
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STREAM,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_STREAM,
                 purc_dvobj_stream_new(cor->cid))) {
         return false;
     }
@@ -1524,7 +1526,7 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
 
 
     // $EJSON
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_EJSON,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_EJSON,
                 purc_dvobj_ejson_new())) {
         return false;
     }
@@ -1543,7 +1545,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     }
 
     // $DOC
-    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_DOC,
+    if(!bind_cor_named_variable(stack->co, BUILTIN_VAR_DOC,
                 purc_dvobj_doc_new(stack->doc))) {
         return -1;
     }
@@ -2334,7 +2336,7 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
         goto end;
     }
 
-    purc_variant_t doc = pcintr_get_coroutine_variable(cor, BUILDIN_VAR_DOC);
+    purc_variant_t doc = pcintr_get_coroutine_variable(cor, BUILTIN_VAR_DOC);
     if (doc == PURC_VARIANT_INVALID) {
         PC_ASSERT(0);
         goto end;

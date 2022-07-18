@@ -266,7 +266,7 @@ struct pcintr_coroutine {
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
 
-    /* $HVML  begin */
+    /* $CRTN  begin */
     /** The target as a null-terminated string. */
     char                       *target;
 
@@ -285,7 +285,7 @@ struct pcintr_coroutine {
 
     /** The timeout value for a remote request. */
     struct timespec             timeout;
-    /* $HVML  end */
+    /* $CRTN  end */
 
     struct pcintr_timers       *timers;     // $TIMERS
     struct pcvarmgr            *variables;  // coroutine level named variable

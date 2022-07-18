@@ -1,8 +1,8 @@
 /*
- * @file hvml.c
+ * @file coroutine.c
  * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
- * @brief The implementation of HVML dynamic variant object.
+ * @brief The implementation of CRTN dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -457,7 +457,7 @@ token_getter(purc_variant_t root,
 }
 
 purc_variant_t
-purc_dvobj_hvml_new(pcintr_coroutine_t cor)
+purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;

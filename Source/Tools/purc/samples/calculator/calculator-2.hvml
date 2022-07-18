@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
     <head>
-        <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
+        <base href="$CRTN.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
 
         <update on="$T.map" from="assets/{$SYS.locale}.json" to="merge" />
 

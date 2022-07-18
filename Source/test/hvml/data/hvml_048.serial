@@ -2,10 +2,10 @@ PCHVML_TOKEN_DOCTYPE|<!DOCTYPE hvml>
 PCHVML_TOKEN_VCM_TREE|"
 
 "
-PCHVML_TOKEN_COMMENT|<!-- $REQUEST contains the startup options -->
+PCHVML_TOKEN_COMMENT|<!-- $REQ contains the startup options -->
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_START_TAG|<hvml target=concat_string(get_element(get_variable("REQUEST"),"target"))>
+PCHVML_TOKEN_START_TAG|<hvml target=concat_string(get_element(get_variable("REQ"),"target"))>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<body>
@@ -92,7 +92,7 @@ PCHVML_TOKEN_COMMENT|<!--
         -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<include with=get_variable(concat_string("output_",get_element(get_variable("HVML"),"target"))) on=call_getter(get_element(get_variable("T"),"get"),"Hello, world!")/>
+PCHVML_TOKEN_START_TAG|<include with=get_variable(concat_string("output_",get_element(get_variable("CRTN"),"target"))) on=call_getter(get_element(get_variable("T"),"get"),"Hello, world!")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

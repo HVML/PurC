@@ -44,7 +44,7 @@
 #define SCHEDULE_SLEEP          10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
-#define BUILDIN_VAR_HVML        "HVML"
+#define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 #define MSG_TYPE_IDLE           "idle"
 #define MSG_TYPE_CALL_STATE     "callState"
@@ -76,7 +76,7 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
             purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                    BUILDIN_VAR_HVML);
+                    BUILTIN_VAR_CRTN);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID,

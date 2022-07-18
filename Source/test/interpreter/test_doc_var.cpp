@@ -28,7 +28,7 @@ TEST(doc_var, basic)
     "<!DOCTYPE hvml>"
     "<hvml target=\"html\" lang=\"en\">"
     "<head>"
-    "    <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    "    <base href=\"$CRTN.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
     "    <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/calculator.css\" />"
     "        <init as=\"buttons\" uniquely>"

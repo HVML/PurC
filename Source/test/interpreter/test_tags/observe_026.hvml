@@ -9,8 +9,8 @@
         <div id="calculator">
 
             <div id="c_title">
-                <observe on="$HVML" for="idle">
-                    <forget on="$HVML" for="idle"/>
+                <observe on="$CRTN" for="idle">
+                    <forget on="$CRTN" for="idle"/>
                 </observe>
                 <p>this is after observe</p>
             </div>
