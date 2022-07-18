@@ -39,8 +39,8 @@
    - ~~`$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）~~
    - ~~`$HVML` 更名为 `$CRTN`~~
    - ~~`$REQUEST` 更名为 `$REQ`~~
-   - 实现 `$EJSON.arith_calc` 和 `$EJSON.bitwise_calc` 方法
-   - 实现 `$STR.nr_bytes` 方法
+   - ~~实现 `$EJSON.arith` 和 `$EJSON.bitwise` 方法~~
+   - ~~实现 `$STR.nr_bytes` 方法~~
    - `$RDR`
    - `$DOC`
    - `$URL`
