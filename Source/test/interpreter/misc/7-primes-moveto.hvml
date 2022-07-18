@@ -1,0 +1,48 @@
+#!/usr/bin/purc
+
+# RESULT: true
+
+<!-- The expected output of this HVML program should be like
+
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <body id="main">
+        <update on $RUNNER.myObj to "merge" with { 'primes': [] } />
+
+        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
+            <init as channelIdx with $? />
+            <init as inChannel with "channel$?" />
+
+            <observe on $CRTN for "received:$inChannel" once >
+                <update on $RUNNER.myObj.primes to "append" with $? />
+                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $? } async />
+            </observe>
+
+        </iterate>
+
+        <load from "_self#first" with { 'maxn': -1UL } async />
+    </body>
+
+    <body id="first">
+        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $EJSON.arith('+', $0<, 1) nosetotail >
+            $EJSON.move($?, "/-/-", "channel0")
+        </iterate>
+    </body>
+
+    <body id="sieve">
+
+        <init as inChannel with "channel$REQ.idx" />
+        <init as outChannel with "channel{$EJSON.arith('+', $REQ.idx, 1)}" />
+
+        <observe on $CRTN for "received:$inChannel" >
+            <test with $EJSON.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
+                $EJSON.move($?, "/-/-", "$outChannel")
+            </test>
+        </observe>
+
+    </body>
+</hvml>
+

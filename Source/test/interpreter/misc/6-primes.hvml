@@ -1,0 +1,46 @@
+#!/usr/bin/purc
+
+# RESULT: true
+
+<!-- The expected output of this HVML program should be like
+
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <body id="main">
+        <update on $RUNNER.myObj to "merge" with { 'channel0': [], 'primes': [] } />
+
+        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
+            <init as channelIdx with "$?" />
+            <init as inChannel with "channel$?" />
+            <observe on $RUNNER.myObj[$inChannel] for "grown" >
+                <update on $RUNNER.myObj.primes to "append" with $RUNNER.myObj[$inChannel][-1] />
+                <forget on $RUNNER.myObj[$inChannel] for "grown" />
+
+                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $RUNNER.myObj.primes[-1] } async >
+            </observe>
+        </iterate>
+
+        <load from "_self#first" with { 'maxn': -1UL } async />
+    </body>
+
+    <body id="first">
+        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $EJSON.arith('+', $0<, 1) nosetotail >
+            <update on $RUNNER.myObj.channel0 to append with $? />
+        </iterate>
+    </body>
+
+    <body id="sieve">
+        <init as inChannel with "channel$REQ.idx" />
+        <init as outChannel with "channel$EJSON.arith('+', $REQ.idx, 1)" />
+
+        <observe on $RUNNER.myObj[$inChannel] for "grown" >
+            <test with $EJSON.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
+                <update on $RUNNER.myObj[$outChannel] to "append" with $RUNNER.myObj[$inChannel][-1] />
+            </test>
+        </observe>
+    </body>
+</hvml>
+
