@@ -44,24 +44,24 @@
 /* runner-level variables */
 #define PURC_PREDEF_VARNAME_SYS         "SYS"
 #define PURC_PREDEF_VARNAME_RUNNER      "RUNNER"
-#define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
-#define PURC_PREDEF_VARNAME_EJSON       "EJSON"
 #define PURC_PREDEF_VARNAME_L           "L"
 #define PURC_PREDEF_VARNAME_STR         "STR"
 #define PURC_PREDEF_VARNAME_URL         "URL"
+#define PURC_PREDEF_VARNAME_EJSON       "EJSON"
 #define PURC_PREDEF_VARNAME_STREAM      "STREAM"
+#define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
 
 /* coroutine-level variables */
-#define PURC_PREDEF_VARNAME_CRTN        "CRTN"
+#define PURC_PREDEF_VARNAME_T           "T"
 #define PURC_PREDEF_VARNAME_REQ         "REQ"
 #define PURC_PREDEF_VARNAME_DOC         "DOC"
-#define PURC_PREDEF_VARNAME_T           "T"
+#define PURC_PREDEF_VARNAME_CRTN        "CRTN"
 #define PURC_PREDEF_VARNAME_TIMERS      "TIMERS"
 
 /* external variables */
-#define PURC_PREDEF_VARNAME_MATH        "MATH"
-#define PURC_PREDEF_VARNAME_FILE        "FILE"
 #define PURC_PREDEF_VARNAME_FS          "FS"
+#define PURC_PREDEF_VARNAME_FILE        "FILE"
+#define PURC_PREDEF_VARNAME_MATH        "MATH"
 
 /** The structure defining a method of a dynamic variant object. */
 struct purc_dvobj_method {
@@ -96,9 +96,9 @@ purc_dvobj_make_from_methods(const struct purc_dvobj_method *method,
 PCA_EXPORT purc_variant_t
 purc_dvobj_system_new(void);
 
-/** Make a dynamic variant object for built-in `$SESSION` variable. */
+/** Make a dynamic variant object for built-in `$RUNNER` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_session_new(void);
+purc_dvobj_runner_new(void);
 
 /** Make a dynamic variant object for built-in `$DATETIME` variable. */
 PCA_EXPORT purc_variant_t

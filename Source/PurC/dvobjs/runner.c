@@ -1,8 +1,8 @@
 /*
- * @file session.c
+ * @file runner.c
  * @author Xue Shuming
  * @date 2022/01/04
- * @brief The implementation of Session dynamic variant object.
+ * @brief The implementation of $RUNNER dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -165,7 +165,7 @@ uri_getter(purc_variant_t root,
 }
 
 purc_variant_t
-purc_dvobj_session_new(void)
+purc_dvobj_runner_new(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
 

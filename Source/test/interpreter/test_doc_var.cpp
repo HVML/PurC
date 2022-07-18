@@ -83,20 +83,20 @@ TEST(doc_var, basic)
     "        <div value=\"$SYS.cwd\">"
     "        </div>"
     ""
-    "        <div value=\"$SESSION.user\">"
+    "        <div value=\"$RUNNER.user\">"
     "        </div>"
     ""
     "        <div value=\"test set SESSION.user(!'abc', 123)\">"
-    "            $SESSION.user(!'abc', 123)"
+    "            $RUNNER.user(!'abc', 123)"
     "        </div>"
     ""
-    "        <div value=\"$SESSION.user\">"
+    "        <div value=\"$RUNNER.user\">"
     "        </div>"
     ""
-    "        <div value=\"$SESSION.user('abc')\">"
+    "        <div value=\"$RUNNER.user('abc')\">"
     "        </div>"
     ""
-    "        <div value=\"$SESSION.user('abc')\">"
+    "        <div value=\"$RUNNER.user('abc')\">"
     "        </div>"
     ""
     "        <div value=\"$buttons[0].letters\">"
@@ -136,7 +136,7 @@ TEST(doc_var, basic)
             "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
-    purc_bind_session_variables();
+    purc_bind_runner_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();

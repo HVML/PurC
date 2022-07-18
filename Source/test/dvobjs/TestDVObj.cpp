@@ -67,7 +67,7 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
 {
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
 
-    if (strcmp(name, "SYSTEM") == 0) {
+    if (strcmp(name, "SYS") == 0) {
         dvobj = purc_dvobj_system_new();
     }
     else if (strcmp(name, "DATETIME") == 0) {
@@ -79,8 +79,8 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "EJSON") == 0) {
         dvobj = purc_dvobj_ejson_new();
     }
-    else if (strcmp(name, "SESSION") == 0) {
-        dvobj = purc_dvobj_session_new();
+    else if (strcmp(name, "RUNNER") == 0) {
+        dvobj = purc_dvobj_runner_new();
     }
     else if (strcmp(name, "L") == 0) {
         dvobj = purc_dvobj_logical_new();

@@ -1,1 +1,1 @@
-{{ $SESSION.myObj.bcPipe.status()[0] }}
+{{ $RUNNER.myObj.bcPipe.status()[0] }}
