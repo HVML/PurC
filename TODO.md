@@ -33,6 +33,11 @@
 ### 1.2) 预定义变量
 
 1. 增加、调整或补充预定义变量的实现：
+   - `$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）
+   - `$HVML` 更名为 `$CRTN`
+   - `$REQUEST` 更名为 `$REQ`
+   - 实现 `$EJSON.arith_calc` 和 `$EJSON.bitwise_calc` 方法。
+   - 实现 `$STR.nr_bytes` 方法。
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -115,9 +120,6 @@
    - ~~测试程序的许可声明~~
    - API 描述
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
-   - `$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）
-   - `$HVML` 更名为 `$CRTN`
-   - `$REQUEST` 更名为 `$REQ`
 1. `purc` 命令行工具。
 1. 文档整理。
 
