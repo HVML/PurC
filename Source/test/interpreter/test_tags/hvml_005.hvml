@@ -3,7 +3,7 @@
         <div>$HVML.target</div>
         <div>$RUNNER.app</div>
         <div>$RUNNER.runner</div>
-        <div>$EJSON.type($RUNNER.sid)</div>
+        <div>$EJSON.type($RUNNER.rid)</div>
         <div>$RUNNER.uri</div>
     </body>
 </hvml>
