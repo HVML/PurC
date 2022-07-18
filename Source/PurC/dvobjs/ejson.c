@@ -113,6 +113,182 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
+arith_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 3) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *op;
+    size_t op_len;
+    op = purc_variant_get_string_const_ex(argv[0], &op_len);
+    if (op == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    op = pcutils_trim_spaces(op, &op_len);
+    if (op_len != 1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    int64_t l_operand, r_operand;
+    if (!purc_variant_cast_to_longint(argv[1], &l_operand, true) ||
+            !purc_variant_cast_to_longint(argv[2], &r_operand, true)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    int64_t result = 0;
+    switch (op[0]) {
+    case '+':
+        result = l_operand + r_operand;
+        break;
+
+    case '-':
+        result = l_operand - r_operand;
+        break;
+
+    case '*':
+        result = l_operand * r_operand;
+        break;
+
+    case '/':
+        if (r_operand == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        result = l_operand / r_operand;
+        break;
+
+    case '%':
+        if (r_operand == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        result = l_operand % r_operand;
+        break;
+
+    case '^':
+        if (r_operand < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        result = 1;
+        while (r_operand) {
+            result *= l_operand;
+            r_operand--;
+        }
+        break;
+
+    default:
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+        break;
+    }
+
+    return purc_variant_make_longint(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+bitwise_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *op;
+    size_t op_len;
+    op = purc_variant_get_string_const_ex(argv[0], &op_len);
+    if (op == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    op = pcutils_trim_spaces(op, &op_len);
+    if (op_len != 1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    uint64_t l_operand, r_operand;
+    if (!purc_variant_cast_to_ulongint(argv[1], &l_operand, true)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (op[0] == '~') {
+        r_operand = 0;
+    }
+    else if (nr_args < 3) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+    else if (!purc_variant_cast_to_ulongint(argv[2], &r_operand, true)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    uint64_t result = 0;
+    switch (op[0]) {
+        case '~':
+            result = ~l_operand;
+            break;
+
+        case '&':
+            result = l_operand & r_operand;
+            break;
+
+        case '|':
+            result = l_operand | r_operand;
+            break;
+
+        case '^':
+            result = l_operand ^ r_operand;
+            break;
+
+        case '<':
+            result = l_operand << r_operand;
+            break;
+
+        case '>':
+            result = l_operand >> r_operand;
+            break;
+
+        default:
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+            break;
+    }
+
+    return purc_variant_make_ulongint(result);
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
@@ -2537,6 +2713,8 @@ purc_variant_t purc_dvobj_ejson_new(void)
     static struct purc_dvobj_method method [] = {
         { "type",       type_getter, NULL },
         { "count",      count_getter, NULL },
+        { "arith",      arith_getter, NULL },
+        { "bitwise",    bitwise_getter, NULL },
         { "numberify",  numberify_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },

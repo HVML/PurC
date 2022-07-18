@@ -57,6 +57,32 @@ static const char * get_next_segment (const char *data,
 }
 
 static purc_variant_t
+nr_bytes_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    size_t nr_bytes;
+    if (!purc_variant_get_bytes_const(argv[0], &nr_bytes)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    return purc_variant_make_ulongint(nr_bytes);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 nr_chars_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
 {
@@ -1200,6 +1226,7 @@ substr_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 purc_variant_t purc_dvobj_string_new(void)
 {
     static struct purc_dvobj_method method [] = {
+        { "nr_bytes",   nr_bytes_getter,    NULL },
         { "nr_chars",   nr_chars_getter,    NULL },
         { "contains",   contains_getter,    NULL },
         { "starts_with",starts_with_getter,   NULL },

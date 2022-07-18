@@ -287,6 +287,31 @@ positive:
     $STR.repeat("中华民族万岁！", 10)
     "中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！中华民族万岁！"
 
+# test cases for $STR.nr_bytes
+negative:
+    $STR.nr_bytes
+    ArgumentMissed
+
+negative:
+    $STR.nr_bytes(false)
+    WrongDataType
+
+positive:
+    $STR.nr_bytes('')
+    1UL
+
+positive:
+    $STR.nr_bytes("JavaScript")
+    11UL
+
+positive:
+    $STR.nr_bytes( bb )
+    0UL
+
+positive:
+    $STR.nr_bytes( bx08 )
+    1UL
+
 # test cases for $EJSON.fetchreal with quantity specified
 negative:
     $EJSON.fetchreal(bx12345678, 'i16:10')
@@ -627,6 +652,158 @@ positive:
 positive:
     $EJSON.unpack("i16le", bx0a000a000000)
     10L
+
+# test cases for $EJSON.arith
+negative:
+    $EJSON.arith
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.arith('5', 6)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.arith(5, 6, 8)
+    WrongDataType
+    undefined
+
+negative:
+    $EJSON.arith('090', 5, 3)
+    InvalidValue
+    undefined
+
+negative:
+    $EJSON.arith('/', "5", 0)
+    InvalidValue
+    undefined
+
+negative:
+    $EJSON.arith('%', "5", 0)
+    InvalidValue
+    undefined
+
+negative:
+    $EJSON.arith('^', "5", -1)
+    InvalidValue
+    undefined
+
+negative:
+    $EJSON.arith('^', [], -1)
+    WrongDataType
+    undefined
+
+positive:
+    $EJSON.arith('+', "5", 0)
+    5L
+
+positive:
+    $EJSON.arith('-', "abc", 3)
+    -3L
+
+positive:
+    $EJSON.arith('-', "3", 4)
+    -1L
+
+positive:
+    $EJSON.arith('/', 80, 4)
+    20L
+
+positive:
+    $EJSON.arith('%', 5, 3)
+    2L
+
+positive:
+    $EJSON.arith('^', 3, 0)
+    1L
+
+positive:
+    $EJSON.arith('^', -3, 2)
+    9L
+
+# test cases for $EJSON.bitwise
+negative:
+    $EJSON.bitwise
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('~')
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('&', 0)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('|', 0)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('^', 0)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('<', 0)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('>', 0)
+    ArgumentMissed
+    undefined
+
+negative:
+    $EJSON.bitwise('/', "5", 0)
+    InvalidValue
+    undefined
+
+negative:
+    $EJSON.bitwise('~', [])
+    WrongDataType
+    undefined
+
+negative:
+    $EJSON.bitwise('^', "5", {})
+    WrongDataType
+    undefined
+
+positive:
+    $EJSON.bitwise('&', 15, 0)
+    0UL
+
+positive:
+    $EJSON.bitwise('|', 15, 0)
+    15UL
+
+positive:
+    $EJSON.bitwise('~', -1UL)
+    0UL
+
+positive:
+    $EJSON.bitwise('^', 0, -1UL)
+    -1UL
+
+positive:
+    $EJSON.bitwise('<', 1, 3)
+    8UL
+
+positive:
+    $EJSON.bitwise('>', 16, 4)
+    1UL
+
+positive:
+    $EJSON.bitwise('<', 1, 200)
+    256UL
+
+positive:
+    $EJSON.bitwise('>', 16, 200)
+    0UL
 
 # test cases for $URL.encode
 negative:
