@@ -348,7 +348,10 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         gen->doc->body = NULL;
     }
 
-    elem = pcvdom_element_create_c("body");
+    elem = create_element(gen, token);
+    if (!elem) {
+        elem = pcvdom_element_create_c("body");
+    }
 
     if (!elem)
         FAIL_RET();

@@ -161,7 +161,7 @@ TEST_P(TestHVMLTag, hvml_tags)
             "main",   /* target_workspace */
             NULL,     /* target_group */
             NULL,     /* page_name */
-            &rdr_info, NULL, NULL);
+            &rdr_info, "test", NULL);
     ASSERT_NE(co, nullptr);
     purc_variant_unref(request);
 

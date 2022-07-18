@@ -55,6 +55,7 @@
 #define MSG_TYPE_CHANGE     "change"
 #define MSG_SUB_TYPE_CLOSE  "close"
 #define COROUTINE_PREFIX    "COROUTINE"
+#define ATTR_KEY_ID         "id"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -1903,6 +1904,53 @@ fail_co:
     return NULL;
 }
 
+static bool
+is_match_id(pcintr_stack_t stack, struct pcvdom_element *element,
+        const char *id)
+{
+    bool match = false;
+    purc_variant_t elem_id = pcvdom_element_eval_attr_val(stack, element,
+            ATTR_KEY_ID);
+    if (!elem_id || !purc_variant_is_string(elem_id)) {
+        goto out;
+    }
+    const char *eid = purc_variant_get_string_const(elem_id);
+
+    if (strcmp(eid, id) == 0) {
+        match = true;
+    }
+
+out:
+    if (elem_id) {
+        purc_variant_unref(elem_id);
+    }
+    return match;
+}
+
+static void
+set_body_entry(pcintr_stack_t stack, purc_vdom_t vdom, const char *body_id)
+{
+    if (body_id == NULL || strlen(body_id) == 0) {
+        return;
+    }
+
+    size_t nr = pcutils_arrlist_length(vdom->bodies);
+    if (nr <= 1) {
+        return;
+    }
+
+    for (size_t i = 0; i < nr; i++) {
+        void *p = pcutils_arrlist_get_idx(vdom->bodies, i);
+        struct pcvdom_element *body = (struct pcvdom_element*)p;
+        if (is_match_id(stack, body, body_id)) {
+            pcvdom_node_remove(&vdom->body->node);
+            vdom->body = body;
+            pcvdom_element_append_element(vdom->root, vdom->body);
+            return;
+        }
+    }
+}
+
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
@@ -1935,9 +1983,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
         purc_log_warn("Failed to attach to renderer\n");
     }
 
-    /* TODO: handle entry and request here */
-    UNUSED_PARAM(body_id);
-    UNUSED_PARAM(request);
+    /* handle entry(body_id) and request here */
+    if (body_id) {
+        set_body_entry(&co->stack, co->stack.vdom, body_id);
+    }
 
     if (!bind_builtin_coroutine_variables(co, request)) {
         goto failed;
