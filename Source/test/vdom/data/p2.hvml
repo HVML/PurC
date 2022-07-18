@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <set on="$T.map" from="https://foo.bar/messages/$SYSTEM.locale" to="merge" />
+        <set on="$T.map" from="https://foo.bar/messages/$SYS.locale" to="merge" />
 
         <title>$T.get('Hello, world!')</title>
     </head>

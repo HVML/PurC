@@ -3,7 +3,7 @@
     <head>
         <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
 
-        <update on="$T.map" from="assets/{$SYSTEM.locale}.json" to="merge" />
+        <update on="$T.map" from="assets/{$SYS.locale}.json" to="merge" />
 
         <init as="buttons" from="assets/buttons.json" />
 
@@ -34,7 +34,7 @@
             <div id="c_text">
                 <input type="text" id="expression" value="0" readonly="readonly" />
                 <observe on="$TIMERS" for="expired:input">
-                    <test on="$buttons[$SYSTEM.random($EJSON.count($buttons))].letters">
+                    <test on="$buttons[$SYS.random($EJSON.count($buttons))].letters">
 
                         <match for="AS '='" exclusively>
                             <choose on="$MATH.eval($DOC.query('#expression').attr('value'))">

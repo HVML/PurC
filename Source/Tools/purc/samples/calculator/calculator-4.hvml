@@ -3,7 +3,7 @@
     <head>
         <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
 
-        <update on="$T.map" from="assets/{$SYSTEM.locale}.json" to="merge" />
+        <update on="$T.map" from="assets/{$SYS.locale}.json" to="merge" />
 
         <init as="buttons" from="assets/buttons.json" />
 
@@ -34,7 +34,7 @@
 
         <init as="info">
             {
-                "chars" : $exp_chars[$SYSTEM.random($EJSON.count($exp_chars))],
+                "chars" : $exp_chars[$SYS.random($EJSON.count($exp_chars))],
                 "index" : 0,
             }
         </init>

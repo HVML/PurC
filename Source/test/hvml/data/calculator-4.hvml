@@ -3,7 +3,7 @@
     <head>
         <base href="$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )" />
 
-        <update on="$T.map" from="assets/{$SYSTEM.locale}.json" to="merge" />
+        <update on="$T.map" from="assets/{$SYS.locale}.json" to="merge" />
 
         <init as="buttons" from="assets/buttons.json" />
 
@@ -33,7 +33,7 @@
 
         <init as="info">
             {
-                "chars" : $exp_chars[$SYSTEM.random($EJSON.count($exp_chars))],
+                "chars" : $exp_chars[$SYS.random($EJSON.count($exp_chars))],
                 "index" : 0,
             }
         </init>
@@ -41,10 +41,10 @@
         <div id="calculator">
             <div id="c_title">
                 <h2 id="c_title">$T.get('HVML Calculator')
-                    <small>$T.get('Current Time: ')<span id="clock">$SYSTEM.time('%H:%M:%S')</span></small>
+                    <small>$T.get('Current Time: ')<span id="clock">$SYS.time('%H:%M:%S')</span></small>
                 </h2>
                 <observe on="$TIMERS" for="expired:clock">
-                    <update on="#clock" at="textContent" with="$SYSTEM.time('%H:%M:%S')" />
+                    <update on="#clock" at="textContent" with="$SYS.time('%H:%M:%S')" />
                 </observe>
             </div>
 

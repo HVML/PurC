@@ -1,17 +1,17 @@
 <hvml>
     <div>
-        this is syste.time {{$SYSTEM.time}} and something. $abc
+        this is syste.time {{$SYS.time}} and something. $abc
     </div>
     <div>
-        this is syste.time $SYSTEM.time("tm", $ABC, {"key":123}, [1,2,3], [$A("xyz"), $B.b, $C.a]) this is after function call.
+        this is syste.time $SYS.time("tm", $ABC, {"key":123}, [1,2,3], [$A("xyz"), $B.b, $C.a]) this is after function call.
         <p>this is a p.</p>
         this is after p $AAA.BB after variant.
     </div>
     <div>
-        this is syste.time $SYSTEM.time("tm", $ABC, {"key":123}, [1,2,3], [$A("xyz"), $B.b, $C.a]) this is after function call.
+        this is syste.time $SYS.time("tm", $ABC, {"key":123}, [1,2,3], [$A("xyz"), $B.b, $C.a]) this is after function call.
     </div>
     <div>
-        this is syste.time {{$SYSTEM.time}}and something. $abc
+        this is syste.time {{$SYS.time}}and something. $abc
     </div>
     <div>
         this is syste.time {"key":123, "aaa":456, $AKEY:123} and something.

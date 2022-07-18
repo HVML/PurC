@@ -1,1 +1,1 @@
-$SYSTEM.locale("ctype")
+$SYS.locale("ctype")

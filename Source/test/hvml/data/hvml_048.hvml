@@ -9,14 +9,14 @@
         </inherit>
 
         <!--
-            $SYSTEM.locale returns the current system locale like `zh_CN'.
+            $SYS.locale returns the current system locale like `zh_CN'.
             This statement loads a JSON file which defined the map of
             localization messages, like:
             {
             "Hello, world!": "世界，您好！"
             }
         -->
-        <update on="$T.map" from="messages/$SYSTEM.locale" to="merge" />
+        <update on="$T.map" from="messages/$SYS.locale" to="merge" />
 
         <!--
             This statement defines an operation set, which output

@@ -13,7 +13,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYSTEM"),"time")
+PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYS"),"time")
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</div>
@@ -23,7 +23,7 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"{ "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYSTEM"),"time")
+PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYS"),"time")
 PCHVML_TOKEN_VCM_TREE|" }"
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -33,7 +33,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYSTEM"),"time")
+PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYS"),"time")
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</div>
@@ -52,7 +52,7 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"{ "key": "
-PCHVML_TOKEN_VCM_TREE|get_element(get_element(get_variable("SYSTEM"),"time"),"tm")
+PCHVML_TOKEN_VCM_TREE|get_element(get_element(get_variable("SYS"),"time"),"tm")
 PCHVML_TOKEN_VCM_TREE|" }"
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -63,7 +63,7 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"{ "key": "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYSTEM"),"time"),"tm")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"time"),"tm")
 PCHVML_TOKEN_VCM_TREE|" }"
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -74,7 +74,7 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"{ "key": "
-PCHVML_TOKEN_VCM_TREE|call_setter(get_element(get_variable("SYSTEM"),"time"),"tm")
+PCHVML_TOKEN_VCM_TREE|call_setter(get_element(get_variable("SYS"),"time"),"tm")
 PCHVML_TOKEN_VCM_TREE|" }"
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -85,7 +85,7 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|"{ "key": "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYSTEM"),"time"),make_object("a",1),make_array(1,2,3))
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"time"),make_object("a",1),make_array(1,2,3))
 PCHVML_TOKEN_VCM_TREE|" }"
 PCHVML_TOKEN_VCM_TREE|"
     "

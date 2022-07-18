@@ -3,7 +3,7 @@
     <head>
         <base href="$HVML.base(! 'http://files.fmsoft.cn/calculator/' )" />
 
-        <update on="$T.map" from="assets/{$SYSTEM.locale}.json" to="merge" />
+        <update on="$T.map" from="assets/{$SYS.locale}.json" to="merge" />
 
         <init as="myResult">
             {

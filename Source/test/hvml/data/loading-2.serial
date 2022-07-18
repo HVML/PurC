@@ -19,7 +19,7 @@ PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_vari
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("assets/messages-",get_element(get_variable("SYSTEM"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("assets/messages-",get_element(get_variable("SYS"),"locale"),".json") to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -148,7 +148,7 @@ PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaking-news-",get_element(get_variable("SYSTEM"),"locale"),".json") async/>
+PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaking-news-",get_element(get_variable("SYS"),"locale"),".json") async/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

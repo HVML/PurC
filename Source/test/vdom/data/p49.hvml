@@ -1,6 +1,6 @@
 <hvml>
     <body>
-        <bind on="$SYSTEM.time" as="rtClock" />
+        <bind on="$SYS.time" as="rtClock" />
 
         <observe on="$rtClock" for="change">
         </observe>

@@ -24,7 +24,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_COMMENT|<!--
-            $SYSTEM.locale returns the current system locale like `zh_CN'.
+            $SYS.locale returns the current system locale like `zh_CN'.
             This statement loads a JSON file which defined the map of
             localization messages, like:
             {
@@ -33,7 +33,7 @@ PCHVML_TOKEN_COMMENT|<!--
         -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("messages/",get_element(get_variable("SYSTEM"),"locale")) to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("messages/",get_element(get_variable("SYS"),"locale")) to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

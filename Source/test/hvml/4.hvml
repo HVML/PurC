@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html" script="python">
     <head>
-        <init as="_" with="https://foo.bar/messages/$_SYSTEM.locale">
+        <init as="_" with="https://foo.bar/messages/$SYS.locale">
         </init>
 
         <title>$_['Hello, world!']</title>

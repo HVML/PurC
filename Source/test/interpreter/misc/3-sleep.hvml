@@ -21,18 +21,18 @@ I slept for 50 seconds totally
 <!DOCTYPE hvml>
 <hvml target="void">
 
-    <init as startTime with $SYSTEM.time />
+    <init as startTime with $SYS.time />
 
     <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith_calc('+', $0<, 1) nosetotail >
-        <sleep with $SYSTEM.random(10.0) >
+        <sleep with $SYS.random(10.0) >
             $STREAM.stdout.writelines($STR.join('Current time: ',
-                        $SYSTEM.time("%H:%m")))
+                        $SYS.time("%H:%m")))
         </sleep>
     </iterate>
 
     {{
         $STREAM.stdout.writelines($STR.join("I slept for ",
-                    $EJSON.arith_calc('-', $SYSTEM.time, $startTime), " seconds totally"));
-        $L.lt($EJSON.arith_calc('-', $SYSTEM.time, $startTime), 0)
+                    $EJSON.arith_calc('-', $SYS.time, $startTime), " seconds totally"));
+        $L.lt($EJSON.arith_calc('-', $SYS.time, $startTime), 0)
     }}
 </hvml>

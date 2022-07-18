@@ -58,7 +58,7 @@ TEST(observe, basic)
     "                </observe>"
     "                <observe on=\"$TIMERS\" for=\"expired:clock\">"
     "                    <update on=\"$buttons\" to=\"overwrite\">"
-    "                        { \"letters\" : \"7\", \"class\" : \"update by timers $SYSTEM.random(10)\" }"
+    "                        { \"letters\" : \"7\", \"class\" : \"update by timers $SYS.random(10)\" }"
     "                    </update>"
     "                </observe>"
     "                <p>this is after observe</p>"

@@ -37,8 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUILDIN_VAR_SYSTEM      "SYSTEM"
-#define BUILDIN_VAR_SESSION     "SESSION"
+#define BUILTIN_VAR_SYS         PURC_PREDEF_VARNAME_SYS
+#define BUILTIN_VAR_SESSION     "SESSION"
 
 #define USER_OBJ                "myObj"
 #define INNER_WRAP              "__inner_wrap"
@@ -176,16 +176,16 @@ add_session_myobj_listener(purc_variant_t session)
 bool
 purc_bind_session_variables(void)
 {
-    // $SYSTEM
+    // $SYS
     purc_variant_t sys = purc_dvobj_system_new();
-    if(!purc_bind_variable(BUILDIN_VAR_SYSTEM, sys)) {
+    if(!purc_bind_variable(BUILTIN_VAR_SYS, sys)) {
         return false;
     }
     purc_variant_unref(sys);
 
     // $SESSION
     purc_variant_t session = purc_dvobj_session_new();
-    if(!purc_bind_variable(BUILDIN_VAR_SESSION, session)) {
+    if(!purc_bind_variable(BUILTIN_VAR_SESSION, session)) {
         return false;
     }
 

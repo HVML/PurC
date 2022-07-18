@@ -25,10 +25,10 @@ End of `Hello, world!`
 
 <!-- The result of the HVML program: 6UL -->
 
-<hvml target="void" lang="$STR.substr($SYSTEM.locale, 0, 2)" >
+<hvml target="void" lang="$STR.substr($SYS.locale, 0, 2)" >
     {{
         $STREAM.stdout.writelines('Start of `Hello, world!`');
-        $STREAM.stdout.writelines($SYSTEM.time('%H:%m'))
+        $STREAM.stdout.writelines($SYS.time('%H:%m'))
     }}
 
     <!-- This is a multiple-line comments, which will be parsed and form
@@ -51,7 +51,7 @@ End of `Hello, world!`
 
     {{
         $STREAM.stdout.writelines('End of `Hello, world!`');
-        $STREAM.stdout.writelines($SYSTEM.time('%H:%m'))
+        $STREAM.stdout.writelines($SYS.time('%H:%m'))
     }}
 </hvml>
 

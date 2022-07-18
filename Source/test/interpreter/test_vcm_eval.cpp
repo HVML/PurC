@@ -282,7 +282,7 @@ struct find_var_ctxt {
 purc_variant_t find_var(void* ctxt, const char* name)
 {
     struct find_var_ctxt* find_ctxt = (struct find_var_ctxt*) ctxt;
-    if (strcmp(name, "SYSTEM") == 0) {
+    if (strcmp(name, "SYS") == 0) {
         return find_ctxt->dsystem;
     }
     else if (strcmp(name, "NOBJ") == 0) {

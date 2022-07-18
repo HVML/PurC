@@ -1,3 +1,3 @@
 <hvml>
-    <update from="assets/{{$SYSTEM.time.tm}}this is title" />
+    <update from="assets/{{$SYS.time.tm}}this is title" />
 </hvml>

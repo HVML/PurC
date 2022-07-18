@@ -2589,7 +2589,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACE)
             else {
                 parser->vcm_node->extra &= EXTRA_PROTECT_FLAG;
             }
-            // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
+            // FIXME : <update from="assets/{$SYS.locale}.json" />
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (ejson_stack_is_empty()) {
                 ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);

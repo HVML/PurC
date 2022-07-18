@@ -295,7 +295,7 @@ positive:
     'running'
 
 positive:
-    {{ $SESSION.myObj.bcPipe.writeeof(); $SYSTEM.sleep(0.3); $SESSION.myObj.bcPipe.status }}
+    {{ $SESSION.myObj.bcPipe.writeeof(); $SYS.sleep(0.3); $SESSION.myObj.bcPipe.status }}
     ['exited',0L]
 
 positive:
