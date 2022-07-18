@@ -80,7 +80,7 @@ TEST(dvobjs, dvobjs_hvml_setter)
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _HVML.%s:\n", function[i]);
+        printf ("test $CRTN.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (hvml,
                 function[i]);

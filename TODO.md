@@ -37,8 +37,8 @@
    - ~~完善 `$MATH.eval` 和 `$MATH.eval_l` 对函数及常量的支持（见预定义变量规范）。~~
    - ~~`$SYSTEM` 更名为 `$SYS`~~
    - ~~`$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）~~
-   - `$HVML` 更名为 `$CRTN`
-   - `$REQUEST` 更名为 `$REQ`
+   - ~~`$HVML` 更名为 `$CRTN`~~
+   - ~~`$REQUEST` 更名为 `$REQ`~~
    - 实现 `$EJSON.arith_calc` 和 `$EJSON.bitwise_calc` 方法
    - 实现 `$STR.nr_bytes` 方法
    - `$RDR`
@@ -64,7 +64,7 @@
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
    - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
    - ~~`observe` 元素 `in` 属性的处理。~~
-   - ~~正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$SESSION.myObj）上的 `change` 事件；`$SYSTEM` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。~~
+   - ~~正确区分会话级变量及协程级变量：`observe` 可观察会话级变体（$RUNNER.myObj）上的 `change` 事件；`$SYS` 上调用修改时间、当前工作路径等，会广播更新事件（如 `change:time`）给所有实例。~~
 1. 接口及实现调整：
    - ~~实现 `purc_schedule_vdom()` 替代 `purc_attach_vdom_to_renderer()`。~~
    - ~~调整 `purc_bind_document_variable()` 为 `purc_coroutine_bind_variable()`。~~
@@ -78,8 +78,10 @@
    - ~~协程结构中，使用 `cid` 替代 `ident` 名称。~~
    - ~~协程结构中，使用 `uri` 替代 `fullname` 字段名（该字段其实没必要保存两份，通过 `cid` 在原子字符串中查找即可获得）。~~
    - ~~`$CRTN` 变量使用协程数据结构做初始化，并实现 `cid` 属性、`uri` 属性以及 `token` 属性获取器。~~
-   - ~~实现 `$SESSION` 变量的 `sid` 属性以及 `uri` 属性获取器。~~
+   - ~~实现 `$RUNNER` 变量的 `rid` 属性以及 `uri` 属性获取器。~~
    - ~~移除代码中冗余的针对 `get_coroutine` 以及 `get_stack` 的调用。~~
+   - ~~将 `$L`, `$STR`, `$URL`, `$EJSON`, `$STREAM`, `$DATETIME` 调整为行者级变量。~~
+   - 将 `$STREAM` 调整为行者级变量。
 1. 调整或完善相关实现：
    - 调整调度器实现，通过设置协程进入停止状态以及对应的唤醒条件来实现 ~~协程同步等待数据获取器的返回、等待特定请求的响应消息、主动休眠的超时及提前唤醒、其他协程的退出状态、~~ 并发调用的返回等。
    - ~~`idle` 事件：当所有协程进入事件驱动执行阶段，但未收到任何底层事件的时间累计达到或超过 100ms 时，自动产生 `idle` 事件，广播给所有正在 `$CRTN` 变体上监听 `idle` 事件的协程；`idle` 事件可规约。~~

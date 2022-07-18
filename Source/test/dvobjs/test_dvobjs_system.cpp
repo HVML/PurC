@@ -88,7 +88,7 @@ TEST(dvobjs, basic)
 
 static purc_variant_t get_dvobj_system(void* ctxt, const char* name)
 {
-    if (strcmp(name, "SYSTEM") == 0) {
+    if (strcmp(name, "SYS") == 0) {
         return (purc_variant_t)ctxt;
     }
 

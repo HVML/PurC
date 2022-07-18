@@ -124,11 +124,10 @@ PURC_COMPUTE_SOURCES(test_dvobjs_ejson_more)
 PURC_FRAMEWORK(test_dvobjs_ejson_more)
 GTEST_DISCOVER_TESTS(test_dvobjs_ejson_more DISCOVERY_TIMEOUT 10)
 
+# test_dvobjs_coroutine
+PURC_EXECUTABLE_DECLARE(test_dvobjs_coroutine)
 
-# test_dvobjs_hvml
-PURC_EXECUTABLE_DECLARE(test_dvobjs_hvml)
-
-list(APPEND test_dvobjs_hvml_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_dvobjs_coroutine_PRIVATE_INCLUDE_DIRECTORIES
     ${PURC_DIR}/include
     ${PurC_DERIVED_SOURCES_DIR}
     ${PURC_DIR}
@@ -136,23 +135,23 @@ list(APPEND test_dvobjs_hvml_PRIVATE_INCLUDE_DIRECTORIES
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_dvobjs_hvml)
+PURC_EXECUTABLE(test_dvobjs_coroutine)
 
-set(test_dvobjs_hvml_SOURCES
-    test_dvobjs_hvml.cpp
+set(test_dvobjs_coroutine_SOURCES
+    test_dvobjs_coroutine.cpp
     helper.cpp
 )
 
-set(test_dvobjs_hvml_LIBRARIES
+set(test_dvobjs_coroutine_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_dvobjs_hvml)
-PURC_FRAMEWORK(test_dvobjs_hvml)
-GTEST_DISCOVER_TESTS(test_dvobjs_hvml DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_dvobjs_coroutine)
+PURC_FRAMEWORK(test_dvobjs_coroutine)
+GTEST_DISCOVER_TESTS(test_dvobjs_coroutine DISCOVERY_TIMEOUT 10)
 
 # test_dvobjs_text
 PURC_EXECUTABLE_DECLARE(test_dvobjs_text)

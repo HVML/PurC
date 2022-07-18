@@ -39,6 +39,12 @@
 
 #define BUILTIN_VAR_SYS         PURC_PREDEF_VARNAME_SYS
 #define BUILTIN_VAR_RUNNER      PURC_PREDEF_VARNAME_RUNNER
+#define BUILTIN_VAR_L           PURC_PREDEF_VARNAME_L
+#define BUILTIN_VAR_STR         PURC_PREDEF_VARNAME_STR
+#define BUILTIN_VAR_URL         PURC_PREDEF_VARNAME_URL
+#define BUILTIN_VAR_EJSON       PURC_PREDEF_VARNAME_EJSON
+#define BUILTIN_VAR_STREAM      PURC_PREDEF_VARNAME_STREAM
+#define BUILTIN_VAR_DATETIME    PURC_PREDEF_VARNAME_DATETIME
 
 #define USER_OBJ                "myObj"
 #define INNER_WRAP              "__inner_wrap"
@@ -189,8 +195,39 @@ purc_bind_runner_variables(void)
         return false;
     }
 
-    // TODO: $L, $STR, $URL, $EJSON, $STREAM, $DATETIME
-    // are all runner-level variables
+    /* $L, $STR, $URL, $EJSON, $STREAM, $DATETIME
+     * are all runner-level variables */
+
+    // $L
+    if(!purc_bind_variable(BUILTIN_VAR_L, purc_dvobj_logical_new())) {
+        return false;
+    }
+
+    // $STR
+    if(!purc_bind_variable(BUILTIN_VAR_STR, purc_dvobj_string_new())) {
+        return false;
+    }
+
+    // $URL
+    if(!purc_bind_variable(BUILTIN_VAR_URL, purc_dvobj_url_new())) {
+        return false;
+    }
+
+    // $EJSON
+    if(!purc_bind_variable(BUILTIN_VAR_EJSON, purc_dvobj_ejson_new())) {
+        return false;
+    }
+
+    /* $STREAM: TODO
+    if(!purc_bind_variable(BUILTIN_VAR_STREAM, purc_dvobj_stream_new())) {
+        return false;
+    } */
+
+    // $DATETIME
+    if(!purc_bind_variable(BUILTIN_VAR_DATETIME, purc_dvobj_datetime_new())) {
+        return false;
+    }
+
     bool ret = add_runner_myobj_listener(runner);
     purc_variant_unref(runner);
     return ret;
