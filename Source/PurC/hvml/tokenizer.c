@@ -49,16 +49,18 @@
 
 #define ERROR_BUF_SIZE  100
 
+#define PDEBUG   printf
+
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
         size_t len;                                                         \
         char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
-        PC_DEBUG(                                                           \
+        PDEBUG(                                                             \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s|fh=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
+            ejson_stack_size(), s, parser->is_in_file_header);              \
         free(s); \
     }
 
@@ -623,6 +625,12 @@ PCHVML_NEXT_TOKEN_BEGIN
 
 
 BEGIN_STATE(TKZ_STATE_DATA)
+    if (character == '#' && parser->is_in_file_header) {
+        ADVANCE_TO(TKZ_STATE_HASH);
+    }
+    if (is_whitespace(character) && parser->is_in_file_header) {
+        ADVANCE_TO(TKZ_STATE_DATA);
+    }
     if (character == '&') {
         SET_RETURN_STATE(TKZ_STATE_DATA);
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
@@ -641,7 +649,15 @@ BEGIN_STATE(TKZ_STATE_DATA)
     RECONSUME_IN(TKZ_STATE_TAG_CONTENT);
 END_STATE()
 
+BEGIN_STATE(TKZ_STATE_HASH)
+    if (character == '\n') {
+        ADVANCE_TO(TKZ_STATE_DATA);
+    }
+    ADVANCE_TO(TKZ_STATE_HASH);
+END_STATE()
+
 BEGIN_STATE(TKZ_STATE_TAG_OPEN)
+    parser->is_in_file_header = false;
     if (character == '!') {
         ADVANCE_TO(TKZ_STATE_MARKUP_DECLARATION_OPEN);
     }

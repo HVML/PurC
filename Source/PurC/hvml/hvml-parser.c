@@ -105,8 +105,9 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->char_ref_code = 0;
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
-    parser->tag_is_operation = false;
-    parser->tag_has_raw_attr = false;
+    parser->tag_is_operation = 0;
+    parser->tag_has_raw_attr = 0;
+    parser->is_in_file_header = 1;
     const char *env_value = getenv(PURC_HVML_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
             (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
