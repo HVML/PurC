@@ -7,22 +7,41 @@
 1. 实现新的线性容器类型元组（tuple）。
 1. 使用独立的数据结构处理变体的监听器等信息，从而降低变体数据结构的尺寸。
 
-### 0.2) eDOM
-
-1. 优化元素汇集原生实体的实现，使之可以处理 eDOM 变化的情形，并符合 CSS Selector Level 3 的规范要求。
-
-### 0.3) eJSON 解析和求值
+### 0.2) eJSON 解析和求值
 
 1. 支持元组。
 
+### 0.3) 预定义变量
+
+1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
+1. 完善如下变量的实现：
+   - `$DOC`
+   - `$URL`
+   - `$STR`
+
+### 0.2) eDOM
+
+1. 优化元素汇集原生实体的实现，使之符合 CSS Selector Level 3 的规范要求。
+
 ### 0.4) 解释器
 
-1. 不可捕获错误的产生及处理机制：
-   - `error` 标签支持 `type` 属性。
+1. 在 `archetype` 标签中使用 `type` 指定内容的类型，如 `plain`、 `html`、 `xgml`、 `svg`、`mathml` 等。
+1. `in` 属性支持使用 CSS 选择器限定当前文档位置的写法。
 1. `update` 标签。
    - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
    - `at` 属性支持 `content`。
-1. `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
+   - `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
+   - `update` 元素可根据模板类型做相应的处理，比如支持命名空间。
+1. 完善如下标签从外部数据源获取数据的功能：
+   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
+   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
+   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
+   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
+1. 不可捕获错误的产生及处理机制：
+   - `error` 标签支持 `type` 属性。
 
 ## 1) 当前（202207）
 
@@ -42,13 +61,9 @@
    - ~~实现 `$EJSON.arith` 和 `$EJSON.bitwise` 方法~~
    - ~~实现 `$STR.nr_bytes` 方法~~
    - `$RDR`
-   - `$DOC`
-   - `$URL`
-   - `$STR`
 1. 评估并合并如下预定义变量的实现：
    - `$FS`
    - `$FILE`
-1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
 
 ### 1.3) eDOM
 
@@ -92,9 +107,8 @@
    - `call` 和 `return` 标签。并发调用时，克隆 `define` 子树构建新的 vDOM 树。
    - `load` 和 `exit` 标签。
    - `request` 标签。
-   - 在 `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
-   - 在 `init` 标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
-   - 在 `archetype` 标签中使用 `type` 指定内容的类型，如 `plain`、`html`、`svg` 等。
+   - `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
+   - `init` 标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
 1. 调整求值逻辑：
    - 按照规范要求，对框架元素内容中定义的表达式进行求值并设置相应的结果数据；参阅 HVML 规范 2.3.4 小节。
    - 取消和 `head` 及 `body` （`head` 和 `body` 均为可选框架元素）相关的约束。
@@ -108,14 +122,6 @@
    - ~~HVML 协程对应的页面类型为 `_null` 时，不创建页面，不同步 eDOM 的更新信息。~~
    - 支持目标文档为 `_inherit` 以及页面名称为 `_self` 的情形。
    - 增强 PURCMC 协议，用于区分普通文本或标记文本。
-1. 完善如下标签从外部数据源获取数据的功能：
-   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
-   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
 
 ### 1.6) 其他
 
