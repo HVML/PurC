@@ -97,7 +97,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
         }
         else {
-            printf("Passed: %s\n", sample->file);
+            std::cout << "Passed: " << sample->file << std::endl;
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
@@ -115,7 +115,7 @@ add_sample(struct sample_data *sample)
 
     if (vdom == NULL) {
         ADD_FAILURE()
-            << "Running " << sample->file << std::endl;
+            << sample->file << std::endl;
         sample_destroy(sample);
         return -1;
     }
@@ -222,7 +222,8 @@ static purc_variant_t eval_expected_result(const char *code)
 static int
 process_file(const char *file)
 {
-    std::cout << file << std::endl;
+    std::cout << std::endl << "Running " << file << std::endl;
+
     char buf[8192];
     int n = read_file(buf, sizeof(buf), file);
     if (n == -1)
