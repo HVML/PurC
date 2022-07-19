@@ -89,6 +89,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             purc_rwstream_destroy(my_rws);
 
             ADD_FAILURE()
+                << sample->file << std::endl
                 << "The execute result ("
                 << buf
                 << ") does not match to the expected result"
@@ -96,7 +97,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
         }
         else {
-            purc_log_info("Passed: %s\n", sample->file);
+            printf("Passed: %s\n", sample->file);
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
@@ -114,7 +115,7 @@ add_sample(struct sample_data *sample)
 
     if (vdom == NULL) {
         ADD_FAILURE()
-            << sample->file << std::endl;
+            << "Running " << sample->file << std::endl;
         sample_destroy(sample);
         return -1;
     }
