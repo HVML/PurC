@@ -372,6 +372,12 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
+        if (co->result) {
+            PURC_VARIANT_SAFE_CLEAR(co->result->as);
+            PURC_VARIANT_SAFE_CLEAR(co->result->result);
+            free(co->result);
+        }
+
         if (co->cid) {
             const char *uri = pcintr_coroutine_get_uri(co);
             purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER, uri);
@@ -1818,12 +1824,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_stack_t stack = NULL;
 
     pcintr_coroutine_result_t co_result = NULL;
-    if (parent) {
-        co_result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co_result));
-        if (!co_result) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return NULL;
-        }
+    co_result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co_result));
+    if (!co_result) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
     }
 
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
@@ -1866,9 +1870,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         if (as != PURC_VARIANT_INVALID)
             co_result->as = purc_variant_ref(as);
         list_add_tail(&co_result->node, &parent->children);
-        co->result = co_result;
-        co_result = NULL;
     }
+    co->result = co_result;
+    co_result = NULL;
 
     stack = &co->stack;
     stack->co = co;
