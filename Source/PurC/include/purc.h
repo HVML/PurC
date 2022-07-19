@@ -597,6 +597,11 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
+struct purc_cor_exit_info {
+    purc_variant_t result;
+    purc_document_t doc;
+};
+
 /** The PurC instance conditions */
 typedef enum purc_cond {
     /**
@@ -640,12 +645,13 @@ typedef enum purc_cond {
      * `data` is the pointer to the targe document genenerated by the
      * HVML coroutine.
      */
-    PURC_COND_COR_AFTER_FIRSTRUN,
+    PURC_COND_COR_OBSERVING,
 
     /**
      * Indicating that a coroutine exited or teminated.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to the targe document genenerated by the
+     * `data` is the pointer to `struct purc_cor_exit_info` which contains
+     * the execute result and the target document genenerated by the
      * HVML coroutine.
      */
     PURC_COND_COR_EXITED,

@@ -36,6 +36,7 @@
 #include <gtest/gtest.h>
 
 struct sample_data {
+    char            *file;
     char            *input_hvml;
     purc_variant_t   expected_result;
 };
@@ -43,6 +44,10 @@ struct sample_data {
 static void
 sample_destroy(struct sample_data *sample)
 {
+    if (sample->file) {
+        free(sample->file);
+    }
+
     if (sample->input_hvml) {
         free(sample->input_hvml);
     }
@@ -62,14 +67,18 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         return -1;
     }
 
-    struct sample_data *sd = (struct sample_data*)user_data;
+    struct sample_data *sample = (struct sample_data*)user_data;
 
     if (event == PURC_COND_COR_EXITED) {
-        /* TODO: check result here */
-        (void)data;
+        struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
+        if (!purc_variant_is_equal_to(sample->expected_result, info->result)) {
+            ADD_FAILURE()
+                << "The execute result not match to the expected result"
+                << std::endl;
+        }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
-        sample_destroy(sd);
+        sample_destroy(sample);
     }
 
     return 0;
@@ -83,8 +92,7 @@ add_sample(struct sample_data *sample)
 
     if (vdom == NULL) {
         ADD_FAILURE()
-            << "failed to loading hvml:" << std::endl
-            << sample->input_hvml << std::endl;
+            << sample->file << std::endl;
         sample_destroy(sample);
         return -1;
     }
@@ -199,6 +207,8 @@ process_file(const char *file)
 
     struct sample_data *sample =
         (struct sample_data *)calloc(1, sizeof(*sample));
+
+    sample->file = strdup(file);
     sample->input_hvml = strdup(buf);
     sample->expected_result = eval_expected_result(buf);
 
@@ -250,7 +260,7 @@ static void go_test(const char *files)
         globfree(&globbuf);
     }
 
-    std::cerr << "env: " << env << "=" << path << std::endl;
+    // std::cerr << "env: " << env << "=" << path << std::endl;
 }
 
 TEST(comp_hvml, basic)

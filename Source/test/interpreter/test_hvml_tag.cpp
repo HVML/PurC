@@ -119,7 +119,7 @@ struct buffer {
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    if (event == PURC_COND_COR_AFTER_FIRSTRUN) {
+    if (event == PURC_COND_COR_OBSERVING) {
         purc_document_t doc = (purc_document_t)data;
 
         struct buffer *buf = (struct buffer *)purc_coroutine_get_user_data(cor);

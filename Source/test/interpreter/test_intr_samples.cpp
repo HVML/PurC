@@ -83,7 +83,8 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
 
     if (event == PURC_COND_COR_EXITED) {
-        purc_document_t doc = (purc_document_t)data;
+        struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
+        purc_document_t doc = info->doc;
 
         if (ud->terminated) {
             ADD_FAILURE() << "internal logic error: reentrant" << std::endl;

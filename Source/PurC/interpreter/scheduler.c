@@ -143,7 +143,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     // VW: pcintr_dump_document(stack);
     //pcintr_dump_document(stack);
     if (co->owner->cond_handler) {
-        co->owner->cond_handler(PURC_COND_COR_AFTER_FIRSTRUN, co, stack->doc);
+        co->owner->cond_handler(PURC_COND_COR_OBSERVING, co, stack->doc);
     }
     stack->co->stage = CO_STAGE_OBSERVING;
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);

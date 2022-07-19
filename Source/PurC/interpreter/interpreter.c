@@ -1573,7 +1573,11 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     struct pcinst *inst = heap->owner;
 
     if (heap->cond_handler) {
-        heap->cond_handler(PURC_COND_COR_EXITED, co, stack->doc);
+        /* TODO: pass real result here */
+        struct purc_cor_exit_info info = {
+            co->result ? co->result->result : PURC_VARIANT_INVALID,
+            stack->doc };
+        heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
 
     if (co->curator) {
