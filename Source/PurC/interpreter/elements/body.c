@@ -183,6 +183,19 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
     struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        return;
+    }
+
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        return;
+    }
+    pcintr_set_question_var(frame, v);
+    purc_variant_unref(v);
+
+#if 0
+    struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
         return;
 
@@ -202,6 +215,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         PC_ASSERT(text_node);
     }
     purc_variant_unref(v);
+#endif
 
 #if 0 // VW
     if (purc_variant_is_string(v)) {
