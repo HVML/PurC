@@ -263,6 +263,13 @@ on_popping(pcintr_stack_t stack, void* ud)
         frame->ctxt = NULL;
     }
 
+    pcintr_coroutine_t co = stack->co;
+    if (co->result) {
+        PURC_VARIANT_SAFE_CLEAR(co->result->result);
+        co->result->result = pcintr_get_question_var(frame);
+        purc_variant_ref(co->result->result);
+    }
+
     return true;
 }
 
@@ -282,6 +289,18 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        return;
+    }
+
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        return;
+    }
+    pcintr_set_question_var(frame, v);
+    purc_variant_unref(v);
 }
 
 static void

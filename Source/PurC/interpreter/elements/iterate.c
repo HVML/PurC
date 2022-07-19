@@ -567,11 +567,16 @@ attr_found(struct pcintr_stack_frame *frame,
 
     pcintr_stack_t stack = (pcintr_stack_t) ud;
     purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
+    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) != name)
+            && (val == PURC_VARIANT_INVALID)) {
+            return -1;
+    }
 
     int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
+
+    if (val) {
+        purc_variant_unref(val);
+    }
 
     return r ? -1 : 0;
 }
