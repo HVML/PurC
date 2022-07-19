@@ -72,9 +72,31 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     if (event == PURC_COND_COR_EXITED) {
         struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
         if (!purc_variant_is_equal_to(sample->expected_result, info->result)) {
+            char buf[1024];
+            purc_rwstream_t my_rws =
+                purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+
+            if (info->result) {
+                size_t len_expected = 0;
+                ssize_t n = purc_variant_serialize(info->result, my_rws,
+                        0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+                buf[n] = 0;
+
+            }
+            else {
+                strcpy(buf, "INVALID VALUE");
+            }
+            purc_rwstream_destroy(my_rws);
+
             ADD_FAILURE()
-                << "The execute result not match to the expected result"
+                << "The execute result ("
+                << buf
+                << ") does not match to the expected result"
                 << std::endl;
+
+        }
+        else {
+            purc_log_info("Passed: %s\n", sample->file);
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
@@ -190,8 +212,8 @@ static purc_variant_t eval_expected_result(const char *code)
     if (ejson)
         free(ejson);
 
-    purc_log_debug("result type: %s\n",
-            purc_variant_typename(purc_variant_get_type(result)));
+    /* purc_log_debug("result type: %s\n",
+            purc_variant_typename(purc_variant_get_type(result))); */
 
     return result;
 }
@@ -252,10 +274,10 @@ static void go_test(const char *files)
                 r = process_file(globbuf.gl_pathv[i]);
                 if (r)
                     break;
+                purc_run((purc_cond_handler)my_cond_handler);
             }
             if (r)
                 break;
-            purc_run((purc_cond_handler)my_cond_handler);
         } while (0);
         globfree(&globbuf);
     }

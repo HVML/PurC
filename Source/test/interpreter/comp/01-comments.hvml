@@ -28,7 +28,7 @@ End of `Hello, world!`
 <hvml target="void" lang="$STR.substr($SYS.locale, 0, 2)" >
     {{
         $STREAM.stdout.writelines('Start of `Hello, world!`');
-        $STREAM.stdout.writelines($SYS.time('%H:%m'))
+        $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M'))
     }}
 
     <!-- This is a multiple-line comments, which will be parsed and form
@@ -51,7 +51,7 @@ End of `Hello, world!`
 
     {{
         $STREAM.stdout.writelines('End of `Hello, world!`');
-        $STREAM.stdout.writelines($SYS.time('%H:%m'))
+        $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M'))
     }}
 </hvml>
 
