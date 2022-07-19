@@ -182,53 +182,70 @@ add_runner_myobj_listener(purc_variant_t runner)
 bool
 purc_bind_runner_variables(void)
 {
+    bool ret = false;
     // $SYS
     purc_variant_t sys = purc_dvobj_system_new();
     if(!purc_bind_variable(BUILTIN_VAR_SYS, sys)) {
-        return false;
+        goto out;
     }
     purc_variant_unref(sys);
 
     // $RUNNER
     purc_variant_t runner = purc_dvobj_runner_new();
     if(!purc_bind_variable(BUILTIN_VAR_RUNNER, runner)) {
-        return false;
+        goto out;
     }
 
     /* $L, $STR, $URL, $EJSON, $STREAM, $DATETIME
      * are all runner-level variables */
 
     // $L
-    if(!purc_bind_variable(BUILTIN_VAR_L, purc_dvobj_logical_new())) {
-        return false;
+    purc_variant_t l = purc_dvobj_logical_new();
+    if(!purc_bind_variable(BUILTIN_VAR_L, l)) {
+        goto out;
     }
+    purc_variant_unref(l);
 
     // $STR
-    if(!purc_bind_variable(BUILTIN_VAR_STR, purc_dvobj_string_new())) {
-        return false;
+    purc_variant_t str = purc_dvobj_string_new();
+    if(!purc_bind_variable(BUILTIN_VAR_STR, str)) {
+        goto out;
     }
+    purc_variant_unref(str);
 
     // $URL
-    if(!purc_bind_variable(BUILTIN_VAR_URL, purc_dvobj_url_new())) {
-        return false;
+    purc_variant_t url = purc_dvobj_url_new();
+    if(!purc_bind_variable(BUILTIN_VAR_URL, url)) {
+        goto out;
     }
+    purc_variant_unref(url);
 
     // $EJSON
-    if(!purc_bind_variable(BUILTIN_VAR_EJSON, purc_dvobj_ejson_new())) {
-        return false;
+    purc_variant_t ejson = purc_dvobj_ejson_new();
+    if(!purc_bind_variable(BUILTIN_VAR_EJSON, ejson)) {
+        goto out;
     }
+    purc_variant_unref(ejson);
 
     /* $STREAM: TODO
-    if(!purc_bind_variable(BUILTIN_VAR_STREAM, purc_dvobj_stream_new())) {
-        return false;
-    } */
+    purc_variant_t stream = purc_dvobj_stream_new();
+    if(!purc_bind_variable(BUILTIN_VAR_STREAM, stream)) {
+        goto out;
+    }
+    purc_variant_unref(stream);
+    */
 
     // $DATETIME
-    if(!purc_bind_variable(BUILTIN_VAR_DATETIME, purc_dvobj_datetime_new())) {
-        return false;
+    purc_variant_t dt = purc_dvobj_datetime_new();
+    if(!purc_bind_variable(BUILTIN_VAR_DATETIME, dt)) {
+        goto out;
     }
+    purc_variant_unref(dt);
 
-    bool ret = add_runner_myobj_listener(runner);
-    purc_variant_unref(runner);
+    ret = add_runner_myobj_listener(runner);
+out:
+    if (runner) {
+        purc_variant_unref(runner);
+    }
     return ret;
 }
