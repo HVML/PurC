@@ -82,10 +82,13 @@ attr_found_val(struct pcintr_stack_frame *frame,
             stack->co->target = target;
         }
     }
-
-    int r = pcintr_util_set_attribute(frame->owner->doc,
-            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
-    PC_ASSERT(r == 0);
+    else {
+        /* VW: only set attributes other than `target` to
+           the root element of eDOM */
+        int r = pcintr_util_set_attribute(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
+        PC_ASSERT(r == 0);
+    }
 
     return 0;
 }

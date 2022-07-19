@@ -104,6 +104,11 @@ attr_found_val(struct pcintr_stack_frame *frame,
         PC_ASSERT(0);
     }
 
+    /* VW: do not set attributes having `hvml:` prefix to eDOM */
+    if (strncmp(attr->key, "hvml:", 5) == 0) {
+        goto done;
+    }
+
     int r = pcintr_util_set_attribute(frame->owner->doc,
             frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
     PC_ASSERT(r == 0);
@@ -126,6 +131,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return -1;
     }
 
+done:
     return 0;
 }
 
