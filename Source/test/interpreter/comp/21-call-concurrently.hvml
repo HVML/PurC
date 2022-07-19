@@ -1,0 +1,17 @@
+#!/usr/bin/purc
+
+# RESULT: "success"
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <define as "aTimeConsumingTask">
+        <sleep for "5s" />
+        <return with $? />
+    </define>
+
+    <call on $aTimeConsumingTask  with "success" concurrently>
+        <exit with $? />
+    </call>
+
+</hvml>
