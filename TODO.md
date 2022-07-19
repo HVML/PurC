@@ -28,6 +28,8 @@
 1. 为方便协程间协作，增加对通道的支持，提供同步读写（阻塞协程）和异步读写方式。
 1. 在 `archetype` 标签中使用 `type` 指定内容的类型，如 `plain`、 `html`、 `xgml`、 `svg`、`mathml` 等。
 1. `in` 属性支持使用 CSS 选择器限定当前文档位置的写法。
+1. `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
+1. `init`、 `bind` 等创建变量的标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
 1. `update` 标签。
    - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
    - `at` 属性支持 `content`。
@@ -108,8 +110,6 @@
    - `call` 和 `return` 标签。并发调用时，克隆 `define` 子树构建新的 vDOM 树。
    - `load` 和 `exit` 标签。
    - `request` 标签。
-   - `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
-   - `init` 标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
 1. 调整求值逻辑：
    - 按照规范要求，对框架元素内容中定义的表达式进行求值并设置相应的结果数据；参阅 HVML 规范 2.3.4 小节。
    - 取消和 `head` 及 `body` （`head` 和 `body` 均为可选框架元素）相关的约束。
