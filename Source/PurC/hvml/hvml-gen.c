@@ -343,11 +343,6 @@ create_body(struct pcvdom_gen *gen, struct pchvml_token *token)
     struct pcvdom_element *top;
     top = top_element(gen);
 
-    if (gen->doc->body) {
-        pcvdom_node_remove(&gen->doc->body->node);
-        gen->doc->body = NULL;
-    }
-
     elem = create_element(gen, token);
     if (!elem) {
         elem = pcvdom_element_create_c("body");
@@ -411,20 +406,6 @@ pcvdom_gen_end(struct pcvdom_gen *gen)
     gen->eof = 1;
 
     gen->parser = NULL;
-
-    if (doc) {
-        size_t nr;
-        nr = pcutils_arrlist_length(doc->bodies);
-        if (nr > 1) {
-            void *p = pcutils_arrlist_get_idx(doc->bodies, 0);
-            struct pcvdom_element *body;
-            body = (struct pcvdom_element*)p;
-            pcvdom_node_remove(&doc->body->node);
-            doc->body = body;
-            int r = pcvdom_element_append_element(doc->root, doc->body);
-            PC_ASSERT(r == 0);
-        }
-    }
 
     return doc;
 }

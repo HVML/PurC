@@ -177,6 +177,7 @@ struct pcintr_stack {
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
     struct pcintr_coroutine      *co;
+    char                         *body_id;
 
     // for observe
     // struct pcintr_observer
