@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: $STR.nr_bytes('Hello, world!')
+# RESULT: 14UL
 
 <!DOCTYPE hvml>
 <hvml target="void">

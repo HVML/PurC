@@ -127,6 +127,67 @@ read_file(char *buf, size_t nr, const char *file)
     return n;
 }
 
+static purc_variant_t eval_expected_result(const char *code)
+{
+    char *ejson = NULL;
+    size_t ejson_len = 0;
+    const char *line = code;
+
+    while (*line == '#') {
+
+        line++;
+
+        // skip blank character: space or tab
+        while (isblank(*line)) {
+            line++;
+        }
+
+        if (strncmp(line, "RESULT:", strlen("RESULT:")) == 0) {
+            line += strlen("RESULT:");
+
+            const char *eol = line;
+            while (*eol != '\n') {
+                eol++;
+            }
+
+            ejson_len = eol - line;
+            if (ejson_len > 0) {
+                ejson = strndup(line, ejson_len);
+            }
+
+            break;
+        }
+        else {
+            // skip left characters in the line
+            while (*line != '\n') {
+                line++;
+            }
+            line++;
+
+            // skip blank character: space or tab
+            while (isblank(*line) || *line == '\n') {
+                line++;
+            }
+        }
+    }
+
+    purc_variant_t result;
+    if (ejson) {
+        result = purc_variant_make_from_json_string(ejson, ejson_len);
+    }
+    else {
+        result = purc_variant_make_undefined();
+    }
+
+    if (ejson)
+        free(ejson);
+
+    purc_log_debug("result type: %s\n",
+            purc_variant_typename(purc_variant_get_type(result)));
+
+    return result;
+}
+
 static int
 process_file(const char *file)
 {
@@ -139,6 +200,7 @@ process_file(const char *file)
     struct sample_data *sample =
         (struct sample_data *)calloc(1, sizeof(*sample));
     sample->input_hvml = strdup(buf);
+    sample->expected_result = eval_expected_result(buf);
 
     return add_sample(sample);
 }

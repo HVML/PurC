@@ -1,6 +1,6 @@
 #!/user/bin/purc
 
-# RESULT: "-- by $SYS.const('HVML_INTRPR_NAME')"
+# RESULT: "-- by PurC"
 
 <!-- The expected output of this HVML program:
 
