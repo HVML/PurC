@@ -731,9 +731,12 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token))
+        if (pchvml_token_is_whitespace(token)) {
             return 0; // just ignore
-        FAIL_RET();
+        }
+        else {
+            return set_vcm_tree(gen, token);
+        }
     }
     else if (type==VTT(_END_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -914,10 +917,12 @@ on_mode_after_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token))
+        if (pchvml_token_is_whitespace(token)) {
             return 0; // just ignore
-        FAIL_RET();
-        return 0;
+        }
+        else {
+            return set_vcm_tree(gen, token);
+        }
     }
     else if (type==VTT(_END_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -1115,9 +1120,12 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token))
+        if (pchvml_token_is_whitespace(token)) {
             return 0; // just ignore
-        return 0;
+        }
+        else {
+            return set_vcm_tree(gen, token);
+        }
     }
     else if (type==VTT(_START_TAG)) {
         PC_ASSERT(gen->doc);
@@ -1166,10 +1174,12 @@ on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token))
+        if (pchvml_token_is_whitespace(token)) {
             return 0; // just ignore
-        FAIL_RET();
-        return 0;
+        }
+        else {
+            return set_vcm_tree(gen, token);
+        }
     }
 
     FAIL_RET();
