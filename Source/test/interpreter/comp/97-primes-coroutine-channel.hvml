@@ -16,7 +16,7 @@
             <init as channelIdx with $? />
             <init as inChannel with "channel$?" />
 
-            <observe on $CRTN for "received:$inChannel" once >
+            <observe on $CRTN for "got:$inChannel" once >
                 <update on $RUNNER.myObj.primes to "append" with $? />
                 <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $? } async />
             </observe>
@@ -37,7 +37,7 @@
         <init as inChannel with "channel$REQ.idx" />
         <init as outChannel with "channel{$EJSON.arith('+', $REQ.idx, 1)}" />
 
-        <observe on $CRTN for "received:$inChannel" >
+        <observe on $CRTN for "got:$inChannel" >
             <test with $EJSON.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
                 $EJSON.move($?, "/-/-", "$outChannel")
             </test>
