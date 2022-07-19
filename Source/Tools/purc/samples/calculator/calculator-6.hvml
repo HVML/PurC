@@ -1,5 +1,5 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
-<hvml target="html" lang="$STR.substr($SYSTEM.locale, 0, 2)">
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
     <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>

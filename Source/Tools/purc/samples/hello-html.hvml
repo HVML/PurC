@@ -9,7 +9,7 @@
     <body>
         <ul>
             <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
-                <li>$< Hello, world! --from COROUTINE-$HVML.cid</li>
+                <li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
     </body>

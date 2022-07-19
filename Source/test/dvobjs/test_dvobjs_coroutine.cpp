@@ -75,12 +75,12 @@ TEST(dvobjs, dvobjs_hvml_setter)
     purc_coroutine_t cor = (pcintr_coroutine_t)calloc(1, sizeof(*cor));
     ASSERT_NE(cor, nullptr);
 
-    purc_variant_t hvml = purc_dvobj_hvml_new(cor);
+    purc_variant_t hvml = purc_dvobj_coroutine_new(cor);
     ASSERT_NE(hvml, nullptr);
     ASSERT_EQ(purc_variant_is_object (hvml), true);
 
     for (i = 0; i < function_size; i++) {
-        printf ("test _HVML.%s:\n", function[i]);
+        printf ("test $CRTN.%s:\n", function[i]);
 
         purc_variant_t dynamic = purc_variant_object_get_by_ckey (hvml,
                 function[i]);

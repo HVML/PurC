@@ -2,6 +2,6 @@
 <hvml target="void">
     <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) >
         $STREAM.stdout.writelines(
-                $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
+                $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
     </iterate>
 </hvml>

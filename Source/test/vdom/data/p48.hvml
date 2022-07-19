@@ -1,10 +1,10 @@
 <hvml>
     <body>
         <init as="sysClock">
-            $SYSTEM.time
+            $SYS.time
         </init>
 
-        <bind on="$SYSTEM.time" as="rtClock" />
+        <bind on="$SYS.time" as="rtClock" />
 
         <p>The initial system time: $sysClock</p>
 

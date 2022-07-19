@@ -1,1 +1,1 @@
-$SYSTEM.uname_prt("kernel-name")
+$SYS.uname_prt("kernel-name")

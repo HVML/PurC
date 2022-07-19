@@ -1,4 +1,4 @@
 <hvml>
-    <update from="assets/{$SYSTEM.locale}.json" />
-    <update from="assets/$SYSTEM.time.tm" />
+    <update from="assets/{$SYS.locale}.json" />
+    <update from="assets/$SYS.time.tm" />
 </hvml>

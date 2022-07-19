@@ -98,7 +98,7 @@ protected:
     void SetUp() {
         purc_init_ex(PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
                 "test_hvml_tag", NULL);
-        purc_bind_session_variables();
+        purc_bind_runner_variables();
     }
     void TearDown() {
         purc_cleanup ();
@@ -123,6 +123,10 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         purc_document_t doc = (purc_document_t)data;
 
         struct buffer *buf = (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (buf->dump_buff) {
+            free(buf->dump_buff);
+            buf->dump_buff = nullptr;
+        }
         buf->dump_buff = intr_util_dump_doc(doc, NULL);
     }
 
@@ -157,7 +161,7 @@ TEST_P(TestHVMLTag, hvml_tags)
             "main",   /* target_workspace */
             NULL,     /* target_group */
             NULL,     /* page_name */
-            &rdr_info, NULL, NULL);
+            &rdr_info, "test", NULL);
     ASSERT_NE(co, nullptr);
     purc_variant_unref(request);
 
@@ -168,6 +172,15 @@ TEST_P(TestHVMLTag, hvml_tags)
     ASSERT_NE(buf.dump_buff, nullptr);
 
     if (test_case.html) {
+#if 1
+        std::string left = buf.dump_buff;
+        left.erase(remove(left.begin(), left.end(), ' '), left.end());
+        left.erase(remove(left.begin(), left.end(), '\n'), left.end());
+        std::string right = test_case.html;
+        right.erase(remove(right.begin(), right.end(), ' '), right.end());
+        right.erase(remove(right.begin(), right.end(), '\n'), right.end());
+        ASSERT_EQ(left, right);
+#else
         purc_document_t docl = purc_document_load(PCDOC_K_TYPE_HTML,
                 buf.dump_buff, 0);
         purc_document_t docr = purc_document_load(PCDOC_K_TYPE_HTML,
@@ -188,6 +201,7 @@ TEST_P(TestHVMLTag, hvml_tags)
         if (ctnt) free(ctnt);
         if (docl) purc_document_delete(docl);
         if (docr) purc_document_delete(docr);
+#endif
     }
     else {
         FILE* fp = fopen(test_case.html_path, "w");

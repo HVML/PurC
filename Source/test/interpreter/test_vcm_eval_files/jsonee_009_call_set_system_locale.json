@@ -1,1 +1,1 @@
-$SYSTEM.locale(!"ctype", "en_US.UTF-8")
+$SYS.locale(!"ctype", "en_US.UTF-8")

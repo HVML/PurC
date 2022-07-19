@@ -2,7 +2,7 @@
  * @file variables.c
  * @author XueShuming
  * @date 2022/07/05
- * @brief The session predefined variables.
+ * @brief The runner-level predefined variables.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -37,19 +37,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUILDIN_VAR_SYSTEM      "SYSTEM"
-#define BUILDIN_VAR_SESSION     "SESSION"
+#define BUILTIN_VAR_SYS         PURC_PREDEF_VARNAME_SYS
+#define BUILTIN_VAR_RUNNER      PURC_PREDEF_VARNAME_RUNNER
+#define BUILTIN_VAR_L           PURC_PREDEF_VARNAME_L
+#define BUILTIN_VAR_STR         PURC_PREDEF_VARNAME_STR
+#define BUILTIN_VAR_URL         PURC_PREDEF_VARNAME_URL
+#define BUILTIN_VAR_EJSON       PURC_PREDEF_VARNAME_EJSON
+#define BUILTIN_VAR_STREAM      PURC_PREDEF_VARNAME_STREAM
+#define BUILTIN_VAR_DATETIME    PURC_PREDEF_VARNAME_DATETIME
 
 #define USER_OBJ                "myObj"
 #define INNER_WRAP              "__inner_wrap"
 #define MSG_TYPE_CHANGE         "change"
 
-struct session_myobj_wrap {
+struct runner_myobj_wrap {
     purc_variant_t object;
     struct pcvar_listener *listener;
 };
 
-void
+static void
 post_event(purc_variant_t source, purc_variant_t key, purc_variant_t value)
 {
     struct pcinst* inst = pcinst_current();
@@ -129,23 +135,23 @@ myobj_handler(purc_variant_t source, pcvar_op_t msg_type, void *ctxt,
     return true;
 }
 
-void
-on_session_myobj_release(void *native_entity)
+static void
+on_runner_myobj_release(void *native_entity)
 {
-    struct session_myobj_wrap *wrap = (struct session_myobj_wrap*)native_entity;
+    struct runner_myobj_wrap *wrap = (struct runner_myobj_wrap*)native_entity;
     if (wrap->listener) {
         purc_variant_revoke_listener(wrap->object, wrap->listener);
     }
     free(wrap);
 }
 
-bool
-add_session_myobj_listener(purc_variant_t session)
+static bool
+add_runner_myobj_listener(purc_variant_t runner)
 {
-    purc_variant_t my_obj = purc_variant_object_get_by_ckey(session, USER_OBJ);
+    purc_variant_t my_obj = purc_variant_object_get_by_ckey(runner, USER_OBJ);
     int op = PCVAR_OPERATION_GROW | PCVAR_OPERATION_SHRINK |
         PCVAR_OPERATION_CHANGE;
-    struct session_myobj_wrap *wrap = (struct session_myobj_wrap*)calloc(1,
+    struct runner_myobj_wrap *wrap = (struct runner_myobj_wrap*)calloc(1,
             sizeof(*wrap));
     if (!wrap) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -159,37 +165,70 @@ add_session_myobj_listener(purc_variant_t session)
         (pcvar_op_t)op, myobj_handler, wrap);
 
     static struct purc_native_ops ops = {
-        .on_release                   = on_session_myobj_release,
+        .on_release                   = on_runner_myobj_release,
     };
 
     purc_variant_t v = purc_variant_make_native(wrap, &ops);
     if (v == PURC_VARIANT_INVALID) {
-        on_session_myobj_release(wrap);
+        on_runner_myobj_release(wrap);
         return false;
     }
 
-    bool ret = purc_variant_object_set_by_static_ckey(session, INNER_WRAP, v);
+    bool ret = purc_variant_object_set_by_static_ckey(runner, INNER_WRAP, v);
     purc_variant_unref(v);
     return ret;
 }
 
 bool
-purc_bind_session_variables(void)
+purc_bind_runner_variables(void)
 {
-    // $SYSTEM
+    // $SYS
     purc_variant_t sys = purc_dvobj_system_new();
-    if(!purc_bind_variable(BUILDIN_VAR_SYSTEM, sys)) {
+    if(!purc_bind_variable(BUILTIN_VAR_SYS, sys)) {
         return false;
     }
     purc_variant_unref(sys);
 
-    // $SESSION
-    purc_variant_t session = purc_dvobj_session_new();
-    if(!purc_bind_variable(BUILDIN_VAR_SESSION, session)) {
+    // $RUNNER
+    purc_variant_t runner = purc_dvobj_runner_new();
+    if(!purc_bind_variable(BUILTIN_VAR_RUNNER, runner)) {
         return false;
     }
 
-    bool ret = add_session_myobj_listener(session);
-    purc_variant_unref(session);
+    /* $L, $STR, $URL, $EJSON, $STREAM, $DATETIME
+     * are all runner-level variables */
+
+    // $L
+    if(!purc_bind_variable(BUILTIN_VAR_L, purc_dvobj_logical_new())) {
+        return false;
+    }
+
+    // $STR
+    if(!purc_bind_variable(BUILTIN_VAR_STR, purc_dvobj_string_new())) {
+        return false;
+    }
+
+    // $URL
+    if(!purc_bind_variable(BUILTIN_VAR_URL, purc_dvobj_url_new())) {
+        return false;
+    }
+
+    // $EJSON
+    if(!purc_bind_variable(BUILTIN_VAR_EJSON, purc_dvobj_ejson_new())) {
+        return false;
+    }
+
+    /* $STREAM: TODO
+    if(!purc_bind_variable(BUILTIN_VAR_STREAM, purc_dvobj_stream_new())) {
+        return false;
+    } */
+
+    // $DATETIME
+    if(!purc_bind_variable(BUILTIN_VAR_DATETIME, purc_dvobj_datetime_new())) {
+        return false;
+    }
+
+    bool ret = add_runner_myobj_listener(runner);
+    purc_variant_unref(runner);
     return ret;
 }

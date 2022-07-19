@@ -17,15 +17,15 @@
                 <h2 id="c_title">Test Observe<br/>
                     <span id="author"></span>
                 </h2>
-                <observe on="$SESSION.myObj" for="change:AUTHOR" in="#author">
+                <observe on="$RUNNER.myObj" for="change:AUTHOR" in="#author">
                     <update on="$@" at="textContent" with="$?" />
-                    <forget on="$SESSION.myObj" for="change:AUTHOR"/>
+                    <forget on="$RUNNER.myObj" for="change:AUTHOR"/>
                 </observe>
                 <observe on="$TIMERS" for="expired:clock">
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>
-                    <update on="$SESSION.myObj" to="merge">
+                    <update on="$RUNNER.myObj" to="merge">
                         {
                             "AUTHOR": "Vincent Wei",
                         }

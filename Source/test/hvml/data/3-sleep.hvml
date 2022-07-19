@@ -1,0 +1,38 @@
+#!/usr/bin/purc
+
+# RESULT: true
+
+<!-- The expected output of this HVML program should be like
+
+Current time: 00:00
+Current time: 00:03
+Current time: 00:01
+Current time: 00:02
+Current time: 00:07
+Current time: 00:04
+Current time: 00:08
+Current time: 00:05
+Current time: 00:03
+Current time: 00:00
+
+I slept for 50 seconds totally
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <init as startTime with $SYS.time />
+
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith_calc('+', $0<, 1) nosetotail >
+        <sleep with $SYS.random(10.0) >
+            $STREAM.stdout.writelines($STR.join('Current time: ',
+                        $SYS.time("%H:%m")))
+        </sleep>
+    </iterate>
+
+    {{
+        $STREAM.stdout.writelines($STR.join("I slept for ",
+                    $EJSON.arith_calc('-', $SYS.time, $startTime), " seconds totally"));
+        $L.lt($EJSON.arith_calc('-', $SYS.time, $startTime), 0)
+    }}
+</hvml>

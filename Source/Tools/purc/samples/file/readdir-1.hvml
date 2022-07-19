@@ -7,19 +7,19 @@
     <body>
         <header>
             <h1>Entries in Directory</h1>
-            <p><code>$REQUEST.dir</code></p>
+            <p><code>$REQ.dir</code></p>
         </header>
 
         <section>
-            <test on=$FS.file_is($REQUEST.dir, 'dir readable')>
+            <test on=$FS.file_is($REQ.dir, 'dir readable')>
 
                 <match on="$?" exclusively>
                     <init as="count" with=0 temp />
 
                     <ol>
-                        <choose on=$FS.opendir($REQUEST.dir) >
+                        <choose on=$FS.opendir($REQ.dir) >
                             <except raw>
-                                <li>Exception when calling '$FS.opendir($REQUEST.dir)'</li>
+                                <li>Exception when calling '$FS.opendir($REQ.dir)'</li>
                             </except>
 
                             <iterate on=$? with=$?.read() >
@@ -34,11 +34,11 @@
                 </match>
 
                 <match>
-                    <p>Not a directory or directory not readable: $REQUEST.dir</p>
+                    <p>Not a directory or directory not readable: $REQ.dir</p>
                 </mathc>
 
                 <except raw>
-                    <p>Exception on calling $FS.file_is($REQUEST.dir, 'dir readable')</p>
+                    <p>Exception on calling $FS.file_is($REQ.dir, 'dir readable')</p>
                 </except>
             </test>
 

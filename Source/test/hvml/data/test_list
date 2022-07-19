@@ -147,6 +147,7 @@ jsonee_093_undefined
 jsonee_094_anchor
 jsonee_095
 jsonee_096
+jsonee_097
 ejson_001_i_number_double_huge_neg_exp
 ejson_002_i_number_huge_exp
 ejson_003_i_number_neg_int_huge_exp
@@ -558,3 +559,10 @@ cjsonee_072
 cjsonee_073
 cjsonee_074
 cjsonee_075
+0-hello-world
+1-comments
+2-without-head-body
+3-sleep
+4-sleep-idle
+5-sleep-idle-exit
+

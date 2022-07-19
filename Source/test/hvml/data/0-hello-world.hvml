@@ -1,0 +1,10 @@
+#!/usr/bin/purc
+
+# RESULT: $STR.nr_bytes('Hello, world!')
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    $STREAM.stdout.writelines('Hello, world!')
+
+</hvml>

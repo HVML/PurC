@@ -1,4 +1,4 @@
-<hvml target="$REQUEST.target">
+<hvml target="$REQ.target">
     <body>
         <inherit>
             $STREAM.stdout.writelines("Start of 'Hello, world!'");

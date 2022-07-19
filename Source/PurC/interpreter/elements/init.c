@@ -36,8 +36,10 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define INIT_SYNC_FETCHER_EVENT_HANDLER    "__init_sync_fetcher_event_handler"
-#define INIT_ASYNC_FETCHER_EVENT_HANDLER  "__init_async_fetcher_event_handler"
+
+#define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
+#define MSG_TYPE_ASYNC                  "async"
+#define MSG_SUB_TYPE_SUCCESS            "success"
 
 enum VIA {
     VIA_UNDEFINED,
@@ -865,29 +867,6 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-int init_sync_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
-{
-    UNUSED_PARAM(handler);
-
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-
-    struct ctxt_for_init *ctxt = data;
-
-    if (msg->requestId == ctxt->sync_id
-            && msg->elementValue == ctxt->sync_id) {
-        pcintr_set_current_co(co);
-        pcintr_resume(co, NULL);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        ret = PURC_ERROR_OK;
-    }
-
-    return ret;
-}
-
 static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -929,9 +908,9 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
         ctxt->sync_id, "", "", PURC_VARIANT_INVALID, ctxt->sync_id);
 }
 
-static void on_sync_continuation(void *ud, void *extra)
+static void on_sync_continuation(void *ud, pcrdr_msg *msg)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(msg);
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;
@@ -1080,13 +1059,8 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     ctxt->sync_id = purc_variant_ref(v);
 
-    pcintr_coroutine_add_event_handler(
-            co,  INIT_SYNC_FETCHER_EVENT_HANDLER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, init_sync_event_handle, false);
-
-    pcintr_yield(frame, on_sync_continuation, PURC_VARIANT_INVALID,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    pcintr_yield(frame, on_sync_continuation, ctxt->sync_id,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
 
     purc_clr_error();
 
@@ -1210,6 +1184,9 @@ static void on_async_resume(void *ud)
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co == data->co);
+
+    pcintr_unregister_cancel(&data->cancel);
+
     //PC_ASSERT(co->state == CO_STATE_RUNNING);
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
@@ -1221,6 +1198,36 @@ static void on_async_resume(void *ud)
     pcintr_pop_stack_frame_pseudo();
 
     load_data_destroy(data);
+}
+
+bool is_async_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(msg);
+    struct load_data *data = (struct load_data *)handler->data;
+    if (purc_variant_is_equal_to(data->async_id, msg->requestId)) {
+        return true;
+    }
+    return false;
+}
+
+static int
+async_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+
+    *remove_handler = true;
+
+    struct load_data *data = purc_variant_native_get_entity(msg->data);
+    pcintr_set_current_co(co);
+    on_async_resume(data);
+    pcintr_set_current_co(NULL);
+
+    return PURC_ERROR_OK;
 }
 
 static void on_async_complete(purc_variant_t request_id, void *ud,
@@ -1244,18 +1251,21 @@ static void on_async_complete(purc_variant_t request_id, void *ud,
     PC_ASSERT(co->owner == heap);
     PC_ASSERT(data->async_id == request_id);
 
-    pcintr_set_current_co(co);
-
     data->ret_code = resp_header->ret_code;
     data->resp = resp;
     PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
-    pcintr_unregister_cancel(&data->cancel);
-    pcintr_post_msg(data, on_async_resume);
+    if (co->stack.exited) {
+        return;
+    }
 
-    pcintr_check_after_execution();
-
-    pcintr_set_current_co(NULL);
+    purc_variant_t payload = purc_variant_make_native(data, NULL);
+    pcintr_coroutine_post_event(co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        data->async_id,
+        MSG_TYPE_ASYNC, MSG_SUB_TYPE_SUCCESS,
+        payload, data->async_id);
+    purc_variant_unref(payload);
 }
 
 static void load_data_cancel(void *ud)
@@ -1303,6 +1313,13 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     }
 
     data->async_id = purc_variant_ref(data->async_id);
+
+    ctxt->sync_id = purc_variant_ref(data->async_id);
+    pcintr_coroutine_add_event_handler(
+            co,  INIT_ASYNC_EVENT_HANDLER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING,
+            data, async_event_handle, is_async_event_handler_match, false);
 
     pcintr_register_cancel(&data->cancel);
     PC_ASSERT(co->state == CO_STATE_RUNNING);

@@ -327,7 +327,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
  *
- * Binds a variant value as the session-level variable.
+ * Binds a variant value as the runner-level variable.
  *
  * Returns: @true for success; @false for failure.
  *
@@ -337,16 +337,16 @@ PCA_EXPORT bool
 purc_bind_variable(const char* name, purc_variant_t variant);
 
 /**
- * purc_bind_session_variables:
+ * purc_bind_runner_variables:
  *
- * Binds all predefined session variables for current PurC instance.
+ * Binds all predefined runner variables for current PurC instance.
  *
  * Returns: @true for success; @false for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT bool
-purc_bind_session_variables(void);
+purc_bind_runner_variables(void);
 
 struct pcvdom_document;
 typedef struct pcvdom_document* purc_vdom_t;

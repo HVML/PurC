@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: 15
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <define as "aTimeConsumingTask">
+        <sleep for "5s" />
+        <return with $MATH.eval($?) />
+    </define>
+
+    <call on $aTimeConsumingTask as "myTask" within "newRunner" with "5 * 3" concurrently asynchronously />
+
+    <observe on $CRTN for "idle">
+
+        <choose on $SYS.time('%H:%m') >
+            $STREAM.stdout.writelines($?)
+        </choose>
+    </observe>
+
+    <observe on $myTask for "callState:success">
+        <exit with $? />
+    </observe>
+</hvml>

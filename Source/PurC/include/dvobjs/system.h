@@ -5,7 +5,7 @@
  */
 
 /**
- * \defgroup bv_system $SYSTEM
+ * \defgroup bv_system $SYS
  * @{
  */
 
@@ -28,7 +28,7 @@
  * @endcode
  * @par sample
  * @code
- *      $SYSTEM.uname
+ *      $SYS.uname
  * @endcode
  *
  * @sa          uname_prt()
@@ -43,7 +43,7 @@ object uname;
  * @return A string which contains LC_MESSAGES locale information.
  * @par sample
  * @code
- *      $SYSTEM.locale
+ *      $SYS.locale
  * @endcode
  *
  */
@@ -56,7 +56,7 @@ string locale;
  * @return A random number.
  * @par sample
  * @code
- *      $SYSTEM.random
+ *      $SYS.random
  * @endcode
  *
  */
@@ -70,7 +70,7 @@ number random;
  * @return A number which is the seconds from Epoch.
  * @par sample
  * @code
- *      $SYSTEM.time
+ *      $SYS.time
  * @endcode
  *
  */
@@ -88,12 +88,12 @@ number time;
  * @par sample
  * @code
  *              // get only kernel-name kernel-release kernel-version
- *              $SYSTEM.uname_prt('kernel-name kernel-release kernel-version')
+ *              $SYS.uname_prt('kernel-name kernel-release kernel-version')
  *
  *              // get all system informations 
- *              $SYSTEM.uname_prt('all')
+ *              $SYS.uname_prt('all')
  * @endcode
- * @note        If input "all", you will get all system information as $SYSTEM.uname.\n
+ * @note        If input "all", you will get all system information as $SYS.uname.\n
  *              If input "default", only get "kernel-name", "kernel-release", "kernel-version", "nodename", "machine" information.
  *
  * @sa          uname
@@ -112,7 +112,7 @@ string uname_prt(string keywords_list);
  * @par sample
  * @code
  *              // get locale for LC_COLLATE
- *              $SYSTEM.locale('collate')
+ *              $SYS.locale('collate')
  * @endcode
  */
 string locale(string category)  GETTER;
@@ -129,7 +129,7 @@ string locale(string category)  GETTER;
  *
  * @par sample
  * @code
- *              $SYSTEM.locale(! 'collate', "en_US.UTF-8")
+ *              $SYS.locale(! 'collate', "en_US.UTF-8")
  * @endcode
  */
 boolean locale(string category, string locale)  SETTER;
@@ -145,7 +145,7 @@ boolean locale(string category, string locale)  SETTER;
  *
  * @par sample
  * @code
- *              $SYSTEM.random(3.1415926)
+ *              $SYS.random(3.1415926)
  * @endcode
  */
 number random(number max_range);
@@ -167,14 +167,14 @@ number random(number max_range);
  * @par sample
  * @code
  *              // get time with ISO8601 format
- *              $SYSTEM.time("ISO8601");
+ *              $SYS.time("ISO8601");
  *
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
- *              $SYSTEM.time("ISO8601", 1234567, "Asia/Shanghai");
+ *              $SYS.time("ISO8601", 1234567, "Asia/Shanghai");
  *
  *              // get time in Asia/Shanghai, and Epoch is 1234567,
  *              // and return string is in user defined format
- *              $SYSTEM.time("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
+ *              $SYS.time("The Shanghai time is %H:%m", 1234567, "Asia/Shanghai");
  * @endcode
  *
  * @note
@@ -210,7 +210,7 @@ string time(string format [, multiple_type epoch[, string: timezone]])  GETTER;
  * @par sample
  * @code
  *              // set time, and Epoch is 1234567
- *              $SYSTEM.time(! 1234567);
+ *              $SYS.time(! 1234567);
  * @endcode
  */
 boolean time(number epoch)  SETTER;

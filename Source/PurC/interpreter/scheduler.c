@@ -44,8 +44,16 @@
 #define SCHEDULE_SLEEP          10000           // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
+#define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
+
 #define MSG_TYPE_IDLE           "idle"
-#define BUILDIN_VAR_HVML        "HVML"
+#define MSG_TYPE_CALL_STATE     "callState"
+
+#define MSG_SUB_TYPE_SUCCESS    "success"
+#define MSG_SUB_TYPE_EXCEPT     "except"
+
+#define YIELD_EVENT_HANDLER     "_yield_event_handler"
+
 
 static inline
 double current_time()
@@ -68,7 +76,7 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
             purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                    BUILDIN_VAR_HVML);
+                    BUILTIN_VAR_CRTN);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID,
@@ -160,19 +168,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
     }
 
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        //PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
     if (!list_empty(&co->children)) {
         return;
     }
@@ -195,19 +190,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
     }
 
-    if (!list_empty(&co->msgs) && co->msg_pending == 0) {
-        PC_ASSERT(co->state == CO_STATE_READY);
-        struct pcintr_stack_frame *frame;
-        frame = pcintr_stack_get_bottom_frame(stack);
-        PC_ASSERT(frame == NULL);
-        pcintr_msg_t msg;
-        msg = list_first_entry(&co->msgs, struct pcintr_msg, node);
-        list_del(&msg->node);
-        co->msg_pending = 1;
-        pcintr_wakeup_target_with(co, msg, pcintr_on_msg);
-        return;
-    }
-
     if (still_observed) {
         return;
     }
@@ -215,10 +197,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (!co->stack.exited) {
         co->stack.exited = 1;
         pcintr_notify_to_stop(co);
-    }
-
-    if (!list_empty(&co->msgs)) {
-        return;
     }
 
     if (co->msg_pending) {
@@ -232,7 +210,13 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifdef PRINT_DEBUG              /* { */
         PC_DEBUGX("last msg was sent");
 #endif                          /* } */
-        pcintr_wakeup_target_with(co, pcintr_last_msg(), pcintr_on_last_msg);
+        purc_variant_t elementValue = purc_variant_make_native(co, NULL);
+        pcintr_coroutine_post_event(co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                elementValue,           /* elementValue must set */
+                MSG_TYPE_LAST_MSG, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(elementValue);
         return;
     }
 
@@ -249,16 +233,26 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
-            pcintr_post_callstate_except_event(co, co->error_except);
+            pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
+            purc_variant_t payload = purc_variant_make_string(
+                    co->error_except, false);
+            pcintr_coroutine_post_event(target->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    target->wait_request_id,
+                    MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_EXCEPT,
+                    payload, target->wait_request_id);
+            purc_variant_unref(payload);
         }
         else {
             PC_ASSERT(co->val_from_return_or_exit);
-            pcintr_post_callstate_success_event(co, co->val_from_return_or_exit);
+            pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
+            pcintr_coroutine_post_event(target->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    target->wait_request_id,
+                    MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
+                    co->val_from_return_or_exit, target->wait_request_id);
         }
     }
-
-    PC_ASSERT(co);
-    pcintr_run_exiting_co(co);
 }
 
 static void
@@ -323,6 +317,12 @@ size_t
 handle_coroutine_event(pcintr_coroutine_t co)
 {
     int handle_ret = PURC_ERROR_INCOMPLETED;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(&co->stack);
+    if (frame != NULL && co->state != CO_STATE_STOPPED) {
+        goto out;
+    }
+
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
     bool remove_handler = false;
 
@@ -334,16 +334,13 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
         // verify coroutine stage and state
         if ((co->stage & handler->cor_stage) == 0  ||
-                (co->state & handler->cor_exec_state) == 0) {
+                (co->state & handler->cor_state) == 0 ||
+                ((msg == NULL) && !handler->support_null_event) ||
+                (!handler->is_match(handler, co, msg))) {
             continue;
         }
 
-        if ((msg == NULL) && !handler->support_null_event) {
-            continue;
-        }
-
-        handle_ret = handler->handle(co, handler, msg, handler->data,
-                &remove_handler);
+        handle_ret = handler->handle(handler, co, msg, &remove_handler);
 
         if (remove_handler) {
             pcintr_coroutine_remove_event_hander(handler);
@@ -358,6 +355,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
     if (msg) {
         pcinst_msg_queue_append(co->mq, msg);
     }
+out:
     return pcinst_msg_queue_count(co->mq);
 }
 
@@ -389,6 +387,9 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
         }
         if (co->stage == CO_STAGE_OBSERVING) {
             nr_observe++;
+        }
+        if (co->stack.exited && co->stack.last_msg_read) {
+            pcintr_run_exiting_co(co);
         }
     }
 
@@ -447,10 +448,21 @@ out:
     return;
 }
 
+static bool
+default_event_match(struct pcintr_event_handler *handler, pcintr_coroutine_t co,
+        pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(msg);
+    return true;
+}
+
+
 struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
         int stage, int state, void *data, event_handle_fn fn,
-        bool support_null_event)
+        event_match_fn is_match_fn, bool support_null_event)
 {
     struct pcintr_event_handler *handler =
         (struct pcintr_event_handler *)calloc(1, sizeof(*handler));
@@ -461,9 +473,10 @@ pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
 
     handler->name = name ? strdup(name) : NULL;
     handler->cor_stage = stage;
-    handler->cor_exec_state = state;
+    handler->cor_state = state;
     handler->data = data;
     handler->handle = fn;
+    handler->is_match = is_match_fn ? is_match_fn : default_event_match;
     handler->support_null_event = support_null_event;
 
     list_add_tail(&handler->ln, &co->event_handlers);
@@ -493,5 +506,116 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
         pcintr_coroutine_remove_event_hander(handler);
     }
     return 0;
+}
+
+bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    if (co->wait_request_id) {
+        return purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
+    }
+
+    if (purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
+            purc_variant_is_equal_to(co->wait_event_name, msg->eventName)) {
+        return true;
+    }
+    return false;
+}
+
+static int
+yield_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+
+    *remove_handler = true;
+
+    pcintr_set_current_co(co);
+    pcintr_resume(co, msg);
+    pcintr_set_current_co(NULL);
+
+    return PURC_ERROR_OK;
+}
+
+void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
+        purc_variant_t request_id, purc_variant_t element_value,
+        purc_variant_t event_name, bool custom_event_handler)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(event_name);
+    PC_ASSERT(ctxt);
+    PC_ASSERT(continuation);
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_RUNNING);
+    PC_ASSERT(co->yielded_ctxt == NULL);
+    PC_ASSERT(co->continuation == NULL);
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
+    co->yielded_ctxt = ctxt;
+    co->continuation = continuation;
+    if (request_id) {
+        co->wait_request_id = request_id;
+        purc_variant_ref(co->wait_request_id);
+    }
+
+    if (element_value) {
+        co->wait_element_value = element_value;
+        purc_variant_ref(co->wait_element_value);
+    }
+
+    if (event_name) {
+        co->wait_event_name = event_name;
+        purc_variant_ref(co->wait_event_name);
+    }
+
+    if (!custom_event_handler) {
+        pcintr_coroutine_add_event_handler(
+                co,  YIELD_EVENT_HANDLER,
+                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+                ctxt, yield_event_handle, is_yield_event_handler_match, false);
+    }
+}
+
+void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    PC_ASSERT(co);
+    PC_ASSERT(co->state == CO_STATE_STOPPED);
+    PC_ASSERT(co->yielded_ctxt);
+    PC_ASSERT(co->continuation);
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    PC_ASSERT(frame);
+
+    void *ctxt = co->yielded_ctxt;
+    void (*continuation)(void *ctxt, pcrdr_msg *msg) = co->continuation;
+
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    co->yielded_ctxt = NULL;
+    co->continuation = NULL;
+    if (co->wait_request_id) {
+        purc_variant_unref(co->wait_request_id);
+        co->wait_request_id = NULL;
+    }
+
+    if (co->wait_element_value) {
+        purc_variant_unref(co->wait_element_value);
+        co->wait_element_value = NULL;
+    }
+
+    if (co->wait_event_name) {
+        purc_variant_unref(co->wait_event_name);
+        co->wait_event_name = NULL;
+    }
+
+    continuation(ctxt, msg);
+    pcintr_check_after_execution_full(pcinst_current(), co);
 }
 

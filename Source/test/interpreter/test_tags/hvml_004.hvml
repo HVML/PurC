@@ -1,5 +1,5 @@
 <hvml target="html" id="ab" value="test" custom="cust">
     <body>
-        <div>$HVML.target</div>
+        <div>$CRTN.target</div>
     </body>
 </hvml>

@@ -1,7 +1,7 @@
 PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<test on=get_element(get_element(get_variable("buttons"),call_getter(get_element(get_variable("SYSTEM"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("buttons")))),"letters")>
+PCHVML_TOKEN_START_TAG|<test on=get_element(get_element(get_variable("buttons"),call_getter(get_element(get_variable("SYS"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("buttons")))),"letters")>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</test>

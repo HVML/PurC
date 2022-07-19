@@ -35,6 +35,8 @@
 #define EXCLAMATION_EVENT_NAME     "_eventName"
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 #define OBSERVER_EVENT_HANDER      "_observer_event_handler"
+#define SUB_EXIT_EVENT_HANDER      "_sub_exit_event_handler"
+#define LAST_MSG_EVENT_HANDER      "_last_msg_event_handler"
 
 static void
 destroy_task(struct pcintr_observer_task *task)
@@ -178,7 +180,9 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 
     purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             msg_type_s);
-    PC_ASSERT(msg_type_atom);
+    if (!msg_type_atom) {
+        return -1;
+    }
 
     purc_variant_t observed = msg->elementValue;
 
@@ -244,20 +248,20 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     return 0;
 }
 
-int observer_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+static int
+observer_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
 {
-    UNUSED_PARAM(co);
     UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
-    UNUSED_PARAM(data);
 
     int ret = PURC_ERROR_INCOMPLETED;
     *remove_handler = false;
     if (list_empty(&co->tasks) && msg) {
-        dispatch_coroutine_msg(co, msg);
-        ret = PURC_ERROR_OK;
+        if (PURC_ERROR_OK == dispatch_coroutine_msg(co, msg)) {
+            ret = PURC_ERROR_OK;
+        }
     }
 
     if (!list_empty(&co->tasks)) {
@@ -276,7 +280,106 @@ void pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co)
     struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
             co,  OBSERVER_EVENT_HANDER,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            NULL, observer_event_handle, true);
+            NULL, observer_event_handle, NULL, true);
+    PC_ASSERT(handler);
+}
+
+static bool
+is_sub_exit_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+
+    const char *event_name = purc_variant_get_string_const(msg->eventName);
+    if (strcmp(event_name, MSG_TYPE_SUB_EXIT) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static void
+on_sub_exit_event(pcintr_coroutine_t co, pcintr_coroutine_result_t child_result)
+{
+    PRINT_VARIANT(child_result->as);
+    PRINT_VARIANT(child_result->result);
+
+    list_del(&child_result->node);
+    PURC_VARIANT_SAFE_CLEAR(child_result->as);
+    PURC_VARIANT_SAFE_CLEAR(child_result->result);
+    free(child_result);
+    pcintr_check_after_execution_full(pcinst_current(), co);
+}
+
+static int
+sub_exit_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    *remove_handler = false;
+    pcintr_coroutine_result_t child_result = purc_variant_native_get_entity(
+            msg->data);
+    on_sub_exit_event(co, child_result);
+    return PURC_ERROR_OK;
+}
+
+void
+pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co)
+{
+    UNUSED_PARAM(co);
+    struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
+            co,  SUB_EXIT_EVENT_HANDER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING,
+            NULL, sub_exit_event_handle, is_sub_exit_event_handler_match, false);
+    PC_ASSERT(handler);
+}
+
+static bool
+is_last_msg_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
+
+    const char *event_name = purc_variant_get_string_const(msg->eventName);
+    if (strcmp(event_name, MSG_TYPE_LAST_MSG) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static int
+last_msg_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+    *remove_handler = true;
+
+    PC_ASSERT(co);
+    PC_ASSERT(co->stack.exited);
+    PC_ASSERT(co->stack.last_msg_sent);
+    PC_ASSERT(co->stack.last_msg_read == 0);
+    co->stack.last_msg_read = 1;
+
+    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(&co->stack);
+    PC_ASSERT(frame == NULL);
+    pcintr_check_after_execution_full(pcinst_current(), co);
+    return PURC_ERROR_OK;
+}
+
+void
+pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co)
+{
+    UNUSED_PARAM(co);
+    struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
+            co,  LAST_MSG_EVENT_HANDER,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING | CO_STATE_EXITED,
+            NULL, last_msg_event_handle, is_last_msg_event_handler_match, false);
     PC_ASSERT(handler);
 }
 

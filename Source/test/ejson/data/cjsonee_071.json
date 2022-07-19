@@ -1,1 +1,1 @@
-{{ $SYSTEM.cwd(! '/etc'); $FS.list||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}
+{{ $SYS.cwd(! '/etc'); $FS.list||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }}

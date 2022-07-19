@@ -36,6 +36,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define EVENT_SEPARATOR          ':'
+
 struct ctxt_for_load {
     struct pcvdom_node           *curr;
 
@@ -58,6 +60,7 @@ struct ctxt_for_load {
     purc_atom_t        endpoint_atom_within;
 
     unsigned int                  synchronously:1;
+    purc_variant_t                request_id;
 };
 
 static void
@@ -72,6 +75,7 @@ ctxt_for_load_destroy(struct ctxt_for_load *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->onto);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->request_id);
         if (ctxt->endpoint_atom_within) {
             PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
                     ctxt->endpoint_name_within));
@@ -88,78 +92,33 @@ ctxt_destroy(void *ctxt)
 }
 
 static void
-event_release(pcintr_event_t event)
+on_continuation(void *ud, pcrdr_msg *msg)
 {
-    if (event) {
-        PURC_VARIANT_SAFE_CLEAR(event->msg_sub_type);
-        PURC_VARIANT_SAFE_CLEAR(event->src);
-        PURC_VARIANT_SAFE_CLEAR(event->payload);
-    }
-}
-
-static void
-event_destroy(pcintr_event_t event)
-{
-    if (event) {
-        event_release(event);
-        free(event);
-    }
-}
-
-static void
-on_continuation(void *ud, void *extra)
-{
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
     pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
     PC_ASSERT(frame);
 
-    struct ctxt_for_call *ctxt;
-    ctxt = (struct ctxt_for_call*)frame->ctxt;
-    PC_ASSERT(ctxt);
+    const char *s = purc_variant_get_string_const(msg->eventName);
+    const char *p = strchr(s, EVENT_SEPARATOR);
+    const char *s_msg_sub_type = NULL;
+    if (!p) {
+        return;
+    }
 
-    pcintr_event_t event = (pcintr_event_t)extra;
-    PC_ASSERT(event);
-    PC_ASSERT(event->msg_type == pchvml_keyword(
-                PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)));
-
-    purc_variant_t msg_sub_type = event->msg_sub_type;
-    PC_ASSERT(msg_sub_type != PURC_VARIANT_INVALID);
-    const char *s_msg_sub_type = purc_variant_get_string_const(msg_sub_type);
-
+    s_msg_sub_type = p + 1;
     if (0 == strcmp(s_msg_sub_type, "success")) {
-        purc_variant_t src = event->src;
-        PC_ASSERT(src != PURC_VARIANT_INVALID);
-        PC_ASSERT(purc_variant_is_undefined(src));
-
-        purc_variant_t payload = event->payload;
-        PC_ASSERT(payload != PURC_VARIANT_INVALID);
+        purc_variant_t payload = msg->data;
 
         int r = pcintr_set_question_var(frame, payload);
         PC_ASSERT(r == 0);
-
-        event_destroy(event);
         return;
     }
 
     if (0 == strcmp(s_msg_sub_type, "except")) {
-        purc_variant_t src = event->src;
-        PC_ASSERT(src != PURC_VARIANT_INVALID);
-        PC_ASSERT(purc_variant_is_undefined(src));
+        purc_variant_t payload = msg->data;
 
-        purc_variant_t payload = event->payload;
-        PC_ASSERT(payload != PURC_VARIANT_INVALID);
-
-        PRINT_VARIANT(payload);
-        PC_ASSERT(purc_variant_is_string(payload));
         const char *s = purc_variant_get_string_const(payload);
         purc_set_error_with_info(PURC_ERROR_UNKNOWN,
                 "sub coroutine failed with except: %s", s);
-
-        // int r = pcintr_set_question_var(frame, payload);
-        // PC_ASSERT(r == 0);
-
-        event_destroy(event);
         return;
     }
 
@@ -197,8 +156,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
 
     if (ctxt->synchronously) {
-        pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        ctxt->request_id = purc_variant_make_native(ctxt, NULL);
+        pcintr_yield(frame, on_continuation, ctxt->request_id,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
         return 0;
     }
 

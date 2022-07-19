@@ -1,8 +1,8 @@
 /*
- * @file session.c
+ * @file runner.c
  * @author Xue Shuming
  * @date 2022/01/04
- * @brief The implementation of Session dynamic variant object.
+ * @brief The implementation of $RUNNER dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -139,7 +139,7 @@ runner_getter(purc_variant_t root,
 }
 
 static purc_variant_t
-sid_getter(purc_variant_t root,
+rid_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, bool silently)
 {
     UNUSED_PARAM(root);
@@ -165,7 +165,7 @@ uri_getter(purc_variant_t root,
 }
 
 purc_variant_t
-purc_dvobj_session_new(void)
+purc_dvobj_runner_new(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
@@ -173,7 +173,7 @@ purc_dvobj_session_new(void)
         { "user",   user_getter,    user_setter },
         { "app",    app_getter,     NULL },
         { "runner", runner_getter,  NULL },
-        { "sid",    sid_getter,     NULL },
+        { "rid",    rid_getter,     NULL },
         { "uri",    uri_getter,     NULL },
     };
 

@@ -28,7 +28,7 @@ TEST(observe, basic)
     "<!DOCTYPE hvml SYSTEM 'v: MATH'>"
     "<hvml target=\"html\" lang=\"en\">"
     "    <head>"
-    "        <base href=\"$HVML.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
+    "        <base href=\"$CRTN.base(! 'https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/' )\" />"
     ""
     ""
     "        <init as=\"buttons\" uniquely>"
@@ -72,7 +72,7 @@ TEST(observe, basic)
     "                test T.get result is : $T.get('HVML Calculator')"
     "            </div>"
     "            <div id=\"c_text\">"
-    "                <test on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\" in=\"#c_query\">"
+    "                <test on=\"$buttons[$SYS.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\" in=\"#c_query\">"
     "                    <match for=\"AS 'C'\" exclusively>"
     "                    </match>"
     "                    <match for=\"AS 'C'\" excl>"
@@ -80,7 +80,7 @@ TEST(observe, basic)
     "                    <match for=\"AS 'C'\">"
     "                    </match>"
     "                </test>"
-    "                <choose on=\"$buttons[$SYSTEM.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\">"
+    "                <choose on=\"$buttons[$SYS.random($EJSON.count($buttons))]\" by=\"KEY: ALL FOR KV\">"
     "                </choose>"
     "            </div>"
     "        </div>"
@@ -103,7 +103,7 @@ TEST(observe, basic)
             "test_init", &info);
 
     ASSERT_EQ (ret, PURC_ERROR_OK);
-    purc_bind_session_variables();
+    purc_bind_runner_variables();
 
     // get statitics information
     const struct purc_variant_stat * stat = purc_variant_usage_stat ();

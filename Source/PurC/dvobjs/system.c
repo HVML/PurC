@@ -42,7 +42,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 
-#define MSG_SOURCE_SYSTEM         "SYSTEM"
+#define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
 #define MSG_TYPE_CHANGE           "change"
 #define MSG_SUB_TYPE_TIME         "time"

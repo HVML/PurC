@@ -1,0 +1,30 @@
+#!/usr/bin/purc
+
+# RESULT: 'success'
+
+<hvml target="void">
+
+    <init as "request">
+        {
+            hvml: "<hvml target='html'><body><h1>$REQ.text</h1><p>$REQ.hvml</p></body>'success'</hvml>",
+            text: "Hello, world!",
+            _renderer: {
+                title: 'Hello, world!',
+                class: 'hello',
+                style: 'with:200px;height:100px',
+            },
+        }
+    </init>
+
+    <!-- we use content data instead of `with` attribute -->
+    <load on "$request.hvml" as "newCrtn" onto="_null" async >
+        $request
+    </load>
+
+    <!-- we observe the corState:exited event -->
+    <observe on $newCrtn for="corState:exited">
+        <exit with $? />
+    </observe>
+
+</hvml>
+
