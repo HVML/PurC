@@ -1,0 +1,24 @@
+#!/usr/bin/purc
+
+# RESULT: 'success'
+
+<hvml target="void">
+
+    <init as "request">
+        {
+            hvml: "<hvml target='html'><body><h1>$REQ.text</h1><p>$REQ.hvml</p></body>'success'</hvml>",
+            text: "Hello, world!",
+            _renderer: {
+                title: 'Hello, world!',
+                class: 'hello',
+                style: 'with:200px;height:100px',
+            },
+        }
+    </init>
+
+    <load on "$request.hvml" with $request onto "_null" >
+
+        <exit with $? />
+    </load>
+
+</hvml>

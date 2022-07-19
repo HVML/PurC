@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: "success"
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <define as "aTimeConsumingTask">
+        <sleep for "5s" />
+        <return with $? />
+    </define>
+
+    <call on $aTimeConsumingTask as "myTask" with "success" concurrently asynchronously />
+
+    <observe on $CRTN for "idle">
+
+        <choose on $SYS.time('%H:%m') >
+            $STREAM.stdout.writelines($?)
+        </choose>
+    </observe>
+
+    <observe on $myTask for "callState:success">
+        <exit with $? />
+    </observe>
+</hvml>
