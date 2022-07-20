@@ -54,15 +54,6 @@
 
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
-
-static inline
-double current_time()
-{
-    struct timeval now;
-    gettimeofday(&now, 0);
-    return now.tv_sec * 1000 + now.tv_usec / 1000;
-}
-
 static void
 broadcast_idle_event(struct pcinst *inst)
 {
@@ -272,15 +263,15 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 }
 
 // execute one step for all ready coroutines of the inst
-// return the number of ready coroutines
-static size_t
+// return whether busy
+static bool
 execute_one_step(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    size_t nr_ready = 0;
     struct rb_root *coroutines = &heap->coroutines;
     struct rb_node *p, *n;
     struct rb_node *first = pcutils_rbtree_first(coroutines);
+    bool busy = false;
     pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                 node);
@@ -289,12 +280,9 @@ execute_one_step(struct pcinst *inst)
         }
 
         execute_one_step_for_ready_co(inst, co);
-
-        if (co->state == CO_STATE_READY) {
-            nr_ready++;
-        }
+        busy = true;
     }
-    return nr_ready;
+    return busy;
 }
 
 
@@ -313,9 +301,11 @@ check_and_dispatch_event_from_conn()
     }
 }
 
-size_t
+/* return whether busy */
+bool
 handle_coroutine_event(pcintr_coroutine_t co)
 {
+    bool busy = false;
     int handle_ret = PURC_ERROR_INCOMPLETED;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(&co->stack);
@@ -325,6 +315,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
     bool remove_handler = false;
+    bool performed = false;
 
     struct list_head *handlers = &co->event_handlers;
     struct list_head *p, *n;
@@ -340,7 +331,8 @@ handle_coroutine_event(pcintr_coroutine_t co)
             continue;
         }
 
-        handle_ret = handler->handle(handler, co, msg, &remove_handler);
+        handle_ret = handler->handle(handler, co, msg, &remove_handler,
+                &performed);
 
         if (remove_handler) {
             pcintr_coroutine_remove_event_hander(handler);
@@ -350,29 +342,28 @@ handle_coroutine_event(pcintr_coroutine_t co)
             pcrdr_release_message(msg);
             msg = NULL;
         }
+
+        if (performed) {
+            busy = true;
+        }
     }
 
     if (msg) {
         pcinst_msg_queue_append(co->mq, msg);
     }
 out:
-    return pcinst_msg_queue_count(co->mq);
+    return busy;
 }
 
-
-static size_t
-dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
+static bool
+dispatch_event(struct pcinst *inst)
 {
     UNUSED_PARAM(inst);
-    UNUSED_PARAM(nr_stopped);
-    UNUSED_PARAM(nr_observing);
 
-    size_t nr_stop = 0;
-    size_t nr_observe = 0;
-    size_t nr_event = 0;
-
+    bool is_busy = false;
     check_and_dispatch_event_from_conn();
 
+    bool co_is_busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
     struct rb_root *coroutines = &heap->coroutines;
     struct rb_node *p, *n;
@@ -380,22 +371,18 @@ dispatch_event(struct pcinst *inst, size_t *nr_stopped, size_t *nr_observing)
     pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co;
         co = container_of(p, struct pcintr_coroutine, node);
-        nr_event += handle_coroutine_event(co);
+        co_is_busy = handle_coroutine_event(co);
 
-        if (co->state == CO_STATE_STOPPED) {
-            nr_stop++;
-        }
-        if (co->stage == CO_STAGE_OBSERVING) {
-            nr_observe++;
-        }
         if (co->stack.exited && co->stack.last_msg_read) {
             pcintr_run_exiting_co(co);
         }
+
+        if (co_is_busy) {
+            is_busy = true;
+        }
     }
 
-    *nr_stopped = nr_stop;
-    *nr_observing = nr_observe;
-    return nr_event;
+    return is_busy;
 }
 
 void
@@ -413,31 +400,24 @@ pcintr_schedule(void *ctxt)
     }
 
 
-    // 1. exec one step for all ready coroutines
-    size_t nr_ready = execute_one_step(inst);
+    // 1. exec one step for all ready coroutines and
+    // return whether step is busy
+    bool step_is_busy = execute_one_step(inst);
 
     // 2. dispatch event for observing / stopped coroutines
-    size_t nr_stopped = 0;
-    size_t nr_observing = 0;
-    size_t nr_event = dispatch_event(inst, &nr_stopped, &nr_observing);
+    bool event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
-    if (nr_ready || nr_event) {
-        heap->timeout = current_time();
+    if (step_is_busy || event_is_busy) {
+        pcintr_update_timestamp(inst);
         goto out;
     }
 
-    // 4. wating for something, sleep SCHEDULE_SLEEP before next scheduler
-    if (nr_stopped) {
-        heap->timeout = current_time();
-        goto out_sleep;
-    }
-
     // 5. broadcast idle event
-    double now = current_time();
-    if (now - IDLE_EVENT_TIMEOUT > heap->timeout) {
+    double now = pcintr_get_current_time();
+    if (now - IDLE_EVENT_TIMEOUT > heap->timestamp) {
         broadcast_idle_event(inst);
-        heap->timeout = now;
+        pcintr_update_timestamp(inst);
     }
 
 out_sleep:
@@ -525,12 +505,14 @@ bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
 
 static int
 yield_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(msg);
 
     *remove_handler = true;
+    *performed = true;
 
     pcintr_set_current_co(co);
     pcintr_resume(co, msg);

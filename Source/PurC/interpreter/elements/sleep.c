@@ -284,10 +284,12 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 }
 
 static int sleep_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
 
+    *performed = false;
     *remove_handler = false;
     int ret = PURC_ERROR_INCOMPLETED;
     struct ctxt_for_sleep *ctxt = handler->data;
@@ -299,6 +301,7 @@ static int sleep_event_handle(struct pcintr_event_handler *handler,
         pcintr_resume(co, NULL);
         pcintr_set_current_co(NULL);
         *remove_handler = true;
+        *performed = true;
         ret = PURC_ERROR_OK;
     }
     else {

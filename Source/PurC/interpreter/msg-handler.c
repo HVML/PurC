@@ -32,6 +32,8 @@
 #include "private/interpreter.h"
 #include "private/regex.h"
 
+#include <sys/time.h>
+
 #define EXCLAMATION_EVENT_NAME     "_eventName"
 #define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 #define OBSERVER_EVENT_HANDER      "_observer_event_handler"
@@ -250,13 +252,15 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
 
 static int
 observer_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
 
     int ret = PURC_ERROR_INCOMPLETED;
+    *performed = false;
     *remove_handler = false;
     if (list_empty(&co->tasks) && msg) {
         if (PURC_ERROR_OK == dispatch_coroutine_msg(co, msg)) {
@@ -270,6 +274,7 @@ observer_event_handle(struct pcintr_event_handler *handler,
         if (task) {
             list_del(&task->ln);
             handle_task(task);
+            *performed = true;
         }
     }
     return ret;
@@ -313,10 +318,12 @@ on_sub_exit_event(pcintr_coroutine_t co, pcintr_coroutine_result_t child_result)
 
 static int
 sub_exit_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     *remove_handler = false;
+    *performed = true;
     pcintr_coroutine_result_t child_result = purc_variant_native_get_entity(
             msg->data);
     on_sub_exit_event(co, child_result);
@@ -351,11 +358,13 @@ is_last_msg_event_handler_match(struct pcintr_event_handler *handler,
 
 static int
 last_msg_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(msg);
     *remove_handler = true;
+    *performed = true;
 
     PC_ASSERT(co);
     PC_ASSERT(co->stack.exited);
@@ -427,6 +436,8 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
     }
     msg_clone->elementValue = observed;
     purc_variant_ref(msg_clone->elementValue);
+
+    pcintr_update_timestamp(inst);
 
     // add msg to coroutine message queue
     struct rb_root *coroutines = &heap->coroutines;
@@ -633,6 +644,8 @@ pcintr_post_event(purc_atom_t cid,
         purc_variant_ref(msg->requestId);
     }
 
+    pcintr_update_timestamp(pcinst_current());
+
     return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
 }
 
@@ -703,5 +716,19 @@ pcintr_coroutine_post_event(purc_atom_t cid,
 
     purc_variant_unref(source_uri);
     return ret;
+}
+
+double
+pcintr_get_current_time(void)
+{
+    struct timeval now;
+    gettimeofday(&now, 0);
+    return now.tv_sec * 1000 + now.tv_usec / 1000;
+}
+
+void
+pcintr_update_timestamp(struct pcinst *inst)
+{
+    inst->intr_heap->timestamp = pcintr_get_current_time();
 }
 

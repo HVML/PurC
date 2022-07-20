@@ -73,7 +73,8 @@ typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg);
 
 typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler);
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed);
 
 struct pcintr_event_handler {
     struct list_head              ln;
@@ -461,6 +462,13 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co);
+
+/* ms */
+double
+pcintr_get_current_time(void);
+
+void
+pcintr_update_timestamp(struct pcinst *inst);
 
 PCA_EXTERN_C_END
 

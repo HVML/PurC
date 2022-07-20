@@ -1215,12 +1215,14 @@ bool is_async_event_handler_match(struct pcintr_event_handler *handler,
 
 static int
 async_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(msg);
 
     *remove_handler = true;
+    *performed = true;
 
     struct load_data *data = purc_variant_native_get_entity(msg->data);
     pcintr_set_current_co(co);
