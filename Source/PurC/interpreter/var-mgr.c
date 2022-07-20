@@ -452,16 +452,15 @@ find_cor_level_var(purc_coroutine_t cor, const char* name)
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t find_inst_var(const char* name)
+purc_variant_t
+purc_get_runner_variable(const char* name)
 {
     if (!name) {
-        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
     pcvarmgr_t varmgr = pcinst_get_variables();
     if (varmgr == NULL) {
-        PC_ASSERT(0); // FIXME: still recoverable???
         return PURC_VARIANT_INVALID;
     }
 
@@ -471,6 +470,12 @@ static purc_variant_t find_inst_var(const char* name)
     }
     purc_set_error_with_info(PCVARIANT_ERROR_NOT_FOUND, "name:%s", name);
     return PURC_VARIANT_INVALID;
+}
+
+static inline purc_variant_t
+find_inst_var(const char *name)
+{
+    return purc_get_runner_variable(name);
 }
 
 static purc_variant_t
@@ -902,3 +907,4 @@ pcintr_is_named_var_for_event(purc_variant_t val)
     }
     return true;
 }
+

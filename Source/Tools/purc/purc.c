@@ -624,7 +624,7 @@ static purc_variant_t get_dvobj(void* ctxt, const char* name)
     if (strcmp(name, "OPTS") == 0)
         return run_info->opts;
 
-    return PURC_VARIANT_INVALID;
+    return purc_get_runner_variable(name);
 }
 
 static bool evalute_app_info(const char *app_info)
