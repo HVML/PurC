@@ -5,7 +5,7 @@
  * @brief The program to test multiple runners; the following APIs covered:
  *      - purc_inst_create_or_get()
  *      - purc_inst_schedule_vdom()
- *      - purc_get_sid_by_cid()
+ *      - purc_get_rid_by_cid()
  *      - purc_inst_ask_to_shutdown()
  *      - purc_schedule_vdom()
  *      - Instance Manager/Move Buffer
@@ -176,7 +176,7 @@ TEST(interpreter, runners)
                 vdom, i, request, toolkit_style);
         ASSERT_NE(worker_crtns[i], 0);
 
-        worker_insts[i] = purc_get_sid_by_cid(worker_crtns[i]);
+        worker_insts[i] = purc_get_rid_by_cid(worker_crtns[i]);
         ASSERT_NE(worker_insts[i], 0);
     }
 

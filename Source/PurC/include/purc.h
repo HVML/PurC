@@ -723,7 +723,7 @@ purc_get_cond_handler(void);
  * purc_set_cond_handler:
  *
  * @handler: The pointer to a call-back function which handles
- *      the session events.
+ *      the runner events.
  *
  * Sets the condition handler of the current PurC instance, and returns
  * the old condition handler.
@@ -738,8 +738,8 @@ purc_set_cond_handler(purc_cond_handler handler);
 /**
  * purc_run:
  *
- * @handler: The pointer to a call-back function which handles
- *      the session events.
+ * @handler: The pointer to a callback function which handles
+ *      the runner events.
  *
  * Enter event loop and runs all HVML coroutines which are ready in
  * the current PurC instance.
@@ -752,31 +752,30 @@ PCA_EXPORT int
 purc_run(purc_cond_handler handler);
 
 /**
- * purc_get_sid_by_cid:
+ * purc_get_rid_by_cid:
  *
  * @cid: A coroutine identifier.
  *
- * Gets the instance identifier (session identifier, sid) of a specific
- * coroutine.
+ * Gets the runner identifier (rid) of a specific coroutine.
  *
- * Returns: the instance identifier or zero for failure.
+ * Returns: the runner identifier or zero for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_get_sid_by_cid(purc_atom_t cid);
+purc_get_rid_by_cid(purc_atom_t cid);
 
 /**
- * purc_get_instmgr_sid:
+ * purc_get_instmgr_rid:
  *
- * Gets the instance identifier of the instance manager.
+ * Gets the runner identifier of the instance manager.
  *
- * Returns: the sid of the instance manager or zero for failure.
+ * Returns: the rid of the instance manager or zero for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_get_instmgr_sid(void);
+purc_get_instmgr_rid(void);
 
 /**
  * purc_inst_create_or_get:

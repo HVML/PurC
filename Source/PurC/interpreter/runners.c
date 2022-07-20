@@ -343,7 +343,7 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
 void
 pcrun_notify_instmgr(const char* event_name, purc_atom_t inst_crtn_id)
 {
-    purc_atom_t instmgr = purc_get_instmgr_sid();
+    purc_atom_t instmgr = purc_get_instmgr_rid();
     assert(instmgr != 0);
 
     pcrdr_msg *event;
@@ -753,7 +753,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
         return atom;
     }
 
-    atom = purc_get_instmgr_sid();
+    atom = purc_get_instmgr_rid();
     if (atom == 0) {
         purc_set_error(PURC_ERROR_NO_INSTANCE);
         return 0;
@@ -1048,7 +1048,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
 }
 
 purc_atom_t
-purc_get_sid_by_cid(purc_atom_t cid)
+purc_get_rid_by_cid(purc_atom_t cid)
 {
     const char *cor_uri = purc_atom_to_string(cid);
     if (cor_uri == NULL) {
@@ -1072,7 +1072,7 @@ purc_get_sid_by_cid(purc_atom_t cid)
 }
 
 purc_atom_t
-purc_get_instmgr_sid(void)
+purc_get_instmgr_rid(void)
 {
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
 

@@ -365,26 +365,26 @@ the initial HVML programs to run in different runners.
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 }
             ]
         },
         {
             "runner": "Customers",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
                 }
             ]
@@ -392,8 +392,8 @@ the initial HVML programs to run in different runners.
         {
             "runner": "Daemons",
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
-                { "uri": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
+                { "url": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
+                { "url": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
             ]
         },
     ]
@@ -429,13 +429,13 @@ We can access the option specified by `--app` in `my_app.ejson`:
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "$OPTS.app/layout.html" },
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 },
             ]
