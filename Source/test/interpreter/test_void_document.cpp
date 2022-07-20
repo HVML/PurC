@@ -212,7 +212,6 @@ TEST(void_doc, files)
 {
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
-    purc_bind_runner_variables();
 
     ASSERT_TRUE(purc);
 

@@ -651,7 +651,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
     return 0;
 }
 
-bool purc_bind_variable(const char* name, purc_variant_t variant)
+bool purc_bind_runner_variable(const char* name, purc_variant_t variant)
 {
     pcvarmgr_t varmgr = pcinst_get_variables();
     PC_ASSERT(varmgr);

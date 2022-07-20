@@ -180,19 +180,19 @@ add_runner_myobj_listener(purc_variant_t runner)
 }
 
 bool
-purc_bind_runner_variables(void)
+pcintr_bind_builtin_runner_variables(void)
 {
     bool ret = false;
     // $SYS
     purc_variant_t sys = purc_dvobj_system_new();
-    if(!purc_bind_variable(BUILTIN_VAR_SYS, sys)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_SYS, sys)) {
         goto out;
     }
     purc_variant_unref(sys);
 
     // $RUNNER
     purc_variant_t runner = purc_dvobj_runner_new();
-    if(!purc_bind_variable(BUILTIN_VAR_RUNNER, runner)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_RUNNER, runner)) {
         goto out;
     }
 
@@ -201,35 +201,35 @@ purc_bind_runner_variables(void)
 
     // $L
     purc_variant_t l = purc_dvobj_logical_new();
-    if(!purc_bind_variable(BUILTIN_VAR_L, l)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_L, l)) {
         goto out;
     }
     purc_variant_unref(l);
 
     // $STR
     purc_variant_t str = purc_dvobj_string_new();
-    if(!purc_bind_variable(BUILTIN_VAR_STR, str)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_STR, str)) {
         goto out;
     }
     purc_variant_unref(str);
 
     // $URL
     purc_variant_t url = purc_dvobj_url_new();
-    if(!purc_bind_variable(BUILTIN_VAR_URL, url)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_URL, url)) {
         goto out;
     }
     purc_variant_unref(url);
 
     // $EJSON
     purc_variant_t ejson = purc_dvobj_ejson_new();
-    if(!purc_bind_variable(BUILTIN_VAR_EJSON, ejson)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_EJSON, ejson)) {
         goto out;
     }
     purc_variant_unref(ejson);
 
     /* $STREAM: TODO
     purc_variant_t stream = purc_dvobj_stream_new();
-    if(!purc_bind_variable(BUILTIN_VAR_STREAM, stream)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_STREAM, stream)) {
         goto out;
     }
     purc_variant_unref(stream);
@@ -237,7 +237,7 @@ purc_bind_runner_variables(void)
 
     // $DATETIME
     purc_variant_t dt = purc_dvobj_datetime_new();
-    if(!purc_bind_variable(BUILTIN_VAR_DATETIME, dt)) {
+    if (!purc_bind_runner_variable(BUILTIN_VAR_DATETIME, dt)) {
         goto out;
     }
     purc_variant_unref(dt);
@@ -249,3 +249,4 @@ out:
     }
     return ret;
 }
+

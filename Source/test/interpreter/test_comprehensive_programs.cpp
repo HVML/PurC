@@ -242,7 +242,6 @@ process_file(const char *file)
 static void go_test(const char *files)
 {
     PurCInstance purc(false);
-    purc_bind_runner_variables();
 
     int r = 0;
     glob_t globbuf;
