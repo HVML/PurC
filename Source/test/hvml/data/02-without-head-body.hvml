@@ -1,6 +1,6 @@
 #!/user/bin/purc
 
-# RESULT: "-- by $SYS.const('HVML_INTRPR_NAME')"
+# RESULT: "-- by PurC"
 
 <!-- The expected output of this HVML program:
 
@@ -18,10 +18,15 @@
 
 <!DOCTYPE hvml SYSTEM 'v:'>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith_calc('+', $0<, 1) nosetotail>
-        $STREAM.stdout.writelines(
-                $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail>
+        <inherit>
+            $STREAM.stdout.writelines(
+                    $STR.join($?, ") Hello, world! --from COROUTINE-", $CRTN.cid))
+        </inherit>
     </iterate>
 
-    "-- by $SYS.const('HVML_INTRPR_NAME')"
+    {{
+         $STREAM.stdout.writelines("-- by $SYS.const('HVML_INTRPR_NAME')");
+        "-- by $SYS.const('HVML_INTRPR_NAME')"
+    }}
 </hvml>

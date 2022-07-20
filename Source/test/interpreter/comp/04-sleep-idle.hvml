@@ -23,6 +23,6 @@ Got the idle event at 2021-08-15T15:52:01.100+00:00
     <!-- this sleep will be interrupted by the `idle` event -->
     <sleep for "10s" />
 
-    $STREAM.stdout.writelines($STR.join("Finish the first-round run at ",
-                $DATETIME.time_prt('rfc3339-ex'))); true
+    {{ $STREAM.stdout.writelines($STR.join("Finish the first-round run at ",
+                   $DATETIME.time_prt('rfc3339-ex'))); true }}
 </hvml>

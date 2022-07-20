@@ -1763,6 +1763,8 @@ void pcintr_set_exit(purc_variant_t val)
 
     PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     co->val_from_return_or_exit = purc_variant_ref(val);
+    PURC_VARIANT_SAFE_CLEAR(co->result->result);
+    co->result->result = purc_variant_ref(val);
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
