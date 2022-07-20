@@ -337,8 +337,11 @@ The following options can be supplied to the command:
         the HVML programs; use `-` if the JSON data will be given through
         stdin stream.
 
+  -l --parallel
+        Execute multiple programs in parallel.
+
   -q --quiet
-        Execute the program quietly (without redundant output).
+        Execute the program(s) quietly (without redundant output).
 
   -c --copying
         Display detailed copying information and exit.
@@ -358,10 +361,10 @@ the initial HVML programs to run in different runners.
 
 ```json
 {
-    "name": "cn.fmsoft.hvml.sample",
+    "app": "cn.fmsoft.hvml.sample",
     "runners": [
         {
-            "name": "Products",
+            "runner": "Products",
             "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
             "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
@@ -374,7 +377,7 @@ the initial HVML programs to run in different runners.
             ]
         },
         {
-            "name": "Customers",
+            "runner": "Customers",
             "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
             "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
@@ -387,13 +390,14 @@ the initial HVML programs to run in different runners.
             ]
         },
         {
-            "name": "Daemons",
+            "runner": "Daemons",
             "coroutines": [
                 { "uri": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
                 { "uri": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
             ]
         },
     ]
+}
 ```
 
 Assume that you prepare all HVML programs and save the above JSON as
@@ -421,10 +425,10 @@ We can access the option specified by `--app` in `my_app.ejson`:
 
 ```json
 {
-    "name": "$OPTS.app",
+    "app": "$OPTS.app",
     "runners": [
         {
-            "name": "Products",
+            "runner": "Products",
             "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
             "workspace": { "name": "default", "layout": "$OPTS.app/layout.html" },
             "coroutines": [

@@ -602,6 +602,11 @@ struct purc_cor_exit_info {
     purc_document_t doc;
 };
 
+struct purc_cor_term_info {
+    purc_variant_t except;
+    purc_document_t doc;
+};
+
 /** The PurC instance conditions */
 typedef enum purc_cond {
     /**
@@ -648,13 +653,22 @@ typedef enum purc_cond {
     PURC_COND_COR_OBSERVING,
 
     /**
-     * Indicating that a coroutine exited or teminated.
+     * Indicating that a coroutine exited.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
      * `data` is the pointer to `struct purc_cor_exit_info` which contains
      * the execute result and the target document genenerated by the
      * HVML coroutine.
      */
     PURC_COND_COR_EXITED,
+
+    /**
+     * Indicating that a coroutine terminated due to an exception or error.
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the pointer to `struct purc_cor_term_info` which contains
+     * the termination information and the target document genenerated by the
+     * HVML coroutine.
+     */
+    PURC_COND_COR_TERMINATED,
 
     /**
      * Indicating that PurC is destroying a coroutine.
