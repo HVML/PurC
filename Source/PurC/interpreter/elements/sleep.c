@@ -322,7 +322,13 @@ static int sleep_event_handle(struct pcintr_event_handler *handler,
         ret = PURC_ERROR_OK;
     }
     else {
-        //TODO: wake up by other event return INCOMPLETED to keep msg for other handler
+        // wake up by other event return INCOMPLETED to keep msg for other handler
+        pcintr_set_current_co(co);
+        pcintr_resume(co, NULL);
+        pcintr_set_current_co(NULL);
+        *remove_handler = true;
+        *performed = true;
+        ret = PURC_ERROR_OK;
     }
 
     return ret;

@@ -330,6 +330,10 @@ handle_coroutine_event(pcintr_coroutine_t co)
             matched = handler->is_match(handler, co, msg, &observed);
         }
 
+        if (observed) {
+            msg_observed = true;
+        }
+
         // verify coroutine stage and state
         if ((co->stage & handler->cor_stage) == 0  ||
                 (co->state & handler->cor_state) == 0 ||
@@ -351,10 +355,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
         if (performed) {
             busy = true;
-        }
-
-        if (observed) {
-            msg_observed = true;
         }
     }
 
