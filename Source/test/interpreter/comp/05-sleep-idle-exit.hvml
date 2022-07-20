@@ -19,7 +19,7 @@ Got the idle event at 2021-08-15T15:52:01.100+00:00
         <!-- After this element, the coroutine will exit -->
         <forget on $CRTN for "idle" />
 
-        <exit with true >
+        <exit with true />
     </observe>
 
     <!-- this sleep will be interrupted by the `idle` event -->
