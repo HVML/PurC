@@ -388,6 +388,9 @@ coroutine_release(pcintr_coroutine_t co)
 
         pcintr_coroutine_clear_tasks(co);
         pcintr_coroutine_clear_event_handlers(co);
+        if (co->sleep_handler) {
+            pcintr_event_handler_destroy(co->sleep_handler);
+        }
 
         if (co->variables) {
             pcvarmgr_destroy(co->variables);

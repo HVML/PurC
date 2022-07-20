@@ -444,9 +444,20 @@ int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 
 struct pcintr_event_handler *
+pcintr_event_handler_create(const char *name,
+        int stage, int state, void *data, event_handle_fn fn,
+        event_match_fn is_match_fn, bool support_null_event);
+
+void
+pcintr_event_handler_destroy(struct pcintr_event_handler *handler);
+
+struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
         int stage, int state, void *data, event_handle_fn fn,
         event_match_fn is_match_fn, bool support_null_event);
+
+int
+pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
 
 int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);

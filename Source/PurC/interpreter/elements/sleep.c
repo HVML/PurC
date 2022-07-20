@@ -284,15 +284,10 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 }
 
 static bool
-is_async_event_handler_match(struct pcintr_event_handler *handler,
+is_sleep_event_handler_match(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(co);
-
-    if (!msg) {
-        *observed = false;
-        return true;
-    }
 
     struct ctxt_for_sleep *ctxt = handler->data;
     if (msg->requestId == PURC_VARIANT_INVALID &&
@@ -302,7 +297,7 @@ is_async_event_handler_match(struct pcintr_event_handler *handler,
         return true;
     }
 
-    return true;
+    return false;
 }
 
 static int sleep_event_handle(struct pcintr_event_handler *handler,
@@ -399,10 +394,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_coroutine_add_event_handler(
-            ctxt->co,  SLEEP_EVENT_HANDER,
+    PC_ASSERT(ctxt->co->sleep_handler == NULL);
+    ctxt->co->sleep_handler = pcintr_event_handler_create(
+            SLEEP_EVENT_HANDER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sleep_event_handle, is_async_event_handler_match, false);
+            ctxt, sleep_event_handle, is_sleep_event_handler_match, false);
 
     pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
             ctxt->element_value, ctxt->event_name, true);

@@ -358,14 +358,48 @@ handle_coroutine_event(pcintr_coroutine_t co)
         }
     }
 
-    if (msg) {
-        if (msg_observed) {
-            pcinst_msg_queue_append(co->mq, msg);
+    if (!msg) {
+        goto out;
+    }
+
+    if (co->sleep_handler) {
+        struct pcintr_event_handler *handler = co->sleep_handler;
+        bool observed = false;
+        bool matched = handler->is_match(handler, co, msg, &observed);
+        if (observed) {
+            msg_observed = true;
         }
-        else {
-            pcrdr_release_message(msg);
+        if ((co->stage & handler->cor_stage) != 0  &&
+                (co->state & handler->cor_state) != 0 &&
+                (matched || msg_observed)) {
+
+            bool remove_handler = false;
+            int handle_ret = handler->handle(handler, co, msg, &remove_handler,
+                    &performed);
+
+            if (remove_handler) {
+                pcintr_event_handler_destroy(handler);
+                co->sleep_handler = NULL;
+            }
+
+            if (handle_ret == PURC_ERROR_OK) {
+                pcrdr_release_message(msg);
+                msg = NULL;
+            }
         }
     }
+
+    if (!msg) {
+        goto out;
+    }
+
+    if (msg_observed) {
+        pcinst_msg_queue_append(co->mq, msg);
+    }
+    else {
+        pcrdr_release_message(msg);
+    }
+
 out:
     return busy;
 }
@@ -456,7 +490,7 @@ default_event_match(struct pcintr_event_handler *handler, pcintr_coroutine_t co,
 
 
 struct pcintr_event_handler *
-pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
+pcintr_event_handler_create(const char *name,
         int stage, int state, void *data, event_handle_fn fn,
         event_match_fn is_match_fn, bool support_null_event)
 {
@@ -474,6 +508,31 @@ pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
     handler->handle = fn;
     handler->is_match = is_match_fn ? is_match_fn : default_event_match;
     handler->support_null_event = support_null_event;
+out:
+    return handler;
+}
+
+void
+pcintr_event_handler_destroy(struct pcintr_event_handler *handler)
+{
+    if (handler->name) {
+        free(handler->name);
+    }
+    free(handler);
+}
+
+
+struct pcintr_event_handler *
+pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
+        int stage, int state, void *data, event_handle_fn fn,
+        event_match_fn is_match_fn, bool support_null_event)
+{
+    struct pcintr_event_handler *handler =
+        pcintr_event_handler_create(name, stage, state,
+                data, fn, is_match_fn, support_null_event);
+    if (!handler) {
+        goto out;
+    }
 
     list_add_tail(&handler->ln, &co->event_handlers);
 out:
@@ -484,10 +543,7 @@ int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler)
 {
     list_del(&handler->ln);
-    if (handler->name) {
-        free(handler->name);
-    }
-    free(handler);
+    pcintr_event_handler_destroy(handler);
     return 0;
 }
 

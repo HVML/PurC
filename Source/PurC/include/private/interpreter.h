@@ -263,6 +263,7 @@ struct pcintr_coroutine {
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
     struct list_head            event_handlers; /* struct pcintr_event_handler */
+    struct pcintr_event_handler *sleep_handler;
 
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
