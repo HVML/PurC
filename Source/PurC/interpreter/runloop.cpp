@@ -287,7 +287,7 @@ static void _runloop_init_main(void)
             pcutils_sorted_array_destroy(info.sa_insts);
 
             size_t n = purc_inst_destroy_move_buffer();
-            purc_log_debug("InstMgr is quiting, %u messages discarded\n",
+            PC_DEBUG("InstMgr is quiting, %u messages discarded\n",
                     (unsigned)n);
 
             purc_cleanup();

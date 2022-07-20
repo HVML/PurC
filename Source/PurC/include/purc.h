@@ -322,7 +322,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free);
 
 /**
- * purc_bind_variable:
+ * purc_bind_runner_variable:
  *
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
@@ -334,19 +334,21 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_variable(const char* name, purc_variant_t variant);
+purc_bind_runner_variable(const char* name, purc_variant_t variant);
 
 /**
- * purc_bind_runner_variables:
+ * purc_get_runner_variable:
  *
- * Binds all predefined runner variables for current PurC instance.
+ * @name: The pointer to the string contains the name for the variable.
  *
- * Returns: @true for success; @false for failure.
+ * Retrieve a runner-level variable of current PurC instance.
+ *
+ * Returns: the variant or PURC_VARIANT_INVALID for failure.
  *
  * Since 0.2.0
  */
-PCA_EXPORT bool
-purc_bind_runner_variables(void);
+PCA_EXPORT purc_variant_t
+purc_get_runner_variable(const char *name);
 
 struct pcvdom_document;
 typedef struct pcvdom_document* purc_vdom_t;

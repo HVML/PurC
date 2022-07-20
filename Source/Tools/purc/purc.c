@@ -184,16 +184,16 @@ struct my_opts {
 
 static const char *archedata_header =
 "{"
-    "'app': '$OPTS.app',"
+    "'app': $OPTS.app,"
     "'runners': ["
         "{"
-            "'runner': '$OPTS.runner',"
-            "'renderer': { 'protocol': '$OPTS.rdrProt', 'uri': '$OPTS.rdrUri' },"
+            "'runner': $OPTS.runner,"
+            "'renderer': { 'protocol': $OPTS.rdrProt, 'uri': $OPTS.rdrUri },"
             "'workspace': { 'name': 'default' },"
             "'coroutines': [";
 
 static const char *archedata_coroutine =
-                "{ 'url': '$OPTS.urls[%u]', 'bodyId': $OPTS.bodyIds[%u],"
+                "{ 'url': $OPTS.urls[%u], 'bodyId': $OPTS.bodyIds[%u],"
                     "'request': $OPTS.request,"
                     "'renderer': { 'pageType': 'plainwin' }"
                 "},";
@@ -258,9 +258,6 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
                 free(opts->body_ids->list[i]);
         }
     }
-
-    if (opts->rdr_uri)
-        free(opts->rdr_uri);
 
     if (opts->request)
         free(opts->request);
@@ -353,7 +350,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:t:qcvh";
+    static const char short_options[] = "a:r:d:p:u:t:lqcvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -647,6 +644,32 @@ static bool evalute_app_info(const char *app_info)
 
 static void run_app(void)
 {
+#if 0 // DEBUG
+    fprintf(stdout, "The options: ");
+
+    if (run_info.opts) {
+        purc_variant_serialize(run_info.opts,
+                run_info.dump_stm,
+                0, PCVARIANT_SERIALIZE_OPT_PRETTY, NULL);
+    }
+    else {
+        fprintf(stdout, "INVALID VALUE");
+    }
+    fprintf(stdout, "\n");
+
+    fprintf(stdout, "The app info: ");
+
+    if (run_info.app_info) {
+        purc_variant_serialize(run_info.app_info,
+                run_info.dump_stm,
+                0, PCVARIANT_SERIALIZE_OPT_PRETTY, NULL);
+    }
+    else {
+        fprintf(stdout, "INVALID VALUE");
+    }
+    fprintf(stdout, "\n");
+#endif
+
 }
 
 struct crtn_info {
@@ -675,7 +698,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         else {
             fprintf(stdout, "INVALID VALUE");
         }
-        fprintf(stdout, "\n");
+        fprintf(stdout, "\n\n");
     }
 
     return 0;
@@ -702,7 +725,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         pcutils_broken_down_url_clear(&broken_down);
 
         if (vdom) {
-            fprintf(stdout, "Execute HVML program from %s\n\n", url);
+            fprintf(stdout, "Executing HVML program from `%s`:\n\n", url);
 
             struct crtn_info info = { url, &run_info };
             purc_schedule_vdom(vdom, 0, request,
@@ -794,8 +817,6 @@ int main(int argc, char** argv)
         }
     }
 
-    purc_bind_runner_variables();
-
     run_info.dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
 
     if (opts->app_info == NULL && opts->parallel) {
@@ -810,6 +831,7 @@ int main(int argc, char** argv)
                 fprintf(stderr, "Failed to evalute the app info from %s\n",
                         opts->app_info);
             my_opts_delete(opts, false);
+            opts = NULL;
             goto failed;
         }
         my_opts_delete(opts, false);

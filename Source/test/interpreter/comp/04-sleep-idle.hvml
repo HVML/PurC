@@ -21,7 +21,7 @@ Got the idle event at 2021-08-15T15:52:01.100+00:00
     </observe>
 
     <!-- this sleep will be interrupted by the `idle` event -->
-    <sleep for "1d" />
+    <sleep for "10s" />
 
     $STREAM.stdout.writelines($STR.join("Finish the first-round run at ",
                 $SYS.time_prt('rfc3339-ex'))); true

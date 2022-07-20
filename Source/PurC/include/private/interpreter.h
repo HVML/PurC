@@ -1,6 +1,6 @@
 /**
  * @file interpreter.h
- * @author Xu Xiaohong
+ * @author Xu Xiaohong, Vincent Wei
  * @date 2021/11/18
  * @brief The internal interfaces for interpreter
  *
@@ -428,6 +428,8 @@ struct pcinst;
 struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
+
+bool pcintr_bind_builtin_runner_variables(void);
 
 struct pcintr_heap* pcintr_get_heap(void);
 

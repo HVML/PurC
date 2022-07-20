@@ -392,7 +392,7 @@ static void handle_braces(char *haystack, size_t len,
                     else {
                         memcpy(needle, replace, needle_len);
                         if (rep_len > needle_len)
-                            purc_log_warn("replacement longer than needle.\n");
+                            PC_WARN("replacement longer than needle.\n");
                     }
 
                     free(replace);
@@ -486,7 +486,7 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
     char *tz_old = set_tz(timezone);
     if (strftime(result, max, timeformat, tm) == 0) {
         // should not occur.
-        purc_log_error("Too small buffer to format time\n");
+        PC_ERROR("Too small buffer to format time\n");
         purc_set_error(PURC_ERROR_TOO_SMALL_BUFF);
         return PURC_VARIANT_INVALID;
     }
@@ -533,8 +533,8 @@ format_broken_down_time(const char *timeformat, const struct tm *tm,
             handle_braces(haystack, strlen(haystack),
                     on_found, &testcases[i].usec);
 
-            purc_log_debug("checking: %s\n", testcases[i].haystack);
-            purc_log_debug("result: %s <-> expected: %s\n",
+            PC_DEBUG("checking: %s\n", testcases[i].haystack);
+            PC_DEBUG("result: %s <-> expected: %s\n",
                     haystack, testcases[i].result);
             assert(strcmp(haystack, testcases[i].result) == 0);
             free(haystack);

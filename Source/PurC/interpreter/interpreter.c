@@ -530,6 +530,11 @@ static int _init_instance(struct pcinst* inst,
         return PURC_ERROR_OUT_OF_MEMORY;
     }
 
+    if (!pcintr_bind_builtin_runner_variables()) {
+        free(heap);
+        return purc_get_last_error();
+    }
+
     inst->running_loop = purc_runloop_get_current();
     inst->intr_heap = heap;
     heap->owner     = inst;
@@ -2991,7 +2996,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
 
         child->stack.entry = vdom_element;
 
-        purc_log_debug("running parent/child: %p/%p", co, child);
+        PC_DEBUG("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
         init_frame_for_co(child);
     } while (0);
