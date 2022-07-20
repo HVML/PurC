@@ -37,3 +37,4 @@ PURC_COPY_FILES(purc_copy_samples
     FILES ${sample_FILES}
 )
 
+install(TARGETS purc DESTINATION "${EXEC_INSTALL_DIR}/")
