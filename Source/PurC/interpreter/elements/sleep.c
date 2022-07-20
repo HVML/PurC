@@ -283,6 +283,28 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
+static bool
+is_async_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
+{
+    UNUSED_PARAM(co);
+
+    if (!msg) {
+        *observed = false;
+        return true;
+    }
+
+    struct ctxt_for_sleep *ctxt = handler->data;
+    if (msg->requestId == PURC_VARIANT_INVALID &&
+            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
+            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        *observed = true;
+        return true;
+    }
+
+    return true;
+}
+
 static int sleep_event_handle(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
         bool *performed)
@@ -380,7 +402,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_coroutine_add_event_handler(
             ctxt->co,  SLEEP_EVENT_HANDER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sleep_event_handle, NULL, false);
+            ctxt, sleep_event_handle, is_async_event_handler_match, false);
 
     pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
             ctxt->element_value, ctxt->event_name, true);

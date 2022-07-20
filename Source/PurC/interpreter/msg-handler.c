@@ -250,6 +250,57 @@ dispatch_coroutine_msg(pcintr_coroutine_t co, pcrdr_msg *msg)
     return 0;
 }
 
+static bool
+is_observer_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *out_observed)
+{
+    UNUSED_PARAM(handler);
+    if (msg == NULL) {
+        return true;
+    }
+
+    purc_variant_t msg_type = PURC_VARIANT_INVALID;
+    purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
+    const char *event = purc_variant_get_string_const(msg->eventName);
+    if (!pcintr_parse_event(event, &msg_type, &msg_sub_type)) {
+        return false;
+    }
+
+    const char *msg_type_s = purc_variant_get_string_const(msg_type);
+
+    const char *sub_type_s = NULL;
+    if (msg_sub_type != PURC_VARIANT_INVALID) {
+        sub_type_s = purc_variant_get_string_const(msg_sub_type);
+    }
+
+    purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            msg_type_s);
+    if (!msg_type_atom) {
+        return false;
+    }
+
+    bool match = false;
+    purc_variant_t observed = msg->elementValue;
+    struct list_head* list = pcintr_get_observer_list(&co->stack, observed);
+    struct pcintr_observer *p, *n;
+    list_for_each_entry_safe(p, n, list, node) {
+        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
+            match = true;
+            break;
+        }
+    }
+
+    if (msg_type) {
+        purc_variant_unref(msg_type);
+    }
+    if (msg_sub_type) {
+        purc_variant_unref(msg_sub_type);
+    }
+
+    *out_observed = match;
+    return match;
+}
+
 static int
 observer_event_handle(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
@@ -285,19 +336,20 @@ void pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co)
     struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
             co,  OBSERVER_EVENT_HANDER,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            NULL, observer_event_handle, NULL, true);
+            NULL, observer_event_handle, is_observer_event_handler_match, true);
     PC_ASSERT(handler);
 }
 
 static bool
 is_sub_exit_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
 
     const char *event_name = purc_variant_get_string_const(msg->eventName);
     if (strcmp(event_name, MSG_TYPE_SUB_EXIT) == 0) {
+        *observed = true;
         return true;
     }
     return false;
@@ -344,13 +396,14 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co)
 
 static bool
 is_last_msg_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
 
     const char *event_name = purc_variant_get_string_const(msg->eventName);
     if (strcmp(event_name, MSG_TYPE_LAST_MSG) == 0) {
+        *observed = true;
         return true;
     }
     return false;

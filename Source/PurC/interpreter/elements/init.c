@@ -1200,14 +1200,16 @@ static void on_async_resume(void *ud)
     load_data_destroy(data);
 }
 
-bool is_async_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg)
+static bool
+is_async_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
     struct load_data *data = (struct load_data *)handler->data;
     if (purc_variant_is_equal_to(data->async_id, msg->requestId)) {
+        *observed = true;
         return true;
     }
     return false;

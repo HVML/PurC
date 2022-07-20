@@ -70,7 +70,7 @@ struct pcintr_observer_task {
 struct pcintr_event_handler;
 
 typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg);
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed);
 
 typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
         pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,

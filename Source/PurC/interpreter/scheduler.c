@@ -316,6 +316,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
     pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
     bool remove_handler = false;
     bool performed = false;
+    bool msg_observed = false;
 
     struct list_head *handlers = &co->event_handlers;
     struct list_head *p, *n;
@@ -323,11 +324,16 @@ handle_coroutine_event(pcintr_coroutine_t co)
         struct pcintr_event_handler *handler;
         handler = list_entry(p, struct pcintr_event_handler, ln);
 
+        bool matched = false;
+        bool observed = false;
+        if (msg || handler->support_null_event) {
+            matched = handler->is_match(handler, co, msg, &observed);
+        }
+
         // verify coroutine stage and state
         if ((co->stage & handler->cor_stage) == 0  ||
                 (co->state & handler->cor_state) == 0 ||
-                ((msg == NULL) && !handler->support_null_event) ||
-                (!handler->is_match(handler, co, msg))) {
+                (!matched)) {
             continue;
         }
 
@@ -346,10 +352,19 @@ handle_coroutine_event(pcintr_coroutine_t co)
         if (performed) {
             busy = true;
         }
+
+        if (observed) {
+            msg_observed = true;
+        }
     }
 
     if (msg) {
-        pcinst_msg_queue_append(co->mq, msg);
+        if (msg_observed) {
+            pcinst_msg_queue_append(co->mq, msg);
+        }
+        else {
+            pcrdr_release_message(msg);
+        }
     }
 out:
     return busy;
@@ -430,11 +445,12 @@ out:
 
 static bool
 default_event_match(struct pcintr_event_handler *handler, pcintr_coroutine_t co,
-        pcrdr_msg *msg)
+        pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
+    *observed = false;
     return true;
 }
 
@@ -489,18 +505,24 @@ pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
 }
 
 bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
+    bool match = false;
     if (co->wait_request_id) {
-        return purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
+        match = purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
+        goto out;
     }
 
     if (purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
             purc_variant_is_equal_to(co->wait_event_name, msg->eventName)) {
-        return true;
+        match =  true;
+        goto out;
     }
-    return false;
+
+out:
+    *observed = match;
+    return match;
 }
 
 static int
