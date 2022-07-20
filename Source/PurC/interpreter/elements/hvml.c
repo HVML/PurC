@@ -232,7 +232,7 @@ on_popping(pcintr_stack_t stack, void* ud)
             stack->mode = STACK_VDOM_AFTER_HVML;
             break;
         case STACK_VDOM_IN_BODY:
-            PC_ASSERT(0);
+            //PC_ASSERT(0);
             break;
         case STACK_VDOM_AFTER_BODY:
             stack->mode = STACK_VDOM_AFTER_HVML;
