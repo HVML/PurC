@@ -135,7 +135,7 @@ first HVML program in your working directory:
 To run this HVML program, you can use `purc` in the following way:
 
 ```bash
-    $ purc -q hello.hvml
+    $ purc hello.hvml
 ```
 
 You will see that your first HVML program prints `Hello, world!`
@@ -182,7 +182,8 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 ```
 
 Assume you named the enhanced version as `hello-10.hvml`, we can run
-the two program as two coroutines in parallel by specifying the flag `-l`:
+the two program as two coroutines in parallel by specifying the command line
+flag `-l`:
 
 ```bash
     $ purc -l hello-10.hvml hello-10.hvml
@@ -191,29 +192,29 @@ the two program as two coroutines in parallel by specifying the flag `-l`:
 You will see the following output on your terminal:
 
 ```
-0) Hello, world! -- from COROUTINE-01
-0) Hello, world! -- from COROUTINE-02
-1) Hello, world! -- from COROUTINE-01
-1) Hello, world! -- from COROUTINE-02
-2) Hello, world! -- from COROUTINE-01
-2) Hello, world! -- from COROUTINE-02
-3) Hello, world! -- from COROUTINE-01
-3) Hello, world! -- from COROUTINE-02
-4) Hello, world! -- from COROUTINE-01
-4) Hello, world! -- from COROUTINE-02
-5) Hello, world! -- from COROUTINE-01
-5) Hello, world! -- from COROUTINE-02
-6) Hello, world! -- from COROUTINE-01
-6) Hello, world! -- from COROUTINE-02
-7) Hello, world! -- from COROUTINE-01
-7) Hello, world! -- from COROUTINE-02
-8) Hello, world! -- from COROUTINE-01
-8) Hello, world! -- from COROUTINE-02
-9) Hello, world! -- from COROUTINE-01
-9) Hello, world! -- from COROUTINE-02
+0) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
+1) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-3
+2) Hello, world! -- from COROUTINE-4
+3) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-3
+4) Hello, world! -- from COROUTINE-4
+5) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-3
+6) Hello, world! -- from COROUTINE-4
+7) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-3
+8) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-3
+9) Hello, world! -- from COROUTINE-4
 ```
 
-In the above output, `COROUTINE-01` and `COROUTINE-02` contain the coroutine
+In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine
 identifier allocated by PurC for two running instances of the program.
 You see that PurC schedules the running instances to execute alternately, i.e.,
 in the manner of coroutines.
@@ -269,16 +270,16 @@ After running the command, the contents in `/tmp/hello.html` looks like:
 
     <body>
         <ul>
-            <li>0) Hello, world! -- from COROUTINE-01</li>
-            <li>1) Hello, world! -- from COROUTINE-01</li>
-            <li>2) Hello, world! -- from COROUTINE-01</li>
-            <li>3) Hello, world! -- from COROUTINE-01</li>
-            <li>4) Hello, world! -- from COROUTINE-01</li>
-            <li>5) Hello, world! -- from COROUTINE-01</li>
-            <li>6) Hello, world! -- from COROUTINE-01</li>
-            <li>7) Hello, world! -- from COROUTINE-01</li>
-            <li>8) Hello, world! -- from COROUTINE-01</li>
-            <li>9) Hello, world! -- from COROUTINE-01</li>
+            <li>0) Hello, world! -- from COROUTINE-3</li>
+            <li>1) Hello, world! -- from COROUTINE-3</li>
+            <li>2) Hello, world! -- from COROUTINE-3</li>
+            <li>3) Hello, world! -- from COROUTINE-3</li>
+            <li>4) Hello, world! -- from COROUTINE-3</li>
+            <li>5) Hello, world! -- from COROUTINE-3</li>
+            <li>6) Hello, world! -- from COROUTINE-3</li>
+            <li>7) Hello, world! -- from COROUTINE-3</li>
+            <li>8) Hello, world! -- from COROUTINE-3</li>
+            <li>9) Hello, world! -- from COROUTINE-3</li>
         </ul>
     </body>
 </html>
@@ -340,8 +341,8 @@ The following options can be supplied to the command:
   -l --parallel
         Execute multiple programs in parallel.
 
-  -q --quiet
-        Execute the program(s) quietly (without redundant output).
+  -s --verbose
+        Execute the program(s) with verbose output.
 
   -c --copying
         Display detailed copying information and exit.
@@ -452,7 +453,16 @@ All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by
 You can find more sample HVML programs in respository
 [HVML Documents](https://github.com/HVML/hvml-docs), under the directory `samples/`.
 
-You can use `purc` to run the sample directly:
+For your convenience, some samples are copied to the directory
+`Source/Samples/hvml` of this repository. After building PurC, the samples
+will be copied to the building root directory, so that you can change to the
+building root directory and use `purc` to run the samples:
+
+```bash
+$ purc hvml/fibonacci-6.hvml
+```
+
+You can also use `purc` to run a sample resided in the remote HVML Documents repository:
 
 ```bash
 $ purc https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
