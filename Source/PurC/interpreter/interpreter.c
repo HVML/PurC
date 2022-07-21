@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+// #undef NDEBUG
 
 #include "config.h"
 
@@ -496,7 +498,8 @@ static void _cleanup_instance(struct pcinst* inst)
     }
 
     if (heap->move_buff) {
-        purc_inst_destroy_move_buffer();
+        size_t n = purc_inst_destroy_move_buffer();
+        PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
         heap->move_buff = 0;
     }
 

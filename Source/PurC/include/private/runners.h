@@ -33,6 +33,8 @@
 #define PCRUN_INSTMGR_APP_NAME      "cn.fmsoft.hvml.instmgr"
 #define PCRUN_INSTMGR_RUN_NAME      "main"
 
+#define PCRUN_TIMEOUT_DEF           10
+
 /* operations */
 enum {
     PCRUN_K_OPERATION_FIRST = 0,

@@ -47,9 +47,24 @@ static struct purc_instance_extra_info worker_info = {
     "<html></html>",            // workspaceLayout
 };
 
+static const char *cond_names[] = {
+    "PURC_COND_STARTED",
+    "PURC_COND_STOPPED",
+    "PURC_COND_NOCOR",
+    "PURC_COND_IDLE",
+    "PURC_COND_COR_CREATED",
+    "PURC_COND_COR_OBSERVING",
+    "PURC_COND_COR_EXITED",
+    "PURC_COND_COR_TERMINATED",
+    "PURC_COND_COR_DESTROYED",
+    "PURC_COND_UNK_REQUEST",
+    "PURC_COND_UNK_EVENT",
+    "PURC_COND_SHUTDOWN_ASKED",
+};
+
 static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 {
-    purc_log_info("called: %d\n", event);
+    purc_log_info("condition: %s\n", cond_names[event]);
 
     if (event == PURC_COND_STARTED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;
@@ -136,6 +151,16 @@ static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
     return worker_cor;
 }
 
+static int main_cond_handler(purc_cond_t event, void *arg, void *data)
+{
+    (void)arg;
+    (void)data;
+
+    purc_log_info("condition: %s\n", cond_names[event]);
+
+    return 0;
+}
+
 TEST(interpreter, runners)
 {
     struct purc_instance_extra_info inst_info = { };
@@ -180,7 +205,7 @@ TEST(interpreter, runners)
         ASSERT_NE(worker_insts[i], 0);
     }
 
-    purc_run(NULL);
+    purc_run(main_cond_handler);
 
     for (int i = 0; i < NR_WORKERS; i++) {
         purc_inst_ask_to_shutdown(worker_insts[i]);

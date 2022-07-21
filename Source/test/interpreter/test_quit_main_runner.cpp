@@ -46,9 +46,24 @@ static struct purc_instance_extra_info worker_info = {
     "<html></html>",            // workspaceLayout
 };
 
+static const char *cond_names[] = {
+    "PURC_COND_STARTED",
+    "PURC_COND_STOPPED",
+    "PURC_COND_NOCOR",
+    "PURC_COND_IDLE",
+    "PURC_COND_COR_CREATED",
+    "PURC_COND_COR_OBSERVING",
+    "PURC_COND_COR_EXITED",
+    "PURC_COND_COR_TERMINATED",
+    "PURC_COND_COR_DESTROYED",
+    "PURC_COND_UNK_REQUEST",
+    "PURC_COND_UNK_EVENT",
+    "PURC_COND_SHUTDOWN_ASKED",
+};
+
 static int work_cond_handler(purc_cond_t event, void *arg, void *data)
 {
-    purc_log_info("called: %d\n", event);
+    purc_log_info("condition: %s\n", cond_names[event]);
 
     if (event == PURC_COND_STARTED) {
         purc_atom_t sid = (purc_atom_t)(uintptr_t)arg;

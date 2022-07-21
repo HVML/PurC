@@ -854,15 +854,19 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 
     request->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     request->data = data;
-    purc_inst_move_message(atom, request);
+    size_t n = purc_inst_move_message(atom, request);
     pcrdr_release_message(request);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return 0;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response); // Wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response); // Wait forever
     purc_variant_unref(request_id);
 
     if (ret) {
@@ -989,15 +993,19 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
     request_msg->data = data;
 
     purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
-    purc_inst_move_message(inst, request_msg);
+    size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return 0;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response);  // wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response);  // wait forever
     purc_variant_unref(request_id);
 
     if (ret) {
@@ -1041,15 +1049,19 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
     purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
-    purc_inst_move_message(inst, request_msg);
+    size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return PCRDR_SC_OK;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response);  // wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response);  // wait forever
     purc_variant_unref(request_id);
 
     int retv = 0;
