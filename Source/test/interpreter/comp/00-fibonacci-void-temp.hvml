@@ -40,8 +40,8 @@
             }}
         </inherit>
 
-        <iterate on $last_one onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, $last_two) nosetotail >
-            <init as "last_one" at "2" with "$last_two" temp />
+        <iterate on $last_two onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, $last_one) nosetotail >
+            <init as "last_one" at "2" with "$2!.last_two" temp />
             <init as "last_two" at "2" with "$?" temp />
 
             <update on "$3!" at ".count" to "displace" with += 1 />
