@@ -290,12 +290,11 @@ post_process_val_by_topmost(pcintr_coroutine_t co,
 
     if (ctxt->temporarily) {
         struct pcintr_stack_frame *p = frame;
-        struct pcintr_stack_frame *parent;
-        parent = pcintr_stack_frame_get_parent(p);
         uint64_t level = 0;
-        while (parent) {
-            p = parent;
+        while (p && p->pos && p->pos->tag_id != PCHVML_TAG_HVML) {
+            struct pcintr_stack_frame *parent;
             parent = pcintr_stack_frame_get_parent(p);
+            p = parent;
             level += 1;
         }
         PC_ASSERT(level > 0);
