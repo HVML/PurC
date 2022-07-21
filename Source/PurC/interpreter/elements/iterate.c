@@ -228,28 +228,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
     pcintr_set_question_var(frame, v);
 
-#if 0
-    if (ctxt->with_attr == NULL) {
-        ctxt->stop = 1;
-        return NULL;
-    }
-
-    bool stop;
-
-    int r;
-    r = re_eval_with(frame, ctxt->with_attr, &stop, &co->stack);
-    if (r) {
-        if (purc_get_last_error())
-            return ctxt;
-        return NULL;
-    }
-
-    if (stop) {
-        ctxt->stop = 1;
-        return NULL;
-    }
-#endif
-
     return ctxt;
 }
 
@@ -886,44 +864,6 @@ rerun_with(pcintr_stack_t stack)
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
     pcintr_set_question_var(frame, v);
     return true;
-
-#if 0
-
-    if (ctxt->with_attr == NULL) {
-        ctxt->stop = 1;
-        PC_ASSERT(0);
-        return false;
-    }
-
-    bool stop;
-
-    int r;
-    if (ctxt->nosetotail) {
-        purc_variant_t v = pcintr_get_question_var(frame);
-        pcintr_set_input_var(stack, v);
-    }
-
-    if (ctxt->onlyif_attr) {
-        bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop, stack);
-        if (r || stop) {
-            ctxt->stop = 1;
-            return true;
-        }
-    }
-
-    r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
-    if (r) {
-        // FIXME: let catch to effect afterward???
-        return true;
-    }
-
-    if (stop) {
-        ctxt->stop = 1;
-        return false;
-    }
-    return true;
-#endif
 }
 
 static bool
