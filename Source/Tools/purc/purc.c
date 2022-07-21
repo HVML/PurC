@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//#undef NDEBUG
+
 #include "purc.h"
 
 #include <stdio.h>
@@ -189,8 +191,8 @@ static const char *archedata_header =
     "'runners': ["
         "{"
             "'runner': $OPTS.runner,"
-            "'renderer': { 'protocol': $OPTS.rdrProt, 'uri': $OPTS.rdrUri },"
-            "'workspace': { 'name': 'default' },"
+            "'renderer': { 'protocol': $OPTS.rdrProt, 'uri': $OPTS.rdrUri, "
+                "'workspaceName': 'default' },"
             "'coroutines': [";
 
 static const char *archedata_coroutine =
@@ -907,7 +909,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
     tmp = purc_variant_object_get_by_ckey(runner, "runner");
     if (tmp) {
-        run_name = purc_variant_get_string_const(app);
+        run_name = purc_variant_get_string_const(tmp);
     }
     if (run_name == NULL) {
         run_name = curr_run_name;
@@ -926,8 +928,13 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
         rid = purc_inst_create_or_get(app_name, run_name,
             NULL, &inst_info);
-        if (rid == 0)
+        if (rid == 0) {
+            if (!opts->quiet) {
+                fprintf(stderr, "Failed to create PurC instance for %s/%s\n",
+                        app_name, run_name);
+            }
             return n;
+        }
     }
 
     size_t nr_coroutines = 0;
@@ -938,6 +945,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_variant_t crtn = purc_variant_array_get(coroutines, i);
         if (!purc_variant_is_object(crtn)) {
             if (!opts->quiet) {
+                fprintf(stderr, "Not an object for crtn[%u]\n",
+                        (unsigned)i);
             }
             continue;
         }
@@ -950,6 +959,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
         if (url == NULL) {
             if (!opts->quiet) {
+                fprintf(stderr, "No valid URL given for crtn[%u]\n",
+                        (unsigned)i);
             }
             continue;
         }
@@ -957,6 +968,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
             if (!opts->quiet) {
+                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]\n",
+                        url, (unsigned)i);
             }
             continue;
         }
@@ -1003,6 +1016,12 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
         if (cid) {
             n++;
+        }
+        else {
+            if (!opts->quiet) {
+                fprintf(stderr, "Failed to schedule coroutine from %s for #%u\n",
+                        url, (unsigned)i);
+            }
         }
     }
 
@@ -1056,7 +1075,15 @@ static bool run_app(struct my_opts *opts)
         purc_variant_t runner = purc_variant_array_get(runners, i);
 
         purc_variant_t coroutines =
-            purc_variant_object_get_by_ckey(run_info.app_info, "coroutines");
+            purc_variant_object_get_by_ckey(runner, "coroutines");
+
+        if (!coroutines) {
+            if (!opts->quiet) {
+                fprintf(stderr, "No coroutines for runner #%u\n",
+                        (unsigned)i);
+                continue;
+            }
+        }
 
         size_t nr_coroutines = 0;
         if (!purc_variant_array_size(coroutines, &nr_coroutines) ||
@@ -1071,6 +1098,10 @@ static bool run_app(struct my_opts *opts)
         size_t n;
         n = schedule_coroutines_for_runner(opts, app, runner, coroutines);
         if (n == 0) {
+            if (!opts->quiet) {
+                fprintf(stderr, "No coroutine schedule for runner #%u\n",
+                        (unsigned)i);
+            }
             continue;
         }
 
@@ -1083,7 +1114,8 @@ static bool run_app(struct my_opts *opts)
                 (unsigned)nr_live_runners, (unsigned)nr_live_coroutines);
     }
 
-    purc_run(NULL);
+    if (nr_live_coroutines > 0)
+        purc_run(NULL);
 
     return nr_live_coroutines > 0;
 }
