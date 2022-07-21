@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//#undef NDEBUG
+// #undef NDEBUG
 
 #include "purc.h"
 
@@ -987,7 +987,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 }
 
 #define MY_VRT_OPTS \
-    (PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
+    (PCVARIANT_SERIALIZE_OPT_SPACED | PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
 
 static int app_cond_handler(purc_cond_t event, void *arg, void *data)
 {
@@ -1092,6 +1092,7 @@ static bool run_app(struct my_opts *opts)
 }
 
 struct crtn_info {
+    struct my_opts *opts;
     const char *url;
     struct run_info *run_info;
 };
@@ -1105,26 +1106,27 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             return -1;
         }
 
-        struct purc_cor_exit_info *exit_info = data;
+        if (!crtn_info->opts->quiet) {
+            struct purc_cor_exit_info *exit_info = data;
 
-        fprintf(stdout, "\nThe execute result is: ");
+            fprintf(stdout, "EXECUTE RESULT: \n");
 
-        if (exit_info->result) {
-            purc_variant_serialize(exit_info->result,
-                    crtn_info->run_info->dump_stm,
-                    0, PCVARIANT_SERIALIZE_OPT_PLAIN, NULL);
+            if (exit_info->result) {
+                purc_variant_serialize(exit_info->result,
+                        crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
+            }
+            else {
+                fprintf(stdout, "<INVALID VALUE>");
+            }
+            fprintf(stdout, "\n");
         }
-        else {
-            fprintf(stdout, "INVALID VALUE");
-        }
-        fprintf(stdout, "\n\n");
     }
 
     return 0;
 }
 
 static bool
-run_programs_sequentially(const struct my_opts *opts, purc_variant_t request)
+run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 {
     size_t nr_executed = 0;
     for (size_t i = 0; i < opts->urls->length; i++) {
@@ -1134,7 +1136,7 @@ run_programs_sequentially(const struct my_opts *opts, purc_variant_t request)
             if (!opts->quiet)
                 fprintf(stdout, "Executing HVML program from `%s`:\n\n", url);
 
-            struct crtn_info info = { url, &run_info };
+            struct crtn_info info = { opts, url, &run_info };
             purc_schedule_vdom(vdom, 0, request,
                     PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
                     NULL, opts->body_ids->list[i], &info);

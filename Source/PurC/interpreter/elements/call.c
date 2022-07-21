@@ -76,7 +76,7 @@ ctxt_for_call_destroy(struct ctxt_for_call *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->request_id);
         if (ctxt->endpoint_atom_within) {
-            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+            PC_ASSERT(purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF,
                     ctxt->endpoint_name_within));
             ctxt->endpoint_atom_within = 0;
         }

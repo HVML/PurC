@@ -406,7 +406,7 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->bt = NULL;
     }
 
-    purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF,
             curr_inst->endpoint_name);
 
     if (curr_inst->app_name) {
@@ -450,7 +450,7 @@ pcinst_endpoint_get(char *endpoint_name, size_t sz,
 
     bool is_mine;
     purc_atom_t atom;
-    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_USER,
+    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_DEF,
         endpoint_name, &is_mine);
     if (!is_mine) {
         purc_set_error(PURC_ERROR_DUPLICATED);
@@ -519,7 +519,7 @@ int purc_init_ex(unsigned int modules,
 
     bool is_mine;
     purc_atom_t atom;
-    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_USER,
+    atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_DEF,
         curr_inst->endpoint_name, &is_mine);
     if (!is_mine) {
         return PURC_ERROR_DUPLICATED;

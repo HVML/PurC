@@ -32,7 +32,7 @@ TEST(instance, def)
     int ret = purc_init_ex(PURC_MODULE_VARIANT, NULL, NULL, NULL);
     ASSERT_EQ(ret, PURC_ERROR_OK);
 
-    purc_atom_t endpoint_atom = BUCKET_BITS(PURC_ATOM_BUCKET_USER) | 1;
+    purc_atom_t endpoint_atom = BUCKET_BITS(PURC_ATOM_BUCKET_DEF) | 1;
     const char *endpoint = purc_atom_to_string(endpoint_atom);
 
     char host_name[PURC_LEN_HOST_NAME + 1];

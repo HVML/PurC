@@ -30,6 +30,7 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/atom-buckets.h"
 #include "private/interpreter.h"
 
 #include <errno.h>
@@ -67,7 +68,7 @@
 
 #define _KW_DELIMITERS              " \t\n\v\f\r"
 
-#define STREAM_ATOM_BUCKET          PURC_ATOM_BUCKET_USER // ATOM_BUCKET_DVOBJ
+#define STREAM_ATOM_BUCKET          ATOM_BUCKET_DVOBJ
 
 enum {
 #define _KW_default                 "default"

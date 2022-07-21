@@ -135,7 +135,7 @@ first HVML program in your working directory:
 To run this HVML program, you can use `purc` in the following way:
 
 ```bash
-    $ purc hello.hvml
+    $ purc -q hello.hvml
 ```
 
 You will see that your first HVML program prints `Hello, world!`
@@ -172,20 +172,20 @@ PurC can run multiple HVML programs as coroutines at the same time.
 For example, we enhance the first HVML program to print `Hello, world!` 10 times:
 
 ```html
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
         $STREAM.stdout.writelines(
-                $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
+                $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
     </iterate>
 </hvml>
 ```
 
 Assume you named the enhanced version as `hello-10.hvml`, we can run
-the program in two coroutines at the same time:
+the two program as two coroutines in parallel by specifying the flag `-l`:
 
 ```bash
-    $ purc hello-10.hvml hello-10.hvml
+    $ purc -l hello-10.hvml hello-10.hvml
 ```
 
 You will see the following output on your terminal:
@@ -226,7 +226,7 @@ the terminal. So we can open the genenrated HTML file in a web browser.
 Therefore, we enhance `hello-10.hvml` once more:
 
 ```html
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml>
 <hvml target="html">
     <head>
         <title>Hello, world!</title>
@@ -234,8 +234,8 @@ Therefore, we enhance `hello-10.hvml` once more:
 
     <body>
         <ul>
-            <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
-                <li>$< Hello, world! --from COROUTINE-$HVML.cid</li>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) >
+                <li>$? Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
     </body>

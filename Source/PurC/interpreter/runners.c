@@ -250,7 +250,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
 
     source_uri = purc_variant_get_string_const(msg->sourceURI);
     if (source_uri == NULL || (requester =
-                purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+                purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
                     source_uri)) == 0) {
         purc_log_warn("No sourceURI or the requester disappeared\n");
         return;
@@ -397,7 +397,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom) {
         goto done;
@@ -519,7 +519,7 @@ static void cancel_instance(struct instmgr_info *info,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -588,7 +588,7 @@ static void kill_instance(struct instmgr_info *info,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -640,7 +640,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
 
         source_uri = purc_variant_get_string_const(msg->sourceURI);
         if (source_uri == NULL || (requester =
-                    purc_atom_try_string_ex( PURC_ATOM_BUCKET_USER,
+                    purc_atom_try_string_ex( PURC_ATOM_BUCKET_DEF,
                         source_uri)) == 0) {
             purc_log_info("No sourceURI (%s) or the requester disappeared\n",
                     source_uri);
@@ -764,7 +764,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom != 0) {
         /* TODO: change the condition handler for an exisiting runner? */
@@ -1084,7 +1084,7 @@ purc_get_rid_by_cid(purc_atom_t cid)
     endpoint_name[len] = 0;
 
     purc_atom_t sid =
-        purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+        purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF, endpoint_name);
 
     return sid;
 }
@@ -1099,7 +1099,7 @@ purc_get_instmgr_rid(void)
             endpoint_name, sizeof(endpoint_name) - 1);
 
     purc_atom_t atom;
-    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF, endpoint_name);
     if (atom == 0) {
         purc_log_warn("No instance manager\n");
     }
