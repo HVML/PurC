@@ -42,6 +42,7 @@ struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
 
     purc_variant_t                on;
+    purc_variant_t                in;
 
     struct pcvdom_attr           *onlyif_attr;
     struct pcvdom_attr           *while_attr;
@@ -78,6 +79,7 @@ ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
             ctxt->exec_inst = NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->val_from_func);
@@ -467,6 +469,31 @@ process_attr_on(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_in(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val, pcintr_stack_t stack)
+{
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    if (val == PURC_VARIANT_INVALID ||
+            purc_variant_is_undefined(val))
+    {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->in);
+    ctxt->in = purc_variant_ref(val);
+
+    pcintr_set_input_var(stack, val);
+
+    return 0;
+}
+
+
+static int
 process_attr_onlyif(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val, struct pcvdom_attr *attr)
@@ -528,6 +555,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val, stack);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
+        return process_attr_in(frame, element, name, val, stack);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         ctxt->rule_attr = attr;
@@ -620,6 +650,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     pcintr_calc_and_set_caret_symbol(stack, frame);
+
+    purc_variant_t in = ctxt->in;
+    if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        purc_variant_t elements = pcintr_doc_query(stack->co,
+                purc_variant_get_string_const(in), frame->silently);
+        if (elements == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+
+        r = pcintr_set_at_var(frame, elements);
+        purc_variant_unref(elements);
+        if (r) {
+            return ctxt;
+        }
+    }
 
     purc_clr_error();
 
