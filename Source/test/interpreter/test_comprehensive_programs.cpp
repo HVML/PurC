@@ -62,14 +62,14 @@ sample_destroy(struct sample_data *sample)
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    void *user_data = purc_coroutine_get_user_data(cor);
-    if (!user_data) {
-        return -1;
-    }
-
-    struct sample_data *sample = (struct sample_data*)user_data;
-
     if (event == PURC_COND_COR_EXITED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_data *sample = (struct sample_data*)user_data;
+
         struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
         if (!purc_variant_is_equal_to(sample->expected_result, info->result)) {
             char buf[1024];
@@ -101,6 +101,13 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_data *sample = (struct sample_data*)user_data;
+
         sample_destroy(sample);
     }
 

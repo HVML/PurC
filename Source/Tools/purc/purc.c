@@ -674,48 +674,6 @@ static purc_vdom_t load_hvml(const char *url)
     return vdom;
 }
 
-#if 0
-    purc_variant_serialize(run_info.opts, run_info.dump_stm, 0,
-            PCVARIANT_SERIALIZE_OPT_PRETTY |
-            PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE, NULL);
-
-    purc_vdom_t vdom = NULL;
-    if (run_info.doc_content) {
-        vdom = purc_load_hvml_from_string(run_info.doc_content);
-    }
-    else if (run_info.url[0]) {
-        vdom = purc_load_hvml_from_url(run_info.url);
-    }
-    else {
-        goto failed;
-    }
-
-    if (!vdom) {
-        fprintf(stderr, "Failed to load hvml : %s\n",
-                purc_get_error_message(purc_get_last_error()));
-        goto failed;
-    }
-
-    pcrdr_page_type type = PCRDR_PAGE_TYPE_PLAINWIN;
-    purc_renderer_extra_info rdr_extra_info = {
-        .title = DEF_PAGE_TITLE
-    };
-    ret = purc_attach_vdom_to_renderer(vdom,
-            type, DEF_WORKSPACE_ID,
-            DEF_PAGE_GROUP, DEF_PAGE_NAME, &rdr_extra_info);
-    if (!ret) {
-        fprintf(stderr, "Failed to attach renderer : %s\n",
-                purc_get_error_message(purc_get_last_error()));
-        goto failed;
-    }
-
-    purc_run(NULL);
-
-failed:
-    if (run_info.doc_content)
-        free (run_info.doc_content);
-#endif
-
 static pcrdr_page_type get_page_type(purc_variant_t rdr)
 {
     pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
@@ -1028,6 +986,21 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     return n;
 }
 
+#define MY_VRT_OPTS \
+    (PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
+
+static int app_cond_handler(purc_cond_t event, void *arg, void *data)
+{
+    (void)arg;
+    (void)data;
+
+    if (event == PURC_COND_SHUTDOWN_ASKED) {
+        return 0;
+    }
+
+    return 0;
+}
+
 static bool run_app(struct my_opts *opts)
 {
 #ifndef NDEBUG
@@ -1035,8 +1008,7 @@ static bool run_app(struct my_opts *opts)
 
     if (run_info.opts) {
         purc_variant_serialize(run_info.opts,
-                run_info.dump_stm,
-                0, PCVARIANT_SERIALIZE_OPT_PRETTY, NULL);
+                run_info.dump_stm, 0, MY_VRT_OPTS, NULL);
     }
     else {
         fprintf(stdout, "INVALID VALUE");
@@ -1047,8 +1019,7 @@ static bool run_app(struct my_opts *opts)
 
     if (run_info.app_info) {
         purc_variant_serialize(run_info.app_info,
-                run_info.dump_stm,
-                0, PCVARIANT_SERIALIZE_OPT_PRETTY, NULL);
+                run_info.dump_stm, 0,  MY_VRT_OPTS, NULL);
     }
     else {
         fprintf(stdout, "INVALID VALUE");
@@ -1115,7 +1086,7 @@ static bool run_app(struct my_opts *opts)
     }
 
     if (nr_live_coroutines > 0)
-        purc_run(NULL);
+        purc_run(app_cond_handler);
 
     return nr_live_coroutines > 0;
 }
@@ -1125,15 +1096,15 @@ struct crtn_info {
     struct run_info *run_info;
 };
 
-static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
-    if (!crtn_info) {
-        return -1;
-    }
-
     if (event == PURC_COND_COR_EXITED) {
+        struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+        if (!crtn_info) {
+            return -1;
+        }
+
         struct purc_cor_exit_info *exit_info = data;
 
         fprintf(stdout, "\nThe execute result is: ");
@@ -1167,7 +1138,7 @@ run_programs_sequentially(const struct my_opts *opts, purc_variant_t request)
             purc_schedule_vdom(vdom, 0, request,
                     PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
                     NULL, opts->body_ids->list[i], &info);
-            purc_run((purc_cond_handler)my_cond_handler);
+            purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;
         }

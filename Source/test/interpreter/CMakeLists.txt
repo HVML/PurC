@@ -402,3 +402,31 @@ set(test_comprehensive_programs_LIBRARIES
 PURC_COMPUTE_SOURCES(test_comprehensive_programs)
 PURC_FRAMEWORK(test_comprehensive_programs)
 
+# test_quit_main_runner
+PURC_EXECUTABLE_DECLARE(test_quit_main_runner)
+
+list(APPEND test_quit_main_runner_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_quit_main_runner)
+
+set(test_quit_main_runner_SOURCES
+    test_quit_main_runner.cpp
+)
+
+set(test_quit_main_runner_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_quit_main_runner)
+PURC_FRAMEWORK(test_quit_main_runner)
+GTEST_DISCOVER_TESTS(test_quit_main_runner DISCOVERY_TIMEOUT 10)
+

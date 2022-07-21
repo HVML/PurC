@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+//#undef NDEBUG
 
 #include "config.h"
 
@@ -174,7 +174,8 @@ static void shutdown_instance(purc_atom_t requester,
         purc_extract_app_name(rqst_ept, rqst_app_name);
 
         if (strcmp(self_host_name, rqst_host_name) ||
-                strcmp(self_app_name, rqst_app_name)) {
+                (strcmp(rqst_app_name, PCRUN_INSTMGR_APP_NAME) &&
+                strcmp(self_app_name, rqst_app_name))) {
             // not allowed
             return;
         }
@@ -708,6 +709,23 @@ void pcrun_instmgr_handle_message(void *ctxt)
 
                 PC_DEBUG("InstMgr removes record of instance %u/%u\n",
                         (unsigned)sid, (unsigned)info->nr_insts);
+
+                if (info->nr_insts == 0) {
+                    PC_DEBUG("InstMgr askes the main runner (%u) to shutdown...\n",
+                            info->rid_main);
+
+                    pcrdr_msg *request_msg = pcrdr_make_request_message(
+                            PCRDR_MSG_TARGET_INSTANCE, info->rid_main,
+                            PCRUN_OPERATION_shutdownInstance,
+                            PCRDR_REQUESTID_NORETURN,
+                            purc_get_endpoint(NULL),
+                            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+                            NULL,
+                            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+                    purc_inst_move_message(info->rid_main, request_msg);
+                    pcrdr_release_message(request_msg);
+                }
             }
         }
         else {

@@ -2,7 +2,7 @@
 
 # RESULT: "-- by PurC"
 
-<!-- The expected output of this HVML program:
+<!-- The expected output of this HVML program will be like:
 
 0) Hello, world! -- from COROUTINE-01
 1) Hello, world! -- from COROUTINE-01
