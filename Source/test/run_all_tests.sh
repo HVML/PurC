@@ -36,9 +36,11 @@ for x in $TEST_PROGS; do
     else
         ${VALGRIND} ./$x || exit
     fi
-    if test "$?" -eq 0; then
+
+    RESULT=$?
+    if test $RESULT -eq 0; then
         total_passed=$((total_passed + 1))
-    elif test "$?" -gt 128; then
+    elif test $RESULT -gt 128; then
         total_crashed=$((total_crashed + 1))
         test_crashed="$x $test_crashed"
     else

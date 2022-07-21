@@ -28,7 +28,7 @@
  * Copyright (C) 2000 Red Hat, Inc.
  */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "purc-utils.h"
 
