@@ -104,7 +104,8 @@ static void quit_on_error(int errcode)
 int main(void)
 {
     purc_instance_extra_info info = {};
-    purc_init ("cn.fmsoft.hybridos.sample", "make_dynamic_object", &info);
+    purc_init_ex(PURC_MODULE_VARIANT,
+            "cn.fmsoft.hybridos.sample", "make_dynamic_object", &info);
 
     purc_variant_t foobar = make_dvobj_foobar();
     if (foobar == PURC_VARIANT_INVALID)

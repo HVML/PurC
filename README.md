@@ -236,7 +236,7 @@ Therefore, we enhance `hello-10.hvml` once more:
     <body>
         <ul>
             <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) >
-                <li>$? Hello, world! --from COROUTINE-$CRTN.cid</li>
+                <li>$?) Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
     </body>
@@ -485,9 +485,9 @@ to build and install PurC Fetcher to your system.
 
 This project was launched in June. 2021. This is the version 0.8.0 of PurC.
 
-After one year development, the current version implements all features
-defined by [HVML Specifiction V1.0] in C language, and also implements all
-predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+After one year development, the current version implements almost all features
+defined by [HVML Specifiction V1.0] in C language, and also implements almost
+all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
 
 We welcome anybody to take part in the development and contribute your effort!
 
@@ -523,7 +523,8 @@ The source tree of PurC contains the following modules:
 - `Source/cmake/`: The cmake modules.
 - `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
-- `Source/Samples/`: Examples for using the interfaces of PurC.
+- `Source/Samples/api`: Samples for using the API of PurC.
+- `Source/Samples/hvml`: Samples HVML programs.
 - `Source/Tools/`: The tools (executables), i.e., the command line programs.
 - `Source/Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
 - `Documents/`: Some documents for developers.

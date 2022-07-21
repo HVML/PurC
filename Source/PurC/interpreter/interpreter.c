@@ -3344,7 +3344,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
     pcintr_stack_t stack = pcintr_get_stack();
     if (text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, "textContent", PCRDR_MSG_DATA_TYPE_TEXT,
+                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
 
@@ -3359,11 +3359,12 @@ pcintr_util_new_content(purc_document_t doc,
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
+    /* TODO: use the type from archetype `type` attribute */
     pcintr_stack_t stack = pcintr_get_stack();
     if (node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, len);
+                elem, NULL, doc->def_text_type, content, len);
     }
 
     return node;
@@ -3384,7 +3385,7 @@ pcintr_util_set_attribute(purc_document_t doc,
         strcat(property, name);
 
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, property, PCRDR_MSG_DATA_TYPE_TEXT, val, len);
+                elem, property, PCRDR_MSG_DATA_TYPE_PLAIN, val, len);
     }
 
     return 0;
