@@ -1,5 +1,5 @@
-add_subdirectory(variant)
-add_subdirectory(fetcher)
+add_subdirectory(api)
+#add_subdirectory(fetcher)
 
 PURC_COPY_FILES(ScriptToRunSamples
     DESTINATION ${CMAKE_BINARY_DIR}/
