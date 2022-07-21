@@ -235,6 +235,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     if (ctxt->with == PURC_VARIANT_INVALID) {
         ctxt->with = purc_variant_make_undefined();
         if (ctxt->with == PURC_VARIANT_INVALID) {

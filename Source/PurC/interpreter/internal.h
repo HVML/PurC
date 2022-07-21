@@ -474,6 +474,10 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
 void
 pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co);
 
+int
+pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame);
+
 /* ms */
 double
 pcintr_get_current_time(void);

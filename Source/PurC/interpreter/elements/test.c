@@ -370,8 +370,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
-    purc_clr_error();
+    pcintr_calc_and_set_caret_symbol(stack, frame);
 
+    purc_clr_error();
 
     if (ctxt->on == PURC_VARIANT_INVALID
             && ctxt->with != PURC_VARIANT_INVALID) {

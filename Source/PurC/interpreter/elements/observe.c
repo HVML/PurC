@@ -883,6 +883,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     if (ctxt->with != PURC_VARIANT_INVALID) {
         pcvdom_element_t define = pcintr_get_vdom_from_variant(ctxt->with);
         if (define == NULL) {

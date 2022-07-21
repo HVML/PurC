@@ -623,6 +623,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     while ((element=pcvdom_element_parent(element))) {
         if (element->tag_id == PCHVML_TAG_HEAD) {
             ctxt->under_head = 1;
