@@ -362,6 +362,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     pcintr_calc_and_set_caret_symbol(stack, frame);
 
+    if (!ctxt->with) {
+        purc_variant_t caret = pcintr_get_symbol_var(frame,
+                PURC_SYMBOL_VAR_CARET);
+        if (caret && !purc_variant_is_undefined(caret)) {
+            ctxt->with = caret;
+            purc_variant_ref(ctxt->with);
+        }
+    }
+
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;
