@@ -135,7 +135,7 @@ first HVML program in your working directory:
 To run this HVML program, you can use `purc` in the following way:
 
 ```bash
-    $ purc hello.hvml
+    $ purc -q hello.hvml
 ```
 
 You will see that your first HVML program prints `Hello, world!`
