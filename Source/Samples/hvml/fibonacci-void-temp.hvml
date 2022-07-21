@@ -1,4 +1,4 @@
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml>
 <hvml target="void">
     <head>
         $STREAM.stdout.writelines("# Fibonacci Numbers")
@@ -23,15 +23,18 @@
             }}
         </inherit>
 
-        <iterate on 1 onlyif=$L.lt($0<, 2000) with=$MATH.add($0<, $last_one)>
-            <init as="last_one" at="2" with="$last_two" temp />
-            <init as="last_two" at="2" with="$?" temp />
+        <iterate on 1 onlyif $L.lt($0<, 2000) with $EJSON.arith('+', $0<, $last_one) nosetotail >
+            <init as "last_one" at "#theBody" with "$last_two" temp />
+            <init as "last_two" at "#theBody" with "$?" temp >
+                {{ $STREAM.stdout.writelines($STR.join('last_one: ', $last_one));
+                    $STREAM.stdout.writelines($STR.join('last_two: ', $last_two)) }}
+            </init>
 
-            <init as="$#theBody!" at=".count" to="displace" with += 1 />
+            <update on "$#theBody!" at ".count" to "displace" with += 1 />
 
             <inherit>
                 $STREAM.stdout.writelines(
-                    $STR.join('    ', $MATH.add($%, 2), ': ', $?))
+                    $STR.join('    ', $EJSON.arith('+', $%, 2), ': ', $?))
             </inherit>
         </iterate>
 

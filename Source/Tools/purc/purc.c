@@ -57,7 +57,7 @@
 #define KEY_BODYIDS             "bodyIds"
 
 #define KEY_FLAG_PARALLEL       "parallel"
-#define KEY_FLAG_QUIET          "quiet"
+#define KEY_FLAG_VERBOSE          "verbose"
 
 struct run_info {
     purc_variant_t opts;
@@ -154,8 +154,8 @@ static void print_usage(FILE *fp)
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
         "\n"
-        "  -q --quiet\n"
-        "        Execute the program(s) quietly (without redundant output).\n"
+        "  -s --verbose\n"
+        "        Execute the program(s) with verbose output.\n"
         "\n"
         "  -c --copying\n"
         "        Display detailed copying information and exit.\n"
@@ -182,7 +182,7 @@ struct my_opts {
     char *app_info;
 
     bool parallel;
-    bool quiet;
+    bool verbose;
 };
 
 static const char *archedata_header =
@@ -361,7 +361,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:t:lqcvh";
+    static const char short_options[] = "a:r:d:p:u:t:lscvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -370,7 +370,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 't' },
         { "parallel"       , no_argument       , NULL , 'l' },
-        { "quiet"          , no_argument       , NULL , 'q' },
+        { "verbose"        , no_argument       , NULL , 's' },
         { "copying"        , no_argument       , NULL , 'c' },
         { "version"        , no_argument       , NULL , 'v' },
         { "help"           , no_argument       , NULL , 'h' },
@@ -471,8 +471,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             opts->parallel = true;
             break;
 
-        case 'q':
-            opts->quiet = true;
+        case 's':
+            opts->verbose = true;
             break;
 
         case '?':
@@ -490,7 +490,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         else {
             for (int i = optind; i < argc; i++) {
                 if (!validate_url(opts, argv[i])) {
-                    if (!opts->quiet)
+                    if (opts->verbose)
                         fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
                     return -1;
                 }
@@ -501,7 +501,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     return 0;
 
 bad_arg:
-    if (!opts->quiet)
+    if (opts->verbose)
         fprintf(stdout, "Got an unknown argument: %s (%c)\n", optarg, o);
     return -1;
 }
@@ -584,9 +584,9 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_FLAG_PARALLEL, tmp);
     purc_variant_unref(tmp);
 
-    tmp = purc_variant_make_boolean(opts->quiet);
+    tmp = purc_variant_make_boolean(opts->verbose);
     purc_variant_object_set_by_static_ckey(run_info.opts,
-            KEY_FLAG_QUIET, tmp);
+            KEY_FLAG_VERBOSE, tmp);
     purc_variant_unref(tmp);
 
     if (request) {
@@ -887,7 +887,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         rid = purc_inst_create_or_get(app_name, run_name,
             NULL, &inst_info);
         if (rid == 0) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "Failed to create PurC instance for %s/%s\n",
                         app_name, run_name);
             }
@@ -902,7 +902,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     for (size_t i = 0; i < nr_coroutines; i++) {
         purc_variant_t crtn = purc_variant_array_get(coroutines, i);
         if (!purc_variant_is_object(crtn)) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "Not an object for crtn[%u]\n",
                         (unsigned)i);
             }
@@ -916,7 +916,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         }
 
         if (url == NULL) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "No valid URL given for crtn[%u]\n",
                         (unsigned)i);
             }
@@ -925,7 +925,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "Failed to load HVML from %s for crtn[%u]\n",
                         url, (unsigned)i);
             }
@@ -976,7 +976,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             n++;
         }
         else {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "Failed to schedule coroutine from %s for #%u\n",
                         url, (unsigned)i);
             }
@@ -1034,7 +1034,7 @@ static bool run_app(struct my_opts *opts)
         purc_variant_object_get_by_ckey(run_info.app_info, "runners");
     size_t nr_runners = 0;
     if (!purc_variant_array_size(runners, &nr_runners) || nr_runners == 0) {
-        if (!opts->quiet) {
+        if (opts->verbose) {
             fprintf(stderr, "Invalid runners\n");
             return false;
         }
@@ -1049,7 +1049,7 @@ static bool run_app(struct my_opts *opts)
             purc_variant_object_get_by_ckey(runner, "coroutines");
 
         if (!coroutines) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "No coroutines for runner #%u\n",
                         (unsigned)i);
                 continue;
@@ -1059,7 +1059,7 @@ static bool run_app(struct my_opts *opts)
         size_t nr_coroutines = 0;
         if (!purc_variant_array_size(coroutines, &nr_coroutines) ||
                 nr_coroutines == 0) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "Invalid coroutines for runner #%u\n",
                         (unsigned)i);
                 continue;
@@ -1069,7 +1069,7 @@ static bool run_app(struct my_opts *opts)
         size_t n;
         n = schedule_coroutines_for_runner(opts, app, runner, coroutines);
         if (n == 0) {
-            if (!opts->quiet) {
+            if (opts->verbose) {
                 fprintf(stderr, "No coroutine schedule for runner #%u\n",
                         (unsigned)i);
             }
@@ -1080,7 +1080,7 @@ static bool run_app(struct my_opts *opts)
         nr_live_coroutines += n;
     }
 
-    if (!opts->quiet) {
+    if (opts->verbose) {
         fprintf(stdout, "Totally %u runners and %u coroutines scheduled.\n",
                 (unsigned)nr_live_runners, (unsigned)nr_live_coroutines);
     }
@@ -1106,10 +1106,10 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             return -1;
         }
 
-        if (!crtn_info->opts->quiet) {
+        if (crtn_info->opts->verbose) {
             struct purc_cor_exit_info *exit_info = data;
 
-            fprintf(stdout, "EXECUTE RESULT: \n");
+            fprintf(stdout, "\nThe execute result: \n");
 
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
@@ -1133,8 +1133,8 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         const char *url = opts->urls->list[i];
         purc_vdom_t vdom = load_hvml(url);
         if (vdom) {
-            if (!opts->quiet)
-                fprintf(stdout, "Executing HVML program from `%s`:\n\n", url);
+            if (opts->verbose)
+                fprintf(stdout, "\nExecuting HVML program from `%s`:\n\n", url);
 
             struct crtn_info info = { opts, url, &run_info };
             purc_schedule_vdom(vdom, 0, request,
@@ -1145,7 +1145,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             nr_executed++;
         }
         else {
-            if (!opts->quiet)
+            if (opts->verbose)
                 fprintf(stderr, "Failed to load HVML from %s\n", url);
         }
     }
@@ -1166,7 +1166,7 @@ int main(int argc, char** argv)
 
     if (opts->app_info == NULL &&
             (opts->urls == NULL || opts->urls->length == 0)) {
-        if (!opts->quiet) {
+        if (opts->verbose) {
             fprintf(stdout, "No valid HVML program specified\n");
             print_usage(stdout);
         }
@@ -1175,7 +1175,7 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (!opts->quiet) {
+    if (opts->verbose) {
         print_version(stdout);
         print_short_copying(stdout);
     }
@@ -1215,7 +1215,7 @@ int main(int argc, char** argv)
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
     if (ret != PURC_ERROR_OK) {
-        if (!opts->quiet)
+        if (opts->verbose)
             fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
                 purc_get_error_message(ret));
         my_opts_delete(opts, true);
@@ -1225,7 +1225,7 @@ int main(int argc, char** argv)
     purc_variant_t request = PURC_VARIANT_INVALID;
     if (opts->request) {
         if ((request = get_request_data(opts)) == PURC_VARIANT_INVALID) {
-            if (!opts->quiet)
+            if (opts->verbose)
                 fprintf(stderr, "Failed to get the request data from %s\n",
                     opts->request);
             my_opts_delete(opts, true);
@@ -1245,7 +1245,7 @@ int main(int argc, char** argv)
     if (opts->app_info) {
         transfer_opts_to_variant(opts, request);
         if (!evalute_app_info(opts->app_info)) {
-            if (!opts->quiet)
+            if (opts->verbose)
                 fprintf(stderr, "Failed to evalute the app info from %s\n",
                         opts->app_info);
             my_opts_delete(opts, false);
