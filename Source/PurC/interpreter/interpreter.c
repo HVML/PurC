@@ -1554,7 +1554,6 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
-            pcintr_calc_and_set_caret_symbol(stack, frame);
             after_pushed(co, frame);
             break;
         case NEXT_STEP_ON_POPPING:
