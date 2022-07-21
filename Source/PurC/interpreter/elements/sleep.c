@@ -367,6 +367,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     if (ctxt->for_ns < 1 * 1000 * 1000) {
         // less than 1ms
         // FIXME: nanosleep or round-up to 1 ms?

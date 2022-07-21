@@ -1461,6 +1461,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    // pcintr_calc_and_set_caret_symbol(stack, frame);
+
     if (ctxt->temporarily) {
         ctxt->async = 0;
     }

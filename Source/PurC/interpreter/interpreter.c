@@ -774,8 +774,9 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
     return 0;
 }
 
-static int
-init_caret_symbol(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+int
+pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame)
 {
     pcvdom_element_t elem = frame->pos;
     if (!elem) {
@@ -1553,7 +1554,7 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
-            init_caret_symbol(stack, frame);
+            pcintr_calc_and_set_caret_symbol(stack, frame);
             after_pushed(co, frame);
             break;
         case NEXT_STEP_ON_POPPING:
@@ -1846,6 +1847,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+    co_result->result = purc_variant_make_undefined();
 
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
     if (!co) {
