@@ -34,19 +34,19 @@ End of `Hello, world!`
     <!-- This is a multiple-line comments, which will be parsed and form
         a comment node in the ultimate vDOM tree -->
     <head>
-        $STREAM.stdout.writelines('Start of `head`')
+        {{ $STREAM.stdout.writelines('Start of `head`'); "" }}
 
         <title>$T.get('Hello, world!')</title>
 
-        $STREAM.stdout.writelines('End of `head`')
+        {{ $STREAM.stdout.writelines('End of `head`'); '' }}
     </head>
 
     <body>
-        $STREAM.stdout.writelines('Start of `body`')
+        {{ $STREAM.stdout.writelines('Start of `body`'); 'HVML' }}
 
-        <p>$T.get('Hello, HVML!')</p>
+        <p>$T.get('Hello, world!')</p>
 
-        $STREAM.stdout.writelines('End of `body`')
+        {{ $STREAM.stdout.writelines('End of `body`'); 'HVML' }}
     </body>
 
     {{
