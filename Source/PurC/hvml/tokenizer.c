@@ -3152,6 +3152,10 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
                 parser->temp_buffer);
         if (nr_buf_chars >= 1 || parser->nr_single_quoted == 2) {
             parser->nr_single_quoted = 0;
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer));
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else {
