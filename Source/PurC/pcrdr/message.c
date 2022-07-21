@@ -101,17 +101,20 @@ pcrdr_msg *pcrdr_make_request_message(
     }
 
     msg->dataType = data_type;
-    if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
+    if (data_type == PCRDR_MSG_DATA_TYPE_VOID) {
+        // do nothing
+    }
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
-        msg->data = purc_variant_make_string_ex(data, data_len, true);
+        msg->data = purc_variant_make_from_json_string(data, data_len);
 
         if (msg->data == NULL) {
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
+    else {  /* for other text types */
         assert(data);
-        msg->data = purc_variant_make_from_json_string(data, data_len);
+        msg->data = purc_variant_make_string_ex(data, data_len, true);
 
         if (msg->data == NULL) {
             goto failed;
@@ -147,17 +150,20 @@ pcrdr_msg *pcrdr_make_response_message(
     }
 
     msg->dataType = data_type;
-    if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
+    if (data_type == PCRDR_MSG_DATA_TYPE_VOID) {
+        // do nothing
+    }
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
-        msg->data = purc_variant_make_string_ex(data, data_len, true);
+        msg->data = purc_variant_make_from_json_string(data, data_len);
 
         if (msg->data == NULL) {
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
+    else {  /* for other text types */
         assert(data);
-        msg->data = purc_variant_make_from_json_string(data, data_len);
+        msg->data = purc_variant_make_string_ex(data, data_len, true);
 
         if (msg->data == NULL) {
             goto failed;
@@ -218,17 +224,20 @@ pcrdr_msg *pcrdr_make_event_message(
     }
 
     msg->dataType = data_type;
-    if (data_type == PCRDR_MSG_DATA_TYPE_TEXT) {
+    if (data_type == PCRDR_MSG_DATA_TYPE_VOID) {
+        // do nothing
+    }
+    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
         assert(data);
-        msg->data = purc_variant_make_string_ex(data, data_len, true);
+        msg->data = purc_variant_make_from_json_string(data, data_len);
 
         if (msg->data == NULL) {
             goto failed;
         }
     }
-    else if (data_type == PCRDR_MSG_DATA_TYPE_JSON) {
+    else { /* for other text types */
         assert(data);
-        msg->data = purc_variant_make_from_json_string(data, data_len);
+        msg->data = purc_variant_make_string_ex(data, data_len, true);
 
         if (msg->data == NULL) {
             goto failed;
@@ -588,7 +597,12 @@ static bool on_result(pcrdr_msg *msg, char *value)
 static const char *data_type_names [] = {
     "void",
     "json",
-    "text",
+    "plain",
+    "html",
+    "svg",
+    "mathml",
+    "xgml",
+    "xml",
 };
 
 /* make sure number of data_type_names matches the enums */
@@ -736,18 +750,21 @@ int pcrdr_parse_packet(char *packet, size_t sz_packet, pcrdr_msg **msg_out)
         }
     }
 
-    if (msg->dataType == PCRDR_MSG_DATA_TYPE_TEXT) {
-        // FIXME: check __data_len ???
-        assert(data != NULL /* && msg->__data_len > 0 */);
-        msg->data = purc_variant_make_string_ex(data, msg->__data_len, true);
+    if (msg->dataType == PCRDR_MSG_DATA_TYPE_VOID) {
+        // do nothing
+    }
+    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
+        assert(data != NULL && msg->__data_len > 0);
+        msg->data = purc_variant_make_from_json_string(data, msg->__data_len);
 
         if (msg->data == NULL) {
             goto failed;
         }
     }
-    else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
-        assert(data != NULL && msg->__data_len > 0);
-        msg->data = purc_variant_make_from_json_string(data, msg->__data_len);
+    else {  /* for other text types */
+        // FIXME: check __data_len ???
+        assert(data != NULL /* && msg->__data_len > 0 */);
+        msg->data = purc_variant_make_string_ex(data, msg->__data_len, true);
 
         if (msg->data == NULL) {
             goto failed;
@@ -778,11 +795,8 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
     const char *text = NULL;
     char *text_alloc = NULL;
 
-    if (msg->dataType == PCRDR_MSG_DATA_TYPE_TEXT) {
-        text = purc_variant_get_string_const_ex(msg->data, &text_len);
-        assert(msg->data != NULL);
-        if (msg->textLen > 0)   /* override by textLen */
-            text_len = msg->textLen;
+    if (msg->dataType == PCRDR_MSG_DATA_TYPE_VOID) {
+        // do nothing
     }
     else if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON) {
         purc_rwstream_t buffer = NULL;
@@ -800,6 +814,12 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
                 NULL, true);
         text = text_alloc;
         purc_rwstream_destroy(buffer);
+    }
+    else {  /* for other text types */
+        text = purc_variant_get_string_const_ex(msg->data, &text_len);
+        assert(msg->data != NULL);
+        if (msg->textLen > 0)   /* override by textLen */
+            text_len = msg->textLen;
     }
 
     /* dataType: <void | json | text> */

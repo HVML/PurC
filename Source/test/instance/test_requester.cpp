@@ -166,7 +166,7 @@ static void call_method(struct inst_info *info,
         }
 
         response->sourceURI = purc_variant_make_string(full_cor_id, false);
-        response->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
+        response->dataType = PCRDR_MSG_DATA_TYPE_PLAIN;
         response->data = cort_info->method_handler(info, request);
         response->retCode = PCRDR_SC_OK;
         response->resultValue = (uint64_t)cort_atom;

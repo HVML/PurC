@@ -314,7 +314,7 @@ static int _init_instance(struct pcinst *curr_inst,
         if (msg->data == PURC_VARIANT_INVALID) {
             goto failed;
         }
-        msg->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
+        msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
         if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
