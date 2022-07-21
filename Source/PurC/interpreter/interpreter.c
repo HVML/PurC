@@ -380,7 +380,7 @@ coroutine_release(pcintr_coroutine_t co)
 
         if (co->cid) {
             const char *uri = pcintr_coroutine_get_uri(co);
-            purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER, uri);
+            purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF, uri);
         }
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
@@ -1811,7 +1811,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
 
     sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
-    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, p);
+    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
     free(p);
 
     return 0;
