@@ -1843,6 +1843,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+    co_result->result = purc_variant_make_undefined();
 
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
     if (!co) {
