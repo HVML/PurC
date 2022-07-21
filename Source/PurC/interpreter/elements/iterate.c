@@ -788,6 +788,8 @@ rerun_with(pcintr_stack_t stack)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
