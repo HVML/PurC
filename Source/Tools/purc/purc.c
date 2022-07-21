@@ -989,6 +989,18 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 #define MY_VRT_OPTS \
     (PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
 
+static int app_cond_handler(purc_cond_t event, void *arg, void *data)
+{
+    (void)arg;
+    (void)data;
+
+    if (event == PURC_COND_SHUTDOWN_ASKED) {
+        return 0;
+    }
+
+    return 0;
+}
+
 static bool run_app(struct my_opts *opts)
 {
 #ifndef NDEBUG
@@ -1074,7 +1086,7 @@ static bool run_app(struct my_opts *opts)
     }
 
     if (nr_live_coroutines > 0)
-        purc_run(NULL);
+        purc_run(app_cond_handler);
 
     return nr_live_coroutines > 0;
 }
@@ -1084,7 +1096,7 @@ struct crtn_info {
     struct run_info *run_info;
 };
 
-static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
     if (event == PURC_COND_COR_EXITED) {
@@ -1126,7 +1138,7 @@ run_programs_sequentially(const struct my_opts *opts, purc_variant_t request)
             purc_schedule_vdom(vdom, 0, request,
                     PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
                     NULL, opts->body_ids->list[i], &info);
-            purc_run((purc_cond_handler)my_cond_handler);
+            purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;
         }
