@@ -266,8 +266,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     }
 
     pcintr_coroutine_t co = stack->co;
-    if (co->result) {
-        PURC_VARIANT_SAFE_CLEAR(co->result->result);
+    if (co->result && !co->result->result) {
         co->result->result = pcintr_get_question_var(frame);
         purc_variant_ref(co->result->result);
     }
