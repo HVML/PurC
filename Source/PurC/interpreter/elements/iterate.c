@@ -487,8 +487,6 @@ process_attr_in(struct pcintr_stack_frame *frame,
     PURC_VARIANT_SAFE_CLEAR(ctxt->in);
     ctxt->in = purc_variant_ref(val);
 
-    pcintr_set_input_var(stack, val);
-
     return 0;
 }
 
