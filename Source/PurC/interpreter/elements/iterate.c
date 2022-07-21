@@ -97,11 +97,13 @@ ctxt_destroy(void *ctxt)
 static bool
 check_stop(purc_variant_t val)
 {
-    if (purc_variant_is_undefined(val))
+    if (purc_variant_is_undefined(val)) {
         return true;
+    }
 
-    if (purc_variant_is_null(val))
+    if (purc_variant_is_null(val)) {
         return true;
+    }
 
     if (purc_variant_is_boolean(val)) {
         if (pcvariant_is_false(val)) {
@@ -160,10 +162,17 @@ re_eval_with(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *with, bool *stop, pcintr_stack_t stack)
 {
     purc_variant_t val;
-    val = pcintr_eval_vdom_attr(stack, with);
+    if (with) {
+        val = pcintr_eval_vdom_attr(stack, with);
+    }
+    else {
+        val = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    }
+
     PC_ASSERT(val != PURC_VARIANT_INVALID);
-    if (val == PURC_VARIANT_INVALID)
+    if (val == PURC_VARIANT_INVALID) {
         return -1;
+    }
 
     if (check_stop(val)) {
         *stop = true;
@@ -172,11 +181,14 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     *stop = false;
 
-    int r;
-    r = pcintr_set_question_var(frame, val);
-    purc_variant_unref(val);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    if (ctxt->nosetotail) {
+        pcintr_set_input_var(stack, val);
+    }
 
-    return r ? -1 : 0;
+    purc_variant_unref(val);
+    return 0;
 }
 
 static struct ctxt_for_iterate*
@@ -212,6 +224,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
     }
 
+    /* $0< set to  $0? */
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
+    pcintr_set_question_var(frame, v);
+
+#if 0
     if (ctxt->with_attr == NULL) {
         ctxt->stop = 1;
         return NULL;
@@ -231,6 +248,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ctxt->stop = 1;
         return NULL;
     }
+#endif
 
     return ctxt;
 }
@@ -473,6 +491,7 @@ process_attr_in(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val, pcintr_stack_t stack)
 {
+    UNUSED_PARAM(stack);
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
     if (val == PURC_VARIANT_INVALID ||
@@ -694,11 +713,25 @@ on_popping_with(pcintr_stack_t stack)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    if (ctxt->stop)
+    if (ctxt->stop) {
         return true;
+    }
 
-    if (ctxt->on == PURC_VARIANT_INVALID)
+    if (ctxt->on == PURC_VARIANT_INVALID) {
         return true;
+    }
+
+    bool stop;
+    int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
+    if (r) {
+        // FIXME: let catch to effect afterward???
+        return true;
+    }
+
+    if (stop) {
+        ctxt->stop = 1;
+        return true;
+    }
 
     if (ctxt->while_attr) {
         bool stop;
@@ -711,9 +744,7 @@ on_popping_with(pcintr_stack_t stack)
         }
     }
 
-    PC_ASSERT(ctxt->with_attr);
-
-    int r = pcintr_inc_percent_var(frame);
+    r = pcintr_inc_percent_var(frame);
     PC_ASSERT(r == 0);
 
     return false;
@@ -837,10 +868,26 @@ rerun_with(pcintr_stack_t stack)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
+    if (ctxt->onlyif_attr) {
+        bool stop;
+        int r = check_onlyif(ctxt->onlyif_attr, &stop, stack);
+        if (r || stop) {
+            ctxt->stop = 1;
+            return true;
+        }
+    }
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
+    /* $0< set to  $0? */
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
+    pcintr_set_question_var(frame, v);
+    return true;
+
+#if 0
 
     if (ctxt->with_attr == NULL) {
         ctxt->stop = 1;
@@ -875,8 +922,8 @@ rerun_with(pcintr_stack_t stack)
         ctxt->stop = 1;
         return false;
     }
-
     return true;
+#endif
 }
 
 static bool
