@@ -628,7 +628,8 @@ void pcrun_instmgr_handle_message(void *ctxt)
         return;
     }
     else if (n == 0) {
-        pcutils_usleep(10000);
+        // sleep 1ms to take a breath
+        pcutils_usleep(1000);
         return;
     }
 
