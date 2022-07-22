@@ -37,11 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MSG_TYPE_CHANGE         "change"
-#define SUB_TYPE_ATTACHED       "attached"
-#define SUB_TYPE_DETACHED       "detached"
-#define SUB_TYPE_DISPLACED      "displaced"
-
 #define EVENT_ATTACHED          "change:attached"
 #define EVENT_DETACHED          "change:detached"
 #define EVENT_DISPLACED         "change:displaced"
@@ -134,7 +129,7 @@ static bool mgr_grow_handler(purc_variant_t source, pcvar_op_t msg_type,
     if (dest) {
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, SUB_TYPE_ATTACHED,
+                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_ATTACHED,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
@@ -161,7 +156,7 @@ static bool mgr_shrink_handler(purc_variant_t source, pcvar_op_t msg_type,
     if (dest) {
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, SUB_TYPE_DETACHED,
+                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DETACHED,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }
@@ -188,7 +183,7 @@ static bool mgr_change_handler(purc_variant_t source, pcvar_op_t msg_type,
     if (dest) {
         pcintr_coroutine_post_event(stack->co->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                dest, MSG_TYPE_CHANGE, SUB_TYPE_DISPLACED,
+                dest, MSG_TYPE_CHANGE, MSG_SUB_TYPE_DISPLACED,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(dest);
     }

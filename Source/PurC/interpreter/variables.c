@@ -48,7 +48,6 @@
 
 #define USER_OBJ                "myObj"
 #define INNER_WRAP              "__inner_wrap"
-#define MSG_TYPE_CHANGE         "change"
 
 struct runner_myobj_wrap {
     purc_variant_t object;

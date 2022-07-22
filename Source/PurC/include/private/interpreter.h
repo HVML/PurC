@@ -41,8 +41,25 @@
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
-#define MSG_TYPE_SLEEP          "sleep"
-#define MSG_SUB_TYPE_TIMEOUT    "timeout"
+#define MSG_TYPE_IDLE                 "idle"
+#define MSG_TYPE_SLEEP                "sleep"
+#define MSG_TYPE_CHANGE               "change"
+#define MSG_TYPE_CALL_STATE           "callState"
+#define MSG_TYPE_SUB_EXIT             "subExit"
+#define MSG_TYPE_LAST_MSG             "lastMsg"
+#define MSG_TYPE_ASYNC                "async"
+#define MSG_TYPE_GROW                 "grow"
+#define MSG_TYPE_SHRINK               "shrink"
+#define MSG_TYPE_CHANGE               "change"
+
+
+#define MSG_SUB_TYPE_TIMEOUT          "timeout"
+#define MSG_SUB_TYPE_SUCCESS          "success"
+#define MSG_SUB_TYPE_EXCEPT           "except"
+#define MSG_SUB_TYPE_CLOSE            "close"
+#define MSG_SUB_TYPE_ATTACHED         "attached"
+#define MSG_SUB_TYPE_DETACHED         "detached"
+#define MSG_SUB_TYPE_DISPLACED        "displaced"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;

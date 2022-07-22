@@ -38,8 +38,6 @@
 
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
-#define MSG_TYPE_ASYNC                  "async"
-#define MSG_SUB_TYPE_SUCCESS            "success"
 
 enum VIA {
     VIA_UNDEFINED,

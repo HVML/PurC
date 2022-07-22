@@ -85,10 +85,6 @@ ctxt_destroy(void *ctxt)
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
 
-#define MSG_TYPE_GROW       "grow"
-#define MSG_TYPE_SHRINK     "shrink"
-#define MSG_TYPE_CHANGE     "change"
-
 bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {

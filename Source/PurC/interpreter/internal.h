@@ -48,9 +48,6 @@
 
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
-#define MSG_TYPE_SUB_EXIT          "subExit"
-#define MSG_TYPE_LAST_MSG          "lastMsg"
-
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;

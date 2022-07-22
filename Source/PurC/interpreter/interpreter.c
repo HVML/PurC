@@ -54,8 +54,8 @@
 #define EVENT_TIMER_INTRVAL  10
 
 #define EVENT_SEPARATOR      ':'
-#define MSG_TYPE_CHANGE     "change"
-#define MSG_SUB_TYPE_CLOSE  "close"
+
+
 #define COROUTINE_PREFIX    "COROUTINE"
 
 static void
