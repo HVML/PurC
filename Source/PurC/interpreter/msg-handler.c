@@ -160,10 +160,6 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     pcintr_stack_t stack = &co->stack;
     PC_ASSERT(stack);
-    pcintr_coroutine_t cco = pcintr_get_coroutine();
-    if (!cco) {
-        pcintr_set_current_co(co);
-    }
 
     if (!msg->elementValue) {
         return -1;
@@ -218,9 +214,6 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
         purc_variant_unref(msg_sub_type);
     }
 
-    if (!cco) {
-        pcintr_set_current_co(NULL);
-    }
     return 0;
 }
 
