@@ -1,6 +1,6 @@
 #!/user/bin/purc
 
-# RESULT: [ 7, 8 ]
+# RESULT: [ 7, 8L ]
 
 <!-- The expected output of this HVML program will be like:
 
@@ -29,9 +29,9 @@
             }}
         </inherit>
 
-        <init as="count" at="_topmost" with 2 temp />
-        <init as="last_one" with 0 temp />
-        <init as="last_two" with 1 temp />
+        <init as "count" at "_topmost" with 2 temp />
+        <init as "last_one" with 0L temp />
+        <init as "last_two" with 1L temp />
 
         <inherit>
             {{
@@ -40,9 +40,10 @@
             }}
         </inherit>
 
-        <iterate on $last_two onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, $last_one) nosetotail >
-            <init as "last_one" at "2" with "$2!.last_two" temp />
-            <init as "last_two" at "2" with "$?" temp />
+        <iterate on $last_two onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, $last_one) nosetotail >
+            <init as "last_one" at "2" with $last_two temp />
+            <init as "last_two" at "2" with $? temp />
+            <!-- init as "last_two" at "#theBody" with $? temp / -->
 
             <update on "$3!" at ".count" to "displace" with += 1 />
 
