@@ -1598,24 +1598,21 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     }
 
     if (co->curator) {
-        // FIXME: the curator may live in another thread!
-#if 0 // VW
-        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
-        PC_ASSERT(parent);
-        PC_ASSERT(parent->owner == co->owner);
-#endif
+        // XXX: the curator may live in another thread!
+        purc_atom_t cid = co->curator;
         co->curator = 0;
         pcintr_coroutine_result_t co_result;
         co_result = co->result;
         co->result = NULL;
 
         purc_variant_t payload = purc_variant_make_native(co_result, NULL);
-        pcintr_coroutine_post_event(co->curator, // VW: parent->cid,
+        pcintr_coroutine_post_event(cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                 payload,                        /* elementValue must set */
                 MSG_TYPE_SUB_EXIT, NULL,
                 payload, PURC_VARIANT_INVALID);
         purc_variant_unref(payload);
+
     }
 
     pcutils_rbtree_erase(&co->node, &heap->coroutines);
