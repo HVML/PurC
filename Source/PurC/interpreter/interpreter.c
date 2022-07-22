@@ -1839,24 +1839,24 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
 
-    pcintr_coroutine_result_t co_result = NULL;
-    co_result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co_result));
-    if (!co_result) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
-    }
-    co_result->result = purc_variant_make_undefined();
-
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
     if (!co) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto fail;
+    }
+
+    co->result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co->result));
+    if (!co->result) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fail_co;
     }
+    co->result->result = purc_variant_make_undefined();
+
     co->val_from_return_or_exit = purc_variant_make_undefined();
     PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
     if (set_coroutine_id(co)) {
-        goto fail_name;
+        goto fail_co_result;
     }
 
     pcvdom_document_ref(vdom);
@@ -1870,7 +1870,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
-        goto fail_name;
+        goto fail_co_result;
     }
 
     pcintr_coroutine_add_sub_exit_event_handler(co);
@@ -1881,19 +1881,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     if (!co->variables) {
         goto fail_variables;
     }
-
-    if (parent) {
-        co->curator = parent->cid;
-        if (as != PURC_VARIANT_INVALID)
-            co_result->as = purc_variant_ref(as);
-        list_add_tail(&co_result->node, &parent->children);
-    }
-    else {
-        // set curator in caller
-    }
-
-    co->result = co_result;
-    co_result = NULL;
 
     stack = &co->stack;
     stack->co = co;
@@ -1915,6 +1902,17 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_variables;
     }
 
+    if (parent) {
+        co->curator = parent->cid;
+        if (as != PURC_VARIANT_INVALID) {
+            co->result->as = purc_variant_ref(as);
+        }
+        list_add_tail(&co->result->node, &parent->children);
+    }
+    else {
+        // set curator in caller
+    }
+
     stack->vdom = vdom;
     if (heap->cond_handler) {
         heap->cond_handler(PURC_COND_COR_CREATED, co,
@@ -1926,12 +1924,13 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 fail_variables:
     pcinst_msg_queue_destroy(co->mq);
 
-fail_name:
-    free(co);
+fail_co_result:
+    free(co->result);
 
 fail_co:
-    free(co_result);
+    free(co);
 
+fail:
     return NULL;
 }
 
