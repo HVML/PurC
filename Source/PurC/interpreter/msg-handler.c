@@ -263,6 +263,10 @@ is_observer_event_handler_match(struct pcintr_event_handler *handler,
         return true;
     }
 
+    if (!msg->elementValue) {
+        return false;
+    }
+
     purc_variant_t msg_type = PURC_VARIANT_INVALID;
     purc_variant_t msg_sub_type = PURC_VARIANT_INVALID;
     const char *event = purc_variant_get_string_const(msg->eventName);

@@ -219,25 +219,25 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             // XXX: curator may live in another thread!
             purc_variant_t payload = purc_variant_make_string(
                     co->error_except, false);
-            purc_variant_t elementValue =  purc_variant_make_ulongint(co->cid);
+            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    elementValue,
+                    PURC_VARIANT_INVALID,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_EXCEPT,
-                    payload, elementValue);
+                    payload, request_id);
             purc_variant_unref(payload);
-            purc_variant_unref(elementValue);
+            purc_variant_unref(request_id);
         }
         else {
             PC_ASSERT(co->val_from_return_or_exit);
             // XXX: curator may live in another thread!
-            purc_variant_t elementValue =  purc_variant_make_ulongint(co->cid);
+            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    elementValue,
+                    PURC_VARIANT_INVALID,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
-                    co->val_from_return_or_exit, elementValue);
-            purc_variant_unref(elementValue);
+                    co->val_from_return_or_exit, request_id);
+            purc_variant_unref(request_id);
         }
     }
 }
