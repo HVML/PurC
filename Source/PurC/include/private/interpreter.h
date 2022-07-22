@@ -85,6 +85,10 @@ struct pcintr_coroutine_result;
 typedef struct pcintr_coroutine_result pcintr_coroutine_result;
 typedef struct pcintr_coroutine_result *pcintr_coroutine_result_t;
 
+struct pcintr_coroutine_child;
+typedef struct pcintr_coroutine_child pcintr_coroutine_child;
+typedef struct pcintr_coroutine_child *pcintr_coroutine_child_t;
+
 struct pcintr_cancel {
     void                        *ctxt;
     void (*cancel)(void *ctxt);
@@ -241,6 +245,11 @@ struct pcintr_coroutine_result {
     struct list_head            node;     /* parent:children */
 };
 
+struct pcintr_coroutine_child {
+    struct list_head            ln;
+    purc_atom_t                 cid;
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     purc_atom_t                 cid;
@@ -256,7 +265,7 @@ struct pcintr_coroutine {
 
     struct rb_node              node;     /* heap::coroutines */
 
-    struct list_head            children; /* struct pcintr_coroutine_result */
+    struct list_head            children; /* struct pcintr_coroutine_child */
 
     pcintr_coroutine_result_t   result;
 

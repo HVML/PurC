@@ -380,6 +380,14 @@ coroutine_release(pcintr_coroutine_t co)
             free(co->result);
         }
 
+        struct list_head *children = &co->children;
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, children) {
+            pcintr_coroutine_child_t child;
+            child = list_entry(p, struct pcintr_coroutine_child, ln);
+            free(child);
+        }
+
         if (co->cid) {
             const char *uri = pcintr_coroutine_get_uri(co);
             purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF, uri);
@@ -1601,17 +1609,14 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         // XXX: the curator may live in another thread!
         purc_atom_t cid = co->curator;
         co->curator = 0;
-        pcintr_coroutine_result_t co_result;
-        co_result = co->result;
-        co->result = NULL;
 
-        purc_variant_t payload = purc_variant_make_native(co_result, NULL);
+        purc_variant_t element_value = purc_variant_make_ulongint(co->cid);
         pcintr_coroutine_post_event(cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                PURC_VARIANT_INVALID,
+                element_value,
                 MSG_TYPE_SUB_EXIT, NULL,
-                payload, PURC_VARIANT_INVALID);
-        purc_variant_unref(payload);
+                co->result->result, PURC_VARIANT_INVALID);
+        purc_variant_unref(element_value);
 
     }
 
@@ -1907,7 +1912,14 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         if (as != PURC_VARIANT_INVALID) {
             co->result->as = purc_variant_ref(as);
         }
-        list_add_tail(&co->result->node, &parent->children);
+        pcintr_coroutine_child_t child;
+        child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
+        if (!child) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fail_variables;
+        }
+        child->cid = co->cid;
+        list_add_tail(&child->ln, &parent->children);
     }
     else {
         // set curator in caller

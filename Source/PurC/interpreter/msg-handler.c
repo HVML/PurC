@@ -358,15 +358,28 @@ is_sub_exit_event_handler_match(struct pcintr_event_handler *handler,
 }
 
 static void
-on_sub_exit_event(pcintr_coroutine_t co, pcintr_coroutine_result_t child_result)
+on_sub_exit_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
-    PRINT_VARIANT(child_result->as);
-    PRINT_VARIANT(child_result->result);
+    // msg->elementValue  : child->cid
+    // msg->data : result
 
-    list_del(&child_result->node);
-    PURC_VARIANT_SAFE_CLEAR(child_result->as);
-    PURC_VARIANT_SAFE_CLEAR(child_result->result);
-    free(child_result);
+    uint64_t ul = 0;
+    if (!purc_variant_cast_to_ulongint(msg->elementValue, &ul, true)) {
+        return;
+    }
+
+    purc_atom_t child_cid = (purc_atom_t) ul;
+    struct list_head *children = &co->children;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, children) {
+        pcintr_coroutine_child_t child;
+        child = list_entry(p, struct pcintr_coroutine_child, ln);
+        if (child->cid == child_cid) {
+            list_del(&child->ln);
+            free(child);
+        }
+    }
+
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
@@ -378,9 +391,8 @@ sub_exit_event_handle(struct pcintr_event_handler *handler,
     UNUSED_PARAM(handler);
     *remove_handler = false;
     *performed = true;
-    pcintr_coroutine_result_t child_result = purc_variant_native_get_entity(
-            msg->data);
-    on_sub_exit_event(co, child_result);
+
+    on_sub_exit_event(co, msg);
     return PURC_ERROR_OK;
 }
 
