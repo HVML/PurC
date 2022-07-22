@@ -1,0 +1,20 @@
+#!/usr/local/bin/purc
+
+# RESULT: 'ok'
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>Hello, world!</title>
+    </head>
+
+    <body>
+        <ul>
+            <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 1L) nosetotail >
+                <li>$? Hello, world! -- from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+    </body>
+
+    'ok'
+</hvml>

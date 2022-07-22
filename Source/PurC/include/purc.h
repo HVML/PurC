@@ -441,21 +441,31 @@ typedef enum pcrdr_page_type {
 #define PCRDR_PAGE_TYPE_NAME_NULL       "_null"
     /** Do not create or use any page for the HVML coroutine. */
     PCRDR_PAGE_TYPE_NULL = 0,
+
+#define PCRDR_PAGE_TYPE_NAME_INHERIT    "_inherit"
+    /** Use the document and page of curator. */
+    PCRDR_PAGE_TYPE_INHERIT,
+
 #define PCRDR_PAGE_TYPE_NAME_SELF       "_self"
     /** Use the page of curator. */
     PCRDR_PAGE_TYPE_SELF,
+
 #define PCRDR_PAGE_TYPE_NAME_FIRST      "_first"
     /** Use the first page in the specified page group. */
     PCRDR_PAGE_TYPE_FIRST,
+
 #define PCRDR_PAGE_TYPE_NAME_LAST       "_last"
     /** Use the last page in the specified page group. */
     PCRDR_PAGE_TYPE_LAST,
+
 #define PCRDR_PAGE_TYPE_NAME_ACTIVE     "_active"
     /** Use the current active page in the specified page group. */
     PCRDR_PAGE_TYPE_ACTIVE,
+
 #define PCRDR_PAGE_TYPE_NAME_PLAINWIN   "plainwin"
     /** Create a new plain window in the specified page group. */
     PCRDR_PAGE_TYPE_PLAINWIN,
+
 #define PCRDR_PAGE_TYPE_NAME_WIDGET     "widget"
     /** Create a new widget in the specified page group. */
     PCRDR_PAGE_TYPE_WIDGET,
