@@ -274,13 +274,13 @@ is_observer_event_handler_match(struct pcintr_event_handler *handler,
         sub_type_s = purc_variant_get_string_const(msg_sub_type);
     }
 
+    bool match = false;
     purc_atom_t msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             msg_type_s);
     if (!msg_type_atom) {
-        return false;
+        goto out;
     }
 
-    bool match = false;
     purc_variant_t observed = msg->elementValue;
     struct list_head* list = pcintr_get_observer_list(&co->stack, observed);
     struct pcintr_observer *p, *n;
@@ -291,6 +291,7 @@ is_observer_event_handler_match(struct pcintr_event_handler *handler,
         }
     }
 
+out:
     if (msg_type) {
         purc_variant_unref(msg_type);
     }
