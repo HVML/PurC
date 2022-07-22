@@ -707,8 +707,6 @@ pcintr_post_event(purc_atom_t cid,
         purc_variant_ref(msg->requestId);
     }
 
-    pcintr_update_timestamp(pcinst_current());
-
     return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
 }
 
