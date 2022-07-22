@@ -31,11 +31,13 @@
 struct sample_data {
     const char                   *input_hvml;
     const char                   *expected_html;
+    const char                   *comp_file;
 };
 
 struct sample_ctxt {
     char               *input_hvml;
     char               *expected_html;
+    char               *comp_file;
     purc_document_t     html;
     int                 terminated;
 };
@@ -54,6 +56,11 @@ sample_release(struct sample_ctxt *ud)
     if (ud->expected_html) {
         free(ud->expected_html);
         ud->expected_html = NULL;
+    }
+
+    if (ud->comp_file) {
+        free(ud->comp_file);
+        ud->comp_file = NULL;
     }
 
     if (ud->html) {
@@ -109,6 +116,15 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
             free(ctnt);
         }
+        else {
+            char *doc_buf = intr_util_dump_doc(doc, NULL);
+            FILE *fp = fopen(ud->comp_file, "w");
+            fprintf(fp, "%s", doc_buf);
+            fclose(fp);
+            fprintf(stderr, "html written to `%s`\n", ud->comp_file);
+            fprintf(stderr, "html:\n%s\n", doc_buf);
+            free(doc_buf);
+        }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
         void *user_data = purc_coroutine_get_user_data(cor);
@@ -162,6 +178,14 @@ add_sample(const struct sample_data *sample)
         return -1;
     }
 
+    ud->comp_file = strdup(sample->comp_file);
+    if (!ud->comp_file) {
+        ADD_FAILURE()
+            << "Out of memory" << std::endl;
+        sample_destroy(ud);
+        return -1;
+    }
+
 #if 0 // VW: use event handler instead
     struct pcintr_supervisor_ops ops = {};
     ops.on_terminated = on_terminated;
@@ -187,19 +211,23 @@ add_sample(const struct sample_data *sample)
 }
 
 static int
-read_file(char *buf, size_t nr, const char *file)
+read_file(char *buf, size_t nr, const char *file, bool silently)
 {
     FILE *f = fopen(file, "r");
     if (!f) {
-        ADD_FAILURE()
-            << "Failed to open file [" << file << "]" << std::endl;
+        if (!silently) {
+            ADD_FAILURE()
+                << "Failed to open file [" << file << "]" << std::endl;
+        }
         return -1;
     }
 
     size_t n = fread(buf, 1, nr, f);
     if (ferror(f)) {
-        ADD_FAILURE()
-            << "Failed read file [" << file << "]" << std::endl;
+        if (!silently) {
+            ADD_FAILURE()
+                << "Failed read file [" << file << "]" << std::endl;
+        }
         fclose(f);
         return -1;
     }
@@ -207,8 +235,10 @@ read_file(char *buf, size_t nr, const char *file)
     fclose(f);
 
     if (n == sizeof(buf)) {
-        ADD_FAILURE()
-            << "Too small buffer to read file [" << file << "]" << std::endl;
+        if (!silently) {
+            ADD_FAILURE()
+                << "Too small buffer to read file [" << file << "]" << std::endl;
+        }
         return -1;
     }
 
@@ -222,13 +252,19 @@ process_file(const char *file)
 {
     std::cout << file << std::endl;
     char buf[1024*1024];
-    int n = read_file(buf, sizeof(buf), file);
+    int n = read_file(buf, sizeof(buf), file, false);
     if (n == -1)
         return -1;
 
+    char path[PATH_MAX];
+    char comp[1024*1024];
+    sprintf(path, "%s.html", file);
+    n = read_file(comp, sizeof(comp), path, true);
+
     struct sample_data sample = {
         .input_hvml = buf,
-        .expected_html = NULL,
+        .expected_html = n != -1 ? comp : NULL,
+        .comp_file = path,
     };
 
     return add_sample(&sample);

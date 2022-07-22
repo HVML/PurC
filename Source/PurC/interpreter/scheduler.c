@@ -296,7 +296,7 @@ check_and_dispatch_event_from_conn()
         if (!handle) {
             pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
         }
-        pcrdr_wait_and_dispatch_message(conn, 1);
+        pcrdr_wait_and_dispatch_message(conn, 0);
         purc_clr_error();
     }
 }
