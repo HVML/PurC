@@ -471,26 +471,27 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
         return 0;
     }
 
-    purc_variant_t elementValue = msg->elementValue;
-    if (!purc_variant_is_string(elementValue)) {
-        PC_WARN("invalid elementvalue for broadcast event");
-        return 0;
-    }
+    purc_variant_t elementValue = PURC_VARIANT_INVALID;
 
-    purc_variant_t observed = pcinst_get_session_variables(
-            purc_variant_get_string_const(elementValue));
-    if (!observed) {
-        PC_WARN("can not found observed for broadcast event %s",
-                purc_variant_get_string_const(elementValue));
-        return 0;
+    if (msg->elementValue && purc_variant_is_string(msg->elementValue)) {
+        elementValue = pcinst_get_session_variables(
+                purc_variant_get_string_const(msg->elementValue));
+        if (!elementValue) {
+            PC_WARN("can not found elementValue for broadcast event %s",
+                    purc_variant_get_string_const(msg->elementValue));
+            return 0;
+        }
     }
 
     pcrdr_msg *msg_clone = pcrdr_clone_message(msg);
     if (msg_clone->elementValue) {
         purc_variant_unref(msg_clone->elementValue);
     }
-    msg_clone->elementValue = observed;
-    purc_variant_ref(msg_clone->elementValue);
+
+    if (elementValue) {
+        msg_clone->elementValue = elementValue;
+        purc_variant_ref(msg_clone->elementValue);
+    }
 
     pcintr_update_timestamp(inst);
 
