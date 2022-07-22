@@ -189,7 +189,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
 
         if (ctxt->synchronously) {
-            ctxt->request_id = purc_variant_make_native(ctxt, NULL);
+            ctxt->request_id = purc_variant_make_ulongint(child->cid);
             pcintr_yield(frame, on_continuation, ctxt->request_id,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
             return 0;
@@ -205,7 +205,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
 
     if (ctxt->synchronously) {
-        ctxt->request_id = purc_variant_make_native(ctxt, NULL);
+        ctxt->request_id = purc_variant_make_ulongint(child->cid);
         pcintr_yield(frame, on_continuation, ctxt->request_id ,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
         return 0;
