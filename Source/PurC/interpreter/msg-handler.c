@@ -707,7 +707,17 @@ pcintr_post_event(purc_atom_t cid,
         purc_variant_ref(msg->requestId);
     }
 
-    return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+    // XXX: only broadcast self inst coroutine
+    if (cid == PURC_EVENT_TARGET_BROADCAST) {
+        return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+    }
+
+    struct pcinst *inst = pcinst_current();
+    purc_atom_t rid = purc_get_rid_by_cid(cid);
+    if (inst->endpoint_atom == rid) {
+        return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+    }
+    return purc_inst_post_event(rid, msg);
 }
 
 int
