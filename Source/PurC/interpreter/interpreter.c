@@ -1608,7 +1608,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         purc_variant_t payload = purc_variant_make_native(co_result, NULL);
         pcintr_coroutine_post_event(cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                payload,                        /* elementValue must set */
+                PURC_VARIANT_INVALID,
                 MSG_TYPE_SUB_EXIT, NULL,
                 payload, PURC_VARIANT_INVALID);
         purc_variant_unref(payload);
