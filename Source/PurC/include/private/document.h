@@ -116,6 +116,7 @@ struct purc_document {
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;
+    unsigned refc;
 
     struct purc_document_ops *ops;
 

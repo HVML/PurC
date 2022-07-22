@@ -324,7 +324,7 @@ stack_release(pcintr_stack_t stack)
     pcintr_destroy_observer_list(&stack->native_observers);
 
     if (stack->doc) {
-        purc_document_delete(stack->doc);
+        purc_document_unref(stack->doc);
         stack->doc = NULL;
     }
 
@@ -1598,17 +1598,19 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     }
 
     if (co->curator) {
+        // FIXME: the curator may live in another thread!
+#if 0 // VW
         pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
+        PC_ASSERT(parent);
         PC_ASSERT(parent->owner == co->owner);
+#endif
         co->curator = 0;
         pcintr_coroutine_result_t co_result;
         co_result = co->result;
         co->result = NULL;
-        PC_ASSERT(parent);
-        PC_ASSERT(co_result);
 
         purc_variant_t payload = purc_variant_make_native(co_result, NULL);
-        pcintr_coroutine_post_event(parent->cid,
+        pcintr_coroutine_post_event(co->curator, // VW: parent->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                 payload,                        /* elementValue must set */
                 MSG_TYPE_SUB_EXIT, NULL,
@@ -1831,7 +1833,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        purc_variant_t as, void *user_data)
+        pcrdr_page_type page_type, purc_variant_t as, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1889,6 +1891,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
             co_result->as = purc_variant_ref(as);
         list_add_tail(&co_result->node, &parent->children);
     }
+    else {
+        // set curator in caller
+    }
+
     co->result = co_result;
     co_result = NULL;
 
@@ -1905,7 +1911,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     stack_init(stack);
 
-    if (doc_init(stack)) {
+    if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
+        stack->doc = purc_document_ref(parent->stack.doc);
+    }
+    else if (doc_init(stack)) {
         goto fail_variables;
     }
 
@@ -1943,28 +1952,53 @@ purc_schedule_vdom(purc_vdom_t vdom,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data)
 {
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co == NULL);
+    pcintr_coroutine_t co;
 
-    /* TODO: check curator here */
-    UNUSED_PARAM(curator);
+    struct pcintr_heap* intr = pcintr_get_heap();
+    PC_ASSERT(intr);
 
-    co = coroutine_create(vdom, NULL, NULL, user_data);
+    pcintr_coroutine_t parent = NULL;
+    if (curator) {
+        struct rb_node* node = pcutils_rbtree_find(&intr->coroutines,
+                &curator, cmp_by_atom);
+        if (node) {
+            parent = container_of(node, struct pcintr_coroutine, node);
+        }
+    }
+
+    co = coroutine_create(vdom, parent, page_type, NULL, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         goto failed;
     }
 
+    if (parent == NULL) {
+        co->curator = curator;
+    }
+
     co->stage = CO_STAGE_SCHEDULED;
 
-    /* Attach to rdr only if the document needs rdr and
-       the page type is not null. */
+    /* Attach to rdr only if the document needs rdr,
+       the document is newly created, and the page type is not null. */
     if (co->stack.doc->need_rdr &&
-            page_type != PCRDR_PAGE_TYPE_NULL &&
-            !pcintr_attach_to_renderer(co,
+            purc_document_get_refc(co->stack.doc) == 1 &&
+            page_type != PCRDR_PAGE_TYPE_NULL) {
+
+        if (!pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
                 target_group, page_name, extra_info)) {
-        purc_log_warn("Failed to attach to renderer\n");
+            purc_log_warn("Failed to attach to renderer\n");
+        }
+    }
+    else if (co->stack.doc->need_rdr &&
+            purc_document_get_refc(co->stack.doc) > 1) {
+        /* use same rdr parameters with parent */
+        PC_ASSERT(parent);
+
+        co->target_page_type = parent->target_page_type;
+        co->target_workspace_handle = parent->target_workspace_handle;
+        co->target_page_handle = parent->target_page_handle;
+        co->target_dom_handle = parent->target_dom_handle;
     }
 
     /* handle entry(body_id) and request here */
@@ -2996,7 +3030,9 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     PC_ASSERT(vdom_element);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(co->vdom, co, as, NULL);
+    child = coroutine_create(co->vdom, co,
+            PCRDR_PAGE_TYPE_INHERIT, // TODO
+            as, NULL);
     do {
         if (!child)
             break;
@@ -3029,7 +3065,9 @@ pcintr_load_child_co(const char *hvml,
     PC_ASSERT(co);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(vdom, co, as, NULL);
+    child = coroutine_create(vdom, co,
+            PCRDR_PAGE_TYPE_INHERIT, // TODO
+            as, NULL);
     do {
         if (!child)
             break;
