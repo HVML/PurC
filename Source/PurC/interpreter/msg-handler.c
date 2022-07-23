@@ -496,11 +496,10 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
     }
 
     pcrdr_msg *msg_clone = pcrdr_clone_message(msg);
-    if (msg_clone->elementValue) {
-        purc_variant_unref(msg_clone->elementValue);
-    }
-
     if (elementValue) {
+        if (msg_clone->elementValue) {
+            purc_variant_unref(msg_clone->elementValue);
+        }
         msg_clone->elementValue = elementValue;
         purc_variant_ref(msg_clone->elementValue);
     }
