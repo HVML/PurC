@@ -134,15 +134,11 @@
    - API 描述
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
 1. 文档整理。
-
-### 1.7) 缺陷修正
-
-1. HVML 解析相关
-   - 在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。但目前被当做字符串处理。
-
-1. EJSON 相关
-   - `test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串，结果不正常。如果删除 `$ARGS.pcid` 之后的空格，会报解析错误。
-   - HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，理论上应该处理为一个文本节点？
+1. 解决现有测试用例暴露出的缺陷：
+   - `test/interpreter/comp/00-fibonacci-void-temp.hvml`：在 `init` 中使用 `#theBody` 作为 `at` 属性值时，解释器报错。
+   - `test/interpreter/comp/00-fibonacci-void-temp.hvml`：在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。但目前被当做字符串处理。
+   - `test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串，结果不正常。如果删除 `$ARGS.pcid` 之后的空格，会报解析错误。
+   - `purc` 命令行：HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，理论上应该处理为一个文本节点？
 
 ## 过往（202206）
 
