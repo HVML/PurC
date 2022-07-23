@@ -926,8 +926,9 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
             if (opts->verbose) {
-                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]\n",
-                        url, (unsigned)i);
+                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
+                        url, (unsigned)i,
+                        purc_get_error_message(purc_get_last_error()));
             }
             continue;
         }
@@ -1109,8 +1110,17 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         if (crtn_info->opts->verbose) {
             struct purc_cor_exit_info *exit_info = data;
 
-            fprintf(stdout, "\nThe execute result: \n");
+            unsigned opt = 0;
 
+            opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+            opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+
+            fprintf(stdout, "\nThe document generated: \n");
+            purc_document_serialize_contents_to_stream(exit_info->doc,
+                    opt, crtn_info->run_info->dump_stm);
+            fprintf(stdout, "\n");
+
+            fprintf(stdout, "\nThe execute result: \n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
                         crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
@@ -1146,7 +1156,8 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         }
         else {
             if (opts->verbose)
-                fprintf(stderr, "Failed to load HVML from %s\n", url);
+                fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
+                        purc_get_error_message(purc_get_last_error()));
         }
     }
 
