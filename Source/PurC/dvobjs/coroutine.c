@@ -456,6 +456,19 @@ token_getter(purc_variant_t root,
     return purc_variant_make_string(uri, false);
 }
 
+static purc_variant_t
+curator_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, bool silently)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(silently);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    return purc_variant_make_ulongint(cor->curator);
+}
+
 purc_variant_t
 purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
 {
@@ -475,6 +488,7 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
         { "cid",     cid_getter,     NULL },
         { "uri",     uri_getter,     NULL },
         { "token",   token_getter,   NULL },
+        { "curator", curator_getter, NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
