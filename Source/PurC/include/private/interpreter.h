@@ -1,6 +1,6 @@
 /**
  * @file interpreter.h
- * @author Xu Xiaohong
+ * @author Xu Xiaohong, Vincent Wei
  * @date 2021/11/18
  * @brief The internal interfaces for interpreter
  *
@@ -41,8 +41,25 @@
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
-#define MSG_TYPE_SLEEP          "sleep"
-#define MSG_SUB_TYPE_TIMEOUT    "timeout"
+#define MSG_TYPE_IDLE                 "idle"
+#define MSG_TYPE_SLEEP                "sleep"
+#define MSG_TYPE_CHANGE               "change"
+#define MSG_TYPE_CALL_STATE           "callState"
+#define MSG_TYPE_SUB_EXIT             "subExit"
+#define MSG_TYPE_LAST_MSG             "lastMsg"
+#define MSG_TYPE_ASYNC                "async"
+#define MSG_TYPE_GROW                 "grow"
+#define MSG_TYPE_SHRINK               "shrink"
+#define MSG_TYPE_CHANGE               "change"
+
+
+#define MSG_SUB_TYPE_TIMEOUT          "timeout"
+#define MSG_SUB_TYPE_SUCCESS          "success"
+#define MSG_SUB_TYPE_EXCEPT           "except"
+#define MSG_SUB_TYPE_CLOSE            "close"
+#define MSG_SUB_TYPE_ATTACHED         "attached"
+#define MSG_SUB_TYPE_DETACHED         "detached"
+#define MSG_SUB_TYPE_DISPLACED        "displaced"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
@@ -67,6 +84,10 @@ typedef struct pcintr_cancel *pcintr_cancel_t;
 struct pcintr_coroutine_result;
 typedef struct pcintr_coroutine_result pcintr_coroutine_result;
 typedef struct pcintr_coroutine_result *pcintr_coroutine_result_t;
+
+struct pcintr_coroutine_child;
+typedef struct pcintr_coroutine_child pcintr_coroutine_child;
+typedef struct pcintr_coroutine_child *pcintr_coroutine_child_t;
 
 struct pcintr_cancel {
     void                        *ctxt;
@@ -95,7 +116,7 @@ struct pcintr_heap {
 
     purc_cond_handler    cond_handler;
     unsigned int         keep_alive:1;
-    double               timeout;
+    double               timestamp;
 };
 
 struct pcintr_stack_frame;
@@ -177,6 +198,7 @@ struct pcintr_stack {
     /* coroutine that this stack `owns` */
     /* FIXME: switch owner-ship ? */
     struct pcintr_coroutine      *co;
+    char                         *body_id;
 
     // for observe
     // struct pcintr_observer
@@ -223,6 +245,11 @@ struct pcintr_coroutine_result {
     struct list_head            node;     /* parent:children */
 };
 
+struct pcintr_coroutine_child {
+    struct list_head            ln;
+    purc_atom_t                 cid;
+};
+
 struct pcintr_coroutine {
     pcintr_heap_t               owner;    /* owner heap */
     purc_atom_t                 cid;
@@ -238,7 +265,7 @@ struct pcintr_coroutine {
 
     struct rb_node              node;     /* heap::coroutines */
 
-    struct list_head            children; /* struct pcintr_coroutine_result */
+    struct list_head            children; /* struct pcintr_coroutine_child */
 
     pcintr_coroutine_result_t   result;
 
@@ -262,6 +289,7 @@ struct pcintr_coroutine {
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
     struct list_head            event_handlers; /* struct pcintr_event_handler */
+    struct pcintr_event_handler *sleep_handler;
 
     unsigned int volatile       msg_pending:1;
     unsigned int volatile       execution_pending:1;
@@ -427,6 +455,8 @@ struct pcinst;
 struct pcintr_timers;
 
 PCA_EXTERN_C_BEGIN
+
+bool pcintr_bind_builtin_runner_variables(void);
 
 struct pcintr_heap* pcintr_get_heap(void);
 
@@ -646,20 +676,20 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
 int
 pcintr_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, purc_variant_t event_name,
+        purc_variant_t element_value, purc_variant_t event_name,
         purc_variant_t data, purc_variant_t request_id);
 
 int
 pcintr_post_event_by_ctype(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
-        purc_variant_t observed, const char *event_type,
+        purc_variant_t element_value, const char *event_type,
         const char *event_sub_type, purc_variant_t data,
         purc_variant_t request_id);
 
 int
 pcintr_coroutine_post_event(purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op,
-        purc_variant_t observed, const char *event_type,
+        purc_variant_t element_value, const char *event_type,
         const char *event_sub_type, purc_variant_t data,
         purc_variant_t request_id);
 

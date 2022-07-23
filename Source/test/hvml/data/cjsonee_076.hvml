@@ -1,0 +1,3 @@
+<init>
+    {{ $STREAM.stdout.writelines('End of `head`'); '' }}
+</init>

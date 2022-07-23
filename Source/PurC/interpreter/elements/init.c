@@ -38,8 +38,6 @@
 
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
-#define MSG_TYPE_ASYNC                  "async"
-#define MSG_SUB_TYPE_SUCCESS            "success"
 
 enum VIA {
     VIA_UNDEFINED,
@@ -343,12 +341,11 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
 
     if (ctxt->temporarily) {
         struct pcintr_stack_frame *p = frame;
-        struct pcintr_stack_frame *parent;
-        parent = pcintr_stack_frame_get_parent(p);
         uint64_t level = 0;
-        while (parent) {
-            p = parent;
+        while (p && p->pos && p->pos->tag_id != PCHVML_TAG_HVML) {
+            struct pcintr_stack_frame *parent;
             parent = pcintr_stack_frame_get_parent(p);
+            p = parent;
             level += 1;
         }
         PC_ASSERT(level > 0);
@@ -1200,14 +1197,16 @@ static void on_async_resume(void *ud)
     load_data_destroy(data);
 }
 
-bool is_async_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg)
+static bool
+is_async_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
     struct load_data *data = (struct load_data *)handler->data;
     if (purc_variant_is_equal_to(data->async_id, msg->requestId)) {
+        *observed = true;
         return true;
     }
     return false;
@@ -1215,12 +1214,14 @@ bool is_async_event_handler_match(struct pcintr_event_handler *handler,
 
 static int
 async_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler)
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
 {
     UNUSED_PARAM(handler);
     UNUSED_PARAM(msg);
 
     *remove_handler = true;
+    *performed = true;
 
     struct load_data *data = purc_variant_native_get_entity(msg->data);
     pcintr_set_current_co(co);
@@ -1456,6 +1457,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
+
+    // pcintr_calc_and_set_caret_symbol(stack, frame);
 
     if (ctxt->temporarily) {
         ctxt->async = 0;

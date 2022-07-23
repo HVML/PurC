@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// #undef NDEBUG
+
 #include "purc.h"
 
 #include <stdio.h>
@@ -31,35 +33,39 @@
 #include <getopt.h>
 #include <limits.h>
 #include <assert.h>
+#include <unistd.h>
 
 #define KEY_APP_NAME            "app"
 #define DEF_APP_NAME            "cn.fmsoft.html.purc"
 
-#define KEY_RUN_NAME            "run"
+#define KEY_RUN_NAME            "runner"
 #define DEF_RUN_NAME            "main"
 
-#define KEY_DATA_FETCHER        "data-fetcher"
+#define KEY_DATA_FETCHER        "dataFetcher"
 #define DEF_DATA_FETCHER        "local"
 
-#define KEY_RDR_PROTOCOL        "rdr-prot"
+#define KEY_RDR_PROTOCOL        "rdrProt"
 #define DEF_RDR_PROTOCOL        "headless"
 
-#define KEY_RDR_URI             "rdr-uri"
+#define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
 #define DEF_RDR_URI_PURCMC      ("unix://" PCRDR_PURCMC_US_PATH)
 
 #define KEY_FLAG_REQUEST        "request"
 
 #define KEY_URLS                "urls"
+#define KEY_BODYIDS             "bodyIds"
 
-#define KEY_FLAG_QUIET          "quiet"
+#define KEY_FLAG_PARALLEL       "parallel"
+#define KEY_FLAG_VERBOSE          "verbose"
 
-struct purc_run_info {
+struct run_info {
     purc_variant_t opts;
     purc_variant_t app_info;
+    purc_rwstream_t dump_stm;
 };
 
-static struct purc_run_info run_info;
+static struct run_info run_info;
 
 static void print_version(FILE *fp)
 {
@@ -145,8 +151,11 @@ static void print_usage(FILE *fp)
         "        the HVML programs; use `-` if the JSON data will be given through\n"
         "        stdin stream.\n"
         "\n"
-        "  -q --quiet\n"
-        "        Execute the program quietly (without redundant output).\n"
+        "  -l --parallel\n"
+        "        Execute multiple programs in parallel.\n"
+        "\n"
+        "  -s --verbose\n"
+        "        Execute the program(s) with verbose output.\n"
         "\n"
         "  -c --copying\n"
         "        Display detailed copying information and exit.\n"
@@ -168,16 +177,73 @@ struct my_opts {
     char *request;
 
     pcutils_array_t *urls;
+    pcutils_array_t *body_ids;
+    pcutils_array_t *contents;
     char *app_info;
 
-    bool quiet;
+    bool parallel;
+    bool verbose;
 };
+
+static const char *archedata_header =
+"{"
+    "'app': $OPTS.app,"
+    "'runners': ["
+        "{"
+            "'runner': $OPTS.runner,"
+            "'renderer': { 'protocol': $OPTS.rdrProt, 'uri': $OPTS.rdrUri, "
+                "'workspaceName': 'default' },"
+            "'coroutines': [";
+
+static const char *archedata_coroutine =
+                "{ 'url': $OPTS.urls[%u], 'bodyId': $OPTS.bodyIds[%u],"
+                    "'request': $OPTS.request,"
+                    "'renderer': { 'pageType': 'plainwin' }"
+                "},";
+
+static const char *archedata_footer =
+            "]"
+        "},"
+    "]"
+"}";
+
+static bool construct_app_info(struct my_opts *opts)
+{
+    assert(opts->app_info == NULL);
+    assert(opts->urls->length > 0);
+
+    size_t length = strlen(archedata_header) + strlen(archedata_footer);
+    length += strlen(archedata_coroutine) * opts->urls->length;
+    length += 16 * opts->urls->length;
+    length += 1;
+
+    char *app_info = malloc(length);
+    strcpy(app_info, archedata_header);
+
+    for (size_t i = 0; i < opts->urls->length; i++) {
+        char buff[256];
+        sprintf(buff, archedata_coroutine, (unsigned)i, (unsigned)i);
+        strcat(app_info, buff);
+
+    }
+
+    strcat(app_info, archedata_footer);
+    opts->app_info = app_info;
+    return true;
+}
 
 static struct my_opts *my_opts_new(void)
 {
     struct my_opts *opts = calloc(1, sizeof(*opts));
+
     opts->urls = pcutils_array_create();
     pcutils_array_init(opts->urls, 1);
+
+    opts->body_ids = pcutils_array_create();
+    pcutils_array_init(opts->body_ids, 1);
+
+    opts->contents = pcutils_array_create();
+    pcutils_array_init(opts->contents, 1);
     return opts;
 }
 
@@ -192,6 +258,15 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
         for (size_t i = 0; i < opts->urls->length; i++) {
             free(opts->urls->list[i]);
         }
+
+        for (size_t i = 0; i < opts->body_ids->length; i++) {
+            if (opts->body_ids->list[i])
+                free(opts->body_ids->list[i]);
+        }
+    }
+
+    for (size_t i = 0; i < opts->contents->length; i++) {
+        free(opts->contents->list[i]);
     }
 
     if (opts->request)
@@ -201,6 +276,8 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
         free(opts->app_info);
 
     pcutils_array_destroy(opts->urls, true);
+    pcutils_array_destroy(opts->body_ids, true);
+    pcutils_array_destroy(opts->contents, true);
 
     free(opts);
 }
@@ -230,11 +307,26 @@ done:
 
 static bool validate_url(struct my_opts *opts, const char *url)
 {
-    if (pcutils_url_is_valid(url)) {
+    struct purc_broken_down_url broken_down;
+
+    memset(&broken_down, 0, sizeof(broken_down));
+    if (pcutils_url_break_down(&broken_down, url)) {
         char *my_url = strdup(url);
         pcutils_array_push(opts->urls, my_url);
+
+        char* my_body_id;
+        if (broken_down.fragment) {
+            my_body_id = strdup(broken_down.fragment);
+        }
+        else
+            my_body_id = NULL;
+
+        pcutils_array_push(opts->body_ids, my_body_id);
+
+        pcutils_broken_down_url_clear(&broken_down);
     }
     else {
+        /* try if it is a path name */
         FILE *fp = fopen(url, "r");
         if (fp == NULL) {
             return false;
@@ -242,10 +334,26 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
         fclose(fp);
 
-        char *my_url = calloc(1, strlen("file://") + strlen(url) + 1);
+        char *path = NULL;
+        if (url[0] != '/') {
+            path = getcwd(NULL, 0);
+            if (path == NULL) {
+                return false;
+            }
+        }
+
+        char *my_url = calloc(1, strlen("file://") +
+                (path ? strlen(path) : 0) + strlen(url) + 2);
         strcpy(my_url, "file://");
+        if (path) {
+            strcat(my_url, path);
+            strcat(my_url, "/");
+            free(path);
+        }
         strcat(my_url, url);
+
         pcutils_array_push(opts->urls, my_url);
+        pcutils_array_push(opts->body_ids, NULL);
     }
 
     return true;
@@ -253,7 +361,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:t:qcvh";
+    static const char short_options[] = "a:r:d:p:u:t:lscvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -261,7 +369,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "rdr-prot"       , required_argument , NULL , 'p' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 't' },
-        { "quiet"          , no_argument       , NULL , 'q' },
+        { "parallel"       , no_argument       , NULL , 'l' },
+        { "verbose"        , no_argument       , NULL , 's' },
         { "copying"        , no_argument       , NULL , 'c' },
         { "version"        , no_argument       , NULL , 'v' },
         { "help"           , no_argument       , NULL , 'h' },
@@ -358,8 +467,12 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
 
-        case 'q':
-            opts->quiet = true;
+        case 'l':
+            opts->parallel = true;
+            break;
+
+        case 's':
+            opts->verbose = true;
             break;
 
         case '?':
@@ -377,7 +490,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         else {
             for (int i = optind; i < argc; i++) {
                 if (!validate_url(opts, argv[i])) {
-                    if (!opts->quiet)
+                    if (opts->verbose)
                         fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
                     return -1;
                 }
@@ -388,7 +501,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     return 0;
 
 bad_arg:
-    if (!opts->quiet)
+    if (opts->verbose)
         fprintf(stdout, "Got an unknown argument: %s (%c)\n", optarg, o);
     return -1;
 }
@@ -438,11 +551,6 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_RDR_URI, tmp);
     purc_variant_unref(tmp);
 
-    tmp = purc_variant_make_boolean(opts->quiet);
-    purc_variant_object_set_by_static_ckey(run_info.opts,
-            KEY_FLAG_QUIET, tmp);
-    purc_variant_unref(tmp);
-
     tmp = purc_variant_make_array_0();
     for (size_t i = 0; i < opts->urls->length; i++) {
         char *url = opts->urls->list[i];
@@ -454,9 +562,31 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
     purc_variant_object_set_by_static_ckey(run_info.opts, KEY_URLS, tmp);
     purc_variant_unref(tmp);
 
-    tmp = purc_variant_make_boolean(opts->quiet);
+    tmp = purc_variant_make_array_0();
+    for (size_t i = 0; i < opts->body_ids->length; i++) {
+        char *body_id = opts->body_ids->list[i];
+        purc_variant_t body_id_vrt;
+        if (body_id) {
+            body_id_vrt = purc_variant_make_string_reuse_buff(body_id,
+                    strlen(body_id) + 1, false);
+        }
+        else {
+            body_id_vrt = purc_variant_make_null();
+        }
+        purc_variant_array_append(tmp, body_id_vrt);
+        purc_variant_unref(body_id_vrt);
+    }
+    purc_variant_object_set_by_static_ckey(run_info.opts, KEY_BODYIDS, tmp);
+    purc_variant_unref(tmp);
+
+    tmp = purc_variant_make_boolean(opts->parallel);
     purc_variant_object_set_by_static_ckey(run_info.opts,
-            KEY_FLAG_QUIET, tmp);
+            KEY_FLAG_PARALLEL, tmp);
+    purc_variant_unref(tmp);
+
+    tmp = purc_variant_make_boolean(opts->verbose);
+    purc_variant_object_set_by_static_ckey(run_info.opts,
+            KEY_FLAG_VERBOSE, tmp);
     purc_variant_unref(tmp);
 
     if (request) {
@@ -499,15 +629,534 @@ static purc_variant_t get_request_data(struct my_opts *opts)
     return v;
 }
 
+static purc_variant_t get_dvobj(void* ctxt, const char* name)
+{
+    struct run_info *run_info = ctxt;
+    if (strcmp(name, "OPTS") == 0)
+        return run_info->opts;
+
+    return purc_get_runner_variable(name);
+}
+
 static bool evalute_app_info(const char *app_info)
 {
-    (void)app_info;
+    struct purc_ejson_parse_tree *ptree;
+
+    ptree = purc_variant_ejson_parse_string(app_info, strlen(app_info));
+    if (ptree) {
+        run_info.app_info = purc_variant_ejson_parse_tree_evalute(ptree,
+                get_dvobj, &run_info, true);
+        purc_variant_ejson_parse_tree_destroy(ptree);
+        return true;
+    }
+
     return false;
+}
+
+
+static purc_vdom_t load_hvml(const char *url)
+{
+    struct purc_broken_down_url broken_down;
+
+    memset(&broken_down, 0, sizeof(broken_down));
+    pcutils_url_break_down(&broken_down, url);
+
+    purc_vdom_t vdom;
+    if (strcasecmp(broken_down.schema, "file") == 0) {
+        vdom = purc_load_hvml_from_file(broken_down.path);
+    }
+    else {
+        vdom = purc_load_hvml_from_url(url);
+    }
+
+    pcutils_broken_down_url_clear(&broken_down);
+
+    return vdom;
+}
+
+static pcrdr_page_type get_page_type(purc_variant_t rdr)
+{
+    pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+
+    const char *str = NULL;
+
+    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageType");
+    if (tmp)
+        str = purc_variant_get_string_const(tmp);
+
+    if (str) {
+        if (strcmp(str, PCRDR_PAGE_TYPE_NAME_NULL) == 0)
+            page_type = PCRDR_PAGE_TYPE_NULL;
+        else if (strcmp(str, PCRDR_PAGE_TYPE_NAME_PLAINWIN) == 0)
+            page_type = PCRDR_PAGE_TYPE_PLAINWIN;
+        else if (strcmp(str, PCRDR_PAGE_TYPE_NAME_WIDGET) == 0)
+            page_type = PCRDR_PAGE_TYPE_WIDGET;
+    }
+
+    return page_type;
+}
+
+static const char *get_workspace(purc_variant_t rdr)
+{
+    const char *workspace = NULL;
+
+    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "workspace");
+    if (tmp)
+        workspace = purc_variant_get_string_const(tmp);
+
+    return workspace;
+}
+
+static const char *get_page_group(purc_variant_t rdr)
+{
+    const char *page_group = NULL;
+
+    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageGroupId");
+    if (tmp)
+        page_group = purc_variant_get_string_const(tmp);
+
+    return page_group;
+}
+
+static const char *get_page_name(purc_variant_t rdr)
+{
+    const char *page_name = NULL;
+
+    purc_variant_t tmp = purc_variant_object_get_by_ckey(rdr, "pageName");
+    if (tmp)
+        page_name = purc_variant_get_string_const(tmp);
+
+    return page_name;
+}
+
+static char *
+load_file_contents(struct my_opts *opts, const char *file, size_t *length)
+{
+    char *buf = NULL;
+    FILE *f = fopen(file, "r");
+
+    if (f) {
+        if (fseek(f, 0, SEEK_END))
+            goto failed;
+
+        long len = ftell(f);
+        if (len < 0)
+            goto failed;
+
+        buf = malloc(len + 1);
+        if (buf == NULL)
+            goto failed;
+
+        fseek(f, 0, SEEK_SET);
+        if (fread(buf, 1, len, f) < (size_t)len) {
+            free(buf);
+            buf = NULL;
+        }
+        buf[len] = '\0';
+
+        if (length)
+            *length = (size_t)len;
+failed:
+        fclose(f);
+    }
+    else {
+        return NULL;
+    }
+
+    pcutils_array_push(opts->contents, buf);
+    return buf;
+}
+
+static void
+fill_cor_rdr_info(struct my_opts *opts,
+        purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
+{
+    purc_variant_t tmp;
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "class");
+    if (tmp)
+        rdr_info->klass = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "title");
+    if (tmp)
+        rdr_info->title = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
+    if (tmp)
+        rdr_info->layout_style = purc_variant_get_string_const(tmp);
+
+    rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
+            "toolkitStyle");
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
+    if (tmp) {
+        const char *file = purc_variant_get_string_const(tmp);
+        if (file) {
+            rdr_info->page_groups = load_file_contents(opts, file, NULL);
+        }
+    }
+}
+
+static void
+fill_run_rdr_info(struct my_opts *opts,
+        purc_instance_extra_info *rdr_info, purc_variant_t rdr)
+{
+    purc_variant_t tmp;
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "protocol");
+    if (tmp) {
+        const char *str = purc_variant_get_string_const(tmp);
+        if (str) {
+            if (strcmp(str, "headless") == 0)
+                rdr_info->renderer_prot = PURC_RDRPROT_HEADLESS;
+            else if (strcmp(str, "purcmc") == 0)
+                rdr_info->renderer_prot = PURC_RDRPROT_PURCMC;
+        }
+    }
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "uri");
+    if (tmp)
+        rdr_info->renderer_uri = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "sslCert");
+    if (tmp)
+        rdr_info->ssl_cert = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "sslKey");
+    if (tmp)
+        rdr_info->ssl_key = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceName");
+    if (tmp)
+        rdr_info->workspace_name = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceTitle");
+    if (tmp)
+        rdr_info->workspace_title = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "workspaceLayout");
+    if (tmp) {
+        const char *file = purc_variant_get_string_const(tmp);
+        if (file) {
+            rdr_info->workspace_layout = load_file_contents(opts, file, NULL);
+        }
+    }
+}
+
+static size_t
+schedule_coroutines_for_runner(struct my_opts *opts,
+        purc_variant_t app, purc_variant_t runner, purc_variant_t coroutines)
+{
+    const char *endpoint = purc_get_endpoint(NULL);
+    char curr_app_name[PURC_LEN_APP_NAME + 1];
+    purc_extract_app_name(endpoint, curr_app_name);
+
+    char curr_run_name[PURC_LEN_RUNNER_NAME + 1];
+    purc_extract_runner_name(endpoint, curr_run_name);
+
+    purc_variant_t tmp;
+    const char *app_name = NULL;
+    const char *run_name = NULL;
+
+    if (app) {
+        app_name = purc_variant_get_string_const(app);
+    }
+    if (app_name == NULL) {
+        app_name = curr_app_name;
+    }
+
+    tmp = purc_variant_object_get_by_ckey(runner, "runner");
+    if (tmp) {
+        run_name = purc_variant_get_string_const(tmp);
+    }
+    if (run_name == NULL) {
+        run_name = curr_run_name;
+    }
+
+    size_t n = 0;
+    purc_atom_t rid = 0;
+
+    /* create new runner if app_name or run_name differ */
+    if (strcmp(app_name, curr_app_name) || strcmp(run_name, curr_run_name)) {
+        purc_instance_extra_info inst_info = {};
+
+        tmp = purc_variant_object_get_by_ckey(runner, "renderer");
+        if (tmp)
+            fill_run_rdr_info(opts, &inst_info, tmp);
+
+        rid = purc_inst_create_or_get(app_name, run_name,
+            NULL, &inst_info);
+        if (rid == 0) {
+            if (opts->verbose) {
+                fprintf(stderr, "Failed to create PurC instance for %s/%s\n",
+                        app_name, run_name);
+            }
+            return n;
+        }
+    }
+
+    size_t nr_coroutines = 0;
+    purc_variant_array_size(coroutines, &nr_coroutines);
+    assert(nr_coroutines > 0);
+
+    for (size_t i = 0; i < nr_coroutines; i++) {
+        purc_variant_t crtn = purc_variant_array_get(coroutines, i);
+        if (!purc_variant_is_object(crtn)) {
+            if (opts->verbose) {
+                fprintf(stderr, "Not an object for crtn[%u]\n",
+                        (unsigned)i);
+            }
+            continue;
+        }
+
+        tmp = purc_variant_object_get_by_ckey(crtn, "url");
+        const char *url = NULL;
+        if (tmp) {
+            url = purc_variant_get_string_const(tmp);
+        }
+
+        if (url == NULL) {
+            if (opts->verbose) {
+                fprintf(stderr, "No valid URL given for crtn[%u]\n",
+                        (unsigned)i);
+            }
+            continue;
+        }
+
+        purc_vdom_t vdom = load_hvml(url);
+        if (vdom == NULL) {
+            if (opts->verbose) {
+                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]\n",
+                        url, (unsigned)i);
+            }
+            continue;
+        }
+
+        purc_variant_t request =
+            purc_variant_object_get_by_ckey(crtn, "request");
+
+        const char *body_id = NULL;
+        tmp = purc_variant_object_get_by_ckey(crtn, "bodyId");
+        if (tmp) {
+            body_id = purc_variant_get_string_const(tmp);
+        }
+
+        pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+        const char *target_workspace = NULL;
+        const char *target_group = NULL;
+        const char *page_name = NULL;
+        purc_renderer_extra_info rdr_info = {};
+
+        purc_variant_t rdr =
+            purc_variant_object_get_by_ckey(crtn, "renderer");
+        if (purc_variant_is_object(rdr)) {
+            page_type = get_page_type(rdr);
+            target_workspace = get_workspace(rdr);
+            target_group = get_page_group(rdr);
+            page_name = get_page_name(rdr);
+            fill_cor_rdr_info(opts, &rdr_info, rdr);
+        }
+
+        purc_atom_t cid = 0;
+        if (rid == 0) {
+            purc_coroutine_t cor = purc_schedule_vdom(vdom,
+                    0, request, page_type, target_workspace,
+                    target_group, page_name, &rdr_info, body_id, NULL);
+            if (cor) {
+                cid = purc_coroutine_identifier(cor);
+            }
+        }
+        else {
+            cid = purc_inst_schedule_vdom(rid, vdom,
+                    0, request, page_type, target_workspace,
+                    target_group, page_name, &rdr_info, body_id);
+        }
+
+        if (cid) {
+            n++;
+        }
+        else {
+            if (opts->verbose) {
+                fprintf(stderr, "Failed to schedule coroutine from %s for #%u\n",
+                        url, (unsigned)i);
+            }
+        }
+    }
+
+    return n;
+}
+
+#define MY_VRT_OPTS \
+    (PCVARIANT_SERIALIZE_OPT_SPACED | PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
+
+static int app_cond_handler(purc_cond_t event, void *arg, void *data)
+{
+    (void)arg;
+    (void)data;
+
+    if (event == PURC_COND_SHUTDOWN_ASKED) {
+        return 0;
+    }
+
+    return 0;
+}
+
+static bool run_app(struct my_opts *opts)
+{
+#ifndef NDEBUG
+    fprintf(stdout, "The options: ");
+
+    if (run_info.opts) {
+        purc_variant_serialize(run_info.opts,
+                run_info.dump_stm, 0, MY_VRT_OPTS, NULL);
+    }
+    else {
+        fprintf(stdout, "INVALID VALUE");
+    }
+    fprintf(stdout, "\n");
+
+    fprintf(stdout, "The app info: ");
+
+    if (run_info.app_info) {
+        purc_variant_serialize(run_info.app_info,
+                run_info.dump_stm, 0,  MY_VRT_OPTS, NULL);
+    }
+    else {
+        fprintf(stdout, "INVALID VALUE");
+    }
+    fprintf(stdout, "\n");
+#endif
+
+    purc_variant_t app =
+        purc_variant_object_get_by_ckey(run_info.app_info, "app");
+
+    purc_variant_t runners =
+        purc_variant_object_get_by_ckey(run_info.app_info, "runners");
+    size_t nr_runners = 0;
+    if (!purc_variant_array_size(runners, &nr_runners) || nr_runners == 0) {
+        if (opts->verbose) {
+            fprintf(stderr, "Invalid runners\n");
+            return false;
+        }
+    }
+
+    size_t nr_live_runners = 0;
+    size_t nr_live_coroutines = 0;
+    for (size_t i = 0; i < nr_runners; i++) {
+        purc_variant_t runner = purc_variant_array_get(runners, i);
+
+        purc_variant_t coroutines =
+            purc_variant_object_get_by_ckey(runner, "coroutines");
+
+        if (!coroutines) {
+            if (opts->verbose) {
+                fprintf(stderr, "No coroutines for runner #%u\n",
+                        (unsigned)i);
+                continue;
+            }
+        }
+
+        size_t nr_coroutines = 0;
+        if (!purc_variant_array_size(coroutines, &nr_coroutines) ||
+                nr_coroutines == 0) {
+            if (opts->verbose) {
+                fprintf(stderr, "Invalid coroutines for runner #%u\n",
+                        (unsigned)i);
+                continue;
+            }
+        }
+
+        size_t n;
+        n = schedule_coroutines_for_runner(opts, app, runner, coroutines);
+        if (n == 0) {
+            if (opts->verbose) {
+                fprintf(stderr, "No coroutine schedule for runner #%u\n",
+                        (unsigned)i);
+            }
+            continue;
+        }
+
+        nr_live_runners += 1;
+        nr_live_coroutines += n;
+    }
+
+    if (opts->verbose) {
+        fprintf(stdout, "Totally %u runners and %u coroutines scheduled.\n",
+                (unsigned)nr_live_runners, (unsigned)nr_live_coroutines);
+    }
+
+    if (nr_live_coroutines > 0)
+        purc_run(app_cond_handler);
+
+    return nr_live_coroutines > 0;
+}
+
+struct crtn_info {
+    struct my_opts *opts;
+    const char *url;
+    struct run_info *run_info;
+};
+
+static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+        void *data)
+{
+    if (event == PURC_COND_COR_EXITED) {
+        struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+        if (!crtn_info) {
+            return -1;
+        }
+
+        if (crtn_info->opts->verbose) {
+            struct purc_cor_exit_info *exit_info = data;
+
+            fprintf(stdout, "\nThe execute result: \n");
+
+            if (exit_info->result) {
+                purc_variant_serialize(exit_info->result,
+                        crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
+            }
+            else {
+                fprintf(stdout, "<INVALID VALUE>");
+            }
+            fprintf(stdout, "\n");
+        }
+    }
+
+    return 0;
+}
+
+static bool
+run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
+{
+    size_t nr_executed = 0;
+    for (size_t i = 0; i < opts->urls->length; i++) {
+        const char *url = opts->urls->list[i];
+        purc_vdom_t vdom = load_hvml(url);
+        if (vdom) {
+            if (opts->verbose)
+                fprintf(stdout, "\nExecuting HVML program from `%s`:\n\n", url);
+
+            struct crtn_info info = { opts, url, &run_info };
+            purc_schedule_vdom(vdom, 0, request,
+                    PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
+                    NULL, opts->body_ids->list[i], &info);
+            purc_run((purc_cond_handler)prog_cond_handler);
+
+            nr_executed++;
+        }
+        else {
+            if (opts->verbose)
+                fprintf(stderr, "Failed to load HVML from %s\n", url);
+        }
+    }
+
+    return nr_executed > 0;
 }
 
 int main(int argc, char** argv)
 {
     int ret;
+    bool success = true;
 
     struct my_opts *opts = my_opts_new();
     if (read_option_args(opts, argc, argv)) {
@@ -517,7 +1166,7 @@ int main(int argc, char** argv)
 
     if (opts->app_info == NULL &&
             (opts->urls == NULL || opts->urls->length == 0)) {
-        if (!opts->quiet) {
+        if (opts->verbose) {
             fprintf(stdout, "No valid HVML program specified\n");
             print_usage(stdout);
         }
@@ -526,7 +1175,7 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (!opts->quiet) {
+    if (opts->verbose) {
         print_version(stdout);
         print_short_copying(stdout);
     }
@@ -566,16 +1215,17 @@ int main(int argc, char** argv)
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
     if (ret != PURC_ERROR_OK) {
-        if (!opts->quiet)
+        if (opts->verbose)
             fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
                 purc_get_error_message(ret));
+        my_opts_delete(opts, true);
         return EXIT_FAILURE;
     }
 
     purc_variant_t request = PURC_VARIANT_INVALID;
     if (opts->request) {
         if ((request = get_request_data(opts)) == PURC_VARIANT_INVALID) {
-            if (!opts->quiet)
+            if (opts->verbose)
                 fprintf(stderr, "Failed to get the request data from %s\n",
                     opts->request);
             my_opts_delete(opts, true);
@@ -583,70 +1233,51 @@ int main(int argc, char** argv)
         }
     }
 
-    transfer_opts_to_variant(opts, request);
+    run_info.dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
+
+    if (opts->app_info == NULL && opts->parallel) {
+        if (!construct_app_info(opts)) {
+            my_opts_delete(opts, true);
+            goto failed;
+        }
+    }
+
     if (opts->app_info) {
+        transfer_opts_to_variant(opts, request);
         if (!evalute_app_info(opts->app_info)) {
-            if (!opts->quiet)
+            if (opts->verbose)
                 fprintf(stderr, "Failed to evalute the app info from %s\n",
                         opts->app_info);
             my_opts_delete(opts, false);
             goto failed;
         }
-    }
 
-    my_opts_delete(opts, false);
+        if (!run_app(opts)) {
+            success = false;
+        }
 
-    purc_rwstream_t rws = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
-    purc_variant_serialize(run_info.opts, rws, 0,
-            PCVARIANT_SERIALIZE_OPT_PRETTY |
-            PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE, NULL);
-    purc_rwstream_destroy(rws);
-
-#if 0
-    purc_vdom_t vdom = NULL;
-    if (run_info.doc_content) {
-        vdom = purc_load_hvml_from_string(run_info.doc_content);
-    }
-    else if (run_info.url[0]) {
-        vdom = purc_load_hvml_from_url(run_info.url);
+        my_opts_delete(opts, false);
     }
     else {
-        goto failed;
-    }
+        assert(!opts->parallel);
 
-    if (!vdom) {
-        fprintf(stderr, "Failed to load hvml : %s\n",
-                purc_get_error_message(purc_get_last_error()));
-        goto failed;
-    }
+        if (!run_programs_sequentially(opts, request)) {
+            success = false;
+        }
 
-    pcrdr_page_type type = PCRDR_PAGE_TYPE_PLAINWIN;
-    purc_renderer_extra_info rdr_extra_info = {
-        .title = DEF_PAGE_TITLE
-    };
-    ret = purc_attach_vdom_to_renderer(vdom,
-            type, DEF_WORKSPACE_ID,
-            DEF_PAGE_GROUP, DEF_PAGE_NAME, &rdr_extra_info);
-    if (!ret) {
-        fprintf(stderr, "Failed to attach renderer : %s\n",
-                purc_get_error_message(purc_get_last_error()));
-        goto failed;
+        my_opts_delete(opts, true);
     }
-
-    purc_run(NULL);
 
 failed:
-    if (run_info.doc_content)
-        free (run_info.doc_content);
-#endif
+    if (run_info.opts)
+        purc_variant_unref(run_info.opts);
+    if (run_info.app_info)
+        purc_variant_unref(run_info.app_info);
+    if (run_info.dump_stm)
+        purc_rwstream_destroy(run_info.dump_stm);
 
-    purc_variant_unref(run_info.opts);
     purc_cleanup();
 
-    return EXIT_SUCCESS;
-
-failed:
-    purc_cleanup();
-    return EXIT_FAILURE;
-
+    return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+

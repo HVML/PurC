@@ -123,6 +123,51 @@ PCA_EXPORT purc_document_t
 purc_document_new(purc_document_type type);
 
 /**
+ * Get the reference count of an existing document.
+ *
+ * @param doc: the pointer to the document.
+ *
+ * This function returns the current reference count of the given document.
+ *
+ * Returns: The current reference count.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT unsigned int
+purc_document_get_refc(purc_document_t doc);
+
+/**
+ * Reference an existing document.
+ *
+ * @param doc: the pointer to the document.
+ *
+ * This function increases the reference count of an existing document.
+ *
+ * Returns: the document.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT purc_document_t
+purc_document_ref(purc_document_t doc);
+
+/**
+ * Unreference an existing document.
+ *
+ * @param doc: the pointer to the document.
+ *
+ * This function decreases the reference count of an existing document,
+ * when the reference count reaches zero, the function will delete
+ * the document by calling `purc_document_delete()`.
+ *
+ * Returns: The new reference count. If it is zero, that means the document
+ *  has been deleted.
+ *
+ * Since: 0.2.0
+ */
+PCA_EXPORT unsigned int
+purc_document_unref(purc_document_t doc);
+
+/**
  * Create a new document by loading a content.
  *
  * @param type: a string contains the type of the document.
@@ -139,17 +184,17 @@ PCA_EXPORT purc_document_t
 purc_document_load(purc_document_type type, const char *content, size_t len);
 
 /**
- * Destroy a document.
+ * Delete a document.
  *
  * @param doc: The pointer to the document.
  *
  * This function deletes a document.
  *
- * Returns: a pointer to the document.
+ * Returns: The reference count when deleting the document.
  *
  * Since: 0.2.0
  */
-PCA_EXPORT void
+PCA_EXPORT unsigned int
 purc_document_delete(purc_document_t doc);
 
 typedef enum {

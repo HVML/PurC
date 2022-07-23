@@ -158,7 +158,7 @@ static void call_method(struct inst_info *info,
         char full_cor_id[PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4];
         sprintf(full_cor_id, "%s/%s", endpoint_name, cort_info->id);
 
-        purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+        purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
                 full_cor_id);
         if (cort_atom != atom) {
             purc_log_error("atom for coroutine do not matched (%u vs %u).\n",
@@ -166,7 +166,7 @@ static void call_method(struct inst_info *info,
         }
 
         response->sourceURI = purc_variant_make_string(full_cor_id, false);
-        response->dataType = PCRDR_MSG_DATA_TYPE_TEXT;
+        response->dataType = PCRDR_MSG_DATA_TYPE_PLAIN;
         response->data = cort_info->method_handler(info, request);
         response->retCode = PCRDR_SC_OK;
         response->resultValue = (uint64_t)cort_atom;
@@ -188,7 +188,7 @@ static void create_coroutine(struct inst_info *info,
     sprintf(full_cor_id, "%s/%s", endpoint_name, id_buf);
 
     bool newly_created;
-    purc_atom_t cort_atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_USER,
+    purc_atom_t cort_atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_DEF,
             full_cor_id, &newly_created);
     assert(newly_created);  /* must be a newly created atom */
 
@@ -320,7 +320,7 @@ static void* general_instance_entry(void* arg)
                 source_uri = purc_variant_get_string_const(msg->sourceURI);
                 if (source_uri == NULL ||
                         (requester = purc_atom_try_string_ex(
-                            PURC_ATOM_BUCKET_USER, source_uri)) == 0) {
+                            PURC_ATOM_BUCKET_DEF, source_uri)) == 0) {
                     purc_log_info("No sourceURI or the requester disappeared\n");
                     pcrdr_release_message(msg);
                     continue;
@@ -522,7 +522,7 @@ static void get_instance(struct instmgr_info *info,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         pthread_t *th = (pthread_t *)malloc(sizeof(pthread_t));
@@ -577,7 +577,7 @@ static void cancel_instance(struct instmgr_info *info,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -626,7 +626,7 @@ static void kill_instance(struct instmgr_info *info,
             TEST_APP_NAME, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -693,7 +693,7 @@ static void* instance_manager_entry(void* arg)
                 source_uri = purc_variant_get_string_const(msg->sourceURI);
                 if (source_uri == NULL ||
                         (requester = purc_atom_try_string_ex(
-                            PURC_ATOM_BUCKET_USER, source_uri)) == 0) {
+                            PURC_ATOM_BUCKET_DEF, source_uri)) == 0) {
                     purc_log_info("No sourceURI (%s) or the requester disappeared\n",
                             source_uri);
                     pcrdr_release_message(msg);
@@ -1099,7 +1099,7 @@ static int on_call_method_handler(pcrdr_conn* conn,
             purc_log_info("The instance URI: %s\n", inst_endpoint);
 
             purc_atom_t inst_atom = purc_atom_try_string_ex(
-                    PURC_ATOM_BUCKET_USER, inst_endpoint);
+                    PURC_ATOM_BUCKET_DEF, inst_endpoint);
             if (inst_atom) {
                 if (response->data) {
                     purc_log_info("Result returned from: %s:\n %s\n\n", cor_id,
@@ -1164,7 +1164,7 @@ static int on_coroutine_ready(pcrdr_conn* conn,
                     cor_id);
 
             purc_atom_t inst_atom = purc_atom_try_string_ex(
-                    PURC_ATOM_BUCKET_USER, source_uri);
+                    PURC_ATOM_BUCKET_DEF, source_uri);
             if (inst_atom) {
                 pcrdr_msg *request = pcrdr_make_request_message(
                         PCRDR_MSG_TARGET_COROUTINE, cor_atom,

@@ -136,6 +136,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     purc_clr_error();
 
     return ctxt;
@@ -183,23 +185,27 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
     struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
+    if (!vcm) {
         return;
+    }
 
     pcintr_stack_t stack = &co->stack;
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
+    if (v == PURC_VARIANT_INVALID) {
+        return;
+    }
+
     purc_clr_error();
-
-    assert(purc_variant_is_string(v));
-
-    size_t sz;
-    const char *text = purc_variant_get_string_const_ex(v, &sz);
-    if (sz > 0) {
-        pcdoc_text_node_t text_node;
-        text_node = pcintr_util_new_text_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, text, sz);
-        PC_ASSERT(text_node);
+    pcintr_set_question_var(frame, v);
+    if (purc_variant_is_string(v)) {
+        size_t sz;
+        const char *text = purc_variant_get_string_const_ex(v, &sz);
+        if (sz > 0) {
+            pcdoc_text_node_t text_node;
+            text_node = pcintr_util_new_text_content(frame->owner->doc,
+                    frame->edom_element, PCDOC_OP_APPEND, text, sz);
+            PC_ASSERT(text_node);
+        }
     }
     purc_variant_unref(v);
 

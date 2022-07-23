@@ -30,8 +30,10 @@
 #include "purc-pcrdr.h"
 #include "private/utils.h"
 
-#define PCRUN_INSTMGR_APP_NAME      "cn.fmsoft.hvml"
-#define PCRUN_INSTMGR_RUN_NAME      "instmgr"
+#define PCRUN_INSTMGR_APP_NAME      "cn.fmsoft.hvml.instmgr"
+#define PCRUN_INSTMGR_RUN_NAME      "main"
+
+#define PCRUN_TIMEOUT_DEF           10
 
 /* operations */
 enum {
@@ -63,7 +65,8 @@ enum {
 #define PCRUN_EVENT_inst_stopped            "inst:stopped"
 
 struct instmgr_info {
-    unsigned nr_insts;
+    purc_atom_t     rid_main;
+    unsigned        nr_insts;
     struct sorted_array *sa_insts;
 };
 

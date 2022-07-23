@@ -1439,7 +1439,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
 
     msg = pcrdr_make_response_message("0", NULL,
             PCRDR_SC_OK, 0,
-            PCRDR_MSG_DATA_TYPE_TEXT, RENDERER_FEATURES,
+            PCRDR_MSG_DATA_TYPE_PLAIN, RENDERER_FEATURES,
             sizeof (RENDERER_FEATURES) - 1);
     if (msg == NULL) {
         purc_set_error(PCRDR_ERROR_NOMEM);

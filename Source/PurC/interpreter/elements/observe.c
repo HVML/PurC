@@ -85,10 +85,6 @@ ctxt_destroy(void *ctxt)
     ctxt_for_observe_destroy((struct ctxt_for_observe*)ctxt);
 }
 
-#define MSG_TYPE_GROW       "grow"
-#define MSG_TYPE_SHRINK     "shrink"
-#define MSG_TYPE_CHANGE     "change"
-
 bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
         void* ctxt, size_t nr_args, purc_variant_t* argv)
 {
@@ -882,6 +878,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
+#if 0
+    if (!ctxt->with) {
+        purc_variant_t caret = pcintr_get_symbol_var(frame,
+                PURC_SYMBOL_VAR_CARET);
+        if (caret && !purc_variant_is_undefined(caret)) {
+            ctxt->with = caret;
+            purc_variant_ref(ctxt->with);
+        }
+    }
+#endif
 
     if (ctxt->with != PURC_VARIANT_INVALID) {
         pcvdom_element_t define = pcintr_get_vdom_from_variant(ctxt->with);

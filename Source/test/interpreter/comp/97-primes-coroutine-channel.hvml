@@ -12,36 +12,63 @@
     <body id="main">
         <update on $RUNNER.myObj to "merge" with { 'primes': [] } />
 
-        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
-            <init as channelIdx with $? />
-            <init as inChannel with "channel$?" />
+        <init as ch with $RUNNER.channel("natural") temp >
+        <load from "_self#natural" with { 'maxn': -1UL, "channel": $ch } async />
 
-            <observe on $CRTN for "got:$inChannel" once >
+        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
+
+            <choose on $ch.receive() >
+
                 <update on $RUNNER.myObj.primes to "append" with $? />
-                <load from "_self#sieve" with {'idx': $channelIdx, 'prime': $? } async />
-            </observe>
+
+                <init as chOut with $RUNNER.channel("filter$?") temp />
+
+                <load as "filter$?" from "_self#sieve" with {'in': $ch, "out": $chOut, 'prime': $? } async />
+
+                <init as ch at "#main" with $chOut temp />
+            </choose>
 
         </iterate>
 
-        <load from "_self#first" with { 'maxn': -1UL } async />
+        <observe on "${filter$REQ.nrPrimes}" for "corState:exited" >
+
+            <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
+
+                <inherit>
+                    $STREAM.stdout.writelines($STR.join("Prime #", $?, ': ', $RUNNER.myObj.primes[$?]))
+                </inherit>
+            </iterate>
+
+            <update on $RUNNER.myObj at ".primes" to "displace" with undefined />
+
+            <exit with "success" >
+                $RUNNER.cleanup()
+            </exit>
+
+        </observe>
     </body>
 
-    <body id="first">
+    <body id="natural">
         <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $EJSON.arith('+', $0<, 1) nosetotail >
-            $EJSON.move($?, "/-/-", "channel0")
+
+            <inherit>
+                $REQ.ch.send($?)
+            </inherit>
+
         </iterate>
     </body>
 
     <body id="sieve">
 
-        <init as inChannel with "channel$REQ.idx" />
-        <init as outChannel with "channel{$EJSON.arith('+', $REQ.idx, 1)}" />
+        <iterate on $REQ.in.receive() >
+            <test with $EJSON.arith('%', $?, $REQ.prime) >
 
-        <observe on $CRTN for "got:$inChannel" >
-            <test with $EJSON.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
-                $EJSON.move($?, "/-/-", "$outChannel")
+                <inherit>
+                    $REQ.out.send($2?)
+                </inherit>
+
             </test>
-        </observe>
+        </iterate>
 
     </body>
 </hvml>

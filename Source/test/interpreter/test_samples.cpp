@@ -75,15 +75,16 @@ sample_destroy(struct sample_ctxt *ud)
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    void *user_data = purc_coroutine_get_user_data(cor);
-    if (!user_data) {
-        return -1;
-    }
-
-    struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
-
     if (event == PURC_COND_COR_EXITED) {
-        purc_document_t doc = (purc_document_t)data;
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
+        struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
+        purc_document_t doc = info->doc;
 
         if (ud->terminated) {
             ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
@@ -109,6 +110,13 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
         sample_destroy(ud);
     }
 
@@ -182,7 +190,6 @@ TEST(samples, basic)
 {
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
-    purc_bind_runner_variables();
 
     ASSERT_TRUE(purc);
 
@@ -215,7 +222,6 @@ TEST(samples, samples)
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
-    purc_bind_runner_variables();
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);

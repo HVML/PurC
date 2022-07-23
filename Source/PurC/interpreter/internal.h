@@ -48,9 +48,6 @@
 
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
-#define MSG_TYPE_SUB_EXIT          "subExit"
-#define MSG_TYPE_LAST_MSG          "lastMsg"
-
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -70,10 +67,11 @@ struct pcintr_observer_task {
 struct pcintr_event_handler;
 
 typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg);
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed);
 
 typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler);
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed);
 
 struct pcintr_event_handler {
     struct list_head              ln;
@@ -443,9 +441,20 @@ int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 
 struct pcintr_event_handler *
+pcintr_event_handler_create(const char *name,
+        int stage, int state, void *data, event_handle_fn fn,
+        event_match_fn is_match_fn, bool support_null_event);
+
+void
+pcintr_event_handler_destroy(struct pcintr_event_handler *handler);
+
+struct pcintr_event_handler *
 pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
         int stage, int state, void *data, event_handle_fn fn,
         event_match_fn is_match_fn, bool support_null_event);
+
+int
+pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
 
 int
 pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
@@ -461,6 +470,17 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co);
+
+int
+pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame);
+
+/* ms */
+double
+pcintr_get_current_time(void);
+
+void
+pcintr_update_timestamp(struct pcinst *inst);
 
 PCA_EXTERN_C_END
 

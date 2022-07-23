@@ -1,0 +1,11 @@
+<hvml target="void">
+    <body id="theBody">
+        <inherit>
+            {{
+                $STREAM.stdout.writelines("## Fibonacci Numbers less than 10");
+                $STREAM.stdout.writelines('')
+            }}
+        </inherit>
+    </body>
+</hvml>
+

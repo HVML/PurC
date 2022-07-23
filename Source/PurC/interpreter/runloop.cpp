@@ -248,11 +248,16 @@ static pthread_once_t _main_once_control = PTHREAD_ONCE_INIT;
 static void _runloop_init_main(void)
 {
     BinarySemaphore semaphore;
+    purc_atom_t rid_main = pcinst_current()->endpoint_atom;
+    PC_ASSERT(rid_main);
+
     _main_thread = Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
             PC_ASSERT(RunLoop::isMainInitizlized() == false);
             RunLoop::initializeMain();
             RunLoop& runloop = RunLoop::main();
             PC_ASSERT(&runloop == &RunLoop::current());
+
+            struct instmgr_info info = { rid_main, 0, NULL };
             semaphore.signal();
 
             int ret;
@@ -273,7 +278,6 @@ static void _runloop_init_main(void)
             }
 
             pcinst_current()->is_instmgr = 1;
-            struct instmgr_info info = { 0, NULL };
             info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
                     my_sa_free, NULL);
 
@@ -287,7 +291,7 @@ static void _runloop_init_main(void)
             pcutils_sorted_array_destroy(info.sa_insts);
 
             size_t n = purc_inst_destroy_move_buffer();
-            purc_log_debug("InstMgr is quiting, %u messages discarded\n",
+            PC_DEBUG("InstMgr is quiting, %u messages discarded\n",
                     (unsigned)n);
 
             purc_cleanup();

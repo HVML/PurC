@@ -124,7 +124,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
     }
 
     purc_atom_t rdr_atom = purc_atom_try_string_ex(
-            PURC_ATOM_BUCKET_USER, renderer_uri);
+            PURC_ATOM_BUCKET_DEF, renderer_uri);
     if (rdr_atom == 0) {
         err_code = PCRDR_ERROR_BAD_CONNECTION;
         goto failed;

@@ -172,48 +172,49 @@ PurC can run multiple HVML programs as coroutines at the same time.
 For example, we enhance the first HVML program to print `Hello, world!` 10 times:
 
 ```html
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $MATH.add($0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
         $STREAM.stdout.writelines(
-                $STR.join($0<, ") Hello, world! --from COROUTINE-", $HVML.cid))
+                $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
     </iterate>
 </hvml>
 ```
 
 Assume you named the enhanced version as `hello-10.hvml`, we can run
-the program in two coroutines at the same time:
+the two program as two coroutines in parallel by specifying the command line
+flag `-l`:
 
 ```bash
-    $ purc hello-10.hvml hello-10.hvml
+    $ purc -l hello-10.hvml hello-10.hvml
 ```
 
 You will see the following output on your terminal:
 
 ```
-0) Hello, world! -- from COROUTINE-01
-0) Hello, world! -- from COROUTINE-02
-1) Hello, world! -- from COROUTINE-01
-1) Hello, world! -- from COROUTINE-02
-2) Hello, world! -- from COROUTINE-01
-2) Hello, world! -- from COROUTINE-02
-3) Hello, world! -- from COROUTINE-01
-3) Hello, world! -- from COROUTINE-02
-4) Hello, world! -- from COROUTINE-01
-4) Hello, world! -- from COROUTINE-02
-5) Hello, world! -- from COROUTINE-01
-5) Hello, world! -- from COROUTINE-02
-6) Hello, world! -- from COROUTINE-01
-6) Hello, world! -- from COROUTINE-02
-7) Hello, world! -- from COROUTINE-01
-7) Hello, world! -- from COROUTINE-02
-8) Hello, world! -- from COROUTINE-01
-8) Hello, world! -- from COROUTINE-02
-9) Hello, world! -- from COROUTINE-01
-9) Hello, world! -- from COROUTINE-02
+0) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
+1) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-3
+2) Hello, world! -- from COROUTINE-4
+3) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-3
+4) Hello, world! -- from COROUTINE-4
+5) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-3
+6) Hello, world! -- from COROUTINE-4
+7) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-3
+8) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-3
+9) Hello, world! -- from COROUTINE-4
 ```
 
-In the above output, `COROUTINE-01` and `COROUTINE-02` contain the coroutine
+In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine
 identifier allocated by PurC for two running instances of the program.
 You see that PurC schedules the running instances to execute alternately, i.e.,
 in the manner of coroutines.
@@ -226,7 +227,7 @@ the terminal. So we can open the genenrated HTML file in a web browser.
 Therefore, we enhance `hello-10.hvml` once more:
 
 ```html
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml>
 <hvml target="html">
     <head>
         <title>Hello, world!</title>
@@ -234,8 +235,8 @@ Therefore, we enhance `hello-10.hvml` once more:
 
     <body>
         <ul>
-            <iterate on 0 onlyif=$L.lt($0<, 10) with=$MATH.add($0<, 1) >
-                <li>$< Hello, world! --from COROUTINE-$HVML.cid</li>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) >
+                <li>$?) Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
     </body>
@@ -269,16 +270,16 @@ After running the command, the contents in `/tmp/hello.html` looks like:
 
     <body>
         <ul>
-            <li>0) Hello, world! -- from COROUTINE-01</li>
-            <li>1) Hello, world! -- from COROUTINE-01</li>
-            <li>2) Hello, world! -- from COROUTINE-01</li>
-            <li>3) Hello, world! -- from COROUTINE-01</li>
-            <li>4) Hello, world! -- from COROUTINE-01</li>
-            <li>5) Hello, world! -- from COROUTINE-01</li>
-            <li>6) Hello, world! -- from COROUTINE-01</li>
-            <li>7) Hello, world! -- from COROUTINE-01</li>
-            <li>8) Hello, world! -- from COROUTINE-01</li>
-            <li>9) Hello, world! -- from COROUTINE-01</li>
+            <li>0) Hello, world! -- from COROUTINE-3</li>
+            <li>1) Hello, world! -- from COROUTINE-3</li>
+            <li>2) Hello, world! -- from COROUTINE-3</li>
+            <li>3) Hello, world! -- from COROUTINE-3</li>
+            <li>4) Hello, world! -- from COROUTINE-3</li>
+            <li>5) Hello, world! -- from COROUTINE-3</li>
+            <li>6) Hello, world! -- from COROUTINE-3</li>
+            <li>7) Hello, world! -- from COROUTINE-3</li>
+            <li>8) Hello, world! -- from COROUTINE-3</li>
+            <li>9) Hello, world! -- from COROUTINE-3</li>
         </ul>
     </body>
 </html>
@@ -337,8 +338,11 @@ The following options can be supplied to the command:
         the HVML programs; use `-` if the JSON data will be given through
         stdin stream.
 
-  -q --quiet
-        Execute the program quietly (without redundant output).
+  -l --parallel
+        Execute multiple programs in parallel.
+
+  -s --verbose
+        Execute the program(s) with verbose output.
 
   -c --copying
         Display detailed copying information and exit.
@@ -358,42 +362,43 @@ the initial HVML programs to run in different runners.
 
 ```json
 {
-    "name": "cn.fmsoft.hvml.sample",
+    "app": "cn.fmsoft.hvml.sample",
     "runners": [
         {
-            "name": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
+            "runner": "Products",
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 }
             ]
         },
         {
-            "name": "Customers",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "cn.fmsoft.hvml.sample/layout.html" },
+            "runner": "Customers",
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
                 }
             ]
         },
         {
-            "name": "Daemons",
+            "runner": "Daemons",
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
-                { "uri": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
+                { "url": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
+                { "url": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
             ]
         },
     ]
+}
 ```
 
 Assume that you prepare all HVML programs and save the above JSON as
@@ -421,17 +426,17 @@ We can access the option specified by `--app` in `my_app.ejson`:
 
 ```json
 {
-    "name": "$OPTS.app",
+    "app": "$OPTS.app",
     "runners": [
         {
-            "name": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock" },
-            "workspace": { "name": "default", "layout": "$OPTS.app/layout.html" },
+            "runner": "Products",
+            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+                "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
-                { "uri": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
+                { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
                    "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
-                { "uri": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
+                { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 },
             ]
@@ -448,7 +453,16 @@ All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by
 You can find more sample HVML programs in respository
 [HVML Documents](https://github.com/HVML/hvml-docs), under the directory `samples/`.
 
-You can use `purc` to run the sample directly:
+For your convenience, some samples are copied to the directory
+`Source/Samples/hvml` of this repository. After building PurC, the samples
+will be copied to the building root directory, so that you can change to the
+building root directory and use `purc` to run the samples:
+
+```bash
+$ purc hvml/fibonacci-6.hvml
+```
+
+You can also use `purc` to run a sample resided in the remote HVML Documents repository:
 
 ```bash
 $ purc https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
@@ -471,9 +485,9 @@ to build and install PurC Fetcher to your system.
 
 This project was launched in June. 2021. This is the version 0.8.0 of PurC.
 
-After one year development, the current version implements all features
-defined by [HVML Specifiction V1.0] in C language, and also implements all
-predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+After one year development, the current version implements almost all features
+defined by [HVML Specifiction V1.0] in C language, and also implements almost
+all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
 
 We welcome anybody to take part in the development and contribute your effort!
 
@@ -509,7 +523,8 @@ The source tree of PurC contains the following modules:
 - `Source/cmake/`: The cmake modules.
 - `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
-- `Source/Samples/`: Examples for using the interfaces of PurC.
+- `Source/Samples/api`: Samples for using the API of PurC.
+- `Source/Samples/hvml`: Samples HVML programs.
 - `Source/Tools/`: The tools (executables), i.e., the command line programs.
 - `Source/Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
 - `Documents/`: Some documents for developers.

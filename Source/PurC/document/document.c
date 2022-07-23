@@ -92,12 +92,39 @@ purc_document_load(purc_document_type type, const char *content, size_t len)
     return ops->create(content, len);
 }
 
-void
-purc_document_delete(purc_document_t doc)
+unsigned int
+purc_document_get_refc(purc_document_t doc)
 {
-    doc->ops->destroy(doc);
+    return doc->refc;
 }
 
+purc_document_t
+purc_document_ref(purc_document_t doc)
+{
+    doc->refc++;
+    return doc;
+}
+
+unsigned int
+purc_document_unref(purc_document_t doc)
+{
+    doc->refc--;
+
+    unsigned int refc = doc->refc;
+    if (refc == 0) {
+        doc->ops->destroy(doc);
+    }
+
+    return refc;
+}
+
+unsigned int
+purc_document_delete(purc_document_t doc)
+{
+    unsigned int refc = doc->refc;
+    doc->ops->destroy(doc);
+    return refc;
+}
 
 pcdoc_element_t
 purc_document_special_elem(purc_document_t doc, pcdoc_special_elem elem)

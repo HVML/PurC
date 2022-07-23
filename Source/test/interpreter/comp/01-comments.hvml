@@ -8,7 +8,7 @@
 # Note that this HVML program DOES generate a void document.
 # Therefore, the `title` and `p` elements will be ignored completely.
 
-# RESULT: $STR.nr_bytes('00:00')
+# RESULT: 6UL
 
 <!-- The expected output of this HVML program:
 
@@ -28,30 +28,30 @@ End of `Hello, world!`
 <hvml target="void" lang="$STR.substr($SYS.locale, 0, 2)" >
     {{
         $STREAM.stdout.writelines('Start of `Hello, world!`');
-        $STREAM.stdout.writelines($SYS.time('%H:%m'))
+        $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M'))
     }}
 
     <!-- This is a multiple-line comments, which will be parsed and form
         a comment node in the ultimate vDOM tree -->
     <head>
-        $STREAM.stdout.writelines('Start of `head`')
+        {{ $STREAM.stdout.writelines('Start of `head`'); "" }}
 
         <title>$T.get('Hello, world!')</title>
 
-        $STREAM.stdout.writelines('End of `head`')
+        {{ $STREAM.stdout.writelines('End of `head`'); '' }}
     </head>
 
     <body>
-        $STREAM.stdout.writelines('Start of `body`')
+        {{ $STREAM.stdout.writelines('Start of `body`'); 'HVML' }}
 
-        <p>$T.get('Hello, HVML!')</p>
+        <p>$T.get('Hello, world!')</p>
 
-        $STREAM.stdout.writelines('End of `body`')
+        {{ $STREAM.stdout.writelines('End of `body`'); 'HVML' }}
     </body>
 
     {{
         $STREAM.stdout.writelines('End of `Hello, world!`');
-        $STREAM.stdout.writelines($SYS.time('%H:%m'))
+        $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M'))
     }}
 </hvml>
 

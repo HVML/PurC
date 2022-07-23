@@ -23,16 +23,16 @@ I slept for 50 seconds totally
 
     <init as startTime with $SYS.time />
 
-    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith_calc('+', $0<, 1) nosetotail >
-        <sleep with $SYS.random(10.0) >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <sleep with $SYS.random(5.0) >
             $STREAM.stdout.writelines($STR.join('Current time: ',
-                        $SYS.time("%H:%m")))
+                        $DATETIME.fmttime("%H:%M:%S")))
         </sleep>
     </iterate>
 
     {{
         $STREAM.stdout.writelines($STR.join("I slept for ",
-                    $EJSON.arith_calc('-', $SYS.time, $startTime), " seconds totally"));
-        $L.lt($EJSON.arith_calc('-', $SYS.time, $startTime), 0)
+                    $EJSON.arith('-', $SYS.time, $startTime), " seconds totally"));
+        $L.gt($EJSON.arith('-', $SYS.time, $startTime), 0)
     }}
 </hvml>

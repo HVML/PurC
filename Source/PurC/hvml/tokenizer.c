@@ -49,13 +49,11 @@
 
 #define ERROR_BUF_SIZE  100
 
-#define PDEBUG   printf
-
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
         size_t len;                                                         \
         char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
-        PDEBUG(                                                             \
+        PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
             "|stack_top=%c|stack_size=%ld|vcm_node=%s|fh=%d\n",             \
             curr_state_name, character, character,                          \
@@ -3149,9 +3147,15 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
     if (character == '\'') {
+        parser->nr_single_quoted++;
         size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
-        if (nr_buf_chars >= 1) {
+        if (nr_buf_chars >= 1 || parser->nr_single_quoted == 2) {
+            parser->nr_single_quoted = 0;
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer));
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else {
@@ -3159,6 +3163,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
         }
     }
     if (character == '\\') {
+        parser->nr_single_quoted = 0;
         SET_RETURN_STATE(curr_state);
         ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }

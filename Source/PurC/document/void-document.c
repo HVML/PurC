@@ -34,10 +34,15 @@ static purc_document_t create(const char *content, size_t length)
 
     purc_document_t doc = calloc(1, sizeof(*doc));
 
+    doc->type = PCDOC_K_TYPE_VOID;
+    doc->def_text_type = PCRDR_MSG_DATA_TYPE_PLAIN;
     doc->need_rdr = 0;
     doc->data_content = 0;
     doc->have_head = 0;
     doc->have_body = 0;
+
+    doc->refc = 1;
+
     doc->ops = &_pcdoc_void_ops;
     doc->impl = NULL;
     return doc;
