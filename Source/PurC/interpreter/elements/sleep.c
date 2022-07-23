@@ -334,7 +334,7 @@ static int sleep_event_handle(struct pcintr_event_handler *handler,
         pcintr_set_current_co(NULL);
         *remove_handler = true;
         *performed = true;
-        ret = PURC_ERROR_OK;
+        ret = PURC_ERROR_INCOMPLETED;
     }
 
     return ret;
