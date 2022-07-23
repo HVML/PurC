@@ -36,7 +36,7 @@
 #include <unistd.h>
 
 #define KEY_APP_NAME            "app"
-#define DEF_APP_NAME            "cn.fmsoft.html.purc"
+#define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
 
 #define KEY_RUN_NAME            "runner"
 #define DEF_RUN_NAME            "main"
@@ -121,7 +121,7 @@ static void print_usage(FILE *fp)
         "The following options can be supplied to the command:\n"
         "\n"
         "  -a --app=< app_name >\n"
-        "        Run with the specified app name (default value is `cn.fmsoft.html.purc`).\n"
+        "        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).\n"
         "\n"
         "  -r --runner=< runner_name >\n"
         "        Run with the specified runner name (default value is `main`).\n"
@@ -1208,20 +1208,32 @@ int main(int argc, char** argv)
 
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
         opts->rdr_prot = "headless";
-        extra_info.renderer_prot = PURC_RDRPROT_HEADLESS;
 
+        extra_info.renderer_prot = PURC_RDRPROT_HEADLESS;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_HEADLESS);
         }
+
     }
     else {
-        assert(strcmp(opts->rdr_prot, "purcmc") == 0);
+        if (strcmp(opts->rdr_prot, "purcmc")) {
+            if (opts->verbose) {
+                fprintf(stdout, "Unknown renderer protocol: %s\n",
+                        opts->rdr_prot);
+                print_usage(stdout);
+            }
+
+            my_opts_delete(opts, true);
+            return EXIT_FAILURE;
+        }
 
         extra_info.renderer_prot = PURC_RDRPROT_PURCMC;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_PURCMC);
         }
     }
+
+    extra_info.renderer_uri = opts->rdr_uri;
 
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);

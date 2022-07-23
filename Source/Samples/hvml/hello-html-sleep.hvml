@@ -12,5 +12,8 @@
                 <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
+
+        <sleep for "10s" />
+
     </body>
 </hvml>
