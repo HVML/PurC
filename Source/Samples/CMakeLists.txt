@@ -12,6 +12,7 @@ set(sample_HVML_FILES
     "hvml/hello-html.hvml"
     "hvml/hello-html-timer.hvml"
     "hvml/fibonacci-void-temp.hvml"
+    "hvml/fibonacci-html-temp.hvml"
     "hvml/calculator-bc.hvml"
     "hvml/planetary-resonance.hvml"
 )

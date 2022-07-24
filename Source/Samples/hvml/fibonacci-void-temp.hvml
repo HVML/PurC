@@ -1,11 +1,11 @@
 #!/user/bin/purc
 
-# RESULT: [ 7, 8L ]
+# RESULT: [ 18, 1597L ]
 
 <!-- The expected output of this HVML program will be like:
 
 # Fibonacci Numbers
-## Fibonacci Numbers less than 10
+## Fibonacci Numbers less than 2000
     0: 0
     1: 1
     2: 1
@@ -13,6 +13,18 @@
     4: 3
     5: 5
     6: 8
+    7: 13
+    8: 21
+    9: 34
+    10: 55
+    11: 89
+    12: 144
+    13: 233
+    14: 377
+    15: 610
+    16: 987
+    17: 1597
+Totally 18 numbers
 -->
 
 <!DOCTYPE hvml>
