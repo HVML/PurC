@@ -105,8 +105,17 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (frame) {
-        pcintr_coroutine_set_state(co, CO_STATE_READY);
-        return;
+        if (frame->next_step != NEXT_STEP_ON_POPPING) {
+            pcintr_coroutine_set_state(co, CO_STATE_READY);
+            return;
+        }
+
+        pcvdom_element_t elem = frame->pos;
+        enum pchvml_tag_id tag_id = elem->tag_id;
+        if (tag_id != PCHVML_TAG_HVML) {
+            pcintr_coroutine_set_state(co, CO_STATE_READY);
+            return;
+        }
     }
 
     PC_ASSERT(co->yielded_ctxt == NULL);
@@ -128,7 +137,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
     stack->co->stage = CO_STAGE_OBSERVING;
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
-
 
     if (co->stack.except) {
         const char *error_except = NULL;
@@ -180,8 +188,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         pcintr_notify_to_stop(co);
     }
 
-
-// #define PRINT_DEBUG
+ //#define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
         co->stack.last_msg_sent = 1;
 
@@ -295,9 +302,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
 {
     bool busy = false;
     int handle_ret = PURC_ERROR_INCOMPLETED;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    if (frame != NULL && co->state != CO_STATE_STOPPED) {
+    if (co->state == CO_STATE_READY || co->state == CO_STATE_RUNNING) {
         goto out;
     }
 

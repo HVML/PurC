@@ -907,9 +907,6 @@ static struct pcintr_stack_frame_pseudo*
 push_stack_frame_pseudo(pcintr_stack_t stack,
         pcvdom_element_t vdom_element)
 {
-    PC_ASSERT(list_empty(&stack->frames));
-    PC_ASSERT(stack->nr_frames == 0);
-
     PC_ASSERT(vdom_element);
 
     struct pcintr_stack_frame_pseudo *frame_pseudo;
@@ -961,14 +958,6 @@ pcintr_pop_stack_frame_pseudo(void)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->nr_frames == 1);
-
-    struct list_head *frames = &stack->frames;
-    struct pcintr_stack_frame *frame;
-    frame = list_last_entry(frames, struct pcintr_stack_frame, node);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
-
     pop_stack_frame(stack);
 }
 
@@ -1582,15 +1571,10 @@ static void
 execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
     PC_ASSERT(stack->exited);
-
     PC_ASSERT(co->stack.except == 0);
 
     // CHECK pending requests
-
     PC_ASSERT(co->stack.back_anchor == NULL);
 
     pcintr_heap_t heap = co->owner;
