@@ -14,6 +14,7 @@
    + [Run a single HVML program](#run-a-single-hvml-program)
    + [Run multiple HVML programs at the same time](#run-multiple-hvml-programs-at-the-same-time)
    + [Use HVML renderer](#use-hvml-renderer)
+   + [Options for `purc`](#options-for-purc)
    + [Run an HVML app in mutiple runners](#run-an-hvml-app-in-mutiple-runners)
    + [Sample HVML programs](#sample-hvml-programs)
 - [Hacking PurC](#hacking-purc)
@@ -24,6 +25,8 @@
    + [Other documents](#other-documents)
 - [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
+   + [PurC](#purc)
+   + [ExtDVObjs/fs](#extdvobjsfs)
 - [Tradmarks](#tradmarks)
 
 [//]:# (END OF TOC)
@@ -168,7 +171,7 @@ then run `hello.hvml` directly from the command line:
     $ ./hello.hvml
 ```
 
-### Run multiple HVML programs at the same time
+### Run multiple HVML programs in parallel
 
 PurC can run multiple HVML programs as coroutines in parallel.
 
@@ -194,40 +197,67 @@ flag `-l`:
 
 You will see the following output on your terminal:
 
-```
-0) Hello, world! -- from COROUTINE-3
-0) Hello, world! -- from COROUTINE-4
-1) Hello, world! -- from COROUTINE-3
-1) Hello, world! -- from COROUTINE-4
-2) Hello, world! -- from COROUTINE-3
-2) Hello, world! -- from COROUTINE-4
-3) Hello, world! -- from COROUTINE-3
-3) Hello, world! -- from COROUTINE-4
-4) Hello, world! -- from COROUTINE-3
-4) Hello, world! -- from COROUTINE-4
-5) Hello, world! -- from COROUTINE-3
-5) Hello, world! -- from COROUTINE-4
-6) Hello, world! -- from COROUTINE-3
-6) Hello, world! -- from COROUTINE-4
-7) Hello, world! -- from COROUTINE-3
-7) Hello, world! -- from COROUTINE-4
-8) Hello, world! -- from COROUTINE-3
-8) Hello, world! -- from COROUTINE-4
-9) Hello, world! -- from COROUTINE-3
-9) Hello, world! -- from COROUTINE-4
-```
+    0) Hello, world! -- from COROUTINE-3
+    0) Hello, world! -- from COROUTINE-4
+    1) Hello, world! -- from COROUTINE-3
+    1) Hello, world! -- from COROUTINE-4
+    2) Hello, world! -- from COROUTINE-3
+    2) Hello, world! -- from COROUTINE-4
+    3) Hello, world! -- from COROUTINE-3
+    3) Hello, world! -- from COROUTINE-4
+    4) Hello, world! -- from COROUTINE-3
+    4) Hello, world! -- from COROUTINE-4
+    5) Hello, world! -- from COROUTINE-3
+    5) Hello, world! -- from COROUTINE-4
+    6) Hello, world! -- from COROUTINE-3
+    6) Hello, world! -- from COROUTINE-4
+    7) Hello, world! -- from COROUTINE-3
+    7) Hello, world! -- from COROUTINE-4
+    8) Hello, world! -- from COROUTINE-3
+    8) Hello, world! -- from COROUTINE-4
+    9) Hello, world! -- from COROUTINE-3
+    9) Hello, world! -- from COROUTINE-4
 
 In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine
 identifier allocated by PurC for two running instances of the program.
 You see that PurC schedules the running instances to execute alternately, i.e.,
 in the manner of coroutines.
 
+If you do not use the flag `-l` in the command line, `purc` will run the programs
+one by one:
+
+```
+    $ purc hello-10.hvml hello-10.hvml
+    0) Hello, world! -- from COROUTINE-3
+    1) Hello, world! -- from COROUTINE-3
+    2) Hello, world! -- from COROUTINE-3
+    3) Hello, world! -- from COROUTINE-3
+    4) Hello, world! -- from COROUTINE-3
+    5) Hello, world! -- from COROUTINE-3
+    6) Hello, world! -- from COROUTINE-3
+    7) Hello, world! -- from COROUTINE-3
+    8) Hello, world! -- from COROUTINE-3
+    9) Hello, world! -- from COROUTINE-3
+    0) Hello, world! -- from COROUTINE-4
+    1) Hello, world! -- from COROUTINE-4
+    2) Hello, world! -- from COROUTINE-4
+    3) Hello, world! -- from COROUTINE-4
+    4) Hello, world! -- from COROUTINE-4
+    5) Hello, world! -- from COROUTINE-4
+    6) Hello, world! -- from COROUTINE-4
+    7) Hello, world! -- from COROUTINE-4
+    8) Hello, world! -- from COROUTINE-4
+    9) Hello, world! -- from COROUTINE-4
+```
+
 ### Use HVML renderer
 
-Now, we hope that our HVML program can generate a HTML file instead of
-printing to the terminal. So we can open the genenrated HTML file in a web browser.
+A one of important differences between HVML and other programming languages
+is that HVML can generate documents described in markup languages like HTML,
+not just output data to a file or your terminal.
 
-Therefore, we enhance `hello-10.hvml` once more:
+Now, we hope that our HVML program can generate a HTML file instead of
+printing to the terminal. For this purpose, we enhance `hello-10.hvml` once more:
 
 ```hvml
 <!DOCTYPE hvml>
@@ -250,16 +280,18 @@ and save the contents in `hello-html.hvml` file. Note that there are two key
 differences:
 
 1. The value of `target` attribute of `hvml` element changed to `html`.
-1. We used HTML tags such as `head`, `body`, `ul`, and `li`.
+1. We used HTML tags such as `head`, `body`, `ul`, and `li` directly in
+   the HVML program.
 
 If you run `hello-html.hvml` program by using `purc` without any option, `purc`
 will use the renderer called `HEADLESS`. This renderer will record the messages
-sent by PurC to the renderer to a local file, and you will see nothing on your
-terminal. You can use the option `--verbose` to show the HTML contents generated
-by the HVML program:
+sent by PurC to the renderer to a local file. Because this revised HVML program
+did not use `$STREM.stdout` any more, you will see nothing on your terminal.
+But you can use the option `--verbose` (or the short option `-b`) to show the
+HTML contents generated by the HVML program in your terminal:
 
 ```bash
-    $ purc -s hello-html.hvml
+    $ purc -b hello-html.hvml
 ```
 
 The command will give you the following output:
@@ -271,10 +303,9 @@ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/hello-html.hvml`:
+Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/hello-html.hvml`...
 
-
-The document generated:
+>> The document generated:
 <html>
   <head>
     <title>
@@ -318,7 +349,7 @@ The document generated:
 </html>
 
 
-The execute result:
+>> The execute result:
 null
 ```
 
@@ -327,24 +358,21 @@ It is an advanced HVML renderer based on WebKit.
 
 Assume that you have installed xGUI Pro on your system (please refer to
 <https://github.com/HVML/xgui-pro> for detailed instructions to install xGUI Pro),
-you can run `purc` with the following options to show the ultimate HTML contents
-in a window of xGUI Pro.
+you can run `purc` to show the ultimate HTML contents in a window of xGUI Pro.
 
 However, we need to enhace the HVML program once more, in order that the program
 will not exit immediately after generated the HTML contents. Otherwise,
-the window craeted by xGUI Pro for this HVML program will disappeared
+the window created by xGUI Pro for this HVML program will disappeared
 after `purc` exited.
 
 We enhance `hello-html.hvml` to install a timer and update the document and
 save it as `hello-html-timer.hvml`:
 
-```
-#!/usr/local/bin/purc
-
+```hvml
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
-        <title>Hello, world!</title>
+        <title>My First HVML Program</title>
 
         <update on="$TIMERS" to="unite">
             [
@@ -354,7 +382,7 @@ save it as `hello-html-timer.hvml`:
     </head>
 
     <body>
-        <h1>Hello, world!</h1>
+        <h1>My First HVML Program</h1>
         <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
 
         <ul>
@@ -367,6 +395,10 @@ save it as `hello-html-timer.hvml`:
             <update on "#clock" at "textContent" to "displace" with "$DATETIME.time_prt()" />
         </observe>
 
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
     </body>
 </hvml>
 ```
@@ -377,20 +409,26 @@ Now you can start xGUI Pro from another terminal and run `purc` with the followi
     $ purc --rdr-prot=purcmc hello-html-timer.hvml
 ```
 
-You will see that the contents in a window of xGUI Pro created by `hello-html-timer.hvml`.
+You will see that the contents in a window of xGUI Pro created by `hello-html-timer.hvml`:
+
+![Hello-HTML-Timer](images/hello-html-timer.png)
 
 For a complete HVML program which gives a better experience, you can try to run
-the Arbitrary Precision Calculator which uses HTML5 and CSS3.
+another sample called `the Arbitrary Precision Calculator`, which uses HTML5 and CSS3:
 
 ```
 Source/Samples/hvml/calculator-bc.hvml
 ```
 
-Or the Planetary Resonance which uses SVG:
+![the Arbitrary Precision Calculator](images/calculator-bc.png)
+
+Or `the Planetary Resonance` which uses SVG:
 
 ```
 Source/Samples/hvml/planetary-resonance.hvml
 ```
+
+![the Planetary Resonance](images/planetary-resonance.png)
 
 ### Options for `purc`
 
