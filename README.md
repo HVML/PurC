@@ -16,7 +16,7 @@
    + [Use HVML renderer](#use-hvml-renderer)
    + [Options for `purc`](#options-for-purc)
    + [Run an HVML app in mutiple runners](#run-an-hvml-app-in-mutiple-runners)
-   + [Sample HVML programs](#sample-hvml-programs)
+   + [More HVML samples](#more-hvml-samples)
 - [Hacking PurC](#hacking-purc)
    + [Current Status](#current-status)
    + [Source Tree of PurC](#source-tree-of-purc)
@@ -525,9 +525,9 @@ We can access the option specified by `--app` in `my_app.ejson`:
 All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by
 `cn.fmsoft.hvml.sample`.
 
-### More sample HVML programs
+### More HVML samples
 
-You can find more sample HVML programs in respository
+You can find more HVML sample programs in respository
 [HVML Documents](https://github.com/HVML/hvml-docs), under the directory `samples/`.
 
 You can use `purc` to run a sample resided in the remote HVML Documents repository directly:
