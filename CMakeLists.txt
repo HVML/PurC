@@ -28,7 +28,6 @@ set(ALL_PORTS
     Linux
     Mac
     Windows
-    AppleWin
 )
 set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
 
