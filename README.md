@@ -12,7 +12,7 @@
    + [Building steps](#building-steps)
 - [Using `purc`](#using-purc)
    + [Run a single HVML program](#run-a-single-hvml-program)
-   + [Run multiple HVML programs at the same time](#run-multiple-hvml-programs-at-the-same-time)
+   + [Run multiple HVML programs in parallel](#run-multiple-hvml-programs-in-parallel)
    + [Use HVML renderer](#use-hvml-renderer)
    + [Options for `purc`](#options-for-purc)
    + [Run an HVML app in mutiple runners](#run-an-hvml-app-in-mutiple-runners)
