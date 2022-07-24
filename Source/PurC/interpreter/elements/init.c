@@ -1184,12 +1184,6 @@ static void on_async_resume(void *ud)
 
     pcintr_unregister_cancel(&data->cancel);
 
-    //PC_ASSERT(co->state == CO_STATE_RUNNING);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
-
     pcintr_push_stack_frame_pseudo(data->vdom_element);
     on_async_resume_on_frame_pseudo(co, data);
     pcintr_pop_stack_frame_pseudo();

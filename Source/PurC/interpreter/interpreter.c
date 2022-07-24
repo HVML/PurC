@@ -1792,7 +1792,6 @@ static void init_frame_for_co(pcintr_coroutine_t co)
     frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
-    co->execution_pending = 1;
     co->stage = CO_STAGE_FIRST_RUN;
 }
 
@@ -1865,7 +1864,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->tasks);
     INIT_LIST_HEAD(&co->event_handlers);
-    co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {

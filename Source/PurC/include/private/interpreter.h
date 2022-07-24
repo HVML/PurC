@@ -290,9 +290,6 @@ struct pcintr_coroutine {
     struct list_head            event_handlers; /* struct pcintr_event_handler */
     struct pcintr_event_handler *sleep_handler;
 
-    unsigned int volatile       msg_pending:1;
-    unsigned int volatile       execution_pending:1;
-
     /* $CRTN  begin */
     /** The target as a null-terminated string. */
     char                       *target;

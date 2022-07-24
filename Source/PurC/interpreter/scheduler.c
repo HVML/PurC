@@ -106,10 +106,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 
     if (frame) {
         pcintr_coroutine_set_state(co, CO_STATE_READY);
-        if (co->execution_pending == 0) {
-            co->execution_pending = 1;
-            //pcintr_wakeup_target(co, run_ready_co);
-        }
         return;
     }
 
@@ -184,9 +180,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         pcintr_notify_to_stop(co);
     }
 
-    if (co->msg_pending) {
-        return;
-    }
 
 // #define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
@@ -251,7 +244,6 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
     pcintr_set_current_co(co);
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->execution_pending = 0;
     pcintr_execute_one_step_for_ready_co(co);
     pcintr_check_after_execution_full(inst, co);
 
