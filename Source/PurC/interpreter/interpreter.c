@@ -462,7 +462,6 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         loaded_vars_release(co);
-        PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
 
@@ -1768,8 +1767,6 @@ void pcintr_set_exit(purc_variant_t val)
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
-    PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
-    co->val_from_return_or_exit = purc_variant_ref(val);
     PURC_VARIANT_SAFE_CLEAR(co->result->result);
     co->result->result = purc_variant_ref(val);
 
@@ -1856,9 +1853,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail_co;
     }
     co->result->result = purc_variant_make_undefined();
-
-    co->val_from_return_or_exit = purc_variant_make_undefined();
-    PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
     if (set_coroutine_id(co)) {
         goto fail_co_result;

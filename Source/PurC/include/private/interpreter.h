@@ -269,7 +269,6 @@ struct pcintr_coroutine {
 
     pcintr_coroutine_result_t   result;
 
-    purc_variant_t              val_from_return_or_exit;
     const char                 *error_except;
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
