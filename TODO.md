@@ -60,6 +60,8 @@
 
 1. 增加、调整或补充预定义变量的实现：
    - ~~`$CRTN`~~
+   - `$CRTN` 上支持 `rdrState:closed` 事件：协程对应的渲染器页面被用户关闭。
+   - `$CRTN` 上支持 `rdrState:lost` 事件：协程所在行者丢失渲染器的连接。
    - ~~完善 `$MATH.eval` 和 `$MATH.eval_l` 对函数及常量的支持（见预定义变量规范）。~~
    - ~~`$SYSTEM` 更名为 `$SYS`~~
    - ~~`$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）~~
@@ -67,6 +69,7 @@
    - ~~`$REQUEST` 更名为 `$REQ`~~
    - ~~实现 `$EJSON.arith` 和 `$EJSON.bitwise` 方法~~
    - ~~实现 `$STR.nr_bytes` 方法~~
+   - 实现 `$CRTN.native_crtn` 方法，返回给定 `cid` 的一个可观察原生实体，随后可用于观察子协程的退出或终止。
 1. 评估并合并如下预定义变量的实现：
    - `$FS`
    - `$FILE`
@@ -123,7 +126,7 @@
 1. 渲染器对接：
    - ~~HVML 协程对应的页面类型为 `_null` 时，不创建页面，不同步 eDOM 的更新信息。~~
    - ~~增强 PURCMC 协议，用于区分普通文本或标记文本。~~
-   - 支持页面名称为 `_inherit` 以及 `_self` 的情形。
+   - ~~支持页面名称为 `_inherit` 以及 `_self` 的情形。~~
 
 ### 1.6) 其他
 
@@ -133,6 +136,11 @@
    - API 描述
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
 1. 文档整理。
+1. 解决现有测试用例暴露出的缺陷：
+   - `test/interpreter/comp/00-fibonacci-void-temp.hvml`：在 `init` 中使用 `#theBody` 作为 `at` 属性值时，解释器报错。
+   - `test/interpreter/comp/00-fibonacci-void-temp.hvml`：在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。但目前被当做字符串处理。
+   - `test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串，结果不正常。如果删除 `$ARGS.pcid` 之后的空格，会报解析错误。
+   - `purc` 命令行：HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，理论上应该处理为一个文本节点？
 
 ## 过往（202206）
 

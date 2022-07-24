@@ -64,6 +64,8 @@
 #define PCRDR_REQUESTID_NORETURN        "-"
 #define PCRDR_SOURCEURI_ANONYMOUS       "-"
 
+#define PCRDR_DEFAULT_WORKSPACE         "main"
+
 /* operations */
 enum {
     PCRDR_K_OPERATION_FIRST = 0,

@@ -749,8 +749,10 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     uint64_t page;
     page = pcintr_rdr_create_page(conn_to_rdr, workspace,
             page_type, target_group, page_name,
-            extra_info->title, extra_info->klass,
-            extra_info->layout_style, extra_info->toolkit_style);
+            extra_info ? extra_info->title : NULL,
+            extra_info ? extra_info->klass : NULL,
+            extra_info ? extra_info->layout_style : NULL,
+            extra_info ? extra_info->toolkit_style : NULL);
     if (!page) {
         purc_log_error("Failed to create page: %s.\n", page_name);
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
@@ -868,7 +870,6 @@ failed:
 }
 
 static const char *rdr_ops[] = {
-    "",     // unknown
     PCRDR_OPERATION_APPEND,
     PCRDR_OPERATION_PREPEND,
     PCRDR_OPERATION_INSERTBEFORE,
@@ -877,6 +878,7 @@ static const char *rdr_ops[] = {
     PCRDR_OPERATION_UPDATE,
     PCRDR_OPERATION_ERASE,
     PCRDR_OPERATION_CLEAR,
+    "",     // unknown
 };
 
 pcrdr_msg *

@@ -36,7 +36,7 @@
 #include <unistd.h>
 
 #define KEY_APP_NAME            "app"
-#define DEF_APP_NAME            "cn.fmsoft.html.purc"
+#define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
 
 #define KEY_RUN_NAME            "runner"
 #define DEF_RUN_NAME            "main"
@@ -121,7 +121,7 @@ static void print_usage(FILE *fp)
         "The following options can be supplied to the command:\n"
         "\n"
         "  -a --app=< app_name >\n"
-        "        Run with the specified app name (default value is `cn.fmsoft.html.purc`).\n"
+        "        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).\n"
         "\n"
         "  -r --runner=< runner_name >\n"
         "        Run with the specified runner name (default value is `main`).\n"
@@ -926,8 +926,9 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
             if (opts->verbose) {
-                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]\n",
-                        url, (unsigned)i);
+                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
+                        url, (unsigned)i,
+                        purc_get_error_message(purc_get_last_error()));
             }
             continue;
         }
@@ -1109,8 +1110,17 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         if (crtn_info->opts->verbose) {
             struct purc_cor_exit_info *exit_info = data;
 
-            fprintf(stdout, "\nThe execute result: \n");
+            unsigned opt = 0;
 
+            opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+            opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+
+            fprintf(stdout, "\nThe document generated: \n");
+            purc_document_serialize_contents_to_stream(exit_info->doc,
+                    opt, crtn_info->run_info->dump_stm);
+            fprintf(stdout, "\n");
+
+            fprintf(stdout, "\nThe execute result: \n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
                         crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
@@ -1146,7 +1156,8 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         }
         else {
             if (opts->verbose)
-                fprintf(stderr, "Failed to load HVML from %s\n", url);
+                fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
+                        purc_get_error_message(purc_get_last_error()));
         }
     }
 
@@ -1197,20 +1208,32 @@ int main(int argc, char** argv)
 
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
         opts->rdr_prot = "headless";
-        extra_info.renderer_prot = PURC_RDRPROT_HEADLESS;
 
+        extra_info.renderer_prot = PURC_RDRPROT_HEADLESS;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_HEADLESS);
         }
+
     }
     else {
-        assert(strcmp(opts->rdr_prot, "purcmc") == 0);
+        if (strcmp(opts->rdr_prot, "purcmc")) {
+            if (opts->verbose) {
+                fprintf(stdout, "Unknown renderer protocol: %s\n",
+                        opts->rdr_prot);
+                print_usage(stdout);
+            }
+
+            my_opts_delete(opts, true);
+            return EXIT_FAILURE;
+        }
 
         extra_info.renderer_prot = PURC_RDRPROT_PURCMC;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_PURCMC);
         }
     }
+
+    extra_info.renderer_uri = opts->rdr_uri;
 
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);

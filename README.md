@@ -226,7 +226,7 @@ the terminal. So we can open the genenrated HTML file in a web browser.
 
 Therefore, we enhance `hello-10.hvml` once more:
 
-```html
+```
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
@@ -246,43 +246,77 @@ Therefore, we enhance `hello-10.hvml` once more:
 and save the contents in `hello-html.hvml` file. Note that there are two key
 differences:
 
-1. The value of `target` attribute of `hvml` element changes to `html`.
+1. The value of `target` attribute of `hvml` element changed to `html`.
 1. We used HTML tags such as `head`, `body`, `ul`, and `li`.
 
-If we run `hello-html.hvml` program by using `purc`, we need to specify some
-information about renderer. By default, `purc` uses the renderer called
-`HEADLESS`. This renderer just prints the generated HTML contents to a file:
+If you run `hello-html.hvml` program by using `purc` without any option, `purc`
+will use the renderer called `HEADLESS`. This renderer will record the messages
+sent by PurC to the renderer to a local file, and you will see nothing on your
+terminal. You can use the option `--verbose` to show the HTML contents generated
+by the HVML program:
 
 ```bash
-    $ purc --rdr-uri=file:///tmp/hello.html hello-html.hvml
+    $ purc -s hello-html.hvml
 ```
 
-In the above command line, we use `--rdr-uri` to specify the file.
+The command will give you the following output:
 
-After running the command, the contents in `/tmp/hello.html` looks like:
+```
+purc 0.2.0
+Copyright (C) 2022 FMSoft Technologies.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 
-```html
-<!DOCTYPE html>
+Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/hello-html.hvml`:
+
+
+The document generated:
 <html>
-    <head>
-        <title>Hello, world!</title>
-    <head>
-
-    <body>
-        <ul>
-            <li>0) Hello, world! -- from COROUTINE-3</li>
-            <li>1) Hello, world! -- from COROUTINE-3</li>
-            <li>2) Hello, world! -- from COROUTINE-3</li>
-            <li>3) Hello, world! -- from COROUTINE-3</li>
-            <li>4) Hello, world! -- from COROUTINE-3</li>
-            <li>5) Hello, world! -- from COROUTINE-3</li>
-            <li>6) Hello, world! -- from COROUTINE-3</li>
-            <li>7) Hello, world! -- from COROUTINE-3</li>
-            <li>8) Hello, world! -- from COROUTINE-3</li>
-            <li>9) Hello, world! -- from COROUTINE-3</li>
-        </ul>
-    </body>
+  <head>
+    <title>
+      Hello, world!
+    </title>
+  </head>
+  <body>
+    <ul>
+      <li>
+        0) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        1) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        2) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        3) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        4) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        5) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        6) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        7) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        8) Hello, world! --from COROUTINE-3
+      </li>
+      <li>
+        9) Hello, world! --from COROUTINE-3
+      </li>
+    </ul>
+  </body>
 </html>
+
+
+The execute result:
+null
 ```
 
 You can also direct `purc` to connect to a real renderer, for example, `xGUI Pro`.
@@ -291,10 +325,68 @@ It is an advanced HVML renderer based on WebKit.
 Assume that you have installed xGUI Pro on your system (please refer to
 <https://github.com/HVML/xgui-pro> for detailed instructions to install xGUI Pro),
 you can run `purc` with the following options to show the ultimate HTML contents
-in a window of xGUI Pro:
+in a window of xGUI Pro.
+
+However, we need to enhace the HVML program once more, in order that the program
+will not exit immediately after generated the HTML contents. Otherwise,
+the window craeted by xGUI Pro for this HVML program will disappeared
+after `purc` exited.
+
+We enhance `hello-html.hvml` to install a timer and update the document and
+save it as `hello-html-timer.hvml`:
+
+```
+#!/usr/local/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>Hello, world!</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <h1>Hello, world!</h1>
+        <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
+
+        <ul>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+
+        <observe on $TIMERS for "expired:clock">
+            <update on "#clock" at "textContent" to "displace" with "$DATETIME.time_prt()" />
+        </observe>
+
+    </body>
+</hvml>
+```
+
+Now you can start xGUI Pro from another terminal and run `purc` with the following options:
 
 ```bash
-    $ purc --rdr-protocol=purcmc hello-html.hvml
+    $ purc --rdr-prot=purcmc hello-html-timer.hvml
+```
+
+You will see that the contents in a window of xGUI Pro created by `hello-html-timer.hvml`.
+
+For a complete HVML program which gives a better experience, you can try to run
+the Arbitrary Precision Calculator which uses HTML5 and CSS3.
+
+```
+Source/Samples/hvml/calculator-bc.hvml
+```
+
+Or the Planetary Resonance which uses SVG:
+
+```
+Source/Samples/hvml/planetary-resonance.hvml
 ```
 
 You can see the all options supported by `purc` when you run `purc` with `-h` option:
@@ -553,8 +645,8 @@ For the coding style, please refer to [HybridOS-Code-and-Development-Convention]
 
 ## Authors and Contributors
 
-- Vincent Wei
-- Nine Xue
+- WEI Yongming
+- XUE Shuming
 - XU Xiaohong
 - LIU Xin
 - GENG Yue
