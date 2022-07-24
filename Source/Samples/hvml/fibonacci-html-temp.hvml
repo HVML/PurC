@@ -1,0 +1,42 @@
+#!/user/bin/purc
+
+# RESULT: [ 18, 1597L ]
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>Fibonacci Numbers</title>
+    </head>
+
+    <body id="theBody">
+        <h1>Fibonacci Numbers less than 2000</h1>
+
+        <init as "count" at "_topmost" with 2 temp />
+        <init as "last_one" with 0L temp />
+        <init as "last_two" with 1L temp />
+
+        <ol>
+            <li>$last_one</li>
+            <li>$last_two</li>
+
+            <iterate on $last_two onlyif $L.lt($0<, 2000L) with $EJSON.arith('+', $0<, $last_one) nosetotail >
+                <init as "last_one" at "3" with $last_two temp />
+                <init as "last_two" at "3" with $? temp />
+                <!-- init as "last_two" at "#theBody" with $? temp / -->
+
+                <update on "$4!" at ".count" to "displace" with += 1 />
+
+                <li>$?</li>
+            </iterate>
+        </ol>
+
+        <p>Totally $count numbers</p>
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with [$count, $last_two] />
+        </observe>
+
+    </body>
+
+</hvml>
+

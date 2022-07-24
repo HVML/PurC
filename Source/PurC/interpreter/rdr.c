@@ -870,7 +870,6 @@ failed:
 }
 
 static const char *rdr_ops[] = {
-    "",     // unknown
     PCRDR_OPERATION_APPEND,
     PCRDR_OPERATION_PREPEND,
     PCRDR_OPERATION_INSERTBEFORE,
@@ -879,6 +878,7 @@ static const char *rdr_ops[] = {
     PCRDR_OPERATION_UPDATE,
     PCRDR_OPERATION_ERASE,
     PCRDR_OPERATION_CLEAR,
+    "",     // unknown
 };
 
 pcrdr_msg *

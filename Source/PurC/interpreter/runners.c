@@ -332,7 +332,8 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
 
     int ret = purc_inst_holding_messages_count(&n);
     if (ret) {
-        purc_log_error("Failed: %d\n", ret);
+        purc_log_error("Failed purc_inst_holding_messages_count(): %s(%d)\n",
+                purc_get_error_message(ret), ret);
     }
     else if (n > 0) {
         return purc_inst_take_away_message(0);
