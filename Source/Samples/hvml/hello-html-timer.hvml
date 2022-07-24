@@ -1,0 +1,30 @@
+#!/usr/local/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>Hello, world!</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <h1>Hello, world!</h1>
+        <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
+
+        <ul>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+
+        <observe on $TIMERS for "expired:clock">
+            <update on "#clock" at "textContent" to "displace" with "$DATETIME.time_prt()" />
+        </observe>
+
+    </body>
+</hvml>

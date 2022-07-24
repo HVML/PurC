@@ -10,7 +10,7 @@ set(sample_HVML_FILES
     "hvml/hello.hvml"
     "hvml/hello-10.hvml"
     "hvml/hello-html.hvml"
-    "hvml/hello-html-sleep.hvml"
+    "hvml/hello-html-timer.hvml"
     "hvml/fibonacci-void-temp.hvml"
     "hvml/calculator-bc.hvml"
     "hvml/planetary-resonance.hvml"

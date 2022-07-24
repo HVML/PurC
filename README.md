@@ -327,28 +327,43 @@ Assume that you have installed xGUI Pro on your system (please refer to
 you can run `purc` with the following options to show the ultimate HTML contents
 in a window of xGUI Pro.
 
-However, we need to enhace the HVML program, in order that the program will not
-exit immediately after generated the HTML contents. Otherwise, the window craeted
-by xGUI Pro for this HVML program will disappeared after `purc` exited.
+However, we need to enhace the HVML program once more, in order that the program
+will not exit immediately after generated the HTML contents. Otherwise,
+the window craeted by xGUI Pro for this HVML program will disappeared
+after `purc` exited.
 
-We enhance `hello-html.hvml` to sleep 10 seconds and save it as
-`hello-html-sleep.hvml`:
+We enhance `hello-html.hvml` to install a timer and update the document and
+save it as `hello-html-timer.hvml`:
 
 ```
+#!/usr/local/bin/purc
+
 <!DOCTYPE hvml>
 <hvml target="html">
     <head>
         <title>Hello, world!</title>
-    <head>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
 
     <body>
+        <h1>Hello, world!</h1>
+        <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
+
         <ul>
-            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) >
-                <li>$?) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>
 
-        <sleep for "10s" />
+        <observe on $TIMERS for "expired:clock">
+            <update on "#clock" at "textContent" to "displace" with "$DATETIME.time_prt()" />
+        </observe>
+
     </body>
 </hvml>
 ```
@@ -356,10 +371,10 @@ We enhance `hello-html.hvml` to sleep 10 seconds and save it as
 Now you can start xGUI Pro from another terminal and run `purc` with the following options:
 
 ```bash
-    $ purc --rdr-prot=purcmc hello-html-sleep.hvml
+    $ purc --rdr-prot=purcmc hello-html-timer.hvml
 ```
 
-You will see that the contents in a window created by `hello-html-sleep.hvml`.
+You will see that the contents in a window of xGUI Pro created by `hello-html-timer.hvml`.
 
 For a complete HVML program which gives a better experience, you can try to run
 the Arbitrary Precision Calculator which uses HTML5 and CSS3.
