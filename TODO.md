@@ -60,6 +60,8 @@
 
 1. 增加、调整或补充预定义变量的实现：
    - ~~`$CRTN`~~
+   - `$CRTN` 上支持 `rdrState:closed` 事件：协程对应的渲染器页面被用户关闭。
+   - `$CRTN` 上支持 `rdrState:lost` 事件：协程所在行者丢失渲染器的连接。
    - ~~完善 `$MATH.eval` 和 `$MATH.eval_l` 对函数及常量的支持（见预定义变量规范）。~~
    - ~~`$SYSTEM` 更名为 `$SYS`~~
    - ~~`$SESSION` 更名为 `$RUNNER`（`sid` 属性更名为 `rid`）~~
