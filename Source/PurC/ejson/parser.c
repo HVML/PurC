@@ -556,9 +556,11 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         }
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACKET);
     }
+#if 0
     if (character == '<' || character == '>') {
         RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
     }
+#endif
     if (character == '/') {
         if (ejson_stack_is_empty() && parser->vcm_node) {
             RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
