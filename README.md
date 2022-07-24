@@ -43,13 +43,16 @@ The goal of PurC is to implement all features defined by [HVML Specifiction V1.0
 and all predefined dynamic variables defined by [HVML Predefined Variables V1.0]
 in C language.
 
-For more information about HVML, please refer to the article
-_HVML, a Programable Markup Language_:
+For more information about HVML, please refer to the article:
 
-- [Link on GitHub](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
-- [Link on GitLab](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/en/an-introduction-to-hvml-en.md)
+- [HVML, a Programable Markup Language](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
 
-You can use PurC to run a HVML program or an HVML app by using the command line
+To learn the basic concepts and methods of HVML programming, please refer to
+the following simple tutorial:
+
+- [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
+
+You can use PurC to run an HVML program or an HVML app by using the command line
 tool `purc`, or use PurC as a library to build your own HVML interpreter.
 We release PurC under LGPLv3, so it is free for commercial use if you follow
 the conditions and terms of LGPLv3.
@@ -57,7 +60,7 @@ the conditions and terms of LGPLv3.
 By now, PurC provides support for Linux and macOS. The support for Windows is
 on the way. We welcome anyone to port PurC to other platforms.
 
-For documents and open source tools related to HVML, please refer to the
+For specifications and open source software related to HVML, please refer to the
 following repositories:
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
