@@ -696,6 +696,10 @@ pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result);
 purc_variant_t
 pcintr_coroutine_get_result(pcintr_coroutine_t co);
 
+bool
+pcintr_is_variable_token(const char *str);
+
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */

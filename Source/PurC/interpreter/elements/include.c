@@ -87,6 +87,20 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         int r = pcintr_set_question_var(frame, ctxt->on);
         if (r)
             return -1;
+
+        if (purc_variant_is_object(ctxt->on)) {
+            purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+            purc_variant_t k, v;
+            foreach_key_value_in_variant_object(ctxt->on, k, v)
+                const char *key = purc_variant_get_string_const(k);
+                if (pcintr_is_variable_token(key)) {
+                    bool ok = purc_variant_object_set(exclamation, k, v);
+                    if (!ok) {
+                        return -1;
+                    }
+                }
+            end_foreach;
+        }
     }
 
     ctxt->define = define;

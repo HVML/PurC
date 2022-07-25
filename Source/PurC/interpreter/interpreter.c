@@ -57,6 +57,7 @@
 
 
 #define COROUTINE_PREFIX    "COROUTINE"
+#define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -3435,5 +3436,11 @@ pcintr_coroutine_get_result(pcintr_coroutine_t co)
     }
     PC_ASSERT(0);
     return PURC_VARIANT_INVALID; // NOTE: never reached here!!!
+}
+
+bool
+pcintr_is_variable_token(const char *str)
+{
+    return pcregex_is_match(HVML_VARIABLE_REGEX, str);
 }
 
