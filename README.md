@@ -80,6 +80,11 @@ on your Linux or macOS system:
 1. GCC 8.0 or later.
 1. glib 2.44.0 or later.
 
+Althrough the port for Windows is still on the way, it is possible to build
+PurC on Windows 10 version 2004 or later: you can install WSL (Windows Subsystem for Linux)
+and a Linux distribution, e.g., Ubuntu, on your Windows system, then build PurC
+in Ubuntu environment.
+
 ### Building steps
 
 We assume that you are using Linux.
@@ -109,13 +114,13 @@ Note that this command uses the following options:
 You can also use the following commands to build and install PurC step by step:
 
 ```
-    $ cd <path/to/the/root/of/the/source/tree/of/PurC>
-    $ rm -rf build/
-    $ mkdir build/
-    $ cd build/
-    $ cmake -DCMAKE_BUILD_TYPE=Release -DPORT=Linux
-    $ make -j4
-    $ sudo make install
+$ cd <path/to/the/root/of/the/source/tree/of/PurC>
+$ rm -rf build/
+$ mkdir build/
+$ cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release -DPORT=Linux
+$ make -j4
+$ sudo make install
 ```
 
 By default, the above commands will build PurC and install the headers,
@@ -144,34 +149,34 @@ first HVML program in your working directory:
 To run this HVML program, you can use `purc` in the following way:
 
 ```bash
-    $ purc hello.hvml
+$ purc hello.hvml
 ```
 
 You will see that your first HVML program prints `Hello, world!`
 on your terminal and quit:
 
 ```
-    Hello, world!
+Hello, world!
 ```
 
 You can also run this HVML program directly as a script if you prepend the
 following line as the first line in your HVML program:
 
 ```
-    #!/usr/local/bin/purc
+#!/usr/local/bin/purc
 ```
 
 After this, run the following command to change the mode of the file to have
 the execute permission:
 
 ```bash
-    $ chmod +x hello.hvml
+$ chmod +x hello.hvml
 ```
 
 then run `hello.hvml` directly from the command line:
 
 ```bash
-    $ ./hello.hvml
+$ ./hello.hvml
 ```
 
 ### Run multiple HVML programs in parallel
@@ -195,31 +200,33 @@ the two program as two coroutines in parallel by specifying the command line
 flag `-l`:
 
 ```bash
-    $ purc -l hello-10.hvml hello-10.hvml
+$ purc -l hello-10.hvml hello-10.hvml
 ```
 
 You will see the following output on your terminal:
 
-    0) Hello, world! -- from COROUTINE-3
-    0) Hello, world! -- from COROUTINE-4
-    1) Hello, world! -- from COROUTINE-3
-    1) Hello, world! -- from COROUTINE-4
-    2) Hello, world! -- from COROUTINE-3
-    2) Hello, world! -- from COROUTINE-4
-    3) Hello, world! -- from COROUTINE-3
-    3) Hello, world! -- from COROUTINE-4
-    4) Hello, world! -- from COROUTINE-3
-    4) Hello, world! -- from COROUTINE-4
-    5) Hello, world! -- from COROUTINE-3
-    5) Hello, world! -- from COROUTINE-4
-    6) Hello, world! -- from COROUTINE-3
-    6) Hello, world! -- from COROUTINE-4
-    7) Hello, world! -- from COROUTINE-3
-    7) Hello, world! -- from COROUTINE-4
-    8) Hello, world! -- from COROUTINE-3
-    8) Hello, world! -- from COROUTINE-4
-    9) Hello, world! -- from COROUTINE-3
-    9) Hello, world! -- from COROUTINE-4
+```
+0) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
+1) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-3
+2) Hello, world! -- from COROUTINE-4
+3) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-3
+4) Hello, world! -- from COROUTINE-4
+5) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-3
+6) Hello, world! -- from COROUTINE-4
+7) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-3
+8) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-3
+9) Hello, world! -- from COROUTINE-4
+```
 
 In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine
 identifier allocated by PurC for two running instances of the program.
@@ -230,27 +237,27 @@ If you do not use the flag `-l` in the command line, `purc` will run the program
 one by one:
 
 ```
-    $ purc hello-10.hvml hello-10.hvml
-    0) Hello, world! -- from COROUTINE-3
-    1) Hello, world! -- from COROUTINE-3
-    2) Hello, world! -- from COROUTINE-3
-    3) Hello, world! -- from COROUTINE-3
-    4) Hello, world! -- from COROUTINE-3
-    5) Hello, world! -- from COROUTINE-3
-    6) Hello, world! -- from COROUTINE-3
-    7) Hello, world! -- from COROUTINE-3
-    8) Hello, world! -- from COROUTINE-3
-    9) Hello, world! -- from COROUTINE-3
-    0) Hello, world! -- from COROUTINE-4
-    1) Hello, world! -- from COROUTINE-4
-    2) Hello, world! -- from COROUTINE-4
-    3) Hello, world! -- from COROUTINE-4
-    4) Hello, world! -- from COROUTINE-4
-    5) Hello, world! -- from COROUTINE-4
-    6) Hello, world! -- from COROUTINE-4
-    7) Hello, world! -- from COROUTINE-4
-    8) Hello, world! -- from COROUTINE-4
-    9) Hello, world! -- from COROUTINE-4
+$ purc hello-10.hvml hello-10.hvml
+0) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-3
+2) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-3
+4) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-3
+6) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-3
+8) Hello, world! -- from COROUTINE-3
+9) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-4
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-4
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-4
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-4
 ```
 
 ### Use HVML renderer
@@ -354,7 +361,7 @@ Assume that you have started xGUI Pro from another terminal and run `purc` with 
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp.hvml`:
 
-![fibonacci-html-temp](images/fibonacci-html-temp.png)
+![fibonacci-html-temp](Documents/screenshots/fibonacci-html-temp.png)
 
 For a complete HVML program which gives a better experience, you can try to run
 another sample called `hvml/calculator-bc.hvml`, which implements
@@ -364,7 +371,7 @@ an arbitrary precision calculator:
     $ purc -p purcmc hvml/calculator-bc.hvml
 ```
 
-![the Arbitrary Precision Calculator](images/calculator-bc.png)
+![the Arbitrary Precision Calculator](Documents/screenshots/calculator-bc.png)
 
 Or run `hvml/planetary-resonance.hvml`, which shows the Planetary Resonance:
 
@@ -372,7 +379,7 @@ Or run `hvml/planetary-resonance.hvml`, which shows the Planetary Resonance:
     $ purc -p purcmc hvml/planetary-resonance.hvml
 ```
 
-![the Planetary Resonance](images/planetary-resonance.png)
+![the Planetary Resonance](Documents/screenshots/planetary-resonance.png)
 
 ### Options for `purc`
 
