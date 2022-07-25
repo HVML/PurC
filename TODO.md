@@ -1,20 +1,20 @@
 # TODO List
 
-## 0) 长期
+## 0) Long-Term
 
-### 0.1) 变体
+### 0.1) Variants
 
-1. 实现新的线性容器类型元组（tuple）。
-1. 使用独立的数据结构处理变体的监听器等信息，从而降低变体数据结构的尺寸。
+1. Support for new variant type: tuple.
+1. Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of variant structure.
 
-### 0.2) eJSON 解析和求值
+### 0.2) eJSON Parsing and Evaluating
 
-1. 支持元组。
+1. Support for Tuple
 
-### 0.3) 预定义变量
+### 0.3) Predefined Varaibles
 
-1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
-1. 完善如下变量的实现：
+1. In the implementationi of predefined variables, use the interfaces for linear container instead of array.
+1. Finish the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -22,33 +22,33 @@
 
 ### 0.2) eDOM
 
-1. 优化元素汇集原生实体的实现，使之符合 CSS Selector Level 3 的规范要求。
+1. Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
+1. Support for the new tarege document type: `plain` and/or `markdown`.
 
-### 0.4) 解释器
+### 0.4) Interpreter
 
-1. 为方便协程间协作，增加对通道的支持，提供同步读写（阻塞协程）和异步读写方式。
-1. 实现 `request` 标签。
-1. 在 `archetype` 标签中使用 `type` 指定内容的类型，如 `plain`、 `html`、 `xgml`、 `svg`、`mathml` 等。
-1. `in` 属性支持使用 CSS 选择器限定当前文档位置的写法。
-1. `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
-1. `init`、 `bind` 等创建变量的标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
-1. 检查所有动作元素的实现，确保具有合理的结果数据：
-   - 设定 `init` 动作元素的结果数据同绑定的变量数据。
-1. `update` 标签。
-   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
-   - `at` 属性支持 `content`。
-   - `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
-   - `update` 元素可根据模板类型做相应的处理，比如支持命名空间。
-1. 完善如下标签从外部数据源获取数据的功能：
-   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
-   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-1. 不可捕获错误的产生及处理机制：
-   - `error` 标签支持 `type` 属性。
+1. Provide support for channel, which can act as an inter-coroutine communication mechanism.
+1. Implement the element `request`.
+1. Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.
+1. Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.
+1. Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. Review the implementation of all elements.
+1. Improve the implementation of the element `update`:
+   - The value of the attribute `to` can be `prepend`, `remove`, `insertBefore`,  `insertAfter`, `intersect`, `subtract`, and `xor`.
+   - The value of the attribute `at` can be `content`.
+   - The support for the adverb attribute `individually`.
+   - The support for the attribute `type` of the element `archetype`.
+1. Improve the function to get data from remote data fetcher:
+   - The element `archetype`: support for `src`, `param`, and `method` attributes.
+   - The element `archedata`: support for `src`, `param`, and `method` attributes.
+   - The element `execpt`: support for `src`, `param`, and `method` attributes.
+   - The element `init`: support for `from`, `with`, and `via` attrigbutes.
+   - The element `define`: support for `from`, `with`, and `via` attributes.
+   - The element `update`: support for `from`, `with`, and `via` attributes.
+1. The generation and handling mechanism of uncatchable errors:
+   - Support for the element `error`.
+   - The element `error`: support for `src`, `param`, and `method` attributes.
 
 ## 1) 当前（202207）
 

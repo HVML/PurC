@@ -616,18 +616,19 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 
 ### TODO List
 
-1. HVML 1.0 Features not implemented yet:
-    - Support for `channel` like Go.
+1. HVML 1.0 Features not implemented yet.
+1. HVML 1.0 Predefined Variables not implemented yet.
 1. More tests or test cases.
 1. More samples.
 1. Port PurC to Windows.
 
-For the community conduct, please refer to [Code of Conduct](CODE_OF_CONDUCT.md).
-
-For the coding style, please refer to [Code and Development Convention](CODE_AND_DEVELOPMENT_CONVENTION.md).
+For detailed TODO list, please see [TODO List](TODO.md).
 
 ### Other documents
 
+For the community conduct, please refer to [Code of Conduct](Documents/CODE_OF_CONDUCT.md).
+
+For the coding style, please refer to [Coding Convention](Documents/CODING_CONVENTION.md).
 
 ## Authors and Contributors
 
