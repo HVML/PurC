@@ -97,8 +97,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (outmost) {
-        PURC_VARIANT_SAFE_CLEAR(co->result->result);
-        co->result->result = purc_variant_ref(ctxt->with);
+        pcintr_coroutine_set_result(co, ctxt->with);
     }
     else {
         if (ctxt->with != PURC_VARIANT_INVALID) {

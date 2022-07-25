@@ -229,14 +229,14 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             purc_variant_unref(request_id);
         }
         else {
-            PC_ASSERT(co->result->result);
             // XXX: curator may live in another thread!
+            purc_variant_t result = pcintr_coroutine_get_result(co);
             purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     PURC_VARIANT_INVALID,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
-                    co->result->result, request_id);
+                    result, request_id);
             purc_variant_unref(request_id);
         }
     }

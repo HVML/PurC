@@ -241,7 +241,6 @@ struct pcintr_msg {
 
 struct pcintr_coroutine_result {
     purc_variant_t              as;
-    purc_variant_t              result;
     struct list_head            node;     /* parent:children */
 };
 
@@ -697,6 +696,12 @@ pcintr_coroutine_get_uri(pcintr_coroutine_t co)
 
 void
 pcintr_schedule(void *ctxt);
+
+void
+pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result);
+
+purc_variant_t
+pcintr_coroutine_get_result(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

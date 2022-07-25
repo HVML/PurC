@@ -376,7 +376,6 @@ coroutine_release(pcintr_coroutine_t co)
 
         if (co->result) {
             PURC_VARIANT_SAFE_CLEAR(co->result->as);
-            PURC_VARIANT_SAFE_CLEAR(co->result->result);
             free(co->result);
         }
 
@@ -1580,25 +1579,12 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
-    if (purc_variant_is_undefined(co->result->result)) {
-        struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
-        if (frame) {
-            pcvdom_element_t elem = frame->pos;
-            if (elem && elem->tag_id == PCHVML_TAG_HVML) {
-                purc_variant_t v = pcintr_get_question_var(frame);
-                if (!purc_variant_is_undefined(v)) {
-                    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-                    co->result->result = v;
-                    purc_variant_ref(co->result->result);
-                }
-            }
-        }
-    }
+    purc_variant_t result = pcintr_coroutine_get_result(co);
 
     if (heap->cond_handler) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
-            co->result ? co->result->result : PURC_VARIANT_INVALID,
+            result,
             stack->doc };
         heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
@@ -1613,7 +1599,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                 element_value,
                 MSG_TYPE_SUB_EXIT, NULL,
-                co->result->result, PURC_VARIANT_INVALID);
+                result, PURC_VARIANT_INVALID);
         purc_variant_unref(element_value);
 
     }
@@ -1766,8 +1752,7 @@ void pcintr_set_exit(purc_variant_t val)
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(val);
+    pcintr_coroutine_set_result(co, val);
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
@@ -1850,7 +1835,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fail_co;
     }
-    co->result->result = purc_variant_make_undefined();
 
     if (set_coroutine_id(co)) {
         goto fail_co_result;
@@ -3426,5 +3410,41 @@ pcintr_util_set_attribute(purc_document_t doc,
     }
 
     return 0;
+}
+
+void
+pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result)
+{
+    if (!result) {
+        return;
+    }
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        PC_ASSERT(0);
+        return;  // NOTE: never reached here!!!
+    }
+    pcintr_set_question_var(frame, result);
+}
+
+purc_variant_t
+pcintr_coroutine_get_result(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (frame) {
+        return pcintr_get_question_var(frame);
+    }
+    PC_ASSERT(0);
+    return PURC_VARIANT_INVALID; // NOTE: never reached here!!!
 }
 
