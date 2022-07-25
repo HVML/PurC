@@ -1580,6 +1580,21 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
+    if (purc_variant_is_undefined(co->result->result)) {
+        struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+        if (frame) {
+            pcvdom_element_t elem = frame->pos;
+            if (elem && elem->tag_id == PCHVML_TAG_HVML) {
+                purc_variant_t v = pcintr_get_question_var(frame);
+                if (!purc_variant_is_undefined(v)) {
+                    PURC_VARIANT_SAFE_CLEAR(co->result->result);
+                    co->result->result = v;
+                    purc_variant_ref(co->result->result);
+                }
+            }
+        }
+    }
+
     if (heap->cond_handler) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
