@@ -1,0 +1,15 @@
+#!/user/bin/purc
+
+# RESULT: [0, 2, 4, 6, 8 ]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <init as "evenNumbers" with [0] >
+        <iterate onlyif $L.lt($evenNumbers[-1], 8L) with $EJSON.arith('+', $evenNumbers[-1], 2) >
+            <update on $evenNumbers to "append" with $? />
+        </iterate>
+    </init>
+
+    <exit with $evenNumbers />
+</hvml>
+

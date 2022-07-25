@@ -15,7 +15,7 @@ Current time: 00:05
 Current time: 00:03
 Current time: 00:00
 
-I slept for 50 seconds totally
+I slept for 5 seconds totally
 -->
 
 <!DOCTYPE hvml>
@@ -24,7 +24,7 @@ I slept for 50 seconds totally
     <init as startTime with $SYS.time />
 
     <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
-        <sleep with $SYS.random(5.0) >
+        <sleep with $SYS.random(1.0) >
             $STREAM.stdout.writelines($STR.join('Current time: ',
                         $DATETIME.fmttime("%H:%M:%S")))
         </sleep>
