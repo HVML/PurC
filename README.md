@@ -490,8 +490,8 @@ the initial HVML programs to run as coroutines in different runners.
 Assume that you prepare all HVML programs and save the above JSON as
 `cn.fmsoft.hvml.sample.json`, you can run `purc` in the following way:
 
-```
-    $ purc cn.fmsoft.hvml.sample.json
+```bash
+$ purc cn.fmsoft.hvml.sample.json
 ```
 
 Note that, when running an app in this way, you can access the command line
@@ -657,10 +657,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Note that the software in `Source/Tools/` may use other open source licenses.
-Please refer the COPYING file or LICENSE file for the licenses in
-the source directories under `Source/Tools/`.
-
 ### ExtDVObjs/fs
 
 Copyright (C) 2022 LIU Xin
@@ -678,9 +674,25 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Note that the software in `Source/Tools/` may use other open source licenses.
-Please refer the COPYING file or LICENSE file for the licenses in
-the source directories under `Source/Tools/`.
+### purc
+
+Copyright (C) 2022 [FMSoft Technologies]
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+### Others
+
 
 ## Tradmarks
 
