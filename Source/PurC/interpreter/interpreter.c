@@ -374,11 +374,8 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
-        if (co->result) {
-            PURC_VARIANT_SAFE_CLEAR(co->result->as);
-            PURC_VARIANT_SAFE_CLEAR(co->result->result);
-            free(co->result);
-        }
+        PURC_VARIANT_SAFE_CLEAR(co->param_as);
+        PURC_VARIANT_SAFE_CLEAR(co->param_with);
 
         struct list_head *children = &co->children;
         struct list_head *p, *n;
@@ -462,7 +459,6 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         loaded_vars_release(co);
-        PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
 
@@ -908,9 +904,6 @@ static struct pcintr_stack_frame_pseudo*
 push_stack_frame_pseudo(pcintr_stack_t stack,
         pcvdom_element_t vdom_element)
 {
-    PC_ASSERT(list_empty(&stack->frames));
-    PC_ASSERT(stack->nr_frames == 0);
-
     PC_ASSERT(vdom_element);
 
     struct pcintr_stack_frame_pseudo *frame_pseudo;
@@ -962,14 +955,6 @@ pcintr_pop_stack_frame_pseudo(void)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->nr_frames == 1);
-
-    struct list_head *frames = &stack->frames;
-    struct pcintr_stack_frame *frame;
-    frame = list_last_entry(frames, struct pcintr_stack_frame, node);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
-
     pop_stack_frame(stack);
 }
 
@@ -1583,24 +1568,21 @@ static void
 execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
     PC_ASSERT(stack->exited);
-
     PC_ASSERT(co->stack.except == 0);
 
     // CHECK pending requests
-
     PC_ASSERT(co->stack.back_anchor == NULL);
 
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
+    purc_variant_t result = pcintr_coroutine_get_result(co);
+
     if (heap->cond_handler) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
-            co->result ? co->result->result : PURC_VARIANT_INVALID,
+            result,
             stack->doc };
         heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
@@ -1615,7 +1597,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                 element_value,
                 MSG_TYPE_SUB_EXIT, NULL,
-                co->result->result, PURC_VARIANT_INVALID);
+                result, PURC_VARIANT_INVALID);
         purc_variant_unref(element_value);
 
     }
@@ -1768,10 +1750,7 @@ void pcintr_set_exit(purc_variant_t val)
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
-    PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
-    co->val_from_return_or_exit = purc_variant_ref(val);
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(val);
+    pcintr_coroutine_set_result(co, val);
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
@@ -1795,7 +1774,6 @@ static void init_frame_for_co(pcintr_coroutine_t co)
     frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
-    co->execution_pending = 1;
     co->stage = CO_STAGE_FIRST_RUN;
 }
 
@@ -1850,18 +1828,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail;
     }
 
-    co->result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co->result));
-    if (!co->result) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto fail_co;
-    }
-    co->result->result = purc_variant_make_undefined();
-
-    co->val_from_return_or_exit = purc_variant_make_undefined();
-    PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
-
     if (set_coroutine_id(co)) {
-        goto fail_co_result;
+        goto fail_co;
     }
 
     pcvdom_document_ref(vdom);
@@ -1871,11 +1839,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->tasks);
     INIT_LIST_HEAD(&co->event_handlers);
-    co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
-        goto fail_co_result;
+        goto fail_co;
     }
 
     pcintr_coroutine_add_sub_exit_event_handler(co);
@@ -1910,7 +1877,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     if (parent) {
         co->curator = parent->cid;
         if (as != PURC_VARIANT_INVALID) {
-            co->result->as = purc_variant_ref(as);
+            co->param_as = purc_variant_ref(as);
         }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
@@ -1935,9 +1902,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
 fail_variables:
     pcinst_msg_queue_destroy(co->mq);
-
-fail_co_result:
-    free(co->result);
 
 fail_co:
     free(co);
@@ -3435,5 +3399,41 @@ pcintr_util_set_attribute(purc_document_t doc,
     }
 
     return 0;
+}
+
+void
+pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result)
+{
+    if (!result) {
+        return;
+    }
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        PC_ASSERT(0);
+        return;  // NOTE: never reached here!!!
+    }
+    pcintr_set_question_var(frame, result);
+}
+
+purc_variant_t
+pcintr_coroutine_get_result(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (frame) {
+        return pcintr_get_question_var(frame);
+    }
+    PC_ASSERT(0);
+    return PURC_VARIANT_INVALID; // NOTE: never reached here!!!
 }
 

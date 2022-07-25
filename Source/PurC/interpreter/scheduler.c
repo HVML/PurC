@@ -105,12 +105,17 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (frame) {
-        pcintr_coroutine_set_state(co, CO_STATE_READY);
-        if (co->execution_pending == 0) {
-            co->execution_pending = 1;
-            //pcintr_wakeup_target(co, run_ready_co);
+        if (frame->next_step != NEXT_STEP_ON_POPPING) {
+            pcintr_coroutine_set_state(co, CO_STATE_READY);
+            return;
         }
-        return;
+
+        pcvdom_element_t elem = frame->pos;
+        enum pchvml_tag_id tag_id = elem->tag_id;
+        if (tag_id != PCHVML_TAG_HVML) {
+            pcintr_coroutine_set_state(co, CO_STATE_READY);
+            return;
+        }
     }
 
     PC_ASSERT(co->yielded_ctxt == NULL);
@@ -132,7 +137,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
     stack->co->stage = CO_STAGE_OBSERVING;
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
-
 
     if (co->stack.except) {
         const char *error_except = NULL;
@@ -184,11 +188,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         pcintr_notify_to_stop(co);
     }
 
-    if (co->msg_pending) {
-        return;
-    }
-
-// #define PRINT_DEBUG
+ //#define PRINT_DEBUG
     if (co->stack.last_msg_sent == 0) {
         co->stack.last_msg_sent = 1;
 
@@ -229,14 +229,14 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             purc_variant_unref(request_id);
         }
         else {
-            PC_ASSERT(co->val_from_return_or_exit);
             // XXX: curator may live in another thread!
+            purc_variant_t result = pcintr_coroutine_get_result(co);
             purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     PURC_VARIANT_INVALID,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
-                    co->val_from_return_or_exit, request_id);
+                    result, request_id);
             purc_variant_unref(request_id);
         }
     }
@@ -251,7 +251,6 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
     pcintr_set_current_co(co);
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->execution_pending = 0;
     pcintr_execute_one_step_for_ready_co(co);
     pcintr_check_after_execution_full(inst, co);
 
@@ -303,9 +302,7 @@ handle_coroutine_event(pcintr_coroutine_t co)
 {
     bool busy = false;
     int handle_ret = PURC_ERROR_INCOMPLETED;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    if (frame != NULL && co->state != CO_STATE_STOPPED) {
+    if (co->state == CO_STATE_READY || co->state == CO_STATE_RUNNING) {
         goto out;
     }
 

@@ -57,7 +57,7 @@
 #define KEY_BODYIDS             "bodyIds"
 
 #define KEY_FLAG_PARALLEL       "parallel"
-#define KEY_FLAG_VERBOSE          "verbose"
+#define KEY_FLAG_VERBOSE        "verbose"
 
 struct run_info {
     purc_variant_t opts;
@@ -128,7 +128,7 @@ static void print_usage(FILE *fp)
         "\n"
         "  -d --data-fetcher=< local | remote >\n"
         "        The data fetcher; use `local` or `remote`.\n"
-        "            - `local`: use the built-in data fetcher, and only `file://` URIs\n"
+        "            - `local`: use the built-in data fetcher, and only `file://` URLs\n"
         "               supported.\n"
         "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
@@ -142,7 +142,7 @@ static void print_usage(FILE *fp)
         "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri:\n"
         "            - For the renderer protocol `headleass`,\n"
-        "              default value is not specified (nil).\n"
+        "              default value is `file:///dev/null`.\n"
         "            - For the renderer protocol `purcmc`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
@@ -154,7 +154,7 @@ static void print_usage(FILE *fp)
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
         "\n"
-        "  -s --verbose\n"
+        "  -b --verbose\n"
         "        Execute the program(s) with verbose output.\n"
         "\n"
         "  -c --copying\n"
@@ -361,7 +361,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:t:lscvh";
+    static const char short_options[] = "a:r:d:p:u:t:lbcvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -370,7 +370,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 't' },
         { "parallel"       , no_argument       , NULL , 'l' },
-        { "verbose"        , no_argument       , NULL , 's' },
+        { "verbose"        , no_argument       , NULL , 'b' },
         { "copying"        , no_argument       , NULL , 'c' },
         { "version"        , no_argument       , NULL , 'v' },
         { "help"           , no_argument       , NULL , 'h' },
@@ -471,7 +471,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             opts->parallel = true;
             break;
 
-        case 's':
+        case 'b':
             opts->verbose = true;
             break;
 
@@ -1115,12 +1115,12 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
 
-            fprintf(stdout, "\nThe document generated: \n");
+            fprintf(stdout, "\n>> The document generated:\n");
             purc_document_serialize_contents_to_stream(exit_info->doc,
                     opt, crtn_info->run_info->dump_stm);
             fprintf(stdout, "\n");
 
-            fprintf(stdout, "\nThe execute result: \n");
+            fprintf(stdout, "\n>> The execute result: \n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
                         crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
@@ -1144,7 +1144,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         purc_vdom_t vdom = load_hvml(url);
         if (vdom) {
             if (opts->verbose)
-                fprintf(stdout, "\nExecuting HVML program from `%s`:\n\n", url);
+                fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
 
             struct crtn_info info = { opts, url, &run_info };
             purc_schedule_vdom(vdom, 0, request,

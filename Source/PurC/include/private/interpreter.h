@@ -81,10 +81,6 @@ struct pcintr_cancel;
 typedef struct pcintr_cancel pcintr_cancel;
 typedef struct pcintr_cancel *pcintr_cancel_t;
 
-struct pcintr_coroutine_result;
-typedef struct pcintr_coroutine_result pcintr_coroutine_result;
-typedef struct pcintr_coroutine_result *pcintr_coroutine_result_t;
-
 struct pcintr_coroutine_child;
 typedef struct pcintr_coroutine_child pcintr_coroutine_child;
 typedef struct pcintr_coroutine_child *pcintr_coroutine_child_t;
@@ -239,12 +235,6 @@ struct pcintr_msg {
     struct list_head            node;
 };
 
-struct pcintr_coroutine_result {
-    purc_variant_t              as;
-    purc_variant_t              result;
-    struct list_head            node;     /* parent:children */
-};
-
 struct pcintr_coroutine_child {
     struct list_head            ln;
     purc_atom_t                 cid;
@@ -267,9 +257,10 @@ struct pcintr_coroutine {
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
-    pcintr_coroutine_result_t   result;
+    /* pcintr_create_child_co, pcintr_load_child_co */
+    purc_variant_t              param_as;
+    purc_variant_t              param_with;
 
-    purc_variant_t              val_from_return_or_exit;
     const char                 *error_except;
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
@@ -290,9 +281,6 @@ struct pcintr_coroutine {
     struct list_head            tasks;  /* one event with multiple observers */
     struct list_head            event_handlers; /* struct pcintr_event_handler */
     struct pcintr_event_handler *sleep_handler;
-
-    unsigned int volatile       msg_pending:1;
-    unsigned int volatile       execution_pending:1;
 
     /* $CRTN  begin */
     /** The target as a null-terminated string. */
@@ -701,6 +689,12 @@ pcintr_coroutine_get_uri(pcintr_coroutine_t co)
 
 void
 pcintr_schedule(void *ctxt);
+
+void
+pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result);
+
+purc_variant_t
+pcintr_coroutine_get_result(pcintr_coroutine_t co);
 
 PCA_EXTERN_C_END
 

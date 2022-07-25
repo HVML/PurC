@@ -440,9 +440,6 @@ last_msg_event_handle(struct pcintr_event_handler *handler,
     co->stack.last_msg_read = 1;
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    PC_ASSERT(frame == NULL);
     pcintr_check_after_execution_full(pcinst_current(), co);
     return PURC_ERROR_OK;
 }
