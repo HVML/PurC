@@ -113,7 +113,7 @@ Note that this command uses the following options:
 
 You can also use the following commands to build and install PurC step by step:
 
-```
+```bash
 $ cd <path/to/the/root/of/the/source/tree/of/PurC>
 $ rm -rf build/
 $ mkdir build/
