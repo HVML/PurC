@@ -1814,7 +1814,8 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, purc_variant_t as, void *user_data)
+        pcrdr_page_type page_type, purc_variant_t as, purc_variant_t with,
+        void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1880,6 +1881,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         if (as != PURC_VARIANT_INVALID) {
             co->param_as = purc_variant_ref(as);
         }
+        if (with != PURC_VARIANT_INVALID) {
+            co->param_with = purc_variant_ref(with);
+        }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
         if (!child) {
@@ -1939,7 +1943,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
     }
 
-    co = coroutine_create(vdom, parent, page_type, NULL, user_data);
+    co = coroutine_create(vdom, parent, page_type, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         goto failed;
@@ -3005,7 +3010,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     pcintr_coroutine_t child;
     child = coroutine_create(co->vdom, co,
             PCRDR_PAGE_TYPE_INHERIT, // TODO
-            as, NULL);
+            as, within, NULL);
     do {
         if (!child)
             break;
@@ -3040,7 +3045,7 @@ pcintr_load_child_co(const char *hvml,
     pcintr_coroutine_t child;
     child = coroutine_create(vdom, co,
             PCRDR_PAGE_TYPE_INHERIT, // TODO
-            as, NULL);
+            as, within, NULL);
     do {
         if (!child)
             break;
