@@ -134,11 +134,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_load*)frame->ctxt;
 
     PC_ASSERT(ctxt->from == PURC_VARIANT_INVALID);   // Not implemented yet
-    PC_ASSERT(ctxt->with == PURC_VARIANT_INVALID);   // Not implemented yet
     PC_ASSERT(ctxt->via == PURC_VARIANT_INVALID);    // Not implemented yet
-    PC_ASSERT(ctxt->within == PURC_VARIANT_INVALID); // Not implemented yet
     PC_ASSERT(ctxt->synchronously == 1);             // Not implemented yet
-    PC_ASSERT(ctxt->as == PURC_VARIANT_INVALID);     // Not implemented yet
     PC_ASSERT(ctxt->at == PURC_VARIANT_INVALID);     // Not implemented yet
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
@@ -150,15 +147,24 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     const char *hvml = purc_variant_get_string_const(ctxt->on);
 
+#if 0
     pcintr_coroutine_t child;
     child = pcintr_load_child_co(hvml, ctxt->as, ctxt->within);
     if (!child)
         return -1;
+#endif
+    const char *as = ctxt->as ? purc_variant_get_string_const(ctxt->as) : NULL;
+    const char *onto = ctxt->onto ?
+        purc_variant_get_string_const(ctxt->onto) : NULL;
+    purc_atom_t child_cid = pcintr_schedule_child_co(hvml, co->cid,
+            as, onto, ctxt->within, false);
+    if (!child_cid)
+        return -1;
 
     if (ctxt->synchronously) {
-        ctxt->request_id = purc_variant_make_native(ctxt, NULL);
+        ctxt->request_id = purc_variant_make_ulongint(child_cid);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
+                     PURC_VARIANT_INVALID,PURC_VARIANT_INVALID, false);
         return 0;
     }
 

@@ -44,11 +44,6 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
         bool create_runner)
 {
-    UNUSED_PARAM(hvml);
-    UNUSED_PARAM(runner);
-    UNUSED_PARAM(rdr_target);
-    UNUSED_PARAM(request);
-    UNUSED_PARAM(create_runner);
 
     purc_atom_t cid = 0;
     purc_vdom_t vdom = NULL;
@@ -70,7 +65,7 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
             endpoint_name, sizeof(endpoint_name) - 1);
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
-    if (atom != 0 && !create_runner) {
+    if (atom == 0 && !create_runner) {
         goto out;
     }
 
@@ -115,10 +110,21 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         goto out_free_names;
     }
 
-    cid = purc_inst_schedule_vdom(dest_inst, vdom,
-            curator, request, page_type,
-            "main", group_name, page_name,
-            NULL, NULL);
+    if (inst->intr_heap->move_buff != dest_inst) {
+        cid = purc_inst_schedule_vdom(dest_inst, vdom,
+                curator, request, page_type,
+                "main", group_name, page_name,
+                NULL, NULL);
+    }
+    else {
+        purc_coroutine_t cco = purc_schedule_vdom(vdom,
+                curator, request, page_type,
+                "main", group_name, page_name,
+                NULL, NULL, NULL);
+        if (cco) {
+            cid = cco->cid;
+        }
+    }
 
 out_free_names:
     free(page_name);
