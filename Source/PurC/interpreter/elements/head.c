@@ -112,6 +112,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
     purc_clr_error();
 
     return ctxt;
@@ -161,6 +163,18 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        return;
+    }
+
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        return;
+    }
+    pcintr_set_question_var(frame, v);
+    purc_variant_unref(v);
 }
 
 static void

@@ -75,15 +75,16 @@ sample_destroy(struct sample_ctxt *ud)
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    void *user_data = purc_coroutine_get_user_data(cor);
-    if (!user_data) {
-        return -1;
-    }
-
-    struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
-
     if (event == PURC_COND_COR_EXITED) {
-        purc_document_t doc = (purc_document_t)data;
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
+        struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
+        purc_document_t doc = info->doc;
 
         if (ud->terminated) {
             ADD_FAILURE() << "internal logic error: reentrant" << std::endl;
@@ -109,6 +110,13 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {
+        void *user_data = purc_coroutine_get_user_data(cor);
+        if (!user_data) {
+            return -1;
+        }
+
+        struct sample_ctxt *ud = (struct sample_ctxt*)user_data;
+
         sample_destroy(ud);
     }
 
@@ -182,13 +190,12 @@ TEST(samples, basic)
 {
     bool enable_remote_fetcher = true;
     PurCInstance purc(enable_remote_fetcher);
-    purc_bind_session_variables();
 
     ASSERT_TRUE(purc);
 
     struct sample_data sample = {
         .input_hvml = "<hvml target=\"html\"><head></head><body>hello</body></hvml>",
-        .expected_html = "<html target=\"html\"><head></head><body>hello</body></html>",
+        .expected_html = "<html><head></head><body>hello</body></html>",
     };
 
     add_sample(&sample);
@@ -215,7 +222,6 @@ TEST(samples, samples)
     PurCInstance purc;
 
     ASSERT_TRUE(purc);
-    purc_bind_session_variables();
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);
@@ -320,7 +326,7 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html lang=\"en\" target=\"html\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p hvml:raw=\"\">Using named array variable ($fibonacci), $MATH, and $EJSON</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
+            "<html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using named array variable ($fibonacci), $MATH, and $EJSON</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
         {
             "<!DOCTYPE hvml>"
@@ -357,7 +363,7 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html lang=\"en\" target=\"html\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p hvml:raw=\"\">Using local array variable ($!) and negative index</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
+            "<html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using local array variable ($!) and negative index</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
         {
             "<!DOCTYPE hvml>"
@@ -422,7 +428,7 @@ TEST(samples, samples)
             ""
             "</hvml>",
 
-            "<html lang=\"en\" target=\"html\">"
+            "<html lang=\"en\">"
             "    <head>"
             "        <title>计算器</title>"
             "        <link href=\"calculator.css\" rel=\"stylesheet\" type=\"text/css\" />"
@@ -467,7 +473,7 @@ TEST(samples, samples)
         },
         {
             "<hvml target=\"html\"><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
-            "<html target=\"html\"><head></head><body><div id=\"owner\">world</div></body></html>",
+            "<html><head></head><body><div id=\"owner\">world</div></body></html>",
         },
     };
 

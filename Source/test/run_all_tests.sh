@@ -28,17 +28,21 @@ for x in $TEST_PROGS; do
         if test $SHOW_STDERR -eq 0; then
             echo ">> STDERR OF $x" > /var/tmp/purc-tests.log
             ./$x 2>> /var/tmp/purc-tests.log
+            RESULT=$?
             echo "<< END OF STDERR OF $x" > /var/tmp/purc-tests.log
             echo "" > /var/tmp/purc-tests.log
         else
             ./$x
+            RESULT=$?
         fi
     else
         ${VALGRIND} ./$x || exit
+        RESULT=$?
     fi
-    if test "$?" -eq 0; then
+
+    if test $RESULT -eq 0; then
         total_passed=$((total_passed + 1))
-    elif test "$?" -gt 128; then
+    elif test $RESULT -gt 128; then
         total_crashed=$((total_crashed + 1))
         test_crashed="$x $test_crashed"
     else

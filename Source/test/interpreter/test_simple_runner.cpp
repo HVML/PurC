@@ -71,7 +71,6 @@ TEST(runner, simple)
     ssize_t read = 0;
 
     PurCInstance purc;
-    purc_bind_session_variables();
 
     test_getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "simple_runner");

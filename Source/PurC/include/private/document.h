@@ -30,6 +30,7 @@
 #include "config.h"
 
 #include "purc-document.h"
+#include "purc-pcrdr.h"
 #include "purc-utils.h"
 
 #include "private/debug.h"
@@ -109,11 +110,13 @@ struct purc_document_ops {
 
 struct purc_document {
     purc_document_type type;
+    pcrdr_msg_data_type def_text_type;
 
     unsigned need_rdr:1;
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;
+    unsigned refc;
 
     struct purc_document_ops *ops;
 

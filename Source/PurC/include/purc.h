@@ -276,7 +276,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_set_local_data(const char* data_name, uintptr_t locale_data,
+purc_set_local_data(const char* data_name, uintptr_t local_data,
         cb_free_local_data cb_free);
 
 /**
@@ -322,31 +322,33 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free);
 
 /**
- * purc_bind_variable:
+ * purc_bind_runner_variable:
  *
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
  *
- * Binds a variant value as the session-level variable.
+ * Binds a variant value as the runner-level variable.
  *
  * Returns: @true for success; @false for failure.
  *
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_variable(const char* name, purc_variant_t variant);
+purc_bind_runner_variable(const char* name, purc_variant_t variant);
 
 /**
- * purc_bind_session_variables:
+ * purc_get_runner_variable:
  *
- * Binds all predefined session variables for current PurC instance.
+ * @name: The pointer to the string contains the name for the variable.
  *
- * Returns: @true for success; @false for failure.
+ * Retrieve a runner-level variable of current PurC instance.
+ *
+ * Returns: the variant or PURC_VARIANT_INVALID for failure.
  *
  * Since 0.2.0
  */
-PCA_EXPORT bool
-purc_bind_session_variables(void);
+PCA_EXPORT purc_variant_t
+purc_get_runner_variable(const char *name);
 
 struct pcvdom_document;
 typedef struct pcvdom_document* purc_vdom_t;
@@ -439,21 +441,31 @@ typedef enum pcrdr_page_type {
 #define PCRDR_PAGE_TYPE_NAME_NULL       "_null"
     /** Do not create or use any page for the HVML coroutine. */
     PCRDR_PAGE_TYPE_NULL = 0,
+
+#define PCRDR_PAGE_TYPE_NAME_INHERIT    "_inherit"
+    /** Use the document and page of curator. */
+    PCRDR_PAGE_TYPE_INHERIT,
+
 #define PCRDR_PAGE_TYPE_NAME_SELF       "_self"
     /** Use the page of curator. */
     PCRDR_PAGE_TYPE_SELF,
+
 #define PCRDR_PAGE_TYPE_NAME_FIRST      "_first"
     /** Use the first page in the specified page group. */
     PCRDR_PAGE_TYPE_FIRST,
+
 #define PCRDR_PAGE_TYPE_NAME_LAST       "_last"
     /** Use the last page in the specified page group. */
     PCRDR_PAGE_TYPE_LAST,
+
 #define PCRDR_PAGE_TYPE_NAME_ACTIVE     "_active"
     /** Use the current active page in the specified page group. */
     PCRDR_PAGE_TYPE_ACTIVE,
+
 #define PCRDR_PAGE_TYPE_NAME_PLAINWIN   "plainwin"
     /** Create a new plain window in the specified page group. */
     PCRDR_PAGE_TYPE_PLAINWIN,
+
 #define PCRDR_PAGE_TYPE_NAME_WIDGET     "widget"
     /** Create a new widget in the specified page group. */
     PCRDR_PAGE_TYPE_WIDGET,
@@ -597,6 +609,16 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
+struct purc_cor_exit_info {
+    purc_variant_t result;
+    purc_document_t doc;
+};
+
+struct purc_cor_term_info {
+    purc_variant_t except;
+    purc_document_t doc;
+};
+
 /** The PurC instance conditions */
 typedef enum purc_cond {
     /**
@@ -640,15 +662,25 @@ typedef enum purc_cond {
      * `data` is the pointer to the targe document genenerated by the
      * HVML coroutine.
      */
-    PURC_COND_COR_AFTER_FIRSTRUN,
+    PURC_COND_COR_OBSERVING,
 
     /**
-     * Indicating that a coroutine exited or teminated.
+     * Indicating that a coroutine exited.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to the targe document genenerated by the
+     * `data` is the pointer to `struct purc_cor_exit_info` which contains
+     * the execute result and the target document genenerated by the
      * HVML coroutine.
      */
     PURC_COND_COR_EXITED,
+
+    /**
+     * Indicating that a coroutine terminated due to an exception or error.
+     * In the condition handler, `arg` is the pointer to the coroutine structure,
+     * `data` is the pointer to `struct purc_cor_term_info` which contains
+     * the termination information and the target document genenerated by the
+     * HVML coroutine.
+     */
+    PURC_COND_COR_TERMINATED,
 
     /**
      * Indicating that PurC is destroying a coroutine.
@@ -701,7 +733,7 @@ purc_get_cond_handler(void);
  * purc_set_cond_handler:
  *
  * @handler: The pointer to a call-back function which handles
- *      the session events.
+ *      the runner events.
  *
  * Sets the condition handler of the current PurC instance, and returns
  * the old condition handler.
@@ -716,8 +748,8 @@ purc_set_cond_handler(purc_cond_handler handler);
 /**
  * purc_run:
  *
- * @handler: The pointer to a call-back function which handles
- *      the session events.
+ * @handler: The pointer to a callback function which handles
+ *      the runner events.
  *
  * Enter event loop and runs all HVML coroutines which are ready in
  * the current PurC instance.
@@ -730,31 +762,30 @@ PCA_EXPORT int
 purc_run(purc_cond_handler handler);
 
 /**
- * purc_get_sid_by_cid:
+ * purc_get_rid_by_cid:
  *
  * @cid: A coroutine identifier.
  *
- * Gets the instance identifier (session identifier, sid) of a specific
- * coroutine.
+ * Gets the runner identifier (rid) of a specific coroutine.
  *
- * Returns: the instance identifier or zero for failure.
+ * Returns: the runner identifier or zero for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_get_sid_by_cid(purc_atom_t cid);
+purc_get_rid_by_cid(purc_atom_t cid);
 
 /**
- * purc_get_instmgr_sid:
+ * purc_get_instmgr_rid:
  *
- * Gets the instance identifier of the instance manager.
+ * Gets the runner identifier of the instance manager.
  *
- * Returns: the sid of the instance manager or zero for failure.
+ * Returns: the rid of the instance manager or zero for failure.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_atom_t
-purc_get_instmgr_sid(void);
+purc_get_instmgr_rid(void);
 
 /**
  * purc_inst_create_or_get:

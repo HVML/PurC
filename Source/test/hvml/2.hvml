@@ -13,7 +13,7 @@
 
     <body>
         <p>
-            <choose on="$messages" to="update" by="KEY: $_SYSTEM.locale">
+            <choose on="$messages" to="update" by="KEY: $SYS.locale">
                 <update on="$@" textContent="$?" />
                 <except on="KeyError">
                     No valid locale defined.

@@ -104,6 +104,11 @@ attr_found_val(struct pcintr_stack_frame *frame,
         PC_ASSERT(0);
     }
 
+    /* VW: do not set attributes having `hvml:` prefix to eDOM */
+    if (strncmp(attr->key, "hvml:", 5) == 0) {
+        goto done;
+    }
+
     int r = pcintr_util_set_attribute(frame->owner->doc,
             frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
     PC_ASSERT(r == 0);
@@ -126,6 +131,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return -1;
     }
 
+done:
     return 0;
 }
 
@@ -214,6 +220,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {

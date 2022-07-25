@@ -98,7 +98,6 @@ protected:
     void SetUp() {
         purc_init_ex(PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
                 "test_hvml_tag", NULL);
-        purc_bind_session_variables();
     }
     void TearDown() {
         purc_cleanup ();
@@ -119,10 +118,14 @@ struct buffer {
 static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
-    if (event == PURC_COND_COR_AFTER_FIRSTRUN) {
+    if (event == PURC_COND_COR_OBSERVING) {
         purc_document_t doc = (purc_document_t)data;
 
         struct buffer *buf = (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (buf->dump_buff) {
+            free(buf->dump_buff);
+            buf->dump_buff = nullptr;
+        }
         buf->dump_buff = intr_util_dump_doc(doc, NULL);
     }
 
@@ -157,7 +160,7 @@ TEST_P(TestHVMLTag, hvml_tags)
             "main",   /* target_workspace */
             NULL,     /* target_group */
             NULL,     /* page_name */
-            &rdr_info, NULL, NULL);
+            &rdr_info, "test", NULL);
     ASSERT_NE(co, nullptr);
     purc_variant_unref(request);
 
@@ -168,26 +171,14 @@ TEST_P(TestHVMLTag, hvml_tags)
     ASSERT_NE(buf.dump_buff, nullptr);
 
     if (test_case.html) {
-        purc_document_t docl = purc_document_load(PCDOC_K_TYPE_HTML,
-                buf.dump_buff, 0);
-        purc_document_t docr = purc_document_load(PCDOC_K_TYPE_HTML,
-                test_case.html, 0);
+        std::string left = buf.dump_buff;
+        left.erase(remove(left.begin(), left.end(), ' '), left.end());
+        left.erase(remove(left.begin(), left.end(), '\n'), left.end());
 
-        int diff = -1;
-        char *ctnt = intr_util_comp_docs(docl, docr, &diff);
-        if (ctnt != NULL && diff == 0) {
-            fprintf(stderr, "Passed\n");
-        }
-        else {
-            fprintf(stderr, "============================\n");
-            fprintf(stderr, "dump:\n%s\n", trim(buf.dump_buff));
-            fprintf(stderr, "html:\n%s\n", trim(test_case.html));
-            fprintf(stderr, "============================\n");
-        }
-
-        if (ctnt) free(ctnt);
-        if (docl) purc_document_delete(docl);
-        if (docr) purc_document_delete(docr);
+        std::string right = test_case.html;
+        right.erase(remove(right.begin(), right.end(), ' '), right.end());
+        right.erase(remove(right.begin(), right.end(), '\n'), right.end());
+        ASSERT_EQ(left, right);
     }
     else {
         FILE* fp = fopen(test_case.html_path, "w");

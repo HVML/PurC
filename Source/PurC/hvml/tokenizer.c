@@ -55,10 +55,10 @@
         char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
         PC_DEBUG(                                                           \
             "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s|fh=%d\n",             \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
+            ejson_stack_size(), s, parser->is_in_file_header);              \
         free(s); \
     }
 
@@ -623,6 +623,12 @@ PCHVML_NEXT_TOKEN_BEGIN
 
 
 BEGIN_STATE(TKZ_STATE_DATA)
+    if (character == '#' && parser->is_in_file_header) {
+        ADVANCE_TO(TKZ_STATE_HASH);
+    }
+    if (is_whitespace(character) && parser->is_in_file_header) {
+        ADVANCE_TO(TKZ_STATE_DATA);
+    }
     if (character == '&') {
         SET_RETURN_STATE(TKZ_STATE_DATA);
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
@@ -641,7 +647,15 @@ BEGIN_STATE(TKZ_STATE_DATA)
     RECONSUME_IN(TKZ_STATE_TAG_CONTENT);
 END_STATE()
 
+BEGIN_STATE(TKZ_STATE_HASH)
+    if (character == '\n') {
+        ADVANCE_TO(TKZ_STATE_DATA);
+    }
+    ADVANCE_TO(TKZ_STATE_HASH);
+END_STATE()
+
 BEGIN_STATE(TKZ_STATE_TAG_OPEN)
+    parser->is_in_file_header = false;
     if (character == '!') {
         ADVANCE_TO(TKZ_STATE_MARKUP_DECLARATION_OPEN);
     }
@@ -2589,7 +2603,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACE)
             else {
                 parser->vcm_node->extra &= EXTRA_PROTECT_FLAG;
             }
-            // FIXME : <update from="assets/{$SYSTEM.locale}.json" />
+            // FIXME : <update from="assets/{$SYS.locale}.json" />
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
             if (ejson_stack_is_empty()) {
                 ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
@@ -3133,9 +3147,15 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
     if (character == '\'') {
+        parser->nr_single_quoted++;
         size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
-        if (nr_buf_chars >= 1) {
+        if (nr_buf_chars >= 1 || parser->nr_single_quoted == 2) {
+            parser->nr_single_quoted = 0;
+            struct pcvcm_node* node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer));
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_VALUE);
         }
         else {
@@ -3143,6 +3163,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED)
         }
     }
     if (character == '\\') {
+        parser->nr_single_quoted = 0;
         SET_RETURN_STATE(curr_state);
         ADVANCE_TO(TKZ_STATE_EJSON_STRING_ESCAPE);
     }

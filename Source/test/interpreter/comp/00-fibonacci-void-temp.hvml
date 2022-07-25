@@ -1,0 +1,68 @@
+#!/user/bin/purc
+
+# RESULT: [ 7, 8L ]
+
+<!-- The expected output of this HVML program will be like:
+
+# Fibonacci Numbers
+## Fibonacci Numbers less than 10
+    0: 0
+    1: 1
+    2: 1
+    3: 2
+    4: 3
+    5: 5
+    6: 8
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <head>
+        $STREAM.stdout.writelines("# Fibonacci Numbers")
+    </head>
+
+    <body id="theBody">
+        <inherit>
+            {{
+                $STREAM.stdout.writelines("## Fibonacci Numbers less than 10");
+                $STREAM.stdout.writelines('')
+            }}
+        </inherit>
+
+        <init as "count" at "_topmost" with 2 temp />
+        <init as "last_one" with 0L temp />
+        <init as "last_two" with 1L temp />
+
+        <inherit>
+            {{
+                $STREAM.stdout.writelines($STR.join('    0: ', $last_one));
+                $STREAM.stdout.writelines($STR.join('    1: ', $last_two));
+            }}
+        </inherit>
+
+        <iterate on $last_two onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, $last_one) nosetotail >
+            <init as "last_one" at "2" with $last_two temp />
+            <!-- init as "last_two" at "2" with $? temp / -->
+            <init as "last_two" at "#theBody" with $? temp />
+
+            <update on "$3!" at ".count" to "displace" with += 1 />
+
+            <inherit>
+                $STREAM.stdout.writelines(
+                    $STR.join('    ', $EJSON.arith('+', $%, 2), ': ', $?))
+            </inherit>
+        </iterate>
+
+        <inherit>
+            {{
+                $STREAM.stdout.writelines('');
+                $STREAM.stdout.writelines($STR.format_c("Totally %d numbers", $count))
+            }}
+        </inherit>
+
+        <exit with [$count, $last_two] />
+    </body>
+
+    $0!.count
+</hvml>
+

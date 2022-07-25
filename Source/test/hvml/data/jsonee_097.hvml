@@ -1,0 +1,6 @@
+<hvml>
+    $STREAM.stdout.writelines('Start of `hvml`')
+    <head>
+    </head>
+    this is the $STREAM.stdout.writelines('End of `hvml`')
+</hvml>

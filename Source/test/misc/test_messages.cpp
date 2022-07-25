@@ -69,7 +69,7 @@ TEST(instance, messages)
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION,
             random(), "to_do_something", NULL, "request-id",
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
-            PCRDR_MSG_DATA_TYPE_TEXT, "The data", 0);
+            PCRDR_MSG_DATA_TYPE_PLAIN, "The data", 0);
 
     pcrdr_msg *msg_parsed;
     struct buff_info info_a = { buffer_a, sizeof (buffer_a), 0 };

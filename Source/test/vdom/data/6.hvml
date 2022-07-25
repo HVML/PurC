@@ -65,7 +65,7 @@
         </archetype>
 
         <footer id="the-footer">
-            <test on="$_SYSTEM.locale" in='#the-footer'>
+            <test on="$SYS.locale" in='#the-footer'>
                 <match for="~zh_CN" to="displace" with="$footer_cn" exclusively>
                 </match>
                 <match for="~zh_TW" to="displace" with="$footer_tw" exclusively>
@@ -85,7 +85,7 @@
         </footer>
 
         <observe on="$_TIMERS" for="foo" to="update" in="#the-header" >
-            <update on="> span.local-time" textContent="$_SYSTEM.time('%H:%m')" />
+            <update on="> span.local-time" textContent="$SYS.time('%H:%m')" />
         </observe>
 
         <observe on="$systemStatus" for="battery" to="test">

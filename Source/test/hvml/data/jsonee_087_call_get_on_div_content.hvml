@@ -3,28 +3,28 @@
         { "key": 1}
     </init>
     <div>
-        $SYSTEM.time
+        $SYS.time
     </div>
     <div>
-        { $SYSTEM.time }
+        { $SYS.time }
     </div>
     <div>
-        {$SYSTEM.time}
+        {$SYS.time}
     </div>
     <div>
         { "key": 1}
     </div>
     <div>
-        { "key": $SYSTEM.time.tm }
+        { "key": $SYS.time.tm }
     </div>
     <div>
-        { "key": $SYSTEM.time("tm") }
+        { "key": $SYS.time("tm") }
     </div>
     <div>
-        { "key": $SYSTEM.time(!"tm") }
+        { "key": $SYS.time(!"tm") }
     </div>
     <div>
-        { "key": $SYSTEM.time({"a":1}, [1, 2,3]) }
+        { "key": $SYS.time({"a":1}, [1, 2,3]) }
     </div>
 </hvml>
 

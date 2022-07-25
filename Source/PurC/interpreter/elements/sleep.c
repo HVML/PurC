@@ -92,6 +92,9 @@ process_attr_with(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+    ctxt->with = purc_variant_ref(val);
+
+#if 0
     bool force = true;
     int64_t secs;
     if (!purc_variant_cast_to_longint(val, &secs, force)) {
@@ -106,6 +109,7 @@ process_attr_with(struct pcintr_stack_frame *frame,
 
     ctxt->with = purc_variant_ref(val);
     ctxt->for_ns = secs * 1000 * 1000 * 1000;
+#endif
 
     return 0;
 }
@@ -130,6 +134,7 @@ process_attr_for(struct pcintr_stack_frame *frame,
         return -1;
     }
 
+#if 0
     const char *s = purc_variant_get_string_const(val);
     if (!s || !*s) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -187,6 +192,7 @@ process_attr_for(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
+#endif
 
     ctxt->v_for = purc_variant_ref(val);
 
@@ -240,9 +246,9 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void on_continuation(void *ud, void *extra)
+static void on_continuation(void *ud, pcrdr_msg *msg)
 {
-    UNUSED_PARAM(extra);
+    UNUSED_PARAM(msg);
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)ud;
@@ -283,30 +289,145 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
 }
 
-int sleep_event_handle(pcintr_coroutine_t co,
-        struct pcintr_event_handler *handler, pcrdr_msg *msg,
-        void *data, bool *remove_handler)
+static bool
+is_sleep_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
 {
-    UNUSED_PARAM(handler);
+    UNUSED_PARAM(co);
 
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-    struct ctxt_for_sleep *ctxt = data;
-    // sleep timeout return PURC_ERROR_OK to clear msg
+    struct ctxt_for_sleep *ctxt = handler->data;
     if (msg->requestId == PURC_VARIANT_INVALID &&
             purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
             purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        *observed = true;
+        return true;
+    }
+
+    return false;
+}
+
+static int sleep_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
+{
+    UNUSED_PARAM(handler);
+
+    *performed = false;
+    *remove_handler = false;
+    int ret = PURC_ERROR_INCOMPLETED;
+    struct ctxt_for_sleep *ctxt = handler->data;
+    if (msg->requestId == PURC_VARIANT_INVALID &&
+            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
+            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
+        // sleep timeout return PURC_ERROR_OK to clear msg
         pcintr_set_current_co(co);
         pcintr_resume(co, NULL);
         pcintr_set_current_co(NULL);
         *remove_handler = true;
+        *performed = true;
         ret = PURC_ERROR_OK;
     }
     else {
-        //TODO: wake up by other event return INCOMPLETED to keep msg for other handler
+        // wake up by other event return INCOMPLETED to keep msg for other handler
+        pcintr_set_current_co(co);
+        pcintr_resume(co, NULL);
+        pcintr_set_current_co(NULL);
+        *remove_handler = true;
+        *performed = true;
+        ret = PURC_ERROR_INCOMPLETED;
     }
 
     return ret;
+}
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_sleep *ctxt;
+    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+
+    if (ctxt->with) {
+        bool force = true;
+        int64_t secs;
+        if (!purc_variant_cast_to_longint(ctxt->with, &secs, force)) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'with' for element <%s> is not longint",
+                    frame->pos->tag_name);
+            return -1;
+        }
+        if (secs <= 0) {
+            secs = 0;
+        }
+        ctxt->for_ns = secs * 1000 * 1000 * 1000;
+    }
+
+    if (ctxt->for_ns > 0) {
+        return 0;
+    }
+
+    if (!ctxt->v_for) {
+        return 0;
+    }
+
+    const char *s = purc_variant_get_string_const(ctxt->v_for);
+    if (!s || !*s) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute 'for' for element <%s> is empty string",
+                frame->pos->tag_name);
+        return -1;
+    }
+    long int n;
+    char *end;
+    errno = 0;
+    n = strtol(s, &end, 0);
+    if (n == LONG_MIN || n == LONG_MAX) {
+        if (errno == ERANGE) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "vdom attribute 'for' for element <%s> "
+                    "is overflow/underflow",
+                    frame->pos->tag_name);
+            return -1;
+        }
+    }
+    if (n < 0)
+        n = 0;
+
+    if (!end) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute 'for' for element <%s> no unit specified",
+                frame->pos->tag_name);
+        return -1;
+    }
+
+    if (strcmp(end, "ns") == 0) {
+        ctxt->for_ns = n;
+    }
+    else if (strcmp(end, "us") == 0) {
+        ctxt->for_ns = n * 1000;
+    }
+    else if (strcmp(end, "ms") == 0) {
+        ctxt->for_ns = n * 1000 * 1000;
+    }
+    else if (strcmp(end, "s") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000;
+    }
+    else if (strcmp(end, "m") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60;
+    }
+    else if (strcmp(end, "h") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60 * 60;
+    }
+    else if (strcmp(end, "d") == 0) {
+        ctxt->for_ns = n * 1000 * 1000 * 1000 * 60 * 60 * 24;
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute 'with' for element <%s> unknown unit",
+                frame->pos->tag_name);
+        return -1;
+    }
+
+    return 0;
 }
 
 static void*
@@ -339,6 +460,21 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     int r;
     r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    if (r)
+        return ctxt;
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
+    if (!ctxt->with) {
+        purc_variant_t caret = pcintr_get_symbol_var(frame,
+                PURC_SYMBOL_VAR_CARET);
+        if (caret && !purc_variant_is_undefined(caret)) {
+            ctxt->with = caret;
+            purc_variant_ref(ctxt->with);
+        }
+    }
+
+    r = post_process(stack->co, frame);
     if (r)
         return ctxt;
 
@@ -375,13 +511,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-            ctxt->element_value, ctxt->event_name);
-
-    pcintr_coroutine_add_event_handler(
-            ctxt->co,  SLEEP_EVENT_HANDER,
+    PC_ASSERT(ctxt->co->sleep_handler == NULL);
+    ctxt->co->sleep_handler = pcintr_event_handler_create(
+            SLEEP_EVENT_HANDER,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sleep_event_handle, false);
+            ctxt, sleep_event_handle, is_sleep_event_handler_match, false);
+
+    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
+            ctxt->element_value, ctxt->event_name, true);
 
     purc_clr_error();
 

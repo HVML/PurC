@@ -35,8 +35,11 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define ATTR_KEY_ID         "id"
+
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
+    pcvdom_element_t              body;
 };
 
 static void
@@ -82,10 +85,13 @@ attr_found_val(struct pcintr_stack_frame *frame,
             stack->co->target = target;
         }
     }
-
-    int r = pcintr_util_set_attribute(frame->owner->doc,
-            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
-    PC_ASSERT(r == 0);
+    else {
+        /* VW: only set attributes other than `target` to
+           the root element of eDOM */
+        int r = pcintr_util_set_attribute(frame->owner->doc,
+                frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
+        PC_ASSERT(r == 0);
+    }
 
     return 0;
 }
@@ -108,6 +114,59 @@ attr_found(struct pcintr_stack_frame *frame,
     purc_variant_unref(val);
 
     return r ? -1 : 0;
+}
+
+static bool
+is_match_body_id(pcintr_stack_t stack, struct pcvdom_element *element)
+{
+    bool match = false;
+    if (!stack->body_id) {
+        match = true;
+        goto ret;
+    }
+
+    purc_variant_t elem_id = pcvdom_element_eval_attr_val(stack, element,
+            ATTR_KEY_ID);
+    if (!elem_id || !purc_variant_is_string(elem_id)) {
+        goto out;
+    }
+
+    const char *eid = purc_variant_get_string_const(elem_id);
+    if (strcmp(eid, stack->body_id) == 0) {
+        match = true;
+    }
+
+out:
+    if (elem_id) {
+        purc_variant_unref(elem_id);
+    }
+
+ret:
+    return match;
+}
+
+static pcvdom_element_t
+find_body(pcintr_stack_t stack)
+{
+    purc_vdom_t vdom = stack->vdom;
+    struct pcvdom_element *ret = NULL;
+    size_t nr = pcutils_arrlist_length(vdom->bodies);
+    if (nr == 0) {
+        goto out;
+    }
+
+    for (size_t i = 0; i < nr; i++) {
+        void *p = pcutils_arrlist_get_idx(vdom->bodies, i);
+        struct pcvdom_element *body = (struct pcvdom_element*)p;
+        if (is_match_body_id(stack, body)) {
+            ret = body;
+            goto out;
+        }
+    }
+
+    ret = pcutils_arrlist_get_idx(vdom->bodies, 0);
+out:
+    return ret;
 }
 
 static void*
@@ -148,6 +207,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
+    ctxt->body = find_body(stack);
+
     purc_clr_error();
 
     return ctxt;
@@ -171,7 +234,7 @@ on_popping(pcintr_stack_t stack, void* ud)
             stack->mode = STACK_VDOM_AFTER_HVML;
             break;
         case STACK_VDOM_IN_BODY:
-            PC_ASSERT(0);
+            //PC_ASSERT(0);
             break;
         case STACK_VDOM_AFTER_BODY:
             stack->mode = STACK_VDOM_AFTER_HVML;
@@ -221,6 +284,18 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        return;
+    }
+
+    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        return;
+    }
+    pcintr_set_question_var(frame, v);
+    purc_variant_unref(v);
 }
 
 static void
@@ -284,7 +359,17 @@ again:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-                return element;
+                enum pchvml_tag_id tag_id = element->tag_id;
+                if (tag_id != PCHVML_TAG_BODY) {
+                    return element;
+                }
+                else if (stack->mode == STACK_VDOM_AFTER_BODY) {
+                    goto again;
+                }
+                else if (element == ctxt->body) {
+                    return element;
+                }
+                goto again;
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));

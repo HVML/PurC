@@ -210,7 +210,7 @@ again:
         struct pcvdom_element *element = frame->pos;
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
-        first_child = false;
+        first_child = true;
         curr = node;
     }
     else {

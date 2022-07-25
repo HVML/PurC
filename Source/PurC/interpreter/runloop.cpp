@@ -178,125 +178,6 @@ void purc_runloop_remove_fd_monitor(purc_runloop_t runloop, uintptr_t handle)
     ((RunLoop*)runloop)->removeFdMonitor(handle);
 }
 
-void
-pcintr_wakeup_target_with(pcintr_coroutine_t target, void *ctxt,
-        void (*func)(void *ctxt))
-{
-    purc_runloop_t target_runloop;
-    target_runloop = pcintr_co_get_runloop(target);
-    PC_ASSERT(target_runloop);
-    // FIXME: try catch ?
-    ((RunLoop*)target_runloop)->dispatch([target, ctxt, func]() {
-            PC_ASSERT(pcintr_get_heap());
-            pcintr_set_current_co(target);
-            func(ctxt);
-            pcintr_set_current_co(nullptr);
-        });
-}
-
-void
-pcintr_post_msg_to_target(pcintr_coroutine_t target, void *ctxt,
-        pcintr_msg_callback_f cb)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    if (heap)
-        PC_ASSERT(co);
-
-    if (target == nullptr) {
-        target = pcintr_get_coroutine();
-        PC_ASSERT(target);
-    }
-
-    if (co == target) {
-        pcintr_msg_t msg;
-        msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-        PC_ASSERT(msg);
-
-        msg->ctxt        = ctxt;
-        msg->on_msg      = cb;
-
-        list_add_tail(&msg->node, &target->msgs);
-
-        return;
-    }
-
-    pcintr_heap_t heap_target = target->owner;
-    PC_ASSERT(heap_target == heap);
-
-    purc_runloop_t target_runloop;
-    target_runloop = pcintr_co_get_runloop(target);
-    PC_ASSERT(target_runloop);
-
-    // FIXME: try catch ?
-    ((RunLoop*)target_runloop)->dispatch([target, ctxt, cb]() {
-            PC_ASSERT(pcintr_get_heap());
-            PC_ASSERT(pcintr_get_coroutine() == nullptr);
-
-            pcintr_msg_t msg;
-            msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-            PC_ASSERT(msg);
-
-            msg->ctxt        = ctxt;
-            msg->on_msg      = cb;
-
-            list_add_tail(&msg->node, &target->msgs);
-
-            pcintr_set_current_co(target);
-            pcintr_check_after_execution();
-            pcintr_set_current_co(nullptr);
-        });
-}
-
-void
-pcintr_fire_event_to_target(pcintr_coroutine_t target,
-        purc_atom_t msg_type,
-        purc_variant_t msg_sub_type,
-        purc_variant_t src,
-        purc_variant_t payload)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    if (heap)
-        PC_ASSERT(co);
-
-    if (target == nullptr) {
-        target = pcintr_get_coroutine();
-        PC_ASSERT(target);
-    }
-
-    pcintr_heap_t heap_target = target->owner;
-    PC_ASSERT(heap_target == heap);
-
-    PC_ASSERT(co != target);
-
-    pcintr_event_t event;
-    event = (pcintr_event_t)calloc(1, sizeof(*event));
-    PC_ASSERT(event);
-
-    event->msg_type             = msg_type;
-    event->msg_sub_type         = purc_variant_ref(msg_sub_type);
-    event->src                  = purc_variant_ref(src);
-    event->payload              = purc_variant_ref(payload);
-
-    purc_runloop_t target_runloop;
-    target_runloop = pcintr_co_get_runloop(target);
-    PC_ASSERT(target_runloop);
-
-    // FIXME: try catch ?
-    ((RunLoop*)target_runloop)->dispatch([target, event]() {
-            pcintr_set_current_co(target);
-            if (target->continuation) {
-                pcintr_resume(target, event);
-            }
-            else {
-                PC_ASSERT(0);
-            }
-            pcintr_check_after_execution();
-            pcintr_set_current_co(nullptr);
-        });
-}
-
 extern "C" purc_atom_t
 pcrun_create_inst_thread(const char *app_name, const char *runner_name,
         purc_cond_handler cond_handler,
@@ -367,11 +248,16 @@ static pthread_once_t _main_once_control = PTHREAD_ONCE_INIT;
 static void _runloop_init_main(void)
 {
     BinarySemaphore semaphore;
+    purc_atom_t rid_main = pcinst_current()->endpoint_atom;
+    PC_ASSERT(rid_main);
+
     _main_thread = Thread::create(MAIN_RUNLOOP_THREAD_NAME, [&] {
             PC_ASSERT(RunLoop::isMainInitizlized() == false);
             RunLoop::initializeMain();
             RunLoop& runloop = RunLoop::main();
             PC_ASSERT(&runloop == &RunLoop::current());
+
+            struct instmgr_info info = { rid_main, 0, NULL };
             semaphore.signal();
 
             int ret;
@@ -392,7 +278,6 @@ static void _runloop_init_main(void)
             }
 
             pcinst_current()->is_instmgr = 1;
-            struct instmgr_info info = { 0, NULL };
             info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
                     my_sa_free, NULL);
 
@@ -406,7 +291,7 @@ static void _runloop_init_main(void)
             pcutils_sorted_array_destroy(info.sa_insts);
 
             size_t n = purc_inst_destroy_move_buffer();
-            purc_log_debug("InstMgr is quiting, %u messages discarded\n",
+            PC_DEBUG("InstMgr is quiting, %u messages discarded\n",
                     (unsigned)n);
 
             purc_cleanup();

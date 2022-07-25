@@ -1,0 +1,10 @@
+#!/usr/bin/purc
+
+# RESULT: 14UL
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    $STREAM.stdout.writelines('Hello, world!')
+
+</hvml>

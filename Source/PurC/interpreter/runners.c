@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+//#undef NDEBUG
 
 #include "config.h"
 
@@ -174,7 +174,8 @@ static void shutdown_instance(purc_atom_t requester,
         purc_extract_app_name(rqst_ept, rqst_app_name);
 
         if (strcmp(self_host_name, rqst_host_name) ||
-                strcmp(self_app_name, rqst_app_name)) {
+                (strcmp(rqst_app_name, PCRUN_INSTMGR_APP_NAME) &&
+                strcmp(self_app_name, rqst_app_name))) {
             // not allowed
             return;
         }
@@ -249,7 +250,7 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
 
     source_uri = purc_variant_get_string_const(msg->sourceURI);
     if (source_uri == NULL || (requester =
-                purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+                purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
                     source_uri)) == 0) {
         purc_log_warn("No sourceURI or the requester disappeared\n");
         return;
@@ -331,7 +332,8 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
 
     int ret = purc_inst_holding_messages_count(&n);
     if (ret) {
-        purc_log_error("Failed: %d\n", ret);
+        purc_log_error("Failed purc_inst_holding_messages_count(): %s(%d)\n",
+                purc_get_error_message(ret), ret);
     }
     else if (n > 0) {
         return purc_inst_take_away_message(0);
@@ -343,7 +345,7 @@ pcrdr_msg *pcrun_extra_message_source(pcrdr_conn* conn, void *ctxt)
 void
 pcrun_notify_instmgr(const char* event_name, purc_atom_t inst_crtn_id)
 {
-    purc_atom_t instmgr = purc_get_instmgr_sid();
+    purc_atom_t instmgr = purc_get_instmgr_rid();
     assert(instmgr != 0);
 
     pcrdr_msg *event;
@@ -396,7 +398,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom) {
         goto done;
@@ -518,7 +520,7 @@ static void cancel_instance(struct instmgr_info *info,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -587,7 +589,7 @@ static void kill_instance(struct instmgr_info *info,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
 
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0) {
         response->retCode = PCRDR_SC_NOT_FOUND;
@@ -627,7 +629,8 @@ void pcrun_instmgr_handle_message(void *ctxt)
         return;
     }
     else if (n == 0) {
-        pcutils_usleep(10000);
+        // sleep 1ms to take a breath
+        pcutils_usleep(1000);
         return;
     }
 
@@ -639,7 +642,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
 
         source_uri = purc_variant_get_string_const(msg->sourceURI);
         if (source_uri == NULL || (requester =
-                    purc_atom_try_string_ex( PURC_ATOM_BUCKET_USER,
+                    purc_atom_try_string_ex( PURC_ATOM_BUCKET_DEF,
                         source_uri)) == 0) {
             purc_log_info("No sourceURI (%s) or the requester disappeared\n",
                     source_uri);
@@ -708,6 +711,23 @@ void pcrun_instmgr_handle_message(void *ctxt)
 
                 PC_DEBUG("InstMgr removes record of instance %u/%u\n",
                         (unsigned)sid, (unsigned)info->nr_insts);
+
+                if (info->nr_insts == 0) {
+                    PC_DEBUG("InstMgr askes the main runner (%u) to shutdown...\n",
+                            info->rid_main);
+
+                    pcrdr_msg *request_msg = pcrdr_make_request_message(
+                            PCRDR_MSG_TARGET_INSTANCE, info->rid_main,
+                            PCRUN_OPERATION_shutdownInstance,
+                            PCRDR_REQUESTID_NORETURN,
+                            purc_get_endpoint(NULL),
+                            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+                            NULL,
+                            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+                    purc_inst_move_message(info->rid_main, request_msg);
+                    pcrdr_release_message(request_msg);
+                }
             }
         }
         else {
@@ -746,14 +766,14 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
             app_name, runner_name,
             endpoint_name, sizeof(endpoint_name) - 1);
-    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+    purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom != 0) {
         /* TODO: change the condition handler for an exisiting runner? */
         return atom;
     }
 
-    atom = purc_get_instmgr_sid();
+    atom = purc_get_instmgr_rid();
     if (atom == 0) {
         purc_set_error(PURC_ERROR_NO_INSTANCE);
         return 0;
@@ -836,15 +856,19 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 
     request->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     request->data = data;
-    purc_inst_move_message(atom, request);
+    size_t n = purc_inst_move_message(atom, request);
     pcrdr_release_message(request);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return 0;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response); // Wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response); // Wait forever
     purc_variant_unref(request_id);
 
     if (ret) {
@@ -971,15 +995,19 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
     request_msg->data = data;
 
     purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
-    purc_inst_move_message(inst, request_msg);
+    size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return 0;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response);  // wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response);  // wait forever
     purc_variant_unref(request_id);
 
     if (ret) {
@@ -1023,15 +1051,19 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
 
     purc_variant_t request_id = purc_variant_ref(request_msg->requestId);
-    purc_inst_move_message(inst, request_msg);
+    size_t n = purc_inst_move_message(inst, request_msg);
     pcrdr_release_message(request_msg);
+    if (n == 0) {
+        purc_log_warn("Failed to send request message\n");
+        return PCRDR_SC_OK;
+    }
 
     struct pcrdr_conn *conn = purc_get_conn_to_renderer();
     assert(conn);
 
     pcrdr_msg *response = NULL;
     int ret = pcrdr_wait_response_for_specific_request(conn,
-            request_id, 0, &response);  // wait forever
+            request_id, PCRUN_TIMEOUT_DEF, &response);  // wait forever
     purc_variant_unref(request_id);
 
     int retv = 0;
@@ -1048,7 +1080,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst)
 }
 
 purc_atom_t
-purc_get_sid_by_cid(purc_atom_t cid)
+purc_get_rid_by_cid(purc_atom_t cid)
 {
     const char *cor_uri = purc_atom_to_string(cid);
     if (cor_uri == NULL) {
@@ -1066,13 +1098,13 @@ purc_get_sid_by_cid(purc_atom_t cid)
     endpoint_name[len] = 0;
 
     purc_atom_t sid =
-        purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+        purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF, endpoint_name);
 
     return sid;
 }
 
 purc_atom_t
-purc_get_instmgr_sid(void)
+purc_get_instmgr_rid(void)
 {
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
 
@@ -1081,7 +1113,7 @@ purc_get_instmgr_sid(void)
             endpoint_name, sizeof(endpoint_name) - 1);
 
     purc_atom_t atom;
-    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER, endpoint_name);
+    atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF, endpoint_name);
     if (atom == 0) {
         purc_log_warn("No instance manager\n");
     }

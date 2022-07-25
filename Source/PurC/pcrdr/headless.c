@@ -241,6 +241,11 @@ static void on_start_session(struct pcrdr_prot_data *prot_data,
         return;
     }
 
+    /* create the default workspace */
+    struct workspace_info *workspaces = prot_data->session->workspaces;
+    workspaces[0].handle = &workspaces[0].handle;
+    workspaces[0].name = strdup(PCRDR_DEFAULT_WORKSPACE);
+
     result->retCode = PCRDR_SC_OK;
     result->resultValue = (uint64_t)(uintptr_t)prot_data->session;
 }
@@ -468,19 +473,22 @@ static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    int i;
+    int i = 0;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     if (workspaces[i].nr_plain_windows >= NR_PLAINWINDOWS) {
@@ -522,19 +530,22 @@ static void on_update_plain_window(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    int i;
+    int i = 0;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
@@ -576,19 +587,22 @@ static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    int i;
+    int i = 0;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
@@ -634,19 +648,22 @@ static void on_reset_page_groups(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    int i;
+    int i = 0;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     if (workspaces[i].nr_tabbed_windows >= NR_TABBEDWINDOWS) {
@@ -692,17 +709,20 @@ static void on_add_page_groups(struct pcrdr_prot_data *prot_data,
 
     int i;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
@@ -745,19 +765,22 @@ static void on_remove_page_group(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    int i;
+    int i = 0;
     struct workspace_info *workspaces = prot_data->session->workspaces;
-    for (i = 0; i < NR_WORKSPACES; i++) {
-        uint64_t workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
-        if (workspace_handle == msg->targetValue) {
-            break;
+    if (msg->targetValue != 0) {
+        for (i = 0; i < NR_WORKSPACES; i++) {
+            uint64_t workspace_handle;
+            workspace_handle = (uint64_t)(uintptr_t)&workspaces[i].handle;
+            if (workspace_handle == msg->targetValue) {
+                break;
+            }
         }
-    }
 
-    if (i >= NR_WORKSPACES) {
-        result->retCode = PCRDR_SC_NOT_FOUND;
-        result->resultValue = msg->targetValue;
-        return;
+        if (i >= NR_WORKSPACES) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = msg->targetValue;
+            return;
+        }
     }
 
     uint64_t elementHandle = (uint64_t)strtoull(
@@ -1439,7 +1462,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
 
     msg = pcrdr_make_response_message("0", NULL,
             PCRDR_SC_OK, 0,
-            PCRDR_MSG_DATA_TYPE_TEXT, RENDERER_FEATURES,
+            PCRDR_MSG_DATA_TYPE_PLAIN, RENDERER_FEATURES,
             sizeof (RENDERER_FEATURES) - 1);
     if (msg == NULL) {
         purc_set_error(PCRDR_ERROR_NOMEM);

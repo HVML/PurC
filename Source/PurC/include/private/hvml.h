@@ -36,9 +36,22 @@ struct tkz_reader;
 struct tkz_sbst;
 
 struct pchvml_parser {
-    int state;
-    int return_state;
-    int transit_state;
+    unsigned int state;
+    unsigned int return_state;
+    unsigned int transit_state;
+    unsigned int last_token_type;
+
+    uint64_t char_ref_code;
+    uint32_t prev_separator;
+    uint32_t nr_quoted;
+    uint32_t nr_whitespace;
+    uint32_t nr_single_quoted;
+
+    unsigned int tag_is_operation:1;
+    unsigned int tag_has_raw_attr:1;
+    unsigned int enable_log:1;
+    unsigned int is_in_file_header:1;
+
     struct tkz_uc* curr_uc;
     struct tkz_reader* reader;
     struct tkz_buffer* temp_buffer;
@@ -50,14 +63,7 @@ struct pchvml_parser {
     struct pcvcm_stack* vcm_stack;
     struct pcutils_stack* ejson_stack;
     struct pchvml_token* start_tag_token;
-    uint64_t char_ref_code;
-    uint32_t prev_separator;
-    uint32_t nr_quoted;
-    uint32_t nr_whitespace;
-    int last_token_type;
-    bool tag_is_operation;
-    bool tag_has_raw_attr;
-    bool enable_log;
+
 };
 
 #ifdef __cplusplus

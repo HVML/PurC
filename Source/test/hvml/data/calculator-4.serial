@@ -7,11 +7,11 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("HVML"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/"))/>
+PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/"))/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("assets/",get_element(get_variable("SYSTEM"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("assets/",get_element(get_variable("SYS"),"locale"),".json") to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -75,7 +75,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init as="info">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("chars",get_element(get_variable("exp_chars"),call_getter(get_element(get_variable("SYSTEM"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("exp_chars")))),"index",0)
+PCHVML_TOKEN_VCM_TREE|make_object("chars",get_element(get_variable("exp_chars"),call_getter(get_element(get_variable("SYS"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("exp_chars")))),"index",0)
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</init>
@@ -95,7 +95,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<small>
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYSTEM"),"time"),"%H:%M:%S")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_END_TAG|</small>
 PCHVML_TOKEN_VCM_TREE|"
@@ -106,7 +106,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<observe on=get_variable("TIMERS") for="expired:clock">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=call_getter(get_element(get_variable("SYSTEM"),"time"),"%H:%M:%S")/>
+PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</observe>

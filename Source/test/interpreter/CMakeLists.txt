@@ -89,33 +89,35 @@ PURC_COMPUTE_SOURCES(test_observe)
 PURC_FRAMEWORK(test_observe)
 GTEST_DISCOVER_TESTS(test_observe DISCOVERY_TIMEOUT 10)
 
-# test_observe_named
-PURC_EXECUTABLE_DECLARE(test_observe_named)
+if (0)
+    # test_observe_named
+    PURC_EXECUTABLE_DECLARE(test_observe_named)
 
-list(APPEND test_observe_named_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
-    ${CMAKE_BINARY_DIR}
-    ${WTF_DIR}
-)
+    list(APPEND test_observe_named_PRIVATE_INCLUDE_DIRECTORIES
+        ${PURC_DIR}/include
+        ${PurC_DERIVED_SOURCES_DIR}
+        ${PURC_DIR}
+        ${CMAKE_BINARY_DIR}
+        ${WTF_DIR}
+    )
 
-PURC_EXECUTABLE(test_observe_named)
+    PURC_EXECUTABLE(test_observe_named)
 
-set(test_observe_named_SOURCES
-    test_observe_named.cpp
-)
+    set(test_observe_named_SOURCES
+        test_observe_named.cpp
+    )
 
-set(test_observe_named_LIBRARIES
-    PurC::PurC
-    gtest_main
-    gtest
-    pthread
-)
+    set(test_observe_named_LIBRARIES
+        PurC::PurC
+        gtest_main
+        gtest
+        pthread
+    )
 
-PURC_COMPUTE_SOURCES(test_observe_named)
-PURC_FRAMEWORK(test_observe_named)
-GTEST_DISCOVER_TESTS(test_observe_named DISCOVERY_TIMEOUT 10)
+    PURC_COMPUTE_SOURCES(test_observe_named)
+    PURC_FRAMEWORK(test_observe_named)
+    GTEST_DISCOVER_TESTS(test_observe_named DISCOVERY_TIMEOUT 10)
+endif ()
 
 # test_doc_var
 PURC_EXECUTABLE_DECLARE(test_doc_var)
@@ -374,4 +376,88 @@ set(test_void_document_LIBRARIES
 
 PURC_COMPUTE_SOURCES(test_void_document)
 PURC_FRAMEWORK(test_void_document)
+
+# test_comprehensive_programs
+PURC_EXECUTABLE_DECLARE(test_comprehensive_programs)
+
+list(APPEND test_comprehensive_programs_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_comprehensive_programs)
+
+set(test_comprehensive_programs_SOURCES
+    test_comprehensive_programs.cpp
+)
+
+set(test_comprehensive_programs_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_comprehensive_programs)
+PURC_FRAMEWORK(test_comprehensive_programs)
+
+# test_quit_main_runner
+PURC_EXECUTABLE_DECLARE(test_quit_main_runner)
+
+list(APPEND test_quit_main_runner_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_quit_main_runner)
+
+set(test_quit_main_runner_SOURCES
+    test_quit_main_runner.cpp
+)
+
+set(test_quit_main_runner_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_quit_main_runner)
+PURC_FRAMEWORK(test_quit_main_runner)
+GTEST_DISCOVER_TESTS(test_quit_main_runner DISCOVERY_TIMEOUT 10)
+
+# test_inherit_document
+PURC_EXECUTABLE_DECLARE(test_inherit_document)
+
+list(APPEND test_inherit_document_PRIVATE_INCLUDE_DIRECTORIES
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_inherit_document)
+
+set(test_inherit_document_SOURCES
+    tools.c
+    test_inherit_document.cpp
+)
+
+set(test_inherit_document_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_inherit_document)
+PURC_FRAMEWORK(test_inherit_document)
+GTEST_DISCOVER_TESTS(test_inherit_document DISCOVERY_TIMEOUT 10)
 

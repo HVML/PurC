@@ -3,10 +3,10 @@
     <head>
     </head>
 
-    <body>
+    <body id="first">
         hello
     </body>
-    <body>
+    <body id="second">
         you shall not see me
     </body>
 

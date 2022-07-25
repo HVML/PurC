@@ -7,7 +7,7 @@
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
+// #undef NDEBUG
 
 #include "config.h"
 
@@ -52,8 +54,8 @@
 #define EVENT_TIMER_INTRVAL  10
 
 #define EVENT_SEPARATOR      ':'
-#define MSG_TYPE_CHANGE     "change"
-#define MSG_SUB_TYPE_CLOSE  "close"
+
+
 #define COROUTINE_PREFIX    "COROUTINE"
 
 static void
@@ -322,11 +324,15 @@ stack_release(pcintr_stack_t stack)
     pcintr_destroy_observer_list(&stack->native_observers);
 
     if (stack->doc) {
-        purc_document_delete(stack->doc);
+        purc_document_unref(stack->doc);
         stack->doc = NULL;
     }
 
     pcintr_exception_clear(&stack->exception);
+
+    if (stack->body_id) {
+        free(stack->body_id);
+    }
 
 #if 0 // VW
     if (stack->entry) {
@@ -368,9 +374,20 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
+        PURC_VARIANT_SAFE_CLEAR(co->param_as);
+        PURC_VARIANT_SAFE_CLEAR(co->param_with);
+
+        struct list_head *children = &co->children;
+        struct list_head *p, *n;
+        list_for_each_safe(p, n, children) {
+            pcintr_coroutine_child_t child;
+            child = list_entry(p, struct pcintr_coroutine_child, ln);
+            free(child);
+        }
+
         if (co->cid) {
             const char *uri = pcintr_coroutine_get_uri(co);
-            purc_atom_remove_string_ex(PURC_ATOM_BUCKET_USER, uri);
+            purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF, uri);
         }
         if (co->mq) {
             pcinst_msg_queue_destroy(co->mq);
@@ -378,6 +395,9 @@ coroutine_release(pcintr_coroutine_t co)
 
         pcintr_coroutine_clear_tasks(co);
         pcintr_coroutine_clear_event_handlers(co);
+        if (co->sleep_handler) {
+            pcintr_event_handler_destroy(co->sleep_handler);
+        }
 
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
@@ -439,7 +459,6 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         loaded_vars_release(co);
-        PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
     }
 }
 
@@ -483,7 +502,8 @@ static void _cleanup_instance(struct pcinst* inst)
     }
 
     if (heap->move_buff) {
-        purc_inst_destroy_move_buffer();
+        size_t n = purc_inst_destroy_move_buffer();
+        PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
         heap->move_buff = 0;
     }
 
@@ -518,6 +538,11 @@ static int _init_instance(struct pcinst* inst,
     if (!heap->move_buff) {
         free(heap);
         return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    if (!pcintr_bind_builtin_runner_variables()) {
+        free(heap);
+        return purc_get_last_error();
     }
 
     inst->running_loop = purc_runloop_get_current();
@@ -753,8 +778,9 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
     return 0;
 }
 
-static int
-init_caret_symbol(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+int
+pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame)
 {
     pcvdom_element_t elem = frame->pos;
     if (!elem) {
@@ -878,9 +904,6 @@ static struct pcintr_stack_frame_pseudo*
 push_stack_frame_pseudo(pcintr_stack_t stack,
         pcvdom_element_t vdom_element)
 {
-    PC_ASSERT(list_empty(&stack->frames));
-    PC_ASSERT(stack->nr_frames == 0);
-
     PC_ASSERT(vdom_element);
 
     struct pcintr_stack_frame_pseudo *frame_pseudo;
@@ -932,14 +955,6 @@ pcintr_pop_stack_frame_pseudo(void)
 {
     pcintr_stack_t stack = pcintr_get_stack();
     PC_ASSERT(stack);
-    PC_ASSERT(stack->nr_frames == 1);
-
-    struct list_head *frames = &stack->frames;
-    struct pcintr_stack_frame *frame;
-    frame = list_last_entry(frames, struct pcintr_stack_frame, node);
-    PC_ASSERT(frame);
-    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
-
     pop_stack_frame(stack);
 }
 
@@ -1441,15 +1456,11 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
     return container_of(n, struct pcintr_stack_frame, node);
 }
 
-#define BUILDIN_VAR_HVML        "HVML"
-#define BUILDIN_VAR_DATETIME    "DATETIME"
-#define BUILDIN_VAR_T           "T"
-#define BUILDIN_VAR_L           "L"
-#define BUILDIN_VAR_DOC         "DOC"
-#define BUILDIN_VAR_EJSON       "EJSON"
-#define BUILDIN_VAR_STR         "STR"
-#define BUILDIN_VAR_STREAM      "STREAM"
-#define BUILDIN_VAR_REQUEST     "REQUEST"
+#define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
+#define BUILTIN_VAR_T           PURC_PREDEF_VARNAME_T
+#define BUILTIN_VAR_DOC         PURC_PREDEF_VARNAME_DOC
+#define BUILTIN_VAR_REQ         PURC_PREDEF_VARNAME_REQ
+#define BUILTIN_VAR_STREAM      PURC_PREDEF_VARNAME_STREAM
 
 static bool
 bind_cor_named_variable(purc_coroutine_t cor, const char* name,
@@ -1477,57 +1488,32 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
         return false;
     }
 
-    // $REQUEST
+    // $REQ
     if (request && !pcintr_bind_coroutine_variable(
-                cor, BUILDIN_VAR_REQUEST, request)) {
+                cor, BUILTIN_VAR_REQ, request)) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return false;
     }
 
-    // $HVML
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_HVML,
-                purc_dvobj_hvml_new(cor))) {
-        return false;
-    }
-
-    // $DATETIME
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_DATETIME,
-                purc_dvobj_datetime_new())) {
+    // $CRTN
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_CRTN,
+                purc_dvobj_coroutine_new(cor))) {
         return false;
     }
 
     // $T
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_T,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_T,
                 purc_dvobj_text_new())) {
         return false;
     }
 
-    // $L
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_L,
-                purc_dvobj_logical_new())) {
-        return false;
-    }
-
-    // FIXME: document-wide-variant???
-    // $STR
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STR,
-                purc_dvobj_string_new())) {
-        return false;
-    }
-
+    // TODO: make this as a runner-level variable.
     // $STREAM
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_STREAM,
+    if(!bind_cor_named_variable(cor, BUILTIN_VAR_STREAM,
                 purc_dvobj_stream_new(cor->cid))) {
         return false;
     }
 
-
-
-    // $EJSON
-    if(!bind_cor_named_variable(cor, BUILDIN_VAR_EJSON,
-                purc_dvobj_ejson_new())) {
-        return false;
-    }
     // end
 
     return true;
@@ -1543,7 +1529,7 @@ pcintr_init_vdom_under_stack(pcintr_stack_t stack)
     }
 
     // $DOC
-    if(!bind_cor_named_variable(stack->co, BUILDIN_VAR_DOC,
+    if(!bind_cor_named_variable(stack->co, BUILTIN_VAR_DOC,
                 purc_dvobj_doc_new(stack->doc))) {
         return -1;
     }
@@ -1561,7 +1547,6 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
 
     switch (frame->next_step) {
         case NEXT_STEP_AFTER_PUSHED:
-            init_caret_symbol(stack, frame);
             after_pushed(co, frame);
             break;
         case NEXT_STEP_ON_POPPING:
@@ -1579,72 +1564,42 @@ void pcintr_execute_one_step_for_ready_co(pcintr_coroutine_t co)
     }
 }
 
-static void on_sub_exit_event(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->as);
-    PRINT_VARIANT(child_result->result);
-
-    list_del(&child_result->node);
-    PURC_VARIANT_SAFE_CLEAR(child_result->as);
-    PURC_VARIANT_SAFE_CLEAR(child_result->result);
-    free(child_result);
-}
-
-static void on_sub_exit(void *ctxt)
-{
-    pcintr_coroutine_result_t child_result;
-    child_result = (pcintr_coroutine_result_t)ctxt;
-    PC_ASSERT(child_result);
-
-    pcintr_coroutine_t co;
-    co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PRINT_VARIANT(child_result->result);
-
-    pcintr_post_msg(ctxt, on_sub_exit_event);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-static void execute_one_step_for_exiting_co(pcintr_coroutine_t co)
+static void
+execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 {
     pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame == NULL);
     PC_ASSERT(stack->exited);
-
     PC_ASSERT(co->stack.except == 0);
 
     // CHECK pending requests
-
     PC_ASSERT(co->stack.back_anchor == NULL);
 
     pcintr_heap_t heap = co->owner;
     struct pcinst *inst = heap->owner;
 
+    purc_variant_t result = pcintr_coroutine_get_result(co);
+
     if (heap->cond_handler) {
-        heap->cond_handler(PURC_COND_COR_EXITED, co, stack->doc);
+        /* TODO: pass real result here */
+        struct purc_cor_exit_info info = {
+            result,
+            stack->doc };
+        heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
 
     if (co->curator) {
-        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
-        PC_ASSERT(parent->owner == co->owner);
+        // XXX: the curator may live in another thread!
+        purc_atom_t cid = co->curator;
         co->curator = 0;
-        pcintr_coroutine_result_t co_result;
-        co_result = co->result;
-        co->result = NULL;
-        PC_ASSERT(parent);
-        PC_ASSERT(co_result);
-        pcintr_wakeup_target_with(parent, co_result, on_sub_exit);
+
+        purc_variant_t element_value = purc_variant_make_ulongint(co->cid);
+        pcintr_coroutine_post_event(cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                element_value,
+                MSG_TYPE_SUB_EXIT, NULL,
+                result, PURC_VARIANT_INVALID);
+        purc_variant_unref(element_value);
+
     }
 
     pcutils_rbtree_erase(&co->node, &heap->coroutines);
@@ -1788,120 +1743,6 @@ pcintr_notify_to_stop(pcintr_coroutine_t co)
     }
 }
 
-void
-pcintr_on_msg(void *ctxt)
-{
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)ctxt;
-
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    //struct pcintr_stack_frame *frame;
-    //frame = pcintr_stack_get_bottom_frame(stack);
-    //PC_ASSERT(frame == NULL);
-
-    //pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-
-    PC_ASSERT(co->msg_pending);
-    co->msg_pending = 0;
-    msg->on_msg(msg->ctxt);
-    free(msg);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-// XXX: multiple inst
-static struct pcintr_msg            last_msg;
-
-struct pcintr_msg *
-pcintr_last_msg()
-{
-    return &last_msg;
-}
-
-void
-pcintr_on_last_msg(void *ctxt)
-{
-    PC_ASSERT(ctxt == &last_msg);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->stack.exited);
-    PC_ASSERT(co->stack.last_msg_sent);
-    PC_ASSERT(co->stack.last_msg_read == 0);
-    co->stack.last_msg_read = 1;
-    //PC_ASSERT(co->state == CO_STATE_READY);
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(&co->stack);
-    PC_ASSERT(frame == NULL);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
-void
-pcintr_post_callstate_success_event(pcintr_coroutine_t co, purc_variant_t with)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    PC_ASSERT(co->result);
-    PC_ASSERT(co->owner && target->owner);
-    PURC_VARIANT_SAFE_CLEAR(co->result->result);
-    co->result->result = purc_variant_ref(with);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("success", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_ref(with);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
-void
-pcintr_post_callstate_except_event(pcintr_coroutine_t co, const char *error_except)
-{
-    if (!co->curator)
-        return;
-
-    pcintr_coroutine_t target = pcintr_coroutine_get_by_id(co->curator);
-
-    purc_atom_t msg_type;
-    msg_type = pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE));
-
-    purc_variant_t msg_sub_type;
-    msg_sub_type = purc_variant_make_string_static("except", false);
-    PC_ASSERT(msg_sub_type);
-
-    purc_variant_t src;
-    src = purc_variant_make_undefined();
-    PC_ASSERT(src);
-
-    purc_variant_t payload = purc_variant_make_string(error_except, false);
-    PC_ASSERT(payload);
-
-    pcintr_fire_event_to_target(target, msg_type, msg_sub_type, src, payload);
-
-    PURC_VARIANT_SAFE_CLEAR(msg_sub_type);
-    PURC_VARIANT_SAFE_CLEAR(src);
-    PURC_VARIANT_SAFE_CLEAR(payload);
-}
-
 void pcintr_set_exit(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -1909,8 +1750,7 @@ void pcintr_set_exit(purc_variant_t val)
     pcintr_coroutine_t co = pcintr_get_coroutine();
     PC_ASSERT(co);
 
-    PURC_VARIANT_SAFE_CLEAR(co->val_from_return_or_exit);
-    co->val_from_return_or_exit = purc_variant_ref(val);
+    pcintr_coroutine_set_result(co, val);
 
     if (co->stack.exited == 0) {
         co->stack.exited = 1;
@@ -1934,7 +1774,6 @@ static void init_frame_for_co(pcintr_coroutine_t co)
     frame = &frame_normal->frame;
 
     frame->ops = *pcintr_get_document_ops();
-    co->execution_pending = 1;
     co->stage = CO_STAGE_FIRST_RUN;
 }
 
@@ -1957,7 +1796,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
 
     sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
-    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_USER, p);
+    coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
     free(p);
 
     return 0;
@@ -1974,7 +1813,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        purc_variant_t as, void *user_data)
+        pcrdr_page_type page_type, purc_variant_t as, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1983,25 +1822,14 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
 
-    pcintr_coroutine_result_t co_result = NULL;
-    if (parent) {
-        co_result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co_result));
-        if (!co_result) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            return NULL;
-        }
-    }
-
     co = (pcintr_coroutine_t)calloc(1, sizeof(*co));
     if (!co) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto fail_co;
+        goto fail;
     }
-    co->val_from_return_or_exit = purc_variant_make_undefined();
-    PC_ASSERT(co->val_from_return_or_exit != PURC_VARIANT_INVALID);
 
     if (set_coroutine_id(co)) {
-        goto fail_name;
+        goto fail_co;
     }
 
     pcvdom_document_ref(vdom);
@@ -2009,30 +1837,21 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcintr_coroutine_set_state(co, CO_STATE_READY);
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
-    INIT_LIST_HEAD(&co->msgs);
     INIT_LIST_HEAD(&co->tasks);
     INIT_LIST_HEAD(&co->event_handlers);
-    co->msg_pending = 0;
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
-        goto fail_name;
+        goto fail_co;
     }
 
+    pcintr_coroutine_add_sub_exit_event_handler(co);
+    pcintr_coroutine_add_last_msg_event_handler(co);
     pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {
         goto fail_variables;
-    }
-
-    if (parent) {
-        co->curator = parent->cid;
-        if (as != PURC_VARIANT_INVALID)
-            co_result->as = purc_variant_ref(as);
-        list_add_tail(&co_result->node, &parent->children);
-        co->result = co_result;
-        co_result = NULL;
     }
 
     stack = &co->stack;
@@ -2048,8 +1867,29 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     stack_init(stack);
 
-    if (doc_init(stack)) {
+    if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
+        stack->doc = purc_document_ref(parent->stack.doc);
+    }
+    else if (doc_init(stack)) {
         goto fail_variables;
+    }
+
+    if (parent) {
+        co->curator = parent->cid;
+        if (as != PURC_VARIANT_INVALID) {
+            co->param_as = purc_variant_ref(as);
+        }
+        pcintr_coroutine_child_t child;
+        child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
+        if (!child) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto fail_variables;
+        }
+        child->cid = co->cid;
+        list_add_tail(&child->ln, &parent->children);
+    }
+    else {
+        // set curator in caller
     }
 
     stack->vdom = vdom;
@@ -2063,13 +1903,17 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 fail_variables:
     pcinst_msg_queue_destroy(co->mq);
 
-fail_name:
+fail_co:
     free(co);
 
-fail_co:
-    free(co_result);
-
+fail:
     return NULL;
+}
+
+static void
+set_body_entry(pcintr_stack_t stack, const char *body_id)
+{
+    stack->body_id = strdup(body_id);
 }
 
 purc_coroutine_t
@@ -2080,33 +1924,60 @@ purc_schedule_vdom(purc_vdom_t vdom,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data)
 {
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co == NULL);
+    pcintr_coroutine_t co;
 
-    /* TODO: check curator here */
-    UNUSED_PARAM(curator);
+    struct pcintr_heap* intr = pcintr_get_heap();
+    PC_ASSERT(intr);
 
-    co = coroutine_create(vdom, NULL, NULL, user_data);
+    pcintr_coroutine_t parent = NULL;
+    if (curator) {
+        struct rb_node* node = pcutils_rbtree_find(&intr->coroutines,
+                &curator, cmp_by_atom);
+        if (node) {
+            parent = container_of(node, struct pcintr_coroutine, node);
+        }
+    }
+
+    co = coroutine_create(vdom, parent, page_type, NULL, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         goto failed;
     }
 
-    co->stage = CO_STAGE_SCHEDULED;
-
-    /* Attach to rdr only if the document needs rdr and
-       the page type is not null. */
-    if (co->stack.doc->need_rdr &&
-            page_type != PCRDR_PAGE_TYPE_NULL &&
-            !pcintr_attach_to_renderer(co,
-                page_type, target_workspace,
-                target_group, page_name, extra_info)) {
-        purc_log_warn("Failed to attach to renderer\n");
+    if (parent == NULL) {
+        co->curator = curator;
     }
 
-    /* TODO: handle entry and request here */
+    co->stage = CO_STAGE_SCHEDULED;
+
+    /* Attach to rdr only if the document needs rdr,
+       the document is newly created, and the page type is not null. */
+    if (co->stack.doc->need_rdr &&
+            purc_document_get_refc(co->stack.doc) == 1 &&
+            page_type != PCRDR_PAGE_TYPE_NULL) {
+
+        if (!pcintr_attach_to_renderer(co,
+                page_type, target_workspace,
+                target_group, page_name, extra_info)) {
+            purc_log_warn("Failed to attach to renderer\n");
+        }
+    }
+    else if (co->stack.doc->need_rdr &&
+            purc_document_get_refc(co->stack.doc) > 1) {
+        /* use same rdr parameters with parent */
+        PC_ASSERT(parent);
+
+        co->target_page_type = parent->target_page_type;
+        co->target_workspace_handle = parent->target_workspace_handle;
+        co->target_page_handle = parent->target_page_handle;
+        co->target_dom_handle = parent->target_dom_handle;
+    }
+
+    /* handle entry(body_id) and request here */
     UNUSED_PARAM(body_id);
-    UNUSED_PARAM(request);
+    if (body_id && body_id[0] != '\0') {
+        set_body_entry(&co->stack, body_id);
+    }
 
     if (!bind_builtin_coroutine_variables(co, request)) {
         goto failed;
@@ -2474,7 +2345,7 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
         goto end;
     }
 
-    purc_variant_t doc = pcintr_get_coroutine_variable(cor, BUILDIN_VAR_DOC);
+    purc_variant_t doc = pcintr_get_coroutine_variable(cor, BUILTIN_VAR_DOC);
     if (doc == PURC_VARIANT_INVALID) {
         PC_ASSERT(0);
         goto end;
@@ -3010,7 +2881,11 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     if (co == NULL) {
         return;
     }
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
+
+    if (co->state != CO_STATE_OBSERVING)
+    {
+        return;
+    }
 
     pcintr_stack_t stack = &co->stack;
     if (stack->exited)
@@ -3077,28 +2952,6 @@ pcintr_get_vdom_from_variant(purc_variant_t val)
     return (pcvdom_element_t)native;
 }
 
-void
-pcintr_post_msg(void *ctxt, pcintr_msg_callback_f cb)
-{
-    pcintr_stack_t stack = pcintr_get_stack();
-    PC_ASSERT(stack);
-    pcintr_coroutine_t co = stack->co;
-    PC_ASSERT(co);
-    if (1) {
-        pcintr_post_msg_to_target(co, ctxt, cb);
-        return;
-    }
-
-    pcintr_msg_t msg;
-    msg = (pcintr_msg_t)calloc(1, sizeof(*msg));
-    PC_ASSERT(msg);
-
-    msg->ctxt        = ctxt;
-    msg->on_msg      = cb;
-
-    list_add_tail(&msg->node, &co->msgs);
-}
-
 void pcintr_cancel_init(pcintr_cancel_t cancel,
         void *ctxt, void (*cancel_routine)(void *ctxt))
 {
@@ -3137,79 +2990,6 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, void *extra),
-        purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name)
-{
-    UNUSED_PARAM(request_id);
-    UNUSED_PARAM(event_name);
-    PC_ASSERT(ctxt);
-    PC_ASSERT(continuation);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
-    co->yielded_ctxt = ctxt;
-    co->continuation = continuation;
-    if (request_id) {
-        co->wait_request_id = request_id;
-        purc_variant_ref(co->wait_request_id);
-    }
-
-    if (element_value) {
-        co->wait_element_value = element_value;
-        purc_variant_ref(co->wait_element_value);
-    }
-
-    if (event_name) {
-        co->wait_event_name = event_name;
-        purc_variant_ref(co->wait_event_name);
-    }
-}
-
-void pcintr_resume(pcintr_coroutine_t co, void *extra)
-{
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_STOPPED);
-    PC_ASSERT(co->yielded_ctxt);
-    PC_ASSERT(co->continuation);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt, void *extra) = co->continuation;
-
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->yielded_ctxt = NULL;
-    co->continuation = NULL;
-    if (co->wait_request_id) {
-        purc_variant_unref(co->wait_request_id);
-        co->wait_request_id = NULL;
-    }
-
-    if (co->wait_element_value) {
-        purc_variant_unref(co->wait_element_value);
-        co->wait_element_value = NULL;
-    }
-
-    if (co->wait_event_name) {
-        purc_variant_unref(co->wait_event_name);
-        co->wait_event_name = NULL;
-    }
-
-    continuation(ctxt, extra);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-}
-
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
         purc_variant_t as, purc_variant_t within)
@@ -3222,7 +3002,9 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
     PC_ASSERT(vdom_element);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(co->vdom, co, as, NULL);
+    child = coroutine_create(co->vdom, co,
+            PCRDR_PAGE_TYPE_INHERIT, // TODO
+            as, NULL);
     do {
         if (!child)
             break;
@@ -3231,7 +3013,7 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
 
         child->stack.entry = vdom_element;
 
-        purc_log_debug("running parent/child: %p/%p", co, child);
+        PC_DEBUG("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
         init_frame_for_co(child);
     } while (0);
@@ -3255,7 +3037,9 @@ pcintr_load_child_co(const char *hvml,
     PC_ASSERT(co);
 
     pcintr_coroutine_t child;
-    child = coroutine_create(vdom, co, as, NULL);
+    child = coroutine_create(vdom, co,
+            PCRDR_PAGE_TYPE_INHERIT, // TODO
+            as, NULL);
     do {
         if (!child)
             break;
@@ -3267,25 +3051,6 @@ pcintr_load_child_co(const char *hvml,
     } while (0);
 
     return child;
-}
-
-void
-pcintr_on_event(purc_atom_t msg_type, purc_variant_t msg_sub_type,
-        purc_variant_t src, purc_variant_t payload)
-{
-    PC_ASSERT(0);
-    UNUSED_PARAM(msg_sub_type);
-    UNUSED_PARAM(src);
-    UNUSED_PARAM(payload);
-
-    if (msg_type == pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE))) {
-        if (0)
-            PC_ASSERT(0);
-    }
-    else {
-        if (0)
-            PC_ASSERT(0);
-    }
 }
 
 void*
@@ -3555,6 +3320,7 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
         const char *file, int line, const char *func)
 {
+    //PLOG(">%s:%d:%s state=%d\n", file, line, func, state);
     UNUSED_PARAM(file);
     UNUSED_PARAM(line);
     UNUSED_PARAM(func);
@@ -3588,7 +3354,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
     pcintr_stack_t stack = pcintr_get_stack();
     if (text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, "textContent", PCRDR_MSG_DATA_TYPE_TEXT,
+                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
 
@@ -3603,11 +3369,12 @@ pcintr_util_new_content(purc_document_t doc,
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
+    /* TODO: use the type from archetype `type` attribute */
     pcintr_stack_t stack = pcintr_get_stack();
     if (node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, len);
+                elem, NULL, doc->def_text_type, content, len);
     }
 
     return node;
@@ -3628,9 +3395,45 @@ pcintr_util_set_attribute(purc_document_t doc,
         strcat(property, name);
 
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, property, PCRDR_MSG_DATA_TYPE_TEXT, val, len);
+                elem, property, PCRDR_MSG_DATA_TYPE_PLAIN, val, len);
     }
 
     return 0;
+}
+
+void
+pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result)
+{
+    if (!result) {
+        return;
+    }
+
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (!frame) {
+        PC_ASSERT(0);
+        return;  // NOTE: never reached here!!!
+    }
+    pcintr_set_question_var(frame, result);
+}
+
+purc_variant_t
+pcintr_coroutine_get_result(pcintr_coroutine_t co)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    while (frame && frame->pos && frame->pos->tag_id != PCHVML_TAG_HVML) {
+        frame = pcintr_stack_frame_get_parent(frame);
+    }
+
+    if (frame) {
+        return pcintr_get_question_var(frame);
+    }
+    PC_ASSERT(0);
+    return PURC_VARIANT_INVALID; // NOTE: never reached here!!!
 }
 

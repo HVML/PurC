@@ -17,15 +17,15 @@
                 <h2 id="c_title">Test Observe<br/>
                     <span id="info"></span>
                 </h2>
-                <observe on="$SYSTEM" for="change:cwd" in="#info">
-                    <update on="$@" at="textContent" with="$SYSTEM.cwd()" />
-                    <forget on="$SYSTEM" for="change:cwd"/>
+                <observe on="$SYS" for="change:cwd" in="#info">
+                    <update on="$@" at="textContent" with="$SYS.cwd()" />
+                    <forget on="$SYS" for="change:cwd"/>
                 </observe>
                 <observe on="$TIMERS" for="expired:clock">
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>
-                    <update on="#info" at="textContent" with="$EJSON.stringify($SYSTEM.cwd(!'/tmp'))" />
+                    <update on="#info" at="textContent" with="$EJSON.stringify($SYS.cwd(!'/tmp'))" />
                     <forget on="$TIMERS" for="expired:clock"/>
                 </observe>
                 <p>this is after observe</p>

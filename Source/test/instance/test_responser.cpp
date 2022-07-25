@@ -230,7 +230,7 @@ TEST(instance, responser)
             purc_assemble_endpoint_name(PCRDR_LOCALHOST,
                         APP_NAME, source_uri, endpoint_name);
 
-            request_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_USER,
+            request_atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
                     endpoint_name);
             ASSERT_NE(request_atom, 0);
 
