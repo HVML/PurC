@@ -4,20 +4,49 @@
 
 [//]:# (START OF TOC)
 
+- [1) Long-Term](#1-long-term)
+   + [1.1) Variants](#11-variants)
+   + [1.2) eJSON Parsing and Evaluating](#12-ejson-parsing-and-evaluating)
+   + [1.3) Predefined Varaibles](#13-predefined-varaibles)
+   + [1.4) eDOM](#14-edom)
+   + [1.5) Interpreter](#15-interpreter)
+   + [1.6) More ports](#16-more-ports)
+- [2) 当前（202207）](#2-当前202207)
+   + [2.1) 变体](#21-变体)
+   + [2.2) 预定义变量](#22-预定义变量)
+   + [2.3) eDOM](#23-edom)
+   + [2.4) vDOM 解析器](#24-vdom-解析器)
+   + [2.5) 解释器](#25-解释器)
+   + [2.6) 其他](#26-其他)
+- [过往（202206）](#过往202206)
+   + [变体](#变体)
+   + [eDOM](#edom)
+   + [预定义变量](#预定义变量)
+   + [vDOM 解析器](#vdom-解析器)
+   + [解释器](#解释器)
+- [过往（202205）](#过往202205)
+   + [预定义变量](#预定义变量)
+   + [解释器](#解释器)
+   + [解析器](#解析器)
+   + [eJSON 解析和求值](#ejson-解析和求值)
+   + [变体](#变体)
+   + [数据获取器](#数据获取器)
+   + [工程维护](#工程维护)
+
 [//]:# (END OF TOC)
 
-## 0) Long-Term
+## 1) Long-Term
 
-### 0.1) Variants
+### 1.1) Variants
 
 1. Support for new variant type: tuple.
 1. Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of variant structure.
 
-### 0.2) eJSON Parsing and Evaluating
+### 1.2) eJSON Parsing and Evaluating
 
 1. Support for Tuple
 
-### 0.3) Predefined Varaibles
+### 1.3) Predefined Varaibles
 
 1. In the implementationi of predefined variables, use the interfaces for linear container instead of array.
 1. Finish the implementation of the following predefined variables:
@@ -26,12 +55,12 @@
    - `$URL`
    - `$STR`
 
-### 0.2) eDOM
+### 1.4) eDOM
 
 1. Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
 1. Support for the new tarege document type: `plain` and/or `markdown`.
 
-### 0.4) Interpreter
+### 1.5) Interpreter
 
 1. Provide support for channel, which can act as an inter-coroutine communication mechanism.
 1. Implement the element `request`.
@@ -56,17 +85,17 @@
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
 
-### 0.5) More ports
+### 1.6) More ports
 
 1. Windows
 
-## 1) 当前（202207）
+## 2) 当前（202207）
 
-### 1.1) 变体
+### 2.1) 变体
 
 （无）
 
-### 1.2) 预定义变量
+### 2.2) 预定义变量
 
 1. 增加、调整或补充预定义变量的实现：
    - ~~`$CRTN`~~
@@ -84,16 +113,16 @@
    - `$FS`
    - `$FILE`
 
-### 1.3) eDOM
+### 2.3) eDOM
 
 1. ~~实现 `void` 目标文档类型。~~
 
-### 1.4) vDOM 解析器
+### 2.4) vDOM 解析器
 
 1. ~~对井号注释的初步支持：忽略 HVML 文件中，在 `<DOCTYPE ` 或者 `<!-- ` 开始前，所有以 `#` 打头的行。~~
 1. ~~支持在框架元素中定义多个求值表达式或复合求值表达式；参阅 HVML 规范 2.3.4 小节。~~
 
-### 1.5) 解释器
+### 2.5) 解释器
 
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
    - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
@@ -138,7 +167,7 @@
    - ~~增强 PURCMC 协议，用于区分普通文本或标记文本。~~
    - ~~支持页面名称为 `_inherit` 以及 `_self` 的情形。~~
 
-### 1.6) 其他
+### 2.6) 其他
 
 1. ~~`purc` 命令行工具。~~
 1. 代码清理
