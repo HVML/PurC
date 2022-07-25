@@ -17,8 +17,6 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-
 #include "purc.h"
 #include "purc-variant.h"
 
@@ -614,7 +612,7 @@ TEST(dvobjs, dvobjs_fs_chgrp)
         env, "test_files");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
-    char file_path[1024] = {0};
+    char file_path[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path, data_path, sizeof(file_path)-1);
     strncat (file_path, "/fs/chgrp.test", sizeof(file_path)-1);
 
@@ -698,7 +696,7 @@ TEST(dvobjs, dvobjs_fs_chmod)
         env, "test_files");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
-    char file_path[1024] = {0};
+    char file_path[PATH_MAX + NAME_MAX + 1] = {0};
     strncpy (file_path, data_path, sizeof(file_path)-1);
     strncat (file_path, "/fs/chmod.test", sizeof(file_path)-1);
 
@@ -792,7 +790,7 @@ TEST(dvobjs, dvobjs_fs_chown)
         env, "test_files");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
-    char file_path[1024] = {0};
+    char file_path[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path, data_path, sizeof(file_path)-1);
     strncat (file_path, "/fs/chwon.test", sizeof(file_path)-1);
 
