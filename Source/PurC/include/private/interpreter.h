@@ -81,10 +81,6 @@ struct pcintr_cancel;
 typedef struct pcintr_cancel pcintr_cancel;
 typedef struct pcintr_cancel *pcintr_cancel_t;
 
-struct pcintr_coroutine_result;
-typedef struct pcintr_coroutine_result pcintr_coroutine_result;
-typedef struct pcintr_coroutine_result *pcintr_coroutine_result_t;
-
 struct pcintr_coroutine_child;
 typedef struct pcintr_coroutine_child pcintr_coroutine_child;
 typedef struct pcintr_coroutine_child *pcintr_coroutine_child_t;
@@ -239,11 +235,6 @@ struct pcintr_msg {
     struct list_head            node;
 };
 
-struct pcintr_coroutine_result {
-    purc_variant_t              as;
-    struct list_head            node;     /* parent:children */
-};
-
 struct pcintr_coroutine_child {
     struct list_head            ln;
     purc_atom_t                 cid;
@@ -266,7 +257,9 @@ struct pcintr_coroutine {
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
-    pcintr_coroutine_result_t   result;
+    /* pcintr_create_child_co, pcintr_load_child_co */
+    purc_variant_t              param_as;
+    purc_variant_t              param_with;
 
     const char                 *error_except;
 

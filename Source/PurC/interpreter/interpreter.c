@@ -374,10 +374,8 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
-        if (co->result) {
-            PURC_VARIANT_SAFE_CLEAR(co->result->as);
-            free(co->result);
-        }
+        PURC_VARIANT_SAFE_CLEAR(co->param_as);
+        PURC_VARIANT_SAFE_CLEAR(co->param_with);
 
         struct list_head *children = &co->children;
         struct list_head *p, *n;
@@ -1830,14 +1828,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         goto fail;
     }
 
-    co->result = (pcintr_coroutine_result_t)calloc(1, sizeof(*co->result));
-    if (!co->result) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto fail_co;
-    }
-
     if (set_coroutine_id(co)) {
-        goto fail_co_result;
+        goto fail_co;
     }
 
     pcvdom_document_ref(vdom);
@@ -1850,7 +1842,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
-        goto fail_co_result;
+        goto fail_co;
     }
 
     pcintr_coroutine_add_sub_exit_event_handler(co);
@@ -1885,7 +1877,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     if (parent) {
         co->curator = parent->cid;
         if (as != PURC_VARIANT_INVALID) {
-            co->result->as = purc_variant_ref(as);
+            co->param_as = purc_variant_ref(as);
         }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
@@ -1910,9 +1902,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
 fail_variables:
     pcinst_msg_queue_destroy(co->mq);
-
-fail_co_result:
-    free(co->result);
 
 fail_co:
     free(co);
