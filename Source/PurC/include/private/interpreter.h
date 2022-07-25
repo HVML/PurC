@@ -259,7 +259,7 @@ struct pcintr_coroutine {
 
     /* pcintr_create_child_co, pcintr_load_child_co */
     purc_variant_t              param_as;
-    purc_variant_t              param_with;
+    purc_variant_t              param_within;
 
     const char                 *error_except;
 

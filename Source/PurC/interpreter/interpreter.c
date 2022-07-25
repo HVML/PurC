@@ -376,7 +376,7 @@ coroutine_release(pcintr_coroutine_t co)
         pcvdom_document_unref(co->vdom);
 
         PURC_VARIANT_SAFE_CLEAR(co->param_as);
-        PURC_VARIANT_SAFE_CLEAR(co->param_with);
+        PURC_VARIANT_SAFE_CLEAR(co->param_within);
 
         struct list_head *children = &co->children;
         struct list_head *p, *n;
@@ -1814,7 +1814,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, purc_variant_t as, purc_variant_t with,
+        pcrdr_page_type page_type, purc_variant_t as, purc_variant_t within,
         void *user_data)
 {
     struct pcinst *inst = pcinst_current();
@@ -1881,8 +1881,8 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         if (as != PURC_VARIANT_INVALID) {
             co->param_as = purc_variant_ref(as);
         }
-        if (with != PURC_VARIANT_INVALID) {
-            co->param_with = purc_variant_ref(with);
+        if (within != PURC_VARIANT_INVALID) {
+            co->param_within = purc_variant_ref(within);
         }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
