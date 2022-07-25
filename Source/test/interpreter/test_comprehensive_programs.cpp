@@ -72,32 +72,52 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
         struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
         if (!purc_variant_is_equal_to(sample->expected_result, info->result)) {
-            char buf[1024];
-            purc_rwstream_t my_rws =
-                purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+            char exe_result[1024];
+            char exp_result[1024];
+            purc_rwstream_t my_rws;
 
+            my_rws = purc_rwstream_new_from_mem(exp_result,
+                    sizeof(exp_result) - 1);
+            size_t len_expected = 0;
+            ssize_t n = purc_variant_serialize(sample->expected_result, my_rws,
+                    0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            exp_result[n] = 0;
+            purc_rwstream_destroy(my_rws);
+
+            my_rws = purc_rwstream_new_from_mem(exe_result,
+                    sizeof(exe_result) - 1);
             if (info->result) {
                 size_t len_expected = 0;
                 ssize_t n = purc_variant_serialize(info->result, my_rws,
                         0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
-                buf[n] = 0;
+                exe_result[n] = 0;
 
             }
             else {
-                strcpy(buf, "INVALID VALUE");
+                strcpy(exe_result, "INVALID VALUE");
             }
             purc_rwstream_destroy(my_rws);
 
             ADD_FAILURE()
                 << sample->file << std::endl
-                << "The execute result ("
-                << buf
-                << ") does not match to the expected result"
+                << "The execute result does not match to the expected result: "
+                << std::endl
+                << TCS_YELLOW
+                << exe_result
+                << TCS_NONE
+                << " vs. "
+                << TCS_YELLOW
+                << exp_result
+                << TCS_NONE
                 << std::endl;
 
         }
         else {
-            std::cout << "Passed: " << sample->file << std::endl;
+            std::cout
+                << TCS_GREEN
+                << "Passed"
+                << TCS_NONE
+                << std::endl;
         }
     }
     else if (event == PURC_COND_COR_DESTROYED) {

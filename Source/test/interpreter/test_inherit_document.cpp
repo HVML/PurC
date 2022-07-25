@@ -202,9 +202,14 @@ my_cond_handler(purc_cond_t event, void *arg, void *data)
                 }
 
                 ADD_FAILURE()
-                    << "failed to compare:" << std::endl
-                    << "output:" << std::endl << ctnt << std::endl
-                    << "expected:" << std::endl << html << std::endl;
+                    << "The generated document does not match to the expected document:" << std::endl
+                    << std::endl
+                    << "generated:" << std::endl
+                    << TCS_YELLOW << ctnt << TCS_NONE
+                    << std::endl
+                    << "expected:" << std::endl
+                    << TCS_YELLOW << html << TCS_NONE
+                    << std::endl;
 
                 free(ctnt);
             }

@@ -1,0 +1,40 @@
+#!/usr/bin/purc
+
+# RESULT: 3L
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <define as "calcGreatestCommonDivisor">
+        <test with $L.or($L.le($x, 0), $L.le($y, 0)) >
+            <return with undefined />
+        </test>
+
+        <init as "big" with {{ $L.gt($x, $y) && $x || $y }} temp />
+        <init as "small" with {{ $L.lt($x, $y) && $x || $y }} temp />
+
+        <test with $L.eq($EJSON.arith('%', $big, $small), 0) >
+            <return with $small />
+        </test>
+
+        <iterate on $EJSON.arith('/', $small, 2) onlyif $L.gt($0<, 0)
+                with $EJSON.arith('-', $0<, 1) nosetotail >
+
+            <test with $L.eval('a == 0 && b == 0',
+                    { a: $EJSON.arith('%', $big, $?),
+                      b: $EJSON.arith('%', $small, $?) } >
+                <return with $? />
+            </test>
+
+        </iterate>
+
+        <return with 1L />
+
+    </define>
+
+    <call on $calcGreatestCommonDivisor with { x: 3L, y: 6L } >
+        <exit with $? />
+    </call>
+
+</hvml>
+
