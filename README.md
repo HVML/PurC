@@ -356,7 +356,7 @@ you can run `purc` to show the ultimate HTML contents in a window of xGUI Pro.
 Assume that you have started xGUI Pro from another terminal and run `purc` with the following options:
 
 ```bash
-    $ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
+$ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
 ```
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp.hvml`:
@@ -368,7 +368,7 @@ another sample called `hvml/calculator-bc.hvml`, which implements
 an arbitrary precision calculator:
 
 ```bash
-    $ purc -p purcmc hvml/calculator-bc.hvml
+$ purc -p purcmc hvml/calculator-bc.hvml
 ```
 
 ![the Arbitrary Precision Calculator](Documents/screenshots/calculator-bc.png)
@@ -376,7 +376,7 @@ an arbitrary precision calculator:
 Or run `hvml/planetary-resonance.hvml`, which shows the Planetary Resonance:
 
 ```bash
-    $ purc -p purcmc hvml/planetary-resonance.hvml
+$ purc -p purcmc hvml/planetary-resonance.hvml
 ```
 
 ![the Planetary Resonance](Documents/screenshots/planetary-resonance.png)
