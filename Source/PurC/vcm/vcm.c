@@ -509,6 +509,17 @@ void write_object_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
 }
 
 static
+void write_concat_string_node_serialize_rwstream(purc_rwstream_t rws,
+        struct pcvcm_node *node, pcvcm_node_handle handle)
+{
+    struct pcvcm_node *child = FIRST_CHILD(node);
+    while (child) {
+        handle(rws, child, true);
+        child = NEXT_CHILD(child);
+    }
+}
+
+static
 void write_sibling_node_rwstream(purc_rwstream_t rws,
         struct pcvcm_node *node, bool print_comma, pcvcm_node_handle handle)
 {
@@ -680,25 +691,25 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
         break;
 
     case PCVCM_NODE_TYPE_OBJECT:
-        purc_rwstream_write(rws, "{", 1);
+        purc_rwstream_write(rws, "{ ", 2);
         write_object_to_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, "}", 1);
+        purc_rwstream_write(rws, " }", 2);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
-        purc_rwstream_write(rws, "[", 1);
+        purc_rwstream_write(rws, "[ ", 2);
         write_child_node_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, "]", 1);
+        purc_rwstream_write(rws, " ]", 2);
         break;
 
     case PCVCM_NODE_TYPE_STRING:
         if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, "\"", 1);
+            purc_rwstream_write(rws, "'", 1);
         }
         purc_rwstream_write(rws, (char*)node->sz_ptr[1],
                 node->sz_ptr[0]);
         if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, "\"", 1);
+            purc_rwstream_write(rws, "'", 1);
         }
         break;
 
@@ -763,7 +774,7 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
         purc_rwstream_write(rws, "\"", 1);
-        write_child_node_rwstream(rws, node, handle);
+        write_concat_string_node_serialize_rwstream(rws, node, handle);
         purc_rwstream_write(rws, "\"", 1);
         break;
 
@@ -779,19 +790,27 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
    {
         struct pcvcm_node *child = FIRST_CHILD(node);
         handle(rws, child, true);
-        purc_rwstream_write(rws, ".", 1);
+
         child = NEXT_CHILD(child);
-        handle(rws, child, true);
-   }
+        if (child->type == PCVCM_NODE_TYPE_STRING) {
+            purc_rwstream_write(rws, ".", 1);
+            handle(rws, child, true);
+        }
+        else {
+            purc_rwstream_write(rws, "[", 1);
+            handle(rws, child, true);
+            purc_rwstream_write(rws, "]", 1);
+        }
         break;
+   }
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
     {
         struct pcvcm_node *child = FIRST_CHILD(node);
         handle(rws, child, true);
-        purc_rwstream_write(rws, "(", 1);
+        purc_rwstream_write(rws, "( ", 2);
         write_sibling_node_rwstream(rws, child, true, handle);
-        purc_rwstream_write(rws, ")", 1);
+        purc_rwstream_write(rws, " )", 2);
         break;
     }
 
@@ -799,9 +818,9 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
     {
         struct pcvcm_node *child = FIRST_CHILD(node);
         handle(rws, child, true);
-        purc_rwstream_write(rws, "(!", 2);
+        purc_rwstream_write(rws, "(! ", 2);
         write_sibling_node_rwstream(rws, child, true, handle);
-        purc_rwstream_write(rws, ")", 1);
+        purc_rwstream_write(rws, " )", 2);
         break;
     }
 
