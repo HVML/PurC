@@ -770,7 +770,7 @@ attr_serialize(void *key, void *val, void *ctxt)
     }
 
     size_t len;
-    char *s = pcvcm_node_to_string(v, &len);
+    char *s = pcvcm_node_serialize(v, &len);
     if (!s) {
         ud->cb("{{OOM}}", 7);
         return 0;
