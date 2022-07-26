@@ -39,6 +39,93 @@
 
 #define DEFAULT_RUNNER_NAME     "_self"
 
+static void
+parse_info(const char *org, char **page_type,
+        char **workspace, char **group, char **page_name)
+{
+    const char *end = org + strlen(org);
+    const char *p = strchr(org, ':');
+    const char *q = NULL;
+    if (p) {
+        *page_type = strndup(org, p - org);
+        p = p + 1;
+    }
+    else {
+        *page_type = NULL;
+        p = org;
+    }
+
+    if (p == end) {
+        goto out;
+    }
+
+    q = strchr(p, '@');
+    if (q) {
+        *page_name = strndup(p, q - p);
+        q = q + 1;
+    }
+    else {
+        *page_name = strdup(p);
+        q = NULL;
+    }
+
+    if (!q || q == end) {
+        goto out;
+    }
+
+    p = strchr(q, '/');
+    if (p) {
+        *workspace = strndup(q, p - q);
+        *group = (p + 1 < end) ? strdup(p + 1) : NULL;
+    }
+    else {
+        *group = strdup(q);
+    }
+
+out:
+    return;
+}
+
+void
+fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type *page_type,
+        char **workspace, char **group, char **page_name)
+{
+    char *type = NULL;
+    parse_info(rdr_info, &type, workspace, group, page_name);
+
+    if (type != NULL) {
+        if (strcmp(type, PCRDR_PAGE_TYPE_NAME_WIDGET) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_WIDGET;
+        }
+        else {
+            *page_type = PCRDR_PAGE_TYPE_PLAINWIN;
+        }
+    }
+
+    if (*page_name && *page_name[0] == '_') {
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_NULL) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_NULL;
+        }
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_INHERIT) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_INHERIT;
+        }
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_SELF) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_SELF;
+        }
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_FIRST) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_FIRST;
+        }
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_LAST) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_LAST;
+        }
+        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_ACTIVE) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_ACTIVE;
+        }
+    }
+
+    free(type);
+}
+
 void
 fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
 {
@@ -68,7 +155,7 @@ fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
 purc_atom_t
 pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
-        bool create_runner)
+        const char *body_id, bool create_runner)
 {
 
     purc_atom_t cid = 0;
@@ -79,8 +166,6 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
     char *target_workspace = NULL;
     char *target_group = NULL;
     char *page_name = NULL;
-    const char *p = NULL;
-
 
     struct pcinst *inst = pcinst_current();
     const char *app_name = inst->app_name;
@@ -103,34 +188,9 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         goto out;
     }
 
-    if (!rdr_target) {
-        page_type = PCRDR_PAGE_TYPE_PLAINWIN;
-    }
-    else {
-        p = strchr(rdr_target, ':');
-        if (p) {
-            size_t len = p - rdr_target;
-            if (strncmp(rdr_target, PCRDR_PAGE_TYPE_NAME_WIDGET, len) == 0) {
-                page_type = PCRDR_PAGE_TYPE_WIDGET;
-            }
-            else {
-                page_type = PCRDR_PAGE_TYPE_PLAINWIN;
-            }
-            p = p + 1;
-        }
-        else {
-            page_type = PCRDR_PAGE_TYPE_PLAINWIN;
-            p = rdr_target;
-        }
-
-        const char *g = strchr(p, '@');
-        if (g) {
-            page_name = strndup(p, g - p);
-            target_group = strdup(g + 1);
-        }
-        else {
-            page_name = strdup(p);
-        }
+    if (rdr_target) {
+        fill_vdom_rdr_param(rdr_target, &page_type, &target_group,
+                &target_group, &page_name);
     }
 
     purc_atom_t dest_inst = purc_inst_create_or_get(app_name,
@@ -151,14 +211,14 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
     if (inst->intr_heap->move_buff != dest_inst) {
         cid = purc_inst_schedule_vdom(dest_inst, vdom,
                 curator, request, page_type,
-                "main", target_group, page_name,
-                NULL, NULL);
+                target_workspace, target_group, page_name,
+                &rdr_info, body_id);
     }
     else {
         purc_coroutine_t cco = purc_schedule_vdom(vdom,
                 curator, request, page_type,
-                "main", target_group, page_name,
-                NULL, NULL, NULL);
+                target_workspace, target_group, page_name,
+                &rdr_info, body_id, NULL);
         if (cco) {
             cid = cco->cid;
         }

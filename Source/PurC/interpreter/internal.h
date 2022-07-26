@@ -485,7 +485,7 @@ pcintr_update_timestamp(struct pcinst *inst);
 purc_atom_t
 pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
-        bool create_runner);
+        const char *body_id, bool create_runner);
 
 PCA_EXTERN_C_END
 

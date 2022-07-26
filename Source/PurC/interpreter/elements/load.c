@@ -157,7 +157,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     const char *onto = ctxt->onto ?
         purc_variant_get_string_const(ctxt->onto) : NULL;
     purc_atom_t child_cid = pcintr_schedule_child_co(hvml, co->cid,
-            as, onto, ctxt->within, false);
+            as, onto, ctxt->within, NULL, false);
     if (!child_cid)
         return -1;
 
