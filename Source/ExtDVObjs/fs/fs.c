@@ -2826,7 +2826,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     readsize = fread (bsequence, 1, length, fp);
     if (readsize != length && flag_strict) {
-        // FIXME: throw `BadEncoding` exception
+        // throw `BadEncoding` exception
+        purc_set_error (PURC_ERROR_BAD_ENCODING);
         goto err;
     }
 
