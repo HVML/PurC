@@ -1,62 +1,101 @@
 # TODO List
 
-## 0) 长期
+**Table of Contents**
 
-### 0.1) 变体
+[//]:# (START OF TOC)
 
-1. 实现新的线性容器类型元组（tuple）。
-1. 使用独立的数据结构处理变体的监听器等信息，从而降低变体数据结构的尺寸。
+- [1) Long-Term](#1-long-term)
+   + [1.1) Variants](#11-variants)
+   + [1.2) eJSON Parsing and Evaluating](#12-ejson-parsing-and-evaluating)
+   + [1.3) Predefined Varaibles](#13-predefined-varaibles)
+   + [1.4) eDOM](#14-edom)
+   + [1.5) Interpreter](#15-interpreter)
+   + [1.6) More ports](#16-more-ports)
+- [2) 当前（202207）](#2-当前202207)
+   + [2.1) 变体](#21-变体)
+   + [2.2) 预定义变量](#22-预定义变量)
+   + [2.3) eDOM](#23-edom)
+   + [2.4) vDOM 解析器](#24-vdom-解析器)
+   + [2.5) 解释器](#25-解释器)
+   + [2.6) 其他](#26-其他)
+- [过往（202206）](#过往202206)
+   + [变体](#变体)
+   + [eDOM](#edom)
+   + [预定义变量](#预定义变量)
+   + [vDOM 解析器](#vdom-解析器)
+   + [解释器](#解释器)
+- [过往（202205）](#过往202205)
+   + [预定义变量](#预定义变量)
+   + [解释器](#解释器)
+   + [解析器](#解析器)
+   + [eJSON 解析和求值](#ejson-解析和求值)
+   + [变体](#变体)
+   + [数据获取器](#数据获取器)
+   + [工程维护](#工程维护)
 
-### 0.2) eJSON 解析和求值
+[//]:# (END OF TOC)
 
-1. 支持元组。
+## 1) Long-Term
 
-### 0.3) 预定义变量
+### 1.1) Variants
 
-1. 在预定义变量的实现中，使用线性容器封装接口获取容器类参数的大小及其成员。
-1. 完善如下变量的实现：
+1. Support for new variant type: tuple.
+1. Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of variant structure.
+
+### 1.2) eJSON Parsing and Evaluating
+
+1. Support for Tuple
+
+### 1.3) Predefined Varaibles
+
+1. In the implementationi of predefined variables, use the interfaces for linear container instead of array.
+1. Finish the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
    - `$STR`
 
-### 0.2) eDOM
+### 1.4) eDOM
 
-1. 优化元素汇集原生实体的实现，使之符合 CSS Selector Level 3 的规范要求。
+1. Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
+1. Support for the new tarege document type: `plain` and/or `markdown`.
 
-### 0.4) 解释器
+### 1.5) Interpreter
 
-1. 为方便协程间协作，增加对通道的支持，提供同步读写（阻塞协程）和异步读写方式。
-1. 实现 `request` 标签。
-1. 在 `archetype` 标签中使用 `type` 指定内容的类型，如 `plain`、 `html`、 `xgml`、 `svg`、`mathml` 等。
-1. `in` 属性支持使用 CSS 选择器限定当前文档位置的写法。
-1. `init` 标签支持 `as` 可选，从而仅用于初始化一项数据而不绑定变量。
-1. `init`、 `bind` 等创建变量的标签支持使用 `_runner` 作为 `at` 属性值，以便创建行者级变量。
-1. 检查所有动作元素的实现，确保具有合理的结果数据：
-   - 设定 `init` 动作元素的结果数据同绑定的变量数据。
-1. `update` 标签。
-   - `to` 属性支持 `prepend`、 `remove`、 `insertBefore`、 `insertAfter`、 `intersect`、 `subtract`、 `xor`。
-   - `at` 属性支持 `content`。
-   - `update` 元素支持同时修改多个数据项，支持 `individually` 副词。
-   - `update` 元素可根据模板类型做相应的处理，比如支持命名空间。
-1. 完善如下标签从外部数据源获取数据的功能：
-   - ~~`init` 标签：支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。~~
-   - ~~`archetype` 标签：`src`、`param` 和 `method` 属性的支持。~~
-   - `archedata` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `error` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `except` 标签：`src`、`param` 和 `method` 属性的支持。
-   - `define` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-   - `update` 标签： 支持 `from`、`with` 及 `via` 属性定义的请求参数及方法。
-1. 不可捕获错误的产生及处理机制：
-   - `error` 标签支持 `type` 属性。
+1. Provide support for channel, which can act as an inter-coroutine communication mechanism.
+1. Implement the element `request`.
+1. Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.
+1. Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.
+1. Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. Review the implementation of all elements.
+1. Improve the implementation of the element `update`:
+   - The value of the attribute `to` can be `prepend`, `remove`, `insertBefore`,  `insertAfter`, `intersect`, `subtract`, and `xor`.
+   - The value of the attribute `at` can be `content`.
+   - The support for the adverb attribute `individually`.
+   - The support for the attribute `type` of the element `archetype`.
+1. Improve the function to get data from remote data fetcher:
+   - The element `archetype`: support for `src`, `param`, and `method` attributes.
+   - The element `archedata`: support for `src`, `param`, and `method` attributes.
+   - The element `execpt`: support for `src`, `param`, and `method` attributes.
+   - The element `init`: support for `from`, `with`, and `via` attrigbutes.
+   - The element `define`: support for `from`, `with`, and `via` attributes.
+   - The element `update`: support for `from`, `with`, and `via` attributes.
+1. The generation and handling mechanism of uncatchable errors:
+   - Support for the element `error`.
+   - The element `error`: support for `src`, `param`, and `method` attributes.
 
-## 1) 当前（202207）
+### 1.6) More ports
 
-### 1.1) 变体
+1. Windows
+
+## 2) 当前（202207）
+
+### 2.1) 变体
 
 （无）
 
-### 1.2) 预定义变量
+### 2.2) 预定义变量
 
 1. 增加、调整或补充预定义变量的实现：
    - ~~`$CRTN`~~
@@ -74,16 +113,16 @@
    - `$FS`
    - `$FILE`
 
-### 1.3) eDOM
+### 2.3) eDOM
 
 1. ~~实现 `void` 目标文档类型。~~
 
-### 1.4) vDOM 解析器
+### 2.4) vDOM 解析器
 
 1. ~~对井号注释的初步支持：忽略 HVML 文件中，在 `<DOCTYPE ` 或者 `<!-- ` 开始前，所有以 `#` 打头的行。~~
 1. ~~支持在框架元素中定义多个求值表达式或复合求值表达式；参阅 HVML 规范 2.3.4 小节。~~
 
-### 1.5) 解释器
+### 2.5) 解释器
 
 1. 统一使用协程消息队列处理来自变体变化、渲染器以及其他实例的事件、请求或者响应消息。
    - ~~`observe` 元素支持隐含的临时变量 `_eventName` 和 `_eventSource`。~~
@@ -128,7 +167,7 @@
    - ~~增强 PURCMC 协议，用于区分普通文本或标记文本。~~
    - ~~支持页面名称为 `_inherit` 以及 `_self` 的情形。~~
 
-### 1.6) 其他
+### 2.6) 其他
 
 1. ~~`purc` 命令行工具。~~
 1. 代码清理
