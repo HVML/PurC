@@ -145,19 +145,39 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    const char *hvml = purc_variant_get_string_const(ctxt->on);
+    purc_vdom_t vdom = NULL;
+    char *body_id = NULL;
 
-#if 0
-    pcintr_coroutine_t child;
-    child = pcintr_load_child_co(hvml, ctxt->as, ctxt->within);
-    if (!child)
+    if (ctxt->on && purc_variant_is_string(ctxt->on)) {
+        const char *hvml = purc_variant_get_string_const(ctxt->on);
+        vdom = purc_load_hvml_from_string(hvml);
+    }
+
+    if (!vdom && ctxt->from && purc_variant_is_string(ctxt->from)) {
+        const char *from = purc_variant_get_string_const(ctxt->from);
+        if (from[0] == 0) {
+            vdom = co->stack.vdom;
+        }
+        else if (from[0] == '#') {
+            vdom = co->stack.vdom;
+            body_id = strdup(from);
+        }
+        else {
+            // LOAD FROM network
+        }
+    }
+
+    if (!vdom) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
+                "load vdom from on/from failed");
         return -1;
-#endif
+    }
+
     const char *as = ctxt->as ? purc_variant_get_string_const(ctxt->as) : NULL;
     const char *onto = ctxt->onto ?
         purc_variant_get_string_const(ctxt->onto) : NULL;
-    purc_atom_t child_cid = pcintr_schedule_child_co_from_string(hvml, co->cid,
-            as, onto, ctxt->within, NULL, false);
+    purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
+            as, onto, ctxt->within, body_id, false);
     if (!child_cid)
         return -1;
 
