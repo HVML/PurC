@@ -54,6 +54,12 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+typedef
+void (*pcvcm_node_handle)(purc_rwstream_t rws, struct pcvcm_node *node);
+
+static
+void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
+
 struct pcvcm_node_op {
     cb_find_var find_var;
     void *find_var_ctxt;
@@ -455,14 +461,12 @@ struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon()
 }
 
 static
-void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node);
-
-static
-void write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node, bool print_comma)
+void write_child_node_rwstream_ex(purc_rwstream_t rws,
+        struct pcvcm_node *node, bool print_comma, pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = FIRST_CHILD(node);
     while (child) {
-        pcvcm_node_write_to_rwstream(rws, child);
+        handle(rws, child);
         child = NEXT_CHILD(child);
         if (child && print_comma) {
             purc_rwstream_write(rws, ",", 1);
@@ -471,9 +475,10 @@ void write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node, 
 }
 
 static
-void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
+void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
+         pcvcm_node_handle handle)
 {
-    write_child_node_rwstream_ex(rws, node, true);
+    write_child_node_rwstream_ex(rws, node, true, handle);
 }
 
 static
@@ -489,6 +494,7 @@ void write_variant_to_rwstream(purc_rwstream_t rws, purc_variant_t v)
 
 void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 {
+    pcvcm_node_handle handle = pcvcm_node_write_to_rwstream;
     switch(node->type)
     {
     case PCVCM_NODE_TYPE_UNDEFINED:
@@ -497,13 +503,13 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 
     case PCVCM_NODE_TYPE_OBJECT:
         purc_rwstream_write(rws, "make_object(", 12);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_ARRAY:
         purc_rwstream_write(rws, "make_array(", 11);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
@@ -575,36 +581,36 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
         purc_rwstream_write(rws, "concat_string(", 14);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
         purc_rwstream_write(rws, "get_variable(", 13);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
         purc_rwstream_write(rws, "get_element(", 12);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
         purc_rwstream_write(rws, "call_getter(", 12);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
         purc_rwstream_write(rws, "call_setter(", 12);
-        write_child_node_rwstream(rws, node);;
+        write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
     case PCVCM_NODE_TYPE_CJSONEE:
         purc_rwstream_write(rws, "{{ ", 3);
-        write_child_node_rwstream_ex(rws, node, false);
+        write_child_node_rwstream_ex(rws, node, false, handle);
         purc_rwstream_write(rws, " }}", 3);
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
@@ -619,7 +625,9 @@ void pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node)
     }
 }
 
-char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes)
+static char *
+pcvcm_node_dump(struct pcvcm_node *node, size_t *nr_bytes,
+        pcvcm_node_handle handle)
 {
     if (!node) {
         if (nr_bytes) {
@@ -636,7 +644,7 @@ char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes)
         return NULL;
     }
 
-    pcvcm_node_write_to_rwstream(rws, node);
+    handle(rws, node);
 
     purc_rwstream_write(rws, "", 1); // writing null-terminator
 
@@ -649,6 +657,12 @@ char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes)
 
     purc_rwstream_destroy(rws);
     return buf;
+}
+
+
+char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes)
+{
+    return pcvcm_node_dump(node, nr_bytes, pcvcm_node_write_to_rwstream);
 }
 
 static void pcvcm_node_destroy_callback(struct pctree_node *n,  void *data)
