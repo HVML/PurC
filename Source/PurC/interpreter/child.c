@@ -153,13 +153,12 @@ fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
 }
 
 purc_atom_t
-pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
+pcintr_schedule_child_co(purc_vdom_t vdom, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
         const char *body_id, bool create_runner)
 {
 
     purc_atom_t cid = 0;
-    purc_vdom_t vdom = NULL;
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
 
     pcrdr_page_type page_type= PCRDR_PAGE_TYPE_NULL;
@@ -180,11 +179,6 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
     purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
             endpoint_name);
     if (atom == 0 && !create_runner) {
-        goto out;
-    }
-
-    vdom = purc_load_hvml_from_string(hvml);
-    if (vdom == NULL) {
         goto out;
     }
 
@@ -231,5 +225,19 @@ out_free_names:
 
 out:
     return cid;
+}
+
+purc_atom_t
+pcintr_schedule_child_co_from_string(const char *hvml, purc_atom_t curator,
+        const char *runner, const char *rdr_target, purc_variant_t request,
+        const char *body_id, bool create_runner)
+{
+    purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
+    if (vdom == NULL) {
+        return 0;
+    }
+
+    return pcintr_schedule_child_co(vdom, curator, runner, rdr_target,
+            request, body_id, create_runner);
 }
 
