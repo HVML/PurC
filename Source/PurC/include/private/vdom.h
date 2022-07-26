@@ -298,26 +298,26 @@ enum pcvdom_util_node_serialize_opt {
 };
 
 typedef int
-(*pcvdom_util_node_serialize_cb)(const char *buf, size_t len);
+(*pcvdom_util_node_serialize_cb)(const char *buf, size_t len, void *ctxt);
 
 void
 pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
         enum pcvdom_util_node_serialize_opt opt,
-        pcvdom_util_node_serialize_cb cb);
+        pcvdom_util_node_serialize_cb cb, void *ctxt);
 
 void
 pcvdom_util_node_serialize(struct pcvdom_node *node,
-        pcvdom_util_node_serialize_cb cb);
+        pcvdom_util_node_serialize_cb cb, void *ctxt);
 
 int
-pcvdom_util_fprintf(const char *buf, size_t len);
+pcvdom_util_fprintf(const char *buf, size_t len, void *ctxt);
 
 purc_variant_t
 pcvdom_tokenwised_eval_attr(enum pchvml_attr_operator op,
         purc_variant_t l, purc_variant_t r);
 
 #define PRINT_VDOM_NODE(_node)      \
-    pcvdom_util_node_serialize(_node, pcvdom_util_fprintf)
+    pcvdom_util_node_serialize(_node, pcvdom_util_fprintf, NULL)
 
 PCA_EXTERN_C_END
 
