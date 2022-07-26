@@ -51,6 +51,7 @@
 #define MSG_TYPE_GROW                 "grow"
 #define MSG_TYPE_SHRINK               "shrink"
 #define MSG_TYPE_CHANGE               "change"
+#define MSG_TYPE_CORSTATE             "corState"
 
 
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"
@@ -60,6 +61,7 @@
 #define MSG_SUB_TYPE_ATTACHED         "attached"
 #define MSG_SUB_TYPE_DETACHED         "detached"
 #define MSG_SUB_TYPE_DISPLACED        "displaced"
+#define MSG_SUB_TYPE_EXITED           "exited"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;

@@ -213,6 +213,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #endif                          /* } */
 
     if (co->curator) {
+        purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
+        purc_variant_t result = pcintr_coroutine_get_result(co);
         if (co->error_except) {
             // TODO: which is error, which is except?
             // currently, we treat all as except
@@ -226,19 +228,21 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_EXCEPT,
                     payload, request_id);
             purc_variant_unref(payload);
-            purc_variant_unref(request_id);
         }
         else {
             // XXX: curator may live in another thread!
-            purc_variant_t result = pcintr_coroutine_get_result(co);
-            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     PURC_VARIANT_INVALID,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
                     result, request_id);
-            purc_variant_unref(request_id);
         }
+        pcintr_coroutine_post_event(co->curator, // target->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                request_id,
+                MSG_TYPE_CORSTATE, MSG_SUB_TYPE_EXITED,
+                result, request_id);
+        purc_variant_unref(request_id);
     }
 }
 

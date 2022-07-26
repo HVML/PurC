@@ -134,7 +134,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_load*)frame->ctxt;
 
     PC_ASSERT(ctxt->via == PURC_VARIANT_INVALID);    // Not implemented yet
-    PC_ASSERT(ctxt->synchronously == 1);             // Not implemented yet
     PC_ASSERT(ctxt->at == PURC_VARIANT_INVALID);     // Not implemented yet
 
     purc_vdom_t vdom = NULL;
@@ -165,24 +164,32 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
+    const char *runner_name = ctxt->within ?
+        purc_variant_get_string_const(ctxt->within) : NULL;
     const char *as = ctxt->as ? purc_variant_get_string_const(ctxt->as) : NULL;
     const char *onto = ctxt->onto ?
         purc_variant_get_string_const(ctxt->onto) : NULL;
     purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
-            as, onto, ctxt->within, body_id, false);
+            runner_name, onto, ctxt->with, body_id, false);
     free(body_id);
 
     if (!child_cid)
         return -1;
 
+    ctxt->request_id = purc_variant_make_ulongint(child_cid);
+    if (as) {
+        pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at,
+                ctxt->request_id);
+    }
+
     if (ctxt->synchronously) {
-        ctxt->request_id = purc_variant_make_ulongint(child_cid);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
                      PURC_VARIANT_INVALID,PURC_VARIANT_INVALID, false);
         return 0;
     }
 
-    PC_ASSERT(0);
+    // ASYNC nothing to do
+    return 0;
 }
 
 static int
