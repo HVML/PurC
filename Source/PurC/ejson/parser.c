@@ -1721,7 +1721,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE)
         ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
     }
     if (is_ascii_digit(character) || is_ascii_alpha(character)
-            || character == '+' || character == '-') {
+            || character == '+' || character == '-' || character == '/') {
         if (!tkz_buffer_end_with(parser->temp_buffer, "=", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
