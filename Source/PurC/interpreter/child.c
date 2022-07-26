@@ -39,6 +39,32 @@
 
 #define DEFAULT_RUNNER_NAME     "_self"
 
+void
+fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
+{
+    purc_variant_t tmp;
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "class");
+    if (tmp)
+        rdr_info->klass = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "title");
+    if (tmp)
+        rdr_info->title = purc_variant_get_string_const(tmp);
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "layoutStyle");
+    if (tmp)
+        rdr_info->layout_style = purc_variant_get_string_const(tmp);
+
+    rdr_info->toolkit_style = purc_variant_object_get_by_ckey(rdr,
+            "toolkitStyle");
+
+    tmp = purc_variant_object_get_by_ckey(rdr, "pageGroups");
+    if (tmp) {
+        rdr_info->page_groups = purc_variant_get_string_const(tmp);
+    }
+}
+
 purc_atom_t
 pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
@@ -48,10 +74,13 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
     purc_atom_t cid = 0;
     purc_vdom_t vdom = NULL;
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
-    pcrdr_page_type page_type;
+
+    pcrdr_page_type page_type= PCRDR_PAGE_TYPE_NULL;
+    char *target_workspace = NULL;
+    char *target_group = NULL;
     char *page_name = NULL;
-    char *group_name = NULL;
     const char *p = NULL;
+
 
     struct pcinst *inst = pcinst_current();
     const char *app_name = inst->app_name;
@@ -97,7 +126,7 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         const char *g = strchr(p, '@');
         if (g) {
             page_name = strndup(p, g - p);
-            group_name = strdup(g + 1);
+            target_group = strdup(g + 1);
         }
         else {
             page_name = strdup(p);
@@ -110,16 +139,25 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
         goto out_free_names;
     }
 
+    purc_renderer_extra_info rdr_info = {};
+    if (request && purc_variant_is_object(request)) {
+        purc_variant_t rdr =
+            purc_variant_object_get_by_ckey(request, "_renderer");
+        if (purc_variant_is_object(rdr)) {
+            fill_cor_rdr_info(&rdr_info, rdr);
+        }
+    }
+
     if (inst->intr_heap->move_buff != dest_inst) {
         cid = purc_inst_schedule_vdom(dest_inst, vdom,
                 curator, request, page_type,
-                "main", group_name, page_name,
+                "main", target_group, page_name,
                 NULL, NULL);
     }
     else {
         purc_coroutine_t cco = purc_schedule_vdom(vdom,
                 curator, request, page_type,
-                "main", group_name, page_name,
+                "main", target_group, page_name,
                 NULL, NULL, NULL);
         if (cco) {
             cid = cco->cid;
@@ -128,7 +166,8 @@ pcintr_schedule_child_co(const char *hvml, purc_atom_t curator,
 
 out_free_names:
     free(page_name);
-    free(group_name);
+    free(target_group);
+    free(target_workspace);
 
 out:
     return cid;
