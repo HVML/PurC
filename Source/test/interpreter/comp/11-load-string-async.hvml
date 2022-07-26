@@ -6,7 +6,7 @@
 
     <init as "request">
         {
-            hvml: "<hvml target='html'><body><h1>$REQ.text</h1><p>$REQ.hvml</p></body>'success'</hvml>",
+            hvml: '<hvml target="html"><body><h1>$REQ.text</h1><p>$REQ.hvml</p></body>success</hvml>',
             text: "Hello, world!",
             _renderer: {
                 title: 'Hello, world!',
