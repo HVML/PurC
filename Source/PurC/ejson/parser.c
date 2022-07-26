@@ -2354,6 +2354,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
         }
+        else if (uc == '{') {
+            ejson_stack_push(':');
+        }
         if (ejson_stack_is_empty()) {
             RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
