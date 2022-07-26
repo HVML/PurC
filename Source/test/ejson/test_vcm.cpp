@@ -191,12 +191,38 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     fprintf(stderr, "com=%s\n", comp);
     ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
 
+    size_t nr_serial = 0;
+    char* serial = pcvcm_node_serialize(root, &nr_serial);
+
     purc_variant_unref(vt);
     purc_rwstream_destroy(my_rws);
     purc_rwstream_destroy(rws);
-
     pcvcm_node_destroy (root);
+    pcejson_destroy(parser);
 
+    fprintf(stderr, "%s  serial=%s\n", get_name(), serial);
+    char *buff = (char*)malloc(nr_serial + 2);
+    strcpy(buff, serial);
+    strcat(buff, "\n");
+
+    parser = NULL;
+    root = NULL;
+    rws = NULL;
+    rws = purc_rwstream_new_from_mem((void*)buff, strlen(buff));
+    pcejson_parse (&root, &parser, rws, 32);
+    error = purc_get_last_error();
+    ASSERT_EQ (error, 0) << "Test Case : "<< get_name();
+
+    size_t nr_serial_cmp = 0;
+    char* serial_cmp = pcvcm_node_serialize(root, &nr_serial_cmp);
+    ASSERT_EQ(nr_serial, nr_serial_cmp) << "Test Case : "<< get_name();
+    ASSERT_STREQ(serial, serial_cmp) << "Test Case : "<< get_name();
+
+    free(serial_cmp);
+    free(buff);
+    free(serial);
+    purc_rwstream_destroy(rws);
+    pcvcm_node_destroy (root);
     pcejson_destroy(parser);
 }
 
