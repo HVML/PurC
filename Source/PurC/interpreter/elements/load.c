@@ -133,17 +133,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_load *ctxt;
     ctxt = (struct ctxt_for_load*)frame->ctxt;
 
-    PC_ASSERT(ctxt->from == PURC_VARIANT_INVALID);   // Not implemented yet
     PC_ASSERT(ctxt->via == PURC_VARIANT_INVALID);    // Not implemented yet
     PC_ASSERT(ctxt->synchronously == 1);             // Not implemented yet
     PC_ASSERT(ctxt->at == PURC_VARIANT_INVALID);     // Not implemented yet
-
-    if (ctxt->on == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "lack of vdom attribute 'on' for element <%s>",
-                frame->pos->tag_name);
-        return -1;
-    }
 
     purc_vdom_t vdom = NULL;
     char *body_id = NULL;
@@ -160,10 +152,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
         else if (from[0] == '#') {
             vdom = co->stack.vdom;
-            body_id = strdup(from);
+            body_id = strdup(from + 1);
         }
         else {
-            // LOAD FROM network
+            // TODO:LOAD FROM network
         }
     }
 
@@ -178,6 +170,8 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         purc_variant_get_string_const(ctxt->onto) : NULL;
     purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
             as, onto, ctxt->within, body_id, false);
+    free(body_id);
+
     if (!child_cid)
         return -1;
 
