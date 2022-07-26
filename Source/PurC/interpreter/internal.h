@@ -492,6 +492,10 @@ pcintr_schedule_child_co_from_string(const char *hvml, purc_atom_t curator,
         const char *runner, const char *rdr_target, purc_variant_t request,
         const char *body_id, bool create_runner);
 
+int
+pcintr_bind_named_variable(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
+        purc_variant_t v);
 
 PCA_EXTERN_C_END
 
