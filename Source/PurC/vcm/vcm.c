@@ -703,15 +703,33 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
         break;
 
     case PCVCM_NODE_TYPE_STRING:
-        if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, "'", 1);
+    {
+        char *buf = (char*)node->sz_ptr[1];
+        size_t nr_buf = node->sz_ptr[0];
+        char c[4] = {0};
+        c[0] = '"';
+        if (strchr(buf, '"')) {
+            c[0] = '\'';
         }
-        purc_rwstream_write(rws, (char*)node->sz_ptr[1],
-                node->sz_ptr[0]);
+        if (strchr(buf, '\n')) {
+            c[0] = '"';
+            c[1] = '"';
+            c[2] = '"';
+        }
         if (!ignore_string_quoted) {
-            purc_rwstream_write(rws, "'", 1);
+            purc_rwstream_write(rws, &c, strlen(c));
+        }
+        for (size_t i = 0; i < nr_buf; i++) {
+            if (buf[i] == '\\') {
+                purc_rwstream_write(rws, "\\", 1);
+            }
+            purc_rwstream_write(rws, buf + i, 1);
+        }
+        if (!ignore_string_quoted) {
+            purc_rwstream_write(rws, &c, strlen(c));
         }
         break;
+    }
 
     case PCVCM_NODE_TYPE_NULL:
         purc_rwstream_write(rws, "null", 4);
