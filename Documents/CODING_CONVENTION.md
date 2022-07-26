@@ -25,14 +25,18 @@ Copyright (C) 2022 HVML Community
 ## Introduction
 
 PurC is written mainly in C language, with a small amount of C++ code and
-some Python programs to generate C code automatically.
-
-As a library, PurC always provides interfaces in C language.
+some Python scripts to generate C code automatically.
 
 In this document, we describe the coding convention when we writing code
-in PurC or for PurC.
+for PurC.
 
 ## C
+
+As a library, PurC always provides interfaces in C language. PurC needs
+at least a C99-compliant compiler and C standard library, and uses some
+features of C11:
+
+- The header `stdatomic.h`.
 
 For C program, our coding style mainly complies with
 [Linux Kernel Coding Style], but with the following exceptions:
@@ -49,24 +53,30 @@ For C program, our coding style mainly complies with
 4) For any external function for internal use, delcare it with `WTF_INTERNAL`.
 
 5) Avoid excessive use of typedef, use basic C/C++ types always when it is
-  possible. Only use typedef in the following cases defined by
-  [Linux Kernel Coding Style]:
+  possible. Only use typedef in the following cases:
     1. Totally opaque objects (where the typedef is actively used to hide
        what the object is).
-       We use `_t` as the postfix for the type name for this purpose.
+       We use `_t` as the postfix for the type name only for the pointer to
+       a structure for this purpose.
     1. Clear integer types, where the abstraction helps avoid confusion
        whether it is int or long. We use `_k` as the postfix for the type name
-       in this sitiuation.
+       of an enum in this sitiuation.
     1. When you use sparse to literally create a new type for type-checking.
 
 6) Try your best to avoid static/global variables. If you have to use,
   use `_` as the prefix of an static/global variable, and use `__` as
-  the prefix of an extern global variable.
+  the prefix of an external global variable.
 
-The following code shows the coding style:
+Please see the source file [move-heap.c](/Source/PurC/variant/move-heap.c),
+which shows the typical coding style.
 
-```c
-```
+### Coding Conventions not Recommended
+
+1) Avoid to use VLA for possible large array
+
+2) Avoid to use a large local array in a function
+
+3) Avoid to use `do { ... } while (0);` in source file
 
 ## C++
 
@@ -95,7 +105,7 @@ but with the following exceptions:
        whether it is int or long.
     1. When you use sparse to literally create a new type for type-checking.
 
-The following code is an example:
+The following code gives an example:
 
 ```cpp
 ```
