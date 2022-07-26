@@ -33,11 +33,13 @@
 
 ## Introduction
 
+`HVML` is a new-style, general-purpose programming language proposed by
+[Vincent Wei], who is the author of the earliest open source software in
+China - [MiniGUI].
+
 `PurC` is the acronym of `the Prime HVML inteRpreter for C language`. It is also
 the abbreviation of `Purring Cat`, while `Purring Cat` is the nickname
-and the mascot of HVML. `HVML` is a new-style, general-purpose programming
-language proposed by [Vincent Wei], who is the author of the China-first
-open source project [MiniGUI].
+and the mascot of HVML.
 
 The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
 and all predefined dynamic variables defined by [HVML Predefined Variables V1.0]
@@ -54,6 +56,7 @@ the following simple tutorial:
 
 You can use PurC to run an HVML program or an HVML app by using the command line
 tool `purc`, or use PurC as a library to build your own HVML interpreter.
+
 We release PurC under LGPLv3, so it is free for commercial use if you follow
 the conditions and terms of LGPLv3.
 
