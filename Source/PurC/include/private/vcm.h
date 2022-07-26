@@ -157,6 +157,8 @@ pcvcm_node_set_closed(struct pcvcm_node *node, bool closed)
 
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
+char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
+
 /*
  * Removes root and its children from the tree, freeing any memory allocated.
  */
