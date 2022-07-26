@@ -2448,6 +2448,8 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
+#define TEMP_TEMPLATE      "XXXXXX"
+#define TEMP_TEMPLATE_LEN  6
 static purc_variant_t
 tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -2484,7 +2486,7 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         prefix_length = strlen (string_prefix);
     }
 
-    if ((dir_length + prefix_length + L_tmpnam + 1) >= PATH_MAX) {
+    if ((dir_length + prefix_length + TEMP_TEMPLATE_LEN + 1) >= PATH_MAX) {
         purc_set_error (PURC_ERROR_TOO_LONG);
         return purc_variant_make_boolean (false);
     }
@@ -2496,15 +2498,15 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             filename[dir_length + 1] = '\0';
             dir_length += 1;
     }
-    if ((dir_length + prefix_length + L_tmpnam + 1) >= PATH_MAX) {
+    if ((dir_length + prefix_length + TEMP_TEMPLATE_LEN + 1) >= PATH_MAX) {
         purc_set_error (PURC_ERROR_TOO_LONG);
         return purc_variant_make_boolean (false);
     }
-    strncat (filename, string_prefix, sizeof(filename) - 1);
 
-    /* FIXME: use mktemp() intead, because tmpnam is obsolete */
-    if (NULL == tmpnam (filename + dir_length + prefix_length)) {
-        set_purc_error_by_errno ();
+    strncat (filename, string_prefix, sizeof(filename) - 1);
+    strncat (filename, TEMP_TEMPLATE, sizeof(filename) - 1);
+    if (NULL == mktemp (filename)) {
+        purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
         return purc_variant_make_boolean (false);
     }
 
