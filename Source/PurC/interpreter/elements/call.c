@@ -490,8 +490,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->with) {
         int r = pcintr_set_question_var(frame, ctxt->with);
-        if (r)
-            return -1;
+        if (r) {
+            return NULL;
+        }
 
         purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
         purc_variant_t k, v;
