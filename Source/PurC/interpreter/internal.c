@@ -41,8 +41,9 @@
 #define ATTR_NAME_AS       "as"
 #define MIN_BUFFER         512
 
+static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
+
 static const char callTemplateHead[] =
-"<!DOCTYPE hvml>\n"
 "<hvml target=\"void\">\n";
 
 static const char callTemplateFoot[] =
@@ -304,6 +305,15 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
     }
 
     sprintf(foot, callTemplateFoot, as);
+    struct pcvdom_doctype  *doctype = &stack->vdom->doctype;
+    if (doctype) {
+        char *doc = (char *)malloc(
+                strlen(doctypeTemplate) + strlen(doctype->system_info) + 1);
+        sprintf(doc, doctypeTemplate, doctype->system_info);
+        purc_rwstream_write(rws, doc, strlen(doc));
+        free(doc);
+    }
+
     purc_rwstream_write(rws, callTemplateHead, strlen(callTemplateHead));
     pcvdom_util_node_serialize(&element->node, serial_element, rws);
     purc_rwstream_write(rws, foot, strlen(foot));
