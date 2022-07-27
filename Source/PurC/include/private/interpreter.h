@@ -168,7 +168,6 @@ struct pcintr_stack {
     purc_document_t               doc;
 
     struct pcvdom_element        *entry;
-    purc_variant_t                entry_temp_data;
 
     // for `back` to use
     struct pcintr_stack_frame    *back_anchor;

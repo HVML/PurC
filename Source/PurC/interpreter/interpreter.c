@@ -334,17 +334,6 @@ stack_release(pcintr_stack_t stack)
     if (stack->body_id) {
         free(stack->body_id);
     }
-
-    PURC_VARIANT_SAFE_CLEAR(stack->entry_temp_data);
-#if 0 // VW
-    if (stack->entry) {
-        struct pcvdom_document *vdom_document;
-        vdom_document = pcvdom_document_from_node(&stack->entry->node);
-        PC_ASSERT(vdom_document);
-        pcvdom_document_unref(vdom_document);
-        stack->entry = NULL;
-    }
-#endif
 }
 
 enum pcintr_req_state {
@@ -1969,8 +1958,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_dom_handle = parent->target_dom_handle;
     }
 
-    /* handle entry(body_id) and request here */
-    UNUSED_PARAM(body_id);
     if (body_id && body_id[0] != '\0') {
         set_body_entry(&co->stack, body_id);
     }
