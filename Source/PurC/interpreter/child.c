@@ -190,6 +190,8 @@ pcintr_schedule_child_co(purc_vdom_t vdom, purc_atom_t curator,
     purc_atom_t dest_inst = purc_inst_create_or_get(app_name,
             runner_name, NULL, NULL);
     if (!dest_inst) {
+        PC_WARN("create inst falied app_name=%s runner_name=%s\n", app_name,
+                runner_name);
         goto out_free_names;
     }
 

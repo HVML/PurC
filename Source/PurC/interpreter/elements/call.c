@@ -199,7 +199,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
-            runner_name, NULL, request, NULL, false);
+            runner_name, NULL, request, NULL, true);
     purc_variant_unref(request);
 
     ctxt->request_id = purc_variant_make_ulongint(child_cid);
