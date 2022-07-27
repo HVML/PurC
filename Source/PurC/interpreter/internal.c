@@ -305,6 +305,8 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
     }
 
     sprintf(foot, callTemplateFoot, as);
+
+    //FIXME: generate DOCTYPE
     struct pcvdom_doctype  *doctype = &stack->vdom->doctype;
     if (doctype) {
         char *doc = (char *)malloc(
