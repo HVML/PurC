@@ -323,11 +323,9 @@ TEST(comp_hvml, load)
     go_test("comp/1*.hvml");
 }
 
-#if 0
 TEST(comp_hvml, call)
 {
     go_test("comp/2*.hvml");
 }
-#endif
 
 
