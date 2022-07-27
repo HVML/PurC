@@ -148,11 +148,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
-    if (ctxt->with != PURC_VARIANT_INVALID) {
-        int r = pcintr_set_question_var(frame, ctxt->with);
-        if (r)
-            return -1;
-    }
+    // TODO
 
     if (!ctxt->synchronously) {
         if (ctxt->as == PURC_VARIANT_INVALID) {
@@ -493,6 +489,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (ctxt->with) {
+        int r = pcintr_set_question_var(frame, ctxt->with);
+        if (r)
+            return -1;
+
         purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
         purc_variant_t k, v;
         foreach_key_value_in_variant_object(ctxt->with, k, v)
