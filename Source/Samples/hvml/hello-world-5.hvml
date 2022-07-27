@@ -1,0 +1,32 @@
+<!-- Version 5 -->
+
+<!--
+    $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
+    $STR.substr returns a substring of the given string.
+-->
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    $STREAM.stdout.writelines('Start of `Hello, world!`')
+
+    <body>
+
+        <h1>我的第一个 HVML 程序</h1>
+
+        <init as "helloInVarLangs">
+            [
+                "世界，您好！",
+                "Hello, world!",
+                "Bonjour le monde!",
+                "Salve, mundi!",
+            ]
+        </init>
+
+        <iterate on $helloInVarLangs >
+            <p>$?</p>
+        </iterate>
+
+    </body>
+
+    $STREAM.stdout.writelines('End of `Hello, world!`')
+
+</hvml>

@@ -1,0 +1,9 @@
+<!-- Version 1 -->
+<hvml target="html">
+
+    $STREAM.stdout.writelines('Hello, world!')
+
+    <body>
+        <p>Hello, world!</p>
+    </body>
+</hvml>
