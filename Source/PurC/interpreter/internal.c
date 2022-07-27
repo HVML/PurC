@@ -272,7 +272,13 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         pcvdom_element_t element)
 {
     purc_vdom_t vdom = NULL;
+    char *foot = NULL;
     purc_rwstream_t rws = NULL;
+    const char *as;
+    struct pcvdom_doctype  *doctype;
+    size_t nr_hvml;
+    const char *hvml;
+
     struct pcvdom_attr *as_attr = pcvdom_element_get_attr_c(element,
             ATTR_NAME_AS);
     if (!as_attr) {
@@ -297,8 +303,8 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         PC_WARN("create rwstream failed\n");
         goto out;
     }
-    const char *as = purc_variant_get_string_const(as_var);
-    char *foot = (char*)malloc(strlen(callTemplateFoot) + strlen(as) + 1);
+    as = purc_variant_get_string_const(as_var);
+    foot = (char*)malloc(strlen(callTemplateFoot) + strlen(as) + 1);
     if (!foot) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -307,7 +313,7 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
     sprintf(foot, callTemplateFoot, as);
 
     //FIXME: generate DOCTYPE
-    struct pcvdom_doctype  *doctype = &stack->vdom->doctype;
+    doctype = &stack->vdom->doctype;
     if (doctype) {
         char *doc = (char *)malloc(
                 strlen(doctypeTemplate) + strlen(doctype->system_info) + 1);
@@ -320,8 +326,8 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
     pcvdom_util_node_serialize(&element->node, serial_element, rws);
     purc_rwstream_write(rws, foot, strlen(foot));
 
-    size_t nr_hvml = 0;
-    const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
+    nr_hvml = 0;
+    hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
 
     vdom = purc_load_hvml_from_string(hvml);
     if (!vdom) {
@@ -331,5 +337,8 @@ out:
     if (rws) {
         purc_rwstream_destroy(rws);
     }
+    if (foot)
+        free(foot);
+    PURC_VARIANT_SAFE_CLEAR(as_var);
     return vdom;
 }

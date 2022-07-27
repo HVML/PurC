@@ -178,4 +178,22 @@
    fun:_ZN7PurCWTF7HashSetIPNS_6ThreadENS_7PtrHashIS2_EENS_10HashTraitsIS2_EEE6removeERKS2_
    fun:_ZN7PurCWTF6Thread7didExitEv
 }
+{
+   # better remove
+   <pcfetcher_remote_init>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:_ZN7PurCWTF6Thread15establishHandleEPNS0_16NewThreadContextENS_8OptionalImEE
+   fun:_ZN7PurCWTF6Thread6createEPKcONS_8FunctionIFvvEEENS_10ThreadTypeE
+   fun:_ZN7PurCWTF9WorkQueue18platformInitializeEPKcNS0_4TypeENS0_3QOSE
+   fun:_ZN7PurCWTF9WorkQueueC1EPKcNS0_4TypeENS0_3QOSE
+   fun:_ZN7PurCWTF9WorkQueue6createEPKcNS0_4TypeENS0_3QOSE
+   fun:_ZN16PcFetcherProcessC1EP9pcfetcherb
+   fun:pcfetcher_remote_init
+}
 
