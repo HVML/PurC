@@ -492,6 +492,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
+    if (ctxt->with) {
+        purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+        purc_variant_t k, v;
+        foreach_key_value_in_variant_object(ctxt->with, k, v)
+            const char *key = purc_variant_get_string_const(k);
+        if (pcintr_is_variable_token(key)) {
+            bool ok = purc_variant_object_set(exclamation, k, v);
+            if (!ok) {
+                return NULL;
+            }
+        }
+        end_foreach;
+    }
+
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;
@@ -583,19 +597,6 @@ again:
         struct pcvdom_element *element = frame->pos;
         if (ctxt->define) {
             element = ctxt->define;
-            if (ctxt->with) {
-                purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
-                purc_variant_t k, v;
-                foreach_key_value_in_variant_object(ctxt->with, k, v)
-                    const char *key = purc_variant_get_string_const(k);
-                    if (pcintr_is_variable_token(key)) {
-                        bool ok = purc_variant_object_set(exclamation, k, v);
-                        if (!ok) {
-                            return NULL;
-                        }
-                    }
-                end_foreach;
-            }
         }
 
         struct pcvdom_node *node = &element->node;
