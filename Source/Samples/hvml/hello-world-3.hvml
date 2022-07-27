@@ -1,0 +1,30 @@
+<!-- Version 3 -->
+
+<!--
+    $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
+    $STR.substr returns a substring of the given string.
+-->
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    $STREAM.stdout.writelines('Start of `Hello, world!`')
+
+    <body>
+
+        <!-- the `test` element checks whether the system locale starts with `zh` -->
+        <test with = $STR.starts_with($SYS.locale, 'zh') >
+
+            <h1>我的第一个 HVML 程序</h1>
+            <p>世界，您好！</p>
+
+            <!-- If the system locale does not start with `zh` -->
+            <differ>
+                <h1>My First HVML Program</h1>
+                <p>Hello, world!</p>
+            </differ>
+        </test>
+
+    </body>
+
+    $STREAM.stdout.writelines('End of `Hello, world!`')
+
+</hvml>

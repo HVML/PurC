@@ -57,6 +57,7 @@
 
 
 #define COROUTINE_PREFIX    "COROUTINE"
+#define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -333,16 +334,6 @@ stack_release(pcintr_stack_t stack)
     if (stack->body_id) {
         free(stack->body_id);
     }
-
-#if 0 // VW
-    if (stack->entry) {
-        struct pcvdom_document *vdom_document;
-        vdom_document = pcvdom_document_from_node(&stack->entry->node);
-        PC_ASSERT(vdom_document);
-        pcvdom_document_unref(vdom_document);
-        stack->entry = NULL;
-    }
-#endif
 }
 
 enum pcintr_req_state {
@@ -373,9 +364,6 @@ coroutine_release(pcintr_coroutine_t co)
 
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
-
-        PURC_VARIANT_SAFE_CLEAR(co->param_as);
-        PURC_VARIANT_SAFE_CLEAR(co->param_with);
 
         struct list_head *children = &co->children;
         struct list_head *p, *n;
@@ -1813,7 +1801,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, purc_variant_t as, void *user_data)
+        pcrdr_page_type page_type, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1876,9 +1864,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     if (parent) {
         co->curator = parent->cid;
-        if (as != PURC_VARIANT_INVALID) {
-            co->param_as = purc_variant_ref(as);
-        }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
         if (!child) {
@@ -1938,7 +1923,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
     }
 
-    co = coroutine_create(vdom, parent, page_type, NULL, user_data);
+    co = coroutine_create(vdom, parent, page_type, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         goto failed;
@@ -1973,8 +1958,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_dom_handle = parent->target_dom_handle;
     }
 
-    /* handle entry(body_id) and request here */
-    UNUSED_PARAM(body_id);
     if (body_id && body_id[0] != '\0') {
         set_body_entry(&co->stack, body_id);
     }
@@ -2990,69 +2973,6 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
     cancel->list = NULL;
 }
 
-pcintr_coroutine_t
-pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as, purc_variant_t within)
-{
-    UNUSED_PARAM(within);
-
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    PC_ASSERT(vdom_element);
-
-    pcintr_coroutine_t child;
-    child = coroutine_create(co->vdom, co,
-            PCRDR_PAGE_TYPE_INHERIT, // TODO
-            as, NULL);
-    do {
-        if (!child)
-            break;
-
-        PC_ASSERT(co->stack.vdom);
-
-        child->stack.entry = vdom_element;
-
-        PC_DEBUG("running parent/child: %p/%p", co, child);
-        PRINT_VDOM_NODE(&vdom_element->node);
-        init_frame_for_co(child);
-    } while (0);
-
-    return child;
-}
-
-pcintr_coroutine_t
-pcintr_load_child_co(const char *hvml,
-        purc_variant_t as, purc_variant_t within)
-{
-    purc_vdom_t vdom;
-
-    vdom = purc_load_hvml_from_string(hvml);
-    if (vdom == NULL)
-        return NULL;
-
-    UNUSED_PARAM(within);
-
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-
-    pcintr_coroutine_t child;
-    child = coroutine_create(vdom, co,
-            PCRDR_PAGE_TYPE_INHERIT, // TODO
-            as, NULL);
-    do {
-        if (!child)
-            break;
-
-        PC_ASSERT(co->stack.vdom);
-
-        PC_DEBUGX("running parent/child: %p/%p", co, child);
-        init_frame_for_co(child);
-    } while (0);
-
-    return child;
-}
-
 void*
 pcintr_load_module(const char *module,
         const char *env_name, const char *prefix)
@@ -3435,5 +3355,11 @@ pcintr_coroutine_get_result(pcintr_coroutine_t co)
     }
     PC_ASSERT(0);
     return PURC_VARIANT_INVALID; // NOTE: never reached here!!!
+}
+
+bool
+pcintr_is_variable_token(const char *str)
+{
+    return pcregex_is_match(HVML_VARIABLE_REGEX, str);
 }
 

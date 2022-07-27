@@ -683,6 +683,7 @@ struct serialize_data {
     enum pcvdom_util_node_serialize_opt opt;
     size_t                              level;
     pcvdom_util_node_serialize_cb       cb;
+    void                               *ctxt;
 };
 
 static void
@@ -693,13 +694,13 @@ document_serialize(struct pcvdom_document *doc, int level, int push,
     UNUSED_PARAM(ud);
     if (ud->opt & PCVDOM_UTIL_NODE_SERIALIZE_INDENT) {
         for (int i=0; i<level; ++i) {
-            ud->cb("  ", 2);
+            ud->cb("  ", 2, ud->ctxt);
         }
     }
     if (!push)
         return;
 
-    ud->cb("<!DOCTYPE", 9);
+    ud->cb("<!DOCTYPE", 9, ud->ctxt);
     struct pcvdom_doctype  *doctype = &doc->doctype;
     const char *name = doctype->name;
     const char *system_info = doctype->system_info;
@@ -708,15 +709,15 @@ document_serialize(struct pcvdom_document *doc, int level, int push,
     if (!system_info)
         system_info = "";
 
-    ud->cb(" ", 1);
-    ud->cb(name, strlen(name));
-    ud->cb(" ", 1);
+    ud->cb(" ", 1, ud->ctxt);
+    ud->cb(name, strlen(name), ud->ctxt);
+    ud->cb(" ", 1, ud->ctxt);
 
-    ud->cb("SYSTEM \"", 8);
-    ud->cb(system_info, strlen(system_info));
-    ud->cb("\"", 1);
+    ud->cb("SYSTEM \"", 8, ud->ctxt);
+    ud->cb(system_info, strlen(system_info), ud->ctxt);
+    ud->cb("\"", 1, ud->ctxt);
 
-    ud->cb(">", 1);
+    ud->cb(">", 1, ud->ctxt);
 }
 
 static int
@@ -729,8 +730,8 @@ attr_serialize(void *key, void *val, void *ctxt)
     enum pchvml_attr_operator  op  = attr->op;
     struct pcvcm_node         *v = attr->val;
 
-    ud->cb(" ", 1);
-    ud->cb(sk, strlen(sk));
+    ud->cb(" ", 1, ud->ctxt);
+    ud->cb(sk, strlen(sk), ud->ctxt);
     if (!v) {
         PC_ASSERT(op == PCHVML_ATTRIBUTE_OPERATOR);
         return 0;
@@ -738,31 +739,31 @@ attr_serialize(void *key, void *val, void *ctxt)
 
     switch (op) {
         case PCHVML_ATTRIBUTE_OPERATOR:
-            ud->cb("=", 1);
+            ud->cb("=", 1, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_ADDITION_OPERATOR:
-            ud->cb("+=", 2);
+            ud->cb("+=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_SUBTRACTION_OPERATOR:
-            ud->cb("-=", 2);
+            ud->cb("-=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_ASTERISK_OPERATOR:
-            ud->cb("*=", 2);
+            ud->cb("*=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_REGEX_OPERATOR:
-            ud->cb("/=", 2);
+            ud->cb("/=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_PRECISE_OPERATOR:
-            ud->cb("%=", 2);
+            ud->cb("%=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
-            ud->cb("~=", 2);
+            ud->cb("~=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
-            ud->cb("^=", 2);
+            ud->cb("^=", 2, ud->ctxt);
             break;
         case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
-            ud->cb("$=", 2);
+            ud->cb("$=", 2, ud->ctxt);
             break;
         default:
             PC_ASSERT(0);
@@ -770,13 +771,13 @@ attr_serialize(void *key, void *val, void *ctxt)
     }
 
     size_t len;
-    char *s = pcvcm_node_to_string(v, &len);
+    char *s = pcvcm_node_serialize(v, &len);
     if (!s) {
-        ud->cb("{{OOM}}", 7);
+        ud->cb("{{OOM}}", 7, ud->ctxt);
         return 0;
     }
 
-    ud->cb(s, len);
+    ud->cb(s, len, ud->ctxt);
     free(s);
 
     return 0;
@@ -791,10 +792,10 @@ element_serialize(struct pcvdom_element *element, int level, int push,
     UNUSED_PARAM(ud);
 
     if (ud->opt & PCVDOM_UTIL_NODE_SERIALIZE_INDENT) {
-        ud->cb("\n", 1);
+        ud->cb("\n", 1, ud->ctxt);
 
         for (int i=0; i<level; ++i) {
-            ud->cb("  ", 2);
+            ud->cb("  ", 2, ud->ctxt);
         }
     }
 
@@ -805,17 +806,17 @@ element_serialize(struct pcvdom_element *element, int level, int push,
         // val: struct pcvdom_attr*
         struct pcutils_map *attrs = element->attrs;
 
-        ud->cb("<", 1);
-        ud->cb(tag_name, strlen(tag_name));
+        ud->cb("<", 1, ud->ctxt);
+        ud->cb(tag_name, strlen(tag_name), ud->ctxt);
 
         pcutils_map_traverse(attrs, ud, attr_serialize);
 
-        ud->cb(">", 1);
+        ud->cb(">", 1, ud->ctxt);
     }
     else {
-        ud->cb("</", 2);
-        ud->cb(tag_name, strlen(tag_name));
-        ud->cb(">", 1);
+        ud->cb("</", 2, ud->ctxt);
+        ud->cb(tag_name, strlen(tag_name), ud->ctxt);
+        ud->cb(">", 1, ud->ctxt);
     }
 }
 
@@ -894,18 +895,19 @@ node_serialize(struct pctree_node *node, int level,
 void
 pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
         enum pcvdom_util_node_serialize_opt opt,
-        pcvdom_util_node_serialize_cb cb)
+        pcvdom_util_node_serialize_cb cb, void *ctxt)
 {
     struct serialize_data ud = {
         .top        = node,
         .is_doc     = node->type == PCVDOM_NODE_DOCUMENT,
         .opt        = opt,
         .cb         = cb,
+        .ctxt       = ctxt,
     };
 
     pctree_node_walk(&node->node, 0, node_serialize, &ud);
 
-    cb("\n", 1);
+    cb("\n", 1, ctxt);
 }
 
 static inline void
@@ -2226,16 +2228,17 @@ pcvdom_element_prev_sibling_element(struct pcvdom_element *elem)
 
 void
 pcvdom_util_node_serialize(struct pcvdom_node *node,
-        pcvdom_util_node_serialize_cb cb)
+        pcvdom_util_node_serialize_cb cb, void *ctxt)
 {
     enum pcvdom_util_node_serialize_opt opt;
     opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
-    pcvdom_util_node_serialize_ex(node, opt, cb);
+    pcvdom_util_node_serialize_ex(node, opt, cb, ctxt);
 }
 
 int
-pcvdom_util_fprintf(const char *buf, size_t len)
+pcvdom_util_fprintf(const char *buf, size_t len, void *ctxt)
 {
+    UNUSED_PARAM(ctxt);
     fprintf(stderr, "%.*s", (int)len, buf);
     return 0;
 }

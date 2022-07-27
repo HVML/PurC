@@ -1721,7 +1721,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE)
         ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
     }
     if (is_ascii_digit(character) || is_ascii_alpha(character)
-            || character == '+' || character == '-') {
+            || character == '+' || character == '-' || character == '/') {
         if (!tkz_buffer_end_with(parser->temp_buffer, "=", 1)) {
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE);
@@ -2353,6 +2353,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_VARIABLE)
             struct pcvcm_node *node = pcvcm_node_new_object(0, NULL);
             APPEND_CHILD(node, parser->vcm_node);
             UPDATE_VCM_NODE(node);
+        }
+        else if (uc == '{') {
+            ejson_stack_push(':');
         }
         if (ejson_stack_is_empty()) {
             RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);

@@ -133,36 +133,63 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_load *ctxt;
     ctxt = (struct ctxt_for_load*)frame->ctxt;
 
-    PC_ASSERT(ctxt->from == PURC_VARIANT_INVALID);   // Not implemented yet
-    PC_ASSERT(ctxt->with == PURC_VARIANT_INVALID);   // Not implemented yet
     PC_ASSERT(ctxt->via == PURC_VARIANT_INVALID);    // Not implemented yet
-    PC_ASSERT(ctxt->within == PURC_VARIANT_INVALID); // Not implemented yet
-    PC_ASSERT(ctxt->synchronously == 1);             // Not implemented yet
-    PC_ASSERT(ctxt->as == PURC_VARIANT_INVALID);     // Not implemented yet
     PC_ASSERT(ctxt->at == PURC_VARIANT_INVALID);     // Not implemented yet
 
-    if (ctxt->on == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "lack of vdom attribute 'on' for element <%s>",
-                frame->pos->tag_name);
+    purc_vdom_t vdom = NULL;
+    char *body_id = NULL;
+
+    if (ctxt->on && purc_variant_is_string(ctxt->on)) {
+        const char *hvml = purc_variant_get_string_const(ctxt->on);
+        vdom = purc_load_hvml_from_string(hvml);
+    }
+
+    if (!vdom && ctxt->from && purc_variant_is_string(ctxt->from)) {
+        const char *from = purc_variant_get_string_const(ctxt->from);
+        if (from[0] == 0) {
+            vdom = co->stack.vdom;
+        }
+        else if (from[0] == '#') {
+            vdom = co->stack.vdom;
+            body_id = strdup(from + 1);
+        }
+        else {
+            // TODO:LOAD FROM network
+        }
+    }
+
+    if (!vdom) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
+                "load vdom from on/from failed");
         return -1;
     }
 
-    const char *hvml = purc_variant_get_string_const(ctxt->on);
+    const char *runner_name = ctxt->within ?
+        purc_variant_get_string_const(ctxt->within) : NULL;
+    const char *as = ctxt->as ? purc_variant_get_string_const(ctxt->as) : NULL;
+    const char *onto = ctxt->onto ?
+        purc_variant_get_string_const(ctxt->onto) : NULL;
+    purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
+            runner_name, onto, ctxt->with, body_id, false);
+    free(body_id);
 
-    pcintr_coroutine_t child;
-    child = pcintr_load_child_co(hvml, ctxt->as, ctxt->within);
-    if (!child)
+    if (!child_cid)
         return -1;
 
+    ctxt->request_id = purc_variant_make_ulongint(child_cid);
+    if (as) {
+        pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at,
+                ctxt->request_id);
+    }
+
     if (ctxt->synchronously) {
-        ctxt->request_id = purc_variant_make_native(ctxt, NULL);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
+                     PURC_VARIANT_INVALID,PURC_VARIANT_INVALID, false);
         return 0;
     }
 
-    PC_ASSERT(0);
+    // ASYNC nothing to do
+    return 0;
 }
 
 static int

@@ -92,7 +92,7 @@ add_observer_into_list(pcintr_stack_t stack, struct list_head *list,
 static
 bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
 {
-    if (observed == val) {
+    if (observed == val || purc_variant_is_equal_to(observed, val)) {
         return true;
     }
     if (purc_variant_is_native(observed)) {

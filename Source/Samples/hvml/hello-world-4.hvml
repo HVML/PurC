@@ -1,0 +1,56 @@
+<!-- Version 4 -->
+
+<!--
+    $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
+    $STR.substr returns a substring of the given string.
+-->
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    $STREAM.stdout.writelines('Start of `Hello, world!`')
+
+    <body>
+
+        <!-- the language identifier like `zh` or `en` will
+             be the executed result of the `test` element -->
+        <test on $STR.substr($SYS.locale, 0, 2) >
+
+            <!--
+                this `match` element checks the evaluated result of the parent element
+                is whether same as 'zh' (Chinese).
+            -->
+            <match for "AS 'zh'" exclusively>
+                <h1>我的第一个 HVML 程序</h1>
+                <p>世界，您好！</p>
+            </match>
+
+            <!--
+                this `match` element checks the evaluated result of the parent element
+                is whether same as 'en' (English).
+            -->
+            <match for "AS 'en'" exclusively>
+                <h1>My First HVML Program</h1>
+                <p>Hello, world!</p>
+            </match>
+
+            <!--
+                this `match` element checks the evaluated result of the parent element
+                is whether same as 'fr' (French).
+            -->
+            <match for "AS 'fr'" exclusively>
+                <h1>Mon premier programme HVML</h1>
+                <p>Bonjour le monde!</p>
+            </match>
+
+            <!-- Anyting else, treat it as Latin.  -->
+            <match for "ANY">
+                <h1>Primum mihi HVML Programma</h1>
+                <p>Salve, mundi!</p>
+            </match>
+        </test>
+
+    </body>
+
+    $STREAM.stdout.writelines('End of `Hello, world!`')
+
+</hvml>
+

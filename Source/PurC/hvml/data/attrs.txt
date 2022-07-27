@@ -87,3 +87,9 @@ key
 
 target
     type: prep
+
+onto
+    type: prep
+
+within
+    type: prep

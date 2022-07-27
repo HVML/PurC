@@ -37,6 +37,10 @@
 #include <unistd.h>
 
 #define EVENT_SEPARATOR                 ':'
+#define REQ_ARGS                        "_args"
+#define REQ_CONTENT                     "_content"
+
+#define RUNNER_NAME_SELF                "_self"
 
 struct ctxt_for_call {
     struct pcvdom_node    *curr;
@@ -140,18 +144,16 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     pcvdom_element_t define = pcintr_get_vdom_from_variant(ctxt->on);
-    if (define == NULL)
-        return -1;
-
-    if (0 && pcvdom_element_first_child_element(define) == NULL) {
-        purc_set_error(PURC_ERROR_NO_DATA);
+    if (define == NULL) {
+        PC_WARN("define element is not found\n");
+        purc_set_error(PURC_ERROR_ENTITY_NOT_FOUND);
         return -1;
     }
 
-    if (ctxt->with != PURC_VARIANT_INVALID) {
-        int r = pcintr_set_question_var(frame, ctxt->with);
-        if (r)
-            return -1;
+    if (0 && pcvdom_element_first_child_element(define) == NULL) {
+        PC_WARN("define element is empty\n");
+        purc_set_error(PURC_ERROR_NO_DATA);
+        return -1;
     }
 
     if (!ctxt->synchronously) {
@@ -171,47 +173,49 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ctxt->within_self = 1;
     }
 
-    if (ctxt->within_self) {
-        if (ctxt->concurrently == 0) {
-            if (ctxt->synchronously) {
-                ctxt->define = define;
-                frame->scope = define;
-                return 0;
-            }
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "can not call directly in asynchronous mode");
-            return -1;
-        }
-
-        pcintr_coroutine_t child;
-        child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
-        if (!child)
-            return -1;
-
-        if (ctxt->synchronously) {
-            ctxt->request_id = purc_variant_make_ulongint(child->cid);
-            pcintr_yield(frame, on_continuation, ctxt->request_id,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
-            return 0;
-        }
-        PC_ASSERT(0); // Not implemented yet
+    /* handle call element by select_child with ctxt->define  */
+    if (ctxt->within_self && ctxt->concurrently == 0) {
+        ctxt->define = define;
+        frame->scope = define;
+        return 0;
     }
 
-    PC_ASSERT(0); // Not implemented yet
+    purc_variant_t request = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!request) {
+        return  -1;
+    }
+    purc_variant_object_set_by_static_ckey(request, REQ_ARGS, ctxt->with);
+    purc_variant_t caret = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    purc_variant_object_set_by_static_ckey(request, REQ_CONTENT, caret);
 
-    pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
-    if (!child)
+    const char *runner_name = ctxt->within ?
+        purc_variant_get_string_const(ctxt->within) : NULL;
+    const char *as = ctxt->as ? purc_variant_get_string_const(ctxt->as) : NULL;
+
+    purc_vdom_t vdom = pcintr_build_concurrently_call_vdom(&co->stack, define);
+    if (!vdom) {
         return -1;
+    }
+
+    purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
+            runner_name, NULL, request, NULL, true);
+    purc_variant_unref(request);
+
+    ctxt->request_id = purc_variant_make_ulongint(child_cid);
+    if (as) {
+        pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at,
+                ctxt->request_id);
+    }
 
     if (ctxt->synchronously) {
-        ctxt->request_id = purc_variant_make_ulongint(child->cid);
-        pcintr_yield(frame, on_continuation, ctxt->request_id ,
+        pcintr_yield(frame, on_continuation, ctxt->request_id,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
         return 0;
     }
 
-    PC_ASSERT(0);
+    // ASYNC nothing to do
+    return 0;
 }
 
 static int
@@ -286,20 +290,7 @@ process_attr_within(struct pcintr_stack_frame *frame,
 
     const char *s = purc_variant_get_string_const(val);
 
-    if (strcmp(s, "_self")) {
-        int r;
-        r = purc_extract_app_name(s, ctxt->within_app_name) &&
-            purc_extract_runner_name(s, ctxt->within_runner_name);
-
-        if (r == 0) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "vdom attribute '%s' for element <%s> is not valid",
-                    purc_atom_to_string(name), element->tag_name);
-            return -1;
-        }
-
-        PC_ASSERT(purc_is_valid_app_name(ctxt->within_app_name));
-        PC_ASSERT(purc_is_valid_runner_name(ctxt->within_runner_name));
+    if (strcmp(s, RUNNER_NAME_SELF)) {
         ctxt->within_self = 0;
     }
     else {
@@ -492,6 +483,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
+    if (ctxt->with) {
+        int r = pcintr_set_question_var(frame, ctxt->with);
+        if (r) {
+            return NULL;
+        }
+
+        if (purc_variant_is_object(ctxt->with)) {
+            purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+            purc_variant_t k, v;
+            foreach_key_value_in_variant_object(ctxt->with, k, v)
+                const char *key = purc_variant_get_string_const(k);
+            if (pcintr_is_variable_token(key)) {
+                bool ok = purc_variant_object_set(exclamation, k, v);
+                if (!ok) {
+                    return NULL;
+                }
+            }
+            end_foreach;
+        }
+    }
+
     r = post_process(stack->co, frame);
     if (r)
         return ctxt;
@@ -581,8 +593,9 @@ again:
 
     if (curr == NULL) {
         struct pcvdom_element *element = frame->pos;
-        if (ctxt->define)
+        if (ctxt->define) {
             element = ctxt->define;
+        }
 
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);

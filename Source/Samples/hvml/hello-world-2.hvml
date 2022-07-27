@@ -1,0 +1,9 @@
+<!-- Version 2 -->
+<hvml target="html">
+
+    [ $STREAM.stdout.writelines('Hello, world!'), $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M')) ]
+
+    <body>
+        <p>Hello, world!</p>
+    </body>
+</hvml>

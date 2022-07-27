@@ -51,6 +51,7 @@
 #define MSG_TYPE_GROW                 "grow"
 #define MSG_TYPE_SHRINK               "shrink"
 #define MSG_TYPE_CHANGE               "change"
+#define MSG_TYPE_CORSTATE             "corState"
 
 
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"
@@ -60,6 +61,7 @@
 #define MSG_SUB_TYPE_ATTACHED         "attached"
 #define MSG_SUB_TYPE_DETACHED         "detached"
 #define MSG_SUB_TYPE_DISPLACED        "displaced"
+#define MSG_SUB_TYPE_EXITED           "exited"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
@@ -163,8 +165,9 @@ struct pcintr_stack {
 
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
-    struct pcvdom_element        *entry;
     purc_document_t               doc;
+
+    struct pcvdom_element        *entry;
 
     // for `back` to use
     struct pcintr_stack_frame    *back_anchor;
@@ -256,10 +259,6 @@ struct pcintr_coroutine {
     struct rb_node              node;     /* heap::coroutines */
 
     struct list_head            children; /* struct pcintr_coroutine_child */
-
-    /* pcintr_create_child_co, pcintr_load_child_co */
-    purc_variant_t              param_as;
-    purc_variant_t              param_with;
 
     const char                 *error_except;
 
@@ -485,14 +484,6 @@ pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
 void
 pcintr_pop_stack_frame_pseudo(void);
 
-pcintr_coroutine_t
-pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as, purc_variant_t within);
-
-pcintr_coroutine_t
-pcintr_load_child_co(const char *hvml,
-        purc_variant_t as, purc_variant_t within);
-
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
 
@@ -695,6 +686,10 @@ pcintr_coroutine_set_result(pcintr_coroutine_t co, purc_variant_t result);
 
 purc_variant_t
 pcintr_coroutine_get_result(pcintr_coroutine_t co);
+
+bool
+pcintr_is_variable_token(const char *str);
+
 
 PCA_EXTERN_C_END
 

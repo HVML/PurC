@@ -1120,7 +1120,7 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
                     opt, crtn_info->run_info->dump_stm);
             fprintf(stdout, "\n");
 
-            fprintf(stdout, "\n>> The execute result: \n");
+            fprintf(stdout, "\n>> The executing result: \n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
                         crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
