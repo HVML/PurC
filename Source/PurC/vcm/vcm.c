@@ -488,7 +488,7 @@ void write_child_node_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
 }
 
 static
-void write_object_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
+void write_object_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
          pcvcm_node_handle handle)
 {
     struct pcvcm_node *child = FIRST_CHILD(node);
@@ -501,7 +501,7 @@ void write_object_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
                 purc_rwstream_write(rws, ":", 1);
             }
             else {
-                purc_rwstream_write(rws, ",", 1);
+                purc_rwstream_write(rws, ", ", 2);
             }
         }
         i++;
@@ -528,7 +528,7 @@ void write_sibling_node_rwstream(purc_rwstream_t rws,
         handle(rws, child, false);
         child = NEXT_CHILD(child);
         if (child && print_comma) {
-            purc_rwstream_write(rws, ",", 1);
+            purc_rwstream_write(rws, ", ", 2);
         }
     }
 }
@@ -692,7 +692,7 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
 
     case PCVCM_NODE_TYPE_OBJECT:
         purc_rwstream_write(rws, "{ ", 2);
-        write_object_to_rwstream(rws, node, handle);
+        write_object_serialize_to_rwstream(rws, node, handle);
         purc_rwstream_write(rws, " }", 2);
         break;
 
