@@ -28,6 +28,7 @@
 
 #include "internal.h"
 
+#include "purc-rwstream.h"
 #include "private/var-mgr.h"
 #include "private/errors.h"
 #include "private/instance.h"
@@ -36,6 +37,22 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#define ATTR_NAME_AS       "as"
+#define MIN_BUFFER         512
+
+static const char callTemplateHead[] =
+"<!DOCTYPE hvml SYSTEM \"v: FILE:FS\">\n"
+"<hvml target=\"void\">\n";
+
+static const char callTemplateFoot[] =
+"    <call on $%s with $REQ._args >\n"
+"        $REQ._content\n"
+"        <exit with $? />\n"
+"    </call>\n"
+"</hvml>\n";
+
+
 
 static int
 bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem,
@@ -237,4 +254,70 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
 
 out:
     return bind_ret;
+}
+
+
+
+static int
+serial_element(const char *buf, size_t len, void *ctxt)
+{
+    purc_rwstream_t rws = (purc_rwstream_t) ctxt;
+    purc_rwstream_write(rws, buf, len);
+    return 0;
+}
+
+purc_vdom_t
+pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
+        pcvdom_element_t element)
+{
+    purc_vdom_t vdom = NULL;
+    purc_rwstream_t rws = NULL;
+    struct pcvdom_attr *as_attr = pcvdom_element_get_attr_c(element,
+            ATTR_NAME_AS);
+    if (!as_attr) {
+        PC_WARN("Can not get %s attr\n", ATTR_NAME_AS);
+        goto out;
+    }
+
+    purc_variant_t as_var = pcintr_eval_vdom_attr(stack, as_attr);
+    if (!as_var) {
+        PC_WARN("eval vdom attr %s failed\n", ATTR_NAME_AS);
+        goto out;
+    }
+
+    if (!purc_variant_is_string(as_var)) {
+        PC_WARN("invalid vdom attr %s type %s\n", ATTR_NAME_AS,
+                pcvariant_typename(as_var));
+        goto out;
+    }
+
+    rws = purc_rwstream_new_buffer(MIN_BUFFER, 0);
+    if (rws == NULL) {
+        PC_WARN("create rwstream failed\n");
+        goto out;
+    }
+    const char *as = purc_variant_get_string_const(as_var);
+    char *foot = (char*)malloc(strlen(callTemplateFoot) + strlen(as) + 1);
+    if (!foot) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    sprintf(foot, callTemplateFoot, as);
+    purc_rwstream_write(rws, callTemplateHead, strlen(callTemplateHead));
+    pcvdom_util_node_serialize(&element->node, serial_element, rws);
+    purc_rwstream_write(rws, foot, strlen(foot));
+
+    size_t nr_hvml = 0;
+    const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
+
+    vdom = purc_load_hvml_from_string(hvml);
+    if (!vdom) {
+        PC_WARN("create vdom for call concurrently failed! hvml is %s\n", hvml);
+    }
+out:
+    if (rws) {
+        purc_rwstream_destroy(rws);
+    }
+    return vdom;
 }

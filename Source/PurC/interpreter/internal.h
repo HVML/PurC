@@ -497,6 +497,10 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
         purc_variant_t v);
 
+purc_vdom_t
+pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
+        pcvdom_element_t element);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
