@@ -40,6 +40,8 @@
 #define REQ_ARGS                        "_args"
 #define REQ_CONTENT                     "_content"
 
+#define RUNNER_NAME_SELF                "_self"
+
 struct ctxt_for_call {
     struct pcvdom_node    *curr;
 
@@ -288,20 +290,7 @@ process_attr_within(struct pcintr_stack_frame *frame,
 
     const char *s = purc_variant_get_string_const(val);
 
-    if (strcmp(s, "_self")) {
-        int r;
-        r = purc_extract_app_name(s, ctxt->within_app_name) &&
-            purc_extract_runner_name(s, ctxt->within_runner_name);
-
-        if (r == 0) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "vdom attribute '%s' for element <%s> is not valid",
-                    purc_atom_to_string(name), element->tag_name);
-            return -1;
-        }
-
-        PC_ASSERT(purc_is_valid_app_name(ctxt->within_app_name));
-        PC_ASSERT(purc_is_valid_runner_name(ctxt->within_runner_name));
+    if (strcmp(s, RUNNER_NAME_SELF)) {
         ctxt->within_self = 0;
     }
     else {
