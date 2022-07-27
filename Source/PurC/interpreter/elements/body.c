@@ -274,6 +274,20 @@ again:
         }
         else {
             element = co->stack.entry;
+            if (co->stack.entry_temp_data) {
+                purc_variant_t data = co->stack.entry_temp_data;
+                purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+                purc_variant_t k, v;
+                foreach_key_value_in_variant_object(data, k, v)
+                    const char *key = purc_variant_get_string_const(k);
+                    if (pcintr_is_variable_token(key)) {
+                        bool ok = purc_variant_object_set(exclamation, k, v);
+                        if (!ok) {
+                            return NULL;
+                        }
+                    }
+                end_foreach;
+            }
         }
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);

@@ -184,7 +184,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         }
 
         pcintr_coroutine_t child;
-        child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
+        child = pcintr_create_child_co(define, ctxt->as, ctxt->within, ctxt->with);
         if (!child)
             return -1;
 
@@ -200,7 +200,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(0); // Not implemented yet
 
     pcintr_coroutine_t child;
-    child = pcintr_create_child_co(define, ctxt->as, ctxt->within);
+    child = pcintr_create_child_co(define, ctxt->as, ctxt->within, ctxt->with);
     if (!child)
         return -1;
 
@@ -581,8 +581,22 @@ again:
 
     if (curr == NULL) {
         struct pcvdom_element *element = frame->pos;
-        if (ctxt->define)
+        if (ctxt->define) {
             element = ctxt->define;
+            if (ctxt->with) {
+                purc_variant_t exclamation = pcintr_get_exclamation_var(frame);
+                purc_variant_t k, v;
+                foreach_key_value_in_variant_object(ctxt->with, k, v)
+                    const char *key = purc_variant_get_string_const(k);
+                    if (pcintr_is_variable_token(key)) {
+                        bool ok = purc_variant_object_set(exclamation, k, v);
+                        if (!ok) {
+                            return NULL;
+                        }
+                    }
+                end_foreach;
+            }
+        }
 
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);

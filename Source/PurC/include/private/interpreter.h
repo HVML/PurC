@@ -165,8 +165,10 @@ struct pcintr_stack {
 
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
-    struct pcvdom_element        *entry;
     purc_document_t               doc;
+
+    struct pcvdom_element        *entry;
+    purc_variant_t                entry_temp_data;
 
     // for `back` to use
     struct pcintr_stack_frame    *back_anchor;
@@ -489,7 +491,7 @@ pcintr_pop_stack_frame_pseudo(void);
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as, purc_variant_t within);
+        purc_variant_t as, purc_variant_t within, purc_variant_t temp_data);
 
 pcintr_coroutine_t
 pcintr_load_child_co(const char *hvml,

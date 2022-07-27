@@ -335,6 +335,7 @@ stack_release(pcintr_stack_t stack)
         free(stack->body_id);
     }
 
+    PURC_VARIANT_SAFE_CLEAR(stack->entry_temp_data);
 #if 0 // VW
     if (stack->entry) {
         struct pcvdom_document *vdom_document;
@@ -2998,7 +2999,7 @@ void pcintr_unregister_cancel(pcintr_cancel_t cancel)
 
 pcintr_coroutine_t
 pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as, purc_variant_t within)
+        purc_variant_t as, purc_variant_t within, purc_variant_t temp_data)
 {
     UNUSED_PARAM(within);
 
@@ -3018,6 +3019,9 @@ pcintr_create_child_co(pcvdom_element_t vdom_element,
         PC_ASSERT(co->stack.vdom);
 
         child->stack.entry = vdom_element;
+        if (temp_data) {
+            child->stack.entry_temp_data = purc_variant_ref(temp_data);
+        }
 
         PC_DEBUG("running parent/child: %p/%p", co, child);
         PRINT_VDOM_NODE(&vdom_element->node);
