@@ -42,7 +42,7 @@
 #define MIN_BUFFER         512
 
 static const char callTemplateHead[] =
-"<!DOCTYPE hvml SYSTEM \"v: FILE:FS\">\n"
+"<!DOCTYPE hvml>\n"
 "<hvml target=\"void\">\n";
 
 static const char callTemplateFoot[] =
