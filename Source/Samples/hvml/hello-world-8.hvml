@@ -1,0 +1,40 @@
+<!-- Version 8 -->
+
+<!--
+    $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
+    $STR.substr returns a substring of the given string.
+-->
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+
+    $STREAM.stdout.writelines("Start of `Hello, world!`")
+
+    <head>
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "foobar", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+
+        <h1>我的第一个 HVML 程序</h1>
+
+        <init as "helloInVarLangs" from "file://{$SYS.cwd}/hello-world.json" />
+
+        <iterate on $helloInVarLangs >
+            <p>$?</p>
+        </iterate>
+
+        <observe on $TIMERS for 'expired:foobar' >
+            $STREAM.stdout.writelines('Timer foobar observed')
+
+            <inherit>
+                $STREAM.stdout.writelines('Timer foobar expired')
+            </inherit>
+        </observe>
+    </body>
+
+    $STREAM.stdout.writelines('End of `Hello, world!`')
+
+</hvml>

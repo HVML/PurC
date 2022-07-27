@@ -170,7 +170,7 @@ following line as the first line in your HVML program:
 ```
 
 After this, run the following command to change the mode of the file to have
-the execute permission:
+the executing permission:
 
 ```bash
 $ chmod +x hello.hvml
@@ -345,7 +345,7 @@ Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/fibonacci-ht
 </html>
 
 
->> The execute result:
+>> The executing result:
 [18, 1597L]
 ```
 

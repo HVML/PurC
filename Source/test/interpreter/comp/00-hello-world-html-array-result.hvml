@@ -1,0 +1,12 @@
+#!/usr/local/bin/purc
+
+# RESULT: [ 14UL, 6UL ]
+
+<hvml target="html">
+
+    [ $STREAM.stdout.writelines('Hello, world!'), $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M')) ]
+
+    <body>
+        <p>Hello, world!</p>
+    </body>
+</hvml>
