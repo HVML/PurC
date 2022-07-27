@@ -1,4 +1,4 @@
-<!-- Version 7 -->
+<!-- Version 8 -->
 
 <!--
     $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
@@ -7,6 +7,14 @@
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
 
     $STREAM.stdout.writelines("Start of `Hello, world!`")
+
+    <head>
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "foobar", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
 
     <body>
 
@@ -18,6 +26,13 @@
             <p>$?</p>
         </iterate>
 
+        <observe on $TIMERS for 'expired:foobar' >
+            $STREAM.stdout.writelines('Timer foobar observed')
+
+            <inherit>
+                $STREAM.stdout.writelines('Timer foobar expired')
+            </inherit>
+        </observe>
     </body>
 
     $STREAM.stdout.writelines('End of `Hello, world!`')
