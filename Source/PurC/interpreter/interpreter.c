@@ -376,9 +376,6 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
-        PURC_VARIANT_SAFE_CLEAR(co->param_as);
-        PURC_VARIANT_SAFE_CLEAR(co->param_within);
-
         struct list_head *children = &co->children;
         struct list_head *p, *n;
         list_for_each_safe(p, n, children) {
@@ -1815,8 +1812,7 @@ cmp_by_atom(struct rb_node *node, void *ud)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, purc_variant_t as, purc_variant_t within,
-        void *user_data)
+        pcrdr_page_type page_type, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1879,12 +1875,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     if (parent) {
         co->curator = parent->cid;
-        if (as != PURC_VARIANT_INVALID) {
-            co->param_as = purc_variant_ref(as);
-        }
-        if (within != PURC_VARIANT_INVALID) {
-            co->param_within = purc_variant_ref(within);
-        }
         pcintr_coroutine_child_t child;
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
         if (!child) {
@@ -1944,8 +1934,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
     }
 
-    co = coroutine_create(vdom, parent, page_type, PURC_VARIANT_INVALID,
-            PURC_VARIANT_INVALID, user_data);
+    co = coroutine_create(vdom, parent, page_type, user_data);
     if (!co) {
         purc_log_error("Failed to create coroutine\n");
         goto failed;

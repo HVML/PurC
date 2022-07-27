@@ -261,10 +261,6 @@ struct pcintr_coroutine {
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
-    /* pcintr_create_child_co */
-    purc_variant_t              param_as;
-    purc_variant_t              param_within;
-
     const char                 *error_except;
 
     struct pcintr_stack         stack;  /* stack that holds this coroutine */
