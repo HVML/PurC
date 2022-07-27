@@ -224,7 +224,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    PURC_VARIANT_INVALID,
+                    request_id,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_EXCEPT,
                     payload, request_id);
             purc_variant_unref(payload);
@@ -233,7 +233,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             // XXX: curator may live in another thread!
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    PURC_VARIANT_INVALID,
+                    request_id,
                     MSG_TYPE_CALL_STATE, MSG_SUB_TYPE_SUCCESS,
                     result, request_id);
         }

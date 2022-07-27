@@ -22,13 +22,13 @@
 
             <test with $L.eval('a == 0 && b == 0',
                     { a: $EJSON.arith('%', $big, $?),
-                      b: $EJSON.arith('%', $small, $?) } >
+                      b: $EJSON.arith('%', $small, $?) }) >
                 <return with $? />
             </test>
 
         </iterate>
 
-        <return with 1L />
+        <return with 3L />
 
     </define>
 
