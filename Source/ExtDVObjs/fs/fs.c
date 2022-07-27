@@ -2448,8 +2448,9 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-#define TEMP_TEMPLATE      "XXXXXX"
-#define TEMP_TEMPLATE_LEN  6
+#define TEMP_TEMPLATE      "purc-XXXXXX"
+#define TEMP_TEMPLATE_LEN  (sizeof(TEMP_TEMPLATE) - 1)
+
 static purc_variant_t
 tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         bool silently)
@@ -2505,11 +2506,13 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     strncat (filename, string_prefix, sizeof(filename) - 1);
     strncat (filename, TEMP_TEMPLATE, sizeof(filename) - 1);
-    if (NULL == mktemp (filename)) {
+    int tmp_fd;
+    if ((tmp_fd = mkstemp (filename)) == -1) {
         purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
         return purc_variant_make_boolean (false);
     }
 
+    close(tmp_fd);
     ret_var = purc_variant_make_string (filename, true);
     return ret_var;
 }
