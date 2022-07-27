@@ -261,7 +261,7 @@ struct pcintr_coroutine {
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
-    /* pcintr_create_child_co, pcintr_load_child_co */
+    /* pcintr_create_child_co */
     purc_variant_t              param_as;
     purc_variant_t              param_within;
 
@@ -488,14 +488,6 @@ void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
 void
 pcintr_pop_stack_frame_pseudo(void);
-
-pcintr_coroutine_t
-pcintr_create_child_co(pcvdom_element_t vdom_element,
-        purc_variant_t as, purc_variant_t within, purc_variant_t temp_data);
-
-pcintr_coroutine_t
-pcintr_load_child_co(const char *hvml,
-        purc_variant_t as, purc_variant_t within);
 
 void
 pcintr_exception_clear(struct pcintr_exception *exception);
