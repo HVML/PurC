@@ -59,8 +59,6 @@
 #define STREAM_SUB_EVENT_WRITE      "writable"
 #define STREAM_SUB_EVENT_ALL        "*"
 
-#define CID_KEY                     "__cid"
-
 #define FILE_DEFAULT_MODE           0644
 #define FIFO_DEFAULT_MODE           0644
 
@@ -186,19 +184,6 @@ struct pcdvobjs_stream {
     pid_t cpid;                 /* only for pipe, the pid of child */
     purc_atom_t cid;
 };
-
-static
-purc_atom_t
-get_cid(purc_variant_t stream)
-{
-    purc_variant_t tmp = purc_variant_object_get_by_ckey(stream, CID_KEY);
-    if (tmp && purc_variant_is_ulongint(tmp)) {
-        uint64_t u64;
-        purc_variant_cast_to_ulongint(tmp, &u64, false);
-        return (purc_atom_t)u64;
-    }
-    return 0;
-}
 
 static
 struct pcdvobjs_stream *dvobjs_stream_create(enum pcdvobjs_stream_type type,
@@ -1023,6 +1008,10 @@ on_observe(void *native_entity, const char *event_name,
                 purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
                 stream_io_callback, stream);
         if (stream->monitor4r) {
+            pcintr_coroutine_t co = pcintr_get_coroutine();
+            if (co) {
+                stream->cid = co->cid;
+            }
             return true;
         }
         return false;
@@ -1033,6 +1022,10 @@ on_observe(void *native_entity, const char *event_name,
                 purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
                 stream_io_callback, stream);
         if (stream->monitor4w) {
+            pcintr_coroutine_t co = pcintr_get_coroutine();
+            if (co) {
+                stream->cid = co->cid;
+            }
             return true;
         }
         return false;
@@ -1060,6 +1053,7 @@ on_forget(void *native_entity, const char *event_name,
                 stream->monitor4w);
         stream->monitor4w = 0;
     }
+    stream->cid = 0;
 
     return true;
 }
@@ -1659,7 +1653,6 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out_free_url;
     }
 
-    stream->cid = get_cid(root);
     // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
         .property_getter = property_getter,
@@ -1710,7 +1703,7 @@ out:
     return PURC_VARIANT_INVALID;
 }
 
-static bool add_stdio_property(purc_variant_t v, purc_atom_t cid)
+static bool add_stdio_property(purc_variant_t v)
 {
     static const struct purc_native_ops ops = {
         .property_getter = property_getter,
@@ -1741,7 +1734,6 @@ static bool add_stdio_property(purc_variant_t v, purc_atom_t cid)
     if (!stream) {
         goto out;
     }
-    stream->cid = cid;
     var = purc_variant_make_native(stream, &ops);
     if (var == PURC_VARIANT_INVALID) {
         goto out;
@@ -1757,7 +1749,6 @@ static bool add_stdio_property(purc_variant_t v, purc_atom_t cid)
     if (!stream) {
         goto out;
     }
-    stream->cid = cid;
     var = purc_variant_make_native(stream, &ops);
     if (var == PURC_VARIANT_INVALID) {
         goto out;
@@ -1777,7 +1768,7 @@ out:
     return false;
 }
 
-purc_variant_t purc_dvobj_stream_new(purc_atom_t cid)
+purc_variant_t purc_dvobj_stream_new(void)
 {
     static struct purc_dvobj_method  stream[] = {
         { "open",   stream_open_getter,     NULL },
@@ -1798,24 +1789,10 @@ purc_variant_t purc_dvobj_stream_new(purc_atom_t cid)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t cv = purc_variant_make_ulongint(cid);
-    if (!cv) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    if (!purc_variant_object_set_by_static_ckey(v, CID_KEY, cv)) {
-        purc_variant_unref(cv);
-        goto out;
-    }
-
-    purc_variant_unref(cv);
-
-    if (add_stdio_property(v, cid)) {
+    if (add_stdio_property(v)) {
         return v;
     }
 
-out:
     purc_variant_unref(v);
     return PURC_VARIANT_INVALID;
 }

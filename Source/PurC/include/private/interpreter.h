@@ -309,6 +309,7 @@ struct pcintr_coroutine {
     struct rb_root              loaded_vars;  // struct pcintr_loaded_var*
 
     void                       *user_data;
+    unsigned long               run_idx;
 };
 
 enum purc_symbol_var {
