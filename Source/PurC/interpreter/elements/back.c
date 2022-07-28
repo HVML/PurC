@@ -245,6 +245,16 @@ process_attr_to(struct pcintr_stack_frame *frame,
         }
         return process_back_level(frame, element, name, back_level);
     }
+    else if (purc_variant_is_number(val)) {
+        uint64_t back_level = 0;
+        if (!purc_variant_cast_to_ulongint(val, &back_level, true) ||
+                back_level <= 0) {
+            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                    "<%s to = invalid number", element->tag_name);
+            return -1;
+        }
+        return process_back_level(frame, element, name, back_level);
+    }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "<%s to = ...>", element->tag_name);

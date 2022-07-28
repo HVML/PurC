@@ -1,0 +1,7 @@
+<hvml target="html">
+    <init with="1L" />
+    <init with='2L' />
+    <init with "3L" />
+    <init with '4L' />
+    <init with 5L />
+</hvml>

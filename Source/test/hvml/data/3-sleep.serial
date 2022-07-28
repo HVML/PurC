@@ -27,7 +27,7 @@ PCHVML_TOKEN_START_TAG|<init as="startTime" with=get_element(get_variable("SYS")
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_START_TAG|<iterate on=0L onlyif=call_getter(get_element(get_variable("L"),"lt"),get_variable("0<"),10) with=call_getter(get_element(get_variable("EJSON"),"arith_calc"),"+",get_variable("0<"),1) nosetotail>
+PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=call_getter(get_element(get_variable("L"),"lt"),get_variable("0<"),10) with=call_getter(get_element(get_variable("EJSON"),"arith_calc"),"+",get_variable("0<"),1) nosetotail>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<sleep with=call_getter(get_element(get_variable("SYS"),"random"),10)>

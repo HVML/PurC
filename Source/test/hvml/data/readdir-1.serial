@@ -48,7 +48,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match on=get_variable("?") exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<init as="count" with=0L temporarily/>
+PCHVML_TOKEN_START_TAG|<init as="count" with=0 temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
 
                     "
@@ -77,7 +77,7 @@ PCHVML_TOKEN_END_TAG|</li>
 PCHVML_TOKEN_VCM_TREE|"
 
                                 "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("4!") at=".count" with+=1L/>
+PCHVML_TOKEN_START_TAG|<update on=get_variable("4!") at=".count" with+=1/>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_END_TAG|</iterate>
@@ -145,4 +145,3 @@ PCHVML_TOKEN_VCM_TREE|"
 
 "
 PCHVML_TOKEN_END_TAG|</hvml>
-
