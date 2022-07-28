@@ -1,9 +1,5 @@
-<!-- Version 8 -->
+<!-- Version 9 -->
 
-<!--
-    $SYS.locale returns the current system locale such as `en_US` or `zh_CN`
-    $STR.substr returns a substring of the given string.
--->
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
 
     $STREAM.stdout.writelines("Start of `Hello, world!`")
@@ -21,12 +17,19 @@
         <h1>我的第一个 HVML 程序</h1>
         <p>世界，您好！</p>
 
+        <init as "startTime" with $SYS.time />
+
         <observe on $TIMERS for 'expired:foobar' >
             $STREAM.stdout.writelines('Timer foobar observed')
 
             <inherit>
-                $STREAM.stdout.writelines('Timer foobar expired')
+                $STREAM.stdout.writelines($STR.join('Timer foobar expired: ', $DATETIME.fmttime('%H:%M:%S')))
             </inherit>
+
+            <test with $L.gt($EJSON.arith('-', $SYS.time, $startTime), 10) >
+                <exit with "Ok" />
+            </test>
+
         </observe>
     </body>
 
