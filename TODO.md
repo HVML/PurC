@@ -100,9 +100,9 @@
 
 ### 2.4) EJSON 表达式或 vDOM 解析器
 
-1. 字符串中的表达式求值置换，存在将不符合变量名（或键名）规格的字符识别为变量名（或键名）的情形，从而报错。如 `The cid: $CRTN.cid<`，应置换为 `The cid: 3<`。
-1. 在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。目前被当做字符串处理。见测试用例：`test/interpreter/comp/00-fibonacci-void-temp.hvml`
-1. `hvml` 元素内容应支持常规 EJSON 表达式或复合表达式。
+1. ~~字符串中的表达式求值置换，存在将不符合变量名（或键名）规格的字符识别为变量名（或键名）的情形，从而报错。如 `The cid: $CRTN.cid<`，应置换为 `The cid: 3<`。~~
+1. ~~在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。目前被当做字符串处理。见测试用例：`test/interpreter/comp/00-fibonacci-void-temp.hvml`~~
+1. ~~`hvml` 元素内容应支持常规 EJSON 表达式或复合表达式。~~
 1. HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，应该考虑优化处理为一个文本节点。见 `purc` 命令行的输出。
 1. ~~对井号注释的初步支持：忽略 HVML 文件中，在 `<DOCTYPE ` 或者 `<!-- ` 开始前，所有以 `#` 打头的行。~~
 1. ~~支持在框架元素中定义多个求值表达式或复合求值表达式；参阅 HVML 规范 2.3.4 小节。~~
