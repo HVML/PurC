@@ -63,9 +63,10 @@ PCA_EXTERN_C_BEGIN
         break;                                                                \
     }                                                                         \
     char* _buf = pcvariant_to_string(_v);                                     \
-    PC_DEBUG("%s[%d]:%s(): %s[%p]=%s\n",                                      \
+    const char* _type = pcvariant_typename(_v);                               \
+    PC_DEBUG("%s[%d]:%s(): %s[%p][%s]=%s\n",                                  \
             pcutils_basename((char*)__FILE__), __LINE__, __func__,            \
-            #_v, _v, _buf);                                                   \
+            #_v, _v, _type, _buf);                                            \
     free(_buf);                                                               \
 } while (0)
 
