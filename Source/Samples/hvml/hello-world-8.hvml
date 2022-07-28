@@ -20,7 +20,7 @@
 
         <h1>我的第一个 HVML 程序</h1>
 
-        <init as "helloInVarLangs" from "file://{$SYS.cwd}/hello-world.json" />
+        <init as "helloInVarLangs" from "file://{$SYS.cwd}/hvml/hello-world.json" />
 
         <iterate on $helloInVarLangs >
             <p>$?</p>
@@ -38,3 +38,4 @@
     $STREAM.stdout.writelines('End of `Hello, world!`')
 
 </hvml>
+

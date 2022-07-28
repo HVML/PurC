@@ -19,6 +19,7 @@ set(sample_HVML_FILES
     "hvml/hello-world-5.hvml"
     "hvml/hello-world-6.hvml"
     "hvml/hello-world-7.hvml"
+    "hvml/hello-world-8.hvml"
     "hvml/hello-world.json"
     "hvml/fibonacci-void-temp.hvml"
     "hvml/fibonacci-html-temp.hvml"
