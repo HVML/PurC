@@ -161,7 +161,7 @@
 1. 文档整理。
 1. 解决现有测试用例及示例程序暴露出的缺陷：
    - `test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串生成期望结果，但生成的字符串不正确。
-   - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://$SYS.cwd/hvml/hello-world.json" />。
+   - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://{$SYS.cwd}/hvml/hello-world.json" />`。
    - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-8.hvml`，从输出结果看，`observe` 元素的内容被多次求值。应仅在执行 `observe` 时求值一次。
    - 在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-9.hvml`，从输出结果看，`observe` 的内容（包括 `inherit` 元素）被错误地插入到了目标文档。
 
