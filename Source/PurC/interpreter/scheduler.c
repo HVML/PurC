@@ -233,7 +233,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             // XXX: curator may live in another thread!
             purc_variant_t payload = purc_variant_make_string(
                     co->error_except, false);
-            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     request_id,
