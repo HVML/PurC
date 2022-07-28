@@ -115,7 +115,8 @@ purc_variant_t PcFetcherRequest::requestAsync(
     m_is_async = true;
 
     String uri;
-    if (base_uri) {
+    if (base_uri &&
+            strncmp(url, base_uri, strlen(base_uri)) != 0) {
         uri.append(base_uri);
     }
     uri.append(url);
@@ -157,7 +158,8 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     m_is_async = false;
 
     String uri;
-    if (base_uri) {
+    if (base_uri &&
+            strncmp(url, base_uri, strlen(base_uri)) != 0) {
         uri.append(base_uri);
     }
     uri.append(url);

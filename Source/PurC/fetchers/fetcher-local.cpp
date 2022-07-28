@@ -260,7 +260,8 @@ purc_rwstream_t pcfetcher_local_request_sync(
     }
     struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
     String uri;
-    if (local->base_uri) {
+    if (local->base_uri &&
+            strncmp(url, local->base_uri, strlen(local->base_uri)) != 0) {
         uri.append(local->base_uri);
     }
     uri.append(url);
