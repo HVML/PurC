@@ -2517,7 +2517,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
         ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
     }
     if (character == '$') {
-        if (uc != 'U' && uc != '"') {
+    //    if (uc != 'U' && uc != '"') {
             if (parser->vcm_node) {
                 vcm_stack_push(parser->vcm_node);
             }
@@ -2530,9 +2530,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
                    tkz_buffer_get_bytes(parser->temp_buffer));
                 APPEND_AS_VCM_CHILD(node);
                 RESET_TEMP_BUFFER();
-                ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
+      //          ADVANCE_TO(TKZ_STATE_EJSON_JSONEE_STRING);
             }
-        }
+     //   }
         RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '\\') {
@@ -2550,8 +2550,16 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)
         RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
     }
     if (is_eof(character)) {
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
-        RETURN_AND_STOP_PARSE();
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            if (tkz_buffer_end_with(parser->temp_buffer, "\n", 1)) {
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+            }
+            struct pcvcm_node *node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer));
+            APPEND_AS_VCM_CHILD(node);
+            RESET_TEMP_BUFFER();
+        }
+        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == ':' && uc == ':') {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);

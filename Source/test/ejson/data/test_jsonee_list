@@ -1,5 +1,5 @@
 jsonee_001_double_quoted_attr
-jsonee_002_unquoted_attr PCEJSON_ERROR_UNEXPECTED_EOF
+jsonee_002_unquoted_attr
 jsonee_003_attr_without_value
 jsonee_004_get_varialbe
 jsonee_005_get_element
@@ -74,6 +74,7 @@ jsonee_073
 jsonee_074
 jsonee_075
 jsonee_076
+jsonee_077
 cjsonee_001
 cjsonee_002
 cjsonee_003
