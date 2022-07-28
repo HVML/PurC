@@ -436,7 +436,8 @@ bool pchvml_parser_is_json_content_tag(const char* name)
     return (strcmp(name, "init") == 0
             || strcmp(name, "archedata") == 0
             || strcmp(name, "update") == 0
-            || strcmp(name, "bind") == 0);
+            || strcmp(name, "bind") == 0
+            || strcmp(name, "hvml") == 0);
 }
 
 static UNUSED_FUNCTION
@@ -3342,7 +3343,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_KEYWORD)
         tkz_sbst_destroy(parser->sbst);
         parser->sbst = NULL;
         uint32_t uc = ejson_stack_top();
-        if (uc == 'U') {
+        // XXX:
+        if (uc == 'U' || uc == 0) {
             RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
         }
         else {
