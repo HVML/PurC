@@ -121,17 +121,15 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     if (event == PURC_COND_COR_ONE_RUN) {
         struct purc_cor_run_info *run_info = (struct purc_cor_run_info *)data;
 
-        if (run_info->run_idx == 0) {
-            purc_document_t doc = run_info->doc;
+        purc_document_t doc = run_info->doc;
 
-            struct buffer *buf =
-                (struct buffer *)purc_coroutine_get_user_data(cor);
-            if (buf->dump_buff) {
-                free(buf->dump_buff);
-                buf->dump_buff = nullptr;
-            }
-            buf->dump_buff = intr_util_dump_doc(doc, NULL);
+        struct buffer *buf =
+            (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (buf->dump_buff) {
+            free(buf->dump_buff);
+            buf->dump_buff = nullptr;
         }
+        buf->dump_buff = intr_util_dump_doc(doc, NULL);
     }
 
     return 0;

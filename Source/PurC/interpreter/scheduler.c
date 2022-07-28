@@ -73,6 +73,7 @@ broadcast_idle_event(struct pcinst *inst)
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 {
+    bool one_run = false;
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -116,6 +117,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             pcintr_coroutine_set_state(co, CO_STATE_READY);
             return;
         }
+        // CO_STAGE_FIRST_RUN or
+        // observing finished (only HVML tag in stack)
+        one_run = true;
     }
 
     PC_ASSERT(co->yielded_ctxt == NULL);
@@ -130,13 +134,19 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         return;
     }
 
-    if (co->owner->cond_handler) {
-        // TODO: fill the current result.
-        struct purc_cor_run_info run_info = { 0, };
-        run_info.doc = stack->doc;
-        co->owner->cond_handler(PURC_COND_COR_ONE_RUN, co, &run_info);
-        // TODO: repeat this call when an observing finished.
+
+    if (one_run) {
+        // repeat this call when an observing finished.
+        if (co->owner->cond_handler) {
+            struct purc_cor_run_info run_info = { 0, };
+            run_info.run_idx = co->run_idx;
+            run_info.doc = stack->doc;
+            run_info.result = pcintr_coroutine_get_result(co);
+            co->owner->cond_handler(PURC_COND_COR_ONE_RUN, co, &run_info);
+        }
+        co->run_idx++;
     }
+
     stack->co->stage = CO_STAGE_OBSERVING;
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
 
