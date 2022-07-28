@@ -1448,7 +1448,6 @@ pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame)
 #define BUILTIN_VAR_T           PURC_PREDEF_VARNAME_T
 #define BUILTIN_VAR_DOC         PURC_PREDEF_VARNAME_DOC
 #define BUILTIN_VAR_REQ         PURC_PREDEF_VARNAME_REQ
-#define BUILTIN_VAR_STREAM      PURC_PREDEF_VARNAME_STREAM
 
 static bool
 bind_cor_named_variable(purc_coroutine_t cor, const char* name,
@@ -1494,15 +1493,6 @@ bind_builtin_coroutine_variables(purc_coroutine_t cor, purc_variant_t request)
                 purc_dvobj_text_new())) {
         return false;
     }
-
-    // TODO: make this as a runner-level variable.
-    // $STREAM
-    if(!bind_cor_named_variable(cor, BUILTIN_VAR_STREAM,
-                purc_dvobj_stream_new(cor->cid))) {
-        return false;
-    }
-
-    // end
 
     return true;
 }

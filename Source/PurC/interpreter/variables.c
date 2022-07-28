@@ -226,13 +226,12 @@ pcintr_bind_builtin_runner_variables(void)
     }
     purc_variant_unref(ejson);
 
-    /* $STREAM: TODO
+    // $STREAM
     purc_variant_t stream = purc_dvobj_stream_new();
     if (!purc_bind_runner_variable(BUILTIN_VAR_STREAM, stream)) {
         goto out;
     }
     purc_variant_unref(stream);
-    */
 
     // $DATETIME
     purc_variant_t dt = purc_dvobj_datetime_new();

@@ -95,7 +95,7 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
         dvobj = purc_dvobj_url_new();
     }
     else if (strcmp(name, "STREAM") == 0) {
-        dvobj = purc_dvobj_stream_new(0);
+        dvobj = purc_dvobj_stream_new();
     }
 
     if (dvobj != PURC_VARIANT_INVALID) {
