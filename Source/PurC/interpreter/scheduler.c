@@ -130,10 +130,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         return;
     }
 
-    // VW: pcintr_dump_document(stack);
-    //pcintr_dump_document(stack);
     if (co->owner->cond_handler) {
-        co->owner->cond_handler(PURC_COND_COR_OBSERVING, co, stack->doc);
+        // TODO: fill the current result.
+        struct purc_cor_run_info run_info = { 0, };
+        run_info.doc = stack->doc;
+        co->owner->cond_handler(PURC_COND_COR_ONE_RUN, co, &run_info);
+        // TODO: repeat this call when an observing finished.
     }
     stack->co->stage = CO_STAGE_OBSERVING;
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);

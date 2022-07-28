@@ -609,13 +609,19 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
+struct purc_cor_run_info {
+    unsigned long   run_idx;
+    purc_variant_t  result;
+    purc_document_t doc;
+};
+
 struct purc_cor_exit_info {
-    purc_variant_t result;
+    purc_variant_t  result;
     purc_document_t doc;
 };
 
 struct purc_cor_term_info {
-    purc_variant_t except;
+    purc_variant_t  except;
     purc_document_t doc;
 };
 
@@ -656,18 +662,18 @@ typedef enum purc_cond {
     PURC_COND_COR_CREATED,
 
     /**
-     * Indicating that a coroutine finished the first round run and
-     * is entering the obeserving stage.
+     * Indicating that a coroutine finished a round of run.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to the targe document genenerated by the
-     * HVML coroutine.
+     * `data` is the pointer to a `struct purc_cor_run_info` which contains
+     * the index of current run, the current executed result and
+     * the target document genenerated by the HVML coroutine.
      */
-    PURC_COND_COR_OBSERVING,
+    PURC_COND_COR_ONE_RUN,
 
     /**
      * Indicating that a coroutine exited.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to `struct purc_cor_exit_info` which contains
+     * `data` is the pointer to a `struct purc_cor_exit_info` which contains
      * the execute result and the target document genenerated by the
      * HVML coroutine.
      */
@@ -676,7 +682,7 @@ typedef enum purc_cond {
     /**
      * Indicating that a coroutine terminated due to an exception or error.
      * In the condition handler, `arg` is the pointer to the coroutine structure,
-     * `data` is the pointer to `struct purc_cor_term_info` which contains
+     * `data` is the pointer to a `struct purc_cor_term_info` which contains
      * the termination information and the target document genenerated by the
      * HVML coroutine.
      */
