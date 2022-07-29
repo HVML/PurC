@@ -1,0 +1,26 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="kvs" uniquely caseinsensitively>
+            [
+                1, "1", true, "true", "false", false, "False", "2", 2
+            ]
+        </init>
+        <init as "foo" with "bar"/>
+    </head>
+
+    <body>
+        <iterate on="$kvs">
+            <div>
+                <update on="$@" to="append" with="$2?"/>
+            </div>
+        </iterate>
+        <div>
+            <update on="$@" to="append" with="$foo"/>
+        </div>
+    </body>
+
+</hvml>
+
+
+
