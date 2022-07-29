@@ -20,9 +20,11 @@
 1. Support for the new variant type: tuple.
 1. Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
-### 1.2) eJSON Parsing and Evaluating
+### 1.2) eJSON and HVML Parsing and Evaluating
 
-1. Support for Tuple
+1. Support for prefix for foreign tag name.
+1. Optimize the content evalution of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
+1. Support for tuples.
 
 ### 1.3) Predefined Varaibles
 
@@ -103,7 +105,6 @@
 1. ~~字符串中的表达式求值置换，存在将不符合变量名（或键名）规格的字符识别为变量名（或键名）的情形，从而报错。如 `The cid: $CRTN.cid<`，应置换为 `The cid: 3<`。~~
 1. ~~在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。目前被当做字符串处理。见测试用例：`test/interpreter/comp/00-fibonacci-void-temp.hvml`~~
 1. ~~`hvml` 元素内容应支持常规 EJSON 表达式或复合表达式。~~
-1. HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，应该考虑优化处理为一个文本节点。见 `purc` 命令行的输出。
 1. ~~对井号注释的初步支持：忽略 HVML 文件中，在 `<DOCTYPE ` 或者 `<!-- ` 开始前，所有以 `#` 打头的行。~~
 1. ~~支持在框架元素中定义多个求值表达式或复合求值表达式；参阅 HVML 规范 2.3.4 小节。~~
 
@@ -160,7 +161,7 @@
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
 1. 文档整理。
 1. 解决现有测试用例及示例程序暴露出的缺陷：
-   - `test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串生成期望结果，但生成的字符串不正确。
+   - ~~`test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串生成期望结果，但生成的字符串不正确。~~
    - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://{$SYS.cwd}/hvml/hello-world.json" />`。
    - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-8.hvml`，从输出结果看，`observe` 元素的内容被多次求值。应仅在执行 `observe` 时求值一次。
    - 在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-9.hvml`，从输出结果看，`observe` 的内容（包括 `inherit` 元素）被错误地插入到了目标文档。
