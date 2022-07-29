@@ -725,7 +725,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    pcintr_calc_and_set_caret_symbol(stack, frame);
+    if (stack->co->stage == CO_STAGE_FIRST_RUN) {
+        pcintr_calc_and_set_caret_symbol(stack, frame);
+    }
 
 #if 0
     if (!ctxt->with) {
@@ -875,6 +877,10 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(content);
+#if 0
     pcintr_stack_t stack = &co->stack;
 
     if (stack->except)
@@ -907,6 +913,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         free(sv);
         purc_variant_unref(v);
     }
+#endif
 }
 
 static void

@@ -176,7 +176,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
         val = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
     }
 
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    //PC_ASSERT(val != PURC_VARIANT_INVALID);
     if (val == PURC_VARIANT_INVALID) {
         return -1;
     }
@@ -436,7 +436,10 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return NULL;
 }
 
 static int
@@ -674,12 +677,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->by_rule = 1;
     }
 
+    struct ctxt_for_iterate *ret;
     if (ctxt->by_rule) {
-        return post_process_by_rule(stack->co, frame);
+        ret = post_process_by_rule(stack->co, frame);
     }
     else {
-        return post_process(stack->co, frame);
+        ret = post_process(stack->co, frame);
     }
+
+    if (purc_get_last_error()) {
+        return ret;
+    }
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+    return ret;
 }
 
 static bool
@@ -834,7 +845,10 @@ on_popping(pcintr_stack_t stack, void* ud)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 static bool
@@ -867,6 +881,7 @@ rerun_with(pcintr_stack_t stack)
         int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
         if (r) {
             // FIXME: let catch to effect afterward???
+            ctxt->stop = 1;
             return true;
         }
 
@@ -991,7 +1006,10 @@ rerun(pcintr_stack_t stack, void* ud)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 static void

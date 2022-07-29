@@ -210,6 +210,7 @@ pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
     UNUSED_PARAM(cb);
 
     PC_ASSERT(0); // Not implemented yet
+    return -1;
 }
 
 int
@@ -271,6 +272,9 @@ pcvar_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 

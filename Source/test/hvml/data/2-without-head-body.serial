@@ -30,9 +30,7 @@ PCHVML_TOKEN_END_TAG|</iterate>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_VCM_TREE|""-- by "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"const"),"HVML_INTRPR_NAME")
-PCHVML_TOKEN_VCM_TREE|"""
+PCHVML_TOKEN_VCM_TREE|concat_string("-- by ",call_getter(get_element(get_variable("SYS"),"const"),"HVML_INTRPR_NAME"))
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_END_TAG|</hvml>

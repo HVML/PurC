@@ -429,7 +429,10 @@ get_chain(purc_variant_t val)
             return set_data->rev_update_chain;
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return NULL;
 }
 
 static int

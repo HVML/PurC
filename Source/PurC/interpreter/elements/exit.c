@@ -221,6 +221,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return 0;
 
     PC_ASSERT(0);
+    return -1;
 }
 
 static int
@@ -236,6 +237,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return 0;
 
     PC_ASSERT(0);
+    return -1;
 }
 
 static int

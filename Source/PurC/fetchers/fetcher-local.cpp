@@ -14,10 +14,7 @@
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY
-{
-}
- without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
@@ -186,42 +183,25 @@ purc_variant_t pcfetcher_local_request_async(
         return PURC_VARIANT_INVALID;
     }
 
-#ifdef NDEBUG
-    struct pcfetcher_resp_header header;
-    purc_rwstream_t rws = pcfetcher_local_request_sync(fetcher, url, method,
-            params, timeout, &header);
-    if (!rws) {
-        header.ret_code = 404;
-        handler(PURC_VARIANT_INVALID, ctxt, &header, NULL);
-        return PURC_VARIANT_INVALID;
-    }
-
-    purc_variant_t req_id = purc_variant_make_string(url, false);
-    handler(req_id, ctxt, &header, rws);
-    if (header.mime_type) {
-        free(header.mime_type);
-    }
-    return req_id;
-#else // TEST code : local async time out
     struct pcfetcher_callback_info *info = pcfetcher_create_callback_info();
     info->rws = pcfetcher_local_request_sync(fetcher, url, method,
             params, timeout, &info->header);
-    if (!info->rws) {
-        info->header.ret_code = 404;
-        handler(PURC_VARIANT_INVALID, ctxt, &info->header, NULL);
-        info->rws = NULL;
-        pcfetcher_destroy_callback_info(info);
-        return PURC_VARIANT_INVALID;
-    }
-
     info->handler = handler;
     info->ctxt = ctxt;
     info->req_id = purc_variant_make_native(info, NULL);
 
+    if (!info->rws) {
+        info->header.ret_code = 404;
+    }
+
     RunLoop *runloop = &RunLoop::current();
+#ifdef NDEBUG
+    runloop->dispatch([info] {
+#else
     // random
     double tm = randomNumber() * 10;
     runloop->dispatchAfter(Seconds(tm), [info] {
+#endif
                 if (!info->cancelled) {
                     info->handler(info->req_id, info->ctxt, &info->header,
                             info->rws);
@@ -229,8 +209,8 @@ purc_variant_t pcfetcher_local_request_async(
                 }
                 pcfetcher_destroy_callback_info(info);
             });
+
     return info->req_id;
-#endif
 }
 
 off_t filesize(const char* filename)

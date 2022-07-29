@@ -127,8 +127,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
             return 0;
         }
         PC_DEBUGX("name: %s", purc_atom_to_string(name));
-        PC_ASSERT(0);
-        return -1;
+        //PC_ASSERT(0);
+        //return -1;
+        return 0;
     }
 
 done:

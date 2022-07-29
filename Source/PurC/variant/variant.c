@@ -2054,6 +2054,8 @@ purc_variant_numberify(purc_variant_t value)
             PC_ASSERT(0);
             break;
     }
+
+    return 0;
 }
 
 #if 0
@@ -2183,6 +2185,8 @@ purc_variant_booleanize(purc_variant_t value)
         PC_ASSERT(0);
         break;
     }
+
+    return false;
 }
 
 struct stringify_arg
@@ -3085,7 +3089,10 @@ str_diff(const char *l, const char *r, struct comp_ex_data *data)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 
 static int
@@ -3115,7 +3122,10 @@ atom_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 
 static int
@@ -3155,7 +3165,7 @@ native_diff(purc_variant_t l, purc_variant_t r)
 static int
 homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
 {
-    switch(l->type) {
+    switch (l->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
             return 0;
 
@@ -3198,7 +3208,10 @@ homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 
 static int
@@ -3491,8 +3504,10 @@ pcvar_compare_ex(purc_variant_t l, purc_variant_t r,
 
         default:
             PC_ASSERT(0);
-
+            break;
     }
+
+    return 0;
 }
 
 bool
@@ -3723,7 +3738,10 @@ bool pcvariant_is_scalar(purc_variant_t v)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 bool pcvariant_is_of_number(purc_variant_t v)
@@ -3754,7 +3772,10 @@ bool pcvariant_is_of_number(purc_variant_t v)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 bool pcvariant_is_of_string(purc_variant_t v)
@@ -3791,6 +3812,9 @@ bool pcvariant_is_of_string(purc_variant_t v)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 

@@ -94,7 +94,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (inst->errcode) {
-        PC_ASSERT(stack->except == 0);
+        //PC_ASSERT(stack->except == 0);
         pcintr_exception_copy(&stack->exception);
         stack->except = 1;
         pcinst_clear_error(inst);
