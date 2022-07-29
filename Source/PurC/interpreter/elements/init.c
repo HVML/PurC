@@ -115,7 +115,7 @@ ctxt_destroy(void *ctxt)
 #define UNDEFINED       "undefined"
 
 static int
-post_process_bind_at_frame(pcintr_coroutine_t co,
+_bind_src_at_frame(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t as,
         purc_variant_t src)
@@ -168,7 +168,7 @@ get_name(purc_variant_t as)
 }
 
 static int
-post_process_bind_at_vdom(pcintr_coroutine_t co,
+_bind_src_at_vdom(pcintr_coroutine_t co,
         struct pcvdom_element *elem,
         purc_variant_t as,
         purc_variant_t src)
@@ -185,7 +185,7 @@ post_process_bind_at_vdom(pcintr_coroutine_t co,
 }
 
 static int
-post_process_src_by_level(pcintr_coroutine_t co,
+_bind_src_by_level(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame,
         purc_variant_t as,
         bool temporarily,
@@ -217,7 +217,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
             }
             p = parent;
         }
-        return post_process_bind_at_frame(co, p, as, src);
+        return _bind_src_at_frame(co, p, as, src);
     }
     else {
         struct pcvdom_element *p = frame->pos;
@@ -243,7 +243,7 @@ post_process_src_by_level(pcintr_coroutine_t co,
             }
             p = parent;
         }
-        return post_process_bind_at_vdom(co, p, as, src);
+        return _bind_src_at_vdom(co, p, as, src);
     }
 }
 
@@ -281,7 +281,7 @@ match_id(pcintr_coroutine_t co,
 }
 
 static int
-post_process_src_by_id(pcintr_coroutine_t co,
+_bind_src_by_id(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, purc_variant_t src, const char *id)
 {
     struct ctxt_for_init *ctxt;
@@ -324,12 +324,12 @@ post_process_src_by_id(pcintr_coroutine_t co,
                 return -1;
             }
         }
-        return post_process_bind_at_vdom(co, p, ctxt->as, src);
+        return _bind_src_at_vdom(co, p, ctxt->as, src);
     }
 }
 
 static int
-post_process_src_by_topmost(pcintr_coroutine_t co,
+_bind_src_by_topmost(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, purc_variant_t src)
 {
     struct ctxt_for_init *ctxt;
@@ -345,7 +345,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
             level += 1;
         }
         PC_ASSERT(level > 0);
-        return post_process_src_by_level(co, frame,
+        return _bind_src_by_level(co, frame,
                 ctxt->as, ctxt->temporarily, src, level);
     }
     else {
@@ -359,7 +359,7 @@ post_process_src_by_topmost(pcintr_coroutine_t co,
 }
 
 static int
-post_process_src_by_atom(pcintr_coroutine_t co,
+_bind_src_by_atom(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, purc_variant_t src, purc_atom_t atom)
 {
     struct ctxt_for_init *ctxt;
@@ -372,7 +372,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
                     purc_atom_to_string(atom));
             return -1;
         }
-        return post_process_src_by_level(co, frame,
+        return _bind_src_by_level(co, frame,
                 ctxt->as, ctxt->temporarily, src, 1);
     }
 
@@ -383,7 +383,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
                     purc_atom_to_string(atom));
             return -1;
         }
-        return post_process_src_by_level(co, frame,
+        return _bind_src_by_level(co, frame,
                 ctxt->as, ctxt->temporarily, src, 2);
     }
 
@@ -394,24 +394,24 @@ post_process_src_by_atom(pcintr_coroutine_t co,
                     purc_atom_to_string(atom));
             return -1;
         }
-        return post_process_src_by_topmost(co, frame, src);
+        return _bind_src_by_topmost(co, frame, src);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
         ctxt->temporarily = 1;
-        return post_process_src_by_level(co, frame,
+        return _bind_src_by_level(co, frame,
                 ctxt->as, ctxt->temporarily, src, 1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
         ctxt->temporarily = 1;
-        return post_process_src_by_level(co, frame,
+        return _bind_src_by_level(co, frame,
                 ctxt->as, ctxt->temporarily, src, 2);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
         ctxt->temporarily = 1;
-        return post_process_src_by_topmost(co, frame, src);
+        return _bind_src_by_topmost(co, frame, src);
     }
 
     purc_set_error_with_info(PURC_ERROR_BAD_NAME,
@@ -420,7 +420,7 @@ post_process_src_by_atom(pcintr_coroutine_t co,
 }
 
 static int
-post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+_bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t as,
         purc_variant_t at,
         bool under_head,
@@ -451,13 +451,13 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             ok = purc_coroutine_bind_variable(co, s_name, src);
             return ok ? 0 : -1;
         }
-        return post_process_src_by_level(co, frame, as, temporarily, src, 1);
+        return _bind_src_by_level(co, frame, as, temporarily, src, 1);
     }
 
     if (purc_variant_is_string(at)) {
         const char *s_at = purc_variant_get_string_const(at);
         if (s_at[0] == '#')
-            return post_process_src_by_id(co, frame, src, s_at+1);
+            return _bind_src_by_id(co, frame, src, s_at+1);
         else if (s_at[0] == '_') {
             purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, s_at);
             if (atom == 0) {
@@ -465,7 +465,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                         "at = '%s'", s_at);
                 return -1;
             }
-            return post_process_src_by_atom(co, frame, src, atom);
+            return _bind_src_by_atom(co, frame, src, atom);
         }
     }
     bool ok;
@@ -474,7 +474,7 @@ post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ok = purc_variant_cast_to_ulongint(at, &level, force);
     if (!ok)
         return -1;
-    return post_process_src_by_level(co, frame, as, temporarily, src, level);
+    return _bind_src_by_level(co, frame, as, temporarily, src, level);
 }
 
 static int
@@ -543,7 +543,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (src == PURC_VARIANT_INVALID)
         return -1;
 
-    int r = post_process_src(co, frame,
+    int r = _bind_src(co, frame,
             ctxt->as, ctxt->at,
             ctxt->under_head, ctxt->temporarily,
             src);
@@ -1115,7 +1115,7 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
     purc_variant_t src;
     src = _generate_src(data->against, data->uniquely, caseless, ret);
     if (src != PURC_VARIANT_INVALID) {
-        int r = post_process_src(co, NULL,
+        int r = _bind_src(co, NULL,
                 data->as, data->at,
                 data->under_head, data->temporarily,
                 src);
@@ -1346,7 +1346,7 @@ process_via(pcintr_coroutine_t co)
 
     int r;
     PRINT_VARIANT(v);
-    r = post_process_src(co, frame,
+    r = _bind_src(co, frame,
             ctxt->as, ctxt->at,
             ctxt->under_head, ctxt->temporarily,
             v);
