@@ -674,12 +674,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->by_rule = 1;
     }
 
+    struct ctxt_for_iterate *ret;
     if (ctxt->by_rule) {
-        return post_process_by_rule(stack->co, frame);
+        ret = post_process_by_rule(stack->co, frame);
     }
     else {
-        return post_process(stack->co, frame);
+        ret = post_process(stack->co, frame);
     }
+
+    if (purc_get_last_error()) {
+        return ret;
+    }
+
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+    return ret;
 }
 
 static bool
