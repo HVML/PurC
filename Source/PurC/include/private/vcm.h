@@ -155,6 +155,15 @@ pcvcm_node_set_closed(struct pcvcm_node *node, bool closed)
     }
 }
 
+static inline size_t
+pcvcm_node_children_count(struct pcvcm_node *node)
+{
+    if (node) {
+        return pctree_node_children_number(&node->tree_node);
+    }
+    return 0;
+}
+
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
 char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);

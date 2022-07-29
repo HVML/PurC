@@ -2519,7 +2519,24 @@ BEGIN_STATE(TKZ_STATE_EJSON_DOLLAR)
         }
         else {
             if (parser->vcm_node) {
-                vcm_stack_push(parser->vcm_node);
+                size_t nr_children = pcvcm_node_children_count(parser->vcm_node);
+                if ((parser->vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_VARIABLE) && nr_children == 1) {
+                    pcvcm_node_set_closed(parser->vcm_node, true);
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
+                else if ((parser->vcm_node->type ==
+                        PCVCM_NODE_TYPE_FUNC_GET_ELEMENT) && nr_children == 2) {
+                    pcvcm_node_set_closed(parser->vcm_node, true);
+                    POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+                }
+
+                if (ejson_stack_is_empty()) {
+                    RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
+                }
+                else {
+                    vcm_stack_push(parser->vcm_node);
+                }
             }
             ejson_stack_push('$');
             struct pcvcm_node* snode = pcvcm_node_new_get_variable(NULL);

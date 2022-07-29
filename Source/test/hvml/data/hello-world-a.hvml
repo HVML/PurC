@@ -1,0 +1,11 @@
+<hvml target="html">
+    <archetype name="friendItem">
+        <span>$?.greeting$?.name</span>
+    </archetype>
+    <span>$?.greeting$?.name</span>
+    <span>$?.greeting $?.name</span>
+    <span>{$?.greeting}{$?.name}</span>
+    <span>{$?.greeting} {$?.name}</span>
+    <span>{$?.greeting} $?.name</span>
+    <span>{$?.greeting}$?.name</span>
+</hvml>
