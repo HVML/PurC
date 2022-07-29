@@ -196,11 +196,11 @@ purc_variant_t pcfetcher_local_request_async(
 
     RunLoop *runloop = &RunLoop::current();
 #ifdef NDEBUG
+    runloop->dispatch([info] {
+#else
     // random
     double tm = randomNumber() * 10;
     runloop->dispatchAfter(Seconds(tm), [info] {
-#else
-    runloop->dispatch([info] {
 #endif
                 if (!info->cancelled) {
                     info->handler(info->req_id, info->ctxt, &info->header,
