@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: '"success"'
+# RESULT: 'success'
 
 <hvml target="void">
 
