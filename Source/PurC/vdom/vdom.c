@@ -1482,6 +1482,8 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return PURC_VARIANT_INVALID;
     }
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t

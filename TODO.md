@@ -72,6 +72,12 @@
 
 1. Windows
 
+### 1.7) Others
+
+1. Clean up all unnessary calls of `PC_ASSERT`.
+1. Raise exceptions if encounter errors when executing elements instead of aborting the process.
+1. Tune `PC_ASSERT` to suppress any code when building for release.
+
 ## 2) Features Planned for V0.8
 
 ### 2.1) 变体

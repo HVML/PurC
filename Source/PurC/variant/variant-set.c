@@ -1722,7 +1722,9 @@ next_node(struct set_iterator *it, struct set_node *curr)
             return NULL;
         return container_of(p, struct set_node, rbnode);
     }
+
     PC_ASSERT(0);
+    return NULL;
 }
 
 static struct set_node*
@@ -1754,7 +1756,9 @@ prev_node(struct set_iterator *it, struct set_node *curr)
             return NULL;
         return container_of(p, struct set_node, rbnode);
     }
+
     PC_ASSERT(0);
+    return NULL;
 }
 
 static void

@@ -276,7 +276,10 @@ pcvar_build_rue_downward(purc_variant_t val)
         default:
             PC_DEBUGX("%d", val->type);
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 
 int
@@ -296,7 +299,10 @@ pcvar_build_edge_to_parent(purc_variant_t val,
             return pcvar_set_build_edge_to_parent(val, edge);
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return -1;
 }
 
 static bool

@@ -191,6 +191,7 @@ pcvar_tuple_numberify(purc_variant_t val)
     PC_ASSERT(purc_variant_is_set(val));
 
     PC_ASSERT(0); // Not implemented yet
+    return 0;
 }
 
 double
@@ -252,7 +253,10 @@ pcvar_numberify(purc_variant_t val)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return 0;
 }
 
 int
