@@ -573,12 +573,13 @@ bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
 {
     UNUSED_PARAM(handler);
     bool match = false;
-    if (co->wait_request_id) {
+    if (co->wait_request_id && msg->requestId) {
         match = purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
         goto out;
     }
 
-    if (purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
+    if (co->wait_element_value &&
+            purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
             purc_variant_is_equal_to(co->wait_event_name, msg->eventName)) {
         match =  true;
         goto out;

@@ -1,11 +1,11 @@
 #!/user/bin/purc
 
-# RESULT: [0, 2, 4, 6, 8 ]
+# RESULT: [0L, 2L, 4L, 6L, 8L ]
 
 <!DOCTYPE hvml>
 <hvml target="void">
-    <init as "evenNumbers" with [0] >
-        <iterate with $EJSON.arith('+', $evenNumbers[-1], 2) while $L.lt($0?, 10L) >
+    <init as "evenNumbers" with [0L] >
+        <iterate with $EJSON.arith('+', $evenNumbers[-1], 2) while $L.lt($0?, 8L) >
             <update on $evenNumbers to "append" with $? />
         </iterate>
     </init>

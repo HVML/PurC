@@ -1,6 +1,6 @@
 #!/user/bin/purc
 
-# RESULT: [0, 2, 4, 6, 8 ]
+# RESULT: [0L, 2L, 4L, 6L, 8L ]
 
 <!-- The expected output of this HVML program will be like:
 
@@ -19,7 +19,7 @@
 <!DOCTYPE hvml>
 <hvml target="void">
     <init as "evenNumbers" with [] >
-        <iterate on 0 onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 2) nosetotail>
+        <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 2) nosetotail>
             <update on="$evenNumbers" to="append" with="$?" />
         </iterate>
     </init>

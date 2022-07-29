@@ -145,7 +145,7 @@ check_while(struct pcvdom_attr *_while, bool *stop, pcintr_stack_t stack)
         return -1;
 
     int64_t i64;
-    bool force = false;
+    bool force = true;
     bool ok;
     ok = purc_variant_cast_to_longint(val, &i64, force);
     PURC_VARIANT_SAFE_CLEAR(val);
@@ -157,6 +157,13 @@ check_while(struct pcvdom_attr *_while, bool *stop, pcintr_stack_t stack)
     return 0;
 }
 
+/*
+ * if on != PURC_VARIANT_INVALID ,
+ *    call re_eval_with after each iteration 
+ * else
+ *    call re_eval_with in each iteration, before upate $0?
+ *
+ */
 static int
 re_eval_with(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *with, bool *stop, pcintr_stack_t stack)
@@ -183,7 +190,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt->nosetotail) {
+    if (ctxt->nosetotail || ctxt->on == PURC_VARIANT_INVALID) {
         pcintr_set_input_var(stack, val);
     }
 
@@ -200,14 +207,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt);
 
     PC_ASSERT(ctxt->by_rule == 0);
-
-    purc_variant_t on;
-    on = ctxt->on;
-    if (on == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "lack of vdom attribute 'on' for element <iterate>");
-        return ctxt;
-    }
 
     if (ctxt->onlyif_attr) {
         bool stop;
@@ -459,6 +458,7 @@ process_attr_on(struct pcintr_stack_frame *frame,
     PURC_VARIANT_SAFE_CLEAR(ctxt->on);
     ctxt->on = purc_variant_ref(val);
 
+    /* before the first iteration set attr 'on' to $0< */
     pcintr_set_input_var(stack, val);
 
     return 0;
@@ -646,6 +646,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     pcintr_calc_and_set_caret_symbol(stack, frame);
 
+    /* before the first iteration, set attr 'in' to $0@ */
     purc_variant_t in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(in)) {
@@ -695,20 +696,19 @@ on_popping_with(pcintr_stack_t stack)
         return true;
     }
 
-    if (ctxt->on == PURC_VARIANT_INVALID) {
-        return true;
-    }
-
     bool stop;
-    int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
-    if (r) {
-        // FIXME: let catch to effect afterward???
-        return true;
-    }
+    int r;
+    if (ctxt->on) {
+        r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
+        if (r) {
+            // FIXME: let catch to effect afterward???
+            return true;
+        }
 
-    if (stop) {
-        ctxt->stop = 1;
-        return true;
+        if (stop) {
+            ctxt->stop = 1;
+            return true;
+        }
     }
 
     if (ctxt->while_attr) {
@@ -849,6 +849,7 @@ rerun_with(pcintr_stack_t stack)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
+    /* before each iteration, veify onlyif */
     if (ctxt->onlyif_attr) {
         bool stop;
         int r = check_onlyif(ctxt->onlyif_attr, &stop, stack);
@@ -858,9 +859,24 @@ rerun_with(pcintr_stack_t stack)
         }
     }
 
+    /* in each iteration, evaluate content and set as $0^ */
     pcintr_calc_and_set_caret_symbol(stack, frame);
 
-    /* $0< set to  $0? */
+    if (ctxt->on == PURC_VARIANT_INVALID) {
+        bool stop;
+        int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
+        if (r) {
+            // FIXME: let catch to effect afterward???
+            return true;
+        }
+
+        if (stop) {
+            ctxt->stop = 1;
+            return true;
+        }
+    }
+
+    /* in each iteration, set $0< to $0? */
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
     pcintr_set_question_var(frame, v);
     return true;
