@@ -607,12 +607,47 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         {
             purc_vdom_t vdom = find_vdom_by_target_window(
                     (uint64_t)msg->targetValue, &stack);
-            source = purc_variant_make_native(vdom, NULL);
+            const char *event = purc_variant_get_string_const(msg->eventName);
+            if (!vdom) {
+                PC_WARN("can not found vdom for event %s\n", event);
+                return;
+            }
+            if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
+                stack->co->target_workspace_handle = 0;
+                stack->co->target_page_handle = 0;
+                stack->co->target_dom_handle = 0;
+                purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                        PURC_PREDEF_VARNAME_CRTN);
+                pcintr_coroutine_post_event(stack->co->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_CLOSED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            }
+            return;
         }
         break;
 
     case PCRDR_MSG_TARGET_WIDGET:
-        //TODO
+        {
+            purc_vdom_t vdom = find_vdom_by_target_window(
+                    (uint64_t)msg->targetValue, &stack);
+            const char *event = purc_variant_get_string_const(msg->eventName);
+            if (!vdom) {
+                PC_WARN("can not found vdom for event %s\n", event);
+                return;
+            }
+            if (strcmp(event, MSG_TYPE_DESTROY) == 0) {
+                stack->co->target_workspace_handle = 0;
+                stack->co->target_page_handle = 0;
+                stack->co->target_dom_handle = 0;
+                purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                        PURC_PREDEF_VARNAME_CRTN);
+                pcintr_coroutine_post_event(stack->co->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_CLOSED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            }
+        }
         break;
 
     case PCRDR_MSG_TARGET_DOM:
