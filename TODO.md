@@ -161,7 +161,7 @@
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
 1. 文档整理。
 1. 解决现有测试用例及示例程序暴露出的缺陷：
-   - 在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://{$SYS.cwd}/hvml/hello-world.json" />`。
+   - ~~在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://{$SYS.cwd}/hvml/hello-world.json" />`。~~
    - ~~在构建目录下，使用 `purc` 运行 `hvml/hello-world-8.hvml`，从输出结果看，`observe` 元素的内容被多次求值。应仅在执行 `observe` 时求值一次。~~
    - ~~在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-9.hvml`，从输出结果看，`observe` 的内容（包括 `inherit` 元素）被错误地插入到了目标文档。~~
    - ~~在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-a.hvml`，从输出结果看，`<span>$?.greeting$?.name</span>` 被置换后的结果不正确，丢掉了 `$?.name`；如果使用 `<span>{$?.greeting}{$?.name}</span>` 会报解析错误。~~
