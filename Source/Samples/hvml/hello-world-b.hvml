@@ -1,0 +1,47 @@
+<!-- Version 11 -->
+
+<hvml target="void" lang="$STR.substr($SYS.locale, 0, 2)">
+  <body>
+
+    <init as "myFriends">
+        [
+            { "id": 1, "avatar": "/img/avatars/1.png", "name": "Tom",
+                "region": "en_US", "age": 2 },
+            { "id": 2, "avatar": "/img/avatars/2.png", "name": "呼噜猫",
+                "region": "zh_CN", "age": 3 }
+        ]
+    </init>
+
+    <init as "greetings">
+        { "zh": "您好，", "en": "Hello, " }
+    </init>
+
+    <init as "countries">
+        { "CN": "中国", "US": "美国" }
+    </init>
+
+    <archedata name="friendLine">
+        "$?.greeting $?.name: you come from $?.country"
+    </archedata>
+
+    <init as "friendList" with [] />
+
+    <iterate on $myFriends>
+        <init as oneFriend with $? temp />
+        <update on $oneFriend to "merge" with { greeting: $greetings[$STR.substr($oneFriend.region, 0, 2)] } />
+        <update on $oneFriend to "merge" with { country: $countries[$STR.substr($oneFriend.region, 3, 2)] } />
+
+        <choose on $oneFriend>
+            <update on $friendList to "append" with $friendLine />
+        </choose>
+    </iterate>
+
+    <!-- output the friend list to stdout -->
+    $STREAM.stdout.writelines("My Friends:")
+    <iterate on $friendList >
+        $STREAM.stdout.writelines($?)
+    </iterate>
+
+  </body>
+</hvml>
+
