@@ -14,10 +14,7 @@
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY
-{
-}
- without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
@@ -197,6 +194,7 @@ purc_variant_t pcfetcher_local_request_async(
     }
 
     purc_variant_t req_id = purc_variant_make_string(url, false);
+    printf("URL: %s, variant: %p\n", url, req_id);
     handler(req_id, ctxt, &header, rws);
     if (header.mime_type) {
         free(header.mime_type);
