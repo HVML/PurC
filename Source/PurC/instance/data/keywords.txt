@@ -82,4 +82,5 @@ msg corState
 msg click
 msg close
 msg idle
+msg rdrState
 

@@ -52,6 +52,8 @@
 #define MSG_TYPE_SHRINK               "shrink"
 #define MSG_TYPE_CHANGE               "change"
 #define MSG_TYPE_CORSTATE             "corState"
+#define MSG_TYPE_DESTROY              "destroy"
+#define MSG_TYPE_RDR_STATE            "rdrState"
 
 
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"
@@ -62,6 +64,7 @@
 #define MSG_SUB_TYPE_DETACHED         "detached"
 #define MSG_SUB_TYPE_DISPLACED        "displaced"
 #define MSG_SUB_TYPE_EXITED           "exited"
+#define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
