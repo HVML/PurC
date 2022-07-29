@@ -176,7 +176,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
         val = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
     }
 
-    PC_ASSERT(val != PURC_VARIANT_INVALID);
+    //PC_ASSERT(val != PURC_VARIANT_INVALID);
     if (val == PURC_VARIANT_INVALID) {
         return -1;
     }
@@ -867,6 +867,7 @@ rerun_with(pcintr_stack_t stack)
         int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
         if (r) {
             // FIXME: let catch to effect afterward???
+            ctxt->stop = 1;
             return true;
         }
 
