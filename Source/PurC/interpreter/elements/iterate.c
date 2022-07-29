@@ -436,7 +436,10 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return NULL;
 }
 
 static int
@@ -834,7 +837,10 @@ on_popping(pcintr_stack_t stack, void* ud)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 static bool
@@ -992,7 +998,10 @@ rerun(pcintr_stack_t stack, void* ud)
 
         default:
             PC_ASSERT(0);
+            break;
     }
+
+    return false;
 }
 
 static void
