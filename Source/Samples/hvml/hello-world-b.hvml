@@ -39,7 +39,7 @@
     <!-- output the friend list to stdout -->
     $STREAM.stdout.writelines("My Friends:")
     <iterate on $friendList >
-        $STREAM.stdout.writelines($?)
+        $STREAM.stdout.writelines($0?)
     </iterate>
 
   </body>
