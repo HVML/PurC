@@ -738,6 +738,38 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         }
         RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
     }
+    if (character == '{' || character == '[' || character == '$') {
+        if(!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(node);
+            if (!parser->token) {
+                RETURN_AND_STOP_PARSE();
+            }
+            pchvml_token_set_is_whitespace(parser->token, true);
+            RETURN_AND_RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
+        }
+        RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
+    }
+    if (character == '\'' || character == '"') {
+        if(!IS_TEMP_BUFFER_EMPTY()) {
+            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+            if (!node) {
+                RETURN_AND_STOP_PARSE();
+            }
+            RESET_TEMP_BUFFER();
+            parser->token = pchvml_token_new_vcm(node);
+            if (!parser->token) {
+                RETURN_AND_STOP_PARSE();
+            }
+            pchvml_token_set_is_whitespace(parser->token, true);
+            RETURN_AND_RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
+        }
+        RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
+    }
     if ((parser->last_token_type == PCHVML_TOKEN_START_TAG
                 || parser->last_token_type == PCHVML_TOKEN_END_TAG)
             && !IS_TEMP_BUFFER_EMPTY()) {
