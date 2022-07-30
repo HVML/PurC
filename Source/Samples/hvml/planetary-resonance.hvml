@@ -56,7 +56,7 @@ svg {
             <circle id="sol" cx="250" cy="250" r="16" />
         </svg>
 
-        <archetype name="line">
+        <archetype name="line" type="svg">
             <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i , 50%, 50%, 0.5)" />
         </archetype>
 
@@ -89,10 +89,16 @@ svg {
                 <update on '#lineGroup' to 'append' with $line />
             </choose>
 
-            <update on $params at 'i' with += $params.earthDeg />
+            <update on $params at '.i' to 'displace' with += $params.earthDeg />
 
-            <test with $L.le($i, $MATH.eval('360 * earthOrbits + earthDeg', $params)) >
-                <update on $TIMES to subtract with { id: "rate" } />
+            <!-- inherit>
+                {{ $STREAM.stdout.writelines($STR.join("Params.i: ", $params.i));
+                    $STREAM.stdout.writelines($STR.join("Max: ", $MATH.eval('360 * earthOrbits + earthDeg', $params))
+                 }}
+            </inherit -->
+
+            <test with $L.ge($params.i, $MATH.eval('360 * earthOrbits + earthDeg', $params)) >
+                <update on $TIMES to "subtract" with { id: "rate" } />
             </test>
 
         </observe>
