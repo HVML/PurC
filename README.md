@@ -376,6 +376,15 @@ $ purc -p purcmc hvml/calculator-bc.hvml
 
 ![the Arbitrary Precision Calculator](Documents/screenshots/calculator-bc.png)
 
+Or run `hvml/planetary-resonance-lines.hvml`, which shows the Planetary Resonance:
+
+```bash
+$ purc -p purcmc hvml/planetary-resonance-lines.hvml
+```
+
+![the Planetary Resonance](Documents/screenshots/planetary-resonance.png)
+
+
 ### Options for `purc`
 
 You can see the all options supported by `purc` when you run `purc` with `-h` option:

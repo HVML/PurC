@@ -892,6 +892,10 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
     }
 
     const char *operation = rdr_ops[op];
+    if (property && op == PCDOC_OP_DISPLACE) {
+        // VW: use 'update' operation when displace property
+        operation = PCRDR_OPERATION_UPDATE;
+    }
 
     pcrdr_msg *response_msg = NULL;
 

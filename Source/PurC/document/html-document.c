@@ -434,7 +434,7 @@ static int set_attribute(purc_document_t doc,
     else if (op == PCDOC_OP_CLEAR) {
         return dom_set_element_attribute(dom_elem, name, "", 0);
     }
-    else if (op == PCDOC_OP_UPDATE) {
+    else if (op == PCDOC_OP_DISPLACE) {
         return dom_set_element_attribute(dom_elem, name,
                 val, len ? len : strlen(val));
     }

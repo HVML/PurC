@@ -462,7 +462,7 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
     int r;
     r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_UPDATE, at, s, sz);
+            PCDOC_OP_DISPLACE, at, s, sz);
     purc_variant_unref(v);
     return r ? -1 : 0;
 }
