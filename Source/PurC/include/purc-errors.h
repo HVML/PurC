@@ -394,6 +394,14 @@ PCA_EXPORT int
 purc_get_last_error(void);
 
 /**
+ * purc_get_last_error_ex:
+ *
+ * Returns: The extra information of the last error.
+ */
+PCA_EXPORT purc_variant_t
+purc_get_last_error_ex(void);
+
+/**
  * purc_set_error_exinfo_with_debug:
  *
  * Returns: PURC_ERROR_OK or PURC_ERROR_NO_INSTANCE.
