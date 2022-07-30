@@ -48,8 +48,9 @@ To learn the basic concepts about HVML programming, please refer to the followin
 For specifications and open source software related to HVML, please refer to the following repositories:
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
-- PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/purc>.
-- PurC Fetcher (the remote data fetcher for PurC): <https://github.com/HVML/purc-fetcher>.
+- PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
+- PurC Fetcher (the remote data fetcher for PurC): <https://github.com/HVML/PurC-Fetcher>.
+- xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
 - PurCMC (an HVML renderer in text-mode): <https://github.com/HVML/purc-midnight-commander>.
 
@@ -690,6 +691,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 4) `PurC` is a tradmark of [FMSoft Technologies] in China and other contries or regions.
 
 ![PurC](https://www.fmsoft.cn/application/files/5716/2813/0470/PurC256132.jpg)
+
+5) `xGUI` is a tradmark of [FMSoft Technologies] in China and other contries or regions.
+
+![xGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/7fbcb150d7d0747e702fd2d63f20017e.jpg)
 
 [Beijing FMSoft Technologies Co., Ltd.]: https://www.fmsoft.cn
 [FMSoft Technologies]: https://www.fmsoft.cn
