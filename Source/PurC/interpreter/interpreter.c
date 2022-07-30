@@ -1059,7 +1059,7 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
     }
 
     int r = pcdoc_element_set_attribute(stack->doc, frame->edom_element,
-            PCDOC_OP_DISPLACE, attr->key, sv, len);
+            PCDOC_OP_UPDATE, attr->key, sv, len);
     PC_ASSERT(r == 0);
     PURC_VARIANT_SAFE_CLEAR(val);
 
