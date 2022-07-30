@@ -1,5 +1,7 @@
 ## 2) Features Planned for V0.8
 
+## 2) Features Planned for V0.8
+
 ### 2.1) 变体
 
 （无）
@@ -7,9 +9,8 @@
 ### 2.2) 预定义变量
 
 1. 增加、调整或补充预定义变量的实现：
-   - `$CRTN` 上支持 `rdrState:closed` 事件：协程对应的渲染器页面被用户关闭。
-   - `$CRTN` 上支持 `rdrState:lost` 事件：协程所在行者丢失渲染器的连接。
-   - 将 `$STREAM` 调整为行者级变量。
+   - ~~`$CRTN` 上支持 `rdrState:pageClosed` 事件：协程对应的渲染器页面被用户关闭。~~
+   - ~~将 `$STREAM` 调整为行者级变量。~~
    - ~~`$CRTN`~~
    - ~~完善 `$MATH.eval` 和 `$MATH.eval_l` 对函数及常量的支持（见预定义变量规范）。~~
    - ~~`$SYSTEM` 更名为 `$SYS`~~
@@ -28,10 +29,9 @@
 
 ### 2.4) EJSON 表达式或 vDOM 解析器
 
-1. 字符串中的表达式求值置换，存在将不符合变量名（或键名）规格的字符识别为变量名（或键名）的情形，从而报错。如 `The cid: $CRTN.cid<`，应置换为 `The cid: 3<`。
-1. 在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。目前被当做字符串处理。见测试用例：`test/interpreter/comp/00-fibonacci-void-temp.hvml`
-1. `hvml` 元素内容应支持常规 EJSON 表达式或复合表达式。
-1. HVML 代码中的 `<li>$< Hello, world! --from COROUTINE-$CRTN.cid</li>` 外部元素的内容，最终添加到 eDOM 之后，被分成了三个文本节点，应该考虑优化处理为一个文本节点。见 `purc` 命令行的输出。
+1. ~~字符串中的表达式求值置换，存在将不符合变量名（或键名）规格的字符识别为变量名（或键名）的情形，从而报错。如 `The cid: $CRTN.cid<`，应置换为 `The cid: 3<`。~~
+1. ~~在动作元素中对 `on`、 `with`、 `onlyif` 和 `while` 属性，使用 `on 2L` 这种指定属性值的语法（不使用等号）时，应按照 EJSON 求值，不转字符串（`on 2L` 的结果应该为 longint 类型 2）。目前被当做字符串处理。见测试用例：`test/interpreter/comp/00-fibonacci-void-temp.hvml`~~
+1. ~~`hvml` 元素内容应支持常规 EJSON 表达式或复合表达式。~~
 1. ~~对井号注释的初步支持：忽略 HVML 文件中，在 `<DOCTYPE ` 或者 `<!-- ` 开始前，所有以 `#` 打头的行。~~
 1. ~~支持在框架元素中定义多个求值表达式或复合求值表达式；参阅 HVML 规范 2.3.4 小节。~~
 
@@ -87,6 +87,157 @@
    - API 描述
    - 自定义类型的名称规范化（仅针对结构指针添加 `_t` 后缀）
 1. 文档整理。
-1. 解决现有测试用例暴露出的缺陷：
-   - `test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串，结果不正常。如果删除 `$ARGS.pcid` 之后的空格，会报解析错误。
+1. 解决现有测试用例及示例程序暴露出的缺陷：
+   - ~~在构建目录下，使用 `purc` 运行 `hvml/hello-world-7.hvml`，程序终止。该程序使用了 `<init as ... from "file://{$SYS.cwd}/hvml/hello-world.json" />`。~~
+   - ~~在构建目录下，使用 `purc` 运行 `hvml/hello-world-8.hvml`，从输出结果看，`observe` 元素的内容被多次求值。应仅在执行 `observe` 时求值一次。~~
+   - ~~在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-9.hvml`，从输出结果看，`observe` 的内容（包括 `inherit` 元素）被错误地插入到了目标文档。~~
+   - ~~在构建目录下，使用 `purc -b` 运行 `hvml/hello-world-a.hvml`，从输出结果看，`<span>$?.greeting$?.name</span>` 被置换后的结果不正确，丢掉了 `$?.name`；如果使用 `<span>{$?.greeting}{$?.name}</span>` 会报解析错误。~~
+   - ~~在构建目录下，使用 `purc` 运行 `hvml/hello-world-b.hvml`，未得到预期的输出结果，应该是作为 `iterate` 内容的表达式未被求值。~~
+   - ~~若 HVML 代码的 hvml 关闭标签 `</hvml>` 被误写为 `<hvml>`，`purc_load_vdom_xxx()` 函数返回的 vDOM 为空，但错误信息为 Ok。~~
+   - ~~`test/interpreter/test_inherit_document.cpp` 中的 EJSON 字符串生成 VCM 树之后，使用自定义 `$ARGS` 对象替代其中的子字符串生成期望结果，但生成的字符串不正确。~~
+
+## 过往（202206）
+
+### 变体
+
+* ~~优化集合的 `overwrite` 等处理，在已经根据给定的唯一性键键值定位要更新的成员后，逐个更新该成员的其他字段，而不是先移除老的成员再构建一个新成员插入。~~
+
+### eDOM
+
+### 预定义变量
+
+* ~~实现 `$HVML.target` 获取器。~~
+
+### vDOM 解析器
+
+* ~~`body` 标签：一个 HVML 中，支持多个 `body` 标签。~~
+* vDOM 构建规则
+   1. ~~`match`、`differ` 元素必须作为 `test` 元素的直接子元素。~~
+
+### 解释器
+
+* 检查所有动作标签的实现，确保和规范要求一致：
+  1. ~~`except` 标签支持 `type` 属性。~~
+  1. ~~`init` 标签支持使用 `via` 属性值 `LOAD` 从外部模块中加载自定义变量：`from` 属性指定外部模块名，`for` 指定模块中的动态对象名。~~
+  1. ~~`init` 标签初始化集合时，支持 `casesensitively` 属性和 `caseinsensitively` 属性。~~
+  1. ~~`iterate` 标签支持外部类执行器。~~
+  1. ~~`observe` 标签支持 `against` 属性。~~
+  1. ~~`forget` 标签支持元素汇集。~~
+  1. ~~`fire` 标签支持元素汇集。~~
+  1. ~~`sort` 标签。~~
+  1. ~~`bind` 标签支持 `at` 属性~~
+  1. ~~`test` 标签支持 `by` 属性。~~
+  1. ~~`hvml` 标签支持 `target` 属性，其他属性原样放入目标文档的根节点。~~
+  1. ~~`reduce` 标签~~
+  1. ~~`include` 标签~~
+  1. ~~`catch` 标签：~~
+  1. ~~`back` 标签 `to` 属性的支持~~
+  1. ~~`erase` 标签~~
+  1. ~~`clear` 标签~~
+  1. ~~`choose` 标签~~
+  1. ~~`iterate` 标签~~
+  1. ~~`inherit` 标签~~
+  1. ~~`sleep` 标签：`for` 属性的支持~~
+* 延后处理：
+  1. `archetype` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `archedata` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `error` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `except` 标签：`src`、`param` 和 `method` 属性的支持
+  1. `init` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `define` 标签支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+  1. `update` 标签：
+     - `to` 属性支持 `prepend` 、`remove` 、`insertBefore` 、`insertAfter` 、`insertAfter` 、`intersect` 、`subtract` 、`xor` 、`call`
+     - `from` 支持 http 请求支持使用 `with` 参数定义请求参数，使用 `via` 属性定义请求方法
+     - `at` 属性支持 `content`。
+     - 支持同时修改多个数据项
+     - 支持 `individually` 副词
+  1. `request` 标签。
+
+## 过往（202205）
+
+### 预定义变量
+
+* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整已有的实现。主要涉及：
+   1. ~~`$SYSTEM`~~
+   1. ~~`$SESSION`~~
+   1. ~~`$HVML`~~
+      - `$HVML.target` 方法
+   1. ~~`$DATETIME`~~
+   1. ~~`$EJSON`~~
+   1. `$STREAM`
+      - ~~`file://` 的支持~~
+* 按照[预定义变量规范](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md)要求调整或增强预定义变量的实现。主要涉及：
+   1. `$URL`
+   1. `$FS`
+   1. `$FILE`
+   1. `$STR`
+
+### 解释器
+
+* 按照[HVML 规范 1.0 RC3](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#rc3-220501)中的描述调整已有实现，主要有：
+   1. ~~`init` 等调整 `at` 属性的使用。~~
+   1. `init` 标签 `via` 属性的支持。
+   1. ~~`observe` 和 `forget` 支持使用通配符和正则表达式指定待观察或待遗忘的事件名称。~~
+   1. ~~`observe` 支持使用 `with` 属性指定已命名的操作组。~~
+   1. `observe` 支持针对操作组定义 `$<` 上下文变量。
+
+* 按照[HVML 规范 1.0 RC2](https://gitlab.fmsoft.cn/hvml/hvml-docs/-/blob/master/zh/hvml-spec-v1.0-zh.md#rc2-220401)中的描述调整已有实现，主要有：
+   1. ~~局部命名变量可直接使用其名称来引用，相比静态变量，具有较高的名称查找优先级。~~
+   1. ~~增强 `iterate` 标签，支持不使用迭代执行器的情形。~~
+   1. ~~支持新增的 `against` 介词属性，不再使用 `via` 属性指定初始化集合时的唯一性键名。~~
+
+* ~~调整解析器，根据动作元素中是否包含有 `silently` 副词属性，为 `bool silently` 参数传递相应的实参。~~
+
+* 异常和错误的处理
+   1. ~~调整已有的接口或者动态对象方法的实现，静默求值时，对非致命错误（相当于产生可忽略异常；致命错误指内存分配失败等导致程序无法正常运行的错误），应返回一个表示错误状态的有效变体值，如 `false`、`null`、`undefined` 或者空字符串。~~
+   1. ~~按规范要求处理异常和错误。~~
+   1. ~~`catch` 标签。~~
+
+* 新标签支持
+   1. ~~`observe` 支持 `as` 属性命名一个观察者。~~
+   1. ~~`fire` 标签。~~
+   1. ~~`bind` 标签。~~
+   1. ~~`define` 和 `include` 标签。~~
+   1. `call` 和 `return` 标签。
+   1. `load` 和 `exit` 标签。
+   1. `request` 标签。
+   1. ~~`differ` 标签；`test` 元素二选一分支的支持（`with` 属性的支持）。~~
+   1. ~~`sleep` 标签。~~
+
+* ~~每个解释器实例拥有自己的 RunLoop 事件循环。~~
+
+### 解析器
+
+* ~~不再针对 `via` 属性在 HVML 解析器中做特殊处理，也就是说，`via` 的属性值始终按字符串处理。调整后，只有动作元素的 `on` 和 `with` 属性值才需要特殊处理。~~
+
+### eJSON 解析和求值
+
+* ~~支持 `$#myAnchor?` 这种使用锚定位上下文变量的写法。~~
+* ~~支持 CJSONEE（复杂 JSON 表达式）。~~
+* ~~eJSON 解析模块，可独立于 HVML 执行栈运行，可支持用户自定义的变量获取接口。~~
+* ~~在 eJSON 求值时，增加对可忽略异常的处理~~
+   1. ~~调整动态值以及原生实体的获取器及设置器原型，增加 `bool silently` 形参。~~
+
+### 变体
+
+* ~~增加从集合或集合中按照索引值获取成员的接口，以方便代码同时处理数组或集合。~~
+* ~~为方便监听变量的状态变化，增加一个新的变体类型：异常（exception）。~~
+* ~~调整变体数据结构使用上的一些细节：~~
+   1. ~~使用监听器链表头字段的别名 `reserved` 管理保留的变体封装结构，取代当前的循环缓冲区。~~
+   1. ~~针对原子字符串和异常，增加一个新的联合字段：`purc_atom_t atom`。~~
+   1. ~~仅保留一个监听器链表头结构：将前置监听器放到链表头，后置监听器放到链表尾；遍历时，使用监听器结构中的标志区别监听器类型。~~
+   1. ~~无需针对字符串常量及原子字符串统计额外的空间占用。~~
+   1. ~~在变体封装结构中增加一个额外字段，在其中为不同的变体类型提供保存额外信息的机制。对字符串类变体，用来保存字符串中的有效 Unicode 字符信息，用于实现 `purc_variant_string_chars()` 接口。~~
+* ~~集合一致性的增强：所有作为一致性约束添加到集合中的容器数据，需要做深度复制，将深度克隆后的数据添加到集合中，并在这些新的数据上设置前置监听器，以监听数据变化导致的集合一致性问题。~~
+
+### 数据获取器
+
+* ~~使用网络进程需要检测该进程是否存在（保活、重启）~~
+* ~~网络进程缓存、Cookie功能（代码已移植，需要进一步调试验证）~~
+* ~~可能的内存泄露？~~
+
+### 工程维护
+
+* ~~不要安装 gtest 以及测试用例到系统中~~。
+
 
