@@ -10,7 +10,7 @@
             ]
         </update>
 
-        <style>
+        <style hvml:raw>
 body {
   margin: 0;
   background: #000;
@@ -57,7 +57,7 @@ svg {
         </svg>
 
         <archetype name="line">
-            <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i, 50%, 50%, 0.5)" />
+            <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i , 50%, 50%, 0.5)" />
         </archetype>
 
         <init as params >
@@ -71,20 +71,23 @@ svg {
         </init>
 
         <observe on $TIMERS for "expired:rate" >
-            <update on #earth at "attr.transform" with $STR.join("rotate(", $params.i, ' ' + $params.centre, ' ', $params.centre, ')') />
-            <update on #venus at "attr.transform" with $STR.join("rotate(", $MATH.div($i, $params.resonance), ' ', $params.centre, ' ', $params.centre, ')') />
+
+            <update on '#earth' at "attr.transform" with $STR.join('rotate(', $params.i, ' ', $params.centre, ' ', $params.centre, ')') />
+            <update on '#venus' at "attr.transform" with $STR.join('rotate(', $MATH.div($params.i, $params.resonance), ' ', $params.centre, ' ', $params.centre, ')') />
 
             <init as result temp>
                 {
                     i: $params.i,
-                    earthX: $MATH.eval("cos(i*pi()/180) * earthDist + centre", $params),
-                    earthY: $MATH.eval("sin((i*pi()/180)) * earthDist + centre", $params),
-                    venusX: $MATH.eval("cos((i/(earthOrbits/13))*pi()/180) * venusDist + centre", $params),
-                    venusY: $MATH.eval("sin((i/(earthOrbits/13))*pi()/180) * venusDist + centre", $params),
+                    earthX: $MATH.eval("cos(i*PI/180) * earthDist + centre", $params),
+                    earthY: $MATH.eval("sin(i*PI/180) * earthDist + centre", $params),
+                    venusX: $MATH.eval("cos((i/(earthOrbits/13))*PI/180) * venusDist + centre", $params),
+                    venusY: $MATH.eval("sin((i/(earthOrbits/13))*PI/180) * venusDist + centre", $params),
                 }
-
-                <update on '#lineGroup' to 'append' with $line />
             </init>
+
+            <choose on $result>
+                <update on '#lineGroup' to 'append' with $line />
+            </choose>
 
             <update on $params at 'i' with += $params.earthDeg />
 
