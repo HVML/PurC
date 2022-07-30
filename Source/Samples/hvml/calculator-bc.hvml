@@ -1,4 +1,4 @@
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
     <head>
         <!-- Required meta tags -->
@@ -96,7 +96,7 @@
             <div class="border border-3 pt-3">
                 <iterate on=0 onlyif=$L.lt($0<,4) with=$MATH.add($0<,1) nosetotail>
                     <div class="row mb-3">
-                        <iterate on="$buttons" by="RANGE: FROM  $MATH.mul($MATH.sub($2?, 1), 5) TO $MATH.sub($MATH.mul($2?, 5), 1)">
+                        <iterate on="$buttons" by="RANGE: FROM $MATH.mul($2?, 5) TO $MATH.add($MATH.mul($2?, 5), 5)">
                             <update on="$@" to="append" with="$button" />
                         </iterate>
                     </div>
@@ -180,6 +180,10 @@
                 </ul>
             </footer>
         </div>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
 
     </body>
 

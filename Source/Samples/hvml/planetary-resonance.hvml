@@ -94,6 +94,10 @@ svg {
 
         </observe>
 
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+
     </body>
 
 </hvml>

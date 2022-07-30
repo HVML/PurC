@@ -604,15 +604,14 @@ The source tree of PurC contains the following modules:
 - `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
 - `Source/Samples/api`: Samples for using the API of PurC.
-- `Source/Samples/hvml`: Samples HVML programs.
+- `Source/Samples/hvml`: HVML sample programs.
 - `Source/Tools/`: The tools (executables), i.e., the command line programs.
 - `Source/Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
 - `Documents/`: Some documents for developers.
 
 Note that the HTML parser and DOM operations of PurC are derived from:
 
- - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under
-   the Apache License, Version 2.0.
+ - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under the Apache License, Version 2.0.
 
 ### Running test programs
 
@@ -639,7 +638,7 @@ For the coding style, please refer to [Coding Convention](Documents/CODING_CONVE
 - XUE Shuming: A key developer, the maintainer of most modules and PurC Fetcher.
 - XU Xiaohong: A key commiter, who implemented the container variants and most features of HVML interperter.
 - LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
-- GENG Yue: A commiter, who implemented some built-in dynamic variant objets.
+- GENG Yue: A commiter, who implemented some built-in dynamic variant objects.
 
 ## Copying
 

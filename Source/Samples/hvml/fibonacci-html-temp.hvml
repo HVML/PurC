@@ -32,7 +32,7 @@
 
         <p>Totally $count numbers</p>
 
-        <observe on $CRTN for "rdrState:closed">
+        <observe on $CRTN for "rdrState:pageClosed">
             <exit with [$count, $last_two] />
         </observe>
 
