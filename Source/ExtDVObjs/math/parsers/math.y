@@ -352,8 +352,8 @@ term:
 | VAR         { SET_BY_VAR($$, $1); }
 | pre_defined { $$ = $1; }
 | voi_func '(' ')' { EVAL_BY_VOI_FUNC($$, $1); }
-| uni_func '(' term ')' { EVAL_BY_UNI_FUNC($$, $1, $3); }
-| bin_func '(' term ',' term ')' { EVAL_BY_BIN_FUNC($$, $1, $3, $5); }
+| uni_func '(' exp ')' { EVAL_BY_UNI_FUNC($$, $1, $3); }
+| bin_func '(' exp ',' exp ')' { EVAL_BY_BIN_FUNC($$, $1, $3, $5); }
 | '(' exp ')' { $$ = $2; }
 ;
 
