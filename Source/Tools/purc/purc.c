@@ -929,6 +929,11 @@ schedule_coroutines_for_runner(struct my_opts *opts,
                 fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
                         url, (unsigned)i,
                         purc_get_error_message(purc_get_last_error()));
+
+                purc_variant_t err;
+                if ((err = purc_get_last_error_ex())) {
+                    fprintf(stderr, "%s\n", purc_variant_get_string_const(err));
+                }
             }
             continue;
         }
@@ -1155,9 +1160,15 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             nr_executed++;
         }
         else {
-            if (opts->verbose)
+            if (opts->verbose) {
                 fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
                         purc_get_error_message(purc_get_last_error()));
+
+                purc_variant_t err;
+                if ((err = purc_get_last_error_ex())) {
+                    fprintf(stderr, "%s\n", purc_variant_get_string_const(err));
+                }
+            }
         }
     }
 
