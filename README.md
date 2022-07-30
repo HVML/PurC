@@ -8,63 +8,44 @@
 
 - [Introduction](#introduction)
 - [Building PurC](#building-purc)
-   + [Prerequistes](#prerequistes)
-   + [Building steps](#building-steps)
 - [Using `purc`](#using-purc)
-   + [Run a single HVML program](#run-a-single-hvml-program)
-   + [Run multiple HVML programs in parallel](#run-multiple-hvml-programs-in-parallel)
-   + [Use HVML renderer](#use-hvml-renderer)
-   + [Options for `purc`](#options-for-purc)
-   + [Run an HVML app in mutiple runners](#run-an-hvml-app-in-mutiple-runners)
-   + [More HVML samples](#more-hvml-samples)
 - [Hacking PurC](#hacking-purc)
-   + [Current Status](#current-status)
-   + [Source Tree of PurC](#source-tree-of-purc)
-   + [Running test programs](#running-test-programs)
-   + [TODO List](#todo-list)
-   + [Other documents](#other-documents)
 - [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
-   + [PurC](#purc)
-   + [ExtDVObjs/fs](#extdvobjsfs)
 - [Tradmarks](#tradmarks)
 
 [//]:# (END OF TOC)
 
 ## Introduction
 
-`HVML` is a new-style, general-purpose programming language proposed by
-[Vincent Wei], who is the author of the earliest open source software in
-China - [MiniGUI].
+`HVML` is a new-style and general-purpose programming language proposed by [Vincent Wei],
+    who is the author of the China-first open source project - [MiniGUI].
 
-`PurC` is the acronym of `the Prime HVML inteRpreter for C language`. It is also
-the abbreviation of `Purring Cat`, while `Purring Cat` is the nickname
-and the mascot of HVML.
+`PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
+It is also the abbreviation of `Purring Cat`,
+   while `Purring Cat` is the nickname and the mascot of HVML.
 
 The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
-and all predefined dynamic variables defined by [HVML Predefined Variables V1.0]
-in C language.
+and all predefined dynamic variables defined by [HVML Predefined Variables V1.0] in C language.
 
-For more information about HVML, please refer to the article:
+You can use PurC to run an HVML program or an HVML app by using the command line tool `purc`,
+    or use PurC as a library to build your own HVML interpreter.
+
+We release PurC under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
+
+By now, PurC provides support for Linux and macOS.
+The support for Windows is on the way.
+We welcome anyone to port PurC to other platforms.
+
+For more information about HVML, please refer to the article (10% complete):
 
 - [HVML, a Programable Markup Language](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
 
-To learn the basic concepts and methods of HVML programming, please refer to
-the following simple tutorial:
+To learn the basic concepts about HVML programming, please refer to the following tutorial (80% complete):
 
 - [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
 
-You can use PurC to run an HVML program or an HVML app by using the command line
-tool `purc`, or use PurC as a library to build your own HVML interpreter.
-
-We release PurC under LGPLv3, so it is free for commercial use if you follow
-the conditions and terms of LGPLv3.
-
-By now, PurC provides support for Linux and macOS. The support for Windows is
-on the way. We welcome anyone to port PurC to other platforms.
-
-For specifications and open source software related to HVML, please refer to the
-following repositories:
+For specifications and open source software related to HVML, please refer to the following repositories:
 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/purc>.
@@ -76,33 +57,29 @@ following repositories:
 
 ### Prerequistes
 
-To build PurC, make sure that the following tools or libraries are available
-on your Linux or macOS system:
+To build PurC, make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. cmake
 1. GCC 8.0 or later.
 1. glib 2.44.0 or later.
 
-Althrough the port for Windows is still on the way, it is possible to build
-PurC on Windows 10 version 2004 or later: you can install WSL (Windows Subsystem for Linux)
-and a Linux distribution, e.g., Ubuntu, on your Windows system, then build PurC
-in Ubuntu environment.
+Althrough the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
+You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
+    then build PurC in Ubuntu environment.
 
 ### Building steps
 
 We assume that you are using Linux.
 
 After fetch the source of PurC, you can change to the root of the source treen,
-and use the fillowing command line to build and install PurC:
+      and use the fillowing command line to build and install PurC:
 
 ```
-$ rm -rf build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build build && sudo cmake --install build
+$ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build build && sudo cmake --install build
 ```
 
 The above command line consists of the following commands:
 
-1. `rm -rf build`: Remove the old `build/` subdirectory if there is one.
-Please make sure that you are really in the root the source tree of PurC.
 1. `cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build`: Change to the `build/`
 subdirectory and run `cmake` to generate the building files to build PurC.
 Note that this command uses the following options:
@@ -126,9 +103,8 @@ $ make -j4
 $ sudo make install
 ```
 
-By default, the above commands will build PurC and install the headers,
-libraries, executables, and some documents to your system (under `/usr/local/`
-directory if you are using Linux system).
+By default, the above commands will build PurC and install the headers, libraries, executables,
+   and some documents to your system (under `/usr/local/` directory if you are using Linux system).
 
 ## Using `purc`
 
@@ -198,9 +174,8 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 </hvml>
 ```
 
-Assume you named the enhanced version as `hello-10.hvml`, we can run
-the two program as two coroutines in parallel by specifying the command line
-flag `-l`:
+Assume you named the enhanced version as `hello-10.hvml`,
+       we can run the two program as two coroutines in parallel by specifying the command line flag `-l`:
 
 ```bash
 $ purc -l hello-10.hvml hello-10.hvml
@@ -231,13 +206,10 @@ You will see the following output on your terminal:
 9) Hello, world! -- from COROUTINE-4
 ```
 
-In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine
-identifier allocated by PurC for two running instances of the program.
-You see that PurC schedules the running instances to execute alternately, i.e.,
-in the manner of coroutines.
+In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine identifier allocated by PurC for two running instances of the program.
+You see that PurC schedules the running instances to execute alternately, i.e., in the manner of coroutines.
 
-If you do not use the flag `-l` in the command line, `purc` will run the programs
-one by one:
+If you do not use the flag `-l` in the command line, `purc` will run the programs one by one:
 
 ```
 $ purc hello-10.hvml hello-10.hvml
@@ -263,34 +235,31 @@ $ purc hello-10.hvml hello-10.hvml
 9) Hello, world! -- from COROUTINE-4
 ```
 
-### Use HVML renderer
+### Connecting to HVML renderer
 
-One of important differences between HVML and other programming languages
-is that HVML can generate documents described in markup languages like HTML,
-not just output data to a file or your terminal.
+One of important differences between HVML and other programming languages is that HVML can generate documents described in markup languages like HTML,
+    not just output data to a file or your terminal.
 
-For your convenience, we have prepared some HVML samples in the directory
-`Source/Samples/hvml` of this repository. After building PurC, the samples
-will be copied to the building root directory, under `hvml/` subdirectroy,
-so that you can change to the building root directory and use `purc` to run
-the samples. For example:
+For your convenience, we have prepared some HVML samples in the directory `Source/Samples/hvml` of this repository.
+After building PurC, the samples will be copied to the building root directory, under `hvml/` subdirectroy,
+      so that you can change to the building root directory and use `purc` to run the samples.
+For example:
 
 ```bash
-$ cd <path/to/the/building/root/>
+$ cd <path/to/the/building/directory/>
 $ purc hvml/fibonacci-void-temp.hvml
 ```
 
-This HVML program will output 18 Fibonacci numbers less than 2000. There is
-also another version of this program: `hvml/fibonacci-html-temp.hvml`.
+This HVML program will output 18 Fibonacci numbers less than 2000.
+There is also another version of this program: `hvml/fibonacci-html-temp.hvml`.
 It will generate a HTML document listing the Fibonacci numbers.
 
-If you run `hvml/fibonacci-html-temp.hvml` program by using `purc` without
-any option, `purc` will use the renderer called `HEADLESS`. This renderer
-will record the messages sent by PurC to the renderer to a local file, it is
-`/dev/null` by default on Linux. Because this HVML program
-did not use `$STREM.stdout` any more, you will see nothing on your terminal.
-But you can use the option `--verbose` (or the short option `-b`) to show the
-HTML contents generated by the HVML program in your terminal:
+If you run `hvml/fibonacci-html-temp.hvml` program by using `purc` without any option,
+   `purc` will use the renderer called `HEADLESS`.
+This renderer will record the messages sent by PurC to the renderer to a local file,
+     it is `/dev/null` by default on Linux.
+Because this HVML program did not use `$STREM.stdout` any more, you will see nothing on your terminal.
+But you can use the option `--verbose` (or the short option `-b`) to show the HTML contents generated by the HVML program in your terminal:
 
 ```bash
 $ purc -b hvml/fibonacci-html-temp.hvml
@@ -352,11 +321,11 @@ Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/fibonacci-ht
 You can also direct `purc` to connect to a real renderer, for example, `xGUI Pro`.
 It is an advanced HVML renderer based on WebKit.
 
-Assume that you have installed xGUI Pro on your system (please refer to
-<https://github.com/HVML/xgui-pro> for detailed instructions to install xGUI Pro),
-you can run `purc` to show the ultimate HTML contents in a window of xGUI Pro.
+Assume that you have installed xGUI Pro on your system,
+       you can run `purc` to show the ultimate HTML contents in a window of xGUI Pro.
+Please refer to <https://github.com/HVML/xgui-pro> for detailed instructions to install xGUI Pro.
 
-Assume that you have started xGUI Pro from another terminal and run `purc` with the following options:
+Assume that you have started xGUI Pro from another terminal, then please run `purc` with the following options:
 
 ```bash
 $ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
@@ -366,13 +335,14 @@ You will see that the contents in a window of xGUI Pro created by `hvml/fibonacc
 
 ![fibonacci-html-temp](Documents/screenshots/fibonacci-html-temp.png)
 
-For a complete HVML program which gives a better experience, you can try to run
-another sample called `hvml/calculator-bc.hvml`, which implements
-an arbitrary precision calculator:
+For a complete HVML program which gives a better experience,
+    you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
 
 ```bash
 $ purc -p purcmc hvml/calculator-bc.hvml
 ```
+
+Here is the screenshot of `hvml/calculator-bc.hvml`:
 
 ![the Arbitrary Precision Calculator](Documents/screenshots/calculator-bc.png)
 
@@ -381,6 +351,8 @@ Or run `hvml/planetary-resonance-lines.hvml`, which shows the Planetary Resonanc
 ```bash
 $ purc -p purcmc hvml/planetary-resonance-lines.hvml
 ```
+
+Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
 
 ![the Planetary Resonance](Documents/screenshots/planetary-resonance.png)
 
@@ -446,9 +418,13 @@ The following options can be supplied to the command:
 
 ### Run an HVML app in mutiple runners
 
-PurC supports to run an app in multiple runners. For this purpose, you should
-prepare a JSON file or an eJSON file which defines the app, the runners, and
-the initial HVML programs to run as coroutines in different runners.
+PurC supports to run an app in multiple runners.
+Here one `runner` is one thread in the `purc` process.
+
+For this purpose, you can prepare a JSON file or an eJSON file which defines the app, the runners,
+    and the initial HVML programs to run as coroutines in different runners.
+
+The following is a sample:
 
 ```json
 {
@@ -491,17 +467,15 @@ the initial HVML programs to run as coroutines in different runners.
 }
 ```
 
-Assume that you prepare all HVML programs and save the above JSON as
-`cn.fmsoft.hvml.sample.json`, you can run `purc` in the following way:
+Assume that you prepare all HVML programs and save the above JSON as `cn.fmsoft.hvml.sample.json`,
+       you can run `purc` in the following way:
 
 ```bash
 $ purc cn.fmsoft.hvml.sample.json
 ```
 
-Note that, when running an app in this way, you can access the command line
-options in the eJSON file through the variable `$OPTS` prepared by `purc` when
-parsing the eJSON file.
-
+Note that, when running an app in this way,
+     you can use the command line options in the eJSON file through the variable `$OPTS` prepared by `purc` when parsing the eJSON file.
 This gives a typical application of parameterized eJSON introduced by PurC.
 
 For example, we can specified the command line options:
@@ -510,7 +484,7 @@ For example, we can specified the command line options:
 $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
 ```
 
-We can access the option specified by `--app` in `my_app.ejson`:
+Then use the option specified by `--app` in `my_app.ejson`:
 
 ```json
 {
@@ -533,30 +507,29 @@ We can access the option specified by `--app` in `my_app.ejson`:
 }
 ```
 
-All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by
-`cn.fmsoft.hvml.sample`.
+All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by `cn.fmsoft.hvml.sample`.
 
 ### More HVML samples
 
-You can find more HVML sample programs in respository
-[HVML Documents](https://github.com/HVML/hvml-docs), under the directory `samples/`.
+You can find more HVML sample programs in respository [HVML Documents](https://github.com/HVML/hvml-docs),
+    under the directory `samples/`.
 
 You can use `purc` to run a sample resided in the remote HVML Documents repository directly:
 
 ```bash
-$ purc https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
+$ purc --data-fetcher=remote https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
 If the firewall refused to connect to the URL, use the following URL:
 
 ```bash
-$ purc https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
+$ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
-When `purc` try to load a HVML program from the remote URL, it will enable
-the remote data fetcher by default. Please refer to
-[PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions
-to build and install PurC Fetcher to your system.
+Note that when `purc` try to load a HVML program from a remote URL,
+     it will use the remote data fetcher by default.
+Therefore, you must install PurC Fetcher in advance.
+Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions to build and install PurC Fetcher to your system.
 
 ## Hacking PurC
 
@@ -564,9 +537,18 @@ to build and install PurC Fetcher to your system.
 
 This project was launched in June. 2021. This is the version 0.8.0 of PurC.
 
-After one year development, the current version implements almost all features
-defined by [HVML Specifiction V1.0], and also implements almost
-all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+The main purpose of PurC is providing a library for you to write your own HVML interpreter.
+After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
+      and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+
+Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
+
+1. PurC provides the APIs for variant management, here variant is way of HVML program to manage data.
+1. PurC provides the APIs for parsing JSON and extended JSON.
+1. PurC provides the APIs for parsing and evaluting a parameterized eJSON expression.
+1. PurC provides the APIs for parsing a HTML document.
+
+You can use these groups of APIs independently according to your needs.
 
 We welcome anybody to take part in the development and contribute your effort!
 
@@ -614,9 +596,6 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 
  - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under the Apache License, Version 2.0.
 
-### Running test programs
-
-
 ### TODO List
 
 1. HVML 1.0 Features not implemented yet.
@@ -637,7 +616,7 @@ For the coding style, please refer to [Coding Convention](Documents/CODING_CONVE
 
 - Vincent Wei: The architect.
 - XUE Shuming: A key developer, the maintainer of most modules and PurC Fetcher.
-- XU Xiaohong: A key commiter, who implemented the container variants and most features of HVML interperter.
+- XU Xiaohong: A key developer, who implemented the most features of variant and most features of HVML interperter.
 - LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
 - GENG Yue: A commiter, who implemented some built-in dynamic variant objects.
 
@@ -693,9 +672,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-### Others
-
 
 ## Tradmarks
 
