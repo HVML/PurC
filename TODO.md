@@ -75,9 +75,14 @@
 
 ### 1.7) Others
 
-1. Clean up all unnecessary calls of `PC_ASSERT`.
-1. Raise exceptions if encounter errors when executing elements instead of aborting the process.
 1. Tune `PC_ASSERT` to suppress any code when building for release.
+1. Clean up all unnecessary calls of `PC_ASSERT`.
 1. Normalize the typedef names.
+1. Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
+    We should only use this pattern when defining macros or just creating a temp. variable scope, this coding pattern seriously reduces code readability.
 1. Tune API description.
 
+### 1.8) Known Bugs:
+
+1. When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.
+1. Raise exceptions if encounter errors when executing elements instead of aborting the process. For example, when the fetcher failed for the given URL.
