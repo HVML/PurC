@@ -72,7 +72,7 @@ You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g.
 
 We assume that you are using Linux.
 
-After fetch the source of PurC, you can change to the root of the source treen,
+After fetched the source of PurC, you can change to the root of the source treen,
       and use the fillowing command line to build and install PurC:
 
 ```
