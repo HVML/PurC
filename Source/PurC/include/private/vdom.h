@@ -74,8 +74,6 @@ typedef enum pchvml_tag_id   pcvdom_tag_id;
 struct pcvdom_attr;
 
 struct pcintr_stack;
-typedef struct pcintr_stack pcintr_stack;
-typedef struct pcintr_stack *pcintr_stack_t;
 
 static inline struct pcvdom_node *
 pcvdom_doc_cast_to_node(struct pcvdom_document *doc)
@@ -266,8 +264,8 @@ int pcvdom_element_traverse(struct pcvdom_element *elem, void *ctx,
     doc; })
 
 purc_variant_t
-pcvdom_element_eval_attr_val(pcintr_stack_t stack, pcvdom_element_t element,
-        const char *key);
+pcvdom_element_eval_attr_val(struct pcintr_stack* stack,
+        pcvdom_element_t element, const char *key);
 
 struct pcvdom_pos {
     uint32_t        c;

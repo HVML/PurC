@@ -142,11 +142,11 @@ post_process_dest_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         switch (ops.type) {
             case PCEXEC_TYPE_INTERNAL:
-                v = do_internal(&ops.internal_ops, rule, on, with);
+                v = do_internal(ops.internal_ops, rule, on, with);
                 break;
 
             case PCEXEC_TYPE_EXTERNAL_FUNC:
-                v = do_external_func(&ops.external_func_ops, rule,
+                v = do_external_func(ops.external_func_ops, rule,
                         on, with);
                 break;
 

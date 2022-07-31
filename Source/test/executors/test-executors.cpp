@@ -341,7 +341,7 @@ process_rule_output_with_choose(struct config *cfg, const char *fn,
 {
     const char *src_file = pcutils_basename((char*)__FILE__);
 
-    purc_exec_ops ops;
+    purc_exec_ops_t ops;
     bool ok;
     ok = purc_get_executor(name, &ops);
 
@@ -355,7 +355,7 @@ process_rule_output_with_choose(struct config *cfg, const char *fn,
     }
 
     purc_exec_inst_t inst;
-    inst = ops.create(PURC_EXEC_TYPE_CHOOSE, ctx->v_input, true);
+    inst = ops->create(PURC_EXEC_TYPE_CHOOSE, ctx->v_input, true);
     if (!inst) {
         std::cerr << src_file << "[" << __LINE__ << "]:"
             << "Failed to create choose instance for:"
@@ -364,9 +364,9 @@ process_rule_output_with_choose(struct config *cfg, const char *fn,
         return;
     }
 
-    process_rule_output_do_choose(cfg, fn, ctx, &ops, inst);
+    process_rule_output_do_choose(cfg, fn, ctx, ops, inst);
 
-    ops.destroy(inst);
+    ops->destroy(inst);
 }
 
 static void

@@ -1401,6 +1401,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
 {
     const uint8_t *bytes = NULL;
     size_t nr_bytes = 0;
+    purc_rwstream_t rws = NULL;
     purc_variant_t retv = purc_variant_make_array(0, PURC_VARIANT_INVALID);
     purc_variant_t item = PURC_VARIANT_INVALID;
 
@@ -1409,7 +1410,7 @@ purc_dvobj_read_struct(purc_rwstream_t stream,
         goto fatal;
     }
 
-    purc_rwstream_t rws = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+    rws = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
             LEN_MAX_SERIALIZE_BUF);
     if (rws == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

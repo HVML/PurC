@@ -334,7 +334,7 @@ exe_class_it_destroy(pcexec_class_iter_t it)
     it_destroy(it);
 }
 
-static struct pcexec_class_ops const exe_class_ops = {
+static struct pcexec_class_ops exe_class_ops = {
     exe_class_it_begin,
     exe_class_it_value,
     exe_class_it_next,
@@ -343,7 +343,7 @@ static struct pcexec_class_ops const exe_class_ops = {
 
 static struct pcexec_ops ops = {
     .type                    = PCEXEC_TYPE_EXTERNAL_CLASS,
-    .external_class_ops      = exe_class_ops,
+    .external_class_ops      = &exe_class_ops,
 };
 
 int pcexec_exe_class_register(void)

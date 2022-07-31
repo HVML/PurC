@@ -35,18 +35,17 @@
 
 #include <limits.h>
 #include <unistd.h>
-#include <sys/vfs.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/types.h>
-#include <sys/sysmacros.h>
+#include <sys/vfs.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
 #include <pwd.h>
+#include <mntent.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <mntent.h>
 
 #if USE(GLIB)
 #include <glib.h>

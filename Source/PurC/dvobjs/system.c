@@ -872,8 +872,8 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(silently);
 
-    uint64_t ul_sec;
-    long     l_nsec;
+    uint64_t ul_sec = 0;
+    long     l_nsec = 0;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);

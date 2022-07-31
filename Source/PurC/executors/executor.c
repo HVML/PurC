@@ -273,11 +273,11 @@ failure:
     return -1;
 }
 
-bool purc_register_executor(const char* name, purc_exec_ops_t ops)
+bool purc_register_executor(const char* name, const purc_exec_ops_t ops)
 {
     pcexec_ops record = {
         .type         = PCEXEC_TYPE_INTERNAL,
-        .internal_ops = *ops,
+        .internal_ops = ops,
         .atom         = PCHVML_KEYWORD_ATOM(HVML, name),
     };
 
@@ -326,7 +326,7 @@ get_executor(const char* name, pcexec_ops_t ops)
     return true;
 }
 
-bool purc_get_executor(const char* name, purc_exec_ops_t ops)
+bool purc_get_executor(const char* name, purc_exec_ops_t *ops)
 {
     pcexec_ops record = {};
 

@@ -471,7 +471,8 @@ pcdoc_serialize_descendants_to_stream(purc_document_t doc,
         pcdoc_element_t ancestor, unsigned opts, purc_rwstream_t out)
 {
     if (doc->ops->serialize) {
-        pcdoc_node node = { PCDOC_NODE_ELEMENT };
+        pcdoc_node node = { };
+        node.type = PCDOC_NODE_ELEMENT;
         node.elem = ancestor;
         return doc->ops->serialize(doc, node, opts, out);
     }
@@ -484,7 +485,7 @@ purc_document_serialize_contents_to_stream(purc_document_t doc,
         unsigned opts, purc_rwstream_t out)
 {
     if (doc->ops->serialize) {
-        pcdoc_node node;
+        pcdoc_node node = { };
         node.type = PCDOC_NODE_OTHERS;
         node.others = doc->impl;
         return doc->ops->serialize(doc, node, opts, out);

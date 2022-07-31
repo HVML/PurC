@@ -311,7 +311,7 @@ exe_func_sorter(const char *rule,
     return v;
 }
 
-static struct pcexec_func_ops const exe_func_ops = {
+static struct pcexec_func_ops exe_func_ops = {
     exe_func_chooser,
     exe_func_iterator,
     exe_func_reducer,
@@ -320,7 +320,7 @@ static struct pcexec_func_ops const exe_func_ops = {
 
 static struct pcexec_ops ops = {
     .type                    = PCEXEC_TYPE_EXTERNAL_FUNC,
-    .external_func_ops       = exe_func_ops,
+    .external_func_ops       = &exe_func_ops,
 };
 
 int pcexec_exe_func_register(void)

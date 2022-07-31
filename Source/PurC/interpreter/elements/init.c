@@ -433,13 +433,13 @@ _bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             return -1;
 
         if (under_head) {
-            uint64_t level = 0;
+            // uint64_t level = 0;
             struct pcvdom_node *node = NULL;
             if (frame) {
                 node = &frame->pos->node;
                 while (node && node != &co->stack.vdom->node) {
                     node = pcvdom_node_parent(node);
-                    level += 1;
+                    // level += 1;
                 }
                 if (node == NULL) {
                     purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,

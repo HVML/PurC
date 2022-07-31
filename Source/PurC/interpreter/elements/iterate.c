@@ -74,7 +74,7 @@ ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
     if (ctxt) {
         if (ctxt->exec_inst) {
             PC_ASSERT(ctxt->ops.type == PCEXEC_TYPE_INTERNAL);
-            bool ok = ctxt->ops.internal_ops.destroy(ctxt->exec_inst);
+            bool ok = ctxt->ops.internal_ops->destroy(ctxt->exec_inst);
             PC_ASSERT(ok);
             ctxt->exec_inst = NULL;
         }
@@ -263,7 +263,7 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
         purc_variant_t on, purc_variant_t with)
 {
     PC_DEBUGX("rule: %s", rule);
-    purc_exec_ops_t ops = &ctxt->ops.internal_ops;
+    purc_exec_ops_t ops = ctxt->ops.internal_ops;
 
     PC_ASSERT(ops->create);
     PC_ASSERT(ops->it_begin);
@@ -311,7 +311,7 @@ post_process_by_external_class(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
         purc_variant_t on, purc_variant_t with)
 {
-    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+    pcexec_class_ops_t ops = ctxt->ops.external_class_ops;
 
     PC_ASSERT(ops->it_begin);
     PC_ASSERT(ops->it_next);
@@ -348,7 +348,7 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
 {
     UNUSED_PARAM(frame);
 
-    pcexec_func_ops_t ops = &ctxt->ops.external_func_ops;
+    pcexec_func_ops_t ops = ctxt->ops.external_func_ops;
     purc_variant_t v = ops->iterator(rule, on, with);
     if (v == PURC_VARIANT_INVALID) {
         if (purc_get_last_error())
@@ -755,7 +755,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
     if (!rule)
         return true;
 
-    purc_exec_ops_t ops = &ctxt->ops.internal_ops;
+    purc_exec_ops_t ops = ctxt->ops.internal_ops;
 
     it = ops->it_next(exec_inst, it, rule);
 
@@ -778,7 +778,7 @@ on_popping_external_class(struct ctxt_for_iterate *ctxt)
     if (!it)
         return true;
 
-    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+    pcexec_class_ops_t ops = ctxt->ops.external_class_ops;
 
     it = ops->it_next(it);
 
@@ -907,7 +907,7 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
     purc_exec_iter_t it = ctxt->it;
     PC_ASSERT(it);
 
-    purc_exec_ops_t ops = &ctxt->ops.internal_ops;
+    purc_exec_ops_t ops = ctxt->ops.internal_ops;
 
     purc_variant_t value;
     value = ops->it_value(exec_inst, it);
@@ -931,7 +931,7 @@ rerun_external_class(struct ctxt_for_iterate *ctxt,
     pcexec_class_iter_t it = ctxt->it_class;
     PC_ASSERT(it);
 
-    pcexec_class_ops_t ops = &ctxt->ops.external_class_ops;
+    pcexec_class_ops_t ops = ctxt->ops.external_class_ops;
 
     purc_variant_t value;
     value = ops->it_value(it);

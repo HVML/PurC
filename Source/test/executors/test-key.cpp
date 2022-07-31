@@ -62,7 +62,7 @@ static inline bool
 parse_ex(const char *rule, purc_variant_t input,
     char *err_msg, size_t sz_err_msg)
 {
-    purc_exec_ops ops;
+    purc_exec_ops_t ops;
     bool ok = purc_get_executor("KEY", &ops);
     if (!ok) {
         snprintf(err_msg, sz_err_msg,
@@ -72,7 +72,7 @@ parse_ex(const char *rule, purc_variant_t input,
 
     pcexecutor_set_debug(debug_flex, debug_bison);
 
-    purc_exec_inst_t inst = ops.create(PURC_EXEC_TYPE_CHOOSE,
+    purc_exec_inst_t inst = ops->create(PURC_EXEC_TYPE_CHOOSE,
             input, true);
 
     if (!inst) {
@@ -83,7 +83,7 @@ parse_ex(const char *rule, purc_variant_t input,
 
     ok = true;
 
-    purc_variant_t v = ops.choose(inst, rule);
+    purc_variant_t v = ops->choose(inst, rule);
     if (v == PURC_VARIANT_INVALID) {
         if (inst->err_msg) {
             snprintf(err_msg, sz_err_msg, "%s", inst->err_msg);
@@ -93,7 +93,7 @@ parse_ex(const char *rule, purc_variant_t input,
         purc_variant_unref(v);
     }
 
-    ops.destroy(inst);
+    ops->destroy(inst);
 
     return ok;
 }

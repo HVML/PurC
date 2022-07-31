@@ -74,8 +74,6 @@ struct purc_dvobj_method {
 };
 
 struct pcintr_coroutine;
-typedef struct pcintr_coroutine pcintr_coroutine;
-typedef struct pcintr_coroutine *pcintr_coroutine_t;
 
 PCA_EXTERN_C_BEGIN
 
@@ -106,7 +104,7 @@ purc_dvobj_datetime_new(void);
 
 /** Make a dynamic variant object for built-in `$CRTN` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_coroutine_new(pcintr_coroutine_t cor);
+purc_dvobj_coroutine_new(struct pcintr_coroutine* cor);
 
 /** Make a dynamic variant object for built-in `$DOC` variable. */
 PCA_EXPORT purc_variant_t

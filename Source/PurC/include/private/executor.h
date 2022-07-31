@@ -86,9 +86,9 @@ typedef struct pcexec_ops  *pcexec_ops_t;
 struct pcexec_ops {
     enum pcexec_type               type;
     union {
-        purc_exec_ops              internal_ops;
-        pcexec_func_ops            external_func_ops;
-        pcexec_class_ops           external_class_ops;
+        purc_exec_ops              *internal_ops;
+        pcexec_func_ops            *external_func_ops;
+        pcexec_class_ops           *external_class_ops;
     };
     purc_atom_t                    atom;
 };

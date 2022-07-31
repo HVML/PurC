@@ -377,13 +377,13 @@ static void create_instance(struct instmgr_info *mgr_info,
 
     purc_variant_t tmp;
 
-    const char *app_name;
+    const char *app_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "appName");
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
-    const char *runner_name;
+    const char *runner_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "runnerName");
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);
@@ -491,13 +491,13 @@ static void cancel_instance(struct instmgr_info *info,
 
     purc_variant_t tmp;
 
-    const char *app_name;
+    const char *app_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "appName");
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
-    const char *runner_name;
+    const char *runner_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "runnerName");
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);
@@ -560,13 +560,13 @@ static void kill_instance(struct instmgr_info *info,
 
     purc_variant_t tmp;
 
-    const char *app_name;
+    const char *app_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "appName");
     if (tmp) {
         app_name = purc_variant_get_string_const(tmp);
     }
 
-    const char *runner_name;
+    const char *runner_name = NULL;
     tmp = purc_variant_object_get_by_ckey(request->data, "runnerName");
     if (tmp) {
         runner_name = purc_variant_get_string_const(tmp);

@@ -278,6 +278,7 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
     struct pcvdom_doctype  *doctype;
     size_t nr_hvml;
     const char *hvml;
+    purc_variant_t as_var = PURC_VARIANT_INVALID;
 
     struct pcvdom_attr *as_attr = pcvdom_element_get_attr_c(element,
             ATTR_NAME_AS);
@@ -286,7 +287,7 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         goto out;
     }
 
-    purc_variant_t as_var = pcintr_eval_vdom_attr(stack, as_attr);
+    as_var = pcintr_eval_vdom_attr(stack, as_attr);
     if (!as_var) {
         PC_WARN("eval vdom attr %s failed\n", ATTR_NAME_AS);
         goto out;

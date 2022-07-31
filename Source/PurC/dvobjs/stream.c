@@ -790,7 +790,7 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     }
 
     const char *status;
-    int value, wstatus;
+    int value = 0, wstatus;
     int ret = waitpid(stream->cpid, &wstatus, WNOHANG);
 
     if (ret == 0) {
@@ -991,7 +991,7 @@ on_observe(void *native_entity, const char *event_name,
         return false;
     }
 
-    purc_runloop_io_event event;
+    purc_runloop_io_event event = PCRUNLOOP_IO_IN;
     if (strcmp(event_subname, STREAM_SUB_EVENT_READ) == 0) {
         event = PCRUNLOOP_IO_IN;
     }
@@ -1393,6 +1393,8 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     int pipefd_stdout[2];
     pid_t cpid;
 
+
+#if OS(LINUX)
     if (pipe2(pipefd_stdin, (flags & O_NONBLOCK) ? O_NONBLOCK : 0) == -1) {
          purc_set_error(purc_error_from_errno(errno));
          return NULL;
@@ -1408,6 +1410,23 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
          purc_set_error(purc_error_from_errno(errno));
          return NULL;
     }
+#else
+    if (pipe(pipefd_stdin) == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         return NULL;
+    }
+
+    if (pipe(pipefd_stdout)) {
+         purc_set_error(purc_error_from_errno(errno));
+         return NULL;
+    }
+
+    cpid = fork();
+    if (cpid == -1) {
+         purc_set_error(purc_error_from_errno(errno));
+         return NULL;
+    }
+#endif
 
     if (cpid == 0) {    /* Child reads from pipe */
         /* redirect the pipefd_stdin[0] as the stdin */

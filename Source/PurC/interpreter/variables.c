@@ -182,6 +182,8 @@ bool
 pcintr_bind_builtin_runner_variables(void)
 {
     bool ret = false;
+    purc_variant_t runner = PURC_VARIANT_INVALID;
+
     // $SYS
     purc_variant_t sys = purc_dvobj_system_new();
     if (!purc_bind_runner_variable(BUILTIN_VAR_SYS, sys)) {
@@ -190,7 +192,7 @@ pcintr_bind_builtin_runner_variables(void)
     purc_variant_unref(sys);
 
     // $RUNNER
-    purc_variant_t runner = purc_dvobj_runner_new();
+    runner = purc_dvobj_runner_new();
     if (!purc_bind_runner_variable(BUILTIN_VAR_RUNNER, runner)) {
         goto out;
     }
@@ -241,6 +243,7 @@ pcintr_bind_builtin_runner_variables(void)
     purc_variant_unref(dt);
 
     ret = add_runner_myobj_listener(runner);
+
 out:
     if (runner) {
         purc_variant_unref(runner);

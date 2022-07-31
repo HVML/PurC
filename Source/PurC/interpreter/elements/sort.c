@@ -61,8 +61,6 @@ struct ctxt_for_sort {
     void                         *symbol;
 };
 
-typedef void(array_list_free_fn)(void *data);
-
 static void
 sort_key_free_fn(void *data)
 {
@@ -697,14 +695,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
         switch (ops.type) {
             case PCEXEC_TYPE_INTERNAL:
-                result = do_internal(&ops.internal_ops, rule, on, with);
+                result = do_internal(ops.internal_ops, rule, on, with);
                 if (result == PURC_VARIANT_INVALID)
                     return ctxt;
 
                 break;
 
             case PCEXEC_TYPE_EXTERNAL_FUNC:
-                do_external_func(frame, &ops.external_func_ops, rule,
+                do_external_func(frame, ops.external_func_ops, rule,
                         on, with, against,
                         !ctxt->ascendingly,
                         !ctxt->casesensitively);

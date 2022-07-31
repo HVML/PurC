@@ -1,10 +1,11 @@
+include(PurCCommon)
+
 set(FS_LIBRARY_TYPE SHARED)
 
 set(FS_PUBLIC_HEADERS
 )
 
 set(FS_SOURCES
-    fs.c
     file.c
 )
 
@@ -25,6 +26,7 @@ link_directories (${CMAKE_BINARY_DIR}/Source/PurC)
 list(APPEND FS_LIBRARIES PurC::PurC)
 
 PURC_FRAMEWORK_DECLARE(FS)
+PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 
 set_target_properties(FS PROPERTIES OUTPUT_NAME "purc-dvobj-FS")
 set_target_properties(FS PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")

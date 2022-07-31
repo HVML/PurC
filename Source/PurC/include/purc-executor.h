@@ -88,10 +88,10 @@ typedef struct purc_iterator_ops* purc_iterator_ops_t;
 // typedef purc_iterator_ops_t (*iterator_instantiate)(void);
 
 /** Register a built-in executor */
-bool purc_register_executor(const char* name, purc_exec_ops_t ops);
+bool purc_register_executor(const char* name, const purc_exec_ops_t ops);
 
 /** Retrieve the operation set of a built-in executor */
-bool purc_get_executor(const char* name, purc_exec_ops_t ops);
+bool purc_get_executor(const char* name, purc_exec_ops_t* ops);
 
 PCA_EXTERN_C_END
 
