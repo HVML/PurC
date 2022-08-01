@@ -23,6 +23,8 @@ set(sample_HVML_FILES
     "hvml/hello-world-9.hvml"
     "hvml/hello-world-a.hvml"
     "hvml/hello-world-b.hvml"
+    "hvml/hello-world-c.hvml"
+    "hvml/hello-world-c-bad.hvml"
     "hvml/hello-world.json"
     "hvml/fibonacci-void-temp.hvml"
     "hvml/fibonacci-html-temp.hvml"

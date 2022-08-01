@@ -1,0 +1,9 @@
+<!-- Versoin 12 -->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+        $STREAM.stdout.writelines($STR.join($0<, ')', '你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 #', $CRTN.cid))
+    </iterate>
+</hvml>
+

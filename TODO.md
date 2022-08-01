@@ -87,7 +87,8 @@
 
 1. _The content of an `iterate` element may be evaluated twice._
 1. _The samples with bad result:_
-   - `hvml/greatest-common-divisor.hvml`
+   - `hvml/greatest-common-divisor.hvml`: Adjust the evaluating logic of CJSONSEE.
+   - `hvml/hello-world-c-bad.hvml`: `$0<) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid"; expected: `0) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid`; but got `0`.
 1. _Improve eJSON parser to support the following patterns_
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
