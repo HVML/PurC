@@ -50,9 +50,9 @@ For specifications and open source software related to HVML, please refer to the
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
 - PurC Fetcher (the remote data fetcher for PurC): <https://github.com/HVML/PurC-Fetcher>.
-- xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
-- xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xgui-pro>.
-- PurCMC (an HVML renderer in text-mode): <https://github.com/HVML/purc-midnight-commander>.
+- DOM Ruler (A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS): <https://github.com/HVML/DOM-Ruler>.
+- xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
+- PurC Midnight Commander (an HVML renderer in text-mode): <https://github.com/HVML/PurC-Midnight-Commander>.
 
 ## Building PurC
 
