@@ -1,6 +1,4 @@
-#!/usr/bin/purc
-
-# RESULT: 'success'
+<!-- Load String HVML -->
 
 <hvml target="void">
 
@@ -27,4 +25,3 @@
     </observe>
 
 </hvml>
-

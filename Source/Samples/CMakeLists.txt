@@ -34,6 +34,8 @@ set(sample_HVML_FILES
     "hvml/greatest-common-divisor.hvml"
     "hvml/execute-in-place-void.hvml"
     "hvml/execute-in-place-html.hvml"
+    "hvml/load-string-hvml.hvml"
+    "hvml/load-another-body.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

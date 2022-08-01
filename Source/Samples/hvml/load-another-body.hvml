@@ -1,0 +1,20 @@
+# RESULT: 'failure'
+
+<!-- Load Another Body -->
+<hvml target="void">
+    <body>
+
+        <load from "#errorPage" onto "_null">
+            <exit with $? />
+        </load>
+
+    </body>
+
+    <body id="errorPage">
+
+        <p>We encountered a fatal error!</p>
+        <exit with "failure" />
+
+    </body>
+</hvml>
+
