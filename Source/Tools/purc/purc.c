@@ -1097,10 +1097,15 @@ static bool run_app(struct my_opts *opts)
     return nr_live_coroutines > 0;
 }
 
-struct crtn_info {
+#define RUNR_INFO_NAME    "runr-data"
+
+struct runr_info {
     struct my_opts *opts;
-    const char *url;
     struct run_info *run_info;
+};
+
+struct crtn_info {
+    const char *url;
 };
 
 static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
@@ -1108,11 +1113,19 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 {
     if (event == PURC_COND_COR_EXITED) {
         struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
-        if (!crtn_info) {
-            return -1;
+        if (crtn_info) {
+            fprintf(stdout, "\nThe main coroutine exited.\n");
+        }
+        else {
+            fprintf(stdout, "\nA child coroutine exited.\n");
         }
 
-        if (crtn_info->opts->verbose) {
+        struct runr_info *runr_info = NULL;
+        purc_get_local_data(RUNR_INFO_NAME,
+                (uintptr_t *)(void *)&runr_info, NULL);
+        assert(runr_info);
+
+        if (runr_info->opts->verbose) {
             struct purc_cor_exit_info *exit_info = data;
 
             unsigned opt = 0;
@@ -1120,15 +1133,15 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
 
-            fprintf(stdout, "\n>> The document generated:\n");
+            fprintf(stdout, ">> The document generated:\n");
             purc_document_serialize_contents_to_stream(exit_info->doc,
-                    opt, crtn_info->run_info->dump_stm);
+                    opt, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
 
-            fprintf(stdout, "\n>> The executed result: \n");
+            fprintf(stdout, ">> The executed result: \n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
-                        crtn_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
+                        runr_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
             }
             else {
                 fprintf(stdout, "<INVALID VALUE>");
@@ -1144,6 +1157,10 @@ static bool
 run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 {
     size_t nr_executed = 0;
+
+    struct runr_info runr_info = { opts, &run_info };
+    purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
+
     for (size_t i = 0; i < opts->urls->length; i++) {
         const char *url = opts->urls->list[i];
         purc_vdom_t vdom = load_hvml(url);
@@ -1151,10 +1168,10 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             if (opts->verbose)
                 fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
 
-            struct crtn_info info = { opts, url, &run_info };
+            struct crtn_info crtn_info = { url };
             purc_schedule_vdom(vdom, 0, request,
                     PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
-                    NULL, opts->body_ids->list[i], &info);
+                    NULL, opts->body_ids->list[i], &crtn_info);
             purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;
@@ -1172,6 +1189,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         }
     }
 
+    purc_remove_local_data(RUNR_INFO_NAME);
     return nr_executed > 0;
 }
 
