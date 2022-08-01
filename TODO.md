@@ -85,6 +85,8 @@
 ### 1.8) Known Bugs:
 
 1. _The content of an `iterate` element may be evaluated twice._
+1. _The samples with bad result:_
+   - `hvml/greatest-common-divisor.hvml`
 1. _Improve eJSON parser to support the following patterns_
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
