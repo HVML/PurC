@@ -609,6 +609,22 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
 PCA_EXPORT purc_variant_t
 purc_coroutine_get_variable(purc_coroutine_t cor, const char *name);
 
+/**
+ * purc_coroutine_dump_stack:
+ *
+ * @cor: The pointer to a coroutine structure which representing a coroutine.
+ * @stm: The stream to dump the stack frames.
+ *
+ * Dumps all stack frames (from bottommost to topmost) of
+ * the specified coroutine to a stream.
+ *
+ * Returns: 0 for success, -1 for failure.
+ *
+ * Since 0.8.1
+ */
+PCA_EXPORT int
+purc_coroutine_dump_stack(purc_coroutine_t cor, purc_rwstream_t stm);
+
 struct purc_cor_run_info {
     unsigned long   run_idx;
     purc_variant_t  result;
