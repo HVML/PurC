@@ -45,6 +45,7 @@
 ### 1.5) Interpreter
 
 1. _Support for `rdrState:connLost` event on `$CRTN`._
+1. _Implement new APIs: `purc_coroutine_dump_stack`._
 1. _Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`._
 1. _Support for use of an element's identifier as the value of the `at` attribute in an `init` element._
 1. _Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable._
@@ -54,7 +55,7 @@
 1. Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. Review the implementation of all elements.
 1. Improve the implementation of the element `update`:
-   - The value of the attribute `to` can be `prepend`, `remove`, `insertBefore`,  `insertAfter`, `intersect`, `subtract`, and `xor`.
+   - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
    - The support for the attribute `type` of the element `archetype`.
@@ -82,7 +83,7 @@
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
 1. Tune API description.
 
-### 1.8) Known Bugs:
+### 1.8) Known Bugs
 
 1. _The content of an `iterate` element may be evaluated twice._
 1. _The samples with bad result:_
