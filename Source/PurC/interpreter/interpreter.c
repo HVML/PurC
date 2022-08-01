@@ -2512,7 +2512,8 @@ pcintr_template_make(void)
         return PURC_VARIANT_INVALID;
     }
 
-    PC_ASSERT(0 == check_template_variant(v));
+    int r = check_template_variant(v);
+    PC_ASSERT(0 == r);
     return v;
 }
 
@@ -3135,7 +3136,8 @@ pcintr_match_template(purc_variant_t templates,
             }
         }
 
-        PC_ASSERT(0 == check_template_variant(v));
+        int r = check_template_variant(v);
+        PC_ASSERT(0 == r);
 
         PURC_VARIANT_SAFE_CLEAR(*content);
         *content = purc_variant_ref(v);

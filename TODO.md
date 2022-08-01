@@ -75,7 +75,7 @@
 
 ### 1.7) Others
 
-1. _Tune `PC_ASSERT` to suppress any code when building for release._
+1. ~~Tune `PC_ASSERT` to suppress any code when building for release.~~
 1. Clean up all unnecessary calls of `PC_ASSERT`.
 1. Normalize the typedef names.
 1. Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
