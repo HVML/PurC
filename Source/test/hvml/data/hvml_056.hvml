@@ -1,0 +1,3 @@
+<hvml target="html">
+    $STREAM.stdout.writelines("returns $small for $small and $big")
+</hvml>
