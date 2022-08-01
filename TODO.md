@@ -48,7 +48,7 @@
 1. _Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`._
 1. _Support for use of an element's identifier as the value of the `at` attribute in an `init` element._
 1. _Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable._
-1. Implement the `request` tag (only inter-coroutine request, using `$CRTN.native_crtn`).
+1. _Implement the `request` tag (only inter-coroutine request)._
 1. Provide support for channel, which can act as an inter-coroutine communication mechanism.
 1. Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
