@@ -29,6 +29,7 @@ set(sample_HVML_FILES
     "hvml/calculator-bc.hvml"
     "hvml/planetary-resonance-lines.hvml"
     "hvml/planetary-resonance.hvml"
+    "hvml/greatest-common-divisor.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
