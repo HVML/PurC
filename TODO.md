@@ -22,7 +22,7 @@
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
-1. __Support for prefix for foreign tag name.__
+1. _Support for prefix for foreign tag name._
 1. Optimize the content evalution of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
 1. Support for tuples.
 
@@ -44,10 +44,10 @@
 
 ### 1.5) Interpreter
 
-1. __Support for `rdrState:connLost` event on `$CRTN`.__
-1. __Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.__
-1. __Support for use of an element's identifier as the value of the `at` attribute in an `init` element.__
-1. __Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.__
+1. _Support for `rdrState:connLost` event on `$CRTN`._
+1. _Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`._
+1. _Support for use of an element's identifier as the value of the `at` attribute in an `init` element._
+1. _Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable._
 1. Implement the `request` tag (only inter-coroutine request, using `$CRTN.native_crtn`).
 1. Provide support for channel, which can act as an inter-coroutine communication mechanism.
 1. Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
@@ -75,7 +75,7 @@
 
 ### 1.7) Others
 
-1. __Tune `PC_ASSERT` to suppress any code when building for release.__
+1. _Tune `PC_ASSERT` to suppress any code when building for release._
 1. Clean up all unnecessary calls of `PC_ASSERT`.
 1. Normalize the typedef names.
 1. Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
@@ -84,14 +84,14 @@
 
 ### 1.8) Known Bugs:
 
-1. __The content of an `iterate` element may be evaluated twice.__
-1. __Improve eJSON parser to support the following patterns__
+1. _The content of an `iterate` element may be evaluated twice._
+1. _Improve eJSON parser to support the following patterns_
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
    - `{$?.greating}{$?.name}`: `Hello, Tom`
    - `$?.greating<any CHAR not a valid variable token character>`: `Hello<any CHAR not a valid variable token character>`
    - `${output_$CRTN.target}`: `$output_html` or `$output_void`; the evaluated result in `{ }` should be a string and a valid variable token.
 1. Raise exceptions if encounter errors when executing elements instead of aborting the process:
-   - __When the fetcher failed to load a resource of a given URL.__
+   - _When the fetcher failed to load a resource of a given URL._
 1. When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.
 
