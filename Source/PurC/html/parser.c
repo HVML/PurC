@@ -625,8 +625,12 @@ buffer_writer(const char *data, size_t nr, int oom, void *ctxt)
         }
     }
 
-    strncpy(bd->buf + bd->pos, data, nr);
+    // XXX: warning on gcc 9.4.0 : output truncated before terminating nul
+    // copying as many bytes from a string as its length
+    // strncpy(bd->buf + bd->pos, data, nr);
+    memcpy(bd->buf + bd->pos, data, nr);
     bd->pos += nr;
+    bd->buf[bd->pos] = 0;
 
     return 0;
 }
