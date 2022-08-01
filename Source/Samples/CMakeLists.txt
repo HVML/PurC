@@ -30,6 +30,8 @@ set(sample_HVML_FILES
     "hvml/planetary-resonance-lines.hvml"
     "hvml/planetary-resonance.hvml"
     "hvml/greatest-common-divisor.hvml"
+    "hvml/execute-in-place-void.hvml"
+    "hvml/execute-in-place-html.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
