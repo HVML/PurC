@@ -173,7 +173,9 @@ re_eval_with(struct pcintr_stack_frame *frame,
         val = pcintr_eval_vdom_attr(stack, with);
     }
     else {
-        val = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+        /* no with attr, hande as undefined : stop */
+        *stop = true;
+        return 0;
     }
 
     //PC_ASSERT(val != PURC_VARIANT_INVALID);
@@ -647,8 +649,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-
     /* before the first iteration, set attr 'in' to $0@ */
     purc_variant_t in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
@@ -689,6 +689,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ret;
     }
 
+    /* first eval content */
     pcintr_calc_and_set_caret_symbol(stack, frame);
     return ret;
 }
@@ -873,9 +874,6 @@ rerun_with(pcintr_stack_t stack)
         }
     }
 
-    /* in each iteration, evaluate content and set as $0^ */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-
     if (ctxt->on == PURC_VARIANT_INVALID) {
         bool stop;
         int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
@@ -894,6 +892,9 @@ rerun_with(pcintr_stack_t stack)
     /* in each iteration, set $0< to $0? */
     purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
     pcintr_set_question_var(frame, v);
+
+    /* in each iteration, evaluate content and set as $0^ */
+    pcintr_calc_and_set_caret_symbol(stack, frame);
     return true;
 }
 
@@ -920,6 +921,7 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
         pcintr_set_input_var(stack, value);
     }
 
+    /* in each iteration, evaluate content and set as $0^ */
     pcintr_calc_and_set_caret_symbol(stack, frame);
     return r ? false : true;
 }
