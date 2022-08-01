@@ -50,9 +50,8 @@ extern "C" {
 
 #define PC_ASSERT(cond)                                 \
     do {                                                \
-        if (!(cond)) {                                  \
-            purc_log_error("PurC assertion failed.\n"); \
-            abort();                                    \
+        if (0 && !(cond)) {                             \
+            /* do nothing */                            \
         }                                               \
     } while (0)
 

@@ -322,7 +322,8 @@ again:
 
     if (curr == NULL) {
         purc_clr_error();
-        PC_ASSERT(0 == on_child_finished(co, frame));
+        int r = on_child_finished(co, frame);
+        PC_ASSERT(0 == r);
         return NULL;
     }
 
