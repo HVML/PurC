@@ -1544,6 +1544,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
             goto failed;
         }
 
+next_op:
         op_node = NEXT_CHILD(curr_node);
         if (op_node == NULL) {
             break;
@@ -1571,7 +1572,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
                     goto failed;
                 }
                 if (!purc_variant_booleanize(curr_val)) {
-                    goto out;
+                    goto next_op;
                 }
             }
             break;
@@ -1583,7 +1584,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
                     goto failed;
                 }
                 if (purc_variant_booleanize(curr_val)) {
-                    goto out;
+                    goto next_op;
                 }
             }
             break;
