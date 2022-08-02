@@ -993,7 +993,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 }
 
 #define MY_VRT_OPTS \
-    (PCVARIANT_SERIALIZE_OPT_SPACED | PCVARIANT_SERIALIZE_OPT_PRETTY | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
+    (PCVARIANT_SERIALIZE_OPT_SPACED | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
 
 static int app_cond_handler(purc_cond_t event, void *arg, void *data)
 {
@@ -1112,20 +1112,20 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *data)
 {
     if (event == PURC_COND_COR_EXITED) {
-        struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
-        if (crtn_info) {
-            fprintf(stdout, "\nThe main coroutine exited.\n");
-        }
-        else {
-            fprintf(stdout, "\nA child coroutine exited.\n");
-        }
-
         struct runr_info *runr_info = NULL;
         purc_get_local_data(RUNR_INFO_NAME,
                 (uintptr_t *)(void *)&runr_info, NULL);
         assert(runr_info);
 
         if (runr_info->opts->verbose) {
+            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+            if (crtn_info) {
+                fprintf(stdout, "\nThe main coroutine exited.\n");
+            }
+            else {
+                fprintf(stdout, "\nA child coroutine exited.\n");
+            }
+
             struct purc_cor_exit_info *exit_info = data;
 
             unsigned opt = 0;
