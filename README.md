@@ -609,9 +609,11 @@ For detailed TODO list, please see [TODO List](TODO.md).
 
 ### Other documents
 
+For the release notes, please refer to [Release Notes](RELEASE-NOTES.md).
+
 For the community conduct, please refer to [Code of Conduct](Documents/CODE_OF_CONDUCT.md).
 
-For the coding style, please refer to [Coding Convention](Documents/CODING_CONVENTION.md).
+For the coding convention, please refer to [Coding Convention](Documents/CODING_CONVENTION.md).
 
 ## Authors and Contributors
 
