@@ -81,10 +81,10 @@ $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build
 
 The above command line consists of the following commands:
 
-1. `cmake -DCMAKE_BUILD_TYPE=Debug -DPORT=Linux -B build`: Change to the `build/`
+1. `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build`: Change to the `build/`
 subdirectory and run `cmake` to generate the building files to build PurC.
 Note that this command uses the following options:
-   - `-DCMAKE_BUILD_TYPE=Debug`: Specify the building type is `RelWithDebInfo`.
+   - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`: Specify the building type is `RelWithDebInfo`.
    You can also use `Debug`, `Release` and other options supported by `cmake`.
    - `-DPORT=Linux`: Tell `cmake` you are building PurC for an operating system
    based on Linux kernel. Use `-DPORT=Mac` if you are using macOS.
@@ -207,7 +207,7 @@ You will see the following output on your terminal:
 9) Hello, world! -- from COROUTINE-4
 ```
 
-In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine identifier allocated by PurC for two running instances of the program.
+In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine identifier assigned by PurC for two running instances of the program.
 You see that PurC schedules the running instances to execute alternately, i.e., in the manner of coroutines.
 
 If you do not use the flag `-l` in the command line, `purc` will run the programs one by one:
@@ -324,7 +324,7 @@ It is an advanced HVML renderer based on WebKit.
 
 Assume that you have installed xGUI Pro on your system,
        you can run `purc` to show the ultimate HTML contents in a window of xGUI Pro.
-Please refer to <https://github.com/HVML/xgui-pro> for detailed instructions to install xGUI Pro.
+Please refer to <https://github.com/HVML/xGUI-Pro> for detailed instructions to install xGUI Pro.
 
 Assume that you have started xGUI Pro from another terminal, then please run `purc` with the following options:
 
@@ -334,7 +334,7 @@ $ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp.hvml`:
 
-![fibonacci-html-temp](Documents/screenshots/fibonacci-html-temp.png)
+![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
 For a complete HVML program which gives a better experience,
     you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
@@ -345,7 +345,7 @@ $ purc -p purcmc hvml/calculator-bc.hvml
 
 Here is the screenshot of `hvml/calculator-bc.hvml`:
 
-![the Arbitrary Precision Calculator](Documents/screenshots/calculator-bc.png)
+![the Arbitrary Precision Calculator](https://files.fmsoft.cn/hvml/screenshots/calculator-bc.png)
 
 Or run `hvml/planetary-resonance-lines.hvml`, which shows the Planetary Resonance:
 
@@ -355,7 +355,7 @@ $ purc -p purcmc hvml/planetary-resonance-lines.hvml
 
 Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
 
-![the Planetary Resonance](Documents/screenshots/planetary-resonance.png)
+![the Planetary Resonance](https://files.fmsoft.cn/screenshots/planetary-resonance.png)
 
 
 ### Options for `purc`
