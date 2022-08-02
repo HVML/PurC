@@ -44,7 +44,7 @@
 
 ### 1.5) Interpreter
 
-1. _Support for `rdrState:connLost` event on `$CRTN`._
+1. ~~Support for `rdrState:connLost` event on `$CRTN`.~~
 1. _Implement new APIs: `purc_coroutine_dump_stack`._
 1. _Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`._
 1. _Support for use of an element's identifier as the value of the `at` attribute in an `init` element._
@@ -97,6 +97,6 @@
    - `$?.greating<any CHAR not a valid variable token character>`: `Hello<any CHAR not a valid variable token character>`
    - `${output_$CRTN.target}`: `$output_html` or `$output_void`; the evaluated result in `{ }` should be a string and a valid variable token.
 1. Raise exceptions if encounter errors when executing elements instead of aborting the process:
-   - _When the fetcher failed to load a resource of a given URL._
-1. When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.
+   - ~~When the fetcher failed to load a resource of a given URL.~~
+1. ~~When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.~~
 
