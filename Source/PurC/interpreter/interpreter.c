@@ -2192,17 +2192,9 @@ on_load_async_done(
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
-    PC_ASSERT(request_id != PURC_VARIANT_INVALID);
-    PC_ASSERT(ctxt);
     struct load_async_data *data;
     data = (struct load_async_data*)ctxt;
-    PC_ASSERT(data);
-    PC_ASSERT(data->request_id == request_id);
-    PC_ASSERT(data->handler);
-    PC_ASSERT(data->requesting_thread == pthread_self());
-
     data->handler(request_id, data->ctxt, resp_header, resp);
-
     destroy_load_async_data(data);
 }
 

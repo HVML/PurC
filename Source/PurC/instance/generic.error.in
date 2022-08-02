@@ -229,3 +229,7 @@ Unknown
     flags: None
     msg: "Unknown"
 
+RequestFailed
+    except: RequestFailed
+    flags: None
+    msg: "RequestFailed"
