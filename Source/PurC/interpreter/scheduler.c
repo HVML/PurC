@@ -49,8 +49,7 @@
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
 static void
-broadcast_crtn_event(struct pcinst *inst, const char *msg_type,
-        const char *msg_sub_type)
+broadcast_idle_event(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     struct rb_root *coroutines = &heap->coroutines;
@@ -65,17 +64,43 @@ broadcast_crtn_event(struct pcinst *inst, const char *msg_type,
                     BUILTIN_VAR_CRTN);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                    hvml, msg_type, msg_sub_type,
+                    hvml, MSG_TYPE_IDLE, NULL,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         }
     }
 }
 
 static void
-broadcast_idle_event(struct pcinst *inst)
+handle_rdr_conn_lost(struct pcinst *inst)
 {
-    broadcast_crtn_event(inst, MSG_TYPE_IDLE, NULL);
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct rb_root *coroutines = &heap->coroutines;
+    struct rb_node *p, *n;
+    struct rb_node *first = pcutils_rbtree_first(coroutines);
+    pcutils_rbtree_for_each_safe(first, p, n) {
+        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
+                node);
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                BUILTIN_VAR_CRTN);
+
+        stack->co->target_workspace_handle = 0;
+        stack->co->target_page_handle = 0;
+        stack->co->target_dom_handle = 0;
+
+        // broadcast rdrState:connLost;
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    }
+
+    // FIXME:
+    // pcrdr_disconnect(inst->conn_to_rdr);
+    pcrdr_free_connection(inst->conn_to_rdr);
+    inst->conn_to_rdr = NULL;
 }
+
 
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
@@ -321,13 +346,9 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
 
         int err = purc_get_last_error();
         if (err == PCRDR_ERROR_IO || err == PCRDR_ERROR_PEER_CLOSED) {
-            //broadcast rdrState:connLost;
-            broadcast_crtn_event(inst, MSG_TYPE_RDR_STATE,
-                    MSG_SUB_TYPE_CONN_LOST);
+            handle_rdr_conn_lost(inst);
         }
-        else if (err == PCRDR_ERROR_TIMEOUT) {
-            purc_set_error(last_err);
-        }
+        purc_set_error(last_err);
 
         if (last_err) {
             purc_set_error(last_err);
