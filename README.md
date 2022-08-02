@@ -99,7 +99,7 @@ $ cd <path/to/the/root/of/the/source/tree/of/PurC>
 $ rm -rf build/
 $ mkdir build/
 $ cd build/
-$ cmake -DCMAKE_BUILD_TYPE=Release -DPORT=Linux
+$ cmake -DCMAKE_BUILD_TYPE=Release -DPORT=Linux ..
 $ make -j4
 $ sudo make install
 ```
