@@ -36,6 +36,7 @@ set(sample_HVML_FILES
     "hvml/execute-in-place-html.hvml"
     "hvml/load-string-hvml.hvml"
     "hvml/load-another-body.hvml"
+    "hvml/call-concurrently.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

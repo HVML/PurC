@@ -10,7 +10,7 @@
         <return with $? />
     </define>
 
-    <call on $aTimeConsumingTask  with "success" concurrently>
+    <call on $aTimeConsumingTask with "success" concurrently>
         <exit with $? />
     </call>
 
