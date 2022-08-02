@@ -49,7 +49,8 @@
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
 static void
-broadcast_idle_event(struct pcinst *inst)
+broadcast_crtn_event(struct pcinst *inst, const char *msg_type,
+        const char *msg_sub_type)
 {
     struct pcintr_heap *heap = inst->intr_heap;
     struct rb_root *coroutines = &heap->coroutines;
@@ -64,10 +65,16 @@ broadcast_idle_event(struct pcinst *inst)
                     BUILTIN_VAR_CRTN);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
-                    hvml, MSG_TYPE_IDLE, NULL, PURC_VARIANT_INVALID,
-                    PURC_VARIANT_INVALID);
+                    hvml, msg_type, msg_sub_type,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         }
     }
+}
+
+static void
+broadcast_idle_event(struct pcinst *inst)
+{
+    broadcast_crtn_event(inst, MSG_TYPE_IDLE, NULL);
 }
 
 void
@@ -297,7 +304,7 @@ execute_one_step(struct pcinst *inst)
 
 
 void
-check_and_dispatch_event_from_conn()
+check_and_dispatch_event_from_conn(struct pcinst *inst)
 {
     struct pcrdr_conn *conn =  purc_get_conn_to_renderer();
 
@@ -306,8 +313,25 @@ check_and_dispatch_event_from_conn()
         if (!handle) {
             pcrdr_conn_set_event_handler(conn, pcintr_conn_event_handler);
         }
-        pcrdr_wait_and_dispatch_message(conn, 0);
+
+        int last_err = purc_get_last_error();
         purc_clr_error();
+
+        pcrdr_wait_and_dispatch_message(conn, 0);
+
+        int err = purc_get_last_error();
+        if (err == PCRDR_ERROR_IO || err == PCRDR_ERROR_PEER_CLOSED) {
+            //broadcast rdrState:connLost;
+            broadcast_crtn_event(inst, MSG_TYPE_RDR_STATE,
+                    MSG_SUB_TYPE_CONN_LOST);
+        }
+        else if (err == PCRDR_ERROR_TIMEOUT) {
+            purc_set_error(last_err);
+        }
+
+        if (last_err) {
+            purc_set_error(last_err);
+        }
     }
 }
 
@@ -418,7 +442,7 @@ dispatch_event(struct pcinst *inst)
     UNUSED_PARAM(inst);
 
     bool is_busy = false;
-    check_and_dispatch_event_from_conn();
+    check_and_dispatch_event_from_conn(inst);
 
     bool co_is_busy = false;
     struct pcintr_heap *heap = inst->intr_heap;

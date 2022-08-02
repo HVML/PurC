@@ -65,6 +65,7 @@
 #define MSG_SUB_TYPE_DISPLACED        "displaced"
 #define MSG_SUB_TYPE_EXITED           "exited"
 #define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
+#define MSG_SUB_TYPE_CONN_LOST        "connLost"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
