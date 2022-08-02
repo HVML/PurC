@@ -2573,7 +2573,10 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_EJSON_AFTER_JSONEE_STRING)
     uint32_t uc = ejson_stack_top();
     if (is_whitespace(character)) {
-        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        if (parser->vcm_node &&
+                parser->vcm_node->type != PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
+            POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+        }
         if (uc == 'U') {
             ejson_stack_pop();
             if (!ejson_stack_is_empty()) {
@@ -2596,6 +2599,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_AFTER_JSONEE_STRING)
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '}' || character == ']' || character == ')') {
+        if (uc == '"') {
+            RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_STRING);
+        }
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         ejson_stack_pop();
         if (!ejson_stack_is_empty()) {

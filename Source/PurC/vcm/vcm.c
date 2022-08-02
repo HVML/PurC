@@ -54,6 +54,8 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
+#define PURC_ENV_VCM_LOG_ENABLE "PURC_ENV_VCM_LOG_ENABLE"
+
 typedef
 void (*pcvcm_node_handle)(purc_rwstream_t rws, struct pcvcm_node *node,
         bool ignore_string_quoted);
@@ -78,6 +80,8 @@ struct pcvcm_ev {
     purc_variant_t last_value;
     bool release_vcm;
 };
+
+static bool _print_vcm_log = false;
 
 static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type)
 {
@@ -1540,6 +1544,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
             goto failed;
         }
 
+next_op:
         op_node = NEXT_CHILD(curr_node);
         if (op_node == NULL) {
             break;
@@ -1567,7 +1572,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
                     goto failed;
                 }
                 if (!purc_variant_booleanize(curr_val)) {
-                    goto out;
+                    goto next_op;
                 }
             }
             break;
@@ -1579,7 +1584,7 @@ purc_variant_t pcvcm_node_cjsonee_to_variant(struct pcvcm_node *node,
                     goto failed;
                 }
                 if (purc_variant_booleanize(curr_val)) {
-                    goto out;
+                    goto next_op;
                 }
             }
             break;
@@ -1696,12 +1701,10 @@ purc_variant_t pcvcm_node_to_variant(struct pcvcm_node *node,
 
     node->attach = (uintptr_t)ret;
 
-// #define PRINT_DEBUG
-#ifdef PRINT_DEBUG        /* { */
-    PRINT_VCM_NODE(node);
-    PRINT_VARIANT(ret);
-#endif                    /* } */
-#undef PRINT_DEBUG
+    if (_print_vcm_log) {
+        PRINT_VCM_NODE(node);
+        PRINT_VARIANT(ret);
+    }
     return ret;
 }
 
@@ -1755,10 +1758,16 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         cb_find_var find_var, void *ctxt, bool silently)
 {
-// #define PRINT_DEBUG
-#ifdef PRINT_DEBUG        /* { */
-    PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
-#endif                    /* } */
+    const char *env_value;
+    if ((env_value = getenv(PURC_ENV_VCM_LOG_ENABLE))) {
+        _print_vcm_log = (*env_value == '1' ||
+                pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
+    if (_print_vcm_log) {
+        PC_DEBUG("pcvcm_eval_ex|begin|silently=%d\n", silently);
+    }
+
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
     struct pcvcm_node_op ops = {
@@ -1773,11 +1782,10 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         ret = purc_variant_make_undefined();
     }
 
-#ifdef PRINT_DEBUG        /* { */
-    PRINT_VARIANT(ret);
-    PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
-#endif                    /* } */
-#undef PRINT_DEBUG
+    if (_print_vcm_log) {
+        PRINT_VARIANT(ret);
+        PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
+    }
     return ret;
 }
 

@@ -1,0 +1,7 @@
+<hvml target="html">
+    $STREAM.stdout.writelines("$0<) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid")
+
+    <archedata name="friendLine">
+        "$?.greeting$?.name: you come from $?.country"
+    </archedata>
+</hvml>

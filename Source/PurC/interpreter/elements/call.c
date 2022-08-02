@@ -574,17 +574,20 @@ select_child(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
-    if (stack->back_anchor == frame)
+    struct ctxt_for_call *ctxt;
+    ctxt = (struct ctxt_for_call*)frame->ctxt;
+
+    if (stack->back_anchor == frame) {
         stack->back_anchor = NULL;
+        ctxt->define = NULL;
+        ctxt->curr = NULL;
+    }
 
     if (frame->ctxt == NULL)
         return NULL;
 
     if (stack->back_anchor)
         return NULL;
-
-    struct ctxt_for_call *ctxt;
-    ctxt = (struct ctxt_for_call*)frame->ctxt;
 
     struct pcvdom_node *curr;
 
