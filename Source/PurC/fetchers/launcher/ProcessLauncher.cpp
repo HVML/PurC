@@ -57,9 +57,11 @@ static String getExecutablePath()
     return { };
 }
 
+#define PURC_ENVV_FETCHER_EXEC_PATH "PURC_FETCHER_EXEC_PATH"
+
 static String findPurCProcess(const char* processName)
 {
-    static const char* execDirectory = g_getenv("FETCHER_EXEC_PATH");
+    static const char* execDirectory = g_getenv(PURC_ENVV_FETCHER_EXEC_PATH);
     if (execDirectory) {
         String processPath = FileSystem::pathByAppendingComponent(FileSystem::stringFromFileSystemRepresentation(execDirectory), processName);
         if (FileSystem::fileExists(processPath))
