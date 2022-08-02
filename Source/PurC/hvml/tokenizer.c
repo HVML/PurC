@@ -2299,6 +2299,17 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         ADVANCE_TO(TKZ_STATE_EJSON_CONTROL);
     }
     if (character == '{') {
+        if (ejson_stack_is_empty() &&
+                (parser->vcm_node && (parser->vcm_node->type !=
+                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING))) {
+            struct pcvcm_node* node = parser->vcm_node;
+            struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                    NULL);
+            UPDATE_VCM_NODE(snode);
+            APPEND_AS_VCM_CHILD(node);
+            ejson_stack_push('U');
+            RESET_TEMP_BUFFER();
+        }
         RECONSUME_IN(TKZ_STATE_EJSON_LEFT_BRACE);
     }
     if (character == '}') {
@@ -2360,6 +2371,17 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_PARENTHESIS);
     }
     if (character == '$') {
+        if (ejson_stack_is_empty() &&
+                (parser->vcm_node && (parser->vcm_node->type !=
+                    PCVCM_NODE_TYPE_FUNC_CONCAT_STRING))) {
+            struct pcvcm_node* node = parser->vcm_node;
+            struct pcvcm_node* snode = pcvcm_node_new_concat_string(0,
+                    NULL);
+            UPDATE_VCM_NODE(snode);
+            APPEND_AS_VCM_CHILD(node);
+            ejson_stack_push('U');
+            RESET_TEMP_BUFFER();
+        }
         RECONSUME_IN(TKZ_STATE_EJSON_DOLLAR);
     }
     if (character == '"') {
@@ -2663,9 +2685,11 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACE)
             }
             // FIXME : <update from="assets/{$SYS.locale}.json" />
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
+#if 0
             if (ejson_stack_is_empty()) {
                 ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
             }
+#endif
             ADVANCE_TO(TKZ_STATE_EJSON_RIGHT_BRACE);
         }
         else if (uc == '(' || uc == '<' || uc == '"') {
@@ -2685,7 +2709,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_RIGHT_BRACE)
             uc = ejson_stack_top();
         }
         if (ejson_stack_is_empty()) {
-            ADVANCE_TO(TKZ_STATE_EJSON_FINISHED);
+            RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
         }
         if (uc == 'U') {
             RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
@@ -4300,7 +4324,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
             character == '(' || character == '<' || character == '}' ||
             character == '$' || character == '>' || character == ']'
             || character == ')' || character == ':' || character == ';'
-            || character == '&' || character == '|') {
+            || character == '&' || character == '|' || character == '{') {
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
             RETURN_AND_STOP_PARSE();
@@ -4365,8 +4389,9 @@ BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_KEYWORD)
         POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         RECONSUME_IN(TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN);
     }
-    SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
-    RETURN_AND_STOP_PARSE();
+    RECONSUME_IN(TKZ_STATE_EJSON_FINISHED);
+    //SET_ERR(PCHVML_ERROR_BAD_JSONEE_KEYWORD);
+    //RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_JSONEE_STRING)

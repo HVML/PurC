@@ -9,8 +9,19 @@ PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<span>
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"greeting")
+PCHVML_TOKEN_VCM_TREE|" "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -23,27 +34,24 @@ PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"greeting")
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
-PCHVML_TOKEN_END_TAG|</span>
-PCHVML_TOKEN_VCM_TREE|"
-    "
-PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"greeting")
 PCHVML_TOKEN_VCM_TREE|" "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"greeting")
-PCHVML_TOKEN_VCM_TREE|" "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"greeting")
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
+PCHVML_TOKEN_END_TAG|</span>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<span>
+PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"))
+PCHVML_TOKEN_VCM_TREE|"你好啊"
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
 "

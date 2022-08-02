@@ -8,4 +8,6 @@
     <span>{$?.greeting} {$?.name}</span>
     <span>{$?.greeting} $?.name</span>
     <span>{$?.greeting}$?.name</span>
+    <span>$?.greeting{$?.name}</span>
+    <span>$?.greeting你好啊</span>
 </hvml>
