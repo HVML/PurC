@@ -355,7 +355,7 @@ $ purc -p purcmc hvml/planetary-resonance-lines.hvml
 
 Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
 
-![the Planetary Resonance](https://files.fmsoft.cn/screenshots/planetary-resonance.png)
+![the Planetary Resonance](https://files.fmsoft.cn/hvml/screenshots/planetary-resonance.png)
 
 
 ### Options for `purc`
