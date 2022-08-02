@@ -173,7 +173,7 @@ re_eval_with(struct pcintr_stack_frame *frame,
         val = pcintr_eval_vdom_attr(stack, with);
     }
     else {
-        /* no with attr, hande as undefined : stop */
+        /* no with attr, handle as undefined : stop */
         *stop = true;
         return 0;
     }
