@@ -89,12 +89,13 @@
 1. _The samples with bad result:_
    - `hvml/greatest-common-divisor.hvml`: Adjust the evaluating logic of CJSONSEE.
    - `hvml/hello-world-c-bad.hvml`: `$0<) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid"; expected: `0) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid`; but got `0`.
-1. _Improve eJSON parser to support the following patterns_
+1. _Improve eJSON parser to support the following patterns:_
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
    - `{$?.greating}{$?.name}`: `Hello, Tom`
    - `$?.greating<any CHAR not a valid variable token character>`: `Hello<any CHAR not a valid variable token character>`
    - `${output_$CRTN.target}`: `$output_html` or `$output_void`; the evaluated result in `{ }` should be a string and a valid variable token.
+1. _Incorrect evaluation logic of a CJSONEE with `&&` and `||`._
 1. Raise exceptions if encounter errors when executing elements instead of aborting the process:
    - _When the fetcher failed to load a resource of a given URL._
 1. When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.
