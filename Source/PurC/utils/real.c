@@ -769,11 +769,13 @@ _COMPILE_TIME_ASSERT(f32, sizeof(float) == sizeof(uint32_t));
 _COMPILE_TIME_ASSERT(f64, sizeof(double) == sizeof(uint64_t));
 #undef _COMPILE_TIME_ASSERT
 
-/* Make sure sizeof(long double) matches sizeof(uint64_t) * 2 */
+/* VW: unnecessary.
+   Make sure sizeof(long double) matches sizeof(uint64_t) * 2 
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
 _COMPILE_TIME_ASSERT(f128, sizeof(long double) == sizeof(uint64_t) * 2);
 #undef _COMPILE_TIME_ASSERT
+*/
 
 static inline purc_real_t
 assemble_f16(uint8_t b0, uint8_t b1)
@@ -909,28 +911,6 @@ purc_dump_f96le(unsigned char *dst, purc_real_t real, bool force)
     return true;
 }
 
-#if 0
-static inline void reverse_copy(uint8_t *dst, const uint8_t *src, size_t sz)
-{
-    for (size_t i = 0; i < sz; i++) {
-        dst[i] = src[sz - i  - 1];
-    }
-}
-
-purc_real_t
-purc_fetch_f128le(const unsigned char *bytes)
-{
-    purc_real_t real;
-#if CPU(LITTLE_ENDIAN)
-    memcpy(&real.ld, bytes, sizeof(long double));
-#elif CPU(BIG_ENDIAN)
-    reverse_copy((uint8_t *)&real.ld, bytes, sizeof(long double));
-#else
-#error "Unsupported endian"
-#endif
-    return real;
-}
-#else
 purc_real_t
 purc_fetch_f128le(const unsigned char *bytes)
 {
@@ -948,7 +928,6 @@ purc_fetch_f128le(const unsigned char *bytes)
     real.ld = my_real.ld;
     return real;
 }
-#endif
 
 bool
 purc_dump_f128le(unsigned char *dst, purc_real_t real, bool force)
@@ -1076,21 +1055,6 @@ purc_dump_f96be(unsigned char *dst, purc_real_t real, bool force)
     return true;
 }
 
-#if 0
-purc_real_t
-purc_fetch_f128be(const unsigned char *bytes)
-{
-    purc_real_t real;
-#if CPU(BIG_ENDIAN)
-    memcpy(&real.ld, bytes, sizeof(long double));
-#elif CPU(LITTLE_ENDIAN)
-    reverse_copy((uint8_t *)&real.ld, bytes, sizeof(long double));
-#else
-#error "Unsupported endian"
-#endif
-    return real;
-}
-#else
 purc_real_t
 purc_fetch_f128be(const unsigned char *bytes)
 {
@@ -1107,7 +1071,6 @@ purc_fetch_f128be(const unsigned char *bytes)
     real.ld = my_real.ld;
     return real;
 }
-#endif
 
 bool
 purc_dump_f128be(unsigned char *dst, purc_real_t real, bool force)
