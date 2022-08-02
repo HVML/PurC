@@ -54,7 +54,7 @@
 #define MIN_BUF_SIZE         32
 #define MAX_BUF_SIZE         SIZE_MAX
 
-#define PURC_ENV_VCM_LOG_ENABLE "PURC_ENV_VCM_LOG_ENABLE"
+#define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
 
 typedef
 void (*pcvcm_node_handle)(purc_rwstream_t rws, struct pcvcm_node *node,
@@ -1759,7 +1759,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         cb_find_var find_var, void *ctxt, bool silently)
 {
     const char *env_value;
-    if ((env_value = getenv(PURC_ENV_VCM_LOG_ENABLE))) {
+    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         _print_vcm_log = (*env_value == '1' ||
                 pcutils_strcasecmp(env_value, "true") == 0);
     }

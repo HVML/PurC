@@ -318,7 +318,7 @@ struct pcejson {
 #define EJSON_MIN_BUFFER_SIZE   128
 #define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
 #define EJSON_END_OF_FILE       0
-#define PURC_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
+#define PURC_ENVV_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
 
 struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 {
@@ -342,7 +342,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
 
-    const char *env_value = getenv(PURC_EJSON_LOG_ENABLE);
+    const char *env_value = getenv(PURC_ENVV_EJSON_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
             (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
 

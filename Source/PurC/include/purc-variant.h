@@ -1921,7 +1921,6 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
 
 
 #define PURC_ENVV_DVOBJS_PATH   "PURC_DVOBJS_PATH"
-#define PURC_ENVV_DVOBJS_PATH   "PURC_DVOBJS_PATH"
 
 /**
  * Loads a variant value from an indicated library

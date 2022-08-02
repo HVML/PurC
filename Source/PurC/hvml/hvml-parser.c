@@ -86,7 +86,7 @@ struct pcmodule _module_hvml = {
 };
 
 
-#define PURC_HVML_LOG_ENABLE  "PURC_HVML_LOG_ENABLE"
+#define PURC_ENVV_HVML_LOG_ENABLE   "PURC_HVML_LOG_ENABLE"
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
@@ -108,7 +108,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_is_operation = 0;
     parser->tag_has_raw_attr = 0;
     parser->is_in_file_header = 1;
-    const char *env_value = getenv(PURC_HVML_LOG_ENABLE);
+    const char *env_value = getenv(PURC_ENVV_HVML_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
             (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
 

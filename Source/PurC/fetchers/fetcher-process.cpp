@@ -71,12 +71,14 @@ void PcFetcherProcess::reset(void)
     }
 }
 
+#define PURC_ENVV_USER_DIR_SUFFIX "PURC_USER_DIR_SUFFIX"
+
 void PcFetcherProcess::getLaunchOptions(
         ProcessLauncher::LaunchOptions& launchOptions)
 {
     launchOptions.processIdentifier = m_processIdentifier;
 
-    if (const char* userDirectorySuffix = getenv("DIRHELPER_USER_DIR_SUFFIX"))
+    if (const char* userDirectorySuffix = getenv(PURC_ENVV_USER_DIR_SUFFIX))
         launchOptions.extraInitializationData.add("user-directory-suffix"_s, userDirectorySuffix);
 
     if (m_alwaysRunsAtBackgroundPriority)

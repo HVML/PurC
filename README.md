@@ -107,6 +107,17 @@ $ sudo make install
 By default, the above commands will build PurC and install the headers, libraries, executables,
    and some documents to your system (under `/usr/local/` directory if you are using Linux system).
 
+## Environment Variables
+
+PurC uses the following environment variables for different purposes:
+
+- `PURC_DVOBJS_PATH`: the path to save the shared modules for external dynamic objects.
+- `PURC_EXECUTOR_PATH`: the path to save the shared modules for external executors.
+- `PURC_FETCHER_EXEC_PATH`: the path to save the executable program of PurC Fetcher.
+- `PURC_USER_DIR_SUFFIX`: The directory suffix for user.
+- `PURC_LOG_ENABLE`: `true` if enable the global log facility.
+- `PURC_LOG_SYSLOG`: `true` if enable to use syslog as the log facility.
+
 ## Using `purc`
 
 The following sections assume that you have installed PurC to your system,
