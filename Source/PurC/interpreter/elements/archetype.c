@@ -357,7 +357,8 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
     bool has_except = true;
 
     if (!ctxt->resp || ctxt->ret_code != 200) {
-        purc_set_error(PURC_ERROR_NO_DATA);
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                ctxt->ret_code);
         goto dispatch_except;
     }
 

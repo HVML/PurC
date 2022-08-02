@@ -949,7 +949,8 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
     if (!ctxt->resp || ctxt->ret_code != 200) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         // FIXME: what error to set
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                ctxt->ret_code);
         return;
     }
 
@@ -1102,7 +1103,8 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
 
     if (!data->resp || data->ret_code != 200) {
         // FIXME: what error to set?
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                data->ret_code);
         return;
     }
 
