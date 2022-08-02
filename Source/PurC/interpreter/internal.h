@@ -217,7 +217,7 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
         pcrdr_msg_element_type element_type, const char *element,
         const char *property, pcrdr_msg_data_type data_type,
-        purc_variant_t data);
+        purc_variant_t data, size_t data_len);
 
 /* retrieve handle of workspace according to the name */
 uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,

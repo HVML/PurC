@@ -258,6 +258,8 @@ struct pcintr_coroutine {
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
+    purc_variant_t              doc_contents;
+    purc_variant_t              doc_wrotten_len;
 
     struct rb_node              node;     /* heap::coroutines */
 

@@ -365,6 +365,9 @@ coroutine_release(pcintr_coroutine_t co)
         stack_release(&co->stack);
         pcvdom_document_unref(co->vdom);
 
+        PURC_VARIANT_SAFE_CLEAR(co->doc_contents);
+        PURC_VARIANT_SAFE_CLEAR(co->doc_wrotten_len);
+
         struct list_head *children = &co->children;
         struct list_head *p, *n;
         list_for_each_safe(p, n, children) {

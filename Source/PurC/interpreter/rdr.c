@@ -45,6 +45,8 @@
 #define BUFF_MAX                1024 * 1024 * 4
 #define LEN_BUFF_LONGLONGINT    128
 
+#define DEF_LEN_ONE_WRITE       1024 * 10
+
 static bool
 object_set(purc_variant_t object, const char *key, const char *value)
 {
@@ -71,7 +73,7 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
         pcrdr_msg_element_type element_type, const char *element,
         const char *property, pcrdr_msg_data_type data_type,
-        purc_variant_t data)
+        purc_variant_t data, size_t data_len)
 {
     pcrdr_msg *response_msg = NULL;
     pcrdr_msg *msg = pcrdr_make_request_message(
@@ -94,6 +96,9 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
 
     msg->dataType = data_type;
     msg->data = data;
+    if (data_len > 0) {
+        msg->textLen = data_len;
+    }
 
     if (pcrdr_send_request_and_wait_response(conn,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
@@ -141,7 +146,7 @@ uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, NULL, NULL, data_type,
-            data);
+            data, 0);
 
     if (response_msg == NULL) {
         goto failed;
@@ -196,7 +201,7 @@ bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, element, NULL,
-            data_type, data);
+            data_type, data, 0);
 
     if (response_msg == NULL) {
         goto failed;
@@ -257,7 +262,7 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, element, property,
-            data_type, data);
+            data_type, data, 0);
 
     if (response_msg == NULL) {
         goto failed;
@@ -294,7 +299,7 @@ uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
             PCRDR_MSG_TARGET_SESSION, session, PCRDR_OPERATION_GETPROPERTY,
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
             "workspaceList",
-            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID);
+            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
     if (response_msg == NULL) {
         goto done;
     }
@@ -401,7 +406,7 @@ pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, element, NULL, data_type,
-            data);
+            data, 0);
     if (response_msg == NULL) {
         // pcintr_rdr_send_request_and_wait_response unref data
         goto failed;
@@ -461,7 +466,7 @@ bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, element, NULL,
-            data_type, data);
+            data_type, data, 0);
 
     if (response_msg == NULL) {
         goto failed;
@@ -532,7 +537,7 @@ pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, element, property,
-            data_type, value);
+            data_type, value, 0);
     if (response_msg == NULL) {
         goto failed;
     }
@@ -581,7 +586,7 @@ bool pcintr_rdr_set_page_groups(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, NULL, NULL,
-            data_type, data);
+            data_type, data, 0);
 
     if (response_msg == NULL) {
         goto failed;
@@ -631,7 +636,7 @@ bool pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, NULL, NULL, data_type,
-            data);
+            data, 0);
     if (response_msg == NULL) {
         goto failed;
     }
@@ -675,7 +680,7 @@ bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, element_type, page_group_id, NULL,
-            data_type, data);
+            data_type, data, 0);
     if (response_msg == NULL) {
         goto failed;
     }
@@ -766,12 +771,117 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     return true;
 }
 
+static pcrdr_msg *
+rdr_page_control_load_large_page(struct pcrdr_conn *conn,
+        pcrdr_msg_target target, uint64_t target_value,
+        pcrdr_msg_data_type data_type,
+        const char *doc_content, size_t len_content)
+{
+    pcrdr_msg *response_msg = NULL;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    purc_variant_t data;
+    size_t len_wrotten;
+    size_t len_to_write = 0;
+
+    // writeBegin
+    const char *start = doc_content;
+    const char *end;
+    pcutils_string_check_utf8_len(start, DEF_LEN_ONE_WRITE, NULL, &end);
+    if (end > start) {
+        len_to_write = end - start;
+
+        data = purc_variant_make_string_static(start, false);
+        len_wrotten = len_to_write;
+    }
+    else {
+        LOG_ERROR("No valid character in document content\n");
+        goto failed;
+    }
+
+    response_msg = pcintr_rdr_send_request_and_wait_response(
+            conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN,
+            element_type, NULL, NULL, data_type, data, len_to_write);
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    if (response_msg->retCode != PCRDR_SC_OK) {
+        PC_ERROR("failed to write content to rdr\n");
+        goto failed;
+    }
+
+    if (len_wrotten == len_content) {
+        goto done;
+    }
+
+writting:
+    len_to_write = 0;
+    if (len_wrotten + DEF_LEN_ONE_WRITE > len_content) {
+        // writeEnd
+        data = purc_variant_make_string_static(doc_content + len_wrotten,
+                false);
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                conn, target, target_value, PCRDR_OPERATION_WRITEEND,
+                element_type, NULL, NULL, data_type, data, 0);
+        if (response_msg == NULL) {
+            goto failed;
+        }
+
+        if (response_msg->retCode != PCRDR_SC_OK) {
+            PC_ERROR("failed to write content to rdr\n");
+            goto failed;
+        }
+        goto done;
+    }
+    else {
+        // writeMore
+        start = doc_content + len_wrotten;
+        pcutils_string_check_utf8_len(start, DEF_LEN_ONE_WRITE, NULL, &end);
+        if (end > start) {
+            len_to_write = end - start;
+            len_wrotten += len_to_write;
+            data = purc_variant_make_string_static(start, false);
+        }
+        else {
+            PC_WARN("no valid character for rdr\n");
+            goto failed;
+        }
+
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                conn, target, target_value, PCRDR_OPERATION_WRITEMORE,
+                element_type, NULL, NULL, data_type, data, len_to_write);
+        if (response_msg == NULL) {
+            goto failed;
+        }
+
+        if (response_msg->retCode != PCRDR_SC_OK) {
+            PC_ERROR("failed to write content to rdr\n");
+            goto failed;
+        }
+
+        if (len_wrotten == len_content) {
+            goto done;
+        }
+        goto writting;
+    }
+
+done:
+    return response_msg;
+
+failed:
+    if (response_msg) {
+        pcrdr_release_message(response_msg);
+    }
+    return NULL;
+}
+
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack)
 {
     if (stack->co->target_page_handle == 0) {
         return true;
     }
+    int ret_code;
     pcrdr_msg *response_msg = NULL;
 
     purc_document_t doc = stack->doc;
@@ -832,20 +942,30 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     }
 
     struct pcinst *inst = pcinst_current();
-    response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
-        target, target_value, operation, element_type, NULL,
-        NULL, data_type, req_data);
+
+    if (sz_content > DEF_LEN_ONE_WRITE) {
+        response_msg = rdr_page_control_load_large_page(inst->conn_to_rdr,
+                    target, target_value, data_type,
+                    p, sz_content);
+    }
+    else {
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                inst->conn_to_rdr, target, target_value, operation,
+                element_type, NULL, NULL, data_type, req_data, 0);
+    }
 
     if (response_msg == NULL) {
         goto failed;
     }
 
-    int ret_code = response_msg->retCode;
+    ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
         stack->co->target_dom_handle = response_msg->resultValue;
     }
 
     pcrdr_release_message(response_msg);
+
+
     purc_rwstream_destroy(out);
     out = NULL;
 
@@ -919,7 +1039,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
     struct pcinst *inst = pcinst_current();
     response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
         target, target_value, operation, element_type, elem,
-        property, data_type, data);
+        property, data_type, data, 0);
 
     if (response_msg == NULL) {
         goto failed;
