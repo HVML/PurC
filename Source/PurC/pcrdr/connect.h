@@ -40,7 +40,6 @@ struct pending_request {
     void   *context;
 
     time_t  time_expected;
-    bool    in_heap;    /* this struct is allocated in heap */
 };
 
 struct pcrdr_prot_data;
