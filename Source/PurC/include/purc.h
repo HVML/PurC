@@ -241,6 +241,7 @@ purc_get_endpoint(purc_atom_t *atom);
 #define PURC_LDNAME_RANDOM_DATA     "random_data"
 #define PURC_LDNAME_FORMAT_DOUBLE   "format-double"
 #define PURC_LDNAME_FORMAT_LDOUBLE  "format-long-double"
+#define PURC_LDNAME_PARSE_ERROR     "parse_error"
 
 typedef void (*cb_free_local_data) (void *key, void *local_data);
 

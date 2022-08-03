@@ -553,7 +553,7 @@ tkz_set_error_info(struct tkz_uc *uc, int error)
         goto out;
     }
 
-    struct tkz_err_info *info = (struct tkz_err_info *)calloc(1,
+    struct purc_parse_error_info *info = (struct purc_parse_error_info *)calloc(1,
             sizeof(*info));
     if (!info) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -565,7 +565,8 @@ tkz_set_error_info(struct tkz_uc *uc, int error)
     info->position = uc->position;
     info->error = error;
 
-    purc_set_local_data(TKZ_ERROR_INFO, (uintptr_t)info, free_error_info);
+    purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
+            free_error_info);
 out:
     return 0;
 }

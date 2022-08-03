@@ -41,8 +41,6 @@
 #define TKZ_END_OF_FILE          0
 #define TKZ_INVALID_CHARACTER    0xFFFFFFFF
 
-#define TKZ_ERROR_INFO           "_tkz_error_info"
-
 struct tkz_reader;
 struct tkz_uc {
     struct list_head list;
@@ -57,14 +55,6 @@ struct tkz_buffer {
     uint8_t *here;
     uint8_t *stop;
     size_t nr_chars;
-};
-
-struct tkz_err_info {
-    uint32_t character;
-    int line;
-    int column;
-    int position;
-    int error;
 };
 
 struct tkz_sbst;

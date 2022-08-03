@@ -384,6 +384,14 @@ enum pcrdr_error
 #define PCRDR_ERROR_NR \
     (PCRDR_ERROR_LAST - PCRDR_ERROR_FIRST + 1)
 
+struct purc_parse_error_info {
+    uint32_t character;
+    int line;
+    int column;
+    int position;
+    int error;
+};
+
 PCA_EXTERN_C_BEGIN
 
 /**
