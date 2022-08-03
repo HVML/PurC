@@ -63,7 +63,6 @@
     }
 
 #define SET_ERR(err)    do {                                                \
-    purc_variant_t exinfo = PURC_VARIANT_INVALID;                           \
     if (parser->curr_uc) {                                                  \
         char buf[ERROR_BUF_SIZE+1];                                         \
         snprintf(buf, ERROR_BUF_SIZE,                                       \
@@ -71,12 +70,11 @@
                 parser->curr_uc->line,                                      \
                 parser->curr_uc->column,                                    \
                 parser->curr_uc->character);                                \
-        exinfo = purc_variant_make_string(buf, false);                      \
         if (parser->enable_log) {                                           \
             PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
-    purc_set_error_exinfo(err, exinfo);                                     \
+    tkz_set_error_info(parser->curr_uc, err);                               \
 } while (0)
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
