@@ -541,7 +541,7 @@ struct pcutils_arrlist *tkz_sbst_get_buffered_ucs(
 static void
 free_error_info(void *key, void *local_data)
 {
-    UNUSED_PARAM(key);
+    free_key_string(key);
     free(local_data);
 }
 

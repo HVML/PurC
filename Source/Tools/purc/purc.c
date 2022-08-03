@@ -930,9 +930,14 @@ schedule_coroutines_for_runner(struct my_opts *opts,
                         url, (unsigned)i,
                         purc_get_error_message(purc_get_last_error()));
 
-                purc_variant_t err;
-                if ((err = purc_get_last_error_ex())) {
-                    fprintf(stderr, "%s\n", purc_variant_get_string_const(err));
+                struct purc_parse_error_info *parse_error = NULL;
+                purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
+                        (uintptr_t *)(void *)&parse_error, NULL);
+                if (parse_error) {
+                    fprintf(stderr,
+                            "Parse %s failed : line=%d, column=%d, character=0x%x\n",
+                            url, parse_error->line, parse_error->column,
+                            parse_error->character);
                 }
             }
             continue;
@@ -1181,9 +1186,14 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
                 fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
                         purc_get_error_message(purc_get_last_error()));
 
-                purc_variant_t err;
-                if ((err = purc_get_last_error_ex())) {
-                    fprintf(stderr, "%s\n", purc_variant_get_string_const(err));
+                struct purc_parse_error_info *parse_error = NULL;
+                purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
+                        (uintptr_t *)(void *)&parse_error, NULL);
+                if (parse_error) {
+                    fprintf(stderr,
+                            "Parse %s failed : line=%d, column=%d, character=0x%x\n",
+                            url, parse_error->line, parse_error->column,
+                            parse_error->character);
                 }
             }
         }
