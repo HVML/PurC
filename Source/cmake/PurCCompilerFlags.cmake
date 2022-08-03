@@ -154,7 +154,7 @@ if (COMPILER_IS_GCC_OR_CLANG AND NOT MSVC)
     # Don't give -Wall to clang-cl because clang-cl treats /Wall and -Wall as -Weverything.
     # -Wall and -Wextra should be specified before -Wno-* for Clang.
     PURC_PREPEND_GLOBAL_COMPILER_FLAGS(-Wall -Wextra -fmax-errors=10)
-    if (NOT COMPILER_IS_CLANG)
+    if (ENABLE_DEVELOPER_MODE)
         set(CMAKE_C_FLAGS "-Werror ${CMAKE_C_FLAGS}")
         set(CMAKE_CXX_FLAGS "-Werror ${CMAKE_CXX_FLAGS}")
     endif ()
