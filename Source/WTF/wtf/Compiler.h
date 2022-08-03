@@ -100,7 +100,7 @@
 #endif /* COMPILER(GCC) */
 
 #if COMPILER(GCC_COMPATIBLE) && defined(NDEBUG) && !defined(__OPTIMIZE__) && !defined(RELEASE_WITHOUT_OPTIMIZATIONS)
-#error "Building release without compiler optimizations: xGUI will be slow. Set -DRELEASE_WITHOUT_OPTIMIZATIONS if this is intended."
+#error "Building release without compiler optimizations: This program will be slow. Set -DRELEASE_WITHOUT_OPTIMIZATIONS if this is intended."
 #endif
 
 /* COMPILER(MINGW) - MinGW GCC */
@@ -125,7 +125,7 @@
 #define WTF_COMPILER_MSVC 1
 
 #if _MSC_VER < 1910
-#error "Please use a newer version of Visual Studio. xGUI requires VS2017 or newer to compile."
+#error "Please use a newer version of Visual Studio. This program requires VS2017 or newer to compile."
 #endif
 
 #endif
@@ -491,6 +491,3 @@
 
 #define ALLOW_ARRAY_BOUNDS_BEGIN IGNORE_WARNINGS_BEGIN("array-bounds")
 #define ALLOW_ARRAY_BOUNDS_END IGNORE_WARNINGS_END
-
-#define ALLOW_DANGLING_POINTER_BEGIN IGNORE_WARNINGS_BEGIN("dangling-pointer=")
-#define ALLOW_DANGLING_POINTER_END IGNORE_WARNINGS_END

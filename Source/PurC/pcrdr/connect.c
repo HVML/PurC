@@ -177,8 +177,7 @@ int pcrdr_free_connection(pcrdr_conn* conn)
         }
         list_del(&pr->list);
         purc_variant_unref(pr->request_id);
-        if (pr->in_heap)
-            free(pr);
+        free(pr);
     }
 
     free(conn);
@@ -238,7 +237,6 @@ pcrdr_set_handler_for_response_from_extra_source(pcrdr_conn* conn,
         return -1;
     }
 
-    pr->in_heap = true;
     pr->request_id = purc_variant_ref(request_id);
     pr->response_handler = response_handler;
     pr->context = context;
@@ -305,8 +303,7 @@ handle_response_message(pcrdr_conn* conn, const pcrdr_msg *msg)
             retval = 0;
             list_del(&pr->list);
             purc_variant_unref(pr->request_id);
-            if (pr->in_heap)
-                free(pr);
+            free(pr);
         }
         else {
             purc_log_error("response not matched the first pending request\n");
@@ -337,8 +334,7 @@ check_timeout_requests(pcrdr_conn *conn)
 
             list_del(&pr->list);
             purc_variant_unref(pr->request_id);
-            if (pr->in_heap)
-                free(pr);
+            free(pr);
         }
     }
 
@@ -500,19 +496,21 @@ pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
         int seconds_expected, pcrdr_msg **response_msg)
 {
     int retval;
-    struct pending_request pr;
 
-    pr.in_heap = false;
-    pr.request_id = purc_variant_ref(request_id);
-    pr.response_handler = my_sync_response_handler;
-    pr.context = response_msg;
+    /* VW: In order to suppress the dangling-pointer warning of GCC 12,
+       we have to allocate this struct in heap,
+       while it could have been allocated on the stack. */
+    struct pending_request *pr = calloc(1, sizeof(*pr));
+    assert(pr);
+
+    pr->request_id = purc_variant_ref(request_id);
+    pr->response_handler = my_sync_response_handler;
+    pr->context = response_msg;
     if (seconds_expected <= 0 || seconds_expected > 3600)
-        pr.time_expected = purc_get_monotoic_time() + 3600;
+        pr->time_expected = purc_get_monotoic_time() + 3600;
     else
-        pr.time_expected = purc_get_monotoic_time() + seconds_expected;
-ALLOW_DANGLING_POINTER_BEGIN
-    list_add(&pr.list, &conn->pending_requests);
-ALLOW_DANGLING_POINTER_END
+        pr->time_expected = purc_get_monotoic_time() + seconds_expected;
+    list_add(&pr->list, &conn->pending_requests);
 
     while (*response_msg == NULL) {
         pcrdr_msg *msg;
@@ -562,8 +560,9 @@ ALLOW_DANGLING_POINTER_END
     }
 
     if (*response_msg == NULL) {
-        list_del(&pr.list);
-        purc_variant_unref(pr.request_id);
+        list_del(&pr->list);
+        purc_variant_unref(pr->request_id);
+        free(pr);
     }
     else if (*response_msg == MSG_POINTER_INVALID) {
         *response_msg = NULL;   /* reset response messge to NULL */
