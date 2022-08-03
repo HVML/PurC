@@ -94,6 +94,7 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(ENABLE_WEB_SOCKET "Toggle support for WebSocket protocol" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_SSL "Toggle support for SSL" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_API_TESTS "Enable public API unit tests" PUBLIC ON)
+    PURC_OPTION_DEFINE(ENABLE_DEVELOPER_MODE "Toggle developer mode" PUBLIC OFF)
 
     PURC_OPTION_DEFINE(USE_SYSTEM_MALLOC "Toggle system allocator instead of PurC's custom allocator" PRIVATE ${USE_SYSTEM_MALLOC_DEFAULT})
     PURC_OPTION_DEFINE(ENABLE_ICU "Enable icu" PUBLIC OFF)
