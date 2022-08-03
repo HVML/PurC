@@ -372,6 +372,9 @@ tkz_sbst_get_match(struct tkz_sbst *sbst);
 struct pcutils_arrlist*
 tkz_sbst_get_buffered_ucs(struct tkz_sbst *sbst);
 
+int
+tkz_set_error_info(struct tkz_uc *uc, int error);
+
 PCA_EXTERN_C_END
 
 #endif /* PURC_TKZ_HELPER_H */

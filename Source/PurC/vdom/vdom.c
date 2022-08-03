@@ -828,6 +828,25 @@ content_serialize(struct pcvdom_content *content, int level, int push,
     UNUSED_PARAM(level);
     UNUSED_PARAM(push);
     UNUSED_PARAM(ud);
+
+    if (!push) {
+        return;
+    }
+
+    struct pcvcm_node *vcm = content->vcm;
+    if (!vcm) {
+        goto out;
+    }
+
+    size_t len;
+    char *s = pcvcm_node_serialize(vcm, &len);
+    if (s) {
+        ud->cb(s, len, ud->ctxt);
+        free(s);
+    }
+
+out:
+    return;
 }
 
 static void
@@ -894,7 +913,7 @@ node_serialize(struct pctree_node *node, int level,
 
 void
 pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
-        enum pcvdom_util_node_serialize_opt opt,
+        enum pcvdom_util_node_serialize_opt opt, bool serialize_children,
         pcvdom_util_node_serialize_cb cb, void *ctxt)
 {
     struct serialize_data ud = {
@@ -905,9 +924,15 @@ pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
         .ctxt       = ctxt,
     };
 
-    pctree_node_walk(&node->node, 0, node_serialize, &ud);
-
+    if (serialize_children) {
+        pctree_node_walk(&node->node, 0, node_serialize, &ud);
+    }
+    else {
+        node_serialize(&node->node, 0, 1, &ud);
+//        node_serialize(&node->node, 0, 0, &ud);
+    }
     cb("\n", 1, ctxt);
+
 }
 
 static inline void
@@ -2234,7 +2259,16 @@ pcvdom_util_node_serialize(struct pcvdom_node *node,
 {
     enum pcvdom_util_node_serialize_opt opt;
     opt = PCVDOM_UTIL_NODE_SERIALIZE_INDENT;
-    pcvdom_util_node_serialize_ex(node, opt, cb, ctxt);
+    pcvdom_util_node_serialize_ex(node, opt, true, cb, ctxt);
+}
+
+void
+pcvdom_util_node_serialize_alone(struct pcvdom_node *node,
+        pcvdom_util_node_serialize_cb cb, void *ctxt)
+{
+    enum pcvdom_util_node_serialize_opt opt;
+    opt = PCVDOM_UTIL_NODE_SERIALIZE__UNDEF;
+    pcvdom_util_node_serialize_ex(node, opt, false, cb, ctxt);
 }
 
 int

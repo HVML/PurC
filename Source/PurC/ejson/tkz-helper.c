@@ -538,6 +538,39 @@ struct pcutils_arrlist *tkz_sbst_get_buffered_ucs(
     return sbst->ucs;
 }
 
+static void
+free_error_info(void *key, void *local_data)
+{
+    free_key_string(key);
+    free(local_data);
+}
+
+int
+tkz_set_error_info(struct tkz_uc *uc, int error)
+{
+    purc_set_error(error);
+    if (!uc) {
+        goto out;
+    }
+
+    struct purc_parse_error_info *info = (struct purc_parse_error_info *)calloc(1,
+            sizeof(*info));
+    if (!info) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    info->character = uc->character;
+    info->line = uc->line;
+    info->column = uc->column;
+    info->position = uc->position;
+    info->error = error;
+
+    purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
+            free_error_info);
+out:
+    return 0;
+}
+
 struct tkz_sbst *tkz_sbst_new_char_ref(void)
 {
     return tkz_sbst_new(pchtml_html_tokenizer_res_entities_sbst);
@@ -623,3 +656,4 @@ struct tkz_sbst *tkz_sbst_new_ejson_keywords(void)
 {
     return tkz_sbst_new(ejson_keywords_sbst);
 }
+

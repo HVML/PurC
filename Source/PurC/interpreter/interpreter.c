@@ -1251,6 +1251,7 @@ pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
 static void
 after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
+    //pcintr_coroutine_dump(co);
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (co->state == CO_STATE_STOPPED) {

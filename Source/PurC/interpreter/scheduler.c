@@ -733,3 +733,93 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
+static int
+serial_element(const char *buf, size_t len, void *ctxt)
+{
+    purc_rwstream_t rws = (purc_rwstream_t) ctxt;
+    purc_rwstream_write(rws, buf, len);
+    return 0;
+}
+
+static int
+serial_symbol_vars(const char *symbol, int id,
+        struct pcintr_stack_frame *frame, purc_rwstream_t stm)
+{
+    purc_rwstream_write(stm, symbol, strlen(symbol));
+    size_t len_expected = 0;
+    purc_variant_serialize(frame->symbol_vars[id],
+            stm, 0,
+            PCVARIANT_SERIALIZE_OPT_REAL_EJSON |
+            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
+            PCVARIANT_SERIALIZE_OPT_PLAIN,
+            &len_expected);
+    purc_rwstream_write(stm, "\n", 1);
+    return 0;
+}
+
+#define DUMP_BUF_SIZE    128
+
+static int
+dump_stack_frame(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, purc_rwstream_t stm, int level)
+{
+    UNUSED_PARAM(stack);
+    char buf[DUMP_BUF_SIZE];
+    pcvdom_element_t elem = frame->pos;
+    if (!elem) {
+        goto out;
+    }
+
+    snprintf(buf, DUMP_BUF_SIZE, "\n%02d:\nframe = %p\n", level, frame);
+    purc_rwstream_write(stm, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "elem = ");
+    purc_rwstream_write(stm, buf, strlen(buf));
+    pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
+
+    struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
+    if (child && child->type == PCVDOM_NODE_CONTENT) {
+        snprintf(buf, DUMP_BUF_SIZE, "content = ");
+        purc_rwstream_write(stm, buf, strlen(buf));
+        pcvdom_util_node_serialize_alone(child, serial_element, stm);
+    }
+    else {
+        snprintf(buf, DUMP_BUF_SIZE, "content = \n");
+    }
+
+    serial_symbol_vars("$< = ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
+    serial_symbol_vars("$@ = ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
+    serial_symbol_vars("$! = ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
+    serial_symbol_vars("$: = ", PURC_SYMBOL_VAR_COLON, frame, stm);
+    serial_symbol_vars("$= = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
+    serial_symbol_vars("$% = ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
+    serial_symbol_vars("$^ = ", PURC_SYMBOL_VAR_CARET, frame, stm);
+
+out:
+    return 0;
+}
+
+int
+purc_coroutine_dump_stack(purc_coroutine_t cor, purc_rwstream_t stm)
+{
+    int ret = 0;
+    if (!cor || !stm) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *p = pcintr_stack_get_bottom_frame(stack);
+    int level = 0;
+    while (p && p->pos) {
+        ret = dump_stack_frame(stack, p, stm, level);
+        if (ret != 0) {
+            goto out;
+        }
+        p = pcintr_stack_frame_get_parent(p);
+        level++;
+    }
+
+out:
+    return ret;
+}
