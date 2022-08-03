@@ -300,11 +300,15 @@ typedef int
 
 void
 pcvdom_util_node_serialize_ex(struct pcvdom_node *node,
-        enum pcvdom_util_node_serialize_opt opt,
+        enum pcvdom_util_node_serialize_opt opt, bool serialize_children,
         pcvdom_util_node_serialize_cb cb, void *ctxt);
 
 void
 pcvdom_util_node_serialize(struct pcvdom_node *node,
+        pcvdom_util_node_serialize_cb cb, void *ctxt);
+
+void
+pcvdom_util_node_serialize_alone(struct pcvdom_node *node,
         pcvdom_util_node_serialize_cb cb, void *ctxt);
 
 int

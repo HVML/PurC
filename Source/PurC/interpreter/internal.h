@@ -501,6 +501,10 @@ purc_vdom_t
 pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         pcvdom_element_t element);
 
+
+int
+pcintr_coroutine_dump(pcintr_coroutine_t co);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

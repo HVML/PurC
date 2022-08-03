@@ -343,3 +343,15 @@ out:
     PURC_VARIANT_SAFE_CLEAR(as_var);
     return vdom;
 }
+
+int
+pcintr_coroutine_dump(pcintr_coroutine_t co)
+{
+    purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+    purc_coroutine_dump_stack(co, rws);
+    size_t nr_hvml = 0;
+    const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
+    fprintf(stderr, "%s\n", hvml);
+    purc_rwstream_destroy(rws);
+    return 0;
+}
