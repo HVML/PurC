@@ -122,6 +122,7 @@ if (COMPILER_IS_GCC_OR_CLANG)
     # Warnings to be disabled
     # FIXME: We should probably not be disabling -Wno-maybe-uninitialized?
     PURC_PREPEND_GLOBAL_COMPILER_FLAGS(-Qunused-arguments
+                                         -Wno-zero-length-bounds
                                          -Wno-maybe-uninitialized
                                          -Wno-parentheses-equality
                                          -Wno-psabi)
