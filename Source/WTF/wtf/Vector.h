@@ -24,6 +24,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 
 #include <initializer_list>
 #include <limits>
+#include <string_view>
 #include <string.h>
 #include <type_traits>
 #include <utility>

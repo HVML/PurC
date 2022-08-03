@@ -510,7 +510,9 @@ pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
         pr.time_expected = purc_get_monotoic_time() + 3600;
     else
         pr.time_expected = purc_get_monotoic_time() + seconds_expected;
+ALLOW_DANGLING_POINTER_BEGIN
     list_add(&pr.list, &conn->pending_requests);
+ALLOW_DANGLING_POINTER_END
 
     while (*response_msg == NULL) {
         pcrdr_msg *msg;

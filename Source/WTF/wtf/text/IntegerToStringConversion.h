@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <iterator>
 #include <wtf/text/LChar.h>
 
 namespace PurCWTF {
