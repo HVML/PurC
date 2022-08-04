@@ -53,54 +53,6 @@ static const char callTemplateFoot[] =
 "    </call>\n"
 "</hvml>\n";
 
-
-
-static int
-bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem,
-        const char *name, purc_variant_t val)
-{
-    return pcintr_bind_scope_variable(cor, elem, name, val) ? 0 : -1 ;
-}
-
-static int
-bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
-{
-    return purc_coroutine_bind_variable(cor, name, val) ? 0 : -1;
-}
-
-static int
-bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        const char *name, purc_variant_t val, uint64_t level)
-{
-    bool silently = frame->silently;
-    struct pcvdom_element *p = frame->pos;
-
-    for (uint64_t i = 0; i < level; ++i) {
-        if (p == NULL) {
-            break;
-        }
-        p = pcvdom_element_parent(p);
-    }
-
-    if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(stack->co, p, name, val);
-    }
-
-    if (silently) {
-        return bind_at_coroutine(stack->co, name, val);
-    }
-    purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-            "no vdom element exists");
-    return -1;
-}
-
-static int
-bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        const char *name, purc_variant_t val)
-{
-    return bind_by_level(stack, frame, name, val, 1);
-}
-
 bool
 pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
         const char *id)
@@ -141,9 +93,162 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
 }
 
 static int
-bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+bind_at_frame(struct pcintr_stack_frame *frame, const char *name,
+        purc_variant_t v)
+{
+    purc_variant_t exclamation_var;
+    exclamation_var = pcintr_get_exclamation_var(frame);
+    if (purc_variant_is_object(exclamation_var) == false) {
+        purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
+                "temporary variable on stack frame is not object");
+        return -1;
+    }
+
+    purc_variant_t k = purc_variant_make_string(name, true);
+    if (k == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    bool ok = purc_variant_object_set(exclamation_var, k, v);
+    purc_variant_unref(k);
+
+    if (ok) {
+        purc_clr_error();
+        return 0;
+    }
+    return -1;
+}
+
+static int
+bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem,
+        const char *name, purc_variant_t val)
+{
+    return pcintr_bind_scope_variable(cor, elem, name, val) ? 0 : -1 ;
+}
+
+static int
+bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
+{
+    return purc_coroutine_bind_variable(cor, name, val) ? 0 : -1;
+}
+
+static int
+bind_temp_by_level(struct pcintr_stack_frame *frame,
+        const char *name, purc_variant_t val, uint64_t level)
+{
+    struct pcintr_stack_frame *p = frame;
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (parent == NULL) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no frame exists");
+        return -1;
+    }
+
+    for (uint64_t i=0; i<level; ++i) {
+        if (p == NULL) {
+            break;
+        }
+        p = pcintr_stack_frame_get_parent(p);
+    }
+
+    if (p == NULL) {
+        if (!frame->silently) {
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                    "no frame exists");
+            return -1;
+        }
+        p = parent;
+    }
+    return bind_at_frame(p, name, val);
+}
+
+static int
+bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *name, bool temporarily, purc_variant_t val, uint64_t level)
+{
+    if (temporarily) {
+        return bind_temp_by_level(frame, name, val, level);
+    }
+
+    bool silently = frame->silently;
+    struct pcvdom_element *p = frame->pos;
+
+    for (uint64_t i = 0; i < level; ++i) {
+        if (p == NULL) {
+            break;
+        }
+        p = pcvdom_element_parent(p);
+    }
+
+    if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
+        return bind_at_element(stack->co, p, name, val);
+    }
+
+    if (silently) {
+        return bind_at_coroutine(stack->co, name, val);
+    }
+    purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+            "no vdom element exists");
+    return -1;
+}
+
+static int
+bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *name, bool temporarily, purc_variant_t val)
+{
+    bool under_head = false;
+    struct pcvdom_element *element = frame->pos;
+    while ((element = pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            under_head = true;
+        }
+    }
+    if (under_head) {
+        return bind_at_coroutine(stack->co, name, val);
+    }
+    return bind_by_level(stack, frame, name, temporarily, val, 1);
+}
+
+static int
+bind_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *id, const char *name, purc_variant_t val)
 {
+    struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+    struct pcintr_stack_frame *dest_frame = NULL;
+    struct pcintr_stack_frame *p = frame;
+    while (p && p->pos) {
+        struct pcvdom_element *elem = p->pos;
+        if (pcintr_match_id(stack, elem, id)) {
+            dest_frame = p;
+            break;
+        }
+
+        p = pcintr_stack_frame_get_parent(p);
+    }
+
+    if (dest_frame == NULL) {
+        if (!frame->silently) {
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                    "no vdom element exists");
+            return -1;
+        }
+
+        // not found, bind at parent default
+        dest_frame = parent;
+    }
+
+    return bind_at_frame(dest_frame, name, val);
+}
+
+static int
+bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *id, const char *name, bool temporarily, purc_variant_t val)
+{
+    if (temporarily) {
+        return bind_temp_by_elem_id(stack, frame, id, name, val);
+    }
+
     struct pcvdom_element *p = frame->pos;
     struct pcvdom_element *dest = NULL;
     while (p) {
@@ -159,7 +264,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (frame->silently) {
-        return bind_at_default(stack, frame, name, val);
+        return bind_at_default(stack, frame, name, temporarily, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
@@ -170,7 +275,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 static int
 bind_by_name_space(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *ns, const char *name,
-        purc_variant_t val)
+        bool temporarily, purc_variant_t val)
 {
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, ns);
     if (atom == 0) {
@@ -178,11 +283,11 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
-        return bind_by_level(stack, frame, name, val, 1);
+        return bind_by_level(stack, frame, name, temporarily, val, 1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
-        return bind_by_level(stack, frame, name, val, 2);
+        return bind_by_level(stack, frame, name, temporarily, val, 2);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
@@ -190,11 +295,11 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
-        return bind_by_level(stack, frame, name, val, 1);
+        return bind_by_level(stack, frame, name, temporarily, val, 1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
-        return bind_by_level(stack, frame, name, val, 2);
+        return bind_by_level(stack, frame, name, temporarily, val, 2);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
@@ -203,7 +308,7 @@ bind_by_name_space(pcintr_stack_t stack,
 
 not_found:
     if (frame->silently) {
-        return bind_at_default(stack, frame, name, val);
+        return bind_at_default(stack, frame, name, temporarily, val);
     }
     purc_set_error_with_info(PURC_ERROR_BAD_NAME,
             "at = '%s'", name);
@@ -213,11 +318,11 @@ not_found:
 int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
-        purc_variant_t v)
+        bool temporarily, purc_variant_t v)
 {
     int bind_ret = -1;
     if (!at) {
-        bind_ret = bind_at_default(stack, frame, name, v);
+        bind_ret = bind_at_default(stack, frame, name, temporarily, v);
         goto out;
     }
 
@@ -225,21 +330,22 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         const char *s_at = purc_variant_get_string_const(at);
         if (s_at[0] == '#') {
             bind_ret = bind_by_elem_id(stack, frame, s_at + 1,
-                    name, v);
+                    name, temporarily, v);
         }
         else if (s_at[0] == '_') {
             bind_ret = bind_by_name_space(stack, frame, s_at,
-                    name, v);
+                    name, temporarily, v);
         }
         else {
             uint64_t level;
             bool ok = purc_variant_cast_to_ulongint(at, &level,
                     true);
             if (ok) {
-                bind_ret = bind_by_level(stack, frame, name, v, level);
+                bind_ret = bind_by_level(stack, frame, name, temporarily,
+                        v, level);
             }
             else {
-                bind_ret = bind_at_coroutine(stack->co, name, v);
+                bind_ret = bind_at_default(stack, frame, name, temporarily, v);
             }
         }
     }
@@ -247,10 +353,10 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         uint64_t level;
         bool ok = purc_variant_cast_to_ulongint(at, &level, true);
         if (ok) {
-            bind_ret = bind_by_level(stack, frame, name, v, level);
+            bind_ret = bind_by_level(stack, frame, name, temporarily, v, level);
         }
         else {
-            bind_ret = bind_at_coroutine(stack->co, name, v);
+            bind_ret = bind_at_default(stack, frame, name, temporarily, v);
         }
     }
 

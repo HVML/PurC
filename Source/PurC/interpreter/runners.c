@@ -1115,7 +1115,7 @@ purc_get_instmgr_rid(void)
     purc_atom_t atom;
     atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF, endpoint_name);
     if (atom == 0) {
-        purc_log_warn("No instance manager\n");
+        purc_log_warn("No instance manager: %s\n", endpoint_name);
     }
 
     return atom;
