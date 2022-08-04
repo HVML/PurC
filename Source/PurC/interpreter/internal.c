@@ -241,7 +241,7 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
                         v, level);
             }
             else {
-                bind_ret = bind_at_coroutine(stack->co, name, v);
+                bind_ret = bind_at_default(stack, frame, name, temporarily, v);
             }
         }
     }
@@ -252,7 +252,7 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
             bind_ret = bind_by_level(stack, frame, name, temporarily, v, level);
         }
         else {
-            bind_ret = bind_at_coroutine(stack->co, name, v);
+            bind_ret = bind_at_default(stack, frame, name, temporarily, v);
         }
     }
 
