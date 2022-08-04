@@ -6,7 +6,7 @@
     <body>
         <div id="grandparent">
             <div id="temp">
-                <init as="buttons" at="5">
+                <init as="buttons" at="5" silently>
                     [
                         { "letters": "7", "class": "number" },
                         { "letters": "7", "class": "number" },

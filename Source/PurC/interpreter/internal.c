@@ -144,13 +144,20 @@ bind_temp_by_level(struct pcintr_stack_frame *frame,
                 "no frame exists");
         return -1;
     }
-
-    for (uint64_t i=0; i<level; ++i) {
-        if (p == NULL) {
-            break;
+    if (level == (uint64_t)-1) {
+        while (p && p->pos && p->pos->tag_id != PCHVML_TAG_HVML) {
+            p = pcintr_stack_frame_get_parent(p);
         }
-        p = pcintr_stack_frame_get_parent(p);
     }
+    else {
+        for (uint64_t i = 0; i < level; ++i) {
+            if (p == NULL) {
+                break;
+            }
+            p = pcintr_stack_frame_get_parent(p);
+        }
+    }
+
 
     if (p == NULL) {
         if (!frame->silently) {
@@ -174,19 +181,34 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     bool silently = frame->silently;
     struct pcvdom_element *p = frame->pos;
 
-    for (uint64_t i = 0; i < level; ++i) {
-        if (p == NULL) {
-            break;
+    if (level == (uint64_t)-1) {
+        while (p && p->tag_id != PCHVML_TAG_HVML) {
+            p = pcvdom_element_parent(p);
         }
-        p = pcvdom_element_parent(p);
     }
+    else {
+        for (uint64_t i = 0; i < level; ++i) {
+            if (p == NULL) {
+                break;
+            }
+            p = pcvdom_element_parent(p);
+        }
+    }
+    purc_clr_error();
 
     if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
-        return bind_at_element(stack->co, p, name, val);
+        int ret = bind_at_element(stack->co, p, name, val);
+        return ret;
     }
 
     if (silently) {
-        return bind_at_coroutine(stack->co, name, val);
+        p = frame->pos;
+        while (p && p->tag_id != PCHVML_TAG_HVML) {
+            p = pcvdom_element_parent(p);
+        }
+        purc_clr_error();
+        return bind_at_element(stack->co, p, name, val);
+        //return bind_at_coroutine(stack->co, name, val);
     }
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
             "no vdom element exists");
@@ -198,14 +220,17 @@ bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val)
 {
     bool under_head = false;
-    struct pcvdom_element *element = frame->pos;
-    while ((element = pcvdom_element_parent(element))) {
-        if (element->tag_id == PCHVML_TAG_HEAD) {
-            under_head = true;
+    if (frame) {
+        struct pcvdom_element *element = frame->pos;
+        while ((element = pcvdom_element_parent(element))) {
+            if (element->tag_id == PCHVML_TAG_HEAD) {
+                under_head = true;
+            }
         }
+        purc_clr_error();
     }
     if (under_head) {
-        return bind_at_coroutine(stack->co, name, val);
+        return bind_by_level(stack, frame, name, temporarily, val, (uint64_t)-1);
     }
     return bind_by_level(stack, frame, name, temporarily, val, 1);
 }
@@ -259,6 +284,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         p = pcvdom_element_parent(p);
     }
 
+    purc_clr_error();
     if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
         return bind_at_element(stack->co, dest, name, val);
     }
@@ -291,7 +317,7 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
-        return bind_at_coroutine(stack->co, name, val);
+        return bind_by_level(stack, frame, name, temporarily, val, (uint64_t)-1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
@@ -303,7 +329,7 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
-        return bind_at_coroutine(stack->co, name, val);
+        return bind_by_level(stack, frame, name, temporarily, val, (uint64_t)-1);
     }
 
 not_found:

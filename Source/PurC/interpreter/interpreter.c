@@ -917,6 +917,8 @@ push_stack_frame_pseudo(pcintr_stack_t stack,
         child_frame->pos = vdom_element;
         child_frame->edom_element = NULL;
         child_frame->scope = NULL;
+        child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
+            1 : 0;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
 

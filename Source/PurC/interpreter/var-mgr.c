@@ -776,7 +776,7 @@ match_observe(void *native_entity, purc_variant_t val)
     pcvdom_element_t elem = obs->elem;
     while (elem) {
         pcvarmgr_t varmgr =
-            pcintr_get_scope_variables(obs->stack->co, obs->elem);
+            pcintr_get_scope_variables(obs->stack->co, elem);
         if (varmgr == comp) {
             return true;
         }
