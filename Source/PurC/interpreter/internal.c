@@ -197,6 +197,16 @@ static int
 bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val)
 {
+    bool under_head = false;
+    struct pcvdom_element *element = frame->pos;
+    while ((element = pcvdom_element_parent(element))) {
+        if (element->tag_id == PCHVML_TAG_HEAD) {
+            under_head = true;
+        }
+    }
+    if (under_head) {
+        return bind_at_coroutine(stack->co, name, val);
+    }
     return bind_by_level(stack, frame, name, temporarily, val, 1);
 }
 
