@@ -32,7 +32,9 @@
 
         <p>Totally $count numbers</p>
 
-        <exit with [$count, $last_two] />
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with [$count, $last_two] />
+        </observe>
 
     </body>
 

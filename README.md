@@ -343,12 +343,27 @@ Please refer to <https://github.com/HVML/xGUI-Pro> for detailed instructions to 
 Assume that you have started xGUI Pro from another terminal, then please run `purc` with the following options:
 
 ```bash
-$ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
+$ purc --rdr-prot=purcmc hvml/fibonacci-html-temp-rdr.hvml
 ```
 
-You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp.hvml`:
+Note that, in the above command line, we execute a modified version of Fibonacci Numbers: `hvml/fibonacci-html-temp-rdr.hvml`.
+If you compare these two versions, you will find that there is an `observe` element in the modified version:
+
+```hvml
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with [$count, $last_two] />
+        </observe>
+```
+
+If there is no such `observe` element, the HVML program will exit immediately after generated the HTML document.
+By using the `observe` element, the HVML program will wait for the time when the page created by the renderer is closed by the user (that is you).
+
+You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp-rdr.hvml`:
 
 ![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+
+If you close the window by clicking the close box on the caption bar,
+   the HTML program will exit as normally.
 
 For a complete HVML program which gives a better experience,
     you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
