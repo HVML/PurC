@@ -49,6 +49,7 @@ hvml src
 hvml param
 hvml method
 hvml onto
+hvml silently
 
 # executor
 hvml FORMULA

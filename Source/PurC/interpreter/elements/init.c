@@ -290,8 +290,30 @@ _bind_src_by_id(pcintr_coroutine_t co,
     bool silently = frame->silently;
 
     if (ctxt->temporarily) {
-        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-        return -1;
+        struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+        struct pcintr_stack_frame *dest_frame = NULL;
+        struct pcintr_stack_frame *p = frame;
+        while (p && p->pos) {
+            struct pcvdom_element *elem = p->pos;
+            if (match_id(co, elem, id)) {
+                dest_frame = p;
+                break;
+            }
+
+            p = pcintr_stack_frame_get_parent(p);
+        }
+
+        if (dest_frame == NULL) {
+            if (!silently) {
+                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                        "no vdom element exists");
+                return -1;
+            }
+
+            // not found, bind at parent default
+            dest_frame = parent;
+        }
+        return _bind_src_at_frame(co, dest_frame, ctxt->as, src);
     }
     else {
         struct pcvdom_element *p = frame->pos;
@@ -318,11 +340,6 @@ _bind_src_by_id(pcintr_coroutine_t co,
                 return -1;
             }
             p = parent;
-            if (match_id(co, p, id) == false) {
-                purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
-                        "no vdom element exists");
-                return -1;
-            }
         }
         return _bind_src_at_vdom(co, p, ctxt->as, src);
     }
@@ -845,6 +862,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNC)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->async = 0;
+        return 0;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
         return 0;
     }
 
