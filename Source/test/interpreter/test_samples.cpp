@@ -188,8 +188,7 @@ add_sample(const struct sample_data *sample)
 
 TEST(samples, basic)
 {
-    bool enable_remote_fetcher = true;
-    PurCInstance purc(enable_remote_fetcher);
+    PurCInstance purc(false);
 
     ASSERT_TRUE(purc);
 

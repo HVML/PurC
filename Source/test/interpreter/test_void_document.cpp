@@ -217,8 +217,7 @@ TEST(void_doc, hello)
 
 TEST(void_doc, files)
 {
-    bool enable_remote_fetcher = true;
-    PurCInstance purc(enable_remote_fetcher);
+    PurCInstance purc(false);
 
     ASSERT_TRUE(purc);
 

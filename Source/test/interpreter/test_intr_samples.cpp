@@ -272,8 +272,7 @@ process_file(const char *file)
 
 TEST(samples, files)
 {
-    bool enable_remote_fetcher = true;
-    PurCInstance purc(enable_remote_fetcher);
+    PurCInstance purc(false);
 
     ASSERT_TRUE(purc);
 

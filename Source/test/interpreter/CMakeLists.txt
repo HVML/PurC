@@ -2,6 +2,11 @@ include(PurCCommon)
 include(target/PurC)
 include(GoogleTest)
 
+PURC_COPY_FILES(TEST_Assets
+    DESTINATION "${CMAKE_BINARY_DIR}"
+    FILES "assets/buttons.json"
+)
+
 enable_testing()
 
 # test_vcm_eval
