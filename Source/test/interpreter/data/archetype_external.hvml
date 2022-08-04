@@ -1,8 +1,6 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
     <head>
-        <base href="http://files.fmsoft.cn/calculator/" />
-
         <init as="buttons">
             [
                 { "letters": "7", "class": "number" },

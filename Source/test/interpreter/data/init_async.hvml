@@ -1,8 +1,6 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
 <head>
-    <base href="http://files.fmsoft.cn/calculator/" />
-
     <init as="buttons" from="file://{$SYS.cwd}/assets/buttons.json" async />
 </head>
 

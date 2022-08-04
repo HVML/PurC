@@ -1,8 +1,7 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <base href="https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/" />
-        <init as="buttons" from="file://{$SYS.cwd}/assets/calc-buttons.json" />
+        <init as="buttons" from="file://{$SYS.cwd}/assets/buttons.json" />
         <init as="fibonacci" temp>
             [0, 1, ]
         </init>
