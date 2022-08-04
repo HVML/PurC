@@ -37,13 +37,13 @@ By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
 
+To learn the basic concepts about HVML programming, please refer to the following tutorial:
+
+- [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
+
 For more information about HVML, please refer to the article (10% complete):
 
 - [HVML, a Programable Markup Language](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
-
-To learn the basic concepts about HVML programming, please refer to the following tutorial (80% complete):
-
-- [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
 
 For specifications and open source software related to HVML, please refer to the following repositories:
 
@@ -61,11 +61,11 @@ For specifications and open source software related to HVML, please refer to the
 To build PurC, make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. cmake
-1. GCC 8.0 or later.
-1. glib 2.44.0 or later.
-1. Python 3.
-1. BISON 3.0 or later.
-1. FLEX 2.6.4 or later.
+1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
+1. glib 2.44.0 or later
+1. Python 3
+1. BISON 3.0 or later
+1. FLEX 2.6.4 or later
 
 Althrough the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
@@ -124,7 +124,9 @@ PurC uses the following environment variables for different purposes:
 ## Using `purc`
 
 The following sections assume that you have installed PurC to your system,
-and the command line tool `purc` has been installed into `/usr/local/bin/`.
+    and the command line tool `purc` has been installed into `/usr/local/bin/`.
+Make sure that you have added `/usr/local/lib` to `/etc/ld.so.conf` and run `sudo ldconfig` command,
+     in order that the system can find the shared library of PurC you just installed into `/usr/local/lib`.
 
 ### Run a single HVML program
 
@@ -343,12 +345,27 @@ Please refer to <https://github.com/HVML/xGUI-Pro> for detailed instructions to 
 Assume that you have started xGUI Pro from another terminal, then please run `purc` with the following options:
 
 ```bash
-$ purc --rdr-prot=purcmc hvml/fibonacci-html-temp.hvml
+$ purc --rdr-prot=purcmc hvml/fibonacci-html-temp-rdr.hvml
 ```
 
-You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp.hvml`:
+Note that, in the above command line, we execute a modified version of Fibonacci Numbers: `hvml/fibonacci-html-temp-rdr.hvml`.
+If you compare these two versions, you will find that there is an `observe` element in the modified version:
+
+```hvml
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with [$count, $last_two] />
+        </observe>
+```
+
+If there is no such `observe` element, the HVML program will exit immediately after generated the HTML document.
+By using the `observe` element, the HVML program will wait for the time when the page created by the renderer is closed by the user (that is you).
+
+You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp-rdr.hvml`:
 
 ![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+
+If you close the window by clicking the close box on the caption bar,
+   the HTML program will exit as normally.
 
 For a complete HVML program which gives a better experience,
     you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
@@ -719,15 +736,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [HybridOS]: https://hybridos.fmsoft.cn
 
 [HVML]: https://github.com/HVML
-[MiniGUI]: http:/www.minigui.com
+[Vincent Wei]: https://github.com/VincentWei
+[MiniGUI]: https://github.com/VincentWei/minigui
 [WebKit]: https://webkit.org
 [HTML 5.3]: https://www.w3.org/TR/html53/
 [DOM Specification]: https://dom.spec.whatwg.org/
 [WebIDL Specification]: https://heycam.github.io/webidl/
 [CSS 2.2]: https://www.w3.org/TR/CSS22/
 [CSS Box Model Module Level 3]: https://www.w3.org/TR/css-box-3/
-
-[Vincent Wei]: https://github.com/VincentWei
 
 [React.js]: https://reactjs.org
 [Vue.js]: https://vuejs.org

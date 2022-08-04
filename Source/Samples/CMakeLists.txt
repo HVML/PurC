@@ -27,6 +27,7 @@ set(sample_HVML_FILES
     "hvml/hello-world.json"
     "hvml/fibonacci-void-temp.hvml"
     "hvml/fibonacci-html-temp.hvml"
+    "hvml/fibonacci-html-temp-rdr.hvml"
     "hvml/calculator-bc.hvml"
     "hvml/planetary-resonance-lines.hvml"
     "hvml/planetary-resonance.hvml"
