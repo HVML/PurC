@@ -89,7 +89,7 @@
 1. ~~The samples with bad result:~~
    - ~~Incorrect evaluation logic of a CJSONEE with `&&` and `||`.~~
    - ~~`hvml/greatest-common-divisor.hvml`: Adjust the evaluating logic of CJSONSEE.~~
-   - ~~`hvml/hello-world-c-bad.hvml`: `$0<) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid"; expected: `0) 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # $CRTN.cid`; but got `0`.~~
+   - ~~`hvml/hello-world-c-bad.hvml`: `$0<) Helo, world! -- from HVML COROUTINE # $CRTN.cid"; expected: `0) Helo, world! -- from HVML COROUTINE # $CRTN.cid`; but got `0`.~~
 1. _Improve eJSON parser to support the following patterns:_
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
