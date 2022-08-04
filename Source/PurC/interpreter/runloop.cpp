@@ -258,7 +258,6 @@ static void _runloop_init_main(void)
             PC_ASSERT(&runloop == &RunLoop::current());
 
             struct instmgr_info info = { rid_main, 0, NULL };
-            semaphore.signal();
 
             int ret;
             purc_atom_t atom;
@@ -276,6 +275,7 @@ static void _runloop_init_main(void)
                 purc_log_error("Failed to create move buffer for InstMgr.\n");
                 return;
             }
+            semaphore.signal();
 
             pcinst_current()->is_instmgr = 1;
             info.sa_insts = pcutils_sorted_array_create(SAFLAG_DEFAULT, 0,
