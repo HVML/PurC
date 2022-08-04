@@ -70,8 +70,9 @@ bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
 
 static int
 bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        const char *name, purc_variant_t val, uint64_t level)
+        const char *name, bool temporarily, purc_variant_t val, uint64_t level)
 {
+    UNUSED_PARAM(temporarily);
     bool silently = frame->silently;
     struct pcvdom_element *p = frame->pos;
 
@@ -96,9 +97,9 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
 static int
 bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        const char *name, purc_variant_t val)
+        const char *name, bool temporarily, purc_variant_t val)
 {
-    return bind_by_level(stack, frame, name, val, 1);
+    return bind_by_level(stack, frame, name, temporarily, val, 1);
 }
 
 bool
@@ -142,7 +143,7 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
 
 static int
 bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        const char *id, const char *name, purc_variant_t val)
+        const char *id, const char *name, bool temporarily, purc_variant_t val)
 {
     struct pcvdom_element *p = frame->pos;
     struct pcvdom_element *dest = NULL;
@@ -159,7 +160,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     }
 
     if (frame->silently) {
-        return bind_at_default(stack, frame, name, val);
+        return bind_at_default(stack, frame, name, temporarily, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
@@ -170,7 +171,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 static int
 bind_by_name_space(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *ns, const char *name,
-        purc_variant_t val)
+        bool temporarily, purc_variant_t val)
 {
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, ns);
     if (atom == 0) {
@@ -178,11 +179,11 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
-        return bind_by_level(stack, frame, name, val, 1);
+        return bind_by_level(stack, frame, name, temporarily, val, 1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
-        return bind_by_level(stack, frame, name, val, 2);
+        return bind_by_level(stack, frame, name, temporarily, val, 2);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
@@ -190,11 +191,11 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
-        return bind_by_level(stack, frame, name, val, 1);
+        return bind_by_level(stack, frame, name, temporarily, val, 1);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
-        return bind_by_level(stack, frame, name, val, 2);
+        return bind_by_level(stack, frame, name, temporarily, val, 2);
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
@@ -203,7 +204,7 @@ bind_by_name_space(pcintr_stack_t stack,
 
 not_found:
     if (frame->silently) {
-        return bind_at_default(stack, frame, name, val);
+        return bind_at_default(stack, frame, name, temporarily, val);
     }
     purc_set_error_with_info(PURC_ERROR_BAD_NAME,
             "at = '%s'", name);
@@ -215,10 +216,9 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
         bool temporarily, purc_variant_t v)
 {
-    UNUSED_PARAM(temporarily);
     int bind_ret = -1;
     if (!at) {
-        bind_ret = bind_at_default(stack, frame, name, v);
+        bind_ret = bind_at_default(stack, frame, name, temporarily, v);
         goto out;
     }
 
@@ -226,18 +226,19 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         const char *s_at = purc_variant_get_string_const(at);
         if (s_at[0] == '#') {
             bind_ret = bind_by_elem_id(stack, frame, s_at + 1,
-                    name, v);
+                    name, temporarily, v);
         }
         else if (s_at[0] == '_') {
             bind_ret = bind_by_name_space(stack, frame, s_at,
-                    name, v);
+                    name, temporarily, v);
         }
         else {
             uint64_t level;
             bool ok = purc_variant_cast_to_ulongint(at, &level,
                     true);
             if (ok) {
-                bind_ret = bind_by_level(stack, frame, name, v, level);
+                bind_ret = bind_by_level(stack, frame, name, temporarily,
+                        v, level);
             }
             else {
                 bind_ret = bind_at_coroutine(stack->co, name, v);
@@ -248,7 +249,7 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         uint64_t level;
         bool ok = purc_variant_cast_to_ulongint(at, &level, true);
         if (ok) {
-            bind_ret = bind_by_level(stack, frame, name, v, level);
+            bind_ret = bind_by_level(stack, frame, name, temporarily, v, level);
         }
         else {
             bind_ret = bind_at_coroutine(stack->co, name, v);
