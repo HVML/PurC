@@ -124,7 +124,9 @@ PurC uses the following environment variables for different purposes:
 ## Using `purc`
 
 The following sections assume that you have installed PurC to your system,
-and the command line tool `purc` has been installed into `/usr/local/bin/`.
+    and the command line tool `purc` has been installed into `/usr/local/bin/`.
+Make sure that you have added `/usr/local/lib` to `/etc/ld.so.conf` and run `sudo ldconfig` command,
+     in order that the system can find the shared library of PurC you just installed into `/usr/local/lib`.
 
 ### Run a single HVML program
 
