@@ -501,7 +501,7 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
 int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
-        purc_variant_t v);
+        bool temporarily, purc_variant_t v);
 
 purc_vdom_t
 pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,

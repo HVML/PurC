@@ -213,8 +213,9 @@ not_found:
 int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
-        purc_variant_t v)
+        bool temporarily, purc_variant_t v)
 {
+    UNUSED_PARAM(temporarily);
     int bind_ret = -1;
     if (!at) {
         bind_ret = bind_at_default(stack, frame, name, v);
