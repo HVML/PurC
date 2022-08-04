@@ -26,11 +26,11 @@ for x in $TEST_PROGS; do
     echo ">> Start of $x"
     if test $USE_VALGRIND -eq 0; then
         if test $SHOW_STDERR -eq 0; then
-            echo ">> STDERR OF $x" > /var/tmp/purc-tests.log
+            echo ">> STDERR OF $x" >> /var/tmp/purc-tests.log
             ./$x 2>> /var/tmp/purc-tests.log
             RESULT=$?
-            echo "<< END OF STDERR OF $x" > /var/tmp/purc-tests.log
-            echo "" > /var/tmp/purc-tests.log
+            echo "<< END OF STDERR OF $x" >> /var/tmp/purc-tests.log
+            echo "" >> /var/tmp/purc-tests.log
         else
             ./$x
             RESULT=$?
