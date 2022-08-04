@@ -126,7 +126,7 @@ bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem,
     return pcintr_bind_scope_variable(cor, elem, name, val) ? 0 : -1 ;
 }
 
-static int
+static inline int
 bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
 {
     return purc_coroutine_bind_variable(cor, name, val) ? 0 : -1;
