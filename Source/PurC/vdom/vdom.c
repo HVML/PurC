@@ -1335,6 +1335,10 @@ pcvdom_element_is_hvml_operation(struct pcvdom_element *element)
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 {
+    if (PCVDOM_NODE_IS_DOCUMENT(&element->node)) {
+        return NULL;
+    }
+
     struct pcutils_map *attrs = element->attrs;
     if (!attrs)
         return NULL;

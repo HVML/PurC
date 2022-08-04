@@ -101,8 +101,9 @@ bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     return bind_by_level(stack, frame, name, val, 1);
 }
 
-static bool
-match_id(pcintr_stack_t stack, struct pcvdom_element *elem, const char *id)
+bool
+pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
+        const char *id)
 {
     if (elem->node.type == PCVDOM_NODE_DOCUMENT) {
         return false;
@@ -146,7 +147,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     struct pcvdom_element *p = frame->pos;
     struct pcvdom_element *dest = NULL;
     while (p) {
-        if (match_id(stack, p, id)) {
+        if (pcintr_match_id(stack, p, id)) {
             dest = p;
             break;
         }
