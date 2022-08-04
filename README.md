@@ -737,7 +737,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 [HVML]: https://github.com/HVML
 [Vincent Wei]: https://github.com/VincentWei
-[MiniGUI]: https:/github.com/VincentWei/minigui
+[MiniGUI]: https://github.com/VincentWei/minigui
 [WebKit]: https://webkit.org
 [HTML 5.3]: https://www.w3.org/TR/html53/
 [DOM Specification]: https://dom.spec.whatwg.org/
