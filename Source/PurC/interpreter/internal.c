@@ -133,10 +133,44 @@ bind_at_coroutine(purc_coroutine_t cor, const char *name, purc_variant_t val)
 }
 
 static int
+bind_temp_by_level(struct pcintr_stack_frame *frame,
+        const char *name, purc_variant_t val, uint64_t level)
+{
+    struct pcintr_stack_frame *p = frame;
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (parent == NULL) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no frame exists");
+        return -1;
+    }
+
+    for (uint64_t i=0; i<level; ++i) {
+        if (p == NULL) {
+            break;
+        }
+        p = pcintr_stack_frame_get_parent(p);
+    }
+
+    if (p == NULL) {
+        if (!frame->silently) {
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                    "no frame exists");
+            return -1;
+        }
+        p = parent;
+    }
+    return bind_at_frame(p, name, val);
+}
+
+static int
 bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val, uint64_t level)
 {
-    UNUSED_PARAM(temporarily);
+    if (temporarily) {
+        return bind_temp_by_level(frame, name, val, level);
+    }
+
     bool silently = frame->silently;
     struct pcvdom_element *p = frame->pos;
 
@@ -166,7 +200,7 @@ bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     return bind_by_level(stack, frame, name, temporarily, val, 1);
 }
 
-int
+static int
 bind_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *id, const char *name, purc_variant_t val)
 {
