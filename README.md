@@ -61,11 +61,11 @@ For specifications and open source software related to HVML, please refer to the
 To build PurC, make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. cmake
-1. GCC 8.0 or later.
-1. glib 2.44.0 or later.
-1. Python 3.
-1. BISON 3.0 or later.
-1. FLEX 2.6.4 or later.
+1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
+1. glib 2.44.0 or later
+1. Python 3
+1. BISON 3.0 or later
+1. FLEX 2.6.4 or later
 
 Althrough the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
