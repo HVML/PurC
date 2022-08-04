@@ -37,13 +37,13 @@ By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
 
+To learn the basic concepts about HVML programming, please refer to the following tutorial:
+
+- [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
+
 For more information about HVML, please refer to the article (10% complete):
 
 - [HVML, a Programable Markup Language](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
-
-To learn the basic concepts about HVML programming, please refer to the following tutorial (80% complete):
-
-- [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
 
 For specifications and open source software related to HVML, please refer to the following repositories:
 
