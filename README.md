@@ -734,15 +734,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [HybridOS]: https://hybridos.fmsoft.cn
 
 [HVML]: https://github.com/HVML
-[MiniGUI]: http:/www.minigui.com
+[Vincent Wei]: https://github.com/VincentWei
+[MiniGUI]: https:/github.com/VincentWei/minigui
 [WebKit]: https://webkit.org
 [HTML 5.3]: https://www.w3.org/TR/html53/
 [DOM Specification]: https://dom.spec.whatwg.org/
 [WebIDL Specification]: https://heycam.github.io/webidl/
 [CSS 2.2]: https://www.w3.org/TR/CSS22/
 [CSS Box Model Module Level 3]: https://www.w3.org/TR/css-box-3/
-
-[Vincent Wei]: https://github.com/VincentWei
 
 [React.js]: https://reactjs.org
 [Vue.js]: https://vuejs.org
