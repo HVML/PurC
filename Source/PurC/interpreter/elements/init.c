@@ -247,39 +247,6 @@ _bind_src_by_level(pcintr_coroutine_t co,
     }
 }
 
-static bool
-match_id(pcintr_coroutine_t co,
-        struct pcvdom_element *elem, const char *id)
-{
-    struct pcvdom_attr *attr;
-    attr = pcvdom_element_find_attr(elem, "id");
-    if (!attr)
-        return false;
-
-    bool silently = false;
-    purc_variant_t v = pcvcm_eval(attr->val, &co->stack, silently);
-    purc_clr_error();
-    if (v == PURC_VARIANT_INVALID)
-        return false;
-
-    bool matched = false;
-
-    do {
-        if (purc_variant_is_string(v) == false)
-            break;
-        const char *sv = purc_variant_get_string_const(v);
-        if (!sv)
-            break;
-
-        if (strcmp(sv, id) == 0)
-            matched = true;
-    } while (0);
-
-    purc_variant_unref(v);
-
-    return matched;
-}
-
 static int
 _bind_src_by_id(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame, purc_variant_t src, const char *id)
@@ -295,7 +262,7 @@ _bind_src_by_id(pcintr_coroutine_t co,
         struct pcintr_stack_frame *p = frame;
         while (p && p->pos) {
             struct pcvdom_element *elem = p->pos;
-            if (match_id(co, elem, id)) {
+            if (pcintr_match_id(&co->stack, elem, id)) {
                 dest_frame = p;
                 break;
             }
@@ -329,7 +296,7 @@ _bind_src_by_id(pcintr_coroutine_t co,
         while (p) {
             if (p == NULL)
                 break;
-            if (match_id(co, p, id))
+            if (pcintr_match_id(&co->stack, p, id))
                 break;
             p = pcvdom_element_parent(p);
         }
