@@ -78,7 +78,7 @@ size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf)
 size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf)
 {
     size_t i;
-    const char* unknown = "unknown-cmdline";
+    const char* unknown = "unknown.cmdline";
 
     UNUSED_PARAM(arg);
 
