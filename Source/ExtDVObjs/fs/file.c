@@ -359,7 +359,7 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    ssize_t     line_num = 0;
+    int64_t     line_num = 0;
     const char *filename = NULL;
     FILE       *fp = NULL;
     //purc_variant_t val;
@@ -420,7 +420,7 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    ssize_t     line_num = 0;
+    int64_t     line_num = 0;
     const char *filename = NULL;
     FILE       *fp = NULL;
     //purc_variant_t val;

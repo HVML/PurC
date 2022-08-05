@@ -359,6 +359,7 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
     }
 
     bool has_except = true;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
 
     if (!ctxt->resp || ctxt->ret_code != 200) {
         purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
@@ -366,7 +367,7 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
         goto dispatch_except;
     }
 
-    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    ret = purc_variant_load_from_json_stream(ctxt->resp);
     if (ret == PURC_VARIANT_INVALID)
         goto dispatch_except;
 

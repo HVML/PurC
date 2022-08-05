@@ -2797,10 +2797,13 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args > 3) {
         // Get the offset
-        if (! purc_variant_cast_to_ulongint (argv[3], &length, false)) {
+        uint64_t len;
+        if (! purc_variant_cast_to_ulongint (argv[3], &len, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
+
+        length = len;
     }
 
     // Parse flags

@@ -645,7 +645,10 @@ method_from_via(enum VIA via)
             method = PCFETCHER_REQUEST_METHOD_GET;
             break;
         default:
-            PC_ASSERT(0);
+            // TODO VW: raise exception for no required value
+            // PC_ASSERT(0);
+            method = PCFETCHER_REQUEST_METHOD_GET;
+            break;
     }
 
     return method;
@@ -664,7 +667,9 @@ params_from_with(struct ctxt_for_init *ctxt)
         params = purc_variant_ref(with);
     }
     else {
-        PC_ASSERT(0);
+        // TODO VW: raise exceptioin for no suitable value.
+        // PC_ASSERT(0);
+        params = purc_variant_make_object_0();
     }
 
     PURC_VARIANT_SAFE_CLEAR(ctxt->params);

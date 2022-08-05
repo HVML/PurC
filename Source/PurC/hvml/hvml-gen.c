@@ -212,7 +212,7 @@ is_top_node_of_body(struct pcvdom_gen *gen)
     return gen->doc->body == elem ? true : false;
 }
 
-static inline bool
+UNUSED_FUNCTION static inline bool
 is_top_node_of_hvml_verb_cat(struct pcvdom_gen *gen)
 {
     struct pcvdom_node *top = top_node(gen);
