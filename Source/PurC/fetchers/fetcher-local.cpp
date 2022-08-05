@@ -199,7 +199,7 @@ purc_variant_t pcfetcher_local_request_async(
     runloop->dispatch([info] {
 #else
     // random
-    double tm = randomNumber() * 10;
+    double tm = randomNumber() * 5;
     runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
                 if (!info->cancelled) {
