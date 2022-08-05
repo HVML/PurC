@@ -1,0 +1,34 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="calculator">
+            <div id="c_value">
+                <archetype name="button">
+                    <li class="$?.class">$?.letters</li>
+                </archetype>
+
+                <ul>
+                    <init>
+                        [
+                            { "letters": "7", "class": "number" },
+                            { "letters": "8", "class": "number" },
+                            { "letters": "9", "class": "number" },
+                        ]
+                        <iterate on="$?">
+                            <update on="$@" to="append" with="$button" />
+                            <except type="NoData" raw>
+                                <p>Bad data!</p>
+                            </except>
+                        </iterate>
+                    </init>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+

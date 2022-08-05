@@ -5,11 +5,11 @@
 
     <body>
         <div>
-            <init>
+            <fire>
                 <catch for="ArgumentMissed">
                     <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
                 </catch>
-            </init>
+            </fire>
         </div>
         <catch for="InvalidValue">
             <update on="$@" at="attr.invalid_value" to="displace" with="matched" />

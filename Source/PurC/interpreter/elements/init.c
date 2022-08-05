@@ -121,9 +121,15 @@ _bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
 {
     UNUSED_PARAM(under_head);
-    const char *name = purc_variant_get_string_const(as);
-    int ret = pcintr_bind_named_variable(&co->stack,
-        frame, name, at, temporarily, src);
+    int ret = 0;
+    if (as) {
+        const char *name = purc_variant_get_string_const(as);
+        ret = pcintr_bind_named_variable(&co->stack,
+            frame, name, at, temporarily, src);
+    }
+    else {
+        pcintr_set_question_var(frame, src);
+    }
     return ret;
 }
 
@@ -1086,11 +1092,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     purc_clr_error(); // pcvdom_element_parent
 
     if (ctxt->as == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                    "lack of vdom attribute 'as' for element <%s>",
-                    frame->pos->tag_name);
-
-        return ctxt;
+        ctxt->async = 0;
     }
 
     if (ctxt->via == VIA_LOAD) {
