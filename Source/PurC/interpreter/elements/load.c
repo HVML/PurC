@@ -105,7 +105,7 @@ on_continuation(void *ud, pcrdr_msg *msg)
     }
 
     s_msg_sub_type = p + 1;
-    if (0 == strcmp(s_msg_sub_type, "success")) {
+    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_SUCCESS)) {
         purc_variant_t payload = msg->data;
 
         int r = pcintr_set_question_var(frame, payload);
@@ -113,12 +113,16 @@ on_continuation(void *ud, pcrdr_msg *msg)
         return;
     }
 
-    if (0 == strcmp(s_msg_sub_type, "except")) {
+    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_EXCEPT)) {
         purc_variant_t payload = msg->data;
 
         const char *s = purc_variant_get_string_const(payload);
         purc_set_error_with_info(PURC_ERROR_UNKNOWN,
                 "sub coroutine failed with except: %s", s);
+        return;
+    }
+
+    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_OBSERVING)) {
         return;
     }
 

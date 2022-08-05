@@ -179,7 +179,22 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         co->run_idx++;
     }
 
-    stack->co->stage = CO_STAGE_OBSERVING;
+    if (stack->co->stage != CO_STAGE_OBSERVING) {
+        stack->co->stage = CO_STAGE_OBSERVING;
+        // POST corState:observing
+#if 0
+        if (co->curator) {
+            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
+            pcintr_coroutine_post_event(co->curator, // target->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    request_id,
+                    MSG_TYPE_CORSTATE, MSG_SUB_TYPE_OBSERVING,
+                    PURC_VARIANT_INVALID, request_id);
+            purc_variant_unref(request_id);
+        }
+#endif
+
+    }
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
 
     if (co->stack.except) {

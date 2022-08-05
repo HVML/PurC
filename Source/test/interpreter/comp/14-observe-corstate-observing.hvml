@@ -1,0 +1,47 @@
+#!/usr/bin/purc
+
+# RESULT: 'success'
+
+<!-- The expected output of this HVML program will be like:
+
+# Receive corState:observing
+# Receive corState:exited
+
+-->
+
+<hvml target="void">
+    <body>
+
+        <load from "#subPage" onto "_null" as "subPage" async />
+
+        <observe on $subPage for "corState:observing" >
+            <inherit>
+                $STREAM.stdout.writelines('# Receive corState:observing')
+            </inherit>
+        </observe>
+
+        <observe on $subPage for "corState:exited" >
+            <inherit>
+                $STREAM.stdout.writelines('# Receive corState:exited')
+            </inherit>
+            <exit with 'success' />
+        </observe>
+
+    </body>
+
+    <body id="subPage">
+        <update on="$TIMERS" to="displace">
+            [
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <update on="$TIMERS" to="overwrite">
+            { "id" : "clock", "active" : "no" }
+            </update>
+            <forget on="$TIMERS" for="expired:clock"/>
+        </observe>
+
+    </body>
+</hvml>
