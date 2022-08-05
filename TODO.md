@@ -31,9 +31,9 @@
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
-1) [0.8.2] Support for prefix for foreign tag name.
+### 1.2.1) [0.8.2] Support for prefix for foreign tag name.
 
-2) [0.8.2] Support for using Unihan characters in variable names and property/method names.
+### 1.2.2) [0.8.2] Support for using Unihan characters in variable names and property/method names.
 
 Examples:
 
@@ -46,9 +46,11 @@ References:
 - Section 2.2.2 of [HVML Specifiction V1.0]
 - [UNICODE HAN DATABASE](https://www.unicode.org/reports/tr38/)
 
-3) [0.8.2] Optimize the content evalution of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
 
-4) Support for tuples.
+### 1.2.3) Others
+
+1. [0.8.2] Optimize the content evalution of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
+1. Support for tuples.
 
 ### 1.3) Predefined Varaibles
 
