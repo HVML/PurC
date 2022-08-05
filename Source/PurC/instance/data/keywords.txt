@@ -50,6 +50,7 @@ hvml param
 hvml method
 hvml onto
 hvml silently
+hvml noreturn
 
 # executor
 hvml FORMULA

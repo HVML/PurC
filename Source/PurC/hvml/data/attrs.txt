@@ -96,3 +96,6 @@ within
 
 silently
     type: prep
+
+noreturn
+    type: prep
