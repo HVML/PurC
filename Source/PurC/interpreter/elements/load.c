@@ -37,6 +37,7 @@
 #include <unistd.h>
 
 #define EVENT_SEPARATOR          ':'
+#define LOAD_EVENT_HANDER  "_load_event_handler"
 
 struct ctxt_for_load {
     struct pcvdom_node           *curr;
@@ -129,6 +130,52 @@ on_continuation(void *ud, pcrdr_msg *msg)
     PC_ASSERT(0);
 }
 
+static bool
+is_yield_event_handler_match(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
+{
+    UNUSED_PARAM(handler);
+    bool match = false;
+    if (!purc_variant_is_equal_to(co->wait_request_id, msg->requestId)) {
+        goto out;
+    }
+
+    const char *s = purc_variant_get_string_const(msg->eventName);
+    const char *p = strchr(s, EVENT_SEPARATOR);
+    const char *s_msg_sub_type = NULL;
+    if (!p) {
+        goto out;
+    }
+
+    s_msg_sub_type = p + 1;
+    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_SUCCESS)
+        || 0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_EXCEPT)) {
+        match = true;
+    }
+
+out:
+    *observed = match;
+    return match;
+}
+
+static int
+yield_event_handle(struct pcintr_event_handler *handler,
+        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
+        bool *performed)
+{
+    UNUSED_PARAM(handler);
+    UNUSED_PARAM(msg);
+
+    *remove_handler = true;
+    *performed = true;
+
+    pcintr_set_current_co(co);
+    pcintr_resume(co, msg);
+    pcintr_set_current_co(NULL);
+
+    return PURC_ERROR_OK;
+}
+
 static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -187,8 +234,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->synchronously) {
+        pcintr_coroutine_add_event_handler(co,  LOAD_EVENT_HANDER,
+                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
+                ctxt, yield_event_handle, is_yield_event_handler_match, false);
         pcintr_yield(frame, on_continuation, ctxt->request_id,
-                     PURC_VARIANT_INVALID,PURC_VARIANT_INVALID, false);
+                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, true);
         return 0;
     }
 

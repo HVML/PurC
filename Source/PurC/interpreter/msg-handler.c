@@ -745,17 +745,27 @@ pcintr_post_event(purc_atom_t cid,
         purc_variant_ref(msg->requestId);
     }
 
+    int ret;
     // XXX: only broadcast self inst coroutine
     if (cid == PURC_EVENT_TARGET_BROADCAST) {
-        return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+        ret = purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+        goto out;
     }
 
     struct pcinst *inst = pcinst_current();
     purc_atom_t rid = purc_get_rid_by_cid(cid);
     if (inst->endpoint_atom == rid) {
-        return purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+        ret = purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
+        goto out;
     }
-    return purc_inst_post_event(rid, msg);
+    ret = purc_inst_post_event(rid, msg);
+
+out:
+    // clone messae set type error purc_variant_get_string_const
+    if (purc_get_last_error() == PCVARIANT_ERROR_INVALID_TYPE) {
+        purc_clr_error();
+    }
+    return ret;
 }
 
 int

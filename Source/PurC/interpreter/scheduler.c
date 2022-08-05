@@ -182,7 +182,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (stack->co->stage != CO_STAGE_OBSERVING) {
         stack->co->stage = CO_STAGE_OBSERVING;
         // POST corState:observing
-#if 0
         if (co->curator) {
             purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
@@ -192,8 +191,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     PURC_VARIANT_INVALID, request_id);
             purc_variant_unref(request_id);
         }
-#endif
-
     }
     pcintr_coroutine_set_state(co, CO_STATE_OBSERVING);
 
@@ -364,10 +361,6 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
             handle_rdr_conn_lost(inst);
         }
         purc_set_error(last_err);
-
-        if (last_err) {
-            purc_set_error(last_err);
-        }
     }
 }
 
