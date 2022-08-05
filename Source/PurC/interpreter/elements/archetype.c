@@ -351,15 +351,15 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->co == co);
 
-    // struct pcvdom_element *element = frame->pos;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
 
+    // struct pcvdom_element *element = frame->pos;
     if (ctxt->ret_code == RESP_CODE_USER_STOP) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto clean_rws;
     }
 
     bool has_except = true;
-    purc_variant_t ret = PURC_VARIANT_INVALID;
 
     if (!ctxt->resp || ctxt->ret_code != 200) {
         purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
