@@ -1712,15 +1712,11 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    // TODO: Use the portable `statfs()` here.
 #if !OS(LINUX)
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return PURC_VARIANT_INVALID;
-#else
-    const char *string_dir = NULL;
     struct mntent *mnt;
+#endif //!OS(LINUX)
+
+    const char *string_dir = NULL;
     struct statfs fsu;
     struct stat   st;
     FILE *fp;
@@ -1745,11 +1741,13 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_boolean (false);
     }
 
+#if !OS(LINUX)
     mnt = getmntent (fp);
     if (NULL == mnt) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
     }
+#endif //!OS(LINUX)
 
     if (statfs (string_dir, &fsu) != 0) {
         set_purc_error_by_errno ();
@@ -1784,10 +1782,12 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_object_set_by_static_ckey (ret_var, "total_inodes", val);
     purc_variant_unref (val);
 
+#if !OS(LINUX)
     // mount_point
     val = purc_variant_make_string (mnt->mnt_dir, false);
     purc_variant_object_set_by_static_ckey (ret_var, "mount_point", val);
     purc_variant_unref (val);
+#endif //!OS(LINUX)
 
     // dev_major
     val = purc_variant_make_ulongint ((long) major(st.st_dev));
@@ -1800,7 +1800,6 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     return ret_var;
-#endif
 }
 
 static purc_variant_t
