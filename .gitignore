@@ -25,3 +25,4 @@ _deps
 
 # test
 test/rwstream/test_rwstream
+.DS_Store
