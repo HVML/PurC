@@ -104,7 +104,8 @@ GRegexCompileFlags to_g_regex_compile_flags(enum pcregex_compile_flags flags)
     if (flags & PCREGEX_JAVASCRIPT_COMPAT) {
         ret |= G_REGEX_JAVASCRIPT_COMPAT;
     }
-    return (GRegexCompileFlags)flags;
+
+    return (GRegexCompileFlags)ret;
 }
 
 GRegexMatchFlags to_g_regex_match_flags(enum pcregex_match_flags flags)

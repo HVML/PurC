@@ -665,15 +665,25 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
             }
             else if (strcmp_len (flag, "mtime", &flag_len) == 0) {
                 // returns time of last modification.
-#if OS(LINUX)   // TODO
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_mtim.tv_sec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_mtimespec.tv_sec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "mtime_sec", val);
                 purc_variant_unref (val);
 
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_mtim.tv_nsec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_mtimespec.tv_nsec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "mtime_nsec", val);
                 purc_variant_unref (val);
-#endif
             }
             break;
 
@@ -746,30 +756,50 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
         case 'a':
             if (strcmp_len (flag, "atime", &flag_len) == 0) {
                 // returns time of last acces.
-#if OS(LINUX)   // TODO
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_atim.tv_sec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_atimespec.tv_sec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "atime_sec", val);
                 purc_variant_unref (val);
 
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_atim.tv_nsec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_atimespec.tv_nsec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "atime_nsec", val);
                 purc_variant_unref (val);
-#endif
             }
             break;
 
         case 'c':
             if (strcmp_len (flag, "ctime", &flag_len) == 0) {
                 // returns time of last status change.
-#if OS(LINUX)   // TODO
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_ctim.tv_sec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_ctimespec.tv_sec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "ctime_sec", val);
                 purc_variant_unref (val);
 
+#if OS(LINUX)
                 val = purc_variant_make_ulongint (st.st_ctim.tv_nsec);
+#elif OS(DARWIN)
+                val = purc_variant_make_ulongint (st.st_ctimespec.tv_nsec);
+#else
+#error "Unknown Operating System"
+#endif
                 purc_variant_object_set_by_static_ckey (ret_var, "ctime_nsec", val);
                 purc_variant_unref (val);
-#endif
             }
             break;
 
@@ -1682,7 +1712,8 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-#if !OS(LINUX)  // TODO
+    // TODO: Use the portable `statfs()` here.
+#if !OS(LINUX)
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
@@ -2766,10 +2797,13 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args > 3) {
         // Get the offset
-        if (! purc_variant_cast_to_ulongint (argv[3], &length, false)) {
+        uint64_t len;
+        if (! purc_variant_cast_to_ulongint (argv[3], &len, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
+
+        length = len;
     }
 
     // Parse flags

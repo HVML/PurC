@@ -240,7 +240,7 @@ process_attr_to(struct pcintr_stack_frame *frame,
         int64_t back_level = val->i64;
         if (back_level <= 0) {
             purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "<%s to = %zd>", element->tag_name, back_level);
+                    "<%s to = %lld>", element->tag_name, (long long)back_level);
             return -1;
         }
         return process_back_level(frame, element, name, back_level);

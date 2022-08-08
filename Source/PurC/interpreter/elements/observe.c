@@ -145,7 +145,7 @@ is_mmutable_variant_msg(purc_atom_t msg)
     return is_base_variant_msg(msg);
 }
 
-static inline bool
+UNUSED_FUNCTION static inline bool
 is_immutable_variant_msg(purc_atom_t msg)
 {
 #if 0

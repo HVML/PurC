@@ -351,8 +351,9 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
     PC_ASSERT(ctxt);
     PC_ASSERT(ctxt->co == co);
 
-    // struct pcvdom_element *element = frame->pos;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
 
+    // struct pcvdom_element *element = frame->pos;
     if (ctxt->ret_code == RESP_CODE_USER_STOP) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto clean_rws;
@@ -366,7 +367,7 @@ static void on_sync_continuation(void *ud, pcrdr_msg *msg)
         goto dispatch_except;
     }
 
-    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    ret = purc_variant_load_from_json_stream(ctxt->resp);
     if (ret == PURC_VARIANT_INVALID)
         goto dispatch_except;
 

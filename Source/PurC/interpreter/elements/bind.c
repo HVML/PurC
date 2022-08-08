@@ -380,11 +380,11 @@ post_process_val(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             return -1;
 
         if (ctxt->under_head) {
-            uint64_t level = 0;
+            // VW: unused. uint64_t level = 0;
             struct pcvdom_node *node = &frame->pos->node;
             while (node && node != &co->stack.vdom->node) {
                 node = pcvdom_node_parent(node);
-                level += 1;
+                // VW: unused. level += 1;
             }
             if (node == NULL) {
                 purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
