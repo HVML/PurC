@@ -865,9 +865,8 @@ on_popping(pcintr_stack_t stack, void* ud)
     }
 
     if (stack->co->stage != CO_STAGE_FIRST_RUN) {
-
-        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
-                ctxt->msg_type_atom) {
+        if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
+                ctxt->msg_type_atom) && stack->co->curator) {
             purc_variant_t var =  purc_variant_make_ulongint(stack->co->cid);
             purc_variant_t result = pcintr_coroutine_get_result(stack->co);
             pcintr_coroutine_post_event(stack->co->curator,
@@ -962,19 +961,22 @@ select_child(pcintr_stack_t stack, void* ud)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(ud == frame->ctxt);
 
-    if (stack->back_anchor == frame)
+    struct ctxt_for_observe *ctxt;
+    ctxt = (struct ctxt_for_observe*)frame->ctxt;
+
+    struct pcvdom_node *curr;
+
+    if (stack->back_anchor == frame) {
         stack->back_anchor = NULL;
+        ctxt->define = NULL;
+        ctxt->curr = NULL;
+    }
 
     if (frame->ctxt == NULL)
         return NULL;
 
     if (stack->back_anchor)
         return NULL;
-
-    struct ctxt_for_observe *ctxt;
-    ctxt = (struct ctxt_for_observe*)frame->ctxt;
-
-    struct pcvdom_node *curr;
 
 again:
     curr = ctxt->curr;

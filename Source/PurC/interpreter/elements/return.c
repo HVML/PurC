@@ -83,7 +83,8 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         if (!pos)
             break;
         if (pos->tag_id == PCHVML_TAG_CALL ||
-            pos->tag_id == PCHVML_TAG_INCLUDE)
+            pos->tag_id == PCHVML_TAG_INCLUDE ||
+            pos->tag_id == PCHVML_TAG_OBSERVE)
         {
             ctxt->back_anchor = p;
             break;
