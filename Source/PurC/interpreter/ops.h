@@ -70,6 +70,7 @@ struct pcintr_element_ops* pcintr_get_reduce_ops(void);
 struct pcintr_element_ops* pcintr_get_sort_ops(void);
 struct pcintr_element_ops* pcintr_get_bind_ops(void);
 struct pcintr_element_ops* pcintr_get_load_ops(void);
+struct pcintr_element_ops* pcintr_get_request_ops(void);
 
 PCA_EXTERN_C_END
 

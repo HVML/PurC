@@ -859,11 +859,30 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
-    if (ctxt) {
-        ctxt_for_observe_destroy(ctxt);
-        frame->ctxt = NULL;
+
+    if (!ctxt) {
+        goto out;
     }
 
+    if (stack->co->stage != CO_STAGE_FIRST_RUN) {
+
+        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
+                ctxt->msg_type_atom) {
+            purc_variant_t var =  purc_variant_make_ulongint(stack->co->cid);
+            purc_variant_t result = pcintr_coroutine_get_result(stack->co);
+            pcintr_coroutine_post_event(stack->co->curator,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    var,
+                    MSG_TYPE_RESPONSE, ctxt->sub_type,
+                    result, var);
+            purc_variant_unref(var);
+        }
+    }
+
+    ctxt_for_observe_destroy(ctxt);
+    frame->ctxt = NULL;
+
+out:
     return true;
 }
 
