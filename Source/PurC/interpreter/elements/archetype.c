@@ -45,6 +45,8 @@ struct ctxt_for_archetype {
     purc_variant_t                param;
     purc_variant_t                method;
 
+    purc_variant_t                type;
+
     purc_variant_t                sync_id;
     pcintr_coroutine_t            co;
 
@@ -65,6 +67,7 @@ ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->src);
         PURC_VARIANT_SAFE_CLEAR(ctxt->param);
         PURC_VARIANT_SAFE_CLEAR(ctxt->method);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->type);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
         PURC_VARIANT_SAFE_CLEAR(ctxt->stringify_from_src);
@@ -210,6 +213,38 @@ process_attr_raw(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_type(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_archetype *ctxt;
+    ctxt = (struct ctxt_for_archetype*)frame->ctxt;
+    if (ctxt->type != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> is not string",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+
+    ctxt->type = purc_variant_ref(val);
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -241,6 +276,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
         return 0;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+        return process_attr_type(frame, element, name, val);
     }
 
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
@@ -520,6 +559,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
+    if (!ctxt->type && stack->co->target) {
+        ctxt->type = purc_variant_make_string(stack->co->target, false);
+    }
 
     return ctxt;
 }
