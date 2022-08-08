@@ -85,16 +85,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         goto out;
     }
 
+    purc_atom_t dest_cid = 0;
     if (purc_variant_is_ulongint(on)) {
-        const char *sub_type = purc_variant_get_string_const(to);
         uint64_t u64;
         purc_variant_cast_to_ulongint(on, &u64, true);
-        purc_atom_t cid = (purc_atom_t) u64;
-        pcintr_coroutine_post_event(cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                on,
-                MSG_TYPE_REQUEST, sub_type,
-                ctxt->with, on);
+        dest_cid = (purc_atom_t) u64;
     }
     else if (purc_variant_is_string(on)) {
         // TODO
@@ -112,6 +107,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         goto out;
     }
 
+    const char *sub_type = purc_variant_get_string_const(to);
+    pcintr_coroutine_post_event(dest_cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            on,
+            MSG_TYPE_REQUEST, sub_type,
+            ctxt->with, on);
 
 out:
     return ret;
