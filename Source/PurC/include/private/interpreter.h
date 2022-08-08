@@ -54,6 +54,8 @@
 #define MSG_TYPE_CORSTATE             "corState"
 #define MSG_TYPE_DESTROY              "destroy"
 #define MSG_TYPE_RDR_STATE            "rdrState"
+#define MSG_TYPE_REQUEST              "request"
+#define MSG_TYPE_RESPONSE             "response"
 
 
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"

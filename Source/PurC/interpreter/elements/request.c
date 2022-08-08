@@ -75,7 +75,46 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
 
-    return 0;
+    int ret;
+    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    purc_variant_t on = ctxt->on;
+    purc_variant_t to = ctxt->to;
+    if (!on || !to || !purc_variant_is_string(to)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        ret = -1;
+        goto out;
+    }
+
+    if (purc_variant_is_ulongint(on)) {
+        const char *sub_type = purc_variant_get_string_const(to);
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(on, &u64, true);
+        purc_atom_t cid = (purc_atom_t) u64;
+        pcintr_coroutine_post_event(cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                on,
+                MSG_TYPE_REQUEST, sub_type,
+                ctxt->with, on);
+    }
+    else if (purc_variant_is_string(on)) {
+        // TODO
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        ret = -1;
+        PC_WARN("not implemented on '%s' for request.\n",
+                purc_variant_get_string_const(on));
+        goto out;
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        ret = -1;
+        PC_WARN("not supported on with type '%s' for request.\n",
+                pcvariant_typename(on));
+        goto out;
+    }
+
+
+out:
+    return ret;
 }
 
 static int

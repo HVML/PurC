@@ -85,4 +85,6 @@ msg click
 msg close
 msg idle
 msg rdrState
+msg request
+msg response
 
