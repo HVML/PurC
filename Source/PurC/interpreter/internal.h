@@ -93,10 +93,6 @@ PCA_EXTERN_C_BEGIN
 void
 pcintr_destroy_observer_list(struct list_head *observer_list);
 
-bool
-pcintr_is_observer_match(struct pcintr_observer *observer,
-        purc_variant_t observed, purc_atom_t type_atom, const char *sub_type);
-
 struct pcintr_stack_frame_normal *
 pcintr_push_stack_frame_normal(pcintr_stack_t stack);
 

@@ -119,12 +119,12 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
     }
 }
 
-bool
-pcintr_is_observer_match(struct pcintr_observer *observer,
-        purc_variant_t observed, purc_atom_t type_atom, const char *sub_type)
+static bool
+is_match_default(struct pcintr_observer *observer,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
     if ((is_variant_match_observe(observer->observed, observed)) &&
-                (observer->msg_type_atom == type_atom)) {
+                (observer->msg_type_atom == type)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
             return true;
@@ -132,7 +132,6 @@ pcintr_is_observer_match(struct pcintr_observer *observer,
     }
     return false;
 }
-
 
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_source source,
@@ -185,7 +184,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
-    observer->is_match = is_match;
+    observer->is_match = is_match ? is_match : is_match_default;
     observer->handle = handle;
     observer->handle_data = handle_data;
     observer->auto_remove = auto_remove;
@@ -229,7 +228,7 @@ revoke_observer_from_list(struct list_head *list, purc_variant_t observed,
 {
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type)) {
+        if (p->is_match(p, observed, msg_type_atom, sub_type)) {
             pcintr_revoke_observer(p);
             break;
         }

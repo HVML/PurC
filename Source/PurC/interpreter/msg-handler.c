@@ -180,7 +180,7 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
     struct list_head* list = &stack->hvml_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
+        if (p->is_match(p, observed, msg_type_atom, sub_type_s)) {
             add_task(co, p, msg->data, msg->sourceURI, msg->eventName);
         }
     }
@@ -263,7 +263,7 @@ is_observer_event_handler_match(struct pcintr_event_handler *handler,
     struct list_head* list = &co->stack.hvml_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
+        if (p->is_match(p, observed, msg_type_atom, sub_type_s)) {
             match = true;
             break;
         }
