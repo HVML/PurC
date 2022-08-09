@@ -438,6 +438,8 @@ struct pcintr_observer {
     struct list_head            node;
 
     enum pcintr_observer_source source;
+    int                         cor_stage;
+    int                         cor_state;
 
     pcintr_stack_t              stack;
     // the observed variant.
@@ -465,6 +467,7 @@ struct pcintr_observer {
     observer_match_fn is_match;
     observer_handle   handle;
     void             *handle_data;
+    bool              auto_remove;
 };
 
 struct pcinst;
@@ -612,6 +615,8 @@ pcintr_parse_event(const char *event, purc_variant_t *type,
 
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_source source,
+        int                       cor_stage,
+        int                       cor_state,
         pcintr_stack_t            stack,
         purc_variant_t            observed,
         purc_variant_t            for_value,
@@ -624,7 +629,8 @@ pcintr_register_observer(enum pcintr_observer_source source,
         void                     *on_revoke_data,
         observer_match_fn         is_match,
         observer_handle           handle,
-        void                     *handle_data
+        void                     *handle_data,
+        bool                      auto_remove
         );
 
 void

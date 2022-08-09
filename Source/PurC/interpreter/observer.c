@@ -176,6 +176,8 @@ pcintr_is_observer_match(struct pcintr_observer *observer,
 
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_source source,
+        int                       cor_stage,
+        int                       cor_state,
         pcintr_stack_t            stack,
         purc_variant_t            observed,
         purc_variant_t            for_value,
@@ -188,7 +190,8 @@ pcintr_register_observer(enum pcintr_observer_source source,
         void                     *on_revoke_data,
         observer_match_fn         is_match,
         observer_handle           handle,
-        void                     *handle_data
+        void                     *handle_data,
+        bool                      auto_remove
         )
 {
     UNUSED_PARAM(for_value);
@@ -222,6 +225,8 @@ pcintr_register_observer(enum pcintr_observer_source source,
     }
 
     observer->source = source;
+    observer->cor_stage = cor_stage;
+    observer->cor_state = cor_state;
     observer->stack = stack;
     observer->observed = observed;
     purc_variant_ref(observed);
@@ -235,6 +240,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
     observer->is_match = is_match;
     observer->handle = handle;
     observer->handle_data = handle_data;
+    observer->auto_remove = auto_remove;
     add_observer_into_list(stack, list, observer);
 
     // observe idle
