@@ -120,6 +120,8 @@ add_task(pcintr_coroutine_t co, struct pcintr_observer *p,
     struct pcintr_observer_task *task;
     task = (struct pcintr_observer_task*)calloc(1, sizeof(*task));
 
+    task->cor_stage = p->cor_stage;
+    task->cor_state = p->cor_state;
     task->pos = p->pos;
     task->scope = p->scope;
     task->edom_element = p->edom_element;

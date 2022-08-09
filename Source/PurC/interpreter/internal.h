@@ -55,6 +55,8 @@ struct pcvdom_template {
 
 struct pcintr_observer_task {
     struct list_head              ln;
+    int                           cor_stage;
+    int                           cor_state;
     pcintr_stack_t                stack;
     pcvdom_element_t              pos;
     pcvdom_element_t              scope;
