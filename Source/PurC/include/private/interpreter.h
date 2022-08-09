@@ -145,7 +145,8 @@ typedef bool
         purc_atom_t type, const char *sub_type);
 
 typedef int
-(*observer_handle)(struct pcintr_observer *observer, pcrdr_msg *msg, void *data);
+(*observer_handle)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data);
 
 struct pcintr_loaded_var {
     struct rb_node              node;
