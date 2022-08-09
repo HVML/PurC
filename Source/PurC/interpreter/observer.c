@@ -122,39 +122,8 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
 struct list_head *
 pcintr_get_observer_list(pcintr_stack_t stack, purc_variant_t observed)
 {
-#if 1
     UNUSED_PARAM(observed);
     return &stack->hvml_observers;
-#else
-    PC_ASSERT(observed != PURC_VARIANT_INVALID);
-
-    struct list_head *list = NULL;
-    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-        list = &stack->dynamic_observers;
-    }
-    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-        list = &stack->native_observers;
-    }
-    else if (purc_variant_is_string(observed)) {
-        // XXX: optimization
-        // CSS selector used string
-        // handle by elements.c match_observe
-        const char *s = purc_variant_get_string_const(observed);
-        if (strlen(s) > 0 && (s[0] == '#' || s[0] == '.')) {
-            list = &stack->native_observers;
-        }
-        else {
-            list = &stack->common_observers;
-        }
-    }
-    else if (pcintr_is_named_var_for_event(observed)) {
-        list = &stack->native_observers;
-    }
-    else {
-        list = &stack->common_observers;
-    }
-    return list;
-#endif
 }
 
 bool
@@ -201,19 +170,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
         list = &stack->intr_observers;
     }
     else {
-#if 1
         list = &stack->hvml_observers;
-#else
-        if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-            list = &stack->dynamic_observers;
-        }
-        else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-            list = &stack->native_observers;
-        }
-        else {
-            list = &stack->common_observers;
-        }
-#endif
     }
 
 
