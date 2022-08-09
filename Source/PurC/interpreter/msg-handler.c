@@ -113,36 +113,6 @@ handle_task(struct pcintr_observer_task *task)
     destroy_task(task);
 }
 
-void
-add_task(pcintr_coroutine_t co, struct pcintr_observer *p,
-        purc_variant_t payload, purc_variant_t source, purc_variant_t event_name)
-{
-    struct pcintr_observer_task *task;
-    task = (struct pcintr_observer_task*)calloc(1, sizeof(*task));
-
-    task->cor_stage = p->cor_stage;
-    task->cor_state = p->cor_state;
-    task->pos = p->pos;
-    task->scope = p->scope;
-    task->edom_element = p->edom_element;
-    task->stack = &co->stack;
-
-    if (event_name) {
-        task->event_name = event_name;
-        purc_variant_ref(task->event_name);
-    }
-
-    if (source) {
-        task->source = source;
-        purc_variant_ref(task->source);
-    }
-    if (payload) {
-        task->payload = payload;
-        purc_variant_ref(task->payload);
-    }
-
-    list_add_tail(&task->ln, &co->tasks);
-}
 
 int
 process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
@@ -181,7 +151,7 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
         if (p->is_match(p, observed, msg_type_atom, sub_type_s)) {
-            add_task(co, p, msg->data, msg->sourceURI, msg->eventName);
+            p->handle(co, p, msg, msg_type_atom, sub_type_s, NULL);
         }
     }
 

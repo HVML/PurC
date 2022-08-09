@@ -133,6 +133,43 @@ is_match_default(struct pcintr_observer *observer,
     return false;
 }
 
+static int
+observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+
+    struct pcintr_observer_task *task;
+    task = (struct pcintr_observer_task*)calloc(1, sizeof(*task));
+
+    task->cor_stage = p->cor_stage;
+    task->cor_state = p->cor_state;
+    task->pos = p->pos;
+    task->scope = p->scope;
+    task->edom_element = p->edom_element;
+    task->stack = &co->stack;
+
+    if (msg->eventName) {
+        task->event_name = msg->eventName;
+        purc_variant_ref(task->event_name);
+    }
+
+    if (msg->sourceURI) {
+        task->source = msg->sourceURI;
+        purc_variant_ref(task->source);
+    }
+
+    if (msg->data) {
+        task->payload = msg->data;
+        purc_variant_ref(task->payload);
+    }
+
+    list_add_tail(&task->ln, &co->tasks);
+    return 0;
+}
+
 struct pcintr_observer*
 pcintr_register_observer(enum pcintr_observer_source source,
         int                       cor_stage,
@@ -148,7 +185,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
         pcintr_on_revoke_observer on_revoke,
         void                     *on_revoke_data,
         observer_match_fn         is_match,
-        observer_handle           handle,
+        observer_handle_fn        handle,
         void                     *handle_data,
         bool                      auto_remove
         )
@@ -185,7 +222,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
     observer->is_match = is_match ? is_match : is_match_default;
-    observer->handle = handle;
+    observer->handle = handle ? handle : observer_handle_default;
     observer->handle_data = handle_data;
     observer->auto_remove = auto_remove;
     add_observer_into_list(stack, list, observer);

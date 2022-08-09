@@ -145,7 +145,7 @@ typedef bool
         purc_atom_t type, const char *sub_type);
 
 typedef int
-(*observer_handle)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+(*observer_handle_fn)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data);
 
 struct pcintr_loaded_var {
@@ -465,10 +465,10 @@ struct pcintr_observer {
     pcintr_on_revoke_observer on_revoke;
     void *on_revoke_data;
 
-    observer_match_fn is_match;
-    observer_handle   handle;
-    void             *handle_data;
-    bool              auto_remove;
+    observer_match_fn   is_match;
+    observer_handle_fn  handle;
+    void               *handle_data;
+    bool                auto_remove;
 };
 
 struct pcinst;
@@ -629,7 +629,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
         pcintr_on_revoke_observer on_revoke,
         void                     *on_revoke_data,
         observer_match_fn         is_match,
-        observer_handle           handle,
+        observer_handle_fn        handle,
         void                     *handle_data,
         bool                      auto_remove
         );
