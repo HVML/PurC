@@ -492,9 +492,10 @@ register_named_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    struct pcintr_observer *result = pcintr_register_observer(stack, observed,
+    struct pcintr_observer *result = pcintr_register_observer(
+            OBSERVER_SOURCE_HVML, stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
-            frame->pos, edom_element, frame->pos, NULL, NULL);
+            frame->pos, edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL);
     purc_variant_unref(observed);
     return result;
 }
@@ -528,10 +529,10 @@ register_native_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    observer = pcintr_register_observer(stack, observed,
+    observer = pcintr_register_observer(OBSERVER_SOURCE_HVML, stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            edom_element, frame->pos, NULL, NULL);
+            edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL);
 
     return observer;
 }
@@ -555,10 +556,10 @@ register_timer_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    return pcintr_register_observer(stack, on,
+    return pcintr_register_observer(OBSERVER_SOURCE_HVML, stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
-            edom_element, frame->pos, NULL, NULL);
+            edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL);
 }
 
 void on_revoke_mmutable_var_observer(struct pcintr_observer *observer,
@@ -588,11 +589,11 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    return pcintr_register_observer(stack, on,
+    return pcintr_register_observer(OBSERVER_SOURCE_HVML, stack, on,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos,
-            on_revoke_mmutable_var_observer, listener);
+            on_revoke_mmutable_var_observer, listener, NULL, NULL, NULL);
 }
 
 static bool
@@ -634,10 +635,10 @@ register_default_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    return pcintr_register_observer(stack, observed,
+    return pcintr_register_observer(OBSERVER_SOURCE_HVML, stack, observed,
             ctxt->for_var, ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, edom_element, frame->pos,
-            NULL, NULL);
+            NULL, NULL, NULL, NULL, NULL);
 }
 
 static struct pcintr_observer *

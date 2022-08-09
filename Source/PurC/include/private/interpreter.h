@@ -140,6 +140,13 @@ struct pcintr_observer;
 typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
 
+typedef bool
+(*observer_match_fn)(struct pcintr_observer *observer, purc_variant_t observed,
+        purc_atom_t type, const char *sub_type);
+
+typedef int
+(*observer_handle)(struct pcintr_observer *observer, pcrdr_msg *msg, void *data);
+
 struct pcintr_loaded_var {
     struct rb_node              node;
     char                       *name;
@@ -420,8 +427,15 @@ struct pcintr_dynamic_args {
     purc_dvariant_method           setter;
 };
 
+enum pcintr_observer_source {
+    OBSERVER_SOURCE_HVML,
+    OBSERVER_SOURCE_INTR,
+};
+
 struct pcintr_observer {
     struct list_head            node;
+
+    enum pcintr_observer_source source;
 
     pcintr_stack_t              stack;
     // the observed variant.
@@ -445,6 +459,10 @@ struct pcintr_observer {
     // callback when revoke observer
     pcintr_on_revoke_observer on_revoke;
     void *on_revoke_data;
+
+    observer_match_fn is_match;
+    observer_handle   handle;
+    void             *handle_data;
 };
 
 struct pcinst;
@@ -591,15 +609,20 @@ pcintr_parse_event(const char *event, purc_variant_t *type,
         purc_variant_t *sub_type);
 
 struct pcintr_observer*
-pcintr_register_observer(pcintr_stack_t stack,
-        purc_variant_t observed,
-        purc_variant_t for_value,
-        purc_atom_t msg_type_atom, const char *sub_type,
-        pcvdom_element_t scope,
-        pcdoc_element_t edom_element,
-        pcvdom_element_t pos,
+pcintr_register_observer(enum pcintr_observer_source source,
+        pcintr_stack_t            stack,
+        purc_variant_t            observed,
+        purc_variant_t            for_value,
+        purc_atom_t               msg_type_atom,
+        const char               *sub_type,
+        pcvdom_element_t          scope,
+        pcdoc_element_t           edom_element,
+        pcvdom_element_t          pos,
         pcintr_on_revoke_observer on_revoke,
-        void *on_revoke_data
+        void                     *on_revoke_data,
+        observer_match_fn         is_match,
+        observer_handle           handle,
+        void                     *handle_data
         );
 
 void

@@ -170,15 +170,20 @@ pcintr_is_observer_match(struct pcintr_observer *observer,
 
 
 struct pcintr_observer*
-pcintr_register_observer(pcintr_stack_t stack,
-        purc_variant_t observed,
-        purc_variant_t for_value,
-        purc_atom_t msg_type_atom, const char *sub_type,
-        pcvdom_element_t scope,
-        pcdoc_element_t edom_element,
-        pcvdom_element_t pos,
+pcintr_register_observer(enum pcintr_observer_source source,
+        pcintr_stack_t            stack,
+        purc_variant_t            observed,
+        purc_variant_t            for_value,
+        purc_atom_t               msg_type_atom,
+        const char               *sub_type,
+        pcvdom_element_t          scope,
+        pcdoc_element_t           edom_element,
+        pcvdom_element_t          pos,
         pcintr_on_revoke_observer on_revoke,
-        void *on_revoke_data
+        void                     *on_revoke_data,
+        observer_match_fn         is_match,
+        observer_handle           handle,
+        void                     *handle_data
         )
 {
     UNUSED_PARAM(for_value);
@@ -201,6 +206,7 @@ pcintr_register_observer(pcintr_stack_t stack,
         return NULL;
     }
 
+    observer->source = source;
     observer->stack = stack;
     observer->observed = observed;
     purc_variant_ref(observed);
@@ -211,6 +217,9 @@ pcintr_register_observer(pcintr_stack_t stack,
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
+    observer->is_match = is_match;
+    observer->handle = handle;
+    observer->handle_data = handle_data;
     add_observer_into_list(stack, list, observer);
 
     // observe idle
