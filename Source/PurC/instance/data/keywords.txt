@@ -87,4 +87,8 @@ msg idle
 msg rdrState
 msg request
 msg response
+msg lastMsg
+msg sleep
+msg subExit
+msg async
 
