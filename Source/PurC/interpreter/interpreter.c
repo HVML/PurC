@@ -321,9 +321,7 @@ stack_release(pcintr_stack_t stack)
     release_scoped_variables(stack);
 
     pcintr_destroy_observer_list(&stack->intr_observers);
-    pcintr_destroy_observer_list(&stack->common_observers);
-    pcintr_destroy_observer_list(&stack->dynamic_observers);
-    pcintr_destroy_observer_list(&stack->native_observers);
+    pcintr_destroy_observer_list(&stack->hvml_observers);
 
     if (stack->doc) {
         purc_document_unref(stack->doc);
@@ -468,9 +466,7 @@ stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
     INIT_LIST_HEAD(&stack->intr_observers);
-    INIT_LIST_HEAD(&stack->common_observers);
-    INIT_LIST_HEAD(&stack->dynamic_observers);
-    INIT_LIST_HEAD(&stack->native_observers);
+    INIT_LIST_HEAD(&stack->hvml_observers);
     stack->scoped_variables = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
@@ -1413,13 +1409,7 @@ pcintr_exception_copy(struct pcintr_exception *exception)
 
 bool pcintr_co_is_observed(pcintr_coroutine_t co)
 {
-    if (!list_empty(&co->stack.common_observers))
-        return true;
-
-    if (!list_empty(&co->stack.dynamic_observers))
-        return true;
-
-    if (!list_empty(&co->stack.native_observers))
+    if (!list_empty(&co->stack.hvml_observers))
         return true;
 
     return false;
@@ -1635,32 +1625,10 @@ void pcintr_run_exiting_co(void *ctxt)
 }
 
 void
-pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack)
+pcintr_revoke_all_hvml_observers(pcintr_stack_t stack)
 {
     PC_ASSERT(stack);
-    struct list_head *observers = &stack->dynamic_observers;
-    struct pcintr_observer *p, *n;
-    list_for_each_entry_safe(p, n, observers, node) {
-        pcintr_revoke_observer(p);
-    }
-}
-
-void
-pcintr_revoke_all_native_observers(pcintr_stack_t stack)
-{
-    PC_ASSERT(stack);
-    struct list_head *observers = &stack->native_observers;
-    struct pcintr_observer *p, *n;
-    list_for_each_entry_safe(p, n, observers, node) {
-        pcintr_revoke_observer(p);
-    }
-}
-
-void
-pcintr_revoke_all_common_observers(pcintr_stack_t stack)
-{
-    PC_ASSERT(stack);
-    struct list_head *observers = &stack->common_observers;
+    struct list_head *observers = &stack->hvml_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observers, node) {
         pcintr_revoke_observer(p);
@@ -2873,7 +2841,7 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame == NULL);
 
-    struct list_head *observer_list = &stack->native_observers;
+    struct list_head *observer_list = &stack->hvml_observers;
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, observer_list, node) {
         purc_variant_t var = p->observed;

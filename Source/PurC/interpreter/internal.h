@@ -412,13 +412,7 @@ void
 pcintr_notify_to_stop(pcintr_coroutine_t co);
 
 void
-pcintr_revoke_all_dynamic_observers(pcintr_stack_t stack);
-
-void
-pcintr_revoke_all_native_observers(pcintr_stack_t stack);
-
-void
-pcintr_revoke_all_common_observers(pcintr_stack_t stack);
+pcintr_revoke_all_hvml_observers(pcintr_stack_t stack);
 
 void
 pcintr_run_exiting_co(void *ctxt);

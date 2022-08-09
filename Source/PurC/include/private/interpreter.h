@@ -219,9 +219,7 @@ struct pcintr_stack {
     struct list_head              intr_observers;
 
     /* create by hvml <observe on...> */
-    struct list_head              common_observers;
-    struct list_head              dynamic_observers;
-    struct list_head              native_observers;
+    struct list_head              hvml_observers;
 
     // async request ids (array)
     purc_variant_t                async_request_ids;

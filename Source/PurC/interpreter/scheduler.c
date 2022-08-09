@@ -218,12 +218,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     if (co->stack.exited) {
-        pcintr_revoke_all_dynamic_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.dynamic_observers));
-        pcintr_revoke_all_native_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.native_observers));
-        pcintr_revoke_all_common_observers(&co->stack);
-        PC_ASSERT(list_empty(&co->stack.common_observers));
+        pcintr_revoke_all_hvml_observers(&co->stack);
+        PC_ASSERT(list_empty(&co->stack.hvml_observers));
+
         pcintr_coroutine_set_state(co, CO_STATE_EXITED);
     }
 

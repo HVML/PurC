@@ -142,19 +142,6 @@ add_task(pcintr_coroutine_t co, struct pcintr_observer *p,
     list_add_tail(&task->ln, &co->tasks);
 }
 
-static void handle_vdom_event(pcintr_stack_t stack, purc_vdom_t vdom,
-        purc_atom_t type, purc_variant_t sub_type, purc_variant_t data)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(vdom);
-    UNUSED_PARAM(sub_type);
-    UNUSED_PARAM(data);
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CLOSE)) == type) {
-        // TODO : quit runner
-        fprintf(stderr, "## event msg not handle : close\n");
-    }
-}
-
 int
 process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
@@ -188,22 +175,11 @@ process_coroutine_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 
     purc_variant_t observed = msg->elementValue;
 
-    bool handle = false;
     struct list_head* list = pcintr_get_observer_list(stack, observed);
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
         if (pcintr_is_observer_match(p, observed, msg_type_atom, sub_type_s)) {
-            handle = true;
             add_task(co, p, msg->data, msg->sourceURI, msg->eventName);
-        }
-    }
-
-    if (!handle && purc_variant_is_native(observed)) {
-        void *dest = purc_variant_native_get_entity(observed);
-        // window close event dispatch to vdom
-        if (dest == stack->vdom) {
-            handle_vdom_event(stack, stack->vdom, msg_type_atom,
-                    msg_sub_type, msg->data);
         }
     }
 
