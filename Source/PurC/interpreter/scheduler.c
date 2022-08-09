@@ -462,6 +462,30 @@ out:
     return busy;
 }
 
+static int
+handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
+        pcrdr_msg *msg, purc_atom_t event_type,
+        const char *event_sub_type, bool *event_observed, bool *busy)
+{
+    int ret = PURC_ERROR_INCOMPLETED;
+    purc_variant_t observed = msg->elementValue;
+    struct pcintr_observer *observer, *next;
+    list_for_each_entry_safe(observer, next, list, node) {
+        bool match = observer->is_match(observer, observed, event_type,
+                event_sub_type);
+        if ((co->stage & observer->cor_stage) &&
+                (co->state & observer->cor_state) && match) {
+            ret = observer->handle(co, observer, msg, event_type,
+                    event_sub_type, NULL);
+            *busy = true;
+        }
+        if (match) {
+            *event_observed = true;
+        }
+    }
+    return ret;
+}
+
 bool
 handle_coroutine_event(pcintr_coroutine_t co)
 {
@@ -544,51 +568,24 @@ handle_coroutine_event(pcintr_coroutine_t co)
         }
     }
 
-#if 0
-
-    if (!msg) {
-        goto out;
-    }
-
-#else
     // observer
     if (msg) {
-        purc_variant_t observed = msg->elementValue;
-        struct pcintr_observer *observer, *next;
-        struct list_head* list = &co->stack.intr_observers;
-        list_for_each_entry_safe(observer, next, list, node) {
-            bool match = observer->is_match(observer, observed, event_type, event_sub_type);
-            if ((co->stage & observer->cor_stage) &&
-                    (co->state & observer->cor_state) && match) {
-                handle_ret = observer->handle(co, observer, msg, event_type, event_sub_type, NULL);
-                busy = true;
-            }
-            if (match) {
-                msg_observed = true;
-            }
-        }
+        handle_ret = handle_event_by_observer_list(co,
+                &co->stack.intr_observers, msg, event_type, event_sub_type,
+                &msg_observed, &busy);
 
         if (handle_ret == PURC_ERROR_OK) {
             pcrdr_release_message(msg);
             msg = NULL;
         }
         else {
-            list = &co->stack.hvml_observers;
-            list_for_each_entry_safe(observer, next, list, node) {
-                bool match = observer->is_match(observer, observed, event_type, event_sub_type);
-                if ((co->stage & observer->cor_stage) &&
-                    (co->state & observer->cor_state) && match) {
-                    handle_ret = observer->handle(co, observer, msg, event_type, event_sub_type, NULL);
-                    busy = true;
-                }
-                if (match) {
-                    msg_observed = true;
-                }
-            }
+            handle_ret = handle_event_by_observer_list(co,
+                    &co->stack.hvml_observers, msg, event_type, event_sub_type,
+                    &msg_observed, &busy);
+
             if (handle_ret == PURC_ERROR_OK) {
                 pcrdr_release_message(msg);
                 msg = NULL;
-                goto out;
             }
         }
     }
@@ -606,7 +603,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
     if (!msg) {
         goto out;
     }
-#endif
 
     if (co->sleep_handler) {
         struct pcintr_event_handler *handler = co->sleep_handler;
