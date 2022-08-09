@@ -1805,7 +1805,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     pcintr_coroutine_add_sub_exit_event_handler(co);
     pcintr_coroutine_add_last_msg_event_handler(co);
-    pcintr_coroutine_add_observer_event_handler(co);
+//    pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {

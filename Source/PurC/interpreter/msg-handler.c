@@ -62,8 +62,8 @@ destroy_task(struct pcintr_observer_task *task)
     free(task);
 }
 
-static void
-handle_task(struct pcintr_observer_task *task)
+void
+pcintr_handle_task(struct pcintr_observer_task *task)
 {
     pcintr_stack_t stack = task->stack;
     PC_ASSERT(stack);
@@ -274,7 +274,7 @@ observer_event_handle(struct pcintr_event_handler *handler,
             list_first_entry(&co->tasks, struct pcintr_observer_task, ln);
         if (task) {
             list_del(&task->ln);
-            handle_task(task);
+            pcintr_handle_task(task);
             *performed = true;
         }
     }

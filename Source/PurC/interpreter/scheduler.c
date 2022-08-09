@@ -363,7 +363,7 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
 
 /* return whether busy */
 bool
-handle_coroutine_event(pcintr_coroutine_t co)
+handle_coroutine_event_origin(pcintr_coroutine_t co)
 {
     bool busy = false;
     int handle_ret = PURC_ERROR_INCOMPLETED;
@@ -459,6 +459,197 @@ handle_coroutine_event(pcintr_coroutine_t co)
     }
 
 out:
+    return busy;
+}
+
+bool
+handle_coroutine_event(pcintr_coroutine_t co)
+{
+    int handle_ret = PURC_ERROR_INCOMPLETED;
+    bool busy = false;
+    bool remove_handler = false;
+    bool performed = false;
+    bool msg_observed = false;
+    char *type = NULL;
+    purc_atom_t event_type = 0;
+    const char *event_sub_type = NULL;
+
+    if (co->state == CO_STATE_READY || co->state == CO_STATE_RUNNING) {
+        goto out;
+    }
+
+    pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
+
+    if (msg && msg->eventName) {
+        const char *event = purc_variant_get_string_const(msg->eventName);
+        const char *separator = strchr(event, MSG_EVENT_SEPARATOR);
+        if (separator) {
+            event_sub_type = separator + 1;
+        }
+
+        size_t nr_type = separator - event;
+        if (nr_type) {
+            type = strndup(event, separator - event);
+            if (!type) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+
+            event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
+            if (!event_type) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                PC_WARN("unknown event '%s'\n", event);
+                goto out;
+            }
+        }
+    }
+
+    struct list_head *handlers = &co->event_handlers;
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, handlers) {
+        struct pcintr_event_handler *handler;
+        handler = list_entry(p, struct pcintr_event_handler, ln);
+
+        bool matched = false;
+        bool observed = false;
+        if (msg || handler->support_null_event) {
+            matched = handler->is_match(handler, co, msg, &observed);
+        }
+
+        if (observed) {
+            msg_observed = true;
+        }
+
+        // verify coroutine stage and state
+        if ((co->stage & handler->cor_stage) == 0  ||
+                (co->state & handler->cor_state) == 0 ||
+                (!matched)) {
+            continue;
+        }
+
+        handle_ret = handler->handle(handler, co, msg, &remove_handler,
+                &performed);
+
+        if (remove_handler) {
+            pcintr_coroutine_remove_event_hander(handler);
+        }
+
+        if (handle_ret == PURC_ERROR_OK && msg) {
+            pcrdr_release_message(msg);
+            msg = NULL;
+        }
+
+        if (performed) {
+            busy = true;
+        }
+    }
+
+#if 0
+
+    if (!msg) {
+        goto out;
+    }
+
+#else
+    // observer
+    if (msg) {
+        purc_variant_t observed = msg->elementValue;
+        struct pcintr_observer *observer, *next;
+        struct list_head* list = &co->stack.intr_observers;
+        list_for_each_entry_safe(observer, next, list, node) {
+            bool match = observer->is_match(observer, observed, event_type, event_sub_type);
+            if ((co->stage & observer->cor_stage) &&
+                    (co->state & observer->cor_state) && match) {
+                handle_ret = observer->handle(co, observer, msg, event_type, event_sub_type, NULL);
+                busy = true;
+            }
+            if (match) {
+                msg_observed = true;
+            }
+        }
+
+        if (handle_ret == PURC_ERROR_OK) {
+            pcrdr_release_message(msg);
+            msg = NULL;
+        }
+        else {
+            list = &co->stack.hvml_observers;
+            list_for_each_entry_safe(observer, next, list, node) {
+                bool match = observer->is_match(observer, observed, event_type, event_sub_type);
+                if ((co->stage & observer->cor_stage) &&
+                    (co->state & observer->cor_state) && match) {
+                    handle_ret = observer->handle(co, observer, msg, event_type, event_sub_type, NULL);
+                    busy = true;
+                }
+                if (match) {
+                    msg_observed = true;
+                }
+            }
+            if (handle_ret == PURC_ERROR_OK) {
+                pcrdr_release_message(msg);
+                msg = NULL;
+                goto out;
+            }
+        }
+    }
+
+    if (!list_empty(&co->tasks)) {
+        struct pcintr_observer_task *task =
+            list_first_entry(&co->tasks, struct pcintr_observer_task, ln);
+        if (task && (co->stage & task->cor_stage) != 0  &&
+                (co->state & task->cor_state) != 0) {
+            list_del(&task->ln);
+            pcintr_handle_task(task);
+        }
+    }
+
+    if (!msg) {
+        goto out;
+    }
+#endif
+
+    if (co->sleep_handler) {
+        struct pcintr_event_handler *handler = co->sleep_handler;
+        bool observed = false;
+        bool matched = handler->is_match(handler, co, msg, &observed);
+        if (observed) {
+            msg_observed = true;
+        }
+        if ((co->stage & handler->cor_stage) != 0  &&
+                (co->state & handler->cor_state) != 0 &&
+                (matched || msg_observed)) {
+
+            bool remove_handler = false;
+            int handle_ret = handler->handle(handler, co, msg, &remove_handler,
+                    &performed);
+
+            if (remove_handler) {
+                pcintr_event_handler_destroy(handler);
+                co->sleep_handler = NULL;
+            }
+
+            if (handle_ret == PURC_ERROR_OK) {
+                pcrdr_release_message(msg);
+                msg = NULL;
+            }
+        }
+    }
+
+    if (!msg) {
+        goto out;
+    }
+
+    if (msg_observed) {
+        pcinst_msg_queue_append(co->mq, msg);
+    }
+    else {
+        pcrdr_release_message(msg);
+    }
+
+out:
+    if (type) {
+        free(type);
+    }
     return busy;
 }
 

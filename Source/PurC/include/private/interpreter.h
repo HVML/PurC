@@ -41,6 +41,8 @@
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
+#define MSG_EVENT_SEPARATOR          ':'
+
 #define MSG_TYPE_IDLE                 "idle"
 #define MSG_TYPE_SLEEP                "sleep"
 #define MSG_TYPE_CHANGE               "change"

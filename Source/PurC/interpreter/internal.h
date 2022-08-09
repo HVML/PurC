@@ -500,6 +500,9 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
 int
 pcintr_coroutine_dump(pcintr_coroutine_t co);
 
+void
+pcintr_handle_task(struct pcintr_observer_task *task);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
