@@ -320,6 +320,7 @@ stack_release(pcintr_stack_t stack)
 
     release_scoped_variables(stack);
 
+    pcintr_destroy_observer_list(&stack->intr_observers);
     pcintr_destroy_observer_list(&stack->common_observers);
     pcintr_destroy_observer_list(&stack->dynamic_observers);
     pcintr_destroy_observer_list(&stack->native_observers);
@@ -466,6 +467,7 @@ static void
 stack_init(pcintr_stack_t stack)
 {
     INIT_LIST_HEAD(&stack->frames);
+    INIT_LIST_HEAD(&stack->intr_observers);
     INIT_LIST_HEAD(&stack->common_observers);
     INIT_LIST_HEAD(&stack->dynamic_observers);
     INIT_LIST_HEAD(&stack->native_observers);

@@ -215,6 +215,10 @@ struct pcintr_stack {
 
     // for observe
     // struct pcintr_observer
+    /* create by interpreter yield */
+    struct list_head              intr_observers;
+
+    /* create by hvml <observe on...> */
     struct list_head              common_observers;
     struct list_head              dynamic_observers;
     struct list_head              native_observers;

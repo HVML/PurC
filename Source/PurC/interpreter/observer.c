@@ -189,15 +189,21 @@ pcintr_register_observer(enum pcintr_observer_source source,
     UNUSED_PARAM(for_value);
 
     struct list_head *list = NULL;
-    if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
-        list = &stack->dynamic_observers;
-    }
-    else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
-        list = &stack->native_observers;
+    if (source == OBSERVER_SOURCE_INTR) {
+        list = &stack->intr_observers;
     }
     else {
-        list = &stack->common_observers;
+        if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_DYNAMIC)) {
+            list = &stack->dynamic_observers;
+        }
+        else if (purc_variant_is_type(observed, PURC_VARIANT_TYPE_NATIVE)) {
+            list = &stack->native_observers;
+        }
+        else {
+            list = &stack->common_observers;
+        }
     }
+
 
     struct pcintr_observer* observer =  (struct pcintr_observer*)calloc(1,
             sizeof(struct pcintr_observer));
