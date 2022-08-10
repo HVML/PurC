@@ -618,7 +618,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     // NOTE: element is still the owner of vcm_content
     PC_ASSERT(ctxt->contents);
     bool to_free = false;
-    return pcintr_template_set(ctxt->contents, vcm, to_free);
+    return pcintr_template_set(ctxt->contents, vcm, ctxt->type, to_free);
 }
 
 static int
@@ -643,7 +643,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
 
         bool to_free = true;
-        int r = pcintr_template_set(ctxt->contents, vcm, to_free);
+        int r = pcintr_template_set(ctxt->contents, vcm, ctxt->type, to_free);
         if (r) {
             pcvcm_node_destroy(vcm);
             return -1;

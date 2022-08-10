@@ -2437,6 +2437,7 @@ template_cleaner(struct pcvdom_template *tpl)
     if (tpl->vcm && tpl->to_free) {
         pcvcm_node_destroy(tpl->vcm);
     }
+    PURC_VARIANT_SAFE_CLEAR(tpl->type);
     tpl->vcm = NULL;
     tpl->to_free = false;
 }
@@ -2521,7 +2522,7 @@ pcintr_template_make(void)
 
 int
 pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
-        bool to_free)
+        purc_variant_t type, bool to_free)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
@@ -2538,6 +2539,9 @@ pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
 
     PC_ASSERT(tpl->vcm == NULL);
     tpl->vcm = vcm;
+    if (type) {
+        tpl->type = purc_variant_ref(type);
+    }
     tpl->to_free = to_free;
 
     return 0;

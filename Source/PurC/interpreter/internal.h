@@ -51,6 +51,7 @@
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
+    purc_variant_t                type;
 };
 
 struct pcintr_observer_task {
@@ -193,7 +194,7 @@ pcintr_template_make(void);
 
 int
 pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
-        bool to_free);
+        purc_variant_t type, bool to_free);
 
 
 typedef int
