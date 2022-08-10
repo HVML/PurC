@@ -225,6 +225,7 @@ pcintr_register_observer(enum pcintr_observer_source source,
     observer->handle = handle ? handle : observer_handle_default;
     observer->handle_data = handle_data;
     observer->auto_remove = auto_remove;
+    observer->timestamp = (uint64_t)pcintr_get_current_time();
     add_observer_into_list(stack, list, observer);
 
     // observe idle

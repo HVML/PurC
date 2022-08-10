@@ -471,6 +471,7 @@ struct pcintr_observer {
     observer_handle_fn  handle;
     void               *handle_data;
     bool                auto_remove;
+    uint64_t            timestamp;
 };
 
 struct pcinst;
