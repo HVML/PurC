@@ -396,6 +396,9 @@ pcintr_bind_template(purc_variant_t templates,
 purc_variant_t
 pcintr_template_expansion(purc_variant_t val);
 
+purc_variant_t
+pcintr_template_get_type(purc_variant_t val);
+
 pcintr_coroutine_t
 pcintr_coroutine_get_by_id(purc_atom_t id);
 

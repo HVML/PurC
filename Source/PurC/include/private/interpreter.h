@@ -626,7 +626,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len);
+        const char *content, size_t len, purc_variant_t data_type);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,

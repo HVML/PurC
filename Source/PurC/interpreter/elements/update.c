@@ -52,6 +52,7 @@ struct ctxt_for_update {
     pcintr_attribute_op           with_eval;
 
     purc_variant_t                literal;
+    purc_variant_t                template_data_type;
 };
 
 static void
@@ -65,6 +66,7 @@ ctxt_for_update_destroy(struct ctxt_for_update *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->template_data_type);
         free(ctxt);
     }
 }
@@ -102,6 +104,12 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return with;
     }
     else if (purc_variant_is_native(with)) {
+        purc_variant_t type = pcintr_template_get_type(with);
+        if (type) {
+            struct ctxt_for_update *ctxt;
+            ctxt = (struct ctxt_for_update*)frame->ctxt;
+            ctxt->template_data_type = purc_variant_ref(type);
+        }
         return pcintr_template_expansion(with);
     }
     else {
@@ -358,7 +366,7 @@ static pcdoc_operation convert_operation(const char *to)
 static int
 update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        pcintr_attribute_op with_eval, purc_variant_t template_data_type)
 {
     UNUSED_PARAM(stack);
     char *t = NULL;
@@ -382,7 +390,8 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     pcdoc_operation op = convert_operation(to);
     if (op != PCDOC_OP_UNKNOWN) {
-        pcintr_util_new_content(stack->doc, target, op, s, 0);
+        pcintr_util_new_content(stack->doc, target, op, s, 0,
+                template_data_type);
         if (t)
             free(t);
 
@@ -496,7 +505,7 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 static int
 update_target(pcintr_stack_t stack, pcdoc_element_t target,
         purc_variant_t at, purc_variant_t to, purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        pcintr_attribute_op with_eval, purc_variant_t template_data_type)
 {
     const char *s_to = "displace";
     if (to != PURC_VARIANT_INVALID) {
@@ -512,7 +521,8 @@ update_target(pcintr_stack_t stack, pcdoc_element_t target,
     }
 
     if (!s_at) {
-        return update_target_child(stack, target, s_to, src, with_eval);
+        return update_target_child(stack, target, s_to, src, with_eval,
+                template_data_type);
     }
     if (strcmp(s_at, "textContent") == 0) {
         return update_target_content(stack, target, s_to, src, with_eval);
@@ -533,7 +543,8 @@ static int
 update_elements(pcintr_stack_t stack,
         purc_variant_t elems, purc_variant_t at, purc_variant_t to,
         purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        pcintr_attribute_op with_eval,
+        purc_variant_t template_data_type)
 {
     PC_ASSERT(purc_variant_is_native(elems));
     size_t idx = 0;
@@ -542,7 +553,8 @@ update_elements(pcintr_stack_t stack,
         target = pcdvobjs_get_element_from_elements(elems, idx++);
         if (!target)
             break;
-        int r = update_target(stack, target, at, to, src, with_eval);
+        int r = update_target(stack, target, at, to, src, with_eval,
+                template_data_type);
         if (r)
             return -1;
     }
@@ -562,6 +574,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t on  = ctxt->on;
     purc_variant_t to  = ctxt->to;
     purc_variant_t at  = ctxt->at;
+    purc_variant_t template_data_type  = ctxt->template_data_type;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
 
     /* FIXME: what if array of elements? */
@@ -569,7 +582,8 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         // const char *s = purc_variant_get_string_const(src);
         // PC_ASSERT(to != PURC_VARIANT_INVALID);
-        return update_elements(&co->stack, on, at, to, src, with_eval);
+        return update_elements(&co->stack, on, at, to, src, with_eval,
+                template_data_type);
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
         return update_object(&co->stack, on, at, to, src, with_eval);
@@ -590,7 +604,8 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         elem = pcdvobjs_get_element_from_elements(elems, 0);
         int r = 0;
         if (elem) {
-            r = update_elements(&co->stack, elems, at, to, src, with_eval);
+            r = update_elements(&co->stack, elems, at, to, src, with_eval,
+                    template_data_type);
         }
         purc_variant_unref(elems);
         return r ? -1 : 0;

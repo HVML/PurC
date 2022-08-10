@@ -245,13 +245,15 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             size_t sz;
             const char *sv = purc_variant_get_string_const_ex(v, &sz);
             pcintr_util_new_content(frame->owner->doc,
-                    frame->edom_element, PCDOC_OP_DISPLACE, sv, sz);
+                    frame->edom_element, PCDOC_OP_DISPLACE, sv, sz,
+                    PURC_VARIANT_INVALID);
         }
         else {
             char *sv = pcvariant_to_string(v);
             PC_ASSERT(sv);
             pcintr_util_new_content(frame->owner->doc,
-                    frame->edom_element, PCDOC_OP_DISPLACE, sv, 0);
+                    frame->edom_element, PCDOC_OP_DISPLACE, sv, 0,
+                    PURC_VARIANT_INVALID);
             free(sv);
         }
         purc_variant_unref(v);
@@ -332,7 +334,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         char *sv = pcvariant_to_string(v);
         PC_ASSERT(sv);
         pcintr_util_new_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, sv, 0);
+                frame->edom_element, PCDOC_OP_APPEND, sv, 0,
+                PURC_VARIANT_INVALID);
         free(sv);
         purc_variant_unref(v);
     }
