@@ -700,6 +700,8 @@ pcintr_coroutine_get_result(pcintr_coroutine_t co);
 bool
 pcintr_is_variable_token(const char *str);
 
+pcrdr_msg_data_type
+pcintr_rdr_retrieve_data_type(const char *type_name);
 
 PCA_EXTERN_C_END
 
