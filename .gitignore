@@ -3,6 +3,8 @@ build/
 # local .vimrc
 .vimrc
 *.swp
+.clangd
+compile_commands.json
 
 .build/
 
