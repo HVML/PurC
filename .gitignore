@@ -5,6 +5,7 @@ build/
 *.swp
 .clangd
 compile_commands.json
+.cache
 
 .build/
 
