@@ -92,88 +92,71 @@ ctxt_destroy(void *ctxt)
     ctxt_for_load_destroy((struct ctxt_for_load*)ctxt);
 }
 
-static void
-on_continuation(void *ud, pcrdr_msg *msg)
+static bool
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
-    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
-    PC_ASSERT(frame);
-
-    const char *s = purc_variant_get_string_const(msg->eventName);
-    const char *p = strchr(s, EVENT_SEPARATOR);
-    const char *s_msg_sub_type = NULL;
-    if (!p) {
-        return;
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
     }
 
-    s_msg_sub_type = p + 1;
-    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_SUCCESS)) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+#if 0
+    pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
+    pcintr_check_after_execution_full(pcinst_current(), cor);
+    cor->yielded_ctxt = NULL;
+    cor->continuation = NULL;
+#endif
+
+    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)data;
+    PC_ASSERT(frame);
+
+    if (0 == strcmp(sub_type, MSG_SUB_TYPE_SUCCESS)) {
         purc_variant_t payload = msg->data;
 
         int r = pcintr_set_question_var(frame, payload);
         PC_ASSERT(r == 0);
-        return;
     }
-
-    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_EXCEPT)) {
+    else if (0 == strcmp(sub_type, MSG_SUB_TYPE_EXCEPT)) {
         purc_variant_t payload = msg->data;
 
         const char *s = purc_variant_get_string_const(payload);
         purc_set_error_with_info(PURC_ERROR_UNKNOWN,
                 "sub coroutine failed with except: %s", s);
-        return;
     }
 
-    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_OBSERVING)) {
-        return;
-    }
 
-    PC_ASSERT(0);
-}
-
-static bool
-is_yield_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
-{
-    UNUSED_PARAM(handler);
-    bool match = false;
-    if (!purc_variant_is_equal_to(co->wait_request_id, msg->requestId)) {
-        goto out;
-    }
-
-    const char *s = purc_variant_get_string_const(msg->eventName);
-    const char *p = strchr(s, EVENT_SEPARATOR);
-    const char *s_msg_sub_type = NULL;
-    if (!p) {
-        goto out;
-    }
-
-    s_msg_sub_type = p + 1;
-    if (0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_SUCCESS)
-        || 0 == strcmp(s_msg_sub_type, MSG_SUB_TYPE_EXCEPT)) {
-        match = true;
-    }
-
-out:
-    *observed = match;
-    return match;
-}
-
-static int
-yield_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed)
-{
-    UNUSED_PARAM(handler);
-    UNUSED_PARAM(msg);
-
-    *remove_handler = true;
-    *performed = true;
-
-    pcintr_set_current_co(co);
-    pcintr_resume(co, msg);
+    pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
-
-    return PURC_ERROR_OK;
+    return 0;
 }
 
 static int
@@ -234,11 +217,17 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->synchronously) {
-        pcintr_coroutine_add_event_handler(co,  LOAD_EVENT_HANDER,
-                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-                ctxt, yield_event_handle, is_yield_event_handler_match, false);
-        pcintr_yield(frame, on_continuation, ctxt->request_id,
-                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, true);
+        pcintr_yield_for_event(
+                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+                CO_STATE_STOPPED,
+                ctxt->request_id,
+                MSG_TYPE_CALL_STATE,
+                MSG_SUB_TYPE_ASTERISK,
+                is_observer_match,
+                observer_handle,
+                frame,
+                true
+                );
         return 0;
     }
 
