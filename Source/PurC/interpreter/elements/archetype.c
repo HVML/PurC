@@ -369,26 +369,64 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
 
     pcintr_coroutine_post_event(ctxt->co->cid,
         PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-        ctxt->sync_id, "", "", PURC_VARIANT_INVALID, ctxt->sync_id);
+        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+        PURC_VARIANT_INVALID, ctxt->sync_id);
 }
 
-static void on_sync_continuation(void *ud, pcrdr_msg *msg)
+static bool
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, FETCHERSTATE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+#if 0
+    pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
+    pcintr_check_after_execution_full(pcinst_current(), cor);
+    cor->yielded_ctxt = NULL;
+    cor->continuation = NULL;
+#endif
+
     struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)ud;
+    frame = (struct pcintr_stack_frame*)data;
     PC_ASSERT(frame);
 
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    pcintr_stack_t stack = &co->stack;
+    pcintr_stack_t stack = &cor->stack;
     PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
     PC_ASSERT(ctxt);
-    PC_ASSERT(ctxt->co == co);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
@@ -451,6 +489,11 @@ clean_rws:
     PURC_VARIANT_SAFE_CLEAR(ret);
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
+
+
+    pcintr_resume(cor, msg);
+    pcintr_set_current_co(NULL);
+    return 0;
 }
 
 static void
@@ -494,8 +537,18 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         return;
 
     ctxt->sync_id = purc_variant_ref(v);
-    pcintr_yield(frame, on_sync_continuation, ctxt->sync_id,
-                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, false);
+
+    pcintr_yield_for_event(
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            ctxt->sync_id,
+            MSG_TYPE_FETCHER_STATE,
+            MSG_SUB_TYPE_ASTERISK,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+            );
 }
 
 static void*
