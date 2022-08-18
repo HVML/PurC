@@ -420,37 +420,6 @@ handle_coroutine_event_origin(pcintr_coroutine_t co)
         goto out;
     }
 
-    if (co->sleep_handler) {
-        struct pcintr_event_handler *handler = co->sleep_handler;
-        bool observed = false;
-        bool matched = handler->is_match(handler, co, msg, &observed);
-        if (observed) {
-            msg_observed = true;
-        }
-        if ((co->stage & handler->cor_stage) != 0  &&
-                (co->state & handler->cor_state) != 0 &&
-                (matched || msg_observed)) {
-
-            bool remove_handler = false;
-            int handle_ret = handler->handle(handler, co, msg, &remove_handler,
-                    &performed);
-
-            if (remove_handler) {
-                pcintr_event_handler_destroy(handler);
-                co->sleep_handler = NULL;
-            }
-
-            if (handle_ret == PURC_ERROR_OK) {
-                pcrdr_release_message(msg);
-                msg = NULL;
-            }
-        }
-    }
-
-    if (!msg) {
-        goto out;
-    }
-
     if (msg_observed) {
         pcinst_msg_queue_append(co->mq, msg);
     }
@@ -471,12 +440,15 @@ handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
     purc_variant_t observed = msg->elementValue;
     struct pcintr_observer *observer, *next;
     list_for_each_entry_safe(observer, next, list, node) {
-        bool match = observer->is_match(observer, observed, event_type,
+        bool match = observer->is_match(observer, msg, observed, event_type,
                 event_sub_type);
         if ((co->stage & observer->cor_stage) &&
                 (co->state & observer->cor_state) && match) {
             ret = observer->handle(co, observer, msg, event_type,
-                    event_sub_type, NULL);
+                    event_sub_type, observer->handle_data);
+            if (observer->auto_remove) {
+                pcintr_revoke_observer(observer);
+            }
             *busy = true;
         }
         if (match) {
@@ -597,37 +569,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
                 (co->state & task->cor_state) != 0) {
             list_del(&task->ln);
             pcintr_handle_task(task);
-        }
-    }
-
-    if (!msg) {
-        goto out;
-    }
-
-    if (co->sleep_handler) {
-        struct pcintr_event_handler *handler = co->sleep_handler;
-        bool observed = false;
-        bool matched = handler->is_match(handler, co, msg, &observed);
-        if (observed) {
-            msg_observed = true;
-        }
-        if ((co->stage & handler->cor_stage) != 0  &&
-                (co->state & handler->cor_state) != 0 &&
-                (matched || msg_observed)) {
-
-            bool remove_handler = false;
-            int handle_ret = handler->handle(handler, co, msg, &remove_handler,
-                    &performed);
-
-            if (remove_handler) {
-                pcintr_event_handler_destroy(handler);
-                co->sleep_handler = NULL;
-            }
-
-            if (handle_ret == PURC_ERROR_OK) {
-                pcrdr_release_message(msg);
-                msg = NULL;
-            }
         }
     }
 

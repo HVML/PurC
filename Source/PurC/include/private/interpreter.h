@@ -143,8 +143,8 @@ typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
         void *data);
 
 typedef bool
-(*observer_match_fn)(struct pcintr_observer *observer, purc_variant_t observed,
-        purc_atom_t type, const char *sub_type);
+(*observer_match_fn)(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type);
 
 typedef int
 (*observer_handle_fn)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
@@ -300,7 +300,6 @@ struct pcintr_coroutine {
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
     struct list_head            event_handlers; /* struct pcintr_event_handler */
-    struct pcintr_event_handler *sleep_handler;
 
     /* $CRTN  begin */
     /** The target as a null-terminated string. */

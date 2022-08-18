@@ -120,9 +120,10 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
 }
 
 static bool
-is_match_default(struct pcintr_observer *observer,
+is_match_default(struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(msg);
     if ((is_variant_match_observe(observer->observed, observed)) &&
                 (observer->msg_type_atom == type)) {
         if (observer->sub_type == sub_type ||
@@ -266,7 +267,7 @@ revoke_observer_from_list(struct list_head *list, purc_variant_t observed,
 {
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (p->is_match(p, observed, msg_type_atom, sub_type)) {
+        if (p->is_match(p, NULL, observed, msg_type_atom, sub_type)) {
             pcintr_revoke_observer(p);
             break;
         }

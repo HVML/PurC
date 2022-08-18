@@ -23,9 +23,11 @@
  *
  */
 
+#include "purc-variant.h"
 #include "purc.h"
 
 #include "../internal.h"
+#include "private/instance.h"
 
 #include "private/debug.h"
 #include "private/timer.h"
@@ -293,55 +295,62 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 }
 
 static bool
-is_sleep_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
-    UNUSED_PARAM(co);
-
-    struct ctxt_for_sleep *ctxt = handler->data;
-    if (msg->requestId == PURC_VARIANT_INVALID &&
-            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
-            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
-        *observed = true;
-        return true;
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    uint64_t msg_timestamp = msg->resultValue;
+    if (msg_timestamp < observer->timestamp) {
+        return false;
     }
 
-    return false;
+    return true;
 }
 
-static int sleep_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed)
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
 {
-    UNUSED_PARAM(handler);
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
 
-    *performed = false;
-    *remove_handler = false;
-    int ret = PURC_ERROR_INCOMPLETED;
-    struct ctxt_for_sleep *ctxt = handler->data;
-    if (msg->requestId == PURC_VARIANT_INVALID &&
-            purc_variant_is_equal_to(msg->elementValue, ctxt->element_value) &&
-            purc_variant_is_equal_to(msg->eventName, ctxt->event_name)) {
-        // sleep timeout return PURC_ERROR_OK to clear msg
-        pcintr_set_current_co(co);
-        pcintr_resume(co, NULL);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        *performed = true;
-        ret = PURC_ERROR_OK;
-    }
-    else {
-        // wake up by other event return INCOMPLETED to keep msg for other handler
-        pcintr_set_current_co(co);
-        pcintr_resume(co, NULL);
-        pcintr_set_current_co(NULL);
-        *remove_handler = true;
-        *performed = true;
-        ret = PURC_ERROR_INCOMPLETED;
-    }
+    pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
+    pcintr_check_after_execution_full(pcinst_current(), cor);
+    cor->yielded_ctxt = NULL;
+    cor->continuation = NULL;
 
-    return ret;
+    pcintr_set_current_co(cor);
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)data;
+    PC_ASSERT(frame);
+
+    pcintr_stack_t stack = &cor->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_sleep *ctxt;
+    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    PC_ASSERT(ctxt->timer);
+
+    // NOTE: not interrupted
+    purc_variant_t result = purc_variant_make_ulongint(0);
+    if (result != PURC_VARIANT_INVALID) {
+        pcintr_set_question_var(frame, result);
+        purc_variant_unref(result);
+    }
+    pcintr_set_current_co(NULL);
+    return 0;
 }
+
 static int
 post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -514,14 +523,27 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    PC_ASSERT(ctxt->co->sleep_handler == NULL);
-    ctxt->co->sleep_handler = pcintr_event_handler_create(
-            SLEEP_EVENT_HANDER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, sleep_event_handle, is_sleep_event_handler_match, false);
-
     pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
             ctxt->element_value, ctxt->event_name, true);
+
+    pcintr_register_observer(OBSERVER_SOURCE_INTR,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            stack,
+            ctxt->element_value,
+            ctxt->event_name,
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, SLEEP)),
+            MSG_SUB_TYPE_TIMEOUT,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+        );
 
     purc_clr_error();
 
