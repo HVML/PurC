@@ -60,6 +60,7 @@
 #define MSG_TYPE_RESPONSE             "response"
 
 
+#define MSG_SUB_TYPE_ASTERISK         "*"
 #define MSG_SUB_TYPE_TIMEOUT          "timeout"
 #define MSG_SUB_TYPE_SUCCESS          "success"
 #define MSG_SUB_TYPE_EXCEPT           "except"
