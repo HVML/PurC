@@ -49,7 +49,6 @@ struct ctxt_for_sleep {
     pcintr_timer_t                timer;
     pcintr_coroutine_t            co;
     purc_variant_t                element_value; // yield
-    purc_variant_t                event_name;    // yield
 };
 
 static void
@@ -63,7 +62,6 @@ ctxt_for_sleep_destroy(struct ctxt_for_sleep *ctxt)
             ctxt->timer = NULL;
         }
         PURC_VARIANT_SAFE_CLEAR(ctxt->element_value);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->event_name);
 
         free(ctxt);
     }
@@ -296,12 +294,13 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     UNUSED_PARAM(data);
     UNUSED_PARAM(msg);
 
+    pcintr_set_current_co(cor);
+
     pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), cor);
     cor->yielded_ctxt = NULL;
     cor->continuation = NULL;
 
-    pcintr_set_current_co(cor);
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)data;
     PC_ASSERT(frame);
@@ -472,19 +471,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     ctxt->element_value = purc_variant_make_native(frame, NULL);
     if (!ctxt->element_value) {
-        return ctxt;
-    }
-
-    char *event =
-        malloc(strlen(MSG_TYPE_SLEEP) + strlen(MSG_SUB_TYPE_TIMEOUT) + 2);
-    if (!event) {
-        return ctxt;
-    }
-    sprintf(event, "%s:%s", MSG_TYPE_SLEEP, MSG_SUB_TYPE_TIMEOUT);
-    ctxt->event_name = purc_variant_make_string_reuse_buff(event,
-            strlen(event), false);
-    if (!ctxt->event_name) {
-        free(event);
         return ctxt;
     }
 
