@@ -296,10 +296,12 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 
     pcintr_set_current_co(cor);
 
+#if 0
     pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), cor);
     cor->yielded_ctxt = NULL;
     cor->continuation = NULL;
+#endif
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)data;
@@ -319,6 +321,8 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcintr_set_question_var(frame, result);
         purc_variant_unref(result);
     }
+
+    pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
     return 0;
 }

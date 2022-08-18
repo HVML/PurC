@@ -910,8 +910,8 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_STOPPED);
-    PC_ASSERT(co->yielded_ctxt);
-    PC_ASSERT(co->continuation);
+    //PC_ASSERT(co->yielded_ctxt);
+    //PC_ASSERT(co->continuation);
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -938,7 +938,9 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
         co->wait_event_name = NULL;
     }
 
-    continuation(ctxt, msg);
+    if (continuation) {
+        continuation(ctxt, msg);
+    }
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
