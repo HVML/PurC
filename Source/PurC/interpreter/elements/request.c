@@ -69,59 +69,52 @@ ctxt_destroy(void *ctxt)
     ctxt_for_request_destroy((struct ctxt_for_request*)ctxt);
 }
 
-static void
-on_continuation(void *ud, pcrdr_msg *msg)
+static bool
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
-    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)ud;
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, RESPONSE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+    pcintr_stack_frame_t frame = (pcintr_stack_frame_t)data;
     PC_ASSERT(frame);
 
     purc_variant_t payload = msg->data;
     pcintr_set_question_var(frame, payload);
 
-    return;
-}
-
-static bool
-is_yield_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
-{
-    UNUSED_PARAM(handler);
-    bool match = false;
-    if (!purc_variant_is_equal_to(co->wait_request_id, msg->requestId)) {
-        goto out;
-    }
-
-    const char *s = purc_variant_get_string_const(msg->eventName);
-    const char *p = strchr(s, EVENT_SEPARATOR);
-    if (!p) {
-        goto out;
-    }
-
-    if (0 == strncmp(s, MSG_TYPE_RESPONSE, p - s)) {
-        match = true;
-    }
-
-out:
-    *observed = match;
-    return match;
-}
-
-static int
-yield_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed)
-{
-    UNUSED_PARAM(handler);
-    UNUSED_PARAM(msg);
-
-    *remove_handler = true;
-    *performed = true;
-
-    pcintr_set_current_co(co);
-    pcintr_resume(co, msg);
+    pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
-
-    return PURC_ERROR_OK;
+    return 0;
 }
 
 static int
@@ -174,11 +167,17 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         goto out;
     }
 
-    pcintr_coroutine_add_event_handler(co,  REQUEST_EVENT_HANDER,
-            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-            ctxt, yield_event_handle, is_yield_event_handler_match, false);
-    pcintr_yield(frame, on_continuation, ctxt->request_id,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID, true);
+    pcintr_yield_for_event(
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            ctxt->request_id,
+            MSG_TYPE_RESPONSE,
+            MSG_SUB_TYPE_ASTERISK,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+        );
 
 out:
     return ret;
