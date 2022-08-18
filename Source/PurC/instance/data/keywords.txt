@@ -91,4 +91,5 @@ msg lastMsg
 msg sleep
 msg subExit
 msg async
+msg fetcherState
 

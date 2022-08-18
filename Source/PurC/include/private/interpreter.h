@@ -58,6 +58,7 @@
 #define MSG_TYPE_RDR_STATE            "rdrState"
 #define MSG_TYPE_REQUEST              "request"
 #define MSG_TYPE_RESPONSE             "response"
+#define MSG_TYPE_FETCHER_STATE        "fetcherState"
 
 
 #define MSG_SUB_TYPE_ASTERISK         "*"
