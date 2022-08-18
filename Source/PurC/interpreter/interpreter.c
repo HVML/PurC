@@ -1252,8 +1252,8 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (co->state == CO_STATE_STOPPED) {
-            PC_ASSERT(co->yielded_ctxt);
-            PC_ASSERT(co->continuation);
+            //PC_ASSERT(co->yielded_ctxt);
+            //PC_ASSERT(co->continuation);
         }
         if (!ctxt) {
             if (purc_get_last_error() == 0) {

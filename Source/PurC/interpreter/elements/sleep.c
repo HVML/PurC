@@ -251,33 +251,6 @@ attr_found(struct pcintr_stack_frame *frame,
     return r ? -1 : 0;
 }
 
-static void on_continuation(void *ud, pcrdr_msg *msg)
-{
-    UNUSED_PARAM(msg);
-
-    struct pcintr_stack_frame *frame;
-    frame = (struct pcintr_stack_frame*)ud;
-    PC_ASSERT(frame);
-
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    pcintr_stack_t stack = &co->stack;
-    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
-
-    struct ctxt_for_sleep *ctxt;
-    ctxt = (struct ctxt_for_sleep*)frame->ctxt;
-    PC_ASSERT(ctxt);
-    PC_ASSERT(ctxt->timer);
-
-    // NOTE: not interrupted
-    purc_variant_t result = purc_variant_make_ulongint(0);
-    if (result != PURC_VARIANT_INVALID) {
-        pcintr_set_question_var(frame, result);
-        purc_variant_unref(result);
-    }
-}
-
 static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 {
     UNUSED_PARAM(timer);
@@ -523,22 +496,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield(frame, on_continuation, PURC_VARIANT_INVALID,
-            ctxt->element_value, ctxt->event_name, true);
-
-    pcintr_register_observer(OBSERVER_SOURCE_INTR,
+    pcintr_yield_for_event(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
-            stack,
             ctxt->element_value,
-            ctxt->event_name,
-            pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, SLEEP)),
+            MSG_TYPE_SLEEP,
             MSG_SUB_TYPE_TIMEOUT,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
             is_observer_match,
             observer_handle,
             frame,

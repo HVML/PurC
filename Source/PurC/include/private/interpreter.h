@@ -515,6 +515,18 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
         purc_variant_t event_name, bool custom_event_handler);
 void pcintr_resume(pcintr_coroutine_t cor, pcrdr_msg *msg);
 
+int pcintr_yield_for_event(
+        int                       cor_stage,
+        int                       cor_state,
+        purc_variant_t            observed,
+        const char               *event_type,
+        const char               *event_sub_type,
+        observer_match_fn         observer_is_match,
+        observer_handle_fn        observer_handle,
+        void                     *observer_handle_data,
+        bool                      observer_auto_remove
+        );
+
 void
 pcintr_push_stack_frame_pseudo(pcvdom_element_t vdom_element);
 void

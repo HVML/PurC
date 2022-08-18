@@ -118,8 +118,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         case CO_STATE_STOPPED:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
             PC_ASSERT(inst->errcode == 0);
-            PC_ASSERT(co->yielded_ctxt);
-            PC_ASSERT(co->continuation);
+            //PC_ASSERT(co->yielded_ctxt);
+            //PC_ASSERT(co->continuation);
             return;
         default:
             break;
@@ -784,6 +784,82 @@ yield_event_handle(struct pcintr_event_handler *handler,
     pcintr_set_current_co(NULL);
 
     return PURC_ERROR_OK;
+}
+
+int pcintr_yield_for_event(
+        int                       cor_stage,
+        int                       cor_state,
+        purc_variant_t            observed,
+        const char               *event_type,
+        const char               *event_sub_type,
+        observer_match_fn         observer_is_match,
+        observer_handle_fn        observer_handle,
+        void                     *observer_handle_data,
+        bool                      observer_auto_remove
+        )
+{
+    UNUSED_PARAM(cor_stage);
+    UNUSED_PARAM(cor_state);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(event_type);
+    UNUSED_PARAM(event_sub_type);
+    UNUSED_PARAM(observer_is_match);
+    UNUSED_PARAM(observer_handle);
+    UNUSED_PARAM(observer_handle_data);
+    UNUSED_PARAM(observer_auto_remove);
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+    pcintr_stack_t stack = &co->stack;
+    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
+
+    /* event_type:event_sub_type */
+    size_t nr = strlen(event_type) + 1;
+    if (event_sub_type) {
+        nr += strlen(event_sub_type) + 1;
+    }
+
+    char *event = malloc(nr);
+    if (!event) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    if (event_sub_type) {
+        sprintf(event, "%s:%s", event_type, event_sub_type);
+    }
+    else {
+        strcpy(event, event_type);
+    }
+
+    purc_variant_t event_name = purc_variant_make_string_reuse_buff(event,
+            strlen(event), false);
+    if (!event_name) {
+        free(event);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+
+    pcintr_register_observer(OBSERVER_SOURCE_INTR,
+            cor_stage,
+            cor_state,
+            stack,
+            observed,
+            event_name,
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, SLEEP)),
+            event_sub_type,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            observer_is_match ,
+            observer_handle,
+            observer_handle_data,
+            observer_auto_remove
+        );
+
+    purc_variant_unref(event_name);
+    return 0;
 }
 
 void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
