@@ -302,7 +302,7 @@ pcintr_register_inner_observer(
             NULL,
             NULL,
             NULL,
-            is_match ,
+            is_match,
             handle,
             handle_data,
             auto_remove
