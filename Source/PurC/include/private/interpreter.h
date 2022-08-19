@@ -650,6 +650,20 @@ pcintr_register_observer(enum pcintr_observer_source source,
         bool                      auto_remove
         );
 
+struct pcintr_observer*
+pcintr_register_inner_observer(
+        pcintr_stack_t            stack,
+        int                       cor_stage,
+        int                       cor_state,
+        purc_variant_t            observed,
+        const char               *event_type,
+        const char               *event_sub_type,
+        observer_match_fn         is_match,
+        observer_handle_fn        handle,
+        void                     *handle_data,
+        bool                      auto_remove
+        );
+
 void
 pcintr_revoke_observer(struct pcintr_observer* observer);
 
