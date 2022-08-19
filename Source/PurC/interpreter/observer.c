@@ -170,22 +170,22 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
 }
 
 struct pcintr_observer*
-pcintr_register_observer(enum pcintr_observer_source source,
-        int                       cor_stage,
-        int                       cor_state,
-        pcintr_stack_t            stack,
-        purc_variant_t            observed,
-        purc_atom_t               msg_type_atom,
-        const char               *sub_type,
-        pcvdom_element_t          scope,
-        pcdoc_element_t           edom_element,
-        pcvdom_element_t          pos,
-        pcintr_on_revoke_observer on_revoke,
-        void                     *on_revoke_data,
-        observer_match_fn         is_match,
-        observer_handle_fn        handle,
-        void                     *handle_data,
-        bool                      auto_remove
+pcintr_register_observer(pcintr_stack_t  stack,
+        enum pcintr_observer_source source,
+        int                         cor_stage,
+        int                         cor_state,
+        purc_variant_t              observed,
+        purc_atom_t                 msg_type_atom,
+        const char                 *sub_type,
+        pcvdom_element_t            scope,
+        pcdoc_element_t             edom_element,
+        pcvdom_element_t            pos,
+        observer_on_revoke_fn       on_revoke,
+        void                       *on_revoke_data,
+        observer_match_fn           is_match,
+        observer_handle_fn          handle,
+        void                       *handle_data,
+        bool                        auto_remove
         )
 {
     struct list_head *list = NULL;
@@ -257,10 +257,10 @@ pcintr_register_inner_observer(
         goto out;
     }
 
-    observer = pcintr_register_observer(OBSERVER_SOURCE_INTR,
+    observer = pcintr_register_observer(stack,
+            OBSERVER_SOURCE_INTR,
             cor_stage,
             cor_state,
-            stack,
             observed,
             event_type_atom,
             event_sub_type,

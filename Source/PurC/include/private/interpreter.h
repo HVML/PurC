@@ -141,7 +141,7 @@ typedef struct pcintr_stack_frame_pseudo pcintr_stack_frame_pseudo;
 typedef struct pcintr_stack_frame_pseudo *pcintr_stack_frame_pseudo_t;
 
 struct pcintr_observer;
-typedef void (*pcintr_on_revoke_observer)(struct pcintr_observer *observer,
+typedef void (*observer_on_revoke_fn)(struct pcintr_observer *observer,
         void *data);
 
 typedef bool
@@ -458,7 +458,7 @@ struct pcintr_observer {
     struct list_head* list;
 
     // callback when revoke observer
-    pcintr_on_revoke_observer on_revoke;
+    observer_on_revoke_fn on_revoke;
     void *on_revoke_data;
 
     observer_match_fn   is_match;
@@ -621,22 +621,22 @@ pcintr_parse_event(const char *event, purc_variant_t *type,
         purc_variant_t *sub_type);
 
 struct pcintr_observer*
-pcintr_register_observer(enum pcintr_observer_source source,
-        int                       cor_stage,
-        int                       cor_state,
-        pcintr_stack_t            stack,
-        purc_variant_t            observed,
-        purc_atom_t               msg_type_atom,
-        const char               *sub_type,
-        pcvdom_element_t          scope,
-        pcdoc_element_t           edom_element,
-        pcvdom_element_t          pos,
-        pcintr_on_revoke_observer on_revoke,
-        void                     *on_revoke_data,
-        observer_match_fn         is_match,
-        observer_handle_fn        handle,
-        void                     *handle_data,
-        bool                      auto_remove
+pcintr_register_observer(pcintr_stack_t  stack,
+        enum pcintr_observer_source source,
+        int                         cor_stage,
+        int                         cor_state,
+        purc_variant_t              observed,
+        purc_atom_t                 msg_type_atom,
+        const char                 *sub_type,
+        pcvdom_element_t            scope,
+        pcdoc_element_t             edom_element,
+        pcvdom_element_t            pos,
+        observer_on_revoke_fn       on_revoke,
+        void                       *on_revoke_data,
+        observer_match_fn           is_match,
+        observer_handle_fn          handle,
+        void                       *handle_data,
+        bool                        auto_remove
         );
 
 struct pcintr_observer*

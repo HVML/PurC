@@ -492,10 +492,10 @@ register_named_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    struct pcintr_observer *result = pcintr_register_observer(
+    struct pcintr_observer *result = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            stack, observed,
+            observed,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, edom_element, frame->pos, NULL, NULL, NULL,
             NULL, NULL, false);
@@ -532,9 +532,10 @@ register_native_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    observer = pcintr_register_observer(OBSERVER_SOURCE_HVML,
+    observer = pcintr_register_observer(stack,
+            OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            stack, observed,
+            observed,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
@@ -561,9 +562,10 @@ register_timer_observer(pcintr_stack_t stack,
         return NULL;
     }
 
-    return pcintr_register_observer(OBSERVER_SOURCE_HVML,
+    return pcintr_register_observer(stack,
+            OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            stack, on,
+            on,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
@@ -596,9 +598,10 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    return pcintr_register_observer(OBSERVER_SOURCE_HVML,
+    return pcintr_register_observer(stack,
+            OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            stack, on,
+            on,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos,
@@ -644,9 +647,10 @@ register_default_observer(pcintr_stack_t stack,
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
     PC_ASSERT(edom_element);
 
-    return pcintr_register_observer(OBSERVER_SOURCE_HVML,
+    return pcintr_register_observer(stack,
+            OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
-            stack, observed,
+            observed,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, edom_element, frame->pos,
             NULL, NULL, NULL, NULL, NULL, false);
