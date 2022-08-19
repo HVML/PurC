@@ -623,8 +623,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 #if 0
     pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), cor);
-    cor->yielded_ctxt = NULL;
-    cor->continuation = NULL;
 #endif
 
     int r;
@@ -745,7 +743,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     ctxt->sync_id = purc_variant_ref(v);
 
-    pcintr_yield_for_event(
+    pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
             ctxt->sync_id,

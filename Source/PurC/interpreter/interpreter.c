@@ -389,18 +389,6 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
-        if (co->wait_request_id) {
-            purc_variant_unref(co->wait_request_id);
-        }
-
-        if (co->wait_element_value) {
-            purc_variant_unref(co->wait_element_value);
-        }
-
-        if (co->wait_event_name) {
-            purc_variant_unref(co->wait_event_name);
-        }
-
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
         if (url->schema) {
@@ -1250,10 +1238,6 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     //pcintr_coroutine_dump(co);
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
-        if (co->state == CO_STATE_STOPPED) {
-            //PC_ASSERT(co->yielded_ctxt);
-            //PC_ASSERT(co->continuation);
-        }
         if (!ctxt) {
             if (purc_get_last_error() == 0) {
                 frame->next_step = NEXT_STEP_ON_POPPING;

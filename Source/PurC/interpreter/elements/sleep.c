@@ -299,8 +299,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 #if 0
     pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), cor);
-    cor->yielded_ctxt = NULL;
-    cor->continuation = NULL;
 #endif
 
     struct pcintr_stack_frame *frame;
@@ -486,7 +484,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_timer_set_interval(ctxt->timer, ctxt->for_ns / (1000 * 1000));
     pcintr_timer_start_oneshot(ctxt->timer);
 
-    pcintr_yield_for_event(
+    pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
             ctxt->element_value,

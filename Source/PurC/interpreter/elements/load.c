@@ -132,8 +132,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 #if 0
     pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), cor);
-    cor->yielded_ctxt = NULL;
-    cor->continuation = NULL;
 #endif
 
     pcintr_stack_frame_t frame = (pcintr_stack_frame_t)data;
@@ -217,7 +215,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     if (ctxt->synchronously) {
-        pcintr_yield_for_event(
+        pcintr_yield(
                 CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
                 CO_STATE_STOPPED,
                 ctxt->request_id,

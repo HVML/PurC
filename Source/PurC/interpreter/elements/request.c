@@ -167,7 +167,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         goto out;
     }
 
-    pcintr_yield_for_event(
+    pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
             ctxt->request_id,

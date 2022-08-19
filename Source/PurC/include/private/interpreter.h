@@ -292,12 +292,6 @@ struct pcintr_coroutine {
     int                         waits;  /* FIXME: nr of registered events */
 
     struct list_head            registered_cancels;
-    void                       *yielded_ctxt;
-    void (*continuation)(void *ctxt, pcrdr_msg *msg);
-
-    purc_variant_t              wait_request_id;    /* pcrdr_msg.requestId */
-    purc_variant_t              wait_element_value; /* pcrdr_msg.elementValue */
-    purc_variant_t              wait_event_name;    /* pcrdr_msg.eventName */
 
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
@@ -511,12 +505,9 @@ pcintr_stack_get_bottom_frame(pcintr_stack_t stack);
 struct pcintr_stack_frame*
 pcintr_stack_frame_get_parent(struct pcintr_stack_frame *frame);
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
-        purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name, bool custom_event_handler);
 void pcintr_resume(pcintr_coroutine_t cor, pcrdr_msg *msg);
 
-int pcintr_yield_for_event(
+int pcintr_yield(
         int                       cor_stage,
         int                       cor_state,
         purc_variant_t            observed,

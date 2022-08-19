@@ -118,8 +118,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         case CO_STATE_STOPPED:
             PC_ASSERT(frame && frame->type == STACK_FRAME_TYPE_NORMAL);
             PC_ASSERT(inst->errcode == 0);
-            //PC_ASSERT(co->yielded_ctxt);
-            //PC_ASSERT(co->continuation);
             return;
         default:
             break;
@@ -153,9 +151,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         // observing finished (only HVML tag in stack)
         one_run = true;
     }
-
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
 
     /* send doc to rdr */
     if (stack->co->stage == CO_STAGE_FIRST_RUN &&
@@ -551,7 +546,7 @@ out:
     return;
 }
 
-int pcintr_yield_for_event(
+int pcintr_yield(
         int                       cor_stage,
         int                       cor_state,
         purc_variant_t            observed,
@@ -580,79 +575,18 @@ int pcintr_yield_for_event(
     return 0;
 }
 
-void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
-        purc_variant_t request_id, purc_variant_t element_value,
-        purc_variant_t event_name, bool custom_event_handler)
-{
-    UNUSED_PARAM(request_id);
-    UNUSED_PARAM(event_name);
-    UNUSED_PARAM(custom_event_handler);
-    PC_ASSERT(ctxt);
-    PC_ASSERT(continuation);
-    pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
-    PC_ASSERT(co->yielded_ctxt == NULL);
-    PC_ASSERT(co->continuation == NULL);
-    pcintr_stack_t stack = &co->stack;
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
-    co->yielded_ctxt = ctxt;
-    co->continuation = continuation;
-    if (request_id) {
-        co->wait_request_id = request_id;
-        purc_variant_ref(co->wait_request_id);
-    }
-
-    if (element_value) {
-        co->wait_element_value = element_value;
-        purc_variant_ref(co->wait_element_value);
-    }
-
-    if (event_name) {
-        co->wait_event_name = event_name;
-        purc_variant_ref(co->wait_event_name);
-    }
-}
-
 void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
 {
+    UNUSED_PARAM(msg);
     PC_ASSERT(co);
     PC_ASSERT(co->state == CO_STATE_STOPPED);
-    //PC_ASSERT(co->yielded_ctxt);
-    //PC_ASSERT(co->continuation);
+
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    void *ctxt = co->yielded_ctxt;
-    void (*continuation)(void *ctxt, pcrdr_msg *msg) = co->continuation;
-
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->yielded_ctxt = NULL;
-    co->continuation = NULL;
-    if (co->wait_request_id) {
-        purc_variant_unref(co->wait_request_id);
-        co->wait_request_id = NULL;
-    }
-
-    if (co->wait_element_value) {
-        purc_variant_unref(co->wait_element_value);
-        co->wait_element_value = NULL;
-    }
-
-    if (co->wait_event_name) {
-        purc_variant_unref(co->wait_event_name);
-        co->wait_event_name = NULL;
-    }
-
-    if (continuation) {
-        continuation(ctxt, msg);
-    }
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
