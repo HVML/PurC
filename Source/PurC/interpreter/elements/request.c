@@ -123,7 +123,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
 
-    int ret;
+    int ret = 0;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     purc_variant_t on = ctxt->on;
     purc_variant_t to = ctxt->to;

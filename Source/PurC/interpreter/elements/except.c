@@ -244,7 +244,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(ctxt->contents);
     int r;
     bool to_free = false;
-    r = pcintr_template_set(ctxt->contents, vcm, to_free);
+    r = pcintr_template_set(ctxt->contents, vcm, PURC_VARIANT_INVALID, to_free);
     // FIXME: exception in catch???
     PC_ASSERT(r == 0);
 

@@ -617,13 +617,21 @@ typedef enum {
 typedef enum {
     PCRDR_MSG_DATA_TYPE_FIRST = 0,
 
+#define PCRDR_MSG_DATA_TYPE_NAME_VOID           "void"
     PCRDR_MSG_DATA_TYPE_VOID = PCRDR_MSG_DATA_TYPE_FIRST,
+#define PCRDR_MSG_DATA_TYPE_NAME_JSON           "json"
     PCRDR_MSG_DATA_TYPE_JSON,
+#define PCRDR_MSG_DATA_TYPE_NAME_PLAIN          "plain"
     PCRDR_MSG_DATA_TYPE_PLAIN,
+#define PCRDR_MSG_DATA_TYPE_NAME_HTML           "html"
     PCRDR_MSG_DATA_TYPE_HTML,
+#define PCRDR_MSG_DATA_TYPE_NAME_SVG            "svg"
     PCRDR_MSG_DATA_TYPE_SVG,
+#define PCRDR_MSG_DATA_TYPE_NAME_MATHML         "mathml"
     PCRDR_MSG_DATA_TYPE_MATHML,
+#define PCRDR_MSG_DATA_TYPE_NAME_XGML           "xgml"
     PCRDR_MSG_DATA_TYPE_XGML,
+#define PCRDR_MSG_DATA_TYPE_NAME_XML            "xml"
     PCRDR_MSG_DATA_TYPE_XML,
 
     /* XXX: change this if you append a new enumerator */

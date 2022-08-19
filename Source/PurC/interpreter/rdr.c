@@ -47,6 +47,46 @@
 
 #define DEF_LEN_ONE_WRITE       1024 * 10
 
+static struct pcintr_rdr_data_type {
+    const char *type_name;
+    pcrdr_msg_data_type type;
+} pcintr_rdr_data_types[] = {
+    { PCRDR_MSG_DATA_TYPE_NAME_VOID, PCRDR_MSG_DATA_TYPE_VOID },
+    { PCRDR_MSG_DATA_TYPE_NAME_JSON, PCRDR_MSG_DATA_TYPE_JSON },
+    { PCRDR_MSG_DATA_TYPE_NAME_PLAIN, PCRDR_MSG_DATA_TYPE_PLAIN },
+    { PCRDR_MSG_DATA_TYPE_NAME_HTML, PCRDR_MSG_DATA_TYPE_HTML },
+    { PCRDR_MSG_DATA_TYPE_NAME_SVG, PCRDR_MSG_DATA_TYPE_SVG },
+    { PCRDR_MSG_DATA_TYPE_NAME_MATHML, PCRDR_MSG_DATA_TYPE_MATHML },
+    { PCRDR_MSG_DATA_TYPE_NAME_XGML, PCRDR_MSG_DATA_TYPE_XGML },
+    { PCRDR_MSG_DATA_TYPE_NAME_XML, PCRDR_MSG_DATA_TYPE_XML },
+};
+
+/* Make sure the size of doc_types matches the number of document types */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(types,
+        PCA_TABLESIZE(pcintr_rdr_data_types) == PCRDR_MSG_DATA_TYPE_NR);
+
+#undef _COMPILE_TIME_ASSERT
+
+pcrdr_msg_data_type
+pcintr_rdr_retrieve_data_type(const char *type_name)
+{
+    if (UNLIKELY(type_name == NULL)) {
+        goto fallback;
+    }
+
+    for (size_t i = 0; i < PCA_TABLESIZE(pcintr_rdr_data_types); i++) {
+        if (strcmp(type_name, pcintr_rdr_data_types[i].type_name) == 0) {
+            return pcintr_rdr_data_types[i].type;
+        }
+    }
+
+fallback:
+    return PCRDR_MSG_DATA_TYPE_VOID;   // fallback
+}
+
 static bool
 object_set(purc_variant_t object, const char *key, const char *value)
 {

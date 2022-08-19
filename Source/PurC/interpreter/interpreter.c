@@ -2384,6 +2384,7 @@ template_cleaner(struct pcvdom_template *tpl)
     if (tpl->vcm && tpl->to_free) {
         pcvcm_node_destroy(tpl->vcm);
     }
+    PURC_VARIANT_SAFE_CLEAR(tpl->type);
     tpl->vcm = NULL;
     tpl->to_free = false;
 }
@@ -2468,7 +2469,7 @@ pcintr_template_make(void)
 
 int
 pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
-        bool to_free)
+        purc_variant_t type, bool to_free)
 {
     PC_ASSERT(val);
     PC_ASSERT(vcm);
@@ -2485,6 +2486,9 @@ pcintr_template_set(purc_variant_t val, struct pcvcm_node *vcm,
 
     PC_ASSERT(tpl->vcm == NULL);
     tpl->vcm = vcm;
+    if (type) {
+        tpl->type = purc_variant_ref(type);
+    }
     tpl->to_free = to_free;
 
     return 0;
@@ -3176,6 +3180,21 @@ pcintr_template_expansion(purc_variant_t val)
     return v;
 }
 
+purc_variant_t
+pcintr_template_get_type(purc_variant_t val)
+{
+    int r;
+    r = check_template_variant(val);
+    // FIXME: modify pcintr_template_walk function-signature
+    PC_ASSERT(r == 0);
+
+    void *native_entity = purc_variant_native_get_entity(val);
+    PC_ASSERT(native_entity);
+    struct pcvdom_template *tpl;
+    tpl = (struct pcvdom_template*)native_entity;
+    return tpl->type;
+}
+
 void
 pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
         enum pcintr_coroutine_state state,
@@ -3225,17 +3244,23 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len)
+        const char *content, size_t len, purc_variant_t data_type)
 {
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
-    /* TODO: use the type from archetype `type` attribute */
+    pcrdr_msg_data_type type = doc->def_text_type;
+    if (data_type) {
+        /* use the type from archetype `type` attribute */
+        type = pcintr_rdr_retrieve_data_type(
+                purc_variant_get_string_const(data_type));
+    }
+
     pcintr_stack_t stack = pcintr_get_stack();
     if (node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, NULL, doc->def_text_type, content, len);
+                elem, NULL, type, content, len);
     }
 
     return node;

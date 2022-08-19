@@ -678,7 +678,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len);
+        const char *content, size_t len, purc_variant_t data_type);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
@@ -752,6 +752,8 @@ pcintr_coroutine_get_result(pcintr_coroutine_t co);
 bool
 pcintr_is_variable_token(const char *str);
 
+pcrdr_msg_data_type
+pcintr_rdr_retrieve_data_type(const char *type_name);
 
 PCA_EXTERN_C_END
 

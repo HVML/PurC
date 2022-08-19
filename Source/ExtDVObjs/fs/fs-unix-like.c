@@ -50,6 +50,11 @@
 #include <sys/vfs.h>
 #endif
 
+#if OS(DARWIN)
+#include <sys/param.h>
+#include <sys/mount.h>
+#endif
+
 #if USE(GLIB)
 #include <glib.h>
 #endif
@@ -1712,18 +1717,9 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(silently);
 
-    // TODO: Use the portable `statfs()` here.
-#if !OS(LINUX)
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return PURC_VARIANT_INVALID;
-#else
     const char *string_dir = NULL;
-    struct mntent *mnt;
     struct statfs fsu;
     struct stat   st;
-    FILE *fp;
     purc_variant_t val = PURC_VARIANT_INVALID;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -1739,18 +1735,6 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    fp = fopen (string_dir, "rb");
-    if (NULL == fp) {
-        set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
-    }
-
-    mnt = getmntent (fp);
-    if (NULL == mnt) {
-        set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
-    }
-
     if (statfs (string_dir, &fsu) != 0) {
         set_purc_error_by_errno ();
         return purc_variant_make_boolean (false);
@@ -1761,8 +1745,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_boolean (false);
     }
 
-    ret_var = purc_variant_make_object (7,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    ret_var = purc_variant_make_object_0 ();
 
     // free_blocks
     val = purc_variant_make_ulongint (fsu.f_bfree);
@@ -1785,7 +1768,12 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     // mount_point
-    val = purc_variant_make_string (mnt->mnt_dir, false);
+#if OS(LINUX)
+    // TODO
+    val = purc_variant_make_string ("/", false);
+#elif OS(DARWIN)
+    val = purc_variant_make_string (fsu.f_mntonname, false);
+#endif
     purc_variant_object_set_by_static_ckey (ret_var, "mount_point", val);
     purc_variant_unref (val);
 
@@ -1800,7 +1788,6 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     return ret_var;
-#endif
 }
 
 static purc_variant_t
