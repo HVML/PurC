@@ -76,7 +76,7 @@ You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g.
 We assume that you are using Linux.
 
 After fetched the source of PurC, you can change to the root of the source treen,
-      and use the fillowing command line to build and install PurC:
+      and use the following command line to build and install PurC:
 
 ```
 $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build build && sudo cmake --install build
