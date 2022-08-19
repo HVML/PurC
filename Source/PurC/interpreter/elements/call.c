@@ -132,11 +132,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 
     pcintr_set_current_co(cor);
 
-#if 0
-    pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
-    pcintr_check_after_execution_full(pcinst_current(), cor);
-#endif
-
     pcintr_stack_frame_t frame = (pcintr_stack_frame_t)data;
     PC_ASSERT(frame);
 
