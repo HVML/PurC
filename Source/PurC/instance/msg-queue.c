@@ -127,11 +127,11 @@ is_event_match(pcrdr_msg *left, pcrdr_msg *right)
 }
 
 static uint64_t
-get_timestamp_ms(void)
+get_timestamp_us(void)
 {
     struct timeval now;
     gettimeofday(&now, 0);
-    return (uint64_t)now.tv_sec * 1000 + now.tv_usec / 1000;
+    return (uint64_t)now.tv_sec * 1000000 + now.tv_usec;
 }
 
 int
@@ -161,7 +161,7 @@ reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
 
     hdr = (struct pcinst_msg_hdr *)msg;
     /* keep timestamp */
-    msg->resultValue = get_timestamp_ms();
+    msg->resultValue = get_timestamp_us();
     if (tail) {
         list_add_tail(&hdr->ln, &queue->event_msgs);
     }
@@ -204,7 +204,7 @@ pcinst_msg_queue_append(struct pcinst_msg_queue *queue, pcrdr_msg *msg)
         queue->state |= MSG_QS_EVENT;
         if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_KEEP) {
             /* keep timestamp */
-            msg->resultValue = get_timestamp_ms();
+            msg->resultValue = get_timestamp_us();
             list_add_tail(&hdr->ln, &queue->event_msgs);
             queue->state |= MSG_QS_EVENT;
             queue->nr_msgs++;

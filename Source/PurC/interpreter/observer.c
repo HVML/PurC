@@ -31,6 +31,8 @@
 #include "private/interpreter.h"
 #include "private/regex.h"
 
+#include <sys/time.h>
+
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 static void
@@ -169,6 +171,14 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
     return 0;
 }
 
+static uint64_t
+get_timestamp_us(void)
+{
+    struct timeval now;
+    gettimeofday(&now, 0);
+    return (uint64_t)now.tv_sec * 1000000 + now.tv_usec;
+}
+
 struct pcintr_observer*
 pcintr_register_observer(pcintr_stack_t  stack,
         enum pcintr_observer_source source,
@@ -221,7 +231,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
     observer->handle = handle ? handle : observer_handle_default;
     observer->handle_data = handle_data;
     observer->auto_remove = auto_remove;
-    observer->timestamp = (uint64_t)pcintr_get_current_time();
+    observer->timestamp = get_timestamp_us();
     add_observer_into_list(stack, list, observer);
 
     // observe idle

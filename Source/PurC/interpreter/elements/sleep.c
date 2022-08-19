@@ -275,7 +275,7 @@ is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     uint64_t msg_timestamp = msg->resultValue;
-    if (msg_timestamp < observer->timestamp) {
+    if (msg_timestamp <= observer->timestamp) {
         return false;
     }
 
