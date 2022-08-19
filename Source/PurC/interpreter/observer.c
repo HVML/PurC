@@ -175,7 +175,6 @@ pcintr_register_observer(enum pcintr_observer_source source,
         int                       cor_state,
         pcintr_stack_t            stack,
         purc_variant_t            observed,
-        purc_variant_t            for_value,
         purc_atom_t               msg_type_atom,
         const char               *sub_type,
         pcvdom_element_t          scope,
@@ -189,8 +188,6 @@ pcintr_register_observer(enum pcintr_observer_source source,
         bool                      auto_remove
         )
 {
-    UNUSED_PARAM(for_value);
-
     struct list_head *list = NULL;
     if (source == OBSERVER_SOURCE_INTR) {
         list = &stack->intr_observers;
@@ -251,7 +248,6 @@ pcintr_register_inner_observer(
         bool                      auto_remove
         )
 {
-    size_t nr;
     struct pcintr_observer *observer = NULL;
     purc_atom_t event_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             event_type);
@@ -261,38 +257,11 @@ pcintr_register_inner_observer(
         goto out;
     }
 
-    nr = strlen(event_type) + 1;
-    if (event_sub_type) {
-        nr += strlen(event_sub_type) + 1;
-    }
-
-    char *event = malloc(nr);
-    if (!event) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    if (event_sub_type) {
-        sprintf(event, "%s:%s", event_type, event_sub_type);
-    }
-    else {
-        strcpy(event, event_type);
-    }
-
-    purc_variant_t event_name = purc_variant_make_string_reuse_buff(event,
-            strlen(event), false);
-    if (!event_name) {
-        free(event);
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
     observer = pcintr_register_observer(OBSERVER_SOURCE_INTR,
             cor_stage,
             cor_state,
             stack,
             observed,
-            event_name,
             event_type_atom,
             event_sub_type,
             NULL,
@@ -305,8 +274,6 @@ pcintr_register_inner_observer(
             handle_data,
             auto_remove
         );
-
-    purc_variant_unref(event_name);
 
 out:
     return observer;
