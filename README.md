@@ -269,7 +269,7 @@ $ purc hvml/fibonacci-void-temp.hvml
 
 This HVML program will output 18 Fibonacci numbers less than 2000.
 There is also another version of this program: `hvml/fibonacci-html-temp.hvml`.
-It will generate a HTML document listing the Fibonacci numbers.
+It will generate an HTML document listing the Fibonacci numbers.
 
 If you run `hvml/fibonacci-html-temp.hvml` program by using `purc` without any option,
    `purc` will use the renderer called `HEADLESS`.
@@ -558,7 +558,7 @@ If the firewall refused to connect to the URL, use the following URL:
 $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
-Note that when `purc` try to load a HVML program from a remote URL,
+Note that when `purc` try to load an HVML program from a remote URL,
      it will use the remote data fetcher by default.
 Therefore, you must install PurC Fetcher in advance.
 Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions to build and install PurC Fetcher to your system.
@@ -578,7 +578,7 @@ Except for the HVML interpreter, PurC also provides many fundamental features fo
 1. PurC provides the APIs for variant management, here variant is way of HVML program to manage data.
 1. PurC provides the APIs for parsing JSON and extended JSON.
 1. PurC provides the APIs for parsing and evaluting a parameterized eJSON expression.
-1. PurC provides the APIs for parsing a HTML document.
+1. PurC provides the APIs for parsing an HTML document.
 
 You can use these groups of APIs independently according to your needs.
 
