@@ -358,53 +358,62 @@ pcintr_coroutine_add_sub_exit_event_handler(pcintr_coroutine_t co)
             NULL, sub_exit_event_handle, is_sub_exit_event_handler_match, false);
     PC_ASSERT(handler);
 }
-
 static bool
-is_last_msg_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
+is_last_msg_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
-    UNUSED_PARAM(handler);
-    UNUSED_PARAM(co);
-
-    const char *event_name = purc_variant_get_string_const(msg->eventName);
-    if (strcmp(event_name, MSG_TYPE_LAST_MSG) == 0) {
-        *observed = true;
-        return true;
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, LASTMSG)) == type) {
+        match = true;
+        goto out;
     }
-    return false;
+
+out:
+    return match;
 }
 
 static int
-last_msg_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed)
+last_msg_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
 {
-    UNUSED_PARAM(handler);
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
-    *remove_handler = true;
-    *performed = true;
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
 
-    PC_ASSERT(co);
-    PC_ASSERT(co->stack.exited);
-    PC_ASSERT(co->stack.last_msg_sent);
-    PC_ASSERT(co->stack.last_msg_read == 0);
-    co->stack.last_msg_read = 1;
-
-    pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    pcintr_check_after_execution_full(pcinst_current(), co);
-    return PURC_ERROR_OK;
+    cor->stack.last_msg_read = 1;
+    pcintr_coroutine_set_state(cor, CO_STATE_RUNNING);
+    pcintr_check_after_execution_full(pcinst_current(), cor);
+    return 0;
 }
 
 void
-pcintr_coroutine_add_last_msg_event_handler(pcintr_coroutine_t co)
+pcintr_coroutine_add_last_msg_observer(pcintr_coroutine_t co)
 {
     UNUSED_PARAM(co);
-    struct pcintr_event_handler *handler = pcintr_coroutine_add_event_handler(
-            co,  LAST_MSG_EVENT_HANDER,
+
+    purc_variant_t observed = purc_variant_make_ulongint(co->cid);
+    pcintr_register_inner_observer(
+            &co->stack,
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_READY | CO_STATE_OBSERVING | CO_STATE_EXITED,
-            NULL, last_msg_event_handle, is_last_msg_event_handler_match, false);
-    PC_ASSERT(handler);
+            observed,
+            MSG_TYPE_LAST_MSG,
+            NULL,
+            is_last_msg_observer_match,
+            last_msg_observer_handle,
+            NULL,
+            true
+        );
+
+    purc_variant_unref(observed);
 }
 
 int

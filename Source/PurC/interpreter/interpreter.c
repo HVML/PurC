@@ -1801,7 +1801,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     pcintr_coroutine_add_sub_exit_event_handler(co);
-    pcintr_coroutine_add_last_msg_event_handler(co);
+    //pcintr_coroutine_add_last_msg_event_handler(co);
 //    pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
@@ -1821,6 +1821,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     PC_ASSERT(r == 0);
 
     stack_init(stack);
+    pcintr_coroutine_add_last_msg_observer(co);
 
     if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
         stack->doc = purc_document_ref(parent->stack.doc);
