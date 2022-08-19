@@ -113,8 +113,6 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
 {
     struct pcintr_observer *p, *n;
     list_for_each_entry_reverse_safe(p, n, observer_list, node) {
-        list_del(&p->node);
-        list_del(&p->node);
         free_observer(p);
     }
 }
