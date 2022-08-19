@@ -361,76 +361,6 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
     }
 }
 
-/* return whether busy */
-bool
-handle_coroutine_event_origin(pcintr_coroutine_t co)
-{
-    bool busy = false;
-    int handle_ret = PURC_ERROR_INCOMPLETED;
-    if (co->state == CO_STATE_READY || co->state == CO_STATE_RUNNING) {
-        goto out;
-    }
-
-    pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
-    bool remove_handler = false;
-    bool performed = false;
-    bool msg_observed = false;
-
-    struct list_head *handlers = &co->event_handlers;
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, handlers) {
-        struct pcintr_event_handler *handler;
-        handler = list_entry(p, struct pcintr_event_handler, ln);
-
-        bool matched = false;
-        bool observed = false;
-        if (msg || handler->support_null_event) {
-            matched = handler->is_match(handler, co, msg, &observed);
-        }
-
-        if (observed) {
-            msg_observed = true;
-        }
-
-        // verify coroutine stage and state
-        if ((co->stage & handler->cor_stage) == 0  ||
-                (co->state & handler->cor_state) == 0 ||
-                (!matched)) {
-            continue;
-        }
-
-        handle_ret = handler->handle(handler, co, msg, &remove_handler,
-                &performed);
-
-        if (remove_handler) {
-            pcintr_coroutine_remove_event_hander(handler);
-        }
-
-        if (handle_ret == PURC_ERROR_OK && msg) {
-            pcrdr_release_message(msg);
-            msg = NULL;
-        }
-
-        if (performed) {
-            busy = true;
-        }
-    }
-
-    if (!msg) {
-        goto out;
-    }
-
-    if (msg_observed) {
-        pcinst_msg_queue_append(co->mq, msg);
-    }
-    else {
-        pcrdr_release_message(msg);
-    }
-
-out:
-    return busy;
-}
-
 static int
 handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
         pcrdr_msg *msg, purc_atom_t event_type,
@@ -463,8 +393,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
 {
     int handle_ret = PURC_ERROR_INCOMPLETED;
     bool busy = false;
-    bool remove_handler = false;
-    bool performed = false;
     bool msg_observed = false;
     char *type = NULL;
     purc_atom_t event_type = 0;
@@ -497,46 +425,6 @@ handle_coroutine_event(pcintr_coroutine_t co)
                 PC_WARN("unknown event '%s'\n", event);
                 goto out;
             }
-        }
-    }
-
-    struct list_head *handlers = &co->event_handlers;
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, handlers) {
-        struct pcintr_event_handler *handler;
-        handler = list_entry(p, struct pcintr_event_handler, ln);
-
-        bool matched = false;
-        bool observed = false;
-        if (msg || handler->support_null_event) {
-            matched = handler->is_match(handler, co, msg, &observed);
-        }
-
-        if (observed) {
-            msg_observed = true;
-        }
-
-        // verify coroutine stage and state
-        if ((co->stage & handler->cor_stage) == 0  ||
-                (co->state & handler->cor_state) == 0 ||
-                (!matched)) {
-            continue;
-        }
-
-        handle_ret = handler->handle(handler, co, msg, &remove_handler,
-                &performed);
-
-        if (remove_handler) {
-            pcintr_coroutine_remove_event_hander(handler);
-        }
-
-        if (handle_ret == PURC_ERROR_OK && msg) {
-            pcrdr_release_message(msg);
-            msg = NULL;
-        }
-
-        if (performed) {
-            busy = true;
         }
     }
 
@@ -663,129 +551,6 @@ out:
     return;
 }
 
-static bool
-default_event_match(struct pcintr_event_handler *handler, pcintr_coroutine_t co,
-        pcrdr_msg *msg, bool *observed)
-{
-    UNUSED_PARAM(handler);
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(msg);
-    *observed = false;
-    return true;
-}
-
-
-struct pcintr_event_handler *
-pcintr_event_handler_create(const char *name,
-        int stage, int state, void *data, event_handle_fn fn,
-        event_match_fn is_match_fn, bool support_null_event)
-{
-    struct pcintr_event_handler *handler =
-        (struct pcintr_event_handler *)calloc(1, sizeof(*handler));
-    if (!handler) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    handler->name = name ? strdup(name) : NULL;
-    handler->cor_stage = stage;
-    handler->cor_state = state;
-    handler->data = data;
-    handler->handle = fn;
-    handler->is_match = is_match_fn ? is_match_fn : default_event_match;
-    handler->support_null_event = support_null_event;
-out:
-    return handler;
-}
-
-void
-pcintr_event_handler_destroy(struct pcintr_event_handler *handler)
-{
-    if (handler->name) {
-        free(handler->name);
-    }
-    free(handler);
-}
-
-
-struct pcintr_event_handler *
-pcintr_coroutine_add_event_handler(pcintr_coroutine_t co,  const char *name,
-        int stage, int state, void *data, event_handle_fn fn,
-        event_match_fn is_match_fn, bool support_null_event)
-{
-    struct pcintr_event_handler *handler =
-        pcintr_event_handler_create(name, stage, state,
-                data, fn, is_match_fn, support_null_event);
-    if (!handler) {
-        goto out;
-    }
-
-    list_add_tail(&handler->ln, &co->event_handlers);
-out:
-    return handler;
-}
-
-int
-pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler)
-{
-    list_del(&handler->ln);
-    pcintr_event_handler_destroy(handler);
-    return 0;
-}
-
-int
-pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co)
-{
-    struct list_head *handlers = &co->event_handlers;
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, handlers) {
-        struct pcintr_event_handler *handler;
-        handler = list_entry(p, struct pcintr_event_handler, ln);
-        pcintr_coroutine_remove_event_hander(handler);
-    }
-    return 0;
-}
-
-bool is_yield_event_handler_match(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed)
-{
-    UNUSED_PARAM(handler);
-    bool match = false;
-    if (co->wait_request_id && msg->requestId) {
-        match = purc_variant_is_equal_to(co->wait_request_id, msg->requestId);
-        goto out;
-    }
-
-    if (co->wait_element_value &&
-            purc_variant_is_equal_to(co->wait_element_value, msg->elementValue) &&
-            purc_variant_is_equal_to(co->wait_event_name, msg->eventName)) {
-        match =  true;
-        goto out;
-    }
-
-out:
-    *observed = match;
-    return match;
-}
-
-static int
-yield_event_handle(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed)
-{
-    UNUSED_PARAM(handler);
-    UNUSED_PARAM(msg);
-
-    *remove_handler = true;
-    *performed = true;
-
-    pcintr_set_current_co(co);
-    pcintr_resume(co, msg);
-    pcintr_set_current_co(NULL);
-
-    return PURC_ERROR_OK;
-}
-
 int pcintr_yield_for_event(
         int                       cor_stage,
         int                       cor_state,
@@ -821,6 +586,7 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
 {
     UNUSED_PARAM(request_id);
     UNUSED_PARAM(event_name);
+    UNUSED_PARAM(custom_event_handler);
     PC_ASSERT(ctxt);
     PC_ASSERT(continuation);
     pcintr_coroutine_t co = pcintr_get_coroutine();
@@ -849,13 +615,6 @@ void pcintr_yield(void *ctxt, void (*continuation)(void *ctxt, pcrdr_msg *msg),
     if (event_name) {
         co->wait_event_name = event_name;
         purc_variant_ref(co->wait_event_name);
-    }
-
-    if (!custom_event_handler) {
-        pcintr_coroutine_add_event_handler(
-                co,  YIELD_EVENT_HANDLER,
-                CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING, CO_STATE_STOPPED,
-                ctxt, yield_event_handle, is_yield_event_handler_match, false);
     }
 }
 

@@ -384,7 +384,6 @@ coroutine_release(pcintr_coroutine_t co)
         }
 
         pcintr_coroutine_clear_tasks(co);
-        pcintr_coroutine_clear_event_handlers(co);
 
         if (co->variables) {
             pcvarmgr_destroy(co->variables);
@@ -1793,14 +1792,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     INIT_LIST_HEAD(&co->children);
     INIT_LIST_HEAD(&co->registered_cancels);
     INIT_LIST_HEAD(&co->tasks);
-    INIT_LIST_HEAD(&co->event_handlers);
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
         goto fail_co;
     }
-
-//    pcintr_coroutine_add_observer_event_handler(co);
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {

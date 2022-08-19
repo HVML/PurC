@@ -301,7 +301,6 @@ struct pcintr_coroutine {
 
     struct pcinst_msg_queue    *mq;     /* message queue */
     struct list_head            tasks;  /* one event with multiple observers */
-    struct list_head            event_handlers; /* struct pcintr_event_handler */
 
     /* $CRTN  begin */
     /** The target as a null-terminated string. */

@@ -66,28 +66,6 @@ struct pcintr_observer_task {
     purc_variant_t                source;
 };
 
-struct pcintr_event_handler;
-
-typedef bool (*event_match_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *observed);
-
-typedef int (*event_handle_fn)(struct pcintr_event_handler *handler,
-        pcintr_coroutine_t co, pcrdr_msg *msg, bool *remove_handler,
-        bool *performed);
-
-struct pcintr_event_handler {
-    struct list_head              ln;
-    int                           cor_stage;
-    int                           cor_state;
-    unsigned int                  support_null_event:1; /* support null event */
-    char                         *name;
-    void                         *data;
-    event_handle_fn               handle;
-    event_match_fn                is_match;
-};
-
-
-
 PCA_EXTERN_C_BEGIN
 
 void
@@ -428,31 +406,6 @@ void pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
 
 int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
-
-struct pcintr_event_handler *
-pcintr_event_handler_create(const char *name,
-        int stage, int state, void *data, event_handle_fn fn,
-        event_match_fn is_match_fn, bool support_null_event);
-
-void
-pcintr_event_handler_destroy(struct pcintr_event_handler *handler);
-
-struct pcintr_event_handler *
-pcintr_coroutine_add_event_handler(pcintr_coroutine_t co, const char *name,
-        int stage, int state, void *data, event_handle_fn fn,
-        event_match_fn is_match_fn, bool support_null_event);
-
-int
-pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
-
-int
-pcintr_coroutine_remove_event_hander(struct pcintr_event_handler *handler);
-
-int
-pcintr_coroutine_clear_event_handlers(pcintr_coroutine_t co);
-
-void
-pcintr_coroutine_add_observer_event_handler(pcintr_coroutine_t co);
 
 void
 pcintr_coroutine_add_sub_exit_observer(pcintr_coroutine_t co);
