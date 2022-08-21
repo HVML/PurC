@@ -105,7 +105,8 @@ pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down)
     free(broken_down);
 }
 
-char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct)
+char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct,
+        bool keep_percent_escaped)
 {
     char * url_string = NULL;
     String string = "";
@@ -136,10 +137,14 @@ char *pcutils_url_assemble(const struct purc_broken_down_url *url_struct)
         url.setPassword(url_struct->passwd);
 
     if (url.isValid()) {
-        String tempstring = url.string();
-// if you wana decode URL, use the line below
-// String tempstring = PurCWTF::decodeEscapeSequencesFromParsedURL(url.string());
-        url_string = strdup(tempstring.latin1().data());
+        if (keep_percent_escaped) {
+            String tempstring = url.string();
+            url_string = strdup(tempstring.utf8().data());
+        }
+        else {
+            String tempstring = PurCWTF::decodeEscapeSequencesFromParsedURL(url.string());
+            url_string = strdup(tempstring.utf8().data());
+        }
     }
 
     return url_string;
@@ -186,8 +191,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->schema)
             free(url_struct->schema);
         StringView protocol = url.protocol();
-        CString latin1 = protocol.toString().latin1();
-        tempstring = latin1.data();
+        CString utf8 = protocol.toString().utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->schema = strdup(tempstring);
@@ -197,8 +202,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->user)
             free(url_struct->user);
         String user = url.user();
-        latin1 = user.latin1();
-        tempstring = latin1.data();
+        utf8 = user.utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->user = strdup(tempstring);
@@ -208,8 +213,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->passwd)
             free(url_struct->passwd);
         String password = url.password();
-        latin1 = password.latin1();
-        tempstring = latin1.data();
+        utf8 = password.utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->passwd = strdup(tempstring);
@@ -219,8 +224,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->host)
             free(url_struct->host);
         StringView host = url.host();
-        latin1 = host.toString().latin1();
-        tempstring = latin1.data();
+        utf8 = host.toString().utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->host = strdup(tempstring);
@@ -228,10 +233,16 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
             url_struct->host = NULL;
 
         if (url_struct->path)
-            free (url_struct->path);
-        StringView path = url.path();
-        latin1 = path.toString().latin1();
-        tempstring = latin1.data();
+            free(url_struct->path);
+        if (url.isLocalFile()) {
+            utf8 = url.fileSystemPath().utf8();
+        }
+        else {
+            StringView path = url.path();
+            utf8 = path.toString().utf8();
+        }
+
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->path = strdup(tempstring);
@@ -241,8 +252,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->query)
             free(url_struct->query);
         StringView query = url.query();
-        latin1 = query.toString().latin1();
-        tempstring = latin1.data();
+        utf8 = query.toString().utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->query = strdup(tempstring);
@@ -252,8 +263,8 @@ bool pcutils_url_break_down(struct purc_broken_down_url *url_struct,
         if (url_struct->fragment)
             free(url_struct->fragment);
         StringView fragmentIdentifier = url.fragmentIdentifier();
-        latin1 = fragmentIdentifier.toString().latin1();
-        tempstring = latin1.data();
+        utf8 = fragmentIdentifier.toString().utf8();
+        tempstring = utf8.data();
         length = strlen(tempstring);
         if (length)
             url_struct->fragment = strdup(tempstring);

@@ -1,0 +1,4 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+    $STREAM.stdout.writelines('世界，您好！')
+</hvml>

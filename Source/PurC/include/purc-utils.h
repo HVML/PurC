@@ -952,19 +952,20 @@ pcutils_broken_down_url_delete(struct purc_broken_down_url *broken_down);
 /**
  * Clear a broken-down URL for reuse.
  */
-PCA_EXPORT  void
+PCA_EXPORT void
 pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down);
 
 /**
  * Assemble a broken-down URL.
  *
  * @param broken_down The pointer to a broken-down URL structure.
+ * @param keep_percent_escaped Whether to keep percent escaped.
  *
- * Returns: The assembled URL string (not percent escaped) on success,
- *  otherwise @null.
+ * Returns: The assembled URL string on success, otherwise @NULL.
  */
 PCA_EXPORT char *
-pcutils_url_assemble(const struct purc_broken_down_url *broken_down);
+pcutils_url_assemble(const struct purc_broken_down_url *broken_down,
+        bool keep_percent_escaped);
 
 /**
  * Break down a URL string.

@@ -8,6 +8,7 @@ PURC_COPY_FILES(ScriptToRunSamples
 
 set(sample_HVML_FILES
     "hvml/hello.hvml"
+    "hvml/您好.hvml"
     "hvml/hello-10.hvml"
     "hvml/hello-html.hvml"
     "hvml/hello-html-timer.hvml"

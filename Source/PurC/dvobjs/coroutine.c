@@ -136,7 +136,7 @@ base_setter(purc_variant_t root,
      * of pcutils_url_assemble() is `http://www.minigui.org/`
      */
     if (pcutils_url_break_down(&(cor->base_url_broken_down), url)) {
-        char *url = pcutils_url_assemble(&cor->base_url_broken_down);
+        char *url = pcutils_url_assemble(&cor->base_url_broken_down, true);
         if (url) {
             free(cor->base_url_string);
             cor->base_url_string = url;
