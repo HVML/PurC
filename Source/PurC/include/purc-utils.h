@@ -962,6 +962,8 @@ pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down);
  * @param keep_percent_escaped Whether to keep percent escaped.
  *
  * Returns: The assembled URL string on success, otherwise @NULL.
+ *  The caller will be the owner of the returned pointer; call
+ *  free() to release the memory when done.
  */
 PCA_EXPORT char *
 pcutils_url_assemble(const struct purc_broken_down_url *broken_down,
