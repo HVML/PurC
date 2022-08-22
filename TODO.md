@@ -9,7 +9,7 @@
 1. gitlab
 1. github
 
-### 0.2) Predefined Varaibles
+### 0.2) Predefined Variables
 
 1. Support for the following URI schemas for `$STREAM`:
    - `fifo`
@@ -43,11 +43,11 @@
 
 1. [0.9.x] Support for tuples.
 
-### 1.3) Predefined Varaibles
+### 1.3) Predefined Variables
 
+1. [0.8.2] `$RUNNER.channel` and the native entity representing a channel.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
-1. [0.9.x] Finish the implementation of the following predefined variables:
-   - `$RUNNER.channel` and the native entity representing a channel.
+1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
