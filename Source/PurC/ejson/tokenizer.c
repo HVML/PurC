@@ -47,6 +47,17 @@
 
 #define INVALID_CHARACTER    0xFFFFFFFF
 
+#define tkz_stack_is_empty()  pcejson_token_stack_is_empty(parser->tkz_stack)
+#define tkz_stack_top()  pcejson_token_stack_top(parser->tkz_stack)
+#define tkz_stack_pop()  pcejson_token_stack_pop(parser->tkz_stack)
+#define tkz_stack_push(c) pcejson_token_stack_push_sample(parser->tkz_stack, c)
+#define tkz_stack_size() pcejson_token_stack_size(parser->tkz_stack)
+#define tkz_stack_reset() pcejson_token_stack_clear(parser->tkz_stack)
+
+#define tkz_current()  pcejson_token_stack_top(parser->tkz_stack)
+
+#define PRINT_STATE(state_name)
+
 #define PCEJSON_PARSER_BEGIN                                                \
 int pcejson_parse_n(struct pcvcm_node **vcm_tree,                           \
         struct pcejson **parser_param,                                      \
@@ -98,4 +109,26 @@ next_state:                                                                 \
     return -1;                                                              \
 }
 
+PCEJSON_PARSER_BEGIN
+
+BEGIN_STATE(EJSON_TKZ_STATE_DATA)
+    if (is_eof(character)) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (is_whitespace (character) || character == 0xFEFF) {
+        ADVANCE_TO(EJSON_TKZ_STATE_DATA);
+    }
+    RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
+    *vcm_tree = NULL;
+    return 0;
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
+END_STATE()
+
+PCEJSON_PARSER_END
 

@@ -28,23 +28,17 @@
 
 #include "config.h"
 
+#include "private/ejson.h"
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
 
-#define PRINT_STATE(state_name)                                             \
-    if (parser->enable_log) {                                               \
-        size_t len;                                                         \
-        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
-        PC_DEBUG(                                                           \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
-            curr_state_name, character, character,                          \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
-        free(s); \
-    }
+#define EJSON_MAX_DEPTH              32
+#define EJSON_MIN_BUFFER_SIZE        128
+#define EJSON_MAX_BUFFER_SIZE        1024 * 1024 * 1024
+#define EJSON_END_OF_FILE            0
+#define PURC_ENVV_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
@@ -61,6 +55,41 @@
     tkz_set_error_info(parser->curr_uc, err);                               \
 } while (0)
 
+#define BEGIN_STATE(state_name)                                             \
+    case state_name:                                                        \
+    {                                                                       \
+        const char *curr_state_name = ""#state_name;                        \
+        int curr_state = state_name;                                        \
+        UNUSED_PARAM(curr_state_name);                                      \
+        UNUSED_PARAM(curr_state);                                           \
+        PRINT_STATE(curr_state);
+
+#define END_STATE()                                                         \
+        break;                                                              \
+    }
+
+#define ADVANCE_TO(new_state)                                               \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_input;                                                    \
+    } while (false)
+
+#define RECONSUME_IN(new_state)                                             \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_state;                                                    \
+    } while (false)
+
+#define SET_RETURN_STATE(new_state)                                         \
+    do {                                                                    \
+        parser->return_state = new_state;                                   \
+    } while (false)
+
+#define RETURN_AND_STOP_PARSE()                                             \
+    do {                                                                    \
+        return -1;                                                          \
+    } while (false)
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
@@ -70,9 +99,19 @@ struct pcejson_token_stack {
     struct pcutils_stack *stack;
 };
 
+enum pcejson_tkz_state {
+    EJSON_TKZ_STATE_FIRST = 1000,
+
+    EJSON_TKZ_STATE_DATA = EJSON_TKZ_STATE_FIRST,
+    EJSON_TKZ_STATE_FINISHED,
+    EJSON_TKZ_STATE_CONTROL,
+
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_CONTROL,
+};
+
 struct pcejson {
-    int state;
-    int return_state;
+    uint32_t state;
+    uint32_t return_state;
     uint32_t depth;
     uint32_t max_depth;
     uint32_t flags;

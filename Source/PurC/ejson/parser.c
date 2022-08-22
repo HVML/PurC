@@ -55,7 +55,6 @@
 #define    pc_free(p)     free(p)
 #endif
 
-
 #define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
 #define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
@@ -68,40 +67,18 @@
 #define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
 #define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
 
-#define BEGIN_STATE(state_name)                                             \
-    case state_name:                                                        \
-    {                                                                       \
-        const char *curr_state_name = ""#state_name;                        \
-        int curr_state = state_name;                                        \
-        UNUSED_PARAM(curr_state_name);                                      \
-        UNUSED_PARAM(curr_state);                                           \
-        PRINT_STATE(curr_state);
-
-#define END_STATE()                                                         \
-        break;                                                              \
+#define PRINT_STATE(state_name)                                             \
+    if (parser->enable_log) {                                               \
+        size_t len;                                                         \
+        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
+        PC_DEBUG(                                                           \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
+            curr_state_name, character, character,                          \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            ejson_stack_size(), s);                                         \
+        free(s); \
     }
-
-#define ADVANCE_TO(new_state)                                               \
-    do {                                                                    \
-        parser->state = new_state;                                          \
-        goto next_input;                                                    \
-    } while (false)
-
-#define RECONSUME_IN(new_state)                                             \
-    do {                                                                    \
-        parser->state = new_state;                                          \
-        goto next_state;                                                    \
-    } while (false)
-
-#define SET_RETURN_STATE(new_state)                                         \
-    do {                                                                    \
-        parser->return_state = new_state;                                   \
-    } while (false)
-
-#define RETURN_AND_STOP_PARSE()                                             \
-    do {                                                                    \
-        return -1;                                                          \
-    } while (false)
 
 #define RESET_TEMP_BUFFER()                                                 \
     do {                                                                    \
@@ -266,12 +243,6 @@ enum tokenizer_state {
 
 #define PRINT_RECONSUM_LIST(wrap)    \
         print_uc_list(&wrap->reconsume_list, "reconsume")
-
-#define EJSON_MAX_DEPTH         32
-#define EJSON_MIN_BUFFER_SIZE   128
-#define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
-#define EJSON_END_OF_FILE       0
-#define PURC_ENVV_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
 
 struct pcejson_token *
 pcejson_token_new(uint32_t type)
