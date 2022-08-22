@@ -25,6 +25,8 @@
 
 #include "config.h"
 
+#include "tokenizer.h"
+
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/debug.h"
@@ -53,33 +55,6 @@
 #define    pc_free(p)     free(p)
 #endif
 
-#define PRINT_STATE(state_name)                                             \
-    if (parser->enable_log) {                                               \
-        size_t len;                                                         \
-        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
-        PC_DEBUG(                                                           \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
-            curr_state_name, character, character,                          \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
-        free(s); \
-    }
-
-#define SET_ERR(err)    do {                                                \
-    if (parser->curr_uc) {                                                  \
-        char buf[ERROR_BUF_SIZE+1];                                         \
-        snprintf(buf, ERROR_BUF_SIZE,                                       \
-                "line=%d, column=%d, character=%c",                         \
-                parser->curr_uc->line,                                      \
-                parser->curr_uc->column,                                    \
-                parser->curr_uc->character);                                \
-        if (parser->enable_log) {                                           \
-            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
-        }                                                                   \
-    }                                                                       \
-    tkz_set_error_info(parser->curr_uc, err);                               \
-} while (0)
 
 #define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
 #define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
@@ -292,26 +267,6 @@ enum tokenizer_state {
 #define PRINT_RECONSUM_LIST(wrap)    \
         print_uc_list(&wrap->reconsume_list, "reconsume")
 
-struct pcejson {
-    int state;
-    int return_state;
-    uint32_t depth;
-    uint32_t max_depth;
-    uint32_t flags;
-
-    struct tkz_uc* curr_uc;
-    struct tkz_reader* tkz_reader;
-    struct tkz_buffer* temp_buffer;
-    struct tkz_buffer* string_buffer;
-    struct pcvcm_node* vcm_node;
-    struct pcvcm_stack* vcm_stack;
-    struct pcutils_stack* ejson_stack;
-    struct tkz_sbst* sbst;
-    uint32_t prev_separator;
-    uint32_t nr_quoted;
-    bool enable_log;
-};
-
 #define EJSON_MAX_DEPTH         32
 #define EJSON_MIN_BUFFER_SIZE   128
 #define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
@@ -337,6 +292,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->string_buffer = tkz_buffer_new();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
+    parser->tkz_stack = pcutils_stack_new(0);
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
 
@@ -364,6 +320,7 @@ void pcejson_destroy(struct pcejson *parser)
         pcvcm_node_destroy(n);
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
+        pcutils_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
         pc_free(parser);
     }
@@ -394,7 +351,9 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     pcvcm_stack_destroy(parser->vcm_stack);
     parser->vcm_stack = pcvcm_stack_new();
     pcutils_stack_destroy(parser->ejson_stack);
+    pcutils_stack_destroy(parser->tkz_stack);
     parser->ejson_stack = pcutils_stack_new(0);
+    parser->tkz_stack = pcutils_stack_new(0);
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
 }
