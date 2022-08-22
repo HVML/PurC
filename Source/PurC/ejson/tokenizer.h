@@ -61,6 +61,15 @@
     tkz_set_error_info(parser->curr_uc, err);                               \
 } while (0)
 
+struct pcejson_token {
+    uint32_t type;
+    struct pcvcm_node *node;
+};
+
+struct pcejson_token_stack {
+    struct pcutils_stack *stack;
+};
+
 struct pcejson {
     int state;
     int return_state;
@@ -68,22 +77,59 @@ struct pcejson {
     uint32_t max_depth;
     uint32_t flags;
 
-    struct tkz_uc* curr_uc;
-    struct tkz_reader* tkz_reader;
-    struct tkz_buffer* temp_buffer;
-    struct tkz_buffer* string_buffer;
-    struct pcvcm_node* vcm_node;
-    struct pcvcm_stack* vcm_stack;
-    struct pcutils_stack* ejson_stack;
-    struct tkz_sbst* sbst;
-    struct pcutils_stack* tkz_stack;
+    struct tkz_uc *curr_uc;
+    struct tkz_reader *tkz_reader;
+    struct tkz_buffer *temp_buffer;
+    struct tkz_buffer *string_buffer;
+    struct pcvcm_node *vcm_node;
+    struct pcvcm_stack *vcm_stack;
+    struct pcutils_stack *ejson_stack;
+    struct tkz_sbst *sbst;
+
+    struct pcejson_token_stack *tkz_stack;
+
     uint32_t prev_separator;
     uint32_t nr_quoted;
     bool enable_log;
 };
 
-
 PCA_EXTERN_C_BEGIN
+
+struct pcejson_token *
+pcejson_token_new(uint32_t type);
+
+void
+pcejson_token_destroy(struct pcejson_token *token);
+
+
+struct pcejson_token_stack *
+pcejson_token_stack_new();
+
+int
+pcejson_token_stack_destroy(struct pcejson_token_stack *stack);
+
+bool
+pcejson_token_stack_is_empty(struct pcejson_token_stack *stack);
+
+int
+pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
+        uint32_t type);
+
+int
+pcejson_token_stack_push(struct pcejson_token_stack *stack,
+        struct pcejson_token *token);
+
+struct pcejson_token *
+pcejson_token_stack_pop(struct pcejson_token_stack *stack);
+
+struct pcejson_token *
+pcejson_token_stack_top(struct pcejson_token_stack *stack);
+
+int
+pcejson_token_stack_size(struct pcejson_token_stack *stack);
+
+int
+pcejson_token_stack_clear(struct pcejson_token_stack *stack);
 
 PCA_EXTERN_C_END
 

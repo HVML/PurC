@@ -273,6 +273,125 @@ enum tokenizer_state {
 #define EJSON_END_OF_FILE       0
 #define PURC_ENVV_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
 
+struct pcejson_token *
+pcejson_token_new(uint32_t type)
+{
+    struct pcejson_token *token = (struct pcejson_token*) pc_alloc(
+            sizeof(struct pcejson_token));
+    if (!token) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    token->type = type;
+
+out:
+    return token;
+}
+
+void
+pcejson_token_destroy(struct pcejson_token *token)
+{
+    if (token) {
+        if (token->node) {
+            pcvcm_node_destroy(token->node);
+            pc_free(token);
+        }
+    }
+}
+
+struct pcejson_token_stack *
+pcejson_token_stack_new()
+{
+    struct pcejson_token_stack *stack = (struct pcejson_token_stack*)pc_alloc(
+            sizeof(struct pcejson_token_stack));
+    if (!stack) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    stack->stack = pcutils_stack_new(0);
+    if (!stack->stack) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    goto out;
+
+failed:
+    if (stack) {
+        pc_free(stack);
+        stack = NULL;
+    }
+
+out:
+    return stack;
+}
+
+int
+pcejson_token_stack_destroy(struct pcejson_token_stack *stack)
+{
+    if (stack) {
+        pcutils_stack_destroy(stack->stack);
+        pc_free(stack);
+    }
+    return 0;
+}
+
+bool
+pcejson_token_stack_is_empty(struct pcejson_token_stack *stack)
+{
+    return pcutils_stack_is_empty(stack->stack);
+}
+
+int
+pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
+        uint32_t type)
+{
+
+    struct pcejson_token *token = pcejson_token_new(type);
+    if (token) {
+        return pcejson_token_stack_push(stack, token);
+    }
+    return -1;
+}
+
+int
+pcejson_token_stack_push(struct pcejson_token_stack *stack,
+        struct pcejson_token *token)
+{
+    pcutils_stack_push(stack->stack, (uintptr_t)token);
+    return 0;
+}
+
+struct pcejson_token *
+pcejson_token_stack_pop(struct pcejson_token_stack *stack)
+{
+    return (struct pcejson_token*)pcutils_stack_pop(stack->stack);
+}
+
+struct pcejson_token *
+pcejson_token_stack_top(struct pcejson_token_stack *stack)
+{
+    return (struct pcejson_token*)pcutils_stack_top(stack->stack);
+}
+
+int
+pcejson_token_stack_size(struct pcejson_token_stack *stack)
+{
+    return pcutils_stack_size(stack->stack);
+}
+
+int
+pcejson_token_stack_clear(struct pcejson_token_stack *stack)
+{
+    struct pcejson_token *token = pcejson_token_stack_pop(stack);
+    while(token) {
+        pcejson_token_destroy(token);
+        token = pcejson_token_stack_pop(stack);
+    }
+    return 0;
+}
+
 struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 {
     struct pcejson* parser = (struct pcejson*) pc_alloc(
@@ -292,7 +411,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->string_buffer = tkz_buffer_new();
     parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
-    parser->tkz_stack = pcutils_stack_new(0);
+    parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
 
@@ -320,7 +439,7 @@ void pcejson_destroy(struct pcejson *parser)
         pcvcm_node_destroy(n);
         pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
-        pcutils_stack_destroy(parser->tkz_stack);
+        pcejson_token_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
         pc_free(parser);
     }
@@ -351,9 +470,9 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     pcvcm_stack_destroy(parser->vcm_stack);
     parser->vcm_stack = pcvcm_stack_new();
     pcutils_stack_destroy(parser->ejson_stack);
-    pcutils_stack_destroy(parser->tkz_stack);
+    pcejson_token_stack_destroy(parser->tkz_stack);
     parser->ejson_stack = pcutils_stack_new(0);
-    parser->tkz_stack = pcutils_stack_new(0);
+    parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
 }
