@@ -37,6 +37,7 @@
 1. [0.8.2] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
 1. [0.8.2] Improve eJSON parser to support the following string patterns:
    - `file://$SYS.cwd/a.hvml`
+1. [0.8.2] Keep self-closed foreign elements not changed.
 
 ### 1.2.3) Others
 
