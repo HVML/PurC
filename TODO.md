@@ -46,6 +46,7 @@
 
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Finish the implementation of the following predefined variables:
+   - `$RUNNER.channel` and the native entity representing a channel.
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -62,7 +63,6 @@
 1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. Review the implementation of all elements.
 1. [0.9.x] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
@@ -75,6 +75,7 @@
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
+1. [1.0.0] Review the implementation of all elements.
 1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
