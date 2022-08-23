@@ -1,7 +1,7 @@
 # Maintainer: taotieren <admin@taotieren.com>
 
 pkgname=purc-git
-pkgver=0.8.1.r3.gd1b31944
+pkgver=0.8.1.r5.g242e7564
 pkgrel=1
 pkgdesc="The prime HVML interpreter for C Language."
 arch=('any')
@@ -25,10 +25,19 @@ pkgver() {
 
 build() {
     cd "${srcdir}/${pkgname%-git}"
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build
-    cmake --build build
+# CMake build
+#     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build
+#     cmake --build build
+
+# Ninja build
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build -G Ninja
+    ninja -C build
 }
 
 package() {
-    make -C "${srcdir}"/${pkgname%-git}/build install DESTDIR="${pkgdir}"
+# make install
+#     make -C "${srcdir}"/${pkgname%-git}/build install DESTDIR="${pkgdir}"
+
+# ninja install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}"/${pkgname%-git}/build install
 }
