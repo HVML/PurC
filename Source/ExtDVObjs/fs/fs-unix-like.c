@@ -521,6 +521,42 @@ static const char *get_dir_path (const char *string_path,
     return string_path;
 }
 
+static bool find_mount_point (char *dir)
+{
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    char  *dir_end = dir + strlen(dir) - 1;
+    struct stat  st;
+    dev_t  orig_dev;
+
+    if (stat (dir, &st) != 0)
+        return false;
+    
+    orig_dev = st.st_dev;
+
+    while (dir_end > (dir + 1)) {
+
+        while (dir_end > dir && separator == *dir_end) {
+            dir_end--;
+        }
+        while (dir_end > dir && separator != *dir_end) {
+            dir_end--;
+        }
+        if (dir_end <= dir) {
+            return false;
+        }
+        (*dir_end) = '\0'; // set dir to dirname
+
+        if (stat (dir, &st) != 0)
+            return false;
+        
+        if (st.st_dev != orig_dev) // we crossed the device border
+            return true;
+    }
+
+    return true;
+}
+
 
 enum {
     FN_OPTION_STAT,
@@ -1718,6 +1754,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(silently);
 
     const char *string_dir = NULL;
+    char mntpoint_buffer[PATH_MAX + 1];
     struct statfs fsu;
     struct stat   st;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1769,8 +1806,14 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // mount_point
 #if OS(LINUX)
-    // TODO
-    val = purc_variant_make_string ("/", false);
+    strncpy (mntpoint_buffer, string_dir, sizeof(mntpoint_buffer)-1);
+    mntpoint_buffer[sizeof(mntpoint_buffer)-1] = '\0';
+    if (find_mount_point (mntpoint_buffer)) {
+        val = purc_variant_make_string(mntpoint_buffer, false);
+    }
+    else {
+        val = purc_variant_make_string("/", false);
+    }
 #elif OS(DARWIN)
     val = purc_variant_make_string (fsu.f_mntonname, false);
 #endif
@@ -1783,7 +1826,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     // dev_minor
-    val = purc_variant_make_ulongint ((long) major(st.st_dev));
+    val = purc_variant_make_ulongint ((long) minor(st.st_dev));
     purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
     purc_variant_unref (val);
 
