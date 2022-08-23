@@ -107,23 +107,30 @@ $ make -j4
 $ sudo make install
 ```
 
-### Compile with Ninja
-
-The system you are using is required to install the `ninja` package.
+If you'd like to use `ninja` instead of `make` to build PurC,
+   you can use the following command:
 
 ```bash
 $ cd <path/to/the/root/of/the/source/tree/of/PurC>
 $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -Bbuild -GNinja &&  ninja -Cbuild && ninja -Cbuild install
 ```
 
-If you use ninja for packaging, you need to use `DESTDIR` to specify the installation path.
-
-```bash
-$ DESTDIR="${pkgdir}" ninja -Cbuild install
-```
+Note that you might need to remove `build/` directory first if there is already one.
 
 By default, the above commands will build PurC and install the headers, libraries, executables,
    and some documents to your system (under `/usr/local/` directory if you are using Linux system).
+
+When using `make`, you can use `DESTDIR` to specify an alternative installation directory:
+
+```bash
+$ make DESTDIR=/package/stage install
+```
+
+When using `ninja`, you can also use `DESTDIR` to specify an alternative installation directory:
+
+```bash
+$ DESTDIR="/package/stage" ninja -Cbuild install
+```
 
 ## Environment Variables
 
