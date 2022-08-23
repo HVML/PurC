@@ -2,12 +2,12 @@
 
 pkgname=purc
 pkgver=0.8.1
-pkgrel=0
+pkgrel=1
 pkgdesc="The prime HVML interpreter for C Language."
 arch=('any')
 url="https://github.com/HVML/PurC"
 license=('LGPL-3.0')
-provides=(${pkgname})
+provides=(${pkgname} 'PurC')
 conflicts=(${pkgname}-git)
 #replaces=(${pkgname})
 depends=('cmake' 'gcc' 'glibc' 'python' 'bison' 'flex')
@@ -20,10 +20,19 @@ sha256sums=('387fc10560eed813cd92b36a224f17a7fa94c2aa20264f7e75c9c471505071d5')
 
 build() {
     cd "${srcdir}/PurC-ver-${pkgver}/"
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build
-    cmake --build build
+# CMake build
+#     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build
+#     cmake --build build
+
+# Ninja build
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build -G Ninja
+    ninja -C build
 }
 
 package() {
-    make -C "${srcdir}"/PurC-ver-${pkgver}/build install DESTDIR="${pkgdir}"
+# make install
+#     make -C "${srcdir}"/PurC-ver-${pkgver}/build install DESTDIR="${pkgdir}"
+
+# ninja install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}"/PurC-ver-${pkgver}/build install
 }
