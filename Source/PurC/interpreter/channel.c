@@ -132,7 +132,9 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
         // FIXME: re-arrange data
         unsigned int i = 0;
         while (chan->sendx != chan->recvx) {
+            purc_variant_t tmp = chan->data[i];
             chan->data[i] = chan->data[chan->recvx];
+            chan->data[chan->recvx] = tmp;
             chan->recvx = (chan->recvx + 1) % chan->qsize;
             i++;
         }
@@ -234,6 +236,8 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     else {
         vrt = PURC_VARIANT_INVALID;
         // TODO: block the current coroutine
+
+        goto failed;
     }
 
     return purc_variant_ref(vrt);
