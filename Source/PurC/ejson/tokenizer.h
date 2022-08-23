@@ -90,6 +90,30 @@
         return -1;                                                          \
     } while (false)
 
+#define RESET_TEMP_BUFFER()                                                 \
+    do {                                                                    \
+        tkz_buffer_reset(parser->temp_buffer);                              \
+    } while (false)
+
+#define APPEND_TO_TEMP_BUFFER(c)                                            \
+    do {                                                                    \
+        tkz_buffer_append(parser->temp_buffer, c);                          \
+    } while (false)
+
+#define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
+    do {                                                                    \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);      \
+    } while (false)
+
+#define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
+    do {                                                                    \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);             \
+    } while (false)
+
+#define IS_TEMP_BUFFER_EMPTY()                                              \
+        tkz_buffer_is_empty(parser->temp_buffer)
+
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
@@ -105,8 +129,25 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_DATA = EJSON_TKZ_STATE_FIRST,
     EJSON_TKZ_STATE_FINISHED,
     EJSON_TKZ_STATE_CONTROL,
+    EJSON_TKZ_STATE_AFTER_TOKEN,
+    EJSON_TKZ_STATE_LEFT_BRACE,
+    EJSON_TKZ_STATE_RIGHT_BRACE,
+    EJSON_TKZ_STATE_LEFT_BRACKET,
+    EJSON_TKZ_STATE_RIGHT_BRACKET,
+    EJSON_TKZ_STATE_LEFT_PARENTHESIS,
+    EJSON_TKZ_STATE_RIGHT_PARENTHESIS,
+    EJSON_TKZ_STATE_DOLLAR,
+    EJSON_TKZ_STATE_AMPERSAND,
+    EJSON_TKZ_STATE_OR_SIGN,
+    EJSON_TKZ_STATE_SEMICOLON,
+    EJSON_TKZ_STATE_SINGLE_QUOTED,
+    EJSON_TKZ_STATE_DOUBLE_QUOTED,
+    EJSON_TKZ_STATE_UNQUOTED,
+    EJSON_TKZ_STATE_BEFORE_NAME,
 
-    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_CONTROL,
+    EJSON_TKZ_STATE_CJSONEE_FINISHED,
+
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_CJSONEE_FINISHED,
 };
 
 struct pcejson {
@@ -150,11 +191,11 @@ pcejson_token_stack_destroy(struct pcejson_token_stack *stack);
 bool
 pcejson_token_stack_is_empty(struct pcejson_token_stack *stack);
 
-int
+struct pcejson_token *
 pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
         uint32_t type);
 
-int
+struct pcejson_token *
 pcejson_token_stack_push(struct pcejson_token_stack *stack,
         struct pcejson_token *token);
 
@@ -169,6 +210,22 @@ pcejson_token_stack_size(struct pcejson_token_stack *stack);
 
 int
 pcejson_token_stack_clear(struct pcejson_token_stack *stack);
+
+static inline
+bool pcejson_inc_depth (struct pcejson* parser)
+{
+    parser->depth++;
+    return parser->depth <= parser->max_depth;
+}
+
+static inline
+void pcejson_dec_depth (struct pcejson* parser)
+{
+    if (parser->depth > 0) {
+        parser->depth--;
+    }
+}
+
 
 PCA_EXTERN_C_END
 

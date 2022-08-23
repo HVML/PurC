@@ -80,29 +80,6 @@
         free(s); \
     }
 
-#define RESET_TEMP_BUFFER()                                                 \
-    do {                                                                    \
-        tkz_buffer_reset(parser->temp_buffer);                               \
-    } while (false)
-
-#define APPEND_TO_TEMP_BUFFER(c)                                            \
-    do {                                                                    \
-        tkz_buffer_append(parser->temp_buffer, c);                           \
-    } while (false)
-
-#define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
-    do {                                                                    \
-        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);       \
-    } while (false)
-
-#define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
-    do {                                                                    \
-        tkz_buffer_append_another(parser->temp_buffer, buffer);              \
-    } while (false)
-
-#define IS_TEMP_BUFFER_EMPTY()                                              \
-        tkz_buffer_is_empty(parser->temp_buffer)
-
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
         tkz_buffer_reset(parser->string_buffer);                             \
@@ -314,7 +291,7 @@ pcejson_token_stack_is_empty(struct pcejson_token_stack *stack)
     return pcutils_stack_is_empty(stack->stack);
 }
 
-int
+struct pcejson_token *
 pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
         uint32_t type)
 {
@@ -323,15 +300,15 @@ pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
     if (token) {
         return pcejson_token_stack_push(stack, token);
     }
-    return -1;
+    return NULL;
 }
 
-int
+struct pcejson_token *
 pcejson_token_stack_push(struct pcejson_token_stack *stack,
         struct pcejson_token *token)
 {
     pcutils_stack_push(stack->stack, (uintptr_t)token);
-    return 0;
+    return token;
 }
 
 struct pcejson_token *
@@ -446,21 +423,6 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
-}
-
-static inline UNUSED_FUNCTION
-bool pcejson_inc_depth (struct pcejson* parser)
-{
-    parser->depth++;
-    return parser->depth <= parser->max_depth;
-}
-
-static inline UNUSED_FUNCTION
-void pcejson_dec_depth (struct pcejson* parser)
-{
-    if (parser->depth > 0) {
-        parser->depth--;
-    }
 }
 
 static UNUSED_FUNCTION
