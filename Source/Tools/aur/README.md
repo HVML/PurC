@@ -24,7 +24,7 @@ $ yay -U purc-*.tar.zst
 # Compile, package and install
 $ makepkg -sfi
 
-# Online installation via AUR
+# Online installation via AUR: [purc](https://aur.archlinux.org/packages/purc)
 $ yay -S purc
 ```
 
@@ -35,6 +35,8 @@ $ yay -S purc
 # Other Linux distributions can be referenced.
 $ cd aur/purc-git
 
+# The PurC development version does not need to update the check values and .SRCINFO files when compiling.
+# Updates are required only when submitted to AUR.
 # Update the check value of the PurC development version and generate a .SRCINFO file
 $ updpkgsums && makepkg --printsrcinfo > .SRCINFO
 
@@ -47,6 +49,6 @@ $ yay -U purc-git-*.tar.zst
 # Compile, package and install
 $ makepkg -sfi
 
-# Online installation via AUR
+# Online installation via AUR: [purc-git](https://aur.archlinux.org/packages/purc-git)
 $ yay -S purc-git
 ```
