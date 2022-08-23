@@ -625,7 +625,8 @@ static int
 travel(purc_document_t doc, pcdoc_element_t ancestor,
             pcdoc_node_cb cb, struct pcdoc_travel_info *info)
 {
-    if (info->type == PCDOC_NODE_ELEMENT) {
+    pcdom_node_t *ancestor_node = (pcdom_node_t *)ancestor;
+    if (info->type == node_type(ancestor_node->type)) {
         int r = cb(doc, ancestor, info->ctxt);
         if (r)
             return -1;
@@ -636,20 +637,17 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
 
     pcdom_node_t *child = dom_node->first_child;
     for (; child; child = child->next) {
-        if (node_type(child->type) == info->type) {
+        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
+            pcdoc_element_t elem = (pcdoc_element_t)child;
+            int r = travel(doc, elem, cb, info);
+            if (r)
+                return -1;
+        }
+        else if (node_type(child->type) == info->type) {
             int r = cb(doc, child, info->ctxt);
             if (r)
                 return -1;
             info->nr++;
-        }
-
-        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
-            pcdoc_element_t elem = (pcdoc_element_t)child;
-            if (child->first_child) {
-                int r = travel(doc, elem, cb, info);
-                if (r)
-                    return -1;
-            }
         }
     }
 
