@@ -39,6 +39,7 @@
 #include "private/stringbuilder.h"
 #include "private/msg-queue.h"
 #include "private/runners.h"
+#include "private/channel.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -485,6 +486,11 @@ static void _cleanup_instance(struct pcinst* inst)
         heap->event_timer = NULL;
     }
 
+    if (heap->name_chan_map) {
+        pcutils_map_destroy(heap->name_chan_map);
+        heap->name_chan_map = NULL;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -524,7 +530,10 @@ static int _init_instance(struct pcinst* inst,
 
     heap->coroutines = RB_ROOT;
     heap->running_coroutine = NULL;
-    heap->next_coroutine_id = 1;
+
+    heap->name_chan_map =
+        pcutils_map_create(copy_key_string, free_key_string,
+                NULL, (free_val_fn)pcchan_destroy, comp_key_string, false);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
