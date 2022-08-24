@@ -30,6 +30,8 @@
 #include "private/list.h"
 #include "private/utils.h"
 
+#define PCCHAN_MAX_LEN_NAME     63
+
 struct pcchan {
     /* size of the circular queue */
     unsigned int    qsize;

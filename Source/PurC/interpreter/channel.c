@@ -26,7 +26,8 @@
 
 #include "config.h"
 
-#include "purc.h"
+#include "purc-variant.h"
+#include "purc-helpers.h"
 #include "private/channel.h"
 #include "private/instance.h"
 #include "private/interpreter.h"
@@ -65,8 +66,8 @@ pcchan_open(const char *chan_name, unsigned int cap)
         return NULL;
     }
 
-    if (chan_name == NULL || true /* TODO: validate name here */ ||
-            cap == 0) {
+    if (chan_name == NULL || cap == 0 ||
+            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
@@ -108,7 +109,8 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
         goto failed;
     }
 
-    if (chan_name == NULL || true /* TODO: validate name here */) {
+    if (chan_name == NULL ||
+            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         goto failed;
     }
@@ -170,7 +172,8 @@ pcchan_retrieve(const char *chan_name)
         return NULL;
     }
 
-    if (chan_name == NULL || true /* TODO: validate name here */) {
+    if (chan_name == NULL ||
+            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
@@ -202,7 +205,9 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         // TODO: if there is any coroutine waiting for data, awake one here
     }
     else {
-        // TODO: block the current coroutine 
+        // TODO: block the current coroutine
+        purc_set_error(PURC_ERROR_AGAIN);
+        return PURC_VARIANT_INVALID;
     }
 
 failed:
@@ -234,10 +239,9 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         // awake one here
     }
     else {
-        vrt = PURC_VARIANT_INVALID;
         // TODO: block the current coroutine
-
-        goto failed;
+        purc_set_error(PURC_ERROR_AGAIN);
+        return PURC_VARIANT_INVALID;
     }
 
     return purc_variant_ref(vrt);

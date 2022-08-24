@@ -128,6 +128,8 @@ static const char *except_messages[] = {
     "Entity not found",
     /* PURC_EXCEPT_ENTITY_EXISTS */
     "Entity exists",
+    /* PURC_EXCEPT_ENTITY_GONE */
+    "Entity gone",
     /* PURC_EXCEPT_NO_STORAGE_SPACE */
     "No storage space",
     /* PURC_EXCEPT_BROKEN_PIPE */

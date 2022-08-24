@@ -105,6 +105,7 @@ static struct const_str_atom _except_names[] = {
     { "InvalidOperand", 0 },
     { "EntityNotFound", 0 },
     { "EntityExists", 0 },
+    { "EntityGone", 0 },
     { "NoStorageSpace", 0 },
     { "BrokenPipe", 0 },
     { "ConnectionAborted", 0 },
