@@ -33,10 +33,16 @@
 #define PCCHAN_MAX_LEN_NAME     63
 
 struct pcchan {
+    /* the name of the channel */
+    char           *name;
+
     /* size of the circular queue */
     unsigned int    qsize;
     /* total variants in the queue */
     unsigned int    qcount;
+
+    /* reference count: the channel entity variants bound to this channel */
+    unsigned int    refc;
 
     /* indices to send and receive */
     unsigned int    sendx;

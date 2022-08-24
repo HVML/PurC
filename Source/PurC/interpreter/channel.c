@@ -35,25 +35,15 @@
 #include <assert.h>
 #include <errno.h>
 
-void pcchan_destroy(pcchan_t chan)
+void
+pcchan_destroy(pcchan_t chan)
 {
-    while (chan->sendx != chan->recvx) {
-        purc_variant_t vrt = chan->data[chan->recvx];
-
-        assert(vrt);
-        purc_variant_unref(vrt);
-
-        chan->data[chan->recvx] = PURC_VARIANT_INVALID;
-        chan->recvx = (chan->recvx + 1) % chan->qsize;
-
-        chan->qcount--;
+    if (chan->qsize > 0) {
+        PC_WARN("destroying a channel not closed: %s (%u)\n",
+                chan->name, chan->qcount);
     }
 
-    /* TODO: wake up waiting coroutines with the exception EntityGone
-    list_for_each_entry_safe(&chan->send_crtns, ...)
-    list_for_each_entry_safe(&chan->recv_crtns, ...)
-    */
-
+    free(chan->name);
     free(chan);
 }
 
@@ -73,31 +63,75 @@ pcchan_open(const char *chan_name, unsigned int cap)
     }
 
     pcintr_heap_t heap = inst->intr_heap;
-    const pcutils_map_entry* entry = NULL;
-    if ((entry = pcutils_map_find(heap->name_chan_map, chan_name))) {
-        inst->errcode = PURC_ERROR_DUPLICATE_NAME;
-        return NULL;
-    }
+    pcutils_map_entry* entry;
+    pcchan_t chan;
 
-    pcchan_t chan = calloc(1, sizeof(*chan) + sizeof(purc_variant_t) * cap);
-    if (chan == NULL) {
-        inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
-        return NULL;
+    entry = pcutils_map_find(heap->name_chan_map, chan_name);
+    if (entry) {
+        chan = entry->val;
+        if (chan->qsize > 0) {
+            inst->errcode = PURC_ERROR_EXISTS;
+            return NULL;
+        }
+        else {
+            // reopen the existed channel
+            chan = realloc(chan, sizeof(*chan) + sizeof(purc_variant_t) * cap);
+            if (chan == NULL) {
+                inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+                return NULL;
+            }
+            entry->val = chan;
+        }
     }
+    else {
+        chan = calloc(1, sizeof(*chan) + sizeof(purc_variant_t) * cap);
+        if (chan == NULL) {
+            inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+            return NULL;
+        }
 
-    if (pcutils_map_insert(heap->name_chan_map, chan_name, chan)) {
-        inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
-        return NULL;
+        chan->name = strdup(chan_name);
+        if (pcutils_map_insert(heap->name_chan_map, chan->name, chan)) {
+            inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+            return NULL;
+        }
     }
 
     chan->qsize = cap;
     chan->qcount = 0;
+    chan->refc = 0;
     chan->sendx = 0;
     chan->recvx = 0;
     list_head_init(&chan->send_crtns);
     list_head_init(&chan->recv_crtns);
 
     return chan;
+}
+
+static unsigned int
+discard_data(pcchan_t chan)
+{
+    unsigned int n = 0;
+
+    while (chan->sendx != chan->recvx) {
+        purc_variant_t vrt = chan->data[chan->recvx];
+
+        assert(vrt);
+        purc_variant_unref(vrt);
+
+        chan->data[chan->recvx] = PURC_VARIANT_INVALID;
+        chan->recvx = (chan->recvx + 1) % chan->qsize;
+
+        chan->qcount--;
+        n++;
+    }
+
+    /* TODO: wake up all waiting coroutines
+       list_for_each_entry_safe(&chan->send_crtns, ...)
+       list_for_each_entry_safe(&chan->recv_crtns, ...)
+     */
+
+    return n;
 }
 
 bool
@@ -124,10 +158,23 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
 
     pcchan_t chan = entry->val;
     if (new_cap == 0) {
-        if (pcutils_map_erase(heap->name_chan_map, (void *)chan_name) == 0)
+        if (chan->refc == 0) {
+            // no native entity variant bound to this channel
+            int r = pcutils_map_erase(heap->name_chan_map, chan_name);
+            PC_ASSERT(r == 0);
             goto done;
-        else
-            assert(0);
+        }
+        else {
+            discard_data(chan);
+            assert(chan->qcount == 0);
+
+            chan = realloc(chan, sizeof(*chan));
+            chan->qsize = 0;
+            chan->qcount = 0;
+            chan->recvx = 0;
+            chan->sendx = 0;
+            entry->val = chan;
+        }
     }
 
     if (new_cap > chan->qcount) {
@@ -197,6 +244,16 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+    if (purc_variant_is_undefined(argv[0])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     if ((chan->sendx + 1) % chan->qsize != chan->recvx) {
         chan->data[chan->sendx] = purc_variant_ref(argv[0]);
         chan->sendx = (chan->sendx + 1) % chan->qsize;
@@ -223,9 +280,13 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
 
     pcchan_t chan = native_entity;
+
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
 
     purc_variant_t vrt;
     if (chan->recvx != chan->sendx) {
@@ -248,7 +309,7 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
 failed:
     if (silently)
-        return purc_variant_make_boolean(false);
+        return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
 }
@@ -259,10 +320,20 @@ cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
 
     pcchan_t chan = native_entity;
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     return purc_variant_make_ulongint(chan->qsize);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -271,42 +342,97 @@ len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
 
     pcchan_t chan = native_entity;
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     return purc_variant_make_ulongint(chan->qcount);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_nvariant_method
 property_getter(const char *name)
 {
-    if (strcmp(name, "send") == 0) {
-        return send_getter;
-    }
-    else if (strcmp(name, "recv") == 0) {
-        return recv_getter;
-    }
-    else if (strcmp(name, "cap") == 0) {
-        return cap_getter;
-    }
-    else if (strcmp(name, "len") == 0) {
-        return len_getter;
+    switch (name[0]) {
+    case 's':
+        if (strcmp(name, "send") == 0) {
+            return send_getter;
+        }
+        break;
+
+    case 'r':
+        if (strcmp(name, "recv") == 0) {
+            return recv_getter;
+        }
+        break;
+
+    case 'c':
+        if (strcmp(name, "cap") == 0) {
+            return cap_getter;
+        }
+        break;
+
+    case 'l':
+        if (strcmp(name, "len") == 0) {
+            return len_getter;
+        }
+        break;
+
+    default:
+        break;
     }
 
     return NULL;
 }
 
+static void
+on_release(void *native_entity)
+{
+    pcchan_t chan = native_entity;
+    assert(chan->refc > 0);
+    chan->refc--;
+
+    if (chan->qsize == 0) {
+        // already closed
+        struct pcinst* inst = pcinst_current();
+        assert(inst);
+
+        pcintr_heap_t heap = inst->intr_heap;
+        assert(heap);
+
+        int r = pcutils_map_erase(heap->name_chan_map, chan->name);
+        PC_ASSERT(r == 0);
+    }
+}
+
 purc_variant_t
 pcchan_make_entity(pcchan_t chan)
 {
-    // setup a callback for `on_release` to destroy the stream automatically
     static const struct purc_native_ops ops = {
         .property_getter = property_getter,
         .on_observe = NULL,
         .on_forget = NULL,
-        .on_release = NULL,
+        .on_release = on_release,
     };
 
-    return purc_variant_make_native(chan, &ops);
+    if (chan->qsize == 0) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t retv = purc_variant_make_native(chan, &ops);
+    if (retv) {
+        chan->refc++;
+    }
+
+    return retv;
 }
 
