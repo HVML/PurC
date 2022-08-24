@@ -1143,7 +1143,7 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
                     opt, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
 
-            fprintf(stdout, ">> The executed result: \n");
+            fprintf(stdout, ">> The executed result:\n");
             if (exit_info->result) {
                 purc_variant_serialize(exit_info->result,
                         runr_info->run_info->dump_stm, 0, MY_VRT_OPTS, NULL);
@@ -1151,6 +1151,41 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             else {
                 fprintf(stdout, "<INVALID VALUE>");
             }
+            fprintf(stdout, "\n");
+        }
+    }
+    else if (event == PURC_COND_COR_TERMINATED) {
+        struct runr_info *runr_info = NULL;
+        purc_get_local_data(RUNR_INFO_NAME,
+                (uintptr_t *)(void *)&runr_info, NULL);
+        assert(runr_info);
+
+        if (runr_info->opts->verbose) {
+            struct purc_cor_term_info *term_info = data;
+
+            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+            if (crtn_info) {
+                fprintf(stdout,
+                        "\nThe main coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
+            else {
+                fprintf(stdout,
+                        "\nA child coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
+
+            unsigned opt = 0;
+            opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+            opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+
+            fprintf(stdout, ">> The document generated:\n");
+            purc_document_serialize_contents_to_stream(term_info->doc,
+                    opt, runr_info->run_info->dump_stm);
+            fprintf(stdout, "\n");
+
+            fprintf(stdout, ">> The executing stack frame(s):\n");
+            purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
         }
     }
