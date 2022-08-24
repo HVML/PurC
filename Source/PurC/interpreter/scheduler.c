@@ -132,6 +132,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+        if (co->owner->cond_handler) {
+            struct purc_cor_term_info term_info;
+            term_info.except = stack->exception.error_except;
+            term_info.doc = stack->doc;
+            co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
+        }
         PC_ASSERT(inst->errcode == 0);
     }
 
