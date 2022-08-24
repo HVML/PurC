@@ -205,7 +205,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         PC_ASSERT(co->error_except == NULL);
         co->error_except = error_except;
 
+#ifndef NDEBUG
         pcintr_dump_c_stack(co->stack.exception.bt);
+#endif
         co->stack.except = 0;
 
         if (!co->stack.exited) {
