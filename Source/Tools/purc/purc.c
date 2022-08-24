@@ -1184,10 +1184,9 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
                     opt, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
 
-            fprintf(stdout, ">> The executing stack:\n");
+            fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
-
         }
     }
 

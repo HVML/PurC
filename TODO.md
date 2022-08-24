@@ -103,7 +103,9 @@
 
 ### 1.8) Known Bugs
 
-1. [0.8.2] Some requests to renderer might be sent twice.
+1. [0.8.2] If refer to a nonexistent property name in HVML program, PurC crashes.
+1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
+1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
    - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.

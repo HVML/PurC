@@ -635,30 +635,35 @@ dump_stack_frame(pcintr_stack_t stack,
         goto out;
     }
 
-    snprintf(buf, DUMP_BUF_SIZE, "\n%02d:\nframe = %p\n", level, frame);
-    purc_rwstream_write(stm, buf, strlen(buf));
-
-    snprintf(buf, DUMP_BUF_SIZE, "elem = ");
+    snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(stm, buf, strlen(buf));
     pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
 
+    // TODO: dump the evaluated attributes or failed VCM node here
+    snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
+    purc_rwstream_write(stm, buf, strlen(buf));
+
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
     if (child && child->type == PCVDOM_NODE_CONTENT) {
-        snprintf(buf, DUMP_BUF_SIZE, "content = ");
+        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: ");
         purc_rwstream_write(stm, buf, strlen(buf));
         pcvdom_util_node_serialize_alone(child, serial_element, stm);
     }
     else {
-        snprintf(buf, DUMP_BUF_SIZE, "content = \n");
+        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
+        purc_rwstream_write(stm, buf, strlen(buf));
     }
 
-    serial_symbol_vars("$< = ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
-    serial_symbol_vars("$@ = ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
-    serial_symbol_vars("$! = ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
-    serial_symbol_vars("$: = ", PURC_SYMBOL_VAR_COLON, frame, stm);
-    serial_symbol_vars("$= = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
-    serial_symbol_vars("$% = ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
-    serial_symbol_vars("$^ = ", PURC_SYMBOL_VAR_CARET, frame, stm);
+    snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
+    purc_rwstream_write(stm, buf, strlen(buf));
+
+    serial_symbol_vars("    < ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
+    serial_symbol_vars("    @ ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
+    serial_symbol_vars("    ! ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
+    serial_symbol_vars("    : ", PURC_SYMBOL_VAR_COLON, frame, stm);
+    serial_symbol_vars("    = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
+    serial_symbol_vars("    % ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
+    serial_symbol_vars("    ^ ", PURC_SYMBOL_VAR_CARET, frame, stm);
 
 out:
     return 0;
