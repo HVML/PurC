@@ -108,11 +108,11 @@ $ sudo make install
 ```
 
 If you'd like to use `ninja` instead of `make` to build PurC,
-   you can use the following command:
+   you can use the following commands:
 
 ```bash
 $ cd <path/to/the/root/of/the/source/tree/of/PurC>
-$ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -Bbuild -GNinja &&  ninja -Cbuild && ninja -Cbuild install
+$ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -Bbuild -GNinja &&  ninja -Cbuild && sudo ninja -Cbuild install
 ```
 
 Note that you might need to remove `build/` directory first if there is already one.
