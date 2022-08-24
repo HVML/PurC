@@ -133,11 +133,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         pcintr_dump_stack(stack);
 #endif                             /* } */
         if (co->owner->cond_handler) {
-            struct purc_cor_run_info run_info = { 0, };
-            run_info.run_idx = co->run_idx;
-            run_info.doc = stack->doc;
-            run_info.result = pcintr_coroutine_get_result(co);
-            co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &run_info);
+            struct purc_cor_term_info term_info;
+            term_info.doc = stack->doc;
+            term_info.except = purc_variant_make_string(
+                    purc_atom_to_string(stack->exception.error_except), false);
+            co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
+            purc_variant_unref(term_info.except);
         }
         PC_ASSERT(inst->errcode == 0);
     }
