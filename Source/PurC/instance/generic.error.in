@@ -9,7 +9,7 @@ Ok
     msg: "Ok"
 
 Again
-    except: NULL
+    except: Again
     flags: None
     msg: "Try again"
 

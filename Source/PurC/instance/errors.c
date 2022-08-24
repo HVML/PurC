@@ -46,6 +46,8 @@
 static const char *except_messages[] = {
     /* PURC_EXCEPT_OK */
     "OK",
+    /* PURC_EXCEPT_AGAIN */
+    "Try again",
     /* PURC_EXCEPT_BAD_ENCODING */
     "Bad encoding",
     /* PURC_EXCEPT_BAD_HVML_TAG */
