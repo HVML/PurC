@@ -1,0 +1,9 @@
+<!DOCTYPE hvml>
+<hvml target="void" lang="$SYS.locale(null)">
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <inherit>
+            $STREAM.stdout.writelines(
+                    $STR.join($?, ") Hello, world! -- from COROUTINE-", $CRTN.cid))
+        </inherit>
+    </iterate>
+</hvml>

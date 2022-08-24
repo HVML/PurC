@@ -131,6 +131,14 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         }
         buf->dump_buff = intr_util_dump_doc(doc, NULL);
     }
+    else if (event == PURC_COND_COR_TERMINATED) {
+        purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
+        purc_coroutine_dump_stack(cor, rws);
+        size_t nr_buf = 0;
+        void *buf = purc_rwstream_get_mem_buffer(rws, &nr_buf);
+        fprintf(stderr, "%s\n", (char*)buf);
+        purc_rwstream_destroy(rws);
+    }
 
     return 0;
 }

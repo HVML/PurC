@@ -1194,7 +1194,6 @@ pcintr_dump_stack(pcintr_stack_t stack)
         }
     }
 }
-#endif                             /* } */
 
 void
 pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
@@ -1206,6 +1205,7 @@ pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
     fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
     pcdebug_backtrace_dump(bt);
 }
+#endif                             /* } */
 
 void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)

@@ -63,6 +63,7 @@
 
 ### 1.5) Interpreter
 
+1. [0.8.2] Enhance the evaluation of VCM to support `ERROR_AGAIN`.
 1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
@@ -104,6 +105,9 @@
 
 ### 1.8) Known Bugs
 
+1. [0.8.2] If refer to a nonexistent property name in HVML program, PurC crashes.
+1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
+1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
    - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.
