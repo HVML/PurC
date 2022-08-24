@@ -73,6 +73,7 @@ int pcejson_parse_n(struct pcvcm_node **vcm_tree,                           \
         }                                                                   \
     }                                                                       \
                                                                             \
+    struct pcejson_token *top = NULL;                                       \
     uint32_t character = 0;                                                 \
     struct pcejson* parser = *parser_param;                                 \
     tkz_reader_set_rwstream (parser->tkz_reader, rws);                      \
@@ -101,6 +102,7 @@ next_input:                                                                 \
     }                                                                       \
                                                                             \
 next_state:                                                                 \
+    top = tkz_stack_top();                                                  \
     switch (parser->state) {
 
 #define PCEJSON_PARSER_END                                                  \
@@ -269,7 +271,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACE)
     if (character == '$') {
         RECONSUME_IN(EJSON_TKZ_STATE_DOLLAR);
     }
-    struct pcejson_token *top = tkz_stack_top();
     if (is_whitespace(character)) {
         if (top->type != 'P') {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -303,7 +304,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
-    struct pcejson_token *top = tkz_stack_top();
     if (!top) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
@@ -351,7 +351,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACKET)
     }
 
     if (character == '[') {
-        struct pcejson_token *top = tkz_stack_top();
         if (!pcejson_inc_depth(parser)) {
             SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
             return -1;
@@ -384,7 +383,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACKET)
         RETURN_AND_STOP_PARSE();
     }
     if (character == ']') {
-        struct pcejson_token *top = tkz_stack_top();
         if (top == NULL) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
@@ -429,7 +427,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_PARENTHESIS)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
-    struct pcejson_token *top = tkz_stack_top();
     if (top == NULL) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         RETURN_AND_STOP_PARSE();
