@@ -144,7 +144,7 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_DOUBLE_QUOTED,
     EJSON_TKZ_STATE_UNQUOTED,
     EJSON_TKZ_STATE_BEFORE_NAME,
-
+    EJSON_TKZ_STATE_JSONEE_VARIABLE,
     EJSON_TKZ_STATE_CJSONEE_FINISHED,
 
     EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_CJSONEE_FINISHED,
@@ -193,7 +193,7 @@ pcejson_token_stack_is_empty(struct pcejson_token_stack *stack);
 
 struct pcejson_token *
 pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
-        uint32_t type);
+        uint32_t type, struct pcvcm_node *node);
 
 struct pcejson_token *
 pcejson_token_stack_push(struct pcejson_token_stack *stack,

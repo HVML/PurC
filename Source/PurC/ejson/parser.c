@@ -293,11 +293,12 @@ pcejson_token_stack_is_empty(struct pcejson_token_stack *stack)
 
 struct pcejson_token *
 pcejson_token_stack_push_simple(struct pcejson_token_stack *stack,
-        uint32_t type)
+        uint32_t type, struct pcvcm_node *node)
 {
 
     struct pcejson_token *token = pcejson_token_new(type);
     if (token) {
+        token->node = node;
         return pcejson_token_stack_push(stack, token);
     }
     return NULL;
