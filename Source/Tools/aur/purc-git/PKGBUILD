@@ -1,7 +1,7 @@
 # Maintainer: taotieren <admin@taotieren.com>
 
 pkgname=purc-git
-pkgver=0.8.1.r5.g242e7564
+pkgver=0.8.1.r17.g61684e89
 pkgrel=1
 pkgdesc="The prime HVML interpreter for C Language."
 arch=('any')
@@ -10,7 +10,7 @@ license=('LGPL-3.0')
 provides=(${pkgname})
 conflicts=(${pkgname%-git})
 #replaces=(${pkgname})
-depends=('cmake' 'gcc' 'glibc' 'python' 'bison' 'flex')
+depends=('cmake' 'gcc' 'glib2' 'python' 'bison' 'flex')
 makedepends=('git' 'cmake' 'ninja')
 backup=()
 options=('!strip')
