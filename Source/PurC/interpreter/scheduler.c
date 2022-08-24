@@ -134,11 +134,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #endif                             /* } */
         if (co->owner->cond_handler) {
             struct purc_cor_term_info term_info;
+            term_info.except = stack->exception.error_except;
             term_info.doc = stack->doc;
-            term_info.except = purc_variant_make_string(
-                    purc_atom_to_string(stack->exception.error_except), false);
             co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
-            purc_variant_unref(term_info.except);
         }
         PC_ASSERT(inst->errcode == 0);
     }

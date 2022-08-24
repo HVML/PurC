@@ -638,7 +638,7 @@ struct purc_cor_exit_info {
 };
 
 struct purc_cor_term_info {
-    purc_variant_t  except;
+    purc_atom_t     except;
     purc_document_t doc;
 };
 
