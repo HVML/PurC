@@ -2,7 +2,7 @@
 
 pkgname=purc
 pkgver=0.8.1
-pkgrel=1
+pkgrel=2
 pkgdesc="The prime HVML interpreter for C Language."
 arch=('any')
 url="https://github.com/HVML/PurC"
@@ -10,7 +10,7 @@ license=('LGPL-3.0')
 provides=(${pkgname} 'PurC')
 conflicts=(${pkgname}-git)
 #replaces=(${pkgname})
-depends=('cmake' 'gcc' 'glibc' 'python' 'bison' 'flex')
+depends=('cmake' 'gcc' 'glib2' 'python' 'bison' 'flex')
 makedepends=('cmake' 'ninja')
 backup=()
 options=('!strip')
