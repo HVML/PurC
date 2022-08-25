@@ -29,9 +29,13 @@
 #include <math.h>
 #include <gtest/gtest.h>
 
-TestDVObj::TestDVObj()
+TestDVObj::TestDVObj(bool hvml)
 {
-    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+    unsigned int modules = PURC_MODULE_EJSON;
+
+    if (hvml)
+        modules = PURC_MODULE_HVML;
+    int ret = purc_init_ex(modules, "cn.fmsoft.hvml.test",
             "dvobjs", NULL);
 
     if (ret != PURC_ERROR_OK) {
@@ -96,6 +100,9 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     }
     else if (strcmp(name, "STREAM") == 0) {
         dvobj = purc_dvobj_stream_new();
+    }
+    else if (strcmp(name, "RUNNER") == 0) {
+        dvobj = purc_dvobj_runner_new();
     }
 
     if (dvobj != PURC_VARIANT_INVALID) {

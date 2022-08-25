@@ -215,15 +215,17 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 1) {
-        if (!purc_variant_cast_to_uint32(argv[1], &cap, false)) {
+        if (!purc_variant_cast_to_uint32(argv[1], &cap, true)) {
             pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
     }
 
+    PC_INFO("chan_setter(%s, %u)\n", chan_name, cap);
+
     pcchan_t chan = pcchan_retrieve(chan_name);
     if (chan) {
-        if (!pcchan_ctrl(chan_name, cap)) {
+        if (!pcchan_ctrl(chan, cap)) {
             // error set by pcchan_ctrl()
             goto failed;
         }

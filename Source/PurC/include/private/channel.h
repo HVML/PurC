@@ -65,11 +65,11 @@ PCA_EXTERN_C_BEGIN
 pcchan_t
 pcchan_open(const char *chan_name, unsigned int cap) WTF_INTERNAL;
 
-bool
-pcchan_ctrl(const char *chan_name, unsigned int new_cap) WTF_INTERNAL;
-
 pcchan_t
 pcchan_retrieve(const char *chan_name) WTF_INTERNAL;
+
+bool
+pcchan_ctrl(pcchan_t chan, unsigned int new_cap) WTF_INTERNAL;
 
 void
 pcchan_destroy(pcchan_t chan) WTF_INTERNAL;

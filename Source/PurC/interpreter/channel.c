@@ -150,34 +150,22 @@ discard_data(pcchan_t chan)
 }
 
 bool
-pcchan_ctrl(const char *chan_name, unsigned int new_cap)
+pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
 {
     struct pcinst* inst = pcinst_current();
-    if ((inst = pcinst_current()) == NULL || inst->intr_heap == NULL) {
-        inst->errcode = PURC_ERROR_NO_INSTANCE;
-        goto failed;
-    }
-
-    if (chan_name == NULL ||
-            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
-        inst->errcode = PURC_ERROR_INVALID_VALUE;
-        goto failed;
-    }
-
+    assert(inst);
     pcintr_heap_t heap = inst->intr_heap;
-    pcutils_map_entry* entry = NULL;
-    if (!(entry = pcutils_map_find(heap->name_chan_map, chan_name))) {
-        inst->errcode = PURC_ERROR_NOT_EXISTS;
-        goto failed;
-    }
+    assert(heap);
 
-    pcchan_t chan = entry->val;
+    pcutils_map_entry* entry;
+    entry = pcutils_map_find(heap->name_chan_map, chan->name);
+    assert(entry);
+
     if (new_cap == 0) {
         if (chan->refc == 0) {
             // no native entity variant bound to this channel
-            int r = pcutils_map_erase(heap->name_chan_map, chan_name);
+            int r = pcutils_map_erase(heap->name_chan_map, chan->name);
             PC_ASSERT(r == 0);
-            goto done;
         }
         else {
             discard_data(chan);
@@ -216,7 +204,6 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
         entry->val = newchan;
     }
 
-done:
     return true;
 
 failed:
@@ -245,6 +232,7 @@ pcchan_retrieve(const char *chan_name)
         return entry->val;
     }
 
+    inst->errcode = PURC_ERROR_NOT_EXISTS;
     return NULL;
 }
 
@@ -286,9 +274,11 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if ((chan->sendx + 1) % chan->qsize != chan->recvx) {
+    if (chan->qcount < chan->qsize) {
         chan->data[chan->sendx] = purc_variant_ref(argv[0]);
-        chan->sendx = (chan->sendx + 1) % chan->qsize;
+        chan->sendx++;
+        if (chan->sendx == chan->qsize)
+            chan->sendx = 0;
         chan->qcount++;
 
         // if there is any coroutine waiting to receive, resume the first one.
@@ -310,6 +300,8 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }
+
+    return purc_variant_make_boolean(true);
 
 failed:
     if (silently)
@@ -344,17 +336,20 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     pcchan_t chan = native_entity;
 
+    PC_INFO("recv on channel (%s): %u/%u\n", chan->name,
+            chan->qcount, chan->qsize);
+
     if (chan->qsize == 0) {
         purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
     }
 
-    purc_variant_t vrt;
-    if (chan->recvx != chan->sendx) {
+    purc_variant_t vrt = PURC_VARIANT_INVALID;
+    if (chan->qcount > 0) {
         vrt = chan->data[chan->recvx];
-        purc_variant_unref(vrt);
-
-        chan->recvx = (chan->recvx + 1) % chan->qsize;
+        chan->recvx++;
+        if (chan->recvx == chan->qsize)
+            chan->recvx = 0;
         chan->qcount--;
 
         // if there is any coroutine waiting to send, resume the first one.
@@ -372,11 +367,15 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
             pcintr_stop_coroutine(crtn, &crtn->timeout, on_recv_timeout, chan);
             list_add_tail(&crtn->ln_stopped, &chan->recv_crtns);
         }
+
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }
 
-    return purc_variant_ref(vrt);
+    PC_INFO("recved on channel (%s): %u/%u\n", chan->name,
+            chan->qcount, chan->qsize);
+
+    return vrt;
 
 failed:
     if (silently)
