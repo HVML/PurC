@@ -693,3 +693,27 @@ purc_coroutine_dump_stack(purc_coroutine_t cor, purc_rwstream_t stm)
 out:
     return ret;
 }
+
+/* stop the specific coroutine */
+void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
+        const struct timespec *timeout,
+        pcintr_timeout_cb timeout_cb, void *ctxt)
+{
+    UNUSED_PARAM(crtn);
+    UNUSED_PARAM(timeout);
+    UNUSED_PARAM(timeout_cb);
+    UNUSED_PARAM(ctxt);
+
+    // TODO
+    PC_WARN("pcintr_stop_coroutine() called but not implemented");
+}
+
+/* resume the specific coroutine */
+void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
+{
+    UNUSED_PARAM(crtn);
+
+    // TODO
+    PC_WARN("pcintr_resume_coroutine() called but not implemented");
+}
+

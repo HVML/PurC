@@ -176,29 +176,27 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
             entry->val = chan;
         }
     }
+    else if (new_cap > chan->qcount) {
+        pcchan_t newchan = malloc(sizeof(*chan) +
+                sizeof(purc_variant_t) * new_cap);
+        if (newchan == NULL) {
+            inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+            goto failed;
+        }
 
-    if (new_cap > chan->qcount) {
-        // FIXME: re-arrange data
+        // copy channel fields and data
+        *newchan = *chan;
         unsigned int i = 0;
         while (chan->sendx != chan->recvx) {
-            purc_variant_t tmp = chan->data[i];
-            chan->data[i] = chan->data[chan->recvx];
-            chan->data[chan->recvx] = tmp;
+            newchan->data[i] = chan->data[chan->recvx];
             chan->recvx = (chan->recvx + 1) % chan->qsize;
             i++;
         }
 
-        chan = realloc(chan, sizeof(*chan) + sizeof(purc_variant_t) * new_cap);
-        chan->recvx = 0;
-        chan->sendx = chan->qcount - 1;
-        chan->qsize = new_cap;
-
-        for (i = chan->qcount; i < chan->qsize; i++) {
-            chan->data[i] = PURC_VARIANT_INVALID;
-        }
-
-
-        entry->val = chan;
+        newchan->qsize = new_cap;
+        newchan->recvx = 0;
+        newchan->sendx = i;
+        entry->val = newchan;
     }
 
 done:
@@ -233,6 +231,23 @@ pcchan_retrieve(const char *chan_name)
     return NULL;
 }
 
+static void on_send_timeout(pcintr_coroutine_t crtn, void *ctxt)
+{
+    pcchan_t chan = ctxt;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &chan->send_crtns) {
+        struct pcintr_coroutine *_crtn;
+        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+        if (_crtn == crtn) {
+            list_del(&crtn->ln_stopped);
+            return;
+        }
+    }
+
+    assert(0);
+}
+
 static purc_variant_t
 send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 bool silently)
@@ -259,10 +274,22 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         chan->sendx = (chan->sendx + 1) % chan->qsize;
         chan->qcount++;
 
-        // TODO: if there is any coroutine waiting for data, awake one here
+        // if there is any coroutine waiting to receive, resume the first one.
+        if (!list_empty(&chan->recv_crtns)) {
+            pcintr_coroutine_t crtn = list_first_entry(&chan->recv_crtns,
+                    struct pcintr_coroutine, ln_stopped);
+            pcintr_resume_coroutine(crtn);
+            list_del(&crtn->ln_stopped);
+        }
     }
     else {
-        // TODO: block the current coroutine
+        pcintr_coroutine_t crtn = pcintr_get_coroutine();
+        if (crtn) {
+            // stop the current coroutine
+            pcintr_stop_coroutine(crtn, &crtn->timeout, on_send_timeout, chan);
+            list_add_tail(&crtn->ln_stopped, &chan->send_crtns);
+        }
+
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }
@@ -272,6 +299,23 @@ failed:
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
+}
+
+static void on_recv_timeout(pcintr_coroutine_t crtn, void *ctxt)
+{
+    pcchan_t chan = ctxt;
+
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &chan->send_crtns) {
+        struct pcintr_coroutine *_crtn;
+        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+        if (_crtn == crtn) {
+            list_del(&crtn->ln_stopped);
+            return;
+        }
+    }
+
+    assert(0);
 }
 
 static purc_variant_t
@@ -296,11 +340,21 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         chan->recvx = (chan->recvx + 1) % chan->qsize;
         chan->qcount--;
 
-        // TODO: if there is any coroutine waiting for sending data,
-        // awake one here
+        // if there is any coroutine waiting to send, resume the first one.
+        if (!list_empty(&chan->send_crtns)) {
+            pcintr_coroutine_t crtn = list_first_entry(&chan->send_crtns,
+                    struct pcintr_coroutine, ln_stopped);
+            pcintr_resume_coroutine(crtn);
+            list_del(&crtn->ln_stopped);
+        }
     }
     else {
-        // TODO: block the current coroutine
+        pcintr_coroutine_t crtn = pcintr_get_coroutine();
+        if (crtn) {
+            // stop the current coroutine
+            pcintr_stop_coroutine(crtn, &crtn->timeout, on_recv_timeout, chan);
+            list_add_tail(&crtn->ln_stopped, &chan->recv_crtns);
+        }
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }

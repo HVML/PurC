@@ -449,9 +449,9 @@ coroutine_destroy(pcintr_coroutine_t co)
 static void
 stack_init(pcintr_stack_t stack)
 {
-    INIT_LIST_HEAD(&stack->frames);
-    INIT_LIST_HEAD(&stack->intr_observers);
-    INIT_LIST_HEAD(&stack->hvml_observers);
+    list_head_init(&stack->frames);
+    list_head_init(&stack->intr_observers);
+    list_head_init(&stack->hvml_observers);
     stack->scoped_variables = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
@@ -1782,9 +1782,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
     pcintr_coroutine_set_state(co, CO_STATE_READY);
-    INIT_LIST_HEAD(&co->children);
-    INIT_LIST_HEAD(&co->registered_cancels);
-    INIT_LIST_HEAD(&co->tasks);
+    list_head_init(&co->children);
+    list_head_init(&co->ln_stopped);
+    list_head_init(&co->registered_cancels);
+    list_head_init(&co->tasks);
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {
