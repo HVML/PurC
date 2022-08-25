@@ -111,7 +111,7 @@ pcchan_open(const char *chan_name, unsigned int cap)
 static unsigned int
 discard_data(pcchan_t chan)
 {
-    unsigned int n = 0;
+    unsigned int nr = 0;
 
     while (chan->sendx != chan->recvx) {
         purc_variant_t vrt = chan->data[chan->recvx];
@@ -123,15 +123,30 @@ discard_data(pcchan_t chan)
         chan->recvx = (chan->recvx + 1) % chan->qsize;
 
         chan->qcount--;
-        n++;
+        nr++;
     }
 
-    /* TODO: wake up all waiting coroutines
-       list_for_each_entry_safe(&chan->send_crtns, ...)
-       list_for_each_entry_safe(&chan->recv_crtns, ...)
-     */
+    struct list_head *p, *n;
+    list_for_each_safe(p, n, &chan->send_crtns) {
 
-    return n;
+        struct pcintr_coroutine *crtn;
+        crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+        pcintr_resume_coroutine(crtn);
+
+        list_del(p);
+    }
+
+    /* wake up all waiting coroutines */
+    list_for_each_safe(p, n, &chan->recv_crtns) {
+
+        struct pcintr_coroutine *crtn;
+        crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+        pcintr_resume_coroutine(crtn);
+
+        list_del(p);
+    }
+
+    return nr;
 }
 
 bool
@@ -196,6 +211,8 @@ pcchan_ctrl(const char *chan_name, unsigned int new_cap)
         newchan->qsize = new_cap;
         newchan->recvx = 0;
         newchan->sendx = i;
+
+        free(chan);
         entry->val = newchan;
     }
 
