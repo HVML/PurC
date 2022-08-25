@@ -25,6 +25,7 @@ build() {
 # CMake build
 #     cmake -DCMAKE_BUILD_TYPE=Release \
 #         -DPORT=Linux \
+#         -DENABLE_API_TESTS=OFF \
 #         -DCMAKE_INSTALL_PREFIX=/usr \
 #         -DCMAKE_INSTALL_LIBDIR=lib \
 #         -DCMAKE_INSTALL_LIBEXECDIR=lib \
