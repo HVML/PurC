@@ -336,9 +336,6 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     pcchan_t chan = native_entity;
 
-    PC_INFO("recv on channel (%s): %u/%u\n", chan->name,
-            chan->qcount, chan->qsize);
-
     if (chan->qsize == 0) {
         purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
@@ -371,9 +368,6 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }
-
-    PC_INFO("recved on channel (%s): %u/%u\n", chan->name,
-            chan->qcount, chan->qsize);
 
     return vrt;
 
