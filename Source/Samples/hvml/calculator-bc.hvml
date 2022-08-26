@@ -96,7 +96,7 @@
             <div class="border border-3 pt-3">
                 <iterate on=0 onlyif=$L.lt($0<,4) with=$MATH.add($0<,1) nosetotail>
                     <div class="row mb-3">
-                        <iterate on="$buttons" by="RANGE: FROM $MATH.mul($2?, 5) TO $MATH.add($MATH.mul($2?, 5), 5)">
+                        <iterate on="$buttons" by="RANGE: FROM $MATH.mul($2?, 5) TO $MATH.add($MATH.mul($2?, 5), 4)">
                             <update on="$@" to="append" with="$button" />
                         </iterate>
                     </div>

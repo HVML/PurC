@@ -1,0 +1,3 @@
+usr/lib/pkgconfig/*.pc
+usr/include/purc/*.h
+

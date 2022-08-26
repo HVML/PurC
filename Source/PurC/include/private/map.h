@@ -93,7 +93,8 @@ int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
 int pcutils_map_replace (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt);
 
-int pcutils_map_erase (pcutils_map* map, void* key);
+int pcutils_map_erase (pcutils_map* map, const void* key);
+
 void
 pcutils_map_erase_entry_nolock (pcutils_map* map, pcutils_map_entry *entry);
 

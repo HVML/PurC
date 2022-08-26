@@ -20,7 +20,7 @@ using namespace std;
 
 class TestDVObj {
 public:
-    TestDVObj();
+    TestDVObj(bool hvml = false);
     ~TestDVObj();
 
     purc_variant_t dvobj_new(const char *dvobj_name);

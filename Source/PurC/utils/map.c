@@ -274,7 +274,7 @@ pcutils_map_find_and_lock (pcutils_map* map, const void* key)
     return entry;
 }
 
-int pcutils_map_erase (pcutils_map* map, void* key)
+int pcutils_map_erase (pcutils_map* map, const void* key)
 {
     int retval = -1;
     pcutils_map_entry* entry = NULL;

@@ -27,6 +27,7 @@
 #include "private/vdom.h"
 #include "private/dvobjs.h"
 #include "private/url.h"
+#include "private/channel.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -164,6 +165,88 @@ uri_getter(purc_variant_t root,
     return purc_variant_make_string(inst->endpoint_name, false);
 }
 
+static purc_variant_t
+chan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *chan_name;
+    chan_name = purc_variant_get_string_const(argv[0]);
+    if (chan_name == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    pcchan_t chan = pcchan_retrieve(chan_name);
+    if (chan) {
+        return pcchan_make_entity(chan);
+    }
+
+failed:
+    if (silently)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        bool silently)
+{
+    UNUSED_PARAM(root);
+
+    uint32_t cap = 1;
+    if (nr_args < 1) {
+        pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *chan_name;
+    chan_name = purc_variant_get_string_const(argv[0]);
+    if (chan_name == NULL) {
+        pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (nr_args > 1) {
+        if (!purc_variant_cast_to_uint32(argv[1], &cap, true)) {
+            pcinst_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    PC_INFO("chan_setter(%s, %u)\n", chan_name, cap);
+
+    pcchan_t chan = pcchan_retrieve(chan_name);
+    if (chan) {
+        if (!pcchan_ctrl(chan, cap)) {
+            // error set by pcchan_ctrl()
+            goto failed;
+        }
+    }
+    else {
+        chan = pcchan_open(chan_name, cap);
+        if (chan == NULL) {
+            // error set by pcchan_open()
+            goto failed;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (silently)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 purc_dvobj_runner_new(void)
 {
@@ -175,6 +258,7 @@ purc_dvobj_runner_new(void)
         { "runner", runner_getter,  NULL },
         { "rid",    rid_getter,     NULL },
         { "uri",    uri_getter,     NULL },
+        { "chan",   chan_getter,    chan_setter },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

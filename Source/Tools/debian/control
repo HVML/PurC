@@ -1,0 +1,26 @@
+Source: hvml-purc
+Section: libs
+Priority: optional
+Maintainer: Vincent Wei <vincent@minigui.org>
+Build-Depends: debhelper-compat (= 13), cmake, bison, flex, python3, libglib2.0-dev, linux-libc-dev, libcurl4
+Standards-Version: 4.5.1
+Rules-Requires-Root: no
+Homepage: https://github.com/HVML/PurC
+
+Package: libhvml-purc-dev
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: PurC is the prime HVML interpreter for C language.
+ HVML is a new-style and general-purpose programming language 
+ proposed by Vincent Wei, who is the author of the China-first 
+ open source project - MiniGUI. 
+ This package contains the shared library
+
+Package: hvml-purc-bin
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: PurC is the prime HVML interpreter for C language.
+ HVML is a new-style and general-purpose programming language 
+ proposed by Vincent Wei, who is the author of the China-first 
+ open source project - MiniGUI.
+ This package contains the binary files
