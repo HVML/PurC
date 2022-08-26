@@ -478,7 +478,7 @@ Here one `runner` is one thread in the `purc` process.
 For this purpose, you can prepare a JSON file or an eJSON file which defines the app, the runners,
     and the initial HVML programs to run as coroutines in different runners.
 
-The following is a sample:
+Here is an example:
 
 ```json
 {
@@ -589,7 +589,7 @@ Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detaile
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.8.0 of PurC.
+This project was launched in June. 2021. This is the version 0.8.1 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
 After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
@@ -597,10 +597,12 @@ After one year development, the current version implements almost all features d
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
 
-1. PurC provides the APIs for variant management, here variant is way of HVML program to manage data.
+1. PurC provides the APIs for variant management, here variant is the way of HVML to manage data.
 1. PurC provides the APIs for parsing JSON and extended JSON.
 1. PurC provides the APIs for parsing and evaluting a parameterized eJSON expression.
 1. PurC provides the APIs for parsing an HTML document.
+1. PurC provides the APIs for creating multiple HVML runners.
+1. PurC provides the APIs for parsing an HVML program and schedule to run it.
 
 You can use these groups of APIs independently according to your needs.
 
