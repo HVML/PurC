@@ -113,14 +113,16 @@ discard_data(pcchan_t chan)
 {
     unsigned int nr = 0;
 
-    while (chan->sendx != chan->recvx) {
+    while (chan->qcount > 0) {
         purc_variant_t vrt = chan->data[chan->recvx];
 
         assert(vrt);
         purc_variant_unref(vrt);
 
         chan->data[chan->recvx] = PURC_VARIANT_INVALID;
-        chan->recvx = (chan->recvx + 1) % chan->qsize;
+        chan->recvx++;
+        if (chan->recvx == chan->qsize)
+            chan->recvx = 0;
 
         chan->qcount--;
         nr++;
@@ -190,9 +192,12 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
         // copy channel fields and data
         *newchan = *chan;
         unsigned int i = 0;
-        while (chan->sendx != chan->recvx) {
+        while (chan->qcount > 0) {
             newchan->data[i] = chan->data[chan->recvx];
-            chan->recvx = (chan->recvx + 1) % chan->qsize;
+            chan->recvx++;
+            if (chan->recvx == chan->qsize)
+                chan->recvx = 0;
+            chan->qcount--;
             i++;
         }
 
