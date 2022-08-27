@@ -911,8 +911,10 @@ TEST(dvobjs, dvobjs_fs_copy)
     fseek (fp, 0, SEEK_SET);
 
     char i;
+    size_t sz;
     for (i = 0; i < 100; i++) {
-        fread (&ch, 1, 1, fp);
+        sz = fread (&ch, 1, 1, fp);
+        ASSERT_EQ (sz, 1);
         ASSERT_EQ (ch, i);
     }
     fclose (fp);
