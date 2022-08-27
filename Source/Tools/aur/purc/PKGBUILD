@@ -2,17 +2,22 @@
 
 pkgname=purc
 pkgver=0.8.1
-pkgrel=4
+pkgrel=5
 pkgdesc="The prime HVML interpreter for C Language."
 arch=('any')
 url="https://github.com/HVML/PurC"
 license=('LGPL-3.0')
+groups=('hvml')
 provides=(${pkgname} 'PurC')
 conflicts=(${pkgname}-git)
 #replaces=(${pkgname})
 depends=('glib2' 'bison' 'flex')
 makedepends=('cmake' 'ninja' 'ccache' 'gcc' 'python' 'libxml2' 'ruby' 'curl' 'openssl' 'sqlite' 'pkgconf' 'zlib' 'icu')
-optdepends=('domruler' 'purc-fetcher' 'xguipro')
+optdepends=('domruler: DOM Ruler is a library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS.'
+            'purc-fetcher: The remote data fetcher for PurC.'
+            'purc-midnight-commander: A generic HVML renderer in text mode for development and debugging.'
+            'webkit2gtk-hvml: Web content engine for GTK (HVML)'
+            'xguipro: xGUI (the X Graphics User Interface) Pro is a modern, cross-platform, and advanced HVML renderer which is based on tailored WebKit.')
 backup=()
 options=('!strip')
 #install=${pkgname}.install
