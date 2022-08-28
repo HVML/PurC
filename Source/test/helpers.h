@@ -182,3 +182,5 @@ private:
     struct purc_instance_extra_info    info;
 };
 
+void dump_string_array (purc_variant_t string_array);
+void dump_object (purc_variant_t object);

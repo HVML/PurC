@@ -393,3 +393,53 @@ purc_variant_t get_variant (char *buf, size_t *length)
     return ret_var;
 }
 
+void dump_string_array (purc_variant_t string_array)
+{
+    size_t nr_lines;
+    size_t i;
+    purc_variant_t string_var;
+    const char *string_content;
+
+    if (! purc_variant_array_size (string_array, &nr_lines)) {
+        printf ("\n\n(Null)\n\n");
+        return;
+    }
+    
+    printf ("\n");
+    for (i = 0; i < nr_lines; i++) {
+        string_var = purc_variant_array_get (string_array, i);
+        string_content = purc_variant_get_string_const (string_var);
+        printf ("%s\n", string_content);
+    }
+    printf ("\n");
+}
+
+void dump_object (purc_variant_t object)
+{
+    size_t nr_lines;
+    if (! purc_variant_object_size (object, &nr_lines)) {
+        printf ("\n\n(Null)\n\n");
+        return;
+    }
+    
+    purc_variant_object_iterator* it;
+    it = purc_variant_object_make_iterator_begin(object);
+    int j = 0;
+
+    printf ("\n");
+    while (it) {
+        ++j;
+        const char     *key = purc_variant_object_iterator_get_ckey(it);
+        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        printf ("key%d: %s\n", j, key);
+        printf ("val%d: %s\n", j, pcvariant_to_string(val));
+        bool having = purc_variant_object_iterator_next(it);
+        // behavior of accessing `val`/`key` is un-defined
+        if (! having) {
+            // behavior of accessing `it` is un-defined
+            break;
+        }
+    }
+    purc_variant_object_release_iterator(it);
+    printf ("\n");
+}
