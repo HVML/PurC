@@ -83,7 +83,7 @@ struct pcvcm_ev {
 
 static bool _print_vcm_log = false;
 
-static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type)
+static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type, bool closed)
 {
     struct pcvcm_node *node = (struct pcvcm_node*)calloc(1,
             sizeof(struct pcvcm_node));
@@ -92,19 +92,20 @@ static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type)
         return NULL;
     }
     node->type = type;
+    node->is_closed = closed;
     return node;
 }
 
 
 struct pcvcm_node *pcvcm_node_new_undefined()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_UNDEFINED);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_UNDEFINED, true);
 }
 
 struct pcvcm_node *pcvcm_node_new_object(size_t nr_nodes,
         struct pcvcm_node **nodes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OBJECT);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_OBJECT, false);
     if (!n) {
         return NULL;
     }
@@ -120,7 +121,7 @@ struct pcvcm_node *pcvcm_node_new_object(size_t nr_nodes,
 struct pcvcm_node *pcvcm_node_new_array(size_t nr_nodes,
         struct pcvcm_node **nodes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_ARRAY);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_ARRAY, false);
     if (!n) {
         return NULL;
     }
@@ -135,7 +136,7 @@ struct pcvcm_node *pcvcm_node_new_array(size_t nr_nodes,
 
 struct pcvcm_node *pcvcm_node_new_string(const char *str_utf8)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_STRING);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_STRING, true);
     if (!n) {
         return NULL;
     }
@@ -154,12 +155,12 @@ struct pcvcm_node *pcvcm_node_new_string(const char *str_utf8)
 
 struct pcvcm_node *pcvcm_node_new_null()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_NULL);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_NULL, true);
 }
 
 struct pcvcm_node *pcvcm_node_new_boolean(bool b)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BOOLEAN);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BOOLEAN, true);
     if (!n) {
         return NULL;
     }
@@ -170,7 +171,7 @@ struct pcvcm_node *pcvcm_node_new_boolean(bool b)
 
 struct pcvcm_node *pcvcm_node_new_number(double d)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_NUMBER);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_NUMBER, true);
     if (!n) {
         return NULL;
     }
@@ -181,7 +182,7 @@ struct pcvcm_node *pcvcm_node_new_number(double d)
 
 struct pcvcm_node *pcvcm_node_new_longint(int64_t i64)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_LONG_INT);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_LONG_INT, true);
     if (!n) {
         return NULL;
     }
@@ -192,7 +193,7 @@ struct pcvcm_node *pcvcm_node_new_longint(int64_t i64)
 
 struct pcvcm_node *pcvcm_node_new_ulongint(uint64_t u64)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_ULONG_INT);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_ULONG_INT, true);
     if (!n) {
         return NULL;
     }
@@ -203,7 +204,7 @@ struct pcvcm_node *pcvcm_node_new_ulongint(uint64_t u64)
 
 struct pcvcm_node *pcvcm_node_new_longdouble(long double ld)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_LONG_DOUBLE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_LONG_DOUBLE, true);
     if (!n) {
         return NULL;
     }
@@ -215,7 +216,7 @@ struct pcvcm_node *pcvcm_node_new_longdouble(long double ld)
 struct pcvcm_node *pcvcm_node_new_byte_sequence(const void *bytes,
         size_t nr_bytes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE, true);
     if (!n) {
         return NULL;
     }
@@ -269,7 +270,7 @@ static void hex_to_bytes(const uint8_t *hex, size_t sz_hex, uint8_t *result)
 struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bx(const void *bytes,
         size_t nr_bytes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE, true);
     if (!n) {
         return NULL;
     }
@@ -298,7 +299,7 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bx(const void *bytes,
 struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
         size_t nr_bytes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE, true);
     if (!n) {
         return NULL;
     }
@@ -337,7 +338,7 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_bb(const void *bytes,
 struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
         size_t nr_bytes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_BYTE_SEQUENCE, true);
     if (!n) {
         return NULL;
     }
@@ -367,7 +368,8 @@ struct pcvcm_node *pcvcm_node_new_byte_sequence_from_b64 (const void *bytes,
 struct pcvcm_node *pcvcm_node_new_concat_string(size_t nr_nodes,
         struct pcvcm_node *nodes)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CONCAT_STRING);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CONCAT_STRING,
+            false);
     if (!n) {
         return NULL;
     }
@@ -381,7 +383,8 @@ struct pcvcm_node *pcvcm_node_new_concat_string(size_t nr_nodes,
 
 struct pcvcm_node *pcvcm_node_new_get_variable(struct pcvcm_node *node)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_VARIABLE);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_VARIABLE, 
+            false);
     if (!n) {
         return NULL;
     }
@@ -396,7 +399,8 @@ struct pcvcm_node *pcvcm_node_new_get_variable(struct pcvcm_node *node)
 struct pcvcm_node *pcvcm_node_new_get_element(struct pcvcm_node *variable,
         struct pcvcm_node *identifier)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_ELEMENT);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
+            false);
     if (!n) {
         return NULL;
     }
@@ -415,7 +419,8 @@ struct pcvcm_node *pcvcm_node_new_get_element(struct pcvcm_node *variable,
 struct pcvcm_node *pcvcm_node_new_call_getter(struct pcvcm_node *variable,
         size_t nr_params, struct pcvcm_node *params)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CALL_GETTER);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
+            false);
     if (!n) {
         return NULL;
     }
@@ -434,7 +439,8 @@ struct pcvcm_node *pcvcm_node_new_call_getter(struct pcvcm_node *variable,
 struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
         size_t nr_params, struct pcvcm_node *params)
 {
-    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CALL_SETTER);
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_FUNC_CALL_SETTER,
+            false);
     if (!n) {
         return NULL;
     }
@@ -452,22 +458,22 @@ struct pcvcm_node *pcvcm_node_new_call_setter(struct pcvcm_node *variable,
 
 struct pcvcm_node *pcvcm_node_new_cjsonee()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE, false);
 }
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_and()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_AND);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_AND, true);
 }
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_or()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_OR);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_OR, true);
 }
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon()
 {
-    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON);
+    return pcvcm_node_new(PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON, true);
 }
 
 static

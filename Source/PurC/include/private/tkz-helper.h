@@ -241,6 +241,9 @@ is_context_variable(uint32_t c)
     return false;
 }
 
+bool
+is_unihan(uint32_t c);
+
 // tokenizer reader
 struct tkz_reader *tkz_reader_new(void);
 
@@ -374,6 +377,8 @@ tkz_sbst_get_buffered_ucs(struct tkz_sbst *sbst);
 
 int
 tkz_set_error_info(struct tkz_uc *uc, int error);
+
+size_t uc_to_utf8(uint32_t c, char *outbuf);
 
 PCA_EXTERN_C_END
 
