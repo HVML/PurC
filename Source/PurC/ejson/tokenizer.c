@@ -483,7 +483,7 @@ print_parser_state(struct pcejson *parser)
     }
 
     char buf[8] = {0};
-    char s_stack[128] = {0};
+    char *s_stack;
     struct tkz_uc *uc = parser->curr_uc;
     uint32_t character = uc->character;
     struct pcejson_token *top = tkz_stack_top();
@@ -494,12 +494,14 @@ print_parser_state(struct pcejson *parser)
     uc_to_utf8(character, buf);
 
     size_t nr_stack = tkz_stack_size();
+    s_stack = (char*)malloc(nr_stack + 1);
 
     for (size_t i = 0; i < nr_stack; i++) {
         struct pcejson_token * token = pcejson_token_stack_get(
                 parser->tkz_stack, i);
         s_stack[i] = (char)token->type;
     }
+    s_stack[nr_stack] = 0;
 
     size_t len;
     node = pcvcm_node_to_string(vcm_node, &len);
@@ -512,6 +514,7 @@ print_parser_state(struct pcejson *parser)
             parser->state_name, buf, character,
             type, nr_stack, s_stack, node, tbuf
         );
+    free(s_stack);
     free(node);
 }
 
