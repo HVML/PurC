@@ -137,8 +137,8 @@ pcejson_token_destroy(struct pcejson_token *token)
     if (token) {
         if (token->node) {
             pcvcm_node_destroy(token->node);
-            pc_free(token);
         }
+        pc_free(token);
     }
 }
 
@@ -191,6 +191,11 @@ int
 pcejson_token_stack_destroy(struct pcejson_token_stack *stack)
 {
     if (stack) {
+        struct pcejson_token *token = pcejson_token_stack_pop(stack);
+        while(token) {
+            pcejson_token_destroy(token);
+            token = pcejson_token_stack_pop(stack);
+        }
         pcutils_stack_destroy(stack->stack);
         pc_free(stack);
     }
