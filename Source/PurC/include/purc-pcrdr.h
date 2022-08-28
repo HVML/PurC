@@ -752,8 +752,20 @@ pcrdr_try_operation_atom(const char *op);
  * Returns: The pointer to the operation, NULL for invalid atom.
  * Since: 0.1.0
  */
-const char *
+PCA_EXPORT const char *
 pcrdr_operation_from_atom(purc_atom_t atom, unsigned int *id);
+
+/**
+ * Get the data type name.
+ *
+ * @param data_type: the data type.
+
+ * Returns: The pointer to the data type name string.
+ *
+ * Since: 0.8.2
+ */
+PCA_EXPORT const char *
+pcrdr_data_type_name(pcrdr_msg_data_type data_type);
 
 /**
  * Make a void message.

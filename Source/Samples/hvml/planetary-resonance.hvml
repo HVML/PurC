@@ -1,4 +1,4 @@
-<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<!DOCTYPE hvml SYSTEM 'f: MATH'>
 <hvml target="html">
     <head>
         <meta charset="utf-8"/>
@@ -98,7 +98,7 @@ svg {
             </inherit -->
 
             <test with $L.ge($params.i, $MATH.eval('360 * earthOrbits + earthDeg', $params)) >
-                <update on $TIMES to "subtract" with { id: "rate" } />
+                <clear on $TIMERS />
             </test>
 
         </observe>

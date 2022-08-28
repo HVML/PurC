@@ -64,6 +64,7 @@
 
 static struct const_str_atom _except_names[] = {
     { "OK", 0 },
+    { "Again", 0 },
     { "BadEncoding", 0 },
     { "BadHVMLTag", 0 },
     { "BadHVMLAttrName", 0 },
@@ -105,6 +106,7 @@ static struct const_str_atom _except_names[] = {
     { "InvalidOperand", 0 },
     { "EntityNotFound", 0 },
     { "EntityExists", 0 },
+    { "EntityGone", 0 },
     { "NoStorageSpace", 0 },
     { "BrokenPipe", 0 },
     { "ConnectionAborted", 0 },

@@ -8,6 +8,11 @@ Ok
     flags: None
     msg: "Ok"
 
+Again
+    except: Again
+    flags: None
+    msg: "Try again"
+
 BadSystemCall
     except: OSFailure
     flags: None
@@ -48,6 +53,11 @@ TooLargeEntity
     flags: None
     msg: "Tool large entity"
 
+EntityGone
+    except: EntityGone
+    flags: None
+    msg: "Entity gone"
+
 BadEncoding
     except: BadEncoding
     flags: None
@@ -61,7 +71,7 @@ NotSupported
 Output
     except: IOFailure
     flags: None
-    msg: "An output error is encountered"
+    msg: "IO error encountered"
 
 TooSmallBuff
     except: InternalFailure

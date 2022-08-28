@@ -35,6 +35,7 @@
 #include "private/errors.h"
 #include "private/document.h"
 #include "private/utils.h"
+#include "private/map.h"
 #include "private/list.h"
 #include "private/vdom.h"
 #include "private/timer.h"
@@ -108,24 +109,25 @@ struct pcintr_cancel {
 
 struct pcintr_heap {
     // owner instance
-    struct pcinst        *owner;
+    struct pcinst      *owner;
 
     // currently running coroutine
-    pcintr_coroutine_t    running_coroutine;
+    pcintr_coroutine_t  running_coroutine;
 
     // those running under and managed by this heap
     // key as atom, val as struct pcintr_coroutine
-    struct rb_root        coroutines;
+    struct rb_root      coroutines;
 
-    struct list_head      routines;     // struct pcintr_routine
+    struct list_head    routines;       // struct pcintr_routine
 
-    int64_t               next_coroutine_id;
-    purc_atom_t           move_buff;
-    pcintr_timer_t        *event_timer; // 10ms
+    pcutils_map        *name_chan_map;  // name to channel map.
 
-    purc_cond_handler    cond_handler;
-    unsigned int         keep_alive:1;
-    double               timestamp;
+    purc_atom_t         move_buff;
+    pcintr_timer_t     *event_timer;    // 10ms
+
+    purc_cond_handler   cond_handler;
+    unsigned int        keep_alive:1;
+    double              timestamp;
 };
 
 struct pcintr_stack_frame;
@@ -291,6 +293,7 @@ struct pcintr_coroutine {
     enum pcintr_coroutine_state state;
     int                         waits;  /* FIXME: nr of registered events */
 
+    struct list_head            ln_stopped;
     struct list_head            registered_cancels;
 
     struct pcinst_msg_queue    *mq;     /* message queue */
@@ -313,7 +316,7 @@ struct pcintr_coroutine {
     /** The maximal embedded levels of a EJSON container. */
     uint64_t                    max_embedded_levels;
 
-    /** The timeout value for a remote request. */
+    /** The default timeout value for remote requests or channel operations. */
     struct timespec             timeout;
     /* $CRTN  end */
 
@@ -482,6 +485,14 @@ pcintr_stack_t pcintr_get_stack(void);
 pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
+
+/* stop the specific coroutine */
+typedef void (*pcintr_timeout_cb)(pcintr_coroutine_t crtn, void *ctxt);
+void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
+        const struct timespec *timeout,
+        pcintr_timeout_cb timeout_cb, void *ctxt) WTF_INTERNAL;
+/* resume the specific coroutine */
+void pcintr_resume_coroutine(pcintr_coroutine_t crtn) WTF_INTERNAL;
 
 void pcintr_check_after_execution(void);
 void pcintr_set_current_co_with_location(pcintr_coroutine_t co,

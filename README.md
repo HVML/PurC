@@ -107,8 +107,30 @@ $ make -j4
 $ sudo make install
 ```
 
+If you'd like to use `ninja` instead of `make` to build PurC,
+   you can use the following commands:
+
+```bash
+$ cd <path/to/the/root/of/the/source/tree/of/PurC>
+$ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -Bbuild -GNinja &&  ninja -Cbuild && sudo ninja -Cbuild install
+```
+
+Note that you might need to remove `build/` directory first if there is already one.
+
 By default, the above commands will build PurC and install the headers, libraries, executables,
    and some documents to your system (under `/usr/local/` directory if you are using Linux system).
+
+When using `make`, you can use `DESTDIR` to specify an alternative installation directory:
+
+```bash
+$ make DESTDIR=/package/stage install
+```
+
+When using `ninja`, you can also use `DESTDIR` to specify an alternative installation directory:
+
+```bash
+$ DESTDIR="/package/stage" ninja -Cbuild install
+```
 
 ## Environment Variables
 
@@ -456,7 +478,7 @@ Here one `runner` is one thread in the `purc` process.
 For this purpose, you can prepare a JSON file or an eJSON file which defines the app, the runners,
     and the initial HVML programs to run as coroutines in different runners.
 
-The following is a sample:
+Here is an example:
 
 ```json
 {
@@ -567,7 +589,7 @@ Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detaile
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.8.0 of PurC.
+This project was launched in June. 2021. This is the version 0.8.1 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
 After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
@@ -575,10 +597,12 @@ After one year development, the current version implements almost all features d
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
 
-1. PurC provides the APIs for variant management, here variant is way of HVML program to manage data.
+1. PurC provides the APIs for variant management, here variant is the way of HVML to manage data.
 1. PurC provides the APIs for parsing JSON and extended JSON.
 1. PurC provides the APIs for parsing and evaluting a parameterized eJSON expression.
 1. PurC provides the APIs for parsing an HTML document.
+1. PurC provides the APIs for creating multiple HVML runners.
+1. PurC provides the APIs for parsing an HVML program and schedule to run it.
 
 You can use these groups of APIs independently according to your needs.
 

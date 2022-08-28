@@ -594,7 +594,7 @@ static bool on_result(pcrdr_msg *msg, char *value)
     return true;
 }
 
-static const char *data_type_names [] = {
+static const char *data_type_names[] = {
     "void",
     "json",
     "plain",
@@ -611,6 +611,12 @@ static const char *data_type_names [] = {
 _COMPILE_TIME_ASSERT(data_types,
         PCA_TABLESIZE(data_type_names) == PCRDR_MSG_DATA_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
+
+const char *
+pcrdr_data_type_name(pcrdr_msg_data_type data_type)
+{
+    return data_type_names[data_type];
+}
 
 static bool on_data_type(pcrdr_msg *msg, char *value)
 {

@@ -9,7 +9,7 @@
 1. gitlab
 1. github
 
-### 0.2) Predefined Varaibles
+### 0.2) Predefined Variables
 
 1. Support for the following URI schemas for `$STREAM`:
    - `fifo`
@@ -37,15 +37,19 @@
 1. [0.8.2] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
 1. [0.8.2] Improve eJSON parser to support the following string patterns:
    - `file://$SYS.cwd/a.hvml`
+   - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
+   - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
+1. [0.8.2] Keep self-closed foreign elements not changed.
 
 ### 1.2.3) Others
 
 1. [0.9.x] Support for tuples.
 
-### 1.3) Predefined Varaibles
+### 1.3) Predefined Variables
 
+1. [0.8.2] `$RUNNER.channel` and the native entity representing a channel.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
-1. [0.9.x] Finish the implementation of the following predefined variables:
+1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -59,10 +63,10 @@
 
 ### 1.5) Interpreter
 
+1. [0.8.2] Enhance the evaluation of VCM to support `ERROR_AGAIN`.
 1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. Review the implementation of all elements.
 1. [0.9.x] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
@@ -75,6 +79,7 @@
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
+1. [1.0.0] Review the implementation of all elements.
 1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
@@ -100,6 +105,9 @@
 
 ### 1.8) Known Bugs
 
+1. [0.8.2] If refer to a nonexistent property name in HVML program, PurC crashes.
+1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
+1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
    - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.

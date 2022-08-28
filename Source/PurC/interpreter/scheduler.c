@@ -132,6 +132,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+        if (co->owner->cond_handler) {
+            struct purc_cor_term_info term_info;
+            term_info.except = stack->exception.error_except;
+            term_info.doc = stack->doc;
+            co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
+        }
         PC_ASSERT(inst->errcode == 0);
     }
 
@@ -199,7 +205,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         PC_ASSERT(co->error_except == NULL);
         co->error_except = error_except;
 
+#ifndef NDEBUG
         pcintr_dump_c_stack(co->stack.exception.bt);
+#endif
         co->stack.except = 0;
 
         if (!co->stack.exited) {
@@ -627,30 +635,35 @@ dump_stack_frame(pcintr_stack_t stack,
         goto out;
     }
 
-    snprintf(buf, DUMP_BUF_SIZE, "\n%02d:\nframe = %p\n", level, frame);
-    purc_rwstream_write(stm, buf, strlen(buf));
-
-    snprintf(buf, DUMP_BUF_SIZE, "elem = ");
+    snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(stm, buf, strlen(buf));
     pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
 
+    // TODO: dump the evaluated attributes or failed VCM node here
+    snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
+    purc_rwstream_write(stm, buf, strlen(buf));
+
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
     if (child && child->type == PCVDOM_NODE_CONTENT) {
-        snprintf(buf, DUMP_BUF_SIZE, "content = ");
+        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: ");
         purc_rwstream_write(stm, buf, strlen(buf));
         pcvdom_util_node_serialize_alone(child, serial_element, stm);
     }
     else {
-        snprintf(buf, DUMP_BUF_SIZE, "content = \n");
+        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
+        purc_rwstream_write(stm, buf, strlen(buf));
     }
 
-    serial_symbol_vars("$< = ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
-    serial_symbol_vars("$@ = ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
-    serial_symbol_vars("$! = ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
-    serial_symbol_vars("$: = ", PURC_SYMBOL_VAR_COLON, frame, stm);
-    serial_symbol_vars("$= = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
-    serial_symbol_vars("$% = ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
-    serial_symbol_vars("$^ = ", PURC_SYMBOL_VAR_CARET, frame, stm);
+    snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
+    purc_rwstream_write(stm, buf, strlen(buf));
+
+    serial_symbol_vars("    < ", PURC_SYMBOL_VAR_LESS_THAN, frame, stm);
+    serial_symbol_vars("    @ ", PURC_SYMBOL_VAR_AT_SIGN, frame, stm);
+    serial_symbol_vars("    ! ", PURC_SYMBOL_VAR_EXCLAMATION, frame, stm);
+    serial_symbol_vars("    : ", PURC_SYMBOL_VAR_COLON, frame, stm);
+    serial_symbol_vars("    = ", PURC_SYMBOL_VAR_EQUAL, frame, stm);
+    serial_symbol_vars("    % ", PURC_SYMBOL_VAR_PERCENT_SIGN, frame, stm);
+    serial_symbol_vars("    ^ ", PURC_SYMBOL_VAR_CARET, frame, stm);
 
 out:
     return 0;
@@ -680,3 +693,27 @@ purc_coroutine_dump_stack(purc_coroutine_t cor, purc_rwstream_t stm)
 out:
     return ret;
 }
+
+/* stop the specific coroutine */
+void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
+        const struct timespec *timeout,
+        pcintr_timeout_cb timeout_cb, void *ctxt)
+{
+    UNUSED_PARAM(crtn);
+    UNUSED_PARAM(timeout);
+    UNUSED_PARAM(timeout_cb);
+    UNUSED_PARAM(ctxt);
+
+    // TODO
+    PC_WARN("pcintr_stop_coroutine() called but not implemented");
+}
+
+/* resume the specific coroutine */
+void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
+{
+    UNUSED_PARAM(crtn);
+
+    // TODO
+    PC_WARN("pcintr_resume_coroutine() called but not implemented");
+}
+

@@ -39,6 +39,7 @@
 #include "private/stringbuilder.h"
 #include "private/msg-queue.h"
 #include "private/runners.h"
+#include "private/channel.h"
 
 #include "ops.h"
 #include "../hvml/hvml-gen.h"
@@ -448,9 +449,9 @@ coroutine_destroy(pcintr_coroutine_t co)
 static void
 stack_init(pcintr_stack_t stack)
 {
-    INIT_LIST_HEAD(&stack->frames);
-    INIT_LIST_HEAD(&stack->intr_observers);
-    INIT_LIST_HEAD(&stack->hvml_observers);
+    list_head_init(&stack->frames);
+    list_head_init(&stack->intr_observers);
+    list_head_init(&stack->hvml_observers);
     stack->scoped_variables = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
@@ -483,6 +484,11 @@ static void _cleanup_instance(struct pcinst* inst)
     if (heap->event_timer) {
         pcintr_timer_destroy(heap->event_timer);
         heap->event_timer = NULL;
+    }
+
+    if (heap->name_chan_map) {
+        pcutils_map_destroy(heap->name_chan_map);
+        heap->name_chan_map = NULL;
     }
 
     free(heap);
@@ -524,7 +530,10 @@ static int _init_instance(struct pcinst* inst,
 
     heap->coroutines = RB_ROOT;
     heap->running_coroutine = NULL;
-    heap->next_coroutine_id = 1;
+
+    heap->name_chan_map =
+        pcutils_map_create(NULL, NULL, NULL,
+                (free_val_fn)pcchan_destroy, comp_key_string, false);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
@@ -1185,7 +1194,6 @@ pcintr_dump_stack(pcintr_stack_t stack)
         }
     }
 }
-#endif                             /* } */
 
 void
 pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
@@ -1197,6 +1205,7 @@ pcintr_dump_c_stack(struct pcdebug_backtrace *bt)
     fprintf(stderr, "dumping stacks of purc instance [%p]......\n", inst);
     pcdebug_backtrace_dump(bt);
 }
+#endif                             /* } */
 
 void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack)
@@ -1773,9 +1782,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
     pcintr_coroutine_set_state(co, CO_STATE_READY);
-    INIT_LIST_HEAD(&co->children);
-    INIT_LIST_HEAD(&co->registered_cancels);
-    INIT_LIST_HEAD(&co->tasks);
+    list_head_init(&co->children);
+    list_head_init(&co->ln_stopped);
+    list_head_init(&co->registered_cancels);
+    list_head_init(&co->tasks);
 
     co->mq = pcinst_msg_queue_create();
     if (!co->mq) {

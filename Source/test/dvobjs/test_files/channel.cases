@@ -1,0 +1,110 @@
+# test cases for $STR.contains
+# TODO: more cases for case-insensitive.
+negative:
+    $RUNNER.chan
+    ArgumentMissed
+
+negative:
+    $RUNNER.chan(5)
+    WrongDataType
+
+negative:
+    $RUNNER.chan('--9-')
+    InvalidValue
+
+negative:
+    $RUNNER.chan('myChannel')
+    EntityNotFound
+
+positive:
+    $RUNNER.chan(! 'myChannel' )
+    true
+
+positive:
+    $RUNNER.chan(! 'myChannel', 0 )
+    true
+
+positive:
+    $RUNNER.chan(! 'myChannel', 1 )
+    true
+
+positive:
+    $RUNNER.chan('myChannel').cap
+    1UL
+
+positive:
+    $RUNNER.chan('myChannel').len
+    0UL
+
+negative:
+    $RUNNER.chan('myChannel').recv
+    Again
+
+positive:
+    $RUNNER.chan('myChannel').send(1)
+    true
+
+positive:
+    $RUNNER.chan('myChannel').recv()
+    1
+
+positive:
+    $RUNNER.chan(! 'myChannel', 0)
+    true
+
+positive:
+    $RUNNER.chan(! 'myChannel', 3)
+    true
+
+positive:
+    $RUNNER.chan('myChannel').cap
+    3UL
+
+positive:
+    $RUNNER.chan('myChannel').len
+    0UL
+
+positive:
+    $RUNNER.chan('myChannel').send(0)
+    true
+
+positive:
+    $RUNNER.chan('myChannel').send(1)
+    true
+
+positive:
+    $RUNNER.chan('myChannel').send(2)
+    true
+
+negative:
+    $RUNNER.chan('myChannel').send(3)
+    Again
+
+positive:
+    $RUNNER.chan('myChannel').len
+    3UL
+
+positive:
+    $RUNNER.chan('myChannel').recv()
+    0
+
+positive:
+    $RUNNER.chan('myChannel').recv()
+    1
+
+positive:
+    $RUNNER.chan('myChannel').recv()
+    2
+
+negative:
+    $RUNNER.chan('myChannel').recv()
+    Again
+
+positive:
+    $RUNNER.chan('myChannel').len
+    0UL
+
+positive:
+    $RUNNER.chan(! 'myChannel', 0)
+    true
+
