@@ -137,6 +137,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             term_info.except = stack->exception.error_except;
             term_info.doc = stack->doc;
             co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
+            /* Call purc_coroutine_dump_stack may set inst->errcode */
+            purc_clr_error();
         }
         PC_ASSERT(inst->errcode == 0);
     }
