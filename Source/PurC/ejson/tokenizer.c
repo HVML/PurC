@@ -65,9 +65,9 @@
 #define PRINT_STATE(parser) print_parser_state(parser)
 
 #define PCEJSON_PARSER_BEGIN                                                \
-int pcejson_parse_n(struct pcvcm_node **vcm_tree,                           \
+int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
         struct pcejson **parser_param,                                      \
-        purc_rwstream_t rws,                                                \
+        struct tkz_reader *reader,                                          \
         uint32_t depth)                                                     \
 {                                                                           \
     if (*parser_param == NULL) {                                            \
@@ -84,7 +84,7 @@ int pcejson_parse_n(struct pcvcm_node **vcm_tree,                           \
                                                                             \
     uint32_t character = 0;                                                 \
     struct pcejson* parser = *parser_param;                                 \
-    tkz_reader_set_rwstream (parser->tkz_reader, rws);                      \
+    parser->tkz_reader = reader;                                            \
                                                                             \
 next_input:                                                                 \
     parser->curr_uc = tkz_reader_next_char (parser->tkz_reader);            \

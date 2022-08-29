@@ -36,6 +36,7 @@
 #define PCEJSON_DEFAULT_DEPTH 32
 
 struct pcejson;
+struct tkz_reader;
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +62,9 @@ void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
+
+int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+                   struct tkz_reader *reader, uint32_t depth);
 
 #ifdef __cplusplus
 }

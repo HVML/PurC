@@ -402,7 +402,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->flags = flags;
 
     parser->curr_uc = NULL;
-    parser->tkz_reader = tkz_reader_new();
+    parser->tkz_reader = NULL;
     parser->temp_buffer = tkz_buffer_new();
     parser->string_buffer = tkz_buffer_new();
     parser->tkz_stack = pcejson_token_stack_new();
@@ -419,7 +419,6 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
 void pcejson_destroy(struct pcejson *parser)
 {
     if (parser) {
-        tkz_reader_destroy(parser->tkz_reader);
         tkz_buffer_destroy(parser->temp_buffer);
         tkz_buffer_destroy(parser->string_buffer);
         struct pcvcm_node* n = parser->vcm_node;
@@ -437,9 +436,7 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->max_depth = depth;
     parser->depth = 0;
     parser->flags = flags;
-
-    tkz_reader_destroy(parser->tkz_reader);
-    parser->tkz_reader = tkz_reader_new();
+    parser->tkz_reader = NULL;
 
     tkz_buffer_reset(parser->temp_buffer);
     tkz_buffer_reset(parser->string_buffer);
@@ -456,7 +453,18 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
 int pcejson_parse(struct pcvcm_node **vcm_tree,
         struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
 {
-    return pcejson_parse_n(vcm_tree, parser_param, rws, depth);
+    int ret;
+    struct tkz_reader *reader = tkz_reader_new();
+    if (!reader) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        ret = -1;
+        goto out;
+    }
+    tkz_reader_set_rwstream(reader, rws);
+    ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth);
+    tkz_reader_destroy(reader);
+out:
+    return ret;
 }
 
 

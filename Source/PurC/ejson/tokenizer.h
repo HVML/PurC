@@ -244,7 +244,6 @@ struct pcejson {
     struct tkz_buffer *temp_buffer;
     struct tkz_buffer *string_buffer;
     struct pcvcm_node *vcm_node;
-    struct pcutils_stack *ejson_stack;
     struct tkz_sbst *sbst;
 
     struct pcejson_token_stack *tkz_stack;
