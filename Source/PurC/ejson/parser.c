@@ -396,7 +396,11 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
+#if USE(NEW_PARSER)
+    parser->state =  EJSON_TKZ_STATE_DATA;
+#else
     parser->state = 0;
+#endif
     parser->max_depth = depth;
     parser->depth = 0;
     parser->flags = flags;
@@ -443,7 +447,11 @@ void pcejson_destroy(struct pcejson *parser)
 
 void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
 {
+#if USE(NEW_PARSER)
+    parser->state =  EJSON_TKZ_STATE_DATA;
+#else
     parser->state = 0;
+#endif
     parser->max_depth = depth;
     parser->depth = 0;
     parser->flags = flags;
