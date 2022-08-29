@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/"))/>
+PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -62,7 +62,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<iterate on=get_variable("?") by="CHAR: FROM 0">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("exp_chars") at=concat_string(get_variable("1%")) to="append" with=get_variable("?")/>
+PCHVML_TOKEN_START_TAG|<update on=get_variable("exp_chars") at=get_variable("1%") to="append" with=get_variable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</iterate>
@@ -119,7 +119,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div id="c_text">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<input type="text" id="expression" value="0" readonly="readonly"/>
+PCHVML_TOKEN_START_TAG|<input type="text" id="expression" value=0 readonly="readonly"/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<observe on=get_variable("TIMERS") for="expired:input">

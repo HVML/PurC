@@ -2288,7 +2288,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
         }
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
-    if (character == '$') {
+    if (character == '$' || character == '{') {
         if (top->type == ETT_VALUE) {
             tkz_stack_drop_top();
             top = tkz_stack_top();
