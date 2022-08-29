@@ -1008,6 +1008,9 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     uint32_t type = top->type;
+    if (is_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+    }
     if (is_whitespace(character)) {
         if (type == ETT_UNQUOTED_S || type == ETT_STRING) {
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
@@ -1046,9 +1049,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     }
     if (type == ETT_STRING || type == ETT_UNQUOTED_S) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
-    }
-    if (is_finished(parser, character)) {
-        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();

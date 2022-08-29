@@ -646,7 +646,7 @@ bool
 is_attr_finished(struct pcejson *ejson, uint32_t character)
 {
     UNUSED_PARAM(ejson);
-    if (character == '/' || character == '>') {
+    if (character == '/' || character == '>' || is_whitespace(character)) {
         return true;
     }
     return false;
