@@ -1,0 +1,3 @@
+positive:
+    "$RUNNER.应用名，$RUNNER.行者名"
+    'cn.fmsoft.hvml.test，dvobjs'

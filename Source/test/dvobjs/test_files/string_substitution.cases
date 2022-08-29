@@ -1,0 +1,15 @@
+negative:
+    "$RUNNER.appName"
+    NoSuchKey
+
+positive:
+    "$RUNNER.app"
+    'cn.fmsoft.hvml.test'
+
+positive:
+    "$RUNNER.app, $RUNNER.runner"
+    'cn.fmsoft.hvml.test, dvobjs'
+
+positive:
+    "foo($RUNNER.app, $RUNNER.runner)"
+    'foo(cn.fmsoft.hvml.test, dvobjs)'

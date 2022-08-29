@@ -1,5 +1,4 @@
-# test cases for $STR.contains
-# TODO: more cases for case-insensitive.
+# test cases for channel
 negative:
     $RUNNER.chan
     ArgumentMissed
