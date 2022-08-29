@@ -4755,6 +4755,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_CJSONEE_FINISHED)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
+#if 0
     tkz_reader_reconsume_last_char(parser->reader);
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             parser->ejson_parser_flags);
@@ -4768,6 +4769,45 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         ADVANCE_TO(TKZ_STATE_AFTER_ATTRIBUTE_VALUE);
     }
     RETURN_AND_STOP_PARSE();
+#else
+    if (is_eof(character)) {
+        SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
+        RETURN_AND_STOP_PARSE();
+    }
+    if (character == '\"') {
+        if (parser->nr_quoted == 0) {
+            parser->nr_quoted++;
+            ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
+        }
+        else if (parser->nr_quoted == 1) {
+            parser->nr_quoted++;
+            ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
+        }
+        else {
+            SET_ERR(PCHVML_ERROR_UNEXPECTED_CHARACTER);
+            RETURN_AND_STOP_PARSE();
+        }
+    }
+    if (parser->nr_quoted < 2) {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
+    }
+
+    struct pcvcm_node *node = NULL;
+    if (tkz_buffer_is_empty(parser->temp_buffer)) {
+        node = pcvcm_node_new_string("");
+    }
+    else {
+        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
+        node = parse_ejson(parser, bytes);
+    }
+    if (node) {
+        pchvml_token_append_vcm_to_attr(parser->token, node);
+        END_TOKEN_ATTR();
+        RECONSUME_IN(TKZ_STATE_AFTER_ATTRIBUTE_VALUE);
+    }
+    RETURN_AND_STOP_PARSE();
+#endif
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)

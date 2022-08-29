@@ -17,7 +17,7 @@ PCHVML_TOKEN_COMMENT|<!-- The result of the HVML program: 6UL -->
 PCHVML_TOKEN_VCM_TREE|"
 
 "
-PCHVML_TOKEN_START_TAG|<hvml target="void" lang=concat_string(call_getter(get_element(get_variable("STR"),"substr"),get_element(get_variable("SYS"),"locale"),0,2))>
+PCHVML_TOKEN_START_TAG|<hvml target="void" lang=call_getter(get_element(get_variable("STR"),"substr"),get_element(get_variable("SYS"),"locale"),0,2)>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"Start of `Hello, world!`") ; call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("SYS"),"time"),"%H:%m")) }}

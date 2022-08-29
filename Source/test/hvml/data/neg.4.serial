@@ -44,7 +44,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<reduce on=get_variable("users") to="update emtpy iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="> h2 > span" textContent=concat_string(get_element(get_variable("?"),"count"))/>
+PCHVML_TOKEN_START_TAG|<update on="> h2 > span" textContent=get_element(get_variable("?"),"count")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<clear on="> dl"/>

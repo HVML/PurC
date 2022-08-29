@@ -43,13 +43,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<choose on=get_variable("locales") to="update" in="#the-footer" by=concat_string("KEY: ",get_element(get_variable("global"),"locale"))>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=concat_string(get_element(get_variable("?"),"se_name")) attr.href=concat_string(get_element(get_variable("?"),"se_url")) attr.title=concat_string(get_element(get_variable("?"),"se_title"))/>
+PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=get_element(get_variable("?"),"se_name") attr.href=get_element(get_variable("?"),"se_url") attr.title=get_element(get_variable("?"),"se_title")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for="error:nodata">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on="~ p" textContent="You forget to define the \$locales/\$global variables!"/>
+PCHVML_TOKEN_START_TAG|<update on="~ p" textContent="You forget to define the $locales/$global variables!"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -67,7 +67,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<catch for="*">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on="~p" textContent="Bad \$locales/\$global data!"/>
+PCHVML_TOKEN_START_TAG|<update on="~p" textContent="Bad $locales/$global data!"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>

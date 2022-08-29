@@ -14,10 +14,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<send on=concat_string(get_variable("mqtt")) to="subscribe" at="newUser" as="new_user"/>
+PCHVML_TOKEN_START_TAG|<send on=get_variable("mqtt") to="subscribe" at="newUser" as="new_user"/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<send on=concat_string(get_variable("mqtt")) to="subscribe" at="deleteUser" as="del_user"/>
+PCHVML_TOKEN_START_TAG|<send on=get_variable("mqtt") to="subscribe" at="deleteUser" as="del_user"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -122,7 +122,7 @@ PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
             "
-PCHVML_TOKEN_START_TAG|<iterate on=get_variable("@") to="append" in=concat_string(get_variable("users")) with=get_variable("item_user") by="TRAVEL: BREADTH">
+PCHVML_TOKEN_START_TAG|<iterate on=get_variable("@") to="append" in=get_variable("users") with=get_variable("item_user") by="TRAVEL: BREADTH">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</iterate>
@@ -135,7 +135,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<choose on=get_variable("?") to="update" in="> h2 > span" by="KEY: 'count'">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("@") textContent=concat_string(get_variable("?"))/>
+PCHVML_TOKEN_START_TAG|<update on=get_variable("@") textContent=get_variable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</choose>

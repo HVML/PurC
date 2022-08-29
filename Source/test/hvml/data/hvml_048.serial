@@ -5,7 +5,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_COMMENT|<!-- $REQ contains the startup options -->
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_START_TAG|<hvml target=concat_string(get_element(get_variable("REQ"),"target"))>
+PCHVML_TOKEN_START_TAG|<hvml target=get_element(get_variable("REQ"),"target")>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<body>
@@ -111,3 +111,4 @@ PCHVML_TOKEN_END_TAG|</body>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_END_TAG|</hvml>
+

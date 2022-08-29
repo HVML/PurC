@@ -1,7 +1,7 @@
 <hvml>
     <body>
         <observe on=".avatar" for="clicked" to="load">
-            <load on="user.hvml" with="{'id': $@.attr["data-value"]}" as="_modal" />
+            <load on="user.hvml" with="{'id': $@.attr['data-value']}" as="_modal" />
         </observe>
     </body>
 </hvml>

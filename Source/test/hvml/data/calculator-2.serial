@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/"))/>
+PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
 "
@@ -76,7 +76,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div id="c_text">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<input type="text" id="text" value="0" readonly="readonly"/>
+PCHVML_TOKEN_START_TAG|<input type="text" id="text" value=0 readonly="readonly"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</div>
