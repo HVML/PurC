@@ -62,6 +62,12 @@
 
 #define tkz_current()  pcejson_token_stack_top(parser->tkz_stack)
 
+#define CHECK_FINISHED() do {                                               \
+    if (is_finished(parser, character)) {                                   \
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);                             \
+    }                                                                       \
+} while(false)
+
 #define PRINT_STATE(parser) print_parser_state(parser)
 
 #define PCEJSON_PARSER_BEGIN                                                \
@@ -558,6 +564,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
     if (is_eof(character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
+    CHECK_FINISHED();
     if (is_whitespace(character)) {
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
     }
@@ -624,6 +631,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_DOUBLE_QUOTED)
         RESET_QUOTED_COUNTER();
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
     }
+    if (type == ETT_MULTI_QUOTED_S) {
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
+    }
+    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+    RETURN_AND_STOP_PARSE();
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
@@ -1008,9 +1020,7 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     uint32_t type = top->type;
-    if (is_finished(parser, character)) {
-        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
-    }
+    CHECK_FINISHED();
     if (is_whitespace(character)) {
         if (type == ETT_UNQUOTED_S || type == ETT_STRING) {
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
@@ -2280,10 +2290,13 @@ BEGIN_STATE(EJSON_TKZ_STATE_VARIABLE)
         ADVANCE_TO(EJSON_TKZ_STATE_VARIABLE);
     }
     if (is_ascii_digit(character)) {
+        // FIXME:
+#if 0
         if (tkz_buffer_is_empty(parser->temp_buffer)) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         }
+#endif
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VARIABLE);
     }
@@ -2393,6 +2406,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
         }
     }
+    CHECK_FINISHED();
     RESET_TEMP_BUFFER();
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
