@@ -34,6 +34,7 @@
 #include "private/dom.h"
 #include "private/hvml.h"
 #include "private/tkz-helper.h"
+#include "private/ejson.h"
 
 #include "hvml-token.h"
 #include "hvml-attr.h"
@@ -616,6 +617,29 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 void pchvml_switch_to_ejson_state(struct pchvml_parser* parser)
 {
     parser->state = TKZ_STATE_EJSON_DATA;
+}
+
+struct pcvcm_node *
+parse_ejson(struct pchvml_parser *parser, const char *content)
+{
+    struct pcvcm_node *node = NULL;
+    if (!content) {
+        goto out;
+    }
+
+    size_t nr = strlen(content) + 1;
+    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)content, nr);
+    if (!rws) {
+        goto out;
+    }
+
+    pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
+            parser->ejson_parser_flags);
+    pcejson_parse(&node, &parser->ejson_parser, rws,
+            parser->ejson_parser_max_depth);
+    purc_rwstream_destroy(rws);
+out:
+    return node;
 }
 
 PCHVML_NEXT_TOKEN_BEGIN

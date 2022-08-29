@@ -34,6 +34,7 @@ struct tkz_buffer;
 struct pchvml_token;
 struct tkz_reader;
 struct tkz_sbst;
+struct pcejson;
 
 struct pchvml_parser {
     unsigned int state;
@@ -46,6 +47,8 @@ struct pchvml_parser {
     uint32_t nr_quoted;
     uint32_t nr_whitespace;
     uint32_t nr_single_quoted;
+    uint32_t ejson_parser_max_depth;
+    uint32_t ejson_parser_flags;
 
     unsigned int tag_is_operation:1;
     unsigned int tag_has_raw_attr:1;
@@ -64,6 +67,7 @@ struct pchvml_parser {
     struct pcutils_stack* ejson_stack;
     struct pchvml_token* start_tag_token;
 
+    struct pcejson *ejson_parser;
 };
 
 #ifdef __cplusplus

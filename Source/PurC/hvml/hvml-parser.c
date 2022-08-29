@@ -32,6 +32,7 @@
 #include "private/dom.h"
 #include "private/hvml.h"
 #include "private/tkz-helper.h"
+#include "private/ejson.h"
 
 #include "hvml-token.h"
 #include "hvml-attr.h"
@@ -87,6 +88,8 @@ struct pcmodule _module_hvml = {
 
 
 #define PURC_ENVV_HVML_LOG_ENABLE   "PURC_HVML_LOG_ENABLE"
+#define EJSON_PARSER_MAX_DEPTH      32
+#define EJSON_PARSER_FLAGS          1
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
@@ -108,6 +111,11 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_is_operation = 0;
     parser->tag_has_raw_attr = 0;
     parser->is_in_file_header = 1;
+    parser->ejson_parser_max_depth = EJSON_PARSER_MAX_DEPTH;
+    parser->ejson_parser_flags = EJSON_PARSER_FLAGS;
+    parser->ejson_parser = pcejson_create(parser->ejson_parser_max_depth,
+            parser->ejson_parser_flags);
+
     const char *env_value = getenv(PURC_ENVV_HVML_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
             (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
@@ -150,6 +158,8 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->nr_quoted = 0;
     parser->tag_is_operation = false;
     parser->tag_has_raw_attr = false;
+    pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
+            parser->ejson_parser_flags);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
@@ -176,6 +186,7 @@ void pchvml_destroy(struct pchvml_parser* parser)
         if (parser->token) {
             pchvml_token_destroy(parser->token);
         }
+        pcejson_destroy(parser->ejson_parser);
         PCHVML_FREE(parser);
     }
 }
