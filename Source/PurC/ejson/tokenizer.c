@@ -68,7 +68,8 @@
 int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
         struct pcejson **parser_param,                                      \
         struct tkz_reader *reader,                                          \
-        uint32_t depth)                                                     \
+        uint32_t depth,                                                     \
+        pcejson_parse_is_finished_fn is_finished)                           \
 {                                                                           \
     if (*parser_param == NULL) {                                            \
         *parser_param = pcejson_create(                                     \
@@ -80,11 +81,13 @@ int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
     }                                                                       \
                                                                             \
     struct pcejson_token *top = NULL;                                       \
-    UNUSED_VARIABLE(top);                                                   \
                                                                             \
     uint32_t character = 0;                                                 \
     struct pcejson* parser = *parser_param;                                 \
     parser->tkz_reader = reader;                                            \
+    if (!is_finished) {                                                     \
+        is_finished = is_finished_default;                                  \
+    }                                                                       \
                                                                             \
 next_input:                                                                 \
     parser->curr_uc = tkz_reader_next_char (parser->tkz_reader);            \
@@ -120,6 +123,13 @@ next_state:                                                                 \
     return -1;                                                              \
 }
 
+static bool
+is_finished_default(struct pcejson *parser, uint32_t character)
+{
+    UNUSED_PARAM(parser);
+    UNUSED_PARAM(character);
+    return false;
+}
 
 static bool
 is_get_element(uint32_t type)
@@ -1036,6 +1046,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     }
     if (type == ETT_STRING || type == ETT_UNQUOTED_S) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (is_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();

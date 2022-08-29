@@ -63,8 +63,11 @@ void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
 
+typedef bool (*pcejson_parse_is_finished_fn)(struct pcejson *parser,
+        uint32_t character);
 int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
-                   struct tkz_reader *reader, uint32_t depth);
+                   struct tkz_reader *reader, uint32_t depth,
+                   pcejson_parse_is_finished_fn is_finished);
 
 #ifdef __cplusplus
 }

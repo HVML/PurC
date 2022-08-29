@@ -461,7 +461,7 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,
         goto out;
     }
     tkz_reader_set_rwstream(reader, rws);
-    ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth);
+    ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth, NULL);
     tkz_reader_destroy(reader);
 out:
     return ret;
