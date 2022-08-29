@@ -112,7 +112,7 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_has_raw_attr = 0;
     parser->is_in_file_header = 1;
     parser->ejson_parser_max_depth = EJSON_PARSER_MAX_DEPTH;
-    parser->ejson_parser_flags = EJSON_PARSER_FLAGS;
+    parser->ejson_parser_flags = PCEJSON_FLAG_ALL;
     parser->ejson_parser = pcejson_create(parser->ejson_parser_max_depth,
             parser->ejson_parser_flags);
 

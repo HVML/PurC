@@ -35,6 +35,10 @@
 
 #define PCEJSON_DEFAULT_DEPTH 32
 
+#define PCEJSON_FLAG_NONE               0x0000
+#define PCEJSON_FLAG_MULTI_JSONEE       0x0001
+#define PCEJSON_FLAG_ALL                0xFFFF
+
 struct pcejson;
 struct tkz_reader;
 

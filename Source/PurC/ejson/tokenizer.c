@@ -79,7 +79,7 @@ int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
 {                                                                           \
     if (*parser_param == NULL) {                                            \
         *parser_param = pcejson_create(                                     \
-                depth > 0 ? depth : EJSON_MAX_DEPTH, 1);                    \
+                depth > 0 ? depth : EJSON_MAX_DEPTH, PCEJSON_FLAG_ALL);     \
         (*parser_param)->state = EJSON_TKZ_STATE_DATA;                      \
         if (*parser_param == NULL) {                                        \
             return -1;                                                      \
