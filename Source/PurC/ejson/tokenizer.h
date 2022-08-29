@@ -148,146 +148,20 @@
 #define IS_TEMP_BUFFER_EMPTY()                                              \
         tkz_buffer_is_empty(parser->temp_buffer)
 
-// origin parser begin
-
-#define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
-#define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
-#define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
-#define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
-#define ejson_stack_size() pcutils_stack_size(parser->ejson_stack)
-#define ejson_stack_reset() pcutils_stack_clear(parser->ejson_stack)
-
-#define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
-#define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
-#define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
-#define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
-
 #define RESET_STRING_BUFFER()                                               \
     do {                                                                    \
-        tkz_buffer_reset(parser->string_buffer);                             \
+        tkz_buffer_reset(parser->string_buffer);                            \
     } while (false)
 
 #define APPEND_TO_STRING_BUFFER(uc)                                         \
     do {                                                                    \
-        tkz_buffer_append(parser->string_buffer, uc);                        \
+        tkz_buffer_append(parser->string_buffer, uc);                       \
     } while (false)
 
 #define RESET_QUOTED_COUNTER()                                              \
     do {                                                                    \
         parser->nr_quoted = 0;                                              \
     } while (false)
-
-#define UPDATE_VCM_NODE(node)                                                  \
-    do {                                                                    \
-        if (node) {                                                         \
-            parser->vcm_node = node;                                        \
-        }                                                                   \
-    } while (false)
-
-#define RESET_VCM_NODE()                                                    \
-    do {                                                                    \
-        parser->vcm_node = NULL;                                            \
-    } while (false)
-
-#define RESTORE_VCM_NODE()                                                  \
-    do {                                                                    \
-        if (!parser->vcm_node) {                                            \
-            parser->vcm_node = pcvcm_stack_pop(parser->vcm_stack);          \
-        }                                                                   \
-    } while (false)
-
-#define APPEND_CHILD(parent, child)                                         \
-    do {                                                                    \
-        if (parent && child) {                                              \
-            pctree_node_append_child((struct pctree_node*)parent,           \
-                (struct pctree_node*)child);                                \
-        }                                                                   \
-    } while (false)
-
-#define APPEND_AS_VCM_CHILD(node)                                           \
-    do {                                                                    \
-        if (parser->vcm_node) {                                             \
-            pctree_node_append_child((struct pctree_node*)parser->vcm_node, \
-                (struct pctree_node*)node);                                 \
-        }                                                                   \
-        else {                                                              \
-            parser->vcm_node = node;                                        \
-        }                                                                   \
-    } while (false)
-
-#define POP_AS_VCM_PARENT_AND_UPDATE_VCM()                                  \
-    do {                                                                    \
-        struct pcvcm_node* parent = pcvcm_stack_pop(parser->vcm_stack);     \
-        if (parent && pcvcm_node_is_closed(parent)) {                       \
-            struct pcvcm_node* gp = pcvcm_stack_pop(parser->vcm_stack);     \
-            APPEND_CHILD(gp, parent);                                       \
-            parent = gp;                                                    \
-        }                                                                   \
-        struct pcvcm_node* child = parser->vcm_node;                        \
-        APPEND_CHILD(parent, child);                                        \
-        UPDATE_VCM_NODE(parent);                                            \
-    } while (false)
-
-
-enum tokenizer_state {
-    FIRST_STATE = 0,
-
-    TKZ_STATE_EJSON_DATA = FIRST_STATE,
-    TKZ_STATE_EJSON_FINISHED,
-    TKZ_STATE_EJSON_CONTROL,
-    TKZ_STATE_EJSON_LEFT_BRACE,
-    TKZ_STATE_EJSON_RIGHT_BRACE,
-    TKZ_STATE_EJSON_LEFT_BRACKET,
-    TKZ_STATE_EJSON_RIGHT_BRACKET,
-    TKZ_STATE_EJSON_LEFT_PARENTHESIS,
-    TKZ_STATE_EJSON_RIGHT_PARENTHESIS,
-    TKZ_STATE_EJSON_DOLLAR,
-    TKZ_STATE_EJSON_AFTER_VALUE,
-    TKZ_STATE_EJSON_BEFORE_NAME,
-    TKZ_STATE_EJSON_AFTER_NAME,
-    TKZ_STATE_EJSON_NAME_UNQUOTED,
-    TKZ_STATE_EJSON_NAME_SINGLE_QUOTED,
-    TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED,
-    TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED,
-    TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED,
-    TKZ_STATE_EJSON_AFTER_VALUE_DOUBLE_QUOTED,
-    TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED,
-    TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED,
-    TKZ_STATE_EJSON_KEYWORD,
-    TKZ_STATE_EJSON_AFTER_KEYWORD,
-    TKZ_STATE_EJSON_BYTE_SEQUENCE,
-    TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE,
-    TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE,
-    TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE,
-    TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE,
-    TKZ_STATE_EJSON_VALUE_NUMBER,
-    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER,
-    TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER,
-    TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION,
-    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT,
-    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER,
-    TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER,
-    TKZ_STATE_EJSON_VALUE_NUMBER_HEX,
-    TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX,
-    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX,
-    TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY,
-    TKZ_STATE_EJSON_VALUE_NAN,
-    TKZ_STATE_EJSON_STRING_ESCAPE,
-    TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS,
-    TKZ_STATE_EJSON_JSONEE_VARIABLE,
-    TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN,
-    TKZ_STATE_EJSON_JSONEE_KEYWORD,
-    TKZ_STATE_EJSON_JSONEE_STRING,
-    TKZ_STATE_EJSON_AFTER_JSONEE_STRING,
-    TKZ_STATE_EJSON_AMPERSAND,
-    TKZ_STATE_EJSON_OR_SIGN,
-    TKZ_STATE_EJSON_SEMICOLON,
-    TKZ_STATE_EJSON_CJSONEE_FINISHED,
-
-    LAST_STATE = TKZ_STATE_EJSON_CJSONEE_FINISHED,
-};
-
-// origin parser end
 
 struct pcejson_token {
     uint32_t type;
@@ -370,7 +244,6 @@ struct pcejson {
     struct tkz_buffer *temp_buffer;
     struct tkz_buffer *string_buffer;
     struct pcvcm_node *vcm_node;
-    struct pcvcm_stack *vcm_stack;
     struct pcutils_stack *ejson_stack;
     struct tkz_sbst *sbst;
 

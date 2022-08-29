@@ -1647,9 +1647,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER)
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER);
     }
     if (character == '$') {
-        if (parser->vcm_node) {
-            vcm_stack_push(parser->vcm_node);
-        }
         /* unquoted */
         top = tkz_stack_push(ETT_MULTI_UNQUOTED_S);
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
