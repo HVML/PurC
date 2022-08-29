@@ -36,7 +36,7 @@
 #include "private/tkz-helper.h"
 
 #define USE_NEW_PARSER               1
-#define __DEV_EJSON__                0
+#define __DEV_EJSON__                1
 
 #define EJSON_MAX_DEPTH              32
 #define EJSON_MIN_BUFFER_SIZE        128
