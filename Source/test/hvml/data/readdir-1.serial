@@ -70,9 +70,7 @@ PCHVML_TOKEN_START_TAG|<iterate on=get_variable("?") with=call_getter(get_elemen
 PCHVML_TOKEN_VCM_TREE|"
                                 "
 PCHVML_TOKEN_START_TAG|<li>
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"type")
-PCHVML_TOKEN_VCM_TREE|": "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("?"),"name")
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"type"),": ",get_element(get_variable("?"),"name"))
 PCHVML_TOKEN_END_TAG|</li>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -91,9 +89,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
                     "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|"Totally "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("!"),"count")
-PCHVML_TOKEN_VCM_TREE|" entries."
+PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",get_element(get_variable("!"),"count")," entries.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -105,8 +101,7 @@ PCHVML_TOKEN_START_TAG|<match>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|"Not a directory or directory not readable: "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("REQ"),"dir")
+PCHVML_TOKEN_VCM_TREE|concat_string("Not a directory or directory not readable: ",get_element(get_variable("REQ"),"dir"))
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
                 "

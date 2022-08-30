@@ -15,10 +15,8 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'")
-PCHVML_TOKEN_VCM_TREE|";"
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|concat_string(call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'"),";
+        ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -76,8 +74,6 @@ PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),get_variable("?"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -99,10 +95,8 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'")
-PCHVML_TOKEN_VCM_TREE|";"
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|concat_string(call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'"),";
+        ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -111,4 +105,3 @@ PCHVML_TOKEN_END_TAG|</body>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_END_TAG|</hvml>
-
