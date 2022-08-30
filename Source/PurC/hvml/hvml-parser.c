@@ -88,7 +88,7 @@ struct pcmodule _module_hvml = {
 
 
 #define PURC_ENVV_HVML_LOG_ENABLE   "PURC_HVML_LOG_ENABLE"
-#define EJSON_PARSER_MAX_DEPTH      32
+#define EJSON_PARSER_MAX_DEPTH      512
 #define EJSON_PARSER_FLAGS          1
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
