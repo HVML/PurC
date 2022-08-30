@@ -41,27 +41,6 @@ extern void get_variant_total_info (size_t *mem, size_t *value, size_t *resv);
 #define MAX_PARAM_NR    20
 
 
-static void dump_string_array (purc_variant_t string_array)
-{
-    size_t nr_lines;
-    size_t i;
-    purc_variant_t string_var;
-    const char *string_content;
-
-    if (! purc_variant_array_size (string_array, &nr_lines)) {
-        printf ("\n\n(Null)\n\n");
-        return;
-    }
-    
-    printf ("\n");
-    for (i = 0; i < nr_lines; i++) {
-        string_var = purc_variant_array_get (string_array, i);
-        string_content = purc_variant_get_string_const (string_var);
-        printf ("%s\n", string_content);
-    }
-    printf ("\n");
-}
-
 TEST(dvobjs, dvobjs_file_text_head)
 {
     purc_variant_t param[MAX_PARAM_NR];

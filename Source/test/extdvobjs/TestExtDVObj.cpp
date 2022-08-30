@@ -384,4 +384,3 @@ void TestExtDVObj::run_testcases_in_file(const char *file_name)
     if (line)
         free(line);
 }
-
