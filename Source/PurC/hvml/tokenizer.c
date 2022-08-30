@@ -662,6 +662,16 @@ is_unquoted_attr_finished(struct pcejson *ejson, uint32_t character)
     return false;
 }
 
+bool
+is_content_text_finished(struct pcejson *ejson, uint32_t character)
+{
+    UNUSED_PARAM(ejson);
+    if (character == '<') {
+        return true;
+    }
+    return false;
+}
+
 PCHVML_NEXT_TOKEN_BEGIN
 
 
@@ -764,6 +774,7 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         }
         RECONSUME_IN(TKZ_STATE_DATA);
     }
+#if 0
     if (pchvml_parser_is_in_json_content_tag(parser)) {
         if(!IS_TEMP_BUFFER_EMPTY()) {
             struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
@@ -828,6 +839,22 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         RETURN_AND_RECONSUME_IN(TKZ_STATE_TEXT_CONTENT);
     }
     RECONSUME_IN(TKZ_STATE_TEXT_CONTENT);
+#else
+    if(!IS_TEMP_BUFFER_EMPTY()) {
+        struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
+        if (!node) {
+            RETURN_AND_STOP_PARSE();
+        }
+        RESET_TEMP_BUFFER();
+        parser->token = pchvml_token_new_vcm(node);
+        if (!parser->token) {
+            RETURN_AND_STOP_PARSE();
+        }
+        pchvml_token_set_is_whitespace(parser->token, true);
+        RETURN_AND_RECONSUME_IN(TKZ_STATE_CONTENT_TEXT);
+    }
+    RECONSUME_IN(TKZ_STATE_CONTENT_TEXT);
+#endif
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TAG_NAME)
@@ -4869,6 +4896,22 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
+    }
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
+    tkz_reader_reconsume_last_char(parser->reader);
+    uint32_t flags = PCEJSON_FLAG_ALL;
+    pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
+            flags);
+    struct pcvcm_node *node = NULL;
+    pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
+            parser->ejson_parser_max_depth, is_content_text_finished);
+    if (node) {
+        tkz_reader_reconsume_last_char(parser->reader);
+        parser->token = pchvml_token_new_vcm(node);
+        RETURN_AND_SWITCH_TO(TKZ_STATE_DATA);
     }
     RETURN_AND_STOP_PARSE();
 END_STATE()
