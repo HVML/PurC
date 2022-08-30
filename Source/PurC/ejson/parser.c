@@ -420,9 +420,6 @@ void pcejson_destroy(struct pcejson *parser)
     if (parser) {
         tkz_buffer_destroy(parser->temp_buffer);
         tkz_buffer_destroy(parser->string_buffer);
-        struct pcvcm_node* n = parser->vcm_node;
-        parser->vcm_node = NULL;
-        pcvcm_node_destroy(n);
         pcejson_token_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
         pc_free(parser);
@@ -440,9 +437,6 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     tkz_buffer_reset(parser->temp_buffer);
     tkz_buffer_reset(parser->string_buffer);
 
-    struct pcvcm_node* n = parser->vcm_node;
-    parser->vcm_node = NULL;
-    pcvcm_node_destroy(n);
     pcejson_token_stack_destroy(parser->tkz_stack);
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;

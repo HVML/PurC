@@ -52,15 +52,10 @@
 
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
-        size_t len;                                                         \
-        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
         PC_DEBUG(                                                           \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s|fh=%d\n",             \
+            "in %s|uc=%c|hex=0x%X|fh=%d",                                   \
             curr_state_name, character, character,                          \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s, parser->is_in_file_header);              \
-        free(s); \
+            parser->is_in_file_header);                                     \
     }
 
 #define SET_ERR(err)    do {                                                \
@@ -129,18 +124,6 @@ next_state:                                                             \
 #define TEMP_BUFFER_TO_VCM_NODE()                                       \
         tkz_buffer_to_vcm_node(parser->temp_buffer)
 
-#define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
-#define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
-#define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
-#define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
-#define ejson_stack_size() pcutils_stack_size(parser->ejson_stack)
-#define ejson_stack_reset() pcutils_stack_clear(parser->ejson_stack)
-
-#define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
-#define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
-#define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
-#define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
-
 #define BEGIN_STATE(state_name)                                             \
     case state_name:                                                        \
     {                                                                       \
@@ -188,7 +171,7 @@ next_state:                                                             \
                 pchvml_parser_is_template_tag(name)) {                      \
             RESET_TEMP_BUFFER();                                            \
             RESET_STRING_BUFFER();                                          \
-            parser->state = TKZ_STATE_EJSON_TEMPLATE_DATA;                  \
+            parser->state = TKZ_STATE_TEMPLATE_DATA;                        \
         }                                                                   \
     } while (false)
 
@@ -370,56 +353,6 @@ next_state:                                                             \
         tkz_buffer_reset(parser->temp_buffer);                           \
     } while (false)
 
-#define UPDATE_VCM_NODE(node)                                                  \
-    do {                                                                    \
-        if (node) {                                                         \
-            parser->vcm_node = node;                                        \
-        }                                                                   \
-    } while (false)
-
-#define RESET_VCM_NODE()                                                    \
-    do {                                                                    \
-        parser->vcm_node = NULL;                                            \
-    } while (false)
-
-#define RESTORE_VCM_NODE()                                                  \
-    do {                                                                    \
-        if (!parser->vcm_node) {                                            \
-            parser->vcm_node = pcvcm_stack_pop(parser->vcm_stack);          \
-        }                                                                   \
-    } while (false)
-
-#define APPEND_CHILD(parent, child)                                         \
-    do {                                                                    \
-        if (parent && child) {                                              \
-            pctree_node_append_child((struct pctree_node*)parent,           \
-                (struct pctree_node*)child);                                \
-        }                                                                   \
-    } while (false)
-
-#define APPEND_AS_VCM_CHILD(node)                                           \
-    do {                                                                    \
-        if (parser->vcm_node) {                                             \
-            pctree_node_append_child((struct pctree_node*)parser->vcm_node, \
-                (struct pctree_node*)node);                                 \
-        }                                                                   \
-        else {                                                              \
-            parser->vcm_node = node;                                        \
-        }                                                                   \
-    } while (false)
-
-#define POP_AS_VCM_PARENT_AND_UPDATE_VCM()                                  \
-    do {                                                                    \
-        struct pcvcm_node* parent = pcvcm_stack_pop(parser->vcm_stack);     \
-        if (parent && pcvcm_node_is_closed(parent)) {                       \
-            struct pcvcm_node* gp = pcvcm_stack_pop(parser->vcm_stack);     \
-            APPEND_CHILD(gp, parent);                                       \
-            parent = gp;                                                    \
-        }                                                                   \
-        struct pcvcm_node* child = parser->vcm_node;                        \
-        APPEND_CHILD(parent, child);                                        \
-        UPDATE_VCM_NODE(parent);                                            \
-    } while (false)
 
 static const uint32_t numeric_char_ref_extension_array[32] = {
     0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, // 80-87
@@ -1897,56 +1830,56 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
     RECONSUME_IN(TKZ_STATE_ATTRIBUTE_NAME);
 END_STATE()
 
-BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA)
+BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
     if (character == '<') {
-        ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN);
+        ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA_LESS_THAN_SIGN);
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA);
+    ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
 
-BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN)
+BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_LESS_THAN_SIGN)
     if (character == '/') {
-        ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_OPEN);
+        ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA_END_TAG_OPEN);
     }
     APPEND_TO_TEMP_BUFFER('<');
-    RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_DATA);
+    RECONSUME_IN(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
 
-BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_OPEN)
+BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_END_TAG_OPEN)
     if (is_ascii_alpha(character)) {
         RESET_STRING_BUFFER();
-        RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME);
+        RECONSUME_IN(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME);
     }
     APPEND_TO_TEMP_BUFFER('<');
     APPEND_TO_TEMP_BUFFER('/');
-    RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_DATA);
+    RECONSUME_IN(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
 
-BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME)
+BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME)
     if (is_ascii_alpha(character)) {
         APPEND_TO_STRING_BUFFER(character);
-        ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME);
+        ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME);
     }
     if (character == '>') {
         const char* name = tkz_buffer_get_bytes(
                 parser->string_buffer);
         if (pchvml_parser_is_appropriate_tag_name(parser, name)) {
-            RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_FINISHED);
+            RECONSUME_IN(TKZ_STATE_TEMPLATE_FINISHED);
         }
     }
     APPEND_TO_TEMP_BUFFER('<');
     APPEND_TO_TEMP_BUFFER('/');
     APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
     RESET_STRING_BUFFER();
-    RECONSUME_IN(TKZ_STATE_EJSON_TEMPLATE_DATA);
+    RECONSUME_IN(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
 
-BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_FINISHED)
+BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
 
     struct pcvcm_node* node = parse_ejson(parser, bytes);
@@ -1958,9 +1891,7 @@ BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_FINISHED)
     struct pchvml_token* next_token = pchvml_token_new_end_tag();
     pchvml_token_append_buffer_to_name(next_token,
             parser->string_buffer);
-    RESET_VCM_NODE();
     RESET_STRING_BUFFER();
-    ejson_stack_pop();
     RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, TKZ_STATE_DATA);
 END_STATE()
 
