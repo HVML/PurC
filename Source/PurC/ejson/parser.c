@@ -450,6 +450,14 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
     parser->nr_quoted = 0;
 }
 
+static bool
+is_finished_default(struct pcejson *parser, uint32_t character)
+{
+    UNUSED_PARAM(parser);
+    UNUSED_PARAM(character);
+    return false;
+}
+
 int pcejson_parse(struct pcvcm_node **vcm_tree,
         struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
 {
@@ -461,7 +469,8 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,
         goto out;
     }
     tkz_reader_set_rwstream(reader, rws);
-    ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth, NULL);
+    ret = pcejson_parse_full(vcm_tree, parser_param, reader, depth,
+            is_finished_default);
     tkz_reader_destroy(reader);
 out:
     return ret;
