@@ -1393,7 +1393,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
             tkz_stack_drop_top();
              /* S */
             tkz_stack_drop_top();
-            //XSM
             top = tkz_stack_push(ETT_STRING);
             top->node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
@@ -2535,6 +2534,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VARIABLE)
         top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer)
                 );
+        RESET_TEMP_BUFFER();
     }
     RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VARIABLE);
 END_STATE()
@@ -2649,6 +2649,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         }
         if (top->type == ETT_MULTI_UNQUOTED_S) {
             //FIXME:
+            struct pcvcm_node *node = pcvcm_node_new_string("\"");
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)node);
             update_tkz_stack(parser);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
         }

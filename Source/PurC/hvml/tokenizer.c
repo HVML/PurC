@@ -53,7 +53,7 @@
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
         PC_DEBUG(                                                           \
-            "in %s|uc=%c|hex=0x%X|fh=%d",                                   \
+            "in %s|uc=%c|hex=0x%X|fh=%d\n",                                 \
             curr_state_name, character, character,                          \
             parser->is_in_file_header);                                     \
     }
