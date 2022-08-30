@@ -643,7 +643,7 @@ out:
 }
 
 bool
-is_attr_finished(struct pcejson *ejson, uint32_t character)
+is_quoted_attr_finished(struct pcejson *ejson, uint32_t character)
 {
     UNUSED_PARAM(ejson);
     if (character == '/' || character == '>' || is_whitespace(character)) {
@@ -955,13 +955,9 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
         RESET_QUOTED_COUNTER();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
     }
-#if 1
-    RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED);
-#else
     RESET_TEMP_BUFFER();
-    ejson_stack_push('U');
-    RECONSUME_IN(TKZ_STATE_EJSON_DATA);
-#endif
+    RESET_QUOTED_COUNTER();
+    RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED);
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_VALUE)
@@ -4775,7 +4771,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
             parser->ejson_parser_flags);
     struct pcvcm_node *node = NULL;
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
-            parser->ejson_parser_max_depth, is_attr_finished);
+            parser->ejson_parser_max_depth, is_quoted_attr_finished);
     if (node) {
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);

@@ -598,11 +598,26 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (is_whitespace(character)) {
-        if (top && (top->type == ETT_MULTI_QUOTED_S ||
-                    top->type == ETT_MULTI_UNQUOTED_S)) {
-            RESET_TEMP_BUFFER();
-            tkz_stack_push(ETT_VALUE);
-            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+        if (!top) {
+            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        }
+        if (pcejson_token_is_closed(top)) {
+            if (1 == tkz_stack_size() &&
+                    is_parse_finished(parser, character)) {
+                RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+            }
+        }
+        else {
+            if (top->type == ETT_MULTI_UNQUOTED_S) {
+                RESET_TEMP_BUFFER();
+                tkz_stack_push(ETT_VALUE);
+                RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+            }
+            else if (top->type == ETT_MULTI_QUOTED_S) {
+                RESET_TEMP_BUFFER();
+                tkz_stack_push(ETT_VALUE);
+                RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+            }
         }
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
     }
@@ -785,7 +800,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         tkz_stack_push(ETT_VALUE);
         RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
     }
-    if (top->type == ETT_MULTI_UNQUOTED_S || top->type == ETT_MULTI_QUOTED_S) {
+    if (top->type == ETT_MULTI_UNQUOTED_S) {
         tkz_stack_push(ETT_VALUE);
         RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
     }
@@ -1038,7 +1053,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     update_tkz_stack(parser);
-    CHECK_FINISHED();
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
 
@@ -1470,6 +1484,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TWO_DOUBLE_QUOTED)
     }
     RESET_TEMP_BUFFER();
     RESET_QUOTED_COUNTER();
+    if (is_parse_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+    }
     RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
 END_STATE()
 
@@ -1825,7 +1842,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
             RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
         }
     }
-    CHECK_FINISHED();
 #endif
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
@@ -2400,7 +2416,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
         SET_RETURN_STATE(curr_state);
         ADVANCE_TO(EJSON_TKZ_STATE_STRING_ESCAPE);
     }
-    CHECK_FINISHED();
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_RAW_STRING);
 END_STATE()
@@ -2531,6 +2546,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             top->node = NULL;
             pcejson_token_destroy(top);
             update_tkz_stack(parser);
+            if (is_parse_finished(parser, character)) {
+                ADVANCE_TO(EJSON_TKZ_STATE_FINISHED);
+            }
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
         }
 
@@ -2544,6 +2562,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         if (top->type == ETT_MULTI_QUOTED_S) {
             pcejson_token_close(top);
             update_tkz_stack(parser);
+            if (is_parse_finished(parser, character)) {
+                ADVANCE_TO(EJSON_TKZ_STATE_FINISHED);
+            }
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
         }
         if (top->type == ETT_MULTI_UNQUOTED_S) {
@@ -2587,7 +2608,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
         }
     }
-    CHECK_FINISHED();
     RESET_TEMP_BUFFER();
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
