@@ -51,13 +51,13 @@ pcchan_t
 pcchan_open(const char *chan_name, unsigned int cap)
 {
     struct pcinst* inst = pcinst_current();
-    if ((inst = pcinst_current()) == NULL || inst->intr_heap == NULL) {
+    if (UNLIKELY((inst = pcinst_current()) == NULL ||
+                inst->intr_heap == NULL)) {
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
 
-    if (chan_name == NULL || cap == 0 ||
-            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
+    if (UNLIKELY(chan_name == NULL || chan_name[0] == '\0' || cap == 0)) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
@@ -221,13 +221,13 @@ pcchan_retrieve(const char *chan_name)
     struct pcinst* inst;
     const pcutils_map_entry* entry = NULL;
 
-    if ((inst = pcinst_current()) == NULL || inst->intr_heap == NULL) {
+    if (UNLIKELY((inst = pcinst_current()) == NULL ||
+                inst->intr_heap == NULL)) {
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
 
-    if (chan_name == NULL ||
-            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
+    if (UNLIKELY(chan_name == NULL || chan_name[0] == '\0')) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
