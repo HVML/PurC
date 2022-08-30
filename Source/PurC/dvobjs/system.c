@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "private/atom-buckets.h"
 #include "private/dvobjs.h"
+#include "private/interpreter.h"
 
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
@@ -872,10 +873,6 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(call_flags);
-
-    uint64_t ul_sec = 0;
-    long     l_nsec = 0;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -883,6 +880,32 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     int arg_type = purc_variant_get_type(argv[0]);
+    long double ld_rem;
+
+    pcintr_coroutine_t crtn;
+    if (call_flags & PCVRT_CALL_FLAG_AGAIN) {
+        crtn = pcintr_get_coroutine();
+        PC_ASSERT(crtn);
+
+        // TODO: get the remaining time from crtn and return it
+        ld_rem = 0;
+
+        if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
+            return purc_variant_make_ulongint((int64_t)ld_rem);
+        }
+        else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+            return purc_variant_make_ulongint((uint64_t)ld_rem);
+        }
+        else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+            return purc_variant_make_number((double)ld_rem);
+        }
+
+        return purc_variant_make_longdouble(ld_rem);
+    }
+
+    uint64_t ul_sec = 0;
+    long     l_nsec = 0;
+
     if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
         int64_t tmp;
         purc_variant_cast_to_longint(argv[0], &tmp, false);
@@ -932,38 +955,46 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    long double ld_rem;
     struct timespec req, rem;
     req.tv_sec = (time_t)ul_sec;
     req.tv_nsec = (long)l_nsec;
-    if (nanosleep(&req, &rem) == 0) {
-        ld_rem = 0;
-    }
-    else {
-        if (errno == EINTR) {
-            ld_rem = rem.tv_sec + rem.tv_nsec / 1000000000.0L;
-        }
-        else if (errno == EINVAL) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto failed;
+
+    crtn = pcintr_get_coroutine();
+    if (crtn == NULL) {
+        if (nanosleep(&req, &rem) == 0) {
+            ld_rem = 0;
         }
         else {
-            purc_set_error(PURC_ERROR_SYSTEM_FAULT);
-            goto fatal;
+            if (errno == EINTR) {
+                ld_rem = rem.tv_sec + rem.tv_nsec / 1000000000.0L;
+            }
+            else if (errno == EINVAL) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+            else {
+                purc_set_error(PURC_ERROR_SYSTEM_FAULT);
+                goto fatal;
+            }
         }
-    }
 
-    if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
-        return purc_variant_make_ulongint((int64_t)ld_rem);
-    }
-    else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
-        return purc_variant_make_ulongint((uint64_t)ld_rem);
-    }
-    else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
-        return purc_variant_make_number((double)ld_rem);
-    }
+        if (arg_type == PURC_VARIANT_TYPE_LONGINT) {
+            return purc_variant_make_ulongint((int64_t)ld_rem);
+        }
+        else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+            return purc_variant_make_ulongint((uint64_t)ld_rem);
+        }
+        else if (arg_type == PURC_VARIANT_TYPE_ULONGINT) {
+            return purc_variant_make_number((double)ld_rem);
+        }
 
-    return purc_variant_make_longdouble(ld_rem);
+        return purc_variant_make_longdouble(ld_rem);
+    }
+    else {
+        pcintr_stop_coroutine(crtn, &req, NULL, NULL);
+        purc_set_error(PURC_ERROR_AGAIN);
+        return PURC_VARIANT_INVALID;
+    }
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
