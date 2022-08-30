@@ -69,8 +69,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-header">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Breaking News!")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -86,8 +84,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-footer text-muted">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"5 minutes ago")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
             "
@@ -112,9 +108,6 @@ PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaki
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_object("title","This is an absolute breaking news!","shortDesc","The Zhang family's rooster has laid eggs!","longDesc","Yesterday, the second son of the Zhang family came to me and said, "My rooster has laid eggs!"","detailedUrl","#","time",get_element(get_element(get_variable("SYS"),"time"),"iso8601"))
-PCHVML_TOKEN_VCM_TREE|"
-
-            "
 PCHVML_TOKEN_START_TAG|<update on="#breaking-news" to="displace" with=get_variable("realCardBody")/>
 PCHVML_TOKEN_VCM_TREE|"
 

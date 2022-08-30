@@ -24,13 +24,9 @@ PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=call_getter(get_element(get_variable
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),get_variable("0<"),") Hello, world! --from COROUTINE-",get_element(get_variable("CRTN"),"cid")))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</iterate>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
 PCHVML_TOKEN_VCM_TREE|concat_string("-- by ",call_getter(get_element(get_variable("SYS"),"const"),"HVML_INTRPR_NAME"))
-PCHVML_TOKEN_VCM_TREE|"
-"
 PCHVML_TOKEN_END_TAG|</hvml>

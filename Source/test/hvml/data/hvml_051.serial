@@ -10,9 +10,8 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<load>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|get_variable("<")
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|concat_string(get_variable("<"),"
+        ")
 PCHVML_TOKEN_END_TAG|</load>
 PCHVML_TOKEN_VCM_TREE|"
     "

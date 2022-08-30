@@ -21,8 +21,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") to="merge
 PCHVML_TOKEN_VCM_TREE|"
            "
 PCHVML_TOKEN_VCM_TREE|make_object("HVML Calculator","HVML 计算器","Current Time: ","当前时间：")
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -37,8 +35,6 @@ PCHVML_TOKEN_START_TAG|<init as="buttons" uniquely>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("letters","7","class","number"),make_object("letters","8","class","number"),make_object("letters","9","class","number"),make_object("letters","←","class","c_blue backspace"),make_object("letters","C","class","c_blue clear"),make_object("letters","4","class","number"),make_object("letters","5","class","number"),make_object("letters","6","class","number"),make_object("letters","×","class","c_blue multiplication"),make_object("letters","÷","class","c_blue division"),make_object("letters","1","class","number"),make_object("letters","2","class","number"),make_object("letters","3","class","number"),make_object("letters","+","class","c_blue plus"),make_object("letters","-","class","c_blue subtraction"),make_object("letters","0","class","number"),make_object("letters","00","class","number"),make_object("letters",".","class","number"),make_object("letters","%","class","c_blue percent"),make_object("letters","=","class","c_yellow equal"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -53,8 +49,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="unite">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("id","clock","interval",1000,"active","yes"),make_object("id","input","interval",1500,"active","yes"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -78,8 +72,6 @@ PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<h2 id="c_title">
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
-PCHVML_TOKEN_VCM_TREE|"
-                    "
 PCHVML_TOKEN_START_TAG|<small>
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
@@ -129,8 +121,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                     "
 PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
-PCHVML_TOKEN_VCM_TREE|"
-                                "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
@@ -191,8 +181,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                 "
 PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
-PCHVML_TOKEN_VCM_TREE|"
-                            "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                         "

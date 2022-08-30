@@ -68,8 +68,7 @@ PCHVML_TOKEN_START_TAG|<div id="the-user-statistics">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<h2>
-PCHVML_TOKEN_VCM_TREE|"User regions (totally"
-PCHVML_TOKEN_VCM_TREE|" "
+PCHVML_TOKEN_VCM_TREE|"User regions (totally "
 PCHVML_TOKEN_START_TAG|<span>
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|" "
@@ -101,9 +100,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<archedata name="item_user">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data-region")))
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|make_object("id",concat_string(get_element(get_element(get_variable("?"),"attr"),"data_value")),"avatar",concat_string(get_element(get_element(get_element(get_element(get_variable("?"),"content"),0),"attr"),"src")),"name",concat_string(get_element(get_element(get_element(get_variable("?"),"content"),1),"textContent")),"region",concat_string(get_element(get_element(get_variable("?"),"attr"),"data_region")))
 PCHVML_TOKEN_END_TAG|</archedata>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -116,8 +113,6 @@ PCHVML_TOKEN_START_TAG|<init as="users">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_VCM_TREE|make_array()
-PCHVML_TOKEN_VCM_TREE|"
-            "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 

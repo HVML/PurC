@@ -11,8 +11,6 @@ PCHVML_TOKEN_START_TAG|<init as="global">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_object("locale","zh_CN")
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -21,8 +19,6 @@ PCHVML_TOKEN_START_TAG|<init as="locales">
 PCHVML_TOKEN_VCM_TREE|"
           "
 PCHVML_TOKEN_VCM_TREE|make_object("zh_CN",make_object("se_name","Baidu","se_url","https://www.baidu.com","se_title","百度"),"zh_TW",make_object("se_name","Bing","se_url","https://www.bing.com","se_title","必应"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 

@@ -33,8 +33,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="unite">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("id","clock","interval",1000,"active","yes"),make_object("id","input","interval",1500,"active","yes"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -76,8 +74,6 @@ PCHVML_TOKEN_START_TAG|<init as="info">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_object("chars",get_element(get_variable("exp_chars"),call_getter(get_element(get_variable("SYS"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("exp_chars")))),"index",0)
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -90,8 +86,6 @@ PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<h2 id="c_title">
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
-PCHVML_TOKEN_VCM_TREE|"
-                    "
 PCHVML_TOKEN_START_TAG|<small>
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
@@ -145,8 +139,6 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                     "
 PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
-PCHVML_TOKEN_VCM_TREE|"
-                                "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                                 "

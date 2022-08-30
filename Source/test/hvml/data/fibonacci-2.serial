@@ -28,7 +28,7 @@ PCHVML_TOKEN_END_TAG|</h1>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p hvml:raw>
-PCHVML_TOKEN_VCM_TREE|"Using local array variable ($!) and negative index"
+PCHVML_TOKEN_VCM_TREE|concat_string("Using local array variable (",get_variable("!"),") and negative index")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -40,8 +40,6 @@ PCHVML_TOKEN_START_TAG|<init as="fibonacci" temporarily>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(0,1)
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -84,9 +82,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|"Totally "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("EJSON"),"count"),get_element(get_variable("1!"),"fibonacci"))
-PCHVML_TOKEN_VCM_TREE|" numbers."
+PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",call_getter(get_element(get_variable("EJSON"),"count"),get_element(get_variable("1!"),"fibonacci"))," numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -98,4 +94,3 @@ PCHVML_TOKEN_VCM_TREE|"
 
 "
 PCHVML_TOKEN_END_TAG|</hvml>
-

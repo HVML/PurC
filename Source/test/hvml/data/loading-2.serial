@@ -69,8 +69,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-header">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Breaking News!")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -126,8 +124,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-footer text-muted">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"5 minutes ago")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
             "

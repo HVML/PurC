@@ -5,8 +5,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
