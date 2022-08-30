@@ -248,6 +248,7 @@ struct pcejson {
 
     struct pcejson_token_stack *tkz_stack;
     const char *state_name;
+    pcejson_parse_is_finished_fn is_finished;
 
     uint32_t prev_separator;
     uint32_t nr_quoted;

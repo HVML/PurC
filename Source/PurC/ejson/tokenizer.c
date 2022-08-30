@@ -64,7 +64,7 @@
 #define tkz_prev_token()      tkz_stack_prev_token(parser->tkz_stack)
 
 #define CHECK_FINISHED() do {                                               \
-    if (is_finished(parser, character)) {                                   \
+    if (parser->is_finished(parser, character)) {                           \
         update_tkz_stack(parser);                                           \
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);                             \
     }                                                                       \
@@ -98,6 +98,7 @@ int pcejson_parse_full(struct pcvcm_node **vcm_tree,                        \
     uint32_t character = 0;                                                 \
     struct pcejson* parser = *parser_param;                                 \
     parser->tkz_reader = reader;                                            \
+    parser->is_finished = is_finished;                                      \
                                                                             \
 next_input:                                                                 \
     parser->curr_uc = tkz_reader_next_char (parser->tkz_reader);            \
@@ -148,6 +149,23 @@ static bool
 is_get_element(uint32_t type)
 {
     return type == ETT_GET_ELEMENT || type == ETT_GET_ELEMENT_BY_BRACKET;
+}
+
+static bool
+is_parse_finished(struct pcejson *parser, uint32_t character)
+{
+    if (is_eof(character)
+            || parser->is_finished(parser, character)) {
+        return true;
+    }
+    if ((parser->flags & PCEJSON_FLAG_MULTI_JSONEE) == 0) {
+        struct pcejson_token *curr = tkz_curr_token();
+        if (1 == tkz_stack_size() && pcejson_token_is_closed(curr)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static int
@@ -571,7 +589,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
-    if (is_eof(character)) {
+    if (is_parse_finished(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (is_whitespace(character)) {
@@ -830,7 +848,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
-    if (is_eof(character) || is_whitespace(character)) {
+    if (is_parse_finished(parser, character) || is_whitespace(character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     if (character == '}') {
@@ -1053,7 +1071,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
         }
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
     }
-    if (is_eof(character)) {
+    if (is_parse_finished(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (character == '"' || character == '\'') {
@@ -1535,7 +1553,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_KEYWORD)
         parser->sbst = NULL;
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_KEYWORD);
     }
-    if (is_eof(character)) {
+    if (is_parse_finished(parser,character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_KEYWORD);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -1621,8 +1639,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_BYTE_SEQUENCE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_BYTE_SEQUENCE)
-    if (is_eof(character) || is_whitespace(character) || character == '}'
-            || character == ']' || character == ',' || character == ')') {
+    if (is_parse_finished(parser, character) || is_whitespace(character)
+            || character == '}' || character == ']' || character == ','
+            || character == ')') {
         struct pcvcm_node *node = create_byte_sequenct(parser->temp_buffer);
         if (node == NULL) {
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
@@ -1638,8 +1657,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_BYTE_SEQUENCE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_HEX_BYTE_SEQUENCE)
-    if (is_eof(character) || is_whitespace(character) || character == '}'
-            || character == ']' || character == ',' || character == ')') {
+    if (is_parse_finished(parser, character) || is_whitespace(character)
+            || character == '}' || character == ']' || character == ','
+            || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_BYTE_SEQUENCE);
     }
     else if (is_ascii_digit(character)
@@ -1652,8 +1672,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_HEX_BYTE_SEQUENCE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_BINARY_BYTE_SEQUENCE)
-    if (is_eof(character) || is_whitespace(character) || character == '}'
-            || character == ']' || character == ',' || character == ')') {
+    if (is_parse_finished(parser, character) || is_whitespace(character)
+            || character == '}' || character == ']' || character == ','
+            || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_BYTE_SEQUENCE);
     }
     else if (is_ascii_binary_digit(character)) {
@@ -1668,8 +1689,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_BINARY_BYTE_SEQUENCE)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_BASE64_BYTE_SEQUENCE)
-    if (is_eof(character) || is_whitespace(character) || character == '}'
-            || character == ']' || character == ',' || character == ')') {
+    if (is_parse_finished(parser, character) || is_whitespace(character)
+            || character == '}' || character == ']' || character == ','
+            || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_BYTE_SEQUENCE);
     }
     if (character == '=') {
@@ -2283,7 +2305,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CJSONEE_FINISHED)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
-    if (is_eof(character) || is_finished(parser, character)) {
+    if (is_parse_finished(parser, character)) {
         if (top && top->type == ETT_VALUE) {
             tkz_stack_drop_top();
         }
