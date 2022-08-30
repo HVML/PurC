@@ -521,13 +521,15 @@ static const char *get_dir_path (const char *string_path,
     return string_path;
 }
 
-static bool find_mount_point (char *dir)
+static bool find_mountpoint (char *dir)
 {
     // On Linux, slash (/) is used as directory separator character.
     const char separator = '/';
     char  *dir_end = dir + strlen(dir) - 1;
     struct stat  st;
     dev_t  orig_dev;
+    char   last_char;
+    char  *last_char_pos;
 
     if (stat (dir, &st) != 0)
         return false;
@@ -543,17 +545,33 @@ static bool find_mount_point (char *dir)
             dir_end--;
         }
         if (dir_end <= dir) {
+            last_char_pos = dir + 1;
+        }
+        else {
+            last_char_pos = dir_end;
+            (*dir_end) = '\0';
+        }
+
+        // set dir to dirname
+        last_char = (*last_char_pos);
+        (*last_char_pos) = '\0';
+
+        // printf ("------ find_mountpoint: current path is: %s\n", dir);
+        if (stat (dir, &st) != 0) {
+            // printf ("------ find_mountpoint: get st error\n");
             return false;
         }
-        (*dir_end) = '\0'; // set dir to dirname
 
-        if (stat (dir, &st) != 0)
-            return false;
+        // printf ("------ find_mountpoint: current st_dev is: %d\n", (int)st.st_dev);
         
-        if (st.st_dev != orig_dev) // we crossed the device border
+        if (st.st_dev != orig_dev) {// we crossed the device border
+            // printf ("------ find_mountpoint: normal return\n");
+            (*last_char_pos) = last_char;
             return true;
+        }
     }
 
+    // printf ("------ find_mountpoint: search to '/'\n");
     return true;
 }
 
@@ -1808,7 +1826,7 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 #if OS(LINUX)
     strncpy (mntpoint_buffer, string_dir, sizeof(mntpoint_buffer)-1);
     mntpoint_buffer[sizeof(mntpoint_buffer)-1] = '\0';
-    if (find_mount_point (mntpoint_buffer)) {
+    if (find_mountpoint (mntpoint_buffer)) {
         val = purc_variant_make_string(mntpoint_buffer, false);
     }
     else {

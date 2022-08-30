@@ -1105,9 +1105,26 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    // String param
+    // Normal file
     printf ("TEST disk_usage: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (data_path, true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Bizarre file
+    printf ("TEST disk_usage: nr_args = 1, param[0] = '/proc/meminfo':\n");
+    param[0] = purc_variant_make_string ("/proc/meminfo", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    printf ("TEST disk_usage: nr_args = 1, param[0] = '/sys/devices/cpu':\n");
+    param[0] = purc_variant_make_string ("/sys/devices/cpu", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     dump_object (ret_var);
