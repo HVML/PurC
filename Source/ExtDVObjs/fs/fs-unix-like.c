@@ -1869,8 +1869,8 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // get the file name or dir name
     string_filename = purc_variant_get_string_const (argv[0]);
 
-    if (access(string_filename, F_OK | R_OK) != 0)  {
-            ret_var = purc_variant_make_boolean (true);
+    if (access(string_filename, F_OK | R_OK) == 0)  {
+        ret_var = purc_variant_make_boolean (true);
     }
     else {
         set_purc_error_by_errno ();
