@@ -582,7 +582,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
         parser->vcm_node = NULL;
     }
     if (*vcm_tree == NULL) {
-        SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        if (is_eof(character)) {
+            SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        }
+        else {
+            SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        }
         ret = -1;
     }
     return ret;
