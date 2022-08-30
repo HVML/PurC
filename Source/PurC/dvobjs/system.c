@@ -169,7 +169,7 @@ broadcast_event(purc_variant_t source, const char *type, const char *sub_type,
 
 static purc_variant_t
 const_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     const char *name;
     purc_atom_t atom;
@@ -214,7 +214,7 @@ const_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return retv;
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;
 }
@@ -257,12 +257,13 @@ failed:
 
 static purc_variant_t
 uname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
+    bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
     struct utsname name;
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -355,7 +356,7 @@ failed:
 
 static purc_variant_t
 uname_prt_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -565,7 +566,7 @@ uname_prt_getter(purc_variant_t root,
     return purc_variant_make_string_reuse_buff(content, sz_buffer, false);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_string_static("", false);
 
 fatal:
@@ -574,12 +575,12 @@ fatal:
 
 static purc_variant_t
 time_getter(purc_variant_t root,size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     time_t t_time;
     t_time = time(NULL);
@@ -648,7 +649,7 @@ failed:
 
 static purc_variant_t
 time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -686,7 +687,7 @@ time_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -697,10 +698,11 @@ failed:
 
 static purc_variant_t
 time_us_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
+    bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
     purc_variant_t retv = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
 
@@ -783,11 +785,11 @@ fatal:
 
 static purc_variant_t
 time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     int64_t l_sec, l_usec;
 
@@ -858,7 +860,7 @@ time_us_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -866,11 +868,11 @@ failed:
 
 static purc_variant_t
 sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     uint64_t ul_sec = 0;
     long     l_nsec = 0;
@@ -964,7 +966,7 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_longdouble(ld_rem);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
 fatal:
@@ -973,7 +975,7 @@ fatal:
 
 static purc_variant_t
 locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1078,14 +1080,14 @@ locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1234,7 +1236,7 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
@@ -1282,7 +1284,7 @@ failed:
 
 static purc_variant_t
 timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -1293,7 +1295,7 @@ timezone_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_string(timezone, false);
     }
 
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1330,7 +1332,7 @@ failed:
 
 static purc_variant_t
 timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1380,7 +1382,7 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
 
         if (global == -1) {
-            if (silently) {
+            if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
                 global = 0;
             }
             else {
@@ -1415,7 +1417,7 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1424,7 +1426,7 @@ failed:
 
 static purc_variant_t
 cwd_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
@@ -1460,7 +1462,7 @@ cwd_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1468,7 +1470,7 @@ failed:
 
 static purc_variant_t
 cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1526,7 +1528,7 @@ cwd_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1534,7 +1536,7 @@ failed:
 
 static purc_variant_t
 env_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1556,7 +1558,7 @@ env_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_set_error(PURC_ERROR_NOT_EXISTS);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -1565,7 +1567,7 @@ failed:
 
 static purc_variant_t
 env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1621,7 +1623,7 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1667,7 +1669,7 @@ int32_t pcdvobjs_get_random(void)
 
 static purc_variant_t
 random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1715,7 +1717,7 @@ random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         break;
     }
 
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1723,10 +1725,10 @@ random_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     uint64_t seed;
     uint64_t complexity = 8;
@@ -1773,7 +1775,7 @@ random_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -1785,7 +1787,7 @@ failed:
 
 static purc_variant_t
 random_sequence_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1816,7 +1818,7 @@ random_sequence_getter(purc_variant_t root,
     return purc_variant_make_byte_sequence(buf, ret);
 
 failed:
-    if (silently) {
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_boolean(false);
     }
 
@@ -1827,13 +1829,13 @@ failed:
 
 static purc_variant_t
 random_sequence_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    if (silently) {
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_boolean(false);
     }
 

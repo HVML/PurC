@@ -260,7 +260,7 @@ static void on_send_timeout(pcintr_coroutine_t crtn, void *ctxt)
 
 static purc_variant_t
 send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     pcchan_t chan = native_entity;
 
@@ -309,7 +309,7 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -334,7 +334,7 @@ static void on_recv_timeout(pcintr_coroutine_t crtn, void *ctxt)
 
 static purc_variant_t
 recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -377,7 +377,7 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return vrt;
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -385,7 +385,7 @@ failed:
 
 static purc_variant_t
 cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -399,7 +399,7 @@ cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint(chan->qsize);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -407,7 +407,7 @@ failed:
 
 static purc_variant_t
 len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -421,7 +421,7 @@ len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint(chan->qcount);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;

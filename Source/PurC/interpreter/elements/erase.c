@@ -187,7 +187,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         }
         else {
             void *entity = purc_variant_native_get_entity(elems);
-            ret = ops->eraser(entity, silently);
+            ret = ops->eraser(entity, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
         }
     }
     else {
@@ -378,7 +378,7 @@ native_erase(purc_variant_t on, purc_variant_t at, bool silently)
         return purc_variant_make_ulongint(0);
     }
     void *entity = purc_variant_native_get_entity(on);
-    return ops->eraser(entity, silently);
+    return ops->eraser(entity, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
 }
 
 

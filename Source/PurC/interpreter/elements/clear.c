@@ -190,7 +190,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             }
             else {
                 void *entity = purc_variant_native_get_entity(elems);
-                ret = ops->cleaner(entity, frame->silently);
+                ret = ops->cleaner(entity,
+                        frame->silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
             }
             purc_variant_unref(elems);
         }
@@ -225,7 +226,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             }
             else {
                 void *entity = purc_variant_native_get_entity(ctxt->on);
-                ret = ops->cleaner(entity, frame->silently);
+                ret = ops->cleaner(entity,
+                        frame->silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
             }
         }
         break;

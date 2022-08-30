@@ -1202,7 +1202,8 @@ purc_variant_t call_dvariant_method(purc_variant_t root, purc_variant_t var,
          purc_variant_dynamic_get_getter(var) :
          purc_variant_dynamic_get_setter(var);
     if (func) {
-        return func(root, nr_args, argv, silently);
+        return func(root, nr_args, argv,
+                silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
     }
     return PURC_VARIANT_INVALID;
 }
@@ -1219,7 +1220,7 @@ purc_variant_t call_nvariant_method(purc_variant_t var,
             ops->property_setter(key_name);
         if (native_func) {
             return  native_func(purc_variant_native_get_entity(var),
-                    nr_args, argv, silently);
+                    nr_args, argv, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
         }
     }
     return PURC_VARIANT_INVALID;
@@ -1797,7 +1798,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 
 static purc_variant_t
 eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
@@ -1808,56 +1809,54 @@ eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     if (!stack) {
         return PURC_VARIANT_INVALID;
     }
-    return pcvcm_eval(vcm_ev->vcm, stack, silently);
+    return pcvcm_eval(vcm_ev->vcm, stack,
+            (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 static purc_variant_t
 eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     if (vcm_ev->const_value) {
         return vcm_ev->const_value;
     }
 
-    vcm_ev->const_value = eval_getter(native_entity, nr_args, argv, silently);
+    vcm_ev->const_value = eval_getter(native_entity, nr_args, argv,
+            (call_flags & PCVRT_CALL_FLAG_SILENTLY));
     return vcm_ev->const_value;
 }
 
 static purc_variant_t
 vcm_ev_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_boolean(true);
 }
 
 
 static purc_variant_t
 last_value_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     return vcm_ev->last_value;
 }
 
 static purc_variant_t
 last_value_setter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     if (nr_args == 0) {
         return PURC_VARIANT_INVALID;
     }
