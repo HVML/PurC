@@ -54,18 +54,27 @@ struct hvml_token_test_data {
     char *name;
     char *hvml;
     char *comp;
+    char *comp_path;
     int error;
 };
 
 static inline void
 push_back(std::vector<hvml_token_test_data> &vec,
-        const char *name, const char *hvml, const char *comp, int error)
+        const char *name, const char *hvml, const char *comp,
+        const char *comp_path, int error)
 {
     hvml_token_test_data data;
     memset(&data, 0, sizeof(data));
     data.name = MemCollector::strdup(name);
     data.hvml = MemCollector::strdup(hvml);
-    data.comp = MemCollector::strdup(comp);
+    if (comp) {
+        data.comp = MemCollector::strdup(comp);
+        data.comp_path = NULL;
+    }
+    else {
+        data.comp = NULL;
+        data.comp_path = MemCollector::strdup(comp_path);
+    }
     data.error = error;
 
     vec.push_back(data);
@@ -103,31 +112,25 @@ protected:
     void SetUp() {
         purc_init_ex (PURC_MODULE_HVML, "cn.fmsoft.hybridos.test",
                 "hvml_token", NULL);
-        name = GetParam().name;
-        hvml = GetParam().hvml;
-        comp = GetParam().comp;
-        error = GetParam().error;
     }
     void TearDown() {
         purc_cleanup ();
     }
     const char* get_name() {
-        return name.c_str();
+        return GetParam().name;
     }
     const char* get_hvml() {
-        return hvml.c_str();
+        return GetParam().hvml;
     }
     const char* get_comp() {
-        return comp.c_str();
+        return GetParam().comp;
+    }
+    const char* get_comp_path() {
+        return GetParam().comp_path;
     }
     int get_error() {
-        return error;
+        return GetParam().error;
     }
-private:
-    string name;
-    string hvml;
-    string comp;
-    int error;
 };
 
 #define TO_ERROR(err_name)                                 \
@@ -237,6 +240,7 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
 {
     const char* hvml = get_hvml();
     const char* comp = get_comp();
+    const char* comp_path = get_comp_path();
     int error_code = get_error();
     PRINTF("test case : %s\n", get_name());
 
@@ -283,10 +287,14 @@ TEST_P(hvml_parser_next_token, parse_and_serialize)
     const char* serial = tkz_buffer_get_bytes(buffer);
     char* result = strdup(serial);
 //    PRINTF("serial : %s", serial);
-    FILE* fp = fopen("/tmp/tokenizer", "w");
-    fprintf(fp, "%s", serial);
-    fclose(fp);
-    ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
+    if (comp) {
+        ASSERT_STREQ(trim(result), comp) << "Test Case : "<< get_name();
+    }
+    else {
+        FILE* fp = fopen(comp_path, "w");
+        fprintf(fp, "%s", serial);
+        fclose(fp);
+    }
     free(result);
 
     purc_rwstream_destroy(rws);
@@ -362,15 +370,17 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                         ;
                     }
                     char* comp_buf = read_file (file);
-                    if (!comp_buf) {
-                        free (buf);
-                        continue;
+                    if (comp_buf) {
+                        push_back(vec, name, buf, trim(comp_buf), file, error);
+                    }
+                    else {
+                        push_back(vec, name, buf, NULL, file, error);
                     }
 
-                    push_back(vec, name, buf, trim(comp_buf), error);
-
                     free (buf);
-                    free (comp_buf);
+                    if (!comp_buf) {
+                        free (comp_buf);
+                    }
                 }
             }
             free (line);
@@ -382,6 +392,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
         push_back(vec, "hvml",
                 "<hvml></hvml>",
                 "PCHVML_TOKEN_START_TAG|<hvml>\nPCHVML_TOKEN_END_TAG|</hvml>",
+                NULL,
                 0);
     }
     return vec;
