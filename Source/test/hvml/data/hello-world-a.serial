@@ -2,8 +2,7 @@ PCHVML_TOKEN_START_TAG|<hvml target="html">
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<archetype name="friendItem">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-        <span>",get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"),"</span>
+PCHVML_TOKEN_VCM_TREE|concat_string("<span>",get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"),"</span>
     ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
@@ -24,12 +23,12 @@ PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting")," ",get_element(get_variable("?"),"name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<span>
-PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"))
+PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting")," ",get_element(get_variable("?"),"name"))
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_VCM_TREE|"
     "

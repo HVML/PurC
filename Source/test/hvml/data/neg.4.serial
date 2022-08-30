@@ -30,11 +30,10 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype id="region-to-users">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-            <div>
-                ","<dt>",get_variable(":"),"</dt>
-                ","<dd>",get_variable("="),"</dd>
-            ","</div>
+PCHVML_TOKEN_VCM_TREE|concat_string("<div>
+                <dt>",get_variable(":"),"</dt>
+                <dd>",get_variable("="),"</dd>
+            </div>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

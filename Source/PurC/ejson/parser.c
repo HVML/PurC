@@ -147,7 +147,6 @@ pcejson_token_close(struct pcejson_token *token)
 {
     if (token) {
         if (token->node) {
-            PLOG("close node %c\n", token->type);
             pcvcm_node_set_closed(token->node, true);
         }
     }

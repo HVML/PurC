@@ -8,11 +8,10 @@ PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<archetype name="unknown_user_item" raw>
-PCHVML_TOKEN_VCM_TREE|concat_string("
-            <li class="user-item">
-                ","<img class="avatar" src="/def-avatar.png">
-                ","<span>Test $VAR","</span>
-            ","</li>
+PCHVML_TOKEN_VCM_TREE|concat_string("<li class="user-item">
+                <img class="avatar" src="/def-avatar.png">
+                <span>Test ",get_variable("VAR"),"</span>
+            </li>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

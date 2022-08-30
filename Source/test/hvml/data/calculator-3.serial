@@ -108,7 +108,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<test on=get_element(get_element(get_variable("buttons"),call_getter(get_element(get_variable("SYS"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("buttons")))),"letters")>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<match for="AS '='" exclusively>
+PCHVML_TOKEN_START_TAG|<match for=concat_string("AS ","=") exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_START_TAG|<choose on=call_getter(get_element(get_variable("MATH"),"eval"),call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value"))>
@@ -139,7 +139,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_END_TAG|</match>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<match for="AS 'C'" exclusively>
+PCHVML_TOKEN_START_TAG|<match for=concat_string("AS ","C") exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=""/>
@@ -148,7 +148,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_END_TAG|</match>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<match for="AS '←'" exclusively>
+PCHVML_TOKEN_START_TAG|<match for=concat_string("AS ","←") exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_START_TAG|<choose on=get_element(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value")>
@@ -201,8 +201,7 @@ PCHVML_TOKEN_START_TAG|<div id="c_value">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<archetype name="button">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                    <li class="",get_element(get_variable("?"),"class"),"">",get_element(get_variable("?"),"letters"),"</li>
+PCHVML_TOKEN_VCM_TREE|concat_string("<li class="",get_element(get_variable("?"),"class"),"class>",get_element(get_variable("?"),"letters"),"</li>
                 ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
@@ -218,9 +217,8 @@ PCHVML_TOKEN_START_TAG|<update on=get_variable("@") to="append" with=get_variabl
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_START_TAG|<except type="NoData" raw>
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                            <p>Bad data!","</p>
-                        ")
+PCHVML_TOKEN_VCM_TREE|"<p>Bad data!</p>
+                        "
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
                     "

@@ -95,10 +95,9 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype name="realCardBody">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-            <h5 class="card-title">",get_element(get_variable("?"),"title"),"</h5>
-            ","<p class="card-text">",get_element(get_variable("?"),"shortDesc"),"</p>
-            ","<a href="",get_element(get_variable("?"),"detailedUrl"),"" class="btn btn-primary">",call_getter(get_element(get_variable("T"),"get"),"Read Details…"),"</a>
+PCHVML_TOKEN_VCM_TREE|concat_string("<h5 class="card-title">",get_element(get_variable("?"),"title"),"</h5>
+            <p class="card-text">",get_element(get_variable("?"),"shortDesc"),"</p>
+            <a href="",get_element(get_variable("?"),"detailedUrl")," class="btn btn-primary">",call_getter(get_element(get_variable("T"),"get"),"Read Details…"),"</a>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

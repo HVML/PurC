@@ -28,16 +28,14 @@ PCHVML_TOKEN_START_TAG|<iterate on=get_variable("?") to="append" in="#the-user-l
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<error type="notready">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                    <img src="wait.gif" />
-                ")
+PCHVML_TOKEN_VCM_TREE|"<img src="wait.gif" />
+                "
 PCHVML_TOKEN_END_TAG|</error>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<except>
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                    <p>Bad user data!","</p>
-                ")
+PCHVML_TOKEN_VCM_TREE|"<p>Bad user data!</p>
+                "
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
             "
@@ -87,11 +85,10 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype id="region-to-users">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-            <div>
-                ","<dt>",get_variable(":"),"</dt>
-                ","<dd>",get_variable("="),"</dd>
-            ","</div>
+PCHVML_TOKEN_VCM_TREE|concat_string("<div>
+                <dt>",get_variable(":"),"</dt>
+                <dd>",get_variable("="),"</dd>
+            </div>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
@@ -127,7 +124,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<reduce on=get_variable("users") to="choose clear iterate" in="#the-user-statistics" by="CLASS: RUserRegionStats">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<choose on=get_variable("?") to="update" in="> h2 > span" by="KEY: 'count'">
+PCHVML_TOKEN_START_TAG|<choose on=get_variable("?") to="update" in="> h2 > span" by=concat_string("KEY: ","count")>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<update on=get_variable("@") textContent=get_variable("?")/>

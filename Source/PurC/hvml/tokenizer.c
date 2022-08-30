@@ -4615,29 +4615,11 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA)
     if (character == '<') {
-        if (!tkz_buffer_is_empty(parser->temp_buffer) &&
-                !tkz_buffer_is_whitespace(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
-                    tkz_buffer_get_bytes(parser->temp_buffer)
-                    );
-            APPEND_AS_VCM_CHILD(node);
-            RESET_TEMP_BUFFER();
-        }
         ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN);
     }
     if (is_eof(character)) {
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
-    }
-    if (character == '$' && !parser->tag_has_raw_attr) {
-        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
-            struct pcvcm_node* node = pcvcm_node_new_string(
-                    tkz_buffer_get_bytes(parser->temp_buffer)
-                    );
-            APPEND_AS_VCM_CHILD(node);
-            RESET_TEMP_BUFFER();
-        }
-        RECONSUME_IN(TKZ_STATE_EJSON_CONTROL);
     }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA);
@@ -4645,7 +4627,6 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_LESS_THAN_SIGN)
     if (character == '/') {
-        RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_OPEN);
     }
     APPEND_TO_TEMP_BUFFER('<');
@@ -4682,12 +4663,14 @@ BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_DATA_END_TAG_NAME)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_EJSON_TEMPLATE_FINISHED)
-    while (!vcm_stack_is_empty()) {
-        ejson_stack_pop();
-        POP_AS_VCM_PARENT_AND_UPDATE_VCM();
-    }
+    const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
 
-    struct pchvml_token* token = pchvml_token_new_vcm(parser->vcm_node);
+    struct pcvcm_node* node = parse_ejson(parser, bytes);
+    if (!node) {
+        RETURN_AND_STOP_PARSE();
+    }
+    RESET_TEMP_BUFFER();
+    struct pchvml_token* token = pchvml_token_new_vcm(node);
     struct pchvml_token* next_token = pchvml_token_new_end_tag();
     pchvml_token_append_buffer_to_name(next_token,
             parser->string_buffer);
