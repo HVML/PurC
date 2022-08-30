@@ -552,7 +552,7 @@ bool pchvml_parser_is_in_attribute (struct pchvml_parser* parser)
 void pchvml_switch_to_ejson_state(struct pchvml_parser* parser)
 {
     UNUSED_PARAM(parser);
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+//    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
 }
 
 struct pcvcm_node *
