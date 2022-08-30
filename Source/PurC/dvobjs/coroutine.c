@@ -54,12 +54,12 @@ hvml_ctrl_coroutine(purc_variant_t root)
 
 static purc_variant_t
 target_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     assert(cor);
@@ -69,11 +69,11 @@ target_getter(purc_variant_t root,
 
 static purc_variant_t
 base_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if (root == PURC_VARIANT_INVALID) {
@@ -94,7 +94,7 @@ base_getter(purc_variant_t root,
 
 static purc_variant_t
 base_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
 #if 0 // VWNOTE: redundant check
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
@@ -153,18 +153,18 @@ base_setter(purc_variant_t root,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 max_iteration_count_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if (root == PURC_VARIANT_INVALID) {
@@ -185,9 +185,9 @@ max_iteration_count_getter(purc_variant_t root,
 
 static purc_variant_t
 max_iteration_count_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
@@ -222,18 +222,18 @@ max_iteration_count_setter(purc_variant_t root,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 max_recursion_depth_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if (root == PURC_VARIANT_INVALID) {
@@ -254,7 +254,7 @@ max_recursion_depth_getter(purc_variant_t root,
 
 static purc_variant_t
 max_recursion_depth_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
 #if 0 // VWNOTE: redundant check
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
@@ -289,18 +289,18 @@ max_recursion_depth_setter(purc_variant_t root,
     purc_set_error(PURC_ERROR_INVALID_VALUE);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 max_embedded_levels_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     assert(cor);
@@ -310,7 +310,7 @@ max_embedded_levels_getter(purc_variant_t root,
 
 static purc_variant_t
 max_embedded_levels_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -331,18 +331,18 @@ max_embedded_levels_setter(purc_variant_t root,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 timeout_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if (root == PURC_VARIANT_INVALID) {
@@ -365,9 +365,9 @@ timeout_getter(purc_variant_t root,
 
 static purc_variant_t
 timeout_setter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
 #if 0 // VWNOTE: redundant check
     if ((root == PURC_VARIANT_INVALID) || (argv == NULL) || (nr_args < 1)) {
@@ -406,19 +406,19 @@ timeout_setter(purc_variant_t root,
     purc_set_error(PURC_ERROR_INVALID_VALUE);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 cid_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     return purc_variant_make_ulongint(cor->cid);
@@ -426,12 +426,12 @@ cid_getter(purc_variant_t root,
 
 static purc_variant_t
 uri_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     const char *uri = pcintr_coroutine_get_uri(cor);
@@ -440,12 +440,12 @@ uri_getter(purc_variant_t root,
 
 static purc_variant_t
 token_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     const char *uri = pcintr_coroutine_get_uri(cor);
@@ -458,12 +458,12 @@ token_getter(purc_variant_t root,
 
 static purc_variant_t
 curator_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
     return purc_variant_make_ulongint(cor->curator);

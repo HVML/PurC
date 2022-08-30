@@ -31,24 +31,24 @@
 
 static purc_variant_t
 foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
-    (void)silently;
+    (void)call_flags;
 
     return purc_variant_make_string_static("FOO", false);
 }
 
 static purc_variant_t
 bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
-    (void)silently;
+    (void)call_flags;
 
     return purc_variant_make_string_static("BAR", false);
 }
@@ -119,7 +119,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL, false);
+    retv = func(foobar, 0, NULL, PCVRT_CALL_FLAG_NONE);
     printf ("getter returned %s for foo\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);
@@ -129,7 +129,7 @@ int main(void)
         quit_on_error(2);
 
     func = purc_variant_dynamic_get_getter(dynamic);
-    retv = func(foobar, 0, NULL, false);
+    retv = func(foobar, 0, NULL, PCVRT_CALL_FLAG_NONE);
     printf ("getter returned %s for bar\n",
             purc_variant_get_string_const(retv));
     purc_variant_unref(retv);

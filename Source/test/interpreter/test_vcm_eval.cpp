@@ -217,23 +217,23 @@ int to_error(const char* err)
 
 static inline purc_variant_t
 attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_string("call get success!", false);
 }
 
 static inline purc_variant_t
 attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_string("call setter success!", false);
 }
 

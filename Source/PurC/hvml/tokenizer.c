@@ -2316,7 +2316,8 @@ BEGIN_STATE(TKZ_STATE_EJSON_CONTROL)
                 && (uc == '"' || uc == '\'' || uc == 'U')) {
             RECONSUME_IN(TKZ_STATE_EJSON_AFTER_JSONEE_STRING);
         }
-        if (parser->vcm_node && pcvcm_node_is_closed(parser->vcm_node)) {
+        if (parser->vcm_node && parser->vcm_node->type != PCVCM_NODE_TYPE_STRING
+                && pcvcm_node_is_closed(parser->vcm_node)) {
             POP_AS_VCM_PARENT_AND_UPDATE_VCM();
         }
         RECONSUME_IN(TKZ_STATE_EJSON_RIGHT_BRACE);

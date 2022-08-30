@@ -31,24 +31,24 @@
 
 static purc_variant_t
 foo_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
-    (void)silently;
+    (void)call_flags;
 
     return purc_variant_make_string_static("FOO", false);
 }
 
 static purc_variant_t
 bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     (void)root;
     (void)nr_args;
     (void)argv;
-    (void)silently;
+    (void)call_flags;
 
     return purc_variant_make_string_static("BAR", false);
 }
@@ -66,12 +66,12 @@ bar_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 qux_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     int sz_array = NR_MEMBERS;
 
     (void)root;
-    (void)silently;
+    (void)call_flags;
 
     if (nr_args > 0) {
         uint64_t sz;

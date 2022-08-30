@@ -2411,14 +2411,14 @@ template_destroy(struct pcvdom_template *tpl)
 
 // the cleaner to clear the content represented by the native entity.
 static purc_variant_t
-cleaner(void* native_entity, bool silently)
+cleaner(void* native_entity, unsigned call_flags)
 {
     struct pcvdom_template *tpl;
     tpl = (struct pcvdom_template*)native_entity;
     PC_ASSERT(tpl);
     template_cleaner(tpl);
 
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_boolean(true);
 }
 

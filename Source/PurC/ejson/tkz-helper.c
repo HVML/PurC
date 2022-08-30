@@ -62,6 +62,34 @@ struct tkz_reader {
     int consumed;
 };
 
+
+struct tkz_unihan_area {
+    uint32_t begin;
+    uint32_t end;
+} unihan_areas[] = {
+    {0x4E00, 0x9FFC},
+    {0xF900, 0xFAD9},
+    {0x3400, 0x4DBF},
+    {0x20000, 0x2A6DD},
+    {0x2A700, 0x2B734},
+    {0x2B740, 0x2B81D},
+    {0x2B820, 0x2CEA1},
+    {0x2CEB0, 0x2EBE0},
+    {0x2F800, 0x2FA1D},
+    {0x30000, 0x3134A}
+};
+
+bool is_unihan(uint32_t uc)
+{
+    static ssize_t max = sizeof(unihan_areas)/sizeof(unihan_areas[0]) - 1;
+    for (ssize_t i = 0; i < max; i++) {
+        if (uc >= unihan_areas[i].begin && uc <= unihan_areas[i].end) {
+            return true;
+        }
+    }
+    return false;
+}
+
 struct tkz_uc *tkz_uc_new(void)
 {
     return PCHVML_ALLOC(sizeof(struct tkz_uc));
@@ -298,7 +326,7 @@ void tkz_buffer_append_bytes(struct tkz_buffer *buffer, const char *bytes,
     }
 }
 
-static inline size_t uc_to_utf8(uint32_t c, char *outbuf)
+size_t uc_to_utf8(uint32_t c, char *outbuf)
 {
     size_t len = 0;
     int first;
