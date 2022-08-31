@@ -2531,6 +2531,13 @@ BEGIN_STATE(EJSON_TKZ_STATE_VARIABLE)
         }
     }
     if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+        if (tkz_buffer_is_int(parser->temp_buffer)) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (prev && (prev->type == ETT_GET_ELEMENT)) {
+                SET_ERR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
         top->node = pcvcm_node_new_string(
                 tkz_buffer_get_bytes(parser->temp_buffer)
                 );
