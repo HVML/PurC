@@ -101,7 +101,7 @@ svg {
                  }}
             </inherit -->
 
-            <test with $L.ge($params.n, 300)) >
+            <test with $L.ge($params.n, 300) >
                 <clear on $TIMERS />
                 <!-- update on $TIMERS to "subtract" with { id: "rate" } /-->
             </test>
