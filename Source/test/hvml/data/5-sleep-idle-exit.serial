@@ -18,9 +18,6 @@ PCHVML_TOKEN_START_TAG|<observe on=get_variable("CRTN") for="idle">
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"Got the idle event at ",call_getter(get_element(get_variable("SYS"),"time_prt"),"rfc3339-ex")))
-PCHVML_TOKEN_VCM_TREE|"
-
-        "
 PCHVML_TOKEN_COMMENT|<!-- After this element, the coroutine will exit -->
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -43,6 +40,4 @@ PCHVML_TOKEN_VCM_TREE|"
 
     "
 PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"Finish the first-round run at ",call_getter(get_element(get_variable("SYS"),"time_prt"),"rfc3339-ex"))) ; false }}
-PCHVML_TOKEN_VCM_TREE|"
-"
 PCHVML_TOKEN_END_TAG|</hvml>

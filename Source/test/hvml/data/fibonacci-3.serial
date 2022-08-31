@@ -88,9 +88,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|"Totally "
-PCHVML_TOKEN_VCM_TREE|get_element(get_variable("1!"),"count")
-PCHVML_TOKEN_VCM_TREE|" numbers."
+PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",get_element(get_variable("1!"),"count")," numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "

@@ -18,3 +18,7 @@ NotFound
     flags: None
     msg: "Element not found"
 
+NoSuchKey
+    except: NoSuchKey
+    flags: None
+    msg: "No Such Key"

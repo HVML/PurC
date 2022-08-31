@@ -11,8 +11,6 @@ PCHVML_TOKEN_START_TAG|<init as="global">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_object("locale","zh_CN")
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -21,8 +19,6 @@ PCHVML_TOKEN_START_TAG|<init as="locales">
 PCHVML_TOKEN_VCM_TREE|"
           "
 PCHVML_TOKEN_VCM_TREE|make_object("zh_CN",make_object("se_name","Baidu","se_url","https://www.baidu.com","se_title","百度"),"zh_TW",make_object("se_name","Bing","se_url","https://www.bing.com","se_title","必应"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -43,13 +39,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<choose on=get_variable("locales") to="update" in="#the-footer" by=concat_string("KEY: ",get_element(get_variable("global"),"locale"))>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=concat_string(get_element(get_variable("?"),"se_name")) attr.href=concat_string(get_element(get_variable("?"),"se_url")) attr.title=concat_string(get_element(get_variable("?"),"se_title"))/>
+PCHVML_TOKEN_START_TAG|<update on="~ p > a" textContent=get_element(get_variable("?"),"se_name") attr.href=get_element(get_variable("?"),"se_url") attr.title=get_element(get_variable("?"),"se_title")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch for="error:nodata">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on="~ p" textContent="You forget to define the \$locales/\$global variables!"/>
+PCHVML_TOKEN_START_TAG|<update on="~ p" textContent="You forget to define the $locales/$global variables!"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
@@ -67,7 +63,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<catch for="*">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on="~p" textContent="Bad \$locales/\$global data!"/>
+PCHVML_TOKEN_START_TAG|<update on="~p" textContent="Bad $locales/$global data!"/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
