@@ -9,7 +9,7 @@ negative:
 
 negative:
     $RUNNER.chan('--9-')
-    InvalidValue
+    EntityNotFound
 
 negative:
     $RUNNER.chan('myChannel')
