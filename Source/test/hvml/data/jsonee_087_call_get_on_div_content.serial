@@ -5,8 +5,6 @@ PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",1)
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -14,8 +12,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYS"),"time")
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -23,8 +19,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object(get_element(get_variable("SYS"),"time"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -32,8 +26,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|get_element(get_variable("SYS"),"time")
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -41,8 +33,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",1)
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -50,8 +40,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",get_element(get_element(get_variable("SYS"),"time"),"tm"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -59,8 +47,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",call_getter(get_element(get_variable("SYS"),"time"),"tm"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -68,8 +54,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",call_setter(get_element(get_variable("SYS"),"time"),"tm"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -77,8 +61,6 @@ PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_VCM_TREE|make_object("key",call_getter(get_element(get_variable("SYS"),"time"),make_object("a",1),make_array(1,2,3)))
-PCHVML_TOKEN_VCM_TREE|"
-    "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
 "

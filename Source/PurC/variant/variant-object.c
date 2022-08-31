@@ -321,7 +321,7 @@ v_object_remove(purc_variant_t obj, const char *key, bool silently,
         if (silently)
             return 0;
 
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
         return -1;
     }
 
@@ -829,7 +829,7 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
     }
 
     if (!entry) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
 
         return PURC_VARIANT_INVALID;
     }
@@ -893,7 +893,7 @@ purc_variant_object_make_iterator_begin (purc_variant_t object)
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 
@@ -917,7 +917,7 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 

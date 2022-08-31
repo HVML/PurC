@@ -173,6 +173,15 @@ pcvcm_node_first_child(struct pcvcm_node *node)
     return NULL;
 }
 
+static inline struct pcvcm_node *
+pcvcm_node_last_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_last_child(&node->tree_node);
+    }
+    return NULL;
+}
+
 static inline void
 pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)
 {

@@ -281,23 +281,16 @@ array_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     if (at) {
-        if (!purc_variant_is_string(at)) {
+        if (!purc_variant_is_array(at)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
         }
+        purc_variant_t idx = purc_variant_array_get(at, 0);
+        int64_t index = -1;
+        bool cast = purc_variant_cast_to_longint(idx, &index, false);
 
-        size_t nr_s = 0;
-        const char *s = purc_variant_get_string_const_ex(at, &nr_s);
-        if (nr_s <= 2 || s[0] != '[' || s[nr_s-1] != ']') {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            ret = PURC_VARIANT_INVALID;
-            goto out;
-        }
-
-        errno = 0;
-        long long index = strtoll(s + 1, NULL, 10);
-        if (errno != 0 || index < 0) {
+        if (!cast || index < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
@@ -325,23 +318,16 @@ set_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
     purc_variant_t ret;
     if (at) {
-        if (!purc_variant_is_string(at)) {
+        if (!purc_variant_is_array(at)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
         }
+        purc_variant_t idx = purc_variant_array_get(at, 0);
+        int64_t index = -1;
+        bool cast = purc_variant_cast_to_longint(idx, &index, false);
 
-        size_t nr_s = 0;
-        const char *s = purc_variant_get_string_const_ex(at, &nr_s);
-        if (nr_s <= 2 || s[0] != '[' || s[nr_s-1] != ']') {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            ret = PURC_VARIANT_INVALID;
-            goto out;
-        }
-
-        errno = 0;
-        long long index = strtoll(s + 1, NULL, 10);
-        if (errno != 0 || index < 0) {
+        if (!cast || index < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;

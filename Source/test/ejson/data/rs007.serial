@@ -1,0 +1,1 @@
+get_variable(concat_string("output_",get_element(get_variable("CRTN"),"target")))
