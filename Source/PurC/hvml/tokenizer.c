@@ -569,8 +569,12 @@ parse_ejson(struct pchvml_parser *parser, const char *content)
         goto out;
     }
 
+    uint32_t flags = PCEJSON_FLAG_ALL;
+    if (parser->tag_has_raw_attr) {
+        flags = flags & ~PCEJSON_FLAG_GET_VARIABLE;
+    }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
-            parser->ejson_parser_flags);
+            flags);
     pcejson_parse(&node, &parser->ejson_parser, rws,
             parser->ejson_parser_max_depth);
     purc_rwstream_destroy(rws);

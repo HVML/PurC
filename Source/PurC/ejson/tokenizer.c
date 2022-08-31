@@ -690,6 +690,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_SINGLE_QUOTED)
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED);
     }
     if (type == ETT_MULTI_QUOTED_S || type == ETT_MULTI_UNQUOTED_S) {
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+#if 0
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
             struct pcvcm_node *node = pcvcm_node_new_string(
                     tkz_buffer_get_bytes(parser->temp_buffer)
@@ -707,6 +710,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_SINGLE_QUOTED)
         tkz_stack_push(ETT_SINGLE_S);
         tkz_stack_push(ETT_VALUE);
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED);
+#endif
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
@@ -782,6 +786,11 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
     }
     if (character == ',') {
         if (top == NULL) {
+            if (tkz_buffer_is_empty(parser->temp_buffer)) {
+                tkz_stack_push(ETT_UNQUOTED_S);
+                tkz_stack_push(ETT_VALUE);
+                RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+            }
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
             RETURN_AND_STOP_PARSE();
         }
@@ -1906,18 +1915,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER)
         RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
     }
 
-#if 0
-    /* FIXME: */
-    /* sleep tag: 1d */
-    if (character == 'n' || character == 'u' || character == 'm' ||
-            character == 's' || character == 'h' || character == 'd') {
-        if (top == NULL || top->type == ETT_VALUE) {
-            tkz_stack_push(ETT_UNQUOTED_S);
-            tkz_stack_push(ETT_VALUE);
-            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
-        }
-    }
-#endif
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -2508,7 +2505,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
         ADVANCE_TO(EJSON_TKZ_STATE_CHARACTER_REFERENCE);
     }
     if ((character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE))
-            || character == '{' || character == '\'') {
+            || character == '{') {
         if (top->type == ETT_VALUE) {
             tkz_stack_drop_top();
             top = tkz_stack_top();
