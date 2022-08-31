@@ -1123,7 +1123,7 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
-    printf ("TEST disk_usage: nr_args = 1, param[0] = '/sys/devices/cpu':\n");
+    printf ("TEST disk_usage: nr_args = 1, param[0] = '/sys/devices/system':\n");
     param[0] = purc_variant_make_string ("/sys/devices/cpu", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
@@ -1183,7 +1183,7 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
 
-    printf ("TEST disk_usage: nr_args = 0, param = NULL:\n");
+    printf ("TEST file_exists: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
@@ -1197,7 +1197,7 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     }
     fclose (fp);
 
-    printf ("TEST disk_usage: nr_args = 1, param[0] = path: (file exist, return true)\n");
+    printf ("TEST file_exists: nr_args = 1, param[0] = path: (file exist, return true)\n");
     param[0] = purc_variant_make_string (data_path, true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -1207,7 +1207,7 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     // File not exist
     remove (data_path);
 
-    printf ("TEST disk_usage: nr_args = 1, param[0] = path: (file removed, return false)\n");
+    printf ("TEST file_exists: nr_args = 1, param[0] = path: (file removed, return false)\n");
     param[0] = purc_variant_make_string (data_path, true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_TRUE(pcvariant_is_false(ret_var));
@@ -1229,6 +1229,92 @@ TEST(dvobjs, dvobjs_fs_file_exists)
 // file_is
 TEST(dvobjs, dvobjs_fs_file_is)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "file_is");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+
+    printf ("TEST file_is: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // Normal file
+    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'file':\n");
+    param[0] = purc_variant_make_string ("/etc/mime.types", true);
+    param[1] = purc_variant_make_string ("file", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Dir
+    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'dir':\n");
+    param[0] = purc_variant_make_string ("/etc", true);
+    param[1] = purc_variant_make_string ("dir", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Executable
+    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'exe':\n");
+    param[0] = purc_variant_make_string ("/bin/ls", true);
+    param[1] = purc_variant_make_string ("exe", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Un-executable
+    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'exe':\n");
+    param[0] = purc_variant_make_string ("/etc/mime.types", true);
+    param[1] = purc_variant_make_string ("exe", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_TRUE(pcvariant_is_false(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // lchgrp
