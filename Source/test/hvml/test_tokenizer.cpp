@@ -378,7 +378,7 @@ std::vector<hvml_token_test_data> read_hvml_token_test_data()
                     }
 
                     free (buf);
-                    if (!comp_buf) {
+                    if (comp_buf) {
                         free (comp_buf);
                     }
                 }
