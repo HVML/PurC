@@ -387,6 +387,13 @@ bool pchvml_parser_is_operation_tag(const char* name)
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_in_operation(struct pchvml_parser* parser)
+{
+    const char* name = tkz_buffer_get_bytes(parser->tag_name);
+    return pchvml_parser_is_operation_tag(name);
+}
+
+static UNUSED_FUNCTION
 void pchvml_parser_save_tag_name(struct pchvml_parser* parser)
 {
     if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
@@ -714,6 +721,13 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         }
         RECONSUME_IN(TKZ_STATE_DATA);
     }
+
+    bool operation = pchvml_parser_is_in_operation(parser);
+    uint32_t dest_state = TKZ_STATE_CONTENT_JSONEE;
+    if (parser->tag_has_raw_attr && !operation) {
+        dest_state = TKZ_STATE_CONTENT_TEXT;
+    }
+
     if(!IS_TEMP_BUFFER_EMPTY()) {
         struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
         if (!node) {
@@ -725,9 +739,9 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
             RETURN_AND_STOP_PARSE();
         }
         pchvml_token_set_is_whitespace(parser->token, true);
-        RETURN_AND_RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
+        RETURN_AND_RECONSUME_IN(dest_state);
     }
-    RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
+    RECONSUME_IN(dest_state);
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TAG_NAME)
