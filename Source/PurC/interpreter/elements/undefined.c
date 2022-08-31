@@ -92,6 +92,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
     const char *sv = "";
+    char *value = NULL;
 
     if (purc_variant_is_string(val)) {
         sv = purc_variant_get_string_const(val);
@@ -101,7 +102,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
         /* no action to take */
     }
     else {
-        PC_ASSERT(0);
+        ssize_t ret = purc_variant_stringify_alloc(&value, val);
+        if (ret > 0) {
+            sv = value;
+        }
     }
 
     /* VW: do not set attributes having `hvml:` prefix to eDOM */
@@ -136,6 +140,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
 
 done:
+    if (value) {
+        free(value);
+    }
     return 0;
 }
 
