@@ -710,72 +710,6 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
         }
         RECONSUME_IN(TKZ_STATE_DATA);
     }
-#if 0
-    if (pchvml_parser_is_in_json_content_tag(parser)) {
-        if(!IS_TEMP_BUFFER_EMPTY()) {
-            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
-            if (!node) {
-                RETURN_AND_STOP_PARSE();
-            }
-            RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(node);
-            if (!parser->token) {
-                RETURN_AND_STOP_PARSE();
-            }
-            pchvml_token_set_is_whitespace(parser->token, true);
-            RETURN_AND_RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-        }
-        RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-    }
-    if (character == '{' || character == '[' || character == '$') {
-        if(!IS_TEMP_BUFFER_EMPTY()) {
-            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
-            if (!node) {
-                RETURN_AND_STOP_PARSE();
-            }
-            RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(node);
-            if (!parser->token) {
-                RETURN_AND_STOP_PARSE();
-            }
-            pchvml_token_set_is_whitespace(parser->token, true);
-            RETURN_AND_RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-        }
-        RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-    }
-    if (character == '\'' || character == '"') {
-        if(!IS_TEMP_BUFFER_EMPTY()) {
-            struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
-            if (!node) {
-                RETURN_AND_STOP_PARSE();
-            }
-            RESET_TEMP_BUFFER();
-            parser->token = pchvml_token_new_vcm(node);
-            if (!parser->token) {
-                RETURN_AND_STOP_PARSE();
-            }
-            pchvml_token_set_is_whitespace(parser->token, true);
-            RETURN_AND_RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-        }
-        RECONSUME_IN(TKZ_STATE_JSONTEXT_CONTENT);
-    }
-    if ((parser->last_token_type == PCHVML_TOKEN_START_TAG
-                || parser->last_token_type == PCHVML_TOKEN_END_TAG)
-            && !IS_TEMP_BUFFER_EMPTY()) {
-        struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
-        if (!node) {
-            RETURN_AND_STOP_PARSE();
-        }
-        RESET_TEMP_BUFFER();
-        parser->token = pchvml_token_new_vcm(node);
-        if (!parser->token) {
-            RETURN_AND_STOP_PARSE();
-        }
-        pchvml_token_set_is_whitespace(parser->token, true);
-        RETURN_AND_RECONSUME_IN(TKZ_STATE_TEXT_CONTENT);
-    }
-    RECONSUME_IN(TKZ_STATE_TEXT_CONTENT);
-#else
     if(!IS_TEMP_BUFFER_EMPTY()) {
         struct pcvcm_node* node = TEMP_BUFFER_TO_VCM_NODE();
         if (!node) {
@@ -787,20 +721,9 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
             RETURN_AND_STOP_PARSE();
         }
         pchvml_token_set_is_whitespace(parser->token, true);
-        if (parser->tag_has_raw_attr) {
-            RETURN_AND_RECONSUME_IN(TKZ_STATE_CONTENT_TEXT);
-        }
-        else {
-            RETURN_AND_RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
-        }
+        RETURN_AND_RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
     }
-    if (parser->tag_has_raw_attr) {
-        RECONSUME_IN(TKZ_STATE_CONTENT_TEXT);
-    }
-    else {
-        RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
-    }
-#endif
+    RECONSUME_IN(TKZ_STATE_CONTENT_JSONEE);
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TAG_NAME)
@@ -2082,6 +2005,9 @@ END_STATE()
 BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     tkz_reader_reconsume_last_char(parser->reader);
     uint32_t flags = PCEJSON_FLAG_ALL;
+    if (parser->tag_has_raw_attr) {
+        flags = flags & ~PCEJSON_FLAG_GET_VARIABLE;
+    }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;

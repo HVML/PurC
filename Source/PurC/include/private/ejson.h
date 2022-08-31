@@ -37,6 +37,7 @@
 
 #define PCEJSON_FLAG_NONE               0x0000
 #define PCEJSON_FLAG_MULTI_JSONEE       0x0001
+#define PCEJSON_FLAG_GET_VARIABLE       0x0002
 #define PCEJSON_FLAG_ALL                0xFFFF
 
 struct pcejson;

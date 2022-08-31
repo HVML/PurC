@@ -653,7 +653,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
     if (character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_PARENTHESIS);
     }
-    if (character == '$') {
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         RECONSUME_IN(EJSON_TKZ_STATE_DOLLAR);
     }
     if (character == '&') {
@@ -889,7 +889,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACE)
         tkz_stack_push(ETT_PROTECT);
         ADVANCE_TO(EJSON_TKZ_STATE_LEFT_BRACE);
     }
-    if (character == '$') {
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         RECONSUME_IN(EJSON_TKZ_STATE_DOLLAR);
     }
     if (is_whitespace(character)) {
@@ -1454,6 +1454,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '$') {
+        if ((parser->flags & PCEJSON_FLAG_GET_VARIABLE) == 0) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+        }
          /* ETT_VALUE */
         tkz_stack_drop_top();
         top = tkz_stack_top();
@@ -1600,7 +1604,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_KEYWORD)
             || character == ')') {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_KEYWORD);
     }
-    if (character == '$') {
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         /* unquoted */
         top = tkz_stack_push(ETT_MULTI_UNQUOTED_S);
 
@@ -1709,7 +1713,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_BYTE_SEQUENCE)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_BASE64_BYTE_SEQUENCE);
     }
-    if (character == '$') {
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         /* unquoted */
         top = tkz_stack_push(ETT_MULTI_UNQUOTED_S);
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -1816,7 +1820,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER)
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_INTEGER);
     }
-    if (character == '$') {
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         /* unquoted */
         top = tkz_stack_push(ETT_MULTI_UNQUOTED_S);
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
@@ -2503,7 +2507,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_RAW_STRING)
         SET_RETURN_STATE(EJSON_TKZ_STATE_RAW_STRING);
         ADVANCE_TO(EJSON_TKZ_STATE_CHARACTER_REFERENCE);
     }
-    if (character == '$' || character == '{' || character == '\'') {
+    if ((character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE))
+            || character == '{' || character == '\'') {
         if (top->type == ETT_VALUE) {
             tkz_stack_drop_top();
             top = tkz_stack_top();
@@ -2599,7 +2604,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
     else if (character == '.' || character == '(' || character == '[') {
         update_tkz_stack_with_level(parser, 1);
     }
-    else if (character == '$') {
+    else if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         top = tkz_stack_top();
         if (top->type == 'V' && top->node) {
             struct pcejson_token *token = tkz_stack_pop();
