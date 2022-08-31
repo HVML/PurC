@@ -81,6 +81,7 @@ macro(PURC_OPTION_BEGIN)
         set(ENABLE_UNIFIED_BUILDS_DEFAULT ON)
     endif ()
 
+    PURC_OPTION_DEFINE(ENABLE_CHINESE_NAMES "Toggle support for variable and key names in Chinese (TEST only)" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_SOCKET_STREAM "Toggle socket stream" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_HTML "Toggle HTML parser" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_XGML "Toggle XGML parser" PUBLIC ON)

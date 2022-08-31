@@ -259,6 +259,14 @@ purc_dvobj_runner_new(void)
         { "rid",    rid_getter,     NULL },
         { "uri",    uri_getter,     NULL },
         { "chan",   chan_getter,    chan_setter },
+#if ENABLE(CHINESE_NAMES)
+        { "用户",   user_getter,    user_setter },
+        { "应用名", app_getter,     NULL },
+        { "行者名", runner_getter,  NULL },
+        { "行者标识符", rid_getter,     NULL },
+        { "统一资源标识符",    uri_getter,     NULL },
+        { "通道",   chan_getter,    chan_setter },
+#endif
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
