@@ -795,13 +795,24 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         switch (type) {
         case '{':
             ADVANCE_TO(EJSON_TKZ_STATE_BEFORE_NAME);
+            break;
         case '[':
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            break;
         case '(':
         case '<':
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            break;
+        case ETT_MULTI_UNQUOTED_S:
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+            break;
+        case ETT_MULTI_QUOTED_S:
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+            break;
         }
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_COMMA);
         RETURN_AND_STOP_PARSE();
@@ -1138,15 +1149,20 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     uint32_t type = top->type;
-    CHECK_FINISHED();
+    if (is_parse_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+    }
     if (is_whitespace(character)) {
         if (type == ETT_UNQUOTED_S || type == ETT_STRING) {
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
+        if (type == ETT_VALUE) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (!prev) {
+                RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+            }
+        }
         ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
-    }
-    if (is_parse_finished(parser, character)) {
-        RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
     if (character == '"' || character == '\'') {
         update_tkz_stack(parser);
@@ -2325,8 +2341,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_AMPERSAND)
             RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
     }
-    SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
-    RETURN_AND_STOP_PARSE();
+    tkz_reader_reconsume_last_char(parser->tkz_reader);
+    tkz_reader_reconsume_last_char(parser->tkz_reader);
+    tkz_stack_push(ETT_UNQUOTED_S);
+    tkz_stack_push(ETT_VALUE);
+    SET_RETURN_STATE(EJSON_TKZ_STATE_RAW_STRING);
+    ADVANCE_TO(EJSON_TKZ_STATE_CHARACTER_REFERENCE);
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_OR_SIGN)
