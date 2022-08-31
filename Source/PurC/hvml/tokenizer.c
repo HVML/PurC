@@ -1880,17 +1880,23 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA_END_TAG_NAME)
 END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
-    const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
+    struct pcvcm_node *node = NULL;
+    if (tkz_buffer_is_whitespace(parser->temp_buffer)) {
+        node = TEMP_BUFFER_TO_VCM_NODE();
+    }
+    else {
+        const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
+        node = parse_ejson(parser, bytes);
+    }
 
-    struct pcvcm_node* node = parse_ejson(parser, bytes);
     if (!node) {
         RETURN_AND_STOP_PARSE();
     }
-    RESET_TEMP_BUFFER();
     struct pchvml_token* token = pchvml_token_new_vcm(node);
     struct pchvml_token* next_token = pchvml_token_new_end_tag();
     pchvml_token_append_buffer_to_name(next_token,
             parser->string_buffer);
+    RESET_TEMP_BUFFER();
     RESET_STRING_BUFFER();
     RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, TKZ_STATE_DATA);
 END_STATE()
