@@ -800,6 +800,7 @@ element_serialize(struct pcvdom_element *element, int level, int push,
     }
 
     char *tag_name = element->tag_name;
+    bool self_closing = element->self_closing;
 
     if (push) {
         // key: char *, the same as struct pcvdom_attr:key
@@ -811,9 +812,12 @@ element_serialize(struct pcvdom_element *element, int level, int push,
 
         pcutils_map_traverse(attrs, ud, attr_serialize);
 
+        if (self_closing) {
+            ud->cb("/", 1, ud->ctxt);
+        }
         ud->cb(">", 1, ud->ctxt);
     }
-    else {
+    else if (!self_closing) {
         ud->cb("</", 2, ud->ctxt);
         ud->cb(tag_name, strlen(tag_name), ud->ctxt);
         ud->cb(">", 1, ud->ctxt);
