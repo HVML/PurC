@@ -698,13 +698,10 @@ out:
 
 /* stop the specific coroutine */
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
-        const struct timespec *timeout,
-        pcintr_timeout_cb timeout_cb, void *ctxt)
+        const struct timespec *timeout)
 {
     UNUSED_PARAM(crtn);
     UNUSED_PARAM(timeout);
-    UNUSED_PARAM(timeout_cb);
-    UNUSED_PARAM(ctxt);
 
     // TODO
     PC_WARN("pcintr_stop_coroutine() called but not implemented");

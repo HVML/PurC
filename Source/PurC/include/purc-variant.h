@@ -483,6 +483,7 @@ purc_variant_bsequence_length(purc_variant_t sequence)
 #define PCVRT_CALL_FLAG_NONE            0x0000
 #define PCVRT_CALL_FLAG_SILENTLY        0x0001
 #define PCVRT_CALL_FLAG_AGAIN           0x0002
+#define PCVRT_CALL_FLAG_TIMEOUT         0x0004
 
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
         size_t nr_args, purc_variant_t * argv, unsigned call_flags);
