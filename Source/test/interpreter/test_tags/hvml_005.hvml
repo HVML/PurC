@@ -1,8 +1,8 @@
 <hvml target="html" id="ab" value="test" custom="cust">
     <body>
         <div>$CRTN.target</div>
-        <div>$RUNNER.app</div>
-        <div>$RUNNER.runner</div>
+        <div>$RUNNER.app_name</div>
+        <div>$RUNNER.run_name</div>
         <div>$EJSON.type($RUNNER.rid)</div>
         <div>$RUNNER.uri</div>
     </body>
