@@ -32,10 +32,10 @@
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
-1. [0.8.2] Support for prefix for foreign tag name. See Section 3.1.1 of [HVML Specifiction V1.0].
-1. [0.8.2] Support for using Unihan characters in variable names and property/method names. See Section 2.2.2 of [HVML Specifiction V1.0].
-1. [0.8.2] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
-1. [0.8.2] Improve eJSON parser to support the following string patterns:
+1. [0.8.2; Resolved] Support for prefix for foreign tag name. See Section 3.1.1 of [HVML Specifiction V1.0].
+1. [0.8.2; Resolved] Support for using Unihan characters in variable names and property/method names. See Section 2.2.2 of [HVML Specifiction V1.0].
+1. [0.8.2; Resolved] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
+1. [0.8.2; Resolved] Improve eJSON parser to support the following string patterns:
    - `file://$SYS.cwd/a.hvml`
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
@@ -83,7 +83,7 @@
 1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.8.1, Resolved] Support for `rdrState:connLost` event on `$CRTN`.
+1. [0.8.1; Resolved] Support for `rdrState:connLost` event on `$CRTN`.
 1. [0.8.1; Resolved] Implement new APIs: `purc_coroutine_dump_stack`.
 1. [0.8.1; Resolved] Support for use of an element's identifier as the value of the `at` attribute in an `init` element.
 1. [0.8.1; Resolved] Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.

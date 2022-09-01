@@ -175,7 +175,7 @@ static pcdoc_element_t operate_element(purc_document_t doc,
     pcdom_document_t *dom_doc = pcdom_interface_document(doc->impl);
     pcdom_element_t *new_elem;
     new_elem = pcdom_document_create_element(dom_doc,
-            (const unsigned char*)tag, strlen(tag), NULL);
+            (const unsigned char*)tag, strlen(tag), NULL, self_close);
     if (new_elem) {
         dom_node_ops[op](dom_elem, pcdom_interface_node(new_elem));
     }

@@ -254,8 +254,8 @@ purc_dvobj_runner_new(void)
 
     static struct purc_dvobj_method method [] = {
         { "user",   user_getter,    user_setter },
-        { "app",    app_getter,     NULL },
-        { "runner", runner_getter,  NULL },
+        { "app_name",    app_getter,     NULL },
+        { "run_name", runner_getter,  NULL },
         { "rid",    rid_getter,     NULL },
         { "uri",    uri_getter,     NULL },
         { "chan",   chan_getter,    chan_setter },

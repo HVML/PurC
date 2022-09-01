@@ -2654,8 +2654,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
                 RESET_TEMP_BUFFER();
                 RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
             }
+            else if (token->type == ETT_MULTI_UNQUOTED_S
+                        || token->type == ETT_MULTI_QUOTED_S) {
+                RESET_TEMP_BUFFER();
+                RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+            }
             update_tkz_stack(parser);
-            token = tkz_stack_top();
+            top = tkz_stack_top();
+            if (top == token) {
+                SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            token = top;
         }
     }
     else if (character == '"') {

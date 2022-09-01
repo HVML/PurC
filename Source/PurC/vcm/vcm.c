@@ -1757,14 +1757,27 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently)
 {
     if (stack) {
-        return pcvcm_eval_ex(tree, find_stack_var, stack, silently);
+        return pcvcm_eval_ex(tree, NULL, find_stack_var, stack, silently);
     }
-    return pcvcm_eval_ex(tree, NULL, NULL, silently);
+    return pcvcm_eval_ex(tree, NULL, NULL, NULL, silently);
+}
+
+purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, bool silently, bool timeout)
+{
+    if (stack) {
+        return pcvcm_eval_again_ex(tree, NULL, find_stack_var, stack,
+                silently, timeout);
+    }
+    return pcvcm_eval_again_ex(tree, NULL, NULL, NULL, silently, timeout);
 }
 
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
-        cb_find_var find_var, void *ctxt, bool silently)
+        struct pcvcm_eval_ctxt **eval_ctxt,
+        cb_find_var find_var, void *ctxt,
+        bool silently)
 {
+    UNUSED_PARAM(eval_ctxt);
     const char *env_value;
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         _print_vcm_log = (*env_value == '1' ||
@@ -1794,6 +1807,22 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
     }
     return ret;
+}
+
+purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *eval_ctxt,
+        cb_find_var find_var, void *ctxt,
+        bool silently, bool timeout)
+{
+    UNUSED_PARAM(tree);
+    UNUSED_PARAM(eval_ctxt);
+    UNUSED_PARAM(find_var);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(silently);
+    UNUSED_PARAM(timeout);
+
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t

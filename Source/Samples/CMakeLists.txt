@@ -39,6 +39,7 @@ set(sample_HVML_FILES
     "hvml/load-string-hvml.hvml"
     "hvml/load-another-body.hvml"
     "hvml/call-concurrently.hvml"
+    "hvml/sys-sleep.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
