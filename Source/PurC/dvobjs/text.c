@@ -32,7 +32,7 @@
 
 static purc_variant_t
 get_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -62,7 +62,7 @@ get_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_ref(ret_var);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_string_static("", false);
 
     return PURC_VARIANT_INVALID;

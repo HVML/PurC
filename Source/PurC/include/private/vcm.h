@@ -164,6 +164,33 @@ pcvcm_node_children_count(struct pcvcm_node *node)
     return 0;
 }
 
+static inline struct pcvcm_node *
+pcvcm_node_first_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_child(&node->tree_node);
+    }
+    return NULL;
+}
+
+static inline struct pcvcm_node *
+pcvcm_node_last_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_last_child(&node->tree_node);
+    }
+    return NULL;
+}
+
+static inline void
+pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)
+{
+    UNUSED_PARAM(parent);
+    if (child) {
+        pctree_node_remove(&child->tree_node);
+    }
+}
+
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
 char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);

@@ -195,12 +195,12 @@ static purc_variant_t _make_bsequence(int lvl)
 }
 
 static purc_variant_t _dummy(purc_variant_t root,
-            size_t nr_args, purc_variant_t *argv, bool silently)
+            size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return PURC_VARIANT_INVALID;
 }
 

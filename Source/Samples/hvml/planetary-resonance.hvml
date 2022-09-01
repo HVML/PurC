@@ -57,7 +57,7 @@ svg {
         </svg>
 
         <archetype name="line" type="svg">
-            <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i , 50%, 50%, 0.5)" />
+            <line x1="$?.earthX" y1="$?.earthY" x2="$?.venusX" y2="$?.venusY" stroke="hsla($?.i, 50%, 50%, 0.5)" />
         </archetype>
 
         <init as params >

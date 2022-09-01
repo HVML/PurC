@@ -257,6 +257,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_log_info("Exception `%s` expected\n", exc);
 
             purc_atom_t except_atom = purc_get_error_exception(purc_get_last_error());
+            purc_log_info("Got exception `%s`\n", purc_atom_to_string(except_atom));
 
             EXPECT_EQ(except_atom, purc_atom_try_string_ex(PURC_ATOM_BUCKET_EXCEPT, exc));
 

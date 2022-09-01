@@ -39,8 +39,8 @@
 
         <archedata name="item_user">
             {
-                "id": "$?.attr.data-value", "avatar": "$?.content[0].attr.src",
-                "name": "$?.content[1].textContent", "region": "$?.attr.data-region"
+                "id": "$?.attr.data_value", "avatar": "$?.content[0].attr.src",
+                "name": "$?.content[1].textContent", "region": "$?.attr.data_region"
             }
         </archedata>
 

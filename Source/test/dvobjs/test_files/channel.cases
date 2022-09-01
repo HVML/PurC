@@ -1,5 +1,4 @@
-# test cases for $STR.contains
-# TODO: more cases for case-insensitive.
+# test cases for channel
 negative:
     $RUNNER.chan
     ArgumentMissed
@@ -10,7 +9,7 @@ negative:
 
 negative:
     $RUNNER.chan('--9-')
-    InvalidValue
+    EntityNotFound
 
 negative:
     $RUNNER.chan('myChannel')

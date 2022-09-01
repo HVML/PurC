@@ -83,6 +83,12 @@ void pcutils_stack_clear (struct pcutils_stack* stack);
  */
 void pcutils_stack_destroy (struct pcutils_stack* stack);
 
+
+/*
+ * get by index (bottom = 0, top = size - 1)
+ */
+uintptr_t pcutils_stack_get (struct pcutils_stack* stack, int idx);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

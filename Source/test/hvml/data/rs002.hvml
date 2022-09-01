@@ -1,0 +1,5 @@
+<hvml>
+    <div>
+        $< Hello, world! --from COROUTINE-$CRTN.cid
+    </div>
+</hvml>

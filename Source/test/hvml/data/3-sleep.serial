@@ -34,8 +34,6 @@ PCHVML_TOKEN_START_TAG|<sleep with=call_getter(get_element(get_variable("SYS"),"
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"Current time: ",call_getter(get_element(get_variable("SYS"),"time"),"%H:%m")))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</sleep>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -44,6 +42,4 @@ PCHVML_TOKEN_VCM_TREE|"
 
     "
 PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"I slept for ",call_getter(get_element(get_variable("EJSON"),"arith_calc"),"-",get_element(get_variable("SYS"),"time"),get_variable("startTime"))," seconds totally")) ; call_getter(get_element(get_variable("L"),"lt"),call_getter(get_element(get_variable("EJSON"),"arith_calc"),"-",get_element(get_variable("SYS"),"time"),get_variable("startTime")),0) }}
-PCHVML_TOKEN_VCM_TREE|"
-"
 PCHVML_TOKEN_END_TAG|</hvml>

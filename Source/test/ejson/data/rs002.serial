@@ -1,0 +1,1 @@
+concat_string(get_variable("<")," Hello, world! --from COROUTINE-",get_element(get_variable("CRTN"),"cid"))

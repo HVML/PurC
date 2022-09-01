@@ -2,6 +2,4 @@ PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_VCM_TREE|{{ get_element(get_variable("ABC"),0) ; false || true && false || get_variable("A") && get_element(get_variable("A"),"B") || call_getter(get_variable("A")) && call_getter(get_variable("A"),123) || call_getter(get_element(get_element(get_variable("A"),"X"),"Y"),123) }}
-PCHVML_TOKEN_VCM_TREE|"
-"
 PCHVML_TOKEN_END_TAG|</init>

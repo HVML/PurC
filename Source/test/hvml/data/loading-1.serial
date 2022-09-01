@@ -15,7 +15,7 @@ PCHVML_TOKEN_START_TAG|<meta name="viewport" content="width=device-width, initia
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/"))/>
+PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -69,8 +69,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-header">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Breaking News!")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -114,7 +112,7 @@ PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
 
                     "
-PCHVML_TOKEN_START_TAG|<a href="#" tabindex="-1" class="btn btn-primary disabled placeholder col-6">
+PCHVML_TOKEN_START_TAG|<a href="#" tabindex=-1 class="btn btn-primary disabled placeholder col-6">
 PCHVML_TOKEN_END_TAG|</a>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -126,8 +124,6 @@ PCHVML_TOKEN_START_TAG|<div class="card-footer text-muted">
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"5 minutes ago")
-PCHVML_TOKEN_VCM_TREE|"
-                "
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
             "
@@ -139,10 +135,9 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype name="realCardBody">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-            <h5 class="card-title">",get_element(get_variable("?"),"title"),"</h5>
-            ","<p class="card-text">",get_element(get_variable("?"),"shortDesc"),"</p>
-            ","<a href="",get_element(get_variable("?"),"detailedUrl"),"" class="btn btn-primary">",call_getter(get_element(get_variable("T"),"get"),"Read Details…"),"</a>
+PCHVML_TOKEN_VCM_TREE|concat_string("<h5 class="card-title">",get_element(get_variable("?"),"title"),"</h5>
+            <p class="card-text">",get_element(get_variable("?"),"shortDesc"),"</p>
+            <a href="",get_element(get_variable("?"),"detailedUrl"),"""," class="btn btn-primary">",call_getter(get_element(get_variable("T"),"get"),"Read Details…"),"</a>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"

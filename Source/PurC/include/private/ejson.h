@@ -35,7 +35,13 @@
 
 #define PCEJSON_DEFAULT_DEPTH 32
 
+#define PCEJSON_FLAG_NONE               0x0000
+#define PCEJSON_FLAG_MULTI_JSONEE       0x0001
+#define PCEJSON_FLAG_GET_VARIABLE       0x0002
+#define PCEJSON_FLAG_ALL                0xFFFF
+
 struct pcejson;
+struct tkz_reader;
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +67,12 @@ void pcejson_reset (struct pcejson* parser, uint32_t depth, uint32_t flags);
  */
 int pcejson_parse (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    purc_rwstream_t rwstream, uint32_t depth);
+
+typedef bool (*pcejson_parse_is_finished_fn)(struct pcejson *parser,
+        uint32_t character);
+int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
+                   struct tkz_reader *reader, uint32_t depth,
+                   pcejson_parse_is_finished_fn is_finished);
 
 #ifdef __cplusplus
 }

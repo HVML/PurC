@@ -122,3 +122,12 @@ void pcutils_stack_destroy (struct pcutils_stack* stack)
         free(stack);
     }
 }
+
+uintptr_t pcutils_stack_get (struct pcutils_stack* stack, int idx)
+{
+    if (idx < 0 || idx > stack->last) {
+        return 0;
+    }
+    return stack->buf[idx];
+}
+
