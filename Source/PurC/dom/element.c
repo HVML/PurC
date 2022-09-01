@@ -194,7 +194,7 @@ pcdom_element_create(pcdom_document_t *document,
                        const unsigned char *ns_link, size_t ns_len,
                        const unsigned char *prefix, size_t prefix_len,
                        const unsigned char *is, size_t is_len,
-                       bool sync_custom)
+                       bool sync_custom, bool self_close)
 {
     UNUSED_PARAM(sync_custom);
 
@@ -265,6 +265,7 @@ pcdom_element_create(pcdom_document_t *document,
     else {
         element->custom_state = PCDOM_ELEMENT_CUSTOM_STATE_UNCUSTOMIZED;
     }
+    element->self_close = self_close;
 
     return element;
 }

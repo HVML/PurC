@@ -393,7 +393,12 @@ pchtml_html_serialize_element_cb(pcdom_element_t *element,
         attr = attr->next;
     }
 
-    pchtml_html_serialize_send(">", 1, ctx);
+    if (element->self_close) {
+        pchtml_html_serialize_send("/>", 2, ctx);
+    }
+    else {
+        pchtml_html_serialize_send("/", 1, ctx);
+    }
 
     return PCHTML_STATUS_OK;
 }
@@ -405,6 +410,10 @@ pchtml_html_serialize_element_closed_cb(pcdom_element_t *element,
     unsigned int status;
     const unsigned char *tag_name;
     size_t len = 0;
+
+    if (element->self_close) {
+        return PCHTML_STATUS_OK;
+    }
 
     tag_name = pcdom_element_qualified_name(element, &len);
     if (tag_name == NULL) {
@@ -1222,7 +1231,12 @@ pchtml_html_serialize_pretty_element_cb(pcdom_element_t *element,
         pchtml_html_serialize_send(buff, n, ctx);
     }
 
-    pchtml_html_serialize_send(">", 1, ctx);
+    if (element->self_close) {
+        pchtml_html_serialize_send("/>", 2, ctx);
+    }
+    else {
+        pchtml_html_serialize_send(">", 1, ctx);
+    }
 
     return PCHTML_STATUS_OK;
 }

@@ -220,7 +220,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(frame->edom_element);
     pcdoc_element_t child;
     child = pcintr_util_new_element(frame->owner->doc, frame->edom_element,
-            PCDOC_OP_APPEND, frame->pos->tag_name, false);
+            PCDOC_OP_APPEND, frame->pos->tag_name, frame->pos->self_closing);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;

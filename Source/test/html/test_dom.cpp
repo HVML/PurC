@@ -104,7 +104,7 @@ append_element(pcdom_element_t *parent, const char *tag)
     size_t tag_name_len = strlen(tag);
 
     pcdom_element_t *element;
-    element = pcdom_document_create_element(doc, tag_name, tag_name_len, NULL);
+    element = pcdom_document_create_element(doc, tag_name, tag_name_len, NULL, false);
     if (element == NULL) {
         return NULL;
     }
@@ -232,7 +232,7 @@ void test1(void)
     pcdom_element_t *element;
     pcdom_text_t *text;
     element = pcdom_document_create_element(&doc->dom_document,
-            tag_name, tag_name_len, NULL);
+            tag_name, tag_name_len, NULL, false);
     if (element == NULL) {
         FAILED("Failed to create element for tag \"%s\"",
                 (const char *) tag_name);

@@ -286,6 +286,7 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
     if (r)
         goto end;
 
+    elem->self_closing = pchvml_token_is_self_closing(token);
     return elem;
 
 end:
