@@ -215,12 +215,27 @@ void pcvcm_stack_destroy(struct pcvcm_stack *stack);
 
 typedef purc_variant_t(*cb_find_var) (void *ctxt, const char *name);
 
-purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree, cb_find_var find_var,
-        void *ctxt, bool silently);
+struct pcvcm_eval_ctxt;
+purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **eval_ctxt,
+        cb_find_var find_var, void *ctxt,
+        bool silently);
+
+struct pcvcm_eval_ctxt;
+purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *eval_ctxt,
+        cb_find_var find_var, void *ctxt,
+        bool silently, bool timeout);
 
 struct pcintr_stack;
 purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently);
+
+purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, bool silently, bool timeout);
+
+void
+pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 
 purc_variant_t
 pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);
