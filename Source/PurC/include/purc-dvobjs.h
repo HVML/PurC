@@ -51,6 +51,13 @@
 #define PURC_PREDEF_VARNAME_STREAM      "STREAM"
 #define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
 
+#define PURC_PREDEF_VARNAME_SYS_ZH      "系统"
+#define PURC_PREDEF_VARNAME_RUNNER_ZH   "行者"
+#define PURC_PREDEF_VARNAME_L_ZH        "逻辑"
+#define PURC_PREDEF_VARNAME_STR_ZH      "字符串"
+#define PURC_PREDEF_VARNAME_STREAM_ZH   "流"
+#define PURC_PREDEF_VARNAME_DATETIME_ZH "时间"
+
 /* coroutine-level variables */
 #define PURC_PREDEF_VARNAME_T           "T"
 #define PURC_PREDEF_VARNAME_REQ         "REQ"
@@ -58,10 +65,20 @@
 #define PURC_PREDEF_VARNAME_CRTN        "CRTN"
 #define PURC_PREDEF_VARNAME_TIMERS      "TIMERS"
 
+#define PURC_PREDEF_VARNAME_T_ZH        "文本"
+#define PURC_PREDEF_VARNAME_REQ_ZH      "请求"
+#define PURC_PREDEF_VARNAME_DOC_ZH      "文档"
+#define PURC_PREDEF_VARNAME_CRTN_ZH     "协程"
+#define PURC_PREDEF_VARNAME_TIMERS_ZH   "定时器"
+
 /* external variables */
 #define PURC_PREDEF_VARNAME_FS          "FS"
 #define PURC_PREDEF_VARNAME_FILE        "FILE"
 #define PURC_PREDEF_VARNAME_MATH        "MATH"
+
+#define PURC_PREDEF_VARNAME_FS_ZH       "文件系统"
+#define PURC_PREDEF_VARNAME_FILE_ZH     "文件"
+#define PURC_PREDEF_VARNAME_MATH_ZH     "数学"
 
 /** The structure defining a method of a dynamic variant object. */
 struct purc_dvobj_method {
