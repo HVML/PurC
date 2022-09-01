@@ -39,7 +39,7 @@
    - `file://$SYS.cwd/a.hvml`
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
-1. [0.8.2] Keep self-closed foreign elements not changed.
+1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
 
 ### 1.2.3) Others
 
@@ -47,7 +47,8 @@
 
 ### 1.3) Predefined Variables
 
-1. [0.8.2] `$RUNNER.channel` and the native entity representing a channel.
+1. [0.8.2] Implement `$RUNNER.channel` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
@@ -63,8 +64,8 @@
 
 ### 1.5) Interpreter
 
-1. [0.8.2] Enhance the evaluation of VCM to support `ERROR_AGAIN`.
-1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
+1. [0.8.2] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.x] Improve the implementation of the element `update`:
