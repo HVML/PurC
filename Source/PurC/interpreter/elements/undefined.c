@@ -219,8 +219,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     PC_ASSERT(frame->edom_element);
     pcdoc_element_t child;
+    const char *tag_name = frame->pos->tag_name;
+    if (stack->tag_prefix) {
+        size_t nr = strlen(stack->tag_prefix);
+        if (strncmp(stack->tag_prefix, tag_name, nr) == 0 &&
+                tag_name[nr] == ':') {
+            tag_name = frame->pos->tag_name + nr + 1;
+        }
+    }
+
     child = pcintr_util_new_element(frame->owner->doc, frame->edom_element,
-            PCDOC_OP_APPEND, frame->pos->tag_name, frame->pos->self_closing);
+            PCDOC_OP_APPEND, tag_name, frame->pos->self_closing);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;
