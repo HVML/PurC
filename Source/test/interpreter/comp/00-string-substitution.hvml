@@ -20,7 +20,7 @@
 <hvml target="void">
     <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail>
 
-        $STREAM.stdout.writelines("$0?) Hello, world! --from COROUTINE-$CRTN.cid")
+        $STREAM.stdout.writelines("$0<, Hello, world! --from COROUTINE-$CRTN.cid")
 
     </iterate>
 
