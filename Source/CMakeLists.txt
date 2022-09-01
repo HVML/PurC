@@ -13,7 +13,7 @@ add_subdirectory(ExtDVObjs)
 
 add_subdirectory(Samples)
 
-add_subdirectory(Tools)
+add_subdirectory(Executables)
 
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)
