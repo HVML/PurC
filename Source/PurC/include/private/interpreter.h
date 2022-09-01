@@ -187,6 +187,7 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     purc_document_t               doc;
+    char                         *tag_prefix;
 
     struct pcvdom_element        *entry;
 

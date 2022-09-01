@@ -231,7 +231,7 @@ pcdom_document_attach_element(pcdom_document_t *document,
 pcdom_element_t *
 pcdom_document_create_element(pcdom_document_t *document,
                                 const unsigned char *local_name, size_t lname_len,
-                                void *reserved_for_opt)
+                                void *reserved_for_opt, bool self_close)
 {
     /* TODO: If localName does not match the Name production... */
     UNUSED_PARAM(reserved_for_opt);
@@ -251,7 +251,7 @@ pcdom_document_create_element(pcdom_document_t *document,
     }
 
     return pcdom_element_create(document, local_name, lname_len,
-                                  ns_link, ns_len, NULL, 0, NULL, 0, true);
+            ns_link, ns_len, NULL, 0, NULL, 0, true, self_close);
 }
 
 pcdom_element_t *

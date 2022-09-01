@@ -228,9 +228,9 @@ pchtml_html_document_create_element(pchtml_html_document_t *document,
                                  const unsigned char *local_name, size_t lname_len,
                                  void *reserved_for_opt)
 {
-    return (pchtml_html_element_t *) pcdom_document_create_element(&document->dom_document,
-                                                                  local_name, lname_len,
-                                                                  reserved_for_opt);
+    return (pchtml_html_element_t *) pcdom_document_create_element(
+            &document->dom_document, local_name, lname_len,
+            reserved_for_opt, false);
 }
 
 static inline pcdom_element_t *

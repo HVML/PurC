@@ -704,7 +704,7 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
     UNUSED_PARAM(timeout);
 
     // TODO
-    PC_WARN("pcintr_stop_coroutine() called but not implemented");
+    PC_WARN("pcintr_stop_coroutine() called but not implemented\n");
 }
 
 /* resume the specific coroutine */
@@ -713,6 +713,6 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
     UNUSED_PARAM(crtn);
 
     // TODO
-    PC_WARN("pcintr_resume_coroutine() called but not implemented");
+    PC_WARN("pcintr_resume_coroutine() called but not implemented\n");
 }
 

@@ -361,7 +361,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt, false);
+    purc_variant_t vt = pcvcm_eval_ex (root, NULL, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
         PRINT_VCM_NODE(root);
     }

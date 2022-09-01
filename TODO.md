@@ -32,14 +32,14 @@
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
-1. [0.8.2] Support for prefix for foreign tag name. See Section 3.1.1 of [HVML Specifiction V1.0].
-1. [0.8.2] Support for using Unihan characters in variable names and property/method names. See Section 2.2.2 of [HVML Specifiction V1.0].
-1. [0.8.2] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
-1. [0.8.2] Improve eJSON parser to support the following string patterns:
+1. [0.8.2; Resolved] Support for prefix for foreign tag name. See Section 3.1.1 of [HVML Specifiction V1.0].
+1. [0.8.2; Resolved] Support for using Unihan characters in variable names and property/method names. See Section 2.2.2 of [HVML Specifiction V1.0].
+1. [0.8.2; Resolved] Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
+1. [0.8.2; Resolved] Improve eJSON parser to support the following string patterns:
    - `file://$SYS.cwd/a.hvml`
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
-1. [0.8.2] Keep self-closed foreign elements not changed.
+1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
 
 ### 1.2.3) Others
 
@@ -47,7 +47,8 @@
 
 ### 1.3) Predefined Variables
 
-1. [0.8.2] `$RUNNER.channel` and the native entity representing a channel.
+1. [0.8.2] Implement `$RUNNER.channel` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
@@ -63,8 +64,8 @@
 
 ### 1.5) Interpreter
 
-1. [0.8.2] Enhance the evaluation of VCM to support `ERROR_AGAIN`.
-1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
+1. [0.8.2] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.x] Improve the implementation of the element `update`:
@@ -83,7 +84,7 @@
 1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.8.1, Resolved] Support for `rdrState:connLost` event on `$CRTN`.
+1. [0.8.1; Resolved] Support for `rdrState:connLost` event on `$CRTN`.
 1. [0.8.1; Resolved] Implement new APIs: `purc_coroutine_dump_stack`.
 1. [0.8.1; Resolved] Support for use of an element's identifier as the value of the `at` attribute in an `init` element.
 1. [0.8.1; Resolved] Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.

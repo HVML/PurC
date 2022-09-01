@@ -1,0 +1,25 @@
+<hvml target="void">
+    <body>
+
+        <load from "#repeater" onto '_null' async />
+
+        <inherit>
+            {{
+                 $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I will sleep 5 seconds");
+                 $SYS.sleep(5);
+                 $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I am awake.");
+            }}
+        </inherit>
+
+    </body>
+
+    <body id="repeater">
+
+        <iterate on 0 onlyif $L.lt($0<, 5) with $EJSON.arith('+', $0<, 1) nosetotail >
+            $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt")
+
+            <sleep for '1s' />
+        </iterate>
+
+    </body>
+</hvml>

@@ -329,6 +329,11 @@ stack_release(pcintr_stack_t stack)
         stack->doc = NULL;
     }
 
+    if (stack->tag_prefix) {
+        free(stack->tag_prefix);
+        stack->tag_prefix = NULL;
+    }
+
     pcintr_exception_clear(&stack->exception);
 
     if (stack->body_id) {
