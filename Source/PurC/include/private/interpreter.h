@@ -486,11 +486,9 @@ pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
 
-/* stop the specific coroutine */
-typedef void (*pcintr_timeout_cb)(pcintr_coroutine_t crtn, void *ctxt);
+/* stop the specific coroutine; stop forever if timeout is NULL. */
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
-        const struct timespec *timeout,
-        pcintr_timeout_cb timeout_cb, void *ctxt) WTF_INTERNAL;
+        const struct timespec *timeout) WTF_INTERNAL;
 /* resume the specific coroutine */
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn) WTF_INTERNAL;
 

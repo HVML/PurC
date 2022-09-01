@@ -76,15 +76,12 @@ TEST(dvobjs, dvobjs_fs_list)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
+    char file_path[PATH_MAX + NAME_MAX +1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs");
 
     printf ("TEST list: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -355,16 +352,12 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
+    char file_path[PATH_MAX + NAME_MAX +1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -607,14 +600,10 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     ASSERT_NE(func, nullptr);
 
     const char *env = "DVOBJS_TEST_PATH";
-    char data_path[PATH_MAX+1];
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
-
-    char file_path[PATH_MAX + NAME_MAX + 1] = {};
-    strncpy (file_path, data_path, sizeof(file_path)-1);
-    strncat (file_path, "/fs/chgrp.test", sizeof(file_path)-1);
+    char file_path[PATH_MAX + NAME_MAX +1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/chgrp.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
     printf ("TEST chgrp: nr_args = 0, param = NULL:\n");
@@ -691,14 +680,10 @@ TEST(dvobjs, dvobjs_fs_chmod)
     ASSERT_NE(func, nullptr);
 
     const char *env = "DVOBJS_TEST_PATH";
-    char data_path[PATH_MAX+1];
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
-
-    char file_path[PATH_MAX + NAME_MAX + 1] = {0};
-    strncpy (file_path, data_path, sizeof(file_path)-1);
-    strncat (file_path, "/fs/chmod.test", sizeof(file_path)-1);
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/chmod.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
     printf ("TEST chmod: nr_args = 0, param = NULL:\n");
@@ -785,14 +770,10 @@ TEST(dvobjs, dvobjs_fs_chown)
     ASSERT_NE(func, nullptr);
 
     const char *env = "DVOBJS_TEST_PATH";
-    char data_path[PATH_MAX+1];
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_chown.test");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
-
-    char file_path[PATH_MAX + NAME_MAX + 1] = {};
-    strncpy (file_path, data_path, sizeof(file_path)-1);
-    strncat (file_path, "/fs/chwon.test", sizeof(file_path)-1);
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/chwon.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
     printf ("TEST chown: nr_args = 0, param = NULL:\n");
@@ -1105,7 +1086,7 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    // Normal file
+    // Normal dir
     printf ("TEST disk_usage: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (data_path, true);
     ret_var = func (NULL, 1, param, false);
@@ -1177,9 +1158,9 @@ TEST(dvobjs, dvobjs_fs_file_exists)
     ASSERT_NE(func, nullptr);
 
     const char *env = "DVOBJS_TEST_PATH";
-    char data_path[PATH_MAX+1];
+    char data_path[PATH_MAX + NAME_MAX +1];
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_file_exist.test");
+        env, "test_files/file_exist.test");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
 
@@ -1296,7 +1277,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
     purc_variant_unref(ret_var);
 
     // Un-executable
-    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'exe':\n");
+    printf ("TEST file_is: nr_args = 2, param[0] = un_exe, param[1] = 'exe':\n");
     param[0] = purc_variant_make_string ("/etc/mime.types", true);
     param[1] = purc_variant_make_string ("exe", true);
     ret_var = func (NULL, 2, param, false);
@@ -1320,6 +1301,81 @@ TEST(dvobjs, dvobjs_fs_file_is)
 // lchgrp
 TEST(dvobjs, dvobjs_fs_lchgrp)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "lchgrp");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/chgrp.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
+
+
+    printf ("TEST chgrp: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // String param
+    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_string ("sys", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Number param
+    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 2:\n");
+    param[0] = purc_variant_make_string (file_path, true);
+    param[1] = purc_variant_make_ulongint (1); // daemon
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // lchown
@@ -1356,14 +1412,10 @@ TEST(dvobjs, dvobjs_fs_lchown)
     ASSERT_NE(func, nullptr);
 
     const char *env = "DVOBJS_TEST_PATH";
-    char data_path[PATH_MAX+1];
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_chown.test");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
-
-    char file_path[PATH_MAX + NAME_MAX + 1] = {};
-    strncpy (file_path, data_path, sizeof(file_path)-1);
-    strncat (file_path, "/fs/chwon.test", sizeof(file_path)-1);
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/chwon.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
     printf ("TEST chown: nr_args = 0, param = NULL:\n");
@@ -1409,12 +1461,139 @@ TEST(dvobjs, dvobjs_fs_lchown)
 // linkinfo
 TEST(dvobjs, dvobjs_fs_linkinfo)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
 
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "linkinfo");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+
+    printf ("TEST linkinfo: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // String param
+    printf ("TEST chown: nr_args = 2, param[0] = '/bin/vi':\n");
+    param[0] = purc_variant_make_string ("/bin/vi", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // lstat
 TEST(dvobjs, dvobjs_fs_lstat)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "lstat");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+
+    printf ("TEST lstat: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // Normal file
+    printf ("TEST lstat: nr_args = 1, param[0] = '/etc/hosts':\n");
+    param[0] = purc_variant_make_string ("/etc/hosts", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Bizarre file
+    printf ("TEST lstat: nr_args = 1, param[0] = '/proc/meminfo':\n");
+    param[0] = purc_variant_make_string ("/proc/meminfo", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    printf ("TEST lstat: nr_args = 1, param[0] = '/sys/devices/system':\n");
+    param[0] = purc_variant_make_string ("/sys/devices/cpu", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // link
@@ -1458,15 +1637,12 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    char file_path[PATH_MAX + NAME_MAX +1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/dir_mkdir");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -1560,15 +1736,12 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/dir_rmdir");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -1612,6 +1785,78 @@ TEST(dvobjs, dvobjs_fs_rmdir)
 // stat
 TEST(dvobjs, dvobjs_fs_stat)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "stat");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+
+    printf ("TEST stat: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // Normal file
+    printf ("TEST stat: nr_args = 1, param[0] = '/etc/hosts':\n");
+    param[0] = purc_variant_make_string ("/etc/hosts", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Bizarre file
+    printf ("TEST stat: nr_args = 1, param[0] = '/proc/meminfo':\n");
+    param[0] = purc_variant_make_string ("/proc/meminfo", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    printf ("TEST stat: nr_args = 1, param[0] = '/sys/devices/system':\n");
+    param[0] = purc_variant_make_string ("/sys/devices/cpu", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    dump_object (ret_var);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // symlink
@@ -1664,15 +1909,12 @@ TEST(dvobjs, dvobjs_fs_rm)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/rm.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs/test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -1748,15 +1990,12 @@ TEST(dvobjs, dvobjs_fs_unlink)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    char file_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/unlink.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs/streq.test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -1829,15 +2068,12 @@ TEST(dvobjs, dvobjs_fs_touch)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
-    char data_path[PATH_MAX+1];
+    char file_path[PATH_MAX + NAME_MAX +1];
     env = "DVOBJS_TEST_PATH";
-    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files");
-    std::cerr << "env: " << env << "=" << data_path << std::endl;
+    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+        env, "test_files/fs/touch.test");
+    std::cerr << "env: " << env << "=" << file_path << std::endl;
 
-    char file_path[1024] = {0};
-    strcpy (file_path, data_path);
-    strcat (file_path, "/fs/temp.and.test");
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);

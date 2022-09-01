@@ -584,7 +584,7 @@ static purc_variant_t
 get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
 {
     const char *string_filename = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "type mode_digits uid gid size rdev ctime";
     const char *flag = NULL;
     struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -601,6 +601,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
+
     if (nr_args > 1) {
         string_flags = purc_variant_get_string_const (argv[1]);
         if (NULL == string_flags) {
@@ -613,7 +614,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
                     uid gid size rdev blksize blocks atime ctime mtime";
         }
         else if (strcmp(string_flags, "default") == 0) {
-            string_flags = "type mode_digits uid gid size rdev ctime";
+            ; // Nothing to do
         }
     }
 
@@ -648,6 +649,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
 
         while (purc_isspace(*flag))
             flag ++;
+
         switch (*flag) {
         case 'd':
             if (strcmp_len (flag, "dev", &flag_len) == 0) {
@@ -699,9 +701,9 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
             if (strcmp_len (flag, "mode_digits", &flag_len) == 0) {
                 // returns file mode like '0644'.
                 char string_mode[] = "0000";
-                string_mode[1] += (st.st_mode & 0x0F00) >> 8;
-                string_mode[2] += (st.st_mode & 0x00F0) >> 4;
-                string_mode[3] += (st.st_mode & 0x000F);
+                string_mode[1] += (st.st_mode & 0x01C0) >> 6;
+                string_mode[2] += (st.st_mode & 0x0038) >> 3;
+                string_mode[3] += (st.st_mode & 0x0007);
                 val = purc_variant_make_string (string_mode, true);
                 purc_variant_object_set_by_static_ckey (ret_var, "type", val);
                 purc_variant_unref (val);

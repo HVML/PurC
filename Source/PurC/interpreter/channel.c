@@ -241,28 +241,32 @@ pcchan_retrieve(const char *chan_name)
     return NULL;
 }
 
-static void on_send_timeout(pcintr_coroutine_t crtn, void *ctxt)
-{
-    pcchan_t chan = ctxt;
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &chan->send_crtns) {
-        struct pcintr_coroutine *_crtn;
-        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
-        if (_crtn == crtn) {
-            list_del(&crtn->ln_stopped);
-            return;
-        }
-    }
-
-    assert(0);
-}
-
 static purc_variant_t
 send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 unsigned call_flags)
 {
     pcchan_t chan = native_entity;
+    pcintr_coroutine_t crtn = pcintr_get_coroutine();
+
+    if (call_flags & PCVRT_CALL_FLAG_AGAIN &&
+            call_flags & PCVRT_CALL_FLAG_TIMEOUT) {
+
+        if (crtn) {
+            struct list_head *p, *n;
+            list_for_each_safe(p, n, &chan->send_crtns) {
+                struct pcintr_coroutine *_crtn;
+                _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+                if (_crtn == crtn) {
+                    list_del(&crtn->ln_stopped);
+                    purc_set_error(PURC_ERROR_TIMEOUT);
+                    goto failed;
+                }
+            }
+        }
+
+        purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        goto failed;
+    }
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -295,10 +299,9 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcintr_coroutine_t crtn = pcintr_get_coroutine();
         if (crtn) {
             // stop the current coroutine
-            pcintr_stop_coroutine(crtn, &crtn->timeout, on_send_timeout, chan);
+            pcintr_stop_coroutine(crtn, &crtn->timeout);
             list_add_tail(&crtn->ln_stopped, &chan->send_crtns);
         }
 
@@ -315,23 +318,6 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static void on_recv_timeout(pcintr_coroutine_t crtn, void *ctxt)
-{
-    pcchan_t chan = ctxt;
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &chan->send_crtns) {
-        struct pcintr_coroutine *_crtn;
-        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
-        if (_crtn == crtn) {
-            list_del(&crtn->ln_stopped);
-            return;
-        }
-    }
-
-    assert(0);
-}
-
 static purc_variant_t
 recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
                 unsigned call_flags)
@@ -340,6 +326,27 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(argv);
 
     pcchan_t chan = native_entity;
+    pcintr_coroutine_t crtn = pcintr_get_coroutine();
+
+    if (call_flags & PCVRT_CALL_FLAG_AGAIN &&
+            call_flags & PCVRT_CALL_FLAG_TIMEOUT) {
+
+        if (crtn) {
+            struct list_head *p, *n;
+            list_for_each_safe(p, n, &chan->send_crtns) {
+                struct pcintr_coroutine *_crtn;
+                _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+                if (_crtn == crtn) {
+                    list_del(&crtn->ln_stopped);
+                    purc_set_error(PURC_ERROR_TIMEOUT);
+                    goto failed;
+                }
+            }
+        }
+
+        purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        goto failed;
+    }
 
     if (chan->qsize == 0) {
         purc_set_error(PURC_ERROR_ENTITY_GONE);
@@ -363,10 +370,9 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcintr_coroutine_t crtn = pcintr_get_coroutine();
         if (crtn) {
             // stop the current coroutine
-            pcintr_stop_coroutine(crtn, &crtn->timeout, on_recv_timeout, chan);
+            pcintr_stop_coroutine(crtn, &crtn->timeout);
             list_add_tail(&crtn->ln_stopped, &chan->recv_crtns);
         }
 

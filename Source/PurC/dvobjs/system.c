@@ -885,6 +885,7 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     pcintr_coroutine_t crtn;
     if (call_flags & PCVRT_CALL_FLAG_AGAIN) {
         crtn = pcintr_get_coroutine();
+        PC_ASSERT(call_flags & PCVRT_CALL_FLAG_TIMEOUT);
         PC_ASSERT(crtn);
 
         // TODO: get the remaining time from crtn and return it
@@ -991,7 +992,7 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_longdouble(ld_rem);
     }
     else {
-        pcintr_stop_coroutine(crtn, &req, NULL, NULL);
+        pcintr_stop_coroutine(crtn, &req);
         purc_set_error(PURC_ERROR_AGAIN);
         return PURC_VARIANT_INVALID;
     }
