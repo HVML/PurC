@@ -103,6 +103,12 @@ pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
         pcutils_array_destroy(frame->params, true);
     }
     if (frame->params_result) {
+        for (size_t i = 0; i < frame->nr_params; i++) {
+            purc_variant_t v = pcutils_array_get(frame->params_result, i);
+            if (v) {
+                purc_variant_unref(v);
+            }
+        }
         pcutils_array_destroy(frame->params_result, true);
     }
     free(frame);
