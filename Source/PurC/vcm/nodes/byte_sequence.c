@@ -45,27 +45,27 @@ static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return 0;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return 0;
 }
 
-static purc_variant_t
+    static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   struct pcvcm_node *node = frame->node;
-   return (node->sz_ptr[0] > 0) ? purc_variant_make_byte_sequence(
-           (void*)node->sz_ptr[1], node->sz_ptr[0])
-       : purc_variant_make_byte_sequence_empty();
+    UNUSED_PARAM(ctxt);
+    struct pcvcm_node *node = frame->node;
+    return (node->sz_ptr[0] > 0) ? purc_variant_make_byte_sequence(
+            (void*)node->sz_ptr[1], node->sz_ptr[0])
+        : purc_variant_make_byte_sequence_empty();
 }
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-     after_pushed,
-     eval
- };
+    after_pushed,
+    eval
+};
 
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_byte_sequence_ops() {

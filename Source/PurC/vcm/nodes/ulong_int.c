@@ -45,19 +45,19 @@ static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return 0;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return 0;
 }
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   struct pcvcm_node *node = frame->node;
-   return purc_variant_make_ulongint(node->u64);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    struct pcvcm_node *node = frame->node;
+    return purc_variant_make_ulongint(node->u64);
 }
 
 
