@@ -41,13 +41,16 @@
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
 #define PCVCM_EVAL_FLAG_TIMEOUT         0x0004
 
+struct pvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
 
     struct pcvcm_node      *node;
-    size_t                  nr_params;
     pcutils_array_t        *params;
+    pcutils_array_t        *params_result;
+    struct pvcm_eval_stack_frame_ops *ops;
 
+    size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
 };
@@ -76,6 +79,9 @@ struct pvcm_eval_stack_frame_ops {
 extern "C" {
 #endif  /* __cplusplus */
 
+struct pvcm_eval_stack_frame_ops *
+pcvcm_eval_get_ops_by_node(struct pcvcm_node *node);
+
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos);
 
@@ -88,7 +94,6 @@ pcvcm_eval_ctxt_create();
 
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
-
 
 #ifdef __cplusplus
 }
