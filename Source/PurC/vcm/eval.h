@@ -79,9 +79,6 @@ struct pvcm_eval_stack_frame_ops {
 extern "C" {
 #endif  /* __cplusplus */
 
-struct pvcm_eval_stack_frame_ops *
-pcvcm_eval_get_ops_by_node(struct pcvcm_node *node);
-
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos);
 

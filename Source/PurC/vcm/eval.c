@@ -38,6 +38,7 @@
 #include "private/utils.h"
 
 #include "eval.h"
+#include "ops.h"
 
 
 struct pcvcm_eval_stack_frame *
@@ -77,7 +78,7 @@ pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
         }
 
     }
-//    frame->ops = pcvcm_eval_get_ops_by_node(node);
+    frame->ops = pcvcm_eval_get_ops_by_node(node);
 
 out_destroy_params_result:
     pcutils_array_destroy(frame->params_result, true);
