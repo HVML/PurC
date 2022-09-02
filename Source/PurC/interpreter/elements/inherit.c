@@ -156,11 +156,11 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return;
 
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    purc_clr_error();
-
-    pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
-    purc_variant_unref(v);
+    if (v) {
+        pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
+        purc_variant_unref(v);
+    }
+//    purc_clr_error();
 }
 
 static void

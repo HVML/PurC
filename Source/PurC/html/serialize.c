@@ -393,7 +393,11 @@ pchtml_html_serialize_element_cb(pcdom_element_t *element,
         attr = attr->next;
     }
 
-    if (element->self_close) {
+    pcdom_node_t *node = pcdom_interface_node(element);
+    bool is_void = pchtml_html_node_is_void(node);
+    bool has_children = node->first_child != NULL;
+
+    if (is_void || (element->self_close && !has_children)) {
         pchtml_html_serialize_send("/>", 2, ctx);
     }
     else {
@@ -411,7 +415,10 @@ pchtml_html_serialize_element_closed_cb(pcdom_element_t *element,
     const unsigned char *tag_name;
     size_t len = 0;
 
-    if (element->self_close) {
+    pcdom_node_t *node = pcdom_interface_node(element);
+    bool is_void = pchtml_html_node_is_void(node);
+    bool has_children = node->first_child != NULL;
+    if (is_void || (element->self_close && !has_children)) {
         return PCHTML_STATUS_OK;
     }
 
@@ -1266,7 +1273,11 @@ pchtml_html_serialize_pretty_element_cb(pcdom_element_t *element,
         pchtml_html_serialize_send(buff, n, ctx);
     }
 
-    if (element->self_close) {
+
+    bool is_void = pchtml_html_node_is_void(node);
+    bool has_children = node->first_child != NULL;
+
+    if (is_void || (element->self_close && !has_children)) {
         pchtml_html_serialize_send("/>", 2, ctx);
     }
     else {

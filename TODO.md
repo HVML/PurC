@@ -39,7 +39,7 @@
    - `file://$SYS.cwd/a.hvml`
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
-1. [0.8.2] Keep self-closed foreign elements not changed.
+1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
 
 ### 1.2.3) Others
 
@@ -47,7 +47,8 @@
 
 ### 1.3) Predefined Variables
 
-1. [0.8.2] `$RUNNER.channel` and the native entity representing a channel.
+1. [0.8.2] Implement `$RUNNER.channel` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
@@ -63,8 +64,10 @@
 
 ### 1.5) Interpreter
 
-1. [0.8.2] Enhance the evaluation of VCM to support `ERROR_AGAIN`.
-1. [0.8.2] Provide support for channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
+1. [0.8.2] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
+1. [0.8.2] Raise an exception for a failed evaluation of an eJSON expression.
+1. [0.8.2] Enhance `purc_coroutine_dump_stack` to show the specific failed position, e.g., a call to a getter or setter with arguments, when an uncaught exception raised.
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.x] Improve the implementation of the element `update`:
@@ -105,14 +108,13 @@
 
 ### 1.8) Known Bugs
 
-1. [0.8.2] If refer to a nonexistent property name in HVML program, PurC crashes.
 1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
    - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.
    - `hvml/greatest-common-divisor.hvml`: Adjust the evaluating logic of CJSONSEE.
-   - `hvml/hello-world-c-bad.hvml`: `$0<) Helo, world! -- from HVML COROUTINE # $CRTN.cid"; expected: `0) Helo, world! -- from HVML COROUTINE # $CRTN.cid`; but got `0`.
+   - `hvml/hello-world-c-bad.hvml`: `$0<) Helo, world! -- from HVML COROUTINE # $CRTN.cid"`; expected: `0) Helo, world! -- from HVML COROUTINE # $CRTN.cid`; but got `0`.
 1. [0.8.1; Resolved] Improve eJSON parser to support the following patterns:
    - `$?.greating$?.name`: `Hello, Tom`
    - `$?.greating{$?.name}`: `Hello, Tom`
