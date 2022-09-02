@@ -65,12 +65,6 @@ struct pvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 
-    size_t (*get_children_count)(struct pcvcm_eval_ctxt *ctxt,
-            struct pcvcm_eval_stack_frame *frame);
-
-    struct pcvcm_node *(*get_child)(struct pcvcm_eval_ctxt *ctxt,
-            struct pcvcm_eval_stack_frame *frame, size_t idx);
-
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 };
