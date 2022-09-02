@@ -47,7 +47,7 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 {
    UNUSED_PARAM(ctxt);
    UNUSED_PARAM(frame);
-   return -1;
+   return 0;
 }
 
 static purc_variant_t
@@ -55,8 +55,8 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
    UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return PURC_VARIANT_INVALID;
+   struct pcvcm_node *node = frame->node;
+   return purc_variant_make_longdouble(node->ld);
 }
 
 
