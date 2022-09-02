@@ -142,17 +142,38 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     }
 }
 
-purc_variant_t
-eval_node(struct pcvcm_node *node, struct pcvcm_eval_ctxt *ctxt,
-        size_t return_pos, find_var_fn find_var, void *find_var_ctxt)
+
+static struct pcvcm_eval_stack_frame *
+push_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_node *node,
+        size_t return_pos)
 {
-    purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame = pcvcm_eval_stack_frame_create(
             node, return_pos);
     if (frame == NULL) {
         goto out;
     }
 
+    list_add_tail(&frame->ln, &ctxt->stack);
+out:
+    return frame;
+}
+
+static void
+pop_frame(struct pcvcm_eval_ctxt *ctxt)
+{
+    struct pcvcm_eval_stack_frame *last = list_last_entry(
+            &ctxt->stack, struct pcvcm_eval_stack_frame, ln);
+    list_del(&last->ln);
+    pcvcm_eval_stack_frame_destroy(last);
+}
+
+purc_variant_t
+eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
+        size_t return_pos)
+{
+    UNUSED_PARAM(return_pos);
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    int err = 0;
     int ret = frame->ops->after_pushed(ctxt, frame);
     if (ret != PURC_ERROR_OK) {
         goto out;
@@ -160,8 +181,13 @@ eval_node(struct pcvcm_node *node, struct pcvcm_eval_ctxt *ctxt,
 
     for (; frame->pos < frame->nr_params; frame->pos++) {
         struct pcvcm_node *param = pcutils_array_get(frame->params, frame->pos);
-        purc_variant_t v = eval_node(param, ctxt, frame->pos, find_var,
-                find_var_ctxt);
+        struct pcvcm_eval_stack_frame *param_frame = push_frame(ctxt, param,
+                frame->pos);
+        if (!param_frame) {
+            goto out;
+        }
+
+        purc_variant_t v = eval_frame(ctxt, param_frame, frame->pos);
         if (!v) {
             goto out;
         }
@@ -169,7 +195,12 @@ eval_node(struct pcvcm_node *node, struct pcvcm_eval_ctxt *ctxt,
     }
 
     result = frame->ops->eval(ctxt, frame);
+
 out:
+    err = purc_get_last_error();
+    if (err != PURC_ERROR_AGAIN) {
+        pop_frame(ctxt);
+    }
     return result;
 }
 
