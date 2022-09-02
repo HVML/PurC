@@ -644,8 +644,11 @@ The source tree of PurC contains the following modules:
 - `Source/test/`: The unit test programs.
 - `Source/Samples/api`: Samples for using the API of PurC.
 - `Source/Samples/hvml`: HVML sample programs.
-- `Source/Tools/`: The tools (executables), i.e., the command line programs.
-- `Source/Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Source/Executables/`: The executables, i.e., the command line programs.
+- `Source/Executables/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Source/Tools/`: The tools or scripts for maintaining this project.
+- `Source/Tools/aur`: AUR package packaging scripts.
+- `Source/Tools/debian`: DEB package packaging scripts.
 - `Documents/`: Some documents for developers.
 
 Note that the HTML parser and DOM operations of PurC are derived from:
