@@ -45,25 +45,37 @@ static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return -1;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return -1;
 }
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(ctxt);
+    purc_variant_t array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (array == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    for (size_t i = 0; i < frame->nr_params; i++) {
+        purc_variant_t v = pcutils_array_get(frame->params_result, i);
+        if(!purc_variant_array_append(array, v)) {
+            goto out;
+        }
+    }
+
+out:
+    return array;
 }
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-     after_pushed,
-     eval
- };
+    after_pushed,
+    eval
+};
 
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_array_ops() {
