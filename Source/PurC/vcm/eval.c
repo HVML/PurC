@@ -39,3 +39,85 @@
 
 #include "eval.h"
 
+struct pcvcm_eval_stack_frame *
+pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
+{
+    struct pcvcm_eval_stack_frame *frame;
+    frame = (struct pcvcm_eval_stack_frame*)calloc(1,sizeof(*frame));
+    if (!frame) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    frame->node = node;
+    frame->pos = 0;
+    frame->return_pos = return_pos;
+    frame->nr_params = pcvcm_node_children_count(node);
+    if (frame->nr_params) {
+        frame->params = pcutils_array_create();
+        if (!frame->params) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out_destroy_frame;
+        }
+
+        struct pctree_node *child = pctree_node_child(
+                (struct pctree_node*)node);
+        while (child) {
+            int ret = pcutils_array_push(frame->params, child);
+            if (ret != PURC_ERROR_OK) {
+                goto out_destroy_params;
+            }
+            child = pctree_node_next(child);
+        }
+    }
+
+out_destroy_params:
+    pcutils_array_destroy(frame->params, true);
+
+out_destroy_frame:
+    free(frame);
+
+out:
+    return frame;
+}
+
+void
+pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
+{
+    if (!frame) {
+        return;
+    }
+    if (frame->params) {
+        pcutils_array_destroy(frame->params, true);
+    }
+    free(frame);
+}
+
+struct pcvcm_eval_ctxt *
+pcvcm_eval_ctxt_create()
+{
+    struct pcvcm_eval_ctxt *ctxt;
+    ctxt = (struct pcvcm_eval_ctxt*)calloc(1,sizeof(*ctxt));
+    if (!ctxt) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    list_head_init(&ctxt->stack);
+out:
+    return ctxt;
+}
+
+void
+pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
+{
+    if (!ctxt) {
+        return;
+    }
+    struct list_head *stack = &ctxt->stack;
+    struct pcvcm_eval_stack_frame *p, *n;
+    list_for_each_entry_safe(p, n, stack, ln) {
+        pcvcm_eval_stack_frame_destroy(p);
+    }
+}
+
