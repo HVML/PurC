@@ -144,7 +144,7 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
 
 purc_variant_t
 eval_node(struct pcvcm_node *node, struct pcvcm_eval_ctxt *ctxt,
-        size_t return_pos, cb_find_var find_var, void *find_var_ctxt)
+        size_t return_pos, find_var_fn find_var, void *find_var_ctxt)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame = pcvcm_eval_stack_frame_create(

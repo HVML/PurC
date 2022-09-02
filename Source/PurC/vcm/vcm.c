@@ -97,7 +97,7 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
         struct pcvcm_node *node, bool ignore_string_quoted);
 
 struct pcvcm_node_op {
-    cb_find_var find_var;
+    find_var_fn find_var;
     void *find_var_ctxt;
 };
 
@@ -1808,7 +1808,7 @@ purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
 
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        find_var_fn find_var, void *ctxt,
         bool silently)
 {
     UNUSED_PARAM(eval_ctxt);
@@ -1845,7 +1845,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        find_var_fn find_var, void *ctxt,
         bool silently, bool timeout)
 {
     UNUSED_PARAM(tree);

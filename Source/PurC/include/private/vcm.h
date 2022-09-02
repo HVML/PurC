@@ -247,18 +247,18 @@ struct pcvcm_node *pcvcm_stack_bottommost(struct pcvcm_stack *stack);
 
 void pcvcm_stack_destroy(struct pcvcm_stack *stack);
 
-typedef purc_variant_t(*cb_find_var) (void *ctxt, const char *name);
+typedef purc_variant_t(*find_var_fn) (void *ctxt, const char *name);
 
 struct pcvcm_eval_ctxt;
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        find_var_fn find_var, void *ctxt,
         bool silently);
 
 struct pcvcm_eval_ctxt;
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        find_var_fn find_var, void *ctxt,
         bool silently, bool timeout);
 
 struct pcintr_stack;
