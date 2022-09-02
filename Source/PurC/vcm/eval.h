@@ -41,14 +41,14 @@
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
 #define PCVCM_EVAL_FLAG_TIMEOUT         0x0004
 
-struct pvcm_eval_stack_frame_ops;
+struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
 
     struct pcvcm_node      *node;
     pcutils_array_t        *params;
     pcutils_array_t        *params_result;
-    struct pvcm_eval_stack_frame_ops *ops;
+    struct pcvcm_eval_stack_frame_ops *ops;
 
     size_t                  nr_params;
     size_t                  pos;
@@ -61,7 +61,7 @@ struct pcvcm_eval_ctxt {
     uint32_t                flags;
 };
 
-struct pvcm_eval_stack_frame_ops {
+struct pcvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 

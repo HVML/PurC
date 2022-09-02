@@ -44,8 +44,71 @@ extern "C" {
 #endif  /* __cplusplus */
 
 
-struct pvcm_eval_stack_frame_ops *
+struct pcvcm_eval_stack_frame_ops *
 pcvcm_eval_get_ops_by_node(struct pcvcm_node *node);
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_undefind_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_undefined_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_object_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_array_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_string_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_null_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_boolean_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_number_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_long_int_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_ulong_int_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_long_double_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_byte_sequence_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_concat_string_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_get_variable_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_get_element_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_call_getter_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_call_setter_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_cjsonee_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_cjsonee_op_and_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_cjsonee_op_or_ops();
+
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_cjsonee_op_semicolon_ops();
 
 #ifdef __cplusplus
 }
