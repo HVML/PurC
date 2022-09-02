@@ -56,6 +56,34 @@
 
 #define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
 
+static const char *typenames[] = {
+    PCVCM_NODE_TYPE_NAME_UNDEFINED,
+    PCVCM_NODE_TYPE_NAME_OBJECT,
+    PCVCM_NODE_TYPE_NAME_ARRAY,
+    PCVCM_NODE_TYPE_NAME_STRING,
+    PCVCM_NODE_TYPE_NAME_NULL,
+    PCVCM_NODE_TYPE_NAME_BOOLEAN,
+    PCVCM_NODE_TYPE_NAME_NUMBER,
+    PCVCM_NODE_TYPE_NAME_LONG_INT,
+    PCVCM_NODE_TYPE_NAME_ULONG_INT,
+    PCVCM_NODE_TYPE_NAME_LONG_DOUBLE,
+    PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE,
+    PCVCM_NODE_TYPE_NAME_CONCAT_STRING,
+    PCVCM_NODE_TYPE_NAME_GET_VARIABLE,
+    PCVCM_NODE_TYPE_NAME_GET_ELEMENT,
+    PCVCM_NODE_TYPE_NAME_CALL_GETTER,
+    PCVCM_NODE_TYPE_NAME_CALL_SETTER,
+    PCVCM_NODE_TYPE_NAME_CJSONEE,
+    PCVCM_NODE_TYPE_NAME_CJSONEE_OP_AND,
+    PCVCM_NODE_TYPE_NAME_CJSONEE_OP_OR,
+    PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON,
+};
+
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(typenames) == PCVCM_NODE_TYPE_NR);
+#undef _COMPILE_TIME_ASSERT
+
 typedef
 void (*pcvcm_node_handle)(purc_rwstream_t rws, struct pcvcm_node *node,
         bool ignore_string_quoted);
@@ -69,7 +97,7 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
         struct pcvcm_node *node, bool ignore_string_quoted);
 
 struct pcvcm_node_op {
-    cb_find_var find_var;
+    find_var_fn find_var;
     void *find_var_ctxt;
 };
 
@@ -82,6 +110,12 @@ struct pcvcm_ev {
 };
 
 static bool _print_vcm_log = false;
+
+const char *pcvcm_node_typename(enum pcvcm_node_type type)
+{
+    assert(type >= 0 && type < PCVCM_NODE_TYPE_NR);
+    return typenames[type];
+}
 
 static struct pcvcm_node *pcvcm_node_new(enum pcvcm_node_type type, bool closed)
 {
@@ -1773,11 +1807,11 @@ purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
 }
 
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        struct pcvcm_eval_ctxt **ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
-    UNUSED_PARAM(eval_ctxt);
+    UNUSED_PARAM(ctxt);
     const char *env_value;
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         _print_vcm_log = (*env_value == '1' ||
@@ -1792,7 +1826,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 
     struct pcvcm_node_op ops = {
         .find_var = find_var,
-        .find_var_ctxt = ctxt,
+        .find_var_ctxt = find_var_ctxt,
     };
 
     if (tree) {
@@ -1810,14 +1844,14 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 }
 
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt *eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
         bool silently, bool timeout)
 {
     UNUSED_PARAM(tree);
-    UNUSED_PARAM(eval_ctxt);
-    UNUSED_PARAM(find_var);
     UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(find_var);
+    UNUSED_PARAM(find_var_ctxt);
     UNUSED_PARAM(silently);
     UNUSED_PARAM(timeout);
 
