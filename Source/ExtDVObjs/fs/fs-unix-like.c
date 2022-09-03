@@ -467,12 +467,13 @@ static const char *get_basename_ex (const char *string_path,
         }
         temp_ptr ++;
     }
+    (*fname_length) = (base_end - base_begin);
 
     temp_ptr = base_begin;
     while (temp_ptr < base_end) {
         if ('.' == *temp_ptr) {
             (*ext_begin) = temp_ptr + 1;
-            (*fname_length) = (base_begin - temp_ptr);
+            (*fname_length) = (temp_ptr - base_begin);
         }
         temp_ptr ++;
     }
@@ -2232,7 +2233,7 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "dirname basename extension filename";
     const char *dir_begin = NULL;
     const char *base_begin = NULL;
     const char *ext_begin = NULL;
@@ -2255,15 +2256,20 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
+
     if (nr_args > 1) {
-        string_flags = purc_variant_get_string_const (argv[1]);
+        const char *string_param = NULL;
+        string_param = purc_variant_get_string_const (argv[1]);
         if (NULL == string_flags) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             return PURC_VARIANT_INVALID;
         }
 
-        if (strcmp(string_flags, "all") == 0) {
-            string_flags = "dirname basename extension filename";
+        if (strcmp(string_param, "all") == 0) {
+            ; // Nothing to do
+        }
+        else {
+            string_flags = string_param;
         }
     }
 
@@ -2281,7 +2287,9 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             case 'd':
                 if (strcmp_len (flag, "dirname", &flag_len) == 0) {
                     dir_begin = get_dir_path (string_path, 1, &dir_length);
-                    val = purc_variant_make_string_ex(dir_begin, dir_length, true);
+                    val = dir_begin ?
+                            purc_variant_make_string_ex(dir_begin, dir_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "dirname", val);
                     purc_variant_unref (val);
                 }
@@ -2296,21 +2304,29 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 }
 
                 if (strcmp_len (flag, "basename", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (base_begin, base_length, true);
+                    val = base_begin ?
+                            purc_variant_make_string_ex (base_begin, base_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "basename", val);
                     purc_variant_unref (val);
                     break;
                 }
-
+                
+                printf ("ext_begin: %s, ext_length=%ld\n", ext_begin, ext_length);
                 if (strcmp_len (flag, "extension", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (ext_begin, ext_length, true);
+                    val = ext_begin ?
+                            purc_variant_make_string_ex (ext_begin, ext_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "extension", val);
                     purc_variant_unref (val);
                     break;
                 }
 
+                printf ("base_begin: %s, fname_length=%ld\n", base_begin, fname_length);
                 if (strcmp_len (flag, "filename", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (base_begin, fname_length, true);
+                    val = base_begin ?
+                            purc_variant_make_string_ex (base_begin, fname_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "filename", val);
                     purc_variant_unref (val);
                     break;
