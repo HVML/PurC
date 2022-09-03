@@ -97,7 +97,7 @@ void pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws,
         struct pcvcm_node *node, bool ignore_string_quoted);
 
 struct pcvcm_node_op {
-    cb_find_var find_var;
+    find_var_fn find_var;
     void *find_var_ctxt;
 };
 
@@ -1807,11 +1807,11 @@ purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
 }
 
 purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        struct pcvcm_eval_ctxt **ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
-    UNUSED_PARAM(eval_ctxt);
+    UNUSED_PARAM(ctxt);
     const char *env_value;
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         _print_vcm_log = (*env_value == '1' ||
@@ -1826,7 +1826,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 
     struct pcvcm_node_op ops = {
         .find_var = find_var,
-        .find_var_ctxt = ctxt,
+        .find_var_ctxt = find_var_ctxt,
     };
 
     if (tree) {
@@ -1844,14 +1844,14 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
 }
 
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt *eval_ctxt,
-        cb_find_var find_var, void *ctxt,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
         bool silently, bool timeout)
 {
     UNUSED_PARAM(tree);
-    UNUSED_PARAM(eval_ctxt);
-    UNUSED_PARAM(find_var);
     UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(find_var);
+    UNUSED_PARAM(find_var_ctxt);
     UNUSED_PARAM(silently);
     UNUSED_PARAM(timeout);
 
