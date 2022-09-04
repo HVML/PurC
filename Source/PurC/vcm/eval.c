@@ -144,6 +144,15 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
 
 
 static struct pcvcm_eval_stack_frame *
+bottom_frame(struct pcvcm_eval_ctxt *ctxt)
+{
+    if (list_empty(&ctxt->stack)) {
+        return NULL;
+    }
+    return list_last_entry(&ctxt->stack, struct pcvcm_eval_stack_frame, ln);
+}
+
+static struct pcvcm_eval_stack_frame *
 push_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_node *node,
         size_t return_pos)
 {
@@ -227,4 +236,45 @@ out:
     return result;
 }
 
+purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently)
+{
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    struct pcvcm_eval_stack_frame *frame;
+    struct pcvcm_eval_ctxt *eval_ctxt = pcvcm_eval_ctxt_create();
+    int err;
+    if (!eval_ctxt) {
+        goto out;
+    }
+    eval_ctxt->find_var = find_var;
+    eval_ctxt->find_var_ctxt = find_var_ctxt;
+    if (silently) {
+        eval_ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
+    }
+
+    frame = push_frame(eval_ctxt, tree, 0);
+    if (!frame) {
+        goto out;
+    }
+
+    do {
+        result = eval_frame(eval_ctxt, frame, frame->return_pos);
+        err = purc_get_last_error();
+        if (err == PURC_ERROR_AGAIN) {
+            goto out;
+        }
+        frame = bottom_frame(eval_ctxt);
+    } while (frame);
+
+out:
+    if (err == PURC_ERROR_AGAIN) {
+        *ctxt = eval_ctxt;
+    }
+    else {
+        pcvcm_eval_ctxt_destroy(eval_ctxt);
+    }
+    return result;
+}
 

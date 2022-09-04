@@ -57,9 +57,6 @@ struct pcvcm_eval_stack_frame {
     pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
 
-    find_var_fn             find_var;
-    void                   *find_var_ctxt;
-
     size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
@@ -71,6 +68,9 @@ struct pcvcm_eval_ctxt {
     /* struct pcvcm_eval_stack_frame */
     struct list_head        stack;
     uint32_t                flags;
+    find_var_fn             find_var;
+    void                   *find_var_ctxt;
+
 };
 
 struct pcvcm_eval_stack_frame_ops {
