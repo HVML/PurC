@@ -2355,7 +2355,7 @@ readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
     UNUSED_PARAM(call_flags);
 
-    char buffer[PATH_MAX];
+    char buffer[PATH_MAX] = {};
     const char *string_path = NULL;
     ssize_t nbytes;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
