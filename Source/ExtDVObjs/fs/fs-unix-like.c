@@ -2616,8 +2616,11 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return purc_variant_make_boolean (false);
     }
 
-    strncat (filename, string_prefix, sizeof(filename) - 1);
+    if (string_prefix) {
+        strncat (filename, string_prefix, sizeof(filename) - 1);
+    }
     strncat (filename, TEMP_TEMPLATE, sizeof(filename) - 1);
+
     int tmp_fd;
     if ((tmp_fd = mkstemp (filename)) == -1) {
         purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
@@ -2862,7 +2865,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 3) {
-        // Get the offset
+        // Get the length
         uint64_t len;
         if (! purc_variant_cast_to_ulongint (argv[3], &len, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);

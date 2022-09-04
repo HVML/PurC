@@ -1502,7 +1502,7 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     param[0] = purc_variant_make_string ("/bin/vi", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
-    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
@@ -1878,7 +1878,7 @@ TEST(dvobjs, dvobjs_fs_readlink)
     param[0] = purc_variant_make_string ("/bin/vi", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
-    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
@@ -1887,7 +1887,7 @@ TEST(dvobjs, dvobjs_fs_readlink)
     param[0] = purc_variant_make_string ("/etc/hosts", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_TRUE(pcvariant_is_false(ret_var));
-    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
@@ -1948,7 +1948,7 @@ TEST(dvobjs, dvobjs_fs_realpath)
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
-    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
@@ -1956,7 +1956,7 @@ TEST(dvobjs, dvobjs_fs_realpath)
     param[0] = purc_variant_make_string ("/tmp/", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
-    printf ("return: %s\n", pcvariant_to_string (ret_var));
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
     ASSERT_STREQ (purc_variant_get_string_const(ret_var), "/tmp");
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
@@ -2222,16 +2222,229 @@ TEST(dvobjs, dvobjs_fs_stat)
 // symlink
 TEST(dvobjs, dvobjs_fs_symlink)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "symlink");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    char file_path_origin[PATH_MAX + NAME_MAX + 1] = {};
+    strncpy (file_path_origin, data_path, sizeof(file_path_origin)-1);
+    strncat (file_path_origin, "/fs/symlink_origin.test", sizeof(file_path_origin)-1);
+
+    char file_path_pointer[PATH_MAX + NAME_MAX + 1] = {};
+    strncpy (file_path_pointer, data_path, sizeof(file_path_pointer)-1);
+    strncat (file_path_pointer, "/fs/symlink_pointer.test", sizeof(file_path_pointer)-1);
+
+    FILE *fp = fopen (file_path_origin, "wb");
+    const char content[] = "This is a test file: symlink origin file.";
+    ASSERT_NE(fp, nullptr);
+    fwrite (content, 1, sizeof(content), fp);
+    fclose (fp);
+
+    printf ("TEST symlink: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // String param
+    printf ("TEST symlink: nr_args = 2, param[0] = file_path_origin, param[1] = file_path_pointer:\n");
+    param[0] = purc_variant_make_string (file_path_origin, true);
+    param[1] = purc_variant_make_string (file_path_pointer, true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    ASSERT_EQ (access(file_path_pointer, F_OK | R_OK), 0);
+
+    // Clean up
+    remove (file_path_origin);
+    remove (file_path_pointer);
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // tempname
 TEST(dvobjs, dvobjs_fs_tempname)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+    const char *temp_filename = NULL;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "tempname");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+
+    printf ("TEST tempname: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // String param
+    printf ("TEST tempname: nr_args = 1, param[0] = path:\n");
+    param[0] = purc_variant_make_string (data_path, true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    temp_filename = purc_variant_get_string_const (ret_var);
+    printf ("return: %s\n", temp_filename);
+    remove (temp_filename);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // With prefix
+    printf ("TEST tempname: nr_args = 1, param[0] = path, param[1] = prefix:\n");
+    param[0] = purc_variant_make_string (data_path, true);
+    param[1] = purc_variant_make_string ("test_prefix_hello_world_", true);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    temp_filename = purc_variant_get_string_const (ret_var);
+    printf ("return: %s\n", temp_filename);
+    remove (temp_filename);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // umask
 TEST(dvobjs, dvobjs_fs_umask)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "umask");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    // Without param
+    printf ("TEST umask: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(ret_var);
+
+    // String param
+    printf ("TEST umask: nr_args = 1, param[0] = mask:\n");
+    param[0] = purc_variant_make_string ("0755", true);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // rm
@@ -2479,6 +2692,85 @@ TEST(dvobjs, dvobjs_fs_touch)
 // file_contents
 TEST(dvobjs, dvobjs_fs_file_contents)
 {
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
+
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_t dynamic = purc_variant_object_get_by_ckey (fs, "file_contents");
+    ASSERT_NE(dynamic, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic), true);
+
+    purc_dvariant_method func = NULL;
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files/fs/file_contents.test");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    FILE *fp = fopen (data_path, "wb");
+    ASSERT_NE(fp, nullptr);
+    char ch;
+    int i;
+    for (i = 0; i < 100; i++) {
+        ch = '0' + i % 10;
+        fwrite (&ch, 1, 1, fp);
+    }
+    fclose (fp);
+
+
+    printf ("TEST file_contents: nr_args = 0, param = NULL:\n");
+    ret_var = func (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    // param: filename, flag, offset, length
+    printf ("TEST file_contents: nr_args = 2, param[0] = path, param[1] = flag, \
+param[2] = offset, param[3] = length:\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("string", false);
+    param[2] = purc_variant_make_longint (25);
+    param[3] = purc_variant_make_ulongint (20);
+    ret_var = func (NULL, 4, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
+    purc_variant_unref(param[3]);
+    purc_variant_unref(ret_var);
+
+    // Clean up
+    remove (data_path);
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }
 
 // open_dir
