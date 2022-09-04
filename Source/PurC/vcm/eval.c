@@ -173,28 +173,51 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
 {
     UNUSED_PARAM(return_pos);
     purc_variant_t result = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+    struct pcvcm_eval_stack_frame *param_frame;
+    struct pcvcm_node *param;
     int err = 0;
-    int ret = frame->ops->after_pushed(ctxt, frame);
-    if (ret != PURC_ERROR_OK) {
-        goto out;
-    }
+    int ret = 0;
 
-    for (; frame->pos < frame->nr_params; frame->pos++) {
-        struct pcvcm_node *param = pcutils_array_get(frame->params, frame->pos);
-        struct pcvcm_eval_stack_frame *param_frame = push_frame(ctxt, param,
-                frame->pos);
-        if (!param_frame) {
-            goto out;
+    while (frame->step != STEP_DONE) {
+        switch (frame->step) {
+            case STEP_AFTER_PUSH:
+                ret = frame->ops->after_pushed(ctxt, frame);
+                if (ret != PURC_ERROR_OK) {
+                    goto out;
+                }
+                frame->step = STEP_EVAL_PARAMS;
+                break;
+
+            case STEP_EVAL_PARAMS:
+                for (; frame->pos < frame->nr_params; frame->pos++) {
+                    param = pcutils_array_get(frame->params, frame->pos);
+                    param_frame = push_frame(ctxt, param, frame->pos);
+                    if (!param_frame) {
+                        goto out;
+                    }
+
+                    val = eval_frame(ctxt, param_frame, frame->pos);
+                    if (!val) {
+                        goto out;
+                    }
+                    pcutils_array_set(frame->params_result, frame->pos, val);
+                }
+                frame->step = STEP_EVAL_VCM;
+                break;
+
+            case STEP_EVAL_VCM:
+                result = frame->ops->eval(ctxt, frame);
+                if (!result) {
+                    goto out;
+                }
+                frame->step = STEP_DONE;
+                break;
+
+            case STEP_DONE:
+                break;
         }
-
-        purc_variant_t v = eval_frame(ctxt, param_frame, frame->pos);
-        if (!v) {
-            goto out;
-        }
-        pcutils_array_set(frame->params_result, frame->pos, v);
     }
-
-    result = frame->ops->eval(ctxt, frame);
 
 out:
     err = purc_get_last_error();
