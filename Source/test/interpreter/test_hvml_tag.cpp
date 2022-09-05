@@ -222,6 +222,12 @@ char *read_file(const char *file)
     return buf;
 }
 
+#if OS(DARWIN)
+#define OS_POSTFIX  "darwin"
+#else
+#define OS_POSTFIX  "unknown"
+#endif
+
 std::vector<TestCase> read_test_cases()
 {
     std::vector<TestCase> test_cases;
@@ -230,6 +236,7 @@ std::vector<TestCase> read_test_cases()
     char data_path[PATH_MAX + 1] =  {0};
     char file_path[PATH_MAX + 1] = {0};
     char file[PATH_MAX+16] = {0};
+    char file_os[PATH_MAX+16] = {0};
     char *line = NULL;
     size_t sz = 0;
     ssize_t read = 0;
@@ -265,12 +272,23 @@ std::vector<TestCase> read_test_cases()
                 continue;
             }
 
+            n = snprintf(file_os, sizeof(file_os), "%s/%s-%s.html",
+                    data_path, name, OS_POSTFIX);
+            if (n >= 0 && (size_t)n >= sizeof(file_os)) {
+                // to circumvent format-truncation warning
+                ;
+            }
             n = snprintf(file, sizeof(file), "%s/%s.html", data_path, name);
             if ( n>= 0 && (size_t)n >= sizeof(file)) {
                 // to circumvent format-truncation warning
                 ;
             }
-            char *html = read_file(file);
+
+            char *html;
+            if ((html = read_file(file_os)) == NULL) {
+                html = read_file(file);
+            }
+
             add_test_case(test_cases, name, hvml, html, file);
 
             free (hvml);
