@@ -301,6 +301,12 @@ pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node)
     return true;
 }
 
+static bool
+has_fatal_error(int err)
+{
+    return (err == PURC_ERROR_OUT_OF_MEMORY);
+}
+
 purc_variant_t
 eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
         size_t return_pos)
@@ -403,6 +409,10 @@ eval_vcm(struct pcvcm_node *tree,
     } while (frame);
 
 out:
+    if ((result == PURC_VARIANT_INVALID) && (err != PURC_ERROR_AGAIN)
+            && silently && !has_fatal_error(err)) {
+        result = purc_variant_make_undefined();
+    }
     return result;
 }
 
