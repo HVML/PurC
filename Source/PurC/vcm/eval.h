@@ -41,11 +41,20 @@
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
 #define PCVCM_EVAL_FLAG_TIMEOUT         0x0004
 
+#define KEY_INNER_HANDLER               "__vcm_native_wrapper"
+#define KEY_CALLER_NODE                 "__vcm_caller_node"
+#define KEY_PARAM_NODE                  "__vcm_param_node"
+
 enum pcvcm_eval_stack_frame_step {
     STEP_AFTER_PUSH = 0,
     STEP_EVAL_PARAMS,
     STEP_EVAL_VCM,
     STEP_DONE,
+};
+
+enum pcvcm_eval_method_type {
+    GETTER_METHOD,
+    SETTER_METHOD
 };
 
 struct pcvcm_eval_stack_frame_ops;
@@ -70,12 +79,15 @@ struct pcvcm_eval_ctxt {
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
-
+    struct pcvcm_node      *node;
 };
 
 struct pcvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
+
+    struct pcvcm_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
+            struct pcvcm_eval_stack_frame *frame, size_t pos);
 
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
@@ -97,6 +109,51 @@ pcvcm_eval_ctxt_create();
 
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
+
+unsigned
+pcvcm_eval_ctxt_get_call_flags(struct pcvcm_eval_ctxt *ctxt);
+
+
+purc_variant_t
+pcvcm_eval_native_wrapper_create(purc_variant_t caller_node,
+        purc_variant_t param);
+
+bool
+pcvcm_eval_is_native_wrapper(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_caller(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_param(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_call_dvariant_method(purc_variant_t root,
+        purc_variant_t var, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, unsigned call_flags);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_method(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, unsigned call_flags);
+bool
+pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
+
+static inline purc_variant_t
+pcvcm_eval_get_attach_variant(struct pcvcm_node *node)
+{
+    return node ? (purc_variant_t)node->attach : PURC_VARIANT_INVALID;
+}
+
+purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt_out,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently);
+
+purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently, bool timeout);
 
 #ifdef __cplusplus
 }

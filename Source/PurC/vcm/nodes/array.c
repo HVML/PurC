@@ -47,7 +47,7 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
-    return -1;
+    return 0;
 }
 
 static purc_variant_t
@@ -73,8 +73,9 @@ out:
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-    after_pushed,
-    eval
+    .after_pushed = after_pushed,
+    .select_param = select_param_default,
+    .eval = eval
 };
 
 struct pcvcm_eval_stack_frame_ops *

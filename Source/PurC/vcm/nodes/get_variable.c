@@ -45,25 +45,46 @@ static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return -1;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    if (frame->nr_params != 1) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+    return 0;
 }
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return PURC_VARIANT_INVALID;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_variant_t name = pcutils_array_get(frame->params_result, 0);
+    if (name == PURC_VARIANT_INVALID || !purc_variant_is_string(name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if(!ctxt->find_var) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    const char *sname = purc_variant_get_string_const(name);
+    ret = ctxt->find_var(ctxt->find_var_ctxt, sname);
+    if (ret) {
+        purc_variant_ref(ret);
+    }
+out:
+    return ret;
 }
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-     after_pushed,
-     eval
- };
+    .after_pushed = after_pushed,
+    .select_param = select_param_default,
+    .eval = eval
+};
 
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_get_variable_ops() {

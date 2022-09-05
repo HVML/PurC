@@ -43,11 +43,11 @@ static void*
 _load_module(const char *module)
 {
 #define PRINT_DEBUG
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)             /* { */
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)             /* { */
     const char *ext = ".so";
-#if OS(MAC_OS_X)
+#   if OS(DARWIN)
     ext = ".dylib";
-#endif
+#   endif
 
     void *library_handle = NULL;
 
@@ -154,8 +154,13 @@ static int
 _get_symbol_by_rule(const char *rule, void **handle, void **symbol)
 {
     struct exe_func_param param = {0};
+#ifndef NDEBUG
     param.debug_flex = 1;
+    param.debug_bison = 1;
+#else
+    param.debug_flex = 0;
     param.debug_bison = 0;
+#endif
 
     int r = exe_func_parse(rule, strlen(rule), &param);
     if (r) {

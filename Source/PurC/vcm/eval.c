@@ -79,6 +79,7 @@ pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
 
     }
     frame->ops = pcvcm_eval_get_ops_by_node(node);
+    return frame;
 
 out_destroy_params_result:
     pcutils_array_destroy(frame->params_result, true);
@@ -142,6 +143,24 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     }
 }
 
+unsigned
+pcvcm_eval_ctxt_get_call_flags(struct pcvcm_eval_ctxt *ctxt)
+{
+    unsigned ret = PCVRT_CALL_FLAG_NONE;
+    if (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) {
+        ret |= PCVRT_CALL_FLAG_SILENTLY;
+    }
+
+    if (ctxt->flags & PCVCM_EVAL_FLAG_AGAIN) {
+        ret |= PCVRT_CALL_FLAG_AGAIN;
+    }
+
+    if (ctxt->flags & PCVCM_EVAL_FLAG_TIMEOUT) {
+        ret |= PCVRT_CALL_FLAG_TIMEOUT;
+    }
+    return ret;
+}
+
 
 static struct pcvcm_eval_stack_frame *
 bottom_frame(struct pcvcm_eval_ctxt *ctxt)
@@ -177,6 +196,118 @@ pop_frame(struct pcvcm_eval_ctxt *ctxt)
 }
 
 purc_variant_t
+pcvcm_eval_native_wrapper_create(purc_variant_t caller_node,
+        purc_variant_t param)
+{
+    purc_variant_t b = purc_variant_make_boolean(true);
+    if (b == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t object = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (object == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_object_set_by_static_ckey(object, KEY_INNER_HANDLER, b);
+    purc_variant_object_set_by_static_ckey(object, KEY_CALLER_NODE, caller_node);
+    purc_variant_object_set_by_static_ckey(object, KEY_PARAM_NODE, param);
+    purc_variant_unref(b);
+    return object;
+}
+
+bool
+pcvcm_eval_is_native_wrapper(purc_variant_t val)
+{
+    if (!val || !purc_variant_is_object(val)) {
+        return false;
+    }
+
+    // FIXME: keep last error
+    int err = purc_get_last_error();
+    if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER)) {
+        return true;
+    }
+    purc_set_error(err);
+    return false;
+}
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_caller(purc_variant_t val)
+{
+    return purc_variant_object_get_by_ckey(val, KEY_CALLER_NODE);
+}
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
+{
+    return purc_variant_object_get_by_ckey(val, KEY_PARAM_NODE);
+}
+
+
+purc_variant_t
+pcvcm_eval_call_dvariant_method(purc_variant_t root,
+        purc_variant_t var, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, unsigned call_flags)
+{
+    purc_dvariant_method func = (type == GETTER_METHOD) ?
+         purc_variant_dynamic_get_getter(var) :
+         purc_variant_dynamic_get_setter(var);
+    if (func) {
+        return func(root, nr_args, argv, call_flags);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcvcm_eval_call_nvariant_method(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, unsigned call_flags)
+{
+    struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    if (ops) {
+        purc_nvariant_method native_func = (type == GETTER_METHOD) ?
+            ops->property_getter(key_name) :
+            ops->property_setter(key_name);
+        if (native_func) {
+            return  native_func(purc_variant_native_get_entity(var),
+                    nr_args, argv, call_flags);
+        }
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static bool
+is_action_node(struct pcvcm_node *node)
+{
+    return (node && (
+                node->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                )
+            );
+}
+
+bool
+pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node)
+{
+    struct pcvcm_node *parent_node = (struct pcvcm_node *)
+        pctree_node_parent(&node->tree_node);
+    struct pcvcm_node *first_child = pcvcm_node_first_child(parent_node);
+    if (is_action_node(parent_node) && first_child == node) {
+        return false;
+    }
+    return true;
+}
+
+static bool
+has_fatal_error(int err)
+{
+    return (err == PURC_ERROR_OUT_OF_MEMORY);
+}
+
+purc_variant_t
 eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
         size_t return_pos)
 {
@@ -185,7 +316,6 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     purc_variant_t val;
     struct pcvcm_eval_stack_frame *param_frame;
     struct pcvcm_node *param;
-    int err = 0;
     int ret = 0;
 
     while (frame->step != STEP_DONE) {
@@ -210,6 +340,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                     if (!val) {
                         goto out;
                     }
+                    pop_frame(ctxt);
                     pcutils_array_set(frame->params_result, frame->pos, val);
                 }
                 frame->step = STEP_EVAL_VCM;
@@ -229,51 +360,117 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     }
 
 out:
-    err = purc_get_last_error();
-    if (err != PURC_ERROR_AGAIN) {
-        pop_frame(ctxt);
+    if (result) {
+        PRINT_VARIANT(result);
     }
     return result;
 }
 
-purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt,
+purc_variant_t
+eval_vcm(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
-        bool silently)
+        bool silently, bool timeout, bool again)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame;
-    struct pcvcm_eval_ctxt *eval_ctxt = pcvcm_eval_ctxt_create();
     int err;
-    if (!eval_ctxt) {
-        goto out;
-    }
-    eval_ctxt->find_var = find_var;
-    eval_ctxt->find_var_ctxt = find_var_ctxt;
+
+    ctxt->find_var = find_var;
+    ctxt->find_var_ctxt = find_var_ctxt;
     if (silently) {
-        eval_ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
+        ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
     }
 
-    frame = push_frame(eval_ctxt, tree, 0);
+    if (timeout) {
+        ctxt->flags |= PCVCM_EVAL_FLAG_TIMEOUT;
+    }
+
+    if (again) {
+        ctxt->flags |= PCVCM_EVAL_FLAG_AGAIN;
+        frame = bottom_frame(ctxt);
+    }
+    else {
+        frame = push_frame(ctxt, tree, 0);
+    }
+
     if (!frame) {
         goto out;
     }
 
     do {
-        result = eval_frame(eval_ctxt, frame, frame->return_pos);
+        result = eval_frame(ctxt, frame, frame->return_pos);
         err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN) {
             goto out;
         }
-        frame = bottom_frame(eval_ctxt);
+        pop_frame(ctxt);
+        frame = bottom_frame(ctxt);
     } while (frame);
 
 out:
-    if (err == PURC_ERROR_AGAIN) {
-        *ctxt = eval_ctxt;
+    if ((result == PURC_VARIANT_INVALID) && (err != PURC_ERROR_AGAIN)
+            && silently && !has_fatal_error(err)) {
+        result = purc_variant_make_undefined();
     }
-    else {
-        pcvcm_eval_ctxt_destroy(eval_ctxt);
+    return result;
+}
+
+purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt_out,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently)
+{
+    int err;
+    purc_variant_t result;
+    if (!tree) {
+        result = silently ? purc_variant_make_undefined() :
+            PURC_VARIANT_INVALID;
+        goto out;
+    }
+
+    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
+    if (!ctxt) {
+        goto out_clear_ctxt;
+    }
+
+    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
+            false, false);
+
+out_clear_ctxt:
+    err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        *ctxt_out = ctxt;
+    }
+    else if (ctxt) {
+        pcvcm_eval_ctxt_destroy(ctxt);
+    }
+
+out:
+    if (result) {
+        PRINT_VARIANT(result);
+    }
+    return result;
+}
+
+purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently, bool timeout)
+{
+    int err;
+    purc_variant_t result;
+    if (!ctxt) {
+        goto out;
+    }
+
+    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
+            timeout, true);
+
+out:
+    err = purc_get_last_error();
+    if (err != PURC_ERROR_AGAIN) {
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;
 }

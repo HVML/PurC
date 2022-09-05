@@ -41,28 +41,72 @@
 #include "../eval.h"
 #include "../ops.h"
 
+#define MIN_BUF_SIZE         32
+#define MAX_BUF_SIZE         SIZE_MAX
+
 static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return -1;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return 0;
 }
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+    if (!rws) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    for (size_t i = 0; i < frame->nr_params; i++) {
+        purc_variant_t v = pcutils_array_get(frame->params_result, i);
+
+        // FIXME: stringify or serialize
+        char *buf = NULL;
+        int total = purc_variant_stringify_alloc(&buf, v);
+        if (total) {
+            purc_rwstream_write(rws, buf, total);
+        }
+        free(buf);
+    }
+
+    // do not forget tailing-null-terminator
+    purc_rwstream_write(rws, "", 1);
+
+    size_t rw_size = 0;
+    size_t content_size = 0;
+    char *rw_string = purc_rwstream_get_mem_buffer_ex(rws,
+            &content_size, &rw_size, true);
+
+    if (rw_size && rw_string) {
+        ret = purc_variant_make_string_reuse_buff(rw_string,
+                content_size, false);
+        if (ret == PURC_VARIANT_INVALID) {
+            pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = PURC_VARIANT_INVALID;
+        }
+    }
+
+out:
+    if (rws) {
+        purc_rwstream_destroy(rws);
+    }
+    return ret;
 }
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-     after_pushed,
-     eval
+    .after_pushed = after_pushed,
+    .select_param = select_param_default,
+    .eval = eval
  };
 
 struct pcvcm_eval_stack_frame_ops *

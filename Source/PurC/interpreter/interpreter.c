@@ -2937,11 +2937,11 @@ pcintr_load_module(const char *module,
         const char *env_name, const char *prefix)
 {
 #define PRINT_DEBUG
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)             /* { */
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)             /* { */
     const char *ext = ".so";
-#if OS(MAC_OS_X)
+#   if OS(DARWIN)
     ext = ".dylib";
-#endif
+#   endif
 
     if (!prefix)
         prefix = "";

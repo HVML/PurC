@@ -255,7 +255,6 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently);
 
-struct pcvcm_eval_ctxt;
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,

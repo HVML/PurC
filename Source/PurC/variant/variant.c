@@ -1664,11 +1664,11 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
 
     purc_variant_t value = PURC_VARIANT_INVALID;
 
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)
     const char *ext = ".so";
-#if OS(MAC_OS_X)
+#   if OS(DARWIN)
     ext = ".dylib";
-#endif
+#   endif
     purc_variant_t val = PURC_VARIANT_INVALID;
     int ver_code;
 
