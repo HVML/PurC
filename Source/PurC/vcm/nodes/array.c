@@ -73,8 +73,9 @@ out:
 
 
 static struct pcvcm_eval_stack_frame_ops ops = {
-    after_pushed,
-    eval
+    .after_pushed = after_pushed,
+    .select_param = select_param_default,
+    .eval = eval
 };
 
 struct pcvcm_eval_stack_frame_ops *

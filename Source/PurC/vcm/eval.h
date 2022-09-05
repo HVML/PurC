@@ -86,6 +86,9 @@ struct pcvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 
+    struct pcvcm_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
+            struct pcvcm_eval_stack_frame *frame, size_t pos);
+
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 };

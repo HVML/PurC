@@ -45,24 +45,24 @@ static int
 after_pushed(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return -1;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return 0;
 }
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
-   UNUSED_PARAM(ctxt);
-   UNUSED_PARAM(frame);
-   return PURC_VARIANT_INVALID;
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(frame);
+    return purc_variant_make_undefined();
 }
 
-
 static struct pcvcm_eval_stack_frame_ops ops = {
-     after_pushed,
-     eval
+    .after_pushed = after_pushed,
+    .select_param = select_param_default,
+    .eval = eval
  };
 
 struct pcvcm_eval_stack_frame_ops *
