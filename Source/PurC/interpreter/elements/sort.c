@@ -341,13 +341,11 @@ comp_string(const char *l, const char *r, bool ascendingly, bool casesensitively
     return ascendingly ? ret : -ret;
 }
 
-#define UNDEFINED_STR       "undefined"
-
 static char *
 variant_to_string(purc_variant_t v)
 {
     if (!v) {
-        return strdup(UNDEFINED_STR);
+        return NULL;
     }
 
     char *buf = NULL;
@@ -371,12 +369,14 @@ comp_raw(purc_variant_t l, purc_variant_t r, bool by_number,
     char *buf_l = variant_to_string(l);
     char *buf_r = variant_to_string(r);
     int ret = comp_string(buf_l, buf_r, ascendingly, casesensitively);
+
     if (buf_l) {
         free(buf_l);
     }
     if (buf_r) {
         free(buf_r);
     }
+
     return ret;
 }
 
