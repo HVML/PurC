@@ -231,25 +231,34 @@ out:
     return result;
 }
 
-purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt_out,
+purc_variant_t
+eval_vcm(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
-        bool silently)
+        bool silently, bool timeout, bool again)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame;
-    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
     int err;
-    if (!ctxt) {
-        goto out;
-    }
+
     ctxt->find_var = find_var;
     ctxt->find_var_ctxt = find_var_ctxt;
     if (silently) {
         ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
     }
 
-    frame = push_frame(ctxt, tree, 0);
+    if (timeout) {
+        ctxt->flags |= PCVCM_EVAL_FLAG_TIMEOUT;
+    }
+
+    if (again) {
+        ctxt->flags |= PCVCM_EVAL_FLAG_AGAIN;
+        frame = bottom_frame(ctxt);
+    }
+    else {
+        frame = push_frame(ctxt, tree, 0);
+    }
+
     if (!frame) {
         goto out;
     }
@@ -265,10 +274,52 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     } while (frame);
 
 out:
+    return result;
+}
+
+purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt_out,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently)
+{
+    int err;
+    purc_variant_t result;
+    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
+    if (!ctxt) {
+        goto out;
+    }
+
+    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
+            false, false);
+
+out:
+    err = purc_get_last_error();
     if (err == PURC_ERROR_AGAIN) {
         *ctxt_out = ctxt;
     }
     else {
+        pcvcm_eval_ctxt_destroy(ctxt);
+    }
+    return result;
+}
+
+purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently, bool timeout)
+{
+    int err;
+    purc_variant_t result;
+    if (!ctxt) {
+        goto out;
+    }
+
+    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
+            timeout, true);
+
+out:
+    err = purc_get_last_error();
+    if (err != PURC_ERROR_AGAIN) {
         pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;

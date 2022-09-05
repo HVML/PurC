@@ -70,7 +70,7 @@ struct pcvcm_eval_ctxt {
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
-
+    struct pcvcm_node      *node;
 };
 
 struct pcvcm_eval_stack_frame_ops {
