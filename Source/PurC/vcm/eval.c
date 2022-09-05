@@ -143,6 +143,24 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     }
 }
 
+unsigned
+pcvcm_eval_ctxt_get_call_flags(struct pcvcm_eval_ctxt *ctxt)
+{
+    unsigned ret = PCVRT_CALL_FLAG_NONE;
+    if (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) {
+        ret |= PCVRT_CALL_FLAG_SILENTLY;
+    }
+
+    if (ctxt->flags & PCVCM_EVAL_FLAG_AGAIN) {
+        ret |= PCVRT_CALL_FLAG_AGAIN;
+    }
+
+    if (ctxt->flags & PCVCM_EVAL_FLAG_TIMEOUT) {
+        ret |= PCVRT_CALL_FLAG_TIMEOUT;
+    }
+    return ret;
+}
+
 
 static struct pcvcm_eval_stack_frame *
 bottom_frame(struct pcvcm_eval_ctxt *ctxt)
@@ -231,14 +249,13 @@ pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
 purc_variant_t
 pcvcm_eval_call_dvariant_method(purc_variant_t root,
         purc_variant_t var, size_t nr_args, purc_variant_t *argv,
-        enum pcvcm_eval_method_type type, bool silently)
+        enum pcvcm_eval_method_type type, unsigned call_flags)
 {
     purc_dvariant_method func = (type == GETTER_METHOD) ?
          purc_variant_dynamic_get_getter(var) :
          purc_variant_dynamic_get_setter(var);
     if (func) {
-        return func(root, nr_args, argv,
-                silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
+        return func(root, nr_args, argv, call_flags);
     }
     return PURC_VARIANT_INVALID;
 }
@@ -246,7 +263,7 @@ pcvcm_eval_call_dvariant_method(purc_variant_t root,
 purc_variant_t
 pcvcm_eval_call_nvariant_method(purc_variant_t var,
         const char *key_name, size_t nr_args, purc_variant_t *argv,
-        enum pcvcm_eval_method_type type, bool silently)
+        enum pcvcm_eval_method_type type, unsigned call_flags)
 {
     struct purc_native_ops *ops = purc_variant_native_get_ops(var);
     if (ops) {
@@ -255,10 +272,33 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
             ops->property_setter(key_name);
         if (native_func) {
             return  native_func(purc_variant_native_get_entity(var),
-                    nr_args, argv, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
+                    nr_args, argv, call_flags);
         }
     }
     return PURC_VARIANT_INVALID;
+}
+
+static bool
+is_action_node(struct pcvcm_node *node)
+{
+    return (node && (
+                node->type == PCVCM_NODE_TYPE_FUNC_GET_ELEMENT ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_GETTER ||
+                node->type == PCVCM_NODE_TYPE_FUNC_CALL_SETTER
+                )
+            );
+}
+
+bool
+pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node)
+{
+    struct pcvcm_node *parent_node = (struct pcvcm_node *)
+        pctree_node_parent(&node->tree_node);
+    struct pcvcm_node *first_child = pcvcm_node_first_child(parent_node);
+    if (is_action_node(parent_node) && first_child == node) {
+        return false;
+    }
+    return true;
 }
 
 purc_variant_t
