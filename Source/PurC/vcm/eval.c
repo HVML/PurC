@@ -227,6 +227,40 @@ pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
     return purc_variant_object_get_by_ckey(val, KEY_PARAM_NODE);
 }
 
+
+purc_variant_t
+pcvcm_eval_call_dvariant_method(purc_variant_t root,
+        purc_variant_t var, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, bool silently)
+{
+    purc_dvariant_method func = (type == GETTER_METHOD) ?
+         purc_variant_dynamic_get_getter(var) :
+         purc_variant_dynamic_get_setter(var);
+    if (func) {
+        return func(root, nr_args, argv,
+                silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcvcm_eval_call_nvariant_method(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, bool silently)
+{
+    struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    if (ops) {
+        purc_nvariant_method native_func = (type == GETTER_METHOD) ?
+            ops->property_getter(key_name) :
+            ops->property_setter(key_name);
+        if (native_func) {
+            return  native_func(purc_variant_native_get_entity(var),
+                    nr_args, argv, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
+        }
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t
 eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
         size_t return_pos)

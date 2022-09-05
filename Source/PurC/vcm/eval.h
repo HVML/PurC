@@ -52,6 +52,11 @@ enum pcvcm_eval_stack_frame_step {
     STEP_DONE,
 };
 
+enum pcvcm_eval_method_type {
+    GETTER_METHOD,
+    SETTER_METHOD
+};
+
 struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
@@ -115,6 +120,16 @@ pcvcm_eval_native_wrapper_get_caller(purc_variant_t val);
 
 purc_variant_t
 pcvcm_eval_native_wrapper_get_param(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_call_dvariant_method(purc_variant_t root,
+        purc_variant_t var, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, bool silently);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_method(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        enum pcvcm_eval_method_type type, bool silently);
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out,
