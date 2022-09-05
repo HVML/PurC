@@ -232,44 +232,44 @@ out:
 }
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt,
+        struct pcvcm_eval_ctxt **ctxt_out,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame;
-    struct pcvcm_eval_ctxt *eval_ctxt = pcvcm_eval_ctxt_create();
+    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
     int err;
-    if (!eval_ctxt) {
+    if (!ctxt) {
         goto out;
     }
-    eval_ctxt->find_var = find_var;
-    eval_ctxt->find_var_ctxt = find_var_ctxt;
+    ctxt->find_var = find_var;
+    ctxt->find_var_ctxt = find_var_ctxt;
     if (silently) {
-        eval_ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
+        ctxt->flags |= PCVCM_EVAL_FLAG_SILENTLY;
     }
 
-    frame = push_frame(eval_ctxt, tree, 0);
+    frame = push_frame(ctxt, tree, 0);
     if (!frame) {
         goto out;
     }
 
     do {
-        result = eval_frame(eval_ctxt, frame, frame->return_pos);
+        result = eval_frame(ctxt, frame, frame->return_pos);
         err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN) {
             goto out;
         }
         pop_frame(ctxt);
-        frame = bottom_frame(eval_ctxt);
+        frame = bottom_frame(ctxt);
     } while (frame);
 
 out:
     if (err == PURC_ERROR_AGAIN) {
-        *ctxt = eval_ctxt;
+        *ctxt_out = ctxt;
     }
     else {
-        pcvcm_eval_ctxt_destroy(eval_ctxt);
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;
 }
