@@ -44,11 +44,11 @@ static void*
 _load_module(const char *module)
 {
 #define PRINT_DEBUG
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)             /* { */
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)             /* { */
     const char *ext = ".so";
-#if OS(MAC_OS_X)
+#   if OS(DARWIN)
     ext = ".dylib";
-#endif
+#   endif
 
     void *library_handle = NULL;
 
