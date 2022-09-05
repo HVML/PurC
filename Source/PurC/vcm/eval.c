@@ -79,6 +79,7 @@ pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
 
     }
     frame->ops = pcvcm_eval_get_ops_by_node(node);
+    return frame;
 
 out_destroy_params_result:
     pcutils_array_destroy(frame->params_result, true);
@@ -209,6 +210,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                     if (!val) {
                         goto out;
                     }
+                    pop_frame(ctxt);
                     pcutils_array_set(frame->params_result, frame->pos, val);
                 }
                 frame->step = STEP_EVAL_VCM;
@@ -284,21 +286,32 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 {
     int err;
     purc_variant_t result;
+    if (!tree) {
+        result = silently ? purc_variant_make_undefined() :
+            PURC_VARIANT_INVALID;
+        goto out;
+    }
+
     struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
     if (!ctxt) {
-        goto out;
+        goto out_clear_ctxt;
     }
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
 
-out:
+out_clear_ctxt:
     err = purc_get_last_error();
     if (err == PURC_ERROR_AGAIN) {
         *ctxt_out = ctxt;
     }
-    else {
+    else if (ctxt) {
         pcvcm_eval_ctxt_destroy(ctxt);
+    }
+
+out:
+    if (result) {
+        PRINT_VARIANT(result);
     }
     return result;
 }

@@ -98,6 +98,17 @@ pcvcm_eval_ctxt_create();
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 
+
+purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt_out,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently);
+
+purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently, bool timeout);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

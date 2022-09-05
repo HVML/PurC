@@ -37,6 +37,10 @@
 #include "private/interpreter.h"
 #include "private/utils.h"
 
+#include "eval.h"
+
+#define USE_NEW_VCM_EVAL                1
+
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
 #define FIRST_CHILD(node)            \
@@ -1811,6 +1815,9 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
+#if USE(NEW_VCM_EVAL)
+    return pcvcm_eval_full(tree, ctxt, find_var, find_var_ctxt, silently);
+#else
     UNUSED_PARAM(ctxt);
     const char *env_value;
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
@@ -1841,6 +1848,7 @@ purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
         PC_DEBUG("pcvcm_eval_ex|end|silently=%d\n", silently);
     }
     return ret;
+#endif
 }
 
 purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
