@@ -41,6 +41,13 @@
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
 #define PCVCM_EVAL_FLAG_TIMEOUT         0x0004
 
+enum pcvcm_eval_stack_frame_step {
+    STEP_AFTER_PUSH = 0,
+    STEP_EVAL_PARAMS,
+    STEP_EVAL_VCM,
+    STEP_DONE,
+};
+
 struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
@@ -50,18 +57,20 @@ struct pcvcm_eval_stack_frame {
     pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
 
-    find_var_fn             find_var;
-    void                   *find_var_ctxt;
-
     size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
+
+    enum pcvcm_eval_stack_frame_step step;
 };
 
 struct pcvcm_eval_ctxt {
     /* struct pcvcm_eval_stack_frame */
     struct list_head        stack;
     uint32_t                flags;
+    find_var_fn             find_var;
+    void                   *find_var_ctxt;
+
 };
 
 struct pcvcm_eval_stack_frame_ops {
