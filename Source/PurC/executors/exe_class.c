@@ -155,8 +155,13 @@ static int
 _get_symbol_by_rule(const char *rule, void **handle, void **symbol)
 {
     struct exe_class_param param = {0};
+#ifndef NDEBUG
     param.debug_flex = 1;
+    param.debug_bison = 1;
+#else
+    param.debug_flex = 0;
     param.debug_bison = 0;
+#endif
 
     int r = exe_class_parse(rule, strlen(rule), &param);
     if (r) {
