@@ -18,6 +18,8 @@
     </head>
 
     <body>
+        <!-- Note that the algorithm used by the interpreter may not be stable:
+           if two members compare as equal, their order in the sorted array is undefined -->
         <sort on="$buttons" descendingly against="notExists" />
 
         <div id="calculator">

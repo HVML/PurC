@@ -2,7 +2,7 @@
 <hvml target="html" lang="en">
     <head>
         <init as="buttons">
-            [1, 2, 3, "a", "x", 9, 9, 10]
+            [1, 2, 3, "a", "4", 9, 9, 10]
         </init>
     </head>
 

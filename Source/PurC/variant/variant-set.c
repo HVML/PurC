@@ -22,8 +22,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE       // qsort_r
-
 #include "config.h"
 #include "private/variant.h"
 #include "private/list.h"

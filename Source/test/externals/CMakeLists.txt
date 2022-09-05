@@ -19,7 +19,7 @@ set(PurCExternalExecutor_LIBRARIES
 )
 
 macro(ADD_EXTERNAL_EXECUTOR extension_name)
-    add_library(${extension_name} MODULE ${ARGN})
+    add_library(${extension_name} SHARED ${ARGN})
     add_dependencies(${extension_name} PurC)
     set_property(
         TARGET ${extension_name}

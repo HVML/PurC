@@ -119,13 +119,13 @@ struct buffer_rwstream
     bool buff_reserved;
 };
 
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)
 struct fd_rwstream
 {
     purc_rwstream rwstream;
     int fd;
 };
-#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#endif // OS(LINUX) || OS(UNIX) || OS(DARWIN)
 
 static off_t stdio_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t stdio_tell (purc_rwstream_t rws);
@@ -183,7 +183,7 @@ static rwstream_funcs buffer_funcs = {
 };
 
 
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)
 
 static off_t fd_seek (purc_rwstream_t rws, off_t offset, int whence);
 static off_t fd_tell (purc_rwstream_t rws);
@@ -200,7 +200,7 @@ static rwstream_funcs fd_funcs = {
     fd_destroy,
     NULL,
 };
-#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#endif // OS(LINUX) || OS(UNIX) || OS(DARWIN)
 
 static size_t get_min_size(size_t sz_min, size_t sz_max) {
     size_t min = pcutils_get_next_fibonacci_number(sz_min);
@@ -278,7 +278,7 @@ purc_rwstream_t purc_rwstream_new_from_fp (FILE* fp)
 
 purc_rwstream_t purc_rwstream_new_from_unix_fd (int fd)
 {
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)
     struct fd_rwstream* fd_rws = (struct fd_rwstream*) calloc(
             1, sizeof(struct fd_rwstream));
     if (fd_rws == NULL) {
@@ -948,7 +948,7 @@ static void* buffer_get_mem_buffer (purc_rwstream_t rws,
     return buffer->base;
 }
 
-#if OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#if OS(LINUX) || OS(UNIX) || OS(DARWIN)
 
 static off_t fd_seek (purc_rwstream_t rws, off_t offset, int whence)
 {
@@ -996,4 +996,4 @@ static int fd_destroy (purc_rwstream_t rws)
     return 0;
 }
 
-#endif // OS(LINUX) || OS(UNIX) || OS(MAC_OS_X)
+#endif // OS(LINUX) || OS(UNIX) || OS(DARWIN)
