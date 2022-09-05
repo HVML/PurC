@@ -47,7 +47,7 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
-    return -1;
+    return 0;
 }
 
 static purc_variant_t

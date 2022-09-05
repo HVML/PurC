@@ -230,6 +230,9 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     }
 
 out:
+    if (result) {
+        PRINT_VARIANT(result);
+    }
     return result;
 }
 
