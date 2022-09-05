@@ -2776,14 +2776,89 @@ param[2] = offset, param[3] = length:\n");
 // open_dir
 TEST(dvobjs, dvobjs_fs_open_dir)
 {
-}
+    purc_variant_t param[MAX_PARAM_NR];
+    purc_variant_t dynamic_opendir = NULL;
+    purc_variant_t dynamic_closedir = NULL;
+    //purc_variant_t dynamic_dir_read = NULL;
+    //purc_variant_t dynamic_dir_rewind = NULL;
+    purc_dvariant_method func_opendir = NULL;
+    purc_dvariant_method func_closedir = NULL;
+    //purc_dvariant_method func_dir_read = NULL;
+    //purc_dvariant_method func_dir_rewind = NULL;
+    purc_variant_t dir_object = NULL;
+    purc_variant_t ret_var = NULL;
+    size_t sz_total_mem_before = 0;
+    size_t sz_total_values_before = 0;
+    size_t nr_reserved_before = 0;
+    size_t sz_total_mem_after = 0;
+    size_t sz_total_values_after = 0;
+    size_t nr_reserved_after = 0;
 
-// dir_read
-TEST(dvobjs, dvobjs_fs_read)
-{
-}
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex (PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
 
-// dir_rewind
-TEST(dvobjs, dvobjs_fs_rewind)
-{
+    get_variant_total_info (&sz_total_mem_before, &sz_total_values_before,
+            &nr_reserved_before);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    dynamic_opendir = purc_variant_object_get_by_ckey (fs, "opendir");
+    ASSERT_NE(dynamic_opendir, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic_opendir), true);
+
+    dynamic_closedir = purc_variant_object_get_by_ckey (fs, "closedir");
+    ASSERT_NE(dynamic_closedir, nullptr);
+    ASSERT_EQ(purc_variant_is_dynamic (dynamic_closedir), true);
+
+    func_opendir = purc_variant_dynamic_get_getter (dynamic_opendir);
+    ASSERT_NE(func_opendir, nullptr);
+
+    func_closedir = purc_variant_dynamic_get_getter (dynamic_closedir);
+    ASSERT_NE(func_closedir, nullptr);
+
+    printf ("TEST opendir: nr_args = 0, param = NULL:\n");
+    ret_var = func_opendir (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+    printf ("TEST closedir: nr_args = 0, param = NULL:\n");
+    ret_var = func_closedir (NULL, 0, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    printf("\t\tReturn PURC_VARIANT_INVALID\n");
+
+
+    // opendir param: dir_path
+    printf ("TEST opendir: nr_args = 1, param[0] = dir_path:\n");
+    param[0] = purc_variant_make_string ("/sys/dev/block", false);
+    dir_object = func_opendir (NULL, 1, param, false);
+    ASSERT_NE(dir_object, nullptr);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+
+
+    // closedir param: dir_object
+    printf ("TEST opendir: nr_args = 1, param[0] = dir_path:\n");
+    param[0] = dir_object;
+    ret_var = func_opendir (NULL, 1, param, false);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+
+    // Clean up
+    purc_variant_unload_dvobj (fs);
+
+    get_variant_total_info (&sz_total_mem_after,
+            &sz_total_values_after, &nr_reserved_after);
+    ASSERT_EQ(sz_total_values_before, sz_total_values_after);
+    ASSERT_EQ(sz_total_mem_after, sz_total_mem_before + (nr_reserved_after -
+                nr_reserved_before) * sizeof(purc_variant));
+
+    purc_cleanup ();
 }

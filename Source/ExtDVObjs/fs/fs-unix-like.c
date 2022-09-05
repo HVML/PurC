@@ -3192,18 +3192,19 @@ static bool add_dir_native(purc_variant_t v, DIR *dirp,
             sizeof(struct pcdvobjs_dir_stream));
     dir_stream->dirp = dirp;
     strncpy(dir_stream->dirpath, string_pathname, sizeof(dir_stream->dirpath)-1);
-
+printf ("+++++ 8.1\n");
     purc_variant_t var = purc_variant_make_native((void *)dir_stream, NULL);
     if (var == PURC_VARIANT_INVALID) {
         return false;
     }
-
+printf ("+++++ 8.2\n");
     if (! purc_variant_object_set_by_static_ckey(v, CKEY_DIR, var)) {
         purc_variant_unref(var);
         return false;
     }
-
+printf ("+++++ 8.3\n");
     purc_variant_unref(var);
+printf ("+++++ 8.4\n");
     return true;
 }
 
@@ -3218,47 +3219,47 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     DIR *dirp;
     struct stat dir_stat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-
+printf ("--------------- 1\n");
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
     }
-
+printf ("--------------- 2\n");
     // get the file name
     string_pathname = purc_variant_get_string_const (argv[0]);
     if (NULL == string_pathname) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-
+printf ("--------------- 3\n");
     if (access (string_pathname, F_OK | R_OK) != 0)
         return purc_variant_make_boolean (false);
-
+printf ("--------------- 4\n");
     if (stat (string_pathname, &dir_stat) < 0)
         return purc_variant_make_boolean (false);
-
+printf ("--------------- 5\n");
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir (string_pathname);
     }
     else {
         return purc_variant_make_boolean (false);
     }
-
+printf ("--------------- 6\n");
     static struct purc_dvobj_method dirStream[] = {
         {"read",    dir_read_getter,      NULL},
         {"rewind",  dir_rewind_getter,    NULL},
     };
-
+printf ("--------------- 7\n");
     ret_var = purc_dvobj_make_from_methods(dirStream,
             PCA_TABLESIZE(dirStream));
     if (ret_var == PURC_VARIANT_INVALID) {
         return PURC_VARIANT_INVALID;
     }
-
+printf ("--------------- 8\n");
     if (add_dir_native(ret_var, dirp, string_pathname)) {
         return ret_var;
     }
-
+printf ("--------------- 9\n");
     purc_variant_unref(ret_var);
     return PURC_VARIANT_INVALID;
 }
