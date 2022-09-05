@@ -41,6 +41,10 @@
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
 #define PCVCM_EVAL_FLAG_TIMEOUT         0x0004
 
+#define KEY_INNER_HANDLER               "__vcm_native_wrapper"
+#define KEY_CALLER_NODE                 "__vcm_caller_node"
+#define KEY_PARAM_NODE                  "__vcm_param_node"
+
 enum pcvcm_eval_stack_frame_step {
     STEP_AFTER_PUSH = 0,
     STEP_EVAL_PARAMS,
@@ -98,6 +102,19 @@ pcvcm_eval_ctxt_create();
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 
+
+purc_variant_t
+pcvcm_eval_native_wrapper_create(purc_variant_t caller_node,
+        purc_variant_t param);
+
+bool
+pcvcm_eval_is_native_wrapper(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_caller(purc_variant_t val);
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_param(purc_variant_t val);
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out,

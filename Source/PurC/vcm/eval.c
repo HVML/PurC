@@ -178,6 +178,56 @@ pop_frame(struct pcvcm_eval_ctxt *ctxt)
 }
 
 purc_variant_t
+pcvcm_eval_native_wrapper_create(purc_variant_t caller_node,
+        purc_variant_t param)
+{
+    purc_variant_t b = purc_variant_make_boolean(true);
+    if (b == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t object = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (object == PURC_VARIANT_INVALID) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_object_set_by_static_ckey(object, KEY_INNER_HANDLER, b);
+    purc_variant_object_set_by_static_ckey(object, KEY_CALLER_NODE, caller_node);
+    purc_variant_object_set_by_static_ckey(object, KEY_PARAM_NODE, param);
+    purc_variant_unref(b);
+    return object;
+}
+
+bool
+pcvcm_eval_is_native_wrapper(purc_variant_t val)
+{
+    if (!val || !purc_variant_is_object(val)) {
+        return false;
+    }
+
+    // FIXME: keep last error
+    int err = purc_get_last_error();
+    if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER)) {
+        return true;
+    }
+    purc_set_error(err);
+    return false;
+}
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_caller(purc_variant_t val)
+{
+    return purc_variant_object_get_by_ckey(val, KEY_CALLER_NODE);
+}
+
+purc_variant_t
+pcvcm_eval_native_wrapper_get_param(purc_variant_t val)
+{
+    return purc_variant_object_get_by_ckey(val, KEY_PARAM_NODE);
+}
+
+purc_variant_t
 eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
         size_t return_pos)
 {
