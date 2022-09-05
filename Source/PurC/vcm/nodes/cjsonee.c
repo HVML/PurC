@@ -87,7 +87,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (int i = pos -1; i >= 0; i -= 2) {
-        curr_val = pcutils_array_get(frame->params, i);
+        curr_val = pcutils_array_get(frame->params_result, i);
         if (curr_val) {
             break;
         }
@@ -95,9 +95,11 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
 
     switch (param->type) {
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
+        param = NULL;
         break;
 
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
+        param = NULL;
         if (!purc_variant_booleanize(curr_val)) {
             frame->pos++;
             goto out;
@@ -105,6 +107,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
         break;
 
     case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
+        param = NULL;
         if (purc_variant_booleanize(curr_val)) {
             frame->pos++;
             goto out;
