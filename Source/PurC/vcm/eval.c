@@ -330,7 +330,6 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
 
             case STEP_EVAL_PARAMS:
                 for (; frame->pos < frame->nr_params; frame->pos++) {
-//                    param = pcutils_array_get(frame->params, frame->pos);
                     param = frame->ops->select_param(ctxt, frame, frame->pos);
                     if (!param) {
                         if (frame->step == STEP_EVAL_PARAMS) {
