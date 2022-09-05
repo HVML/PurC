@@ -434,20 +434,22 @@ uname_prt_getter(purc_variant_t root,
         purc_rwstream_write(rwstream, " ", 1);
         nr_wrotten += len_part + 1;
 
-        // TODO: processor
+#if OS(LINUX)
+        // TODO: processor for macOS
         purc_rwstream_write(rwstream, name.machine, len_part);
         purc_rwstream_write(rwstream, " ", 1);
         nr_wrotten += len_part + 1;
 
-        // TODO: hardware-platform
+        // TODO: hardware-platform for macOS
         purc_rwstream_write(rwstream, name.machine, len_part);
         purc_rwstream_write(rwstream, " ", 1);
         nr_wrotten += len_part + 1;
 
-        // operating-system
+        // operating-system for macOS
         len_part = sizeof(_OS_NAME) - 1;
         purc_rwstream_write(rwstream, _OS_NAME, len_part);
         nr_wrotten += len_part;
+#endif
     }
     else if (atom == keywords2atoms[K_KW_default].atom) {
         // kernel-name
