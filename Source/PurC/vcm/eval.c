@@ -411,7 +411,7 @@ eval_vcm(struct pcvcm_node *tree,
     do {
         result = eval_frame(ctxt, frame, frame->return_pos);
         err = purc_get_last_error();
-        if (err == PURC_ERROR_AGAIN) {
+        if (err) {
             goto out;
         }
         pop_frame(ctxt);
