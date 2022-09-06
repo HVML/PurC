@@ -42,6 +42,19 @@
 
 #define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
 
+static const char *stepnames[] = {
+    STEP_NAME_AFTER_PUSH,
+    STEP_NAME_EVAL_PARAMS,
+    STEP_NAME_EVAL_VCM,
+    STEP_NAME_DONE
+};
+
+const char *
+pcvcm_eval_stack_frame_step_name(enum pcvcm_eval_stack_frame_step type)
+{
+    return stepnames[type];
+}
+
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
 {
@@ -165,7 +178,8 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
 
-    snprintf(buf, DUMP_BUF_SIZE, "  step: %d\n", frame->step);
+    snprintf(buf, DUMP_BUF_SIZE, "  step: %s\n",
+            pcvcm_eval_stack_frame_step_name(frame->step));
     purc_rwstream_write(rws, buf, strlen(buf));
 
     snprintf(buf, DUMP_BUF_SIZE, "  params count: %ld\n", frame->nr_params);

@@ -59,9 +59,13 @@
 #define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
 enum pcvcm_eval_stack_frame_step {
+#define STEP_NAME_AFTER_PUSH            "after_push"
     STEP_AFTER_PUSH = 0,
+#define STEP_NAME_EVAL_PARAMS           "eval_params"
     STEP_EVAL_PARAMS,
+#define STEP_NAME_EVAL_VCM              "eval_vcm"
     STEP_EVAL_VCM,
+#define STEP_NAME_DONE                  "eval_done"
     STEP_DONE,
 };
 
