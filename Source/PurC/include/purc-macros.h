@@ -33,7 +33,7 @@
 #if defined(PCA_NO_EXPORT)
 #define PCA_EXPORT
 #elif defined(WIN32) || defined(_WIN32) || defined(__CC_ARM) || defined(__ARMCC__) || (__has_declspec_attribute(dllimport) && __has_declspec_attribute(dllexport))
-#if BUILDING_WebKit
+#if BUILDING_PurC
 #define PCA_EXPORT __declspec(dllexport)
 #else
 #define PCA_EXPORT __declspec(dllimport)

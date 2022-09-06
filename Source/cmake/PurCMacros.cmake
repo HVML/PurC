@@ -157,9 +157,10 @@ macro(PURC_PARSER_GEN_IN _rel _name _auxilary)
     set(_scanner ${_fullname}_scanner)
 
     BISON_TARGET(${_parser} ${_y} ${_dst_name}.tab.c
-        COMPILE_FLAGS "--warnings=error -Dapi.prefix={${_fullname}_yy}")
+        COMPILE_FLAGS "-Dapi.prefix={${_fullname}_yy}")
     FLEX_TARGET(${_scanner} ${_l} ${_dst_name}.lex.c
-        COMPILE_FLAGS "--header-file=${_dst_name}.lex.h --prefix=${_fullname}_yy")
+        COMPILE_FLAGS "--prefix=${_fullname}_yy"
+	DEFINES_FILE ${_dst_name}.lex.h)
     ADD_FLEX_BISON_DEPENDENCY(${_scanner} ${_parser})
 
     set(_bison_outputs ${BISON_${_fullname}_parser_OUTPUTS})
