@@ -317,6 +317,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     struct pcvcm_eval_stack_frame *param_frame;
     struct pcvcm_node *param;
     int ret = 0;
+    int err = 0;
 
     while (frame->step != STEP_DONE) {
         switch (frame->step) {
@@ -370,9 +371,14 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     }
 
 out:
-    if (result) {
-        PRINT_VARIANT(result);
+    err = purc_get_last_error();
+    if ((result == PURC_VARIANT_INVALID) &&
+            (err != PURC_ERROR_AGAIN) &&
+            (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) &&
+            !has_fatal_error(err)) {
+        result = purc_variant_make_undefined();
     }
+    frame->node->attach = (uintptr_t)result;
     return result;
 }
 
@@ -411,7 +417,7 @@ eval_vcm(struct pcvcm_node *tree,
     do {
         result = eval_frame(ctxt, frame, frame->return_pos);
         err = purc_get_last_error();
-        if (err) {
+        if (!result || err) {
             goto out;
         }
         pop_frame(ctxt);
@@ -419,10 +425,6 @@ eval_vcm(struct pcvcm_node *tree,
     } while (frame);
 
 out:
-    if ((result == PURC_VARIANT_INVALID) && (err != PURC_ERROR_AGAIN)
-            && silently && !has_fatal_error(err)) {
-        result = purc_variant_make_undefined();
-    }
     return result;
 }
 
@@ -433,13 +435,14 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 {
     int err;
     purc_variant_t result;
+    struct pcvcm_eval_ctxt *ctxt = NULL;
     if (!tree) {
         result = silently ? purc_variant_make_undefined() :
             PURC_VARIANT_INVALID;
         goto out;
     }
 
-    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
+    ctxt = pcvcm_eval_ctxt_create();
     if (!ctxt) {
         goto out_clear_ctxt;
     }
@@ -448,17 +451,22 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
             false, false);
 
 out_clear_ctxt:
-    err = purc_get_last_error();
-    if (err == PURC_ERROR_AGAIN) {
-        *ctxt_out = ctxt;
-    }
-    else if (ctxt) {
-        pcvcm_eval_ctxt_destroy(ctxt);
+    if (ctxt) {
+        err = purc_get_last_error();
+        if (err == PURC_ERROR_AGAIN && ctxt_out) {
+            *ctxt_out = ctxt;
+        }
+        else {
+            pcvcm_eval_ctxt_destroy(ctxt);
+        }
     }
 
 out:
-    if (result) {
-        PRINT_VARIANT(result);
+    if (!result && silently) {
+        if (err == PURC_ERROR_AGAIN && ctxt_out) {
+            result = PURC_VARIANT_INVALID;
+        }
+        result = purc_variant_make_undefined();
     }
     return result;
 }
