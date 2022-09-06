@@ -72,10 +72,10 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     const char *sname = purc_variant_get_string_const(name);
     ret = ctxt->find_var(ctxt->find_var_ctxt, sname);
+out:
     if (ret) {
         purc_variant_ref(ret);
     }
-out:
     return ret;
 }
 

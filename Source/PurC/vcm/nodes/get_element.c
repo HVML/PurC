@@ -60,6 +60,7 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     bool has_index = true;
     int64_t index = -1;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t inner_ret = PURC_VARIANT_INVALID;
 
     struct pcvcm_node *caller_node = pcutils_array_get(frame->params, 0);
     purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
@@ -81,11 +82,10 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     if (pcvcm_eval_is_native_wrapper(caller_var)) {
         purc_variant_t inner_caller = pcvcm_eval_native_wrapper_get_caller(caller_var);
         purc_variant_t inner_param = pcvcm_eval_native_wrapper_get_param(caller_var);
-        purc_variant_t inner_ret = pcvcm_eval_call_nvariant_method(inner_caller,
+        inner_ret = pcvcm_eval_call_nvariant_method(inner_caller,
                 purc_variant_get_string_const(inner_param), 0, NULL,
                 GETTER_METHOD, call_flags);
         if (inner_ret) {
-            purc_variant_unref(caller_var);
             caller_var = inner_ret;
         }
     }
@@ -96,20 +96,20 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
             goto out;
         }
 
-        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
 
         if (!pcvcm_eval_is_handle_as_getter(frame->node)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
 
         ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
                 GETTER_METHOD, call_flags);
-        purc_variant_unref(val);
     }
     else if (purc_variant_is_array(caller_var)) {
         if (!has_index) {
@@ -129,19 +129,19 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
             goto out;
         }
 
-        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
 
         if (!pcvcm_eval_is_handle_as_getter(frame->node)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
         ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
                 GETTER_METHOD, call_flags);
-        purc_variant_unref(val);
     }
     else if (purc_variant_is_set(caller_var)) {
         if (!has_index) {
@@ -161,19 +161,19 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
             goto out;
         }
 
-        purc_variant_ref(val);
         if (!purc_variant_is_dynamic(val)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
 
         if (!pcvcm_eval_is_handle_as_getter(frame->node)) {
             ret_var = val;
+            purc_variant_ref(ret_var);
             goto out;
         }
         ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
                 GETTER_METHOD, call_flags);
-        purc_variant_unref(val);
     }
     else if (purc_variant_is_dynamic(caller_var)) {
         ret_var = pcvcm_eval_call_dvariant_method(
@@ -195,6 +195,9 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     }
 
 out:
+    if (inner_ret) {
+        purc_variant_unref(inner_ret);
+    }
     return ret_var;
 }
 
