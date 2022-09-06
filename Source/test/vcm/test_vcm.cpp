@@ -282,3 +282,54 @@ TEST(vcm, again)
 }
 
 
+TEST(vcm, again_ex)
+{
+    const char *ejson = "{name:$AGAIN.name}";
+    size_t sz = strlen(ejson);
+
+
+    purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+            "vcm_eval", NULL);
+
+
+    purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)ejson, sz);
+    ASSERT_NE(rws, nullptr);
+
+    struct purc_ejson_parse_tree *tree = purc_variant_ejson_parse_stream(rws);
+    ASSERT_NE(tree, nullptr);
+
+    purc_variant_t nv = vcm_again_variant_create();
+    ASSERT_NE(nv, nullptr);
+
+    struct pcvcm_eval_ctxt *ctxt = NULL;
+    purc_variant_t v = pcvcm_eval_ex((struct pcvcm_node*)tree, &ctxt,
+            find_var, nv, false);
+    ASSERT_EQ(v, PURC_VARIANT_INVALID);
+    ASSERT_NE(ctxt, nullptr);
+
+    int err = purc_get_last_error();
+    ASSERT_EQ(err, PURC_ERROR_AGAIN);
+
+    v =  pcvcm_eval_again_ex((struct pcvcm_node *)tree,
+        ctxt, find_var, nv, false, false);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
+
+    enum purc_variant_type type = purc_variant_get_type(v);
+    ASSERT_EQ(type, PURC_VARIANT_TYPE_OBJECT);
+
+    purc_variant_t name = purc_variant_object_get_by_ckey(v, "name");
+    ASSERT_NE(name, PURC_VARIANT_INVALID);
+
+    const char *value = purc_variant_get_string_const(name);
+    ASSERT_STREQ(value, VCM_AGAIN_NAME);
+
+    err = purc_get_last_error();
+    ASSERT_NE(err, PURC_ERROR_AGAIN);
+
+    purc_variant_unref(v);
+    purc_variant_unref(nv);
+    purc_variant_ejson_parse_tree_destroy(tree);
+    purc_rwstream_destroy(rws);
+
+    purc_cleanup();
+}
