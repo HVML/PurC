@@ -45,6 +45,10 @@
 #define KEY_CALLER_NODE                 "__vcm_caller_node"
 #define KEY_PARAM_NODE                  "__vcm_param_node"
 
+
+#define MIN_BUF_SIZE                    32
+#define MAX_BUF_SIZE                    SIZE_MAX
+
 enum pcvcm_eval_stack_frame_step {
     STEP_AFTER_PUSH = 0,
     STEP_EVAL_PARAMS,

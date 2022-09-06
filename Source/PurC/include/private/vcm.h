@@ -234,18 +234,6 @@ char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
  */
 void pcvcm_node_destroy(struct pcvcm_node *root);
 
-struct pcvcm_stack;
-struct pcvcm_stack *pcvcm_stack_new();
-
-bool pcvcm_stack_is_empty(struct pcvcm_stack *stack);
-
-void pcvcm_stack_push(struct pcvcm_stack *stack, struct pcvcm_node *e);
-
-struct pcvcm_node *pcvcm_stack_pop(struct pcvcm_stack *stack);
-
-struct pcvcm_node *pcvcm_stack_bottommost(struct pcvcm_stack *stack);
-
-void pcvcm_stack_destroy(struct pcvcm_stack *stack);
 
 typedef purc_variant_t(*find_var_fn) (void *ctxt, const char *name);
 
