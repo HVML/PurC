@@ -418,8 +418,8 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                     if (!val) {
                         goto out;
                     }
+                    pcutils_array_set(frame->params_result, param_frame->return_pos, val);
                     pop_frame(ctxt);
-                    pcutils_array_set(frame->params_result, frame->pos, val);
                 }
                 frame->step = STEP_EVAL_VCM;
                 break;
@@ -482,13 +482,17 @@ eval_vcm(struct pcvcm_node *tree,
     }
 
     do {
-        result = eval_frame(ctxt, frame, frame->return_pos);
+        size_t return_pos = frame->return_pos;
+        result = eval_frame(ctxt, frame, return_pos);
         err = purc_get_last_error();
         if (!result || err) {
             goto out;
         }
         pop_frame(ctxt);
         frame = bottom_frame(ctxt);
+        if (frame) {
+            pcutils_array_set(frame->params_result, return_pos, result);
+        }
     } while (frame);
 
 out:
