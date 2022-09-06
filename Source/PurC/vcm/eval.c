@@ -144,6 +144,68 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     }
 }
 
+#define DUMP_BUF_SIZE    128
+
+int
+pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
+        int level)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(rws);
+    char buf[DUMP_BUF_SIZE];
+
+    snprintf(buf, DUMP_BUF_SIZE, "\n#%02d:\n", level);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "  node: ");
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    size_t len;
+    char *s = pcvcm_node_to_string(frame->node, &len);
+    purc_rwstream_write(rws, s, len);
+    purc_rwstream_write(rws, "\n", 1);
+
+    snprintf(buf, DUMP_BUF_SIZE, "  step: %d\n", frame->step);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "  params count: %ld\n", frame->nr_params);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "  eval param pos: %ld\n", frame->pos);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "  return pos: %ld\n", frame->return_pos);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    return 0;
+}
+
+int
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws)
+{
+    struct list_head *stack = &ctxt->stack;
+    struct pcvcm_eval_stack_frame *p, *n;
+    int level = 0;
+    list_for_each_entry_reverse_safe(p, n, stack, ln) {
+        pcvcm_dump_frame(p, rws, level);
+        level++;
+    }
+    return 0;
+}
+
+void
+pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
+{
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+    pcvcm_dump_stack(ctxt, rws);
+
+    char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
+    PLOG("\n");
+    PLOG("%s\n", buf);
+    PLOG("\n");
+    purc_rwstream_destroy(rws);
+}
+
 unsigned
 pcvcm_eval_ctxt_get_call_flags(struct pcvcm_eval_ctxt *ctxt)
 {
@@ -319,6 +381,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     struct pcvcm_node *param;
     int ret = 0;
     int err = 0;
+
+    if (ctxt->enable_log) {
+        pcvcm_print_stack(ctxt);
+    }
 
     while (frame->step != STEP_DONE) {
         switch (frame->step) {
@@ -518,4 +584,5 @@ out:
     }
     return result;
 }
+
 

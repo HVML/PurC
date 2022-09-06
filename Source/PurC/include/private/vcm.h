@@ -258,6 +258,9 @@ purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 
+int
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws);
+
 purc_variant_t
 pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);
 
