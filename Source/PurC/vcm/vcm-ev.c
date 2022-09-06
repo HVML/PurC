@@ -143,8 +143,7 @@ property_getter(const char *key_name)
     return NULL;
 }
 
-static inline
-purc_nvariant_method
+static inline purc_nvariant_method
 property_setter(const char *key_name)
 {
     if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
@@ -191,8 +190,8 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
     static struct purc_native_ops ops = {
         .property_getter        = property_getter,
         .property_setter        = property_setter,
-        .property_eraser        = NULL,
         .property_cleaner       = NULL,
+        .property_eraser        = NULL,
 
         .updater                = NULL,
         .cleaner                = NULL,

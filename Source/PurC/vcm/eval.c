@@ -502,6 +502,12 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     }
     ctxt->enable_log = enable_log;
 
+    /* clear AGAIN error */
+    err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        purc_clr_error();
+    }
+
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             timeout, true);
 
