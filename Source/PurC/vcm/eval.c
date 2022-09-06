@@ -40,6 +40,7 @@
 #include "eval.h"
 #include "ops.h"
 
+#define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
 
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
@@ -434,8 +435,16 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         bool silently)
 {
     int err;
-    purc_variant_t result;
+    purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_ctxt *ctxt = NULL;
+    unsigned int enable_log = 0;
+    const char *env_value;
+
+    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
+        enable_log = (*env_value == '1' ||
+                pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
     if (!tree) {
         result = silently ? purc_variant_make_undefined() :
             PURC_VARIANT_INVALID;
@@ -446,6 +455,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     if (!ctxt) {
         goto out_clear_ctxt;
     }
+    ctxt->enable_log = enable_log;
+
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
@@ -477,10 +488,19 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         bool silently, bool timeout)
 {
     int err;
-    purc_variant_t result;
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    unsigned int enable_log = 0;
+    const char *env_value;
+
+    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
+        enable_log = (*env_value == '1' ||
+                pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
     if (!ctxt) {
         goto out;
     }
+    ctxt->enable_log = enable_log;
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             timeout, true);

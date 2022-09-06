@@ -80,6 +80,8 @@ struct pcvcm_eval_ctxt {
     find_var_fn             find_var;
     void                   *find_var_ctxt;
     struct pcvcm_node      *node;
+
+    unsigned int            enable_log:1;
 };
 
 struct pcvcm_eval_stack_frame_ops {
