@@ -39,7 +39,7 @@
 
 #include "eval.h"
 
-#define USE_NEW_VCM_EVAL                0
+#define USE_NEW_VCM_EVAL                1
 
 #define TREE_NODE(node)              ((struct pctree_node*)(node))
 #define VCM_NODE(node)               ((struct pcvcm_node*)(node))
