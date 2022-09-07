@@ -10,7 +10,7 @@ set(LIBEXEC_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBEXECDIR}/purc" CACHE PATH "Abso
 set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Absolute path to header installation directory")
 set(PURC_HEADER_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/purc" CACHE PATH "Absolute path to PurC header installation directory")
 
-add_definitions(-DBUILDING_WIN_MINGW_=1)
+add_definitions(-DBUILDING_MINGW__=1)
 add_definitions(-DPURC_LIBEXEC_DIR="${LIBEXEC_INSTALL_DIR}")
 
 find_package(GLIB 2.44.0 REQUIRED COMPONENTS gio gio-win)

@@ -168,9 +168,9 @@ macro(PURC_PARSER_GEN_IN _rel _name _auxilary)
     set(_outputs ${_bison_outputs} ${_flex_outputs})
 
     set_source_files_properties(${_tab_c}
-            PROPERTY COMPILE_FLAGS "-I${_dst_path}")
+	    PROPERTIES INCLUDE_DIRECTORIES "${_dst_path}")
     set_source_files_properties(${_tab_c}
-            PROPERTY OBJECT_DEPENDS "${_outputs}")
+	    PROPERTIES OBJECT_DEPENDS "${_outputs}")
 
     unset(_bison_outputs)
     unset(_flex_outputs)

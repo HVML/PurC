@@ -26,10 +26,10 @@ list(APPEND WTF_SOURCES
     win/ThreadingWin.cpp
 )
 
-#list(APPEND WTF_LIBRARIES
-#    DbgHelp
-#    shlwapi
-#    winmm
-#)
+list(APPEND WTF_LIBRARIES
+    DbgHelp
+    shlwapi
+    winmm
+)
 
 set(WTF_OUTPUT_NAME WTF${DEBUG_SUFFIX})

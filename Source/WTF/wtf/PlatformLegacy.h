@@ -41,21 +41,17 @@
 
 
 /* FIXME: these are all mixes of OS, operating environment and policy choices. */
-/* PLATFORM(GTK) */
+/* PLATFORM(MINGW) */
 /* PLATFORM(MAC) */
 /* PLATFORM(IOS) */
 /* PLATFORM(IOS_FAMILY) */
 /* PLATFORM(IOS_SIMULATOR) */
 /* PLATFORM(IOS_FAMILY_SIMULATOR) */
 /* PLATFORM(WIN) */
-#if defined(BUILDING_GTK__)
-#define WTF_PLATFORM_GTK 1
+#if defined(BUILDING_MINGW__)
+#define WTF_PLATFORM_MINGW 1
 #elif defined(BUILDING_LINUX__)
 #define WTF_PLATFORM_LINUX 1
-#elif defined(BUILDING_WPE__)
-#define WTF_PLATFORM_WPE 1
-#elif defined(BUILDING_JSCONLY__)
-/* JSCOnly does not provide PLATFORM() macro */
 #elif OS(MAC_OS_X)
 #define WTF_PLATFORM_MAC 1
 #elif OS(IOS_FAMILY)

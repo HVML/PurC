@@ -39,10 +39,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 #define BUFFER_SIZE                 1024
 
@@ -247,6 +243,7 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     stream->fd4r = -1;
     stream->fd4w = -1;
 
+#if OS(UNIX)
     if (stream->type == STREAM_TYPE_PIPE && stream->cpid > 0) {
         int status;
         if (waitpid(stream->cpid, &status, WNOHANG) == 0) {
@@ -263,6 +260,7 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
         }
         stream->cpid = -1;
     }
+#endif  /* OS(UNIX) */
 }
 
 static void native_stream_destroy(struct pcdvobjs_stream *stream)
@@ -789,6 +787,7 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
+#if OS(UNIX)
     const char *status;
     int value = 0, wstatus;
     int ret = waitpid(stream->cpid, &wstatus, WNOHANG);
@@ -831,6 +830,8 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref(value_val);
 
     return val;
+#endif // OS(UNIX)
+
 out:
     if (silently)
         return purc_variant_make_boolean(false);
@@ -1328,6 +1329,12 @@ out:
     return NULL;
 }
 
+#if OS(UNIX)
+
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #define MAX_NR_ARGS 1024
 
 #pragma GCC diagnostic push
@@ -1501,9 +1508,6 @@ static
 struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
-    UNUSED_PARAM(url);
-    UNUSED_PARAM(option);
-
     int flags = parse_open_option(option);
     if (flags == -1) {
         return NULL;
@@ -1605,6 +1609,43 @@ out_close_fd:
 
     return NULL;
 }
+
+#else   /* OS(UNIX) */
+
+static
+struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+#endif  /* !OS(UNIX */
 
 static purc_variant_t
 stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
