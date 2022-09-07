@@ -155,6 +155,9 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     list_for_each_entry_safe(p, n, stack, ln) {
         pcvcm_eval_stack_frame_destroy(p);
     }
+    if (ctxt->result) {
+        purc_variant_unref(ctxt->result);
+    }
 }
 
 #define DUMP_BUF_SIZE    128
@@ -224,12 +227,36 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 int
 pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws)
 {
+    char buf[DUMP_BUF_SIZE];
+    size_t len;
     struct list_head *stack = &ctxt->stack;
-    struct pcvcm_eval_stack_frame *p, *n;
-    int level = 0;
-    list_for_each_entry_reverse_safe(p, n, stack, ln) {
-        pcvcm_dump_frame(p, rws, level);
-        level++;
+
+    if (list_empty(stack)) {
+
+        snprintf(buf, DUMP_BUF_SIZE, "###: vcm=");
+        purc_rwstream_write(rws, buf, strlen(buf));
+        char *s = pcvcm_node_to_string(ctxt->node, &len);
+        purc_rwstream_write(rws, s, len);
+        purc_rwstream_write(rws, "\n", 1);
+        free(s);
+
+        if (ctxt->result) {
+            const char *type = pcvariant_typename(ctxt->result);
+            snprintf(buf, DUMP_BUF_SIZE, "     result[%s]=", type);
+            purc_rwstream_write(rws, buf, strlen(buf));
+
+            char *buf = pcvariant_to_string(ctxt->result);
+            purc_rwstream_write(rws, buf, strlen(buf));
+            free(buf);
+        }
+    }
+    else {
+        struct pcvcm_eval_stack_frame *p, *n;
+        int level = 0;
+        list_for_each_entry_reverse_safe(p, n, stack, ln) {
+            pcvcm_dump_frame(p, rws, level);
+            level++;
+        }
     }
     return 0;
 }
@@ -535,6 +562,15 @@ eval_vcm(struct pcvcm_node *tree,
     } while (frame);
 
 out:
+    if (!err && result) {
+        if (ctxt->result) {
+            purc_variant_unref(ctxt->result);
+        }
+        ctxt->result = purc_variant_ref(result);
+    }
+    if (ctxt->enable_log) {
+        pcvcm_print_stack(ctxt);
+    }
     return result;
 }
 
@@ -554,6 +590,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
                 pcutils_strcasecmp(env_value, "true") == 0);
     }
 
+//    purc_clr_error();
+
     if (!tree) {
         result = silently ? purc_variant_make_undefined() :
             PURC_VARIANT_INVALID;
@@ -565,7 +603,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         goto out_clear_ctxt;
     }
     ctxt->enable_log = enable_log;
-
+    ctxt->node = tree;
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
@@ -596,10 +634,10 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently, bool timeout)
 {
-    int err;
     purc_variant_t result = PURC_VARIANT_INVALID;
     unsigned int enable_log = 0;
     const char *env_value;
+    int err;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
