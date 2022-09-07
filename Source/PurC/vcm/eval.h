@@ -35,6 +35,7 @@
 #include "private/vcm.h"
 #include "purc-variant.h"
 
+#define __DEV_VCM__                0
 
 #define PCVCM_EVAL_FLAG_NONE            0x0000
 #define PCVCM_EVAL_FLAG_SILENTLY        0x0001
@@ -45,10 +46,26 @@
 #define KEY_CALLER_NODE                 "__vcm_caller_node"
 #define KEY_PARAM_NODE                  "__vcm_param_node"
 
+
+#define MIN_BUF_SIZE                    32
+#define MAX_BUF_SIZE                    SIZE_MAX
+
+#if (defined __DEV_VCM__ && __DEV_VCM__)
+#define PLOG(format, ...)  fprintf(stderr, "#####>"format, ##__VA_ARGS__);
+#else
+#define PLOG               PC_DEBUG
+#endif /* (defined __DEV_VCM__ && __DEV_VCM__) */
+
+#define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
+
 enum pcvcm_eval_stack_frame_step {
+#define STEP_NAME_AFTER_PUSH            "STEP_AFTER_PUSH"
     STEP_AFTER_PUSH = 0,
+#define STEP_NAME_EVAL_PARAMS           "STEP_EVAL_PARAMS"
     STEP_EVAL_PARAMS,
+#define STEP_NAME_EVAL_VCM              "STEP_EVAL_VCM"
     STEP_EVAL_VCM,
+#define STEP_NAME_DONE                  "STEP_DONE"
     STEP_DONE,
 };
 
@@ -80,6 +97,8 @@ struct pcvcm_eval_ctxt {
     find_var_fn             find_var;
     void                   *find_var_ctxt;
     struct pcvcm_node      *node;
+
+    unsigned int            enable_log:1;
 };
 
 struct pcvcm_eval_stack_frame_ops {

@@ -40,6 +40,20 @@
 #include "eval.h"
 #include "ops.h"
 
+#define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
+
+static const char *stepnames[] = {
+    STEP_NAME_AFTER_PUSH,
+    STEP_NAME_EVAL_PARAMS,
+    STEP_NAME_EVAL_VCM,
+    STEP_NAME_DONE
+};
+
+const char *
+pcvcm_eval_stack_frame_step_name(enum pcvcm_eval_stack_frame_step type)
+{
+    return stepnames[type];
+}
 
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
@@ -141,6 +155,94 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     list_for_each_entry_safe(p, n, stack, ln) {
         pcvcm_eval_stack_frame_destroy(p);
     }
+}
+
+#define DUMP_BUF_SIZE    128
+
+int
+pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
+        int level)
+{
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(rws);
+    char buf[DUMP_BUF_SIZE];
+    size_t len;
+
+    snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    const char *type = pcvcm_node_typename(frame->node->type);
+    purc_rwstream_write(rws, type, strlen(type));
+    purc_rwstream_write(rws, "\n", 1);
+
+    snprintf(buf, DUMP_BUF_SIZE, "     step=%s\n",
+            pcvcm_eval_stack_frame_step_name(frame->step));
+    purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "     vcm=");
+    purc_rwstream_write(rws, buf, strlen(buf));
+    char *s = pcvcm_node_to_string(frame->node, &len);
+    purc_rwstream_write(rws, s, len);
+    purc_rwstream_write(rws, "\n", 1);
+    free(s);
+
+    for (size_t i = 0; i < frame->nr_params; i++) {
+        struct pcvcm_node *param = pcutils_array_get(frame->params, i);
+        char *s = pcvcm_node_to_string(param, &len);
+
+        if (i == frame->pos && frame->step == STEP_EVAL_PARAMS) {
+            snprintf(buf, DUMP_BUF_SIZE, "    >param_%02ld=", i);
+        }
+        else {
+            snprintf(buf, DUMP_BUF_SIZE, "     param_%02ld=", i);
+        }
+        purc_rwstream_write(rws, buf, strlen(buf));
+        purc_rwstream_write(rws, s, len);
+
+        if (i < frame->pos) {
+            purc_variant_t result = pcutils_array_get(frame->params_result, i);
+            if (result) {
+                const char *type = pcvariant_typename(result);
+                snprintf(buf, DUMP_BUF_SIZE, ", result[%s]=", type);
+                purc_rwstream_write(rws, buf, strlen(buf));
+
+                char *buf = pcvariant_to_string(result);
+                purc_rwstream_write(rws, buf, strlen(buf));
+                free(buf);
+            }
+        }
+
+        purc_rwstream_write(rws, "\n", 1);
+
+        free(s);
+    }
+
+
+    return 0;
+}
+
+int
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws)
+{
+    struct list_head *stack = &ctxt->stack;
+    struct pcvcm_eval_stack_frame *p, *n;
+    int level = 0;
+    list_for_each_entry_reverse_safe(p, n, stack, ln) {
+        pcvcm_dump_frame(p, rws, level);
+        level++;
+    }
+    return 0;
+}
+
+void
+pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
+{
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
+    pcvcm_dump_stack(ctxt, rws);
+
+    char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
+    PLOG("\n%s\n", buf);
+    purc_rwstream_destroy(rws);
 }
 
 unsigned
@@ -319,6 +421,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     int ret = 0;
     int err = 0;
 
+    if (ctxt->enable_log) {
+        pcvcm_print_stack(ctxt);
+    }
+
     while (frame->step != STEP_DONE) {
         switch (frame->step) {
             case STEP_AFTER_PUSH:
@@ -351,8 +457,8 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                     if (!val) {
                         goto out;
                     }
+                    pcutils_array_set(frame->params_result, param_frame->return_pos, val);
                     pop_frame(ctxt);
-                    pcutils_array_set(frame->params_result, frame->pos, val);
                 }
                 frame->step = STEP_EVAL_VCM;
                 break;
@@ -415,13 +521,17 @@ eval_vcm(struct pcvcm_node *tree,
     }
 
     do {
-        result = eval_frame(ctxt, frame, frame->return_pos);
+        size_t return_pos = frame->return_pos;
+        result = eval_frame(ctxt, frame, return_pos);
         err = purc_get_last_error();
         if (!result || err) {
             goto out;
         }
         pop_frame(ctxt);
         frame = bottom_frame(ctxt);
+        if (frame) {
+            pcutils_array_set(frame->params_result, return_pos, result);
+        }
     } while (frame);
 
 out:
@@ -434,8 +544,16 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         bool silently)
 {
     int err;
-    purc_variant_t result;
+    purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_ctxt *ctxt = NULL;
+    unsigned int enable_log = 0;
+    const char *env_value;
+
+    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
+        enable_log = (*env_value == '1' ||
+                pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
     if (!tree) {
         result = silently ? purc_variant_make_undefined() :
             PURC_VARIANT_INVALID;
@@ -446,6 +564,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     if (!ctxt) {
         goto out_clear_ctxt;
     }
+    ctxt->enable_log = enable_log;
+
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
@@ -453,7 +573,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 out_clear_ctxt:
     if (ctxt) {
         err = purc_get_last_error();
-        if (err == PURC_ERROR_AGAIN && ctxt_out) {
+        if (err && ctxt_out) {
             *ctxt_out = ctxt;
         }
         else {
@@ -477,19 +597,31 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         bool silently, bool timeout)
 {
     int err;
-    purc_variant_t result;
+    purc_variant_t result = PURC_VARIANT_INVALID;
+    unsigned int enable_log = 0;
+    const char *env_value;
+
+    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
+        enable_log = (*env_value == '1' ||
+                pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
     if (!ctxt) {
         goto out;
+    }
+    ctxt->enable_log = enable_log;
+
+    /* clear AGAIN error */
+    err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        purc_clr_error();
     }
 
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             timeout, true);
 
 out:
-    err = purc_get_last_error();
-    if (err != PURC_ERROR_AGAIN) {
-        pcvcm_eval_ctxt_destroy(ctxt);
-    }
     return result;
 }
+
 
