@@ -167,29 +167,50 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
     UNUSED_PARAM(rws);
     char buf[DUMP_BUF_SIZE];
 
-    snprintf(buf, DUMP_BUF_SIZE, "\n#%02d:\n", level);
-    purc_rwstream_write(rws, buf, strlen(buf));
-
-    snprintf(buf, DUMP_BUF_SIZE, "  node: ");
+    snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(rws, buf, strlen(buf));
 
     size_t len;
     char *s = pcvcm_node_to_string(frame->node, &len);
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
+    free(s);
 
-    snprintf(buf, DUMP_BUF_SIZE, "  step: %s\n",
+    snprintf(buf, DUMP_BUF_SIZE, "     step=%s\n",
             pcvcm_eval_stack_frame_step_name(frame->step));
     purc_rwstream_write(rws, buf, strlen(buf));
 
-    snprintf(buf, DUMP_BUF_SIZE, "  params count: %ld\n", frame->nr_params);
-    purc_rwstream_write(rws, buf, strlen(buf));
+    for (size_t i = 0; i < frame->nr_params; i++) {
+        struct pcvcm_node *param = pcutils_array_get(frame->params, i);
+        char *s = pcvcm_node_to_string(param, &len);
 
-    snprintf(buf, DUMP_BUF_SIZE, "  eval param pos: %ld\n", frame->pos);
-    purc_rwstream_write(rws, buf, strlen(buf));
+        if (i == frame->pos && frame->step == STEP_EVAL_PARAMS) {
+            snprintf(buf, DUMP_BUF_SIZE, "    >param_%02ld=", i);
+        }
+        else {
+            snprintf(buf, DUMP_BUF_SIZE, "     param_%02ld=", i);
+        }
+        purc_rwstream_write(rws, buf, strlen(buf));
+        purc_rwstream_write(rws, s, len);
 
-    snprintf(buf, DUMP_BUF_SIZE, "  return pos: %ld\n", frame->return_pos);
-    purc_rwstream_write(rws, buf, strlen(buf));
+        if (i < frame->pos) {
+            purc_variant_t result = pcutils_array_get(frame->params_result, i);
+            if (result) {
+                const char *type = pcvariant_typename(result);
+                snprintf(buf, DUMP_BUF_SIZE, ", result[%s]=", type);
+                purc_rwstream_write(rws, buf, strlen(buf));
+
+                char *buf = pcvariant_to_string(result);
+                purc_rwstream_write(rws, buf, strlen(buf));
+                free(buf);
+            }
+        }
+
+        purc_rwstream_write(rws, "\n", 1);
+
+        free(s);
+    }
+
 
     return 0;
 }
@@ -214,9 +235,7 @@ pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
     pcvcm_dump_stack(ctxt, rws);
 
     char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
-    PLOG("\n");
-    PLOG("%s\n", buf);
-    PLOG("\n");
+    PLOG("\n%s\n", buf);
     purc_rwstream_destroy(rws);
 }
 
@@ -548,7 +567,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 out_clear_ctxt:
     if (ctxt) {
         err = purc_get_last_error();
-        if (err == PURC_ERROR_AGAIN && ctxt_out) {
+        if (err && ctxt_out) {
             *ctxt_out = ctxt;
         }
         else {
@@ -596,10 +615,6 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
             timeout, true);
 
 out:
-    err = purc_get_last_error();
-    if (err != PURC_ERROR_AGAIN) {
-        pcvcm_eval_ctxt_destroy(ctxt);
-    }
     return result;
 }
 
