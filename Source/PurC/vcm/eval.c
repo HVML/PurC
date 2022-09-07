@@ -166,19 +166,25 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(rws);
     char buf[DUMP_BUF_SIZE];
+    size_t len;
 
     snprintf(buf, DUMP_BUF_SIZE, "#%02d: ", level);
     purc_rwstream_write(rws, buf, strlen(buf));
 
-    size_t len;
-    char *s = pcvcm_node_to_string(frame->node, &len);
-    purc_rwstream_write(rws, s, len);
+    const char *type = pcvcm_node_typename(frame->node->type);
+    purc_rwstream_write(rws, type, strlen(type));
     purc_rwstream_write(rws, "\n", 1);
-    free(s);
 
     snprintf(buf, DUMP_BUF_SIZE, "     step=%s\n",
             pcvcm_eval_stack_frame_step_name(frame->step));
     purc_rwstream_write(rws, buf, strlen(buf));
+
+    snprintf(buf, DUMP_BUF_SIZE, "     vcm=");
+    purc_rwstream_write(rws, buf, strlen(buf));
+    char *s = pcvcm_node_to_string(frame->node, &len);
+    purc_rwstream_write(rws, s, len);
+    purc_rwstream_write(rws, "\n", 1);
+    free(s);
 
     for (size_t i = 0; i < frame->nr_params; i++) {
         struct pcvcm_node *param = pcutils_array_get(frame->params, i);
