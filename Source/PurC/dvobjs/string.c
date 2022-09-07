@@ -28,7 +28,10 @@
 #include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/variant.h"
+#include "private/ports.h"
+
 #include "purc-variant.h"
+
 #include "helper.h"
 
 static const char * get_next_segment (const char *data,

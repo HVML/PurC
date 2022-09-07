@@ -30,6 +30,7 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/ports.h"
 #include "private/atom-buckets.h"
 #include "private/interpreter.h"
 
@@ -1170,20 +1171,6 @@ struct pcdvobjs_stream *create_file_stderr_stream()
     return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
 }
 
-static
-bool file_exists(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat));
-}
-
-static
-bool file_exists_and_is_executable(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat) && (filestat.st_mode & S_IRWXU));
-}
-
 #define READ_FLAG       0x01
 #define WRITE_FLAG      0x02
 
@@ -1242,9 +1229,11 @@ int parse_open_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_write].atom) {
                 rw |= WRITE_FLAG;
             }
+#if OS(UNIX)	// TODO for Windows
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
                 flags |= O_NONBLOCK;
             }
+#endif
             else if (atom == keywords2atoms[K_KW_append].atom) {
                 flags |= O_APPEND;
             }
@@ -1335,7 +1324,22 @@ out:
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+
 #define MAX_NR_ARGS 1024
+
+static
+bool file_exists(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat));
+}
+
+static
+bool file_exists_and_is_executable(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat) && (filestat.st_mode & S_IRWXU));
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclobbered"

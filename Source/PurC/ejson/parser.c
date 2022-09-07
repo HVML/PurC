@@ -62,7 +62,7 @@
             "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
             curr_state_name, character, character,                          \
             ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
+            (long int)ejson_stack_size(), s);                                         \
         free(s); \
     }
 

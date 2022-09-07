@@ -31,6 +31,7 @@
 #include "private/errors.h"
 #include "private/atom-buckets.h"
 #include "private/dvobjs.h"
+#include "private/ports.h"
 
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
@@ -420,10 +421,6 @@ static void handle_braces(char *haystack, size_t len,
         len--;
     }
 }
-
-#if OS(WINDOWS)
-typedef long suseconds_t;
-#endif
 
 static char *
 on_found(const char *needle, size_t len, void *ctxt, size_t *rep_len)

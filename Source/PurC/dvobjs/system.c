@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "private/atom-buckets.h"
 #include "private/dvobjs.h"
+#include "private/ports.h"
 
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
@@ -39,8 +40,11 @@
 #include <math.h>
 #include <unistd.h>
 #include <limits.h>
-#include <sys/utsname.h>
 #include <sys/time.h>
+
+#if OS(UNIX)
+#include <sys/utsname.h>          /* for uname() */
+#endif
 
 #define MSG_SOURCE_SYSTEM         PURC_PREDEF_VARNAME_SYS
 
@@ -984,9 +988,9 @@ locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_atom_t atom = 0;
 
     if (nr_args == 0) {
-        category = _KW_messages;
-        length = sizeof(_KW_messages) - 1;
-        atom = keywords2atoms[K_KW_messages].atom;
+        category = _KW_ctype;
+        length = sizeof(_KW_ctype) - 1;
+        atom = keywords2atoms[K_KW_ctype].atom;
     }
     else {
         category = purc_variant_get_string_const_ex(argv[0], &length);
@@ -1032,9 +1036,11 @@ locale_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (atom == keywords2atoms[K_KW_monetary].atom) {
         locale = setlocale(LC_MONETARY, NULL);
     }
+#ifdef LC_MESSAGES
     else if (atom == keywords2atoms[K_KW_messages].atom) {
         locale = setlocale(LC_MESSAGES, NULL);
     }
+#endif /* LC_MESSAGES */
 #ifdef LC_PAPER
     else if (atom == keywords2atoms[K_KW_paper].atom) {
         locale = setlocale(LC_PAPER, NULL);
@@ -1181,9 +1187,11 @@ locale_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             else if (atom == keywords2atoms[K_KW_monetary].atom) {
                 retv = setlocale(LC_MONETARY, locale);
             }
+#ifdef LC_MESSAGES
             else if (atom == keywords2atoms[K_KW_messages].atom) {
                 retv = setlocale(LC_MESSAGES, locale);
             }
+#endif /* LC_MESSAGES */
 #ifdef LC_PAPER
             else if (atom == keywords2atoms[K_KW_paper].atom) {
                 retv = setlocale(LC_PAPER, locale);
@@ -1408,7 +1416,11 @@ timezone_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     strcpy(path, ":");
     strcat(path, timezone);
+#if OS(WINDOWS)
+    _putenv_s("TZ", path);
+#else
     setenv("TZ", path, 1);
+#endif
     tzset();
 
     // broadcast "change:env" event
@@ -1584,7 +1596,11 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     int ret;
     if (purc_variant_is_undefined(argv[1])) {
+#if OS(WINDOWS)
+        ret = _putenv_s(name, "");
+#else
         ret = unsetenv(name);
+#endif
     }
     else {
         const char *value = purc_variant_get_string_const(argv[1]);
@@ -1594,7 +1610,11 @@ env_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
+#if OS(WINDOWS)
+        ret = _putenv_s(name, value);
+#else
         ret = setenv(name, value, 1);
+#endif
     }
 
     if (ret) {
