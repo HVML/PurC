@@ -1758,10 +1758,10 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
             goto failed;
         }
 
-        if (quantity == 0)
-            quantity = 1;
-
         if (format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be) {
+            if (quantity == 0)
+                quantity = 1;
+
             if (purc_dvobj_pack_real(bf, item, format_id, quantity,
                         silently)) {
                 goto failed;
