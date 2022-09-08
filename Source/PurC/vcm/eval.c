@@ -254,6 +254,23 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 
         free(s);
     }
+#else
+#if 0
+    for (size_t i = 0; i < frame->pos; i++) {
+        print_indent(rws, indent, NULL);
+        purc_variant_t result = pcutils_array_get(frame->params_result, i);
+        if (result) {
+            const char *type = pcvariant_typename(result);
+            snprintf(buf, DUMP_BUF_SIZE, "  param_%02ld/%s: ", i, type);
+            purc_rwstream_write(rws, buf, strlen(buf));
+
+            char *buf = pcvariant_to_string(result);
+            purc_rwstream_write(rws, buf, strlen(buf));
+            free(buf);
+            purc_rwstream_write(rws, "\n", 1);
+        }
+    }
+#endif
 #endif
 
 
