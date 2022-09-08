@@ -15,11 +15,11 @@ PCHVML_TOKEN_START_TAG|<meta name="viewport" content="width=device-width, initia
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/")/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("T"),"map") from=concat_string("assets/messages-",get_element(getVariable("SYS"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/messages-",getElement(getVariable("SYS"),"locale"),".json") to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -31,7 +31,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Sample - Loading")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Sample - Loading")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -46,12 +46,12 @@ PCHVML_TOKEN_START_TAG|<header>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<h1>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Sample - Loading")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Sample - Loading")
 PCHVML_TOKEN_END_TAG|</h1>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Overriding named variable asynchronously")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Overriding named variable asynchronously")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -68,7 +68,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div class="card-header">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Breaking News!")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Breaking News!")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -83,7 +83,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div class="card-footer text-muted">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"5 minutes ago")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"5 minutes ago")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
             "
@@ -95,18 +95,18 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype name="realCardBody">
-PCHVML_TOKEN_VCM_TREE|concat_string("<h5 class="card-title">",get_element(getVariable("?"),"title"),"</h5>
-            <p class="card-text">",get_element(getVariable("?"),"shortDesc"),"</p>
-            <a href="",get_element(getVariable("?"),"detailedUrl"),"""," class="btn btn-primary">",call_getter(get_element(getVariable("T"),"get"),"Read Details…"),"</a>
+PCHVML_TOKEN_VCM_TREE|concatString("<h5 class="card-title">",getElement(getVariable("?"),"title"),"</h5>
+            <p class="card-text">",getElement(getVariable("?"),"shortDesc"),"</p>
+            <a href="",getElement(getVariable("?"),"detailedUrl"),"""," class="btn btn-primary">",callGetter(getElement(getVariable("T"),"get"),"Read Details…"),"</a>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaking-news-",get_element(getVariable("SYS"),"locale"),".json") async>
+PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concatString("assets/breaking-news-",getElement(getVariable("SYS"),"locale"),".json") async>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|make_object("title","This is an absolute breaking news!","shortDesc","The Zhang family's rooster has laid eggs!","longDesc","Yesterday, the second son of the Zhang family came to me and said, "My rooster has laid eggs!"","detailedUrl","#","time",get_element(get_element(getVariable("SYS"),"time"),"iso8601"))
+PCHVML_TOKEN_VCM_TREE|make_object("title","This is an absolute breaking news!","shortDesc","The Zhang family's rooster has laid eggs!","longDesc","Yesterday, the second son of the Zhang family came to me and said, "My rooster has laid eggs!"","detailedUrl","#","time",getElement(getElement(getVariable("SYS"),"time"),"iso8601"))
 PCHVML_TOKEN_START_TAG|<update on="#breaking-news" to="displace" with=getVariable("realCardBody")/>
 PCHVML_TOKEN_VCM_TREE|"
 

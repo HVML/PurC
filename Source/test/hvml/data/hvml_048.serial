@@ -5,7 +5,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_COMMENT|<!-- $REQ contains the startup options -->
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_START_TAG|<hvml target=get_element(getVariable("REQ"),"target")>
+PCHVML_TOKEN_START_TAG|<hvml target=getElement(getVariable("REQ"),"target")>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<body>
@@ -15,7 +15,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concat_string(call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'"),";
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'"),";
         ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
@@ -31,7 +31,7 @@ PCHVML_TOKEN_COMMENT|<!--
         -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("T"),"map") from=concat_string("messages/",get_element(getVariable("SYS"),"locale")) to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("messages/",getElement(getVariable("SYS"),"locale")) to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -73,7 +73,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),getVariable("?"))
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),getVariable("?"))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -88,14 +88,14 @@ PCHVML_TOKEN_COMMENT|<!--
         -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<include with=getVariable(concat_string("output_",get_element(getVariable("CRTN"),"target"))) on=call_getter(get_element(getVariable("T"),"get"),"Hello, world!")/>
+PCHVML_TOKEN_START_TAG|<include with=getVariable(concatString("output_",getElement(getVariable("CRTN"),"target"))) on=callGetter(getElement(getVariable("T"),"get"),"Hello, world!")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concat_string(call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'"),";
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'"),";
         ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"

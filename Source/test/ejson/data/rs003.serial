@@ -1,1 +1,1 @@
-concat_string("file://",get_element(getVariable("SYS"),"cwd"),"/a.hvml")
+concatString("file://",getElement(getVariable("SYS"),"cwd"),"/a.hvml")

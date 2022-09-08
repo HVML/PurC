@@ -1,1 +1,1 @@
-concat_string(getVariable("<")," Hello, world! --from COROUTINE-",get_element(getVariable("CRTN"),"cid"))
+concatString(getVariable("<")," Hello, world! --from COROUTINE-",getElement(getVariable("CRTN"),"cid"))

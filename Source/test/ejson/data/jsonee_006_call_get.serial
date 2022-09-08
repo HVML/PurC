@@ -1,1 +1,1 @@
-call_getter(getVariable("abc"))
+callGetter(getVariable("abc"))

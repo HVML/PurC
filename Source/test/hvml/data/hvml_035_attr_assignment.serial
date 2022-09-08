@@ -4,7 +4,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<choose on=get_element(getVariable("2"),"payload") to="append update" in="#the-user-list" with=getVariable("user_item")>
+PCHVML_TOKEN_START_TAG|<choose on=getElement(getVariable("2"),"payload") to="append update" in="#the-user-list" with=getVariable("user_item")>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<update abc=1 attr.class="text-* text-info"/>
@@ -13,7 +13,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_END_TAG|</choose>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<choose on=get_element(getVariable("2"),"payload") to="append update" in="#the-user-list" with=getVariable("user_item")>
+PCHVML_TOKEN_START_TAG|<choose on=getElement(getVariable("2"),"payload") to="append update" in="#the-user-list" with=getVariable("user_item")>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<update abc=1 attr.class="text-* text-info"/>

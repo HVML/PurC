@@ -1,5 +1,5 @@
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),{{ call_setter(get_element(getVariable("SYS"),"cwd"),"/root") && get_element(getVariable("FS"),"list_prt") || "Cannot change directory to "/root"" || getVariable("A") && get_element(getVariable("A"),"B") || call_getter(getVariable("A")) && call_getter(getVariable("A"),123) || call_getter(get_element(get_element(getVariable("A"),"X"),"Y"),123) }}) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),{{ callSetter(getElement(getVariable("SYS"),"cwd"),"/root") && getElement(getVariable("FS"),"list_prt") || "Cannot change directory to "/root"" || getVariable("A") && getElement(getVariable("A"),"B") || callGetter(getVariable("A")) && callGetter(getVariable("A"),123) || callGetter(getElement(getElement(getVariable("A"),"X"),"Y"),123) }}) }}
 PCHVML_TOKEN_END_TAG|</init>

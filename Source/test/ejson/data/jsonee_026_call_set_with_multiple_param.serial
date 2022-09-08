@@ -1,1 +1,1 @@
-call_setter(get_element(getVariable("ABC"),"b"),123,456)
+callSetter(getElement(getVariable("ABC"),"b"),123,456)

@@ -1,1 +1,1 @@
-call_getter(get_element(getVariable("ABC"),"b"),getVariable("PA"),getVariable("PB"))
+callGetter(getElement(getVariable("ABC"),"b"),getVariable("PA"),getVariable("PB"))

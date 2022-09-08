@@ -10,7 +10,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<input type="text" name="user-name" id="the-user-name" placeholder="Your Name" value=""/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<bind on=get_element(get_element(call_getter(get_element(getVariable("DOC"),"query"),"#the-user-name"),"attr"),"value") as="user_name">
+PCHVML_TOKEN_START_TAG|<bind on=getElement(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#the-user-name"),"attr"),"value") as="user_name">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<observe on=getVariable("user_name") for="change">

@@ -1,1 +1,1 @@
-getVariable(concat_string("output_",get_element(getVariable("CRTN"),"target")))
+getVariable(concatString("output_",getElement(getVariable("CRTN"),"target")))

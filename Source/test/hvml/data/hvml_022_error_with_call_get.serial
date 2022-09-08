@@ -2,7 +2,7 @@ PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<error>
-PCHVML_TOKEN_VCM_TREE|concat_string(call_getter(get_element(getVariable("VARABC"),"ELEM"),1,2,3)," ",get_element(getVariable("ABC"),0)," ",call_getter(get_element(get_element(get_element(get_element(get_element(getVariable("A"),"B"),"C"),"D"),"E"),"F"),4,5,6)," <tag>abcdef</tag>
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getVariable("VARABC"),"ELEM"),1,2,3)," ",getElement(getVariable("ABC"),0)," ",callGetter(getElement(getElement(getElement(getElement(getElement(getVariable("A"),"B"),"C"),"D"),"E"),"F"),4,5,6)," <tag>abcdef</tag>
     ")
 PCHVML_TOKEN_END_TAG|</error>
 PCHVML_TOKEN_VCM_TREE|"

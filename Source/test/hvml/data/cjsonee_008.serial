@@ -1,5 +1,5 @@
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_VCM_TREE|{{ call_setter(getVariable("abc"),123) ; false || true && false || getVariable("A") && get_element(getVariable("A"),"B") || call_getter(getVariable("A")) && call_getter(getVariable("A"),123) || call_getter(get_element(get_element(getVariable("A"),"X"),"Y"),123) }}
+PCHVML_TOKEN_VCM_TREE|{{ callSetter(getVariable("abc"),123) ; false || true && false || getVariable("A") && getElement(getVariable("A"),"B") || callGetter(getVariable("A")) && callGetter(getVariable("A"),123) || callGetter(getElement(getElement(getVariable("A"),"X"),"Y"),123) }}
 PCHVML_TOKEN_END_TAG|</init>

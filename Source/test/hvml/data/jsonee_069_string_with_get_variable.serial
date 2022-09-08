@@ -1,2 +1,2 @@
-PCHVML_TOKEN_START_TAG|<hvml name=concat_string("attr",getVariable("VAR"))>
+PCHVML_TOKEN_START_TAG|<hvml name=concatString("attr",getVariable("VAR"))>
 PCHVML_TOKEN_END_TAG|</hvml>

@@ -17,10 +17,10 @@ PCHVML_TOKEN_COMMENT|<!-- The result of the HVML program: 6UL -->
 PCHVML_TOKEN_VCM_TREE|"
 
 "
-PCHVML_TOKEN_START_TAG|<hvml target="void" lang=call_getter(get_element(getVariable("STR"),"substr"),get_element(getVariable("SYS"),"locale"),0,2)>
+PCHVML_TOKEN_START_TAG|<hvml target="void" lang=callGetter(getElement(getVariable("STR"),"substr"),getElement(getVariable("SYS"),"locale"),0,2)>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"Start of `Hello, world!`") ; call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),call_getter(get_element(getVariable("SYS"),"time"),"%H:%m")) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Start of `Hello, world!`") ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("SYS"),"time"),"%H:%m")) }}
 PCHVML_TOKEN_COMMENT|<!-- This is a multiple-line comments, which will be parsed and form
         a comment node in the ultimate vDOM tree -->
 PCHVML_TOKEN_VCM_TREE|"
@@ -28,14 +28,14 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"Start of `head`")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Start of `head`")
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Hello, world!")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Hello, world!")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"End of `head`")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of `head`")
 PCHVML_TOKEN_END_TAG|</head>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -43,17 +43,17 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"Start of `body`")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Start of `body`")
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Hello, HVML!")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Hello, HVML!")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"End of `body`")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of `body`")
 PCHVML_TOKEN_END_TAG|</body>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),"End of `Hello, world!`") ; call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),call_getter(get_element(getVariable("SYS"),"time"),"%H:%m")) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of `Hello, world!`") ; callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("SYS"),"time"),"%H:%m")) }}
 PCHVML_TOKEN_END_TAG|</hvml>

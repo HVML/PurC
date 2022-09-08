@@ -1,4 +1,4 @@
-PCHVML_TOKEN_START_TAG|<hvml ejson=call_getter(getVariable("EJSON"),make_object("id",1234567890UL,"nickname","David","signature","
+PCHVML_TOKEN_START_TAG|<hvml ejson=callGetter(getVariable("EJSON"),make_object("id",1234567890UL,"nickname","David","signature","
 一个
 
     被'程序'耽误的

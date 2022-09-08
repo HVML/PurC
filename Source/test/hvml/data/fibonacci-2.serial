@@ -44,10 +44,10 @@ PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<iterate on=1 by=concat_string("ADD: LT 2000 BY ",get_element(get_element(getVariable("!"),"fibonacci"),-2))>
+PCHVML_TOKEN_START_TAG|<iterate on=1 by=concatString("ADD: LT 2000 BY ",getElement(getElement(getVariable("!"),"fibonacci"),-2))>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("1!"),"fibonacci") to="append" with=getVariable("?")/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("1!"),"fibonacci") to="append" with=getVariable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</iterate>
@@ -60,7 +60,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<ol>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<iterate on=get_element(getVariable("2!"),"fibonacci")>
+PCHVML_TOKEN_START_TAG|<iterate on=getElement(getVariable("2!"),"fibonacci")>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<li>
@@ -82,7 +82,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",call_getter(get_element(getVariable("EJSON"),"count"),get_element(getVariable("1!"),"fibonacci"))," numbers.")
+PCHVML_TOKEN_VCM_TREE|concatString("Totally ",callGetter(getElement(getVariable("EJSON"),"count"),getElement(getVariable("1!"),"fibonacci"))," numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "

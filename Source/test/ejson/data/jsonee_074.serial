@@ -1,2 +1,2 @@
-get_element(get_element(getVariable("buttons"),get_element(getVariable("?"),"targetValue")),"letters")
+getElement(getElement(getVariable("buttons"),getElement(getVariable("?"),"targetValue")),"letters")
 
