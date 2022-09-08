@@ -97,6 +97,7 @@ struct pcvcm_eval_ctxt {
     find_var_fn             find_var;
     void                   *find_var_ctxt;
     struct pcvcm_node      *node;
+    purc_variant_t          result;
 
     unsigned int            enable_log:1;
 };
