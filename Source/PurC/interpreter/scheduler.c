@@ -646,7 +646,7 @@ dump_stack_frame(pcintr_stack_t stack,
     purc_rwstream_write(stm, buf, strlen(buf));
 
     if (stack->vcm_ctxt) {
-        pcvcm_dump_stack(stack->vcm_ctxt, stm);
+        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
     }
 
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
