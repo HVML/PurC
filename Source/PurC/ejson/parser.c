@@ -55,37 +55,6 @@
 #define    pc_free(p)     free(p)
 #endif
 
-#define PRINT_STATE(parser)                                                 \
-    if (parser->enable_log) {                                               \
-        size_t len;                                                         \
-        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
-        PC_DEBUG(                                                           \
-            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
-            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
-            parser->state_name, character, character,                       \
-            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
-            ejson_stack_size(), s);                                         \
-        free(s); \
-    }
-
-
-#define print_uc_list(uc_list, tag)                                         \
-    do {                                                                    \
-        PC_DEBUG( "begin print %s list\n|", tag);                           \
-        struct list_head *p, *n;                                            \
-        list_for_each_safe(p, n, uc_list) {                                 \
-            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);        \
-            PC_DEBUG( "%c", puc->character);                                \
-        }                                                                   \
-        PC_DEBUG( "|\nend print %s list\n", tag);                           \
-    } while(0)
-
-#define PRINT_CONSUMED_LIST(wrap)    \
-        print_uc_list(&wrap->consumed_list, "consumed")
-
-#define PRINT_RECONSUM_LIST(wrap)    \
-        print_uc_list(&wrap->reconsume_list, "reconsume")
-
 bool pcejson_inc_depth (struct pcejson* parser)
 {
     parser->depth++;
@@ -407,6 +376,7 @@ struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
     parser->tkz_stack = pcejson_token_stack_new();
     parser->prev_separator = 0;
     parser->nr_quoted = 0;
+    parser->raw_buffer = tkz_buffer_new();
 
     const char *env_value = getenv(PURC_ENVV_EJSON_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
@@ -422,6 +392,7 @@ void pcejson_destroy(struct pcejson *parser)
         tkz_buffer_destroy(parser->string_buffer);
         pcejson_token_stack_destroy(parser->tkz_stack);
         tkz_sbst_destroy(parser->sbst);
+        tkz_buffer_destroy(parser->raw_buffer);
         pc_free(parser);
     }
 }
@@ -436,6 +407,7 @@ void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
 
     tkz_buffer_reset(parser->temp_buffer);
     tkz_buffer_reset(parser->string_buffer);
+    tkz_buffer_reset(parser->raw_buffer);
 
     pcejson_token_stack_destroy(parser->tkz_stack);
     parser->tkz_stack = pcejson_token_stack_new();

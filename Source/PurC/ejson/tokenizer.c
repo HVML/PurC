@@ -123,6 +123,8 @@ next_input:                                                                 \
         parser->prev_separator = 0;                                         \
     }                                                                       \
                                                                             \
+    APPEND_TO_RAW_BUFFER(character);                                        \
+                                                                            \
 next_state:                                                                 \
     top = tkz_stack_top();                                                  \
     switch (parser->state) {
@@ -595,6 +597,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
         }
         ret = -1;
+    }
+    if (is_parse_finished(parser, character)) {
+        DELETE_FROM_RAW_BUFFER(1);
     }
     return ret;
 END_STATE()
@@ -1478,6 +1483,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(2);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
                 if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
@@ -1492,6 +1498,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(3);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
                 if (!tkz_buffer_is_empty(parser->temp_buffer)) {
                     struct pcvcm_node *node = pcvcm_node_new_string(
@@ -1504,6 +1511,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             }
             else {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(1);
                 struct pcvcm_node *node = pcvcm_node_new_string(
                         tkz_buffer_get_bytes(parser->temp_buffer)
                         );
@@ -2344,6 +2352,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AMPERSAND)
     }
     tkz_reader_reconsume_last_char(parser->tkz_reader);
     tkz_reader_reconsume_last_char(parser->tkz_reader);
+    DELETE_FROM_RAW_BUFFER(2);
     tkz_stack_push(ETT_UNQUOTED_S);
     tkz_stack_push(ETT_VALUE);
     SET_RETURN_STATE(EJSON_TKZ_STATE_RAW_STRING);
