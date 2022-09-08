@@ -590,7 +590,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
                 pcutils_strcasecmp(env_value, "true") == 0);
     }
 
-//    purc_clr_error();
+    purc_clr_error();
 
     if (!tree) {
         result = silently ? purc_variant_make_undefined() :
