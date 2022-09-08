@@ -7,13 +7,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<choose on=get_variable("TIMERS")>
+PCHVML_TOKEN_START_TAG|<choose on=getVariable("TIMERS")>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</choose>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS")>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS")>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</update>

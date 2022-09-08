@@ -1,1 +1,1 @@
-get_element(get_element(get_variable("ABC"),"b"),get_variable("C"))
+getElement(getElement(getVariable("ABC"),"b"),getVariable("C"))

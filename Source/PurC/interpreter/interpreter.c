@@ -338,6 +338,12 @@ stack_release(pcintr_stack_t stack)
 
     if (stack->body_id) {
         free(stack->body_id);
+        stack->body_id = NULL;
+    }
+
+    if (stack->vcm_ctxt) {
+        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+        stack->vcm_ctxt = NULL;
     }
 }
 

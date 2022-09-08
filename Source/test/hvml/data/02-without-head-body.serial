@@ -20,13 +20,13 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<hvml target="void">
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=call_getter(get_element(get_variable("L"),"lt"),get_variable("0<"),10) with=call_getter(get_element(get_variable("EJSON"),"arith"),"+",get_variable("0<"),1) nosetotail>
+PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),10) with=callGetter(getElement(getVariable("EJSON"),"arith"),"+",getVariable("0<"),1) nosetotail>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),get_variable("?"),") Hello, world! --from COROUTINE-",get_element(get_variable("CRTN"),"cid")))
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("STR"),"join"),getVariable("?"),") Hello, world! --from COROUTINE-",getElement(getVariable("CRTN"),"cid")))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -34,5 +34,5 @@ PCHVML_TOKEN_END_TAG|</iterate>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),concat_string("-- by ",call_getter(get_element(get_variable("SYS"),"const"),"HVML_INTRPR_NAME"))) ; concat_string("-- by ",call_getter(get_element(get_variable("SYS"),"const"),"HVML_INTRPR_NAME")) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString("-- by ",callGetter(getElement(getVariable("SYS"),"const"),"HVML_INTRPR_NAME"))) ; concatString("-- by ",callGetter(getElement(getVariable("SYS"),"const"),"HVML_INTRPR_NAME")) }}
 PCHVML_TOKEN_END_TAG|</hvml>

@@ -1,10 +1,10 @@
 PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<test on=get_variable("#aname<")/>
+PCHVML_TOKEN_START_TAG|<test on=getVariable("#aname<")/>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<test on=get_variable("#aname?")/>
+PCHVML_TOKEN_START_TAG|<test on=getVariable("#aname?")/>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_END_TAG|</hvml>

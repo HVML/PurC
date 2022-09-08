@@ -398,7 +398,7 @@ TEST(dvobjs, time_prt)
             time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-before-epoch",
             "$DATETIME.time_prt('iso8601', -3600)",
-            time_prt, NULL, PURC_ERROR_INVALID_VALUE },
+            time_prt, time_prt_vrtcmp, 0 },
         { "iso8601-before-epoch-timezone",
             "$DATETIME.time_prt('iso8601', -3600, 'America/New_York')",
             time_prt, time_prt_vrtcmp, 0 },

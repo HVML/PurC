@@ -2,7 +2,7 @@ PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<archetype>
-PCHVML_TOKEN_VCM_TREE|concat_string("<li class="user-item" id="user-",get_element(get_variable("?"),"id"),"""," data-value="",get_element(get_variable("?"),"id"),"""," data-region="",get_element(get_variable("?"),"region"),""",">
+PCHVML_TOKEN_VCM_TREE|concatString("<li class="user-item" id="user-",getElement(getVariable("?"),"id"),"""," data-value="",getElement(getVariable("?"),"id"),"""," data-region="",getElement(getVariable("?"),"region"),""",">
         </li>
     ")
 PCHVML_TOKEN_END_TAG|</archetype>

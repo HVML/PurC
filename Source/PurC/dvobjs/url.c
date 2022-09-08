@@ -305,7 +305,7 @@ decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     int ret = pcdvobj_url_decode(&mystr, string, length, rfc, silently);
     if (ret > 0) {
         pcutils_mystring_free(&mystr);
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
         goto failed;
     }
     else if (ret < 0) {

@@ -1,1 +1,1 @@
-call_setter(get_element(get_variable("ABC"),"b"),make_object("K1",call_setter(get_variable("V1"),123),"K2",1,"K3",call_setter(get_variable("V3"),456),"K4",get_element(get_variable("V4"),1)))
+callSetter(getElement(getVariable("ABC"),"b"),make_object("K1",callSetter(getVariable("V1"),123),"K2",1,"K3",callSetter(getVariable("V3"),456),"K4",getElement(getVariable("V4"),1)))

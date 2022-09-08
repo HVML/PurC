@@ -221,6 +221,8 @@ struct pcintr_stack {
     struct pcintr_coroutine      *co;
     char                         *body_id;
 
+    struct pcvcm_eval_ctxt       *vcm_ctxt;
+
     // for observe
     // struct pcintr_observer
     /* create by interpreter yield */

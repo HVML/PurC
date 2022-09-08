@@ -162,6 +162,17 @@
         parser->nr_quoted = 0;                                              \
     } while (false)
 
+#define APPEND_TO_RAW_BUFFER(c)                                             \
+    do {                                                                    \
+        tkz_buffer_append(parser->raw_buffer, c);                           \
+    } while (false)
+
+
+#define DELETE_FROM_RAW_BUFFER(n)                                           \
+    do {                                                                    \
+        tkz_buffer_delete_tail_chars(parser->raw_buffer, n);                \
+    } while (false)
+
 struct pcejson_token {
     uint32_t type;
     struct pcvcm_node *node;
@@ -254,6 +265,7 @@ struct pcejson {
     struct tkz_buffer *string_buffer;
     struct pcvcm_node *vcm_node;
     struct tkz_sbst *sbst;
+    struct tkz_buffer *raw_buffer;
 
     struct pcejson_token_stack *tkz_stack;
     const char *state_name;

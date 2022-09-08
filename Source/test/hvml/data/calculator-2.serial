@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
 "
@@ -17,7 +17,7 @@ PCHVML_TOKEN_COMMENT|<!--
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") to="merge">
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") to="merge">
 PCHVML_TOKEN_VCM_TREE|"
            "
 PCHVML_TOKEN_VCM_TREE|make_object("HVML Calculator","HVML 计算器","Current Time: ","当前时间：")
@@ -40,12 +40,12 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="displace">
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="displace">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("id","clock","interval",1000,"active","yes"))
@@ -81,7 +81,7 @@ PCHVML_TOKEN_START_TAG|<div id="c_value">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<archetype name="button">
-PCHVML_TOKEN_VCM_TREE|concat_string("<li class="",get_element(get_variable("?"),"class"),""",">",get_element(get_variable("?"),"letters"),"</li>
+PCHVML_TOKEN_VCM_TREE|concatString("<li class="",getElement(getVariable("?"),"class"),""",">",getElement(getVariable("?"),"letters"),"</li>
                 ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
@@ -90,10 +90,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<ul>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<iterate on=get_variable("buttons")>
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("buttons")>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("@") to="append" with=get_variable("button")/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("@") to="append" with=getVariable("button")/>
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_START_TAG|<except type="NoData" raw>
@@ -116,11 +116,11 @@ PCHVML_TOKEN_START_TAG|<div id="c_title">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<h2 id="c_title">
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
 PCHVML_TOKEN_START_TAG|<small>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Current Time: ")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_END_TAG|</small>
 PCHVML_TOKEN_VCM_TREE|"
@@ -128,10 +128,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_END_TAG|</h2>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<observe on=get_variable("TIMERS") for="expired:clock">
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:clock">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")/>
+PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")/>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_START_TAG|<choose on="foo" by="this is to throw exception intentionally"/>
