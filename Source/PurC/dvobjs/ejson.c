@@ -977,7 +977,7 @@ fetchreal_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (quantity == 0)  // not specified
+    if (quantity == 0)
         quantity = 1;
 
     length = real_info[format_id - PURC_K_KW_i8].length * quantity;
@@ -1757,6 +1757,9 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
+
+        if (quantity == 0)
+            quantity = 1;
 
         if (format_id >= PURC_K_KW_i8 && format_id <= PURC_K_KW_f128be) {
             if (purc_dvobj_pack_real(bf, item, format_id, quantity,

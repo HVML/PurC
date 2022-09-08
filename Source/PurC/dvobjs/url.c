@@ -106,7 +106,7 @@ int pcdvobj_url_encode(struct pcutils_mystring *mystr,
 }
 
 int pcdvobj_url_decode(struct pcutils_mystring *mystr,
-        const char *string, size_t length, int rfc)
+        const char *string, size_t length, int rfc, bool silently)
 {
     size_t left = length;
 
@@ -149,6 +149,8 @@ int pcdvobj_url_decode(struct pcutils_mystring *mystr,
     return 0;
 
 bad_encoding:
+    if (silently)
+        return 0;
     return 1;
 }
 
@@ -300,10 +302,10 @@ decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     DECL_MYSTRING(mystr);
-    int ret = pcdvobj_url_decode(&mystr, string, length, rfc);
+    int ret = pcdvobj_url_decode(&mystr, string, length, rfc, silently);
     if (ret > 0) {
         pcutils_mystring_free(&mystr);
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
         goto failed;
     }
     else if (ret < 0) {

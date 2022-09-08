@@ -318,10 +318,6 @@ negative:
     InvalidValue
 
 negative:
-    $EJSON.fetchreal(bx12345678, 'i16:0')
-    InvalidValue
-
-negative:
     $EJSON.fetchreal(bx12345678, 'i16:-3')
     InvalidValue
 
@@ -336,6 +332,10 @@ negative:
 negative:
     $EJSON.fetchreal(bx12345678, ':sadf')
     InvalidValue
+
+positive:
+    $EJSON.fetchreal(bx00000000, 'i16:0')
+    0L
 
 positive:
     $EJSON.fetchreal(bx00020004, 'i16be')
@@ -868,9 +868,8 @@ negative:
     InvalidValue
     ''
 
-negative:
+positive:
     $URL.decode('+', 'string', 'rfc3986')
-    InvalidValue
     ''
 
 positive:
