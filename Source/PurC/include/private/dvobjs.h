@@ -234,7 +234,7 @@ size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc);
 int pcdvobj_url_encode(struct pcutils_mystring *mystr,
         const unsigned char *bytes, size_t nr_bytes, int rfc);
 int pcdvobj_url_decode(struct pcutils_mystring *mystr,
-        const char *string, size_t length, int rfc, bool silently);
+        const char *string, size_t length, int rfc);
 
 #ifdef __cplusplus
 }
