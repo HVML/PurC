@@ -1,1 +1,1 @@
-call_getter(get_element(get_variable("AA"),"BB"),undefined)
+call_getter(get_element(getVariable("AA"),"BB"),undefined)

@@ -1,5 +1,5 @@
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
 "
-PCHVML_TOKEN_VCM_TREE|{{ call_setter(get_element(get_variable("ABC"),"b"),call_setter(get_variable("B"),123,call_setter(get_variable("C"),123,call_setter(get_variable("D"),123,get_variable("PD"),get_variable("PD2")),get_variable("PC"),get_variable("PC2")),get_variable("PB"),get_variable("PB2")),get_variable("PA"),get_variable("PA2")) ; false || true && false || get_variable("A") && get_element(get_variable("A"),"B") || call_getter(get_variable("A")) && call_getter(get_variable("A"),123) || call_getter(get_element(get_element(get_variable("A"),"X"),"Y"),123) }}
+PCHVML_TOKEN_VCM_TREE|{{ call_setter(get_element(getVariable("ABC"),"b"),call_setter(getVariable("B"),123,call_setter(getVariable("C"),123,call_setter(getVariable("D"),123,getVariable("PD"),getVariable("PD2")),getVariable("PC"),getVariable("PC2")),getVariable("PB"),getVariable("PB2")),getVariable("PA"),getVariable("PA2")) ; false || true && false || getVariable("A") && get_element(getVariable("A"),"B") || call_getter(getVariable("A")) && call_getter(getVariable("A"),123) || call_getter(get_element(get_element(getVariable("A"),"X"),"Y"),123) }}
 PCHVML_TOKEN_END_TAG|</init>

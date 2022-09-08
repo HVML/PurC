@@ -1,7 +1,7 @@
 PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("expression") value=concat_string(get_variable("expression"),get_element(get_variable("@"),"textContent"))/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("expression") value=concat_string(getVariable("expression"),get_element(getVariable("@"),"textContent"))/>
 PCHVML_TOKEN_VCM_TREE|"
 "
 PCHVML_TOKEN_END_TAG|</hvml>

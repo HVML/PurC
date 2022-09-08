@@ -231,31 +231,31 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     }
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-        purc_rwstream_write(rws, "concat_string(", 14);
+        purc_rwstream_write(rws, "concatString(", 13);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
-        purc_rwstream_write(rws, "get_variable(", 13);
+        purc_rwstream_write(rws, "getVariable(", 12);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_GET_ELEMENT:
-        purc_rwstream_write(rws, "get_element(", 12);
+        purc_rwstream_write(rws, "getElement(", 11);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_GETTER:
-        purc_rwstream_write(rws, "call_getter(", 12);
+        purc_rwstream_write(rws, "callGetter(", 11);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;
 
     case PCVCM_NODE_TYPE_FUNC_CALL_SETTER:
-        purc_rwstream_write(rws, "call_setter(", 12);
+        purc_rwstream_write(rws, "callSetter(", 11);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, ")", 1);
         break;

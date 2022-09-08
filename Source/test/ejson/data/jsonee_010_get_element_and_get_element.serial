@@ -1,1 +1,1 @@
-get_element(get_element(get_variable("ABC"),"DEF"),0)
+get_element(get_element(getVariable("ABC"),"DEF"),0)

@@ -53,26 +53,26 @@ PCHVML_TOKEN_START_TAG|<init as="last_two" with=1 temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<iterate on=1 by=concat_string("ADD: LT 2000 BY ",get_element(get_variable("!"),"last_one"))>
+PCHVML_TOKEN_START_TAG|<iterate on=1 by=concat_string("ADD: LT 2000 BY ",get_element(getVariable("!"),"last_one"))>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<init at="last_one" with=get_element(get_variable("1!"),"last_two") temporarily/>
+PCHVML_TOKEN_START_TAG|<init at="last_one" with=get_element(getVariable("1!"),"last_two") temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<init at="last_two" with=get_variable("?") temporarily/>
+PCHVML_TOKEN_START_TAG|<init at="last_two" with=getVariable("?") temporarily/>
 PCHVML_TOKEN_VCM_TREE|"
 
                     "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("3!") at=".count" to="displace" with+=1/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("3!") at=".count" to="displace" with+=1/>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<dt>
-PCHVML_TOKEN_VCM_TREE|get_variable("%")
+PCHVML_TOKEN_VCM_TREE|getVariable("%")
 PCHVML_TOKEN_END_TAG|</dt>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<dd>
-PCHVML_TOKEN_VCM_TREE|get_variable("?")
+PCHVML_TOKEN_VCM_TREE|getVariable("?")
 PCHVML_TOKEN_END_TAG|</dd>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -90,7 +90,7 @@ PCHVML_TOKEN_START_TAG|<footer>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",get_element(get_variable("1!"),"count")," numbers.")
+PCHVML_TOKEN_VCM_TREE|concat_string("Totally ",get_element(getVariable("1!"),"count")," numbers.")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "

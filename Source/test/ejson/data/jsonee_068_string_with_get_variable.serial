@@ -1,1 +1,1 @@
-concat_string("this is attr ",get_variable("VAR"))
+concat_string("this is attr ",getVariable("VAR"))

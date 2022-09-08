@@ -1,13 +1,13 @@
 PCHVML_TOKEN_START_TAG|<init as="evenNumbers" with=make_array(0)>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<iterate on=get_element(get_variable("?"),0) with=call_getter(get_element(get_variable("MATH"),"add"),get_variable("0<"),2) nosetotail>
+PCHVML_TOKEN_START_TAG|<iterate on=get_element(getVariable("?"),0) with=call_getter(get_element(getVariable("MATH"),"add"),getVariable("0<"),2) nosetotail>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<test on=get_variable("?")>
+PCHVML_TOKEN_START_TAG|<test on=getVariable("?")>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<match on=call_getter(get_element(get_variable("L"),"gt"),get_variable("?"),100) exclusively>
+PCHVML_TOKEN_START_TAG|<match on=call_getter(get_element(getVariable("L"),"gt"),getVariable("?"),100) exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<back to=4/>
@@ -19,10 +19,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("evenNumbers") to="append" with=get_variable("?")/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("evenNumbers") to="append" with=getVariable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("evenNumbers") to="append" with=3/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("evenNumbers") to="append" with=3/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</match>
@@ -38,11 +38,11 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<ol>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<iterate on=get_variable("evenNumbers") by="RANGE: FROM 0">
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("evenNumbers") by="RANGE: FROM 0">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<li>
-PCHVML_TOKEN_VCM_TREE|get_variable("?")
+PCHVML_TOKEN_VCM_TREE|getVariable("?")
 PCHVML_TOKEN_END_TAG|</li>
 PCHVML_TOKEN_VCM_TREE|"
         "

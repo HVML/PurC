@@ -1,1 +1,1 @@
-get_variable(get_element(get_element(get_variable("a"),"attr"),"class"))
+getVariable(get_element(get_element(getVariable("a"),"attr"),"class"))

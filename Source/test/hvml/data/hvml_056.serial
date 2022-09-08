@@ -1,5 +1,5 @@
 PCHVML_TOKEN_START_TAG|<hvml target="html">
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),concat_string("returns ",get_variable("small")," for ",get_variable("small")," and ",get_variable("big")))
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(getVariable("STREAM"),"stdout"),"writelines"),concat_string("returns ",getVariable("small")," for ",getVariable("small")," and ",getVariable("big")))
 PCHVML_TOKEN_END_TAG|</hvml>

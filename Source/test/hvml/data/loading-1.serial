@@ -15,11 +15,11 @@ PCHVML_TOKEN_START_TAG|<meta name="viewport" content="width=device-width, initia
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/")/>
+PCHVML_TOKEN_START_TAG|<base href=call_setter(get_element(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/loading/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") from=concat_string("assets/messages-",get_element(get_variable("SYS"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("T"),"map") from=concat_string("assets/messages-",get_element(getVariable("SYS"),"locale"),".json") to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -31,7 +31,7 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Sample - Loading")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Sample - Loading")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
     "
@@ -46,12 +46,12 @@ PCHVML_TOKEN_START_TAG|<header>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<h1>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Sample - Loading")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Sample - Loading")
 PCHVML_TOKEN_END_TAG|</h1>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<p>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Initializing named variable synchronously")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Initializing named variable synchronously")
 PCHVML_TOKEN_END_TAG|</p>
 PCHVML_TOKEN_VCM_TREE|"
         "
@@ -68,7 +68,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div class="card-header">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Breaking News!")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"Breaking News!")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
                 "
@@ -123,7 +123,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div class="card-footer text-muted">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"5 minutes ago")
+PCHVML_TOKEN_VCM_TREE|call_getter(get_element(getVariable("T"),"get"),"5 minutes ago")
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
             "
@@ -135,28 +135,28 @@ PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<archetype name="realCardBody">
-PCHVML_TOKEN_VCM_TREE|concat_string("<h5 class="card-title">",get_element(get_variable("?"),"title"),"</h5>
-            <p class="card-text">",get_element(get_variable("?"),"shortDesc"),"</p>
-            <a href="",get_element(get_variable("?"),"detailedUrl"),"""," class="btn btn-primary">",call_getter(get_element(get_variable("T"),"get"),"Read Details…"),"</a>
+PCHVML_TOKEN_VCM_TREE|concat_string("<h5 class="card-title">",get_element(getVariable("?"),"title"),"</h5>
+            <p class="card-text">",get_element(getVariable("?"),"shortDesc"),"</p>
+            <a href="",get_element(getVariable("?"),"detailedUrl"),"""," class="btn btn-primary">",call_getter(get_element(getVariable("T"),"get"),"Read Details…"),"</a>
         ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaking-news-",get_element(get_variable("SYS"),"locale"),".json")>
+PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concat_string("assets/breaking-news-",get_element(getVariable("SYS"),"locale"),".json")>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<catch>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<update on="#breaking-news > p" at="textContent" with=call_getter(get_element(get_variable("T"),"get"),"Failed to load content!")/>
+PCHVML_TOKEN_START_TAG|<update on="#breaking-news > p" at="textContent" with=call_getter(get_element(getVariable("T"),"get"),"Failed to load content!")/>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_END_TAG|</catch>
 PCHVML_TOKEN_VCM_TREE|"
 
             "
-PCHVML_TOKEN_START_TAG|<update on="#breaking-news" to="displace" with=get_variable("realCardBody")/>
+PCHVML_TOKEN_START_TAG|<update on="#breaking-news" to="displace" with=getVariable("realCardBody")/>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</init>

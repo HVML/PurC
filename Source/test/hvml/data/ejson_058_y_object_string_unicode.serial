@@ -1,2 +1,2 @@
-PCHVML_TOKEN_START_TAG|<hvml ejson=call_getter(get_variable("EJSON"),make_object("title","\u041f\u043e\u043b\u0442\u043e\u0440\u0430 \u0417\u0435\u043c\u043b\u0435\u043a\u043e\u043f\u0430"))>
+PCHVML_TOKEN_START_TAG|<hvml ejson=call_getter(getVariable("EJSON"),make_object("title","\u041f\u043e\u043b\u0442\u043e\u0440\u0430 \u0417\u0435\u043c\u043b\u0435\u043a\u043e\u043f\u0430"))>
 PCHVML_TOKEN_END_TAG|</hvml>

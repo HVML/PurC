@@ -4,10 +4,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<observe on=get_variable("_TIMERS") for="foo" to="update" in="#the-header">
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("_TIMERS") for="foo" to="update" in="#the-header">
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<update on="> span.local-time" textContent=call_getter(get_element(get_variable("SYS"),"time"),"%H:%m")/>
+PCHVML_TOKEN_START_TAG|<update on="> span.local-time" textContent=call_getter(get_element(getVariable("SYS"),"time"),"%H:%m")/>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_END_TAG|</observe>

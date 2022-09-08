@@ -1,1 +1,1 @@
-call_setter(get_element(get_variable("ABC"),"b"),get_variable("PA"),get_variable("PB"))
+call_setter(get_element(getVariable("ABC"),"b"),getVariable("PA"),getVariable("PB"))

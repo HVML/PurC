@@ -68,15 +68,15 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_LONG_DOUBLE,
 #define PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE          "byte_sequence"
     PCVCM_NODE_TYPE_BYTE_SEQUENCE,
-#define PCVCM_NODE_TYPE_NAME_CONCAT_STRING          "concat_string"
+#define PCVCM_NODE_TYPE_NAME_CONCAT_STRING          "concatString"
     PCVCM_NODE_TYPE_FUNC_CONCAT_STRING,
-#define PCVCM_NODE_TYPE_NAME_GET_VARIABLE           "get_variable"
+#define PCVCM_NODE_TYPE_NAME_GET_VARIABLE           "getVariable"
     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE,
-#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "get_element"
+#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "getElement"
     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
-#define PCVCM_NODE_TYPE_NAME_CALL_GETTER            "call_getter"
+#define PCVCM_NODE_TYPE_NAME_CALL_GETTER            "callGetter"
     PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
-#define PCVCM_NODE_TYPE_NAME_CALL_SETTER            "call_setter"
+#define PCVCM_NODE_TYPE_NAME_CALL_SETTER            "callSetter"
     PCVCM_NODE_TYPE_FUNC_CALL_SETTER,
 #define PCVCM_NODE_TYPE_NAME_CJSONEE                "cjsonee"
     PCVCM_NODE_TYPE_CJSONEE,

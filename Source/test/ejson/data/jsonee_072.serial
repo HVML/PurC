@@ -1,1 +1,1 @@
-call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),call_getter(get_element(get_variable("STR"),"join"),"#",get_element(get_variable("?"),"targetId"))),"attr"),"value")
+call_getter(get_element(call_getter(get_element(getVariable("DOC"),"query"),call_getter(get_element(getVariable("STR"),"join"),"#",get_element(getVariable("?"),"targetId"))),"attr"),"value")

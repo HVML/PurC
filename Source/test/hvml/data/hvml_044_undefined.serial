@@ -7,10 +7,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<init at="opsPerSecond" with=undefined/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("users"),1) at=".age" with=undefined/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("users"),1) at=".age" with=undefined/>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("users"),1) at=".age" with=false/>
+PCHVML_TOKEN_START_TAG|<update on=get_element(getVariable("users"),1) at=".age" with=false/>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</body>
