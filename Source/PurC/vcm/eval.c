@@ -215,7 +215,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 #endif
 
     print_indent(rws, indent, NULL);
-    snprintf(buf, DUMP_BUF_SIZE, "  variantCreationModel: ");
+    snprintf(buf, DUMP_BUF_SIZE, "  Variant Creation Model: ");
     purc_rwstream_write(rws, buf, strlen(buf));
     char *s = pcvcm_node_to_string(frame->node, &len);
     purc_rwstream_write(rws, s, len);
@@ -241,7 +241,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
             purc_variant_t result = pcutils_array_get(frame->params_result, i);
             if (result) {
                 const char *type = pcvariant_typename(result);
-                snprintf(buf, DUMP_BUF_SIZE, ", result/%s: ", type);
+                snprintf(buf, DUMP_BUF_SIZE, ", result: %s/", type);
                 purc_rwstream_write(rws, buf, strlen(buf));
 
                 char *buf = pcvariant_to_string(result);
@@ -254,23 +254,6 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 
         free(s);
     }
-#else
-#if 0
-    for (size_t i = 0; i < frame->pos; i++) {
-        print_indent(rws, indent, NULL);
-        purc_variant_t result = pcutils_array_get(frame->params_result, i);
-        if (result) {
-            const char *type = pcvariant_typename(result);
-            snprintf(buf, DUMP_BUF_SIZE, "  param_%02ld/%s: ", i, type);
-            purc_rwstream_write(rws, buf, strlen(buf));
-
-            char *buf = pcvariant_to_string(result);
-            purc_rwstream_write(rws, buf, strlen(buf));
-            free(buf);
-            purc_rwstream_write(rws, "\n", 1);
-        }
-    }
-#endif
 #endif
 
 
@@ -294,7 +277,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
 
     /* vcm */
     print_indent(rws, indent, NULL);
-    snprintf(buf, DUMP_BUF_SIZE, "  variantCreationModel:");
+    snprintf(buf, DUMP_BUF_SIZE, "  Variant Creation Model: ");
     purc_rwstream_write(rws, buf, strlen(buf));
     s = pcvcm_node_to_string(ctxt->node, &len);
     purc_rwstream_write(rws, s, len);
@@ -304,7 +287,13 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
     if (ctxt->result) {
         print_indent(rws, indent, NULL);
         const char *type = pcvariant_typename(ctxt->result);
-        snprintf(buf, DUMP_BUF_SIZE, "  result/%s: ", type);
+        if (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) {
+            snprintf(buf, DUMP_BUF_SIZE, "  Evaluating (silently) result: %s/",
+                    type);
+        }
+        else {
+            snprintf(buf, DUMP_BUF_SIZE, "  Evaluating result: %s/", type);
+        }
         purc_rwstream_write(rws, buf, strlen(buf));
 
         char *buf = pcvariant_to_string(ctxt->result);
@@ -318,7 +307,12 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
         print_indent(rws, indent, NULL);
         purc_atom_t except = purc_get_error_exception(err);
         const char *msg = purc_atom_to_string(except);
-        snprintf(buf, DUMP_BUF_SIZE, "  exception: ");
+        if (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) {
+            snprintf(buf, DUMP_BUF_SIZE, "  Exception (ignored): ");
+        }
+        else {
+            snprintf(buf, DUMP_BUF_SIZE, "  Exception: ");
+        }
         purc_rwstream_write(rws, buf, strlen(buf));
         purc_rwstream_write(rws, msg, strlen(msg));
         purc_rwstream_write(rws, "\n", 1);
@@ -326,7 +320,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
 
     if (!list_empty(stack)) {
         print_indent(rws, indent, NULL);
-        snprintf(buf, DUMP_BUF_SIZE, "  stack:\n");
+        snprintf(buf, DUMP_BUF_SIZE, "  Call stack:\n");
         purc_rwstream_write(rws, buf, strlen(buf));
 
         struct pcvcm_eval_stack_frame *p, *n;
