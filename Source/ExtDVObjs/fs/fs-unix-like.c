@@ -27,6 +27,7 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
+#include "private/atom-buckets.h"
 #include "purc-variant.h"
 
 #if HAVE(SYS_SYSMACROS_H)
@@ -60,8 +61,6 @@
 #endif
 
 #define FS_DVOBJ_VERSION    0
-
-#define CKEY_DIR        "DIR"
 
 purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
@@ -3301,47 +3300,19 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 }
 
-struct pcdvobjs_dir_stream {
-    DIR* dirp;
-    char dirpath[PATH_MAX];
-};
-
 static purc_variant_t
-dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+on_dir_read (void *native_entity,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
 
-    struct pcdvobjs_dir_stream *dir_stream;
-    DIR *dirp;
-    char fullpath[PATH_MAX + NAME_MAX + 1];
+    DIR *dirp = (DIR *)native_entity;
     struct dirent *dp;
-    purc_variant_t dir_var;
 
-    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
     if (NULL == dirp) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        return purc_variant_make_boolean (false);
     }
 
     while ((dp = readdir(dirp)) != NULL) {
@@ -3349,77 +3320,69 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 || (strcmp(dp->d_name, "..") == 0))
             continue;
 
-        snprintf(fullpath, sizeof(fullpath), "%s/%s",
-                dir_stream->dirpath,
-                dp->d_name);
-        return purc_variant_make_string (fullpath, true);
+        return purc_variant_make_string (dp->d_name, true);
     }
 
     return purc_variant_make_boolean (false);
 }
 
 static purc_variant_t
-dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+on_dir_rewind (void *native_entity,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
 
-    struct pcdvobjs_dir_stream *dir_stream;
-    DIR *dirp;
-    purc_variant_t dir_var;
-
-    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+    if (native_entity) {
+        rewinddir((DIR *)native_entity);
+        return purc_variant_make_boolean (true);
     }
 
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
-    if (NULL == dirp) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    rewinddir(dirp);
-
-    return purc_variant_make_boolean (true);
+    return purc_variant_make_boolean (false);
 }
 
-static inline bool add_dir_native(purc_variant_t v, DIR *dirp,
-        const char *string_pathname)
+#define DIR_ATOM_BUCKET          ATOM_BUCKET_DVOBJ
+
+enum {
+#define _KW_dir_read                "read"
+    K_KW_dir_read,
+#define _KW_dir_rewind              "rewind"
+    K_KW_dir_rewind,
+};
+
+static struct keyword_to_atom {
+    const char *keyword;
+    purc_atom_t atom;
+} keywords2atoms [] = {
+    { _KW_dir_read, 0 },            // "read"
+    { _KW_dir_rewind, 0 },          // "rewind"
+};
+
+static purc_nvariant_method
+property_getter(const char *name)
 {
-    struct pcdvobjs_dir_stream *dir_stream = calloc(1,
-            sizeof(struct pcdvobjs_dir_stream));
-    
-    dir_stream->dirp = dirp;
-    strncpy(dir_stream->dirpath, string_pathname, sizeof(dir_stream->dirpath)-1);
-
-    purc_variant_t var = purc_variant_make_native((void *)dir_stream, NULL);
-    if (var == PURC_VARIANT_INVALID) {
-        return false;
+    purc_atom_t atom = purc_atom_try_string_ex(DIR_ATOM_BUCKET, name);
+    if (atom == 0) {
+        return NULL;
     }
 
-    if (! purc_variant_object_set_by_static_ckey(v, CKEY_DIR, var)) {
-        purc_variant_unref(var);
-        return false;
+    if (atom == keywords2atoms[K_KW_dir_read].atom) {
+        return on_dir_read;
+    }
+    else if (atom == keywords2atoms[K_KW_dir_rewind].atom) {
+        return on_dir_rewind;
     }
 
-    purc_variant_unref(var);
-    return true;
+    return NULL;
+}
+
+static void
+on_release(void *native_entity)
+{
+    if (native_entity) {
+        closedir((DIR *)native_entity);
+    }
 }
 
 static purc_variant_t
@@ -3436,7 +3399,7 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
+            goto failed;
 
         return PURC_VARIANT_INVALID;
     }
@@ -3446,47 +3409,41 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (NULL == string_pathname) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
+            goto failed;
 
         return PURC_VARIANT_INVALID;
     }
 
     if (access (string_pathname, F_OK | R_OK) != 0)
-        return purc_variant_make_boolean (false);
+        goto failed;
 
     if (stat (string_pathname, &dir_stat) < 0)
-        return purc_variant_make_boolean (false);
+        goto failed;
 
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir (string_pathname);
     }
     else {
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
-    static struct purc_dvobj_method dirStream[] = {
-        {"read",    dir_read_getter,      NULL},
-        {"rewind",  dir_rewind_getter,    NULL},
+    static const struct purc_native_ops ops = {
+        .property_getter = property_getter,
+        .on_observe = NULL,
+        .on_forget = NULL,
+        .on_release = on_release,
     };
 
-    ret_var = purc_dvobj_make_from_methods(dirStream,
-            PCA_TABLESIZE(dirStream));
+    ret_var = purc_variant_make_native((void *)dirp, &ops);
     if (ret_var == PURC_VARIANT_INVALID) {
         if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+            goto failed;
     }
+    
+    return ret_var;
 
-    if (add_dir_native(ret_var, dirp, string_pathname)) {
-        return ret_var;
-    }
-
-    purc_variant_unref(ret_var);
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-        
-    return PURC_VARIANT_INVALID;
+failed:
+    return purc_variant_make_boolean(false);
 }
 
 static purc_variant_t
@@ -3495,51 +3452,41 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
-    purc_variant_t dir_var;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
+            goto failed;
 
         return PURC_VARIANT_INVALID;
     }
 
-    dir_var = purc_variant_object_get_by_ckey(argv[0], CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
+    dirp = (DIR *)purc_variant_native_get_entity(argv[0]);
     if (NULL == dirp) {
+        purc_set_error (PURC_ERROR_NO_DATA);
         if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-            
+            goto failed;
+
         return PURC_VARIANT_INVALID;
     }
 
     if (0 == closedir(dirp))
         ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
+    else {
+        purc_set_error (PURC_ERROR_SYSTEM_FAULT);
+        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+            goto failed;
 
-    purc_variant_object_remove_by_static_ckey(argv[0], CKEY_DIR, true);
-    free (dir_stream);
+        return PURC_VARIANT_INVALID;
+    }
+
+    argv[0]->ptr_ptr[0] = NULL;
     return ret_var;
+
+failed:
+    return purc_variant_make_boolean(false);
 }
 
 static purc_variant_t pcdvobjs_create_fs(void)
@@ -3578,6 +3525,14 @@ static purc_variant_t pcdvobjs_create_fs(void)
         {"opendir",       opendir_getter, NULL},
         {"closedir",      closedir_getter, NULL}
     };
+
+    if (keywords2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+            keywords2atoms[i].atom =
+                purc_atom_from_static_string_ex(DIR_ATOM_BUCKET,
+                    keywords2atoms[i].keyword);
+        }
+    }
 
     return purc_dvobj_make_from_methods (method, PCA_TABLESIZE(method));
 }

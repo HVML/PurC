@@ -2779,12 +2779,8 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     purc_variant_t param[MAX_PARAM_NR];
     purc_variant_t dynamic_opendir = NULL;
     purc_variant_t dynamic_closedir = NULL;
-    purc_variant_t dynamic_dir_read = NULL;
-    purc_variant_t dynamic_dir_rewind = NULL;
     purc_dvariant_method func_opendir = NULL;
     purc_dvariant_method func_closedir = NULL;
-    purc_dvariant_method func_dir_read = NULL;
-    purc_dvariant_method func_dir_rewind = NULL;
     purc_variant_t dir_object = NULL;
     purc_variant_t ret_var = NULL;
     size_t sz_total_mem_before = 0;
@@ -2839,23 +2835,20 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     ASSERT_NE(dir_object, nullptr);
     purc_variant_unref(param[0]);
 
-    dynamic_dir_read = purc_variant_object_get_by_ckey (dir_object, "read");
-    ASSERT_NE(dynamic_dir_read, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic_dir_read), true);
-    func_dir_read = purc_variant_dynamic_get_getter (dynamic_dir_read);
+    struct purc_native_ops *ops = purc_variant_native_get_ops(dir_object);
+    ASSERT_NE(ops, nullptr);
+    purc_nvariant_method func_dir_read = ops->property_getter("read");
     ASSERT_NE(func_dir_read, nullptr);
-
-    dynamic_dir_rewind = purc_variant_object_get_by_ckey (dir_object, "rewind");
-    ASSERT_NE(dynamic_dir_rewind, nullptr);
-    ASSERT_EQ(purc_variant_is_dynamic (dynamic_dir_rewind), true);
-    func_dir_rewind = purc_variant_dynamic_get_getter (dynamic_dir_rewind);
+    purc_nvariant_method func_dir_rewind = ops->property_getter("rewind");
     ASSERT_NE(func_dir_rewind, nullptr);
+    void *native = purc_variant_native_get_entity(dir_object);
+    ASSERT_NE(native, nullptr);
 
     // read dir
     printf ("TEST dir_read:\n");
     int i;
     for (i = 0; i < 5; i++) {
-        ret_var = func_dir_read (dir_object, 0, param, false);
+        ret_var = func_dir_read (native, 0, param, false);
         ASSERT_NE(ret_var, nullptr);
         printf ("dir_read: %s\n", purc_variant_get_string_const (ret_var));
         purc_variant_unref(ret_var);
@@ -2863,7 +2856,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
 
     // rewind dir
     printf ("TEST dir_rewind:\n");
-    ret_var = func_dir_rewind (dir_object, 0, param, false);
+    ret_var = func_dir_rewind (native, 0, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("dir_rewind return: %s\n", pcvariant_to_string(ret_var));
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -2872,7 +2865,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     // read dir
     printf ("TEST dir_read:\n");
     for (i = 0; i < 3; i++) {
-        ret_var = func_dir_read (dir_object, 0, param, false);
+        ret_var = func_dir_read (native, 0, param, false);
         ASSERT_NE(dir_object, nullptr);
         printf ("dir_read: %s\n", purc_variant_get_string_const (ret_var));
         purc_variant_unref(ret_var);
