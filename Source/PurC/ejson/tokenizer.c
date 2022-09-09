@@ -598,9 +598,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_FINISHED)
         }
         ret = -1;
     }
-    if (is_parse_finished(parser, character)) {
-        DELETE_FROM_RAW_BUFFER(1);
-    }
+    DELETE_FROM_RAW_BUFFER(1);
     return ret;
 END_STATE()
 
