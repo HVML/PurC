@@ -360,6 +360,8 @@ pcvdom_element_append_attr(struct pcvdom_element *elem,
 
     attr->parent = elem;
 
+    pcutils_array_push(elem->attr_array, attr);
+
     return 0;
 }
 

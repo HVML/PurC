@@ -1138,9 +1138,20 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
         .cb           = cb,
     };
 
+#if 0
     int r = pcutils_map_traverse(attrs, &data, walk_attr);
     if (r)
         return r;
+#else
+    size_t nr = pcutils_array_length(element->attr_array);
+    for (size_t i = 0; i < nr; i++) {
+        struct pcvdom_attr *attr = pcutils_array_get(element->attr_array, i);
+        int r = walk_attr(attr->key, attr, &data);
+        if (r) {
+            return r;
+        }
+    }
+#endif
 
     return 0;
 }
