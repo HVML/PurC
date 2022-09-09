@@ -112,6 +112,8 @@ struct pcvdom_element {
     // val: struct pcvdom_attr*
     struct pcutils_map     *attrs;
 
+    pcutils_array_t        *attr_array;
+
     unsigned int            self_closing:1;
 };
 

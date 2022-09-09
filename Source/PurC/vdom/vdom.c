@@ -1059,6 +1059,10 @@ element_reset(struct pcvdom_element *elem)
         PC_ASSERT(r==0);
         elem->attrs = NULL;
     }
+    if (elem->attr_array) {
+        pcutils_array_destroy(elem->attr_array, true);
+        elem->attr_array = NULL;
+    }
 }
 
 static void
@@ -1128,6 +1132,12 @@ element_create(void)
         return NULL;
     }
 
+    elem->attr_array = pcutils_array_create();
+    if (!elem->attr_array) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        element_destroy(elem);
+        return NULL;
+    }
     // FIXME:
     // if (pcintr_get_stack() == NULL)
     //     return elem;
