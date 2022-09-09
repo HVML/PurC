@@ -354,13 +354,17 @@ pcvdom_element_append_attr(struct pcvdom_element *elem,
     PC_ASSERT(elem->attrs);
 
     int r;
+#if 0
     r = pcutils_map_find_replace_or_insert(elem->attrs,
             attr->key, attr, NULL);
+#else
+    r = pcutils_array_push(elem->attrs, attr);
+#endif
     PC_ASSERT(r==0);
+
 
     attr->parent = elem;
 
-    pcutils_array_push(elem->attr_array, attr);
 
     return 0;
 }
@@ -553,15 +557,14 @@ pcvdom_element_get_attr_c(struct pcvdom_element *elem,
         return NULL;
     }
 
-    pcutils_map_entry *entry;
-    entry = pcutils_map_find(elem->attrs, key);
+    struct pcvdom_attr* attr = pcvdom_element_find_attr(elem, key);
 
-    if (!entry || !entry->val) {
+    if (!attr) {
         pcinst_set_error(PURC_ERROR_NOT_EXISTS);
         return NULL;
     }
 
-    return entry->val;
+    return attr;
 }
 
 // operation api
@@ -807,12 +810,18 @@ element_serialize(struct pcvdom_element *element, int level, int push,
     if (push) {
         // key: char *, the same as struct pcvdom_attr:key
         // val: struct pcvdom_attr*
-        struct pcutils_map *attrs = element->attrs;
+//        struct pcutils_map *attrs = element->attrs;
 
         ud->cb("<", 1, ud->ctxt);
         ud->cb(tag_name, strlen(tag_name), ud->ctxt);
 
-        pcutils_map_traverse(attrs, ud, attr_serialize);
+//        pcutils_map_traverse(attrs, ud, attr_serialize);
+
+        size_t nr = pcutils_array_length(element->attrs);
+        for (size_t i = 0; i < nr; i++) {
+            struct pcvdom_attr *attr = pcutils_array_get(element->attrs, i);
+            attr_serialize(attr->key, attr, ud);
+        }
 
         if (self_closing) {
             ud->cb("/", 1, ud->ctxt);
@@ -1042,8 +1051,6 @@ document_set_doctype(struct pcvdom_document *doc,
 static void
 element_reset(struct pcvdom_element *elem)
 {
-    int r;
-
     if (elem->tag_id==VTT(_UNDEF) && elem->tag_name) {
         free(elem->tag_name);
     }
@@ -1056,15 +1063,25 @@ element_reset(struct pcvdom_element *elem)
         pcvdom_node_destroy(node);
     }
 
+#if 0
+    int r;
     if (elem->attrs) {
         r = pcutils_map_destroy(elem->attrs);
         PC_ASSERT(r==0);
         elem->attrs = NULL;
     }
-    if (elem->attr_array) {
-        pcutils_array_destroy(elem->attr_array, true);
-        elem->attr_array = NULL;
+#else
+    if (elem->attrs) {
+        size_t nr = pcutils_array_length(elem->attrs);
+        for (size_t i = 0; i < nr; i++) {
+            struct pcvdom_attr *attr = pcutils_array_get(elem->attrs, i);
+            attr->parent = NULL;
+            attr_destroy(attr);
+        }
+        pcutils_array_destroy(elem->attrs, true);
+        elem->attrs = NULL;
     }
+#endif
 }
 
 static void
@@ -1125,6 +1142,7 @@ element_create(void)
 
     elem->tag_id    = VTT(_UNDEF);
 
+#if 0
     elem->attrs = pcutils_map_create(element_attr_copy_key, element_attr_free_key,
         element_attr_copy_val, element_attr_free_val,
         element_attr_comp_key, false); // non-thread-safe
@@ -1133,13 +1151,15 @@ element_create(void)
         element_destroy(elem);
         return NULL;
     }
-
-    elem->attr_array = pcutils_array_create();
-    if (!elem->attr_array) {
+#else
+    elem->attrs = pcutils_array_create();
+    if (!elem->attrs) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         element_destroy(elem);
         return NULL;
     }
+#endif
+
     // FIXME:
     // if (pcintr_get_stack() == NULL)
     //     return elem;
@@ -1351,23 +1371,36 @@ pcvdom_element_is_hvml_operation(struct pcvdom_element *element)
 struct pcvdom_attr*
 pcvdom_element_find_attr(struct pcvdom_element *element, const char *key)
 {
+    struct pcvdom_attr *attr = NULL;
     if (PCVDOM_NODE_IS_DOCUMENT(&element->node)) {
-        return NULL;
+        goto out;
     }
 
+#if 0
     struct pcutils_map *attrs = element->attrs;
-    if (!attrs)
-        return NULL;
+    if (!attrs) {
+        goto out;
+    }
 
     pcutils_map_entry *entry;
     entry = pcutils_map_find(attrs, key);
-    if (!entry)
-        return NULL;
-    PC_ASSERT(entry->val);
-
-    struct pcvdom_attr *attr;
+    if (!entry) {
+        goto out;
+    }
     attr = (struct pcvdom_attr*)entry->val;
+#else
 
+    size_t nr = pcutils_array_length(element->attrs);
+    for (size_t i = 0; i < nr; i++) {
+        struct pcvdom_attr *v = pcutils_array_get(element->attrs, i);
+        if (strcmp(v->key, key) == 0) {
+            attr = v;
+            break;
+        }
+    }
+#endif
+
+out:
     return attr;
 }
 

@@ -110,9 +110,11 @@ struct pcvdom_element {
 
     // key: char *, the same as struct pcvdom_attr:key
     // val: struct pcvdom_attr*
+#if 0
     struct pcutils_map     *attrs;
-
-    pcutils_array_t        *attr_array;
+#else
+    pcutils_array_t        *attrs;
+#endif
 
     unsigned int            self_closing:1;
 };
