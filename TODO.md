@@ -15,10 +15,10 @@
    - `fifo`
    - `tcp`
 1. Support for the following filters for `$STREAM`:
+   - `http`
    - `gzip`
    - `ssl`
    - `websocket`
-   - `http`
    - `hibus`
 
 ### 0.3) Debugger
@@ -93,11 +93,15 @@
 1. [0.8.1; Resolved] Implement the `request` tag (only inter-coroutine request).
 1. [0.8.1; Resolved] Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.
 
-### 1.6) More Platforms
+### 1.6) `purc`
+
+1. [0.9.0] Built-in HTML renderer for text terminal via `thread` protocol.
+
+### 1.7) More Platforms
 
 1. [1.0.0] Windows
 
-### 1.7) Others
+### 1.8) Others
 
 1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
 1. [1.0.0] Normalize the typedef names.
@@ -106,7 +110,7 @@
 1. [1.0.0] Tune API description.
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
 
-### 1.8) Known Bugs
+### 1.9) Known Bugs
 
 1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
