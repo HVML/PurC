@@ -1556,6 +1556,13 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     if (nr_args > 1) {
         string_suffix = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_suffix) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+                goto failed;
+
+            return PURC_VARIANT_INVALID;
+        }
     }
 
     base_begin = get_basename (string_path, string_suffix, &length);

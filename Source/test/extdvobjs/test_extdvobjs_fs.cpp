@@ -17,6 +17,32 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "TestExtDVObj.h"
+#include "../helpers.h"
+
+TEST(dvobjs, basic)
+{
+    purc_instance_extra_info info = {};
+    int ret = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
+            "dvobjs", &info);
+    ASSERT_EQ (ret, PURC_ERROR_OK);
+
+    setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
+
+    purc_variant_t fs = purc_variant_load_dvobj_from_so (NULL, "FS");
+    ASSERT_NE(fs, nullptr);
+    ASSERT_EQ(purc_variant_is_object (fs), true);
+
+    purc_variant_unref(fs);
+    purc_cleanup();
+}
+
+TEST(dvobjs, overall)
+{
+    TestExtDVObj tester;
+    tester.run_testcases_in_file("overall");
+}
+
 #include "purc.h"
 #include "purc-variant.h"
 
@@ -441,6 +467,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
 }
 
 // basename
+#if 0
 TEST(dvobjs, dvobjs_fs_basename)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -565,6 +592,7 @@ TEST(dvobjs, dvobjs_fs_basename)
 
     purc_cleanup ();
 }
+#endif
 
 // chgrp
 TEST(dvobjs, dvobjs_fs_chgrp)
@@ -915,6 +943,7 @@ TEST(dvobjs, dvobjs_fs_copy)
 }
 
 // dirname
+#if 0
 TEST(dvobjs, dvobjs_fs_dirname)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -1040,6 +1069,7 @@ TEST(dvobjs, dvobjs_fs_dirname)
 
     purc_cleanup ();
 }
+#endif
 
 // disk_usage
 TEST(dvobjs, dvobjs_fs_disk_usage)

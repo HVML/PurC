@@ -1,0 +1,77 @@
+# test cases for $FS
+
+# test case for $FS.basename
+
+negative:
+    $FS.basename
+    ArgumentMissed
+
+negative:
+    $FS.basename(false)
+    WrongDataType
+
+negative:
+    $FS.basename("", false)
+    WrongDataType
+
+positive:
+    $FS.basename("/etc/sudoers.d", ".d")
+    "sudoers"
+
+positive:
+    $FS.basename("/etc/sudoers.d")
+    "sudoers.d"
+
+positive:
+    $FS.basename("/etc/passwd")
+    "passwd"
+
+positive:
+    $FS.basename("/etc/")
+    "etc"
+
+positive:
+    $FS.basename(".")
+    "."
+
+positive:
+    $FS.basename("/")
+    ""
+
+# test case for $FS.dirname
+
+negative:
+    $FS.dirname
+    ArgumentMissed
+
+negative:
+    $FS.dirname(false)
+    WrongDataType
+
+negative:
+    $FS.dirname("", false)
+    WrongDataType
+
+positive:
+    $FS.dirname(".")
+    "."
+
+positive:
+    $FS.dirname("/")
+    "/"
+
+positive:
+    $FS.dirname("/etc/passwd")
+    "/etc"
+
+positive:
+    $FS.dirname("/etc/")
+    "/"
+
+positive:
+    $FS.dirname("../hello")
+    "../"
+
+positive:
+    $FS.dirname("/usr/local/lib", 2)
+    "/usr"
