@@ -374,7 +374,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    //r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
 

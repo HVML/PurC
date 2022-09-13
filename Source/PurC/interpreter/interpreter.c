@@ -3387,7 +3387,10 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         case STACK_FRAME_EVAL_STEP_ATTR:
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
-                if (stack->vcm_ctxt) {
+                if (!attr->val) {
+                    val = purc_variant_make_undefined();
+                }
+                else if (stack->vcm_ctxt) {
                     val = pcvcm_eval_again(attr->val, stack, frame->silently,
                             stack->timeout);
                 }
@@ -3466,5 +3469,27 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
 out:
     return ret;
+}
+
+int
+pcintr_walk_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, void *ud, walk_attr_cb cb)
+{
+    pcutils_array_t *attrs = element->attrs;
+    if (!attrs)
+        return 0;
+
+    PC_ASSERT(frame->pos == element);
+    size_t nr = pcutils_array_length(element->attrs);
+    for (size_t i = 0; i < nr; i++) {
+        struct pcvdom_attr *attr = pcutils_array_get(element->attrs, i);
+        purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
+        purc_atom_t name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
+        int r = cb(frame, element, name, val, attr, ud);
+        if (r) {
+            return r;
+        }
+    }
+    return 0;
 }
 

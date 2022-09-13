@@ -549,6 +549,13 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
+        struct ctxt_for_bind *ctxt;
+        ctxt = (struct ctxt_for_bind*)frame->ctxt;
+        ctxt->vcm_ev = attr->val;
+        return 0;
+    }
+
     purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
             "vdom attribute '%s' for element <%s>",
             purc_atom_to_string(name), element->tag_name);
@@ -607,6 +614,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -623,7 +634,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+//    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
 
