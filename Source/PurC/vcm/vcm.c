@@ -558,6 +558,11 @@ purc_variant_t
 pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack, bool silently)
 {
     if (stack) {
+        /* FIXME */
+        if (stack->vcm_ctxt) {
+            pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+            stack->vcm_ctxt = NULL;
+        }
         return pcvcm_eval_ex(tree, &stack->vcm_ctxt, find_stack_var, stack,
                 silently);
     }
