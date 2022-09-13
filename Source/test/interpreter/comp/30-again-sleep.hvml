@@ -1,0 +1,46 @@
+#!/usr/bin/purc
+
+# RESULT: [ 0L, 1L, 2L, 3L, 4L ]
+
+<!-- The expected output of this HVML program will be like:
+
+COROUTINE-3: 2022-09-01T14:50:40+0800: I will sleep 6 seconds
+COROUTINE-4: 2022-09-01T14:50:40+0800
+COROUTINE-4: 2022-09-01T14:50:41+0800
+COROUTINE-4: 2022-09-01T14:50:42+0800
+COROUTINE-4: 2022-09-01T14:50:43+0800
+COROUTINE-4: 2022-09-01T14:50:44+0800
+COROUTINE-3: 2022-09-01T14:50:45+0800: I am awake.
+
+-->
+
+<hvml target='void'>
+
+    <body>
+        <load from '#repeater' onto '_null' async />
+
+        <inherit>
+            {{
+                 $RUNNER.user(! 'times', [] );
+                 $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I will sleep 6 seconds");
+                 $SYS.sleep(6);
+                 $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt: I am awake.");
+            }}
+        </inherit>
+
+    </body>
+
+    <body id="repeater">
+
+        <iterate on 0L onlyif $L.lt($0<, 5L) with $EJSON.arith('+', $0<, 1L) nosetotail >
+            $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt");
+
+            <update on $RUNNER.user at 'times' to 'append' with $? />
+            <sleep for '1s' />
+        </iterate>
+
+    </body>
+
+    $RUNNER.user.times
+</hvml>
+
