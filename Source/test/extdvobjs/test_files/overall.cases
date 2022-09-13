@@ -1,5 +1,41 @@
 # test cases for $FS
 
+# test case for $FS.list
+
+negative:
+    $FS.list
+    ArgumentMissed
+
+negative:
+    $FS.list(false)
+    WrongDataType
+
+negative:
+    $FS.list(1)
+    WrongDataType
+
+#negative:
+#    $FS.list("/abcdefg/123")
+#    BadSystemCall
+
+# test case for $FS.list_prt
+
+negative:
+    $FS.list_prt
+    ArgumentMissed
+
+negative:
+    $FS.list_prt(false)
+    WrongDataType
+
+negative:
+    $FS.list_prt(1)
+    WrongDataType
+
+#negative:
+#    $FS.list_prt("/abcdefg/123")
+#    BadSystemCall
+
 # test case for $FS.basename
 
 negative:
@@ -38,6 +74,130 @@ positive:
     $FS.basename("/")
     ""
 
+# test case for $FS.chgrp
+
+negative:
+    $FS.chgrp
+    ArgumentMissed
+
+negative:
+    $FS.chgrp(false)
+    ArgumentMissed
+
+negative:
+    $FS.chgrp(1)
+    ArgumentMissed
+
+negative:
+    $FS.chgrp("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.chgrp(false, false)
+    WrongDataType
+
+negative:
+    $FS.chgrp(1, false)
+    WrongDataType
+
+negative:
+    $FS.chgrp("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.chmod
+
+negative:
+    $FS.chmod
+    ArgumentMissed
+
+negative:
+    $FS.chmod(false)
+    ArgumentMissed
+
+negative:
+    $FS.chmod(1)
+    ArgumentMissed
+
+negative:
+    $FS.chmod("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.chmod(false, false)
+    WrongDataType
+
+negative:
+    $FS.chmod(1, false)
+    WrongDataType
+
+negative:
+    $FS.chmod("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.chown
+
+negative:
+    $FS.chown
+    ArgumentMissed
+
+negative:
+    $FS.chown(false)
+    ArgumentMissed
+
+negative:
+    $FS.chown(1)
+    ArgumentMissed
+
+negative:
+    $FS.chown("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.chown(false, false)
+    WrongDataType
+
+negative:
+    $FS.chown(1, false)
+    WrongDataType
+
+negative:
+    $FS.chown("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.copy
+
+negative:
+    $FS.copy
+    ArgumentMissed
+
+negative:
+    $FS.copy(false)
+    ArgumentMissed
+
+negative:
+    $FS.copy(1)
+    ArgumentMissed
+
+negative:
+    $FS.copy("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.copy(false, false)
+    WrongDataType
+
+negative:
+    $FS.copy(1, false)
+    WrongDataType
+
+negative:
+    $FS.copy("/abcdefg/123", false)
+    WrongDataType
+
+positive:
+    $FS.copy("/abcdefg/123", "/123/abcdefg")
+    false
+
 # test case for $FS.dirname
 
 negative:
@@ -75,3 +235,531 @@ positive:
 positive:
     $FS.dirname("/usr/local/lib", 2)
     "/usr"
+
+# test case for $FS.disk_usage
+
+negative:
+    $FS.disk_usage
+    ArgumentMissed
+
+negative:
+    $FS.disk_usage(false)
+    WrongDataType
+
+negative:
+    $FS.disk_usage(1)
+    WrongDataType
+
+#negative:
+#    $FS.disk_usage("/abcdefg/123")
+#    BadSystemCall
+
+positive:
+    $FS.copy("/abcdefg/123", "/123/abcdefg")
+    false
+
+# test case for $FS.file_exists
+
+negative:
+    $FS.file_exists
+    ArgumentMissed
+
+negative:
+    $FS.file_exists(false)
+    WrongDataType
+
+negative:
+    $FS.file_exists(1)
+    WrongDataType
+
+positive:
+    $FS.file_exists("/abcdefg/123")
+    false
+
+# test case for $FS.file_is
+
+negative:
+    $FS.file_is
+    ArgumentMissed
+
+negative:
+    $FS.file_is(false)
+    ArgumentMissed
+
+negative:
+    $FS.file_is(1)
+    ArgumentMissed
+
+negative:
+    $FS.file_is("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.file_is(false, false)
+    WrongDataType
+
+negative:
+    $FS.file_is(1, false)
+    WrongDataType
+
+negative:
+    $FS.file_is("/abcdefg/123", false)
+    WrongDataType
+
+positive:
+    $FS.file_is("/etc/mime.types", "file")
+    true
+
+positive:
+    $FS.file_is("/etc", "dir")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "exe")
+    true
+
+positive:
+    $FS.file_is("/etc/mime.types", "exe")
+    false
+
+# test case for $FS.lchgrp
+
+negative:
+    $FS.lchgrp
+    ArgumentMissed
+
+negative:
+    $FS.lchgrp(false)
+    ArgumentMissed
+
+negative:
+    $FS.lchgrp(1)
+    ArgumentMissed
+
+negative:
+    $FS.lchgrp("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.lchgrp(false, false)
+    WrongDataType
+
+negative:
+    $FS.lchgrp(1, false)
+    WrongDataType
+
+negative:
+    $FS.lchgrp("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.lchown
+
+negative:
+    $FS.lchown
+    ArgumentMissed
+
+negative:
+    $FS.lchown(false)
+    ArgumentMissed
+
+negative:
+    $FS.lchown(1)
+    ArgumentMissed
+
+negative:
+    $FS.lchown("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.lchown(false, false)
+    WrongDataType
+
+negative:
+    $FS.lchown(1, false)
+    WrongDataType
+
+negative:
+    $FS.lchown("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.linkinfo
+
+negative:
+    $FS.linkinfo
+    ArgumentMissed
+
+negative:
+    $FS.linkinfo(false)
+    WrongDataType
+
+negative:
+    $FS.linkinfo(1)
+    WrongDataType
+
+positive:
+    $FS.linkinfo("/abcdefg/123")
+    false
+
+# test case for $FS.lstat
+
+negative:
+    $FS.lstat
+    ArgumentMissed
+
+negative:
+    $FS.lstat(false)
+    WrongDataType
+
+negative:
+    $FS.lstat(1)
+    WrongDataType
+
+positive:
+    $FS.lstat("/abcdefg/123")
+    false
+
+# test case for $FS.link
+
+negative:
+    $FS.link
+    ArgumentMissed
+
+negative:
+    $FS.link(false)
+    ArgumentMissed
+
+negative:
+    $FS.link(1)
+    ArgumentMissed
+
+negative:
+    $FS.link("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.link("/abcdefg/123", false)
+    WrongDataType
+
+negative:
+    $FS.link("/abcdefg/123", 1)
+    WrongDataType
+
+positive:
+    $FS.link("/abcdefg/123", "/123/abcdefg")
+    false
+
+# test case for $FS.mkdir
+
+negative:
+    $FS.mkdir
+    ArgumentMissed
+
+negative:
+    $FS.mkdir(false)
+    WrongDataType
+
+negative:
+    $FS.mkdir(1)
+    WrongDataType
+
+# test case for $FS.pathinfo
+
+negative:
+    $FS.pathinfo
+    ArgumentMissed
+
+negative:
+    $FS.pathinfo(false)
+    WrongDataType
+
+negative:
+    $FS.pathinfo(1)
+    WrongDataType
+
+#positive:
+#    $FS.pathinfo("/abcdefg/123")
+#    false
+
+# test case for $FS.readlink
+
+negative:
+    $FS.readlink
+    ArgumentMissed
+
+negative:
+    $FS.readlink(false)
+    WrongDataType
+
+negative:
+    $FS.readlink(1)
+    WrongDataType
+
+positive:
+    $FS.readlink("/abcdefg/123")
+    false
+
+# test case for $FS.realpath
+
+negative:
+    $FS.realpath
+    ArgumentMissed
+
+negative:
+    $FS.realpath(false)
+    WrongDataType
+
+negative:
+    $FS.realpath(1)
+    WrongDataType
+
+positive:
+    $FS.realpath("/abcdefg/123")
+    false
+
+# test case for $FS.rename
+
+negative:
+    $FS.rename
+    ArgumentMissed
+
+negative:
+    $FS.rename(false)
+    ArgumentMissed
+
+negative:
+    $FS.rename(1)
+    ArgumentMissed
+
+negative:
+    $FS.rename("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.rename(false, false)
+    WrongDataType
+
+negative:
+    $FS.rename(1, false)
+    WrongDataType
+
+negative:
+    $FS.rename("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.rmdir
+
+negative:
+    $FS.rmdir
+    ArgumentMissed
+
+negative:
+    $FS.rmdir(false)
+    WrongDataType
+
+negative:
+    $FS.rmdir(1)
+    WrongDataType
+
+positive:
+    $FS.rmdir("/abcdefg/123")
+    false
+
+# test case for $FS.stat
+
+negative:
+    $FS.stat
+    ArgumentMissed
+
+negative:
+    $FS.stat(false)
+    WrongDataType
+
+negative:
+    $FS.stat(1)
+    WrongDataType
+
+positive:
+    $FS.stat("/abcdefg/123")
+    false
+
+# test case for $FS.symlink
+
+negative:
+    $FS.symlink
+    ArgumentMissed
+
+negative:
+    $FS.symlink(false)
+    ArgumentMissed
+
+negative:
+    $FS.symlink(1)
+    ArgumentMissed
+
+negative:
+    $FS.symlink("/abcdefg/123")
+    ArgumentMissed
+
+negative:
+    $FS.symlink(false, false)
+    WrongDataType
+
+negative:
+    $FS.symlink(1, false)
+    WrongDataType
+
+negative:
+    $FS.symlink("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.tempname
+
+negative:
+    $FS.tempname
+    ArgumentMissed
+
+negative:
+    $FS.tempname(false)
+    WrongDataType
+
+negative:
+    $FS.tempname(1)
+    WrongDataType
+
+negative:
+    $FS.tempname(false, false)
+    WrongDataType
+
+negative:
+    $FS.tempname(1, false)
+    WrongDataType
+
+negative:
+    $FS.tempname("/abcdefg/123", false)
+    WrongDataType
+
+# test case for $FS.umask
+
+negative:
+    $FS.umask(false)
+    WrongDataType
+
+#positive:
+#    $FS.umask(1)
+#    true
+
+#positive:
+#    $FS.umask("0777")
+#    true
+
+#positive:
+#    $FS.umask
+#    true
+
+# test case for $FS.rm
+
+negative:
+    $FS.rm
+    ArgumentMissed
+
+negative:
+    $FS.rm(false)
+    WrongDataType
+
+negative:
+    $FS.rm(1)
+    WrongDataType
+
+positive:
+    $FS.rm("/abcdefg/123")
+    true
+
+# test case for $FS.unlink
+
+negative:
+    $FS.unlink
+    ArgumentMissed
+
+negative:
+    $FS.unlink(false)
+    WrongDataType
+
+negative:
+    $FS.unlink(1)
+    WrongDataType
+
+positive:
+    $FS.unlink("/abcdefg/123")
+    false
+
+# test case for $FS.touch
+
+negative:
+    $FS.touch
+    ArgumentMissed
+
+negative:
+    $FS.touch(false)
+    WrongDataType
+
+negative:
+    $FS.touch(1)
+    WrongDataType
+
+# test case for $FS.file_contents
+
+negative:
+    $FS.file_contents
+    ArgumentMissed
+
+negative:
+    $FS.file_contents(false)
+    WrongDataType
+
+negative:
+    $FS.file_contents(1)
+    WrongDataType
+
+positive:
+    $FS.file_contents("/abcdefg/123")
+    false
+
+positive:
+    $FS.file_contents("/abcdefg/123", "string", 25, 20)
+    false
+
+# test case for $FS.open_dir
+
+#negative:
+#    $FS.open_dir
+#    ArgumentMissed
+
+#negative:
+#    $FS.open_dir(false)
+#    WrongDataType
+
+#negative:
+#    $FS.open_dir(1)
+#    WrongDataType
+
+#positive:
+#    $FS.open_dir("/abcdefg/123")
+#    FileNotExist
+
+# test case for $FS.closedir
+
+#negative:
+#    $FS.closedir
+#    ArgumentMissed
+
+#negative:
+#    $FS.closedir(false)
+#    WrongDataType
+
+#negative:
+#    $FS.closedir(1)
+#    WrongDataType
+
+#positive:
+#    $FS.closedir("/abcdefg/123")
+#    WrongDataType

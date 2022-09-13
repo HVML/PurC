@@ -630,7 +630,7 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     const char *env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX +1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/chgrp.test");
+        env, "test_files/chgrp.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -710,7 +710,7 @@ TEST(dvobjs, dvobjs_fs_chmod)
     const char *env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/chmod.test");
+        env, "test_files/chmod.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -800,7 +800,7 @@ TEST(dvobjs, dvobjs_fs_chown)
     const char *env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/chwon.test");
+        env, "test_files/chwon.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -885,11 +885,11 @@ TEST(dvobjs, dvobjs_fs_copy)
 
     char file_path_from[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_from, data_path, sizeof(file_path_from)-1);
-    strncat (file_path_from, "/fs/copy_from.test", sizeof(file_path_from)-1);
+    strncat (file_path_from, "/copy_from.test", sizeof(file_path_from)-1);
 
     char file_path_to[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_to, data_path, sizeof(file_path_to)-1);
-    strncat (file_path_to, "/fs/copy_to.test", sizeof(file_path_to)-1);
+    strncat (file_path_to, "/copy_to.test", sizeof(file_path_to)-1);
 
     FILE *fp = fopen (file_path_from, "wb");
     ASSERT_NE(fp, nullptr);
@@ -1364,7 +1364,7 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     const char *env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/chgrp.test");
+        env, "test_files/chgrp.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -1444,7 +1444,7 @@ TEST(dvobjs, dvobjs_fs_lchown)
     const char *env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/chwon.test");
+        env, "test_files/chwon.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -1667,11 +1667,11 @@ TEST(dvobjs, dvobjs_fs_link)
 
     char file_path_origin[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_origin, data_path, sizeof(file_path_origin)-1);
-    strncat (file_path_origin, "/fs/link_origin.test", sizeof(file_path_origin)-1);
+    strncat (file_path_origin, "/link_origin.test", sizeof(file_path_origin)-1);
 
     char file_path_pointer[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_pointer, data_path, sizeof(file_path_pointer)-1);
-    strncat (file_path_pointer, "/fs/link_pointer.test", sizeof(file_path_pointer)-1);
+    strncat (file_path_pointer, "/link_pointer.test", sizeof(file_path_pointer)-1);
 
     FILE *fp = fopen (file_path_origin, "wb");
     const char content[] = "This is a test file: link origin file.";
@@ -1750,7 +1750,7 @@ TEST(dvobjs, dvobjs_fs_mkdir)
     env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX +1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/dir_mkdir");
+        env, "test_files/dir_mkdir");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -2044,11 +2044,11 @@ TEST(dvobjs, dvobjs_fs_rename)
 
     char file_path_before[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_before, data_path, sizeof(file_path_before)-1);
-    strncat (file_path_before, "/fs/link_origin.test", sizeof(file_path_before)-1);
+    strncat (file_path_before, "/link_origin.test", sizeof(file_path_before)-1);
 
     char file_path_after[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_after, data_path, sizeof(file_path_after)-1);
-    strncat (file_path_after, "/fs/link_pointer.test", sizeof(file_path_after)-1);
+    strncat (file_path_after, "/link_pointer.test", sizeof(file_path_after)-1);
 
     FILE *fp = fopen (file_path_before, "wb");
     const char content[] = "This is a test file.";
@@ -2127,7 +2127,7 @@ TEST(dvobjs, dvobjs_fs_rmdir)
     env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/dir_rmdir");
+        env, "test_files/dir_rmdir");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -2290,11 +2290,11 @@ TEST(dvobjs, dvobjs_fs_symlink)
 
     char file_path_origin[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_origin, data_path, sizeof(file_path_origin)-1);
-    strncat (file_path_origin, "/fs/symlink_origin.test", sizeof(file_path_origin)-1);
+    strncat (file_path_origin, "/symlink_origin.test", sizeof(file_path_origin)-1);
 
     char file_path_pointer[PATH_MAX + NAME_MAX + 1] = {};
     strncpy (file_path_pointer, data_path, sizeof(file_path_pointer)-1);
-    strncat (file_path_pointer, "/fs/symlink_pointer.test", sizeof(file_path_pointer)-1);
+    strncat (file_path_pointer, "/symlink_pointer.test", sizeof(file_path_pointer)-1);
 
     FILE *fp = fopen (file_path_origin, "wb");
     const char content[] = "This is a test file: symlink origin file.";
@@ -2515,7 +2515,7 @@ TEST(dvobjs, dvobjs_fs_rm)
     env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/rm.test");
+        env, "test_files/rm.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -2596,7 +2596,7 @@ TEST(dvobjs, dvobjs_fs_unlink)
     env = "DVOBJS_TEST_PATH";
     char file_path[PATH_MAX + NAME_MAX + 1];
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/unlink.test");
+        env, "test_files/unlink.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -2674,7 +2674,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     char file_path[PATH_MAX + NAME_MAX +1];
     env = "DVOBJS_TEST_PATH";
     test_getpath_from_env_or_rel(file_path, sizeof(file_path),
-        env, "test_files/fs/touch.test");
+        env, "test_files/touch.test");
     std::cerr << "env: " << env << "=" << file_path << std::endl;
 
 
@@ -2755,7 +2755,7 @@ TEST(dvobjs, dvobjs_fs_file_contents)
     const char *env = "DVOBJS_TEST_PATH";
     char data_path[PATH_MAX+1];
     test_getpath_from_env_or_rel(data_path, sizeof(data_path),
-        env, "test_files/fs/file_contents.test");
+        env, "test_files/file_contents.test");
     std::cerr << "env: " << env << "=" << data_path << std::endl;
 
     FILE *fp = fopen (data_path, "wb");
@@ -2789,6 +2789,20 @@ param[2] = offset, param[3] = length:\n");
     purc_variant_unref(param[2]);
     purc_variant_unref(param[3]);
     purc_variant_unref(ret_var);
+
+    // File that does not exist
+    printf ("TEST file_contents: nr_args = 2, param[0] = NOT_EXIST_FILE, \
+param[1] = flag, param[2] = offset, param[3] = length:\n");
+    param[0] = purc_variant_make_string ("/abcdefg/123", false);
+    param[1] = purc_variant_make_string ("string", false);
+    param[2] = purc_variant_make_longint (25);
+    param[3] = purc_variant_make_ulongint (20);
+    ret_var = func (NULL, 4, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
+    purc_variant_unref(param[3]);
 
     // Clean up
     remove (data_path);
