@@ -288,11 +288,11 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
         print_indent(rws, indent, NULL);
         const char *type = pcvariant_typename(ctxt->result);
         if (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) {
-            snprintf(buf, DUMP_BUF_SIZE, "  Evaluating (silently) result: %s/",
+            snprintf(buf, DUMP_BUF_SIZE, "  Evaluated (silently) result: %s/",
                     type);
         }
         else {
-            snprintf(buf, DUMP_BUF_SIZE, "  Evaluating result: %s/", type);
+            snprintf(buf, DUMP_BUF_SIZE, "  Evaluated result: %s/", type);
         }
         purc_rwstream_write(rws, buf, strlen(buf));
 

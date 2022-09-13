@@ -3355,3 +3355,95 @@ pcintr_is_variable_token(const char *str)
     return pcregex_is_match(HVML_VARIABLE_REGEX, str);
 }
 
+int
+pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, bool ignore_content)
+{
+    int ret = 0;
+    pcutils_array_t *attrs = frame->pos->attrs;
+    size_t nr_params = pcutils_array_length(attrs);
+    struct pcvdom_attr *attr = NULL;
+    purc_variant_t val;
+
+    while (frame->eval_step != STACK_FRAME_EVAL_STEP_DONE) {
+        switch (frame->eval_step) {
+        case STACK_FRAME_EVAL_STEP_ATTR:
+            for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
+                attr = pcutils_array_get(attrs, frame->eval_attr_pos);
+                if (stack->vcm_ctxt) {
+                    val = pcvcm_eval_again(attr->val, stack, frame->silently,
+                            stack->timeout);
+                }
+                else {
+                    val = pcvcm_eval(attr->val, stack, frame->silently);
+                }
+                ret = purc_get_last_error();
+                if (!val) {
+                    goto out;
+                }
+
+                if (ret == PURC_ERROR_AGAIN) {
+                    purc_variant_unref(val);
+                    goto out;
+                }
+
+                purc_clr_error();
+                pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
+                        val);
+            }
+            if (ignore_content) {
+                frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
+            }
+            else {
+                frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
+            }
+            break;
+
+        case STACK_FRAME_EVAL_STEP_CONTENT:
+            {
+                struct pcvdom_node *node = &frame->pos->node;
+                node = pcvdom_node_first_child(node);
+                if (!node || node->type != PCVDOM_NODE_CONTENT) {
+                    frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
+                    break;
+                }
+
+                struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
+                struct pcvcm_node *vcm = content->vcm;
+
+                if (stack->vcm_ctxt) {
+                    val = pcvcm_eval_again(vcm, stack, frame->silently,
+                            stack->timeout);
+                }
+                else {
+                    val = pcvcm_eval(vcm, stack, frame->silently);
+                }
+                ret = purc_get_last_error();
+                if (!val) {
+                    goto out;
+                }
+
+                if (ret == PURC_ERROR_AGAIN) {
+                    purc_variant_unref(val);
+                    goto out;
+                }
+
+                pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
+                purc_variant_unref(val);
+            }
+            frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
+            break;
+
+        case STACK_FRAME_EVAL_STEP_DONE:
+            break;
+
+        default:
+            ret = PURC_ERROR_NOT_SUPPORTED;
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+

@@ -222,6 +222,7 @@ struct pcintr_stack {
     char                         *body_id;
 
     struct pcvcm_eval_ctxt       *vcm_ctxt;
+    bool                          timeout;
 
     // for observe
     // struct pcintr_observer
@@ -372,6 +373,12 @@ enum pcintr_stack_frame_type {
     STACK_FRAME_TYPE_PSEUDO,
 };
 
+enum pcintr_stack_frame_eval_step {
+    STACK_FRAME_EVAL_STEP_ATTR,
+    STACK_FRAME_EVAL_STEP_CONTENT,
+    STACK_FRAME_EVAL_STEP_DONE,
+};
+
 struct pcintr_stack_frame {
     enum pcintr_stack_frame_type             type;
     // pointers to sibling frames.
@@ -414,6 +421,10 @@ struct pcintr_stack_frame {
     purc_variant_t     error_templates;
 
     unsigned int       silently:1;
+
+    enum pcintr_stack_frame_eval_step eval_step;
+    size_t             eval_attr_pos;
+    pcutils_array_t   *attrs_result;
 };
 
 struct pcintr_stack_frame_normal {
@@ -765,6 +776,10 @@ pcintr_is_variable_token(const char *str);
 
 pcrdr_msg_data_type
 pcintr_rdr_retrieve_data_type(const char *type_name);
+
+int
+pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, bool ignore_content);
 
 PCA_EXTERN_C_END
 
