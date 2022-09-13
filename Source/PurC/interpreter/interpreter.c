@@ -3405,6 +3405,8 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 }
 
                 purc_clr_error();
+                pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+                stack->vcm_ctxt = NULL;
                 pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
                         val);
             }
@@ -3447,6 +3449,8 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
                 pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
                 purc_variant_unref(val);
+                pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+                stack->vcm_ctxt = NULL;
             }
             frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
             break;
