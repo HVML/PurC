@@ -40,14 +40,12 @@
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
 1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
-
-### 1.2.3) Others
-
+1. [0.9.x] Support line comments in CJSONEE.
 1. [0.9.x] Support for tuples.
 
 ### 1.3) Predefined Variables
 
-1. [0.8.2] Implement `$RUNNER.channel` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Complete the implementation of the following predefined variables:
@@ -95,7 +93,8 @@
 
 ### 1.6) `purc`
 
-1. [0.9.0] Built-in HTML renderer for text terminal via `thread` protocol.
+1. [0.9.0] A simple built-in HTML renderer for text terminal via `THREAD` protocol.
+1. [0.9.2] A full-featured and full-screen built-in HTML renderer for text terminal via `THREAD` protocol.
 
 ### 1.7) More Platforms
 

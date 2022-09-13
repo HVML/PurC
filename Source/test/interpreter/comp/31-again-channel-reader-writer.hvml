@@ -1,0 +1,68 @@
+#!/usr/bin/purc
+
+# RESULT: 'HVML'
+
+<!-- The expected output of this HVML program will be like:
+
+2022-08-24T12:27:00+08:00: the data received: H
+2022-08-24T12:27:01+08:00: the data received: V
+2022-08-24T12:27:02+08:00: the data received: M
+2022-08-24T12:27:03+08:00: the data received: L
+2022-08-24T12:27:03+08:00: The result got from the reader: HVML
+
+-->
+
+<hvml target="void">
+    <body>
+
+        <!-- open a channel named `myChannel` -->
+        <init as chan with $RUNNER.chan(! 'myChannel' ) />
+
+        <!-- start the writer coroutine asynchronously -->
+        <load from "#writer" asynchronously />
+
+        <!-- start the reader coroutine and wait for the result -->
+        <load from "#reader">
+            $STREAM.stdout.writelines("The result got from the reader: `$?`")
+
+            <exit with $? />
+        </load>
+
+    </body>
+
+    <body id="writer">
+        <init as chan with $RUNNER.chan('myChannel') />
+
+        <iterate on [ 'H', 'V', 'M', 'L' ]>
+            $chan.send($?)
+
+            <sleep for '1s' />
+
+        </iterate>
+
+        <!-- close the channel -->
+        <inherit>
+            $RUNNER.chan(! 'myChannel', 0)
+        </inherit>
+
+    </body>
+
+    <body id="reader">
+        <choose on $RUNNER.chan('myChannel')>
+
+            <init as result with '' />
+
+            <!-- the channel has been closed if $chan.recv() returns false -->
+            <iterate with $?.recv() silently>
+                $STREAM.stdout.writelines("$DATETIME.time_prt: the data received: $?");
+
+                <init as result at '_grandparent' with "$result$?" />
+            </iterate>
+
+            <exit with $result />
+        </choose>
+
+    </body>
+
+</hvml>
+
