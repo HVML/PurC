@@ -85,6 +85,18 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
     PURC_VARIANT_SAFE_CLEAR(frame->error_templates);
+
+    if (frame->attrs_result) {
+        size_t nr_result = pcutils_array_length(frame->attrs_result);
+        for (size_t i = 0; i < nr_result; i++) {
+            purc_variant_t v = pcutils_array_get(frame->attrs_result, i);
+            if (v) {
+                purc_variant_unref(v);
+            }
+        }
+        pcutils_array_destroy(frame->attrs_result, true);
+        frame->attrs_result = NULL;
+    }
 }
 
 static void
@@ -852,6 +864,11 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
         return -1;
     }
 
+    frame->attrs_result = pcutils_array_create();
+    if (!frame->attrs_result) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
     return 0;
 }
 
