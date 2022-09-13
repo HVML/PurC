@@ -1,0 +1,72 @@
+#!/usr/bin/purc
+
+# RESULT: [ 2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L, 29L ]
+
+<!-- The expected output of this HVML program should be like
+
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <body id="main">
+        <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
+
+        <inherit>
+            $RUNNER.user(! 'primes', [] )
+        </inherit>
+
+        <init as chIn with $RUNNER.chan(! "natural" ) temp />
+
+        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
+
+        <!-- iterate 10 times -->
+        <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 1) nosetotail >
+
+            <choose on $chIn.recv() >
+
+                <update on $RUNNER.myObj at 'primes' to "append" with $? />
+
+                <!-- open a channel to filter the new prime -->
+                <init as chOut with $RUNNER.chan(! "filter$?" ) temp />
+
+                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } async />
+
+                <!-- make the output channel to be the input channel -->
+                <init as chIn at "#main" with $chOut temp />
+            </choose>
+
+        </iterate>
+
+        <!-- close the channel named `natural` -->
+        <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
+
+        <exit with $RUNNER.myObj.primes />
+    </body>
+
+    <!-- request: {chanName: <string: `the channel name`>, diff: <longint: `the difference`> } -->
+    <body id="initialNumbers">
+
+        <!-- open the channel -->
+        <init as chan with $RUNNER.chan( $REQ.chanName ) />
+
+        <!-- this iteration will stop only if the the channle was closed -->
+        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff) nosetotail silently />
+    </body>
+
+    <body id="sieve">
+
+        <!-- this iteration will stop only if the the input channle was closed -->
+        <iterate on $REQ.in.recv() silently >
+            <test with $L.ne($EJSON.arith('%', $?, $REQ.prime), 0L) >
+                $REQ.out.send($2?)
+            </test>
+        </iterate>
+
+        <!-- close the output channel -->
+        <inherit>
+            $RUNNER.chan(! "filter$REQ.prime", 0 )
+        </inheirt>
+    </body>
+</hvml>
+
