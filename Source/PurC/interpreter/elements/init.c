@@ -515,32 +515,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-    if (!name) {
-        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-                "unknown vdom attribute '%s' for element <%s>",
-                attr->key, element->tag_name);
-        return -1;
-    }
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
@@ -1113,7 +1087,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    PC_ASSERT(frame && frame->pos);
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
+        return NULL;
+    }
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)calloc(1, sizeof(*ctxt));
@@ -1138,7 +1114,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
 

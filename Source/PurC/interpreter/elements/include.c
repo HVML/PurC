@@ -189,27 +189,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -222,6 +201,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     struct ctxt_for_include *ctxt;
     ctxt = (struct ctxt_for_include*)calloc(1, sizeof(*ctxt));
@@ -244,11 +227,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     if (!ctxt->with) {
         purc_variant_t caret = pcintr_get_symbol_var(frame,
