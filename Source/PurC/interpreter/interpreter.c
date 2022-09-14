@@ -3426,6 +3426,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 struct pcvdom_node *node = &frame->pos->node;
                 node = pcvdom_node_first_child(node);
                 if (!node || node->type != PCVDOM_NODE_CONTENT) {
+                    purc_clr_error();
                     frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
                     break;
                 }
