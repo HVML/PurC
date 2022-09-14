@@ -693,6 +693,7 @@ out_clear_ctxt:
 
 out:
     if (!result && silently) {
+        err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
             result = PURC_VARIANT_INVALID;
         }

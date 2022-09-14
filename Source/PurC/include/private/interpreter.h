@@ -779,7 +779,8 @@ pcintr_rdr_retrieve_data_type(const char *type_name);
 
 int
 pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame, bool ignore_content);
+        struct pcintr_stack_frame *frame, bool ignore_content
+        );
 
 PCA_EXTERN_C_END
 

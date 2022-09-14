@@ -3374,7 +3374,8 @@ pcintr_is_variable_token(const char *str)
 
 int
 pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame, bool ignore_content)
+        struct pcintr_stack_frame *frame, bool ignore_content
+        )
 {
     int ret = 0;
     pcutils_array_t *attrs = frame->pos->attrs;
@@ -3407,6 +3408,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                     goto out;
                 }
 
+                ret = 0;
                 purc_clr_error();
                 pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
                 stack->vcm_ctxt = NULL;
@@ -3453,6 +3455,8 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
                 pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
                 purc_variant_unref(val);
+                ret = 0;
+                purc_clr_error();
                 pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
                 stack->vcm_ctxt = NULL;
             }
