@@ -3455,6 +3455,8 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                     /* FIXME: ignore content err */
                     ret = 0;
                     purc_clr_error();
+                    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+                    stack->vcm_ctxt = NULL;
                     frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
                     break;
                 }
