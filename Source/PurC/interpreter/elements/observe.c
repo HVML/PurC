@@ -717,6 +717,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
+                ignore_content)) {
+        return NULL;
+    }
+
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -740,13 +746,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    if (stack->co->stage == CO_STAGE_FIRST_RUN) {
-        pcintr_calc_and_set_caret_symbol(stack, frame);
-    }
 
 #if 0
     if (!ctxt->with) {

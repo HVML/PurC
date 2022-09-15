@@ -47,7 +47,7 @@ static const char callTemplateHead[] =
 "<hvml target=\"void\">\n";
 
 static const char callTemplateFoot[] =
-"    <call on $%s with $REQ._args >\n"
+"    <call on $%s with $REQ._args silently>\n"
 "        $REQ._content\n"
 "        <exit with $? />\n"
 "    </call>\n"

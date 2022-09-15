@@ -873,6 +873,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -895,11 +899,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
