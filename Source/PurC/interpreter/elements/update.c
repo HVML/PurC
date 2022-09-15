@@ -889,6 +889,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->from_result = v;
     }
 
+    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    if (content && !purc_variant_is_undefined(content)) {
+        ctxt->literal = purc_variant_ref(content);
+    }
     return ctxt;
 }
 
@@ -947,37 +951,9 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(content);
-
-    pcintr_stack_t stack = &co->stack;
-
-    if (stack->except)
-        return 0;
-
-    struct ctxt_for_update *ctxt;
-    ctxt = (struct ctxt_for_update*)frame->ctxt;
-    PC_ASSERT(ctxt);
-
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return 0;
-
-    if (ctxt->from || ctxt->with) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "no content is permitted "
-                "since there's no `from/with` attribute");
-        return -1;
-    }
-
-    // NOTE: element is still the owner of vcm_content
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, &co->stack, false);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
-    ctxt->literal = v;
-
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(content);
     return 0;
 }
 

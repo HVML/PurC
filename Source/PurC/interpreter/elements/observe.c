@@ -888,40 +888,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(content);
-#if 0
-    pcintr_stack_t stack = &co->stack;
-
-    if (stack->except)
-        return;
-
-    // int r;
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return;
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    purc_clr_error();
-
-    if (purc_variant_is_string(v)) {
-        size_t sz;
-        const char *text = purc_variant_get_string_const_ex(v, &sz);
-        pcdoc_text_node_t content;
-        content = pcintr_util_new_text_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, text, sz);
-        PC_ASSERT(content);
-        purc_variant_unref(v);
-    }
-    else {
-        // FIXME: copy from undefined.c
-        char *sv = pcvariant_to_string(v);
-        PC_ASSERT(sv);
-        pcintr_util_new_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, sv, 0);
-        free(sv);
-        purc_variant_unref(v);
-    }
-#endif
 }
 
 static void
