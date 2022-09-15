@@ -431,37 +431,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-//    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-    if (!name) {
-        // FIXME: unknown attribute
-#if 0
-        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-                "unknown vdom attribute '%s' for element <%s>",
-                attr->key, element->tag_name);
-        return -1;
-#endif
-        return 0;
-    }
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static void
 on_named_observe_release(void* native_entity)
 {
