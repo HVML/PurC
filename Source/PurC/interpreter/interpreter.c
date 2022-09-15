@@ -3444,21 +3444,15 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                     val = pcvcm_eval(vcm, stack, frame->silently);
                 }
                 ret = purc_get_last_error();
+                if (!val) {
+                    goto out;
+                }
+
                 if (ret == PURC_ERROR_AGAIN) {
                     if (val) {
                         purc_variant_unref(val);
                     }
                     goto out;
-                }
-
-                if (!val) {
-                    /* FIXME: ignore content err */
-                    ret = 0;
-                    purc_clr_error();
-                    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-                    stack->vcm_ctxt = NULL;
-                    frame->eval_step = STACK_FRAME_EVAL_STEP_DONE;
-                    break;
                 }
 
                 pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
