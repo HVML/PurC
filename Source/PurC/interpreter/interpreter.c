@@ -59,6 +59,7 @@
 
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
+#define ATTR_NAME_ID        "id"
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -85,6 +86,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
     PURC_VARIANT_SAFE_CLEAR(frame->error_templates);
+    PURC_VARIANT_SAFE_CLEAR(frame->elem_id);
 
     if (frame->attrs_result) {
         size_t nr_result = pcutils_array_length(frame->attrs_result);
@@ -3412,6 +3414,9 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 purc_clr_error();
                 pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
                 stack->vcm_ctxt = NULL;
+                if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
+                    frame->elem_id = purc_variant_ref(val);
+                }
                 pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
                         val);
             }

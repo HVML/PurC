@@ -419,12 +419,15 @@ struct pcintr_stack_frame {
 
     purc_variant_t     except_templates;
     purc_variant_t     error_templates;
+    /* element id attr value */
+    purc_variant_t    elem_id;
 
     unsigned int       silently:1;
 
     enum pcintr_stack_frame_eval_step eval_step;
     size_t             eval_attr_pos;
     pcutils_array_t   *attrs_result;
+
 };
 
 struct pcintr_stack_frame_normal {
