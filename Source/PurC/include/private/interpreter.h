@@ -384,6 +384,7 @@ enum pcintr_element_step {
     ELEMENT_STEP_EVAL_ATTR,
     ELEMENT_STEP_EVAL_CONTENT,
     ELEMENT_STEP_LOGIC,
+    ELEMENT_STEP_DONE,
 };
 
 struct pcintr_stack_frame {
