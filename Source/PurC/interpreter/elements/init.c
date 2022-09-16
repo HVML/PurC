@@ -1087,7 +1087,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
         return NULL;
     }
 
@@ -1244,13 +1244,13 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    // NOTE: element is still the owner of vcm_content
-    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
-    if (v == PURC_VARIANT_INVALID)
+    purc_variant_t v = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    if (!v || purc_variant_is_undefined(v)) {
         return -1;
+    }
 
     PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
-    ctxt->literal = v;
+    ctxt->literal = purc_variant_ref(v);
 
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     frame->ctnt_var = purc_variant_ref(ctxt->literal);
