@@ -46,6 +46,7 @@ enum step_for_iterate {
     STEP_ITERATE,
     STEP_AFTER_ITERATE,
     STEP_CHECK_STOP,
+    STEP_DONE,
 };
 
 struct ctxt_for_iterate {
@@ -605,32 +606,57 @@ attr_found_val(struct pcintr_stack_frame *frame,
 }
 
 static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
+step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
 {
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) != name)
-            && (val == PURC_VARIANT_INVALID)) {
-            return -1;
-    }
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-
-    if (val) {
-        purc_variant_unref(val);
-    }
-
-    return r ? -1 : 0;
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
 }
 
-int
+static int
+step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
+
+static int
+step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
+
+static int
+step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
+
+static int
+step_check_stop(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
+
+
+static int
 prepare(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
@@ -647,7 +673,7 @@ prepare(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     return 0;
 }
 
-int
+static int
 eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
@@ -700,7 +726,7 @@ out:
     return err;
 }
 
-int
+static int
 eval_content(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
@@ -719,11 +745,57 @@ out:
     return 0;
 }
 
-int
+static int
 logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     int err = 0;
     struct ctxt_for_iterate *ctxt = frame->ctxt;
+
+    switch(ctxt->step) {
+    case STEP_BEFORE_FIRST_ITERATE:
+        err = step_before_first_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_BEFORE_ITERATE;
+        break;
+
+    case STEP_BEFORE_ITERATE:
+        err = step_before_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_ITERATE;
+        break;
+
+    case STEP_ITERATE:
+        err = step_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_AFTER_ITERATE;
+        break;
+
+    case STEP_AFTER_ITERATE:
+        err = step_after_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_AFTER_ITERATE;
+        break;
+
+    case STEP_CHECK_STOP:
+        err = step_check_stop(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_DONE;
+        break;
+
+    case STEP_DONE:
+        break;
+    }
+
     /* before the first iteration, set attr 'in' to $0@ */
     purc_variant_t in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
@@ -774,56 +846,6 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 
 out:
     return err;
-}
-
-int
-step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
-}
-
-int
-step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
-}
-
-int
-step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
-}
-
-int
-step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
-}
-
-int
-step_check_stop(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
 }
 
 static void*
