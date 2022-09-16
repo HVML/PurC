@@ -379,6 +379,13 @@ enum pcintr_stack_frame_eval_step {
     STACK_FRAME_EVAL_STEP_DONE,
 };
 
+enum pcintr_element_step {
+    ELEMENT_STEP_PREPARE,
+    ELEMENT_STEP_EVAL_ATTR,
+    ELEMENT_STEP_EVAL_CONTENT,
+    ELEMENT_STEP_LOGIC,
+};
+
 struct pcintr_stack_frame {
     enum pcintr_stack_frame_type             type;
     // pointers to sibling frames.
@@ -425,9 +432,9 @@ struct pcintr_stack_frame {
     unsigned int       silently:1;
 
     enum pcintr_stack_frame_eval_step eval_step;
+    enum pcintr_element_step elem_step;
     size_t             eval_attr_pos;
     pcutils_array_t   *attrs_result;
-
 };
 
 struct pcintr_stack_frame_normal {
