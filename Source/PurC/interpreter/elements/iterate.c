@@ -704,7 +704,18 @@ int
 eval_content(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
+    struct pcvdom_node *node = &frame->pos->node;
+    node = pcvdom_node_first_child(node);
+    if (!node || node->type != PCVDOM_NODE_CONTENT) {
+        purc_clr_error();
+        frame->elem_step = ELEMENT_STEP_LOGIC;
+        goto out;
+    }
+
+    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
+    ctxt->content_vcm = content->vcm;
+out:
     return 0;
 }
 
@@ -799,18 +810,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 break;
 
             case ELEMENT_STEP_EVAL_CONTENT:
-                {
-                    struct pcvdom_node *node = &frame->pos->node;
-                    node = pcvdom_node_first_child(node);
-                    if (!node || node->type != PCVDOM_NODE_CONTENT) {
-                        purc_clr_error();
-                        frame->elem_step = ELEMENT_STEP_LOGIC;
-                        break;
-                    }
-
-                    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
-                    struct ctxt_for_iterate *ctxt = frame->ctxt;
-                    ctxt->content_vcm = content->vcm;
+                err = eval_content(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
                 }
                 frame->elem_step = ELEMENT_STEP_LOGIC;
                 break;
