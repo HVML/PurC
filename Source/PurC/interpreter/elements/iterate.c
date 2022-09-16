@@ -59,6 +59,11 @@ struct ctxt_for_iterate {
     struct pcvdom_attr           *with_attr;
 
     struct pcvdom_attr           *rule_attr;
+
+    struct pcvcm_node            *content_vcm;
+
+
+
     purc_variant_t                evalued_rule;
     purc_variant_t                with;
 
@@ -794,6 +799,19 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 break;
 
             case ELEMENT_STEP_EVAL_CONTENT:
+                {
+                    struct pcvdom_node *node = &frame->pos->node;
+                    node = pcvdom_node_first_child(node);
+                    if (!node || node->type != PCVDOM_NODE_CONTENT) {
+                        purc_clr_error();
+                        frame->elem_step = ELEMENT_STEP_LOGIC;
+                        break;
+                    }
+
+                    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
+                    struct ctxt_for_iterate *ctxt = frame->ctxt;
+                    ctxt->content_vcm = content->vcm;
+                }
                 frame->elem_step = ELEMENT_STEP_LOGIC;
                 break;
 
@@ -806,10 +824,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    struct ctxt_for_iterate *ctxt = frame->ctxt;
     int r;
 
 
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
     /* before the first iteration, set attr 'in' to $0@ */
     purc_variant_t in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
