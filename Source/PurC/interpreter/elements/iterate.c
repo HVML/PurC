@@ -38,6 +38,13 @@
 #include <pthread.h>
 #include <unistd.h>
 
+enum step_for_iterate {
+    STEP_BEFORE_FIREST_ITERATE,
+    STEP_BEFORE_ITERATE,
+    STEP_ITERATE,
+    STEP_AFTER_ITERATE,
+};
+
 struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
 
@@ -66,6 +73,7 @@ struct ctxt_for_iterate {
     unsigned int                  stop:1;
     unsigned int                  by_rule:1;
     unsigned int                  nosetotail:1;
+    enum step_for_iterate         step;
 };
 
 static void
