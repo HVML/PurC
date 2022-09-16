@@ -66,7 +66,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-
     struct pcintr_stack_frame *parent_frame;
     parent_frame = pcintr_stack_frame_get_parent(frame);
     if (parent_frame) {
@@ -74,6 +73,14 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             purc_variant_t v = pcintr_get_symbol_var(parent_frame, i);
             pcintr_set_symbol_var(frame, i, v);
         }
+    }
+
+    if (frame->eval_step == STACK_FRAME_EVAL_STEP_ATTR) {
+        frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
+    }
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
     }
 
     struct ctxt_for_inherit *ctxt;
@@ -140,27 +147,10 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content, bool first_child)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
-
-    pcintr_stack_t stack = &co->stack;
-    if (stack->except)
-        return;
-
-    if (!first_child) {
-        return;
-    }
-
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return;
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    if (v) {
-        pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
-        purc_variant_unref(v);
-    }
-//    purc_clr_error();
+    UNUSED_PARAM(first_child);
 }
 
 static void
