@@ -722,9 +722,58 @@ out:
 int
 logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    return 0;
+    int err = 0;
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
+    /* before the first iteration, set attr 'in' to $0@ */
+    purc_variant_t in = ctxt->in;
+    if (in != PURC_VARIANT_INVALID) {
+        if (!purc_variant_is_string(in)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            err = PURC_ERROR_INVALID_VALUE;
+            goto out;
+        }
+
+        purc_variant_t elements = pcintr_doc_query(stack->co,
+                purc_variant_get_string_const(in), frame->silently);
+        if (elements == PURC_VARIANT_INVALID) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            err = PURC_ERROR_INVALID_VALUE;
+            goto out;
+        }
+
+        err = pcintr_set_at_var(frame, elements);
+        purc_variant_unref(elements);
+        if (err) {
+            goto out;
+        }
+    }
+
+    if (ctxt->rule_attr || !ctxt->with_attr) {
+        ctxt->by_rule = 1;
+    }
+
+    struct ctxt_for_iterate *ret;
+    if (ctxt->by_rule) {
+        ret = post_process_by_rule(stack->co, frame);
+    }
+    else {
+        ret = post_process(stack->co, frame);
+    }
+
+    err = purc_get_last_error();
+    if (err) {
+        goto out;
+    }
+
+    if (!ret) {
+        err = -1;
+    }
+
+    /* first eval content */
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+
+out:
+    return err;
 }
 
 int
@@ -818,6 +867,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 break;
 
             case ELEMENT_STEP_LOGIC:
+                err = logic(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
+                }
                 frame->elem_step = ELEMENT_STEP_DONE;
                 break;
 
@@ -826,51 +879,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    int r;
-
-
-    struct ctxt_for_iterate *ctxt = frame->ctxt;
-    /* before the first iteration, set attr 'in' to $0@ */
-    purc_variant_t in = ctxt->in;
-    if (in != PURC_VARIANT_INVALID) {
-        if (!purc_variant_is_string(in)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return ctxt;
-        }
-
-        purc_variant_t elements = pcintr_doc_query(stack->co,
-                purc_variant_get_string_const(in), frame->silently);
-        if (elements == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return ctxt;
-        }
-
-        r = pcintr_set_at_var(frame, elements);
-        purc_variant_unref(elements);
-        if (r) {
-            return ctxt;
-        }
-    }
-
-    if (ctxt->rule_attr || !ctxt->with_attr) {
-        ctxt->by_rule = 1;
-    }
-
-    struct ctxt_for_iterate *ret;
-    if (ctxt->by_rule) {
-        ret = post_process_by_rule(stack->co, frame);
-    }
-    else {
-        ret = post_process(stack->co, frame);
-    }
-
-    if (purc_get_last_error()) {
-        return ret;
-    }
-
-    /* first eval content */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-    return ret;
+    return frame->ctxt;
 }
 
 static bool
