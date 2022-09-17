@@ -130,6 +130,42 @@ ctxt_destroy(void *ctxt)
     ctxt_for_iterate_destroy((struct ctxt_for_iterate*)ctxt);
 }
 
+static purc_variant_t
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct pcvcm_node *node)
+{
+    int err = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    if (!node) {
+        val = purc_variant_make_undefined();
+    }
+    else if (stack->vcm_ctxt) {
+        val = pcvcm_eval_again(node, stack, frame->silently,
+                stack->timeout);
+    }
+    else {
+        val = pcvcm_eval(node, stack, frame->silently);
+    }
+
+    err = purc_get_last_error();
+    if (!val) {
+        goto out;
+    }
+
+    if (err == PURC_ERROR_AGAIN && val) {
+        purc_variant_unref(val);
+        val = PURC_VARIANT_INVALID;
+        goto out;
+    }
+
+    purc_clr_error();
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
+out:
+    return val;
+}
+
+
 static bool
 check_stop(purc_variant_t val)
 {
@@ -243,6 +279,29 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     UNUSED_PARAM(co);
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
+    /* verify with attr if on attr not exists */
+    if (!ctxt->on) {
+        purc_variant_t val;
+        if (ctxt->with_attr) {
+            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+        }
+        else {
+            val = purc_variant_make_undefined();
+        }
+
+        if (!val) {
+            return NULL;
+        }
+
+        if (check_stop(val)) {
+            ctxt->stop = true;
+        }
+        else {
+            pcintr_set_input_var(&co->stack, val);
+        }
+        purc_variant_unref(val);
+    }
 
     if (ctxt->stop) {
         return NULL;
@@ -545,41 +604,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static purc_variant_t
-pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct pcvcm_node *node)
-{
-    int err = 0;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (!node) {
-        val = purc_variant_make_undefined();
-    }
-    else if (stack->vcm_ctxt) {
-        val = pcvcm_eval_again(node, stack, frame->silently,
-                stack->timeout);
-    }
-    else {
-        val = pcvcm_eval(node, stack, frame->silently);
-    }
-
-    err = purc_get_last_error();
-    if (!val) {
-        goto out;
-    }
-
-    if (err == PURC_ERROR_AGAIN && val) {
-        purc_variant_unref(val);
-        val = PURC_VARIANT_INVALID;
-        goto out;
-    }
-
-    purc_clr_error();
-    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-    stack->vcm_ctxt = NULL;
-out:
-    return val;
-}
-
 static int
 step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
@@ -772,6 +796,7 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     return err;
 }
 
+#if 0
 static int
 step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
@@ -791,7 +816,7 @@ step_check_stop(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(ctxt);
     return 0;
 }
-
+#endif
 
 static int
 prepare(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
@@ -868,7 +893,7 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     int err = 0;
     struct ctxt_for_iterate *ctxt = frame->ctxt;
 
-    while (ctxt->step != STEP_DONE) {
+    while (ctxt->step != STEP_AFTER_ITERATE) {
         switch(ctxt->step) {
             case STEP_BEFORE_FIRST_ITERATE:
                 err = step_before_first_iterate(stack, frame, ctxt);
@@ -894,23 +919,7 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 ctxt->step = STEP_AFTER_ITERATE;
                 break;
 
-            case STEP_AFTER_ITERATE:
-                err = step_after_iterate(stack, frame, ctxt);
-                if (err != PURC_ERROR_OK) {
-                    goto out;
-                }
-                ctxt->step = STEP_CHECK_STOP;
-                break;
-
-            case STEP_CHECK_STOP:
-                err = step_check_stop(stack, frame, ctxt);
-                if (err != PURC_ERROR_OK) {
-                    goto out;
-                }
-                ctxt->step = STEP_DONE;
-                break;
-
-            case STEP_DONE:
+            default:
                 break;
         }
     }
