@@ -93,6 +93,7 @@ struct ctxt_for_iterate {
     unsigned int                  stop:1;
     unsigned int                  by_rule:1;
     unsigned int                  nosetotail:1;
+    unsigned int                  is_rerun:1;
     enum step_for_iterate         step;
     enum step_for_func            func_step;
 };
@@ -236,7 +237,8 @@ re_eval_with(struct pcintr_stack_frame *frame,
 }
 
 static struct ctxt_for_iterate*
-post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+first_iterate_without_executor(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
     struct ctxt_for_iterate *ctxt;
@@ -420,7 +422,7 @@ post_process_by_external_func(struct ctxt_for_iterate *ctxt,
 }
 
 static struct ctxt_for_iterate *
-post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+first_iterate_by_executor(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
     struct ctxt_for_iterate *ctxt;
@@ -765,7 +767,15 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(ctxt);
-    return 0;
+    struct ctxt_for_iterate *ret;
+    if (ctxt->by_rule) {
+        ret = first_iterate_by_executor(stack->co, frame);
+    }
+    else {
+        ret = first_iterate_without_executor(stack->co, frame);
+    }
+
+    return ret ? 0 : -1;
 }
 
 static int
@@ -911,21 +921,9 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         }
     }
 
-    struct ctxt_for_iterate *ret;
-    if (ctxt->by_rule) {
-        ret = post_process_by_rule(stack->co, frame);
-    }
-    else {
-        ret = post_process(stack->co, frame);
-    }
-
     err = purc_get_last_error();
     if (err) {
         goto out;
-    }
-
-    if (!ret) {
-        err = -1;
     }
 
     /* first eval content */
@@ -1280,6 +1278,7 @@ rerun(pcintr_stack_t stack, void* ud)
 
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    ctxt->is_rerun = 1;
 
     if (!ctxt->by_rule) {
         return rerun_with(stack);
