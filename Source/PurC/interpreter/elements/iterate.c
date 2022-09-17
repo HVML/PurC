@@ -243,23 +243,9 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     UNUSED_PARAM(co);
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
-    PC_ASSERT(ctxt->by_rule == 0);
-
-    if (ctxt->onlyif_attr) {
-        bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop, &co->stack);
-        if (r) {
-            if (purc_get_last_error())
-                return ctxt;
-            return NULL;
-        }
-
-        if (stop) {
-            ctxt->stop = 1;
-            return NULL;
-        }
+    if (ctxt->stop) {
+        return NULL;
     }
 
     /* $0< set to  $0? */
