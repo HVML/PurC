@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #define ATTR_NAME_ID        "id"
+#define DEFAULT_RULE        "RANGE: FROM 0"
 
 enum step_for_iterate {
     STEP_BEFORE_FIRST_ITERATE,
@@ -615,6 +616,10 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
     int err = 0;
     purc_variant_t val;
 
+    if (ctxt->rule_attr || !ctxt->with_attr) {
+        ctxt->by_rule = 1;
+    }
+
     while(ctxt->func_step != FUNC_STEP_DONE) {
         switch (ctxt->func_step) {
             case FUNC_STEP_1ST:
@@ -643,7 +648,7 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
 
             case FUNC_STEP_2ND:
                 if (!ctxt->in_attr) {
-                    ctxt->func_step = FUNC_STEP_DONE;
+                    ctxt->func_step = FUNC_STEP_3RD;
                     break;
                 }
                 val = pcintr_eval_vcm(stack, frame, ctxt->in_attr->val);
@@ -682,6 +687,47 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
                     goto out;
                 }
                 ctxt->in = val;
+                ctxt->func_step = FUNC_STEP_3RD;
+                break;
+
+            case FUNC_STEP_3RD:
+                if (ctxt->by_rule) {
+                    purc_variant_t with;
+                    if (ctxt->with_attr) {
+                        with = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+                    }
+                    else {
+                        with = purc_variant_make_undefined();
+                    }
+                    if (!with) {
+                        err = purc_get_last_error();
+                        goto out;
+                    }
+
+                    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+                    ctxt->with = with;
+                }
+                ctxt->func_step = FUNC_STEP_4TH;
+                break;
+
+            case FUNC_STEP_4TH:
+                if (ctxt->by_rule) {
+                    if (ctxt->rule_attr) {
+                        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+                    }
+                    else {
+                        val = purc_variant_make_string_static(DEFAULT_RULE,
+                                false);
+                    }
+
+                    if (!val) {
+                        err = purc_get_last_error();
+                        goto out;
+                    }
+
+                    PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
+                    ctxt->evalued_rule = val;
+                }
                 ctxt->func_step = FUNC_STEP_DONE;
                 break;
 
@@ -704,6 +750,25 @@ step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(ctxt);
+
+    if (ctxt->by_rule) {
+        return 0;
+    }
+
+    if (!ctxt->onlyif_attr) {
+        return 0;
+    }
+
+    purc_variant_t val = pcintr_eval_vcm(stack, frame, ctxt->onlyif_attr->val);
+    if (!val) {
+        return purc_get_last_error();
+    }
+
+    bool v = purc_variant_booleanize(val);
+    PURC_VARIANT_SAFE_CLEAR(val);
+
+    ctxt->stop = !v;
+
     return 0;
 }
 
@@ -856,10 +921,6 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 
     case STEP_DONE:
         break;
-    }
-
-    if (ctxt->rule_attr || !ctxt->with_attr) {
-        ctxt->by_rule = 1;
     }
 
     struct ctxt_for_iterate *ret;
