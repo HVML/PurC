@@ -767,15 +767,23 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(ctxt);
-    struct ctxt_for_iterate *ret;
-    if (ctxt->by_rule) {
-        ret = first_iterate_by_executor(stack->co, frame);
+    int err = 0;
+    if (!ctxt->is_rerun) {
+        struct ctxt_for_iterate *ret;
+        if (ctxt->by_rule) {
+            ret = first_iterate_by_executor(stack->co, frame);
+        }
+        else {
+            ret = first_iterate_without_executor(stack->co, frame);
+        }
+        err = ret ? 0 : -1;
     }
     else {
-        ret = first_iterate_without_executor(stack->co, frame);
+        // TODO
     }
 
-    return ret ? 0 : -1;
+
+    return err;
 }
 
 static int
