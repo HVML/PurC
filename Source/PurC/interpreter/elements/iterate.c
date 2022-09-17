@@ -427,29 +427,15 @@ post_process_by_rule(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
     PC_ASSERT(ctxt);
 
-    purc_variant_t on;
-    on = ctxt->on;
+    purc_variant_t on = ctxt->on;
     if (on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "lack of vdom attribute 'on' for element <iterate>");
         return NULL;
     }
+    purc_variant_t with = ctxt->with;
 
-    purc_variant_t with;
-    if (ctxt->with_attr) {
-        with = pcintr_eval_vdom_attr(&co->stack, ctxt->with_attr);
-    }
-    else {
-        with = purc_variant_make_undefined();
-    }
-
-    if (with == PURC_VARIANT_INVALID)
-        return ctxt;
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-    ctxt->with = with;
-
-    const char *rule = eval_rule(ctxt, &co->stack);
+    const char *rule = purc_variant_get_string_const(ctxt->evalued_rule);
     if (!rule)
         return ctxt;
 
@@ -878,49 +864,51 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     int err = 0;
     struct ctxt_for_iterate *ctxt = frame->ctxt;
 
-    switch(ctxt->step) {
-    case STEP_BEFORE_FIRST_ITERATE:
-        err = step_before_first_iterate(stack, frame, ctxt);
-        if (err != PURC_ERROR_OK) {
-            goto out;
-        }
-        ctxt->step = STEP_BEFORE_ITERATE;
-        break;
+    while (ctxt->step != STEP_DONE) {
+        switch(ctxt->step) {
+            case STEP_BEFORE_FIRST_ITERATE:
+                err = step_before_first_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_BEFORE_ITERATE;
+                break;
 
-    case STEP_BEFORE_ITERATE:
-        err = step_before_iterate(stack, frame, ctxt);
-        if (err != PURC_ERROR_OK) {
-            goto out;
-        }
-        ctxt->step = STEP_ITERATE;
-        break;
+            case STEP_BEFORE_ITERATE:
+                err = step_before_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_ITERATE;
+                break;
 
-    case STEP_ITERATE:
-        err = step_iterate(stack, frame, ctxt);
-        if (err != PURC_ERROR_OK) {
-            goto out;
-        }
-        ctxt->step = STEP_AFTER_ITERATE;
-        break;
+            case STEP_ITERATE:
+                err = step_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_AFTER_ITERATE;
+                break;
 
-    case STEP_AFTER_ITERATE:
-        err = step_after_iterate(stack, frame, ctxt);
-        if (err != PURC_ERROR_OK) {
-            goto out;
-        }
-        ctxt->step = STEP_AFTER_ITERATE;
-        break;
+            case STEP_AFTER_ITERATE:
+                err = step_after_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_CHECK_STOP;
+                break;
 
-    case STEP_CHECK_STOP:
-        err = step_check_stop(stack, frame, ctxt);
-        if (err != PURC_ERROR_OK) {
-            goto out;
-        }
-        ctxt->step = STEP_DONE;
-        break;
+            case STEP_CHECK_STOP:
+                err = step_check_stop(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_DONE;
+                break;
 
-    case STEP_DONE:
-        break;
+            case STEP_DONE:
+                break;
+        }
     }
 
     struct ctxt_for_iterate *ret;
