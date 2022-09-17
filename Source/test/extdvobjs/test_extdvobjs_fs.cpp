@@ -1966,6 +1966,15 @@ TEST(dvobjs, dvobjs_fs_realpath)
     func = purc_variant_dynamic_get_getter (dynamic);
     ASSERT_NE(func, nullptr);
 
+    const char *env = "DVOBJS_TEST_PATH";
+    char data_path[PATH_MAX+1];
+    test_getpath_from_env_or_rel(data_path, sizeof(data_path),
+        env, "test_files");
+    std::cerr << "env: " << env << "=" << data_path << std::endl;
+
+    char file_path_before[PATH_MAX + NAME_MAX + 1] = {};
+    strncpy (file_path_before, data_path, sizeof(file_path_before)-1);
+    strncat (file_path_before, "/../../../../README.md", sizeof(file_path_before)-1);
 
     printf ("TEST realpath: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -1974,7 +1983,7 @@ TEST(dvobjs, dvobjs_fs_realpath)
 
     // String param
     printf ("TEST realpath: nr_args = 1, param[0] = './../../../../README.md':\n");
-    param[0] = purc_variant_make_string ("./../../../../README.md", true);
+    param[0] = purc_variant_make_string (data_path, true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_STRING), true);
