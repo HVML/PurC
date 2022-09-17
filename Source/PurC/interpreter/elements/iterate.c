@@ -38,6 +38,17 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define ATTR_NAME_ID        "id"
+
+enum step_for_iterate {
+    STEP_BEFORE_FIRST_ITERATE,
+    STEP_BEFORE_ITERATE,
+    STEP_ITERATE,
+    STEP_AFTER_ITERATE,
+    STEP_CHECK_STOP,
+    STEP_DONE,
+};
+
 struct ctxt_for_iterate {
     struct pcvdom_node           *curr;
 
@@ -49,6 +60,11 @@ struct ctxt_for_iterate {
     struct pcvdom_attr           *with_attr;
 
     struct pcvdom_attr           *rule_attr;
+
+    struct pcvcm_node            *content_vcm;
+
+
+
     purc_variant_t                evalued_rule;
     purc_variant_t                with;
 
@@ -66,6 +82,7 @@ struct ctxt_for_iterate {
     unsigned int                  stop:1;
     unsigned int                  by_rule:1;
     unsigned int                  nosetotail:1;
+    enum step_for_iterate         step;
 };
 
 static void
@@ -589,92 +606,219 @@ attr_found_val(struct pcintr_stack_frame *frame,
 }
 
 static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
+step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
 {
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) != name)
-            && (val == PURC_VARIANT_INVALID)) {
-            return -1;
-    }
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-
-    if (val) {
-        purc_variant_unref(val);
-    }
-
-    return r ? -1 : 0;
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
 }
 
-static void*
-after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
+static int
+step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
 {
-    PC_ASSERT(stack && pos);
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
 
-    if (stack->except)
-        return NULL;
+static int
+step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
 
-    pcintr_check_insertion_mode_for_normal_element(stack);
+static int
+step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
 
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
+static int
+step_check_stop(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    return 0;
+}
 
+
+static int
+prepare(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        return PURC_ERROR_OUT_OF_MEMORY;
     }
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
+    return 0;
+}
 
-    frame->pos = pos; // ATTENTION!!
+static int
+eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    pcutils_array_t *attrs = frame->pos->attrs;
+    size_t nr_params = pcutils_array_length(attrs);
+    struct pcvdom_attr *attr = NULL;
+    purc_variant_t val;
+    int err = 0;
 
-    frame->attr_vars = purc_variant_make_object(0,
-            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-    if (frame->attr_vars == PURC_VARIANT_INVALID)
-        return ctxt;
+    for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
+        attr = pcutils_array_get(attrs, frame->eval_attr_pos);
+        if (!attr->val) {
+            val = purc_variant_make_undefined();
+        }
+        else if (stack->vcm_ctxt) {
+            val = pcvcm_eval_again(attr->val, stack, frame->silently,
+                    stack->timeout);
+        }
+        else {
+            val = pcvcm_eval(attr->val, stack, frame->silently);
+        }
+        err = purc_get_last_error();
+        if (!val) {
+            goto out;
+        }
 
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
+        if (err == PURC_ERROR_AGAIN) {
+            purc_variant_unref(val);
+            goto out;
+        }
 
-    int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
-    if (r)
-        return ctxt;
+        err = 0;
+        purc_clr_error();
+        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+        stack->vcm_ctxt = NULL;
+        if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
+            frame->elem_id = purc_variant_ref(val);
+        }
+        pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
+                val);
+        err = attr_found_val(frame, frame->pos,
+                PCHVML_KEYWORD_ATOM(HVML, attr->key), val, attr, stack);
+        if (err) {
+            goto out;
+        }
+    }
+
+out:
+    return err;
+}
+
+static int
+eval_content(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(stack);
+    struct pcvdom_node *node = &frame->pos->node;
+    node = pcvdom_node_first_child(node);
+    if (!node || node->type != PCVDOM_NODE_CONTENT) {
+        purc_clr_error();
+        frame->elem_step = ELEMENT_STEP_LOGIC;
+        goto out;
+    }
+
+    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
+    ctxt->content_vcm = content->vcm;
+out:
+    return 0;
+}
+
+static int
+logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    int err = 0;
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
+
+    switch(ctxt->step) {
+    case STEP_BEFORE_FIRST_ITERATE:
+        err = step_before_first_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_BEFORE_ITERATE;
+        break;
+
+    case STEP_BEFORE_ITERATE:
+        err = step_before_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_ITERATE;
+        break;
+
+    case STEP_ITERATE:
+        err = step_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_AFTER_ITERATE;
+        break;
+
+    case STEP_AFTER_ITERATE:
+        err = step_after_iterate(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_AFTER_ITERATE;
+        break;
+
+    case STEP_CHECK_STOP:
+        err = step_check_stop(stack, frame, ctxt);
+        if (err != PURC_ERROR_OK) {
+            goto out;
+        }
+        ctxt->step = STEP_DONE;
+        break;
+
+    case STEP_DONE:
+        break;
+    }
 
     /* before the first iteration, set attr 'in' to $0@ */
     purc_variant_t in = ctxt->in;
     if (in != PURC_VARIANT_INVALID) {
         if (!purc_variant_is_string(in)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return ctxt;
+            err = PURC_ERROR_INVALID_VALUE;
+            goto out;
         }
 
         purc_variant_t elements = pcintr_doc_query(stack->co,
                 purc_variant_get_string_const(in), frame->silently);
         if (elements == PURC_VARIANT_INVALID) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return ctxt;
+            err = PURC_ERROR_INVALID_VALUE;
+            goto out;
         }
 
-        r = pcintr_set_at_var(frame, elements);
+        err = pcintr_set_at_var(frame, elements);
         purc_variant_unref(elements);
-        if (r) {
-            return ctxt;
+        if (err) {
+            goto out;
         }
     }
-
-    purc_clr_error();
 
     if (ctxt->rule_attr || !ctxt->with_attr) {
         ctxt->by_rule = 1;
@@ -688,13 +832,76 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ret = post_process(stack->co, frame);
     }
 
-    if (purc_get_last_error()) {
-        return ret;
+    err = purc_get_last_error();
+    if (err) {
+        goto out;
+    }
+
+    if (!ret) {
+        err = -1;
     }
 
     /* first eval content */
     pcintr_calc_and_set_caret_symbol(stack, frame);
-    return ret;
+
+out:
+    return err;
+}
+
+static void*
+after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
+{
+    PC_ASSERT(stack && pos);
+
+    if (stack->except)
+        return NULL;
+
+    pcintr_check_insertion_mode_for_normal_element(stack);
+
+    int err = 0;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    while (frame->elem_step != ELEMENT_STEP_DONE) {
+        switch(frame->elem_step) {
+            case ELEMENT_STEP_PREPARE:
+                err = prepare(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
+                }
+                frame->elem_step = ELEMENT_STEP_EVAL_ATTR;
+                break;
+
+            case ELEMENT_STEP_EVAL_ATTR:
+                err = eval_attr(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
+                }
+                frame->elem_step = ELEMENT_STEP_EVAL_CONTENT;
+                break;
+
+            case ELEMENT_STEP_EVAL_CONTENT:
+                err = eval_content(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
+                }
+                frame->elem_step = ELEMENT_STEP_LOGIC;
+                break;
+
+            case ELEMENT_STEP_LOGIC:
+                err = logic(stack, frame);
+                if (err != PURC_ERROR_OK) {
+                    return NULL;
+                }
+                frame->elem_step = ELEMENT_STEP_DONE;
+                break;
+
+            case ELEMENT_STEP_DONE:
+                break;
+        }
+    }
+
+    return frame->ctxt;
 }
 
 static bool

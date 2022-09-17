@@ -66,6 +66,23 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (parent) {
+        for (int i = 0; i < PURC_SYMBOL_VAR_MAX; i++) {
+            purc_variant_t v = pcintr_get_symbol_var(parent, i);
+            pcintr_set_symbol_var(frame, i, v);
+        }
+    }
+
+    if (frame->eval_step == STACK_FRAME_EVAL_STEP_ATTR) {
+        frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
+    }
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -75,25 +92,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
-
     frame->pos = pos; // ATTENTION!!
 
-    struct pcintr_stack_frame *parent;
-    parent = pcintr_stack_frame_get_parent(frame);
     if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
         purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
                 "no matching <test> for <match>");
         return ctxt;
     }
-
-    if (parent) {
-        for (int i = 0; i < PURC_SYMBOL_VAR_MAX; i++) {
-            purc_variant_t v = pcintr_get_symbol_var(parent, i);
-            pcintr_set_symbol_var(frame, i, v);
-        }
-    }
-
-    purc_clr_error();
 
     return ctxt;
 }
@@ -137,25 +142,9 @@ static void
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(content);
-
-    pcintr_stack_t stack = &co->stack;
-
-    if (stack->except)
-        return;
-
-    // int r;
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return;
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    purc_clr_error();
-
-    pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
-    purc_variant_unref(v);
+    UNUSED_PARAM(content);
 }
 
 static void
