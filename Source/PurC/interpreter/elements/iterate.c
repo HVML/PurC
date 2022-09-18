@@ -778,21 +778,51 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(ctxt);
     int err = 0;
-    if (!ctxt->is_rerun) {
-        struct ctxt_for_iterate *ret;
-        if (ctxt->by_rule) {
-            ret = first_iterate_by_executor(stack->co, frame);
+
+    while(ctxt->func_step != FUNC_STEP_DONE) {
+        switch (ctxt->func_step) {
+        case FUNC_STEP_1ST:
+            if (!ctxt->is_rerun) {
+                struct ctxt_for_iterate *ret;
+                if (ctxt->by_rule) {
+                    ret = first_iterate_by_executor(stack->co, frame);
+                }
+                else {
+                    ret = first_iterate_without_executor(stack->co, frame);
+                }
+                if (!ret) {
+                    err = -1;
+                    goto out;
+                }
+            }
+            else {
+                // TODO
+            }
+            ctxt->func_step = FUNC_STEP_2ND;
+            break;
+
+        case FUNC_STEP_2ND:
+            if (ctxt->content_vcm) {
+                purc_variant_t val = pcintr_eval_vcm(stack, frame,
+                        ctxt->content_vcm);
+                if (!val) {
+                    err = purc_get_last_error();
+                    goto out;
+                }
+                pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
+                purc_variant_unref(val);
+            }
+            ctxt->func_step = FUNC_STEP_DONE;
+            break;
+
+        default:
+            break;
         }
-        else {
-            ret = first_iterate_without_executor(stack->co, frame);
-        }
-        err = ret ? 0 : -1;
-    }
-    else {
-        // TODO
     }
 
+    reset_func_step(ctxt);
 
+out:
     return err;
 }
 
@@ -925,13 +955,6 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     }
 
     err = purc_get_last_error();
-    if (err) {
-        goto out;
-    }
-
-    /* first eval content */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-
 out:
     return err;
 }
