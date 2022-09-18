@@ -186,71 +186,6 @@ check_stop(purc_variant_t val)
     return false;
 }
 
-static int
-check_onlyif(struct pcvdom_attr *onlyif, bool *stop, pcintr_stack_t stack)
-{
-    purc_variant_t val;
-    val = pcintr_eval_vdom_attr(stack, onlyif);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int64_t i64;
-    bool force = true;
-    bool ok;
-    ok = purc_variant_cast_to_longint(val, &i64, force);
-
-    PURC_VARIANT_SAFE_CLEAR(val);
-    if (!ok)
-        return -1;
-
-    *stop = i64 ? false : true;
-
-    return 0;
-}
-
-/*
- * if on != PURC_VARIANT_INVALID ,
- *    call re_eval_with after each iteration 
- * else
- *    call re_eval_with in each iteration, before upate $0?
- *
- */
-static int
-re_eval_with(struct pcintr_stack_frame *frame,
-        struct pcvdom_attr *with, bool *stop, pcintr_stack_t stack)
-{
-    purc_variant_t val;
-    if (with) {
-        val = pcintr_eval_vdom_attr(stack, with);
-    }
-    else {
-        /* no with attr, handle as undefined : stop */
-        *stop = true;
-        return 0;
-    }
-
-    //PC_ASSERT(val != PURC_VARIANT_INVALID);
-    if (val == PURC_VARIANT_INVALID) {
-        return -1;
-    }
-
-    if (check_stop(val)) {
-        *stop = true;
-        return 0;
-    }
-
-    *stop = false;
-
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-    if (ctxt->nosetotail || ctxt->on == PURC_VARIANT_INVALID) {
-        pcintr_set_input_var(stack, val);
-    }
-
-    purc_variant_unref(val);
-    return 0;
-}
-
 static struct ctxt_for_iterate*
 first_iterate_without_executor(pcintr_coroutine_t co,
         struct pcintr_stack_frame *frame)
@@ -291,6 +226,44 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     pcintr_set_question_var(frame, v);
 
     return ctxt;
+}
+
+static int
+rerun_iterate_without_executor(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+
+    /* verify with attr if on attr not exists */
+    if (!ctxt->on_attr) {
+        purc_variant_t val;
+        if (ctxt->with_attr) {
+            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+        }
+        else {
+            val = purc_variant_make_undefined();
+        }
+
+        if (!val) {
+            return purc_get_last_error();
+        }
+
+        if (check_stop(val)) {
+            ctxt->stop = true;
+        }
+        else {
+            pcintr_set_input_var(&co->stack, val);
+        }
+        purc_variant_unref(val);
+    }
+
+    /* $0< set to  $0? */
+    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
+    pcintr_set_question_var(frame, v);
+
+    return 0;
 }
 
 static struct ctxt_for_iterate*
@@ -462,6 +435,112 @@ first_iterate_by_executor(pcintr_coroutine_t co, struct pcintr_stack_frame *fram
     }
 
     return NULL;
+}
+
+static bool
+rerun_internal_rule(struct ctxt_for_iterate *ctxt,
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
+{
+    purc_exec_inst_t exec_inst;
+    exec_inst = ctxt->exec_inst;
+
+    purc_exec_iter_t it = ctxt->it;
+    PC_ASSERT(it);
+
+    purc_exec_ops_t ops = ctxt->ops.internal_ops;
+
+    purc_variant_t value;
+    value = ops->it_value(exec_inst, it);
+    if (value == PURC_VARIANT_INVALID)
+        return false;
+
+    int r;
+    r = pcintr_set_question_var(frame, value);
+    if (r == 0) {
+        pcintr_set_input_var(stack, value);
+    }
+
+    /* in each iteration, evaluate content and set as $0^ */
+    pcintr_calc_and_set_caret_symbol(stack, frame);
+    return r ? false : true;
+}
+
+static bool
+rerun_external_class(struct ctxt_for_iterate *ctxt,
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
+{
+    pcexec_class_iter_t it = ctxt->it_class;
+    PC_ASSERT(it);
+
+    pcexec_class_ops_t ops = ctxt->ops.external_class_ops;
+
+    purc_variant_t value;
+    value = ops->it_value(it);
+    if (value == PURC_VARIANT_INVALID)
+        return false;
+
+    int r;
+    r = pcintr_set_question_var(frame, value);
+    if (r == 0) {
+        pcintr_set_input_var(stack, value);
+    }
+
+    return r ? false : true;
+}
+
+static bool
+rerun_external_func(struct ctxt_for_iterate *ctxt,
+        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
+{
+    purc_variant_t value;
+    value = purc_variant_linear_container_get(ctxt->val_from_func,
+            ctxt->idx_curr);
+    if (value == PURC_VARIANT_INVALID)
+        return false;
+
+    int r;
+    r = pcintr_set_question_var(frame, value);
+    if (r == 0) {
+        pcintr_set_input_var(stack, value);
+    }
+
+    return r ? false : true;
+}
+
+static int
+rerun_iterate_by_executor(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    struct ctxt_for_iterate *ctxt;
+    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    int r;
+    r = pcintr_inc_percent_var(frame);
+    if (r)
+        return -1;
+
+    pcintr_stack_t stack = &co->stack;
+    bool b = false;
+    switch (ctxt->ops.type) {
+        case PCEXEC_TYPE_INTERNAL:
+            b = rerun_internal_rule(ctxt, frame, stack);
+            break;
+
+        case PCEXEC_TYPE_EXTERNAL_FUNC:
+            b = rerun_external_func(ctxt, frame, stack);
+            break;
+
+        case PCEXEC_TYPE_EXTERNAL_CLASS:
+            b = rerun_external_class(ctxt, frame, stack);
+            break;
+
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+
+    return  b ? 0 : -1;
 }
 
 static int
@@ -748,7 +827,15 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 }
             }
             else {
-                // TODO
+                if (ctxt->by_rule) {
+                    err = rerun_iterate_by_executor(stack->co, frame);
+                }
+                else {
+                    err = rerun_iterate_without_executor(stack->co, frame);
+                }
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
             }
             ctxt->func_step = FUNC_STEP_2ND;
             break;
@@ -1173,6 +1260,7 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
+    ctxt->step = STEP_BEFORE_ITERATE;
     int err = step_after_iterate(stack, frame, ctxt);
     if (err) {
         return false;
@@ -1181,120 +1269,38 @@ on_popping(pcintr_stack_t stack, void* ud)
     return ctxt->stop;
 }
 
-static bool
-rerun_with(pcintr_stack_t stack)
+static int
+rerun_logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
-    PC_ASSERT(stack);
+    int err = 0;
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
 
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
+    while (ctxt->step != STEP_AFTER_ITERATE) {
+        switch(ctxt->step) {
+            case STEP_BEFORE_ITERATE:
+                err = step_before_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_ITERATE;
+                break;
 
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+            case STEP_ITERATE:
+                err = step_iterate(stack, frame, ctxt);
+                if (err != PURC_ERROR_OK) {
+                    goto out;
+                }
+                ctxt->step = STEP_AFTER_ITERATE;
+                break;
 
-    /* before each iteration, veify onlyif */
-    if (ctxt->onlyif_attr) {
-        bool stop;
-        int r = check_onlyif(ctxt->onlyif_attr, &stop, stack);
-        if (r || stop) {
-            ctxt->stop = 1;
-            return true;
+            default:
+                break;
         }
     }
 
-    if (ctxt->on == PURC_VARIANT_INVALID) {
-        bool stop;
-        int r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
-        if (r) {
-            // FIXME: let catch to effect afterward???
-            ctxt->stop = 1;
-            return true;
-        }
-
-        if (stop) {
-            ctxt->stop = 1;
-            return true;
-        }
-    }
-
-    /* in each iteration, set $0< to $0? */
-    purc_variant_t v = frame->symbol_vars[PURC_SYMBOL_VAR_LESS_THAN];
-    pcintr_set_question_var(frame, v);
-
-    /* in each iteration, evaluate content and set as $0^ */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-    return true;
-}
-
-static bool
-rerun_internal_rule(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
-{
-    purc_exec_inst_t exec_inst;
-    exec_inst = ctxt->exec_inst;
-
-    purc_exec_iter_t it = ctxt->it;
-    PC_ASSERT(it);
-
-    purc_exec_ops_t ops = ctxt->ops.internal_ops;
-
-    purc_variant_t value;
-    value = ops->it_value(exec_inst, it);
-    if (value == PURC_VARIANT_INVALID)
-        return false;
-
-    int r;
-    r = pcintr_set_question_var(frame, value);
-    if (r == 0) {
-        pcintr_set_input_var(stack, value);
-    }
-
-    /* in each iteration, evaluate content and set as $0^ */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
-    return r ? false : true;
-}
-
-static bool
-rerun_external_class(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
-{
-    pcexec_class_iter_t it = ctxt->it_class;
-    PC_ASSERT(it);
-
-    pcexec_class_ops_t ops = ctxt->ops.external_class_ops;
-
-    purc_variant_t value;
-    value = ops->it_value(it);
-    if (value == PURC_VARIANT_INVALID)
-        return false;
-
-    int r;
-    r = pcintr_set_question_var(frame, value);
-    if (r == 0) {
-        pcintr_set_input_var(stack, value);
-    }
-
-    return r ? false : true;
-}
-
-static bool
-rerun_external_func(struct ctxt_for_iterate *ctxt,
-        struct pcintr_stack_frame *frame, pcintr_stack_t stack)
-{
-    purc_variant_t value;
-    value = purc_variant_linear_container_get(ctxt->val_from_func,
-            ctxt->idx_curr);
-    if (value == PURC_VARIANT_INVALID)
-        return false;
-
-    int r;
-    r = pcintr_set_question_var(frame, value);
-    if (r == 0) {
-        pcintr_set_input_var(stack, value);
-    }
-
-    return r ? false : true;
+    err = purc_get_last_error();
+out:
+    return err;
 }
 
 static bool
@@ -1314,34 +1320,8 @@ rerun(pcintr_stack_t stack, void* ud)
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
     ctxt->is_rerun = 1;
 
-    if (!ctxt->by_rule) {
-        return rerun_with(stack);
-    }
-
-    int r;
-    r = pcintr_inc_percent_var(frame);
-    if (r)
-        return false;
-
-    switch (ctxt->ops.type) {
-        case PCEXEC_TYPE_INTERNAL:
-            return rerun_internal_rule(ctxt, frame, stack);
-            break;
-
-        case PCEXEC_TYPE_EXTERNAL_FUNC:
-            return rerun_external_func(ctxt, frame, stack);
-            break;
-
-        case PCEXEC_TYPE_EXTERNAL_CLASS:
-            return rerun_external_class(ctxt, frame, stack);
-            break;
-
-        default:
-            PC_ASSERT(0);
-            break;
-    }
-
-    return false;
+    int err = rerun_logic(stack, frame);
+    return (err == PURC_ERROR_OK);
 }
 
 static void
