@@ -208,27 +208,6 @@ check_onlyif(struct pcvdom_attr *onlyif, bool *stop, pcintr_stack_t stack)
     return 0;
 }
 
-static int
-check_while(struct pcvdom_attr *_while, bool *stop, pcintr_stack_t stack)
-{
-    purc_variant_t val;
-    val = pcintr_eval_vdom_attr(stack, _while);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int64_t i64;
-    bool force = true;
-    bool ok;
-    ok = purc_variant_cast_to_longint(val, &i64, force);
-    PURC_VARIANT_SAFE_CLEAR(val);
-    if (!ok)
-        return -1;
-
-    *stop = i64 ? false : true;
-
-    return 0;
-}
-
 /*
  * if on != PURC_VARIANT_INVALID ,
  *    call re_eval_with after each iteration 
@@ -281,7 +260,7 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
     /* verify with attr if on attr not exists */
-    if (!ctxt->on) {
+    if (!ctxt->on_attr) {
         purc_variant_t val;
         if (ctxt->with_attr) {
             val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
@@ -828,16 +807,6 @@ out:
 
 #if 0
 static int
-step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct ctxt_for_iterate *ctxt)
-{
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(ctxt);
-    return 0;
-}
-
-static int
 step_check_stop(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
 {
@@ -1016,52 +985,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 }
 
 static bool
-on_popping_with(pcintr_stack_t stack)
-{
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)frame->ctxt;
-
-    if (ctxt->stop) {
-        return true;
-    }
-
-    bool stop;
-    int r;
-    if (ctxt->on) {
-        r = re_eval_with(frame, ctxt->with_attr, &stop, stack);
-        if (r) {
-            // FIXME: let catch to effect afterward???
-            return true;
-        }
-
-        if (stop) {
-            ctxt->stop = 1;
-            return true;
-        }
-    }
-
-    if (ctxt->while_attr) {
-        bool stop;
-        int r = check_while(ctxt->while_attr, &stop, stack);
-        PC_ASSERT(r == 0);
-
-        if (stop) {
-            ctxt->stop = 1;
-            return true;
-        }
-    }
-
-    r = pcintr_inc_percent_var(frame);
-    PC_ASSERT(r == 0);
-
-    return false;
-}
-
-static bool
 on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
 {
     purc_exec_inst_t exec_inst;
@@ -1132,6 +1055,118 @@ on_popping_external_func(struct ctxt_for_iterate *ctxt)
     return false;
 }
 
+static int
+after_iterate_by_executor(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(frame);
+
+    switch (ctxt->ops.type) {
+        case PCEXEC_TYPE_INTERNAL:
+            ctxt->stop = on_popping_internal_rule(ctxt, stack);
+            break;
+
+        case PCEXEC_TYPE_EXTERNAL_FUNC:
+            ctxt->stop = on_popping_external_func(ctxt);
+            break;
+
+        case PCEXEC_TYPE_EXTERNAL_CLASS:
+            ctxt->stop = on_popping_external_class(ctxt);
+            break;
+
+        default:
+            PC_ASSERT(0);
+            break;
+    }
+    return 0;
+}
+
+static int
+after_iterate_without_executor(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, struct ctxt_for_iterate *ctxt)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(ctxt);
+    while (ctxt->func_step != FUNC_STEP_DONE) {
+        switch (ctxt->func_step) {
+        case FUNC_STEP_1ST:
+            if (!ctxt->on_attr) {
+                ctxt->func_step = FUNC_STEP_2ND;
+                break;
+            }
+
+            purc_variant_t val;
+            if (ctxt->with_attr) {
+                val = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+            }
+            else {
+                val = purc_variant_make_undefined();
+            }
+
+            if (!val) {
+                goto out;
+            }
+
+            if (check_stop(val)) {
+                ctxt->stop = true;
+            }
+            else if (ctxt->nosetotail) {
+                pcintr_set_input_var(stack, val);
+            }
+            purc_variant_unref(val);
+
+            ctxt->func_step = FUNC_STEP_2ND;
+            break;
+        case FUNC_STEP_2ND:
+            if (ctxt->while_attr) {
+                purc_variant_t val = pcintr_eval_vcm(stack, frame,
+                        ctxt->while_attr->val);
+
+                if (!val) {
+                    goto out;
+                }
+
+                if (!purc_variant_booleanize(val)) {
+                    ctxt->stop = true;
+                };
+                PURC_VARIANT_SAFE_CLEAR(val);
+            }
+            ctxt->func_step = FUNC_STEP_DONE;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    reset_func_step(ctxt);
+
+    pcintr_inc_percent_var(frame);
+out:
+    return 0;
+}
+
+static int
+step_after_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct ctxt_for_iterate *ctxt)
+{
+    int err = 0;
+    if (ctxt->stop) {
+        goto out;
+    }
+
+    if (ctxt->by_rule) {
+        err = after_iterate_by_executor(stack, frame, ctxt);
+    }
+    else {
+        err = after_iterate_without_executor(stack, frame, ctxt);
+    }
+
+out:
+    return err;
+}
+
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
@@ -1148,29 +1183,12 @@ on_popping(pcintr_stack_t stack, void* ud)
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
-    if (!ctxt->by_rule) {
-        return on_popping_with(stack);
+    int err = step_after_iterate(stack, frame, ctxt);
+    if (err) {
+        return false;
     }
 
-    switch (ctxt->ops.type) {
-        case PCEXEC_TYPE_INTERNAL:
-            return on_popping_internal_rule(ctxt, stack);
-            break;
-
-        case PCEXEC_TYPE_EXTERNAL_FUNC:
-            return on_popping_external_func(ctxt);
-            break;
-
-        case PCEXEC_TYPE_EXTERNAL_CLASS:
-            return on_popping_external_class(ctxt);
-            break;
-
-        default:
-            PC_ASSERT(0);
-            break;
-    }
-
-    return false;
+    return ctxt->stop;
 }
 
 static bool
