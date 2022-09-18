@@ -293,33 +293,6 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     return ctxt;
 }
 
-const char *
-eval_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
-{
-    const char *rule = "RANGE: FROM 0";
-    if (ctxt->rule_attr) {
-        purc_variant_t val;
-        val = pcintr_eval_vdom_attr(stack, ctxt->rule_attr);
-        if (val == PURC_VARIANT_INVALID)
-            return NULL;
-
-        if (!purc_variant_is_string(val)) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "rule is not of string type");
-            purc_variant_unref(val);
-            return NULL;
-        }
-
-        PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
-        ctxt->evalued_rule = val;
-
-        rule = purc_variant_get_string_const(val);
-        PC_ASSERT(rule);
-    }
-
-    return rule;
-}
-
 static struct ctxt_for_iterate*
 post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
         struct pcintr_stack_frame *frame, const char *rule,
@@ -985,7 +958,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 }
 
 static bool
-on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
+on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame)
 {
     purc_exec_inst_t exec_inst;
     exec_inst = ctxt->exec_inst;
@@ -996,7 +970,23 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack)
     if (!it)
         return true;
 
-    const char *rule = eval_rule(ctxt, stack);
+    purc_variant_t val;
+    if (ctxt->rule_attr) {
+        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+    }
+    else {
+        val = purc_variant_make_string_static(DEFAULT_RULE,
+                false);
+    }
+
+    if (!val) {
+        return false;
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
+    ctxt->evalued_rule = val;
+
+    const char *rule = purc_variant_get_string_const(ctxt->evalued_rule);
     if (!rule)
         return true;
 
@@ -1063,7 +1053,7 @@ after_iterate_by_executor(pcintr_stack_t stack,
 
     switch (ctxt->ops.type) {
         case PCEXEC_TYPE_INTERNAL:
-            ctxt->stop = on_popping_internal_rule(ctxt, stack);
+            ctxt->stop = on_popping_internal_rule(ctxt, stack, frame);
             break;
 
         case PCEXEC_TYPE_EXTERNAL_FUNC:
