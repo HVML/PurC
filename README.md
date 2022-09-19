@@ -62,7 +62,8 @@ To build PurC, make sure that the following tools or libraries are available on 
 
 1. cmake
 1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
-1. glib 2.44.0 or later
+1. Zlib 1.2.0 or later
+1. Glib 2.44.0 or later
 1. Python 3
 1. BISON 3.0 or later
 1. FLEX 2.6.4 or later

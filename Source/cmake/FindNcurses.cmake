@@ -64,10 +64,19 @@ find_path(Ncurses_INCLUDE_DIR
     HINTS ${PC_NCURSES_INCLUDEDIR} ${PC_NCURSES_INCLUDE_DIR}
 )
 
+# try ncursesw first
 find_library(Ncurses_LIBRARY
-    NAMES ${Ncurses_NAMES} ncurses
+    NAMES ${Ncurses_NAMES} ncursesw
     HINTS ${PC_NCURSES_LIBDIR} ${PC_NCURSES_LIBRARY_DIRS}
 )
+
+# if not ncursesw, try ncurses then
+if (NOT Ncurses_LIBRARY)
+    find_library(Ncurses_LIBRARY
+        NAMES ${Ncurses_NAMES} ncurses
+        HINTS ${PC_NCURSES_LIBDIR} ${PC_NCURSES_LIBRARY_DIRS}
+    )
+endif ()
 
 if (Ncurses_INCLUDE_DIR AND NOT Ncurses_VERSION)
     if (EXISTS "${Ncurses_INCLUDE_DIR}/ncurses.h")
@@ -105,3 +114,4 @@ if (Ncurses_FOUND)
     set(Ncurses_LIBRARIES ${Ncurses_LIBRARY})
     set(Ncurses_INCLUDE_DIRS ${Ncurses_INCLUDE_DIR})
 endif ()
+
