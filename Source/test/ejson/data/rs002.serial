@@ -1,0 +1,1 @@
+concatString(getVariable("<")," Hello, world! --from COROUTINE-",getElement(getVariable("CRTN"),"cid"))

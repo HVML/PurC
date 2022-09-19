@@ -14,17 +14,14 @@ PCHVML_TOKEN_START_TAG|<hvml target="void">
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_START_TAG|<observe on=get_variable("CRTN") for="idle">
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("CRTN") for="idle">
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"Got the idle event at ",call_getter(get_element(get_variable("SYS"),"time_prt"),"rfc3339-ex")))
-PCHVML_TOKEN_VCM_TREE|"
-
-        "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("STR"),"join"),"Got the idle event at ",callGetter(getElement(getVariable("SYS"),"time_prt"),"rfc3339-ex")))
 PCHVML_TOKEN_COMMENT|<!-- After this element, the coroutine will exit -->
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<forget on=get_variable("CRTN") for="idle"/>
+PCHVML_TOKEN_START_TAG|<forget on=getVariable("CRTN") for="idle"/>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</observe>
@@ -38,7 +35,5 @@ PCHVML_TOKEN_START_TAG|<sleep for="1d"/>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),call_getter(get_element(get_variable("STR"),"join"),"Finish the first-round run at ",call_getter(get_element(get_variable("SYS"),"time_prt"),"rfc3339-ex")))
-PCHVML_TOKEN_VCM_TREE|"
-"
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("STR"),"join"),"Finish the first-round run at ",callGetter(getElement(getVariable("SYS"),"time_prt"),"rfc3339-ex")))
 PCHVML_TOKEN_END_TAG|</hvml>

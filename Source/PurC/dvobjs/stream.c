@@ -292,7 +292,7 @@ struct pcdvobjs_stream *get_stream(void *native_entity)
 
 static purc_variant_t
 readstruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
@@ -334,10 +334,11 @@ readstruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-    return purc_dvobj_read_struct(rwstream, formats, formats_left, silently);
+    return purc_dvobj_read_struct(rwstream, formats, formats_left,
+            (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 
 out:
-    if (silently) {
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_array(0, PURC_VARIANT_INVALID);
     }
 
@@ -346,8 +347,9 @@ out:
 
 static purc_variant_t
 writestruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
+    bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
     struct pcdvobj_bytes_buff bf = { NULL, 0, 0 };
 
     struct pcdvobjs_stream *stream;
@@ -415,7 +417,7 @@ out:
     if (bf.bytes)
         free(bf.bytes);
 
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_ulongint(write_length);
     return PURC_VARIANT_INVALID;
 }
@@ -470,7 +472,7 @@ static int read_lines(purc_rwstream_t stream, int line_num,
 
 static purc_variant_t
 readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
@@ -514,7 +516,7 @@ readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return ret_var;
 
     if (ret_var) {
@@ -526,7 +528,7 @@ out:
 
 static purc_variant_t
 writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
@@ -604,14 +606,14 @@ writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint(nr_write);
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_ulongint(nr_write);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 readbytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
@@ -668,14 +670,14 @@ readbytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_byte_sequence_empty();
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
@@ -725,14 +727,14 @@ writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_ulongint(0);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 writeeof_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -764,14 +766,14 @@ writeeof_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(ret);
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -832,14 +834,14 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     return val;
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
@@ -910,18 +912,18 @@ seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return ret_var;
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     if (native_entity == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
@@ -1608,10 +1610,10 @@ out_close_fd:
 
 static purc_variant_t
 stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1689,7 +1691,7 @@ out_free_url:
     pcutils_broken_down_url_delete(url);
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -1697,7 +1699,7 @@ out:
 
 static purc_variant_t
 stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1716,7 +1718,7 @@ stream_close_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 out:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;

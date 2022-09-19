@@ -2827,7 +2827,7 @@ purc_variant_t
 purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
         purc_cb_get_var fn_get_var, void *ctxt, bool silently)
 {
-    return pcvcm_eval_ex((struct pcvcm_node*)parse_tree, fn_get_var,
+    return pcvcm_eval_ex((struct pcvcm_node*)parse_tree, NULL, fn_get_var,
            ctxt, silently);
 }
 

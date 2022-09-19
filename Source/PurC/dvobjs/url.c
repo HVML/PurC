@@ -156,7 +156,7 @@ bad_encoding:
 
 static purc_variant_t
 encode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -218,7 +218,7 @@ encode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             mystr.sz_space, false);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_string_static("", false);
 
 fatal:
@@ -227,10 +227,11 @@ fatal:
 
 static purc_variant_t
 decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
+    bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
     const void *string;
     size_t length;
     int rtt = PURC_K_KW_string;     // return type
@@ -304,7 +305,7 @@ decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     int ret = pcdvobj_url_decode(&mystr, string, length, rfc, silently);
     if (ret > 0) {
         pcutils_mystring_free(&mystr);
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        purc_set_error(PURC_ERROR_BAD_ENCODING);
         goto failed;
     }
     else if (ret < 0) {
@@ -327,7 +328,7 @@ decode_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 
 failed:
-    if (silently) {
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         if (rtt == PURC_K_KW_binary)    // the default value may be overridden
             return purc_variant_make_byte_sequence_empty();
 

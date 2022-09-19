@@ -82,24 +82,8 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t with)
 {
     UNUSED_PARAM(frame);
-    if (purc_variant_is_type(with, PURC_VARIANT_TYPE_ULONGINT)) {
-        bool ok;
-        uint64_t u64;
-        ok = purc_variant_cast_to_ulongint(with, &u64, false);
-        PC_ASSERT(ok);
-        struct pcvcm_node *vcm_content;
-        vcm_content = (struct pcvcm_node*)u64;
-        PC_ASSERT(vcm_content);
-
-        pcintr_stack_t stack = &co->stack;
-        PC_ASSERT(stack);
-
-        purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
-        if (v == PURC_VARIANT_INVALID)
-            PRINT_VCM_NODE(vcm_content);
-        return v;
-    }
-    else if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
+    UNUSED_PARAM(co);
+    if (purc_variant_is_type(with, PURC_VARIANT_TYPE_STRING)) {
         purc_variant_ref(with);
         return with;
     }
@@ -837,29 +821,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-    if (!name) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -872,6 +833,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)calloc(1, sizeof(*ctxt));
@@ -895,11 +860,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -926,6 +889,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         ctxt->from_result = v;
     }
 
+    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    if (content && !purc_variant_is_undefined(content)) {
+        ctxt->literal = purc_variant_ref(content);
+    }
     return ctxt;
 }
 
@@ -984,37 +951,9 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(content);
-
-    pcintr_stack_t stack = &co->stack;
-
-    if (stack->except)
-        return 0;
-
-    struct ctxt_for_update *ctxt;
-    ctxt = (struct ctxt_for_update*)frame->ctxt;
-    PC_ASSERT(ctxt);
-
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return 0;
-
-    if (ctxt->from || ctxt->with) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "no content is permitted "
-                "since there's no `from/with` attribute");
-        return -1;
-    }
-
-    // NOTE: element is still the owner of vcm_content
-    // TODO: silently
-    purc_variant_t v = pcvcm_eval(vcm, &co->stack, false);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
-    ctxt->literal = v;
-
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(content);
     return 0;
 }
 

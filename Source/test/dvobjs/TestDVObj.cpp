@@ -101,9 +101,11 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "STREAM") == 0) {
         dvobj = purc_dvobj_stream_new();
     }
-    else if (strcmp(name, "RUNNER") == 0) {
+#if ENABLE(CHINESE_NAMES) && defined(PURC_PREDEF_VARNAME_RUNNER_ZH)
+    else if (strcmp(name, PURC_PREDEF_VARNAME_RUNNER_ZH) == 0) {
         dvobj = purc_dvobj_runner_new();
     }
+#endif
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_dvobjs[name] = dvobj;
@@ -257,6 +259,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_log_info("Exception `%s` expected\n", exc);
 
             purc_atom_t except_atom = purc_get_error_exception(purc_get_last_error());
+            purc_log_info("Got exception `%s`\n", purc_atom_to_string(except_atom));
 
             EXPECT_EQ(except_atom, purc_atom_try_string_ex(PURC_ATOM_BUCKET_EXCEPT, exc));
 

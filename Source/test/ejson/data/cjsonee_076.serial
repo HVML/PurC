@@ -1,1 +1,1 @@
-{{ call_getter(get_element(get_variable("?"),"writelines"),make_array(concat_string("scale=",get_element(get_variable("myResult"),"scale")),"5/3")) && call_getter(get_element(get_variable("?"),"writeeof")) && call_getter(get_element(get_variable("?"),"readlines"),1) }}
+{{ callGetter(getElement(getVariable("?"),"writelines"),make_array(concatString("scale=",getElement(getVariable("myResult"),"scale")),"5/3")) && callGetter(getElement(getVariable("?"),"writeeof")) && callGetter(getElement(getVariable("?"),"readlines"),1) }}

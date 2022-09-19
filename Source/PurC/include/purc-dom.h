@@ -436,7 +436,7 @@ pcdom_document_attach_element(pcdom_document_t *document,
 pcdom_element_t *
 pcdom_document_create_element(pcdom_document_t *document,
             const unsigned char *local_name, size_t lname_len,
-            void *reserved_for_opt);
+            void *reserved_for_opt, bool self_close);
 
 pcdom_element_t *
 pcdom_document_destroy_element(
@@ -773,6 +773,7 @@ struct pcdom_element {
     pcdom_attr_t                 *attr_class;
 
     pcdom_element_custom_state_t custom_state;
+    bool                         self_close;
 };
 
 pcdom_element_t *
@@ -789,7 +790,7 @@ pcdom_element_create(pcdom_document_t *document,
                 const unsigned char *ns_name, size_t ns_len,
                 const unsigned char *prefix, size_t prefix_len,
                 const unsigned char *is, size_t is_len,
-                bool sync_custom);
+                bool sync_custom, bool self_close);
 
 pcdom_element_t *
 pcdom_element_destroy(pcdom_element_t *element);

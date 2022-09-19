@@ -90,7 +90,7 @@ svg {
             <update on "#line$params.n" at "attr.y1" with "$result.earthY" />
             <update on "#line$params.n" at "attr.x2" with "$result.venusX" />
             <update on "#line$params.n" at "attr.y2" with "$result.venusY" />
-            <update on "#line$params.n" at "attr.stroke" with "hsla($result.i , 50%, 50%, 0.5)" />
+            <update on "#line$params.n" at "attr.stroke" with "hsla($result.i, 50%, 50%, 0.5)" />
 
             <update on $params at '.n' to 'displace' with += 1 />
             <update on $params at '.i' to 'displace' with += $params.earthDeg />
@@ -101,7 +101,7 @@ svg {
                  }}
             </inherit -->
 
-            <test with $L.ge($params.n, 300)) >
+            <test with $L.ge($params.n, 300) >
                 <clear on $TIMERS />
                 <!-- update on $TIMERS to "subtract" with { id: "rate" } /-->
             </test>

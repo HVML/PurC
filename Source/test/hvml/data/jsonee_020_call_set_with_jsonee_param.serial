@@ -1,2 +1,2 @@
-PCHVML_TOKEN_START_TAG|<hvml attr=call_setter(get_element(get_variable("ABC"),"b"),call_setter(get_element(get_variable("C"),"d"),123))>
+PCHVML_TOKEN_START_TAG|<hvml attr=callSetter(getElement(getVariable("ABC"),"b"),callSetter(getElement(getVariable("C"),"d"),123))>
 PCHVML_TOKEN_END_TAG|</hvml>

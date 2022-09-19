@@ -31,7 +31,7 @@ html_dom_append_element(pcdom_element_t* parent, const char *tag)
     pcdom_document_t *dom_doc = node->owner_document;
     pcdom_element_t *elem;
     elem = pcdom_document_create_element(dom_doc,
-            (const unsigned char*)tag, strlen(tag), NULL);
+            (const unsigned char*)tag, strlen(tag), NULL, false);
     if (!elem)
         return NULL;
 

@@ -42,7 +42,7 @@
 
 static purc_variant_t
 user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
             KN_USER_OBJ);
@@ -68,7 +68,7 @@ user_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -76,7 +76,7 @@ failed:
 
 static purc_variant_t
 user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     purc_variant_t user_obj = purc_variant_object_get_by_ckey(root,
             KN_USER_OBJ);
@@ -107,7 +107,7 @@ user_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -115,12 +115,12 @@ failed:
 
 static purc_variant_t
 app_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcinst* inst = pcinst_current();
     return purc_variant_make_string(inst->app_name, false);
@@ -128,12 +128,12 @@ app_getter(purc_variant_t root,
 
 static purc_variant_t
 runner_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcinst* inst = pcinst_current();
     return purc_variant_make_string(inst->runner_name, false);
@@ -141,12 +141,12 @@ runner_getter(purc_variant_t root,
 
 static purc_variant_t
 rid_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcinst* inst = pcinst_current();
     return purc_variant_make_ulongint(inst->endpoint_atom);
@@ -154,12 +154,12 @@ rid_getter(purc_variant_t root,
 
 static purc_variant_t
 uri_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcinst* inst = pcinst_current();
     return purc_variant_make_string(inst->endpoint_name, false);
@@ -167,7 +167,7 @@ uri_getter(purc_variant_t root,
 
 static purc_variant_t
 chan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -189,7 +189,7 @@ chan_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -197,7 +197,7 @@ failed:
 
 static purc_variant_t
 chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -241,7 +241,7 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -254,11 +254,19 @@ purc_dvobj_runner_new(void)
 
     static struct purc_dvobj_method method [] = {
         { "user",   user_getter,    user_setter },
-        { "app",    app_getter,     NULL },
-        { "runner", runner_getter,  NULL },
+        { "app_name",    app_getter,     NULL },
+        { "run_name", runner_getter,  NULL },
         { "rid",    rid_getter,     NULL },
         { "uri",    uri_getter,     NULL },
         { "chan",   chan_getter,    chan_setter },
+#if ENABLE(CHINESE_NAMES)
+        { "用户",   user_getter,    user_setter },
+        { "应用名", app_getter,     NULL },
+        { "行者名", runner_getter,  NULL },
+        { "行者标识符", rid_getter,     NULL },
+        { "统一资源标识符",    uri_getter,     NULL },
+        { "通道",   chan_getter,    chan_setter },
+#endif
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));

@@ -2,8 +2,7 @@ PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<except>
-PCHVML_TOKEN_VCM_TREE|concat_string("
-        ",get_variable("VARABC")," <tag>abcdef","</tag>
+PCHVML_TOKEN_VCM_TREE|concatString(getVariable("VARABC")," <tag>abcdef</tag>
     ")
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"

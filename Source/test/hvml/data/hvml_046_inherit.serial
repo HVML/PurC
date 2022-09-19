@@ -1,4 +1,4 @@
-PCHVML_TOKEN_START_TAG|<hvml target=concat_string(get_element(get_variable("REQ"),"target"))>
+PCHVML_TOKEN_START_TAG|<hvml target=getElement(getVariable("REQ"),"target")>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<body>
@@ -7,38 +7,30 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'")
-PCHVML_TOKEN_VCM_TREE|";"
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"Start of 'Hello, world!'"),";
+        ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),get_variable("?"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),getVariable("?"))
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'")
-PCHVML_TOKEN_VCM_TREE|";"
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|concatString(callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'"),";
+        ")
 PCHVML_TOKEN_END_TAG|</inherit>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|{{ call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'") ;  }}
-PCHVML_TOKEN_VCM_TREE|"
-        "
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),"End of 'Hello, world!'") ;  }}
 PCHVML_TOKEN_START_TAG|<init>
 PCHVML_TOKEN_VCM_TREE|"
     "

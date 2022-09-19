@@ -81,11 +81,11 @@ doctype_public(struct pcdom_document *doc)
 
 static inline purc_variant_t
 doctype_getter(void *entity,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     PC_ASSERT(entity);
     purc_document_t doc = (purc_document_t)entity;
@@ -153,9 +153,9 @@ query(purc_document_t doc, const char *css)
 
 static inline purc_variant_t
 query_getter(void *entity,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     PC_ASSERT(entity);
     purc_document_t doc = (purc_document_t)entity;
 
@@ -245,17 +245,17 @@ property_cleaner(const char* key_name)
 // the updater to update the content represented by the native entity.
 static purc_variant_t
 updater(void* native_entity,
-        size_t nr_args, purc_variant_t* argv, bool silently);
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
 // the cleaner to clear the content represented by the native entity.
 static purc_variant_t
 cleaner(void* native_entity,
-        size_t nr_args, purc_variant_t* argv, bool silently);
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
 // the eraser to erase the content represented by the native entity.
 static purc_variant_t
 eraser(void* native_entity,
-        size_t nr_args, purc_variant_t* argv, bool silently);
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 #endif
 
 purc_variant_t

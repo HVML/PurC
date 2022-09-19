@@ -108,9 +108,7 @@ struct pcvdom_element {
     pcvdom_tag_id           tag_id;
     char                   *tag_name;
 
-    // key: char *, the same as struct pcvdom_attr:key
-    // val: struct pcvdom_attr*
-    struct pcutils_map     *attrs;
+    pcutils_array_t        *attrs;
 
     unsigned int            self_closing:1;
 };

@@ -1,1 +1,1 @@
-get_variable("ABC")
+getVariable("ABC")

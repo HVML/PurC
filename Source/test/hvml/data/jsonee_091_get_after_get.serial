@@ -4,31 +4,29 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#c_query"),"count"))
 PCHVML_TOKEN_END_TAG|</div>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<bhoose on=concat_string(call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count")))>
+PCHVML_TOKEN_START_TAG|<bhoose on=callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#c_query"),"count"))>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</bhoose>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<choose on=call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"count"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#c_query"),"count"))>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</choose>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<choose on=get_element(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#c_query"),"attr"),"value")>
+PCHVML_TOKEN_START_TAG|<choose on=getElement(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#c_query"),"attr"),"value")>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</choose>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<choose on=call_getter(get_element(get_variable("MATH"),"eval"),call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("MATH"),"eval"),callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#expression"),"attr"),"value"))>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_END_TAG|</choose>

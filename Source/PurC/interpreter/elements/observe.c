@@ -431,37 +431,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-//    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-    if (!name) {
-        // FIXME: unknown attribute
-#if 0
-        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-                "unknown vdom attribute '%s' for element <%s>",
-                attr->key, element->tag_name);
-        return -1;
-#endif
-        return 0;
-    }
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static void
 on_named_observe_release(void* native_entity)
 {
@@ -717,6 +686,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
+                ignore_content)) {
+        return NULL;
+    }
+
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -740,13 +715,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    if (stack->co->stage == CO_STAGE_FIRST_RUN) {
-        pcintr_calc_and_set_caret_symbol(stack, frame);
-    }
 
 #if 0
     if (!ctxt->with) {
@@ -917,40 +888,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(content);
-#if 0
-    pcintr_stack_t stack = &co->stack;
-
-    if (stack->except)
-        return;
-
-    // int r;
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return;
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    PC_ASSERT(v != PURC_VARIANT_INVALID);
-    purc_clr_error();
-
-    if (purc_variant_is_string(v)) {
-        size_t sz;
-        const char *text = purc_variant_get_string_const_ex(v, &sz);
-        pcdoc_text_node_t content;
-        content = pcintr_util_new_text_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, text, sz);
-        PC_ASSERT(content);
-        purc_variant_unref(v);
-    }
-    else {
-        // FIXME: copy from undefined.c
-        char *sv = pcvariant_to_string(v);
-        PC_ASSERT(sv);
-        pcintr_util_new_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, sv, 0);
-        free(sv);
-        purc_variant_unref(v);
-    }
-#endif
 }
 
 static void

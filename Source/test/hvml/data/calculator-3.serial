@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<head>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<base href=concat_string(call_setter(get_element(get_variable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/"))/>
+PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"base"),"https://gitlab.fmsoft.cn/hvml/hvml-docs/raw/master/samples/calculator/")/>
 PCHVML_TOKEN_VCM_TREE|"
 
 "
@@ -17,12 +17,10 @@ PCHVML_TOKEN_COMMENT|<!--
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_element(get_variable("T"),"map") to="merge">
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") to="merge">
 PCHVML_TOKEN_VCM_TREE|"
            "
 PCHVML_TOKEN_VCM_TREE|make_object("HVML Calculator","HVML 计算器","Current Time: ","当前时间：")
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -37,24 +35,20 @@ PCHVML_TOKEN_START_TAG|<init as="buttons" uniquely>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("letters","7","class","number"),make_object("letters","8","class","number"),make_object("letters","9","class","number"),make_object("letters","←","class","c_blue backspace"),make_object("letters","C","class","c_blue clear"),make_object("letters","4","class","number"),make_object("letters","5","class","number"),make_object("letters","6","class","number"),make_object("letters","×","class","c_blue multiplication"),make_object("letters","÷","class","c_blue division"),make_object("letters","1","class","number"),make_object("letters","2","class","number"),make_object("letters","3","class","number"),make_object("letters","+","class","c_blue plus"),make_object("letters","-","class","c_blue subtraction"),make_object("letters","0","class","number"),make_object("letters","00","class","number"),make_object("letters",".","class","number"),make_object("letters","%","class","c_blue percent"),make_object("letters","=","class","c_yellow equal"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</init>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
 PCHVML_TOKEN_START_TAG|<title>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
 PCHVML_TOKEN_END_TAG|</title>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="unite">
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="unite">
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_VCM_TREE|make_array(make_object("id","clock","interval",1000,"active","yes"),make_object("id","input","interval",1500,"active","yes"))
-PCHVML_TOKEN_VCM_TREE|"
-        "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
 
@@ -77,13 +71,11 @@ PCHVML_TOKEN_START_TAG|<div id="c_title">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<h2 id="c_title">
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"HVML Calculator")
-PCHVML_TOKEN_VCM_TREE|"
-                    "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"HVML Calculator")
 PCHVML_TOKEN_START_TAG|<small>
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("T"),"get"),"Current Time: ")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("T"),"get"),"Current Time: ")
 PCHVML_TOKEN_START_TAG|<span id="clock">
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")
 PCHVML_TOKEN_END_TAG|</span>
 PCHVML_TOKEN_END_TAG|</small>
 PCHVML_TOKEN_VCM_TREE|"
@@ -91,10 +83,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_END_TAG|</h2>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<observe on=get_variable("TIMERS") for="expired:clock">
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:clock">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=call_getter(get_element(get_variable("SYS"),"time"),"%H:%M:%S")/>
+PCHVML_TOKEN_START_TAG|<update on="#clock" at="textContent" with=callGetter(getElement(getVariable("SYS"),"time"),"%H:%M:%S")/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_END_TAG|</observe>
@@ -107,30 +99,28 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<div id="c_text">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<input type="text" id="expression" value="0" readonly="readonly"/>
+PCHVML_TOKEN_START_TAG|<input type="text" id="expression" value=0 readonly="readonly"/>
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<observe on=get_variable("TIMERS") for="expired:input">
+PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:input">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<test on=get_element(get_element(get_variable("buttons"),call_getter(get_element(get_variable("SYS"),"random"),call_getter(get_element(get_variable("EJSON"),"count"),get_variable("buttons")))),"letters")>
+PCHVML_TOKEN_START_TAG|<test on=getElement(getElement(getVariable("buttons"),callGetter(getElement(getVariable("SYS"),"random"),callGetter(getElement(getVariable("EJSON"),"count"),getVariable("buttons")))),"letters")>
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_START_TAG|<match for="AS '='" exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<choose on=call_getter(get_element(get_variable("MATH"),"eval"),call_getter(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value"))>
+PCHVML_TOKEN_START_TAG|<choose on=callGetter(getElement(getVariable("MATH"),"eval"),callGetter(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#expression"),"attr"),"value"))>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
-PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=get_variable("?")/>
+PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=getVariable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="overwrite">
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                     "
 PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
-PCHVML_TOKEN_VCM_TREE|"
-                                "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
@@ -161,10 +151,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match for="AS '←'" exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<choose on=get_element(get_element(call_getter(get_element(get_variable("DOC"),"query"),"#expression"),"attr"),"value")>
+PCHVML_TOKEN_START_TAG|<choose on=getElement(getElement(callGetter(getElement(getVariable("DOC"),"query"),"#expression"),"attr"),"value")>
 PCHVML_TOKEN_VCM_TREE|"
                                 "
-PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=call_getter(get_element(get_variable("STR"),"substr"),get_variable("?"),0,-1)/>
+PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with=callGetter(getElement(getVariable("STR"),"substr"),getVariable("?"),0,-1)/>
 PCHVML_TOKEN_VCM_TREE|"
                             "
 PCHVML_TOKEN_END_TAG|</choose>
@@ -177,7 +167,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with$=get_variable("?")/>
+PCHVML_TOKEN_START_TAG|<update on="#expression" at="attr.value" with$=getVariable("?")/>
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_END_TAG|</match>
@@ -187,12 +177,10 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<match for="ANY" exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                             "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("TIMERS") to="overwrite">
+PCHVML_TOKEN_START_TAG|<update on=getVariable("TIMERS") to="overwrite">
 PCHVML_TOKEN_VCM_TREE|"
                                 "
 PCHVML_TOKEN_VCM_TREE|make_object("id","input","active","no")
-PCHVML_TOKEN_VCM_TREE|"
-                            "
 PCHVML_TOKEN_END_TAG|</update>
 PCHVML_TOKEN_VCM_TREE|"
                         "
@@ -213,8 +201,7 @@ PCHVML_TOKEN_START_TAG|<div id="c_value">
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<archetype name="button">
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                    <li class="",get_element(get_variable("?"),"class"),"">",get_element(get_variable("?"),"letters"),"</li>
+PCHVML_TOKEN_VCM_TREE|concatString("<li class="",getElement(getVariable("?"),"class"),""",">",getElement(getVariable("?"),"letters"),"</li>
                 ")
 PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
@@ -223,16 +210,15 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<ul>
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<iterate on=get_variable("buttons")>
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("buttons")>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<update on=get_variable("@") to="append" with=get_variable("button")/>
+PCHVML_TOKEN_START_TAG|<update on=getVariable("@") to="append" with=getVariable("button")/>
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_START_TAG|<except type="NoData" raw>
-PCHVML_TOKEN_VCM_TREE|concat_string("
-                            <p>Bad data!","</p>
-                        ")
+PCHVML_TOKEN_VCM_TREE|"<p>Bad data!</p>
+                        "
 PCHVML_TOKEN_END_TAG|</except>
 PCHVML_TOKEN_VCM_TREE|"
                     "

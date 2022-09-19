@@ -146,6 +146,7 @@ private:
 int to_error(const char* err)
 {
     TO_ERROR(PCHVML_SUCCESS);
+    TO_ERROR(PCEJSON_ERROR_BAD_JSONEE_KEYWORD);
     TO_ERROR(PCHVML_ERROR_UNEXPECTED_NULL_CHARACTER);
     TO_ERROR(PCHVML_ERROR_UNEXPECTED_QUESTION_MARK_INSTEAD_OF_TAG_NAME);
     TO_ERROR(PCHVML_ERROR_EOF_BEFORE_TAG_NAME);
@@ -217,23 +218,23 @@ int to_error(const char* err)
 
 static inline purc_variant_t
 attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_string("call get success!", false);
 }
 
 static inline purc_variant_t
 attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     return purc_variant_make_string("call setter success!", false);
 }
 
@@ -360,7 +361,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
 
     struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
 
-    purc_variant_t vt = pcvcm_eval_ex (root, find_var, &ctxt, false);
+    purc_variant_t vt = pcvcm_eval_ex (root, NULL, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
         PRINT_VCM_NODE(root);
     }

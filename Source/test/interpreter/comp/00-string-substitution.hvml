@@ -1,0 +1,35 @@
+#!/usr/bin/purc
+
+# RESULT: "-- by PurC"
+
+<!-- The expected output of this HVML program will be like:
+
+0) Hello, world! -- from COROUTINE-01
+1) Hello, world! -- from COROUTINE-01
+2) Hello, world! -- from COROUTINE-01
+3) Hello, world! -- from COROUTINE-01
+4) Hello, world! -- from COROUTINE-01
+5) Hello, world! -- from COROUTINE-01
+6) Hello, world! -- from COROUTINE-01
+7) Hello, world! -- from COROUTINE-01
+8) Hello, world! -- from COROUTINE-01
+9) Hello, world! -- from COROUTINE-01
+-->
+
+<!DOCTYPE hvml>
+<hvml target="void">
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail>
+
+        {{
+            $STREAM.stdout.writelines("$0?, Hello, world! --from COROUTINE-$CRTN.cid");
+            $STREAM.stdout.writelines("$0<, $CRTN.cid, Hello, world! --from COROUTINE-$CRTN.cid");
+         }}
+
+    </iterate>
+
+    {{
+         $STREAM.stdout.writelines("-- by $SYS.const('HVML_INTRPR_NAME')");
+        "-- by $SYS.const('HVML_INTRPR_NAME')"
+    }}
+</hvml>
+

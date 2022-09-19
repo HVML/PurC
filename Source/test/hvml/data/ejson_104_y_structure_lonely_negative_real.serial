@@ -1,2 +1,2 @@
-PCHVML_TOKEN_START_TAG|<hvml ejson=call_getter(get_variable("EJSON"),-0.10000000000000001)>
+PCHVML_TOKEN_START_TAG|<hvml ejson=callGetter(getVariable("EJSON"),-0.10000000000000001)>
 PCHVML_TOKEN_END_TAG|</hvml>

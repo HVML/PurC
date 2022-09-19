@@ -137,6 +137,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             term_info.except = stack->exception.error_except;
             term_info.doc = stack->doc;
             co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
+            /* Call purc_coroutine_dump_stack may set inst->errcode */
+            purc_clr_error();
         }
         PC_ASSERT(inst->errcode == 0);
     }
@@ -643,6 +645,10 @@ dump_stack_frame(pcintr_stack_t stack,
     snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
     purc_rwstream_write(stm, buf, strlen(buf));
 
+    if (stack->vcm_ctxt) {
+        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
+    }
+
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
     if (child && child->type == PCVDOM_NODE_CONTENT) {
         snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: ");
@@ -696,16 +702,13 @@ out:
 
 /* stop the specific coroutine */
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
-        const struct timespec *timeout,
-        pcintr_timeout_cb timeout_cb, void *ctxt)
+        const struct timespec *timeout)
 {
     UNUSED_PARAM(crtn);
     UNUSED_PARAM(timeout);
-    UNUSED_PARAM(timeout_cb);
-    UNUSED_PARAM(ctxt);
 
     // TODO
-    PC_WARN("pcintr_stop_coroutine() called but not implemented");
+    PC_WARN("pcintr_stop_coroutine() called but not implemented\n");
 }
 
 /* resume the specific coroutine */
@@ -714,6 +717,6 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
     UNUSED_PARAM(crtn);
 
     // TODO
-    PC_WARN("pcintr_resume_coroutine() called but not implemented");
+    PC_WARN("pcintr_resume_coroutine() called but not implemented\n");
 }
 

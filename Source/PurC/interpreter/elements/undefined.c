@@ -92,6 +92,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
     PC_ASSERT(attr->key);
     const char *sv = "";
+    char *value = NULL;
 
     if (purc_variant_is_string(val)) {
         sv = purc_variant_get_string_const(val);
@@ -101,7 +102,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
         /* no action to take */
     }
     else {
-        PC_ASSERT(0);
+        ssize_t ret = purc_variant_stringify_alloc(&value, val);
+        if (ret > 0) {
+            sv = value;
+        }
     }
 
     /* VW: do not set attributes having `hvml:` prefix to eDOM */
@@ -136,27 +140,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
 
 done:
+    if (value) {
+        free(value);
+    }
     return 0;
-}
-
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
 }
 
 static void*
@@ -195,6 +182,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct ctxt_for_undefined *ctxt;
     ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -212,8 +203,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     PC_ASSERT(frame->edom_element);
     pcdoc_element_t child;
+    const char *tag_name = frame->pos->tag_name;
+    if (stack->tag_prefix) {
+        size_t nr = strlen(stack->tag_prefix);
+        if (strncmp(stack->tag_prefix, tag_name, nr) == 0 &&
+                tag_name[nr] == ':') {
+            tag_name = frame->pos->tag_name + nr + 1;
+        }
+    }
+
     child = pcintr_util_new_element(frame->owner->doc, frame->edom_element,
-            PCDOC_OP_APPEND, frame->pos->tag_name, false);
+            PCDOC_OP_APPEND, tag_name, frame->pos->self_closing);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;
@@ -221,11 +221,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {
@@ -240,6 +238,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         PC_ASSERT(vcm_content);
 
         purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
+        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+        stack->vcm_ctxt = NULL;
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
             size_t sz;
@@ -316,6 +316,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return;
 
     purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
     if (v == PURC_VARIANT_INVALID)
         return;
 

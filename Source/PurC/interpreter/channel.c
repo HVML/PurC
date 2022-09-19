@@ -51,13 +51,13 @@ pcchan_t
 pcchan_open(const char *chan_name, unsigned int cap)
 {
     struct pcinst* inst = pcinst_current();
-    if ((inst = pcinst_current()) == NULL || inst->intr_heap == NULL) {
+    if (UNLIKELY((inst = pcinst_current()) == NULL ||
+                inst->intr_heap == NULL)) {
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
 
-    if (chan_name == NULL || cap == 0 ||
-            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
+    if (UNLIKELY(chan_name == NULL || chan_name[0] == '\0' || cap == 0)) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
@@ -221,13 +221,13 @@ pcchan_retrieve(const char *chan_name)
     struct pcinst* inst;
     const pcutils_map_entry* entry = NULL;
 
-    if ((inst = pcinst_current()) == NULL || inst->intr_heap == NULL) {
+    if (UNLIKELY((inst = pcinst_current()) == NULL ||
+                inst->intr_heap == NULL)) {
         inst->errcode = PURC_ERROR_NO_INSTANCE;
         return NULL;
     }
 
-    if (chan_name == NULL ||
-            !purc_is_valid_token(chan_name, PCCHAN_MAX_LEN_NAME)) {
+    if (UNLIKELY(chan_name == NULL || chan_name[0] == '\0')) {
         inst->errcode = PURC_ERROR_INVALID_VALUE;
         return NULL;
     }
@@ -241,28 +241,32 @@ pcchan_retrieve(const char *chan_name)
     return NULL;
 }
 
-static void on_send_timeout(pcintr_coroutine_t crtn, void *ctxt)
-{
-    pcchan_t chan = ctxt;
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &chan->send_crtns) {
-        struct pcintr_coroutine *_crtn;
-        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
-        if (_crtn == crtn) {
-            list_del(&crtn->ln_stopped);
-            return;
-        }
-    }
-
-    assert(0);
-}
-
 static purc_variant_t
 send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     pcchan_t chan = native_entity;
+    pcintr_coroutine_t crtn = pcintr_get_coroutine();
+
+    if (call_flags & PCVRT_CALL_FLAG_AGAIN &&
+            call_flags & PCVRT_CALL_FLAG_TIMEOUT) {
+
+        if (crtn) {
+            struct list_head *p, *n;
+            list_for_each_safe(p, n, &chan->send_crtns) {
+                struct pcintr_coroutine *_crtn;
+                _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+                if (_crtn == crtn) {
+                    list_del(&crtn->ln_stopped);
+                    purc_set_error(PURC_ERROR_TIMEOUT);
+                    goto failed;
+                }
+            }
+        }
+
+        purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        goto failed;
+    }
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -295,10 +299,9 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcintr_coroutine_t crtn = pcintr_get_coroutine();
         if (crtn) {
             // stop the current coroutine
-            pcintr_stop_coroutine(crtn, &crtn->timeout, on_send_timeout, chan);
+            pcintr_stop_coroutine(crtn, &crtn->timeout);
             list_add_tail(&crtn->ln_stopped, &chan->send_crtns);
         }
 
@@ -309,37 +312,41 @@ send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(true);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
 
-static void on_recv_timeout(pcintr_coroutine_t crtn, void *ctxt)
-{
-    pcchan_t chan = ctxt;
-
-    struct list_head *p, *n;
-    list_for_each_safe(p, n, &chan->send_crtns) {
-        struct pcintr_coroutine *_crtn;
-        _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
-        if (_crtn == crtn) {
-            list_del(&crtn->ln_stopped);
-            return;
-        }
-    }
-
-    assert(0);
-}
-
 static purc_variant_t
 recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
     pcchan_t chan = native_entity;
+    pcintr_coroutine_t crtn = pcintr_get_coroutine();
+
+    if (call_flags & PCVRT_CALL_FLAG_AGAIN &&
+            call_flags & PCVRT_CALL_FLAG_TIMEOUT) {
+
+        if (crtn) {
+            struct list_head *p, *n;
+            list_for_each_safe(p, n, &chan->send_crtns) {
+                struct pcintr_coroutine *_crtn;
+                _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
+                if (_crtn == crtn) {
+                    list_del(&crtn->ln_stopped);
+                    purc_set_error(PURC_ERROR_TIMEOUT);
+                    goto failed;
+                }
+            }
+        }
+
+        purc_set_error(PURC_ERROR_INTERNAL_FAILURE);
+        goto failed;
+    }
 
     if (chan->qsize == 0) {
         purc_set_error(PURC_ERROR_ENTITY_GONE);
@@ -363,10 +370,9 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         }
     }
     else {
-        pcintr_coroutine_t crtn = pcintr_get_coroutine();
         if (crtn) {
             // stop the current coroutine
-            pcintr_stop_coroutine(crtn, &crtn->timeout, on_recv_timeout, chan);
+            pcintr_stop_coroutine(crtn, &crtn->timeout);
             list_add_tail(&crtn->ln_stopped, &chan->recv_crtns);
         }
 
@@ -377,7 +383,7 @@ recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return vrt;
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
 
     return PURC_VARIANT_INVALID;
@@ -385,7 +391,7 @@ failed:
 
 static purc_variant_t
 cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -399,7 +405,7 @@ cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint(chan->qsize);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
@@ -407,7 +413,7 @@ failed:
 
 static purc_variant_t
 len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                bool silently)
+                unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
@@ -421,7 +427,7 @@ len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_ulongint(chan->qcount);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;

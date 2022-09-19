@@ -32,6 +32,7 @@
 #include "private/dom.h"
 #include "private/hvml.h"
 #include "private/tkz-helper.h"
+#include "private/ejson.h"
 
 #include "hvml-token.h"
 #include "hvml-attr.h"
@@ -87,6 +88,8 @@ struct pcmodule _module_hvml = {
 
 
 #define PURC_ENVV_HVML_LOG_ENABLE   "PURC_HVML_LOG_ENABLE"
+#define EJSON_PARSER_MAX_DEPTH      512
+#define EJSON_PARSER_FLAGS          1
 
 struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
 {
@@ -100,7 +103,6 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->temp_buffer = tkz_buffer_new ();
     parser->tag_name = tkz_buffer_new ();
     parser->string_buffer = tkz_buffer_new ();
-    parser->vcm_stack = pcvcm_stack_new();
     parser->ejson_stack = pcutils_stack_new(0);
     parser->char_ref_code = 0;
     parser->prev_separator = 0;
@@ -108,6 +110,11 @@ struct pchvml_parser* pchvml_create(uint32_t flags, size_t queue_size)
     parser->tag_is_operation = 0;
     parser->tag_has_raw_attr = 0;
     parser->is_in_file_header = 1;
+    parser->ejson_parser_max_depth = EJSON_PARSER_MAX_DEPTH;
+    parser->ejson_parser_flags = PCEJSON_FLAG_ALL;
+    parser->ejson_parser = pcejson_create(parser->ejson_parser_max_depth,
+            parser->ejson_parser_flags);
+
     const char *env_value = getenv(PURC_ENVV_HVML_LOG_ENABLE);
     parser->enable_log = ((env_value != NULL) &&
             (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
@@ -128,17 +135,6 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     tkz_buffer_reset (parser->tag_name);
     tkz_buffer_reset (parser->string_buffer);
 
-    struct pcvcm_node* n = parser->vcm_node;
-    parser->vcm_node = NULL;
-    while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
-        struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-        pctree_node_append_child(
-                (struct pctree_node*)node, (struct pctree_node*)n);
-        n = node;
-    }
-    pcvcm_node_destroy(n);
-    pcvcm_stack_destroy(parser->vcm_stack);
-    parser->vcm_stack = pcvcm_stack_new();
     pcutils_stack_destroy(parser->ejson_stack);
     parser->ejson_stack = pcutils_stack_new(0);
     if (parser->token) {
@@ -150,6 +146,8 @@ void pchvml_reset(struct pchvml_parser* parser, uint32_t flags,
     parser->nr_quoted = 0;
     parser->tag_is_operation = false;
     parser->tag_has_raw_attr = false;
+    pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
+            parser->ejson_parser_flags);
 }
 
 void pchvml_destroy(struct pchvml_parser* parser)
@@ -162,20 +160,11 @@ void pchvml_destroy(struct pchvml_parser* parser)
         if (parser->sbst) {
             tkz_sbst_destroy(parser->sbst);
         }
-        struct pcvcm_node* n = parser->vcm_node;
-        parser->vcm_node = NULL;
-        while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
-            struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
-            pctree_node_append_child(
-                    (struct pctree_node*)node, (struct pctree_node*)n);
-            n = node;
-        }
-        pcvcm_node_destroy(n);
-        pcvcm_stack_destroy(parser->vcm_stack);
         pcutils_stack_destroy(parser->ejson_stack);
         if (parser->token) {
             pchvml_token_destroy(parser->token);
         }
+        pcejson_destroy(parser->ejson_parser);
         PCHVML_FREE(parser);
     }
 }

@@ -142,28 +142,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return -1;
 }
 
-
-static int
-attr_found(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud)
-{
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
-    pcintr_stack_t stack = (pcintr_stack_t) ud;
-    purc_variant_t val = pcintr_eval_vdom_attr(stack, attr);
-    if (val == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = attr_found_val(frame, element, name, val, attr, ud);
-    purc_variant_unref(val);
-
-    return r ? -1 : 0;
-}
-
 static purc_variant_t
 element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         bool silently)
@@ -187,7 +165,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
         }
         else {
             void *entity = purc_variant_native_get_entity(elems);
-            ret = ops->eraser(entity, silently);
+            ret = ops->eraser(entity, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
         }
     }
     else {
@@ -281,23 +259,16 @@ array_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     if (at) {
-        if (!purc_variant_is_string(at)) {
+        if (!purc_variant_is_array(at)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
         }
+        purc_variant_t idx = purc_variant_array_get(at, 0);
+        int64_t index = -1;
+        bool cast = purc_variant_cast_to_longint(idx, &index, false);
 
-        size_t nr_s = 0;
-        const char *s = purc_variant_get_string_const_ex(at, &nr_s);
-        if (nr_s <= 2 || s[0] != '[' || s[nr_s-1] != ']') {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            ret = PURC_VARIANT_INVALID;
-            goto out;
-        }
-
-        errno = 0;
-        long long index = strtoll(s + 1, NULL, 10);
-        if (errno != 0 || index < 0) {
+        if (!cast || index < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
@@ -325,23 +296,16 @@ set_erase(purc_variant_t on, purc_variant_t at, bool silently)
 {
     purc_variant_t ret;
     if (at) {
-        if (!purc_variant_is_string(at)) {
+        if (!purc_variant_is_array(at)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
         }
+        purc_variant_t idx = purc_variant_array_get(at, 0);
+        int64_t index = -1;
+        bool cast = purc_variant_cast_to_longint(idx, &index, false);
 
-        size_t nr_s = 0;
-        const char *s = purc_variant_get_string_const_ex(at, &nr_s);
-        if (nr_s <= 2 || s[0] != '[' || s[nr_s-1] != ']') {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            ret = PURC_VARIANT_INVALID;
-            goto out;
-        }
-
-        errno = 0;
-        long long index = strtoll(s + 1, NULL, 10);
-        if (errno != 0 || index < 0) {
+        if (!cast || index < 0) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             ret = PURC_VARIANT_INVALID;
             goto out;
@@ -378,7 +342,7 @@ native_erase(purc_variant_t on, purc_variant_t at, bool silently)
         return purc_variant_make_ulongint(0);
     }
     void *entity = purc_variant_native_get_entity(on);
-    return ops->eraser(entity, silently);
+    return ops->eraser(entity, silently ? PCVRT_CALL_FLAG_SILENTLY : 0);
 }
 
 
@@ -392,6 +356,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     struct ctxt_for_erase *ctxt;
     ctxt = (struct ctxt_for_erase*)calloc(1, sizeof(*ctxt));
@@ -409,11 +377,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     PC_ASSERT(element);
 
     int r;
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,

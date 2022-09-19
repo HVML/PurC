@@ -460,6 +460,21 @@ pcintr_coroutine_dump(pcintr_coroutine_t co);
 void
 pcintr_handle_task(struct pcintr_observer_task *task);
 
+
+typedef int (*walk_attr_cb)(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val,
+        struct pcvdom_attr *attr,
+        void *ud);
+int
+pcintr_walk_attrs(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element, void *ud, walk_attr_cb cb);
+
+
+purc_variant_t
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct pcvcm_node *node);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

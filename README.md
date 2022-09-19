@@ -18,7 +18,7 @@
 
 ## Introduction
 
-`HVML` is a new-style and general-purpose programming language proposed by [Vincent Wei],
+`HVML` is a descriptive programming language proposed and designed by [Vincent Wei],
     who is the author of the China-first open source project - [MiniGUI].
 
 `PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
@@ -26,7 +26,7 @@ It is also the abbreviation of `Purring Cat`,
    while `Purring Cat` is the nickname and the mascot of HVML.
 
 The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
-and all predefined dynamic variables defined by [HVML Predefined Variables V1.0] in C language.
+and all predefined dynamic objects defined by [HVML Predefined Variables V1.0] in C language.
 
 You can use PurC to run an HVML program or an HVML app by using the command line tool `purc`,
     or use PurC as a library to build your own HVML interpreter.
@@ -644,8 +644,11 @@ The source tree of PurC contains the following modules:
 - `Source/test/`: The unit test programs.
 - `Source/Samples/api`: Samples for using the API of PurC.
 - `Source/Samples/hvml`: HVML sample programs.
-- `Source/Tools/`: The tools (executables), i.e., the command line programs.
-- `Source/Tools/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Source/Executables/`: The executables, i.e., the command line programs.
+- `Source/Executables/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Source/Tools/`: The tools or scripts for maintaining this project.
+- `Source/Tools/aur`: AUR package packaging scripts.
+- `Source/Tools/debian`: DEB package packaging scripts.
 - `Documents/`: Some documents for developers.
 
 Note that the HTML parser and DOM operations of PurC are derived from:

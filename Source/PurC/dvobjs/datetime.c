@@ -569,7 +569,7 @@ format_time(const char *timeformat, const struct timeval *tv,
 
 static purc_variant_t
 time_prt_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, bool silently)
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -651,7 +651,7 @@ time_prt_getter(purc_variant_t root,
     return format_time(timeformat, &tv, timezone);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
@@ -864,7 +864,7 @@ fatal:
 
 static purc_variant_t
 utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -895,14 +895,14 @@ utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return make_broken_down_time(&result, tv.tv_usec, PURC_TIMEZONE_UTC);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 localtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -948,14 +948,14 @@ localtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return make_broken_down_time(&result, tv.tv_usec, timezone);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 fmttime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1010,7 +1010,7 @@ fmttime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return format_time(timeformat, &tv, timezone);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
@@ -1155,7 +1155,7 @@ failed:
 
 static purc_variant_t
 fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1198,14 +1198,14 @@ fmtbdtime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return format_broken_down_time(timeformat, &tm, usec, timezone);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
 mktime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
@@ -1244,7 +1244,7 @@ mktime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_longdouble(time_ld);
 
 failed:
-    if (silently)
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }

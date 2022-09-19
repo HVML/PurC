@@ -826,10 +826,10 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
 
 static purc_variant_t
 list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     char dir_name[PATH_MAX + 1];
     char filename[PATH_MAX + NAME_MAX + 1];
@@ -1090,10 +1090,10 @@ error:
 
 static purc_variant_t
 list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     enum display_order {
         DISPLAY_MODE = 1,
@@ -1427,10 +1427,10 @@ error:
 
 static purc_variant_t
 basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
     const char *string_suffix = NULL;
@@ -1460,10 +1460,10 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_group = NULL;
@@ -1520,10 +1520,10 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_mode = NULL;
@@ -1580,10 +1580,10 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_owner = NULL;
@@ -1640,10 +1640,10 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename_from = NULL;
     const char *filename_to = NULL;
@@ -1675,10 +1675,10 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
     const char *dir_begin = NULL;
@@ -1712,10 +1712,10 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_dir = NULL;
     struct statfs fsu;
@@ -1792,10 +1792,10 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -1821,10 +1821,10 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     const char *string_which = NULL;
@@ -1938,10 +1938,10 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_group = NULL;
@@ -1998,10 +1998,10 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_owner = NULL;
@@ -2058,10 +2058,10 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     struct stat st;
@@ -2090,20 +2090,20 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     return get_stat_result (FN_OPTION_LSTAT, nr_args, argv);
 }
 
 static purc_variant_t
 link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_target = NULL;
     const char *string_link = NULL;
@@ -2133,10 +2133,10 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -2163,10 +2163,10 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
     const char *string_flags = NULL;
@@ -2271,10 +2271,10 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     char buffer[PATH_MAX];
     const char *string_path = NULL;
@@ -2307,10 +2307,10 @@ readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     char resolved_path[PATH_MAX];
     const char *string_path = NULL;
@@ -2341,10 +2341,10 @@ realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_from = NULL;
     const char *string_to = NULL;
@@ -2376,10 +2376,10 @@ rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     DIR *dirp;
@@ -2440,20 +2440,20 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 stat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     return get_stat_result (FN_OPTION_STAT, nr_args, argv);
 }
 
 static purc_variant_t
 symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_target = NULL;
     const char *string_link = NULL;
@@ -2486,10 +2486,10 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     char filename[PATH_MAX + 1];
     const char *string_directory = NULL;
@@ -2552,10 +2552,10 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     uint64_t mtime = UTIME_NOW;
@@ -2623,10 +2623,10 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     mode_t mask;
     mode_t old_mask;
@@ -2662,10 +2662,10 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     struct stat filestat;
@@ -2705,10 +2705,10 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -2735,10 +2735,10 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     const char *string_flags = NULL;
@@ -2893,10 +2893,10 @@ err:
 
 static purc_variant_t
 file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     const char *string_flags = NULL;
@@ -3028,11 +3028,11 @@ struct pcdvobjs_dir_stream {
 
 static purc_variant_t
 dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
@@ -3072,11 +3072,11 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
@@ -3127,10 +3127,10 @@ static bool add_dir_native(purc_variant_t v, DIR *dirp,
 
 static purc_variant_t
 opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     const char *string_pathname = NULL;
     DIR *dirp;
@@ -3183,10 +3183,10 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
 static purc_variant_t
 closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
 
     struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;

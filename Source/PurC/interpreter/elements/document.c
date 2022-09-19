@@ -111,6 +111,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (system_info) {
         const char *p = strchr(system_info, ':');
         if (p) {
+            size_t nr = p - system_info;
+            if (nr) {
+                if (stack->tag_prefix) {
+                    free(stack->tag_prefix);
+                }
+                stack->tag_prefix = strndup(system_info, nr);
+            }
             ++p;
             r = pcutils_token_by_delim(p, p + strlen(p),
                     ' ', stack, token_found);

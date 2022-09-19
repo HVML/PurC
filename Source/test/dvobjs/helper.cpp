@@ -46,24 +46,24 @@ void get_variant_total_info (size_t *mem, size_t *value, size_t *resv)
 
 static purc_variant_t getter(
         purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     purc_variant_t value = purc_variant_make_number (3.1415926);
     return value;
 }
 
 static purc_variant_t setter(
         purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        bool silently)
+        unsigned call_flags)
 {
     UNUSED_PARAM(root);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(silently);
+    UNUSED_PARAM(call_flags);
     purc_variant_t value = purc_variant_make_number (2.71828828);
     return value;
 }

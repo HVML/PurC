@@ -47,7 +47,7 @@ static const char callTemplateHead[] =
 "<hvml target=\"void\">\n";
 
 static const char callTemplateFoot[] =
-"    <call on $%s with $REQ._args >\n"
+"    <call on $%s with $REQ._args silently>\n"
 "        $REQ._content\n"
 "        <exit with $? />\n"
 "    </call>\n"
@@ -488,3 +488,39 @@ pcintr_coroutine_dump(pcintr_coroutine_t co)
     purc_rwstream_destroy(rws);
     return 0;
 }
+
+purc_variant_t
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct pcvcm_node *node)
+{
+    int err = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    if (!node) {
+        val = purc_variant_make_undefined();
+    }
+    else if (stack->vcm_ctxt) {
+        val = pcvcm_eval_again(node, stack, frame->silently,
+                stack->timeout);
+    }
+    else {
+        val = pcvcm_eval(node, stack, frame->silently);
+    }
+
+    err = purc_get_last_error();
+    if (!val) {
+        goto out;
+    }
+
+    if (err == PURC_ERROR_AGAIN && val) {
+        purc_variant_unref(val);
+        val = PURC_VARIANT_INVALID;
+        goto out;
+    }
+
+    purc_clr_error();
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
+out:
+    return val;
+}
+

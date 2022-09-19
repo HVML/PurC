@@ -187,6 +187,7 @@ struct pcintr_stack {
     // the pointer to the vDOM tree.
     purc_vdom_t                   vdom;
     purc_document_t               doc;
+    char                         *tag_prefix;
 
     struct pcvdom_element        *entry;
 
@@ -219,6 +220,9 @@ struct pcintr_stack {
     /* FIXME: switch owner-ship ? */
     struct pcintr_coroutine      *co;
     char                         *body_id;
+
+    struct pcvcm_eval_ctxt       *vcm_ctxt;
+    bool                          timeout;
 
     // for observe
     // struct pcintr_observer
@@ -369,6 +373,20 @@ enum pcintr_stack_frame_type {
     STACK_FRAME_TYPE_PSEUDO,
 };
 
+enum pcintr_stack_frame_eval_step {
+    STACK_FRAME_EVAL_STEP_ATTR,
+    STACK_FRAME_EVAL_STEP_CONTENT,
+    STACK_FRAME_EVAL_STEP_DONE,
+};
+
+enum pcintr_element_step {
+    ELEMENT_STEP_PREPARE,
+    ELEMENT_STEP_EVAL_ATTR,
+    ELEMENT_STEP_EVAL_CONTENT,
+    ELEMENT_STEP_LOGIC,
+    ELEMENT_STEP_DONE,
+};
+
 struct pcintr_stack_frame {
     enum pcintr_stack_frame_type             type;
     // pointers to sibling frames.
@@ -409,8 +427,15 @@ struct pcintr_stack_frame {
 
     purc_variant_t     except_templates;
     purc_variant_t     error_templates;
+    /* element id attr value */
+    purc_variant_t    elem_id;
 
     unsigned int       silently:1;
+
+    enum pcintr_stack_frame_eval_step eval_step;
+    enum pcintr_element_step elem_step;
+    size_t             eval_attr_pos;
+    pcutils_array_t   *attrs_result;
 };
 
 struct pcintr_stack_frame_normal {
@@ -486,11 +511,9 @@ pcintr_coroutine_t pcintr_get_coroutine(void);
 // NOTE: null if current thread not initialized with purc_init
 purc_runloop_t pcintr_get_runloop(void);
 
-/* stop the specific coroutine */
-typedef void (*pcintr_timeout_cb)(pcintr_coroutine_t crtn, void *ctxt);
+/* stop the specific coroutine; stop forever if timeout is NULL. */
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
-        const struct timespec *timeout,
-        pcintr_timeout_cb timeout_cb, void *ctxt) WTF_INTERNAL;
+        const struct timespec *timeout) WTF_INTERNAL;
 /* resume the specific coroutine */
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn) WTF_INTERNAL;
 
@@ -764,6 +787,11 @@ pcintr_is_variable_token(const char *str);
 
 pcrdr_msg_data_type
 pcintr_rdr_retrieve_data_type(const char *type_name);
+
+int
+pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, bool ignore_content
+        );
 
 PCA_EXTERN_C_END
 

@@ -1,16 +1,11 @@
 PCHVML_TOKEN_START_TAG|<hvml target="html">
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_VCM_TREE|call_getter(get_element(get_element(get_variable("STREAM"),"stdout"),"writelines"),concat_string(get_variable("0<"),") 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # ",get_element(get_variable("CRTN"),"cid")))
-PCHVML_TOKEN_VCM_TREE|"
-
-    "
+PCHVML_TOKEN_VCM_TREE|callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") 你好，世界：台湾是中国不可分割的一部分——来自 HVML 协程 # ",getElement(getVariable("CRTN"),"cid")))
 PCHVML_TOKEN_START_TAG|<archedata name="friendLine">
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_VCM_TREE|concat_string(get_element(get_variable("?"),"greeting"),get_element(get_variable("?"),"name"),": you come from ",get_element(get_variable("?"),"country"))
-PCHVML_TOKEN_VCM_TREE|"
-    "
+PCHVML_TOKEN_VCM_TREE|concatString(getElement(getVariable("?"),"greeting"),getElement(getVariable("?"),"name"),": you come from ",getElement(getVariable("?"),"country"))
 PCHVML_TOKEN_END_TAG|</archedata>
 PCHVML_TOKEN_VCM_TREE|"
 "

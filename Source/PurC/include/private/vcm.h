@@ -33,38 +33,65 @@
 #include "private/tree.h"
 #include "purc-variant.h"
 
+#define EXTRA_NULL                                  0x0000
+#define EXTRA_PROTECT_FLAG                          0x0001
+#define EXTRA_SUGAR_FLAG                            0x0002
+
+#define PCVCM_EV_PROPERTY_EVAL                      "eval"
+#define PCVCM_EV_PROPERTY_EVAL_CONST                "eval_const"
+#define PCVCM_EV_PROPERTY_VCM_EV                    "vcm_ev"
+#define PCVCM_EV_PROPERTY_LAST_VALUE                "last_value"
+
 
 enum pcvcm_node_type {
-    PCVCM_NODE_TYPE_UNDEFINED,
+    PCVCM_NODE_TYPE_FIRST = 0,
+
+#define PCVCM_NODE_TYPE_NAME_UNDEFINED              "undefined"
+    PCVCM_NODE_TYPE_UNDEFINED = PCVCM_NODE_TYPE_FIRST,
+#define PCVCM_NODE_TYPE_NAME_OBJECT                 "object"
     PCVCM_NODE_TYPE_OBJECT,
+#define PCVCM_NODE_TYPE_NAME_ARRAY                  "array"
     PCVCM_NODE_TYPE_ARRAY,
+#define PCVCM_NODE_TYPE_NAME_STRING                 "string"
     PCVCM_NODE_TYPE_STRING,
+#define PCVCM_NODE_TYPE_NAME_NULL                   "null"
     PCVCM_NODE_TYPE_NULL,
+#define PCVCM_NODE_TYPE_NAME_BOOLEAN                "boolean"
     PCVCM_NODE_TYPE_BOOLEAN,
+#define PCVCM_NODE_TYPE_NAME_NUMBER                 "number"
     PCVCM_NODE_TYPE_NUMBER,
+#define PCVCM_NODE_TYPE_NAME_LONG_INT               "long_int"
     PCVCM_NODE_TYPE_LONG_INT,
+#define PCVCM_NODE_TYPE_NAME_ULONG_INT              "ulong_int"
     PCVCM_NODE_TYPE_ULONG_INT,
+#define PCVCM_NODE_TYPE_NAME_LONG_DOUBLE            "long_double"
     PCVCM_NODE_TYPE_LONG_DOUBLE,
+#define PCVCM_NODE_TYPE_NAME_BYTE_SEQUENCE          "byte_sequence"
     PCVCM_NODE_TYPE_BYTE_SEQUENCE,
+#define PCVCM_NODE_TYPE_NAME_CONCAT_STRING          "concatString"
     PCVCM_NODE_TYPE_FUNC_CONCAT_STRING,
+#define PCVCM_NODE_TYPE_NAME_GET_VARIABLE           "getVariable"
     PCVCM_NODE_TYPE_FUNC_GET_VARIABLE,
+#define PCVCM_NODE_TYPE_NAME_GET_ELEMENT            "getElement"
     PCVCM_NODE_TYPE_FUNC_GET_ELEMENT,
+#define PCVCM_NODE_TYPE_NAME_CALL_GETTER            "callGetter"
     PCVCM_NODE_TYPE_FUNC_CALL_GETTER,
+#define PCVCM_NODE_TYPE_NAME_CALL_SETTER            "callSetter"
     PCVCM_NODE_TYPE_FUNC_CALL_SETTER,
+#define PCVCM_NODE_TYPE_NAME_CJSONEE                "cjsonee"
     PCVCM_NODE_TYPE_CJSONEE,
+#define PCVCM_NODE_TYPE_NAME_CJSONEE_OP_AND         "cjsonee_op_and"
     PCVCM_NODE_TYPE_CJSONEE_OP_AND,
+#define PCVCM_NODE_TYPE_NAME_CJSONEE_OP_OR          "cjsonee_op_or"
     PCVCM_NODE_TYPE_CJSONEE_OP_OR,
+#define PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON   "cjsonee_op_semicolon"
     PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON,
+
+    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON,
 };
 
-#define EXTRA_NULL              0x0000
-#define EXTRA_PROTECT_FLAG      0x0001
-#define EXTRA_SUGAR_FLAG        0x0002
-
-#define PCVCM_EV_PROPERTY_EVAL            "eval"
-#define PCVCM_EV_PROPERTY_EVAL_CONST      "eval_const"
-#define PCVCM_EV_PROPERTY_VCM_EV          "vcm_ev"
-#define PCVCM_EV_PROPERTY_LAST_VALUE      "last_value"
+#define PCVCM_NODE_TYPE_NR \
+    (PCVCM_NODE_TYPE_LAST - PCVCM_NODE_TYPE_FIRST + 1)
 
 struct pcvcm_node {
     struct pctree_node tree_node;
@@ -142,6 +169,13 @@ struct pcvcm_node *pcvcm_node_new_cjsonee_op_or();
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon();
 
+static inline enum pcvcm_node_type
+pcvcm_node_get_type(struct pcvcm_node *node) {
+    return node->type;
+}
+const char *
+pcvcm_node_typename(enum pcvcm_node_type type);
+
 static inline bool
 pcvcm_node_is_closed(struct pcvcm_node *node) {
     return node && node->is_closed;
@@ -164,6 +198,33 @@ pcvcm_node_children_count(struct pcvcm_node *node)
     return 0;
 }
 
+static inline struct pcvcm_node *
+pcvcm_node_first_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_child(&node->tree_node);
+    }
+    return NULL;
+}
+
+static inline struct pcvcm_node *
+pcvcm_node_last_child(struct pcvcm_node *node)
+{
+    if (node) {
+        return (struct pcvcm_node *)pctree_node_last_child(&node->tree_node);
+    }
+    return NULL;
+}
+
+static inline void
+pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)
+{
+    UNUSED_PARAM(parent);
+    if (child) {
+        pctree_node_remove(&child->tree_node);
+    }
+}
+
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
 char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
@@ -173,27 +234,32 @@ char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);
  */
 void pcvcm_node_destroy(struct pcvcm_node *root);
 
-struct pcvcm_stack;
-struct pcvcm_stack *pcvcm_stack_new();
 
-bool pcvcm_stack_is_empty(struct pcvcm_stack *stack);
+typedef purc_variant_t(*find_var_fn) (void *ctxt, const char *name);
 
-void pcvcm_stack_push(struct pcvcm_stack *stack, struct pcvcm_node *e);
+struct pcvcm_eval_ctxt;
+purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt **ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently);
 
-struct pcvcm_node *pcvcm_stack_pop(struct pcvcm_stack *stack);
-
-struct pcvcm_node *pcvcm_stack_bottommost(struct pcvcm_stack *stack);
-
-void pcvcm_stack_destroy(struct pcvcm_stack *stack);
-
-typedef purc_variant_t(*cb_find_var) (void *ctxt, const char *name);
-
-purc_variant_t pcvcm_eval_ex(struct pcvcm_node *tree, cb_find_var find_var,
-        void *ctxt, bool silently);
+purc_variant_t pcvcm_eval_again_ex(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt,
+        find_var_fn find_var, void *find_var_ctxt,
+        bool silently, bool timeout);
 
 struct pcintr_stack;
 purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
         bool silently);
+
+purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, bool silently, bool timeout);
+
+void
+pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
+
+int
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent);
 
 purc_variant_t
 pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);

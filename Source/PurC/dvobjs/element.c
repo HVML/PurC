@@ -67,9 +67,8 @@ pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -77,7 +76,7 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->elem);
 
     return pcdvobjs_element_attr_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 purc_variant_t
@@ -110,9 +109,8 @@ pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -120,7 +118,7 @@ content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->doc && elem->elem);
 
     return pcdvobjs_element_content_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 purc_variant_t
@@ -138,9 +136,8 @@ pcdvobjs_element_json_content_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -148,7 +145,7 @@ json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->doc && elem->elem);
 
     return pcdvobjs_element_json_content_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 purc_variant_t
@@ -180,9 +177,8 @@ pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -190,7 +186,7 @@ text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->elem);
 
     return pcdvobjs_element_text_content_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 purc_variant_t
@@ -226,9 +222,8 @@ pcdvobjs_element_has_class_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -236,7 +231,7 @@ has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->doc && elem->elem);
 
     return pcdvobjs_element_has_class_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
 static struct native_property_cfg configs[] = {
@@ -396,9 +391,8 @@ pcdvobjs_element_prop_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -406,7 +400,7 @@ prop_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->elem);
 
     return pcdvobjs_element_prop_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 #endif // VW: deprecated
 
@@ -448,9 +442,8 @@ pcdvobjs_element_style_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -458,7 +451,7 @@ style_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->elem);
 
     return pcdvobjs_element_style_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 #endif // VW: deprecated
 
@@ -477,9 +470,8 @@ pcdvobjs_element_val_getter(purc_document_t doc, pcdoc_element_t elem,
 
 static inline purc_variant_t
 val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        bool silently)
+        unsigned call_flags)
 {
-    UNUSED_PARAM(silently);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -487,7 +479,7 @@ val_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     PC_ASSERT(elem && elem->elem);
 
     return pcdvobjs_element_val_getter(elem->doc, elem->elem,
-            nr_args, argv, silently);
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 #endif // VW: deprecated
 

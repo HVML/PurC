@@ -57,12 +57,14 @@ static int
 attr_found(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name,
+        purc_variant_t val,
         struct pcvdom_attr *attr,
         void *ud)
 {
     UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
     UNUSED_PARAM(name);
+    UNUSED_PARAM(val);
     UNUSED_PARAM(ud);
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
@@ -88,6 +90,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct ctxt_for_head *ctxt;
     ctxt = (struct ctxt_for_head*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -108,11 +114,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
 
-    r = pcintr_vdom_walk_attrs(frame, element, stack, attr_found);
+    r = pcintr_walk_attrs(frame, element, stack, attr_found);
     if (r)
         return ctxt;
-
-    pcintr_calc_and_set_caret_symbol(stack, frame);
 
     purc_clr_error();
 

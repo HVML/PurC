@@ -480,8 +480,13 @@ purc_variant_bsequence_length(purc_variant_t sequence)
     return len;
 }
 
+#define PCVRT_CALL_FLAG_NONE            0x0000
+#define PCVRT_CALL_FLAG_SILENTLY        0x0001
+#define PCVRT_CALL_FLAG_AGAIN           0x0002
+#define PCVRT_CALL_FLAG_TIMEOUT         0x0004
+
 typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
-        size_t nr_args, purc_variant_t * argv, bool silently);
+        size_t nr_args, purc_variant_t * argv, unsigned call_flags);
 
 /**
  * Creates dynamic value by setter and getter functions
@@ -526,7 +531,7 @@ purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 
 
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
-            size_t nr_args, purc_variant_t* argv, bool silently);
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
 /** the operation set for native entity */
 struct purc_native_ops {
@@ -545,15 +550,15 @@ struct purc_native_ops {
     /** the updater to update the content represented by
       * the native entity (nullable). */
     purc_variant_t (*updater)(void* native_entity,
-            purc_variant_t new_value, bool silently);
+            purc_variant_t new_value, unsigned call_flags);
 
     /** the cleaner to clear the content represented by
       * the native entity (nullable). */
-    purc_variant_t (*cleaner)(void* native_entity, bool silently);
+    purc_variant_t (*cleaner)(void* native_entity, unsigned call_flags);
 
     /** the eraser to erase the content represented by
       * the native entity (nullable). */
-    purc_variant_t (*eraser)(void* native_entity, bool silently);
+    purc_variant_t (*eraser)(void* native_entity, unsigned call_flags);
 
     /** verify if the val is match the observer */
     bool (*match_observe)(void* native_entity, purc_variant_t val);
