@@ -470,6 +470,11 @@ int
 pcintr_walk_attrs(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element, void *ud, walk_attr_cb cb);
 
+
+purc_variant_t
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        struct pcvcm_node *node);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */
