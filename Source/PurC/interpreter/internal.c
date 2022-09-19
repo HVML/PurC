@@ -501,6 +501,7 @@ pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     else if (stack->vcm_ctxt) {
         val = pcvcm_eval_again(node, stack, frame->silently,
                 stack->timeout);
+        stack->timeout = false;
     }
     else {
         val = pcvcm_eval(node, stack, frame->silently);

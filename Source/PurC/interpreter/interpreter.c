@@ -3373,6 +3373,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 else if (stack->vcm_ctxt) {
                     val = pcvcm_eval_again(attr->val, stack, frame->silently,
                             stack->timeout);
+                    stack->timeout = false;
                 }
                 else {
                     val = pcvcm_eval(attr->val, stack, frame->silently);
@@ -3421,6 +3422,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 if (stack->vcm_ctxt) {
                     val = pcvcm_eval_again(vcm, stack, frame->silently,
                             stack->timeout);
+                    stack->timeout = false;
                 }
                 else {
                     val = pcvcm_eval(vcm, stack, frame->silently);
