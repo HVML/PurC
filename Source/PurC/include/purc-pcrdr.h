@@ -211,6 +211,7 @@ enum {
     CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
     CT_WEB_SOCKET,
+    CT_MOVE_BUFFER,
 };
 
 /* The frame operation codes for UnixSocket */
@@ -531,21 +532,24 @@ pcrdr_conn_runner_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_socket_fd(pcrdr_conn* conn);
+pcrdr_conn_fd(pcrdr_conn* conn);
 
 /**
  * Get the connnection socket type.
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the socket type of the renderer connection.
+ * Returns the type of the renderer connection.
  *
- * Returns: \a CT_UNIX_SOCKET for UnixSocket, and \a CT_WEB_SOCKET for WebSocket.
+ * Returns: \a CT_PLAIN_FILE for plain file,
+ *          \a CT_UNIX_SOCKET for UnixSocket,
+ *          \a CT_WEB_SOCKET for WebSocket.
+ *      and \a CT_MOVE_BUFFER for move buffer (shared eDOM).
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_socket_type(pcrdr_conn* conn);
+pcrdr_conn_type(pcrdr_conn* conn);
 
 /**
  * Get the connnection protocol.
@@ -555,6 +559,8 @@ pcrdr_conn_socket_type(pcrdr_conn* conn);
  * Returns the protocol of the renderer connection.
  *
  * Returns: \a PURC_RDRPROT_PURCMC for PurCMC,
+ *          \a PURC_RDRPROT_HEADLESS for Headless,
+ *          \a PURC_RDRPROT_THREAD for Thread,
  *      and \a PURC_RDRPROT_HIBUS for hiBus.
  *
  * Since: 0.1.0

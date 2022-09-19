@@ -68,7 +68,6 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
         return 0;
     }
 
-    // it's time to read a fake response message.
     return 1;
 }
 
@@ -146,7 +145,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
     }
 
     (*conn)->prot = PURC_RDRPROT_THREAD;
-    (*conn)->type = CT_PLAIN_FILE;
+    (*conn)->type = CT_MOVE_BUFFER;
     (*conn)->fd = -1;
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);

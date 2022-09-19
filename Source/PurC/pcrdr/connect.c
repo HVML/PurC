@@ -124,12 +124,12 @@ const char* pcrdr_conn_runner_name(pcrdr_conn* conn)
     return conn->runner_name;
 }
 
-int pcrdr_conn_socket_fd(pcrdr_conn* conn)
+int pcrdr_conn_fd(pcrdr_conn* conn)
 {
     return conn->fd;
 }
 
-int pcrdr_conn_socket_type(pcrdr_conn* conn)
+int pcrdr_conn_type(pcrdr_conn* conn)
 {
     return conn->type;
 }
