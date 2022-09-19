@@ -582,6 +582,8 @@ int pcintr_yield(
     }
 
     pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
+    co->stopped_timeout.tv_sec = -1;
+    co->stopped_timeout.tv_nsec = -1;
     return 0;
 }
 
@@ -597,6 +599,8 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     PC_ASSERT(frame);
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+    co->stopped_timeout.tv_sec = -1;
+    co->stopped_timeout.tv_nsec = -1;
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
@@ -704,19 +708,23 @@ out:
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
         const struct timespec *timeout)
 {
-    UNUSED_PARAM(crtn);
-    UNUSED_PARAM(timeout);
-
-    // TODO
-    PC_WARN("pcintr_stop_coroutine() called but not implemented\n");
+    pcintr_coroutine_set_state(crtn, CO_STATE_STOPPED);
+    if (timeout) {
+        clock_gettime(CLOCK_REALTIME, &crtn->stopped_timeout);
+        crtn->stopped_timeout.tv_sec += timeout->tv_sec;
+        crtn->stopped_timeout.tv_nsec += timeout->tv_nsec;
+    }
+    else {
+        crtn->stopped_timeout.tv_sec = -1;
+        crtn->stopped_timeout.tv_nsec = -1;
+    }
 }
 
 /* resume the specific coroutine */
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
 {
-    UNUSED_PARAM(crtn);
-
-    // TODO
-    PC_WARN("pcintr_resume_coroutine() called but not implemented\n");
+    pcintr_coroutine_set_state(crtn, CO_STATE_READY);
+    crtn->stopped_timeout.tv_sec = -1;
+    crtn->stopped_timeout.tv_nsec = -1;
 }
 

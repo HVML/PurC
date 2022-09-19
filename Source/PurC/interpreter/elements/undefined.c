@@ -238,9 +238,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         vcm_content = (struct pcvcm_node*)u64;
         PC_ASSERT(vcm_content);
 
-        purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
-        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-        stack->vcm_ctxt = NULL;
+        purc_variant_t v = pcintr_eval_vcm(stack, frame, vcm_content);
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
             size_t sz;

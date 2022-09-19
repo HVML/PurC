@@ -785,51 +785,6 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
     return 0;
 }
 
-int
-pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame)
-{
-    int ret = 0;
-    int last_err = purc_get_last_error();
-    pcvdom_element_t elem = frame->pos;
-    if (!elem) {
-        goto out;
-    }
-
-    bool operation = pcvdom_element_is_hvml_operation(elem);
-    if (!operation) {
-        goto out;
-    }
-
-    struct pcvdom_node *node = &elem->node;
-    node = pcvdom_node_first_child(node);
-    if (!node || node->type != PCVDOM_NODE_CONTENT) {
-        purc_clr_error();
-        goto out;
-    }
-
-    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm) {
-        goto out;
-    }
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    if (v == PURC_VARIANT_INVALID) {
-        purc_clr_error();
-        goto out;
-    }
-
-    ret = pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
-    purc_variant_unref(v);
-
-out:
-    if (last_err) {
-        purc_set_error(last_err);
-    }
-    return ret;
-}
-
 static int
 init_symvals_with_vals(struct pcintr_stack_frame *frame)
 {

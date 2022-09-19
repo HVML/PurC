@@ -420,8 +420,6 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
         pcintr_set_input_var(stack, value);
     }
 
-    /* in each iteration, evaluate content and set as $0^ */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
     return r ? false : true;
 }
 
