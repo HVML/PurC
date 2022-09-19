@@ -335,6 +335,16 @@ execute_one_step(struct pcinst *inst)
     pcutils_rbtree_for_each_safe(first, p, n) {
         pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
                 node);
+        if (co->state == CO_STATE_STOPPED
+                && co->stopped_timeout.tv_sec != -1) {
+            struct timespec now;
+            clock_gettime(CLOCK_REALTIME, &now);
+            double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
+            if (diff > 0) {
+                co->state = CO_STATE_READY;
+                co->stack.timeout = true;
+            }
+        }
         if (co->state != CO_STATE_READY) {
             continue;
         }

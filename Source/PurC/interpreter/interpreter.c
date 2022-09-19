@@ -480,6 +480,7 @@ stack_init(pcintr_stack_t stack)
     stack->scoped_variables = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
+    stack->timeout = false;
 }
 
 static void _cleanup_instance(struct pcinst* inst)
@@ -1847,6 +1848,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         heap->cond_handler(PURC_COND_COR_CREATED, co,
                 (void *)(uintptr_t)co->cid);
     }
+
+    co->stopped_timeout.tv_sec = -1;
+    co->stopped_timeout.tv_nsec = -1;
 
     return co;
 
