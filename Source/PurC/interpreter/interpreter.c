@@ -1238,8 +1238,12 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (!ctxt) {
-            if (purc_get_last_error() == 0) {
+            int err = purc_get_last_error();
+            if (err == 0) {
                 frame->next_step = NEXT_STEP_ON_POPPING;
+                return;
+            }
+            else if (err == PURC_ERROR_AGAIN) {
                 return;
             }
         }
@@ -1301,6 +1305,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         pcintr_stack_t stack = &co->stack;
         pop_stack_frame(stack);
     } else {
+        int err = purc_get_last_error();
+        if (err == PURC_ERROR_AGAIN) {
+            return;
+        }
         frame->next_step = NEXT_STEP_RERUN;
     }
 }
@@ -1315,6 +1323,11 @@ on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ok = frame->ops.rerun(&co->stack, frame->ctxt);
     }
 
+    int err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        return;
+    }
+
     PC_ASSERT(ok);
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
@@ -1326,6 +1339,11 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *element = NULL;
     if (!co->stack.exited && frame->ops.select_child) {
         element = frame->ops.select_child(&co->stack, frame->ctxt);
+    }
+
+    int err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        return;
     }
 
     if (element == NULL) {

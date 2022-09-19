@@ -313,7 +313,11 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     pcintr_execute_one_step_for_ready_co(co);
-    pcintr_check_after_execution_full(inst, co);
+
+    int err = purc_get_last_error();
+    if (err != PURC_ERROR_AGAIN) {
+        pcintr_check_after_execution_full(inst, co);
+    }
 
     pcintr_set_current_co(NULL);
 }
