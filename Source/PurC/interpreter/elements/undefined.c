@@ -238,7 +238,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         vcm_content = (struct pcvcm_node*)u64;
         PC_ASSERT(vcm_content);
 
-        purc_variant_t v = pcintr_eval_vcm(stack, frame, vcm_content);
+        purc_variant_t v = pcintr_eval_vcm(stack, vcm_content, frame->silently);
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
             size_t sz;
@@ -318,7 +318,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t v = pcintr_eval_vcm(&co->stack, frame, vcm);
+    purc_variant_t v = pcintr_eval_vcm(&co->stack, vcm, frame->silently);
     if (v == PURC_VARIANT_INVALID) {
         err = purc_get_last_error();
         goto out;

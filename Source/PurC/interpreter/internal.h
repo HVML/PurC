@@ -466,8 +466,7 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
 
 
 purc_variant_t
-pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct pcvcm_node *node);
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently);
 
 PCA_EXTERN_C_END
 

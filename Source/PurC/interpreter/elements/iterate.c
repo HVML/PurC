@@ -158,7 +158,8 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     if (!ctxt->on_attr) {
         purc_variant_t val;
         if (ctxt->with_attr) {
-            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+            val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
+                    frame->silently);
         }
         else {
             val = purc_variant_make_undefined();
@@ -200,7 +201,8 @@ rerun_iterate_without_executor(pcintr_coroutine_t co,
     if (!ctxt->on_attr) {
         purc_variant_t val;
         if (ctxt->with_attr) {
-            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+            val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
+                    frame->silently);
         }
         else {
             val = purc_variant_make_undefined();
@@ -615,7 +617,8 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     break;
                 }
 
-                val = pcintr_eval_vcm(stack, frame, ctxt->on_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->on_attr->val,
+                        frame->silently);
                 if (!val) {
                     goto out;
                 }
@@ -638,7 +641,8 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     ctxt->before_first_iterate_step = FUNC_STEP_3RD;
                     break;
                 }
-                val = pcintr_eval_vcm(stack, frame, ctxt->in_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->in_attr->val,
+                        frame->silently);
                 if (!val) {
                     goto out;
                 }
@@ -681,7 +685,8 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 if (ctxt->by_rule) {
                     purc_variant_t with;
                     if (ctxt->with_attr) {
-                        with = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+                        with = pcintr_eval_vcm(stack, ctxt->with_attr->val,
+                                frame->silently);
                     }
                     else {
                         with = purc_variant_make_undefined();
@@ -700,7 +705,8 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
             case FUNC_STEP_4TH:
                 if (ctxt->by_rule) {
                     if (ctxt->rule_attr) {
-                        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+                        val = pcintr_eval_vcm(stack, ctxt->rule_attr->val,
+                                frame->silently);
                     }
                     else {
                         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -746,7 +752,8 @@ before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_variant_t val = pcintr_eval_vcm(stack, frame, ctxt->onlyif_attr->val);
+    purc_variant_t val = pcintr_eval_vcm(stack, ctxt->onlyif_attr->val,
+            frame->silently);
     if (!val) {
         return purc_get_last_error();
     }
@@ -800,8 +807,8 @@ do_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
         case FUNC_STEP_2ND:
             if (ctxt->content_vcm) {
-                purc_variant_t val = pcintr_eval_vcm(stack, frame,
-                        ctxt->content_vcm);
+                purc_variant_t val = pcintr_eval_vcm(stack,
+                        ctxt->content_vcm, frame->silently);
                 if (!val) {
                     err = purc_get_last_error();
                     goto out;
@@ -868,7 +875,7 @@ eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         attr = pcutils_array_get(attrs, frame->eval_attr_pos);
         name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
         if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
-            val = pcintr_eval_vcm(stack, frame, attr->val);
+            val = pcintr_eval_vcm(stack, attr->val, frame->silently);
             if (!val) {
                 goto out;
             }
@@ -1017,7 +1024,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack,
 
     purc_variant_t val;
     if (ctxt->rule_attr) {
-        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+        val = pcintr_eval_vcm(stack, ctxt->rule_attr->val, frame->silently);
     }
     else {
         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -1133,7 +1140,8 @@ after_iterate_without_executor(pcintr_stack_t stack,
 
             purc_variant_t val;
             if (ctxt->with_attr) {
-                val = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->with_attr->val,
+                        frame->silently);
             }
             else {
                 val = purc_variant_make_undefined();
@@ -1155,8 +1163,8 @@ after_iterate_without_executor(pcintr_stack_t stack,
             break;
         case FUNC_STEP_2ND:
             if (ctxt->while_attr) {
-                purc_variant_t val = pcintr_eval_vcm(stack, frame,
-                        ctxt->while_attr->val);
+                purc_variant_t val = pcintr_eval_vcm(stack,
+                        ctxt->while_attr->val, frame->silently);
 
                 if (!val) {
                     goto out;
