@@ -68,6 +68,8 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
     bool silently = false;
     purc_variant_t v = pcvcm_eval(attr->val, stack, silently);
     purc_clr_error();
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
     if (v == PURC_VARIANT_INVALID) {
         return false;
     }
