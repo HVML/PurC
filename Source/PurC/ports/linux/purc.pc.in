@@ -5,7 +5,7 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: PurC
 Description: The prime HVML interpreter for C/C++
-URL: https://gitlab.fmsoft.cn/hvml/purc
+URL: https://github.com/HVML/PurC
 Version: @PROJECT_VERSION@
 Requires.private: @PURC_PKGCONFIG_REQUIRES@
 Libs: -L${libdir} -lpurc

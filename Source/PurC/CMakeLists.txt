@@ -133,7 +133,7 @@ add_custom_command(
             ${PURC_DIR}/html/html_tag_const.h.in
             ${PURC_DIR}/html/html_tag_res.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
     COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
@@ -145,7 +145,7 @@ add_custom_command(
     MAIN_DEPENDENCY ${PURC_DIR}/html/attr.py
     DEPENDS ${PURC_DIR}/html/attr_res.h.in ${PURC_DIR}/html/attr_const.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/attr.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
     COMMENT "Generating html_attr_res.h and html_attr_const.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
@@ -156,7 +156,7 @@ add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_bar.c" "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${PURC_DIR}/html/str_res.h.in"
         "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
     DEPENDS "${PURC_DIR}/html/str_res.h.in"
     COMMENT "Copying str_res.h.in to DerivedSources"
     VERBATIM)
@@ -187,7 +187,7 @@ add_custom_command(
             "--kw_h_in"     "${_kw_h_in}"
             "--kw_inc_in"   "${_kw_inc_in}"
             "--without-print"
-    COMMAND touch "${_kw_foo}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${_kw_foo}"
     COMMENT "Generating keywords.h/keywords.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"
     VERBATIM)
@@ -208,7 +208,7 @@ add_custom_command(
     DEPENDS "${PURC_DIR}/hvml/data/attrs.txt"
             "${PURC_DIR}/hvml/data/attr-static-list.inc.in"
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-attrs-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
     COMMENT "Generating hvml-attr-static-list.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/hvml/"
     VERBATIM)
@@ -224,7 +224,7 @@ add_custom_command(
             "${PURC_DIR}/hvml/data/tag-static-list.inc.in"
             "${PURC_DIR}/hvml/data/tag.h.in"
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-tags-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
     COMMENT "Generating hvml-tag-static-list.inc/hvml-tag.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/hvml/"
     VERBATIM)
@@ -255,7 +255,7 @@ add_custom_command(
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
             ${PURC_DIR}/pcrdr/pcrdr.error.in
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
     COMMENT "Generating *_err_msgs.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"
     VERBATIM)
