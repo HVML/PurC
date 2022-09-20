@@ -318,6 +318,9 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
     if (err != PURC_ERROR_AGAIN) {
         pcintr_check_after_execution_full(inst, co);
     }
+    else {
+        purc_clr_error();
+    }
 
     pcintr_set_current_co(NULL);
 }

@@ -34,7 +34,7 @@
         <init as chan with $RUNNER.chan('myChannel') />
 
         <iterate on [ 'H', 'V', 'M', 'L' ]>
-            $chan.send($?)
+            $chan.send($0?)
 
             <sleep for '1s' />
 
@@ -54,9 +54,9 @@
 
             <!-- the channel has been closed if $chan.recv() returns false -->
             <iterate with $?.recv() silently>
-                $STREAM.stdout.writelines("$DATETIME.time_prt: the data received: $?");
+                $STREAM.stdout.writelines("$DATETIME.time_prt: the data received: $0?");
 
-                <init as result at '_grandparent' with "$result$?" />
+                <init as result at '_grandparent' with "$result{$?}" />
             </iterate>
 
             <exit with $result />

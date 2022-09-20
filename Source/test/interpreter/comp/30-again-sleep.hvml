@@ -35,7 +35,7 @@ COROUTINE-3: 2022-09-01T14:50:45+0800: I am awake.
         <iterate on 0L onlyif $L.lt($0<, 5L) with $EJSON.arith('+', $0<, 1L) nosetotail >
             $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt");
 
-            <update on $RUNNER.user at 'times' to 'append' with $? />
+            <update on $RUNNER.user.times to 'append' with $? />
             <sleep for '1s' />
         </iterate>
 
