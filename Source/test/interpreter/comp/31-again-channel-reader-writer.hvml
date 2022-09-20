@@ -23,7 +23,9 @@
 
         <!-- start the reader coroutine and wait for the result -->
         <load from "#reader">
-            $STREAM.stdout.writelines("The result got from the reader: `$?`")
+            <inherit>
+                $STREAM.stdout.writelines("$DATETIME.time_prt: The result got from the reader: $?")
+            </inherit>
 
             <exit with $? />
         </load>

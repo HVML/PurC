@@ -16,7 +16,7 @@
             $RUNNER.user(! 'primes', [] )
         </inherit>
 
-        <init as chIn with $RUNNER.chan(! "natural" ) temp />
+        <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
 
@@ -25,10 +25,10 @@
 
             <choose on $chIn.recv() >
 
-                <update on $RUNNER.myObj at 'primes' to "append" with $? />
+                <update on $RUNNER.myObj.primes to "append" with $? />
 
                 <!-- open a channel to filter the new prime -->
-                <init as chOut with $RUNNER.chan(! "filter$?" ) temp />
+                <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
 
                 <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } async />
 
@@ -57,16 +57,18 @@
     <body id="sieve">
 
         <!-- this iteration will stop only if the the input channle was closed -->
-        <iterate on $REQ.in.recv() silently >
-            <test with $L.ne($EJSON.arith('%', $?, $REQ.prime), 0L) >
-                $REQ.out.send($2?)
+        <iterate with $REQ.in.recv() silently >
+            <test with $L.eq($EJSON.arith('%', $?, $REQ.prime), 0L) >
+                <differ>
+                    $REQ.out.send($2?)
+                </differ>
             </test>
         </iterate>
 
         <!-- close the output channel -->
         <inherit>
             $RUNNER.chan(! "filter$REQ.prime", 0 )
-        </inheirt>
+        </inherit>
     </body>
 </hvml>
 
