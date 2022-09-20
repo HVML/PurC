@@ -137,10 +137,8 @@ void
 pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);
 
 int
-pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr);
-
-purc_variant_t
-pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr);
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr,
+        purc_variant_t val);
 
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);

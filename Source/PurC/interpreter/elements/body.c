@@ -71,7 +71,7 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->key);
 
     pcintr_stack_t stack = (pcintr_stack_t) ud;
-    int r = pcintr_set_edom_attribute(stack, attr);
+    int r = pcintr_set_edom_attribute(stack, attr, val);
 
     return r ? -1 : 0;
 }

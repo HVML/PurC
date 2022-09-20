@@ -1008,21 +1008,9 @@ pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val)
     set_lessthan_symval(frame, val);
 }
 
-purc_variant_t
-eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
-{
-    PC_ASSERT(attr);
-    PC_ASSERT(attr->key);
-    if (!attr->val)
-        return purc_variant_make_undefined();
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    return pcvcm_eval(attr->val, stack, frame->silently ? true : false);
-}
-
 int
-pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr,
+        purc_variant_t val)
 {
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1034,7 +1022,6 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
     size_t len = 0;
     const char *sv = "";
 
-    purc_variant_t val = eval_vdom_attr(stack, attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1047,15 +1034,8 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
     int r = pcdoc_element_set_attribute(stack->doc, frame->edom_element,
             PCDOC_OP_DISPLACE, attr->key, sv, len);
     PC_ASSERT(r == 0);
-    PURC_VARIANT_SAFE_CLEAR(val);
 
     return r ? -1 : 0;
-}
-
-purc_variant_t
-pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
-{
-    return eval_vdom_attr(stack, attr);
 }
 
 struct pcintr_walk_attrs_ud {

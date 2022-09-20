@@ -420,7 +420,11 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         goto out;
     }
 
-    as_var = pcintr_eval_vdom_attr(stack, as_attr);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    as_var = pcintr_eval_vcm(stack, frame, as_attr->val);
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
     if (!as_var) {
         PC_WARN("eval vdom attr %s failed\n", ATTR_NAME_AS);
         goto out;
