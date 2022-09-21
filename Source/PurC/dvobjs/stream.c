@@ -30,6 +30,7 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/ports.h"
 #include "private/atom-buckets.h"
 #include "private/interpreter.h"
 
@@ -39,10 +40,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 #define BUFFER_SIZE                 1024
 
@@ -247,6 +244,7 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     stream->fd4r = -1;
     stream->fd4w = -1;
 
+#if OS(UNIX)
     if (stream->type == STREAM_TYPE_PIPE && stream->cpid > 0) {
         int status;
         if (waitpid(stream->cpid, &status, WNOHANG) == 0) {
@@ -263,6 +261,7 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
         }
         stream->cpid = -1;
     }
+#endif  /* OS(UNIX) */
 }
 
 static void native_stream_destroy(struct pcdvobjs_stream *stream)
@@ -791,6 +790,7 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
+#if OS(UNIX)
     const char *status;
     int value = 0, wstatus;
     int ret = waitpid(stream->cpid, &wstatus, WNOHANG);
@@ -833,6 +833,8 @@ status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref(value_val);
 
     return val;
+#endif // OS(UNIX)
+
 out:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
@@ -1171,20 +1173,6 @@ struct pcdvobjs_stream *create_file_stderr_stream()
     return create_file_std_stream(STREAM_TYPE_FILE_STDERR);
 }
 
-static
-bool file_exists(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat));
-}
-
-static
-bool file_exists_and_is_executable(const char* file)
-{
-    struct stat filestat;
-    return (0 == stat(file, &filestat) && (filestat.st_mode & S_IRWXU));
-}
-
 #define READ_FLAG       0x01
 #define WRITE_FLAG      0x02
 
@@ -1243,9 +1231,11 @@ int parse_open_option(purc_variant_t option)
             else if (atom == keywords2atoms[K_KW_write].atom) {
                 rw |= WRITE_FLAG;
             }
+#if OS(UNIX)	// TODO for Windows
             else if (atom == keywords2atoms[K_KW_nonblock].atom) {
                 flags |= O_NONBLOCK;
             }
+#endif
             else if (atom == keywords2atoms[K_KW_append].atom) {
                 flags |= O_APPEND;
             }
@@ -1330,7 +1320,28 @@ out:
     return NULL;
 }
 
+#if OS(UNIX)
+
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 #define MAX_NR_ARGS 1024
+
+static
+bool file_exists(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat));
+}
+
+static
+bool file_exists_and_is_executable(const char* file)
+{
+    struct stat filestat;
+    return (0 == stat(file, &filestat) && (filestat.st_mode & S_IRWXU));
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclobbered"
@@ -1503,9 +1514,6 @@ static
 struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
 {
-    UNUSED_PARAM(url);
-    UNUSED_PARAM(option);
-
     int flags = parse_open_option(option);
     if (flags == -1) {
         return NULL;
@@ -1607,6 +1615,43 @@ out_close_fd:
 
     return NULL;
 }
+
+#else   /* OS(UNIX) */
+
+static
+struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static
+struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option)
+{
+    UNUSED_PARAM(url);
+    UNUSED_PARAM(option);
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+#endif  /* !OS(UNIX */
 
 static purc_variant_t
 stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,

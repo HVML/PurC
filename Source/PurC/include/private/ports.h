@@ -38,8 +38,14 @@ extern "C" {
 size_t pcutils_get_cmdline_arg(int arg, char* buf, size_t sz_buf);
 
 #if !HAVE(VASPRINTF)
+/* implemented in ports/vasprintf.c. */
 WTF_ATTRIBUTE_PRINTF(2, 0)
 int vasprintf(char **buf, const char *fmt, va_list ap);
+#endif
+
+#if !HAVE(STRNDUP)
+/* implemented in ports/string.c. */
+char *strndup(const char *s, size_t n);
 #endif
 
 unsigned int pcutils_sleep(unsigned int seconds);
@@ -48,6 +54,39 @@ int pcutils_usleep(unsigned long long usec);
 /* Calculate the MD5 digest of a file by using the inode, size,
    last modification time, and so on. */
 bool pcutils_file_md5(const char *pathname, unsigned char *md5_buf, size_t *sz);
+
+#if OS(WINDOWS)
+
+typedef long suseconds_t;
+
+#define LEN_UTSNAME_SYS     32
+#define LEN_UTSNAME_NODE    128
+#define LEN_UTSNAME_RELEASE 128
+#define LEN_UTSNAME_VERSION 128
+#define LEN_UTSNAME_MACHINE 32
+
+struct utsname {
+    /* Operating system name (e.g., "Linux") */
+    char sysname[LEN_UTSNAME_SYS];
+
+    /* Name within "some implementation-defined network" */
+    char nodename[LEN_UTSNAME_NODE];
+
+    /* Operating system release (e.g., "2.6.28") */
+    char release[LEN_UTSNAME_RELEASE];
+
+    /* Operating system version */
+    char version[LEN_UTSNAME_VERSION];
+
+    /* Hardware identifier */
+    char machine[LEN_UTSNAME_MACHINE];
+};
+
+/* uname() returns system information in the structure pointed to by buf.
+ * implemented in ports/win/utsname.c.
+ */
+int uname(struct utsname *buf);
+#endif /* OS(WINDOWS) */
 
 #ifdef __cplusplus
 }

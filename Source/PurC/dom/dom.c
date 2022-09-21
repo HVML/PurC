@@ -34,6 +34,7 @@
 #include "private/errors.h"
 #include "private/debug.h"
 #include "private/utils.h"
+#include "private/ports.h"
 #include "private/dom.h"
 #include "private/stringbuilder.h"
 

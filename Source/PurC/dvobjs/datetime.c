@@ -31,6 +31,7 @@
 #include "private/errors.h"
 #include "private/atom-buckets.h"
 #include "private/dvobjs.h"
+#include "private/ports.h"
 
 #include "purc-variant.h"
 #include "purc-dvobjs.h"
@@ -163,7 +164,11 @@ static char *set_tz(const char *timezone)
             char new_timezone[strlen(timezone) + 1];
             strcpy(new_timezone, ":");
             strcat(new_timezone, timezone);
+#if OS(WINDOWS)
+            _putenv_s("TZ", new_timezone);
+#else
             setenv("TZ", new_timezone, 1);
+#endif
             tzset();
         }
     }
@@ -176,7 +181,11 @@ static void unset_tz(char *tz_old)
     if (tz_old) {
         if (strcmp(getenv("TZ"), tz_old)) {
             // restore old timezone.
+#if OS(WINDOWS)
+            _putenv_s("TZ", tz_old);
+#else
             setenv("TZ", tz_old, 1);
+#endif
             tzset();
         }
         free(tz_old);
@@ -187,7 +196,11 @@ static void get_local_broken_down_time(struct tm *result,
         time_t sec, const char *timezone)
 {
     char *tz_old = set_tz(timezone);
+#if OS(WINDOWS)
+    localtime_s(result, &sec);
+#else
     localtime_r(&sec, result);
+#endif
     unset_tz(tz_old);
 }
 
@@ -557,7 +570,12 @@ format_time(const char *timeformat, const struct timeval *tv,
     /* check if use UTC */
     if (strncmp(timeformat, PURC_TFORMAT_PREFIX_UTC,
                 sizeof(PURC_TFORMAT_PREFIX_UTC) - 1) == 0) {
+#if OS(WINDOWS)
+    	time_t sec = tv->tv_sec;
+        gmtime_s(&tm, &sec);
+#else
         gmtime_r(&tv->tv_sec, &tm);
+#endif
         timeformat += sizeof(PURC_TFORMAT_PREFIX_UTC) - 1;
     }
     else {
@@ -891,7 +909,12 @@ utctime_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     struct tm result;
+#if OS(WINDOWS)
+    time_t sec = tv.tv_sec;
+    gmtime_s(&result, &sec);
+#else
     gmtime_r(&tv.tv_sec, &result);
+#endif
     return make_broken_down_time(&result, tv.tv_usec, PURC_TIMEZONE_UTC);
 
 failed:
@@ -1143,7 +1166,11 @@ get_broken_down_time(purc_variant_t bdtime, struct tm *tm, suseconds_t *usec)
 
     char *tz_old = set_tz(timezone);
     time_t t = mktime(tm);
+#if OS(WINDOWS)
+    localtime_s(tm, &t);
+#else
     localtime_r(&t, tm);
+#endif
     unset_tz(tz_old);
 
     return timezone;

@@ -55,6 +55,353 @@
 #define    pc_free(p)     free(p)
 #endif
 
+#define PRINT_STATE(state_name)                                             \
+    if (parser->enable_log) {                                               \
+        size_t len;                                                         \
+        char *s = pcvcm_node_to_string(parser->vcm_node, &len);             \
+        PC_DEBUG(                                                           \
+            "in %s|uc=%c|hex=0x%X|stack_is_empty=%d"                        \
+            "|stack_top=%c|stack_size=%ld|vcm_node=%s\n",                   \
+            curr_state_name, character, character,                          \
+            ejson_stack_is_empty(), (char)ejson_stack_top(),                \
+            (long int)ejson_stack_size(), s);                               \
+        free(s); \
+    }
+
+#define SET_ERR(err)    do {                                                \
+    if (parser->curr_uc) {                                                  \
+        char buf[ERROR_BUF_SIZE+1];                                         \
+        snprintf(buf, ERROR_BUF_SIZE,                                       \
+                "line=%d, column=%d, character=%c",                         \
+                parser->curr_uc->line,                                      \
+                parser->curr_uc->column,                                    \
+                parser->curr_uc->character);                                \
+        if (parser->enable_log) {                                           \
+            PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
+        }                                                                   \
+    }                                                                       \
+    tkz_set_error_info(parser->curr_uc, err);                               \
+} while (0)
+
+#define ejson_stack_is_empty()  pcutils_stack_is_empty(parser->ejson_stack)
+#define ejson_stack_top()  pcutils_stack_top(parser->ejson_stack)
+#define ejson_stack_pop()  pcutils_stack_pop(parser->ejson_stack)
+#define ejson_stack_push(c) pcutils_stack_push(parser->ejson_stack, c)
+#define ejson_stack_size() pcutils_stack_size(parser->ejson_stack)
+#define ejson_stack_reset() pcutils_stack_clear(parser->ejson_stack)
+
+#define vcm_stack_is_empty() pcvcm_stack_is_empty(parser->vcm_stack)
+#define vcm_stack_push(c) pcvcm_stack_push(parser->vcm_stack, c)
+#define vcm_stack_pop() pcvcm_stack_pop(parser->vcm_stack)
+#define vcm_stack_parent() pcvcm_stack_bottommost(parser->vcm_stack)
+
+#define BEGIN_STATE(state_name)                                             \
+    case state_name:                                                        \
+    {                                                                       \
+        const char *curr_state_name = ""#state_name;                        \
+        int curr_state = state_name;                                        \
+        UNUSED_PARAM(curr_state_name);                                      \
+        UNUSED_PARAM(curr_state);                                           \
+        PRINT_STATE(curr_state);
+
+#define END_STATE()                                                         \
+        break;                                                              \
+    }
+
+#define ADVANCE_TO(new_state)                                               \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_input;                                                    \
+    } while (false)
+
+#define RECONSUME_IN(new_state)                                             \
+    do {                                                                    \
+        parser->state = new_state;                                          \
+        goto next_state;                                                    \
+    } while (false)
+
+#define SET_RETURN_STATE(new_state)                                         \
+    do {                                                                    \
+        parser->return_state = new_state;                                   \
+    } while (false)
+
+#define RETURN_AND_STOP_PARSE()                                             \
+    do {                                                                    \
+        return -1;                                                          \
+    } while (false)
+
+#define RESET_TEMP_BUFFER()                                                 \
+    do {                                                                    \
+        tkz_buffer_reset(parser->temp_buffer);                              \
+    } while (false)
+
+#define APPEND_TO_TEMP_BUFFER(c)                                            \
+    do {                                                                    \
+        tkz_buffer_append(parser->temp_buffer, c);                          \
+    } while (false)
+
+#define APPEND_BYTES_TO_TEMP_BUFFER(bytes, nr_bytes)                        \
+    do {                                                                    \
+        tkz_buffer_append_bytes(parser->temp_buffer, bytes, nr_bytes);      \
+    } while (false)
+
+#define APPEND_BUFFER_TO_TEMP_BUFFER(buffer)                                \
+    do {                                                                    \
+        tkz_buffer_append_another(parser->temp_buffer, buffer);             \
+    } while (false)
+
+#define IS_TEMP_BUFFER_EMPTY()                                              \
+        tkz_buffer_is_empty(parser->temp_buffer)
+
+#define RESET_STRING_BUFFER()                                               \
+    do {                                                                    \
+        tkz_buffer_reset(parser->string_buffer);                            \
+    } while (false)
+
+#define APPEND_TO_STRING_BUFFER(uc)                                         \
+    do {                                                                    \
+        tkz_buffer_append(parser->string_buffer, uc);                       \
+    } while (false)
+
+#define RESET_QUOTED_COUNTER()                                              \
+    do {                                                                    \
+        parser->nr_quoted = 0;                                              \
+    } while (false)
+
+#define UPDATE_VCM_NODE(node)                                               \
+    do {                                                                    \
+        if (node) {                                                         \
+            parser->vcm_node = node;                                        \
+        }                                                                   \
+    } while (false)
+
+#define RESET_VCM_NODE()                                                    \
+    do {                                                                    \
+        parser->vcm_node = NULL;                                            \
+    } while (false)
+
+#define RESTORE_VCM_NODE()                                                  \
+    do {                                                                    \
+        if (!parser->vcm_node) {                                            \
+            parser->vcm_node = pcvcm_stack_pop(parser->vcm_stack);          \
+        }                                                                   \
+    } while (false)
+
+#define APPEND_CHILD(parent, child)                                         \
+    do {                                                                    \
+        if (parent && child) {                                              \
+            pctree_node_append_child((struct pctree_node*)parent,           \
+                (struct pctree_node*)child);                                \
+        }                                                                   \
+    } while (false)
+
+#define APPEND_AS_VCM_CHILD(node)                                           \
+    do {                                                                    \
+        if (parser->vcm_node) {                                             \
+            pctree_node_append_child((struct pctree_node*)parser->vcm_node, \
+                (struct pctree_node*)node);                                 \
+        }                                                                   \
+        else {                                                              \
+            parser->vcm_node = node;                                        \
+        }                                                                   \
+    } while (false)
+
+#define POP_AS_VCM_PARENT_AND_UPDATE_VCM()                                  \
+    do {                                                                    \
+        struct pcvcm_node* parent = pcvcm_stack_pop(parser->vcm_stack);     \
+        if (parent && pcvcm_node_is_closed(parent)) {                       \
+            struct pcvcm_node* gp = pcvcm_stack_pop(parser->vcm_stack);     \
+            APPEND_CHILD(gp, parent);                                       \
+            parent = gp;                                                    \
+        }                                                                   \
+        struct pcvcm_node* child = parser->vcm_node;                        \
+        APPEND_CHILD(parent, child);                                        \
+        UPDATE_VCM_NODE(parent);                                            \
+    } while (false)
+
+enum tokenizer_state {
+    FIRST_STATE = 0,
+
+    TKZ_STATE_EJSON_DATA = FIRST_STATE,
+    TKZ_STATE_EJSON_FINISHED,
+    TKZ_STATE_EJSON_CONTROL,
+    TKZ_STATE_EJSON_LEFT_BRACE,
+    TKZ_STATE_EJSON_RIGHT_BRACE,
+    TKZ_STATE_EJSON_LEFT_BRACKET,
+    TKZ_STATE_EJSON_RIGHT_BRACKET,
+    TKZ_STATE_EJSON_LEFT_PARENTHESIS,
+    TKZ_STATE_EJSON_RIGHT_PARENTHESIS,
+    TKZ_STATE_EJSON_DOLLAR,
+    TKZ_STATE_EJSON_AFTER_VALUE,
+    TKZ_STATE_EJSON_BEFORE_NAME,
+    TKZ_STATE_EJSON_AFTER_NAME,
+    TKZ_STATE_EJSON_NAME_UNQUOTED,
+    TKZ_STATE_EJSON_NAME_SINGLE_QUOTED,
+    TKZ_STATE_EJSON_NAME_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_SINGLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_AFTER_VALUE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_TWO_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_VALUE_THREE_DOUBLE_QUOTED,
+    TKZ_STATE_EJSON_KEYWORD,
+    TKZ_STATE_EJSON_AFTER_KEYWORD,
+    TKZ_STATE_EJSON_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_AFTER_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_HEX_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_BINARY_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_BASE64_BYTE_SEQUENCE,
+    TKZ_STATE_EJSON_VALUE_NUMBER,
+    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_FRACTION,
+    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT,
+    TKZ_STATE_EJSON_VALUE_NUMBER_EXPONENT_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_SUFFIX_INTEGER,
+    TKZ_STATE_EJSON_VALUE_NUMBER_HEX,
+    TKZ_STATE_EJSON_VALUE_NUMBER_HEX_SUFFIX,
+    TKZ_STATE_EJSON_AFTER_VALUE_NUMBER_HEX,
+    TKZ_STATE_EJSON_VALUE_NUMBER_INFINITY,
+    TKZ_STATE_EJSON_VALUE_NAN,
+    TKZ_STATE_EJSON_STRING_ESCAPE,
+    TKZ_STATE_EJSON_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS,
+    TKZ_STATE_EJSON_JSONEE_VARIABLE,
+    TKZ_STATE_EJSON_JSONEE_FULL_STOP_SIGN,
+    TKZ_STATE_EJSON_JSONEE_KEYWORD,
+    TKZ_STATE_EJSON_JSONEE_STRING,
+    TKZ_STATE_EJSON_AFTER_JSONEE_STRING,
+    TKZ_STATE_EJSON_AMPERSAND,
+    TKZ_STATE_EJSON_OR_SIGN,
+    TKZ_STATE_EJSON_SEMICOLON,
+    TKZ_STATE_EJSON_CJSONEE_FINISHED,
+
+    LAST_STATE = TKZ_STATE_EJSON_CJSONEE_FINISHED,
+};
+
+#define print_uc_list(uc_list, tag)                                         \
+    do {                                                                    \
+        PC_DEBUG( "begin print %s list\n|", tag);                           \
+        struct list_head *p, *n;                                            \
+        list_for_each_safe(p, n, uc_list) {                                 \
+            struct tkz_uc *puc = list_entry(p, struct tkz_uc, list);        \
+            PC_DEBUG( "%c", puc->character);                                \
+        }                                                                   \
+        PC_DEBUG( "|\nend print %s list\n", tag);                           \
+    } while(0)
+
+#define PRINT_CONSUMED_LIST(wrap)    \
+        print_uc_list(&wrap->consumed_list, "consumed")
+
+#define PRINT_RECONSUM_LIST(wrap)    \
+        print_uc_list(&wrap->reconsume_list, "reconsume")
+
+struct pcejson {
+    int state;
+    int return_state;
+    uint32_t depth;
+    uint32_t max_depth;
+    uint32_t flags;
+
+    struct tkz_uc* curr_uc;
+    struct tkz_reader* tkz_reader;
+    struct tkz_buffer* temp_buffer;
+    struct tkz_buffer* string_buffer;
+    struct pcvcm_node* vcm_node;
+    struct pcvcm_stack* vcm_stack;
+    struct pcutils_stack* ejson_stack;
+    struct tkz_sbst* sbst;
+    uint32_t prev_separator;
+    uint32_t nr_quoted;
+    bool enable_log;
+};
+
+#define EJSON_MAX_DEPTH         32
+#define EJSON_MIN_BUFFER_SIZE   128
+#define EJSON_MAX_BUFFER_SIZE   1024 * 1024 * 1024
+#define EJSON_END_OF_FILE       0
+#define PURC_ENVV_EJSON_LOG_ENABLE  "PURC_EJSON_LOG_ENABLE"
+
+struct pcejson *pcejson_create(uint32_t depth, uint32_t flags)
+{
+    struct pcejson* parser = (struct pcejson*) pc_alloc(
+            sizeof(struct pcejson));
+    if (!parser) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return NULL;
+    }
+    parser->state = 0;
+    parser->max_depth = depth;
+    parser->depth = 0;
+    parser->flags = flags;
+
+    parser->curr_uc = NULL;
+    parser->tkz_reader = tkz_reader_new();
+    parser->temp_buffer = tkz_buffer_new();
+    parser->string_buffer = tkz_buffer_new();
+    parser->vcm_stack = pcvcm_stack_new();
+    parser->ejson_stack = pcutils_stack_new(0);
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
+
+    const char *env_value = getenv(PURC_ENVV_EJSON_LOG_ENABLE);
+    parser->enable_log = ((env_value != NULL) &&
+            (*env_value == '1' || pcutils_strcasecmp(env_value, "true") == 0));
+
+    return parser;
+}
+
+void pcejson_destroy(struct pcejson *parser)
+{
+    if (parser) {
+        tkz_reader_destroy(parser->tkz_reader);
+        tkz_buffer_destroy(parser->temp_buffer);
+        tkz_buffer_destroy(parser->string_buffer);
+        struct pcvcm_node* n = parser->vcm_node;
+        parser->vcm_node = NULL;
+        while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+            struct pcvcm_node* node = pcvcm_stack_pop(parser->vcm_stack);
+            pctree_node_append_child(
+                    (struct pctree_node*)node, (struct pctree_node*)n);
+            n = node;
+        }
+        pcvcm_node_destroy(n);
+        pcvcm_stack_destroy(parser->vcm_stack);
+        pcutils_stack_destroy(parser->ejson_stack);
+        tkz_sbst_destroy(parser->sbst);
+        pc_free(parser);
+    }
+}
+
+void pcejson_reset(struct pcejson *parser, uint32_t depth, uint32_t flags)
+{
+    parser->state = 0;
+    parser->max_depth = depth;
+    parser->depth = 0;
+    parser->flags = flags;
+
+    tkz_reader_destroy(parser->tkz_reader);
+    parser->tkz_reader = tkz_reader_new();
+
+    tkz_buffer_reset(parser->temp_buffer);
+    tkz_buffer_reset(parser->string_buffer);
+
+    struct pcvcm_node* n = parser->vcm_node;
+    parser->vcm_node = NULL;
+    while (!pcvcm_stack_is_empty(parser->vcm_stack)) {
+        struct pcvcm_node *node = pcvcm_stack_pop(parser->vcm_stack);
+        pctree_node_append_child(
+                (struct pctree_node *)node, (struct pctree_node *)n);
+        n = node;
+    }
+    pcvcm_node_destroy(n);
+    pcvcm_stack_destroy(parser->vcm_stack);
+    parser->vcm_stack = pcvcm_stack_new();
+    pcutils_stack_destroy(parser->ejson_stack);
+    parser->ejson_stack = pcutils_stack_new(0);
+    parser->prev_separator = 0;
+    parser->nr_quoted = 0;
+}
+
+static inline UNUSED_FUNCTION
 bool pcejson_inc_depth (struct pcejson* parser)
 {
     parser->depth++;
