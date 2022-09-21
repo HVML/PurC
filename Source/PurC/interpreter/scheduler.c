@@ -41,7 +41,7 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_SLEEP          10000           // usec
+#define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
