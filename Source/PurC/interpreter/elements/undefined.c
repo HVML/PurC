@@ -225,6 +225,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
+#if 0
     purc_variant_t with = frame->ctnt_var;
     if (with != PURC_VARIANT_INVALID) {
         // FIXME: unify
@@ -237,9 +238,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         vcm_content = (struct pcvcm_node*)u64;
         PC_ASSERT(vcm_content);
 
-        purc_variant_t v = pcvcm_eval(vcm_content, stack, frame->silently);
-        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-        stack->vcm_ctxt = NULL;
+        purc_variant_t v = pcintr_eval_vcm(stack, vcm_content, frame->silently);
         PC_ASSERT(v != PURC_VARIANT_INVALID);
         if (purc_variant_is_string(v)) {
             size_t sz;
@@ -260,6 +259,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     purc_clr_error();
+#endif
 
     return ctxt;
 }
@@ -299,29 +299,30 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(element);
 }
 
-static void
+static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
 
+    int err = 0;
     pcintr_stack_t stack = &co->stack;
-    if (stack->except)
-        return;
+    if (stack->except) {
+        goto out;
+    }
 
     // int r;
     struct pcvcm_node *vcm = content->vcm;
-    if (!vcm)
-        return;
+    if (!vcm) {
+        goto out;
+    }
 
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-    stack->vcm_ctxt = NULL;
-    if (v == PURC_VARIANT_INVALID)
-        return;
-
-    purc_clr_error();
+    purc_variant_t v = pcintr_eval_vcm(&co->stack, vcm, frame->silently);
+    if (v == PURC_VARIANT_INVALID) {
+        err = purc_get_last_error();
+        goto out;
+    }
 
     if (purc_variant_is_string(v)) {
         size_t sz;
@@ -341,6 +342,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         free(sv);
         purc_variant_unref(v);
     }
+
+out:
+    return err;
 }
 
 static void

@@ -332,6 +332,7 @@ struct pcintr_coroutine {
 
     void                       *user_data;
     unsigned long               run_idx;
+    struct timespec             stopped_timeout;
 };
 
 enum purc_symbol_var {

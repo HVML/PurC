@@ -137,10 +137,8 @@ void
 pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val);
 
 int
-pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr);
-
-purc_variant_t
-pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr);
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr,
+        purc_variant_t val);
 
 purc_variant_t
 pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
@@ -417,10 +415,6 @@ pcintr_coroutine_add_sub_exit_observer(pcintr_coroutine_t co);
 void
 pcintr_coroutine_add_last_msg_observer(pcintr_coroutine_t co);
 
-int
-pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame);
-
 /* ms */
 double
 pcintr_get_current_time(void);
@@ -472,8 +466,7 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
 
 
 purc_variant_t
-pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct pcvcm_node *node);
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently);
 
 PCA_EXTERN_C_END
 

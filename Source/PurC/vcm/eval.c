@@ -584,6 +584,10 @@ out:
         result = purc_variant_make_undefined();
     }
     frame->node->attach = (uintptr_t)result;
+
+    if (ctxt->enable_log) {
+        pcvcm_print_stack(ctxt);
+    }
     return result;
 }
 
@@ -699,6 +703,19 @@ out:
         }
         result = purc_variant_make_undefined();
     }
+    if (enable_log && ctxt) {
+        size_t len;
+        char *s = get_jsonee(ctxt->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            free(buf);
+        }
+        else {
+            PLOG("\nvcm=%s\nret=null\n", s);
+        }
+        free(s);
+    }
     return result;
 }
 
@@ -732,6 +749,19 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
             timeout, true);
 
 out:
+    if (enable_log) {
+        size_t len;
+        char *s = get_jsonee(ctxt->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            free(buf);
+        }
+        else {
+            PLOG("\nvcm=%s\nret=null\n", s);
+        }
+        free(s);
+    }
     return result;
 }
 

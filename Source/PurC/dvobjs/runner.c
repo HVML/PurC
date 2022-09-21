@@ -221,7 +221,7 @@ chan_setter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    PC_INFO("chan_setter(%s, %u)\n", chan_name, cap);
+    PC_DEBUG("chan_setter(%s, %u)\n", chan_name, cap);
 
     pcchan_t chan = pcchan_retrieve(chan_name);
     if (chan) {
