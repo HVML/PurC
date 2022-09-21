@@ -19,11 +19,9 @@
 
         <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
-        <!--
         <inherit>
             $RUNNER.user(! 'begin', $SYS.time_us )
         </inherit>
-        -->
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
 
@@ -46,11 +44,13 @@
 
         </iterate>
 
-        <!--
         <inherit>
             $RUNNER.user(! 'end', $SYS.time_us )
         </inherit>
-        -->
+
+        <inherit>
+            $STREAM.stdout.writelines("used: $MATH.sub($RUNNER.user.end, $RUNNER.user.begin)")
+        </inherit>
 
         <!-- close the channel named `natural` -->
         <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
@@ -60,12 +60,6 @@
                 $RUNNER.chan(! "$?", 0 )
             </inherit>
         </iterate>
-
-        <!--
-        <inherit>
-            $STREAM.stdout.writelines("used: $MATH.sub($RUNNER.user.end, $RUNNER.user.begin)")
-        </inherit>
-        -->
 
         <exit with $RUNNER.myObj.primes />
     </body>
