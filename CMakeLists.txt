@@ -27,7 +27,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Source/cmake")
 set(ALL_PORTS
     Linux
     Mac
-    MinGW
+    MSYS2
 )
 set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
 
