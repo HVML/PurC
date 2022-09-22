@@ -361,41 +361,28 @@ execute_one_step(struct pcinst *inst)
     bool busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
 
-    struct list_head *crtns = &heap->crtns;
     pcintr_coroutine_t p, q;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
-        if (co->state == CO_STATE_STOPPED
-                && co->stopped_timeout.tv_sec != -1) {
-            struct timespec now;
-            clock_gettime(CLOCK_REALTIME, &now);
-            double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
-            if (diff > 0) {
-                co->state = CO_STATE_READY;
-                co->stack.timeout = true;
-            }
-        }
-        if (co->state != CO_STATE_READY) {
-            continue;
-        }
+    struct list_head *crtns;
 
-        execute_one_step_for_ready_co(inst, co);
-        busy = true;
-    }
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
 
     crtns = &heap->stopped_crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
         pcintr_coroutine_t co = p;
         if (co->state == CO_STATE_STOPPED
                 && co->stopped_timeout.tv_sec != -1) {
-            struct timespec now;
-            clock_gettime(CLOCK_REALTIME, &now);
             double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
             if (diff > 0) {
-                co->state = CO_STATE_READY;
                 co->stack.timeout = true;
+                pcintr_resume_coroutine(co);
             }
         }
+    }
+
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (co->state != CO_STATE_READY) {
             continue;
         }
@@ -403,6 +390,7 @@ execute_one_step(struct pcinst *inst)
         execute_one_step_for_ready_co(inst, co);
         busy = true;
     }
+
     return busy;
 }
 
@@ -659,6 +647,11 @@ int pcintr_yield(
     }
 
     pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
+
+    list_del(&co->ln);
+    pcintr_heap_t heap = co->owner;
+    list_add_tail(&co->ln, &heap->stopped_crtns);
+
     co->stopped_timeout.tv_sec = -1;
     co->stopped_timeout.tv_nsec = -1;
     return 0;
@@ -676,6 +669,11 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     PC_ASSERT(frame);
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
+
+    list_del(&co->ln);
+    pcintr_heap_t heap = co->owner;
+    list_add_tail(&co->ln, &heap->crtns);
+
     co->stopped_timeout.tv_sec = -1;
     co->stopped_timeout.tv_nsec = -1;
     pcintr_check_after_execution_full(pcinst_current(), co);
@@ -786,6 +784,11 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
         const struct timespec *timeout)
 {
     pcintr_coroutine_set_state(crtn, CO_STATE_STOPPED);
+
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->stopped_crtns);
+
     if (timeout) {
         clock_gettime(CLOCK_REALTIME, &crtn->stopped_timeout);
         crtn->stopped_timeout.tv_sec += timeout->tv_sec;
@@ -801,6 +804,11 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
 {
     pcintr_coroutine_set_state(crtn, CO_STATE_READY);
+
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->crtns);
+
     crtn->stopped_timeout.tv_sec = -1;
     crtn->stopped_timeout.tv_nsec = -1;
 }
