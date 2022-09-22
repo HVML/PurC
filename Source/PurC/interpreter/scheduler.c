@@ -387,7 +387,15 @@ execute_one_step(struct pcinst *inst)
             continue;
         }
 
-        execute_one_step_for_ready_co(inst, co);
+        struct timespec begin;
+        clock_gettime(CLOCK_MONOTONIC, &begin);
+        while (co->state == CO_STATE_READY) {
+            execute_one_step_for_ready_co(inst, co);
+            double diff = purc_get_elapsed_seconds(&begin, NULL);
+            if (diff > 0.005) {
+                break;
+            }
+        }
         busy = true;
     }
 
@@ -581,7 +589,8 @@ dispatch_event(struct pcinst *inst)
 void
 pcintr_schedule(void *ctxt)
 {
-    static int i = 0;
+    bool step_is_busy;
+    bool event_is_busy;
     struct pcinst *inst = (struct pcinst *)ctxt;
     if (!inst) {
         goto out_sleep;
@@ -592,18 +601,19 @@ pcintr_schedule(void *ctxt)
         goto out_sleep;
     }
 
+again:
 
     // 1. exec one step for all ready coroutines and
     // return whether step is busy
-    bool step_is_busy = execute_one_step(inst);
+    step_is_busy = execute_one_step(inst);
 
     // 2. dispatch event for observing / stopped coroutines
-    bool event_is_busy = dispatch_event(inst);
+    event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
     if (step_is_busy || event_is_busy) {
         pcintr_update_timestamp(inst);
-        goto out;
+        goto again;
     }
 
     // 5. broadcast idle event
@@ -616,8 +626,6 @@ pcintr_schedule(void *ctxt)
 out_sleep:
     pcutils_usleep(SCHEDULE_SLEEP);
 
-out:
-    i++;
     return;
 }
 
