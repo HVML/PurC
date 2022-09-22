@@ -114,11 +114,8 @@ struct pcintr_heap {
     // currently running coroutine
     pcintr_coroutine_t  running_coroutine;
 
-    // those running under and managed by this heap
-    // key as atom, val as struct pcintr_coroutine
-    struct rb_root      coroutines;
-
-    struct list_head    routines;       // struct pcintr_routine
+    struct list_head    crtns;
+    struct list_head    stopped_crtns;
 
     pcutils_map        *name_chan_map;  // name to channel map.
 
@@ -286,6 +283,7 @@ struct pcintr_coroutine {
     purc_variant_t              doc_wrotten_len;
 
     struct rb_node              node;     /* heap::coroutines */
+    struct list_head            ln;       /* heap::crtns, stopped_crtns */
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 

@@ -52,12 +52,24 @@ static void
 broadcast_idle_event(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        if (stack->observe_idle) {
+            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                    BUILTIN_VAR_CRTN);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_IDLE, NULL,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
             purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
@@ -74,12 +86,28 @@ static void
 handle_rdr_conn_lost(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                BUILTIN_VAR_CRTN);
+
+        stack->co->target_workspace_handle = 0;
+        stack->co->target_page_handle = 0;
+        stack->co->target_dom_handle = 0;
+
+        // broadcast rdrState:connLost;
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
                 BUILTIN_VAR_CRTN);
@@ -330,14 +358,34 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 static bool
 execute_one_step(struct pcinst *inst)
 {
-    struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
     bool busy = false;
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct pcintr_heap *heap = inst->intr_heap;
+
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        if (co->state == CO_STATE_STOPPED
+                && co->stopped_timeout.tv_sec != -1) {
+            struct timespec now;
+            clock_gettime(CLOCK_REALTIME, &now);
+            double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
+            if (diff > 0) {
+                co->state = CO_STATE_READY;
+                co->stack.timeout = true;
+            }
+        }
+        if (co->state != CO_STATE_READY) {
+            continue;
+        }
+
+        execute_one_step_for_ready_co(inst, co);
+        busy = true;
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (co->state == CO_STATE_STOPPED
                 && co->stopped_timeout.tv_sec != -1) {
             struct timespec now;
@@ -510,12 +558,24 @@ dispatch_event(struct pcinst *inst)
 
     bool co_is_busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        co_is_busy = handle_coroutine_event(co);
+
+        if (co->stack.exited && co->stack.last_msg_read) {
+            pcintr_run_exiting_co(co);
+        }
+
+        if (co_is_busy) {
+            is_busy = true;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         co_is_busy = handle_coroutine_event(co);
 
         if (co->stack.exited && co->stack.last_msg_read) {
