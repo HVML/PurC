@@ -502,6 +502,8 @@ static void _cleanup_instance(struct pcinst* inst)
         coroutine_destroy(pco);
     }
 
+    pcutils_sorted_array_destroy(heap->wait_timeout_crtns);
+
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
         PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
@@ -559,6 +561,8 @@ static int _init_instance(struct pcinst* inst,
 
     list_head_init(&heap->crtns);
     list_head_init(&heap->stopped_crtns);
+    heap->wait_timeout_crtns = pcutils_sorted_array_create(
+            SAFLAG_ORDER_ASC | SAFLAG_DUPLCATE_SORTV, 0, NULL, NULL);
 
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
@@ -1819,8 +1823,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
                 (void *)(uintptr_t)co->cid);
     }
 
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
+    co->stopped_timeout = -1;
 
     return co;
 

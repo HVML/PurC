@@ -39,6 +39,7 @@
 #include "private/list.h"
 #include "private/vdom.h"
 #include "private/timer.h"
+#include "private/sorted-array.h"
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
@@ -116,6 +117,7 @@ struct pcintr_heap {
 
     struct list_head    crtns;
     struct list_head    stopped_crtns;
+    struct sorted_array *wait_timeout_crtns;
 
     pcutils_map        *name_chan_map;  // name to channel map.
 
@@ -330,7 +332,7 @@ struct pcintr_coroutine {
 
     void                       *user_data;
     unsigned long               run_idx;
-    struct timespec             stopped_timeout;
+    time_t                      stopped_timeout;
 };
 
 enum purc_symbol_var {

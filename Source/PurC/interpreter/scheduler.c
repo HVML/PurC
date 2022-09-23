@@ -48,6 +48,20 @@
 
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
+static inline time_t
+timespec_to_ms(const struct timespec *ts)
+{
+    return ts->tv_sec * 1000 + ts->tv_nsec * 1.0E-6;
+}
+
+static time_t
+pcintr_monotonic_time_ms()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return timespec_to_ms(&ts);
+}
+
 static void
 broadcast_idle_event(struct pcinst *inst)
 {
@@ -366,23 +380,33 @@ execute_one_step(struct pcinst *inst)
     struct pcintr_heap *heap = inst->intr_heap;
 
     pcintr_coroutine_t p, q;
+    pcintr_coroutine_t co;
     struct list_head *crtns;
 
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
+    time_t now = pcintr_monotonic_time_ms();
 
-    crtns = &heap->stopped_crtns;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
-        if (co->state == CO_STATE_STOPPED
-                && co->stopped_timeout.tv_sec != -1) {
-            double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
-            if (diff > 0) {
-                co->stack.timeout = true;
-                pcintr_resume_coroutine(co);
-            }
-        }
+    pcutils_array_t *cos = pcutils_array_create();
+    if (!cos) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
     }
+
+    size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+    for (size_t i = 0; i < nr; i++) {
+        pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+        if (now < co->stopped_timeout) {
+            break;
+        }
+        pcutils_array_push(cos, co);
+    }
+
+    nr = pcutils_array_length(cos);
+    for (size_t i = 0; i < nr; i++) {
+        co = pcutils_array_get(cos, i);
+        pcintr_resume_coroutine(co);
+    }
+    pcutils_array_destroy(cos, true);
+
 
     crtns = &heap->crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
@@ -662,14 +686,7 @@ int pcintr_yield(
         return -1;
     }
 
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
-
-    list_del(&co->ln);
-    pcintr_heap_t heap = co->owner;
-    list_add_tail(&co->ln, &heap->stopped_crtns);
-
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
+    pcintr_stop_coroutine(co, NULL);
     return 0;
 }
 
@@ -684,14 +701,9 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    pcintr_resume_coroutine(co);
+
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-
-    list_del(&co->ln);
-    pcintr_heap_t heap = co->owner;
-    list_add_tail(&co->ln, &heap->crtns);
-
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
@@ -806,14 +818,19 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
     list_add_tail(&crtn->ln, &heap->stopped_crtns);
 
     if (timeout) {
-        clock_gettime(CLOCK_REALTIME, &crtn->stopped_timeout);
-        crtn->stopped_timeout.tv_sec += timeout->tv_sec;
-        crtn->stopped_timeout.tv_nsec += timeout->tv_nsec;
+        time_t curr = pcintr_monotonic_time_ms();
+        crtn->stopped_timeout = curr + timespec_to_ms(timeout);
     }
     else {
-        crtn->stopped_timeout.tv_sec = -1;
-        crtn->stopped_timeout.tv_nsec = -1;
+        crtn->stopped_timeout = -1;
     }
+    if (crtn->stopped_timeout != -1) {
+        if (pcutils_sorted_array_add(heap->wait_timeout_crtns,
+                    (void *)(uintptr_t)crtn->stopped_timeout, crtn) < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        }
+    }
+
 }
 
 /* resume the specific coroutine */
@@ -825,7 +842,18 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
     pcintr_heap_t heap = crtn->owner;
     list_add_tail(&crtn->ln, &heap->crtns);
 
-    crtn->stopped_timeout.tv_sec = -1;
-    crtn->stopped_timeout.tv_nsec = -1;
+    if (crtn->stopped_timeout != -1) {
+        size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+        for (size_t i = 0; i < nr; i++) {
+            pcintr_coroutine_t co;
+            pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+            if (co == crtn) {
+                pcutils_sorted_array_delete(heap->wait_timeout_crtns, i);
+                break;
+            }
+        }
+    }
+
+    crtn->stopped_timeout = -1;
 }
 
