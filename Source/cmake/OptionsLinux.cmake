@@ -104,6 +104,12 @@ if (USE_LIBSECRET)
 endif ()
 
 set(PurC_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/PurC/purc.pc)
+set(CSSEng_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/CSSEng/csseng.pc)
+set(DOMRuler_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/DOMRuler/domruler.pc)
+
+set(PurC_LIBRARY_TYPE SHARED)
+set(CSSEng_LIBRARY_TYPE SHARED)
+set(DOMRuler_LIBRARY_TYPE SHARED)
 
 # CMake does not automatically add --whole-archive when building shared objects from
 # a list of convenience libraries. This can lead to missing symbols in the final output.
