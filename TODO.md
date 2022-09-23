@@ -45,8 +45,8 @@
 
 ### 1.3) Predefined Variables
 
-1. [0.8.2] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
-1. [0.8.2] Tune `$SYS.sleep` to utilize evaluating again.
+1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
+1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.x] Complete the implementation of the following predefined variables:
    - `$RDR`
@@ -62,10 +62,10 @@
 
 ### 1.5) Interpreter
 
-1. [0.8.2] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
-1. [0.8.2] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
-1. [0.8.2] Raise an exception for a failed evaluation of an eJSON expression.
-1. [0.8.2] Enhance `purc_coroutine_dump_stack` to show the specific failed position, e.g., a call to a getter or setter with arguments, when an uncaught exception raised.
+1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
+1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
+1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
+1. [0.8.2; Resolved] Enhance `purc_coroutine_dump_stack` to show the specific failed position, e.g., a call to a getter or setter with arguments, when an uncaught exception raised.
 1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.x] Improve the implementation of the element `update`:
@@ -112,7 +112,7 @@
 ### 1.9) Known Bugs
 
 1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
-1. [0.8.2] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
+1. [0.8.2; Resolved] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
