@@ -239,7 +239,7 @@ add_custom_command(
            "${PurC_DERIVED_SOURCES_DIR}/rwstream_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/hvml_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/pcrdr_err_msgs.inc"
-    MAIN_DEPENDENCY ${BUILD_TOOLS_DIR}/make-error-info.py
+    MAIN_DEPENDENCY ${CODE_TOOLS_DIR}/make-error-info.py
     DEPENDS "${PURC_DIR}/instance/generic.error.in"
             ${PURC_DIR}/executors/executor.error.in
             ${PURC_DIR}/variant/variant.error.in
@@ -247,7 +247,7 @@ add_custom_command(
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
             ${PURC_DIR}/pcrdr/pcrdr.error.in
-    COMMAND ${Python3_EXECUTABLE} ${BUILD_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
+    COMMAND ${Python3_EXECUTABLE} ${CODE_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
             ${PURC_DIR}/instance/generic.error.in
             ${PURC_DIR}/executors/executor.error.in
             ${PURC_DIR}/variant/variant.error.in
@@ -278,7 +278,6 @@ if (NOT INTERNAL_BUILD)
     add_dependencies(PurC_CopyPrivateHeaders PurC)
     add_dependencies(PurC WTF)
 endif ()
-
 
 PURC_COMPUTE_SOURCES(PurC)
 PURC_FRAMEWORK(PurC)

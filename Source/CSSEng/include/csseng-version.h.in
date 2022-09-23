@@ -1,0 +1,149 @@
+/*
+ * This file is part of CSSEng
+ * Licensed under the MIT License,
+ *                http://www.opensource.org/licenses/mit-license.php
+ * Copyright 2009 John-Mark Bell <jmb@netsurf-browser.org>
+ * Copyright (C) 2022 Beijing FMSoft Technologies Co., Ltd.
+ */
+
+#ifndef libcss_version_h_
+#define libcss_version_h_
+
+/**
+ * CSSENG_VERSION_MAJOR:
+ *
+ * Like libcss_get_major_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define CSSENG_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+
+/**
+ * CSSENG_VERSION_MINOR:
+ *
+ * Like libcss_get_minor_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define CSSENG_VERSION_MINOR @PROJECT_VERSION_MINOR@
+
+/**
+ * CSSENG_VERSION_MICRO:
+ *
+ * Like libcss_get_micro_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define CSSENG_VERSION_MICRO @PROJECT_VERSION_MICRO@
+
+#define CSSENG_VERSION_STRING "@PROJECT_VERSION@"
+
+#define CSSENG_API_VERSION_STRING "@CSSENG_API_VERSION@"
+
+/**
+ * CSSENG_CHECK_VERSION:
+ *
+ * @major: major version (e.g. 1 for version 1.2.5)
+ * @minor: minor version (e.g. 2 for version 1.2.5)
+ * @micro: micro version (e.g. 5 for version 1.2.5)
+ *
+ * Returns: %TRUE if the version of the PurC header files
+ * is the same as or newer than the passed-in version.
+ *
+ * Since 0.0.1
+ */
+#define CSSENG_CHECK_VERSION(major, minor, micro) \
+    (CSSENG_VERSION_MAJOR > (major) || \
+    (CSSENG_VERSION_MAJOR == (major) && CSSENG_VERSION_MINOR > (minor)) || \
+    (CSSENG_VERSION_MAJOR == (major) && CSSENG_VERSION_MINOR == (minor) && \
+     CSSENG_VERSION_MICRO >= (micro)))
+
+/**
+ * libcss_get_major_version:
+ *
+ * Returns: The major version of PurC.
+ *
+ * Since 0.0.1
+ */
+static inline int
+libcss_get_major_version(void)
+{
+    return CSSENG_VERSION_MAJOR;
+}
+
+/**
+ * libcss_get_minor_version:
+ *
+ * Returns: The minor version of PurC.
+ *
+ * Since 0.0.1
+ */
+static inline int
+libcss_get_minor_version(void)
+{
+    return CSSENG_VERSION_MINOR;
+}
+
+/**
+ * libcss_get_micro_version:
+ *
+ * Returns: The micro version of PurC.
+ *
+ * Since 0.0.1
+ */
+static inline int
+libcss_get_micro_version(void)
+{
+    return CSSENG_VERSION_MICRO;
+}
+
+/**
+ * libcss_get_versions:
+ *
+ * @major: the buffer for major version (nullable).
+ * @minor: the buffer for minor version (nullable).
+ * @micro: the buffer for micro version (nullable).
+ *
+ * Returns: none.
+ *
+ * Since 0.0.1
+ */
+static inline void
+libcss_get_versions (int *major, int *minor, int *micro) {
+    if (major) *major = CSSENG_VERSION_MAJOR;
+    if (minor) *minor = CSSENG_VERSION_MINOR;
+    if (micro) *micro = CSSENG_VERSION_MICRO;
+}
+
+/**
+ * libcss_version_string:
+ *
+ * Returns: the pointer to the PurC version string (e.g. "1.2.3" for version 1.2.3).
+ *
+ * Since 0.0.1
+ */
+static inline const char *
+libcss_get_version_string (void) {
+    return CSSENG_VERSION_STRING;
+}
+
+/**
+ * libcss_api_version_string:
+ *
+ * Returns: the pointer to the PurC API version string (e.g. "1.2" for version 1.2).
+ *
+ * Since 0.0.1
+ */
+static inline const char *
+libcss_get_api_version_string (void) {
+    return CSSENG_API_VERSION_STRING;
+}
+
+#endif /* not defined libcss_version_h_ */
+

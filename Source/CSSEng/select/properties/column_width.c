@@ -1,0 +1,49 @@
+/*
+ * This file is part of CSSEng
+ * Licensed under the MIT License,
+ *		  http://www.opensource.org/licenses/mit-license.php
+ * Copyright 2012 Michael Drake <tlsa@netsurf-browser.org>
+ */
+
+#include "bytecode/bytecode.h"
+#include "bytecode/opcodes.h"
+#include "select/propset.h"
+#include "select/propget.h"
+#include "utils/utils.h"
+
+#include "select/properties/properties.h"
+#include "select/properties/helpers.h"
+
+css_error css__cascade_column_width(uint32_t opv, css_style *style,
+		css_select_state *state)
+{
+	return css__cascade_length_normal(opv, style, state, set_column_width);
+}
+
+css_error css__set_column_width_from_hint(const css_hint *hint,
+		css_computed_style *style)
+{
+	return set_column_width(style, hint->status,
+			hint->data.length.value, hint->data.length.unit);
+}
+
+css_error css__initial_column_width(css_select_state *state)
+{
+	return set_column_width(state->computed, CSS_COLUMN_WIDTH_AUTO,
+			INTTOFIX(1), CSS_UNIT_EM);
+}
+
+css_error css__compose_column_width(const css_computed_style *parent,
+		const css_computed_style *child,
+		css_computed_style *result)
+{
+	css_fixed length = INTTOFIX(1);
+	css_unit unit = CSS_UNIT_EM;
+	uint8_t type = get_column_width(child, &length, &unit);
+
+	if (type == CSS_COLUMN_WIDTH_INHERIT) {
+		type = get_column_width(parent, &length, &unit);
+	}
+
+	return set_column_width(result, type, length, unit);
+}

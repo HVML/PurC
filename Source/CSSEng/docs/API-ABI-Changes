@@ -1,0 +1,77 @@
+CSSEng API & ABI Changes
+========================
+
+  This document explains how to upgrade clients to use new versions of CSSEng.
+
+
+CSSEng 0.2.0 --> CSSEng 0.3.0
+-----------------------------
+
+  Both the API and ABI are changed.
+
+  CSSEng no longer lets clients provide a memory allocator function.
+  This change affects the following functions:
+
+    From include/libcss/computed.h    --  css_computed_style_create()
+
+    From include/libcss/select.h      --  css_select_ctx_create()
+
+    From include/libcss/stylesheet.h  --  css_stylesheet_create()
+
+
+  There are changes to selection handler callback table:
+
+    node_classes
+      CSSEng no longer frees the any array of classes passed to the
+      node_classes callback.  It does still unref the individual strings.
+      This means clients need not allocate a new array each call, but can
+      keep the array cached on the node.
+
+    set_libcss_node_data
+      New selection handler function used to store a private cache belonging
+      to libcss on document element nodes.  When the node is deleted or
+      modified, clients should call css_libcss_node_data_handler().
+
+    get_libcss_node_data
+      New selection handler function used to retrieve private cache belonging
+      to libcss from document element nodes.
+
+
+CSSEng 0.3.0 --> CSSEng 0.4.0
+-----------------------------
+
+  The API is changed.
+
+  Due to the change from CSS2 overflow to CSS3 overflow properties, the
+  computed style access functions for overflow properties have changed.
+  The overflow property is removed.  Added are overflow-x and overflow-y
+  properties.  (The overflow shorthand property now sets overflow-x and
+  overflow-y.)
+
+  This change affects the following functions:
+
+    Removed from   include/libcss/computed.h    --  css_computed_overflow()
+
+    Added to       include/libcss/computed.h    --  css_computed_overflow_x()
+
+    Added to       include/libcss/computed.h    --  css_computed_overflow_y()
+
+
+CSSEng 0.5.0 --> CSSEng 0.6.0
+-----------------------------
+
+  The API is changed.
+
+  The way that presentational hints are handled has changed to be more
+  optimal.  Instead of calling the presentational hint callback once
+  per property per node to get each hint, we now call the callback once
+  per node to get all the hints that apply to it.
+
+  There are changes to selection handler callback table:
+
+    node_presentational_hint
+      Rather than asking for any hint for the given node and property,
+      it now asks for an array of hints that should apply to the node.
+
+  The css_hint structure has been changed to include the property which
+  the hint applies to.

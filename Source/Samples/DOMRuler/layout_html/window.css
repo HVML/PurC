@@ -1,0 +1,22 @@
+section {
+    position:fixed;
+    left:0;
+    top:0;
+    height:100%;
+    width:100%;
+}
+
+.header {
+    height: 20%;
+    min-height: 100px;
+}
+
+.mainBody {
+    display:flex;
+    flex-direction: column;
+    height: 80px;
+}
+
+.plainwindow {
+}
+

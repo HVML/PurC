@@ -1,0 +1,64 @@
+<html>
+    <head>
+    <style>
+        section {
+            position:fixed;
+            left:0;
+            top:0;
+            height:100%;
+            width:100%;
+        }
+
+        .header {
+            height: 20%;
+            min-height: 100px;
+        }
+
+        .mainBody {
+            display:flex;
+            flex-direction: column;
+            height: 80px;
+        }
+
+        .plainwindow {
+        }
+    </style>
+
+    </head>
+
+    <body>
+
+        <section>
+            <section id="mainHeader">
+                <article id="mainHeader" class="plainwindow"></article>
+            </section>
+
+            <section id="mainBody">
+                <article id="mainBodyWin1"></article>
+                <article id="mainBodyWin2"></article>
+                <article id="mainBodyWin3"></article>
+            </section>
+
+        </section>
+
+        <section>
+            <article id="viewerBody" class="tabbedwindow">
+                <header class="tabbar"></header>
+                <div id="viewerBodyPanels">
+                    <figure id="viewerBodyPanel" class="panel"></figure>
+                </div>
+                <div id="viewerBodyTabs">
+                    <figure id="viewerBodyTab1" class="tab"></figure>
+                    <figure id="viewerBodyTab2" class="tab"></figure>
+                    <figure id="viewerBodyTab3" class="tab"></figure>
+                </div>
+            </article>
+        </section>
+
+        <section id="modal">
+            <article></article>
+        </section>
+
+    </body>
+</html>
+
