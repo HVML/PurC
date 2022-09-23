@@ -6,6 +6,10 @@ include(MyMacros.cmake)
 configure_file(include/purc-version.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-version.h @ONLY)
 configure_file(include/purc-features.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-features.h @ONLY)
 
+# a work-around for test programs to find those two header files
+configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h @ONLY)
+configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h @ONLY)
+
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
     "${PURC_DIR}"

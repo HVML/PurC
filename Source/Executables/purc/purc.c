@@ -24,7 +24,7 @@
 
 // #undef NDEBUG
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include <stdio.h>
 #include <stdlib.h>

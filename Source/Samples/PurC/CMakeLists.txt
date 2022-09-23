@@ -5,8 +5,7 @@ include(target/PurC)
 PURC_EXECUTABLE_DECLARE(make_simple_array)
 
 list(APPEND make_simple_array_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
+    ${FORWARDING_HEADERS_DIR}
 )
 
 PURC_EXECUTABLE(make_simple_array)
@@ -27,8 +26,7 @@ PURC_FRAMEWORK(make_simple_array)
 PURC_EXECUTABLE_DECLARE(make_simple_object)
 
 list(APPEND make_simple_object_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
+    ${FORWARDING_HEADERS_DIR}
 )
 
 PURC_EXECUTABLE(make_simple_object)
@@ -49,8 +47,7 @@ PURC_FRAMEWORK(make_simple_object)
 PURC_EXECUTABLE_DECLARE(make_dynamic_object)
 
 list(APPEND make_dynamic_object_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
+    ${FORWARDING_HEADERS_DIR}
 )
 
 PURC_EXECUTABLE(make_dynamic_object)

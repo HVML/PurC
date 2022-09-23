@@ -5,9 +5,7 @@ include(target/PurC)
 PURC_EXECUTABLE_DECLARE(purc)
 
 list(APPEND purc_PRIVATE_INCLUDE_DIRECTORIES
-    "${CMAKE_BINARY_DIR}"
-    "${PURC_DIR}/include"
-    "${PurC_DERIVED_SOURCES_DIR}"
+    "${FORWARDING_HEADERS_DIR}"
 )
 
 PURC_EXECUTABLE(purc)
