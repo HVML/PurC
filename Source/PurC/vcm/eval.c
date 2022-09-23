@@ -676,7 +676,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     ctxt = pcvcm_eval_ctxt_create();
     if (!ctxt) {
-        goto out_clear_ctxt;
+        goto out;
     }
     ctxt->enable_log = enable_log;
     ctxt->node = tree;
@@ -684,15 +684,12 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
 
-out_clear_ctxt:
-    if (ctxt) {
-        err = purc_get_last_error();
-        if (err && ctxt_out) {
-            *ctxt_out = ctxt;
-        }
-        else {
-            pcvcm_eval_ctxt_destroy(ctxt);
-        }
+    err = purc_get_last_error();
+    if (err && ctxt_out) {
+        *ctxt_out = ctxt;
+    }
+    else {
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
 
 out:
