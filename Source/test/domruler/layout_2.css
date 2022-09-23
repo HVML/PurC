@@ -1,0 +1,71 @@
+#root { 
+    display: block; 
+    color: blue;
+}
+
+#title { 
+    display: inline-block; 
+    position: relative; 
+    left: 70%; 
+    width: 70%; 
+    height: 20%; 
+    color: #123; 
+} 
+
+#description { 
+    display: inline-block; 
+    position: relative; 
+    width: 40%; 
+    height: 10%; 
+    color: #124; 
+}
+
+#page { 
+    display: inline-block; 
+    position: relative; 
+    width: 50%; 
+    height: 60%; 
+    color: #125; 
+}
+
+#indicator { 
+    display: inline-block; 
+    position: relative; 
+    width: 10%; 
+    height: 10%; 
+    color: #126; 
+}
+
+hiweb { 
+    position: relative; 
+    width: 50%; 
+    height: 25%; 
+    color: #127; 
+    font-family: "Times New Roman", Times, serif; 
+    font-size:10px;
+}
+
+hiweb2 { 
+    position: relative; 
+    width: 50%; 
+    height: 25%; 
+    color: #127; 
+    font-family: "Times New Roman", Times, serif; 
+    font-size:10px;
+}
+
+hijs { 
+    position: relative; 
+    width: 50%; 
+    height: 50%; 
+    color: #128; 
+    background:red;
+}
+
+hijs2 { 
+    position: relative; 
+    width: 50%; 
+    height: 50%; 
+    color: #128; 
+    background:red;
+}

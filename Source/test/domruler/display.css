@@ -1,0 +1,85 @@
+#root { 
+    display: block; 
+    color: blue;
+}
+
+#title { 
+    display: block; 
+    position: relative; 
+    left: 70%; 
+    width: 70%; 
+    height: 20%; 
+    color: #123; 
+} 
+
+#description { 
+    display: block; 
+    position: relative; 
+    width: 40%; 
+    height: 10%; 
+    color: #124; 
+}
+
+#page { 
+    display: block; 
+    position: relative; 
+    width: 50%; 
+    height: 60%; 
+    color: #125; 
+}
+
+#indicator { 
+    display: block; 
+    position: relative; 
+    width: 10%; 
+    height: 10%; 
+    color: #126; 
+}
+
+hiweb { 
+    display: inline-block;
+    position: fixed; 
+    left: 50px;
+    top: 10px;
+    width: 100px; 
+    height: 25%; 
+    color: #127; 
+    font-family: "Times New Roman", Times, serif; 
+    font-size:10px;
+}
+
+#hiweb2 { 
+    display: inline-block;
+    position: relative; 
+    width: 30%; 
+    height: 50%; 
+    color: #127; 
+    font-family: "Times New Roman", Times, serif; 
+    font-size:10px;
+}
+
+hijs { 
+    display: grid;
+    position: fixed; 
+    left: 100px;
+    top: 20px;
+    width: 50%;
+    height: 25%; 
+    color: #128; 
+    background:red;
+}
+
+#hijs2 { 
+    display: inline-grid;
+    position: relative; 
+    width: 30px; 
+    height: 50%; 
+    color: #128; 
+    background:red;
+    grid-template-columns: 10px;
+    grid-template-row: 10px;
+    grid-column-start: 2;
+    grid-column-end: 1;
+    grid-row-start: 3;
+    grid-row-end: 8;
+}

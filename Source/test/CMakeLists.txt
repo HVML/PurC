@@ -1,3 +1,5 @@
+add_subdirectory(csseng)
+add_subdirectory(domruler)
 add_subdirectory(utils)
 add_subdirectory(rwstream)
 add_subdirectory(variant)

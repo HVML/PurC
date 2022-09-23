@@ -1,0 +1,182 @@
+#data
+* { width: 10invalid; }
+#errors
+#expected
+| *
+#reset
+
+#data
+* { width: inherit; }
+#errors
+#expected
+| *
+|  width: inherit
+#reset
+
+#data
+* { width: 10ex; }
+#errors
+#expected
+| *
+|  width: 10ex
+#reset
+
+#data
+* { width: 10em; }
+#errors
+#expected
+| *
+|  width: 10em
+#reset
+
+#data
+* { width: 10in; }
+#errors
+#expected
+| *
+|  width: 10in
+#reset
+
+#data
+* { width: 10cm; }
+#errors
+#expected
+| *
+|  width: 10cm
+#reset
+
+#data
+* { width: 10mm; }
+#errors
+#expected
+| *
+|  width: 10mm
+#reset
+
+#data
+* { width: 10pt; }
+#errors
+#expected
+| *
+|  width: 10pt
+#reset
+
+#data
+* { width: 10pc; }
+#errors
+#expected
+| *
+|  width: 10pc
+#reset
+
+#data
+* { width: 10cap; }
+#errors
+#expected
+| *
+|  width: 10cap
+#reset
+
+#data
+* { width: 10ch; }
+#errors
+#expected
+| *
+|  width: 10ch
+#reset
+
+#data
+* { width: 10ic; }
+#errors
+#expected
+| *
+|  width: 10ic
+#reset
+
+#data
+* { width: 10rem; }
+#errors
+#expected
+| *
+|  width: 10rem
+#reset
+
+#data
+* { width: 10lh; }
+#errors
+#expected
+| *
+|  width: 10lh
+#reset
+
+#data
+* { width: 10rlh; }
+#errors
+#expected
+| *
+|  width: 10rlh
+#reset
+
+#data
+* { width: 10vh; }
+#errors
+#expected
+| *
+|  width: 10vh
+#reset
+
+#data
+* { width: 10vw; }
+#errors
+#expected
+| *
+|  width: 10vw
+#reset
+
+#data
+* { width: 10vi; }
+#errors
+#expected
+| *
+|  width: 10vi
+#reset
+
+#data
+* { width: 10vb; }
+#errors
+#expected
+| *
+|  width: 10vb
+#reset
+
+#data
+* { width: 10vmin; }
+#errors
+#expected
+| *
+|  width: 10vmin
+#reset
+
+#data
+* { width: 10vmax; }
+#errors
+#expected
+| *
+|  width: 10vmax
+#reset
+
+#data
+* { width: 10q; }
+#errors
+#expected
+| *
+|  width: 10q
+#reset
+
+#data
+* { width: 10%; }
+#errors
+#expected
+| *
+|  width: 10%
+#reset

@@ -1,0 +1,16 @@
+# Index of testcases
+#
+# Test	       	Description						DataDir
+
+csdetect	Character set detection					csdetect
+#lex		Lexing							css
+lexauto		LAutomated lexer tests					lex
+number		Conversion of numbers to fixed point			number
+#parse		Parsing (core syntax)					css
+#css21		Parsing (CSS2.1 specifics)				css
+parseauto	Automated parser tests (bytecode)			parse
+parse2auto	Automated parser tests (om & invalid)			parse2
+select		Automated selection engine tests			select
+
+# Regression tests
+
