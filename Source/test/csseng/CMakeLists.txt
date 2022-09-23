@@ -17,7 +17,7 @@ list(APPEND csdetect_SOURCES
 )
 
 set(csdetect_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(csdetect)
@@ -40,7 +40,7 @@ list(APPEND lexauto_SOURCES
 )
 
 set(lexauto_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(lexauto)
@@ -63,7 +63,7 @@ list(APPEND number_SOURCES
 )
 
 set(number_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(number)
@@ -86,7 +86,7 @@ list(APPEND parseauto_SOURCES
 )
 
 set(parseauto_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(parseauto)
@@ -109,7 +109,7 @@ list(APPEND parse2auto_SOURCES
 )
 
 set(parse2auto_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(parse2auto)
@@ -132,7 +132,7 @@ list(APPEND select_SOURCES
 )
 
 set(select_LIBRARIES
-    CSSEng::CSSEng
+    PurC::CSSEng
 )
 
 PURC_EXECUTABLE(select)

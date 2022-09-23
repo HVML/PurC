@@ -12,6 +12,9 @@
 
 #include "tests.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+
 #ifndef UNUSED
 #define UNUSED(x) (void)(x)
 #endif
@@ -480,3 +483,5 @@ lwc_basic_suite(SRunner *sr)
         
         srunner_add_suite(sr, s);
 }
+
+#pragma GCC diagnostic pop
