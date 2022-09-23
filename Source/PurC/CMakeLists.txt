@@ -3,22 +3,19 @@ set_property(DIRECTORY . PROPERTY FOLDER "PurC")
 include(PurCCommon)
 include(MyMacros.cmake)
 
-configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h @ONLY)
-configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h @ONLY)
+configure_file(include/purc-version.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-version.h @ONLY)
+configure_file(include/purc-features.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-features.h @ONLY)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
     "${PURC_DIR}"
     "${PURC_DIR}/include"
     "${PurC_DERIVED_SOURCES_DIR}"
-    "${FORWARDING_HEADERS_DIR}"
-    "${CMAKE_BINARY_DIR}/Source/PurC"
+    "${FORWARDING_HEADERS_DIR}/purc"
 )
 
 # TODO: List the headers should be installed to system here.
-set(PurC_INSTALLED_HEADERS
-    "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
-    "${PurC_DERIVED_SOURCES_DIR}/purc-features.h"
+set(PurC_FRAMEWORK_HEADERS
     "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc-variant.h"
@@ -34,6 +31,12 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-executor.h"
     "${PURC_DIR}/include/purc-document.h"
     "${PURC_DIR}/include/purc.h"
+)
+
+set(PurC_INSTALLED_HEADERS ${PurC_FRAMEWORK_HEADERS})
+list(APPEND PurC_INSTALLED_HEADERS
+    "${FORWARDING_HEADERS_DIR}/purc/purc-version.h"
+    "${FORWARDING_HEADERS_DIR}/purc/purc-features.h"
 )
 
 # TODO: List the directorires which do not contain any platform-dependent C source files
@@ -95,7 +98,7 @@ if (ENABLE_XML)
 endif ()
 
 set(PurC_INTERFACE_LIBRARIES PurC)
-set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
+set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_FRAMEWORK_HEADERS_DIR})
 
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
@@ -261,21 +264,20 @@ add_custom_command(
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c)
 
-
 PURC_WRAP_SOURCELIST(${PurC_SOURCES})
 
-PURC_COPY_FILES(PurC_CopyPrivateHeaders
-    DESTINATION ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR}/PurC
-    FILES ${PurC_PRIVATE_FRAMEWORK_HEADERS}
+PURC_COPY_FILES(PurC_CopyHeaders
+    DESTINATION ${PurC_FRAMEWORK_HEADERS_DIR}/purc
+    FILES ${PurC_FRAMEWORK_HEADERS}
     FLATTENED
 )
-list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyPrivateHeaders)
-# PurC_CopyPrivateHeaders needs to have a direct or indirect
+list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyHeaders)
+# PurC_CopyHeaders needs to have a direct or indirect
 # dependency of PurC target for CMake Visual Studio generator to
 # eliminate duplicated custom commands. Otherwise, CSSPropertyNames.h
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
-    add_dependencies(PurC_CopyPrivateHeaders PurC)
+    add_dependencies(PurC_CopyHeaders PurC)
     add_dependencies(PurC WTF)
 endif ()
 

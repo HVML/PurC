@@ -8,6 +8,7 @@ configure_file(include/domruler-version.h.in ${FORWARDING_HEADERS_DIR}/domruler/
 set(DOMRuler_PRIVATE_INCLUDE_DIRECTORIES
 #    "${CMAKE_BINARY_DIR}"  for cmakeconfig.h
 #    "${DOMRULER_DIR}"      for config.h
+    "${FORWARDING_HEADERS_DIR}"
     "${DOMRULER_DIR}/include"
     "${FORWARDING_HEADERS_DIR}/domruler"
 )
@@ -69,7 +70,8 @@ list(APPEND DOMRuler_INTERFACE_DEPENDENCIES DOMRuler_CopyHeaders)
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
     add_dependencies(DOMRuler_CopyHeaders DOMRuler)
-    add_dependencies(DOMRuler WTF)
+    add_dependencies(DOMRuler PurC)
+    add_dependencies(DOMRuler CSSEng)
 endif ()
 
 PURC_COMPUTE_SOURCES(DOMRuler)
