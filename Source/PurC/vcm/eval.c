@@ -158,6 +158,8 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     if (ctxt->result) {
         purc_variant_unref(ctxt->result);
     }
+
+    free(ctxt);
 }
 
 #define DUMP_BUF_SIZE           128

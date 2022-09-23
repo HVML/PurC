@@ -26,7 +26,7 @@
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
 
         <!-- iterate 10 times -->
-        <iterate on 0L onlyif $L.lt($0<, 1000L) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 1) nosetotail >
 
             <choose on $chIn.recv() >
 

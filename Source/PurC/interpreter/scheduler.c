@@ -220,6 +220,10 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     request_id,
                     MSG_TYPE_CORSTATE, MSG_SUB_TYPE_OBSERVING,
                     PURC_VARIANT_INVALID, request_id);
+            int err = purc_get_last_error();
+            if (err == PURC_ERROR_INVALID_VALUE) {
+                purc_clr_error();
+            }
             purc_variant_unref(request_id);
         }
     }
@@ -387,6 +391,7 @@ execute_one_step(struct pcinst *inst)
             continue;
         }
 
+#if 0
         struct timespec begin;
         clock_gettime(CLOCK_MONOTONIC, &begin);
         while (co->state == CO_STATE_READY) {
@@ -396,6 +401,9 @@ execute_one_step(struct pcinst *inst)
                 break;
             }
         }
+#else
+            execute_one_step_for_ready_co(inst, co);
+#endif
         busy = true;
     }
 
