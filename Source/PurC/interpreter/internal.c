@@ -66,8 +66,10 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
     }
 
     bool silently = false;
-    purc_variant_t v = pcvcm_eval(attr->val, stack, silently);
+    purc_variant_t v = pcintr_eval_vcm(stack, attr->val, silently);
     purc_clr_error();
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
     if (v == PURC_VARIANT_INVALID) {
         return false;
     }
@@ -420,7 +422,11 @@ pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,
         goto out;
     }
 
-    as_var = pcintr_eval_vdom_attr(stack, as_attr);
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+    as_var = pcintr_eval_vcm(stack, as_attr->val, frame->silently);
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
     if (!as_var) {
         PC_WARN("eval vdom attr %s failed\n", ATTR_NAME_AS);
         goto out;
@@ -488,3 +494,39 @@ pcintr_coroutine_dump(pcintr_coroutine_t co)
     purc_rwstream_destroy(rws);
     return 0;
 }
+
+purc_variant_t
+pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently)
+{
+    int err = 0;
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    if (!node) {
+        val = purc_variant_make_undefined();
+    }
+    else if (stack->vcm_ctxt) {
+        val = pcvcm_eval_again(node, stack, silently,
+                stack->timeout);
+        stack->timeout = false;
+    }
+    else {
+        val = pcvcm_eval(node, stack, silently);
+    }
+
+    err = purc_get_last_error();
+    if (!val) {
+        goto out;
+    }
+
+    if (err == PURC_ERROR_AGAIN && val) {
+        purc_variant_unref(val);
+        val = PURC_VARIANT_INVALID;
+        goto out;
+    }
+
+    purc_clr_error();
+    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+    stack->vcm_ctxt = NULL;
+out:
+    return val;
+}
+

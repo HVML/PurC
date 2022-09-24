@@ -480,6 +480,7 @@ stack_init(pcintr_stack_t stack)
     stack->scoped_variables = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
+    stack->timeout = false;
 }
 
 static void _cleanup_instance(struct pcinst* inst)
@@ -488,16 +489,17 @@ static void _cleanup_instance(struct pcinst* inst)
     if (!heap)
         return;
 
-    struct rb_root *coroutines = &heap->coroutines;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t pco, qco;
+    list_for_each_entry_safe(pco, qco, crtns, ln) {
+        list_del(&pco->ln);
+        coroutine_destroy(pco);
+    }
 
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
-
-        pcutils_rbtree_erase(p, coroutines);
-        coroutine_destroy(co);
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(pco, qco, crtns, ln) {
+        list_del(&pco->ln);
+        coroutine_destroy(pco);
     }
 
     if (heap->move_buff) {
@@ -553,8 +555,10 @@ static int _init_instance(struct pcinst* inst,
     inst->intr_heap = heap;
     heap->owner     = inst;
 
-    heap->coroutines = RB_ROOT;
     heap->running_coroutine = NULL;
+
+    list_head_init(&heap->crtns);
+    list_head_init(&heap->stopped_crtns);
 
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
@@ -785,51 +789,6 @@ init_undefined_symvals(struct pcintr_stack_frame *frame)
     return 0;
 }
 
-int
-pcintr_calc_and_set_caret_symbol(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame)
-{
-    int ret = 0;
-    int last_err = purc_get_last_error();
-    pcvdom_element_t elem = frame->pos;
-    if (!elem) {
-        goto out;
-    }
-
-    bool operation = pcvdom_element_is_hvml_operation(elem);
-    if (!operation) {
-        goto out;
-    }
-
-    struct pcvdom_node *node = &elem->node;
-    node = pcvdom_node_first_child(node);
-    if (!node || node->type != PCVDOM_NODE_CONTENT) {
-        purc_clr_error();
-        goto out;
-    }
-
-    struct pcvdom_content *content = PCVDOM_CONTENT_FROM_NODE(node);
-    struct pcvcm_node *vcm = content->vcm;
-    if (!vcm) {
-        goto out;
-    }
-
-    purc_variant_t v = pcvcm_eval(vcm, stack, frame->silently);
-    if (v == PURC_VARIANT_INVALID) {
-        purc_clr_error();
-        goto out;
-    }
-
-    ret = pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, v);
-    purc_variant_unref(v);
-
-out:
-    if (last_err) {
-        purc_set_error(last_err);
-    }
-    return ret;
-}
-
 static int
 init_symvals_with_vals(struct pcintr_stack_frame *frame)
 {
@@ -1052,21 +1011,9 @@ pcintr_set_input_var(pcintr_stack_t stack, purc_variant_t val)
     set_lessthan_symval(frame, val);
 }
 
-purc_variant_t
-eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
-{
-    PC_ASSERT(attr);
-    PC_ASSERT(attr->key);
-    if (!attr->val)
-        return purc_variant_make_undefined();
-
-    struct pcintr_stack_frame *frame;
-    frame = pcintr_stack_get_bottom_frame(stack);
-    return pcvcm_eval(attr->val, stack, frame->silently ? true : false);
-}
-
 int
-pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
+pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr,
+        purc_variant_t val)
 {
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
@@ -1078,7 +1025,6 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
     size_t len = 0;
     const char *sv = "";
 
-    purc_variant_t val = eval_vdom_attr(stack, attr);
     if (val == PURC_VARIANT_INVALID)
         return -1;
 
@@ -1091,15 +1037,8 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr)
     int r = pcdoc_element_set_attribute(stack->doc, frame->edom_element,
             PCDOC_OP_DISPLACE, attr->key, sv, len);
     PC_ASSERT(r == 0);
-    PURC_VARIANT_SAFE_CLEAR(val);
 
     return r ? -1 : 0;
-}
-
-purc_variant_t
-pcintr_eval_vdom_attr(pcintr_stack_t stack, struct pcvdom_attr *attr)
-{
-    return eval_vdom_attr(stack, attr);
 }
 
 struct pcintr_walk_attrs_ud {
@@ -1283,8 +1222,12 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (frame->ops.after_pushed) {
         void *ctxt = frame->ops.after_pushed(&co->stack, frame->pos);
         if (!ctxt) {
-            if (purc_get_last_error() == 0) {
+            int err = purc_get_last_error();
+            if (err == 0) {
                 frame->next_step = NEXT_STEP_ON_POPPING;
+                return;
+            }
+            else if (err == PURC_ERROR_AGAIN) {
                 return;
             }
         }
@@ -1346,6 +1289,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         pcintr_stack_t stack = &co->stack;
         pop_stack_frame(stack);
     } else {
+        int err = purc_get_last_error();
+        if (err == PURC_ERROR_AGAIN) {
+            return;
+        }
         frame->next_step = NEXT_STEP_RERUN;
     }
 }
@@ -1360,6 +1307,11 @@ on_rerun(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ok = frame->ops.rerun(&co->stack, frame->ctxt);
     }
 
+    int err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        return;
+    }
+
     PC_ASSERT(ok);
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
@@ -1371,6 +1323,11 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *element = NULL;
     if (!co->stack.exited && frame->ops.select_child) {
         element = frame->ops.select_child(&co->stack, frame->ctxt);
+    }
+
+    int err = purc_get_last_error();
+    if (err == PURC_ERROR_AGAIN) {
+        return;
     }
 
     if (element == NULL) {
@@ -1606,11 +1563,11 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     }
 
-    pcutils_rbtree_erase(&co->node, &heap->coroutines);
+    list_del(&co->ln);
     coroutine_destroy(co);
 
-    if (heap->keep_alive == 0 &&
-            pcutils_rbtree_first(&heap->coroutines) == NULL)
+    if (heap->keep_alive == 0 && list_empty(&heap->crtns)
+            && list_empty(&heap->stopped_crtns))
     {
         purc_runloop_stop(inst->running_loop);
     }
@@ -1784,22 +1741,12 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
     return 0;
 }
 
-static int
-cmp_by_atom(struct rb_node *node, void *ud)
-{
-    purc_atom_t *atom = (purc_atom_t*)ud;
-    pcintr_coroutine_t co;
-    co = container_of(node, struct pcintr_coroutine, node);
-    return (*atom) - co->cid;
-}
-
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         pcrdr_page_type page_type, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
 
     pcintr_coroutine_t co = NULL;
     pcintr_stack_t stack = NULL;
@@ -1838,10 +1785,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     co->user_data = user_data;
     co->loaded_vars = RB_ROOT;
 
-    int r;
-    r = pcutils_rbtree_insert_only(coroutines, &co->cid,
-            cmp_by_atom, &co->node);
-    PC_ASSERT(r == 0);
+    list_add_tail(&co->ln, &heap->crtns);
 
     stack_init(stack);
     pcintr_coroutine_add_sub_exit_observer(co);
@@ -1874,6 +1818,9 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         heap->cond_handler(PURC_COND_COR_CREATED, co,
                 (void *)(uintptr_t)co->cid);
     }
+
+    co->stopped_timeout.tv_sec = -1;
+    co->stopped_timeout.tv_nsec = -1;
 
     return co;
 
@@ -1908,11 +1855,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     pcintr_coroutine_t parent = NULL;
     if (curator) {
-        struct rb_node* node = pcutils_rbtree_find(&intr->coroutines,
-                &curator, cmp_by_atom);
-        if (node) {
-            parent = container_of(node, struct pcintr_coroutine, node);
-        }
+        parent = pcintr_coroutine_get_by_id(curator);
     }
 
     co = coroutine_create(vdom, parent, page_type, user_data);
@@ -3396,6 +3339,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 else if (stack->vcm_ctxt) {
                     val = pcvcm_eval_again(attr->val, stack, frame->silently,
                             stack->timeout);
+                    stack->timeout = false;
                 }
                 else {
                     val = pcvcm_eval(attr->val, stack, frame->silently);
@@ -3444,6 +3388,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 if (stack->vcm_ctxt) {
                     val = pcvcm_eval_again(vcm, stack, frame->silently,
                             stack->timeout);
+                    stack->timeout = false;
                 }
                 else {
                     val = pcvcm_eval(vcm, stack, frame->silently);

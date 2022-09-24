@@ -99,3 +99,6 @@ silently
 
 noreturn
     type: prep
+
+must-yield
+    type: prep

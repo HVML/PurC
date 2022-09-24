@@ -95,14 +95,10 @@ struct ctxt_for_iterate {
     unsigned int                  nosetotail:1;
     unsigned int                  is_rerun:1;
     enum step_for_iterate         step;
-    enum step_for_func            func_step;
+    enum step_for_func            before_first_iterate_step;
+    enum step_for_func            do_iterate_step;
+    enum step_for_func            after_iterate_without_executor_step;
 };
-
-static void
-reset_func_step(struct ctxt_for_iterate *ctxt)
-{
-    ctxt->func_step = FUNC_STEP_1ST;
-}
 
 static void
 ctxt_for_iterate_destroy(struct ctxt_for_iterate *ctxt)
@@ -129,42 +125,6 @@ ctxt_destroy(void *ctxt)
 {
     ctxt_for_iterate_destroy((struct ctxt_for_iterate*)ctxt);
 }
-
-static purc_variant_t
-pcintr_eval_vcm(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
-        struct pcvcm_node *node)
-{
-    int err = 0;
-    purc_variant_t val = PURC_VARIANT_INVALID;
-    if (!node) {
-        val = purc_variant_make_undefined();
-    }
-    else if (stack->vcm_ctxt) {
-        val = pcvcm_eval_again(node, stack, frame->silently,
-                stack->timeout);
-    }
-    else {
-        val = pcvcm_eval(node, stack, frame->silently);
-    }
-
-    err = purc_get_last_error();
-    if (!val) {
-        goto out;
-    }
-
-    if (err == PURC_ERROR_AGAIN && val) {
-        purc_variant_unref(val);
-        val = PURC_VARIANT_INVALID;
-        goto out;
-    }
-
-    purc_clr_error();
-    pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-    stack->vcm_ctxt = NULL;
-out:
-    return val;
-}
-
 
 static bool
 check_stop(purc_variant_t val)
@@ -198,7 +158,8 @@ first_iterate_without_executor(pcintr_coroutine_t co,
     if (!ctxt->on_attr) {
         purc_variant_t val;
         if (ctxt->with_attr) {
-            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+            val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
+                    frame->silently);
         }
         else {
             val = purc_variant_make_undefined();
@@ -240,7 +201,8 @@ rerun_iterate_without_executor(pcintr_coroutine_t co,
     if (!ctxt->on_attr) {
         purc_variant_t val;
         if (ctxt->with_attr) {
-            val = pcintr_eval_vcm(&co->stack, frame, ctxt->with_attr->val);
+            val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
+                    frame->silently);
         }
         else {
             val = purc_variant_make_undefined();
@@ -460,8 +422,6 @@ rerun_internal_rule(struct ctxt_for_iterate *ctxt,
         pcintr_set_input_var(stack, value);
     }
 
-    /* in each iteration, evaluate content and set as $0^ */
-    pcintr_calc_and_set_caret_symbol(stack, frame);
     return r ? false : true;
 }
 
@@ -636,7 +596,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
 }
 
 static int
-step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
 {
     UNUSED_PARAM(stack);
@@ -649,15 +609,16 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
         ctxt->by_rule = 1;
     }
 
-    while(ctxt->func_step != FUNC_STEP_DONE) {
-        switch (ctxt->func_step) {
+    while(ctxt->before_first_iterate_step != FUNC_STEP_DONE) {
+        switch (ctxt->before_first_iterate_step) {
             case FUNC_STEP_1ST:
                 if (!ctxt->on_attr) {
-                    ctxt->func_step = FUNC_STEP_2ND;
+                    ctxt->before_first_iterate_step = FUNC_STEP_2ND;
                     break;
                 }
 
-                val = pcintr_eval_vcm(stack, frame, ctxt->on_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->on_attr->val,
+                        frame->silently);
                 if (!val) {
                     goto out;
                 }
@@ -672,15 +633,16 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
 
                 pcintr_set_input_var(stack, val);
                 ctxt->on = val;
-                ctxt->func_step = FUNC_STEP_2ND;
+                ctxt->before_first_iterate_step = FUNC_STEP_2ND;
                 break;
 
             case FUNC_STEP_2ND:
                 if (!ctxt->in_attr) {
-                    ctxt->func_step = FUNC_STEP_3RD;
+                    ctxt->before_first_iterate_step = FUNC_STEP_3RD;
                     break;
                 }
-                val = pcintr_eval_vcm(stack, frame, ctxt->in_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->in_attr->val,
+                        frame->silently);
                 if (!val) {
                     goto out;
                 }
@@ -716,14 +678,15 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
                     goto out;
                 }
                 ctxt->in = val;
-                ctxt->func_step = FUNC_STEP_3RD;
+                ctxt->before_first_iterate_step = FUNC_STEP_3RD;
                 break;
 
             case FUNC_STEP_3RD:
                 if (ctxt->by_rule) {
                     purc_variant_t with;
                     if (ctxt->with_attr) {
-                        with = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+                        with = pcintr_eval_vcm(stack, ctxt->with_attr->val,
+                                frame->silently);
                     }
                     else {
                         with = purc_variant_make_undefined();
@@ -736,13 +699,14 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
                     PURC_VARIANT_SAFE_CLEAR(ctxt->with);
                     ctxt->with = with;
                 }
-                ctxt->func_step = FUNC_STEP_4TH;
+                ctxt->before_first_iterate_step = FUNC_STEP_4TH;
                 break;
 
             case FUNC_STEP_4TH:
                 if (ctxt->by_rule) {
                     if (ctxt->rule_attr) {
-                        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+                        val = pcintr_eval_vcm(stack, ctxt->rule_attr->val,
+                                frame->silently);
                     }
                     else {
                         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -757,7 +721,7 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
                     PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
                     ctxt->evalued_rule = val;
                 }
-                ctxt->func_step = FUNC_STEP_DONE;
+                ctxt->before_first_iterate_step = FUNC_STEP_DONE;
                 break;
 
             case FUNC_STEP_DONE:
@@ -766,14 +730,14 @@ step_before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame
         }
     }
 
-    reset_func_step(ctxt);
+    ctxt->before_first_iterate_step = FUNC_STEP_1ST;
 
 out:
     return err;
 }
 
 static int
-step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
 {
     UNUSED_PARAM(stack);
@@ -788,7 +752,8 @@ step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_variant_t val = pcintr_eval_vcm(stack, frame, ctxt->onlyif_attr->val);
+    purc_variant_t val = pcintr_eval_vcm(stack, ctxt->onlyif_attr->val,
+            frame->silently);
     if (!val) {
         return purc_get_last_error();
     }
@@ -802,7 +767,7 @@ step_before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 }
 
 static int
-step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+do_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         struct ctxt_for_iterate *ctxt)
 {
     UNUSED_PARAM(stack);
@@ -810,8 +775,8 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(ctxt);
     int err = 0;
 
-    while(ctxt->func_step != FUNC_STEP_DONE) {
-        switch (ctxt->func_step) {
+    while(ctxt->do_iterate_step != FUNC_STEP_DONE) {
+        switch (ctxt->do_iterate_step) {
         case FUNC_STEP_1ST:
             if (!ctxt->is_rerun) {
                 struct ctxt_for_iterate *ret;
@@ -837,13 +802,13 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     goto out;
                 }
             }
-            ctxt->func_step = FUNC_STEP_2ND;
+            ctxt->do_iterate_step = FUNC_STEP_2ND;
             break;
 
         case FUNC_STEP_2ND:
             if (ctxt->content_vcm) {
-                purc_variant_t val = pcintr_eval_vcm(stack, frame,
-                        ctxt->content_vcm);
+                purc_variant_t val = pcintr_eval_vcm(stack,
+                        ctxt->content_vcm, frame->silently);
                 if (!val) {
                     err = purc_get_last_error();
                     goto out;
@@ -851,7 +816,7 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 pcintr_set_symbol_var(frame, PURC_SYMBOL_VAR_CARET, val);
                 purc_variant_unref(val);
             }
-            ctxt->func_step = FUNC_STEP_DONE;
+            ctxt->do_iterate_step = FUNC_STEP_DONE;
             break;
 
         default:
@@ -859,7 +824,7 @@ step_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         }
     }
 
-    reset_func_step(ctxt);
+    ctxt->do_iterate_step = FUNC_STEP_1ST;
 
 out:
     return err;
@@ -910,7 +875,7 @@ eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         attr = pcutils_array_get(attrs, frame->eval_attr_pos);
         name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
         if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
-            val = pcintr_eval_vcm(stack, frame, attr->val);
+            val = pcintr_eval_vcm(stack, attr->val, frame->silently);
             if (!val) {
                 goto out;
             }
@@ -955,7 +920,7 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     while (ctxt->step != STEP_AFTER_ITERATE) {
         switch(ctxt->step) {
             case STEP_BEFORE_FIRST_ITERATE:
-                err = step_before_first_iterate(stack, frame, ctxt);
+                err = before_first_iterate(stack, frame, ctxt);
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
@@ -963,7 +928,7 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 break;
 
             case STEP_BEFORE_ITERATE:
-                err = step_before_iterate(stack, frame, ctxt);
+                err = before_iterate(stack, frame, ctxt);
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
@@ -971,7 +936,7 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 break;
 
             case STEP_ITERATE:
-                err = step_iterate(stack, frame, ctxt);
+                err = do_iterate(stack, frame, ctxt);
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
@@ -1059,7 +1024,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack,
 
     purc_variant_t val;
     if (ctxt->rule_attr) {
-        val = pcintr_eval_vcm(stack, frame, ctxt->rule_attr->val);
+        val = pcintr_eval_vcm(stack, ctxt->rule_attr->val, frame->silently);
     }
     else {
         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -1165,17 +1130,18 @@ after_iterate_without_executor(pcintr_stack_t stack,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(ctxt);
-    while (ctxt->func_step != FUNC_STEP_DONE) {
-        switch (ctxt->func_step) {
+    while (ctxt->after_iterate_without_executor_step != FUNC_STEP_DONE) {
+        switch (ctxt->after_iterate_without_executor_step) {
         case FUNC_STEP_1ST:
             if (!ctxt->on_attr) {
-                ctxt->func_step = FUNC_STEP_2ND;
+                ctxt->after_iterate_without_executor_step = FUNC_STEP_2ND;
                 break;
             }
 
             purc_variant_t val;
             if (ctxt->with_attr) {
-                val = pcintr_eval_vcm(stack, frame, ctxt->with_attr->val);
+                val = pcintr_eval_vcm(stack, ctxt->with_attr->val,
+                        frame->silently);
             }
             else {
                 val = purc_variant_make_undefined();
@@ -1193,12 +1159,12 @@ after_iterate_without_executor(pcintr_stack_t stack,
             }
             purc_variant_unref(val);
 
-            ctxt->func_step = FUNC_STEP_2ND;
+            ctxt->after_iterate_without_executor_step = FUNC_STEP_2ND;
             break;
         case FUNC_STEP_2ND:
             if (ctxt->while_attr) {
-                purc_variant_t val = pcintr_eval_vcm(stack, frame,
-                        ctxt->while_attr->val);
+                purc_variant_t val = pcintr_eval_vcm(stack,
+                        ctxt->while_attr->val, frame->silently);
 
                 if (!val) {
                     goto out;
@@ -1209,7 +1175,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
                 };
                 PURC_VARIANT_SAFE_CLEAR(val);
             }
-            ctxt->func_step = FUNC_STEP_DONE;
+            ctxt->after_iterate_without_executor_step = FUNC_STEP_DONE;
             break;
 
         default:
@@ -1217,7 +1183,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
         }
     }
 
-    reset_func_step(ctxt);
+    ctxt->after_iterate_without_executor_step = FUNC_STEP_1ST;
 
     pcintr_inc_percent_var(frame);
 out:
@@ -1278,7 +1244,7 @@ rerun_logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     while (ctxt->step != STEP_AFTER_ITERATE) {
         switch(ctxt->step) {
             case STEP_BEFORE_ITERATE:
-                err = step_before_iterate(stack, frame, ctxt);
+                err = before_iterate(stack, frame, ctxt);
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
@@ -1286,7 +1252,7 @@ rerun_logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 break;
 
             case STEP_ITERATE:
-                err = step_iterate(stack, frame, ctxt);
+                err = do_iterate(stack, frame, ctxt);
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }

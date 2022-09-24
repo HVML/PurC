@@ -158,6 +158,8 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     if (ctxt->result) {
         purc_variant_unref(ctxt->result);
     }
+
+    free(ctxt);
 }
 
 #define DUMP_BUF_SIZE           128
@@ -584,6 +586,10 @@ out:
         result = purc_variant_make_undefined();
     }
     frame->node->attach = (uintptr_t)result;
+
+    if (ctxt->enable_log) {
+        pcvcm_print_stack(ctxt);
+    }
     return result;
 }
 
@@ -672,7 +678,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     ctxt = pcvcm_eval_ctxt_create();
     if (!ctxt) {
-        goto out_clear_ctxt;
+        goto out;
     }
     ctxt->enable_log = enable_log;
     ctxt->node = tree;
@@ -680,15 +686,12 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
 
-out_clear_ctxt:
-    if (ctxt) {
-        err = purc_get_last_error();
-        if (err && ctxt_out) {
-            *ctxt_out = ctxt;
-        }
-        else {
-            pcvcm_eval_ctxt_destroy(ctxt);
-        }
+    err = purc_get_last_error();
+    if (err && ctxt_out) {
+        *ctxt_out = ctxt;
+    }
+    else {
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
 
 out:
@@ -698,6 +701,19 @@ out:
             result = PURC_VARIANT_INVALID;
         }
         result = purc_variant_make_undefined();
+    }
+    if (enable_log && ctxt) {
+        size_t len;
+        char *s = get_jsonee(ctxt->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            free(buf);
+        }
+        else {
+            PLOG("\nvcm=%s\nret=null\n", s);
+        }
+        free(s);
     }
     return result;
 }
@@ -732,6 +748,19 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
             timeout, true);
 
 out:
+    if (enable_log) {
+        size_t len;
+        char *s = get_jsonee(ctxt->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            free(buf);
+        }
+        else {
+            PLOG("\nvcm=%s\nret=null\n", s);
+        }
+        free(s);
+    }
     return result;
 }
 
