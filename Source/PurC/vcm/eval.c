@@ -522,9 +522,11 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     int ret = 0;
     int err = 0;
 
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
     }
+#endif
 
     while (frame->step != STEP_DONE) {
         switch (frame->step) {
@@ -587,8 +589,27 @@ out:
     }
     frame->node->attach = (uintptr_t)result;
 
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
+    }
+#endif
+
+    if (ctxt->enable_log && ctxt) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        size_t len;
+        char *s = get_jsonee(frame->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=%s\n", buf);
+            free(buf);
+        }
+        else {
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=null\n");
+        }
+        free(s);
     }
     return result;
 }
@@ -646,9 +667,11 @@ out:
         }
         ctxt->result = purc_variant_ref(result);
     }
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
     }
+#endif
     return result;
 }
 
@@ -666,6 +689,10 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
                 pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
+    if (enable_log) {
+        PLOG("begin vcm\n");
     }
 
     purc_clr_error();
@@ -703,17 +730,21 @@ out:
         result = purc_variant_make_undefined();
     }
     if (enable_log && ctxt) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
         char *s = get_jsonee(ctxt->node, &len);
         if (result) {
             char *buf = pcvariant_to_string(result);
-            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=%s\n", buf);
             free(buf);
         }
         else {
-            PLOG("\nvcm=%s\nret=null\n", s);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=null\n");
         }
         free(s);
+        PLOG("end\n\n");
     }
     return result;
 }
@@ -733,6 +764,10 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
                 pcutils_strcasecmp(env_value, "true") == 0);
     }
 
+    if (enable_log) {
+        PLOG("begin vcm again\n");
+    }
+
     if (!ctxt) {
         goto out;
     }
@@ -750,16 +785,20 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
 out:
     if (enable_log) {
         size_t len;
+        pcintr_coroutine_t co = pcintr_get_coroutine();
         char *s = get_jsonee(ctxt->node, &len);
         if (result) {
             char *buf = pcvariant_to_string(result);
-            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=%s\n", buf);
             free(buf);
         }
         else {
-            PLOG("\nvcm=%s\nret=null\n", s);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=null\n");
         }
         free(s);
+        PLOG("end\n\n");
     }
     return result;
 }
