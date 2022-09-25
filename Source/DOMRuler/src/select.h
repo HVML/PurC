@@ -25,14 +25,13 @@
 #include <csseng/csseng.h>
 
 #include "domruler.h"
-
 #include "node.h"
 
-typedef struct HLCSS_ {
+struct HLCSS_ {
     css_stylesheet* sheet;
     css_stylesheet* ua_sheet;
     int done;
-} HLCSS;
+};
 
 #ifdef __cplusplus
 extern "C" {

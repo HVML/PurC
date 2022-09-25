@@ -32,9 +32,7 @@
 #define HL_INNER_CSS_SELECT_ATTACH "hl_inner_css_select_attach"
 #define HL_INNER_LAYOUT_ATTACH "hl_inner_layout_attach"
 
-typedef struct HiLayoutNode HiLayoutNode;
-
-typedef struct HLDomElement_ {
+struct HLDomElement_ {
     struct HLDomElement_* parent;  /**< Parent node */
     struct HLDomElement_* first_child; /**< First child node */
     struct HLDomElement_* last_child;  /**< Last child node */
@@ -60,7 +58,7 @@ typedef struct HLDomElement_ {
 
     HLNodeType inner_dom_type;
 
-} HLDomElement;
+};
 
 #ifdef __cplusplus
 extern "C" {
