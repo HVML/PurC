@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define WITHOUT_ICONV_FILTER
+
 #ifndef WITHOUT_ICONV_FILTER
 #include <iconv.h>
 #endif
