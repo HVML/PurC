@@ -691,7 +691,7 @@ HLCSS *domruler_css_create();
 int domruler_css_append_data(HLCSS *css, const char *data, size_t len);
 
 /**
- * Free a HiCSS.
+ * Free a HLCSS.
  *
  * @param css: the pointer to the HLCSS.
  *
