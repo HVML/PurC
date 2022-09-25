@@ -61,7 +61,7 @@ struct DOMRulerCtxt *domruler_create(uint32_t width, uint32_t height,
     ctxt->density = density;
 
     ctxt->node_map = g_hash_table_new_full(g_direct_hash,
-            g_direct_equal, NULL, cb_hi_layout_node_destroy);
+            g_direct_equal, NULL, cb_hl_layout_node_destroy);
     if (ctxt->node_map == NULL) {
         domruler_destroy(ctxt);
         return NULL;
@@ -89,14 +89,14 @@ int domruler_layout(struct DOMRulerCtxt *ctxt, void *root_node,
 {
     ctxt->origin_root = root_node;
     ctxt->origin_op = op;
-    HiLayoutNode *layout_node = hi_layout_node_from_origin_node(ctxt, root_node);
-    return hi_layout_do_layout(ctxt, layout_node);
+    HLLayoutNode *layout_node = hl_layout_node_from_origin_node(ctxt, root_node);
+    return hl_layout_do_layout(ctxt, layout_node);
 }
 
 const HLBox *domruler_get_node_bounding_box(struct DOMRulerCtxt *ctxt,
         void *node)
 {
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)node);
     return layout ? &layout->box_values : NULL;
 }

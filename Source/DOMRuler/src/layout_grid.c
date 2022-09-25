@@ -28,7 +28,7 @@
 #include <string.h>
 #include <glib.h>
 
-int hl_solve_grid_child_width_height(struct DOMRulerCtxt* ctx, HiLayoutNode *layout,
+int hl_solve_grid_child_width_height(struct DOMRulerCtxt* ctx, HLLayoutNode *layout,
         int grid_w, int grid_h)
 {
     int width = 0;
@@ -159,7 +159,7 @@ int hl_solve_grid_child_width_height(struct DOMRulerCtxt* ctx, HiLayoutNode *lay
 }
 
 int hl_find_grid_child_position(struct DOMRulerCtxt* ctx, HLGridTemplate* grid_template,
-        HiLayoutNode *node, HLGridItem* row_column)
+        HLLayoutNode *node, HLGridItem* row_column)
 {
     (void)row_column;
     // no set
@@ -202,7 +202,7 @@ int hl_find_grid_child_position(struct DOMRulerCtxt* ctx, HLGridTemplate* grid_t
 }
 
 int hl_layout_grid_child(struct DOMRulerCtxt *ctx, HLGridTemplate *grid_template,
-        HiLayoutNode *node, int level)
+        HLLayoutNode *node, int level)
 {
     (void)level;
     HLGridItem *node_row_column = hl_grid_item_create(node);
@@ -211,9 +211,9 @@ int hl_layout_grid_child(struct DOMRulerCtxt *ctx, HLGridTemplate *grid_template
     return 0;
 }
 
-HLGridItem* hl_get_grid_item(struct DOMRulerCtxt* ctx, HiLayoutNode *node)
+HLGridItem* hl_get_grid_item(struct DOMRulerCtxt* ctx, HLLayoutNode *node)
 {
-    HLGridItem* item = (HLGridItem*)hi_layout_node_get_inner_data(node,
+    HLGridItem* item = (HLGridItem*)hl_layout_node_get_inner_data(node,
             HL_INNER_LAYOUT_ATTACH);
     if (item)
     {
@@ -225,18 +225,18 @@ HLGridItem* hl_get_grid_item(struct DOMRulerCtxt* ctx, HiLayoutNode *node)
     return hl_grid_item_create(node);
 }
 
-static void hl_destroy_grid_item(HiLayoutNode *node)
+static void hl_destroy_grid_item(HLLayoutNode *node)
 {
-    HLGridItem* item = (HLGridItem*)hi_layout_node_get_inner_data(
+    HLGridItem* item = (HLGridItem*)hl_layout_node_get_inner_data(
             node, HL_INNER_LAYOUT_ATTACH);
     if (item) {
         free(item);
     }
-    hi_layout_node_set_inner_data(node, HL_INNER_LAYOUT_ATTACH, NULL, NULL);
+    hl_layout_node_set_inner_data(node, HL_INNER_LAYOUT_ATTACH, NULL, NULL);
 }
 
 void hl_layout_child_with_grid_rc_row_column(struct DOMRulerCtxt *ctx,
-        HiLayoutNode *node, void *user_data)
+        HLLayoutNode *node, void *user_data)
 {
     HLGridTemplate *grid_template = (HLGridTemplate*)user_data;
     HLGridItem *item = hl_get_grid_item(ctx, node);
@@ -333,7 +333,7 @@ void hl_layout_child_with_grid_rc_row_column(struct DOMRulerCtxt *ctx,
         grid_w += grid_template->columns[i];
     }
 
-    HiLayoutNode *parent = hi_layout_node_get_parent(node);
+    HLLayoutNode *parent = hl_layout_node_get_parent(node);
     node->box_values.x = parent->box_values.x + grid_x;
     node->box_values.y = parent->box_values.y + grid_y;
     item->layout_done = 1;
@@ -348,7 +348,7 @@ void hl_layout_child_with_grid_rc_row_column(struct DOMRulerCtxt *ctx,
 }
 
 void hl_layout_child_with_grid_rc_row(struct DOMRulerCtxt *ctx,
-        HiLayoutNode *node, void *user_data)
+        HLLayoutNode *node, void *user_data)
 {
     HLGridTemplate *grid_template = (HLGridTemplate*)user_data;
     HLGridItem *item = hl_get_grid_item(ctx, node);
@@ -437,7 +437,7 @@ void hl_layout_child_with_grid_rc_row(struct DOMRulerCtxt *ctx,
         grid_w += grid_template->columns[i];
     }
 
-    HiLayoutNode *parent = hi_layout_node_get_parent(node);
+    HLLayoutNode *parent = hl_layout_node_get_parent(node);
     node->box_values.x = parent->box_values.x + grid_x;
     node->box_values.y = parent->box_values.y + grid_y;
     item->layout_done = 1;
@@ -452,7 +452,7 @@ void hl_layout_child_with_grid_rc_row(struct DOMRulerCtxt *ctx,
 }
 
 void hl_layout_child_with_grid_rc_auto(struct DOMRulerCtxt *ctx,
-        HiLayoutNode *node, void *user_data)
+        HLLayoutNode *node, void *user_data)
 {
     HLGridTemplate *grid_template = (HLGridTemplate*)user_data;
     HLGridItem *item = hl_get_grid_item(ctx, node);
@@ -550,7 +550,7 @@ void hl_layout_child_with_grid_rc_auto(struct DOMRulerCtxt *ctx,
         grid_w += grid_template->columns[i];
     }
 
-    HiLayoutNode *parent = hi_layout_node_get_parent(node);
+    HLLayoutNode *parent = hl_layout_node_get_parent(node);
     node->box_values.x = parent->box_values.x + grid_x;
     node->box_values.y = parent->box_values.y + grid_y;
     item->layout_done = 1;
@@ -567,14 +567,14 @@ void hl_layout_child_with_grid_rc_auto(struct DOMRulerCtxt *ctx,
 }
 
 static void hl_free_grid_item(struct DOMRulerCtxt* ctx,
-        HiLayoutNode *node, void* user_data)
+        HLLayoutNode *node, void* user_data)
 {
     (void)ctx;
     (void)user_data;
     hl_destroy_grid_item(node);
 }
 
-int hl_layout_child_node_grid(struct DOMRulerCtxt* ctx, HiLayoutNode *node, int level)
+int hl_layout_child_node_grid(struct DOMRulerCtxt* ctx, HLLayoutNode *node, int level)
 {
     (void)level;
     HLGridTemplate* grid_template = hl_grid_template_create(ctx, node);

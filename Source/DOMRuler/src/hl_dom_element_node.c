@@ -138,7 +138,7 @@ domruler_element_node_get_used_box_value(struct DOMRulerCtxt *ctxt,
     if (!ctxt || !node) {
         return NULL;
     }
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)node);
     if (layout) {
         return &layout->box_values;
@@ -153,7 +153,7 @@ domruler_element_node_get_used_background_value(struct DOMRulerCtxt *ctxt,
     if (!ctxt || !node) {
         return NULL;
     }
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)node);
     if (layout) {
         return &layout->background_values;
@@ -168,7 +168,7 @@ domruler_element_node_get_used_text_value(struct DOMRulerCtxt *ctxt,
     if (!ctxt || !node) {
         return NULL;
     }
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)node);
     if (layout) {
         return &layout->text_values;
@@ -184,7 +184,7 @@ domruler_element_node_get_used_svg_value(struct DOMRulerCtxt *ctxt,
     if (!ctxt || !node) {
         return NULL;
     }
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)node);
     css_computed_style *style = NULL;
     if (layout) {

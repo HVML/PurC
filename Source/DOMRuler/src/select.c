@@ -46,7 +46,7 @@ static css_error resolve_url(void *pw,
     return CSS_OK;
 }
 
-static css_stylesheet *css_stylesheet_create(const char *charset,
+static css_stylesheet *my_css_stylesheet_create(const char *charset,
         const char *url, bool allow_quirks, bool inline_style)
 {
     css_stylesheet_params params;
@@ -80,7 +80,7 @@ static css_stylesheet *css_stylesheet_create(const char *charset,
 
 css_stylesheet *hl_css_stylesheet_create_ua_css()
 {
-    css_stylesheet *sheet = css_stylesheet_create(DEFAULT_CHARSET,
+    css_stylesheet *sheet = my_css_stylesheet_create(DEFAULT_CHARSET,
             DEFAULT_URL, true, false);
     if (sheet == NULL) {
         return NULL;
@@ -136,7 +136,7 @@ int hl_css_stylesheet_destroy(css_stylesheet* sheet)
 css_stylesheet *hl_css_stylesheet_inline_style_create(
         const uint8_t *data, size_t len)
 {
-    css_stylesheet *sheet = css_stylesheet_create(DEFAULT_CHARSET,
+    css_stylesheet *sheet = my_css_stylesheet_create(DEFAULT_CHARSET,
             DEFAULT_URL, true, true);
     if (sheet == NULL) {
         return NULL;
@@ -162,7 +162,7 @@ css_stylesheet *hl_css_stylesheet_inline_style_create(
 
 HLCSS *domruler_css_create()
 {
-    css_stylesheet *sheet = css_stylesheet_create(DEFAULT_CHARSET,
+    css_stylesheet *sheet = my_css_stylesheet_create(DEFAULT_CHARSET,
             DEFAULT_URL, true, false);
     if (sheet == NULL)
     {
@@ -250,9 +250,9 @@ int hl_css_select_ctx_destroy(css_select_ctx* ctx)
     return DOMRULER_OK;
 }
 
-void hl_computed_node_display(HiLayoutNode *node)
+void hl_computed_node_display(HLLayoutNode *node)
 {
-    bool root = hi_layout_node_is_root(node);
+    bool root = hl_layout_node_is_root(node);
     uint8_t value = css_computed_display(node->computed_style, root);
 
     switch (value) {
@@ -289,10 +289,10 @@ void hl_computed_node_display(HiLayoutNode *node)
 }
 
 int hl_select_node_style(const css_media *media, css_select_ctx *select_ctx,
-        HiLayoutNode *node)
+        HLLayoutNode *node)
 {
     // filter non element node
-    HLNodeType type = hi_layout_node_get_type(node);
+    HLNodeType type = hl_layout_node_get_type(node);
     if (type != DOM_ELEMENT_NODE) {
         return DOMRULER_OK;
     }

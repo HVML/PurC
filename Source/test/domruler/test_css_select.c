@@ -75,7 +75,7 @@ int main(void)
 
 
         HLDomElement* domNode = domruler_element_node_create("h1");
-        HiLayoutNode *layout_node = hi_layout_node_from_origin_node(ctxt, domNode);
+        HLLayoutNode *layout_node = hl_layout_node_from_origin_node(ctxt, domNode);
         style = hl_css_select_style(css, layout_node, &media, NULL, NULL);
 
         color_type = css_computed_color(

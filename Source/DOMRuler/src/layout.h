@@ -29,10 +29,10 @@
 extern "C" {
 #endif
 
-int hl_computed_z_index(HiLayoutNode *node);
+int hl_computed_z_index(HLLayoutNode *node);
 
-int hi_layout_do_layout(struct DOMRulerCtxt* ctx, HiLayoutNode *root);
-int hl_layout_child_node_grid(struct DOMRulerCtxt* ctx, HiLayoutNode *node,
+int hl_layout_do_layout(struct DOMRulerCtxt* ctx, HLLayoutNode *root);
+int hl_layout_child_node_grid(struct DOMRulerCtxt* ctx, HLLayoutNode *node,
         int level);
 
 #ifdef __cplusplus

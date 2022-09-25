@@ -49,7 +49,7 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 #endif
 
-struct HiLayoutNode;
+struct HLLayoutNode;
 
 #ifdef __cplusplus
 extern "C" {

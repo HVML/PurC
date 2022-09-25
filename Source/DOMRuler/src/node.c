@@ -32,9 +32,9 @@
 
 #define MAX_ATTACH_DATA_SIZE        10
 
-HiLayoutNode *hi_layout_node_create(void)
+HLLayoutNode *hl_layout_node_create(void)
 {
-    HiLayoutNode *node = (HiLayoutNode*) calloc(1, sizeof(HiLayoutNode));
+    HLLayoutNode *node = (HLLayoutNode*) calloc(1, sizeof(HLLayoutNode));
     if (!node) {
         return NULL;
     }
@@ -46,7 +46,7 @@ HiLayoutNode *hi_layout_node_create(void)
     return node;
 }
 
-void hi_layout_node_destroy(HiLayoutNode *node)
+void hl_layout_node_destroy(HLLayoutNode *node)
 {
     if (!node) {
         return;
@@ -92,7 +92,7 @@ void hi_layout_node_destroy(HiLayoutNode *node)
     free(node);
 }
 
-int hi_layout_node_set_attach_data(HiLayoutNode *node,
+int hl_layout_node_set_attach_data(HLLayoutNode *node,
         uint32_t index, void *data, HlDestroyCallback destroy_callback)
 {
     if (node == NULL || index >= MAX_ATTACH_DATA_SIZE) {
@@ -115,7 +115,7 @@ int hi_layout_node_set_attach_data(HiLayoutNode *node,
     return DOMRULER_OK;
 }
 
-void *hi_layout_node_get_attach_data(const HiLayoutNode *node,
+void *hl_layout_node_get_attach_data(const HLLayoutNode *node,
         uint32_t index)
 {
     if (node == NULL || index >= MAX_ATTACH_DATA_SIZE) {
@@ -140,7 +140,7 @@ void hl_layout_node_destroy_attach_data_value(gpointer data)
 }
 
 
-int hi_layout_node_set_inner_data(HiLayoutNode *node, const char *key,
+int hl_layout_node_set_inner_data(HLLayoutNode *node, const char *key,
         void *data, HlDestroyCallback destroy_callback)
 {
     if (node == NULL || key == NULL) {
@@ -164,7 +164,7 @@ int hi_layout_node_set_inner_data(HiLayoutNode *node, const char *key,
             (gpointer)attach);
 }
 
-void *hi_layout_node_get_inner_data(HiLayoutNode *node, const char *key)
+void *hl_layout_node_get_inner_data(HLLayoutNode *node, const char *key)
 {
     if (node == NULL || key == NULL) {
         return NULL;
@@ -174,12 +174,12 @@ void *hi_layout_node_get_inner_data(HiLayoutNode *node, const char *key)
     return attach ? attach->data : NULL;
 }
 
-void cb_hi_layout_node_destroy(void *n)
+void cb_hl_layout_node_destroy(void *n)
 {
-    hi_layout_node_destroy((HiLayoutNode *)n);
+    hl_layout_node_destroy((HLLayoutNode *)n);
 }
 
-int hl_find_background(HiLayoutNode *node)
+int hl_find_background(HLLayoutNode *node)
 {
     css_color color;
     css_computed_background_color(node->computed_style, &color);
@@ -187,13 +187,13 @@ int hl_find_background(HiLayoutNode *node)
     return DOMRULER_OK;
 }
 
-int hl_find_font(struct DOMRulerCtxt *ctx, HiLayoutNode *node)
+int hl_find_font(struct DOMRulerCtxt *ctx, HLLayoutNode *node)
 {
     lwc_string **families;
     css_fixed length = 0;
     css_unit unit = CSS_UNIT_PX;
 
-    HiLayoutNode* parent = hi_layout_node_get_parent(node);
+    HLLayoutNode* parent = hl_layout_node_get_parent(node);
 
     uint8_t val = css_computed_font_family(node->computed_style, &families);
     if (val == CSS_FONT_FAMILY_INHERIT) {
@@ -307,7 +307,7 @@ int hl_find_font(struct DOMRulerCtxt *ctx, HiLayoutNode *node)
     return 0;
 }
 
-HLGridItem *hl_grid_item_create(HiLayoutNode *node)
+HLGridItem *hl_grid_item_create(HLLayoutNode *node)
 {
     if (node == NULL) {
         return NULL;
@@ -343,7 +343,7 @@ HLGridItem *hl_grid_item_create(HiLayoutNode *node)
         item->row_end = FIXTOINT(value);
     }
 
-    hi_layout_node_set_inner_data(node, HL_INNER_LAYOUT_ATTACH, item, NULL);
+    hl_layout_node_set_inner_data(node, HL_INNER_LAYOUT_ATTACH, item, NULL);
     return item;
 }
 
@@ -355,7 +355,7 @@ void hl_grid_item_destroy(HLGridItem *p)
 }
 
 HLGridTemplate *hl_grid_template_create(const struct DOMRulerCtxt *ctx,
-        HiLayoutNode *node)
+        HLLayoutNode *node)
 {
     if (node == NULL) {
         return NULL;
@@ -450,35 +450,35 @@ void hl_grid_template_destroy(HLGridTemplate *p)
     free(p);
 }
 
-void hl_for_each_child(struct DOMRulerCtxt *ctx, HiLayoutNode *node,
+void hl_for_each_child(struct DOMRulerCtxt *ctx, HLLayoutNode *node,
         each_child_callback callback, void *user_data)
 {
     if (ctx == NULL || node == NULL || callback == NULL) {
         return;
     }
 
-    HiLayoutNode *child = hi_layout_node_first_child(node);
+    HLLayoutNode *child = hl_layout_node_first_child(node);
     while(child) {
         callback(ctx, child, user_data);
-        child = hi_layout_node_next(child);
+        child = hl_layout_node_next(child);
     }
 }
 
-// BEGIN: HiLayoutNode  < ----- > Origin Node
-HiLayoutNode *hi_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
+// BEGIN: HLLayoutNode  < ----- > Origin Node
+HLLayoutNode *hl_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
         void *origin)
 {
     if (!ctxt || !origin) {
         return NULL;
     }
 
-    HiLayoutNode *layout = (HiLayoutNode*)g_hash_table_lookup(ctxt->node_map,
+    HLLayoutNode *layout = (HLLayoutNode*)g_hash_table_lookup(ctxt->node_map,
             (gpointer)origin);
     if (layout) {
         return layout;
     }
 
-    layout = hi_layout_node_create();
+    layout = hl_layout_node_create();
     if (!layout) {
         return NULL;
     }
@@ -518,7 +518,7 @@ HiLayoutNode *hi_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
     return layout;
 }
 
-void *hi_layout_node_to_origin_node(HiLayoutNode *layout,
+void *hl_layout_node_to_origin_node(HLLayoutNode *layout,
         DOMRulerNodeOp **op)
 {
     if (!layout->origin) {
@@ -530,63 +530,63 @@ void *hi_layout_node_to_origin_node(HiLayoutNode *layout,
     return layout->origin;
 }
 
-HLNodeType hi_layout_node_get_type(HiLayoutNode *node)
+HLNodeType hl_layout_node_get_type(HLLayoutNode *node)
 {
     return node->ctxt->origin_op->get_type(node->origin);
 }
 
-const char *hi_layout_node_get_name(HiLayoutNode *node)
+const char *hl_layout_node_get_name(HLLayoutNode *node)
 {
     return node->ctxt->origin_op->get_name(node->origin);
 }
 
-const char *hi_layout_node_get_id(HiLayoutNode *node)
+const char *hl_layout_node_get_id(HLLayoutNode *node)
 {
     return node->ctxt->origin_op->get_id(node->origin);
 }
 
-int hi_layout_node_get_classes(HiLayoutNode *node, char ***classes)
+int hl_layout_node_get_classes(HLLayoutNode *node, char ***classes)
 {
     return node->ctxt->origin_op->get_classes(node->origin, classes);
 }
 
-const char *hi_layout_node_get_attr(HiLayoutNode *node, const char *attr)
+const char *hl_layout_node_get_attr(HLLayoutNode *node, const char *attr)
 {
     return node->ctxt->origin_op->get_attr(node->origin, attr);
 }
 
-HiLayoutNode *hi_layout_node_get_parent(HiLayoutNode *node)
+HLLayoutNode *hl_layout_node_get_parent(HLLayoutNode *node)
 {
     void *origin = node->ctxt->origin_op->get_parent(node->origin);
-    return hi_layout_node_from_origin_node(node->ctxt, origin);
+    return hl_layout_node_from_origin_node(node->ctxt, origin);
 }
 
-void hi_layout_node_set_parent(HiLayoutNode *node, HiLayoutNode *parent)
+void hl_layout_node_set_parent(HLLayoutNode *node, HLLayoutNode *parent)
 {
     node->ctxt->origin_op->set_parent(node->origin, parent->origin);
 }
 
-HiLayoutNode *hi_layout_node_first_child(HiLayoutNode *node)
+HLLayoutNode *hl_layout_node_first_child(HLLayoutNode *node)
 {
     void *origin = node->ctxt->origin_op->first_child(node->origin);
-    return hi_layout_node_from_origin_node(node->ctxt,  origin);
+    return hl_layout_node_from_origin_node(node->ctxt,  origin);
 }
 
-HiLayoutNode *hi_layout_node_next(HiLayoutNode *node)
+HLLayoutNode *hl_layout_node_next(HLLayoutNode *node)
 {
     void *origin = node->ctxt->origin_op->next(node->origin);
-    return hi_layout_node_from_origin_node(node->ctxt, origin);
+    return hl_layout_node_from_origin_node(node->ctxt, origin);
 }
 
-HiLayoutNode *hi_layout_node_previous(HiLayoutNode *node)
+HLLayoutNode *hl_layout_node_previous(HLLayoutNode *node)
 {
     void *origin = node->ctxt->origin_op->previous(node->origin);
-    return hi_layout_node_from_origin_node(node->ctxt, origin);
+    return hl_layout_node_from_origin_node(node->ctxt, origin);
 }
 
-bool hi_layout_node_is_root(HiLayoutNode *node)
+bool hl_layout_node_is_root(HLLayoutNode *node)
 {
     return node->ctxt->origin_op->is_root(node->origin);
 }
 
-// END: HiLayoutNode  < ----- > Origin Node
+// END: HLLayoutNode  < ----- > Origin Node

@@ -75,7 +75,7 @@ typedef struct HLGridTemplate_ {
     uint8_t **mask;
 } HLGridTemplate;
 
-typedef struct HiLayoutNode {
+typedef struct HLLayoutNode {
     //inner layout
     LayoutType layout_type;
 
@@ -111,56 +111,56 @@ typedef struct HiLayoutNode {
     void *origin;
 
     struct DOMRulerCtxt *ctxt;
-} HiLayoutNode;
+} HLLayoutNode;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int hi_layout_node_set_attach_data(HiLayoutNode *node,
+int hl_layout_node_set_attach_data(HLLayoutNode *node,
         uint32_t index, void *data, HlDestroyCallback destroy_callback);
-void *hi_layout_node_get_attach_data(const HiLayoutNode *node,
+void *hl_layout_node_get_attach_data(const HLLayoutNode *node,
         uint32_t index);
-int hi_layout_node_set_inner_data(HiLayoutNode *node, const char *key,
+int hl_layout_node_set_inner_data(HLLayoutNode *node, const char *key,
         void *data, HlDestroyCallback destroy_callback);
-void *hi_layout_node_get_inner_data(HiLayoutNode *node, const char *key);
+void *hl_layout_node_get_inner_data(HLLayoutNode *node, const char *key);
 
-int hl_find_background(HiLayoutNode *node);
-int hl_find_font(struct DOMRulerCtxt *ctx, HiLayoutNode *node);
+int hl_find_background(HLLayoutNode *node);
+int hl_find_font(struct DOMRulerCtxt *ctx, HLLayoutNode *node);
 
-HLGridItem *hl_grid_item_create(HiLayoutNode *node);
+HLGridItem *hl_grid_item_create(HLLayoutNode *node);
 void hl_grid_item_destroy(HLGridItem*);
 
 HLGridTemplate *hl_grid_template_create(const struct DOMRulerCtxt *ctx,
-        HiLayoutNode *node);
+        HLLayoutNode *node);
 void hl_grid_template_destroy(HLGridTemplate*);
 
-typedef void (*each_child_callback)(struct DOMRulerCtxt *ctx, HiLayoutNode *node,
+typedef void (*each_child_callback)(struct DOMRulerCtxt *ctx, HLLayoutNode *node,
         void *user_data);
 
-void hl_for_each_child(struct DOMRulerCtxt *ctx, HiLayoutNode *node,
+void hl_for_each_child(struct DOMRulerCtxt *ctx, HLLayoutNode *node,
         each_child_callback callback, void *user_data);
 
-void cb_hi_layout_node_destroy(void *n);
+void cb_hl_layout_node_destroy(void *n);
 
-// BEGIN: HiLayoutNode  < ----- > Origin Node
-HiLayoutNode *hi_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
+// BEGIN: HLLayoutNode  < ----- > Origin Node
+HLLayoutNode *hl_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
         void *origin);
-void *hi_layout_node_to_origin_node(HiLayoutNode *layout,
+void *hl_layout_node_to_origin_node(HLLayoutNode *layout,
         DOMRulerNodeOp **op);
 
-HLNodeType hi_layout_node_get_type(HiLayoutNode *node);
-const char *hi_layout_node_get_name(HiLayoutNode *node);
-const char *hi_layout_node_get_id(HiLayoutNode *node);
-int hi_layout_node_get_classes(HiLayoutNode *node, char ***classes);
-const char *hi_layout_node_get_attr(HiLayoutNode *node, const char *attr);
-HiLayoutNode *hi_layout_node_get_parent(HiLayoutNode *node);
-void hi_layout_node_set_parent(HiLayoutNode *node, HiLayoutNode *parent);
-HiLayoutNode *hi_layout_node_first_child(HiLayoutNode *node);
-HiLayoutNode *hi_layout_node_next(HiLayoutNode *node);
-HiLayoutNode *hi_layout_node_previous(HiLayoutNode *node);
-bool hi_layout_node_is_root(HiLayoutNode *node);
-// END: HiLayoutNode  < ----- > Origin Node
+HLNodeType hl_layout_node_get_type(HLLayoutNode *node);
+const char *hl_layout_node_get_name(HLLayoutNode *node);
+const char *hl_layout_node_get_id(HLLayoutNode *node);
+int hl_layout_node_get_classes(HLLayoutNode *node, char ***classes);
+const char *hl_layout_node_get_attr(HLLayoutNode *node, const char *attr);
+HLLayoutNode *hl_layout_node_get_parent(HLLayoutNode *node);
+void hl_layout_node_set_parent(HLLayoutNode *node, HLLayoutNode *parent);
+HLLayoutNode *hl_layout_node_first_child(HLLayoutNode *node);
+HLLayoutNode *hl_layout_node_next(HLLayoutNode *node);
+HLLayoutNode *hl_layout_node_previous(HLLayoutNode *node);
+bool hl_layout_node_is_root(HLLayoutNode *node);
+// END: HLLayoutNode  < ----- > Origin Node
 
 
 #ifdef __cplusplus

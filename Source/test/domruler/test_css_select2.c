@@ -111,7 +111,7 @@ int main(void)
     ctxt->origin_op = hl_dom_element_node_get_op();
 
     HLDomElement* node_select = title;
-    HiLayoutNode *layout_node = hi_layout_node_from_origin_node(ctxt, node_select);
+    HLLayoutNode *layout_node = hl_layout_node_from_origin_node(ctxt, node_select);
 
     style = hl_css_select_style(css, layout_node, &media, NULL, NULL);
     css_computed_color( style->styles[CSS_PSEUDO_ELEMENT_NONE], &color_shade);
@@ -128,7 +128,7 @@ int main(void)
 
     HL_LOGD("###################\n");
     node_select = title;
-    layout_node = hi_layout_node_from_origin_node(ctxt, node_select);
+    layout_node = hl_layout_node_from_origin_node(ctxt, node_select);
 
     style = hl_css_select_style(css, layout_node, &media, NULL, NULL);
     css_computed_color( style->styles[CSS_PSEUDO_ELEMENT_NONE], &color_shade);

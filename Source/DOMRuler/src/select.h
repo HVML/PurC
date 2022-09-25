@@ -54,9 +54,9 @@ int hl_css_select_ctx_destroy(css_select_ctx *ctx);
 
 // css_select_results
 css_select_results *hl_get_node_style(const css_media *media,
-        css_select_ctx *select_ctx, HiLayoutNode *node);
+        css_select_ctx *select_ctx, HLLayoutNode *node);
 
-css_select_results* hl_css_select_style(const HLCSS* css, HiLayoutNode *node,
+css_select_results* hl_css_select_style(const HLCSS* css, HLLayoutNode *node,
         const css_media *media, const css_stylesheet *inline_style,
         css_select_handler *op);
 
@@ -65,7 +65,7 @@ int hl_css_select_result_destroy(css_select_results *result);
 
 // select node style
 int hl_select_node_style(const css_media *media, css_select_ctx *select_ctx,
-        HiLayoutNode *node);
+        HLLayoutNode *node);
 
 
 #ifdef __cplusplus

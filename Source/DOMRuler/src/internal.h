@@ -28,7 +28,7 @@
 #include <glib.h>
 #include <glib/ghash.h>
 
-struct HiLayoutNode;
+struct HLLayoutNode;
 
 struct DOMRulerCtxt {
     // media
@@ -46,13 +46,13 @@ struct DOMRulerCtxt {
     int vh;
     const css_computed_style *root_style;
 
-    struct HiLayoutNode *root;
+    struct HLLayoutNode *root;
 
     // Origin Root Node
     void *origin_root;
     DOMRulerNodeOp *origin_op;
 
-    GHashTable *node_map; // key(origin node pointer) -> value(HiLayoutNode *)
+    GHashTable *node_map; // key(origin node pointer) -> value(HLLayoutNode *)
 };
 
 #ifdef __cplusplus

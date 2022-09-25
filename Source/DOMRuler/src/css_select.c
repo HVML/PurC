@@ -43,7 +43,7 @@ static css_error
 node_name(void *pw, void *n, css_qname *qname)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
 
     if (node->inner_tag == NULL) {
         qname->name = NULL;
@@ -72,7 +72,7 @@ static css_error
 node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
 
     if (node->nr_inner_classes > 0) {
         *classes = node->inner_classes;
@@ -101,7 +101,7 @@ static css_error
 node_id(void *pw, void *n, lwc_string **id)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
 
     if (node->inner_id == NULL) {
         *id = NULL;
@@ -127,12 +127,12 @@ static css_error
 named_parent_node(void *pw, void *n, const css_qname *qname, void **parent)
 {
     (void)pw;
-    HiLayoutNode* node = n;
+    HLLayoutNode* node = n;
 
     *parent = NULL;
 
-    for (node = hi_layout_node_get_parent(node); node != NULL; node = hi_layout_node_get_parent(node)) {
-        HLNodeType type = hi_layout_node_get_type(node);
+    for (node = hl_layout_node_get_parent(node); node != NULL; node = hl_layout_node_get_parent(node)) {
+        HLNodeType type = hl_layout_node_get_type(node);
         if (type != DOM_ELEMENT_NODE) {
             continue;
         }
@@ -143,7 +143,7 @@ named_parent_node(void *pw, void *n, const css_qname *qname, void **parent)
         if (lwc_string_caseless_isequal(node->inner_tag, qname->name,
                     &match) == lwc_error_ok && match)
         {
-            *parent = (HiLayoutNode *)node;
+            *parent = (HLLayoutNode *)node;
         }
         break;
     }
@@ -152,16 +152,16 @@ named_parent_node(void *pw, void *n, const css_qname *qname, void **parent)
 }
 
 static int
-dom_node_get_previous_sibling(HiLayoutNode *node, HiLayoutNode **result)
+dom_node_get_previous_sibling(HLLayoutNode *node, HLLayoutNode **result)
 {
     /* Attr nodes have no previous siblings */
-    HLNodeType type = hi_layout_node_get_type(node);
+    HLNodeType type = hl_layout_node_get_type(node);
     if (type == DOM_ATTRIBUTE_NODE) {
         *result = NULL;
         return CSS_OK;
     }
 
-    *result = hi_layout_node_previous(node);
+    *result = hl_layout_node_previous(node);
     return CSS_OK;
 }
 
@@ -180,8 +180,8 @@ static css_error
 named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
 {
     (void)pw;
-    HiLayoutNode *node = n;
-    HiLayoutNode *prev;
+    HLLayoutNode *node = n;
+    HLLayoutNode *prev;
 
     *sibling = NULL;
 
@@ -189,7 +189,7 @@ named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
     dom_node_get_previous_sibling(node, &node);
 
     while (node != NULL) {
-        HLNodeType type = hi_layout_node_get_type(node);
+        HLNodeType type = hl_layout_node_get_type(node);
         if (type == DOM_ELEMENT_NODE) {
             break;
         }
@@ -226,14 +226,14 @@ named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
         void **sibling)
 {
     (void)pw;
-    HiLayoutNode *node = n;
-    HiLayoutNode *prev;
+    HLLayoutNode *node = n;
+    HLLayoutNode *prev;
 
     *sibling = NULL;
     dom_node_get_previous_sibling(node, &node);
 
     while (node != NULL) {
-        HLNodeType type = hi_layout_node_get_type(node);
+        HLNodeType type = hl_layout_node_get_type(node);
 
         if (type == DOM_ELEMENT_NODE) {
             bool match = false;
@@ -265,11 +265,11 @@ static css_error
 parent_node(void *pw, void *n, void **parent)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
     *parent = NULL;
-    for (node = hi_layout_node_get_parent(node); node != NULL;
-            node = hi_layout_node_get_parent(node)) {
-        HLNodeType type = hi_layout_node_get_type(node);
+    for (node = hl_layout_node_get_parent(node); node != NULL;
+            node = hl_layout_node_get_parent(node)) {
+        HLNodeType type = hl_layout_node_get_type(node);
         if (type != DOM_ELEMENT_NODE) {
             continue;
         }
@@ -294,8 +294,8 @@ static css_error
 sibling_node(void *pw, void *n, void **sibling)
 {
     (void)pw;
-    HiLayoutNode *node = n;
-    HiLayoutNode *prev;
+    HLLayoutNode *node = n;
+    HLLayoutNode *prev;
 
     *sibling = NULL;
 
@@ -303,7 +303,7 @@ sibling_node(void *pw, void *n, void **sibling)
     dom_node_get_previous_sibling(node, &node);
 
     while (node != NULL) {
-        HLNodeType type = hi_layout_node_get_type(node);
+        HLNodeType type = hl_layout_node_get_type(node);
         if (type == DOM_ELEMENT_NODE)
             break;
 
@@ -333,7 +333,7 @@ static css_error
 node_has_name(void *pw, void *n, const css_qname *qname, bool *match)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
     lwc_string_caseless_isequal(node->inner_tag, qname->name, match);
     return CSS_OK;
 }
@@ -354,7 +354,7 @@ node_has_class(void *pw, void *n, lwc_string *name, bool *match)
 {
     (void)pw;
     int class;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
 
     /* Short-circuit case where we have no classes */
     if (node->nr_inner_classes == 0) {
@@ -388,7 +388,7 @@ static css_error
 node_has_id(void *pw, void *n, lwc_string *name, bool *match)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
     lwc_string_caseless_isequal(node->inner_id, name, match);
     return CSS_OK;
 }
@@ -584,26 +584,26 @@ static css_error
 node_is_root(void *pw, void *n, bool *match)
 {
     (void)pw;
-    *match = hi_layout_node_is_root((HiLayoutNode *)n);
+    *match = hl_layout_node_is_root((HLLayoutNode *)n);
     return CSS_OK;
 }
 
 static int
-dom_node_get_next_sibling(HiLayoutNode *node, HiLayoutNode **result)
+dom_node_get_next_sibling(HLLayoutNode *node, HLLayoutNode **result)
 {
     /* Attr nodes have no next siblings */
-    HLNodeType type = hi_layout_node_get_type(node);
+    HLNodeType type = hl_layout_node_get_type(node);
     if (type == DOM_ATTRIBUTE_NODE) {
         *result = NULL;
         return CSS_OK;
     }
 
-    *result = hi_layout_node_next(node);
+    *result = hl_layout_node_next(node);
     return CSS_OK;
 }
 
 static int
-node_count_siblings_check(HiLayoutNode *node,
+node_count_siblings_check(HLLayoutNode *node,
               bool check_name,
               lwc_string *name)
 {
@@ -613,7 +613,7 @@ node_count_siblings_check(HiLayoutNode *node,
     if (node == NULL)
         return 0;
 
-    type = hi_layout_node_get_type(node);
+    type = hl_layout_node_get_type(node);
     if (type != DOM_ELEMENT_NODE) {
         return 0;
     }
@@ -656,7 +656,7 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
     lwc_string *node_name = NULL;
 
     if (same_name) {
-        HiLayoutNode *node = n;
+        HLLayoutNode *node = n;
         node_name = node->inner_tag;
         if (node_name == NULL) {
             return CSS_NOMEM;
@@ -664,8 +664,8 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
     }
 
     if (after) {
-        HiLayoutNode *node = n;
-        HiLayoutNode *next;
+        HLLayoutNode *node = n;
+        HLLayoutNode *next;
 
         do {
             dom_node_get_next_sibling(node, &next);
@@ -673,8 +673,8 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
             cnt += node_count_siblings_check(node, same_name, node_name);
         } while (node != NULL);
     } else {
-        HiLayoutNode *node = n;
-        HiLayoutNode *next;
+        HLLayoutNode *node = n;
+        HLLayoutNode *next;
 
         do {
             dom_node_get_previous_sibling(node, &next);
@@ -915,7 +915,7 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
 }
 
 typedef struct _HlCSSDataPackage {
-    HiLayoutNode* node;
+    HLLayoutNode* node;
     void* libcss_node_data;
 } HlCSSDataPackage;
 
@@ -927,10 +927,10 @@ set_libcss_node_data(void *pw, void *n, void *libcss_node_data)
     (void)pw;
     HlCSSDataPackage* pkg = (HlCSSDataPackage*)calloc(1,
             sizeof(HlCSSDataPackage));
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
     pkg->node = node;
     pkg->libcss_node_data = libcss_node_data;
-    hi_layout_node_set_inner_data(node, HL_INNER_CSS_SELECT_ATTACH, pkg,
+    hl_layout_node_set_inner_data(node, HL_INNER_CSS_SELECT_ATTACH, pkg,
             destroy_hl_css_data_package);
     return CSS_OK;
 }
@@ -939,8 +939,8 @@ static css_error
 get_libcss_node_data(void *pw, void *n, void **libcss_node_data)
 {
     (void)pw;
-    HiLayoutNode* node = n;
-    HlCSSDataPackage* pkg = hi_layout_node_get_inner_data(node,
+    HLLayoutNode* node = n;
+    HlCSSDataPackage* pkg = hl_layout_node_get_inner_data(node,
             HL_INNER_CSS_SELECT_ATTACH);
     *libcss_node_data = pkg ? pkg->libcss_node_data : NULL;
     return CSS_OK;
@@ -1026,13 +1026,13 @@ named_ancestor_node(void *pw, void *n, const css_qname *qname,
         void **ancestor)
 {
     (void)pw;
-    HiLayoutNode *node = n;
+    HLLayoutNode *node = n;
 
     *ancestor = NULL;
 
-    for (node = hi_layout_node_get_parent(node); node != NULL;
-            node = hi_layout_node_get_parent(node)) {
-        HLNodeType type = hi_layout_node_get_type(node);
+    for (node = hl_layout_node_get_parent(node); node != NULL;
+            node = hl_layout_node_get_parent(node)) {
+        HLNodeType type = hl_layout_node_get_type(node);
         if (type != DOM_ELEMENT_NODE)
             continue;
 
@@ -1147,7 +1147,7 @@ destroy_hl_css_data_package(void* data)
 }
 
 css_select_results *hl_get_node_style(const css_media *media,
-        css_select_ctx *select_ctx, HiLayoutNode *node)
+        css_select_ctx *select_ctx, HLLayoutNode *node)
 {
     if (media == NULL || select_ctx == NULL || node == NULL) {
         HL_LOGW("get node style failed.\n");
@@ -1156,7 +1156,7 @@ css_select_results *hl_get_node_style(const css_media *media,
 
     // prepare inline style
     css_stylesheet* inline_style = NULL;
-    const char* style = hi_layout_node_get_attr(node, ATTR_STYLE);
+    const char* style = hl_layout_node_get_attr(node, ATTR_STYLE);
     if (style != NULL) {
         inline_style = hl_css_stylesheet_inline_style_create(
                 (const uint8_t *)style, strlen(style));
@@ -1169,12 +1169,12 @@ css_select_results *hl_get_node_style(const css_media *media,
 
     if (error != CSS_OK || styles == NULL) {
         /* VW: clear the inner data if failed. */
-        HlCSSDataPackage* pkg = hi_layout_node_get_inner_data(node,
+        HlCSSDataPackage* pkg = hl_layout_node_get_inner_data(node,
                 HL_INNER_CSS_SELECT_ATTACH);
         if (pkg) {
             free(pkg);
         }
-        hi_layout_node_set_inner_data(node, HL_INNER_CSS_SELECT_ATTACH,
+        hl_layout_node_set_inner_data(node, HL_INNER_CSS_SELECT_ATTACH,
                 NULL, NULL);
 
         /* Failed selecting partial style -- bail out */
@@ -1222,7 +1222,7 @@ css_select_results *hl_get_node_style(const css_media *media,
     return styles;
 }
 
-css_select_results *hl_css_select_style(const HLCSS* css, HiLayoutNode *n,
+css_select_results *hl_css_select_style(const HLCSS* css, HLLayoutNode *n,
         const css_media *media, const css_stylesheet *inlineStyleSheet,
         css_select_handler *handler)
 {
