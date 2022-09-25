@@ -22,7 +22,7 @@
 #include "domruler.h"
 #include "utils.h"
 #include "node.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 #include <string.h>
 
 /** Media DPI in fixed point units: defaults to 96, same as nscss_baseline_pixel_density */

@@ -27,7 +27,7 @@
 #include "node.h"
 #include "select.h"
 #include "layout.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 #include "domruler.h"
 
 /*
@@ -108,7 +108,7 @@ int main(void)
     css_fixed len = 0;
 
     struct DOMRulerCtxt *ctxt = domruler_create(1080, 720, 72, 27);
-    ctxt->origin_op = hl_dom_element_node_get_op();
+    ctxt->origin_op = hldom_node_get_op();
 
     HLDomElement* node_select = title;
     HLLayoutNode *layout_node = hl_layout_node_from_origin_node(ctxt, node_select);

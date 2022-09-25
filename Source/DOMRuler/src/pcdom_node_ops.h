@@ -29,22 +29,11 @@
 #include <glib.h>
 #include <glib/ghash.h>
 
-void hl_pcdom_element_t_set_attach(void *node, void *data,
+void pcdom_node_set_attach(void *node, void *data,
         cb_free_attach_data cb_free);
-void *hl_pcdom_element_t_get_attach(void *node, cb_free_attach_data *cb_free);
-HLNodeType hl_pcdom_element_t_get_type(void *node);
-const char *hl_pcdom_element_t_get_name(void *node);
-const char *hl_pcdom_element_t_get_id(void *node);
-int hl_pcdom_element_t_get_classes(void *node, char ***classes);
-const char *hl_pcdom_element_t_get_attr(void *node, const char *attr);
-void hl_pcdom_element_t_set_parent(void *node, void *parent);
-void *hl_pcdom_element_t_get_parent(void *node);
-void *hl_pcdom_element_t_first_child(void *node);
-void *hl_pcdom_element_t_next(void *node);
-void *hl_pcdom_element_t_previous(void *node);
-bool hl_pcdom_element_t_is_root(void *node);
+void *pcdom_node_get_attach(void *node, cb_free_attach_data *cb_free);
 
-DOMRulerNodeOp *hl_pcdom_element_t_get_op();
+DOMRulerNodeOp *pcdom_node_get_op();
 
 #ifdef __cplusplus
 }

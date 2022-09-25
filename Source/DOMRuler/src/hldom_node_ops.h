@@ -68,24 +68,11 @@ int hl_element_node_set_inner_attr(HLDomElement* node, const char* attr_name, co
 const char* hl_element_node_get_inner_attr(HLDomElement* node, const char* attr_name);
 int hl_element_node_set_inner_data(HLDomElement* node, const char* key, void* data, HlDestroyCallback destroy_callback);
 void* hl_element_node_get_inner_data(HLDomElement* node, const char* key);
-
-// HLDomElelementNode op
-void hl_dom_element_node_set_attach(void *node, void *data,
+void hldom_node_set_attach(void *node, void *data,
         cb_free_attach_data cb_free);
-void *hl_dom_element_node_get_attach(void *node, cb_free_attach_data *cb_free);
-HLNodeType hl_dom_element_node_get_type(void *node);
-const char *hl_dom_element_node_get_name(void *node);
-const char *hl_dom_element_node_get_id(void *node);
-int hl_dom_element_node_get_classes(void *node, char ***classes);
-const char *hl_dom_element_node_get_attr(void *node, const char *attr);
-void hl_dom_element_node_set_parent(void *node, void *parent);
-void *hl_dom_element_node_get_parent(void *node);
-void *hl_dom_element_node_first_child(void *node);
-void *hl_dom_element_node_next(void *node);
-void *hl_dom_element_node_previous(void *node);
-bool hl_dom_element_node_is_root(void *node);
+void *hldom_node_get_attach(void *node, cb_free_attach_data *cb_free);
 
-DOMRulerNodeOp *hl_dom_element_node_get_op();
+DOMRulerNodeOp *hldom_node_get_op();
 // End HLDomElelementNode op
 
 #ifdef __cplusplus

@@ -86,26 +86,6 @@ typedef enum HLCommonAttribute_ {
 } HLCommonAttribute;
 
 typedef enum {
-    LAYOUT_INVALID,
-    LAYOUT_BLOCK,
-    LAYOUT_INLINE_CONTAINER,
-    LAYOUT_INLINE,
-    LAYOUT_TABLE,
-    LAYOUT_TABLE_ROW,
-    LAYOUT_TABLE_CELL,
-    LAYOUT_TABLE_ROW_GROUP,
-    LAYOUT_FLOAT_LEFT,
-    LAYOUT_FLOAT_RIGHT,
-    LAYOUT_INLINE_BLOCK,
-    LAYOUT_BR,
-    LAYOUT_TEXT,
-    LAYOUT_INLINE_END,
-    LAYOUT_GRID,
-    LAYOUT_INLINE_GRID,
-    LAYOUT_NONE
-} LayoutType;
-
-typedef enum {
     DOM_UNDEF               = 0,
     DOM_ELEMENT_NODE        = 1,
     DOM_ATTRIBUTE_NODE      = 2,
@@ -124,9 +104,6 @@ typedef enum {
     DOM_NODE_TYPE_COUNT
 } HLNodeType;
 
-
-typedef void (*cb_free_attach_data) (void *data);
-
 typedef struct DOMRulerNodeOp {
     HLNodeType (*get_type)(void *node);
     const char *(*get_name)(void *node);
@@ -140,78 +117,6 @@ typedef struct DOMRulerNodeOp {
     void *(*previous)(void *node);
     bool (*is_root)(void *node);
 } DOMRulerNodeOp;
-
-// property
-
-#define  HL_PROP_CATEGORY_BOX                  (1 << 0)
-#define  HL_PROP_CATEGORY_BACKGROUND           (1 << 1)
-#define  HL_PROP_CATEGORY_TEXT                 (1 << 2)
-#define  HL_PROP_CATEGORY_SVG                  (1 << 3)
-
-#define  HL_PROP_CATEGORY_ALL                  (HL_PROP_CATEGORY_BOX | HL_PROP_CATEGORY_BACKGROUND | HL_PROP_CATEGORY_TEXT | HL_PROP_CATEGORY_SVG)
-
-#define HL_MAKE_PROP_ID(gid, i)             (((uint32_t)gid << 16) | (uint32_t)i)
-
-// box group begin
-// width
-#define HL_PROP_ID_WIDTH                        HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 0)
-// height
-#define HL_PROP_ID_HEIGHT                       HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 1)
-// margin-top
-#define HL_PROP_ID_MARGIN_TOP                   HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 2)
-// margin-right
-#define HL_PROP_ID_MARGIN_RIGHT                 HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 3)
-// margin-bottom
-#define HL_PROP_ID_MARGIN_BOTTOM                HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 4)
-// margin-left
-#define HL_PROP_ID_MARGIN_LEFT                  HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 5)
-// padding-top
-#define HL_PROP_ID_PADDING_TOP                  HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 6)
-// padding-right
-#define HL_PROP_ID_PADDING_RIGHT                HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 7)
-// padding-bottom
-#define HL_PROP_ID_PADDING_BOTTOM               HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 8)
-// padding-left
-#define HL_PROP_ID_PADDING_LEFT                 HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 9)
-// border-top-width
-#define HL_PROP_ID_BORDER_TOP_WIDTH             HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 10)
-// border-right-width
-#define HL_PROP_ID_BORDER_RIGHT_WIDTH           HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 11)
-// border-bottom-width
-#define HL_PROP_ID_BORDER_BOTTOM_WIDTH          HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 12)
-// border-left-width
-#define HL_PROP_ID_BORDER_LEFT_WIDTH            HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 13)
-// border-top-left-radius
-#define HL_PROP_ID_BORDER_TOP_LEFT_RADIUS       HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 14)
-// border-top-right-radius
-#define HL_PROP_ID_BORDER_TOP_RIGHT_RADIUS      HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 15)
-// border-bottom-left-radius
-#define HL_PROP_ID_BORDER_BOTTOM_LEFT_RADIUS    HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 16)
-// border-bottom-right-radius
-#define HL_PROP_ID_BORDER_BOTTOM_RIGHT_RADIUS   HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BOX, 17)
-
-// box group end
-
-// background begin
-// background-color
-#define HL_PROP_ID_BACKGROUND_COLOR             HL_MAKE_PROP_ID(HL_PROP_CATEGORY_BACKGROUND, 0)
-
-// background end
-
-// text begin
-// color
-#define HL_PROP_ID_COLOR                        HL_MAKE_PROP_ID(HL_PROP_CATEGORY_TEXT, 0)
-// font-family
-#define HL_PROP_ID_FONT_FAMILY                  HL_MAKE_PROP_ID(HL_PROP_CATEGORY_TEXT, 1)
-// font-size
-#define HL_PROP_ID_FONT_SIZE                    HL_MAKE_PROP_ID(HL_PROP_CATEGORY_TEXT, 2)
-// font-weight
-#define HL_PROP_ID_FONT_WEIGHT                  HL_MAKE_PROP_ID(HL_PROP_CATEGORY_TEXT, 3)
-
-// text end
-
-// svg begin
-// svg end
 
 typedef enum HLDisplayEnum_ {
     HL_DISPLAY_BLOCK            = 0x02,

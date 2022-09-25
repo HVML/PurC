@@ -27,7 +27,7 @@
 
 #include "node.h"
 #include "select.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 
 int main(void)
 {
@@ -65,7 +65,7 @@ int main(void)
     domruler_css_append_data(css, data, strlen(data));
 
     struct DOMRulerCtxt *ctxt = domruler_create(1080, 720, 72, 27);
-    ctxt->origin_op = hl_dom_element_node_get_op();
+    ctxt->origin_op = hldom_node_get_op();
 
     /* select style for each of h1 to h6 */
     for (hh = 1; hh < 2; hh++) {

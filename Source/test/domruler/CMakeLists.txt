@@ -81,34 +81,6 @@ set(test_css_select2_LIBRARIES
 PURC_EXECUTABLE(test_css_select2)
 PURC_COMPUTE_SOURCES(test_css_select2)
 
-# test_layout
-PURC_EXECUTABLE_DECLARE(test_layout)
-
-list(APPEND test_layout_PRIVATE_INCLUDE_DIRECTORIES
-    "${DOMRULER_DIR}/include"
-    "${DOMRULER_DIR}/src"
-    "${FORWARDING_HEADERS_DIR}/domruler"
-)
-
-list(APPEND test_layout_SYSTEM_INCLUDE_DIRECTORIES
-    "${CSSEng_INCLUDE_DIRS}"
-    "${GLIB_INCLUDE_DIRS}"
-)
-
-list(APPEND test_layout_SOURCES
-    test_layout.c
-)
-
-set(test_layout_LIBRARIES
-    PurC::PurC
-    PurC::DOMRuler
-    PurC::CSSEng
-    ${GLIB_LIBRARIES}
-)
-
-PURC_EXECUTABLE(test_layout)
-PURC_COMPUTE_SOURCES(test_layout)
-
 # test_layout_pcdom
 PURC_EXECUTABLE_DECLARE(test_layout_pcdom)
 

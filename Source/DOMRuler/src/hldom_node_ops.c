@@ -22,7 +22,7 @@
 #include "node.h"
 #include "utils.h"
 #include "internal.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 #include "csseng/csseng.h"
 
 #include <stdio.h>
@@ -60,28 +60,11 @@ const char *domruler_element_node_get_tag_name(HLDomElement *node)
     return node ? node->tag : NULL;
 }
 
-void hl_destroy_class_list_item (gpointer data)
+static const char _DOMRULER_WHITESPACE[] = " ";
+
+static void hl_destroy_class_list_item (gpointer data)
 {
     free(data);
-}
-
-static const char _DOMRULER_WHITESPACE[] = " ";
-void hl_fill_inner_classes(HLDomElement *node, const char *classes)
-{
-    if (node == NULL || classes == NULL || strlen(classes) == 0) {
-        return;
-    }
-
-    g_list_free_full(node->class_list, hl_destroy_class_list_item);
-    node->class_list = NULL;
-
-    char *value = strdup(classes);
-    char *c = strtok(value, _DOMRULER_WHITESPACE);
-    while (c != NULL) {
-        node->class_list = g_list_append(node->class_list, strdup(c));
-        c = strtok(NULL, _DOMRULER_WHITESPACE);
-    }
-    free(value);
 }
 
 void domruler_element_node_destroy(HLDomElement *node)
@@ -475,12 +458,30 @@ uint32_t domruler_element_node_get_children_count(HLDomElement *node)
     return node ? node->n_children: 0;
 }
 
-void hl_destroy_common_attr_value (gpointer data)
+static void hl_fill_inner_classes(HLDomElement *node, const char *classes)
+{
+    if (node == NULL || classes == NULL || strlen(classes) == 0) {
+        return;
+    }
+
+    g_list_free_full(node->class_list, hl_destroy_class_list_item);
+    node->class_list = NULL;
+
+    char *value = strdup(classes);
+    char *c = strtok(value, _DOMRULER_WHITESPACE);
+    while (c != NULL) {
+        node->class_list = g_list_append(node->class_list, strdup(c));
+        c = strtok(NULL, _DOMRULER_WHITESPACE);
+    }
+    free(value);
+}
+
+static void hl_destroy_common_attr_value (gpointer data)
 {
     free(data);
 }
 
-int hl_verify_common_attr_id(const HLDomElement *node,
+static int hl_verify_common_attr_id(const HLDomElement *node,
         HLCommonAttribute attr_id)
 {
     (void)node;
@@ -530,12 +531,12 @@ const char *domruler_element_node_get_common_attr(const HLDomElement *node,
 }
 
 
-void hl_destroy_general_attr_key (gpointer data)
+static inline void hl_destroy_general_attr_key (gpointer data)
 {
     free(data);
 }
 
-void hl_destroy_general_attr_value (gpointer data)
+static inline void hl_destroy_general_attr_value (gpointer data)
 {
     free(data);
 }
@@ -565,12 +566,12 @@ const char *domruler_element_node_get_general_attr(const HLDomElement *node,
     return g_hash_table_lookup(node->general_attrs, (gpointer)attr_name);
 }
 
-void hl_destroy_inner_attr_key (gpointer data)
+static inline void hl_destroy_inner_attr_key (gpointer data)
 {
     free(data);
 }
 
-void hl_destroy_inner_attr_value (gpointer data)
+static inline void hl_destroy_inner_attr_value (gpointer data)
 {
     free(data);
 }
@@ -600,12 +601,12 @@ const char *hl_element_node_get_inner_attr(HLDomElement *node,
     return g_hash_table_lookup(node->inner_attrs, (gpointer)attr_name);
 }
 
-void hl_destroy_attach_data_key (gpointer data)
+static void hl_destroy_attach_data_key (gpointer data)
 {
     free(data);
 }
 
-void hl_destroy_attach_data_value (gpointer data)
+static void hl_destroy_attach_data_value (gpointer data)
 {
     HLAttachData *attach = (HLAttachData*)data;
     if (attach->callback)
@@ -682,7 +683,7 @@ void *hl_element_node_get_inner_data(HLDomElement *node, const char *key)
     return attach ? attach->data : NULL;
 }
 
-gint hl_comp_class_name (gconstpointer a, gconstpointer b)
+static gint hl_comp_class_name (gconstpointer a, gconstpointer b)
 {
     return strcmp((const char*)a, (const char*)b);
 }
@@ -814,23 +815,23 @@ void *domruler_element_node_get_attach_data(const HLDomElement *node,
 }
 
 // Begin HLDomElelementNode op
-HLNodeType hl_dom_element_node_get_type(void *node)
+static HLNodeType hldom_node_get_type(void *node)
 {
     return ((HLDomElement*)node)->inner_dom_type;
 }
 
-const char *hl_dom_element_node_get_name(void *node)
+static const char *hldom_node_get_name(void *node)
 {
     return ((HLDomElement*)node)->tag;
 }
 
-const char *hl_dom_element_node_get_id(void *node)
+static const char *hldom_node_get_id(void *node)
 {
     return domruler_element_node_get_common_attr((HLDomElement*)node,
             HL_COMMON_ATTR_ID);
 }
 
-int hl_dom_element_node_get_classes(void *n, char ***classes)
+static int hldom_node_get_classes(void *n, char ***classes)
 {
     HLDomElement *node = (HLDomElement*)n;
     int size = g_list_length(node->class_list);
@@ -845,7 +846,7 @@ int hl_dom_element_node_get_classes(void *n, char ***classes)
     return size;
 }
 
-const char *hl_dom_element_node_get_attr(void *n, const char *name)
+static const char *hldom_node_get_attr(void *n, const char *name)
 {
     HLDomElement *node = (HLDomElement*)n;
     if (strcmp(name, ATTR_ID) == 0) {
@@ -863,32 +864,32 @@ const char *hl_dom_element_node_get_attr(void *n, const char *name)
     return NULL;
 }
 
-void hl_dom_element_node_set_parent(void *node, void *parent)
+static void hldom_node_set_parent(void *node, void *parent)
 {
     ((HLDomElement*)node)->parent = (HLDomElement*)parent;
 }
 
-void *hl_dom_element_node_get_parent(void *node)
+static void *hldom_node_get_parent(void *node)
 {
     return ((HLDomElement*)node)->parent;
 }
 
-void *hl_dom_element_node_first_child(void *node)
+static void *hldom_node_first_child(void *node)
 {
     return ((HLDomElement*)node)->first_child;
 }
 
-void *hl_dom_element_node_next(void *node)
+static void *hldom_node_next(void *node)
 {
     return ((HLDomElement*)node)->next;
 }
 
-void *hl_dom_element_node_previous(void *node)
+static void *hldom_node_previous(void *node)
 {
     return ((HLDomElement*)node)->previous;
 }
 
-bool hl_dom_element_node_is_root(void *node)
+static bool hldom_node_is_root(void *node)
 {
     HLDomElement *parent = ((HLDomElement*)node)->parent;
     if (parent != NULL) {
@@ -897,23 +898,23 @@ bool hl_dom_element_node_is_root(void *node)
     return true;
 }
 
-DOMRulerNodeOp hl_dom_element_node_op = {
-    .get_type = hl_dom_element_node_get_type,
-    .get_name = hl_dom_element_node_get_name,
-    .get_id = hl_dom_element_node_get_id,
-    .get_classes = hl_dom_element_node_get_classes,
-    .get_attr = hl_dom_element_node_get_attr,
-    .set_parent = hl_dom_element_node_set_parent,
-    .get_parent = hl_dom_element_node_get_parent,
-    .first_child = hl_dom_element_node_first_child,
-    .next = hl_dom_element_node_next,
-    .previous = hl_dom_element_node_previous,
-    .is_root = hl_dom_element_node_is_root
-};
-
-DOMRulerNodeOp *hl_dom_element_node_get_op()
+DOMRulerNodeOp *hldom_node_get_op()
 {
-    return &hl_dom_element_node_op;
+    static DOMRulerNodeOp hldom_node_op = {
+        .get_type = hldom_node_get_type,
+        .get_name = hldom_node_get_name,
+        .get_id = hldom_node_get_id,
+        .get_classes = hldom_node_get_classes,
+        .get_attr = hldom_node_get_attr,
+        .set_parent = hldom_node_set_parent,
+        .get_parent = hldom_node_get_parent,
+        .first_child = hldom_node_first_child,
+        .next = hldom_node_next,
+        .previous = hldom_node_previous,
+        .is_root = hldom_node_is_root
+    };
+
+    return &hldom_node_op;
 }
 
 // End HLDomElelementNode op

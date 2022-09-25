@@ -25,7 +25,7 @@
 
 #include "domruler.h"
 #include "node.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 /*
  
    <div id="root">

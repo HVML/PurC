@@ -21,7 +21,7 @@
 
 #include "select.h"
 #include "utils.h"
-#include "hl_dom_element_node.h"
+#include "hldom_node_ops.h"
 #include <stdio.h>
 #include <string.h>
 

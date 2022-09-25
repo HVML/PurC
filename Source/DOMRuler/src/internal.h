@@ -28,6 +28,26 @@
 #include <glib.h>
 #include <glib/ghash.h>
 
+typedef enum {
+    LAYOUT_INVALID,
+    LAYOUT_BLOCK,
+    LAYOUT_INLINE_CONTAINER,
+    LAYOUT_INLINE,
+    LAYOUT_TABLE,
+    LAYOUT_TABLE_ROW,
+    LAYOUT_TABLE_CELL,
+    LAYOUT_TABLE_ROW_GROUP,
+    LAYOUT_FLOAT_LEFT,
+    LAYOUT_FLOAT_RIGHT,
+    LAYOUT_INLINE_BLOCK,
+    LAYOUT_BR,
+    LAYOUT_TEXT,
+    LAYOUT_INLINE_END,
+    LAYOUT_GRID,
+    LAYOUT_INLINE_GRID,
+    LAYOUT_NONE
+} LayoutType;
+
 struct HLLayoutNode;
 
 struct DOMRulerCtxt {
@@ -54,6 +74,8 @@ struct DOMRulerCtxt {
 
     GHashTable *node_map; // key(origin node pointer) -> value(HLLayoutNode *)
 };
+
+typedef void (*cb_free_attach_data) (void *data);
 
 #ifdef __cplusplus
 extern "C" {

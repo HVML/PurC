@@ -26,8 +26,8 @@
 #include "utils.h"
 #include "select.h"
 
-#include "hl_dom_element_node.h"
-#include "hl_pcdom_element_t.h"
+#include "hldom_node_ops.h"
+#include "pcdom_node_ops.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,13 +128,13 @@ void domruler_reset_nodes(struct DOMRulerCtxt *ctxt)
 int domruler_layout_hldom_elements(struct DOMRulerCtxt *ctxt,
         HLDomElement *root_node)
 {
-    return domruler_layout(ctxt, root_node, hl_dom_element_node_get_op());
+    return domruler_layout(ctxt, root_node, hldom_node_get_op());
 }
 
 int domruler_layout_pcdom_elements(struct DOMRulerCtxt *ctxt,
         pcdom_element_t *root_node)
 {
-    return domruler_layout(ctxt, root_node, hl_pcdom_element_t_get_op());
+    return domruler_layout(ctxt, root_node, pcdom_node_get_op());
 }
 
 

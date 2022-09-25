@@ -21,7 +21,7 @@
 
 #include "node.h"
 #include "utils.h"
-#include "hl_pcdom_element_t.h"
+#include "pcdom_node_ops.h"
 #include "csseng/csseng.h"
 
 #include <stdio.h>
@@ -30,8 +30,7 @@
 #include <glib.h>
 #include <glib/ghash.h>
 
-
-HLNodeType hl_pcdom_element_t_get_type(void *n)
+static HLNodeType pcdom_node_get_type(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     switch (node->type) {
@@ -67,7 +66,7 @@ HLNodeType hl_pcdom_element_t_get_type(void *n)
     return DOM_UNDEF;
 }
 
-const char *hl_pcdom_element_t_get_name(void *n)
+static const char *pcdom_node_get_name(void *n)
 {
     pcdom_element_t *elem = (pcdom_element_t *)n;
     const char *name = NULL;
@@ -86,7 +85,7 @@ const char *hl_pcdom_element_t_get_name(void *n)
     return name;
 }
 
-const char *hl_pcdom_element_t_get_id(void *n)
+static const char *pcdom_node_get_id(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     if (node->type == PCDOM_NODE_TYPE_ELEMENT) {
@@ -105,7 +104,7 @@ const char *hl_pcdom_element_t_get_id(void *n)
 }
 
 #define WHITESPACE      " "
-int hl_pcdom_element_t_get_classes(void *n, char ***classes)
+static int pcdom_node_get_classes(void *n, char ***classes)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     if (node->type != PCDOM_NODE_TYPE_ELEMENT) {
@@ -146,20 +145,20 @@ int hl_pcdom_element_t_get_classes(void *n, char ***classes)
     return nr_classes;
 }
 
-const char *hl_pcdom_element_t_get_attr(void *n, const char *name)
+static const char *pcdom_node_get_attr(void *n, const char *name)
 {
     pcdom_element_t *elem = (pcdom_element_t *)n;
     return (const char *)pcdom_element_get_attribute(elem,
             (const unsigned char *)name, strlen(name), NULL);
 }
 
-void hl_pcdom_element_t_set_parent(void *n, void *parent)
+static void pcdom_node_set_parent(void *n, void *parent)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     node->parent = (pcdom_node_t *)parent;
 }
 
-void *hl_pcdom_element_t_get_parent(void *n)
+static void *pcdom_node_get_parent(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     pcdom_node_t *parent = node->parent;
@@ -169,13 +168,13 @@ void *hl_pcdom_element_t_get_parent(void *n)
     return parent;
 }
 
-void *hl_pcdom_element_t_first_child(void *n)
+static void *pcdom_node_get_first_child(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     return node->first_child;
 }
 
-void *hl_pcdom_element_t_next(void *n)
+static void *pcdom_node_get_next(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     pcdom_node_t *next = pcdom_node_next(node);
@@ -185,13 +184,13 @@ void *hl_pcdom_element_t_next(void *n)
     return next;
 }
 
-void *hl_pcdom_element_t_previous(void *n)
+static void *pcdom_node_get_previous(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     return node->prev;
 }
 
-bool hl_pcdom_element_t_is_root(void *n)
+static bool pcdom_node_is_root(void *n)
 {
     pcdom_node_t *node = (pcdom_node_t *)n;
     if (node->parent == NULL || node->parent->type == PCDOM_NODE_TYPE_DOCUMENT) {
@@ -200,22 +199,22 @@ bool hl_pcdom_element_t_is_root(void *n)
     return false;
 }
 
-DOMRulerNodeOp hl_pcdom_element_t_op = {
-    .get_type = hl_pcdom_element_t_get_type,
-    .get_name = hl_pcdom_element_t_get_name,
-    .get_id = hl_pcdom_element_t_get_id,
-    .get_classes = hl_pcdom_element_t_get_classes,
-    .get_attr = hl_pcdom_element_t_get_attr,
-    .set_parent = hl_pcdom_element_t_set_parent,
-    .get_parent = hl_pcdom_element_t_get_parent,
-    .first_child = hl_pcdom_element_t_first_child,
-    .next = hl_pcdom_element_t_next,
-    .previous = hl_pcdom_element_t_previous,
-    .is_root = hl_pcdom_element_t_is_root
-};
-
-DOMRulerNodeOp *hl_pcdom_element_t_get_op()
+DOMRulerNodeOp *pcdom_node_get_op()
 {
-    return &hl_pcdom_element_t_op;
+    static DOMRulerNodeOp pcdom_node_op = {
+        .get_type = pcdom_node_get_type,
+        .get_name = pcdom_node_get_name,
+        .get_id = pcdom_node_get_id,
+        .get_classes = pcdom_node_get_classes,
+        .get_attr = pcdom_node_get_attr,
+        .set_parent = pcdom_node_set_parent,
+        .get_parent = pcdom_node_get_parent,
+        .first_child = pcdom_node_get_first_child,
+        .next = pcdom_node_get_next,
+        .previous = pcdom_node_get_previous,
+        .is_root = pcdom_node_is_root
+    };
+
+    return &pcdom_node_op;
 }
 
