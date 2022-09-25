@@ -1,27 +1,27 @@
 include(PurCCommon)
 
-# testmain
-PURC_EXECUTABLE_DECLARE(testmain)
+# test_wapcaplet
+PURC_EXECUTABLE_DECLARE(test_wapcaplet)
 
-list(APPEND testmain_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_wapcaplet_PRIVATE_INCLUDE_DIRECTORIES
     "${CSSENG_DIR}/include"
 )
 
-list(APPEND testmain_SYSTEM_INCLUDE_DIRECTORIES
+list(APPEND test_wapcaplet_SYSTEM_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}/csseng"
     "${LIBCHECK_INCLUDE_DIRS}"
 )
 
-list(APPEND testmain_SOURCES
+list(APPEND test_wapcaplet_SOURCES
     testmain.c
     basictests.c
 )
 
-set(testmain_LIBRARIES
+set(test_wapcaplet_LIBRARIES
     PurC::CSSEng
     ${LIBCHECK_LIBRARIES}
 )
 
-PURC_EXECUTABLE(testmain)
-PURC_COMPUTE_SOURCES(testmain)
+PURC_EXECUTABLE(test_wapcaplet)
+PURC_COMPUTE_SOURCES(test_wapcaplet)
 

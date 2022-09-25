@@ -1,26 +1,26 @@
 include(PurCCommon)
 
-# aliases
-PURC_EXECUTABLE_DECLARE(aliases)
+# test_aliases
+PURC_EXECUTABLE_DECLARE(test_aliases)
 
-list(APPEND aliases_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_aliases_PRIVATE_INCLUDE_DIRECTORIES
     "${CSSENG_DIR}"
 )
 
-list(APPEND aliases_SYSTEM_INCLUDE_DIRECTORIES
+list(APPEND test_aliases_SYSTEM_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}/csseng"
 )
 
-list(APPEND aliases_SOURCES
+list(APPEND test_aliases_SOURCES
     aliases.c
 )
 
-set(aliases_LIBRARIES
+set(test_aliases_LIBRARIES
     PurC::CSSEng
 )
 
-PURC_EXECUTABLE(aliases)
-PURC_COMPUTE_SOURCES(aliases)
+PURC_EXECUTABLE(test_aliases)
+PURC_COMPUTE_SOURCES(test_aliases)
 
 # cscodecutf8
 PURC_EXECUTABLE_DECLARE(cscodecutf8)
@@ -110,27 +110,27 @@ set(cscodec8859_LIBRARIES
 PURC_EXECUTABLE(cscodec8859)
 PURC_COMPUTE_SOURCES(cscodec8859)
 
-# filter
-PURC_EXECUTABLE_DECLARE(filter)
+# test_filter
+PURC_EXECUTABLE_DECLARE(test_filter)
 
-list(APPEND filter_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_filter_PRIVATE_INCLUDE_DIRECTORIES
     "${CSSENG_DIR}"
 )
 
-list(APPEND filter_SYSTEM_INCLUDE_DIRECTORIES
+list(APPEND test_filter_SYSTEM_INCLUDE_DIRECTORIES
     "${FORWARDING_HEADERS_DIR}/csseng"
 )
 
-list(APPEND filter_SOURCES
+list(APPEND test_filter_SOURCES
     filter.c
 )
 
-set(filter_LIBRARIES
+set(test_filter_LIBRARIES
     PurC::CSSEng
 )
 
-PURC_EXECUTABLE(filter)
-PURC_COMPUTE_SOURCES(filter)
+PURC_EXECUTABLE(test_filter)
+PURC_COMPUTE_SOURCES(test_filter)
 
 # inputstream
 PURC_EXECUTABLE_DECLARE(inputstream)
