@@ -540,6 +540,10 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
 
             case STEP_EVAL_PARAMS:
                 for (; frame->pos < frame->nr_params; frame->pos++) {
+                    purc_variant_t v = pcutils_array_get(frame->params_result, frame->pos);
+                    if (v) {
+                        continue;
+                    }
                     param = frame->ops->select_param(ctxt, frame, frame->pos);
                     if (!param) {
                         if (frame->step == STEP_EVAL_PARAMS) {
@@ -601,12 +605,12 @@ out:
         char *s = get_jsonee(frame->node, &len);
         if (result) {
             char *buf = pcvariant_to_string(result);
-            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
             PLOG("ret=%s\n", buf);
             free(buf);
         }
         else {
-            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
             PLOG("ret=null\n");
         }
         free(s);
@@ -675,6 +679,7 @@ out:
     return result;
 }
 
+static int i = 0;
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out,
         find_var_fn find_var, void *find_var_ctxt,
@@ -744,7 +749,7 @@ out:
             PLOG("ret=null\n");
         }
         free(s);
-        PLOG("end\n\n");
+        PLOG("end %d\n\n", i++);
     }
     return result;
 }
@@ -795,10 +800,10 @@ out:
         }
         else {
             PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
-            PLOG("ret=null\n");
+            PLOG("ret=null|err=%s\n", purc_get_error_message(purc_get_last_error()));
         }
         free(s);
-        PLOG("end\n\n");
+        PLOG("end %d\n\n", i++);
     }
     return result;
 }
