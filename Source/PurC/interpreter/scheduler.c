@@ -415,7 +415,7 @@ execute_one_step(struct pcinst *inst)
             continue;
         }
 
-#if 0
+#if 1
         struct timespec begin;
         clock_gettime(CLOCK_MONOTONIC, &begin);
         while (co->state == CO_STATE_READY) {
