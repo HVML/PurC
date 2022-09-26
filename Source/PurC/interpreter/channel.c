@@ -173,12 +173,12 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
             discard_data(chan);
             assert(chan->qcount == 0);
 
-            chan = realloc(chan, sizeof(*chan));
+            //chan = realloc(chan, sizeof(*chan));
             chan->qsize = 0;
             chan->qcount = 0;
             chan->recvx = 0;
             chan->sendx = 0;
-            entry->val = chan;
+            //entry->val = chan;
         }
     }
     else if (new_cap > chan->qcount) {

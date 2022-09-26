@@ -43,6 +43,7 @@
 
 #define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
+#define TIME_SLIECE             0.005           // s
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
@@ -422,7 +423,7 @@ execute_one_step(struct pcinst *inst)
         while (co->state == CO_STATE_READY) {
             execute_one_step_for_ready_co(inst, co);
             double diff = purc_get_elapsed_seconds(&begin, NULL);
-            if (diff > 0.005) {
+            if (diff > TIME_SLIECE) {
                 break;
             }
         }
@@ -582,7 +583,14 @@ dispatch_event(struct pcinst *inst)
 {
     UNUSED_PARAM(inst);
 
+    struct timespec begin;
     bool is_busy = false;
+
+#if 1
+again:
+    is_busy = false;
+    clock_gettime(CLOCK_MONOTONIC, &begin);
+#endif
     check_and_dispatch_event_from_conn(inst);
 
     bool co_is_busy = false;
@@ -616,6 +624,12 @@ dispatch_event(struct pcinst *inst)
         }
     }
 
+#if 1
+    double diff = purc_get_elapsed_seconds(&begin, NULL);
+    if (diff < TIME_SLIECE && is_busy) {
+        goto again;
+    }
+#endif
     return is_busy;
 }
 

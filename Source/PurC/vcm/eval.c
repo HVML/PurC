@@ -718,15 +718,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
 
-    err = purc_get_last_error();
-    if (err && ctxt_out) {
-        *ctxt_out = ctxt;
-    }
-    else {
-        pcvcm_eval_ctxt_destroy(ctxt);
-    }
-
 out:
+    err = purc_get_last_error();
     if (!result && silently) {
         err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
@@ -734,6 +727,7 @@ out:
         }
         result = purc_variant_make_undefined();
     }
+
     if (enable_log && ctxt) {
         pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
@@ -750,6 +744,13 @@ out:
         }
         free(s);
         PLOG("end %d\n\n", i++);
+    }
+
+    if (err && ctxt_out) {
+        *ctxt_out = ctxt;
+    }
+    else {
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;
 }
