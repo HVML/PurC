@@ -397,6 +397,7 @@ execute_one_step(struct pcinst *inst)
         if (now < co->stopped_timeout) {
             break;
         }
+        co->stack.timeout = true;
         pcutils_array_push(cos, co);
     }
 
