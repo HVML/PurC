@@ -475,7 +475,7 @@ on_release(void *native_entity)
     assert(chan->refc > 0);
     chan->refc--;
 
-    if (chan->qsize == 0) {
+    if (chan->qsize == 0 && chan->refc == 0) {
         // already closed
         struct pcinst* inst = pcinst_current();
         assert(inst);

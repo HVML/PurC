@@ -71,7 +71,7 @@ attr_found(struct pcintr_stack_frame *frame,
     PC_ASSERT(attr->key);
 
     pcintr_stack_t stack = (pcintr_stack_t) ud;
-    int r = pcintr_set_edom_attribute(stack, attr);
+    int r = pcintr_set_edom_attribute(stack, attr, val);
 
     return r ? -1 : 0;
 }
@@ -160,7 +160,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(element);
 }
 
-static void
+static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
@@ -168,17 +168,22 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(frame);
     PC_ASSERT(content);
 
+    int err = 0;
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm) {
-        return;
+        goto out;
     }
 
-    purc_variant_t v = pcvcm_eval(vcm, &co->stack, frame->silently);
+    purc_variant_t v = pcintr_eval_vcm(&co->stack, vcm, frame->silently);
     if (v == PURC_VARIANT_INVALID) {
-        return;
+        err = purc_get_last_error();
+        goto out;
     }
     pcintr_set_question_var(frame, v);
     purc_variant_unref(v);
+
+out:
+    return err;
 }
 
 static void

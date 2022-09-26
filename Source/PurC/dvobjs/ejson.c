@@ -2716,6 +2716,34 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+isdivisible_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    int64_t l_operand, r_operand;
+    if (!purc_variant_cast_to_longint(argv[0], &l_operand, true) ||
+            !purc_variant_cast_to_longint(argv[1], &r_operand, true)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    bool ret = (l_operand % r_operand == 0);
+    return purc_variant_make_boolean(ret);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_ejson_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -2743,6 +2771,7 @@ purc_variant_t purc_dvobj_ejson_new(void)
         { "hex2bin",    hex2bin_getter, NULL },
         { "base64_encode", base64_encode_getter, NULL },
         { "base64_decode", base64_decode_getter, NULL },
+        { "isdivisible",  isdivisible_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

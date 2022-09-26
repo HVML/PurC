@@ -41,23 +41,49 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_SLEEP          10000           // usec
+#define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
+static inline time_t
+timespec_to_ms(const struct timespec *ts)
+{
+    return ts->tv_sec * 1000 + ts->tv_nsec * 1.0E-6;
+}
+
+static time_t
+pcintr_monotonic_time_ms()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return timespec_to_ms(&ts);
+}
+
 static void
 broadcast_idle_event(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        if (stack->observe_idle) {
+            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                    BUILTIN_VAR_CRTN);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_IDLE, NULL,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
             purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
@@ -74,12 +100,28 @@ static void
 handle_rdr_conn_lost(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                BUILTIN_VAR_CRTN);
+
+        stack->co->target_workspace_handle = 0;
+        stack->co->target_page_handle = 0;
+        stack->co->target_dom_handle = 0;
+
+        // broadcast rdrState:connLost;
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
                 BUILTIN_VAR_CRTN);
@@ -192,6 +234,10 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     request_id,
                     MSG_TYPE_CORSTATE, MSG_SUB_TYPE_OBSERVING,
                     PURC_VARIANT_INVALID, request_id);
+            int err = purc_get_last_error();
+            if (err == PURC_ERROR_INVALID_VALUE) {
+                purc_clr_error();
+            }
             purc_variant_unref(request_id);
         }
     }
@@ -313,7 +359,14 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     pcintr_execute_one_step_for_ready_co(co);
-    pcintr_check_after_execution_full(inst, co);
+
+    int err = purc_get_last_error();
+    if (err != PURC_ERROR_AGAIN) {
+        pcintr_check_after_execution_full(inst, co);
+    }
+    else {
+        purc_clr_error();
+    }
 
     pcintr_set_current_co(NULL);
 }
@@ -323,21 +376,61 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 static bool
 execute_one_step(struct pcinst *inst)
 {
-    struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
     bool busy = false;
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct pcintr_heap *heap = inst->intr_heap;
+
+    pcintr_coroutine_t p, q;
+    pcintr_coroutine_t co;
+    struct list_head *crtns;
+
+    time_t now = pcintr_monotonic_time_ms();
+
+    pcutils_array_t *cos = pcutils_array_create();
+    if (!cos) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+    for (size_t i = 0; i < nr; i++) {
+        pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+        if (now < co->stopped_timeout) {
+            break;
+        }
+        pcutils_array_push(cos, co);
+    }
+
+    nr = pcutils_array_length(cos);
+    for (size_t i = 0; i < nr; i++) {
+        co = pcutils_array_get(cos, i);
+        pcintr_resume_coroutine(co);
+    }
+    pcutils_array_destroy(cos, true);
+
+
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (co->state != CO_STATE_READY) {
             continue;
         }
 
-        execute_one_step_for_ready_co(inst, co);
+#if 1
+        struct timespec begin;
+        clock_gettime(CLOCK_MONOTONIC, &begin);
+        while (co->state == CO_STATE_READY) {
+            execute_one_step_for_ready_co(inst, co);
+            double diff = purc_get_elapsed_seconds(&begin, NULL);
+            if (diff > 0.005) {
+                break;
+            }
+        }
+#else
+            execute_one_step_for_ready_co(inst, co);
+#endif
         busy = true;
     }
+
     return busy;
 }
 
@@ -493,12 +586,24 @@ dispatch_event(struct pcinst *inst)
 
     bool co_is_busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        co_is_busy = handle_coroutine_event(co);
+
+        if (co->stack.exited && co->stack.last_msg_read) {
+            pcintr_run_exiting_co(co);
+        }
+
+        if (co_is_busy) {
+            is_busy = true;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         co_is_busy = handle_coroutine_event(co);
 
         if (co->stack.exited && co->stack.last_msg_read) {
@@ -516,7 +621,8 @@ dispatch_event(struct pcinst *inst)
 void
 pcintr_schedule(void *ctxt)
 {
-    static int i = 0;
+    bool step_is_busy;
+    bool event_is_busy;
     struct pcinst *inst = (struct pcinst *)ctxt;
     if (!inst) {
         goto out_sleep;
@@ -527,18 +633,19 @@ pcintr_schedule(void *ctxt)
         goto out_sleep;
     }
 
+again:
 
     // 1. exec one step for all ready coroutines and
     // return whether step is busy
-    bool step_is_busy = execute_one_step(inst);
+    step_is_busy = execute_one_step(inst);
 
     // 2. dispatch event for observing / stopped coroutines
-    bool event_is_busy = dispatch_event(inst);
+    event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
     if (step_is_busy || event_is_busy) {
         pcintr_update_timestamp(inst);
-        goto out;
+        goto again;
     }
 
     // 5. broadcast idle event
@@ -551,8 +658,6 @@ pcintr_schedule(void *ctxt)
 out_sleep:
     pcutils_usleep(SCHEDULE_SLEEP);
 
-out:
-    i++;
     return;
 }
 
@@ -581,7 +686,7 @@ int pcintr_yield(
         return -1;
     }
 
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
+    pcintr_stop_coroutine(co, NULL);
     return 0;
 }
 
@@ -595,6 +700,8 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
+
+    pcintr_resume_coroutine(co);
 
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
     pcintr_check_after_execution_full(pcinst_current(), co);
@@ -704,19 +811,49 @@ out:
 void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
         const struct timespec *timeout)
 {
-    UNUSED_PARAM(crtn);
-    UNUSED_PARAM(timeout);
+    pcintr_coroutine_set_state(crtn, CO_STATE_STOPPED);
 
-    // TODO
-    PC_WARN("pcintr_stop_coroutine() called but not implemented\n");
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->stopped_crtns);
+
+    if (timeout) {
+        time_t curr = pcintr_monotonic_time_ms();
+        crtn->stopped_timeout = curr + timespec_to_ms(timeout);
+    }
+    else {
+        crtn->stopped_timeout = -1;
+    }
+    if (crtn->stopped_timeout != -1) {
+        if (pcutils_sorted_array_add(heap->wait_timeout_crtns,
+                    (void *)(uintptr_t)crtn->stopped_timeout, crtn) < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        }
+    }
+
 }
 
 /* resume the specific coroutine */
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
 {
-    UNUSED_PARAM(crtn);
+    pcintr_coroutine_set_state(crtn, CO_STATE_READY);
 
-    // TODO
-    PC_WARN("pcintr_resume_coroutine() called but not implemented\n");
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->crtns);
+
+    if (crtn->stopped_timeout != -1) {
+        size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+        for (size_t i = 0; i < nr; i++) {
+            pcintr_coroutine_t co;
+            pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+            if (co == crtn) {
+                pcutils_sorted_array_delete(heap->wait_timeout_crtns, i);
+                break;
+            }
+        }
+    }
+
+    crtn->stopped_timeout = -1;
 }
 

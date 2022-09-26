@@ -193,8 +193,8 @@ static void shutdown_instance(purc_atom_t requester,
         inst->intr_heap->keep_alive = 0;
     }
 
-    if (inst->intr_heap->keep_alive == 0 &&
-            pcutils_rbtree_first(&inst->intr_heap->coroutines) == NULL) {
+    if (inst->intr_heap->keep_alive == 0 && list_empty(&inst->intr_heap->crtns)
+            && list_empty(&inst->intr_heap->stopped_crtns)) {
         purc_runloop_stop(inst->running_loop);
     }
 

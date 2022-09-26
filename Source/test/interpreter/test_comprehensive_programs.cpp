@@ -328,4 +328,8 @@ TEST(comp_hvml, call)
     go_test("comp/2*.hvml");
 }
 
+TEST(comp_hvml, again)
+{
+    go_test("comp/3*.hvml");
+}
 

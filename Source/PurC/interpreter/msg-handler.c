@@ -302,24 +302,37 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
     pcintr_update_timestamp(inst);
 
     // add msg to coroutine message queue
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-
+    struct list_head *crtns;
+    pcintr_coroutine_t p, q;
     if (PURC_EVENT_TARGET_BROADCAST != msg_clone->targetValue) {
-        pcutils_rbtree_for_each_safe(first, p, n) {
-            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                    node);
+        crtns = &heap->crtns;
+        list_for_each_entry_safe(p, q, crtns, ln) {
+            pcintr_coroutine_t co = p;
+            if (co->cid == msg->targetValue) {
+                return pcinst_msg_queue_append(co->mq, msg_clone);
+            }
+        }
+
+        crtns = &heap->stopped_crtns;
+        list_for_each_entry_safe(p, q, crtns, ln) {
+            pcintr_coroutine_t co = p;
             if (co->cid == msg->targetValue) {
                 return pcinst_msg_queue_append(co->mq, msg_clone);
             }
         }
     }
     else {
-        pcutils_rbtree_for_each_safe(first, p, n) {
-            pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                    node);
+        crtns = &heap->crtns;
+        list_for_each_entry_safe(p, q, crtns, ln) {
+            pcintr_coroutine_t co = p;
+            pcrdr_msg *my_msg = pcrdr_clone_message(msg_clone);
+            my_msg->targetValue = co->cid;
+            pcinst_msg_queue_append(co->mq, my_msg);
+        }
 
+        crtns = &heap->stopped_crtns;
+        list_for_each_entry_safe(p, q, crtns, ln) {
+            pcintr_coroutine_t co = p;
             pcrdr_msg *my_msg = pcrdr_clone_message(msg_clone);
             my_msg->targetValue = co->cid;
             pcinst_msg_queue_append(co->mq, my_msg);
@@ -337,12 +350,23 @@ purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
+    struct list_head *crtns;
+    pcintr_coroutine_t p, q;
 
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        if (handle == co->target_dom_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (handle == co->target_dom_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
@@ -361,12 +385,23 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(&heap->coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
+    struct list_head *crtns;
+    pcintr_coroutine_t p, q;
 
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        if (handle == co->target_page_handle) {
+            if (pstack) {
+                *pstack = &(co->stack);
+            }
+            return co->stack.vdom;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (handle == co->target_page_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
