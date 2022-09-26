@@ -27,7 +27,6 @@
 #include "private/instance.h"
 #include "private/errors.h"
 #include "private/dvobjs.h"
-#include "private/atom-buckets.h"
 #include "purc-variant.h"
 
 #if HAVE(SYS_SYSMACROS_H)
