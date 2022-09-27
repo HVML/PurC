@@ -77,7 +77,7 @@
     <body id="sieve">
 
         <!-- this iteration will stop only if the the input channle was closed -->
-        <iterate with $REQ.in.recv() silently >
+        <iterate with $REQ.in.recv() silently must-yield>
             {{
                 $EJSON.isdivisible($0?, $REQ.prime)
                 ||
