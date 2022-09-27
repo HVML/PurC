@@ -55,7 +55,7 @@ struct pcchan {
     struct list_head recv_crtns;
 
     /* the buffer for variants. */
-    purc_variant_t  data[0];
+    purc_variant_t  *data;
 };
 
 typedef struct pcchan *pcchan_t;
