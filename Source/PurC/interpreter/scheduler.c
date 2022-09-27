@@ -420,8 +420,14 @@ execute_one_step(struct pcinst *inst)
 #if 1
         struct timespec begin;
         clock_gettime(CLOCK_MONOTONIC, &begin);
+        struct pcintr_stack_frame *frame;
         while (co->state == CO_STATE_READY) {
+            frame = pcintr_stack_get_bottom_frame(&co->stack);
+            bool must_yield = frame ? frame->must_yield : false;
             execute_one_step_for_ready_co(inst, co);
+            if (must_yield) {
+                break;
+            }
             double diff = purc_get_elapsed_seconds(&begin, NULL);
             if (diff > TIME_SLIECE) {
                 break;

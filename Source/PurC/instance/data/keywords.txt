@@ -51,6 +51,7 @@ hvml method
 hvml onto
 hvml silently
 hvml noreturn
+hvml must-yield
 
 # executor
 hvml FORMULA
