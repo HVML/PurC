@@ -204,6 +204,7 @@ struct pcintr_stack {
     uint32_t volatile             last_msg_read:1;
     /* uint32_t                   paused:1; */
     uint32_t                      observe_idle:1;
+    uint32_t                      terminated:1;
 
     // error or except info
     // valid only when except == 1

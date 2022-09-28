@@ -170,6 +170,7 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
     pcutils_map_entry* entry;
     entry = pcutils_map_find(heap->name_chan_map, chan->name);
     assert(entry);
+    UNUSED_VARIABLE(entry);
 
     if (new_cap == 0) {
         if (chan->refc == 0) {
