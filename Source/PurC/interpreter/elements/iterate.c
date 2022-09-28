@@ -140,7 +140,6 @@ set_attr_val(struct pcintr_stack_frame *frame, size_t idx, purc_variant_t val)
     purc_variant_t v = pcutils_array_get(frame->attrs_result, idx);
     PURC_VARIANT_SAFE_CLEAR(v);
 
-    fprintf(stderr, "######################### set idx=%ld|val=%p\n", idx, val);
     pcutils_array_set(frame->attrs_result, idx, val);
     if (val) {
         purc_variant_ref(val);
