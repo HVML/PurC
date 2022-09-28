@@ -83,7 +83,7 @@
         </archetype>
 
         <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number">$? </div>
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
         </archetype>
 
         <inherit>
@@ -142,7 +142,7 @@
     <body id="initialNumbers">
 
         <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number">$? </div>
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
         </archetype>
 
         <!-- open the channel -->
@@ -159,7 +159,7 @@
     <body id="sieve">
 
         <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number">$? </div>
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
         </archetype>
 
         <!-- this iteration will stop only if the the input channle was closed -->
