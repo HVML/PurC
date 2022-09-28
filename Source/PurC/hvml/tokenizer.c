@@ -401,7 +401,7 @@ bool pchvml_parser_is_external_lang(struct pchvml_parser* parser)
 {
     const char* name = tkz_buffer_get_bytes(parser->tag_name);
     if (strcasecmp(name, EXTERNAL_LANG_STYLE) == 0
-            || strcasecmp(name, EXTERNAL_LANG_JS) == 0) {
+            || strcasecmp(name, EXTERNAL_LANG_SCRIPT) == 0) {
         return true;
     }
     return false;
