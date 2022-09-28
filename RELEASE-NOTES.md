@@ -5,10 +5,10 @@
 
 ## Version 0.8.2
 
-On Sep. 04, 2022, HVML Community announces the availability of PurC 0.8.2,
+On Sep. 29, 2022, HVML Community announces the availability of PurC 0.8.2,
    which is also the second alpha release of PurC 1.0.x.
 
-For any bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
 
 ### What's new in version 0.8.2
 
@@ -44,7 +44,7 @@ On July 31, 2022, HVML Community announces the availability of PurC 0.8.0,
 This version implements almost all features defined by [HVML Specifiction V1.0],
       and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
 
-For any bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
 
 ### Known Bugs in Version 0.8.0
 
