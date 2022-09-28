@@ -162,6 +162,12 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     free(ctxt);
 }
 
+int
+pcvcm_eval_ctxt_error_code(struct pcvcm_eval_ctxt *ctxt)
+{
+    return ctxt ? ctxt->err : 0;
+}
+
 #define DUMP_BUF_SIZE           128
 #define MAX_LEVELS              1024
 #define INDENT_UNIT             2
@@ -263,16 +269,19 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 }
 
 int
-pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
+        int indent, bool ignore_prefix)
 {
     char buf[DUMP_BUF_SIZE];
     size_t len;
     struct list_head *stack = &ctxt->stack;
 
-    print_indent(rws, indent, NULL);
     char *s = get_jsonee(ctxt->node, &len);
-    snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
-    purc_rwstream_write(rws, buf, strlen(buf));
+    if (!ignore_prefix) {
+        print_indent(rws, indent, NULL);
+        snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
+        purc_rwstream_write(rws, buf, strlen(buf));
+    }
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
     free(s);
@@ -339,7 +348,7 @@ void
 pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
 {
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
-    pcvcm_dump_stack(ctxt, rws, 0);
+    pcvcm_dump_stack(ctxt, rws, 0, false);
 
     char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
     PLOG("\n%s\n", buf);

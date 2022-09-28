@@ -663,6 +663,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                         frame->silently);
                 set_attr_val(stack, frame, ctxt->on_attr_idx, val);
                 if (!val) {
+                    err = purc_get_last_error();
                     goto out;
                 }
 
@@ -688,6 +689,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                         frame->silently);
                 set_attr_val(stack, frame, ctxt->in_attr_idx, val);
                 if (!val) {
+                    err = purc_get_last_error();
                     goto out;
                 }
 
