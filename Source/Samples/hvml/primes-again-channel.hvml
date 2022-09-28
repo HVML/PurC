@@ -28,6 +28,7 @@
             .cntr__primes__filter__in {
                 display:flex;
                 flex-direction:column;
+                justify-content:center;
             }
             .cntr__primes__filter__content {
                 border-style: solid;
@@ -54,7 +55,7 @@
             ]
         </update>
 
-        <h3>primes again channel</h3>
+        <center><h2>Primes</h2></center>
         <div class="cntr">
             <div id="primes" class="cntr__primes">
             </div>
