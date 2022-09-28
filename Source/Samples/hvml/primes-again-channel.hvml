@@ -46,13 +46,32 @@
             }
         </style>
     </head>
-    <body id="main">
-        <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
+
+    <body>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 2000, "active" : "yes" },
+            ]
+        </update>
+
+        <h3>primes again channel</h3>
         <div class="cntr">
             <div id="primes" class="cntr__primes">
             </div>
         </div>
 
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <load from "#main" onto "_inherit" async />
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with $RUNNER.myObj.primes />
+        </observe>
+    </body>
+
+    <body id="main">
+        <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
         <archetype name="filter">
             <div id="filter$?" class="cntr__primes__filter">
                 <div id="fin$?" class="cntr__primes__filter__in">
@@ -117,13 +136,6 @@
                 $RUNNER.chan(! "$?", 0 )
             </inherit>
         </iterate>
-
-
-        <inherit>
-            $SYS.sleep(6);
-        </inherit>
-
-        <exit with $RUNNER.myObj.primes />
     </body>
 
     <!-- request: {chanName: <string: `the channel name`>, diff: <longint: `the difference`> } -->
@@ -137,7 +149,11 @@
         <init as chan with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
-        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff) nosetotail silently />
+        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff) nosetotail silently >
+            <inherit>
+                $SYS.sleep(1);
+            </inherit>
+        </iterate>
     </body>
 
     <body id="sieve">
