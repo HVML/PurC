@@ -29,7 +29,7 @@
 ### 1.1) Variants
 
 1. [0.9.2] Support for the new variant type: tuple.
-1. [0.9.5] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
+1. [0.9.4] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
@@ -41,7 +41,7 @@
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
 1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
-1. [0.9.1] Support line comments in CJSONEE.
+1. [0.9.2] Support line comments in CJSONEE.
 1. [0.9.2] Support for tuples.
 
 ### 1.3) Predefined Variables
@@ -67,6 +67,7 @@
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
 1. [0.9.0] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.0] Improve the data fetcher to generate the progress of fetching data.
 1. [0.9.0] Improve the function to get data from remote data fetcher:
    - The element `archetype`: support for `src`, `param`, and `method` attributes.
    - The element `archedata`: support for `src`, `param`, and `method` attributes.
@@ -74,7 +75,7 @@
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
-1. [0.9.1] Improve the implementation of the element `update`:
+1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
