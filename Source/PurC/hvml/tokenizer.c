@@ -50,6 +50,9 @@
 
 #define ERROR_BUF_SIZE  100
 
+#define EXTERNAL_LANG_STYLE     "style"
+#define EXTERNAL_LANG_SCRIPT    "script"
+
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
         PC_DEBUG(                                                           \
@@ -394,6 +397,17 @@ bool pchvml_parser_is_in_operation(struct pchvml_parser* parser)
 }
 
 static UNUSED_FUNCTION
+bool pchvml_parser_is_external_lang(struct pchvml_parser* parser)
+{
+    const char* name = tkz_buffer_get_bytes(parser->tag_name);
+    if (strcasecmp(name, EXTERNAL_LANG_STYLE) == 0
+            || strcasecmp(name, EXTERNAL_LANG_JS) == 0) {
+        return true;
+    }
+    return false;
+}
+
+static UNUSED_FUNCTION
 void pchvml_parser_save_tag_name(struct pchvml_parser* parser)
 {
     if (pchvml_token_is_type (parser->token, PCHVML_TOKEN_START_TAG)) {
@@ -723,8 +737,10 @@ BEGIN_STATE(TKZ_STATE_TAG_CONTENT)
     }
 
     bool operation = pchvml_parser_is_in_operation(parser);
+    bool external_lang = pchvml_parser_is_external_lang(parser);
+
     uint32_t dest_state = TKZ_STATE_CONTENT_JSONEE;
-    if (parser->tag_has_raw_attr && !operation) {
+    if ((parser->tag_has_raw_attr && !operation) || external_lang) {
         dest_state = TKZ_STATE_CONTENT_TEXT;
     }
 

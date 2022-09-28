@@ -1555,7 +1555,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     purc_variant_t result = pcintr_coroutine_get_result(co);
 
-    if (heap->cond_handler) {
+    if (heap->cond_handler && !stack->terminated) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
             result,
