@@ -66,15 +66,21 @@ struct ctxt_for_iterate {
     purc_variant_t                in;
 
     struct pcvdom_attr           *onlyif_attr;
+    size_t                        onlyif_attr_idx;
     struct pcvdom_attr           *while_attr;
+    size_t                        while_attr_idx;
     struct pcvdom_attr           *with_attr;
+    size_t                        with_attr_idx;
 
     struct pcvdom_attr           *rule_attr;
+    size_t                        rule_attr_idx;
+
 
     struct pcvdom_attr           *on_attr;
+    size_t                        on_attr_idx;
     struct pcvdom_attr           *in_attr;
+    size_t                        in_attr_idx;
     struct pcvcm_node            *content_vcm;
-
 
     purc_variant_t                evalued_rule;
     purc_variant_t                with;
@@ -89,6 +95,7 @@ struct ctxt_for_iterate {
     purc_variant_t                val_from_func;
     size_t                        sz;
     size_t                        idx_curr;
+
 
     unsigned int                  stop:1;
     unsigned int                  by_rule:1;
@@ -126,6 +133,20 @@ ctxt_destroy(void *ctxt)
     ctxt_for_iterate_destroy((struct ctxt_for_iterate*)ctxt);
 }
 
+
+static void
+set_attr_val(struct pcintr_stack_frame *frame, size_t idx, purc_variant_t val)
+{
+    purc_variant_t v = pcutils_array_get(frame->attrs_result, idx);
+    PURC_VARIANT_SAFE_CLEAR(v);
+
+    fprintf(stderr, "######################### set idx=%ld|val=%p\n", idx, val);
+    pcutils_array_set(frame->attrs_result, idx, val);
+    if (val) {
+        purc_variant_ref(val);
+    }
+}
+
 static bool
 check_stop(purc_variant_t val)
 {
@@ -160,6 +181,7 @@ first_iterate_without_executor(pcintr_coroutine_t co,
         if (ctxt->with_attr) {
             val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
                     frame->silently);
+            set_attr_val(frame, ctxt->with_attr_idx, val);
         }
         else {
             val = purc_variant_make_undefined();
@@ -203,6 +225,7 @@ rerun_iterate_without_executor(pcintr_coroutine_t co,
         if (ctxt->with_attr) {
             val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
                     frame->silently);
+            set_attr_val(frame, ctxt->with_attr_idx, val);
         }
         else {
             val = purc_variant_make_undefined();
@@ -548,6 +571,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name,
         struct pcvdom_attr *attr,
+        size_t idx,
         void *ud)
 {
     UNUSED_PARAM(ud);
@@ -560,34 +584,48 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         ctxt->on_attr = attr;
+        ctxt->on_attr_idx = idx;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
         ctxt->in_attr = attr;
+        ctxt->in_attr_idx = idx;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         ctxt->rule_attr = attr;
+        ctxt->rule_attr_idx = idx;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ONLYIF)) == name) {
+        ctxt->onlyif_attr_idx = idx;
         return process_attr_onlyif(frame, element, name, attr);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WHILE)) == name) {
+        ctxt->while_attr_idx = idx;
         return process_attr_while(frame, element, name, attr);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         ctxt->with_attr = attr;
+        ctxt->with_attr_idx = idx;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
         ctxt->nosetotail = 1;
+        purc_variant_t val = purc_variant_make_boolean(true);
+        pcutils_array_set(frame->attrs_result, idx, val);
         return 0;
     }
+
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
+        purc_variant_t val = purc_variant_make_boolean(true);
+        pcutils_array_set(frame->attrs_result, idx, val);
         return 0;
     }
+
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, MUST_YIELD)) == name) {
+        purc_variant_t val = purc_variant_make_boolean(true);
+        pcutils_array_set(frame->attrs_result, idx, val);
         return 0;
     }
 
@@ -622,6 +660,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
                 val = pcintr_eval_vcm(stack, ctxt->on_attr->val,
                         frame->silently);
+                set_attr_val(frame, ctxt->on_attr_idx, val);
                 if (!val) {
                     goto out;
                 }
@@ -646,6 +685,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 }
                 val = pcintr_eval_vcm(stack, ctxt->in_attr->val,
                         frame->silently);
+                set_attr_val(frame, ctxt->in_attr_idx, val);
                 if (!val) {
                     goto out;
                 }
@@ -690,6 +730,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     if (ctxt->with_attr) {
                         with = pcintr_eval_vcm(stack, ctxt->with_attr->val,
                                 frame->silently);
+                        set_attr_val(frame, ctxt->with_attr_idx, val);
                     }
                     else {
                         with = purc_variant_make_undefined();
@@ -710,6 +751,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     if (ctxt->rule_attr) {
                         val = pcintr_eval_vcm(stack, ctxt->rule_attr->val,
                                 frame->silently);
+                        set_attr_val(frame, ctxt->rule_attr_idx, val);
                     }
                     else {
                         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -757,6 +799,7 @@ before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
     purc_variant_t val = pcintr_eval_vcm(stack, ctxt->onlyif_attr->val,
             frame->silently);
+    set_attr_val(frame, ctxt->onlyif_attr_idx, val);
     if (!val) {
         return purc_get_last_error();
     }
@@ -879,13 +922,15 @@ eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
         if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
             val = pcintr_eval_vcm(stack, attr->val, frame->silently);
+            set_attr_val(frame, frame->eval_attr_pos, val);
             if (!val) {
                 goto out;
             }
             frame->elem_id = val;
             val = PURC_VARIANT_INVALID;
         }
-        err = attr_found_val(frame, frame->pos, name, attr, stack);
+        err = attr_found_val(frame, frame->pos, name, attr,
+                frame->eval_attr_pos, stack);
         if (err) {
             goto out;
         }
@@ -1028,6 +1073,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack,
     purc_variant_t val;
     if (ctxt->rule_attr) {
         val = pcintr_eval_vcm(stack, ctxt->rule_attr->val, frame->silently);
+        set_attr_val(frame, ctxt->rule_attr_idx, val);
     }
     else {
         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -1145,6 +1191,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
             if (ctxt->with_attr) {
                 val = pcintr_eval_vcm(stack, ctxt->with_attr->val,
                         frame->silently);
+                set_attr_val(frame, ctxt->with_attr_idx, val);
             }
             else {
                 val = purc_variant_make_undefined();
@@ -1168,6 +1215,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
             if (ctxt->while_attr) {
                 purc_variant_t val = pcintr_eval_vcm(stack,
                         ctxt->while_attr->val, frame->silently);
+                set_attr_val(frame, ctxt->while_attr_idx, val);
 
                 if (!val) {
                     goto out;

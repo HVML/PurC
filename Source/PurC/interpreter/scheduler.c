@@ -774,8 +774,23 @@ dump_stack_frame(pcintr_stack_t stack,
     snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
     purc_rwstream_write(stm, buf, strlen(buf));
 
-    if (stack->vcm_ctxt) {
-        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
+    if (frame->pos) {
+        pcutils_array_t *attrs = frame->pos->attrs;
+        struct pcvdom_attr *attr = NULL;
+        size_t nr_params = pcutils_array_length(attrs);
+        for (size_t i = 0; i < nr_params; i++) {
+            attr = pcutils_array_get(attrs, i);
+            purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
+            if (val) {
+                char *val_buf = pcvariant_to_string(val);
+                snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key, val_buf);
+                free(val_buf);
+            }
+            else {
+                snprintf(buf, DUMP_BUF_SIZE, "    %s:\n", attr->key);
+            }
+            purc_rwstream_write(stm, buf, strlen(buf));
+        }
     }
 
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
@@ -787,6 +802,11 @@ dump_stack_frame(pcintr_stack_t stack,
     else {
         snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
         purc_rwstream_write(stm, buf, strlen(buf));
+    }
+
+    /* vcm_ctxt only dump once */
+    if (stack->vcm_ctxt && level == 0) {
+        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
     }
 
     snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
