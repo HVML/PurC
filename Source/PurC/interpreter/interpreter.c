@@ -3347,6 +3347,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         switch (frame->eval_step) {
         case STACK_FRAME_EVAL_STEP_ATTR:
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
+                stack->vcm_eval_pos = frame->eval_attr_pos;
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
                 if (!attr->val) {
                     val = purc_variant_make_undefined();
@@ -3389,6 +3390,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
         case STACK_FRAME_EVAL_STEP_CONTENT:
             {
+                stack->vcm_eval_pos = -1;
                 struct pcvdom_node *node = &frame->pos->node;
                 node = pcvdom_node_first_child(node);
                 if (!node || node->type != PCVDOM_NODE_CONTENT) {

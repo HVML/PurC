@@ -222,6 +222,7 @@ struct pcintr_stack {
     char                         *body_id;
 
     struct pcvcm_eval_ctxt       *vcm_ctxt;
+    int                           vcm_eval_pos;         // -1 content, 0~n attr
     bool                          timeout;
 
     // for observe

@@ -135,11 +135,13 @@ ctxt_destroy(void *ctxt)
 
 
 static void
-set_attr_val(struct pcintr_stack_frame *frame, size_t idx, purc_variant_t val)
+set_attr_val(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        size_t idx, purc_variant_t val)
 {
     purc_variant_t v = pcutils_array_get(frame->attrs_result, idx);
     PURC_VARIANT_SAFE_CLEAR(v);
 
+    stack->vcm_eval_pos = idx;
     pcutils_array_set(frame->attrs_result, idx, val);
     if (val) {
         purc_variant_ref(val);
@@ -180,7 +182,7 @@ first_iterate_without_executor(pcintr_coroutine_t co,
         if (ctxt->with_attr) {
             val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
                     frame->silently);
-            set_attr_val(frame, ctxt->with_attr_idx, val);
+            set_attr_val(&co->stack, frame, ctxt->with_attr_idx, val);
         }
         else {
             val = purc_variant_make_undefined();
@@ -224,7 +226,7 @@ rerun_iterate_without_executor(pcintr_coroutine_t co,
         if (ctxt->with_attr) {
             val = pcintr_eval_vcm(&co->stack, ctxt->with_attr->val,
                     frame->silently);
-            set_attr_val(frame, ctxt->with_attr_idx, val);
+            set_attr_val(&co->stack, frame, ctxt->with_attr_idx, val);
         }
         else {
             val = purc_variant_make_undefined();
@@ -659,7 +661,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
                 val = pcintr_eval_vcm(stack, ctxt->on_attr->val,
                         frame->silently);
-                set_attr_val(frame, ctxt->on_attr_idx, val);
+                set_attr_val(stack, frame, ctxt->on_attr_idx, val);
                 if (!val) {
                     goto out;
                 }
@@ -684,7 +686,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 }
                 val = pcintr_eval_vcm(stack, ctxt->in_attr->val,
                         frame->silently);
-                set_attr_val(frame, ctxt->in_attr_idx, val);
+                set_attr_val(stack, frame, ctxt->in_attr_idx, val);
                 if (!val) {
                     goto out;
                 }
@@ -729,7 +731,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     if (ctxt->with_attr) {
                         with = pcintr_eval_vcm(stack, ctxt->with_attr->val,
                                 frame->silently);
-                        set_attr_val(frame, ctxt->with_attr_idx, val);
+                        set_attr_val(stack, frame, ctxt->with_attr_idx, val);
                     }
                     else {
                         with = purc_variant_make_undefined();
@@ -750,7 +752,7 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     if (ctxt->rule_attr) {
                         val = pcintr_eval_vcm(stack, ctxt->rule_attr->val,
                                 frame->silently);
-                        set_attr_val(frame, ctxt->rule_attr_idx, val);
+                        set_attr_val(stack, frame, ctxt->rule_attr_idx, val);
                     }
                     else {
                         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -798,7 +800,7 @@ before_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
     purc_variant_t val = pcintr_eval_vcm(stack, ctxt->onlyif_attr->val,
             frame->silently);
-    set_attr_val(frame, ctxt->onlyif_attr_idx, val);
+    set_attr_val(stack, frame, ctxt->onlyif_attr_idx, val);
     if (!val) {
         return purc_get_last_error();
     }
@@ -854,6 +856,7 @@ do_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
             if (ctxt->content_vcm) {
                 purc_variant_t val = pcintr_eval_vcm(stack,
                         ctxt->content_vcm, frame->silently);
+                stack->vcm_eval_pos = -1;
                 if (!val) {
                     err = purc_get_last_error();
                     goto out;
@@ -921,7 +924,7 @@ eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
         name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
         if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
             val = pcintr_eval_vcm(stack, attr->val, frame->silently);
-            set_attr_val(frame, frame->eval_attr_pos, val);
+            set_attr_val(stack, frame, frame->eval_attr_pos, val);
             if (!val) {
                 goto out;
             }
@@ -1072,7 +1075,7 @@ on_popping_internal_rule(struct ctxt_for_iterate *ctxt, pcintr_stack_t stack,
     purc_variant_t val;
     if (ctxt->rule_attr) {
         val = pcintr_eval_vcm(stack, ctxt->rule_attr->val, frame->silently);
-        set_attr_val(frame, ctxt->rule_attr_idx, val);
+        set_attr_val(stack, frame, ctxt->rule_attr_idx, val);
     }
     else {
         val = purc_variant_make_string_static(DEFAULT_RULE,
@@ -1190,7 +1193,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
             if (ctxt->with_attr) {
                 val = pcintr_eval_vcm(stack, ctxt->with_attr->val,
                         frame->silently);
-                set_attr_val(frame, ctxt->with_attr_idx, val);
+                set_attr_val(stack, frame, ctxt->with_attr_idx, val);
             }
             else {
                 val = purc_variant_make_undefined();
@@ -1214,7 +1217,7 @@ after_iterate_without_executor(pcintr_stack_t stack,
             if (ctxt->while_attr) {
                 purc_variant_t val = pcintr_eval_vcm(stack,
                         ctxt->while_attr->val, frame->silently);
-                set_attr_val(frame, ctxt->while_attr_idx, val);
+                set_attr_val(stack, frame, ctxt->while_attr_idx, val);
 
                 if (!val) {
                     goto out;
