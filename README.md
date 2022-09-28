@@ -257,10 +257,54 @@ This HVML program refers to an inexistent property (`foo`) of `$CRTN`.
 
 Run `purc` to execute this HVML program with `-b` option, it will report the executing stack:
 
-```bash
+```
 $ purc -b exception.hvml
+purc 0.8.2
+Copyright (C) 2022 FMSoft Technologies.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 
-...
+Executing HVML program from `file:///srv/devel/hvml/purc/build/exception.hvml`...
+
+The main coroutine terminated due to an uncaught exception: NoSuchKey.
+>> The document generated:
+
+>> The executing stack frame(s):
+#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$EJSON.arith( "+", $0<, 1 ) nosetotail>
+  ATTRIBUTES:
+    on: 0
+    onlyif: true
+    with: 1L
+  CONTENT: `NoSuckKey` raised when evaluating the experssion: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
+    Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+    Call stack:
+      #00: $CRTN.foo
+        Variant Creation Model: getElement(getVariable("CRTN"),"foo")
+      #01: "$0<) Hello, world! $CRTN.foo"
+        Variant Creation Model: concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo"))
+      #02: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
+        Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+  CONTEXT VARIABLES:
+    < 0
+    @ null
+    ! {}
+    : null
+    = null
+    % 0UL
+    ^ null
+#01: <hvml target="void">
+  ATTRIBUTES:
+    target: "void"
+  CONTENT: undefined
+  CONTEXT VARIABLES:
+    < null
+    @ null
+    ! {}
+    : null
+    = null
+    % 0UL
+    ^ null
 ```
 
 ### Run multiple HVML programs in parallel
