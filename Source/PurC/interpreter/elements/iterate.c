@@ -1226,6 +1226,10 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (frame->ctxt == NULL)
         return true;
 
+    if (stack->except) {
+        return true;
+    }
+
     struct ctxt_for_iterate *ctxt;
     ctxt = (struct ctxt_for_iterate*)frame->ctxt;
 
