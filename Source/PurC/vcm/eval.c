@@ -304,7 +304,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
         free(buf);
     }
 
-    int err = purc_get_last_error();
+    int err = ctxt->err;
     if (err) {
         print_indent(rws, indent, NULL);
         purc_atom_t except = purc_get_error_exception(err);
@@ -549,8 +549,8 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                         if (frame->step == STEP_EVAL_PARAMS) {
                             continue;
                         }
-                        int err = purc_get_last_error();
-                        if (err != 0) {
+                        ctxt->err = purc_get_last_error();
+                        if (ctxt->err != 0) {
                             goto out;
                         }
                         break;
@@ -584,9 +584,9 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     }
 
 out:
-    err = purc_get_last_error();
+    ctxt->err = purc_get_last_error();
     if ((result == PURC_VARIANT_INVALID) &&
-            (err != PURC_ERROR_AGAIN) &&
+            (ctxt->err != PURC_ERROR_AGAIN) &&
             (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) &&
             !has_fatal_error(err)) {
         result = purc_variant_make_undefined();
@@ -626,7 +626,6 @@ eval_vcm(struct pcvcm_node *tree,
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame;
-    int err;
 
     ctxt->find_var = find_var;
     ctxt->find_var_ctxt = find_var_ctxt;
@@ -653,8 +652,8 @@ eval_vcm(struct pcvcm_node *tree,
     do {
         size_t return_pos = frame->return_pos;
         result = eval_frame(ctxt, frame, return_pos);
-        err = purc_get_last_error();
-        if (!result || err) {
+        ctxt->err = purc_get_last_error();
+        if (!result || ctxt->err) {
             goto out;
         }
         pop_frame(ctxt);
@@ -685,11 +684,11 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
-    int err;
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_ctxt *ctxt = NULL;
     unsigned int enable_log = 0;
     const char *env_value;
+    int err;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
@@ -721,11 +720,14 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 out:
     err = purc_get_last_error();
     if (!result && silently) {
-        err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
             result = PURC_VARIANT_INVALID;
         }
         result = purc_variant_make_undefined();
+    }
+
+    if (ctxt) {
+        ctxt->err = err;
     }
 
     if (enable_log && ctxt) {
@@ -749,7 +751,7 @@ out:
     if (err && ctxt_out) {
         *ctxt_out = ctxt;
     }
-    else {
+    else if (ctxt) {
         pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;
@@ -763,7 +765,6 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     purc_variant_t result = PURC_VARIANT_INVALID;
     unsigned int enable_log = 0;
     const char *env_value;
-    int err;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
@@ -780,8 +781,9 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     ctxt->enable_log = enable_log;
 
     /* clear AGAIN error */
-    err = purc_get_last_error();
-    if (err == PURC_ERROR_AGAIN) {
+    ctxt->err = purc_get_last_error();
+    if (ctxt->err == PURC_ERROR_AGAIN) {
+        ctxt->err = 0;
         purc_clr_error();
     }
 
