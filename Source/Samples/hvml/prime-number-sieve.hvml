@@ -62,7 +62,7 @@
         <center><h2>Prime Number Sieve（素数筛）</h2></center>
         <div class="cntr">
             <div id="result" class="cntr__prime__numbers">
-                <div class="cntr__prime__numbers__number">Prime Numbers: </div>
+                <div class="cntr__prime__numbers__number">Prime numbers sieved out（筛出的素数）:  </div>
             </div>
             <div id="primes" class="cntr__primes">
             </div>
