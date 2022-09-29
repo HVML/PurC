@@ -1810,6 +1810,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
         stack->doc = purc_document_ref(parent->stack.doc);
+        stack->inherit = 1;
     }
     else if (doc_init(stack)) {
         goto fail_variables;
@@ -3214,12 +3215,12 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close)
+        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
-    if (new_elem) {
+    if (new_elem && sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
 
@@ -3228,7 +3229,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 pcdoc_text_node_t
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len)
+        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
 {
     pcdoc_text_node_t text_node;
 
@@ -3237,7 +3238,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
     // TODO: append/prepend textContent?
     pcintr_stack_t stack = pcintr_get_stack();
-    if (text_node && stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
                 elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
@@ -3249,7 +3250,8 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len, purc_variant_t data_type)
+        const char *content, size_t len, purc_variant_t data_type,
+        bool sync_to_rdr)
 {
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
@@ -3262,7 +3264,7 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (node.type != PCDOC_NODE_VOID &&
+    if (sync_to_rdr && node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
 
         unsigned opt = 0;
@@ -3299,13 +3301,14 @@ out:
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *name, const char *val, size_t len)
+        const char *name, const char *val, size_t len,
+        bool sync_to_rdr)
 {
     if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
         return -1;
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && stack && stack->co->target_page_handle) {
         char property[strlen(name) + 8];
         strcpy(property, "attr.");
         strcat(property, name);

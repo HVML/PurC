@@ -375,7 +375,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
     pcdoc_operation op = convert_operation(to);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
-                template_data_type);
+                template_data_type, true);
         if (t)
             free(t);
 
@@ -405,7 +405,7 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
         pcdoc_operation op = convert_operation(to);
         if (op != PCDOC_OP_UNKNOWN) {
             pcdoc_text_node_t node = pcintr_util_new_text_content(stack->doc,
-                    target, op, s, len);
+                    target, op, s, len, true);
             PC_ASSERT(node);
             return 0;
         }
@@ -455,7 +455,7 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
     int r;
     r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, s, sz);
+            PCDOC_OP_DISPLACE, at, s, sz, true);
     purc_variant_unref(v);
     return r ? -1 : 0;
 }
@@ -479,7 +479,7 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
     int r;
     r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, sv, 0);
+            PCDOC_OP_DISPLACE, at, sv, 0, true);
     PC_ASSERT(r == 0);
     free(sv);
 
