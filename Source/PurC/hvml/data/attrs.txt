@@ -95,7 +95,10 @@ within
     type: prep
 
 silently
-    type: prep
+    type: adverb
 
 noreturn
-    type: prep
+    type: adverb
+
+must-yield
+    type: adverb

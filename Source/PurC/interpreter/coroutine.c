@@ -217,16 +217,21 @@ pcintr_coroutine_t
 get_coroutine_by_id(struct pcinst *inst, purc_atom_t id)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
-        if (co->cid == id) {
-            return co;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        if (p->cid == id) {
+            return p;
         }
     }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        if (p->cid == id) {
+            return p;
+        }
+    }
+
     return NULL;
 }
 

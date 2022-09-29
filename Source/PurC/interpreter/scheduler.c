@@ -41,23 +41,50 @@
 
 #include <sys/time.h>
 
-#define SCHEDULE_SLEEP          10000           // usec
+#define SCHEDULE_SLEEP          10 * 1000       // usec
 #define IDLE_EVENT_TIMEOUT      100             // ms
+#define TIME_SLIECE             0.005           // s
 
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
 
+static inline time_t
+timespec_to_ms(const struct timespec *ts)
+{
+    return ts->tv_sec * 1000 + ts->tv_nsec * 1.0E-6;
+}
+
+static time_t
+pcintr_monotonic_time_ms()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return timespec_to_ms(&ts);
+}
+
 static void
 broadcast_idle_event(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        if (stack->observe_idle) {
+            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                    BUILTIN_VAR_CRTN);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                    hvml, MSG_TYPE_IDLE, NULL,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
             purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
@@ -74,12 +101,28 @@ static void
 handle_rdr_conn_lost(struct pcinst *inst)
 {
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
+                BUILTIN_VAR_CRTN);
+
+        stack->co->target_workspace_handle = 0;
+        stack->co->target_page_handle = 0;
+        stack->co->target_dom_handle = 0;
+
+        // broadcast rdrState:connLost;
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
                 BUILTIN_VAR_CRTN);
@@ -132,6 +175,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+        stack->terminated = 1;
         if (co->owner->cond_handler) {
             struct purc_cor_term_info term_info;
             term_info.except = stack->exception.error_except;
@@ -161,7 +205,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* send doc to rdr */
-    if (stack->co->stage == CO_STAGE_FIRST_RUN &&
+    if (!stack->inherit && stack->co->stage == CO_STAGE_FIRST_RUN &&
             !pcintr_rdr_page_control_load(stack))
     {
         PC_ASSERT(0); // TODO:
@@ -192,6 +236,10 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                     request_id,
                     MSG_TYPE_CORSTATE, MSG_SUB_TYPE_OBSERVING,
                     PURC_VARIANT_INVALID, request_id);
+            int err = purc_get_last_error();
+            if (err == PURC_ERROR_INVALID_VALUE) {
+                purc_clr_error();
+            }
             purc_variant_unref(request_id);
         }
     }
@@ -330,31 +378,68 @@ execute_one_step_for_ready_co(struct pcinst *inst, pcintr_coroutine_t co)
 static bool
 execute_one_step(struct pcinst *inst)
 {
-    struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
     bool busy = false;
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co = container_of(p, struct pcintr_coroutine,
-                node);
-        if (co->state == CO_STATE_STOPPED
-                && co->stopped_timeout.tv_sec != -1) {
-            struct timespec now;
-            clock_gettime(CLOCK_REALTIME, &now);
-            double diff = purc_get_elapsed_seconds(&co->stopped_timeout, &now);
-            if (diff > 0) {
-                co->state = CO_STATE_READY;
-                co->stack.timeout = true;
-            }
+    struct pcintr_heap *heap = inst->intr_heap;
+
+    pcintr_coroutine_t p, q;
+    pcintr_coroutine_t co;
+    struct list_head *crtns;
+
+    time_t now = pcintr_monotonic_time_ms();
+
+    pcutils_array_t *cos = pcutils_array_create();
+    if (!cos) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return false;
+    }
+
+    size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+    for (size_t i = 0; i < nr; i++) {
+        pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+        if (now < co->stopped_timeout) {
+            break;
         }
+        co->stack.timeout = true;
+        pcutils_array_push(cos, co);
+    }
+
+    nr = pcutils_array_length(cos);
+    for (size_t i = 0; i < nr; i++) {
+        co = pcutils_array_get(cos, i);
+        pcintr_resume_coroutine(co);
+    }
+    pcutils_array_destroy(cos, true);
+
+
+    crtns = &heap->crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         if (co->state != CO_STATE_READY) {
             continue;
         }
 
-        execute_one_step_for_ready_co(inst, co);
+#if 1
+        struct timespec begin;
+        clock_gettime(CLOCK_MONOTONIC, &begin);
+        struct pcintr_stack_frame *frame;
+        while (co->state == CO_STATE_READY) {
+            frame = pcintr_stack_get_bottom_frame(&co->stack);
+            bool must_yield = frame ? frame->must_yield : false;
+            execute_one_step_for_ready_co(inst, co);
+            if (must_yield) {
+                break;
+            }
+            double diff = purc_get_elapsed_seconds(&begin, NULL);
+            if (diff > TIME_SLIECE) {
+                break;
+            }
+        }
+#else
+            execute_one_step_for_ready_co(inst, co);
+#endif
         busy = true;
     }
+
     return busy;
 }
 
@@ -505,17 +590,22 @@ dispatch_event(struct pcinst *inst)
 {
     UNUSED_PARAM(inst);
 
+    struct timespec begin;
     bool is_busy = false;
+
+#if 1
+again:
+    is_busy = false;
+    clock_gettime(CLOCK_MONOTONIC, &begin);
+#endif
     check_and_dispatch_event_from_conn(inst);
 
     bool co_is_busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
-    struct rb_root *coroutines = &heap->coroutines;
-    struct rb_node *p, *n;
-    struct rb_node *first = pcutils_rbtree_first(coroutines);
-    pcutils_rbtree_for_each_safe(first, p, n) {
-        pcintr_coroutine_t co;
-        co = container_of(p, struct pcintr_coroutine, node);
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
         co_is_busy = handle_coroutine_event(co);
 
         if (co->stack.exited && co->stack.last_msg_read) {
@@ -527,13 +617,34 @@ dispatch_event(struct pcinst *inst)
         }
     }
 
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        co_is_busy = handle_coroutine_event(co);
+
+        if (co->stack.exited && co->stack.last_msg_read) {
+            pcintr_run_exiting_co(co);
+        }
+
+        if (co_is_busy) {
+            is_busy = true;
+        }
+    }
+
+#if 1
+    double diff = purc_get_elapsed_seconds(&begin, NULL);
+    if (diff < TIME_SLIECE && is_busy) {
+        goto again;
+    }
+#endif
     return is_busy;
 }
 
 void
 pcintr_schedule(void *ctxt)
 {
-    static int i = 0;
+    bool step_is_busy;
+    bool event_is_busy;
     struct pcinst *inst = (struct pcinst *)ctxt;
     if (!inst) {
         goto out_sleep;
@@ -544,18 +655,19 @@ pcintr_schedule(void *ctxt)
         goto out_sleep;
     }
 
+again:
 
     // 1. exec one step for all ready coroutines and
     // return whether step is busy
-    bool step_is_busy = execute_one_step(inst);
+    step_is_busy = execute_one_step(inst);
 
     // 2. dispatch event for observing / stopped coroutines
-    bool event_is_busy = dispatch_event(inst);
+    event_is_busy = dispatch_event(inst);
 
     // 3. its busy, goto next scheduler without sleep
     if (step_is_busy || event_is_busy) {
         pcintr_update_timestamp(inst);
-        goto out;
+        goto again;
     }
 
     // 5. broadcast idle event
@@ -568,8 +680,6 @@ pcintr_schedule(void *ctxt)
 out_sleep:
     pcutils_usleep(SCHEDULE_SLEEP);
 
-out:
-    i++;
     return;
 }
 
@@ -598,9 +708,7 @@ int pcintr_yield(
         return -1;
     }
 
-    pcintr_coroutine_set_state(co, CO_STATE_STOPPED);
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
+    pcintr_stop_coroutine(co, NULL);
     return 0;
 }
 
@@ -615,9 +723,9 @@ void pcintr_resume(pcintr_coroutine_t co, pcrdr_msg *msg)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
+    pcintr_resume_coroutine(co);
+
     pcintr_coroutine_set_state(co, CO_STATE_RUNNING);
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
     pcintr_check_after_execution_full(pcinst_current(), co);
 }
 
@@ -653,6 +761,8 @@ dump_stack_frame(pcintr_stack_t stack,
 {
     UNUSED_PARAM(stack);
     char buf[DUMP_BUF_SIZE];
+    /* vcm_ctxt only dump once */
+    bool dump_vcm_ctxt = (stack->vcm_ctxt && level == 0);
     pcvdom_element_t elem = frame->pos;
     if (!elem) {
         goto out;
@@ -662,24 +772,73 @@ dump_stack_frame(pcintr_stack_t stack,
     purc_rwstream_write(stm, buf, strlen(buf));
     pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
 
-    // TODO: dump the evaluated attributes or failed VCM node here
-    snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
-    purc_rwstream_write(stm, buf, strlen(buf));
+    if (frame->pos) {
+        snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
+        purc_rwstream_write(stm, buf, strlen(buf));
 
-    if (stack->vcm_ctxt) {
-        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
+        pcutils_array_t *attrs = frame->pos->attrs;
+        struct pcvdom_attr *attr = NULL;
+        size_t nr_params = pcutils_array_length(attrs);
+        for (size_t i = 0; i < nr_params; i++) {
+            attr = pcutils_array_get(attrs, i);
+            if (dump_vcm_ctxt && ((size_t)stack->vcm_eval_pos == i)) {
+                int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
+                purc_atom_t atom = purc_get_error_exception(err);
+                snprintf(buf, DUMP_BUF_SIZE,
+                        "    %s: `%s` raised when evaluating the experssion: ",
+                        attr->key, purc_atom_to_string(atom));
+                purc_rwstream_write(stm, buf, strlen(buf));
+                pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true);
+            }
+            else {
+                purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
+                if (val) {
+                    char *val_buf = pcvariant_to_string(val);
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key,
+                            val_buf);
+                    free(val_buf);
+                }
+                else {
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s: <not evaluated>\n",
+                            attr->key);
+                }
+                purc_rwstream_write(stm, buf, strlen(buf));
+            }
+
+        }
     }
 
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
     if (child && child->type == PCVDOM_NODE_CONTENT) {
-        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: ");
-        purc_rwstream_write(stm, buf, strlen(buf));
-        pcvdom_util_node_serialize_alone(child, serial_element, stm);
+        if (dump_vcm_ctxt && stack->vcm_eval_pos == -1) {
+            int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
+            purc_atom_t atom = purc_get_error_exception(err);
+            snprintf(buf, DUMP_BUF_SIZE,
+                    "  CONTENT: `%s` raised when evaluating the experssion: ",
+                    purc_atom_to_string(atom));
+            purc_rwstream_write(stm, buf, strlen(buf));
+            pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true);
+        }
+        else {
+            purc_variant_t val = pcintr_get_symbol_var(frame,
+                    PURC_SYMBOL_VAR_CARET);
+            if (val) {
+                char *val_buf = pcvariant_to_string(val);
+                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: %s\n", val_buf);
+                free(val_buf);
+            }
+            else {
+                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
+            }
+            purc_rwstream_write(stm, buf, strlen(buf));
+        }
     }
     else {
         snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
         purc_rwstream_write(stm, buf, strlen(buf));
     }
+
+
 
     snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
     purc_rwstream_write(stm, buf, strlen(buf));
@@ -726,22 +885,48 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
         const struct timespec *timeout)
 {
     pcintr_coroutine_set_state(crtn, CO_STATE_STOPPED);
+
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->stopped_crtns);
+
     if (timeout) {
-        clock_gettime(CLOCK_REALTIME, &crtn->stopped_timeout);
-        crtn->stopped_timeout.tv_sec += timeout->tv_sec;
-        crtn->stopped_timeout.tv_nsec += timeout->tv_nsec;
+        time_t curr = pcintr_monotonic_time_ms();
+        crtn->stopped_timeout = curr + timespec_to_ms(timeout);
     }
     else {
-        crtn->stopped_timeout.tv_sec = -1;
-        crtn->stopped_timeout.tv_nsec = -1;
+        crtn->stopped_timeout = -1;
     }
+    if (crtn->stopped_timeout != -1) {
+        if (pcutils_sorted_array_add(heap->wait_timeout_crtns,
+                    (void *)(uintptr_t)crtn->stopped_timeout, crtn) < 0) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        }
+    }
+
 }
 
 /* resume the specific coroutine */
 void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
 {
     pcintr_coroutine_set_state(crtn, CO_STATE_READY);
-    crtn->stopped_timeout.tv_sec = -1;
-    crtn->stopped_timeout.tv_nsec = -1;
+
+    list_del(&crtn->ln);
+    pcintr_heap_t heap = crtn->owner;
+    list_add_tail(&crtn->ln, &heap->crtns);
+
+    if (crtn->stopped_timeout != -1) {
+        size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
+        for (size_t i = 0; i < nr; i++) {
+            pcintr_coroutine_t co;
+            pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+            if (co == crtn) {
+                pcutils_sorted_array_delete(heap->wait_timeout_crtns, i);
+                break;
+            }
+        }
+    }
+
+    crtn->stopped_timeout = -1;
 }
 

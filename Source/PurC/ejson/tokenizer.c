@@ -2856,14 +2856,17 @@ BEGIN_STATE(EJSON_TKZ_STATE_HEXADECIMAL_CHARACTER_REFERENCE)
     if (is_ascii_digit(character)) {
         parser->char_ref_code *= 16;
         parser->char_ref_code += character - 0x30;
+        ADVANCE_TO(EJSON_TKZ_STATE_HEXADECIMAL_CHARACTER_REFERENCE);
     }
     if (is_ascii_upper_hex_digit(character)) {
         parser->char_ref_code *= 16;
         parser->char_ref_code += character - 0x37;
+        ADVANCE_TO(EJSON_TKZ_STATE_HEXADECIMAL_CHARACTER_REFERENCE);
     }
     if (is_ascii_lower_hex_digit(character)) {
         parser->char_ref_code *= 16;
         parser->char_ref_code += character - 0x57;
+        ADVANCE_TO(EJSON_TKZ_STATE_HEXADECIMAL_CHARACTER_REFERENCE);
     }
     if (character == ';') {
         ADVANCE_TO(EJSON_TKZ_STATE_NUMERIC_CHARACTER_REFERENCE_END);

@@ -273,6 +273,8 @@ TEST(vcm, again)
     err = purc_get_last_error();
     ASSERT_NE(err, PURC_ERROR_AGAIN);
 
+    pcvcm_eval_ctxt_destroy(ctxt);
+
     purc_variant_unref(v);
     purc_variant_unref(nv);
     purc_variant_ejson_parse_tree_destroy(tree);

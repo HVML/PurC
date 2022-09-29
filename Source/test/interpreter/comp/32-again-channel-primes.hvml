@@ -6,7 +6,7 @@
 
 -->
 
-<!DOCTYPE hvml>
+<!DOCTYPE hvml SYSTEM "v: MATH">
 <hvml target="void">
 
     <body id="main">
@@ -14,9 +14,14 @@
 
         <inherit>
             $RUNNER.user(! 'primes', [] )
+            $RUNNER.user(! 'chans', [] )
         </inherit>
 
         <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
+
+        <inherit>
+            $RUNNER.user(! 'begin', $SYS.time_us )
+        </inherit>
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } async />
 
@@ -26,6 +31,7 @@
             <choose on $chIn.recv() >
 
                 <update on $RUNNER.myObj.primes to "append" with $? />
+                <update on $RUNNER.myObj.chans to "append" with "filter$?" />
 
                 <!-- open a channel to filter the new prime -->
                 <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
@@ -38,8 +44,22 @@
 
         </iterate>
 
+        <inherit>
+            $RUNNER.user(! 'end', $SYS.time_us )
+        </inherit>
+
+        <inherit>
+            $STREAM.stdout.writelines("used: $MATH.sub($RUNNER.user.end, $RUNNER.user.begin)")
+        </inherit>
+
         <!-- close the channel named `natural` -->
         <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
+
+        <iterate on $RUNNER.myObj.chans >
+            <inherit>
+                $RUNNER.chan(! "$?", 0 )
+            </inherit>
+        </iterate>
 
         <exit with $RUNNER.myObj.primes />
     </body>
@@ -57,18 +77,13 @@
     <body id="sieve">
 
         <!-- this iteration will stop only if the the input channle was closed -->
-        <iterate with $REQ.in.recv() silently >
-            <test with $L.eq($EJSON.arith('%', $?, $REQ.prime), 0L) >
-                <differ>
-                    $REQ.out.send($2?)
-                </differ>
-            </test>
+        <iterate with $REQ.in.recv() silently must-yield>
+            {{
+                $EJSON.isdivisible($0?, $REQ.prime)
+                ||
+                $REQ.out.send($0?)
+            }}
         </iterate>
-
-        <!-- close the output channel -->
-        <inherit>
-            $RUNNER.chan(! "filter$REQ.prime", 0 )
-        </inherit>
     </body>
 </hvml>
 

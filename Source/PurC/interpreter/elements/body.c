@@ -208,7 +208,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (sz > 0) {
             pcdoc_text_node_t text_node;
             text_node = pcintr_util_new_text_content(frame->owner->doc,
-                    frame->edom_element, PCDOC_OP_APPEND, text, sz);
+                    frame->edom_element, PCDOC_OP_APPEND, text, sz,
+                    !stack->inherit);
             PC_ASSERT(text_node);
         }
     }
