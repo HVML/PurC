@@ -7,9 +7,18 @@
             .cntr {
                 display:flex;
                 flex-direction:column;
-                justify-content:center;
                 width:100vw;
                 height:100vh;
+            }
+            .cntr__prime__numbers {
+                display:flex;
+                flex-direction:row;
+                padding-bottom: 20px;
+            }
+            .cntr__prime__numbers__number {
+                padding-left: 10px;
+                flex-direction:column;
+                font-weight:bold;
             }
             .cntr__primes {
                 display:flex;
@@ -29,9 +38,9 @@
                 border-color: #100;
                 border-width: 1px;
                 width:50px;
-                height:450px;
+                height:700px;
                 flex-grow:1;
-                line-height:450px;
+                line-height:700px;
                 text-align:center;
                 font-weight:bold;
             }
@@ -52,6 +61,9 @@
 
         <center><h2>Prime Number Sieve（素数筛）</h2></center>
         <div class="cntr">
+            <div id="result" class="cntr__prime__numbers">
+                <div class="cntr__prime__numbers__number">Prime Numbers: </div>
+            </div>
             <div id="primes" class="cntr__primes">
             </div>
         </div>
@@ -81,6 +93,9 @@
         <archetype name="numberin">
             <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
         </archetype>
+        <archetype name="numberresult">
+            <div class="cntr__prime__numbers__number">$?</div>
+        </archetype>
 
         <inherit>
             $RUNNER.user(! 'primes', [] )
@@ -92,7 +107,7 @@
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
 
         <!-- iterate 10 times -->
-        <iterate on 0L onlyif $L.lt($0<, 8L) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 1) nosetotail >
 
             <choose on $chIn.recv() >
 
@@ -100,6 +115,7 @@
                 <update on $RUNNER.myObj.chans to "append" with "filter$?" />
                 <update on="#primes" to="append" with="$filter" />
                 <update on="#fin$?" to="append" with="$numberin" />
+                <update on="#result" to="append" with="$numberresult" />
 
                 <!-- open a channel to filter the new prime -->
                 <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
@@ -133,7 +149,7 @@
         <init as chan with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
-        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff)  while $L.le($0<, 20) nosetotail silently >
+        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff)  while $L.le($0<, 30) nosetotail silently >
             <inherit>
                 $SYS.sleep(0.5);
             </inherit>
