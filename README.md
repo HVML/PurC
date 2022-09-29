@@ -524,7 +524,7 @@ For an amazing HVML program which uses the multiple coroutines to sieve the prim
     you can run `hvml/prime-number-sieve.hvml`, which visually illustrates the prime number sieve algorithm:
 
 ```bash
-$ purc -p purcmc hvml/hvml/prime-number-sieve.hvml
+$ purc -p purcmc hvml/prime-number-sieve.hvml
 ```
 
 Here is the screenshot of `hvml/prime-number-sieve.hvml`:
