@@ -1046,8 +1046,33 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
-    if (!stack || stack->co->target_page_handle == 0
-            || stack->co->stage != CO_STAGE_OBSERVING) {
+    if (!stack) {
+        return NULL;
+    }
+
+    pcintr_coroutine_t co = stack->co;
+    if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
+        if (!co->stack.inherit) {
+            return NULL;
+        }
+
+        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
+        if (!parent || parent->stack.doc != co->stack.doc) {
+            return NULL;
+        }
+
+        if (parent->target_page_handle == 0
+                || parent->target_page_handle == 0) {
+            return NULL;
+        }
+
+        co->target_workspace_handle = parent->target_workspace_handle;
+        co->target_page_type = parent->target_page_type;
+        co->target_page_handle = parent->target_page_handle;
+        co->target_dom_handle = parent->target_dom_handle;
+    }
+
+    if (co->stage != CO_STAGE_OBSERVING && !co->stack.inherit) {
         return NULL;
     }
 
@@ -1105,8 +1130,33 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
-    if (!stack || stack->co->target_page_handle == 0
-            || stack->co->stage != CO_STAGE_OBSERVING) {
+    if (!stack) {
+        return NULL;
+    }
+
+    pcintr_coroutine_t co = stack->co;
+    if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
+        if (!co->stack.inherit) {
+            return NULL;
+        }
+
+        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
+        if (!parent || parent->stack.doc != co->stack.doc) {
+            return NULL;
+        }
+
+        if (parent->target_page_handle == 0
+                || parent->target_page_handle == 0) {
+            return NULL;
+        }
+
+        co->target_workspace_handle = parent->target_workspace_handle;
+        co->target_page_type = parent->target_page_type;
+        co->target_page_handle = parent->target_page_handle;
+        co->target_dom_handle = parent->target_dom_handle;
+    }
+
+    if (co->stage != CO_STAGE_OBSERVING && !co->stack.inherit) {
         return NULL;
     }
 
