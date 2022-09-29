@@ -1,0 +1,177 @@
+#!/usr/bin/purc
+
+# RESULT: [ 2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L, 29L ]
+
+<!-- The expected output of this HVML program should be like
+
+-->
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="html">
+    <head>
+        <style type="text/css">
+            .cntr {
+                display:flex;
+                flex-direction:column;
+                justify-content:center;
+                width:100vw;
+                height:100vh;
+            }
+            .cntr__primes {
+                display:flex;
+                flex-direction:row;
+            }
+            .cntr__primes__filter {
+                display:flex;
+                flex-direction:row;
+            }
+            .cntr__primes__filter__in {
+                display:flex;
+                flex-direction:column;
+                justify-content:center;
+            }
+            .cntr__primes__filter__content {
+                border-style: solid;
+                border-color: #100;
+                border-width: 1px;
+                width:50px;
+                height:450px;
+                flex-grow:1;
+                line-height:450px;
+                text-align:center;
+                font-weight:bold;
+            }
+            .cntr__primes__filter__in__number {
+                padding-left:5px;
+                flex-direction:column;
+            }
+        </style>
+    </head>
+
+    <body>
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 2000, "active" : "yes" },
+            ]
+        </update>
+
+        <center><h2>Primes</h2></center>
+        <div class="cntr">
+            <div id="primes" class="cntr__primes">
+            </div>
+        </div>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <load from "#main" onto "_inherit" async />
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with $RUNNER.myObj.primes />
+        </observe>
+    </body>
+
+    <body id="main">
+        <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
+        <archetype name="filter">
+            <div id="filter$?" class="cntr__primes__filter">
+                <div id="fin$?" class="cntr__primes__filter__in">
+                </div>
+                <div id="f$?"   class="cntr__primes__filter__content">
+                    $?
+                </div>
+            </div>
+        </archetype>
+
+        <archetype name="numberin">
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
+        </archetype>
+
+        <inherit>
+            $RUNNER.user(! 'primes', [] )
+            $RUNNER.user(! 'chans', [] )
+        </inherit>
+
+        <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
+
+        <inherit>
+            $RUNNER.user(! 'begin', $SYS.time_us )
+        </inherit>
+
+        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
+
+        <!-- iterate 10 times -->
+        <iterate on 0L onlyif $L.lt($0<, 8L) with $EJSON.arith('+', $0<, 1) nosetotail >
+
+            <choose on $chIn.recv() >
+
+                <update on $RUNNER.myObj.primes to "append" with $? />
+                <update on $RUNNER.myObj.chans to "append" with "filter$?" />
+                <update on="#primes" to="append" with="$filter" />
+                <update on="#fin$?" to="append" with="$numberin" />
+
+                <!-- open a channel to filter the new prime -->
+                <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
+
+                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "_inherit" async />
+
+                <!-- make the output channel to be the input channel -->
+                <init as chIn at "#main" with $chOut temp />
+            </choose>
+
+        </iterate>
+
+        <inherit>
+            $RUNNER.user(! 'end', $SYS.time_us )
+        </inherit>
+
+        <inherit>
+            $STREAM.stdout.writelines("used: $MATH.sub($RUNNER.user.end, $RUNNER.user.begin)")
+        </inherit>
+
+        <!-- close the channel named `natural` -->
+        <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
+
+        <iterate on $RUNNER.myObj.chans >
+            <inherit>
+                $RUNNER.chan(! "$?", 0 )
+            </inherit>
+        </iterate>
+    </body>
+
+    <!-- request: {chanName: <string: `the channel name`>, diff: <longint: `the difference`> } -->
+    <body id="initialNumbers">
+
+        <archetype name="numberin">
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
+        </archetype>
+
+        <!-- open the channel -->
+        <init as chan with $RUNNER.chan( $REQ.chanName ) />
+
+        <!-- this iteration will stop only if the the channle was closed -->
+        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff) nosetotail silently >
+            <inherit>
+                $SYS.sleep(1);
+            </inherit>
+        </iterate>
+    </body>
+
+    <body id="sieve">
+
+        <archetype name="numberin">
+            <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
+        </archetype>
+
+        <!-- this iteration will stop only if the the input channle was closed -->
+        <iterate with $REQ.in.recv() silently must-yield>
+            {{
+                $EJSON.isdivisible($0?, $REQ.prime)
+                ||
+                $REQ.out.send($0?)
+            }}
+            <update on="#fin$REQ.prime" to="append" with="$numberin" />
+        </iterate>
+    </body>
+</hvml>
+

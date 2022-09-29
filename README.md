@@ -56,9 +56,13 @@ For specifications and open source software related to HVML, please refer to the
 
 ## Building PurC
 
+Note that, if you are seeking the pre-built packages for platforms such as Ubuntu, Deepin, Homebrew, and MSYS2, you can refer to the following page:
+
+<https://hvml.fmsoft.cn/software>
+
 ### Prerequistes
 
-To build PurC, make sure that the following tools or libraries are available on your Linux or macOS system:
+To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. cmake
 1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
@@ -197,6 +201,112 @@ then run `hello.hvml` directly from the command line:
 $ ./hello.hvml
 ```
 
+### Run a HVML program with errors or exceptions
+
+Please save the following contents in a file named `error.hvml` in your working directory:
+
+```hvml
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    $STREAM.stdout.writelines('Hello, world!)
+
+</hvml>
+```
+
+Apparently, we forget the second single quote of `Hello, world!`.
+The interperter will exit with a nozero return value if you run `purc` without any options:
+
+```bash
+$ purc error.hvml
+$ echo $?
+1
+```
+
+You can run `purc` with the option `-b` for a verbose message:
+
+```bash
+$ purc -b error.hvml
+purc 0.8.2
+Copyright (C) 2022 FMSoft Technologies.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Failed to load HVML from file:///srv/devel/hvml/purc/build/error.hvml: pcejson unexpected eof parse error
+Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, character=0x0
+```
+
+This time, `purc` reported the error it encountered when it was parsing the HVML program: the wrong line and column.
+
+If you change the program to add the missing single quote, `purc` will be happy to execute the HVML program.
+
+For an uncaught runtime exception, `purc` will dump the executing stack.
+
+For an example, you can save the following program as `exception.hvml`:
+
+```hvml
+<!DOCTYPE hvml>
+<hvml target="void">
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+        $STREAM.stdout.writelines("$0<) Hello, world! $CRTN.foo")
+    </iterate>
+</hvml>
+```
+
+This HVML program refers to an inexistent property (`foo`) of `$CRTN`.
+
+Run `purc` to execute this HVML program with `-b` option, it will report the executing stack:
+
+```
+$ purc -b exception.hvml
+purc 0.8.2
+Copyright (C) 2022 FMSoft Technologies.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Executing HVML program from `file:///srv/devel/hvml/purc/build/exception.hvml`...
+
+The main coroutine terminated due to an uncaught exception: NoSuchKey.
+>> The document generated:
+
+>> The executing stack frame(s):
+#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$EJSON.arith( "+", $0<, 1 ) nosetotail>
+  ATTRIBUTES:
+    on: 0
+    onlyif: true
+    with: 1L
+  CONTENT: `NoSuckKey` raised when evaluating the experssion: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
+    Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+    Call stack:
+      #00: $CRTN.foo
+        Variant Creation Model: getElement(getVariable("CRTN"),"foo")
+      #01: "$0<) Hello, world! $CRTN.foo"
+        Variant Creation Model: concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo"))
+      #02: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
+        Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
+  CONTEXT VARIABLES:
+    < 0
+    @ null
+    ! {}
+    : null
+    = null
+    % 0UL
+    ^ null
+#01: <hvml target="void">
+  ATTRIBUTES:
+    target: "void"
+  CONTENT: undefined
+  CONTEXT VARIABLES:
+    < null
+    @ null
+    ! {}
+    : null
+    = null
+    % 0UL
+    ^ null
+```
+
 ### Run multiple HVML programs in parallel
 
 PurC can run multiple HVML programs as coroutines in parallel.
@@ -206,7 +316,7 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 ```hvml
 <!DOCTYPE hvml>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail must-yield >
         $STREAM.stdout.writelines(
                 $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
     </iterate>
@@ -307,7 +417,7 @@ $ purc -b hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.8.0
+purc 0.8.2
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -410,6 +520,17 @@ Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
 
 ![the Planetary Resonance](https://files.fmsoft.cn/hvml/screenshots/planetary-resonance.png)
 
+For an amazing HVML program which uses the multiple coroutines to sieve the prime numbers,
+    you can run `hvml/prime-number-sieve.hvml`, which visually illustrates the prime number sieve algorithm:
+
+```bash
+$ purc -p purcmc hvml/hvml/prime-number-sieve.hvml
+```
+
+Here is the screenshot of `hvml/prime-number-sieve.hvml`:
+
+![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
+
 
 ### Options for `purc`
 
@@ -417,7 +538,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.8.0) - a standalone HVML interpreter/debugger based-on PurC.
+purc (0.8.2) - a standalone HVML interpreter/debugger based-on PurC.
 
 Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejson ]
 
@@ -457,7 +578,7 @@ The following options can be supplied to the command:
   -l --parallel
         Execute multiple programs in parallel.
 
-  -s --verbose
+  -b --verbose
         Execute the program(s) with verbose output.
 
   -c --copying
@@ -589,7 +710,7 @@ Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detaile
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.8.1 of PurC.
+This project was launched in June. 2021. This is the version 0.8.2 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
 After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],

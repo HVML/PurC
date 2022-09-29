@@ -175,6 +175,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+        stack->terminated = 1;
         if (co->owner->cond_handler) {
             struct purc_cor_term_info term_info;
             term_info.except = stack->exception.error_except;
@@ -420,8 +421,14 @@ execute_one_step(struct pcinst *inst)
 #if 1
         struct timespec begin;
         clock_gettime(CLOCK_MONOTONIC, &begin);
+        struct pcintr_stack_frame *frame;
         while (co->state == CO_STATE_READY) {
+            frame = pcintr_stack_get_bottom_frame(&co->stack);
+            bool must_yield = frame ? frame->must_yield : false;
             execute_one_step_for_ready_co(inst, co);
+            if (must_yield) {
+                break;
+            }
             double diff = purc_get_elapsed_seconds(&begin, NULL);
             if (diff > TIME_SLIECE) {
                 break;
@@ -754,6 +761,8 @@ dump_stack_frame(pcintr_stack_t stack,
 {
     UNUSED_PARAM(stack);
     char buf[DUMP_BUF_SIZE];
+    /* vcm_ctxt only dump once */
+    bool dump_vcm_ctxt = (stack->vcm_ctxt && level == 0);
     pcvdom_element_t elem = frame->pos;
     if (!elem) {
         goto out;
@@ -763,24 +772,71 @@ dump_stack_frame(pcintr_stack_t stack,
     purc_rwstream_write(stm, buf, strlen(buf));
     pcvdom_util_node_serialize_alone(&elem->node, serial_element, stm);
 
-    // TODO: dump the evaluated attributes or failed VCM node here
-    snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
-    purc_rwstream_write(stm, buf, strlen(buf));
+    if (frame->pos) {
+        snprintf(buf, DUMP_BUF_SIZE, "  ATTRIBUTES:\n");
+        purc_rwstream_write(stm, buf, strlen(buf));
 
-    if (stack->vcm_ctxt) {
-        pcvcm_dump_stack(stack->vcm_ctxt, stm, 1);
+        pcutils_array_t *attrs = frame->pos->attrs;
+        struct pcvdom_attr *attr = NULL;
+        size_t nr_params = pcutils_array_length(attrs);
+        for (size_t i = 0; i < nr_params; i++) {
+            attr = pcutils_array_get(attrs, i);
+            if (dump_vcm_ctxt && ((size_t)stack->vcm_eval_pos == i)) {
+                int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
+                purc_atom_t atom = purc_get_error_exception(err);
+                snprintf(buf, DUMP_BUF_SIZE,
+                        "    %s: `%s` raised when evaluating the experssion: ",
+                        attr->key, purc_atom_to_string(atom));
+                purc_rwstream_write(stm, buf, strlen(buf));
+                pcvcm_dump_stack(stack->vcm_ctxt, stm, 2, true);
+            }
+            else {
+                purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
+                if (val) {
+                    char *val_buf = pcvariant_to_string(val);
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key, val_buf);
+                    free(val_buf);
+                }
+                else {
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s:\n", attr->key);
+                }
+                purc_rwstream_write(stm, buf, strlen(buf));
+            }
+
+        }
     }
 
     struct pcvdom_node *child = pcvdom_node_first_child(&elem->node);
     if (child && child->type == PCVDOM_NODE_CONTENT) {
-        snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: ");
-        purc_rwstream_write(stm, buf, strlen(buf));
-        pcvdom_util_node_serialize_alone(child, serial_element, stm);
+        if (dump_vcm_ctxt && stack->vcm_eval_pos == -1) {
+            int err = pcvcm_eval_ctxt_error_code(stack->vcm_ctxt);
+            purc_atom_t atom = purc_get_error_exception(err);
+            snprintf(buf, DUMP_BUF_SIZE,
+                    "  CONTENT: `%s` raised when evaluating the experssion: ",
+                    purc_atom_to_string(atom));
+            purc_rwstream_write(stm, buf, strlen(buf));
+            pcvcm_dump_stack(stack->vcm_ctxt, stm, 1, true);
+        }
+        else {
+            purc_variant_t val = pcintr_get_symbol_var(frame,
+                    PURC_SYMBOL_VAR_CARET);
+            if (val) {
+                char *val_buf = pcvariant_to_string(val);
+                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: %s\n", val_buf);
+                free(val_buf);
+            }
+            else {
+                snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
+            }
+            purc_rwstream_write(stm, buf, strlen(buf));
+        }
     }
     else {
         snprintf(buf, DUMP_BUF_SIZE, "  CONTENT: undefined\n");
         purc_rwstream_write(stm, buf, strlen(buf));
     }
+
+
 
     snprintf(buf, DUMP_BUF_SIZE, "  CONTEXT VARIABLES:\n");
     purc_rwstream_write(stm, buf, strlen(buf));

@@ -68,7 +68,7 @@ def gen_PURC_KEYWORD(idx, nr, first, prefix, kw):
         s = "/*=*/"
     else:
         s = "     "
-    return "    /* %*d */ %s PCHVML_KEYWORD_%s_%s" % (len(str(nr)), idx, s, prefix.upper(), kw.upper())
+    return "    /* %*d */ %s PCHVML_KEYWORD_%s_%s" % (len(str(nr)), idx, s, prefix.upper(), kw.upper().replace('-', '_'))
 
 def gen_pchvml_keyword(idx, nr, first, prefix, sz, kw):
     # generate cfgs:     { 0, "<KEYWORD>" }

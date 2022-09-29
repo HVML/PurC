@@ -11,14 +11,15 @@
 
 ### 0.2) Predefined Variables
 
-1. Support for the following URI schemas for `$STREAM`:
+1. [0.9.9] Support for the following URI schemas for `$STREAM`:
    - `fifo`
    - `tcp`
-1. Support for the following filters for `$STREAM`:
+1. [0.9.9] Support for the following filters for `$STREAM`:
    - `http`
    - `gzip`
    - `ssl`
    - `websocket`
+   - `mqtt`
    - `hibus`
 
 ### 0.3) Debugger
@@ -27,8 +28,8 @@
 
 ### 1.1) Variants
 
-1. [0.9.x] Support for the new variant type: tuple.
-1. [0.9.x] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
+1. [0.9.2] Support for the new variant type: tuple.
+1. [0.9.4] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
 
@@ -40,15 +41,15 @@
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
 1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
-1. [0.9.x] Support line comments in CJSONEE.
-1. [0.9.x] Support for tuples.
+1. [0.9.2] Support line comments in CJSONEE.
+1. [0.9.2] Support for tuples.
 
 ### 1.3) Predefined Variables
 
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
-1. [0.9.x] In the implementation of predefined variables, use the interfaces for linear container instead of array.
-1. [0.9.x] Complete the implementation of the following predefined variables:
+1. [0.9.2] In the implementation of predefined variables, use the interfaces for linear container instead of array.
+1. [0.9.9] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -56,34 +57,38 @@
 
 ### 1.4) eDOM
 
-1. [0.9.x] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
-1. [0.9.x] Optimize the implementation of the map from `id` and `class` to element.
+1. [0.9.2] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
+1. [0.9.2] Optimize the implementation of the map from `id` and `class` to element.
 1. [0.9.x] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 1.5) Interpreter
 
-1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
-1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
-1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
-1. [0.8.2; Resolved] Enhance `purc_coroutine_dump_stack` to show the specific failed position, e.g., a call to a getter or setter with arguments, when an uncaught exception raised.
-1. [0.9.x] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
-1. [0.9.x] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.x] Improve the implementation of the element `update`:
-   - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
-   - The value of the attribute `at` can be `content`.
-   - The support for the adverb attribute `individually`.
-   - The support for the attribute `type` of the element `archetype`.
-1. [0.9.x] Improve the function to get data from remote data fetcher:
+1. [0.9.0] Improve the implementation of the element `bind`:
+   - The support for the adverb attribute `constantly`.
+   - The support for the substituting expression.
+1. [0.9.0] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.0] Improve the data fetcher to generate the progress of fetching data.
+1. [0.9.0] Improve the function to get data from remote data fetcher:
    - The element `archetype`: support for `src`, `param`, and `method` attributes.
    - The element `archedata`: support for `src`, `param`, and `method` attributes.
    - The element `execpt`: support for `src`, `param`, and `method` attributes.
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
+1. [0.9.2] Improve the implementation of the element `update`:
+   - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
+   - The value of the attribute `at` can be `content`.
+   - The support for the adverb attribute `individually`.
+1. [0.9.2] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [1.0.0] Review the implementation of all elements.
 1. [1.0.0] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
+1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
+1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
+1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
+1. [0.8.2; Resolved] Enhance `purc_coroutine_dump_stack` to show the specific failed position, e.g., a call to a getter or setter with arguments, when an uncaught exception raised.
+1. [0.8.2; Resolved] The support for the attribute `type` of the element `archetype`.
 1. [0.8.1; Resolved] Support for `rdrState:connLost` event on `$CRTN`.
 1. [0.8.1; Resolved] Implement new APIs: `purc_coroutine_dump_stack`.
 1. [0.8.1; Resolved] Support for use of an element's identifier as the value of the `at` attribute in an `init` element.
@@ -111,7 +116,7 @@
 
 ### 1.9) Known Bugs
 
-1. [0.8.2] The condition handler will get `PUCR_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
+1. [0.8.2; Resolved] The condition handler will get `PURC_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2; Resolved] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.

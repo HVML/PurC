@@ -204,6 +204,7 @@ struct pcintr_stack {
     uint32_t volatile             last_msg_read:1;
     /* uint32_t                   paused:1; */
     uint32_t                      observe_idle:1;
+    uint32_t                      terminated:1;
 
     // error or except info
     // valid only when except == 1
@@ -221,6 +222,7 @@ struct pcintr_stack {
     char                         *body_id;
 
     struct pcvcm_eval_ctxt       *vcm_ctxt;
+    int                           vcm_eval_pos;         // -1 content, 0~n attr
     bool                          timeout;
 
     // for observe
@@ -432,6 +434,7 @@ struct pcintr_stack_frame {
     purc_variant_t    elem_id;
 
     unsigned int       silently:1;
+    unsigned int       must_yield:1;
 
     enum pcintr_stack_frame_eval_step eval_step;
     enum pcintr_element_step elem_step;

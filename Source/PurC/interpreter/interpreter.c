@@ -819,6 +819,7 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
 {
     frame->owner           = stack;
     frame->silently        = 0;
+    frame->must_yield      = 0;
 
     frame->except_templates = purc_variant_make_object_0();
     frame->error_templates  = purc_variant_make_object_0();
@@ -903,6 +904,8 @@ push_stack_frame_pseudo(pcintr_stack_t stack,
         child_frame->scope = NULL;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
+        child_frame->must_yield =
+            pcintr_is_element_must_yield(child_frame->pos) ?  1 : 0;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
@@ -1116,6 +1119,12 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_silently(element) : false;
+}
+
+bool
+pcintr_is_element_must_yield(struct pcvdom_element *element)
+{
+    return element ? pcvdom_element_is_must_yield(element) : false;
 }
 
 #ifndef NDEBUG                     /* { */
@@ -1361,6 +1370,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(element);
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
+        child_frame->must_yield = pcintr_is_element_must_yield(child_frame->pos) ?
+            1 : 0;
         child_frame->edom_element = edom_element;
         child_frame->scope = NULL;
 
@@ -1544,7 +1555,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     purc_variant_t result = pcintr_coroutine_get_result(co);
 
-    if (heap->cond_handler) {
+    if (heap->cond_handler && !stack->terminated) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
             result,
@@ -2727,6 +2738,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->scope = observer->scope;
     frame->pos = observer->pos;
     frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
+    frame->must_yield = pcintr_is_element_must_yield(frame->pos) ?  1 : 0;
     frame->edom_element = observer->edom_element;
 
     // eval value
@@ -3335,6 +3347,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         switch (frame->eval_step) {
         case STACK_FRAME_EVAL_STEP_ATTR:
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
+                stack->vcm_eval_pos = frame->eval_attr_pos;
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
                 if (!attr->val) {
                     val = purc_variant_make_undefined();
@@ -3377,6 +3390,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
         case STACK_FRAME_EVAL_STEP_CONTENT:
             {
+                stack->vcm_eval_pos = -1;
                 struct pcvdom_node *node = &frame->pos->node;
                 node = pcvdom_node_first_child(node);
                 if (!node || node->type != PCVDOM_NODE_CONTENT) {

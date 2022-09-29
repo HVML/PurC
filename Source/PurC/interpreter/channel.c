@@ -167,9 +167,11 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
     pcintr_heap_t heap = inst->intr_heap;
     assert(heap);
 
+#if 0 // redundant code
     pcutils_map_entry* entry;
     entry = pcutils_map_find(heap->name_chan_map, chan->name);
     assert(entry);
+#endif
 
     if (new_cap == 0) {
         if (chan->refc == 0) {
