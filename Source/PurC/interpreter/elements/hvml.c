@@ -73,8 +73,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     const char *sv = purc_variant_get_string_const(val);
     PC_ASSERT(sv);
 
+    pcintr_stack_t stack = (pcintr_stack_t) ud;
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TARGET)) == name) {
-        pcintr_stack_t stack = (pcintr_stack_t) ud;
         if (stack->co->target) {
             char *target = strdup(sv);
             if (!target) {
@@ -88,8 +88,11 @@ attr_found_val(struct pcintr_stack_frame *frame,
     else {
         /* VW: only set attributes other than `target` to
            the root element of eDOM */
+
+        /* inherit doc do not send */
         int r = pcintr_util_set_attribute(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
+                frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0,
+                !stack->inherit);
         PC_ASSERT(r == 0);
     }
 

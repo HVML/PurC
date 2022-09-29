@@ -158,6 +158,14 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     if (ctxt->result) {
         purc_variant_unref(ctxt->result);
     }
+
+    free(ctxt);
+}
+
+int
+pcvcm_eval_ctxt_error_code(struct pcvcm_eval_ctxt *ctxt)
+{
+    return ctxt ? ctxt->err : 0;
 }
 
 #define DUMP_BUF_SIZE           128
@@ -261,16 +269,19 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
 }
 
 int
-pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
+pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
+        int indent, bool ignore_prefix)
 {
     char buf[DUMP_BUF_SIZE];
     size_t len;
     struct list_head *stack = &ctxt->stack;
 
-    print_indent(rws, indent, NULL);
     char *s = get_jsonee(ctxt->node, &len);
-    snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
-    purc_rwstream_write(rws, buf, strlen(buf));
+    if (!ignore_prefix) {
+        print_indent(rws, indent, NULL);
+        snprintf(buf, DUMP_BUF_SIZE, "JSONEE: ");
+        purc_rwstream_write(rws, buf, strlen(buf));
+    }
     purc_rwstream_write(rws, s, len);
     purc_rwstream_write(rws, "\n", 1);
     free(s);
@@ -302,7 +313,7 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws, int indent)
         free(buf);
     }
 
-    int err = purc_get_last_error();
+    int err = ctxt->err;
     if (err) {
         print_indent(rws, indent, NULL);
         purc_atom_t except = purc_get_error_exception(err);
@@ -337,7 +348,7 @@ void
 pcvcm_print_stack(struct pcvcm_eval_ctxt *ctxt)
 {
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
-    pcvcm_dump_stack(ctxt, rws, 0);
+    pcvcm_dump_stack(ctxt, rws, 0, false);
 
     char* buf = (char*) purc_rwstream_get_mem_buffer(rws, NULL);
     PLOG("\n%s\n", buf);
@@ -520,9 +531,11 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     int ret = 0;
     int err = 0;
 
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
     }
+#endif
 
     while (frame->step != STEP_DONE) {
         switch (frame->step) {
@@ -536,13 +549,17 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
 
             case STEP_EVAL_PARAMS:
                 for (; frame->pos < frame->nr_params; frame->pos++) {
+                    purc_variant_t v = pcutils_array_get(frame->params_result, frame->pos);
+                    if (v) {
+                        continue;
+                    }
                     param = frame->ops->select_param(ctxt, frame, frame->pos);
                     if (!param) {
                         if (frame->step == STEP_EVAL_PARAMS) {
                             continue;
                         }
-                        int err = purc_get_last_error();
-                        if (err != 0) {
+                        ctxt->err = purc_get_last_error();
+                        if (ctxt->err != 0) {
                             goto out;
                         }
                         break;
@@ -576,17 +593,36 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
     }
 
 out:
-    err = purc_get_last_error();
+    ctxt->err = purc_get_last_error();
     if ((result == PURC_VARIANT_INVALID) &&
-            (err != PURC_ERROR_AGAIN) &&
+            (ctxt->err != PURC_ERROR_AGAIN) &&
             (ctxt->flags & PCVCM_EVAL_FLAG_SILENTLY) &&
             !has_fatal_error(err)) {
         result = purc_variant_make_undefined();
     }
     frame->node->attach = (uintptr_t)result;
 
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
+    }
+#endif
+
+    if (ctxt->enable_log && ctxt) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        size_t len;
+        char *s = get_jsonee(frame->node, &len);
+        if (result) {
+            char *buf = pcvariant_to_string(result);
+            PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
+            PLOG("ret=%s\n", buf);
+            free(buf);
+        }
+        else {
+            PLOG("co=%d|vcm=%s|frame=%p|pos=%ld|nr=%ld\n", co ? co->cid : 0, s, frame, frame->pos, frame->nr_params);
+            PLOG("ret=null\n");
+        }
+        free(s);
     }
     return result;
 }
@@ -599,7 +635,6 @@ eval_vcm(struct pcvcm_node *tree,
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_stack_frame *frame;
-    int err;
 
     ctxt->find_var = find_var;
     ctxt->find_var_ctxt = find_var_ctxt;
@@ -626,8 +661,8 @@ eval_vcm(struct pcvcm_node *tree,
     do {
         size_t return_pos = frame->return_pos;
         result = eval_frame(ctxt, frame, return_pos);
-        err = purc_get_last_error();
-        if (!result || err) {
+        ctxt->err = purc_get_last_error();
+        if (!result || ctxt->err) {
             goto out;
         }
         pop_frame(ctxt);
@@ -644,26 +679,33 @@ out:
         }
         ctxt->result = purc_variant_ref(result);
     }
+#if 0
     if (ctxt->enable_log) {
         pcvcm_print_stack(ctxt);
     }
+#endif
     return result;
 }
 
+static int i = 0;
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
-    int err;
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_ctxt *ctxt = NULL;
     unsigned int enable_log = 0;
     const char *env_value;
+    int err;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
                 pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
+    if (enable_log) {
+        PLOG("begin vcm\n");
     }
 
     purc_clr_error();
@@ -676,7 +718,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     ctxt = pcvcm_eval_ctxt_create();
     if (!ctxt) {
-        goto out_clear_ctxt;
+        goto out;
     }
     ctxt->enable_log = enable_log;
     ctxt->node = tree;
@@ -684,37 +726,42 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
             false, false);
 
-out_clear_ctxt:
-    if (ctxt) {
-        err = purc_get_last_error();
-        if (err && ctxt_out) {
-            *ctxt_out = ctxt;
-        }
-        else {
-            pcvcm_eval_ctxt_destroy(ctxt);
-        }
-    }
-
 out:
+    err = purc_get_last_error();
     if (!result && silently) {
-        err = purc_get_last_error();
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
             result = PURC_VARIANT_INVALID;
         }
         result = purc_variant_make_undefined();
     }
+
+    if (ctxt) {
+        ctxt->err = err;
+    }
+
     if (enable_log && ctxt) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
         size_t len;
         char *s = get_jsonee(ctxt->node, &len);
         if (result) {
             char *buf = pcvariant_to_string(result);
-            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=%s\n", buf);
             free(buf);
         }
         else {
-            PLOG("\nvcm=%s\nret=null\n", s);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=null\n");
         }
         free(s);
+        PLOG("end %d\n\n", i++);
+    }
+
+    if (err && ctxt_out) {
+        *ctxt_out = ctxt;
+    }
+    else if (ctxt) {
+        pcvcm_eval_ctxt_destroy(ctxt);
     }
     return result;
 }
@@ -727,11 +774,14 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     purc_variant_t result = PURC_VARIANT_INVALID;
     unsigned int enable_log = 0;
     const char *env_value;
-    int err;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
                 pcutils_strcasecmp(env_value, "true") == 0);
+    }
+
+    if (enable_log) {
+        PLOG("begin vcm again\n");
     }
 
     if (!ctxt) {
@@ -740,8 +790,9 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     ctxt->enable_log = enable_log;
 
     /* clear AGAIN error */
-    err = purc_get_last_error();
-    if (err == PURC_ERROR_AGAIN) {
+    ctxt->err = purc_get_last_error();
+    if (ctxt->err == PURC_ERROR_AGAIN) {
+        ctxt->err = 0;
         purc_clr_error();
     }
 
@@ -751,16 +802,20 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
 out:
     if (enable_log) {
         size_t len;
+        pcintr_coroutine_t co = pcintr_get_coroutine();
         char *s = get_jsonee(ctxt->node, &len);
         if (result) {
             char *buf = pcvariant_to_string(result);
-            PLOG("\nvcm=%s\nret=%s\n", s, buf);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=%s\n", buf);
             free(buf);
         }
         else {
-            PLOG("\nvcm=%s\nret=null\n", s);
+            PLOG("co=%d|vcm=%s\n", co ? co->cid : 0, s);
+            PLOG("ret=null|err=%s\n", purc_get_error_message(purc_get_last_error()));
         }
         free(s);
+        PLOG("end %d\n\n", i++);
     }
     return result;
 }

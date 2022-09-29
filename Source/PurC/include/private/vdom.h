@@ -223,6 +223,9 @@ pcvdom_element_find_attr(struct pcvdom_element *element, const char *key);
 bool
 pcvdom_element_is_silently(struct pcvdom_element *element);
 
+bool
+pcvdom_element_is_must_yield(struct pcvdom_element *element);
+
 struct pcvdom_element*
 pcvdom_content_parent(struct pcvdom_content *content);
 

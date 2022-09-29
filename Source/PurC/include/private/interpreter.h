@@ -39,6 +39,7 @@
 #include "private/list.h"
 #include "private/vdom.h"
 #include "private/timer.h"
+#include "private/sorted-array.h"
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 
@@ -114,11 +115,9 @@ struct pcintr_heap {
     // currently running coroutine
     pcintr_coroutine_t  running_coroutine;
 
-    // those running under and managed by this heap
-    // key as atom, val as struct pcintr_coroutine
-    struct rb_root      coroutines;
-
-    struct list_head    routines;       // struct pcintr_routine
+    struct list_head    crtns;
+    struct list_head    stopped_crtns;
+    struct sorted_array *wait_timeout_crtns;
 
     pcutils_map        *name_chan_map;  // name to channel map.
 
@@ -205,6 +204,8 @@ struct pcintr_stack {
     uint32_t volatile             last_msg_read:1;
     /* uint32_t                   paused:1; */
     uint32_t                      observe_idle:1;
+    uint32_t                      terminated:1;
+    uint32_t                      inherit:1;
 
     // error or except info
     // valid only when except == 1
@@ -222,6 +223,7 @@ struct pcintr_stack {
     char                         *body_id;
 
     struct pcvcm_eval_ctxt       *vcm_ctxt;
+    int                           vcm_eval_pos;         // -1 content, 0~n attr
     bool                          timeout;
 
     // for observe
@@ -286,6 +288,7 @@ struct pcintr_coroutine {
     purc_variant_t              doc_wrotten_len;
 
     struct rb_node              node;     /* heap::coroutines */
+    struct list_head            ln;       /* heap::crtns, stopped_crtns */
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
@@ -332,7 +335,7 @@ struct pcintr_coroutine {
 
     void                       *user_data;
     unsigned long               run_idx;
-    struct timespec             stopped_timeout;
+    time_t                      stopped_timeout;
 };
 
 enum purc_symbol_var {
@@ -432,6 +435,7 @@ struct pcintr_stack_frame {
     purc_variant_t    elem_id;
 
     unsigned int       silently:1;
+    unsigned int       must_yield:1;
 
     enum pcintr_stack_frame_eval_step eval_step;
     enum pcintr_element_step elem_step;
@@ -703,27 +707,28 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close);
+        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr);
 
 pcdoc_text_node_t
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len);
+        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr);
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len, purc_variant_t data_type);
+        const char *content, size_t len, purc_variant_t data_type,
+        bool sync_to_rdr);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *name, const char *val, size_t len);
+        const char *name, const char *val, size_t len, bool sync_to_rdr);
 
 static inline int pcintr_util_remove_attribute(purc_document_t doc,
-        pcdoc_element_t elem, const char *name)
+        pcdoc_element_t elem, const char *name, bool sync_to_rdr)
 {
     return pcintr_util_set_attribute(doc, elem, PCDOC_OP_ERASE,
-        name, NULL, 0);
+        name, NULL, 0, sync_to_rdr);
 }
 
 int

@@ -1347,12 +1347,21 @@ pcvdom_element_eval_attr_val(pcintr_stack_t stack, pcvdom_element_t element,
 
 #define SILENTLY_ATTR_NAME          "silently"
 #define SILENTLY_ATTR_FULL_NAME     "hvml:silently"
+#define MUST_YIELD_ATTR_NAME        "must-yield"
+#define MUST_YIELD_ATTR_FULL_NAME   "hvml:must-yield"
 
 bool
 pcvdom_element_is_silently(struct pcvdom_element *element)
 {
     return pcvdom_element_find_attr(element, SILENTLY_ATTR_NAME) ||
         pcvdom_element_find_attr(element, SILENTLY_ATTR_FULL_NAME);
+}
+
+bool
+pcvdom_element_is_must_yield(struct pcvdom_element *element)
+{
+    return pcvdom_element_find_attr(element, MUST_YIELD_ATTR_NAME) ||
+        pcvdom_element_find_attr(element, MUST_YIELD_ATTR_FULL_NAME);
 }
 
 static purc_variant_t
