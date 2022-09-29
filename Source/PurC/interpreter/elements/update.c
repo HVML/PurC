@@ -398,21 +398,30 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(with_eval);
 
+    pcdoc_operation op = convert_operation(to);
+    if (op == PCDOC_OP_UNKNOWN) {
+        return -1;
+    }
+
     if (purc_variant_is_string(src)) {
         size_t len;
         const char *s = purc_variant_get_string_const_ex(src, &len);
 
-        pcdoc_operation op = convert_operation(to);
-        if (op != PCDOC_OP_UNKNOWN) {
+        pcdoc_text_node_t node = pcintr_util_new_text_content(stack->doc,
+                target, op, s, len, true);
+        PC_ASSERT(node);
+        return 0;
+    }
+    else {
+        char *buf = NULL;
+        int total = purc_variant_stringify_alloc(&buf, src);
+        if (buf) {
             pcdoc_text_node_t node = pcintr_util_new_text_content(stack->doc,
-                    target, op, s, len, true);
+                    target, op, buf, total, true);
             PC_ASSERT(node);
+            free(buf);
             return 0;
         }
-
-        PC_DEBUGX("to: %s", to);
-        PC_ASSERT(0);
-        return -1;
     }
     PRINT_VARIANT(src);
     PC_ASSERT(0);
