@@ -60,6 +60,8 @@
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 #define ATTR_NAME_ID        "id"
+#define BUFF_MIN            1024
+#define BUFF_MAX            1024 * 1024 * 4
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -3262,10 +3264,35 @@ pcintr_util_new_content(purc_document_t doc,
     pcintr_stack_t stack = pcintr_get_stack();
     if (node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
+
+        unsigned opt = 0;
+        purc_rwstream_t out = NULL;
+        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (out == NULL) {
+            goto out;
+        }
+
+        opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+        opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+        opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+        opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+        opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
+        int sret = pcdoc_serialize_descendants_to_stream(doc, node.elem,
+        opt, out);
+        if (0 != sret) {
+            purc_rwstream_destroy(out);
+            goto out;
+        }
+
+        size_t sz_content = 0;
+        char *p = (char*)purc_rwstream_get_mem_buffer(out, &sz_content);
+
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, NULL, type, content, len);
+                elem, NULL, type, p, sz_content);
+        purc_rwstream_destroy(out);
     }
 
+out:
     return node;
 }
 
