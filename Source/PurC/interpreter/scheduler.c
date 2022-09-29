@@ -794,11 +794,13 @@ dump_stack_frame(pcintr_stack_t stack,
                 purc_variant_t val = pcutils_array_get(frame->attrs_result, i);
                 if (val) {
                     char *val_buf = pcvariant_to_string(val);
-                    snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key, val_buf);
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s: %s\n", attr->key,
+                            val_buf);
                     free(val_buf);
                 }
                 else {
-                    snprintf(buf, DUMP_BUF_SIZE, "    %s:\n", attr->key);
+                    snprintf(buf, DUMP_BUF_SIZE, "    %s: <not evaluated>\n",
+                            attr->key);
                 }
                 purc_rwstream_write(stm, buf, strlen(buf));
             }
