@@ -352,6 +352,7 @@ static int init_modules(struct pcinst *curr_inst,
 {
     curr_inst->modules = modules;
     curr_inst->modules_inited = 0;
+    int ret;
 
     curr_inst->max_conns                  = FETCHER_MAX_CONNS;
     curr_inst->cache_quota                = FETCHER_CACHE_QUOTA;
@@ -366,9 +367,8 @@ static int init_modules(struct pcinst *curr_inst,
             continue;
         if (m->init_instance == NULL)
             continue;
-        if (m->init_instance(curr_inst, extra_info)) {
-            abort();
-            return PURC_ERROR_OUT_OF_MEMORY;
+        if ((ret = m->init_instance(curr_inst, extra_info)) != 0) {
+            return ret;
         }
 
         curr_inst->modules_inited |= m->id;
