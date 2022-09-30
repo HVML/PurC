@@ -30,6 +30,7 @@ if (ENABLE_RDR_FOIL)
             "tty/"
             "strutil/"
     )
+
 endif ()
 
 PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
@@ -37,6 +38,12 @@ PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDEN
 list(APPEND purc_SOURCES
     purc.c
 )
+
+if (ENABLE_RDR_FOIL)
+    list(APPEND purc_SOURCES
+        foil.c
+    )
+endif ()
 
 set(purc_LIBRARIES
     PurC::PurC

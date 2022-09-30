@@ -241,5 +241,9 @@ typedef struct {
 
 extern mc_global_t mc_global;
 
+void mc_refresh (void);
+int vfs_timeouts (void);
+void vfs_timeout_handler (void);
+
 #endif  /* purc_purc_h */
 
