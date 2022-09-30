@@ -731,7 +731,7 @@ TEST(dvobjs, dvobjs_fs_chmod)
     purc_variant_unref(ret_var);
 
     // Number string param (octal)
-    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '754':\n");
+    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '0754':\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("0754", true);
     ret_var = func (NULL, 2, param, false);
@@ -742,9 +742,9 @@ TEST(dvobjs, dvobjs_fs_chmod)
     purc_variant_unref(ret_var);
 
     // Number string param (decimal)
-    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '754':\n");
+    printf ("TEST chmod: nr_args = 2, param[0] = file_path, param[1] = '492':\n");
     param[0] = purc_variant_make_string (file_path, true);
-    param[1] = purc_variant_make_string ("511", true);
+    param[1] = purc_variant_make_string ("492", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
@@ -808,9 +808,9 @@ TEST(dvobjs, dvobjs_fs_chown)
     ret_var = func (NULL, 0, param, false);
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
-
+/*
     // String param
-    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'sys':\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("sys", true);
     ret_var = func (NULL, 2, param, false);
@@ -830,7 +830,7 @@ TEST(dvobjs, dvobjs_fs_chown)
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
-
+*/
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -1373,8 +1373,9 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
+/*
     // String param
-    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'sys':\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("sys", true);
     ret_var = func (NULL, 2, param, false);
@@ -1394,7 +1395,7 @@ TEST(dvobjs, dvobjs_fs_lchgrp)
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
-
+*/
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -1453,8 +1454,9 @@ TEST(dvobjs, dvobjs_fs_lchown)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
+/*
     // String param
-    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'sys':\n");
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("sys", true);
     ret_var = func (NULL, 2, param, false);
@@ -1474,7 +1476,7 @@ TEST(dvobjs, dvobjs_fs_lchown)
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
-
+*/
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -2603,11 +2605,15 @@ TEST(dvobjs, dvobjs_fs_unlink)
     ASSERT_NE(func, nullptr);
 
     env = "DVOBJS_TEST_PATH";
-    char file_path[PATH_MAX + NAME_MAX + 1];
-    test_getpath_from_env_or_rel(file_path, sizeof(file_path),
+    char link_target[PATH_MAX + NAME_MAX + 1];
+    char unlink_path[PATH_MAX + NAME_MAX + 1];
+    test_getpath_from_env_or_rel(link_target, sizeof(link_target),
+        env, "test_files/link_target.test");
+    test_getpath_from_env_or_rel(unlink_path, sizeof(unlink_path),
         env, "test_files/unlink.test");
-    std::cerr << "env: " << env << "=" << file_path << std::endl;
+    std::cerr << "env: " << env << "=" << unlink_path << std::endl;
 
+    ASSERT_EQ (symlink(link_target, unlink_path), 0);
 
     printf ("TEST list_prt: nr_args = 0, param = NULL:\n");
     ret_var = func (NULL, 0, param, false);
@@ -2623,14 +2629,14 @@ TEST(dvobjs, dvobjs_fs_unlink)
 
 
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
-    param[0] = purc_variant_make_string (file_path, true);
+    param[0] = purc_variant_make_string (unlink_path, true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
-    if (access(file_path, F_OK | R_OK) == 0)  {
-        printf ("\tRemove file error!\n");
+    if (access(unlink_path, F_OK | R_OK) == 0)  {
+        printf ("\tUnlink error!\n");
     }
 
     purc_variant_unload_dvobj (fs);
