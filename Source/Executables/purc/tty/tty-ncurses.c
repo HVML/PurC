@@ -9,14 +9,14 @@
    Andrew Borodin <aborodin@vmail.ru>, 2009.
    Ilia Maslakov <il.smind@gmail.com>, 2009.
 
-   This file is part of the Midnight Commander.
+   This file is part of purc, an HVML interperter with CLI.
 
-   The Midnight Commander is free software: you can redistribute it
+   Purc is free software: you can redistribute it
    and/or modify it under the terms of the GNU General Public License as
    published by the Free Software Foundation, either version 3 of the License,
    or (at your option) any later version.
 
-   The Midnight Commander is distributed in the hope that it will be useful,
+   Purc is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
@@ -26,7 +26,7 @@
  */
 
 /** \file
- *  \brief Source: NCurses-based tty layer of Midnight-commander
+ *  \brief Source: NCurses-based tty layer of purc
  */
 
 #include "config.h"
