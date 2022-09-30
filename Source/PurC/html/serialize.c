@@ -394,10 +394,10 @@ html_serialize_element_cb(pcdom_element_t *element,
     }
 
     if (node_is_self_close(pcdom_interface_node(element))) {
-        html_serialize_send("/>", 2, ctx);
+        html_serialize_send(" />", 3, ctx);
     }
     else {
-        html_serialize_send("/", 1, ctx);
+        html_serialize_send(">", 1, ctx);
     }
 
     return PCHTML_STATUS_OK;
@@ -1262,7 +1262,7 @@ html_serialize_pretty_element_cb(pcdom_element_t *element,
     if (opt & PCHTML_HTML_SERIALIZE_OPT_WITH_HVML_HANDLE) {
         char buff[LEN_BUFF_LONGLONGINT];
         int n = snprintf(buff, sizeof(buff),
-                "%llx", (unsigned long long int)(uintptr_t)element);
+                "\"%llx\"", (unsigned long long int)(uintptr_t)element);
         if (n < 0) {
             return PCHTML_STATUS_ERROR;
         }
@@ -1275,7 +1275,7 @@ html_serialize_pretty_element_cb(pcdom_element_t *element,
     }
 
     if (node_is_self_close(node)) {
-        html_serialize_send("/>", 2, ctx);
+        html_serialize_send(" />", 3, ctx);
     }
     else {
         html_serialize_send(">", 1, ctx);

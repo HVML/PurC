@@ -496,6 +496,23 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
                 find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
                 source = purc_variant_make_native((void*)(uint64_t)p, NULL);
             }
+            else if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
+                find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
+                //xsm
+                size_t nr = strlen(element) + 1;
+                char *buf = (char*)malloc(nr + 1);
+                if (!buf) {
+                    goto out;
+                }
+
+                buf[0] = '#';
+                strcpy(buf+1, element);
+                source = purc_variant_make_string_reuse_buff(buf, nr, true);
+                if (!source) {
+                    free(buf);
+                    goto out;
+                }
+            }
         }
         break;
 
