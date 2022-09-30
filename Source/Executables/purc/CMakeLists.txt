@@ -4,23 +4,43 @@ include(target/PurC)
 # purc
 PURC_EXECUTABLE_DECLARE(purc)
 
+if (HAVE_GLIB)
+    list(APPEND purc_SYSTEM_INCLUDE_DIRECTORIES
+        ${GLIB_INCLUDE_DIRS}
+    )
+    list(APPEND purc_LIBRARIES
+        ${GLIB_LIBRARIES}
+        ${GLIB_GMODULE_LIBRARIES}
+    )
+endif ()
+
 list(APPEND purc_PRIVATE_INCLUDE_DIRECTORIES
+    "${CMAKE_CURRENT_SOURCE_DIR}"   # for config.h
+    "${CMAKE_BINARY_DIR}"           # for cmakeconfig
     "${FORWARDING_HEADERS_DIR}"
 )
 
 PURC_EXECUTABLE(purc)
 
-set(purc_SOURCES
-    purc.c
-)
+# TODO: List the directorires which do not contain any platform-dependent C source files
+set(purc_PLATFORM_INDEPENDENT_DIRS )
 
 if (ENABLE_RDR_FOIL)
-    list(APPEND purc_SOURCES
+    list(APPEND purc_PLATFORM_INDEPENDENT_DIRS
+            "tty/"
+            "strutil/"
     )
 endif ()
 
+PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
+
+list(APPEND purc_SOURCES
+    purc.c
+)
+
 set(purc_LIBRARIES
     PurC::PurC
+    Ncurses::Ncurses
     -lpthread
 )
 

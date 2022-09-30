@@ -6,7 +6,8 @@
  *
  * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
+ * This file is a part of purc, which is a HVML interpreter with
+ * a command line interface (CLI).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -17,8 +17,6 @@ list(APPEND PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${PURC_DIR}/fetchers/launcher"
     "${PURC_DIR}/fetchers/messages"
     "${PURC_DIR}/fetchers/messages/soup"
-
-    "${GLIB_INCLUDE_DIRS}"
 )
 
 list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
