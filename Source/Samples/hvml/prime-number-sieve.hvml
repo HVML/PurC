@@ -1,11 +1,5 @@
 #!/usr/bin/purc
 
-# RESULT: [ 2L, 3L, 5L, 7L, 11L, 13L, 17L, 19L, 23L, 29L ]
-
-<!-- The expected output of this HVML program should be like
-
--->
-
 <!DOCTYPE hvml SYSTEM "v: MATH">
 <hvml target="html">
     <head>
@@ -13,9 +7,18 @@
             .cntr {
                 display:flex;
                 flex-direction:column;
-                justify-content:center;
                 width:100vw;
                 height:100vh;
+            }
+            .cntr__prime__numbers {
+                display:flex;
+                flex-direction:row;
+                padding-bottom: 20px;
+            }
+            .cntr__prime__numbers__number {
+                padding-left: 10px;
+                flex-direction:column;
+                font-weight:bold;
             }
             .cntr__primes {
                 display:flex;
@@ -35,9 +38,9 @@
                 border-color: #100;
                 border-width: 1px;
                 width:50px;
-                height:450px;
+                height:700px;
                 flex-grow:1;
-                line-height:450px;
+                line-height:700px;
                 text-align:center;
                 font-weight:bold;
             }
@@ -46,17 +49,21 @@
                 flex-direction:column;
             }
         </style>
+        <title>Prime Number Sieve（素数筛）</title>
     </head>
 
     <body>
         <update on="$TIMERS" to="unite">
             [
-                { "id" : "clock", "interval" : 2000, "active" : "yes" },
+                { "id" : "clock", "interval" : 1000, "active" : "yes" },
             ]
         </update>
 
-        <center><h2>Primes</h2></center>
+        <center><h2>Prime Number Sieve（素数筛）</h2></center>
         <div class="cntr">
+            <div id="result" class="cntr__prime__numbers">
+                <div class="cntr__prime__numbers__number">Prime numbers sieved out（筛出的素数）:  </div>
+            </div>
             <div id="primes" class="cntr__primes">
             </div>
         </div>
@@ -67,7 +74,7 @@
         </observe>
 
         <observe on $CRTN for "rdrState:pageClosed">
-            <exit with $RUNNER.myObj.primes />
+            <exit/>
         </observe>
     </body>
 
@@ -86,6 +93,9 @@
         <archetype name="numberin">
             <div class="cntr__primes__filter__in__number">$? &#x2192;</div>
         </archetype>
+        <archetype name="numberresult">
+            <div class="cntr__prime__numbers__number">$?</div>
+        </archetype>
 
         <inherit>
             $RUNNER.user(! 'primes', [] )
@@ -94,14 +104,10 @@
 
         <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
-        <inherit>
-            $RUNNER.user(! 'begin', $SYS.time_us )
-        </inherit>
-
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
 
         <!-- iterate 10 times -->
-        <iterate on 0L onlyif $L.lt($0<, 8L) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, 10L) with $EJSON.arith('+', $0<, 1) nosetotail >
 
             <choose on $chIn.recv() >
 
@@ -109,6 +115,7 @@
                 <update on $RUNNER.myObj.chans to "append" with "filter$?" />
                 <update on="#primes" to="append" with="$filter" />
                 <update on="#fin$?" to="append" with="$numberin" />
+                <update on="#result" to="append" with="$numberresult" />
 
                 <!-- open a channel to filter the new prime -->
                 <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
@@ -120,14 +127,6 @@
             </choose>
 
         </iterate>
-
-        <inherit>
-            $RUNNER.user(! 'end', $SYS.time_us )
-        </inherit>
-
-        <inherit>
-            $STREAM.stdout.writelines("used: $MATH.sub($RUNNER.user.end, $RUNNER.user.begin)")
-        </inherit>
 
         <!-- close the channel named `natural` -->
         <init as chIn with $RUNNER.chan(! "natural", 0 ) temp />
@@ -150,9 +149,9 @@
         <init as chan with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
-        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff) nosetotail silently >
+        <iterate on 2L onlyif $chan.send($0<) with $EJSON.arith('+', $0<, $REQ.diff)  while $L.le($0<, 30) nosetotail silently >
             <inherit>
-                $SYS.sleep(1);
+                $SYS.sleep(0.5);
             </inherit>
         </iterate>
     </body>
@@ -165,12 +164,20 @@
 
         <!-- this iteration will stop only if the the input channle was closed -->
         <iterate with $REQ.in.recv() silently must-yield>
-            {{
-                $EJSON.isdivisible($0?, $REQ.prime)
-                ||
-                $REQ.out.send($0?)
-            }}
             <update on="#fin$REQ.prime" to="append" with="$numberin" />
+            <inherit>
+                $SYS.sleep(0.5);
+            </inherit>
+            <inherit>
+                {{
+                    $EJSON.isdivisible($?, $REQ.prime)
+                    ||
+                    $REQ.out.send($?)
+                }}
+            </inherit>
+            <inherit>
+                $SYS.sleep(0.5);
+            </inherit>
         </iterate>
     </body>
 </hvml>
