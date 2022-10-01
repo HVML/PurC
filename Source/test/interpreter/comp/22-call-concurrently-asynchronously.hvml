@@ -14,9 +14,9 @@
 
     <observe on $CRTN for "idle">
 
-        <choose on $SYS.time('%H:%m') >
+        <choose on $DATETIME.fmttime('%H:%M:%S') >
             <inherit>
-                $STREAM.stdout.writelines($EJSON.stringify($?))
+                $STREAM.stdout.writelines($?)
             </inherit>
         </choose>
     </observe>

@@ -59,7 +59,7 @@
 
 1. [0.9.2] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
 1. [0.9.2] Optimize the implementation of the map from `id` and `class` to element.
-1. [0.9.x] Support for the new target document type: `plain` and/or `markdown`.
+1. [Pending] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 1.5) Interpreter
 
@@ -75,15 +75,16 @@
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
+1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same DOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
 1. [0.9.2] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
-1. [1.0.0] Review the implementation of all elements.
-1. [1.0.0] The generation and handling mechanism of uncatchable errors:
+1. [Pending] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
+1. [1.0.0] Review the implementation of all elements.
 1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
