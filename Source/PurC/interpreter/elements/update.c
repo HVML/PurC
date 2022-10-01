@@ -375,7 +375,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
     pcdoc_operation op = convert_operation(to);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
-                template_data_type);
+                template_data_type, true);
         if (t)
             free(t);
 
@@ -398,21 +398,30 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(stack);
     UNUSED_PARAM(with_eval);
 
+    pcdoc_operation op = convert_operation(to);
+    if (op == PCDOC_OP_UNKNOWN) {
+        return -1;
+    }
+
     if (purc_variant_is_string(src)) {
         size_t len;
         const char *s = purc_variant_get_string_const_ex(src, &len);
 
-        pcdoc_operation op = convert_operation(to);
-        if (op != PCDOC_OP_UNKNOWN) {
+        pcdoc_text_node_t node = pcintr_util_new_text_content(stack->doc,
+                target, op, s, len, true);
+        PC_ASSERT(node);
+        return 0;
+    }
+    else {
+        char *buf = NULL;
+        int total = purc_variant_stringify_alloc(&buf, src);
+        if (buf) {
             pcdoc_text_node_t node = pcintr_util_new_text_content(stack->doc,
-                    target, op, s, len);
+                    target, op, buf, total, true);
             PC_ASSERT(node);
+            free(buf);
             return 0;
         }
-
-        PC_DEBUGX("to: %s", to);
-        PC_ASSERT(0);
-        return -1;
     }
     PRINT_VARIANT(src);
     PC_ASSERT(0);
@@ -455,7 +464,7 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
     int r;
     r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, s, sz);
+            PCDOC_OP_DISPLACE, at, s, sz, true);
     purc_variant_unref(v);
     return r ? -1 : 0;
 }
@@ -479,7 +488,7 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 
     int r;
     r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, sv, 0);
+            PCDOC_OP_DISPLACE, at, sv, 0, true);
     PC_ASSERT(r == 0);
     free(sv);
 

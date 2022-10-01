@@ -113,8 +113,10 @@ attr_found_val(struct pcintr_stack_frame *frame,
         goto done;
     }
 
+    pcintr_stack_t stack = pcintr_get_stack();
     int r = pcintr_util_set_attribute(frame->owner->doc,
-            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0);
+            frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0,
+            !stack->inherit);
     PC_ASSERT(r == 0);
 
     if (name) {
@@ -213,7 +215,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     child = pcintr_util_new_element(frame->owner->doc, frame->edom_element,
-            PCDOC_OP_APPEND, tag_name, frame->pos->self_closing);
+            PCDOC_OP_APPEND, tag_name, frame->pos->self_closing,
+            !stack->inherit);
     PC_ASSERT(child);
     frame->edom_element = child;
     int r;
@@ -329,7 +332,8 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         const char *text = purc_variant_get_string_const_ex(v, &sz);
         pcdoc_text_node_t content;
         content = pcintr_util_new_text_content(frame->owner->doc,
-                frame->edom_element, PCDOC_OP_APPEND, text, sz);
+                frame->edom_element, PCDOC_OP_APPEND, text, sz,
+                !stack->inherit);
         PC_ASSERT(content);
         purc_variant_unref(v);
     }
@@ -338,7 +342,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         PC_ASSERT(sv);
         pcintr_util_new_content(frame->owner->doc,
                 frame->edom_element, PCDOC_OP_APPEND, sv, 0,
-                PURC_VARIANT_INVALID);
+                PURC_VARIANT_INVALID, !stack->inherit);
         free(sv);
         purc_variant_unref(v);
     }

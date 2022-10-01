@@ -384,6 +384,8 @@ static pcdoc_node new_content(purc_document_t doc,
     pcdom_node_t *subtree = dom_parse_fragment(dom_doc, dom_elem,
             content, length ? length : strlen(content));
 
+    pcdom_node_t *dom_node = subtree->first_child->first_child;
+
     if (subtree) {
         dom_subtree_ops[op](dom_elem, subtree);
     }
@@ -392,7 +394,7 @@ static pcdoc_node new_content(purc_document_t doc,
     }
 
     node.type = PCDOC_NODE_ELEMENT;
-    node.elem = (pcdoc_element_t)doc;
+    node.elem = (pcdoc_element_t)dom_node;
 
 done:
     return node;

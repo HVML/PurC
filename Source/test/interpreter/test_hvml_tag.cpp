@@ -138,6 +138,10 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
         void *buf = purc_rwstream_get_mem_buffer(rws, &nr_buf);
         fprintf(stderr, "%s\n", (char*)buf);
         purc_rwstream_destroy(rws);
+        fprintf(stderr, "recv term co=%d\n", cor->cid);
+    }
+    else if (event == PURC_COND_COR_EXITED) {
+        fprintf(stderr, "recv exited co=%d\n", cor->cid);
     }
 
     return 0;

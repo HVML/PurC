@@ -77,12 +77,12 @@
     <body id="sieve">
 
         <!-- this iteration will stop only if the the input channle was closed -->
-        <iterate with $REQ.in.recv() silently >
-            <test with $L.eq($EJSON.arith('%', $?, $REQ.prime), 0L) >
-                <differ>
-                    $REQ.out.send($2?)
-                </differ>
-            </test>
+        <iterate with $REQ.in.recv() silently must-yield>
+            {{
+                $EJSON.isdivisible($0?, $REQ.prime)
+                ||
+                $REQ.out.send($0?)
+            }}
         </iterate>
     </body>
 </hvml>

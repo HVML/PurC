@@ -43,6 +43,7 @@ pcchan_destroy(pcchan_t chan)
                 chan->name, chan->qcount);
     }
 
+    free(chan->data);
     free(chan->name);
     free(chan);
 }
@@ -75,8 +76,8 @@ pcchan_open(const char *chan_name, unsigned int cap)
         }
         else {
             // reopen the existed channel
-            chan = realloc(chan, sizeof(*chan) + sizeof(purc_variant_t) * cap);
-            if (chan == NULL) {
+            chan->data = realloc(chan->data, sizeof(purc_variant_t) * cap);
+            if (chan->data == NULL) {
                 inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
                 return NULL;
             }
@@ -84,9 +85,16 @@ pcchan_open(const char *chan_name, unsigned int cap)
         }
     }
     else {
-        chan = calloc(1, sizeof(*chan) + sizeof(purc_variant_t) * cap);
+        chan = calloc(1, sizeof(*chan));
         if (chan == NULL) {
             inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+            return NULL;
+        }
+
+        chan->data = calloc(cap, sizeof(purc_variant_t));
+        if (chan->data == NULL) {
+            inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
+            free(chan);
             return NULL;
         }
 
@@ -159,9 +167,11 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
     pcintr_heap_t heap = inst->intr_heap;
     assert(heap);
 
+#if 0 // redundant code
     pcutils_map_entry* entry;
     entry = pcutils_map_find(heap->name_chan_map, chan->name);
     assert(entry);
+#endif
 
     if (new_cap == 0) {
         if (chan->refc == 0) {
@@ -173,27 +183,23 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
             discard_data(chan);
             assert(chan->qcount == 0);
 
-            chan = realloc(chan, sizeof(*chan));
             chan->qsize = 0;
             chan->qcount = 0;
             chan->recvx = 0;
             chan->sendx = 0;
-            entry->val = chan;
         }
     }
     else if (new_cap > chan->qcount) {
-        pcchan_t newchan = malloc(sizeof(*chan) +
-                sizeof(purc_variant_t) * new_cap);
-        if (newchan == NULL) {
+        purc_variant_t *newdata = malloc(sizeof(purc_variant_t) * new_cap);
+        if (newdata == NULL) {
             inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
             goto failed;
         }
 
         // copy channel fields and data
-        *newchan = *chan;
         unsigned int i = 0;
         while (chan->qcount > 0) {
-            newchan->data[i] = chan->data[chan->recvx];
+            newdata[i] = chan->data[chan->recvx];
             chan->recvx++;
             if (chan->recvx == chan->qsize)
                 chan->recvx = 0;
@@ -201,12 +207,12 @@ pcchan_ctrl(pcchan_t chan, unsigned int new_cap)
             i++;
         }
 
-        newchan->qsize = new_cap;
-        newchan->recvx = 0;
-        newchan->sendx = i;
+        chan->qsize = new_cap;
+        chan->recvx = 0;
+        chan->sendx = i;
 
-        free(chan);
-        entry->val = newchan;
+        free(chan->data);
+        chan->data = newdata;
     }
 
     return true;

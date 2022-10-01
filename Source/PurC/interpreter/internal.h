@@ -102,6 +102,9 @@ pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
 bool
 pcintr_is_element_silently(struct pcvdom_element *element);
 
+bool
+pcintr_is_element_must_yield(struct pcvdom_element *element);
+
 int
 pcintr_set_symbol_var(struct pcintr_stack_frame *frame,
         enum purc_symbol_var symbol, purc_variant_t val);

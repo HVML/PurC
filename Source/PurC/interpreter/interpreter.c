@@ -60,6 +60,8 @@
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 #define ATTR_NAME_ID        "id"
+#define BUFF_MIN            1024
+#define BUFF_MAX            1024 * 1024 * 4
 
 static void
 stack_frame_release(struct pcintr_stack_frame *frame)
@@ -502,6 +504,8 @@ static void _cleanup_instance(struct pcinst* inst)
         coroutine_destroy(pco);
     }
 
+    pcutils_sorted_array_destroy(heap->wait_timeout_crtns);
+
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
         PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
@@ -559,6 +563,8 @@ static int _init_instance(struct pcinst* inst,
 
     list_head_init(&heap->crtns);
     list_head_init(&heap->stopped_crtns);
+    heap->wait_timeout_crtns = pcutils_sorted_array_create(
+            SAFLAG_ORDER_ASC | SAFLAG_DUPLCATE_SORTV, 0, NULL, NULL);
 
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
@@ -815,6 +821,7 @@ init_stack_frame(pcintr_stack_t stack, struct pcintr_stack_frame* frame)
 {
     frame->owner           = stack;
     frame->silently        = 0;
+    frame->must_yield      = 0;
 
     frame->except_templates = purc_variant_make_object_0();
     frame->error_templates  = purc_variant_make_object_0();
@@ -899,6 +906,8 @@ push_stack_frame_pseudo(pcintr_stack_t stack,
         child_frame->scope = NULL;
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
+        child_frame->must_yield =
+            pcintr_is_element_must_yield(child_frame->pos) ?  1 : 0;
 
         child_frame->next_step = NEXT_STEP_AFTER_PUSHED;
 
@@ -1112,6 +1121,12 @@ bool
 pcintr_is_element_silently(struct pcvdom_element *element)
 {
     return element ? pcvdom_element_is_silently(element) : false;
+}
+
+bool
+pcintr_is_element_must_yield(struct pcvdom_element *element)
+{
+    return element ? pcvdom_element_is_must_yield(element) : false;
 }
 
 #ifndef NDEBUG                     /* { */
@@ -1357,6 +1372,8 @@ on_select_child(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         PC_ASSERT(element);
         child_frame->silently = pcintr_is_element_silently(child_frame->pos) ?
             1 : 0;
+        child_frame->must_yield = pcintr_is_element_must_yield(child_frame->pos) ?
+            1 : 0;
         child_frame->edom_element = edom_element;
         child_frame->scope = NULL;
 
@@ -1540,7 +1557,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     purc_variant_t result = pcintr_coroutine_get_result(co);
 
-    if (heap->cond_handler) {
+    if (heap->cond_handler && !stack->terminated) {
         /* TODO: pass real result here */
         struct purc_cor_exit_info info = {
             result,
@@ -1793,6 +1810,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
         stack->doc = purc_document_ref(parent->stack.doc);
+        stack->inherit = 1;
     }
     else if (doc_init(stack)) {
         goto fail_variables;
@@ -1819,8 +1837,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
                 (void *)(uintptr_t)co->cid);
     }
 
-    co->stopped_timeout.tv_sec = -1;
-    co->stopped_timeout.tv_nsec = -1;
+    co->stopped_timeout = -1;
 
     return co;
 
@@ -2724,6 +2741,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->scope = observer->scope;
     frame->pos = observer->pos;
     frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
+    frame->must_yield = pcintr_is_element_must_yield(frame->pos) ?  1 : 0;
     frame->edom_element = observer->edom_element;
 
     // eval value
@@ -3197,12 +3215,12 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close)
+        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
-    if (new_elem) {
+    if (new_elem && sync_to_rdr) {
         // TODO check stage and send message to rdr
     }
 
@@ -3211,7 +3229,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 pcdoc_text_node_t
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len)
+        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
 {
     pcdoc_text_node_t text_node;
 
@@ -3220,7 +3238,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
     // TODO: append/prepend textContent?
     pcintr_stack_t stack = pcintr_get_stack();
-    if (text_node && stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
                 elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
@@ -3232,7 +3250,8 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *content, size_t len, purc_variant_t data_type)
+        const char *content, size_t len, purc_variant_t data_type,
+        bool sync_to_rdr)
 {
     pcdoc_node node;
     node = pcdoc_element_new_content(doc, elem, op, content, len);
@@ -3245,25 +3264,51 @@ pcintr_util_new_content(purc_document_t doc,
     }
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (node.type != PCDOC_NODE_VOID &&
+    if (sync_to_rdr && node.type != PCDOC_NODE_VOID &&
             stack && stack->co->target_page_handle) {
+
+        unsigned opt = 0;
+        purc_rwstream_t out = NULL;
+        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (out == NULL) {
+            goto out;
+        }
+
+        opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+        opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+        opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+        opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+        opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
+        int sret = pcdoc_serialize_descendants_to_stream(doc, node.elem,
+        opt, out);
+        if (0 != sret) {
+            purc_rwstream_destroy(out);
+            goto out;
+        }
+
+        size_t sz_content = 0;
+        char *p = (char*)purc_rwstream_get_mem_buffer(out, &sz_content);
+
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, NULL, type, content, len);
+                elem, NULL, type, p, sz_content);
+        purc_rwstream_destroy(out);
     }
 
+out:
     return node;
 }
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation op,
-        const char *name, const char *val, size_t len)
+        const char *name, const char *val, size_t len,
+        bool sync_to_rdr)
 {
     if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
         return -1;
 
     pcintr_stack_t stack = pcintr_get_stack();
-    if (stack && stack->co->target_page_handle) {
+    if (sync_to_rdr && stack && stack->co->target_page_handle) {
         char property[strlen(name) + 8];
         strcpy(property, "attr.");
         strcat(property, name);
@@ -3332,6 +3377,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         switch (frame->eval_step) {
         case STACK_FRAME_EVAL_STEP_ATTR:
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
+                stack->vcm_eval_pos = frame->eval_attr_pos;
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
                 if (!attr->val) {
                     val = purc_variant_make_undefined();
@@ -3374,6 +3420,7 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
 
         case STACK_FRAME_EVAL_STEP_CONTENT:
             {
+                stack->vcm_eval_pos = -1;
                 struct pcvdom_node *node = &frame->pos->node;
                 node = pcvdom_node_first_child(node);
                 if (!node || node->type != PCVDOM_NODE_CONTENT) {
