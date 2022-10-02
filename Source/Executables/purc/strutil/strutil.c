@@ -31,7 +31,7 @@
 #include <errno.h>
 
 #include "foil.h"
-#include "util.h"           /* MC_PTR_FREE */
+#include "util/util.h"           /* MC_PTR_FREE */
 #include "strutil.h"
 
 /*** global variables ****************************************************************************/

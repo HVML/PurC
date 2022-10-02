@@ -41,7 +41,7 @@
 #endif
 
 #include "foil.h"
-#include "util.h"           /* is_printable() */
+#include "util/util.h"           /* is_printable() */
 #include "tty-internal.h"
 #include "tty.h"                /* tty_gotoyx, tty_print_char */
 #include "win.h"

@@ -42,7 +42,7 @@
 #include <termios.h>
 
 #include "foil.h"
-#include "strutil.h"        /* str_term_form */
+#include "strutil/strutil.h"        /* str_term_form */
 
 #ifndef WANT_TERM_H
 #define WANT_TERM_H

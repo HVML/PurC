@@ -29,6 +29,7 @@ if (ENABLE_RDR_FOIL)
     list(APPEND purc_PLATFORM_INDEPENDENT_DIRS
         "tty/"
         "strutil/"
+        "util/"
     )
 endif ()
 
@@ -69,6 +70,11 @@ if (ENABLE_RDR_FOIL)
     list(APPEND foil_SOURCES
         foil.c
     )
+
+    set_target_properties(foil PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
     PURC_COMPUTE_SOURCES(foil)
     PURC_FRAMEWORK(foil)
 endif ()

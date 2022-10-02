@@ -52,7 +52,7 @@
 #include <termios.h>
 
 #include "foil.h"
-#include "strutil.h"
+#include "strutil/strutil.h"
 
 #include "tty.h"
 #include "tty-internal.h"
