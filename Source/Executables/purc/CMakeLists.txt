@@ -43,6 +43,7 @@ if (ENABLE_RDR_FOIL)
     list(APPEND purc_SOURCES
         foil.c
         screen.c
+        endpoint.c
     )
 endif ()
 

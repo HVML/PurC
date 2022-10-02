@@ -32,9 +32,42 @@
 #include <sys/stat.h>        /* For mode constants */
 
 #include "foil.h"
+#include "endpoint.h"
 
-static void event_loop(void)
+static void init_renderer(Renderer *rdr)
 {
+    rdr->nr_endpoints = 0;
+    rdr->t_start = purc_get_monotoic_time();
+    rdr->t_elapsed = rdr->t_elapsed_last = 0;
+
+    kvlist_init(&rdr->endpoint_list, NULL);
+    avl_init(&rdr->living_avl, comp_living_time, true, NULL);
+}
+
+static void deinit_renderer(Renderer *rdr)
+{
+    const char* name;
+    void *next, *data;
+    Endpoint *endpoint;
+
+    remove_all_living_endpoints(&rdr->living_avl);
+
+    kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
+        endpoint = *(Endpoint **)data;
+
+        purc_log_info("Deleting endpoint: %s (%p) in deinit_server\n", name, endpoint);
+
+        del_endpoint(rdr, endpoint, CDE_EXITING);
+        kvlist_delete(&rdr->endpoint_list, name);
+        rdr->nr_endpoints--;
+    }
+
+    kvlist_free(&rdr->endpoint_list);
+}
+
+static void event_loop(Renderer *rdr)
+{
+    (void)rdr;
     size_t n;
     int ret;
 
@@ -82,6 +115,7 @@ static void event_loop(void)
                 purc_log_info("got a request message for %s from %s\n",
                         purc_variant_get_string_const(msg->requestId),
                         purc_variant_get_string_const(msg->sourceURI));
+
             }
             else if (msg->type == PCRDR_MSG_TYPE_RESPONSE) {
                 purc_log_info("got a response message for %s from %s\n",
@@ -124,7 +158,11 @@ static void* foil_thread_entry(void* arg)
     sem_post(sw);
 
     if (my_arg->rid) {
-        event_loop();
+        Renderer rdr;
+
+        init_renderer(&rdr);
+        event_loop(&rdr);
+        deinit_renderer(&rdr);
         purc_inst_destroy_move_buffer();
     }
 
