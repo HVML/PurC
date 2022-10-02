@@ -10,7 +10,7 @@
 #include <inttypes.h>           /* uintmax_t */
 #include <unistd.h>
 
-#include "foil.h"         /* include <glib.h> */
+#include "screen.h"         /* include <glib.h> */
 
 /*** typedefs(not structures) and defined constants **********************************************/
 

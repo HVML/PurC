@@ -41,7 +41,7 @@
 #endif
 #include <termios.h>
 
-#include "foil.h"
+#include "screen.h"
 #include "strutil/strutil.h"        /* str_term_form */
 
 #ifndef WANT_TERM_H
@@ -129,7 +129,7 @@ sigwinch_handler (int dummy)
  *
  * @returns TRUE if any part of area is in screen bounds, FALSE otherwise.
  */
-static bool
+static gboolean
 tty_clip (int *y, int *x, int *rows, int *cols)
 {
     if (*y < 0)
@@ -230,7 +230,7 @@ mc_tty_normalize_lines_char (const char *ch)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_init (bool mouse_enable, bool is_xterm)
+tty_init (gboolean mouse_enable, gboolean is_xterm)
 {
     struct termios mode;
 
@@ -398,17 +398,17 @@ tty_flush_input (void)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_keypad (bool set)
+tty_keypad (gboolean set)
 {
-    keypad (stdscr, (bool) set);
+    keypad (stdscr, (gboolean) set);
 }
 
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_nodelay (bool set)
+tty_nodelay (gboolean set)
 {
-    nodelay (stdscr, (bool) set);
+    nodelay (stdscr, (gboolean) set);
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -600,7 +600,7 @@ tty_colorize_area (int y, int x, int rows, int cols, int color)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_set_alt_charset (bool alt_charset)
+tty_set_alt_charset (gboolean alt_charset)
 {
     (void) alt_charset;
 }
@@ -608,7 +608,7 @@ tty_set_alt_charset (bool alt_charset)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_display_8bit (bool what)
+tty_display_8bit (gboolean what)
 {
     meta (stdscr, (int) what);
 }
@@ -666,7 +666,7 @@ tty_print_anychar (int c)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_print_alt_char (int c, bool single)
+tty_print_alt_char (int c, gboolean single)
 {
     if (yx_in_screen (mc_curs_row, mc_curs_col))
     {

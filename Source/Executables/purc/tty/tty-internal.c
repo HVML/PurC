@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "foil.h"
+#include "screen.h"
 
 #include <glib-unix.h>
 

@@ -25,7 +25,7 @@
 
 #include <config.h>
 
-#include "foil.h"
+#include "screen.h"
 #include "strutil.h"
 
 /*** global variables ****************************************************************************/

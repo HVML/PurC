@@ -1,7 +1,7 @@
 #ifndef MC_STRUTIL_H
 #define MC_STRUTIL_H
 
-#include "foil.h"         /* include glib.h */
+#include "screen.h"         /* include glib.h */
 
 #include <sys/types.h>
 #include <inttypes.h>

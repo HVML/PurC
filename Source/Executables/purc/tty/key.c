@@ -49,7 +49,7 @@
 #include <unistd.h>
 #endif
 
-#include "foil.h"
+#include "screen.h"
 
 #include "tty.h"
 #include "tty-internal.h"       /* mouse_enabled */
@@ -88,12 +88,12 @@
 
 int mou_auto_repeat = 100;
 int double_click_speed = 250;
-bool old_esc_mode = TRUE;
+gboolean old_esc_mode = TRUE;
 /* timeout for old_esc_mode in usec */
 int old_esc_mode_timeout = 1000000;     /* settable via env */
-bool use_8th_bit_as_meta = FALSE;
+gboolean use_8th_bit_as_meta = FALSE;
 
-bool bracketed_pasting_in_progress = FALSE;
+gboolean bracketed_pasting_in_progress = FALSE;
 
 /* This table is a mapping between names and the constants we use
  * We use this to allow users to define alternate definitions for
@@ -620,7 +620,7 @@ check_selects (fd_set * select_set)
 /* If set timeout is set, then we wait 0.1 seconds, else, we block */
 
 static void
-try_channels (bool set_timeout)
+try_channels (gboolean set_timeout)
 {
     struct timeval time_out;
     static fd_set select_set;
@@ -736,7 +736,7 @@ getch_with_delay (void)
 /* --------------------------------------------------------------------------------------------- */
 
 static void
-xmouse_get_event (Gpm_Event * ev, bool extended)
+xmouse_get_event (Gpm_Event * ev, gboolean extended)
 {
     static struct timeval tv1 = { 0, 0 };       /* Force first click as single */
     static struct timeval tv2;
@@ -993,10 +993,10 @@ get_modifier (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
-static bool
+static gboolean
 push_char (int c)
 {
-    bool ret = FALSE;
+    gboolean ret = FALSE;
 
     if (seq_append == NULL)
         seq_append = seq_buffer;
@@ -1281,7 +1281,7 @@ lookup_keyname (const char *name, int *idx)
 
 /* --------------------------------------------------------------------------------------------- */
 
-static bool
+static gboolean
 lookup_keycode (const long code, int *idx)
 {
     if (code != 0)
@@ -1628,7 +1628,7 @@ lookup_key_by_code (const int keycode)
  * An error happens if SEQ is a beginning of an existing longer sequence.
  */
 
-bool
+gboolean
 define_sequence (int code, const char *seq, int action)
 {
     key_def *base;
@@ -1681,7 +1681,7 @@ define_sequence (int code, const char *seq, int action)
  * Check if we are idle, i.e. there are no pending keyboard or mouse
  * events.  Return 1 is idle, 0 is there are pending events.
  */
-bool
+gboolean
 is_idle (void)
 {
     int nfd;
@@ -1740,7 +1740,7 @@ get_key_code (int no_delay)
   pend_send:
     if (pending_keys != NULL)
     {
-        bool bad_seq;
+        gboolean bad_seq;
 
         c = *pending_keys++;
         while (c == ESC_CHAR)
@@ -1926,7 +1926,7 @@ get_key_code (int no_delay)
 /* Returns EV_NONE  if non-blocking or interrupt set and nothing was done */
 
 int
-tty_get_event (struct Gpm_Event *event, bool redo_event, bool block)
+tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
 {
     int c;
     int flag = 0;               /* Return value from select */
@@ -2118,7 +2118,7 @@ tty_get_event (struct Gpm_Event *event, bool redo_event, bool block)
                           || c == MCKEY_EXTENDED_MOUSE))
     {
         /* Mouse event. See tickets 2956 and 3954 for extended mode detection. */
-        bool extended = c == MCKEY_EXTENDED_MOUSE;
+        gboolean extended = c == MCKEY_EXTENDED_MOUSE;
 
 #ifdef KEY_MOUSE
         extended = extended || (c == KEY_MOUSE && xmouse_seq == NULL

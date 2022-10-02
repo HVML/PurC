@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "foil.h"
+#include "screen.h"
 
 #include "tty.h"
 #include "tty-internal.h"       /* mouse_enabled */
@@ -45,7 +45,7 @@
 /*** global variables ****************************************************************************/
 
 Mouse_Type use_mouse_p = MOUSE_NONE;
-bool mouse_enabled = FALSE;
+gboolean mouse_enabled = FALSE;
 int mouse_fd = -1;              /* for when gpm_fd changes to < 0 and the old one must be cleared from select_set */
 const char *xmouse_seq;
 const char *xmouse_extended_seq;

@@ -11,7 +11,7 @@
 #ifndef MC__TTY_H
 #define MC__TTY_H
 
-#include "foil.h"
+#include "screen.h"
 
 #ifdef HAVE_SLANG
 #include "tty-slang.h"
@@ -71,16 +71,16 @@ extern void tty_beep (void);
 
 /* {{{ Input }}} */
 
-extern bool tty_check_term (bool force_xterm);
-extern void tty_init (bool mouse_enable, bool is_xterm);
+extern gboolean tty_check_term (gboolean force_xterm);
+extern void tty_init (gboolean mouse_enable, gboolean is_xterm);
 extern void tty_shutdown (void);
 
 extern void tty_start_interrupt_key (void);
 extern void tty_enable_interrupt_key (void);
 extern void tty_disable_interrupt_key (void);
-extern bool tty_got_interrupt (void);
+extern gboolean tty_got_interrupt (void);
 
-extern bool tty_got_winch (void);
+extern gboolean tty_got_winch (void);
 extern void tty_flush_winch (void);
 
 extern void tty_reset_prog_mode (void);
@@ -92,8 +92,8 @@ extern void tty_noraw_mode (void);
 extern void tty_noecho (void);
 extern int tty_flush_input (void);
 
-extern void tty_keypad (bool set);
-extern void tty_nodelay (bool set);
+extern void tty_keypad (gboolean set);
+extern void tty_nodelay (gboolean set);
 extern int tty_baudrate (void);
 
 /* {{{ Output }}} */
@@ -110,22 +110,22 @@ extern void tty_touch_screen (void);
 extern void tty_gotoyx (int y, int x);
 extern void tty_getyx (int *py, int *px);
 
-extern void tty_set_alt_charset (bool alt_charset);
+extern void tty_set_alt_charset (gboolean alt_charset);
 
-extern void tty_display_8bit (bool what);
+extern void tty_display_8bit (gboolean what);
 extern void tty_print_char (int c);
-extern void tty_print_alt_char (int c, bool single);
+extern void tty_print_alt_char (int c, gboolean single);
 extern void tty_print_anychar (int c);
 extern void tty_print_string (const char *s);
 /* *INDENT-OFF* */
 extern void tty_printf (const char *s, ...) G_GNUC_PRINTF (1, 2);
 /* *INDENT-ON* */
 
-extern void tty_print_one_vline (bool single);
-extern void tty_print_one_hline (bool single);
+extern void tty_print_one_vline (gboolean single);
+extern void tty_print_one_hline (gboolean single);
 extern void tty_draw_hline (int y, int x, int ch, int len);
 extern void tty_draw_vline (int y, int x, int ch, int len);
-extern void tty_draw_box (int y, int x, int rows, int cols, bool single);
+extern void tty_draw_box (int y, int x, int rows, int cols, gboolean single);
 extern void tty_draw_box_shadow (int y, int x, int rows, int cols, int shadow_color);
 extern void tty_fill_region (int y, int x, int rows, int cols, unsigned char ch);
 

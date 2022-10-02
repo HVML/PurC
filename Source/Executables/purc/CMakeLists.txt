@@ -42,41 +42,8 @@ list(APPEND purc_SOURCES
 if (ENABLE_RDR_FOIL)
     list(APPEND purc_SOURCES
         foil.c
+        screen.c
     )
-
-    PURC_EXECUTABLE_DECLARE(foil)
-
-    if (HAVE_GLIB)
-        list(APPEND foil_SYSTEM_INCLUDE_DIRECTORIES
-            ${GLIB_INCLUDE_DIRS}
-        )
-        list(APPEND foil_LIBRARIES
-            ${GLIB_LIBRARIES}
-            ${GLIB_GMODULE_LIBRARIES}
-        )
-    endif ()
-
-    list(APPEND foil_PRIVATE_INCLUDE_DIRECTORIES
-        "${CMAKE_CURRENT_SOURCE_DIR}"   # for config.h
-        "${CMAKE_BINARY_DIR}"           # for cmakeconfig
-        "${FORWARDING_HEADERS_DIR}"
-    )
-
-    list(APPEND foil_PRIVATE_DEFINITIONS
-        "TEST_FOIL=1"
-    )
-
-    PURC_EXECUTABLE(foil)
-    list(APPEND foil_SOURCES
-        foil.c
-    )
-
-    set_target_properties(foil PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-    )
-
-    PURC_COMPUTE_SOURCES(foil)
-    PURC_FRAMEWORK(foil)
 endif ()
 
 set(purc_LIBRARIES
@@ -84,6 +51,10 @@ set(purc_LIBRARIES
     PurC::CSSEng
     Ncurses::Ncurses
     -lpthread
+)
+
+set_target_properties(purc PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
 PURC_COMPUTE_SOURCES(purc)

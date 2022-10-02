@@ -42,9 +42,6 @@ WTF_ATTRIBUTE_PRINTF(2, 0)
 int vasprintf(char **buf, const char *fmt, va_list ap);
 #endif
 
-unsigned int pcutils_sleep(unsigned int seconds);
-int pcutils_usleep(unsigned long long usec);
-
 /* Calculate the MD5 digest of a file by using the inode, size,
    last modification time, and so on. */
 bool pcutils_file_md5(const char *pathname, unsigned char *md5_buf, size_t *sz);

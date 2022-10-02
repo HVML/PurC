@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of purc, which is a HVML interpreter with
+ * This file is a part of purc, which is an HVML interpreter with
  * a command line interface (CLI).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 
 // #undef NDEBUG
 
-#include "purc/purc.h"
+#include <purc/purc.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +35,9 @@
 #include <limits.h>
 #include <assert.h>
 #include <unistd.h>
+
+#include "config.h"
+#include "foil.h"
 
 #define KEY_APP_NAME            "app"
 #define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
@@ -50,6 +53,7 @@
 
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
+#define DEF_RDR_URI_THREAD      ("//-/" RDR_FOIL_APP_NAME "/" RDR_FOIL_RUN_NAME)
 #define DEF_RDR_URI_PURCMC      ("unix://" PCRDR_PURCMC_US_PATH)
 
 #define KEY_FLAG_REQUEST        "request"
@@ -134,9 +138,10 @@ static void print_usage(FILE *fp)
         "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
-        "  -p --rdr-prot=< headless | purcmc >\n"
-        "        The renderer protocol; use `headless` (default) or `purcmc`.\n"
+        "  -p --rdr-prot=< headless | thread | purcmc >\n"
+        "        The renderer protocol; use `headless` (default), thread, or `purcmc`.\n"
         "            - `headless`: use the built-in HEADLESS renderer.\n"
+        "            - `thread`: use the built-in THREAD renderer.\n"
         "            - `purcmc`: use the remote PURCMC renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
@@ -144,6 +149,8 @@ static void print_usage(FILE *fp)
         "        The renderer uri:\n"
         "            - For the renderer protocol `headleass`,\n"
         "              default value is `file:///dev/null`.\n"
+        "            - For the renderer protocol `thread`,\n"
+        "              default value is `//-/" RDR_FOIL_APP_NAME "/" RDR_FOIL_RUN_NAME "`.\n"
         "            - For the renderer protocol `purcmc`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
@@ -1289,6 +1296,20 @@ int main(int argc, char** argv)
             opts->rdr_uri = strdup(DEF_RDR_URI_HEADLESS);
         }
 
+    }
+    else if (strcmp(opts->rdr_prot, "thread") == 0) {
+        opts->rdr_prot = "thread";
+
+        extra_info.renderer_prot = PURC_RDRPROT_THREAD;
+        if (opts->rdr_uri == NULL) {
+            opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
+        }
+
+        if (foil_init(opts->rdr_uri) == 0) {
+            fprintf(stdout, "Failed to initialize built-in thread renderer: %s\n",
+                    opts->rdr_prot);
+            return EXIT_FAILURE;
+        }
     }
     else {
         if (strcmp(opts->rdr_prot, "purcmc")) {

@@ -37,7 +37,7 @@
 #include <string.h>
 #include <sys/types.h>          /* size_t */
 
-#include "foil.h"
+#include "screen.h"
 
 #include "tty.h"
 #include "color.h"
@@ -51,7 +51,7 @@ static char *tty_color_defaults__bg = NULL;
 static char *tty_color_defaults__attrs = NULL;
 
 /* Set if we are actually using colors */
-bool use_colors = FALSE;
+gboolean use_colors = FALSE;
 
 /*** file scope macro definitions ****************************************************************/
 
@@ -64,10 +64,10 @@ static GHashTable *mc_tty_color__hashtable = NULL;
 /*** file scope functions ************************************************************************/
 /* --------------------------------------------------------------------------------------------- */
 
-static bool
+static gboolean
 tty_color_free_condition_cb (gpointer key, gpointer value, gpointer user_data)
 {
-    bool is_temp_color;
+    gboolean is_temp_color;
     tty_color_pair_t *mc_color_pair;
     (void) key;
 
@@ -79,7 +79,7 @@ tty_color_free_condition_cb (gpointer key, gpointer value, gpointer user_data)
 /* --------------------------------------------------------------------------------------------- */
 
 static void
-tty_color_free_all (bool is_temp_color)
+tty_color_free_all (gboolean is_temp_color)
 {
     g_hash_table_foreach_remove (mc_tty_color__hashtable,
             (GHRFunc)(void *)tty_color_free_condition_cb,
@@ -88,7 +88,7 @@ tty_color_free_all (bool is_temp_color)
 
 /* --------------------------------------------------------------------------------------------- */
 
-static bool
+static gboolean
 tty_color_get_next_cpn_cb (gpointer key, gpointer value, gpointer user_data)
 {
     size_t cp;
@@ -123,7 +123,7 @@ tty_color_get_next__color_pair_number (void)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_init_colors (bool disable, bool force)
+tty_init_colors (gboolean disable, gboolean force)
 {
     tty_color_init_lib (disable, force);
     mc_tty_color__hashtable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
@@ -144,7 +144,7 @@ tty_colors_done (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
-bool
+gboolean
 tty_use_colors (void)
 {
     return use_colors;
@@ -154,7 +154,7 @@ tty_use_colors (void)
 
 int
 tty_try_alloc_color_pair2 (const char *fg, const char *bg, const char *attrs,
-                           bool is_temp_color)
+                           gboolean is_temp_color)
 {
     gchar *color_pair;
     tty_color_pair_t *mc_color_pair;

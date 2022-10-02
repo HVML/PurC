@@ -51,7 +51,7 @@
 /* In some systems (like Solaris 11.4 SPARC), TIOCSWINSZ is defined in termios.h */
 #include <termios.h>
 
-#include "foil.h"
+#include "screen.h"
 #include "strutil/strutil.h"
 
 #include "tty.h"
@@ -102,8 +102,8 @@ sigintr_handler (int signo)
  *         screen*
  *         tmux*
  */
-bool
-tty_check_term (bool force_xterm)
+gboolean
+tty_check_term (gboolean force_xterm)
 {
     const char *termvalue;
 
@@ -173,10 +173,10 @@ tty_disable_interrupt_key (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
-extern bool
+extern gboolean
 tty_got_interrupt (void)
 {
-    bool rv;
+    gboolean rv;
 
     rv = (got_interrupt != 0);
     got_interrupt = 0;
@@ -185,7 +185,7 @@ tty_got_interrupt (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
-bool
+gboolean
 tty_got_winch (void)
 {
     fd_set fdset;
@@ -229,7 +229,7 @@ tty_flush_winch (void)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_print_one_hline (bool single)
+tty_print_one_hline (gboolean single)
 {
     tty_print_alt_char (ACS_HLINE, single);
 }
@@ -237,7 +237,7 @@ tty_print_one_hline (bool single)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_print_one_vline (bool single)
+tty_print_one_vline (gboolean single)
 {
     tty_print_alt_char (ACS_VLINE, single);
 }
@@ -245,7 +245,7 @@ tty_print_one_vline (bool single)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_draw_box (int y, int x, int ys, int xs, bool single)
+tty_draw_box (int y, int x, int ys, int xs, gboolean single)
 {
     int y2, x2;
 
@@ -345,7 +345,7 @@ tty_clear_screen (void)
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_init_xterm_support (bool is_xterm)
+tty_init_xterm_support (gboolean is_xterm)
 {
     const char *termvalue;
 

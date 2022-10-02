@@ -1,8 +1,8 @@
 /*
- * @file foil.h
+ * @file screen.c
  * @author Vincent Wei
- * @date 2022/09/30
- * @brief The global definitions for the renderer Foil.
+ * @date 2022/10/02
+ * @brief The built-in text-mode renderer.
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -23,16 +23,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef purc_foil_h
-#define purc_foil_h
+#include "screen.h"
 
-/* for purc_atom_t */
-#include <purc/purc.h>
+#include "tty/tty.h"
+#include "strutil/strutil.h"
 
-#define RDR_FOIL_APP_NAME       "cn.fmsoft.hvml.renderer"
-#define RDR_FOIL_RUN_NAME       "foil"
+mc_global_t mc_global;
 
-purc_atom_t foil_init(const char *rdr_uri);
+int foil_test(void)
+{
+    tty_check_term(FALSE);
+    str_init_strings("utf8");
 
-#endif  /* purc_foil_h */
+    tty_init(FALSE, FALSE);
+    tty_gotoyx(1, 1);
+    tty_printf("This is a test line");
+    tty_refresh();
+    tty_shutdown();
+    return 0;
+}
+
+void mc_refresh(void)
+{
+    return;
+}
+
+int
+vfs_timeouts(void)
+{
+    return 10;
+}
+
+void
+vfs_timeout_handler(void)
+{
+    return;
+}
 

@@ -37,7 +37,7 @@
 #include <sys/types.h>          /* size_t */
 #include <glib.h>
 
-#include "foil.h"
+#include "screen.h"
 
 #include "tty-ncurses.h"
 #include "color.h"              /* variables */
@@ -116,7 +116,7 @@ mc_tty_color_pair_init_special (tty_color_pair_t * mc_color_pair,
 /* --------------------------------------------------------------------------------------------- */
 
 void
-tty_color_init_lib (bool disable, bool force)
+tty_color_init_lib (gboolean disable, gboolean force)
 {
     (void) force;
 
@@ -228,7 +228,7 @@ tty_set_normal_attrs (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
-bool
+gboolean
 tty_use_256colors (GError ** error)
 {
     (void) error;
@@ -238,7 +238,7 @@ tty_use_256colors (GError ** error)
 
 /* --------------------------------------------------------------------------------------------- */
 
-bool
+gboolean
 tty_use_truecolors (GError ** error)
 {
     /* Not yet supported in ncurses */

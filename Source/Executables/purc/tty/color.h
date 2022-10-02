@@ -11,7 +11,7 @@
 #ifndef MC__COLOR_H
 #define MC__COLOR_H
 
-#include "foil.h"
+#include "screen.h"
 
 #ifdef HAVE_SLANG
 #include "color-slang.h"
@@ -33,13 +33,13 @@
 
 /*** declarations of public functions ************************************************************/
 
-void tty_init_colors (bool disable, bool force);
+void tty_init_colors (gboolean disable, gboolean force);
 void tty_colors_done (void);
 
-bool tty_use_colors (void);
+gboolean tty_use_colors (void);
 int tty_try_alloc_color_pair (const char *fg, const char *bg, const char *attrs);
 int tty_try_alloc_color_pair2 (const char *fg, const char *bg, const char *attrs,
-                               bool is_temp_color);
+                               gboolean is_temp_color);
 
 void tty_color_free_all_tmp (void);
 void tty_color_free_all_non_tmp (void);
@@ -50,8 +50,8 @@ void tty_set_normal_attrs (void);
 
 void tty_color_set_defaults (const char *fgcolor, const char *bgcolor, const char *attrs);
 
-extern bool tty_use_256colors (GError ** error);
-extern bool tty_use_truecolors (GError ** error);
+extern gboolean tty_use_256colors (GError ** error);
+extern gboolean tty_use_truecolors (GError ** error);
 
 /*** inline functions ****************************************************************************/
 

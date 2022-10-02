@@ -31,7 +31,7 @@
 
 #include <ctype.h>
 
-#include "foil.h"
+#include "screen.h"
 
 static inline int
 is_7bit_printable (unsigned char c)

@@ -40,7 +40,7 @@
 #include <unistd.h>
 #endif
 
-#include "foil.h"
+#include "screen.h"
 #include "util/util.h"           /* is_printable() */
 #include "tty-internal.h"
 #include "tty.h"                /* tty_gotoyx, tty_print_char */
@@ -57,7 +57,7 @@ char *rmcup = NULL;
 
 /*** file scope variables ************************************************************************/
 
-static bool rxvt_extensions = FALSE;
+static gboolean rxvt_extensions = FALSE;
 
 /*** file scope functions ************************************************************************/
 /* --------------------------------------------------------------------------------------------- */
@@ -144,10 +144,10 @@ show_rxvt_contents (int starty, unsigned char y1, unsigned char y2)
 
 /* --------------------------------------------------------------------------------------------- */
 
-bool
+gboolean
 look_for_rxvt_extensions (void)
 {
-    static bool been_called = FALSE;
+    static gboolean been_called = FALSE;
 
     if (!been_called)
     {
