@@ -30,7 +30,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "global.h"
+#include "foil.h"
 #include "util.h"           /* MC_PTR_FREE */
 #include "strutil.h"
 

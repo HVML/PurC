@@ -37,7 +37,7 @@
 #include <sys/types.h>          /* size_t */
 #include <glib.h>
 
-#include "global.h"
+#include "foil.h"
 
 #include "tty-ncurses.h"
 #include "color.h"              /* variables */

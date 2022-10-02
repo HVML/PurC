@@ -51,7 +51,7 @@
 /* In some systems (like Solaris 11.4 SPARC), TIOCSWINSZ is defined in termios.h */
 #include <termios.h>
 
-#include "global.h"
+#include "foil.h"
 #include "strutil.h"
 
 #include "tty.h"

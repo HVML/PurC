@@ -28,7 +28,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "global.h"
+#include "foil.h"
 #include "strutil.h"
 
 /* Functions for singlebyte encodings, all characters have width 1

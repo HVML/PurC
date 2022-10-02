@@ -46,7 +46,7 @@
 
 #include <config.h>
 
-#include "global.h"
+#include "foil.h"
 
 #include "tty.h"
 #include "mouse.h"              /* required before key.h */

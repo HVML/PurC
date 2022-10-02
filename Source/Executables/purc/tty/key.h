@@ -5,7 +5,7 @@
 #ifndef MC__KEY_H
 #define MC__KEY_H
 
-#include "global.h"         /* <glib.h> */
+#include "foil.h"         /* <glib.h> */
 #include "tty.h"                /* KEY_F macro */
 
 /*** typedefs(not structures) and defined constants **********************************************/

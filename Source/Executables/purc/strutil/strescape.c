@@ -26,7 +26,7 @@
 
 #include <config.h>
 
-#include "global.h"
+#include "foil.h"
 #include "strutil.h"
 
 /*** global variables ****************************************************************************/

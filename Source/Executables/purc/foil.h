@@ -1,12 +1,12 @@
 /*
- * @file purc.h
+ * @file foil.h
  * @author Vincent Wei
  * @date 2022/09/30
- * @brief The global definitions for compatibility.
+ * @brief The global definitions for the renderer Foil.
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
- * This file is a part of purc, which is a HVML interpreter with
+ * This file is a part of purc, which is an HVML interpreter with
  * a command line interface (CLI).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef purc_purc_h
-#define purc_purc_h
+#ifndef purc_foil_h
+#define purc_foil_h
 
 #if defined(HAVE_STRING_H)
 #include <string.h>
@@ -245,5 +245,5 @@ void mc_refresh (void);
 int vfs_timeouts (void);
 void vfs_timeout_handler (void);
 
-#endif  /* purc_purc_h */
+#endif  /* purc_foil_h */
 

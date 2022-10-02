@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "global.h"
+#include "foil.h"
 
 #include "tty.h"
 #include "tty-internal.h"       /* mouse_enabled */

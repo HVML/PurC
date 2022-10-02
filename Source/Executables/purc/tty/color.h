@@ -11,7 +11,7 @@
 #ifndef MC__COLOR_H
 #define MC__COLOR_H
 
-#include "global.h"
+#include "foil.h"
 
 #ifdef HAVE_SLANG
 #include "color-slang.h"

@@ -49,7 +49,7 @@
 #include <unistd.h>
 #endif
 
-#include "global.h"
+#include "foil.h"
 
 #include "tty.h"
 #include "tty-internal.h"       /* mouse_enabled */

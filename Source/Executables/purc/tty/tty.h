@@ -11,7 +11,7 @@
 #ifndef MC__TTY_H
 #define MC__TTY_H
 
-#include "global.h"
+#include "foil.h"
 
 #ifdef HAVE_SLANG
 #include "tty-slang.h"

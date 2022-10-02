@@ -26,7 +26,7 @@
 // #undef NDEBUG
 
 #include "purc/purc.h"
-#include "global.h"
+#include "foil.h"
 
 mc_global_t mc_global;
 
@@ -40,11 +40,15 @@ vfs_timeouts (void)
     return 10;
 }
 
-/* --------------------------------------------------------------------------------------------- */
-
 void
 vfs_timeout_handler (void)
 {
     return;
 }
 
+#ifdef TEST_FOIL
+int main(void)
+{
+    return 0;
+}
+#endif

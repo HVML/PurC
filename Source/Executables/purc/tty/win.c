@@ -40,7 +40,7 @@
 #include <unistd.h>
 #endif
 
-#include "global.h"
+#include "foil.h"
 #include "util.h"           /* is_printable() */
 #include "tty-internal.h"
 #include "tty.h"                /* tty_gotoyx, tty_print_char */

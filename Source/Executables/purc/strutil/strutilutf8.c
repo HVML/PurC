@@ -29,7 +29,7 @@
 #include <langinfo.h>
 #include <string.h>
 
-#include "global.h"
+#include "foil.h"
 #include "strutil.h"
 
 /* using function for utf-8 from glib */

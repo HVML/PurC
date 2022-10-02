@@ -37,7 +37,7 @@
 #include <string.h>
 #include <sys/types.h>          /* size_t */
 
-#include "global.h"
+#include "foil.h"
 
 #include "tty.h"
 #include "color.h"

@@ -41,7 +41,7 @@
 #endif
 #include <termios.h>
 
-#include "global.h"
+#include "foil.h"
 #include "strutil.h"        /* str_term_form */
 
 #ifndef WANT_TERM_H
