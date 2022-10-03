@@ -44,6 +44,7 @@ if (ENABLE_RDR_FOIL)
         foil.c
         screen.c
         endpoint.c
+        callbacks.c
     )
 endif ()
 

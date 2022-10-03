@@ -33,18 +33,28 @@
 
 #include "util/kvlist.h"
 
-#define RDR_FOIL_APP_NAME       "cn.fmsoft.hvml.renderer"
-#define RDR_FOIL_RUN_NAME       "foil"
+#define FOIL_APP_NAME           "cn.fmsoft.hvml.renderer"
+#define FOIL_RUN_NAME           "foil"
 
-#define RENDERER_FEATURES \
+#define FOIL_RDR_NAME           "Foil"
+
+#define FOIL_RDR_FEATURES \
     PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \
+    FOIL_RDR_NAME ":" PURC_VERSION_STRING "\n" \
     "HTML:5.3\n" \
-    "workspace:0/tabbedWindow:0/tabbedPage:0/plainWindow:-1/windowLevel:2\n" \
-    "windowLevels:normal,topmost"
+    "workspace:0/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:8\n" \
+    "DOMElementSelectors:handle,handles"
 
-/* The THREAD renderer */
+/* The PURCTH renderer */
 struct purcth_renderer;
 typedef struct purcth_renderer purcth_renderer;
+
+/* The PURCTH endpoint */
+struct purcth_endpoint;
+typedef struct purcth_endpoint purcth_endpoint;
+
+struct purcth_session;
+typedef struct purcth_session purcth_session;
 
 struct purcth_workspace;
 typedef struct purcth_workspace purcth_workspace;
@@ -57,13 +67,6 @@ typedef struct purcth_page purcth_page;
 
 struct purcth_dom;
 typedef struct purcth_dom purcth_dom;
-
-/* The THREAD endpoint */
-struct purcth_endpoint;
-typedef struct purcth_endpoint purcth_endpoint;
-
-struct purcth_session;
-typedef struct purcth_session purcth_session;
 
 typedef struct purcth_rdr_cbs {
     int  (*prepare)(purcth_renderer *);
@@ -165,11 +168,14 @@ typedef struct purcth_rdr_cbs {
 } purcth_rdr_cbs;
 
 struct purcth_renderer {
-    unsigned int nr_endpoints;
+    purc_atom_t     master_rid;
+    unsigned int    nr_endpoints;
 
     time_t t_start;
     time_t t_elapsed;
     time_t t_elapsed_last;
+
+    char  *features;
 
     /* The KV list using endpoint URI as the key, and purcth_endpoint* as the value */
     struct kvlist endpoint_list;

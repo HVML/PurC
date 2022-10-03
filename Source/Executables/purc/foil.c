@@ -33,15 +33,20 @@
 
 #include "foil.h"
 #include "endpoint.h"
+#include "callbacks.h"
 
-static void init_renderer(purcth_renderer *rdr)
+static int init_renderer(purcth_renderer *rdr)
 {
+    set_renderer_callbacks(rdr);
+
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();
     rdr->t_elapsed = rdr->t_elapsed_last = 0;
 
     kvlist_init(&rdr->endpoint_list, NULL);
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
+
+    return rdr->cbs.prepare(rdr);
 }
 
 static void deinit_renderer(purcth_renderer *rdr)
@@ -49,6 +54,8 @@ static void deinit_renderer(purcth_renderer *rdr)
     const char* name;
     void *next, *data;
     purcth_endpoint *endpoint;
+
+    rdr->cbs.cleanup(rdr);
 
     remove_all_living_endpoints(&rdr->living_avl);
 
@@ -160,9 +167,10 @@ static void* foil_thread_entry(void* arg)
     if (my_arg->rid) {
         purcth_renderer rdr;
 
-        init_renderer(&rdr);
-        event_loop(&rdr);
-        deinit_renderer(&rdr);
+        if (init_renderer(&rdr) == 0) {
+            event_loop(&rdr);
+            deinit_renderer(&rdr);
+        }
         purc_inst_destroy_move_buffer();
     }
 

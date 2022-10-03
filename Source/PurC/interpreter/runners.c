@@ -418,7 +418,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
-        info.renderer_prot = (purc_rdrprot_t)u64;
+        info.renderer_comm = (purc_rdrcomm_t)u64;
     }
 
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI");
@@ -805,7 +805,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
     }
 
     if (extra_info) {
-        tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_prot);
+        tmp = purc_variant_make_ulongint((uint64_t)extra_info->renderer_comm);
         purc_variant_object_set_by_static_ckey(data, "rendererProt", tmp);
         purc_variant_unref(tmp);
 

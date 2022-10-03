@@ -53,8 +53,8 @@
 
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
-#define DEF_RDR_URI_THREAD      ("//-/" RDR_FOIL_APP_NAME "/" RDR_FOIL_RUN_NAME)
-#define DEF_RDR_URI_PURCMC      ("unix://" PCRDR_PURCMC_US_PATH)
+#define DEF_RDR_URI_THREAD      ("//-/" FOIL_APP_NAME "/" FOIL_RUN_NAME)
+#define DEF_RDR_URI_SOCKET      ("unix://" PCRDR_PURCMC_US_PATH)
 
 #define KEY_FLAG_REQUEST        "request"
 
@@ -138,20 +138,20 @@ static void print_usage(FILE *fp)
         "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
-        "  -p --rdr-prot=< headless | thread | purcmc >\n"
-        "        The renderer protocol; use `headless` (default), thread, or `purcmc`.\n"
-        "            - `headless`: use the built-in HEADLESS renderer.\n"
-        "            - `thread`: use the built-in THREAD renderer.\n"
-        "            - `purcmc`: use the remote PURCMC renderer;\n"
+        "  -c --rdr-comm=< headless | thread | socket >\n"
+        "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
+        "            - `headless`: use the built-in headlesss renderer.\n"
+        "            - `thread`: use the built-in thread-based renderer.\n"
+        "            - `soeckt`: use the remote socket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
         "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri:\n"
-        "            - For the renderer protocol `headleass`,\n"
+        "            - For the renderer comm method `headleass`,\n"
         "              default value is `file:///dev/null`.\n"
-        "            - For the renderer protocol `thread`,\n"
-        "              default value is `//-/" RDR_FOIL_APP_NAME "/" RDR_FOIL_RUN_NAME "`.\n"
-        "            - For the renderer protocol `purcmc`,\n"
+        "            - For the renderer comm method `thread`,\n"
+        "              default value is `//-/" FOIL_APP_NAME "/" FOIL_RUN_NAME "`.\n"
+        "            - For the renderer comm method `socket`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
         "  -t --request=< json_file | - >\n"
@@ -199,7 +199,7 @@ static const char *archedata_header =
     "'runners': ["
         "{"
             "'runner': $OPTS.runner,"
-            "'renderer': { 'protocol': $OPTS.rdrProt, 'uri': $OPTS.rdrUri, "
+            "'renderer': { 'commMethod': $OPTS.rdrComm, 'uri': $OPTS.rdrUri, "
                 "'workspaceName': 'default' },"
             "'coroutines': [";
 
@@ -369,17 +369,17 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:p:u:t:lbcvh";
+    static const char short_options[] = "a:r:d:c:u:t:lbCvh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
         { "data-fetcher"   , required_argument , NULL , 'd' },
-        { "rdr-prot"       , required_argument , NULL , 'p' },
+        { "rdr-comm"       , required_argument , NULL , 'c' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 't' },
         { "parallel"       , no_argument       , NULL , 'l' },
         { "verbose"        , no_argument       , NULL , 'b' },
-        { "copying"        , no_argument       , NULL , 'c' },
+        { "copying"        , no_argument       , NULL , 'C' },
         { "version"        , no_argument       , NULL , 'v' },
         { "help"           , no_argument       , NULL , 'h' },
         { 0, 0, 0, 0 }
@@ -403,7 +403,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             print_version(stdout);
             return -1;
 
-        case 'c':
+        case 'C':
             print_version(stdout);
             print_long_copying(stdout);
             return -1;
@@ -440,12 +440,15 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
             break;
 
-        case 'p':
+        case 'c':
             if (strcmp(optarg, "headless") == 0) {
                 opts->rdr_prot = "headless";
             }
-            else if (strcmp(optarg, "purcmc") == 0) {
-                opts->rdr_prot = "purcmc";
+            else if (strcmp(optarg, "thread") == 0) {
+                opts->rdr_prot = "thread";
+            }
+            else if (strcmp(optarg, "socket") == 0) {
+                opts->rdr_prot = "socket";
             }
             else {
                 goto bad_arg;
@@ -811,14 +814,16 @@ fill_run_rdr_info(struct my_opts *opts,
 {
     purc_variant_t tmp;
 
-    tmp = purc_variant_object_get_by_ckey(rdr, "protocol");
+    tmp = purc_variant_object_get_by_ckey(rdr, "commMethod");
     if (tmp) {
         const char *str = purc_variant_get_string_const(tmp);
         if (str) {
             if (strcmp(str, "headless") == 0)
-                rdr_info->renderer_prot = PURC_RDRPROT_HEADLESS;
-            else if (strcmp(str, "purcmc") == 0)
-                rdr_info->renderer_prot = PURC_RDRPROT_PURCMC;
+                rdr_info->renderer_comm = PURC_RDRCOMM_HEADLESS;
+            else if (strcmp(str, "thread") == 0)
+                rdr_info->renderer_comm = PURC_RDRCOMM_THREAD;
+            else if (strcmp(str, "socket") == 0)
+                rdr_info->renderer_comm = PURC_RDRCOMM_SOCKET;
         }
     }
 
@@ -1291,7 +1296,7 @@ int main(int argc, char** argv)
     if (opts->rdr_prot == NULL || strcmp(opts->rdr_prot, "headless") == 0) {
         opts->rdr_prot = "headless";
 
-        extra_info.renderer_prot = PURC_RDRPROT_HEADLESS;
+        extra_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_HEADLESS);
         }
@@ -1300,7 +1305,7 @@ int main(int argc, char** argv)
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
         opts->rdr_prot = "thread";
 
-        extra_info.renderer_prot = PURC_RDRPROT_THREAD;
+        extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
         if (opts->rdr_uri == NULL) {
             opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
         }
@@ -1312,9 +1317,9 @@ int main(int argc, char** argv)
         }
     }
     else {
-        if (strcmp(opts->rdr_prot, "purcmc")) {
+        if (strcmp(opts->rdr_prot, "socket")) {
             if (opts->verbose) {
-                fprintf(stdout, "Unknown renderer protocol: %s\n",
+                fprintf(stdout, "Unknown renderer communication method: %s\n",
                         opts->rdr_prot);
                 print_usage(stdout);
             }
@@ -1323,9 +1328,9 @@ int main(int argc, char** argv)
             return EXIT_FAILURE;
         }
 
-        extra_info.renderer_prot = PURC_RDRPROT_PURCMC;
+        extra_info.renderer_comm = PURC_RDRCOMM_SOCKET;
         if (opts->rdr_uri == NULL) {
-            opts->rdr_uri = strdup(DEF_RDR_URI_PURCMC);
+            opts->rdr_uri = strdup(DEF_RDR_URI_SOCKET);
         }
     }
 

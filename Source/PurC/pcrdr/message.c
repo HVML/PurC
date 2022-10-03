@@ -1121,7 +1121,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
             break;
         }
 
-        if (line_no == 0) {
+        if (line_no == 0) { /* protocol name and version code */
             char *prot_name, *prot_version;
             char *saveptr2;
             prot_name = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
@@ -1138,9 +1138,30 @@ pcrdr_parse_renderer_capabilities(const char *data)
             if (rdr_caps->prot_name == NULL)
                 goto failed;
 
-            rdr_caps->prot_version = strtol(prot_name, NULL, 10);
+            rdr_caps->prot_version = strtol(prot_version, NULL, 10);
         }
-        else if (line_no == 1) {    /* markup versions */
+        else if (line_no == 1) { /* renderer name and version */
+            char *rdr_name, *rdr_version;
+            char *saveptr2;
+            rdr_name = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
+            if (rdr_name == NULL) {
+                goto failed;
+            }
+
+            rdr_version = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+            if (rdr_version == NULL) {
+                goto failed;
+            }
+
+            rdr_caps->rdr_name = strdup(rdr_name);
+            if (rdr_caps->rdr_name == NULL)
+                goto failed;
+
+            rdr_caps->rdr_version = strdup(rdr_version);
+            if (rdr_caps->rdr_version == NULL)
+                goto failed;
+        }
+        else if (line_no == 2) {    /* markup versions */
             char *str2, *value;
             char *saveptr2;
 
@@ -1180,7 +1201,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 }
             }
         }
-        else if (line_no == 2) {    /* windowing capabilities */
+        else if (line_no == 3) {    /* windowing capabilities */
             char *str2, *value;
             char *saveptr2;
 
@@ -1217,7 +1238,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 }
             }
         }
-        else if (line_no >= 3) {
+        else if (line_no >= 4) {
             char *cap, *value;
             char *saveptr2;
 
@@ -1272,7 +1293,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 rdr_caps->windowLevel = 0;
             }
 #endif
-            PC_WARN("Unknown renderer capability: %s\n", cap);
+            PC_WARN("Unknown renderer capability: %s: %s\n", cap, value);
             break;
         }
 

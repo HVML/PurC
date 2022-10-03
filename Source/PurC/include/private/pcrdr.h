@@ -37,6 +37,11 @@ struct renderer_capabilities {
     /* the protocol name */
     char   *prot_name;
 
+    /* the renderer name */
+    char   *rdr_name;
+    /* the renderer version */
+    char   *rdr_version;
+
     /* the HTML version if supported, else NULL */
     char   *html_version;
     /* the XGML version if supported, else NULL */

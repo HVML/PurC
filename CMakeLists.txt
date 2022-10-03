@@ -137,7 +137,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #------------------------------------------------------------------------------
 include(PurCCommon)
 
-SET_PROJECT_VERSION(0 9 2)
+SET_PROJECT_VERSION(0 9 0)
 
 add_subdirectory(Source)
 

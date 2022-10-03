@@ -144,7 +144,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         goto failed;
     }
 
-    (*conn)->prot = PURC_RDRPROT_THREAD;
+    (*conn)->prot = PURC_RDRCOMM_THREAD;
     (*conn)->type = CT_MOVE_BUFFER;
     (*conn)->fd = -1;
     (*conn)->srv_host_name = NULL;

@@ -50,22 +50,23 @@
 typedef struct purc_instance_extra_info {
     /**
      * The renderer protocol, one of the following values:
-     *  - PURC_RDRPROT_HEADLESS:
+     *  - PURC_RDRCOMM_HEADLESS:
      *      No renderer.
-     *  - PURC_RDRPROT_THREAD:
+     *  - PURC_RDRCOMM_THREAD:
      *      The renderer runs as a thread within the current process.
-     *  - PURC_RDRPROT_PURCMC:
-     *      The renderer runs as a server and uses PurCMC.
-     *  - PURC_RDRPROT_HIBUS:
+     *  - PURC_RDRCOMM_SOCKET:
+     *      The renderer runs as a server and uses socket
+     *      (local socket or WebSocket) as the communication method.
+     *  - PURC_RDRCOMM_HIBUS:
      *      The renderer runs as a hiBus endpoint and uses hiBus.
      */
-    purc_rdrprot_t  renderer_prot;
+    purc_rdrcomm_t  renderer_comm;
 
     /**
      * When using a HEADLESS renderer, you should specify a file
      * or a named pipe (FIFO), like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
-     * When using a THREAD renderer, you should specify the endpoint name
+     * When using a PURCTH renderer, you should specify the endpoint name
      * of the renderer like `//-/<app_name>/<runner_name>`. The endpoint name
      * will be used to distinguish renderers and interperter instances.
      *

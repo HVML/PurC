@@ -37,7 +37,7 @@
 #define NR_WORKERS  5
 
 static struct purc_instance_extra_info worker_info = {
-    PURC_RDRPROT_HEADLESS,
+    PURC_RDRCOMM_HEADLESS,
     "file:///tmp/" APP_NAME ".log",
     "sslCert",
     "sslKey",
@@ -84,7 +84,7 @@ static int work_cond_handler(purc_cond_t event, void *arg, void *data)
         purc_extract_runner_name(endpoint, run_name);
         assert(strncmp(run_name, "worker", 6) == 0);
 
-        assert(info->renderer_prot == worker_info.renderer_prot);
+        assert(info->renderer_comm == worker_info.renderer_comm);
         assert(strcmp(info->renderer_uri, worker_info.renderer_uri) == 0);
         assert(strcmp(info->ssl_cert, worker_info.ssl_cert) == 0);
         assert(strcmp(info->ssl_key, worker_info.ssl_key) == 0);
@@ -172,7 +172,7 @@ static int my_cond_handler(purc_cond_t event, void *arg, void *data)
 TEST(interpreter, instmgr)
 {
     struct purc_instance_extra_info inst_info = { };
-    inst_info.renderer_prot = PURC_RDRPROT_HEADLESS;
+    inst_info.renderer_comm = PURC_RDRCOMM_HEADLESS;
     inst_info.workspace_name = "main";
 
     PurCInstance purc(PURC_MODULE_HVML, APP_NAME, "main", &inst_info);

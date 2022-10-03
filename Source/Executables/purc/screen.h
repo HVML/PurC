@@ -23,8 +23,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef purc_screen_h
-#define purc_screen_h
+#ifndef purc_foil_screen_h
+#define purc_foil_screen_h
 
 #if defined(HAVE_STRING_H)
 #include <string.h>
@@ -245,5 +245,5 @@ void mc_refresh(void);
 int vfs_timeouts(void);
 void vfs_timeout_handler(void);
 
-#endif  /* purc_screen_h */
+#endif  /* purc_foil_screen_h */
 

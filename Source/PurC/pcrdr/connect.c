@@ -134,9 +134,9 @@ int pcrdr_conn_type(pcrdr_conn* conn)
     return conn->type;
 }
 
-purc_rdrprot_t pcrdr_conn_protocol(pcrdr_conn* conn)
+purc_rdrcomm_t pcrdr_conn_comm_method(pcrdr_conn* conn)
 {
-    return (purc_rdrprot_t)conn->prot;
+    return (purc_rdrcomm_t)conn->prot;
 }
 
 int pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms)
