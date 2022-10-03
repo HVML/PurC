@@ -138,6 +138,15 @@ static void event_loop(purcth_renderer *rdr)
             pcutils_usleep(10000);  // 10ms
         }
 
+        rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
+        if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
+            if (rdr->t_elapsed % 10 == 0) {
+                check_no_responding_endpoints(rdr);
+            }
+
+            rdr->t_elapsed_last = rdr->t_elapsed;
+        }
+
     } while(true);
 }
 
