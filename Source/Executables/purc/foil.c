@@ -72,6 +72,33 @@ static void deinit_renderer(purcth_renderer *rdr)
     kvlist_free(&rdr->endpoint_list);
 }
 
+static void handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
+{
+    const char *operation =
+        purc_variant_get_string_const(msg->operation);
+    const char *source_uri =
+        purc_variant_get_string_const(msg->sourceURI);
+
+    if (UNLIKELY(operation == NULL || source_uri == NULL)) {
+        purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
+        return;
+    }
+
+    if (strcmp(operation, PCRDR_THREAD_OPERATION_HELLO) == 0) {
+        purcth_endpoint *edpt = new_endpoint(rdr, source_uri);
+        if (edpt)
+            send_initial_response(rdr, edpt);
+
+        purc_log_warn("Cannot create endpoint for %s.\n", source_uri);
+    }
+    else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
+        purcth_endpoint *edpt = get_endpoint(rdr, source_uri);
+        if (edpt)
+            del_endpoint(rdr, edpt, CDE_EXITING);
+        purc_log_warn("Bye request from unknown endpoint: %s.\n", source_uri);
+    }
+}
+
 static void event_loop(purcth_renderer *rdr)
 {
     (void)rdr;
@@ -88,52 +115,27 @@ static void event_loop(purcth_renderer *rdr)
             purc_log_info("purc_inst_holding_messages_count returns: %d\n", (int)n);
 
             pcrdr_msg *msg = purc_inst_take_away_message(0);
-            if (msg->type == PCRDR_MSG_TYPE_EVENT) {
-                const char *event_name;
-                event_name = purc_variant_get_string_const(msg->eventName);
-
-                if (strcmp(event_name, "init") == 0 &&
-                        msg->target == PCRDR_MSG_TARGET_INSTANCE &&
-                        msg->targetValue == 0) {
-                    purc_log_info("got the quit from %s\n",
-                            purc_variant_get_string_const(msg->sourceURI));
-                    pcrdr_release_message(msg);
-                    break;
-                }
-                else if (strcmp(event_name, "quit") == 0 &&
-                        msg->target == PCRDR_MSG_TARGET_INSTANCE &&
-                        msg->targetValue == 0) {
-                    purc_log_info("got the quit from %s\n",
-                            purc_variant_get_string_const(msg->sourceURI));
-                    pcrdr_release_message(msg);
-                    break;
+            if (msg->type == PCRDR_MSG_TYPE_REQUEST &&
+                    msg->target == PCRDR_MSG_TARGET_INSTANCE) {
+                handle_instance_request(rdr, msg);
+            }
+            else {
+                const char *source_uri =
+                    purc_variant_get_string_const(msg->sourceURI);
+                if (source_uri == NULL) {
+                    purc_log_warn("Got a bad message without source URI\n");
                 }
                 else {
-                    purc_log_info("got an event message not interested in:\n");
-                    purc_log_info("    type:        %d\n", msg->type);
-                    purc_log_info("    target:      %d\n", msg->target);
-                    purc_log_info("    targetValue: %d\n", (int)msg->targetValue);
-                    purc_log_info("    eventName:   %s\n", event_name);
-                    purc_log_info("    sourceURI: %s\n",
-                            purc_variant_get_string_const(msg->sourceURI));
+                    purcth_endpoint *edpt = get_endpoint(rdr, source_uri);
+                    if (edpt)
+                        on_got_message(rdr, edpt, msg);
                 }
-            }
-            else if (msg->type == PCRDR_MSG_TYPE_REQUEST) {
-                purc_log_info("got a request message for %s from %s\n",
-                        purc_variant_get_string_const(msg->requestId),
-                        purc_variant_get_string_const(msg->sourceURI));
-
-            }
-            else if (msg->type == PCRDR_MSG_TYPE_RESPONSE) {
-                purc_log_info("got a response message for %s from %s\n",
-                        purc_variant_get_string_const(msg->requestId),
-                        purc_variant_get_string_const(msg->sourceURI));
             }
 
             pcrdr_release_message(msg);
         }
         else {
-            pcutils_usleep(10000);  // 10m
+            pcutils_usleep(10000);  // 10ms
         }
 
     } while(true);

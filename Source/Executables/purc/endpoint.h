@@ -45,6 +45,7 @@ void remove_all_living_endpoints(struct avl_tree *avl);
 
 purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri);
 int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause);
+purcth_endpoint* get_endpoint(purcth_renderer* rdr, const char *uri);
 int check_no_responding_endpoints(purcth_renderer *rdr);
 
 int send_message_to_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint,

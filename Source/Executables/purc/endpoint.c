@@ -67,31 +67,66 @@ void remove_all_living_endpoints(struct avl_tree *avl)
     }
 }
 
+purcth_endpoint* get_endpoint(purcth_renderer* rdr, const char *uri)
+{
+    void *data;
+    data = kvlist_get(&rdr->endpoint_list, uri);
+    if (data == NULL)
+        return NULL;
+
+    return *(purcth_endpoint **)data;
+}
+
 purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri)
 {
+    int ec = PCRDR_SUCCESS;
     purcth_endpoint* endpoint = NULL;
 
-    endpoint = (purcth_endpoint *)calloc(sizeof (purcth_endpoint), 1);
-    if (endpoint == NULL)
-        return NULL;
+    if (get_endpoint(rdr, uri)) {
+        ec = PCRDR_ERROR_DUPLICATED;
+        goto failed;
+    }
+
+    purc_atom_t rid = purc_atom_try_string_ex(
+            PURC_ATOM_BUCKET_DEF, uri);
+    if (rid == 0) {
+        ec = PCRDR_ERROR_INVALID_VALUE;
+        goto failed;
+    }
+
+    endpoint = (purcth_endpoint *)calloc(sizeof(purcth_endpoint), 1);
+    if (endpoint == NULL) {
+        ec = PCRDR_ERROR_NOMEM;
+        goto failed;
+    }
 
     endpoint->t_created = purc_get_monotoic_time();
     endpoint->t_living = endpoint->t_created;
     endpoint->avl.key = endpoint;
+    endpoint->rid = rid;
 
     if (!(endpoint->uri = kvlist_set_ex(&rdr->endpoint_list, uri, &endpoint))) {
-        purc_log_error ("Failed to store the endpoint: %s\n", uri);
-        return NULL;
+        ec = PCRDR_ERROR_NOMEM;
+        goto failed;
     }
 
     if (avl_insert(&rdr->living_avl, &endpoint->avl)) {
-        purc_log_error("Failed to insert to the living AVL tree: %s\n",
-                uri);
-        return NULL;
+        ec = PCRDR_ERROR_NOMEM;
+        goto failed;
     }
 
     rdr->nr_endpoints++;
     return endpoint;
+
+failed:
+    if (endpoint) {
+        if (endpoint->uri)
+            kvlist_delete(&rdr->endpoint_list, endpoint->uri);
+        free(endpoint);
+    }
+
+    purc_set_error(ec);
+    return NULL;
 }
 
 int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
@@ -107,16 +142,16 @@ int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
         avl_delete(&rdr->living_avl, &endpoint->avl);
     }
 
-    purc_log_warn("Removing endpoint (%s)\n", endpoint->uri);
+    purc_log_info("Removing endpoint (%s)\n", endpoint->uri);
     kvlist_delete(&rdr->endpoint_list, endpoint->uri);
     free(endpoint);
     return 0;
 }
 
-int check_no_responding_endpoints (purcth_renderer *rdr)
+int check_no_responding_endpoints(purcth_renderer *rdr)
 {
     int n = 0;
-    time_t t_curr = purc_get_monotoic_time ();
+    time_t t_curr = purc_get_monotoic_time();
     purcth_endpoint *endpoint, *tmp;
 
     purc_log_info ("Checking no responding endpoints...\n");
@@ -164,7 +199,7 @@ int send_initial_response(purcth_renderer* rdr, purcth_endpoint* endpoint)
     int retv = PCRDR_SC_OK;
     pcrdr_msg *msg = NULL;
 
-    msg = pcrdr_make_response_message("0", NULL,
+    msg = pcrdr_make_response_message(PCRDR_REQUESTID_INITIAL, NULL,
             PCRDR_SC_OK, 0,
             PCRDR_MSG_DATA_TYPE_PLAIN, FOIL_RDR_FEATURES,
             sizeof (FOIL_RDR_FEATURES) - 1);
