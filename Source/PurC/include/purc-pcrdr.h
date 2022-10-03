@@ -66,6 +66,9 @@
 
 #define PCRDR_DEFAULT_WORKSPACE         "main"
 
+#define PCRDR_THREAD_OPERATION_HELLO    "hello"
+#define PCRDR_THREAD_OPERATION_BYE      "bye"
+
 /* operations */
 enum {
     PCRDR_K_OPERATION_FIRST = 0,
