@@ -25,6 +25,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -67,7 +69,7 @@ void remove_all_living_endpoints(struct avl_tree *avl)
     }
 }
 
-purcth_endpoint* get_endpoint(purcth_renderer* rdr, const char *uri)
+purcth_endpoint* retrieve_endpoint(purcth_renderer* rdr, const char *uri)
 {
     void *data;
     data = kvlist_get(&rdr->endpoint_list, uri);
@@ -82,7 +84,7 @@ purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri)
     int ec = PCRDR_SUCCESS;
     purcth_endpoint* endpoint = NULL;
 
-    if (get_endpoint(rdr, uri)) {
+    if (retrieve_endpoint(rdr, uri)) {
         ec = PCRDR_ERROR_DUPLICATED;
         goto failed;
     }
@@ -138,14 +140,24 @@ int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
         endpoint->session = NULL;
     }
 
-    if (endpoint->avl.key) {
-        avl_delete(&rdr->living_avl, &endpoint->avl);
-    }
+    avl_delete(&rdr->living_avl, &endpoint->avl);
 
     purc_log_info("Removing endpoint (%s)\n", endpoint->uri);
     kvlist_delete(&rdr->endpoint_list, endpoint->uri);
     free(endpoint);
     return 0;
+}
+
+void
+update_endpoint_living_time(purcth_renderer *rdr, purcth_endpoint* endpoint)
+{
+    time_t t_curr = purc_get_monotoic_time();
+
+    if (UNLIKELY(endpoint->t_living != t_curr)) {
+        endpoint->t_living = t_curr;
+        avl_delete(&rdr->living_avl, &endpoint->avl);
+        avl_insert(&rdr->living_avl, &endpoint->avl);
+    }
 }
 
 int check_no_responding_endpoints(purcth_renderer *rdr)
@@ -1701,7 +1713,8 @@ found:
     return handlers[mid].handler;
 }
 
-int on_got_message(purcth_renderer* rdr, purcth_endpoint* endpoint, const pcrdr_msg *msg)
+int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
 {
     if (msg->type == PCRDR_MSG_TYPE_REQUEST) {
         request_handler handler = find_request_handler(

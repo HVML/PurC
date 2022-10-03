@@ -45,13 +45,14 @@ void remove_all_living_endpoints(struct avl_tree *avl);
 
 purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri);
 int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause);
-purcth_endpoint* get_endpoint(purcth_renderer* rdr, const char *uri);
+purcth_endpoint* retrieve_endpoint(purcth_renderer* rdr, const char *uri);
+void update_endpoint_living_time(purcth_renderer *rdr, purcth_endpoint* endpoint);
 int check_no_responding_endpoints(purcth_renderer *rdr);
 
 int send_message_to_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 int send_initial_response(purcth_renderer* rdr, purcth_endpoint* endpoint);
-int on_got_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
+int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 
 #endif /* !purc_foil_endpoint_h_ */
