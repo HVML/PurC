@@ -53,8 +53,8 @@
 
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
-#define DEF_RDR_URI_THREAD      ("//-/" FOIL_APP_NAME "/" FOIL_RUN_NAME)
-#define DEF_RDR_URI_SOCKET      ("unix://" PCRDR_PURCMC_US_PATH)
+#define DEF_RDR_URI_THREAD      PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
+#define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
 
 #define KEY_FLAG_REQUEST        "request"
 
@@ -150,7 +150,7 @@ static void print_usage(FILE *fp)
         "            - For the renderer comm method `headleass`,\n"
         "              default value is `file:///dev/null`.\n"
         "            - For the renderer comm method `thread`,\n"
-        "              default value is `//-/" FOIL_APP_NAME "/" FOIL_RUN_NAME "`.\n"
+        "              default value is `" DEF_RDR_URI_THREAD "`.\n"
         "            - For the renderer comm method `socket`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"

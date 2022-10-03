@@ -85,13 +85,13 @@ bool purc_is_valid_endpoint_name (const char* endpoint_name)
     char app_name [PURC_LEN_APP_NAME + 1];
     char runner_name [PURC_LEN_RUNNER_NAME + 1];
 
-    if ( purc_extract_host_name (endpoint_name, host_name) <= 0)
+    if (purc_extract_host_name (endpoint_name, host_name) <= 0)
         return false;
 
-    if ( purc_extract_app_name (endpoint_name, app_name) <= 0)
+    if (purc_extract_app_name (endpoint_name, app_name) <= 0)
         return false;
 
-    if ( purc_extract_runner_name (endpoint_name, runner_name) <= 0)
+    if (purc_extract_runner_name (endpoint_name, runner_name) <= 0)
         return false;
 
     return purc_is_valid_host_name (host_name) &&
@@ -99,16 +99,26 @@ bool purc_is_valid_endpoint_name (const char* endpoint_name)
         purc_is_valid_runner_name (runner_name);
 }
 
-/* @<host_name>/<app_name>/<runner_name> */
+static inline const char *check_endpoint_schema (const char *endpoint)
+{
+    if (strncasecmp (endpoint, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0)
+        return endpoint + PURC_LEN_EDPT_SCHEMA;
+
+    return NULL;
+}
+
+/* edpt://<host_name>/<app_name>/<runner_name> */
 int purc_extract_host_name (const char* endpoint, char* host_name)
 {
     int len;
     char* slash;
 
-    if (endpoint [0] != '@' || (slash = strchr (endpoint, '/')) == NULL)
+    if ((endpoint = check_endpoint_schema(endpoint)) == NULL)
         return 0;
 
-    endpoint++;
+    if ((slash = strchr (endpoint, '/')) == NULL)
+        return 0;
+
     len = (uintptr_t)slash - (uintptr_t)endpoint;
     if (len <= 0 || len > PURC_LEN_APP_NAME)
         return 0;
@@ -125,20 +135,23 @@ char* purc_extract_host_name_alloc (const char* endpoint)
     if ((host_name = malloc (PURC_LEN_HOST_NAME + 1)) == NULL)
         return NULL;
 
-    if ( purc_extract_host_name (endpoint, host_name) > 0)
+    if (purc_extract_host_name (endpoint, host_name) > 0)
         return host_name;
 
     free (host_name);
     return NULL;
 }
 
-/* @<host_name>/<app_name>/<runner_name> */
+/* edpt://<host_name>/<app_name>/<runner_name> */
 int purc_extract_app_name (const char* endpoint, char* app_name)
 {
     int len;
     char *first_slash, *second_slash;
 
-    if (endpoint [0] != '@' || (first_slash = strchr (endpoint, '/')) == 0 ||
+    if ((endpoint = check_endpoint_schema(endpoint)) == NULL)
+        return 0;
+
+    if ((first_slash = strchr (endpoint, '/')) == 0 ||
             (second_slash = strrchr (endpoint, '/')) == 0 ||
             first_slash == second_slash)
         return 0;
@@ -161,20 +174,23 @@ char* purc_extract_app_name_alloc (const char* endpoint)
     if ((app_name = malloc (PURC_LEN_APP_NAME + 1)) == NULL)
         return NULL;
 
-    if ( purc_extract_app_name (endpoint, app_name) > 0)
+    if (purc_extract_app_name (endpoint, app_name) > 0)
         return app_name;
 
     free (app_name);
     return NULL;
 }
 
+/* edpt://<host_name>/<app_name>/<runner_name> */
 int purc_extract_runner_name (const char* endpoint, char* runner_name)
 {
     int len;
     char *second_slash;
 
-    if (endpoint [0] != '@' ||
-            (second_slash = strrchr (endpoint, '/')) == 0)
+    if ((endpoint = check_endpoint_schema (endpoint)) == NULL)
+        return 0;
+
+    if ((second_slash = strrchr (endpoint, '/')) == 0)
         return 0;
 
     second_slash++;
@@ -215,52 +231,23 @@ int purc_assemble_endpoint_name_ex (const char* host_name,
     if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
         return 0;
 
-    size_t len = 1 + host_len + 1 + app_len + 1 + runner_len;
+    size_t len = PURC_LEN_EDPT_SCHEMA + host_len + 1 + app_len + 1 + runner_len;
     if (len >= sz)
-        return len;
+        return 0;
 
-    buff [0] = '@';
-    buff [1] = '\0';
+    strcpy (buff, PURC_EDPT_SCHEMA);
     strcat (buff, host_name);
-    buff [host_len + 1] = '/';
-    buff [host_len + 2] = '\0';
+    buff += PURC_LEN_EDPT_SCHEMA + host_len;
+    buff [0] = '/';
+    buff [1] = '\0';
 
     strcat (buff, app_name);
-    buff [host_len + app_len + 2] = '/';
-    buff [host_len + app_len + 3] = '\0';
+    buff += app_len + 1;
+    buff [0] = '/';
+    buff [1] = '\0';
 
     strcat (buff, runner_name);
-
     return len;
-}
-
-int purc_assemble_endpoint_name (const char* host_name, const char* app_name,
-        const char* runner_name, char* buff)
-{
-    int host_len, app_len, runner_len;
-
-    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
-        return 0;
-
-    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
-        return 0;
-
-    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
-        return 0;
-
-    buff [0] = '@';
-    buff [1] = '\0';
-    strcat (buff, host_name);
-    buff [host_len + 1] = '/';
-    buff [host_len + 2] = '\0';
-
-    strcat (buff, app_name);
-    buff [host_len + app_len + 2] = '/';
-    buff [host_len + app_len + 3] = '\0';
-
-    strcat (buff, runner_name);
-
-    return host_len + app_len + runner_len + 3;
 }
 
 char* purc_assemble_endpoint_name_alloc (const char* host_name,
@@ -278,21 +265,12 @@ char* purc_assemble_endpoint_name_alloc (const char* host_name,
     if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
         return NULL;
 
-    if ((endpoint = malloc (host_len + app_len + runner_len + 4)) == NULL)
+    int len = PURC_LEN_EDPT_SCHEMA + host_len + app_len + runner_len + 3;
+    if ((endpoint = malloc (len)) == NULL)
         return NULL;
 
-    endpoint [0] = '@';
-    endpoint [1] = '\0';
-    strcat (endpoint, host_name);
-    endpoint [host_len + 1] = '/';
-    endpoint [host_len + 2] = '\0';
-
-    strcat (endpoint, app_name);
-    endpoint [host_len + app_len + 2] = '/';
-    endpoint [host_len + app_len + 3] = '\0';
-
-    strcat (endpoint, runner_name);
-
+    purc_assemble_endpoint_name_ex (host_name, app_name, runner_name,
+            endpoint, len);
     return endpoint;
 }
 

@@ -30,6 +30,7 @@ In this version, we fixed some bugs and made som enhancements:
    * Rename function `pcrdr_purcmc_send_packet()` to `pcrdr_socket_send_packet()`.
    * Rename macro `PCA_ENABLE_RENDERER_PURCMC` to `PCA_ENABLE_RENDERER_SOCKET`.
 * ADJUSTMENTS:
+   * Use `edpt://` instead of `@` as the schema of an endpoint URI.
 * ENHANCEMENTS:
 * OPTIMIZATIONS:
 * IMPROVEMENTS:
