@@ -34,7 +34,7 @@
 #include "foil.h"
 #include "endpoint.h"
 
-static void init_renderer(Renderer *rdr)
+static void init_renderer(purcth_renderer *rdr)
 {
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();
@@ -44,16 +44,16 @@ static void init_renderer(Renderer *rdr)
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
 }
 
-static void deinit_renderer(Renderer *rdr)
+static void deinit_renderer(purcth_renderer *rdr)
 {
     const char* name;
     void *next, *data;
-    Endpoint *endpoint;
+    purcth_endpoint *endpoint;
 
     remove_all_living_endpoints(&rdr->living_avl);
 
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
-        endpoint = *(Endpoint **)data;
+        endpoint = *(purcth_endpoint **)data;
 
         purc_log_info("Deleting endpoint: %s (%p) in deinit_server\n", name, endpoint);
 
@@ -65,7 +65,7 @@ static void deinit_renderer(Renderer *rdr)
     kvlist_free(&rdr->endpoint_list);
 }
 
-static void event_loop(Renderer *rdr)
+static void event_loop(purcth_renderer *rdr)
 {
     (void)rdr;
     size_t n;
@@ -158,7 +158,7 @@ static void* foil_thread_entry(void* arg)
     sem_post(sw);
 
     if (my_arg->rid) {
-        Renderer rdr;
+        purcth_renderer rdr;
 
         init_renderer(&rdr);
         event_loop(&rdr);

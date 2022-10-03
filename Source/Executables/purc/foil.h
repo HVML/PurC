@@ -43,141 +43,141 @@
     "windowLevels:normal,topmost"
 
 /* The THREAD renderer */
-struct Renderer;
-typedef struct Renderer Renderer;
+struct purcth_renderer;
+typedef struct purcth_renderer purcth_renderer;
 
-struct Workspace;
-typedef struct Workspace Workspace;
+struct purcth_workspace;
+typedef struct purcth_workspace purcth_workspace;
 
-struct PlainWin;
-typedef struct PlainWin PlainWin;
+struct purcth_plainwin;
+typedef struct purcth_plainwin purcth_plainwin;
 
-struct Page;
-typedef struct Page Page;
+struct purcth_page;
+typedef struct purcth_page purcth_page;
 
-struct Dom;
-typedef struct Dom Dom;
+struct purcth_dom;
+typedef struct purcth_dom purcth_dom;
 
 /* The THREAD endpoint */
-struct Endpoint;
-typedef struct Endpoint Endpoint;
+struct purcth_endpoint;
+typedef struct purcth_endpoint purcth_endpoint;
 
-struct Session;
-typedef struct Session Session;
+struct purcth_session;
+typedef struct purcth_session purcth_session;
 
-typedef struct RendererCallbacks {
-    int  (*prepare)(Renderer *);
-    void (*cleanup)(Renderer *);
+typedef struct purcth_rdr_cbs {
+    int  (*prepare)(purcth_renderer *);
+    void (*cleanup)(purcth_renderer *);
 
-    Session *(*create_session)(Renderer *, Endpoint *);
-    int (*remove_session)(Session *);
+    purcth_session *(*create_session)(purcth_renderer *, purcth_endpoint *);
+    int (*remove_session)(purcth_session *);
 
     /* nullable */
-    Workspace *(*create_workspace)(Session *,
+    purcth_workspace *(*create_workspace)(purcth_session *,
             const char *name, const char *title, purc_variant_t properties,
             int *retv);
     /* null if create_workspace is null */
-    int (*update_workspace)(Session *, Workspace *,
+    int (*update_workspace)(purcth_session *, purcth_workspace *,
             const char *property, const char *value);
     /* null if create_workspace is null */
-    int (*destroy_workspace)(Session *, Workspace *);
+    int (*destroy_workspace)(purcth_session *, purcth_workspace *);
 
     /* nullable */
-    int (*set_page_groups)(Session *, Workspace *,
+    int (*set_page_groups)(purcth_session *, purcth_workspace *,
             const char *content, size_t length);
     /* null if set_page_groups is null */
-    int (*add_page_groups)(Session *, Workspace *,
+    int (*add_page_groups)(purcth_session *, purcth_workspace *,
             const char *content, size_t length);
     /* null if set_page_groups is null */
-    int (*remove_page_group)(Session *, Workspace *,
+    int (*remove_page_group)(purcth_session *, purcth_workspace *,
             const char* gid);
 
-    PlainWin *(*create_plainwin)(Session *, Workspace *,
+    purcth_plainwin *(*create_plainwin)(purcth_session *, purcth_workspace *,
             const char *request_id, const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
-    int (*update_plainwin)(Session *, Workspace *,
-            PlainWin *win, const char *property, purc_variant_t value);
-    int (*destroy_plainwin)(Session *, Workspace *,
-            PlainWin *win);
+    int (*update_plainwin)(purcth_session *, purcth_workspace *,
+            purcth_plainwin *win, const char *property, purc_variant_t value);
+    int (*destroy_plainwin)(purcth_session *, purcth_workspace *,
+            purcth_plainwin *win);
 
-    Page *(*get_plainwin_page)(Session *,
-            PlainWin *plainWin, int *retv);
+    purcth_page *(*get_plainwin_page)(purcth_session *,
+            purcth_plainwin *plainWin, int *retv);
 
     /* nullable */
-    Page *(*create_page)(Session *, Workspace *,
+    purcth_page *(*create_page)(purcth_session *, purcth_workspace *,
             const char *request_id, const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     /* null if create_page is null */
-    int (*update_page)(Session *, Workspace *,
-            Page *page, const char *property, purc_variant_t value);
+    int (*update_page)(purcth_session *, purcth_workspace *,
+            purcth_page *page, const char *property, purc_variant_t value);
     /* null if create_page is null */
-    int (*destroy_page)(Session *, Workspace *,
-            Page *page);
+    int (*destroy_page)(purcth_session *, purcth_workspace *,
+            purcth_page *page);
 
-    Dom *(*load)(Session *, Page *,
+    purcth_dom *(*load)(purcth_session *, purcth_page *,
             int op, const char *op_name, const char *request_id,
             const char *content, size_t length, int *retv);
-    Dom *(*write)(Session *, Page *,
+    purcth_dom *(*write)(purcth_session *, purcth_page *,
             int op, const char *op_name, const char *request_id,
             const char *content, size_t length, int *retv);
 
-    int (*update_dom)(Session *, Dom *,
+    int (*update_dom)(purcth_session *, purcth_dom *,
             int op, const char *op_name, const char *request_id,
             const char* element_type, const char* element_value,
             const char* property, pcrdr_msg_data_type text_type,
             const char *content, size_t length);
 
     /* nullable */
-    purc_variant_t (*call_method_in_session)(Session *,
+    purc_variant_t (*call_method_in_session)(purcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
             const char *element_type, const char *element_value,
             const char *property, const char *method, purc_variant_t arg,
             int* retv);
     /* nullable */
-    purc_variant_t (*call_method_in_dom)(Session *, const char *,
-            Dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*call_method_in_dom)(purcth_session *, const char *,
+            purcth_dom *, const char* element_type, const char* element_value,
             const char *method, purc_variant_t arg, int* retv);
 
     /* nullable */
-    purc_variant_t (*get_property_in_session)(Session *,
+    purc_variant_t (*get_property_in_session)(purcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
             const char *element_type, const char *element_value,
             const char *property, int *retv);
     /* nullable */
-    purc_variant_t (*get_property_in_dom)(Session *, const char *,
-            Dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*get_property_in_dom)(purcth_session *, const char *,
+            purcth_dom *, const char* element_type, const char* element_value,
             const char *property, int *retv);
 
     /* nullable */
-    purc_variant_t (*set_property_in_session)(Session *,
+    purc_variant_t (*set_property_in_session)(purcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
             const char *element_type, const char *element_value,
             const char *property, purc_variant_t value, int *retv);
     /* nullable */
-    purc_variant_t (*set_property_in_dom)(Session *, const char *,
-            Dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*set_property_in_dom)(purcth_session *, const char *,
+            purcth_dom *, const char* element_type, const char* element_value,
             const char *property, purc_variant_t value, int *retv);
 
-    bool (*pend_response)(Session *, const char *operation,
+    bool (*pend_response)(purcth_session *, const char *operation,
             const char *request_id, void *result_value);
-} RendererCallbacks;
+} purcth_rdr_cbs;
 
-struct Renderer {
+struct purcth_renderer {
     unsigned int nr_endpoints;
 
     time_t t_start;
     time_t t_elapsed;
     time_t t_elapsed_last;
 
-    /* The KV list using endpoint URI as the key, and Endpoint* as the value */
+    /* The KV list using endpoint URI as the key, and purcth_endpoint* as the value */
     struct kvlist endpoint_list;
 
     /* the AVL tree of endpoints sorted by living time */
     struct avl_tree living_avl;
 
-    RendererCallbacks cbs;
+    purcth_rdr_cbs cbs;
 };
 
 purc_atom_t foil_init(const char *rdr_uri);

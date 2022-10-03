@@ -2,7 +2,7 @@
 ** @file endpoint.h
 ** @author Vincent Wei
 ** @date 2022/10/02
-** @brief The interface of Endpoint (copied from PurC Midnight Commander).
+** @brief The interface of endpoint (copied from PurC Midnight Commander).
 **
 ** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
 **
@@ -43,14 +43,14 @@ int comp_living_time(const void *k1, const void *k2, void *ptr);
 struct avl_tree;
 void remove_all_living_endpoints(struct avl_tree *avl);
 
-Endpoint* new_endpoint(Renderer* rdr, const char *uri);
-int del_endpoint(Renderer* rdr, Endpoint* endpoint, int cause);
-int check_no_responding_endpoints(Renderer *rdr);
+purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri);
+int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause);
+int check_no_responding_endpoints(purcth_renderer *rdr);
 
-int send_message_to_endpoint(Renderer* rdr, Endpoint* endpoint,
+int send_message_to_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg);
-int send_initial_response(Renderer* rdr, Endpoint* endpoint);
-int on_got_message(Renderer* rdr, Endpoint* endpoint,
+int send_initial_response(purcth_renderer* rdr, purcth_endpoint* endpoint);
+int on_got_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 
 #endif /* !purc_foil_endpoint_h_ */
