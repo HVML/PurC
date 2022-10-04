@@ -72,7 +72,7 @@ static void deinit_renderer(purcth_renderer *rdr)
     kvlist_free(&rdr->endpoint_list);
 }
 
-static void handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
+static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
 {
     const char *operation =
         purc_variant_get_string_const(msg->operation);
@@ -81,22 +81,35 @@ static void handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
 
     if (UNLIKELY(operation == NULL || source_uri == NULL)) {
         purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
-        return;
+    }
+    else {
+        if (strcmp(operation, PCRDR_THREAD_OPERATION_HELLO) == 0) {
+            purcth_endpoint *edpt = new_endpoint(rdr, source_uri);
+            if (edpt) {
+                send_initial_response(rdr, edpt);
+                if (rdr->nr_endpoints == 0)
+                    return false;
+            }
+            else {
+                purc_log_warn("Cannot create endpoint for %s.\n", source_uri);
+            }
+        }
+        else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
+            purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
+            if (edpt) {
+                del_endpoint(rdr, edpt, CDE_EXITING);
+            }
+            else {
+                purc_set_error(PCRDR_ERROR_PROTOCOL);
+                purc_log_warn("Bye request from unknown endpoint: %s.\n", source_uri);
+            }
+        }
+        else {
+            purc_set_error(PCRDR_ERROR_UNKNOWN_REQUEST);
+        }
     }
 
-    if (strcmp(operation, PCRDR_THREAD_OPERATION_HELLO) == 0) {
-        purcth_endpoint *edpt = new_endpoint(rdr, source_uri);
-        if (edpt)
-            send_initial_response(rdr, edpt);
-
-        purc_log_warn("Cannot create endpoint for %s.\n", source_uri);
-    }
-    else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
-        purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
-        if (edpt)
-            del_endpoint(rdr, edpt, CDE_EXITING);
-        purc_log_warn("Bye request from unknown endpoint: %s.\n", source_uri);
-    }
+    return true;
 }
 
 static void event_loop(purcth_renderer *rdr)
@@ -111,44 +124,57 @@ static void event_loop(purcth_renderer *rdr)
         if (ret) {
             purc_log_error("purc_inst_holding_messages_count failed: %d\n", ret);
         }
-        else if (n > 0) {
-            purc_log_info("purc_inst_holding_messages_count returns: %d\n", (int)n);
+        else if (n == 0) {
+            // TODO: call event_loop of renderer
+            pcutils_usleep(10000);  // 10ms
 
-            pcrdr_msg *msg = purc_inst_take_away_message(0);
-            if (msg->type == PCRDR_MSG_TYPE_REQUEST &&
-                    msg->target == PCRDR_MSG_TARGET_INSTANCE) {
-                handle_instance_request(rdr, msg);
-            }
-            else {
-                const char *source_uri =
-                    purc_variant_get_string_const(msg->sourceURI);
-                if (source_uri == NULL) {
-                    purc_log_warn("Got a bad message without source URI\n");
+            rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
+            if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
+#if 0 // VW: no need to check dead endpoints for THREAD-based renderer
+                if (rdr->t_elapsed % 10 == 0) {
+                    check_no_responding_endpoints(rdr);
                 }
-                else {
-                    purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
-                    if (edpt) {
-                        update_endpoint_living_time(rdr, edpt);
-                        on_endpoint_message(rdr, edpt, msg);
-                    }
-                }
+#endif
+                rdr->t_elapsed_last = rdr->t_elapsed;
             }
 
-            pcrdr_release_message(msg);
+            continue;
+        }
+
+        purc_clr_error();
+
+        pcrdr_msg *msg = purc_inst_take_away_message(0);
+        if (msg->type == PCRDR_MSG_TYPE_REQUEST &&
+                msg->target == PCRDR_MSG_TARGET_INSTANCE) {
+            if (!handle_instance_request(rdr, msg)) {
+                purc_log_warn("No any living endpoints, quiting...\n");
+                break;
+            }
         }
         else {
-            pcutils_usleep(10000);  // 10ms
+            const char *source_uri =
+                purc_variant_get_string_const(msg->sourceURI);
+            if (source_uri == NULL) {
+                purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
+            }
+            else {
+                purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
+                if (edpt) {
+                    update_endpoint_living_time(rdr, edpt);
+                    on_endpoint_message(rdr, edpt, msg);
+                }
+                else {
+                    purc_set_error(PCRDR_ERROR_PROTOCOL);
+                }
+            }
         }
 
-        rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
-        if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
-#if 0 // VW: no need to check dead endpoints for THREAD-based renderer
-            if (rdr->t_elapsed % 10 == 0) {
-                check_no_responding_endpoints(rdr);
-            }
-#endif
+        pcrdr_release_message(msg);
 
-            rdr->t_elapsed_last = rdr->t_elapsed;
+        int last_error = purc_get_last_error();
+        if (UNLIKELY(last_error)) {
+            purc_log_warn("Encounter error when handle message: %s\n",
+                    purc_get_error_message(last_error));
         }
 
     } while(true);

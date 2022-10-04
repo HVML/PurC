@@ -48,6 +48,7 @@ int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause);
 purcth_endpoint* retrieve_endpoint(purcth_renderer* rdr, const char *uri);
 void update_endpoint_living_time(purcth_renderer *rdr, purcth_endpoint* endpoint);
 int check_no_responding_endpoints(purcth_renderer *rdr);
+purc_atom_t get_endpoint_rid(purcth_endpoint* endpoint);
 
 int send_message_to_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg);

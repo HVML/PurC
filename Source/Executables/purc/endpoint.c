@@ -50,6 +50,11 @@ struct purcth_endpoint {
     struct avl_node avl;
 };
 
+purc_atom_t get_endpoint_rid(purcth_endpoint* endpoint)
+{
+    return endpoint->rid;
+}
+
 int
 comp_living_time(const void *k1, const void *k2, void *ptr)
 {
@@ -118,6 +123,9 @@ purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri)
     }
 
     rdr->nr_endpoints++;
+    if (rdr->master_rid == 0) {
+        rdr->master_rid = rid;
+    }
     return endpoint;
 
 failed:
@@ -145,6 +153,7 @@ int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
     purc_log_info("Removing endpoint (%s)\n", endpoint->uri);
     kvlist_delete(&rdr->endpoint_list, endpoint->uri);
     free(endpoint);
+    rdr->nr_endpoints--;
     return 0;
 }
 
@@ -173,7 +182,6 @@ int check_no_responding_endpoints(purcth_renderer *rdr)
 
             purc_log_info("Removing no-responding client: %s\n", endpoint->uri);
             del_endpoint(rdr, endpoint, CDE_NO_RESPONDING);
-            rdr->nr_endpoints--;
             n++;
         }
         else if (t_curr > endpoint->t_living + PCRDR_MAX_PING_TIME) {
