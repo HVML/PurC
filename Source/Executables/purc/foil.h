@@ -45,6 +45,26 @@
     "workspace:0/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:8\n" \
     "DOMElementSelectors:handle,handles"
 
+#ifdef NDEBUG
+#   define LOG_DEBUG(x, ...)
+#else
+#   define LOG_DEBUG(x, ...)   \
+    purc_log_debug("%s: " x, __func__, ##__VA_ARGS__)
+#endif /* not defined NDEBUG */
+
+#ifdef LOG_ERROR
+#   undef LOG_ERROR
+#endif
+
+#define LOG_ERROR(x, ...)   \
+    purc_log_error("%s: " x, __func__, ##__VA_ARGS__)
+
+#define LOG_WARN(x, ...)    \
+    purc_log_warn("%s: " x, __func__, ##__VA_ARGS__)
+
+#define LOG_INFO(x, ...)    \
+    purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
+
 /* The PURCTH renderer */
 struct purcth_renderer;
 typedef struct purcth_renderer purcth_renderer;
@@ -96,7 +116,7 @@ typedef struct purcth_rdr_cbs {
             const char* gid);
 
     purcth_plainwin *(*create_plainwin)(purcth_session *, purcth_workspace *,
-            const char *request_id, const char *gid, const char *name,
+            const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     int (*update_plainwin)(purcth_session *, purcth_workspace *,
@@ -109,7 +129,7 @@ typedef struct purcth_rdr_cbs {
 
     /* nullable */
     purcth_page *(*create_page)(purcth_session *, purcth_workspace *,
-            const char *request_id, const char *gid, const char *name,
+            const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     /* null if create_page is null */
@@ -119,18 +139,13 @@ typedef struct purcth_rdr_cbs {
     int (*destroy_page)(purcth_session *, purcth_workspace *,
             purcth_page *page);
 
+    /* no write method */
     purcth_dom *(*load)(purcth_session *, purcth_page *,
-            int op, const char *op_name, const char *request_id,
-            const char *content, size_t length, int *retv);
-    purcth_dom *(*write)(purcth_session *, purcth_page *,
-            int op, const char *op_name, const char *request_id,
-            const char *content, size_t length, int *retv);
+            uint64_t edom_handle, int *retv);
 
-    int (*update_dom)(purcth_session *, purcth_dom *,
-            int op, const char *op_name, const char *request_id,
-            const char* element_type, const char* element_value,
-            const char* property, pcrdr_msg_data_type text_type,
-            const char *content, size_t length);
+    int (*update_dom)(purcth_session *, purcth_dom *, int op,
+            uint64_t element_handle, uint64_t ref_element,
+            const char* property);
 
     /* nullable */
     purc_variant_t (*call_method_in_session)(purcth_session *,
@@ -139,8 +154,8 @@ typedef struct purcth_rdr_cbs {
             const char *property, const char *method, purc_variant_t arg,
             int* retv);
     /* nullable */
-    purc_variant_t (*call_method_in_dom)(purcth_session *, const char *,
-            purcth_dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*call_method_in_dom)(purcth_session *,
+            purcth_dom *, uint64_t element_handle,
             const char *method, purc_variant_t arg, int* retv);
 
     /* nullable */
@@ -149,8 +164,8 @@ typedef struct purcth_rdr_cbs {
             const char *element_type, const char *element_value,
             const char *property, int *retv);
     /* nullable */
-    purc_variant_t (*get_property_in_dom)(purcth_session *, const char *,
-            purcth_dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*get_property_in_dom)(purcth_session *,
+            purcth_dom *, uint64_t element_handle,
             const char *property, int *retv);
 
     /* nullable */
@@ -159,12 +174,9 @@ typedef struct purcth_rdr_cbs {
             const char *element_type, const char *element_value,
             const char *property, purc_variant_t value, int *retv);
     /* nullable */
-    purc_variant_t (*set_property_in_dom)(purcth_session *, const char *,
-            purcth_dom *, const char* element_type, const char* element_value,
+    purc_variant_t (*set_property_in_dom)(purcth_session *,
+            purcth_dom *, uint64_t element_handle,
             const char *property, purc_variant_t value, int *retv);
-
-    bool (*pend_response)(purcth_session *, const char *operation,
-            const char *request_id, void *result_value);
 } purcth_rdr_cbs;
 
 struct purcth_renderer {

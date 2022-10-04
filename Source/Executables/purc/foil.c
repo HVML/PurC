@@ -87,8 +87,9 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
             purcth_endpoint *edpt = new_endpoint(rdr, source_uri);
             if (edpt) {
                 send_initial_response(rdr, edpt);
-                if (rdr->nr_endpoints == 0)
-                    return false;
+                if (rdr->nr_endpoints == 0) {
+                    goto no_any_endpoints;
+                }
             }
             else {
                 purc_log_warn("Cannot create endpoint for %s.\n", source_uri);
@@ -110,6 +111,9 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
     }
 
     return true;
+
+no_any_endpoints:
+    return false;
 }
 
 static void event_loop(purcth_renderer *rdr)
