@@ -27,6 +27,7 @@
 
 #include "callbacks.h"
 #include "endpoint.h"
+#include "workspace.h"
 #include "util/sorted-array.h"
 
 /* handle types */
@@ -38,11 +39,6 @@ enum {
     HT_WIDGET,
     HT_PAGE,
     HT_DOM,
-};
-
-struct purcth_workspace {
-    /* TODO: manager of grouped plain windows and pages */
-    void *layouter;
 };
 
 struct purcth_session {
@@ -59,55 +55,14 @@ struct purcth_session {
     purcth_workspace *workspace;
 };
 
-static KVLIST(kv_app_workspace, NULL);
-
 static int foil_prepare(purcth_renderer *rdr)
 {
-    (void)rdr;
-    return 0;
+    return foil_wsp_init(rdr);
 }
 
 static void foil_cleanup(purcth_renderer *rdr)
 {
-    (void)rdr;
-    const char *name;
-    void *next, *data;
-
-    kvlist_for_each_safe(&kv_app_workspace, name, next, data) {
-        purcth_workspace *workspace = *(purcth_workspace **)data;
-        if (workspace->layouter) {
-            // TODO: ws_layouter_delete(workspace->layouter);
-        }
-    }
-}
-
-static purcth_workspace *create_or_get_workspace(purcth_endpoint* endpoint)
-{
-    char host[PURC_LEN_HOST_NAME + 1];
-    char app[PURC_LEN_APP_NAME + 1];
-    const char *edpt_uri = get_endpoint_uri(endpoint);
-
-    purc_extract_host_name(edpt_uri, host);
-    purc_extract_app_name(edpt_uri, app);
-
-    char app_key[PURC_LEN_ENDPOINT_NAME + 1];
-    sprintf(app_key, "%s-%s", host, app);
-
-    void *data;
-    purcth_workspace *workspace;
-    if ((data = kvlist_get(&kv_app_workspace, app_key))) {
-        workspace = *(purcth_workspace **)data;
-        assert(workspace);
-    }
-    else {
-        workspace = calloc(1, sizeof(purcth_workspace));
-        if (workspace) {
-            workspace->layouter = NULL;
-            kvlist_set(&kv_app_workspace, app_key, &workspace);
-        }
-    }
-
-    return workspace;
+    foil_wsp_cleanup(rdr);
 }
 
 static purcth_session *
@@ -115,7 +70,7 @@ foil_create_session(purcth_renderer *rdr, purcth_endpoint *edpt)
 {
     purcth_session* sess = calloc(1, sizeof(purcth_session));
 
-    sess->workspace = create_or_get_workspace(edpt);
+    sess->workspace = foil_wsp_create_or_get_workspace(edpt);
     if (sess->workspace == NULL) {
         goto failed;
     }

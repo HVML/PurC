@@ -45,6 +45,7 @@ if (ENABLE_RDR_FOIL)
         screen.c
         endpoint.c
         callbacks.c
+        workspace.c
     )
 endif ()
 
