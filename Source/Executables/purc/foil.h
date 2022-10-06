@@ -43,7 +43,7 @@
     FOIL_RDR_NAME ":" PURC_VERSION_STRING "\n" \
     "HTML:5.3\n" \
     "workspace:0/tabbedWindow:-1/plainWindow:-1/widgetInTabbedWindow:8\n" \
-    "DOMElementSelectors:handle,handles"
+    "DOMElementSelectors:handle"
 
 #ifdef NDEBUG
 #   define LOG_DEBUG(x, ...)
@@ -65,28 +65,33 @@
 #define LOG_INFO(x, ...)    \
     purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
 
-/* The PURCTH renderer */
+/* The renderer */
 struct purcth_renderer;
 typedef struct purcth_renderer purcth_renderer;
 
-/* The PURCTH endpoint */
+/* The endpoint */
 struct purcth_endpoint;
 typedef struct purcth_endpoint purcth_endpoint;
 
+/* The session for a specific endpoint */
 struct purcth_session;
 typedef struct purcth_session purcth_session;
 
+/* The workspace for a specific app */
 struct purcth_workspace;
 typedef struct purcth_workspace purcth_workspace;
 
-struct purcth_plainwin;
-typedef struct purcth_plainwin purcth_plainwin;
-
+/* The plain window or widget for a specific ultimate DOM (uDOM) */
 struct purcth_page;
 typedef struct purcth_page purcth_page;
 
-struct purcth_dom;
-typedef struct purcth_dom purcth_dom;
+/* The ultimate DOM */
+struct purcth_udom;
+typedef struct purcth_udom purcth_udom;
+
+/* The rendered box */
+struct purcth_rdrbox;
+typedef struct purcth_rdrbox purcth_rdrbox;
 
 typedef struct purcth_rdr_cbs {
     int  (*prepare)(purcth_renderer *);
@@ -115,17 +120,14 @@ typedef struct purcth_rdr_cbs {
     int (*remove_page_group)(purcth_session *, purcth_workspace *,
             const char* gid);
 
-    purcth_plainwin *(*create_plainwin)(purcth_session *, purcth_workspace *,
+    purcth_page *(*create_plainwin)(purcth_session *, purcth_workspace *,
             const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     int (*update_plainwin)(purcth_session *, purcth_workspace *,
-            purcth_plainwin *win, const char *property, purc_variant_t value);
+            purcth_page *win, const char *property, purc_variant_t value);
     int (*destroy_plainwin)(purcth_session *, purcth_workspace *,
-            purcth_plainwin *win);
-
-    purcth_page *(*get_plainwin_page)(purcth_session *,
-            purcth_plainwin *plainWin, int *retv);
+            purcth_page *win);
 
     /* nullable */
     purcth_page *(*create_page)(purcth_session *, purcth_workspace *,
@@ -140,12 +142,12 @@ typedef struct purcth_rdr_cbs {
             purcth_page *page);
 
     /* no write method */
-    purcth_dom *(*load)(purcth_session *, purcth_page *,
-            uint64_t edom_handle, int *retv);
+    purcth_udom *(*load_edom)(purcth_session *, purcth_page *,
+            purc_variant_t edom, int *retv);
 
-    int (*update_dom)(purcth_session *, purcth_dom *, int op,
-            uint64_t element_handle, uint64_t ref_element,
-            const char* property);
+    int (*update_udom)(purcth_session *, purcth_udom *, int op,
+            uint64_t element_handle, const char* property,
+            purc_variant_t ref_info);
 
     /* nullable */
     purc_variant_t (*call_method_in_session)(purcth_session *,
@@ -154,8 +156,8 @@ typedef struct purcth_rdr_cbs {
             const char *property, const char *method, purc_variant_t arg,
             int* retv);
     /* nullable */
-    purc_variant_t (*call_method_in_dom)(purcth_session *,
-            purcth_dom *, uint64_t element_handle,
+    purc_variant_t (*call_method_in_udom)(purcth_session *,
+            purcth_udom *, uint64_t element_handle,
             const char *method, purc_variant_t arg, int* retv);
 
     /* nullable */
@@ -164,8 +166,8 @@ typedef struct purcth_rdr_cbs {
             const char *element_type, const char *element_value,
             const char *property, int *retv);
     /* nullable */
-    purc_variant_t (*get_property_in_dom)(purcth_session *,
-            purcth_dom *, uint64_t element_handle,
+    purc_variant_t (*get_property_in_udom)(purcth_session *,
+            purcth_udom *, uint64_t element_handle,
             const char *property, int *retv);
 
     /* nullable */
@@ -174,8 +176,8 @@ typedef struct purcth_rdr_cbs {
             const char *element_type, const char *element_value,
             const char *property, purc_variant_t value, int *retv);
     /* nullable */
-    purc_variant_t (*set_property_in_dom)(purcth_session *,
-            purcth_dom *, uint64_t element_handle,
+    purc_variant_t (*set_property_in_udom)(purcth_session *,
+            purcth_udom *, uint64_t element_handle,
             const char *property, purc_variant_t value, int *retv);
 } purcth_rdr_cbs;
 

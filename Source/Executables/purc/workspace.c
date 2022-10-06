@@ -28,6 +28,8 @@
 #include "callbacks.h"
 #include "endpoint.h"
 #include "workspace.h"
+#include "udom.h"
+#include "util/sorted-array.h"
 
 static KVLIST(kv_app_workspace, NULL);
 
@@ -78,5 +80,136 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_endpoint* endpoint)
     }
 
     return workspace;
+}
+
+void foil_wsp_convert_style(void *workspace, void *session,
+        struct wsp_widget_info *style, purc_variant_t toolkit_style)
+{
+    (void)workspace;
+    (void)session;
+    style->backgroundColor = NULL;
+
+    if (toolkit_style == PURC_VARIANT_INVALID)
+        return;
+
+    purc_variant_t tmp;
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "darkMode")) &&
+            purc_variant_is_true(tmp)) {
+        style->darkMode = true;
+    }
+
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "fullScreen")) &&
+            purc_variant_is_true(tmp)) {
+        style->fullScreen = true;
+    }
+
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "withToolbar")) &&
+            purc_variant_is_true(tmp)) {
+        style->withToolbar = true;
+    }
+
+    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
+                    "backgroundColor"))) {
+        const char *value = purc_variant_get_string_const(tmp);
+        if (value) {
+            style->backgroundColor = value;
+        }
+    }
+
+    style->flags |= WSP_WIDGET_FLAG_TOOLKIT;
+}
+
+static purcth_page *
+create_plainwin(purcth_workspace *workspace, purcth_session *sess,
+        void *init_arg, const struct wsp_widget_info *style)
+{
+    (void)workspace;
+    (void)sess;
+    (void)init_arg;
+    (void)style;
+
+    struct purcth_page *plainwin = NULL;
+
+    /* TODO */
+    return plainwin;
+}
+
+void *foil_wsp_create_widget(void *workspace, void *session,
+        wsp_widget_type_t type, void *window,
+        void *parent, void *init_arg, const struct wsp_widget_info *style)
+{
+    (void)window;
+    (void)parent;
+
+    switch (type) {
+    case WSP_WIDGET_TYPE_PLAINWINDOW:
+        return create_plainwin(workspace, session, init_arg, style);
+
+    default:
+        /* TODO */
+        break;
+    }
+
+    return NULL;
+}
+
+static int
+destroy_plainwin(purcth_workspace *workspace, purcth_session *sess,
+        purcth_page *plain_win)
+{
+    (void)workspace;
+    (void)sess;
+    (void)plain_win;
+
+    /* TODO */
+    return PCRDR_SC_OK;
+}
+
+int foil_wsp_destroy_widget(void *workspace, void *session,
+        void *window, void *widget, wsp_widget_type_t type)
+{
+    (void)window;
+    switch (type) {
+    case WSP_WIDGET_TYPE_PLAINWINDOW:
+        return destroy_plainwin(workspace, session, widget);
+
+    default:
+        /* TODO */
+        break;
+    }
+
+    return PCRDR_SC_BAD_REQUEST;
+}
+
+void foil_wsp_update_widget(void *workspace, void *session,
+        void *widget, wsp_widget_type_t type,
+        const struct wsp_widget_info *style)
+{
+    (void)workspace;
+    (void)session;
+    (void)widget;
+    (void)type;
+    (void)style;
+}
+
+purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
+        purcth_page *page, purc_variant_t edom)
+{
+    (void)workspace;
+    (void)session;
+
+    purcth_udom *udom = foil_udom_new(page);
+
+    purcth_rdrbox *rdrbox;
+    if (udom) {
+        rdrbox = foil_udom_load_edom(udom, edom);
+    }
+
+    if (rdrbox == NULL) {
+        foil_udom_delete(udom);
+        udom = NULL;
+    }
+
+    return udom;
 }
 

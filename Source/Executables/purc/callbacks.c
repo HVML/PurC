@@ -28,6 +28,7 @@
 #include "callbacks.h"
 #include "endpoint.h"
 #include "workspace.h"
+#include "udom.h"
 #include "util/sorted-array.h"
 
 /* handle types */
@@ -37,8 +38,7 @@ enum {
     HT_TABBEDWIN,
     HT_CONTAINER,
     HT_WIDGET,
-    HT_PAGE,
-    HT_DOM,
+    HT_UDOM,
 };
 
 struct purcth_session {
@@ -105,7 +105,7 @@ static int foil_remove_session(purcth_session *sess)
     LOG_DEBUG("destroy all ungrouped plain windows...\n");
     kvlist_for_each_safe(&sess->ug_wins, name, next, data) {
         /* TODO
-        purcth_plainwin *plain_win = *(purcth_plainwin **)data;
+        purcth_page *plain_win = *(purcth_page **)data;
         */
     }
 
@@ -122,7 +122,7 @@ static int foil_remove_session(purcth_session *sess)
     return PCRDR_SC_OK;
 }
 
-static purcth_plainwin *foil_create_plainwin(purcth_session *sess,
+static purcth_page *foil_create_plainwin(purcth_session *sess,
         purcth_workspace *workspace,
         const char *gid, const char *name,
         const char *class_name, const char *title, const char *layout_style,
@@ -133,7 +133,7 @@ static purcth_plainwin *foil_create_plainwin(purcth_session *sess,
     (void)layout_style;
     (void)toolkit_style;
 
-    purcth_plainwin *plain_win = NULL;
+    purcth_page *plain_win = NULL;
 
     workspace = sess->workspace;
 
@@ -147,16 +147,14 @@ static purcth_plainwin *foil_create_plainwin(purcth_session *sess,
             goto done;
         }
 
-        /* TODO
-        struct ws_widget_info style = { };
-        style.flags = WSWS_FLAG_NAME | WSWS_FLAG_TITLE;
+        struct wsp_widget_info style = { };
+        style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
         style.name = name;
         style.title = title;
-        foil_imp_convert_style(&style, toolkit_style);
-        plain_win = foil_imp_create_widget(workspace, sess,
-                WS_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, web_view, &style);
+        foil_wsp_convert_style(workspace, sess, &style, toolkit_style);
+        plain_win = foil_wsp_create_widget(workspace, sess,
+                WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
         kvlist_set(&sess->ug_wins, name, &plain_win);
-        */
 
     }
     else if (workspace->layouter == NULL) {
@@ -168,7 +166,7 @@ static purcth_plainwin *foil_create_plainwin(purcth_session *sess,
                 gid, name);
 
         /* TODO: create a plain window in the specified group
-        plain_win = ws_layouter_add_plain_window(workspace->layouter, sess,
+        plain_win = wsp_layouter_add_plain_window(workspace->layouter, sess,
                 gid, name, class_name, title, layout_style, toolkit_style,
                 web_view, retv);
         */
@@ -192,16 +190,16 @@ done:
 
 static int
 foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
-        purcth_plainwin *plain_win, const char *property, purc_variant_t value)
+        purcth_page *plain_win, const char *property, purc_variant_t value)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
 
         if (workspace->layouter) {
             /* TODO
-            if (ws_layouter_retrieve_widget(workspace->layouter, plain_win) ==
-                    WS_WIDGET_TYPE_PLAINWINDOW) {
-                return ws_layouter_update_widget(workspace->layouter, sess,
+            if (wsp_layouter_retrieve_widget(workspace->layouter, plain_win) ==
+                    WSP_WIDGET_TYPE_PLAINWINDOW) {
+                return wsp_layouter_update_widget(workspace->layouter, sess,
                         plain_win, property, value);
             }
             */
@@ -223,11 +221,13 @@ foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
         return PCRDR_SC_NOT_ACCEPTABLE;
     }
     else if (strcmp(property, "title") == 0) {
-        const char *title = purc_variant_get_string_const(value);
-        if (title) {
-            /* TODO
-            browser_plain_window_set_title(BROWSER_PLAIN_WINDOW(plain_win),
-                    title); */
+        struct wsp_widget_info info = { };
+
+        info.title = purc_variant_get_string_const(value);
+        if (info.title) {
+            info.flags = WSP_WIDGET_FLAG_TITLE;
+            foil_wsp_update_widget(workspace, sess,
+                    plain_win, WSP_WIDGET_TYPE_PLAINWINDOW, &info);
         }
         else {
             return PCRDR_SC_BAD_REQUEST;
@@ -245,23 +245,17 @@ foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
 
 static int
 foil_destroy_plainwin(purcth_session *sess, purcth_workspace *workspace,
-        purcth_plainwin *plain_win)
+        purcth_page *plain_win)
 {
-    (void)sess;
-    (void)workspace;
-    (void)plain_win;
-    return PCRDR_SC_OK;
-
-    /* TODO
     workspace = sess->workspace;
-
-    return foil_imp_destroy_widget(workspace, sess, plain_win, plain_win,
-        WS_WIDGET_TYPE_PLAINWINDOW); */
+    return foil_wsp_destroy_widget(workspace, sess, plain_win, plain_win,
+        WSP_WIDGET_TYPE_PLAINWINDOW);
 }
 
+#if 0
 static purcth_page *
 foil_get_plainwin_page(purcth_session *sess,
-        purcth_plainwin *plain_win, int *retv)
+        purcth_page *plain_win, int *retv)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
@@ -280,6 +274,7 @@ foil_get_plainwin_page(purcth_session *sess,
     return (purcth_page *)browser_plain_window_get_view(
             BROWSER_PLAIN_WINDOW(plain_win)); */
 }
+#endif
 
 static purcth_page *
 validate_page(purcth_session *sess, purcth_page *page, int *retv)
@@ -290,95 +285,131 @@ validate_page(purcth_session *sess, purcth_page *page, int *retv)
         return NULL;
     }
 
-    if ((uintptr_t)data == HT_PLAINWIN) {
-        /* TODO:
-        BrowserPane *pane = BROWSER_PANE(page);
-        return browser_pane_get_web_view(pane);
-        */
-    }
-    else if ((uintptr_t)data == HT_PAGE) {
-        return (purcth_page *)page;
-    }
-    else {
-        *retv = PCRDR_SC_BAD_REQUEST;
-        return NULL;
-    }
-
-    return (purcth_page *)page;
-}
-
-static bool validate_dom(purcth_session *sess, purcth_dom *dom, int *retv)
-{
-    void *data;
-    if (!sorted_array_find(sess->all_handles, PTR2U64(dom), &data)) {
-        *retv = PCRDR_SC_NOT_FOUND;
-        return false;
-    }
-
-    if ((uintptr_t)data == HT_DOM) {
-        return true;
+    if ((uintptr_t)data == HT_PLAINWIN ||
+            (uintptr_t)data == HT_WIDGET) {
+        return page;
     }
 
     *retv = PCRDR_SC_BAD_REQUEST;
-    return false;
+    return NULL;
 }
 
-static purcth_dom *
-foil_load(purcth_session *sess, purcth_page *page, uint64_t edom, int *retv)
+static purcth_udom *
+foil_load_edom(purcth_session *sess, purcth_page *page, purc_variant_t edom,
+        int *retv)
 {
     page = validate_page(sess, page, retv);
     if (page == NULL)
         return NULL;
 
-    /* TODO */
-    (void)edom;
+    purcth_udom *udom = foil_wsp_load_edom_in_page(sess->workspace, sess,
+            page, edom);
 
-    *retv = PCRDR_SC_OK;
+    if (udom) {
+        sorted_array_add(sess->all_handles, PTR2U64(udom),
+                INT2PTR(HT_UDOM));
+        *retv = PCRDR_SC_OK;
+    }
+    else
+        *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
+
+    return udom;
+}
+
+static purcth_udom *
+validate_udom(purcth_session *sess, purcth_udom *udom, int *retv)
+{
+    void *data;
+    if (!sorted_array_find(sess->all_handles, PTR2U64(udom), &data)) {
+        *retv = PCRDR_SC_NOT_FOUND;
+        return NULL;
+    }
+
+    if ((uintptr_t)data == HT_UDOM) {
+        return udom;
+    }
+
+    *retv = PCRDR_SC_BAD_REQUEST;
     return NULL;
 }
 
-static int foil_update_dom(purcth_session *sess, purcth_dom *dom, int op,
-        uint64_t element_handle, uint64_t ref_element, const char* property)
+static int foil_update_udom(purcth_session *sess, purcth_udom *udom,
+        int op, uint64_t element_handle, const char* property,
+        purc_variant_t ref_info)
 {
-    (void)sess;
-    (void)dom;
-    (void)op;
-    (void)element_handle;
-    (void)ref_element;
-    (void)property;
+    int retv;
 
-    int retv = PCRDR_SC_OK;
+    udom = validate_udom(sess, udom, &retv);
+    if (udom == NULL) {
+        LOG_ERROR("Bad uDOM: %p.\n", udom);
+        goto failed;
+    }
 
+    if (property != NULL &&
+            !purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME)) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    if (rdrbox == NULL) {
+        retv = PCRDR_SC_NOT_FOUND;
+        goto failed;
+    }
+
+    retv = foil_udom_update_rdrbox(udom, rdrbox, op, property, ref_info);
+
+failed:
     return retv;
 }
 
 static purc_variant_t
-foil_call_method_in_dom(purcth_session *sess,
-        purcth_dom *dom, uint64_t element_handle,
+foil_call_method_in_udom(purcth_session *sess,
+        purcth_udom *udom, uint64_t element_handle,
         const char *method, purc_variant_t arg, int* retv)
 {
-    (void)element_handle;
-    (void)method;
-    (void)arg;
-    if (!validate_dom(sess, dom, retv)) {
-        LOG_ERROR("Bad DOM pointer: %p.\n", dom);
+    udom = validate_udom(sess, udom, retv);
+    if (udom == NULL) {
+        LOG_ERROR("Bad uDOM: %p.\n", udom);
         return PURC_VARIANT_INVALID;
     }
 
-    *retv = PCRDR_SC_OK;
-    return PURC_VARIANT_INVALID;
+    if (!purc_is_valid_token(method, PURC_LEN_PROPERTY_NAME)) {
+        *retv = PCRDR_SC_BAD_REQUEST;
+        return PURC_VARIANT_INVALID;
+    }
+
+    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    if (rdrbox == NULL) {
+        *retv = PCRDR_SC_NOT_FOUND;
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t result = foil_udom_call_method(udom, rdrbox, method, arg);
+    if (result) {
+        *retv = PCRDR_SC_OK;
+    }
+    else {
+        *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
+    }
+
+    return result;
 }
 
 static purc_variant_t
-foil_get_property_in_dom(purcth_session *sess,
-        purcth_dom *dom, uint64_t element_handle,
+foil_get_property_in_udom(purcth_session *sess,
+        purcth_udom *udom, uint64_t element_handle,
         const char *property, int *retv)
 {
-    (void)element_handle;
-    (void)property;
+    udom = validate_udom(sess, udom, retv);
+    if (udom == NULL) {
+        LOG_ERROR("Bad uDOM: %p.\n", udom);
+        return PURC_VARIANT_INVALID;
+    }
 
-    if (!validate_dom(sess, dom, retv)) {
-        LOG_ERROR("Bad DOM pointer: %p.\n", dom);
+    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    if (rdrbox == NULL) {
+        *retv = PCRDR_SC_NOT_FOUND;
         return PURC_VARIANT_INVALID;
     }
 
@@ -387,21 +418,32 @@ foil_get_property_in_dom(purcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
-    *retv = PCRDR_SC_OK;
-    return PURC_VARIANT_INVALID;
+    purc_variant_t result;
+    result = foil_udom_get_property(udom, rdrbox, property);
+    if (result) {
+        *retv = PCRDR_SC_OK;
+    }
+    else {
+        *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
+    }
+
+    return result;
 }
 
 static purc_variant_t
-foil_set_property_in_dom(purcth_session *sess,
-        purcth_dom *dom, uint64_t element_handle,
+foil_set_property_in_udom(purcth_session *sess,
+        purcth_udom *udom, uint64_t element_handle,
         const char *property, purc_variant_t value, int *retv)
 {
-    (void)element_handle;
-    (void)property;
-    (void)value;
+    udom = validate_udom(sess, udom, retv);
+    if (udom == NULL) {
+        LOG_ERROR("Bad uDOM: %p.\n", udom);
+        return PURC_VARIANT_INVALID;
+    }
 
-    if (!validate_dom(sess, dom, retv)) {
-        LOG_ERROR("Bad DOM pointer: %p.\n", dom);
+    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    if (rdrbox == NULL) {
+        *retv = PCRDR_SC_NOT_FOUND;
         return PURC_VARIANT_INVALID;
     }
 
@@ -410,8 +452,16 @@ foil_set_property_in_dom(purcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
-    *retv = PCRDR_SC_OK;
-    return PURC_VARIANT_INVALID;
+    purc_variant_t result;
+    result = foil_udom_set_property(udom, rdrbox, property, value);
+    if (result) {
+        *retv = PCRDR_SC_OK;
+    }
+    else {
+        *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
+    }
+
+    return result;
 }
 
 void set_renderer_callbacks(purcth_renderer *rdr)
@@ -425,13 +475,12 @@ void set_renderer_callbacks(purcth_renderer *rdr)
     rdr->cbs.create_plainwin = foil_create_plainwin;
     rdr->cbs.update_plainwin = foil_update_plainwin;
     rdr->cbs.destroy_plainwin = foil_destroy_plainwin;
-    rdr->cbs.get_plainwin_page = foil_get_plainwin_page;
 
-    rdr->cbs.load = foil_load;
-    rdr->cbs.update_dom = foil_update_dom;
-    rdr->cbs.call_method_in_dom = foil_call_method_in_dom;
-    rdr->cbs.get_property_in_dom = foil_get_property_in_dom;
-    rdr->cbs.set_property_in_dom = foil_set_property_in_dom;
+    rdr->cbs.load_edom = foil_load_edom;
+    rdr->cbs.update_udom = foil_update_udom;
+    rdr->cbs.call_method_in_udom = foil_call_method_in_udom;
+    rdr->cbs.get_property_in_udom = foil_get_property_in_udom;
+    rdr->cbs.set_property_in_udom = foil_set_property_in_udom;
 
     return;
 }
