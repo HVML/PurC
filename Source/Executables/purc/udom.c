@@ -30,25 +30,89 @@
 #include "util/sorted-array.h"
 #include "util/list.h"
 
-struct pcth_rdr_segment {
-    struct list_head ln;
+typedef struct foil_rect {
+    int left, top;
+    int right, bottom;
+} foil_rect;
 
-    /* the rendering box where this segment locates in */
-    struct purcth_rdrbox *rdrbox;
+typedef enum {
+    PCTH_RDR_BOX_TYPE_INLINE,
+    PCTH_RDR_BOX_TYPE_BLOCK,
+    PCTH_RDR_BOX_TYPE_INLINE_BLOCK,
+    PCTH_RDR_BOX_TYPE_MARKER,
+} pcth_rdr_box_t;
+
+typedef enum {
+    PCTH_RDR_ALIGN_LEFT,
+    PCTH_RDR_ALIGN_RIGHT,
+    PCTH_RDR_ALIGN_CENTER,
+    PCTH_RDR_ALIGN_JUSTIFY,
+} pcth_rdr_align_t;
+
+typedef enum {
+    PCTH_RDR_DECORATION_NONE,
+    PCTH_RDR_DECORATION_UNDERLINE,
+    PCTH_RDR_DECORATION_OVERLINE,
+    PCTH_RDR_DECORATION_LINE_THROUGH,
+    PCTH_RDR_DECORATION_BLINK,
+} pcth_rdr_decoration_t;
+
+typedef enum {
+    PCTH_RDR_WHITE_SPACE_NORMAL,
+    PCTH_RDR_WHITE_SPACE_PRE,
+    PCTH_RDR_WHITE_SPACE_NOWRAP,
+    PCTH_RDR_WHITE_SPACE_PRE_WRAP,
+    PCTH_RDR_WHITE_SPACE_PRE_LINE,
+} pcth_rdr_white_space_t;
+
+struct _text_segment {
+    struct list_head ln;
 
     unsigned i; // the index of first character
     unsigned n; // number of characters in this segment
 
-    /* position of this segment in the rendering box */
+    /* position of this segment in the containing block box */
     int x, y;
 
     /* rows taken by this segment (always be 1). */
-    unsigned rows;
+    unsigned height;
     /* columns taken by this segment. */
-    unsigned cols;
+    unsigned width;
+};
+
+struct _inline_box_data {
+    /* the code points of text in Unicode (should be in visual order) */
+    uint32_t *ucs;
+
+    int letter_spacing;
+    int word_spacing;
+
+    /* text color */
+    int color;
+    /* text decoration */
+    pcth_rdr_decoration_t deco;
+
+    /* the text segments */
+    struct list_head segs;
+};
+
+struct _block_box_data {
+    // margins
+    int ml, mt, mr, mb;
+    // paddings
+    int pl, pt, pr, pb;
+
+    int              text_indent;
+    pcth_rdr_align_t text_align;
+
+    /* the code points of text in Unicode (should be in visual order) */
+    uint32_t *ucs;
 
     /* text color and attributes */
     int color;
+
+    /* the text segments */
+    struct list_head segs;
 };
 
 struct purcth_rdrbox {
@@ -59,17 +123,22 @@ struct purcth_rdrbox {
     struct purcth_rdrbox* prev;
     struct purcth_rdrbox* next;
 
+    /* type of box */
+    pcth_rdr_box_t type;
+
+    /* number of child boxes */
     unsigned nr_children;
 
-    /* position in parent */
-    int left, top;
-    /* size of the box */
-    unsigned width, height;
+    /* the visual region (rectangles) of the box */
+    unsigned nr_rects;
+    struct foil_rect *rects;
 
-    /* the code points of text in Unicode (should be in visual order) */
-    uint32_t *ucs;
-
-    struct list_head segs_head;
+    /* the extra data if the box type is INLINE */
+    union {
+        void *data;     // aliases
+        struct _inline_box_data *inline_data;
+        struct _block_box_data *block_data;
+    };
 };
 
 struct purcth_udom {
