@@ -44,6 +44,7 @@ struct ctxt_for_bind {
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
+    unsigned int                  constantly:1;
 };
 
 static void
@@ -224,7 +225,16 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_bind *ctxt;
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
-    purc_variant_t val = pcvcm_to_expression_variable(ctxt->vcm_ev, false);
+    const char *method_name = PCVCM_EV_DEFAULT_METHOD_NAME;
+    if (ctxt->at && purc_variant_is_string(ctxt->at)) {
+        const char *s_at = purc_variant_get_string_const(ctxt->at);
+        if (s_at[0] != '#' && s_at[0] != '_') {
+            method_name = s_at;
+        }
+    }
+
+    purc_variant_t val = pcvcm_to_expression_variable(ctxt->vcm_ev,
+            method_name, ctxt->constantly, false);
     if (val == PURC_VARIANT_INVALID) {
         return -1;
     }
@@ -320,6 +330,13 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
+        return 0;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONSTANTLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONST)) == name) {
+        PC_ASSERT(purc_variant_is_undefined(val));
+        ctxt->constantly= 1;
         return 0;
     }
 

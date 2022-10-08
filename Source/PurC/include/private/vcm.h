@@ -37,6 +37,9 @@
 #define EXTRA_PROTECT_FLAG                          0x0001
 #define EXTRA_SUGAR_FLAG                            0x0002
 
+#define PCVCM_EV_DEFAULT_METHOD_NAME                "eval"
+#define PCVCM_EV_CONST_SUFFIX                       "_const"
+
 #define PCVCM_EV_PROPERTY_EVAL                      "eval"
 #define PCVCM_EV_PROPERTY_EVAL_CONST                "eval_const"
 #define PCVCM_EV_PROPERTY_VCM_EV                    "vcm_ev"
@@ -266,7 +269,8 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         int indent, bool ignore_prefix);
 
 purc_variant_t
-pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
+        bool constantly, bool release_vcm);
 
 #define PRINT_VCM_NODE(_node) do {                                        \
     size_t len;                                                           \
