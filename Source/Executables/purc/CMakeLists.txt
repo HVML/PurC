@@ -46,6 +46,7 @@ if (ENABLE_RDR_FOIL)
         endpoint.c
         callbacks.c
         workspace.c
+        css-selection.c
         udom.c
     )
 endif ()
