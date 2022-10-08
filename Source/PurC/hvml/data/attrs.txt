@@ -100,5 +100,25 @@ silently
 noreturn
     type: adverb
 
+const
+    type: adverb
+    alias: constantly
+
+conc
+    type: adverb
+    alias: concurrently
+
 must-yield
     type: adverb
+
+indv
+    type: adverb
+    alias: individually
+
+resp
+    type: adverb
+    alias: responsively
+
+temp
+    type: adverb
+    alias: temporarily

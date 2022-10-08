@@ -28,7 +28,8 @@
 
 ### 1.1) Variants
 
-1. [0.9.2] Support for the new variant type: tuple.
+1. [0.9.0] Basic support for the new variant type: tuple.
+1. [0.9.2] Full support for the new variant type: tuple.
 1. [0.9.4] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
 ### 1.2) eJSON and HVML Parsing and Evaluating
@@ -66,7 +67,7 @@
 1. [0.9.0] Improve the implementation of the element `bind`:
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
-1. [0.9.0] Improve the element `init` and `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.0] Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.0] Improve the data fetcher to generate the progress events when fetching data.
 1. [0.9.0] Improve the function to get data from remote data fetcher:
    - The element `archetype`: support for `src`, `param`, and `method` attributes.
@@ -75,6 +76,7 @@
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
+1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same DOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
@@ -96,6 +98,11 @@
 1. [0.8.1; Resolved] Improve the element `init` to make the attribute `as` is optional, so we can use `init` to initilize a data but do not bind the data to a variable.
 1. [0.8.1; Resolved] Implement the `request` tag (only inter-coroutine request).
 1. [0.8.1; Resolved] Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.
+
+### 1.6) Repository Management
+
+1. [0.9.0] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
+1. [0.9.0] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 
 ### 1.6) `purc`
 
