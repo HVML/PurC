@@ -43,9 +43,12 @@
 // expression variable
 struct pcvcm_ev {
     struct pcvcm_node *vcm;
+    char *method_name;
+    char *const_method_name;
     purc_variant_t const_value;
     purc_variant_t last_value;
     bool release_vcm;
+    bool constantly;
 };
 
 static purc_variant_t
@@ -185,8 +188,12 @@ on_release(void *native_entity)
 }
 
 purc_variant_t
-pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
+        bool constantly, bool release_vcm)
 {
+    UNUSED_PARAM(method_name);
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
     static struct purc_native_ops ops = {
         .property_getter        = property_getter,
         .property_setter        = property_setter,
@@ -205,18 +212,50 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm)
             sizeof(struct pcvcm_ev));
     if (!vcm_ev) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return PURC_VARIANT_INVALID;
+        goto out;
     }
 
-    purc_variant_t v = purc_variant_make_native(vcm_ev, &ops);
+    if (method_name) {
+        vcm_ev->method_name = strdup(method_name);
+    }
+    else {
+        vcm_ev->method_name = strdup(PCVCM_EV_DEFAULT_METHOD_NAME);
+    }
+
+    if (!vcm_ev->method_name) {
+        goto out_free_ev;
+    }
+
+    size_t nr = strlen(vcm_ev->method_name) + strlen(PCVCM_EV_CONST_SUFFIX);
+    vcm_ev->const_method_name = malloc(nr + 1);
+    if (!vcm_ev->method_name) {
+        goto out_free_method_name;
+    }
+
+    sprintf(vcm_ev->const_method_name, "%s%s", vcm_ev->method_name,
+            PCVCM_EV_CONST_SUFFIX);
+
+    v = purc_variant_make_native(vcm_ev, &ops);
     if (v == PURC_VARIANT_INVALID) {
-        free(vcm_ev);
-        return PURC_VARIANT_INVALID;
+        goto out_free_const_method_name;
     }
 
     vcm_ev->vcm = vcm;
     vcm_ev->release_vcm = release_vcm;
+    vcm_ev->constantly = constantly;
 
+    return v;
+
+out_free_const_method_name:
+    free(vcm_ev->const_method_name);
+
+out_free_method_name:
+    free(vcm_ev->method_name);
+
+out_free_ev:
+    free(vcm_ev);
+
+out:
     return v;
 }
 
