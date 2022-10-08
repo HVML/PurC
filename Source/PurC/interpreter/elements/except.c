@@ -105,24 +105,16 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
-    if (name) {
-        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
-            return 0;
-        }
-        if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
-            return process_attr_type(frame, element, name, val);
-        }
-
-        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
+        return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s> unknown",
-            purc_atom_to_string(name), element->tag_name);
-    return -1;
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TYPE)) == name) {
+        return process_attr_type(frame, element, name, val);
+    }
+
+    /* ignore other attr */
+    return 0;
 }
 
 static void*

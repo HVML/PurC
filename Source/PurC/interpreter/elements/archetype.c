@@ -282,11 +282,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_type(frame, element, name, val);
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static int
