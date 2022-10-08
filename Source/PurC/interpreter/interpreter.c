@@ -2727,17 +2727,20 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     UNUSED_PARAM(var);
     UNUSED_PARAM(ops);
 
+    struct pcintr_stack_frame *frame;
+    struct pcintr_stack_frame_normal *frame_normal;
+    purc_variant_t name_val = PURC_VARIANT_INVALID;
+
+    unsigned call_flags = PCVRT_CALL_FLAG_NONE;
     void *native_entity = purc_variant_native_get_entity(var);
 
     // create virtual frame
-    struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = pcintr_push_stack_frame_normal(stack);
-    if (!frame_normal)
-        return;
+    if (!frame_normal) {
+        goto out;
+    }
 
-    struct pcintr_stack_frame *frame;
     frame = &frame_normal->frame;
-
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
     frame->pos = observer->pos;
@@ -2745,39 +2748,53 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->must_yield = pcintr_is_element_must_yield(frame->pos) ?  1 : 0;
     frame->edom_element = observer->edom_element;
 
+    if (frame->silently) {
+        call_flags= PCVRT_CALL_FLAG_SILENTLY;
+    }
+
+    // method name
+    purc_nvariant_method method_name = ops->property_getter(native_entity,
+            PCVCM_EV_PROPERTY_METHOD_NAME);
+    name_val = method_name(native_entity, 0, NULL, call_flags);
+
+    const char *m = purc_variant_get_string_const(name_val);
+
     // eval value
-    purc_nvariant_method eval_getter = ops->property_getter(native_entity,
-            PCVCM_EV_PROPERTY_EVAL);
-    purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
-            frame->silently ? true : false);
+    purc_nvariant_method eval_getter = ops->property_getter(native_entity, m);
+    purc_variant_t new_val = eval_getter(native_entity, 0, NULL, call_flags);
     pop_stack_frame(stack);
 
     if (!new_val) {
-        return;
+        goto out;
     }
 
     // get last value
     purc_nvariant_method last_value_getter = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
     purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
-            frame->silently ? true : false);
+            call_flags);
     int cmp = purc_variant_compare_ex(new_val, last_value,
             PCVARIANT_COMPARE_OPT_AUTO);
     if (cmp == 0) {
         purc_variant_unref(new_val);
-        return;
+        goto out;
     }
 
     purc_nvariant_method last_value_setter = ops->property_setter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
-    last_value_setter(native_entity, 1, &new_val,
-            frame->silently ? true : false);
+    last_value_setter(native_entity, 1, &new_val, call_flags);
 
     // dispatch change event
     pcintr_coroutine_post_event(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+out:
+    if (name_val) {
+        purc_variant_unref(name_val);
+    }
+    return;
 }
 
 purc_runloop_t
