@@ -113,7 +113,7 @@ pcvar_native_numberify(purc_variant_t val)
         return 0.0;
 
     purc_nvariant_method method;
-    method = ops->property_getter("__number");
+    method = ops->property_getter(entity, "__number");
     if (!method)
         return 0.0;
 

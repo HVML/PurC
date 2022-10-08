@@ -536,16 +536,20 @@ typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
 /** the operation set for native entity */
 struct purc_native_ops {
     /** query the getter for a specific property. */
-    purc_nvariant_method (*property_getter)(const char* propert_name);
+    purc_nvariant_method (*property_getter)(void* native_entity,
+            const char* propert_name);
 
     /** query the setter for a specific property. */
-    purc_nvariant_method (*property_setter)(const char* property_name);
+    purc_nvariant_method (*property_setter)(void* native_entity,
+            const char* property_name);
 
     /** query the cleaner for a specific property. */
-    purc_nvariant_method (*property_cleaner)(const char* property_name);
+    purc_nvariant_method (*property_cleaner)(void* native_entity,
+            const char* property_name);
 
     /** query the eraser for a specific property. */
-    purc_nvariant_method (*property_eraser)(const char* property_name);
+    purc_nvariant_method (*property_eraser)(void* native_entity,
+            const char* property_name);
 
     /** the updater to update the content represented by
       * the native entity (nullable). */

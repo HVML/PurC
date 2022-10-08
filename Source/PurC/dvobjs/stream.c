@@ -1067,8 +1067,9 @@ on_release(void *native_entity)
 }
 
 static purc_nvariant_method
-property_getter(const char *name)
+property_getter(void *entity, const char *name)
 {
+    UNUSED_PARAM(entity);
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
     if (atom == 0) {
         return NULL;

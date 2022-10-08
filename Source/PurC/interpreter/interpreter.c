@@ -2284,7 +2284,8 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
         goto end;
     }
 
-    purc_nvariant_method native_func = ops->property_getter(DOC_QUERY);
+    void *entity = purc_variant_native_get_entity(doc);
+    purc_nvariant_method native_func = ops->property_getter(entity, DOC_QUERY);
     if (!native_func) {
         PC_ASSERT(0);
         goto end;
@@ -2297,7 +2298,7 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
     }
 
     // TODO: silenly
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, silently);
+    ret = native_func (entity, 1, &arg, silently);
     purc_variant_unref(arg);
 end:
     return ret;
@@ -2745,7 +2746,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->edom_element = observer->edom_element;
 
     // eval value
-    purc_nvariant_method eval_getter = ops->property_getter(
+    purc_nvariant_method eval_getter = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_EVAL);
     purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
             frame->silently ? true : false);
@@ -2756,7 +2757,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     }
 
     // get last value
-    purc_nvariant_method last_value_getter = ops->property_getter(
+    purc_nvariant_method last_value_getter = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
     purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
             frame->silently ? true : false);
@@ -2767,7 +2768,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
         return;
     }
 
-    purc_nvariant_method last_value_setter = ops->property_setter(
+    purc_nvariant_method last_value_setter = ops->property_setter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
     last_value_setter(native_entity, 1, &new_val,
             frame->silently ? true : false);
@@ -2834,7 +2835,8 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
         purc_variant_t var = p->observed;
         struct purc_native_ops *ops = purc_variant_native_get_ops(var);
         if (ops && ops->property_getter) {
-            purc_nvariant_method is_vcm_ev = ops->property_getter(
+            void *entity = purc_variant_native_get_entity(var);
+            purc_nvariant_method is_vcm_ev = ops->property_getter(entity,
                     PCVCM_EV_PROPERTY_VCM_EV);
             if (is_vcm_ev) {
                 pcintr_observe_vcm_ev(stack, p, var, ops);

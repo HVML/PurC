@@ -261,8 +261,9 @@ property_cfg_by_name(const char *key_name)
 
 // query the getter for a specific property.
 static purc_nvariant_method
-property_getter(const char* key_name)
+property_getter(void *entity, const char* key_name)
 {
+    UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
     struct native_property_cfg *cfg = property_cfg_by_name(key_name);
     if (cfg)
@@ -272,8 +273,9 @@ property_getter(const char* key_name)
 
 // query the setter for a specific property.
 static purc_nvariant_method
-property_setter(const char* key_name)
+property_setter(void *entity, const char* key_name)
 {
+    UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
     struct native_property_cfg *cfg = property_cfg_by_name(key_name);
     if (cfg)
@@ -283,8 +285,9 @@ property_setter(const char* key_name)
 
 // query the eraser for a specific property.
 static purc_nvariant_method
-property_eraser(const char* key_name)
+property_eraser(void *entity, const char* key_name)
 {
+    UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
     struct native_property_cfg *cfg = property_cfg_by_name(key_name);
     if (cfg)
@@ -294,8 +297,9 @@ property_eraser(const char* key_name)
 
 // query the cleaner for a specific property.
 static purc_nvariant_method
-property_cleaner(const char* key_name)
+property_cleaner(void *entity, const char* key_name)
 {
+    UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
     struct native_property_cfg *cfg = property_cfg_by_name(key_name);
     if (cfg)

@@ -173,16 +173,18 @@ name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static inline purc_nvariant_method
-property_getter(const char *key_name)
+property_getter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);
+    UNUSED_PARAM(entity);
     return name_getter;
 }
 
 static inline purc_nvariant_method
-property_setter(const char *key_name)
+property_setter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);
+    UNUSED_PARAM(entity);
     return NULL;
 }
 

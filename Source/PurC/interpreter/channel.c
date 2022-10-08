@@ -440,8 +440,9 @@ failed:
 }
 
 static purc_nvariant_method
-property_getter(const char *name)
+property_getter(void *entity, const char *name)
 {
+    UNUSED_PARAM(entity);
     switch (name[0]) {
     case 's':
         if (strcmp(name, "send") == 0) {

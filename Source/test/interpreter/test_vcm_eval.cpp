@@ -238,8 +238,10 @@ attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     return purc_variant_make_string("call setter success!", false);
 }
 
-static inline purc_nvariant_method property_getter(const char* key_name)
+static inline purc_nvariant_method property_getter(void *entity,
+        const char* key_name)
 {
+    UNUSED_PARAM(entity);
     if (strcmp(key_name, "attr") == 0) {
         return attr_getter;
     }
@@ -247,8 +249,10 @@ static inline purc_nvariant_method property_getter(const char* key_name)
     return NULL;
 }
 
-static inline purc_nvariant_method property_setter(const char* key_name)
+static inline purc_nvariant_method property_setter(void *entity,
+        const char* key_name)
 {
+    UNUSED_PARAM(entity);
     if (strcmp(key_name, "attr") == 0) {
         return attr_setter;
     }
