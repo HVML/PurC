@@ -27,12 +27,12 @@ CSSEng 0.2.0 --> CSSEng 0.3.0
       This means clients need not allocate a new array each call, but can
       keep the array cached on the node.
 
-    set_libcss_node_data
+    set_node_data
       New selection handler function used to store a private cache belonging
       to libcss on document element nodes.  When the node is deleted or
-      modified, clients should call css_libcss_node_data_handler().
+      modified, clients should call css_node_data_handler().
 
-    get_libcss_node_data
+    get_node_data
       New selection handler function used to retrieve private cache belonging
       to libcss from document element nodes.
 

@@ -193,16 +193,16 @@ static void css__destroy_node_data(struct css_node_data *node_data)
 
 
 /* Exported function documented in public select.h header. */
-css_error css_libcss_node_data_handler(css_select_handler *handler,
+css_error css_node_data_handler(css_select_handler *handler,
 		css_node_data_action action, void *pw, void *node,
-		void *clone_node, void *libcss_node_data)
+		void *clone_node, void *_node_data)
 {
-	struct css_node_data *node_data = libcss_node_data;
+	struct css_node_data *node_data = _node_data;
 	css_error error;
 
 	UNUSED(clone_node);
 
-	if (handler == NULL || libcss_node_data == NULL ||
+	if (handler == NULL || node_data == NULL ||
 	    handler->handler_version != CSS_SELECT_HANDLER_VERSION_1) {
 		return CSS_BADPARM;
 	}
@@ -222,8 +222,8 @@ css_error css_libcss_node_data_handler(css_select_handler *handler,
 
 		/* Don't bother rebuilding node_data, it can be done
 		 * when the node is selected for.  Just ensure the
-		 * client drops its reference to the libcss_node_data. */
-		error = handler->set_libcss_node_data(pw, node, NULL);
+		 * client drops its reference to the node_data. */
+		error = handler->set_node_data(pw, node, NULL);
 		if (error != CSS_OK) {
 			return error;
 		}
@@ -557,7 +557,7 @@ static css_error css__get_parent_bloom(void *parent,
 
 		/* Hideous casting to avoid warnings on all platforms
 		 * we build for. */
-		error = handler->get_libcss_node_data(pw, parent,
+		error = handler->get_node_data(pw, parent,
 				(void **) (void *) &node_data);
 		if (error != CSS_OK) {
 			return error;
@@ -597,7 +597,7 @@ static css_error css__get_parent_bloom(void *parent,
 				node_data->bloom = bloom;
 
 				/* Set parent node bloom filter */
-				error = handler->set_libcss_node_data(pw,
+				error = handler->set_node_data(pw,
 						parent, node_data);
 				if (error != CSS_OK) {
 					css__destroy_node_data(node_data);
@@ -715,7 +715,7 @@ static css_error css__set_node_data(void *node, css_select_state *state,
 				css__computed_style_ref(results->styles[i]);
 	}
 
-	error = handler->set_libcss_node_data(pw, node, node_data);
+	error = handler->set_node_data(pw, node, node_data);
 	if (error != CSS_OK) {
 		css__destroy_node_data(node_data);
 		state->node_data = NULL;
@@ -763,7 +763,7 @@ static css_error css_select_style__get_sharable_node_data_for_candidate(
 	/* We get the candidate node data first, as if it has none, we can't
 	 * share its data anyway.
 	 * Hideous casting to avoid warnings on all platforms we build for. */
-	error = state->handler->get_libcss_node_data(state->pw,
+	error = state->handler->get_node_data(state->pw,
 			share_candidate_node, (void **) (void *) &node_data);
 	if (error != CSS_OK || node_data == NULL) {
 #ifdef DEBUG_STYLE_SHARING

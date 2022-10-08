@@ -100,10 +100,10 @@ static css_error ua_default_for_property(void *pw, uint32_t property,
 		css_hint *hint);
 static css_error compute_font_size(void *pw, const css_hint *parent,
 		css_hint *size);
-static css_error set_libcss_node_data(void *pw, void *n,
-		void *libcss_node_data);
-static css_error get_libcss_node_data(void *pw, void *n,
-		void **libcss_node_data);
+static css_error set_node_data(void *pw, void *n,
+		void *node_data);
+static css_error get_node_data(void *pw, void *n,
+		void **node_data);
 
 /* Table of function pointers for the CSSEng Select API. */
 static css_select_handler select_handler = {
@@ -144,8 +144,8 @@ static css_select_handler select_handler = {
 	node_presentational_hint,
 	ua_default_for_property,
 	compute_font_size,
-	set_libcss_node_data,
-	get_libcss_node_data
+	set_node_data,
+	get_node_data
 };
 
 
@@ -727,25 +727,25 @@ css_error compute_font_size(void *pw, const css_hint *parent, css_hint *size)
 	return CSS_OK;
 }
 
-static css_error set_libcss_node_data(void *pw, void *n,
-		void *libcss_node_data)
+static css_error set_node_data(void *pw, void *n,
+		void *node_data)
 {
 	UNUSED(pw);
 	UNUSED(n);
 
 	/* Since we're not storing it, ensure node data gets deleted */
-	css_libcss_node_data_handler(&select_handler, CSS_NODE_DELETED,
-			pw, n, NULL, libcss_node_data);
+	css_node_data_handler(&select_handler, CSS_NODE_DELETED,
+			pw, n, NULL, node_data);
 
 	return CSS_OK;
 }
 
-static css_error get_libcss_node_data(void *pw, void *n,
-		void **libcss_node_data)
+static css_error get_node_data(void *pw, void *n,
+		void **node_data)
 {
 	UNUSED(pw);
 	UNUSED(n);
-	*libcss_node_data = NULL;
+	*node_data = NULL;
 
 	return CSS_OK;
 }

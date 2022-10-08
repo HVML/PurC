@@ -916,33 +916,33 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
 
 typedef struct _HlCSSDataPackage {
     HLLayoutNode* node;
-    void* libcss_node_data;
+    void* node_data;
 } HlCSSDataPackage;
 
 static void destroy_hl_css_data_package(void* data);
 
 static css_error
-set_libcss_node_data(void *pw, void *n, void *libcss_node_data)
+set_node_data(void *pw, void *n, void *node_data)
 {
     (void)pw;
     HlCSSDataPackage* pkg = (HlCSSDataPackage*)calloc(1,
             sizeof(HlCSSDataPackage));
     HLLayoutNode *node = n;
     pkg->node = node;
-    pkg->libcss_node_data = libcss_node_data;
+    pkg->node_data = node_data;
     hl_layout_node_set_inner_data(node, HL_INNER_CSS_SELECT_ATTACH, pkg,
             destroy_hl_css_data_package);
     return CSS_OK;
 }
 
 static css_error 
-get_libcss_node_data(void *pw, void *n, void **libcss_node_data)
+get_node_data(void *pw, void *n, void **node_data)
 {
     (void)pw;
     HLLayoutNode* node = n;
     HlCSSDataPackage* pkg = hl_layout_node_get_inner_data(node,
             HL_INNER_CSS_SELECT_ATTACH);
-    *libcss_node_data = pkg ? pkg->libcss_node_data : NULL;
+    *node_data = pkg ? pkg->node_data : NULL;
     return CSS_OK;
 }
 
@@ -1129,8 +1129,8 @@ css_select_handler hl_css_select_handler = {
     node_presentational_hint,
     ua_default_for_property,
     compute_font_size,
-    set_libcss_node_data,
-    get_libcss_node_data
+    set_node_data,
+    get_node_data
 };
 
 void
@@ -1141,8 +1141,8 @@ destroy_hl_css_data_package(void* data)
     }
     HlCSSDataPackage* pkg = (HlCSSDataPackage*)data;
     /* VW: changed from CSS_NODE_MODIFIED to CSS_NODE_DELETED */
-    css_libcss_node_data_handler(&hl_css_select_handler, CSS_NODE_DELETED,
-            NULL, pkg->node, NULL, pkg->libcss_node_data);
+    css_node_data_handler(&hl_css_select_handler, CSS_NODE_DELETED,
+            NULL, pkg->node, NULL, pkg->node_data);
     free(pkg);
 }
 

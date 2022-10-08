@@ -27,7 +27,7 @@ typedef struct node {
 	attribute *attrs;
 
 	css_select_results *sr;
-	void *libcss_node_data;
+	void *node_data;
 
 	struct node *parent;
 	struct node *next;
@@ -158,10 +158,10 @@ static css_error ua_default_for_property(void *pw, uint32_t property,
 		css_hint *hints);
 static css_error compute_font_size(void *pw, const css_hint *parent,
 		css_hint *size);
-static css_error set_libcss_node_data(void *pw, void *n,
-		void *libcss_node_data);
-static css_error get_libcss_node_data(void *pw, void *n,
-		void **libcss_node_data);
+static css_error set_node_data(void *pw, void *n,
+		void *node_data);
+static css_error get_node_data(void *pw, void *n,
+		void **node_data);
 
 static css_select_handler select_handler = {
 	CSS_SELECT_HANDLER_VERSION_1,
@@ -201,8 +201,8 @@ static css_select_handler select_handler = {
 	node_presentational_hint,
 	ua_default_for_property,
 	compute_font_size,
-	set_libcss_node_data,
-	get_libcss_node_data
+	set_node_data,
+	get_node_data
 };
 
 static css_error resolve_url(void *pw,
@@ -880,9 +880,9 @@ void destroy_tree(node *root)
 		free(root->classes);
 	}
 
-	if (root->libcss_node_data != NULL) {
-		css_libcss_node_data_handler(&select_handler, CSS_NODE_DELETED,
-				NULL, root, NULL, root->libcss_node_data);
+	if (root->node_data != NULL) {
+		css_node_data_handler(&select_handler, CSS_NODE_DELETED,
+				NULL, root, NULL, root->node_data);
 	}
 
 	lwc_string_unref(root->name);
@@ -1665,25 +1665,25 @@ css_error compute_font_size(void *pw, const css_hint *parent, css_hint *size)
 	return CSS_OK;
 }
 
-static css_error set_libcss_node_data(void *pw, void *n,
-		void *libcss_node_data)
+static css_error set_node_data(void *pw, void *n,
+		void *node_data)
 {
 	node *node = n;
 	UNUSED(pw);
 
-	node->libcss_node_data = libcss_node_data;
+	node->node_data = node_data;
 
 	return CSS_OK;
 }
 
-static css_error get_libcss_node_data(void *pw, void *n,
-		void **libcss_node_data)
+static css_error get_node_data(void *pw, void *n,
+		void **node_data)
 {
 	node *node = n;
 	UNUSED(pw);
 
 	/* Pass any node data back to libcss */
-	*libcss_node_data = node->libcss_node_data;
+	*node_data = node->node_data;
 
 	return CSS_OK;
 }

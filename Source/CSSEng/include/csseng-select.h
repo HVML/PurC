@@ -126,29 +126,29 @@ typedef struct css_select_handler {
 			css_hint *size);
 
 	/**
-	 * Set libcss_node_data on a DOM node.
+	 * Set node_data on a DOM node.
 	 *
-	 * Replaces any existing libcss_node_data.  If node is deleted, cloned,
-	 * or its ancestors are modified, call css_libcss_node_data_handler for
-	 * any non-NULL libcss_node_data.
+	 * Replaces any existing node_data.  If node is deleted, cloned,
+	 * or its ancestors are modified, call css_node_data_handler for
+	 * any non-NULL node_data.
 	 *
 	 * \param pw			Client data
 	 * \param node			DOM node to set data for
-	 * \param libcss_node_data	Data to set on node, or NULL
+	 * \param node_data	Data to set on node, or NULL
 	 * \return CSS_OK on success, or appropriate error otherwise
 	 */
-	css_error (*set_libcss_node_data)(void *pw, void *node,
-			void *libcss_node_data);
+	css_error (*set_node_data)(void *pw, void *node,
+			void *node_data);
 	/**
-	 * Get libcss_node_data from a DOM node.
+	 * Get node_data from a DOM node.
 	 *
 	 * \param pw			Client data
 	 * \param node			DOM node to get data from
-	 * \param libcss_node_data	Updated to node data, else set to NULL.
+	 * \param node_data	Updated to node data, else set to NULL.
 	 * \return CSS_OK on success, or appropriate error otherwise
 	 */
-	css_error (*get_libcss_node_data)(void *pw, void *node,
-			void **libcss_node_data);
+	css_error (*get_node_data)(void *pw, void *node,
+			void **node_data);
 } css_select_handler;
 
 /**
@@ -170,35 +170,35 @@ typedef enum {
 } css_node_data_action;
 
 /**
- * Handle libcss_node_data on DOM changes/deletion.
+ * Handle node_data on DOM changes/deletion.
  *
- * When a DOM node is deleted, if it has libcss_node_data, call with
- * action CSS_NODE_DELETED, to ensure the libcss_node_data is not leaked.
- * Does not call handler->set_libcss_node_data.
+ * When a DOM node is deleted, if it has node_data, call with
+ * action CSS_NODE_DELETED, to ensure the node_data is not leaked.
+ * Does not call handler->set_node_data.
  *
- * When a DOM node is modified, if the node has libcss_node_data,
+ * When a DOM node is modified, if the node has node_data,
  * call with CSS_NODE_MODIFIED.  This will result in a call to
- * handler->set_libcss_node_data for the node.
+ * handler->set_node_data for the node.
  *
- * When a DOM node's ancestors are modified, if the node has libcss_node_data,
+ * When a DOM node's ancestors are modified, if the node has node_data,
  * call with CSS_NODE_ANCESTORS_MODIFIED.  This will result in a call to
- * handler->set_libcss_node_data for the node.
+ * handler->set_node_data for the node.
  *
- * When a DOM node with libcss_node_data is cloned, and its ancestors are
+ * When a DOM node with node_data is cloned, and its ancestors are
  * also clones, call with CSS_NODE_CLONED.  This will result in a call to
- * handler->set_libcss_node_data for the clone node.
+ * handler->set_node_data for the clone node.
  *
  * \param handler		Selection handler vtable
  * \param action		Type of node action.
  * \param pw			Client data
  * \param node			DOM node to get data from
  * \param clone_node		Clone node, or NULL
- * \param libcss_node_data	Node data (non-NULL)
+ * \param node_data	Node data (non-NULL)
  * \return CSS_OK on success, or appropriate error otherwise
  */
-css_error css_libcss_node_data_handler(css_select_handler *handler,
+css_error css_node_data_handler(css_select_handler *handler,
 		css_node_data_action action, void *pw, void *node,
-		void *clone_node, void *libcss_node_data);
+		void *clone_node, void *node_data);
 
 css_error css_select_ctx_create(css_select_ctx **result);
 css_error css_select_ctx_destroy(css_select_ctx *ctx);
