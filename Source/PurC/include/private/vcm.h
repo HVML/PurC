@@ -46,6 +46,7 @@
 #define PCVCM_EV_PROPERTY_EVAL_CONST                "eval_const"
 #define PCVCM_EV_PROPERTY_VCM_EV                    "vcm_ev"
 #define PCVCM_EV_PROPERTY_LAST_VALUE                "last_value"
+#define PCVCM_EV_PROPERTY_CONSTANTLY                "constantly"
 
 
 enum pcvcm_node_type {

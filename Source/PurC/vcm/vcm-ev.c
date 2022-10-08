@@ -149,6 +149,17 @@ const_method_name_getter(void *native_entity, size_t nr_args,
     return purc_variant_make_string(vcm_ev->const_method_name, false);
 }
 
+static purc_variant_t
+constantly_getter(void *native_entity, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    return purc_variant_make_boolean(vcm_ev->constantly);
+}
+
 static inline purc_nvariant_method
 property_getter(void *native_entity, const char *key_name)
 {
@@ -172,6 +183,10 @@ property_getter(void *native_entity, const char *key_name)
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_CONST_METHOD_NAME) == 0) {
         return const_method_name_getter;
     }
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_CONSTANTLY) == 0) {
+        return constantly_getter;
+    }
+
 
     return NULL;
 }
