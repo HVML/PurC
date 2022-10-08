@@ -8,10 +8,10 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_vdom)
 
 list(APPEND test_vdom_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -36,10 +36,10 @@ GTEST_DISCOVER_TESTS(test_vdom DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_vdom_gen)
 
 list(APPEND test_vdom_gen_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
     #ugly: for hvml_token and hvml_parser
     ${PURC_DIR}/hvml

@@ -8,7 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_tree)
 
 list(APPEND test_tree_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
 )
 
 PURC_EXECUTABLE(test_tree)

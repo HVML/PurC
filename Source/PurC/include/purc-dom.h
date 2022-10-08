@@ -37,6 +37,9 @@
 #include "purc-rwstream.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
+#include "purc-dom-ns-const.h"
+#include "purc-html-tag-const.h"
+#include "purc-html-attr-const.h"
 
 #define PURC_ERROR_DOM PURC_ERROR_FIRST_DOM
 
@@ -148,7 +151,7 @@ struct pcdom_node {
     pcdom_event_target_t event_target;
 
     /* For example: <LalAla:DiV Fix:Me="value"> */
-    uintptr_t           local_name; /* , lowercase, without prefix: div */
+    uintptr_t           local_name; /* lowercase, without prefix: div */
     uintptr_t           prefix;     /* lowercase: lalala */
     uintptr_t           ns;         /* namespace */
 

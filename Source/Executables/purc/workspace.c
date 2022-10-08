@@ -202,7 +202,7 @@ purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
 
     purcth_rdrbox *rdrbox;
     if (udom) {
-        rdrbox = foil_udom_load_edom(udom, edom);
+        rdrbox = foil_udom_load_edom(udom, NULL, NULL);
     }
 
     if (rdrbox == NULL) {

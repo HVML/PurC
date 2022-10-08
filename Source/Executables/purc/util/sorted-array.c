@@ -304,3 +304,18 @@ void sorted_array_delete(struct sorted_array *sa, size_t idx)
     }
 }
 
+void sorted_array_cleanup(struct sorted_array *sa)
+{
+    size_t i;
+
+    for (i = 0; i < sa->nr_members; i++) {
+        if (sa->free_fn) {
+            sa->free_fn(sa->members[i].sortv, sa->members[i].data);
+        }
+
+        sa->members[i].sortv = 0;
+        sa->members[i].data = NULL;
+    }
+    sa->nr_members = 0;
+}
+

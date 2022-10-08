@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_wtf)
 
 list(APPEND test_wtf_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
     "${FORWARDING_HEADERS_DIR}"

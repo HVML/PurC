@@ -29,7 +29,7 @@
 
 #undef NDEBUG
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "../helpers.h"
 
 #include <gtest/gtest.h>

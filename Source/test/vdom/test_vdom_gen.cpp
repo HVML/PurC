@@ -17,7 +17,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/vdom.h"
 #include "private/hvml.h"
 #include "hvml-token.h"

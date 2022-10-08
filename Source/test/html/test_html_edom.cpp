@@ -17,11 +17,11 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/list.h"
 #include "private/html.h"
 #include "private/dom.h"
-#include "purc-html.h"
+#include "purc/purc-html.h"
 #include "./html/interfaces/document.h"
 #include "private/interpreter.h"
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include "config.h"
 

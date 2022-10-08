@@ -26,7 +26,7 @@
 #define __MATH_LONG_DOUBLE_CONSTANTS    /* for M_PIl when using MacOSX SDK */
 #endif
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
 #include "private/variant.h"

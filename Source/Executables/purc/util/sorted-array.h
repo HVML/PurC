@@ -68,6 +68,9 @@ uint64_t sorted_array_get(struct sorted_array *sa, size_t idx, void **data);
 /* delete the member by the index */
 void sorted_array_delete(struct sorted_array *sa, size_t idx);
 
+/* remove all members in the sorted array */
+void sorted_array_cleanup(struct sorted_array *sa);
+
 #ifdef __cplusplus
 }
 #endif

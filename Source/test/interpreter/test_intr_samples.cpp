@@ -18,7 +18,7 @@
 */
 
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/utils.h"
 #include "private/interpreter.h"
 

@@ -13,10 +13,10 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_vcm_eval)
 
 list(APPEND test_vcm_eval_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -42,10 +42,10 @@ GTEST_DISCOVER_TESTS(test_vcm_eval DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_interpreter)
 
 list(APPEND test_interpreter_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -70,10 +70,10 @@ GTEST_DISCOVER_TESTS(test_interpreter DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_observe)
 
 list(APPEND test_observe_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -99,10 +99,10 @@ if (0)
     PURC_EXECUTABLE_DECLARE(test_observe_named)
 
     list(APPEND test_observe_named_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
+        ${PurC_DERIVED_SOURCES_DIR}
         ${WTF_DIR}
     )
 
@@ -128,10 +128,10 @@ endif ()
 PURC_EXECUTABLE_DECLARE(test_doc_var)
 
 list(APPEND test_doc_var_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -156,10 +156,10 @@ GTEST_DISCOVER_TESTS(test_doc_var DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_test)
 
 list(APPEND test_test_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -184,10 +184,10 @@ GTEST_DISCOVER_TESTS(test_test DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_intr_samples)
 
 list(APPEND test_intr_samples_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -213,10 +213,10 @@ GTEST_DISCOVER_TESTS(test_intr_samples DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_attach_rdr)
 
 list(APPEND test_attach_rdr_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -241,10 +241,10 @@ GTEST_DISCOVER_TESTS(test_attach_rdr DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_samples)
 
 list(APPEND test_samples_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -272,10 +272,10 @@ GTEST_DISCOVER_TESTS(test_samples DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_hvml_tag)
 
 list(APPEND test_hvml_tag_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -303,10 +303,10 @@ GTEST_DISCOVER_TESTS(test_hvml_tag DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_simple_runner)
 
 list(APPEND test_simple_runner_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -331,10 +331,10 @@ GTEST_DISCOVER_TESTS(test_simple_runner DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_runners)
 
 list(APPEND test_runners_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -359,10 +359,10 @@ GTEST_DISCOVER_TESTS(test_runners DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_void_document)
 
 list(APPEND test_void_document_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -386,10 +386,10 @@ PURC_FRAMEWORK(test_void_document)
 PURC_EXECUTABLE_DECLARE(test_comprehensive_programs)
 
 list(APPEND test_comprehensive_programs_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -413,10 +413,10 @@ PURC_FRAMEWORK(test_comprehensive_programs)
 PURC_EXECUTABLE_DECLARE(test_quit_main_runner)
 
 list(APPEND test_quit_main_runner_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -441,10 +441,10 @@ GTEST_DISCOVER_TESTS(test_quit_main_runner DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_inherit_document)
 
 list(APPEND test_inherit_document_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 

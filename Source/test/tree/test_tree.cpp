@@ -19,7 +19,7 @@
 
 #include "private/tree.h"
 #include "private/list.h" /* for container_of */
-#include "purc-rwstream.h"
+#include "purc/purc-rwstream.h"
 
 #include <stdio.h>
 #include <errno.h>

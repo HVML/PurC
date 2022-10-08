@@ -177,9 +177,15 @@ failed:
     return NULL;
 }
 
+static void foil_udom_cleanup(purcth_udom *udom)
+{
+    assert(udom->elem2rdrbox);
+    sorted_array_cleanup(udom->elem2rdrbox);
+}
+
 void foil_udom_delete(purcth_udom *udom)
 {
-    sorted_array_destroy(udom->elem2rdrbox);
+    foil_udom_cleanup(udom);
     free(udom);
 }
 
@@ -195,12 +201,57 @@ purcth_rdrbox *foil_udom_find_rdrbox(purcth_udom *udom,
     return data;
 }
 
-purcth_rdrbox *foil_udom_load_edom(purcth_udom *udom, purc_variant_t edom)
-{
-    (void)udom;
-    (void)edom;
+struct rendering_ctxt {
+    purcth_udom *udom;
+};
 
-    /* TODO */
+static pchtml_action_t
+rendering_walker(pcdom_node_t *node, void *ctxt)
+{
+    switch (node->type) {
+    case PCDOM_NODE_TYPE_DOCUMENT_TYPE:
+        return PCHTML_ACTION_NEXT;
+
+    case PCDOM_NODE_TYPE_TEXT:
+    case PCDOM_NODE_TYPE_COMMENT:
+    case PCDOM_NODE_TYPE_CDATA_SECTION:
+        return PCHTML_ACTION_NEXT;
+
+    case PCDOM_NODE_TYPE_ELEMENT: {
+        // struct rendering_ctxt *my_ctxt = ctxt;
+
+        /* walk to the siblings. */
+        return PCHTML_ACTION_NEXT;
+    }
+
+    default:
+        /* ignore any unknown node types */
+        break;
+    }
+
+    return PCHTML_ACTION_NEXT;
+}
+
+purcth_rdrbox *
+foil_udom_load_edom(purcth_udom *udom, pcdom_document_t *edom_doc, int *retv)
+{
+    size_t len;
+    const unsigned char *doctype = pcdom_document_type_name(
+            edom_doc->doctype, &len);
+
+    if (len == 0 || strcasecmp(doctype, "html")) {
+        *retv = PCRDR_SC_NOT_ACCEPTABLE;
+        return NULL;
+    }
+
+    foil_udom_cleanup(udom);
+
+    // TODO: parse CSS here
+
+    pcdom_element_t *root = edom_doc->element;
+    struct rendering_ctxt ctxt = { udom, };
+    pcdom_node_simple_walk(pcdom_interface_node(root), rendering_walker, &ctxt);
+
     return NULL;
 }
 

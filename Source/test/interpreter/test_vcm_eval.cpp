@@ -18,12 +18,12 @@
 */
 
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include "private/hvml.h"
 #include "private/utils.h"
-#include "purc-rwstream.h"
-#include "purc-variant.h"
+#include "purc/purc-rwstream.h"
+#include "purc/purc-variant.h"
 #include "hvml/hvml-token.h"
 #include "private/dvobjs.h"
 

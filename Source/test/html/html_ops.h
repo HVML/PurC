@@ -21,8 +21,8 @@
 #ifndef PURC_TEST_HTML_OPS_H
 #define PURC_TEST_HTML_OPS_H
 
-#include "purc-macros.h"
-#include "purc-html.h"
+#include "purc/purc-macros.h"
+#include "purc/purc-html.h"
 
 #include "config.h"
 
