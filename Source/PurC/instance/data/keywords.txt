@@ -32,7 +32,7 @@ hvml raw
 hvml type
 hvml onlyif
 hvml while
-hvml concurrently
+hvml concurrently conc
 hvml synchronously sync
 hvml asynchronously async
 hvml rel
@@ -52,6 +52,9 @@ hvml onto
 hvml silently
 hvml noreturn
 hvml must-yield
+hvml constantly const
+hvml responsively resp
+hvml individually indv
 
 # executor
 hvml FORMULA
