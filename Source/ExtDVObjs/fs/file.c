@@ -366,36 +366,26 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (filename == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (nr_args > 1) {
-        if (! purc_variant_cast_to_longint (argv[1], &line_num, false))
-        {
+        if (! purc_variant_cast_to_longint (argv[1], &line_num, false)) {
             purc_set_error (PURC_ERROR_INVALID_VALUE);
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (line_num >= 0) {
@@ -419,6 +409,12 @@ text_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     fclose (fp);
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -435,39 +431,26 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (filename == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (nr_args > 1) {
-        if (! purc_variant_cast_to_longint (argv[1], &line_num, false))
-        {
+        if (! purc_variant_cast_to_longint (argv[1], &line_num, false)) {
             purc_set_error (PURC_ERROR_INVALID_VALUE);
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
     fp = fopen (filename, "r");
     if (fp == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (line_num <= 0) {
@@ -492,6 +475,12 @@ text_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     fclose (fp);
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -509,19 +498,13 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[0]))) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
@@ -530,25 +513,17 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
         purc_set_error (PURC_ERROR_NOT_EXISTS);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if (filestat.st_size == 0) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        purc_set_error (PURC_ERROR_NO_DATA);
+        goto failed;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID)
@@ -557,10 +532,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fp = fopen (filename, "r");
     if (fp == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (byte_num == 0)
@@ -569,10 +541,8 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         pos = byte_num;
     else {
         if ((-1 * byte_num) > filestat.st_size) {
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
+            goto failed;
         }
         else
             pos = filestat.st_size + byte_num;
@@ -581,11 +551,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *content = malloc (pos);
     if (content == NULL) {
         fclose (fp);
-
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     fseek (fp, 0L, SEEK_SET);
@@ -594,8 +560,13 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos);
 
     fclose (fp);
-
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -613,19 +584,13 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[0]))) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
@@ -634,25 +599,17 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
         purc_set_error (PURC_ERROR_NOT_EXISTS);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if (filestat.st_size == 0) {
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        purc_set_error (PURC_ERROR_NO_DATA);
+        goto failed;
     }
 
     if (argv[1] != NULL)
@@ -661,10 +618,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fp = fopen (filename, "r");
     if (fp == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (byte_num == 0)
@@ -673,10 +627,8 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         pos = byte_num;
     else {
         if ((-1 * byte_num) > filestat.st_size) {
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
+            goto failed;
         }
         else
             pos = filestat.st_size + byte_num;
@@ -687,11 +639,8 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char *content = malloc (pos);
     if (content == NULL) {
         fclose (fp);
-
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
     }
 
     pos = fread (content, 1, pos, fp);
@@ -699,8 +648,13 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ret_var = purc_variant_make_byte_sequence_reuse_buff (content, pos, pos);
 
     fclose (fp);
-
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static void
@@ -715,35 +669,26 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    if (nr_args != 2) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
-    }
-
     const char *filename = NULL;
     struct stat filestat;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_rwstream_t rwstream = NULL;
 
+    if (nr_args != 2) {
+        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[1]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
@@ -751,19 +696,13 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // check whether the file exists
     if((access(filename, F_OK | R_OK)) != 0) {
         purc_set_error (PURC_ERROR_NOT_EXISTS);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file length
     if(stat(filename, &filestat) < 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     rwstream = purc_rwstream_new_from_file (filename,
@@ -771,10 +710,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // setup a callback for `on_release` to destroy the stream automatically
@@ -784,6 +720,12 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     ret_var = purc_variant_make_native (rwstream, &ops);
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static inline void change_order (unsigned char *buf, size_t size)
@@ -913,36 +855,24 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[1]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     format = purc_variant_get_string_const (argv[1]);
     head = pcutils_get_next_token (format, " \t\n", &length);
@@ -1136,6 +1066,12 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
         head = pcutils_get_next_token (head + length, " \t\n", &length);
     }
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static inline void write_rwstream_int (purc_rwstream_t rwstream,
@@ -1258,45 +1194,30 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
     if (nr_args != 3) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string (argv[1]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[2] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_array (argv[2]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     format = purc_variant_get_string_const (argv[1]);
@@ -1579,6 +1500,12 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
 
     ret_var = purc_variant_make_ulongint (write_length);
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1593,27 +1520,18 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
@@ -1629,7 +1547,8 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
 
         char * content = malloc (pos + 1);
         if (content == NULL) {
-            return purc_variant_make_string ("", false);
+            purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
         }
 
         purc_rwstream_seek (rwstream, 0L, SEEK_SET);
@@ -1639,6 +1558,12 @@ stream_readlines_getter (purc_variant_t root, size_t nr_args,
         ret_var = purc_variant_make_string_reuse_buff (content, pos, false);
     }
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1653,26 +1578,17 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
     if (nr_args != 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-            
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
@@ -1681,10 +1597,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
     if (byte_num == 0) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     else {
         char * content = malloc (byte_num);
@@ -1692,10 +1605,7 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
 
         if (content == NULL) {
             purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         size = purc_rwstream_read (rwstream, content, byte_num);
@@ -1705,14 +1615,17 @@ stream_readbytes_getter (purc_variant_t root, size_t nr_args,
         else {
             free (content);
             purc_set_error (PURC_ERROR_INVALID_VALUE);
-            if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-                return purc_variant_make_boolean(false);
-
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1729,27 +1642,18 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
 
     if (nr_args != 3) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[0] == PURC_VARIANT_INVALID ||
             (!purc_variant_is_native (argv[0]))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     rwstream = purc_variant_native_get_entity (argv[0]);
     if (rwstream == NULL) {
         purc_set_error (PURC_ERROR_INVALID_VALUE);
-        if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-            return purc_variant_make_boolean(false);
-            
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID) {
@@ -1764,6 +1668,12 @@ stream_seek_getter (purc_variant_t root, size_t nr_args,
     ret_var = purc_variant_make_longint (off);
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    
+    return PURC_VARIANT_INVALID;
 }
 
 #if 0   // we do not need close method, the rwstream will be destroyed
