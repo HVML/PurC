@@ -193,23 +193,12 @@ void foil_wsp_update_widget(void *workspace, void *session,
 }
 
 purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
-        purcth_page *page, purc_variant_t edom)
+        purcth_page *page, purc_variant_t edom, int *retv)
 {
     (void)workspace;
     (void)session;
 
-    purcth_udom *udom = foil_udom_new(page);
-
-    purcth_rdrbox *rdrbox;
-    if (udom) {
-        rdrbox = foil_udom_load_edom(udom, NULL, NULL);
-    }
-
-    if (rdrbox == NULL) {
-        foil_udom_delete(udom);
-        udom = NULL;
-    }
-
+    purcth_udom *udom = foil_udom_load_edom(page, edom, retv);
     return udom;
 }
 

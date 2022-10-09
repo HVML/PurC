@@ -101,7 +101,7 @@ void foil_wsp_update_widget(void *workspace, void *session,
         const struct wsp_widget_info *style);
 
 purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
-        purcth_page *page, purc_variant_t edom);
+        purcth_page *page, purc_variant_t edom, int *retv);
 
 #ifdef __cplusplus
 }

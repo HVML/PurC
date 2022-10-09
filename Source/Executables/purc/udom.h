@@ -36,8 +36,8 @@ void foil_udom_delete(purcth_udom *udom);
 purcth_rdrbox *foil_udom_find_rdrbox(purcth_udom *udom,
         uint64_t element_handle);
 
-purcth_rdrbox *foil_udom_load_edom(purcth_udom *udom,
-        pcdom_document_t *edom_doc, int *retv);
+purcth_udom *foil_udom_load_edom(purcth_page *page,
+        purc_variant_t edom, int *retv);
 
 int foil_udom_update_rdrbox(purcth_udom *udom, purcth_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info);

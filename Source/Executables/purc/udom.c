@@ -232,11 +232,16 @@ rendering_walker(pcdom_node_t *node, void *ctxt)
     return PCHTML_ACTION_NEXT;
 }
 
-purcth_rdrbox *
-foil_udom_load_edom(purcth_udom *udom, pcdom_document_t *edom_doc, int *retv)
+purcth_udom *
+foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
 {
+    pcdom_document_t *edom_doc;
+
+    edom_doc = purc_variant_native_get_entity(edom);
+    assert(edom_doc);
+
     size_t len;
-    const unsigned char *doctype = pcdom_document_type_name(
+    const char *doctype = (const char *)pcdom_document_type_name(
             edom_doc->doctype, &len);
 
     if (len == 0 || strcasecmp(doctype, "html")) {
@@ -244,7 +249,8 @@ foil_udom_load_edom(purcth_udom *udom, pcdom_document_t *edom_doc, int *retv)
         return NULL;
     }
 
-    foil_udom_cleanup(udom);
+    purcth_udom *udom;
+    udom = foil_udom_new(page);
 
     // TODO: parse CSS here
 
@@ -252,7 +258,7 @@ foil_udom_load_edom(purcth_udom *udom, pcdom_document_t *edom_doc, int *retv)
     struct rendering_ctxt ctxt = { udom, };
     pcdom_node_simple_walk(pcdom_interface_node(root), rendering_walker, &ctxt);
 
-    return NULL;
+    return udom;
 }
 
 int foil_udom_update_rdrbox(purcth_udom *udom, purcth_rdrbox *rdrbox,

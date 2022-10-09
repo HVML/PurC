@@ -967,19 +967,13 @@ static int on_load(purcth_renderer* rdr, purcth_endpoint* endpoint,
     purcth_page *page = NULL;
     purcth_udom *dom = NULL;
 
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON ||
-            msg->data == PURC_VARIANT_INVALID) {
+    void *edom;
+    if (msg->data == PURC_VARIANT_INVALID ||
+            !purc_variant_is_native(msg->data) ||
+            (edom = purc_variant_native_get_entity(msg->data)) == NULL) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
     }
-
-#if 0
-    uint64_t edom_handle;
-    if (!purc_variant_cast_to_ulongint(msg->data, &edom_handle, false)) {
-        retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
-    }
-#endif
 
     if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
             msg->target == PCRDR_MSG_TARGET_WIDGET) {
@@ -1036,13 +1030,8 @@ static int update_dom(purcth_renderer* rdr, purcth_endpoint* endpoint,
         element_handle = strtoull(element_value, NULL, 16);
     }
 
-#if 0
-    uint64_t ref_element = 0;
-    if (!purc_variant_cast_to_ulongint(msg->data, &ref_element, false)) {
-    }
-#endif
-    if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON
-            && msg->data == PURC_VARIANT_INVALID) {
+    if (msg->data != PURC_VARIANT_INVALID &&
+            !purc_variant_is_native(msg->data)) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto done;
     }

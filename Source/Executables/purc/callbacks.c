@@ -303,7 +303,7 @@ foil_load_edom(purcth_session *sess, purcth_page *page, purc_variant_t edom,
         return NULL;
 
     purcth_udom *udom = foil_wsp_load_edom_in_page(sess->workspace, sess,
-            page, edom);
+            page, edom, retv);
 
     if (udom) {
         sorted_array_add(sess->all_handles, PTR2U64(udom),
