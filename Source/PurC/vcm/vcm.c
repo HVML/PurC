@@ -588,7 +588,8 @@ purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
     if (stack->vcm_ctxt) {
         return pcvcm_eval_sub_expr_full(tree, stack->vcm_ctxt, args, silently);
     }
-    return pcvcm_eval(tree, stack ,silently);
+    return pcvcm_eval_full(tree, &stack->vcm_ctxt, args,
+                find_stack_var, stack, silently);
 }
 
 purc_variant_t
@@ -596,7 +597,8 @@ pcvcm_eval_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt **ctxt,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
-    return pcvcm_eval_full(tree, ctxt, find_var, find_var_ctxt, silently);
+    return pcvcm_eval_full(tree, ctxt, PURC_VARIANT_INVALID,
+            find_var, find_var_ctxt, silently);
 }
 
 purc_variant_t

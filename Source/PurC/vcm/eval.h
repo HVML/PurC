@@ -168,7 +168,7 @@ pcvcm_eval_get_attach_variant(struct pcvcm_node *node)
 }
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt_out,
+        struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently);
 

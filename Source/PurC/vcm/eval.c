@@ -639,7 +639,7 @@ out:
 
 purc_variant_t
 eval_vcm(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_ctxt *ctxt, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently, bool timeout, bool again)
 {
@@ -665,6 +665,10 @@ eval_vcm(struct pcvcm_node *tree,
     }
 
     if (!frame) {
+        goto out;
+    }
+
+    if (args && !pcvarmgr_add(frame->variables, VCM_VARIABLE_ARGS_NAME, args)) {
         goto out;
     }
 
@@ -699,7 +703,7 @@ out:
 
 static int i = 0;
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt_out,
+        struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently)
 {
@@ -733,7 +737,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     ctxt->enable_log = enable_log;
     ctxt->node = tree;
 
-    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
+    result = eval_vcm(tree, ctxt, args, find_var, find_var_ctxt, silently,
             false, false);
 
 out:
@@ -806,8 +810,8 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         purc_clr_error();
     }
 
-    result = eval_vcm(tree, ctxt, find_var, find_var_ctxt, silently,
-            timeout, true);
+    result = eval_vcm(tree, ctxt, PURC_VARIANT_INVALID, find_var,
+            find_var_ctxt, silently, timeout, true);
 
 out:
     if (enable_log) {
