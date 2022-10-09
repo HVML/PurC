@@ -40,10 +40,13 @@
 #define PCVCM_EV_DEFAULT_METHOD_NAME                "eval"
 #define PCVCM_EV_CONST_SUFFIX                       "_const"
 
+#define PCVCM_EV_PROPERTY_METHOD_NAME               "method_name"
+#define PCVCM_EV_PROPERTY_CONST_METHOD_NAME         "const_method_name"
 #define PCVCM_EV_PROPERTY_EVAL                      "eval"
 #define PCVCM_EV_PROPERTY_EVAL_CONST                "eval_const"
 #define PCVCM_EV_PROPERTY_VCM_EV                    "vcm_ev"
 #define PCVCM_EV_PROPERTY_LAST_VALUE                "last_value"
+#define PCVCM_EV_PROPERTY_CONSTANTLY                "constantly"
 
 
 enum pcvcm_node_type {

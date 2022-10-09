@@ -479,12 +479,12 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
 {
     struct purc_native_ops *ops = purc_variant_native_get_ops(var);
     if (ops) {
+        void *entity = purc_variant_native_get_entity(var);
         purc_nvariant_method native_func = (type == GETTER_METHOD) ?
-            ops->property_getter(key_name) :
-            ops->property_setter(key_name);
+            ops->property_getter(entity, key_name) :
+            ops->property_setter(entity, key_name);
         if (native_func) {
-            return  native_func(purc_variant_native_get_entity(var),
-                    nr_args, argv, call_flags);
+            return  native_func(entity, nr_args, argv, call_flags);
         }
     }
     return PURC_VARIANT_INVALID;

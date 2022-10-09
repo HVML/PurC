@@ -127,14 +127,49 @@ last_value_setter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return vcm_ev->last_value;
 }
 
-static inline purc_nvariant_method
-property_getter(const char *key_name)
+static purc_variant_t
+method_name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
 {
-    if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL) == 0) {
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    return purc_variant_make_string(vcm_ev->method_name, false);
+}
+
+static purc_variant_t
+const_method_name_getter(void *native_entity, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    return purc_variant_make_string(vcm_ev->const_method_name, false);
+}
+
+static purc_variant_t
+constantly_getter(void *native_entity, size_t nr_args,
+        purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    return purc_variant_make_boolean(vcm_ev->constantly);
+}
+
+static inline purc_nvariant_method
+property_getter(void *native_entity, const char *key_name)
+{
+    UNUSED_PARAM(native_entity);
+    struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
+    if (strcmp(vcm_ev->method_name, key_name) == 0) {
         return eval_getter;
     }
-    else if (strcmp(key_name, PCVCM_EV_PROPERTY_EVAL_CONST) == 0) {
-        return eval_const_getter;
+    else if (strcmp(vcm_ev->const_method_name, key_name) == 0) {
+        return vcm_ev->constantly ? eval_const_getter : NULL;
     }
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
         return vcm_ev_getter;
@@ -142,13 +177,24 @@ property_getter(const char *key_name)
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
         return last_value_getter;
     }
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_METHOD_NAME) == 0) {
+        return method_name_getter;
+    }
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_CONST_METHOD_NAME) == 0) {
+        return const_method_name_getter;
+    }
+    else if (strcmp(key_name, PCVCM_EV_PROPERTY_CONSTANTLY) == 0) {
+        return constantly_getter;
+    }
+
 
     return NULL;
 }
 
 static inline purc_nvariant_method
-property_setter(const char *key_name)
+property_setter(void *native_entity, const char *key_name)
 {
+    UNUSED_PARAM(native_entity);
     if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
         return last_value_setter;
     }
