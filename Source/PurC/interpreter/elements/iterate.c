@@ -611,7 +611,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         ctxt->with_attr_idx = idx;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSE_TO_TAIL)) == name) {
         ctxt->nosetotail = 1;
         purc_variant_t val = purc_variant_make_boolean(true);
         pcutils_array_set(frame->attrs_result, idx, val);

@@ -32,6 +32,7 @@ caseless
 
 nosetotail
     type: adverb
+    alias: nose-to-tail
 
 as
     type: prep
@@ -99,6 +100,7 @@ silently
 
 noreturn
     type: adverb
+    alias: no-return
 
 const
     type: adverb

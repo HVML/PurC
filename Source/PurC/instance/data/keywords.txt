@@ -21,7 +21,7 @@ hvml at
 hvml in
 hvml by
 hvml as
-hvml uniquely
+hvml uniquely uniq
 hvml via
 hvml against
 hvml name
@@ -41,7 +41,7 @@ hvml casesensitively case
 hvml caseinsensitively caseless
 hvml _parent _grandparent _root
 hvml _last _nexttolast _topmost
-hvml nosetotail
+hvml nosetotail nose-to-tail
 hvml ascendingly asc
 hvml descendingly desc
 hvml target
@@ -50,7 +50,7 @@ hvml param
 hvml method
 hvml onto
 hvml silently
-hvml noreturn
+hvml noreturn no-return
 hvml must-yield
 hvml constantly const
 hvml responsively resp
