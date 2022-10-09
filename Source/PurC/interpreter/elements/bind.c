@@ -41,6 +41,7 @@ struct ctxt_for_bind {
 
     purc_variant_t                as;
     purc_variant_t                at;
+    purc_variant_t                against;
 
     unsigned int                  under_head:1;
     unsigned int                  temporarily:1;
@@ -53,6 +54,7 @@ ctxt_for_bind_destroy(struct ctxt_for_bind *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->against);
         free(ctxt);
     }
 }
@@ -226,10 +228,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_bind*)frame->ctxt;
 
     const char *method_name = PCVCM_EV_DEFAULT_METHOD_NAME;
-    if (ctxt->at && purc_variant_is_string(ctxt->at)) {
-        const char *s_at = purc_variant_get_string_const(ctxt->at);
-        if (s_at[0] != '#' && s_at[0] != '_') {
-            method_name = s_at;
+    if (ctxt->against && purc_variant_is_string(ctxt->against)) {
+        const char *name = purc_variant_get_string_const(ctxt->against);
+        if (name[0] != '#' && name[0] != '_') {
+            method_name = name;
         }
     }
 
@@ -296,6 +298,31 @@ process_attr_at(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_against(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_bind *ctxt;
+    ctxt = (struct ctxt_for_bind*)frame->ctxt;
+    if (ctxt->against != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    ctxt->against = val;
+    purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -315,6 +342,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AGAINST)) == name) {
+        return process_attr_against(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
