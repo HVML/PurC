@@ -64,8 +64,19 @@ eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     if (!stack) {
         return PURC_VARIANT_INVALID;
     }
-    return pcvcm_eval(vcm_ev->vcm, stack,
+
+    purc_variant_t args = PURC_VARIANT_INVALID;
+    if (argv) {
+        args = purc_variant_make_tuple(nr_args, argv);
+        if (!args) {
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+    purc_variant_t result = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+
+    return result;
 }
 
 static purc_variant_t

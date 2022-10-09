@@ -582,6 +582,15 @@ pcvcm_eval_again(struct pcvcm_node *tree, struct pcintr_stack *stack,
     return pcvcm_eval_again_ex(tree, NULL, NULL, NULL, silently, timeout);
 }
 
+purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, purc_variant_t args, bool silently)
+{
+    if (stack->vcm_ctxt) {
+        return pcvcm_eval_sub_expr_full(tree, stack->vcm_ctxt, args, silently);
+    }
+    return pcvcm_eval(tree, stack ,silently);
+}
+
 purc_variant_t
 pcvcm_eval_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt **ctxt,
         find_var_fn find_var, void *find_var_ctxt,
@@ -598,5 +607,4 @@ pcvcm_eval_again_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt *ctxt,
     return pcvcm_eval_again_full(tree, ctxt, find_var, find_var_ctxt,
         silently, timeout);
 }
-
 
