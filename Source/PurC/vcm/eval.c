@@ -736,6 +736,9 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     }
     ctxt->enable_log = enable_log;
     ctxt->node = tree;
+    if (ctxt_out) {
+        *ctxt_out = ctxt;
+    }
 
     result = eval_vcm(tree, ctxt, args, find_var, find_var_ctxt, silently,
             false, false);
@@ -776,6 +779,9 @@ out:
     }
     else if (ctxt) {
         pcvcm_eval_ctxt_destroy(ctxt);
+        if (ctxt_out) {
+            *ctxt_out = NULL;
+        }
     }
     return result;
 }
@@ -851,7 +857,7 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
         goto out;
     }
 
-    if (!pcvarmgr_add(frame->variables, VCM_VARIABLE_ARGS_NAME, args)) {
+    if (args && !pcvarmgr_add(frame->variables, VCM_VARIABLE_ARGS_NAME, args)) {
         goto out_destroy_frame;
     }
 
