@@ -37,9 +37,9 @@ set(PurC_INSTALLED_HEADERS ${PurC_FRAMEWORK_HEADERS})
 list(APPEND PurC_INSTALLED_HEADERS
     "${FORWARDING_HEADERS_DIR}/purc/purc-version.h"
     "${FORWARDING_HEADERS_DIR}/purc/purc-features.h"
-    "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
-    "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
-    "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
 )
 
 # TODO: List the directorires which do not contain any platform-dependent C source files
@@ -140,8 +140,8 @@ add_custom_command(
             ${PURC_DIR}/html/html_tag_res.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
     COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
-    COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_tag_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
-    COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/ns_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
+# COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_tag_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
+# COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/ns_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
     COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
@@ -156,7 +156,7 @@ add_custom_command(
     DEPENDS ${PURC_DIR}/html/attr_res.h.in ${PURC_DIR}/html/attr_const.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/attr.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
     COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
-    COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
+#    COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
     COMMENT "Generating html_attr_res.h and html_attr_const.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)

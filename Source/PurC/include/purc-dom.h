@@ -37,9 +37,6 @@
 #include "purc-rwstream.h"
 #include "purc-utils.h"
 #include "purc-errors.h"
-#include "purc-dom-ns-const.h"
-#include "purc-html-tag-const.h"
-#include "purc-html-attr-const.h"
 
 #define PURC_ERROR_DOM PURC_ERROR_FIRST_DOM
 
