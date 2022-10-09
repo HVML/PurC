@@ -236,6 +236,7 @@ is_context_variable(uint32_t c)
     case '=':
     case '%':
     case '<':
+    case '~':
         return true;
     }
     return false;
