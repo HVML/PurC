@@ -75,6 +75,8 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
         members[n] = purc_variant_make_null();
     }
 
+    vrt->type = PURC_VARIANT_TYPE_TUPLE;
+    vrt->refc = 1;
     return vrt;
 }
 
