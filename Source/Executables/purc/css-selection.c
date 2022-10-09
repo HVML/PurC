@@ -1376,7 +1376,7 @@ set_node_data(void *pw, void *n, void *node_data)
     return CSS_OK;
 }
 
-static css_error 
+static css_error
 get_node_data(void *pw, void *n, void **node_data)
 {
     (void)pw;
@@ -1389,60 +1389,11 @@ static css_error
 compute_font_size(void *pw, const css_hint *parent, css_hint *size)
 {
     (void)pw;
+    (void)parent;
 
-    static css_hint_length sizes[] = {
-        { FLTTOFIX(6.75), CSS_UNIT_PT },
-        { FLTTOFIX(7.50), CSS_UNIT_PT },
-        { FLTTOFIX(9.75), CSS_UNIT_PT },
-        { FLTTOFIX(12.0), CSS_UNIT_PT },
-        { FLTTOFIX(13.5), CSS_UNIT_PT },
-        { FLTTOFIX(18.0), CSS_UNIT_PT },
-        { FLTTOFIX(24.0), CSS_UNIT_PT }
-    };
-    const css_hint_length *parent_size;
-
-    /* Grab parent size, defaulting to medium if none */
-    if (parent == NULL) {
-        parent_size = &sizes[CSS_FONT_SIZE_MEDIUM - 1];
-    } else {
-        assert(parent->status == CSS_FONT_SIZE_DIMENSION);
-        assert(parent->data.length.unit != CSS_UNIT_EM);
-        assert(parent->data.length.unit != CSS_UNIT_EX);
-        parent_size = &parent->data.length;
-    }
-
-    assert(size->status != CSS_FONT_SIZE_INHERIT);
-
-    if (size->status < CSS_FONT_SIZE_LARGER) {
-        /* Keyword -- simple */
-        size->data.length = sizes[size->status - 1];
-    } else if (size->status == CSS_FONT_SIZE_LARGER) {
-        /** \todo Step within table, if appropriate */
-        size->data.length.value =
-                FMUL(parent_size->value, FLTTOFIX(1.2));
-        size->data.length.unit = parent_size->unit;
-    } else if (size->status == CSS_FONT_SIZE_SMALLER) {
-        /** \todo Step within table, if appropriate */
-        size->data.length.value =
-                FMUL(parent_size->value, FLTTOFIX(1.2));
-        size->data.length.unit = parent_size->unit;
-    } else if (size->data.length.unit == CSS_UNIT_EM ||
-            size->data.length.unit == CSS_UNIT_EX) {
-        size->data.length.value =
-            FMUL(size->data.length.value, parent_size->value);
-
-        if (size->data.length.unit == CSS_UNIT_EX) {
-            size->data.length.value = FMUL(size->data.length.value,
-                    FLTTOFIX(0.6));
-        }
-
-        size->data.length.unit = parent_size->unit;
-    } else if (size->data.length.unit == CSS_UNIT_PCT) {
-        size->data.length.value = FDIV(FMUL(size->data.length.value,
-                parent_size->value), FLTTOFIX(100));
-        size->data.length.unit = parent_size->unit;
-    }
-
+    /* for Foil, the font size always be 10px */
+    size->data.length.value = INTTOFIX(10);
+    size->data.length.unit = CSS_UNIT_PX;
     size->status = CSS_FONT_SIZE_DIMENSION;
 
     return CSS_OK;

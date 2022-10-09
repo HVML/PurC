@@ -30,6 +30,9 @@
 extern "C" {
 #endif
 
+int foil_udom_module_init(void);
+void foil_udom_module_cleanup(void);
+
 purcth_udom *foil_udom_new(purcth_page *page);
 void foil_udom_delete(purcth_udom *udom);
 
