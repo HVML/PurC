@@ -169,7 +169,7 @@ property_getter(void *native_entity, const char *key_name)
         return eval_getter;
     }
     else if (strcmp(vcm_ev->const_method_name, key_name) == 0) {
-        return eval_const_getter;
+        return vcm_ev->constantly ? eval_const_getter : NULL;
     }
     else if (strcmp(key_name, PCVCM_EV_PROPERTY_VCM_EV) == 0) {
         return vcm_ev_getter;
