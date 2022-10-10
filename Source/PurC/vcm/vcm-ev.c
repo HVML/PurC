@@ -115,6 +115,7 @@ eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     ret = purc_variant_object_get(vcm_ev->values, key);
     if (ret) {
+        purc_variant_ref(ret);
         goto out;
     }
 
@@ -129,7 +130,7 @@ eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
 out:
     if (key) {
-        free(key);
+        purc_variant_unref(key);
     }
     if (args) {
         purc_variant_unref(args);
