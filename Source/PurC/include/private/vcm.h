@@ -261,6 +261,10 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
         struct pcintr_stack *stack, bool silently, bool timeout);
 
+/* substitue expression  */
+purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, purc_variant_t args, bool silently);
+
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 

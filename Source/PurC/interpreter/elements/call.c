@@ -418,7 +418,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONC)) == name) {
         ctxt->concurrently = 1;
         return 0;
     }

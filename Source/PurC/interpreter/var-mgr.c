@@ -553,6 +553,7 @@ enum purc_symbol_var _to_symbol(char symbol)
     case '?':
         return PURC_SYMBOL_VAR_QUESTION_MARK;
     case '<':
+    case '~':
         return PURC_SYMBOL_VAR_LESS_THAN;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;

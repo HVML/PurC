@@ -280,7 +280,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         ctxt->synchronously = 0;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NORETURN)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NORETURN)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NO_RETURN)) == name) {
         ctxt->noreturn = 1;
         return 0;
     }

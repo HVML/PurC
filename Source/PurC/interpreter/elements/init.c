@@ -446,7 +446,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQ)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->uniquely = 1;
         return 0;
@@ -477,8 +478,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_for(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
-            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name)
-    {
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->temporarily = 1;
         if (ctxt->async) {
