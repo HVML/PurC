@@ -609,7 +609,7 @@ node_has_attribute_equal(void *pw, void *n, const css_qname *qname,
         size_t len2 = lwc_string_length(qname->name);
 
         if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value (attr, &len1);
+            str1 = (const char *)pcdom_attr_value(attr, &len1);
             str2 = lwc_string_data(value);
             len2 = lwc_string_length(value);
 

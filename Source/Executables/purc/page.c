@@ -28,7 +28,7 @@
 #include <assert.h>
 
 struct purcth_page {
-    unsigned rows, cols;
+    int rows, cols;
     purcth_udom *udom;
 };
 
@@ -41,7 +41,7 @@ void foil_page_module_cleanup(void)
 {
 }
 
-purcth_page *foil_page_new(unsigned rows, unsigned cols)
+purcth_page *foil_page_new(int rows, int cols)
 {
     purcth_page *page = calloc(1, sizeof(*page));
 
@@ -70,12 +70,12 @@ purcth_udom *foil_page_set_udom(purcth_page *page, purcth_udom *udom)
     return old_udom;
 }
 
-unsigned foil_page_rows(const purcth_page *page)
+int foil_page_rows(const purcth_page *page)
 {
     return page->rows;
 }
 
-unsigned foil_page_cols(const purcth_page *page)
+int foil_page_cols(const purcth_page *page)
 {
     return page->cols;
 }

@@ -35,7 +35,7 @@ extern "C" {
 int foil_page_module_init(void);
 void foil_page_module_cleanup(void);
 
-purcth_page *foil_page_new(unsigned rows, unsigned cols);
+purcth_page *foil_page_new(int rows, int cols);
 
 /* return the uDOM set for this page */
 purcth_udom *foil_page_delete(purcth_page *page);
@@ -43,8 +43,8 @@ purcth_udom *foil_page_delete(purcth_page *page);
 /* set uDOM and return the old one */
 purcth_udom *foil_page_set_udom(purcth_page *page, purcth_udom *udom);
 
-unsigned foil_page_rows(const purcth_page *page);
-unsigned foil_page_cols(const purcth_page *page);
+int foil_page_rows(const purcth_page *page);
+int foil_page_cols(const purcth_page *page);
 
 #ifdef __cplusplus
 }

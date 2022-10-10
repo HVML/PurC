@@ -68,6 +68,9 @@ struct purcth_udom {
     /* the initial containing block */
     struct purcth_rdrbox *initial_cblock;
 
+    /* the CSS media */
+    css_media media;
+
     /* size of whole page in pixels */
     unsigned width, height;
 
@@ -236,6 +239,9 @@ purcth_udom *foil_udom_new(purcth_page *page)
     }
 
     /* create the initial containing block */
+    int width = foil_page_cols(page) * FOIL_PX_PER_EX;
+    int height = foil_page_rows(page) * FOIL_PX_PER_EM;
+
     udom->initial_cblock = foil_rdrbox_new_block();
     if (udom->initial_cblock == NULL) {
         goto failed;
@@ -243,8 +249,39 @@ purcth_udom *foil_udom_new(purcth_page *page)
 
     udom->initial_cblock->rect.left = 0;
     udom->initial_cblock->rect.top = 0;
-    udom->initial_cblock->rect.right = foil_page_cols(page) * FOIL_PX_PER_EX;
-    udom->initial_cblock->rect.bottom = foil_page_rows(page) * FOIL_PX_PER_EM;
+    udom->initial_cblock->rect.right = width;
+    udom->initial_cblock->rect.bottom = height;
+
+    udom->media.type = CSS_MEDIA_TTY;
+    udom->media.width  = INTTOFIX(width);
+    udom->media.height = INTTOFIX(height);
+    // left fields of css_media are not used
+    udom->media.aspect_ratio = INTTOFIX(1);
+    udom->media.orientation = CSS_MEDIA_ORIENTATION_LANDSCAPE;
+    udom->media.resolution.value = INTTOFIX(96);
+    udom->media.resolution.unit = CSS_UNIT_PX;
+    udom->media.scan = CSS_MEDIA_SCAN_PROGRESSIVE;
+    udom->media.grid = INTTOFIX(0);
+    udom->media.update = CSS_MEDIA_UPDATE_FREQUENCY_NORMAL;
+    udom->media.overflow_block = CSS_MEDIA_OVERFLOW_BLOCK_NONE;
+    udom->media.overflow_inline = CSS_MEDIA_OVERFLOW_INLINE_NONE;
+
+    udom->media.color = INTTOFIX(8);
+    udom->media.color_index = INTTOFIX(1);
+    udom->media.monochrome = INTTOFIX(0);
+    udom->media.inverted_colors = INTTOFIX(0);
+
+    udom->media.pointer = CSS_MEDIA_POINTER_NONE;
+    udom->media.any_pointer = CSS_MEDIA_POINTER_NONE;
+    udom->media.hover = CSS_MEDIA_HOVER_NONE;
+    udom->media.any_hover = CSS_MEDIA_HOVER_NONE;
+
+    udom->media.light_level = CSS_MEDIA_LIGHT_LEVEL_NORMAL;
+
+    udom->media.scripting = CSS_MEDIA_SCRIPTING_NONE;
+
+    udom->media.client_font_size = FLTTOFIX(14.4);   // 0.2 inch
+    udom->media.client_line_height = INTTOFIX(FOIL_PX_PER_EM);
 
     return udom;
 
@@ -338,6 +375,132 @@ struct rendering_ctxt {
     struct purcth_rdrbox *current_cblock;
 };
 
+#define ATTR_NAME_STYLE     "style"
+
+extern css_select_handler foil_css_select_handler;
+
+static css_select_results *
+select_element_style(const css_media *media,
+        css_select_ctx *select_ctx, pcdom_element_t *element)
+{
+    // prepare inline style
+    css_error err;
+    css_stylesheet* inline_sheet = NULL;
+    const unsigned char* value;
+    size_t len;
+
+    value = pcdom_element_get_attribute(element,
+            (const unsigned char *)ATTR_NAME_STYLE,
+            sizeof(ATTR_NAME_STYLE) - 1, &len);
+
+    if (value) {
+        css_stylesheet_params params;
+
+        memset(&params, 0, sizeof(params));
+        params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
+        params.level = CSS_LEVEL_DEFAULT;
+        params.charset = FOIL_DEF_CHARSET;
+        params.inline_style = true;
+#if 0
+        params.url = NULL;
+        params.title = NULL;
+        params.allow_quirks = false;
+        params.resolve = NULL;
+        params.resolve_pw = NULL;
+        params.import = NULL;
+        params.import_pw = NULL;
+        params.color = NULL;
+        params.color_pw = NULL;
+        params.font = NULL;
+        params.font_pw = NULL;
+#endif
+
+        err = css_stylesheet_create(&params, &inline_sheet);
+        if (err == CSS_OK) {
+            err = css_stylesheet_append_data(inline_sheet, value, len);
+            if (err == CSS_OK) {
+                css_stylesheet_data_done(inline_sheet);
+            }
+            else {
+                LOG_WARN("Failed to append data to inline style sheet: %d\n",
+                        err);
+                css_stylesheet_destroy(inline_sheet);
+                inline_sheet = NULL;
+            }
+        }
+        else {
+            LOG_WARN("Failed to create inline style sheet: %d\n", err);
+        }
+    }
+
+    /* Select style for node */
+    css_select_results *result = NULL;
+    err = css_select_style(select_ctx, element, media, inline_sheet,
+            &foil_css_select_handler, NULL, &result);
+    if (err != CSS_OK || result == NULL) {
+        goto failed;
+    }
+
+    /* TODO: handle styles for pseudo elements */
+    int pseudo_element;
+    css_computed_style *composed = NULL;
+    for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
+            pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
+            pseudo_element++) {
+
+        if (pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LETTER ||
+                pseudo_element == CSS_PSEUDO_ELEMENT_FIRST_LINE)
+            /* TODO: Handle first-line and first-letter pseudo
+             *       element computed style completion */
+            continue;
+
+        if (result->styles[pseudo_element] == NULL)
+            /* There were no rules concerning this pseudo element */
+            continue;
+
+        /* Complete the pseudo element's computed style, by composing
+         * with the base element's style */
+        err = css_computed_style_compose(
+                result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                result->styles[pseudo_element],
+                foil_css_select_handler.compute_font_size, NULL,
+                &composed);
+        if (err != CSS_OK) {
+            /* TODO: perhaps this shouldn't be quite so
+             * catastrophic? */
+            goto failed;
+        }
+
+        /* Replace select_results style with composed style */
+        css_computed_style_destroy(result->styles[pseudo_element]);
+        result->styles[pseudo_element] = composed;
+    }
+
+    if (inline_sheet) {
+        css_stylesheet_destroy(inline_sheet);
+    }
+    return result;
+
+failed:
+    if (inline_sheet) {
+        css_stylesheet_destroy(inline_sheet);
+    }
+    if (result)
+        css_select_results_destroy(result);
+    return NULL;
+}
+
+static purcth_rdrbox *
+create_rdrbox(struct rendering_ctxt *ctxt, pcdom_element_t *element,
+        css_select_results *result)
+{
+    (void)ctxt;
+    (void)element;
+    (void)result;
+
+    return NULL;
+}
+
 static pchtml_action_t
 udom_maker(pcdom_node_t *node, void *ctxt)
 {
@@ -353,7 +516,16 @@ udom_maker(pcdom_node_t *node, void *ctxt)
         return PCHTML_ACTION_NEXT;
 
     case PCDOM_NODE_TYPE_ELEMENT: {
-        // struct rendering_ctxt *my_ctxt = ctxt;
+        struct rendering_ctxt *my_ctxt = ctxt;
+        pcdom_element_t *element;
+        element = pcdom_interface_element(node);
+
+        css_select_results *result;
+        result = select_element_style(&my_ctxt->udom->media,
+                my_ctxt->udom->select_ctx, element);
+        if (result) {
+            create_rdrbox(my_ctxt, element, result);
+        }
 
         /* walk to the siblings. */
         return PCHTML_ACTION_NEXT;

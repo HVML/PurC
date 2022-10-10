@@ -2,7 +2,7 @@
  * @file rdrbox.h
  * @author Vincent Wei
  * @date 2022/10/10
- * @brief The header for rdrbox.
+ * @brief The header for rendering box.
  *
  * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
  *
@@ -41,6 +41,9 @@ typedef enum {
 
 struct _inline_box_data;
 struct _block_box_data;
+struct _inline_block_data;
+struct _marker_box_data;
+
 struct purcth_rdrbox {
     struct purcth_rdrbox* parent;
     struct purcth_rdrbox* first;
@@ -52,21 +55,19 @@ struct purcth_rdrbox {
     /* type of box */
     pcth_rdrbox_type_k type;
 
-    /* the rectangle of this box */
-    foil_rect   rect;
-
     /* number of child boxes */
     unsigned nr_children;
 
-    /* the visual region (rectangles) of the box */
-    unsigned nr_rects;
-    struct foil_rect *rects;
+    /* the rectangle of this box */
+    foil_rect   rect;
 
-    /* the extra data if the box type is INLINE */
+    /* the extra data of this box */
     union {
         void *data;     // aliases
-        struct _inline_box_data *inline_data;
-        struct _block_box_data *block_data;
+        struct _inline_box_data     *inline_data;
+        struct _block_box_data      *block_data;
+        struct _inline_block_data   *inline_block_data;
+        struct _marker_box_data     *marker_data;
     };
 };
 
