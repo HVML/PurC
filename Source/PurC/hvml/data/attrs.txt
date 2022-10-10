@@ -95,6 +95,12 @@ onto
 within
     type: prep
 
+onlyif
+    type: prep
+
+idd-by
+    type: prep
+
 silently
     type: adverb
 

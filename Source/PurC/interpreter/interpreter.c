@@ -60,6 +60,7 @@
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 #define ATTR_NAME_ID        "id"
+#define ATTR_NAME_IDD_BY    "idd-by"
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4
 
@@ -3387,10 +3388,24 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         )
 {
     int ret = 0;
+    pcvdom_element_t elem = frame->pos;
+    if (!elem) {
+        goto out;
+    }
+
     pcutils_array_t *attrs = frame->pos->attrs;
     size_t nr_params = pcutils_array_length(attrs);
     struct pcvdom_attr *attr = NULL;
     purc_variant_t val;
+
+    bool is_operation_tag = false;
+    const char *name = elem->tag_name;
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    if (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB))) {
+        is_operation_tag = true;
+    }
 
     while (frame->eval_step != STACK_FRAME_EVAL_STEP_DONE) {
         switch (frame->eval_step) {
@@ -3423,8 +3438,15 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 purc_clr_error();
                 pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
                 stack->vcm_ctxt = NULL;
-                if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
-                    frame->elem_id = purc_variant_ref(val);
+                if (is_operation_tag) {
+                    if (strcmp(attr->key, ATTR_NAME_IDD_BY) == 0) {
+                        frame->elem_id = purc_variant_ref(val);
+                    }
+                }
+                else {
+                    if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
+                        frame->elem_id = purc_variant_ref(val);
+                    }
                 }
                 pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
                         val);

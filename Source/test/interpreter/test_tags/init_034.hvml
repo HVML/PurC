@@ -1,0 +1,30 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <inherit idd-by "grandparent">
+            <div id="temp">
+                <init as="buttons" at="#grandparent">
+                    [
+                        { "letters": "7", "class": "number" },
+                        { "letters": "7", "class": "number" },
+                        { "letters": "7", "class": "number" },
+                        { "letters": "8", "class": "number" },
+                        { "letters": "9", "class": "number" },
+                    ]
+                </init>
+                <div>
+                    $EJSON.count($buttons)
+                </div>
+            </div>
+            <div>
+                $EJSON.count($buttons)
+            </div>
+        </inherit>
+    </body>
+
+</hvml>
+
+

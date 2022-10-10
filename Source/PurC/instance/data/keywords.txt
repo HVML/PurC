@@ -55,6 +55,7 @@ hvml must-yield
 hvml constantly const
 hvml responsively resp
 hvml individually indv
+hvml idd-by
 
 # executor
 hvml FORMULA
