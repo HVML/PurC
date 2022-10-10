@@ -1480,8 +1480,14 @@ purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT size_t
-purc_variant_tuple_get_size(purc_variant_t tuple);
+static inline ssize_t
+purc_variant_tuple_get_size(purc_variant_t tuple)
+{
+    size_t sz;
+    if (!purc_variant_tuple_size(tuple, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * Gets a member from a tuple by index.
@@ -2137,6 +2143,11 @@ static inline bool purc_variant_is_array(purc_variant_t v)
 static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
+}
+
+static inline bool purc_variant_is_tuple(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
 }
 
 /** Check whether the value is a boolean and having value of true. */

@@ -335,6 +335,9 @@ break_rev_update_chain(purc_variant_t set, struct set_node *node)
     {
         pcvar_break_rue_downward(node->val);
     }
+    else if (node->val->type == PVT(_TUPLE)) {
+        // TODO
+    }
     else {
         PC_ASSERT(0);
     }
@@ -537,6 +540,10 @@ build_rev_update_chain(purc_variant_t set, struct set_node *node)
         r = pcvar_build_rue_downward(node->val);
         if (r)
             return -1;
+    }
+    else if (node->val->type == PVT(_TUPLE)) {
+        // TODO
+        return 0;
     }
     else {
         PC_ASSERT(0);

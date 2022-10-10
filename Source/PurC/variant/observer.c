@@ -220,6 +220,7 @@ pcvar_break_rue_downward(purc_variant_t val)
         case PURC_VARIANT_TYPE_BSEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
+        case PURC_VARIANT_TYPE_TUPLE:
             return;
         default:
             PC_DEBUGX("%d", val->type);
@@ -244,6 +245,9 @@ pcvar_break_edge_to_parent(purc_variant_t val,
             return;
         case PURC_VARIANT_TYPE_SET:
             pcvar_set_break_edge_to_parent(val, edge);
+            return;
+        case PURC_VARIANT_TYPE_TUPLE:
+            // TODO
             return;
         default:
             PC_ASSERT(0);
@@ -297,6 +301,9 @@ pcvar_build_edge_to_parent(purc_variant_t val,
             return pcvar_object_build_edge_to_parent(val, edge);
         case PURC_VARIANT_TYPE_SET:
             return pcvar_set_build_edge_to_parent(val, edge);
+        case PURC_VARIANT_TYPE_TUPLE:
+            //TODO
+            return 0;
         default:
             PC_ASSERT(0);
             break;

@@ -35,6 +35,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define ATTR_ON         "on"
+
 struct ctxt_for_bind {
     struct pcvdom_node           *curr;
     struct pcvcm_node            *vcm_ev;
@@ -375,6 +377,20 @@ attr_found_val(struct pcintr_stack_frame *frame,
     return 0;
 }
 
+bool before_eval_attr(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *attr_name,
+        struct pcvcm_node *vcm)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(attr_name);
+    UNUSED_PARAM(vcm);
+    if (strcmp(attr_name, ATTR_ON) == 0) {
+        return true;
+    }
+    return false;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -388,7 +404,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
+    if (0 != pcintr_stack_frame_eval_attr_and_content_full(stack, frame,
+                before_eval_attr, true)) {
         return NULL;
     }
 

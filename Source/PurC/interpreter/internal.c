@@ -53,6 +53,9 @@ static const char callTemplateFoot[] =
 "    </call>\n"
 "</hvml>\n";
 
+#define  ATTR_ID            "id"
+#define  ATTR_IDD_BY        "idd-by"
+
 bool
 pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
         const char *id)
@@ -60,7 +63,19 @@ pcintr_match_id(pcintr_stack_t stack, struct pcvdom_element *elem,
     if (elem->node.type == PCVDOM_NODE_DOCUMENT) {
         return false;
     }
-    struct pcvdom_attr *attr = pcvdom_element_find_attr(elem, "id");
+
+    struct pcvdom_attr *attr;
+
+    const char *name = elem->tag_name;
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    if (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB))) {
+        attr = pcvdom_element_find_attr(elem, ATTR_IDD_BY);
+    }
+    else {
+        attr = pcvdom_element_find_attr(elem, ATTR_ID);
+    }
     if (!attr) {
         return false;
     }
