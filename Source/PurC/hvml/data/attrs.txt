@@ -101,6 +101,9 @@ onlyif
 idd-by
     type: prep
 
+against
+    type: prep
+
 silently
     type: adverb
 
