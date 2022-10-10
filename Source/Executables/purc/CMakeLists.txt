@@ -49,6 +49,7 @@ if (ENABLE_RDR_FOIL)
         css-selection.c
         udom.c
         page.c
+        rdrbox.c
     )
 endif ()
 

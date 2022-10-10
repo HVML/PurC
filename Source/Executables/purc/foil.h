@@ -204,6 +204,11 @@ struct purcth_renderer {
     purcth_rdr_cbs cbs;
 };
 
+typedef struct foil_rect {
+    int left, top;
+    int right, bottom;
+} foil_rect;
+
 purc_atom_t foil_init(const char *rdr_uri);
 
 #endif  /* purc_foil_h */

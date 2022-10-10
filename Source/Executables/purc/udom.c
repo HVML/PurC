@@ -25,23 +25,12 @@
 
 #include "udom.h"
 #include "page.h"
+#include "rdrbox.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
 
 #include <assert.h>
 #include <csseng/csseng.h>
-
-typedef struct foil_rect {
-    int left, top;
-    int right, bottom;
-} foil_rect;
-
-typedef enum {
-    PCTH_RDR_BOX_TYPE_INLINE,
-    PCTH_RDR_BOX_TYPE_BLOCK,
-    PCTH_RDR_BOX_TYPE_INLINE_BLOCK,
-    PCTH_RDR_BOX_TYPE_MARKER,
-} pcth_rdr_box_t;
 
 typedef enum {
     PCTH_RDR_ALIGN_LEFT,
@@ -65,73 +54,6 @@ typedef enum {
     PCTH_RDR_WHITE_SPACE_PRE_WRAP,
     PCTH_RDR_WHITE_SPACE_PRE_LINE,
 } pcth_rdr_white_space_t;
-
-struct _text_segment {
-    struct list_head ln;
-
-    unsigned i; // the index of first character
-    unsigned n; // number of characters in this segment
-
-    /* position of this segment in the containing block box */
-    int x, y;
-
-    /* rows taken by this segment (always be 1). */
-    unsigned height;
-    /* columns taken by this segment. */
-    unsigned width;
-};
-
-struct _inline_box_data {
-    /* the code points of text in Unicode (should be in visual order) */
-    uint32_t *ucs;
-
-    int letter_spacing;
-    int word_spacing;
-
-    /* text color */
-    int color;
-    /* text decoration */
-    pcth_rdr_decoration_t deco;
-
-    /* the text segments */
-    struct list_head segs;
-};
-
-struct _block_box_data {
-    // margins
-    int ml, mt, mr, mb;
-    // paddings
-    int pl, pt, pr, pb;
-};
-
-struct purcth_rdrbox {
-    struct purcth_rdrbox* parent;
-    struct purcth_rdrbox* first;
-    struct purcth_rdrbox* last;
-
-    struct purcth_rdrbox* prev;
-    struct purcth_rdrbox* next;
-
-    /* type of box */
-    pcth_rdr_box_t type;
-
-    /* the rectangle of this box */
-    foil_rect   rect;
-
-    /* number of child boxes */
-    unsigned nr_children;
-
-    /* the visual region (rectangles) of the box */
-    unsigned nr_rects;
-    struct foil_rect *rects;
-
-    /* the extra data if the box type is INLINE */
-    union {
-        void *data;     // aliases
-        struct _inline_box_data *inline_data;
-        struct _block_box_data *block_data;
-    };
-};
 
 struct purcth_udom {
     /* the sorted array of eDOM element and the corresponding rendering box. */
@@ -278,43 +200,6 @@ void foil_udom_module_cleanup(void)
         css_stylesheet_destroy(def_ua_sheet);
 }
 
-static purcth_rdrbox *rdrbox_new_block(void)
-{
-    purcth_rdrbox *box = calloc(1, sizeof(*box));
-
-    if (box) {
-        box->type = PCTH_RDR_BOX_TYPE_BLOCK;
-        box->block_data = calloc(1, sizeof(*box->block_data));
-        if (box->block_data == NULL) {
-            free(box);
-            box = NULL;
-        }
-    }
-
-    return box;
-}
-
-static void rdrbox_delete(purcth_rdrbox *box)
-{
-    free(box->data);
-    free(box);
-}
-
-static void rdrtree_delete(purcth_rdrbox *box)
-{
-    purcth_rdrbox *child = box->first;
-
-    while (child) {
-        purcth_rdrbox *next = child->next;
-        if (child->first)
-            rdrtree_delete(child);
-        else
-            rdrbox_delete(child);
-
-        child = next;
-    }
-}
-
 static void udom_cleanup(purcth_udom *udom)
 {
     if (udom->elem2rdrbox)
@@ -324,7 +209,7 @@ static void udom_cleanup(purcth_udom *udom)
     if (udom->select_ctx)
         css_select_ctx_destroy(udom->select_ctx);
     if (udom->initial_cblock)
-        rdrtree_delete(udom->initial_cblock);
+        foil_rdrbox_delete_recursively(udom->initial_cblock);
 }
 
 purcth_udom *foil_udom_new(purcth_page *page)
@@ -351,7 +236,7 @@ purcth_udom *foil_udom_new(purcth_page *page)
     }
 
     /* create the initial containing block */
-    udom->initial_cblock = rdrbox_new_block();
+    udom->initial_cblock = foil_rdrbox_new_block();
     if (udom->initial_cblock == NULL) {
         goto failed;
     }
