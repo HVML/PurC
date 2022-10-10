@@ -23,8 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "foil.h"
 #include "udom.h"
+#include "page.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
 
@@ -102,18 +102,6 @@ struct _block_box_data {
     int ml, mt, mr, mb;
     // paddings
     int pl, pt, pr, pb;
-
-    int              text_indent;
-    pcth_rdr_align_t text_align;
-
-    /* the code points of text in Unicode (should be in visual order) */
-    uint32_t *ucs;
-
-    /* text color and attributes */
-    int color;
-
-    /* the text segments */
-    struct list_head segs;
 };
 
 struct purcth_rdrbox {
@@ -126,6 +114,9 @@ struct purcth_rdrbox {
 
     /* type of box */
     pcth_rdr_box_t type;
+
+    /* the rectangle of this box */
+    foil_rect   rect;
 
     /* number of child boxes */
     unsigned nr_children;
@@ -151,6 +142,9 @@ struct purcth_udom {
 
     /* CSS selection context */
     css_select_ctx *select_ctx;
+
+    /* the initial containing block */
+    struct purcth_rdrbox *initial_cblock;
 
     /* size of whole page in pixels */
     unsigned width, height;
@@ -184,21 +178,21 @@ static const char *def_style_sheet = ""
     "caption         { display: table-caption }"
     "th              { font-weight: bolder; text-align: center }"
     "caption         { text-align: center }"
-    "body            { margin: 8px }"
-    "h1              { font-size: 2em; margin: .67em 0 }"
-    "h2              { font-size: 1.5em; margin: .75em 0 }"
-    "h3              { font-size: 1.17em; margin: .83em 0 }"
+    "body            { margin: 1em 1ex }"
+    "h1              { margin: 3em 0 1em 0 }"
+    "h2              { margin: 2em 0 1em 0 }"
+    "h3              { margin: 1em 0 1em 0 }"
     "h4, p,"
     "blockquote, ul,"
     "fieldset, form,"
     "ol, dl, dir,"
-    "menu            { margin: 1.12em 0 }"
-    "h5              { font-size: .83em; margin: 1.5em 0 }"
-    "h6              { font-size: .75em; margin: 1.67em 0 }"
+    "menu            { margin: 1em 0 }"
+    "h5              { margin: 1em 0 }"
+    "h6              { margin: 1em 0 }"
     "h1, h2, h3, h4,"
     "h5, h6, b,"
-    "strong          { font-weight: bolder }"
-    "blockquote      { margin-left: 40px; margin-right: 40px }"
+    "strong          { font-weight: bold }"
+    "blockquote      { margin-left: 4ex; margin-right: 4ex }"
     "i, cite, em,"
     "var, address    { font-style: italic }"
     "pre, tt, code,"
@@ -206,8 +200,8 @@ static const char *def_style_sheet = ""
     "pre             { white-space: pre }"
     "button, textarea,"
     "input, select   { display: inline-block }"
-    "big             { font-size: 1.17em }"
-    "small, sub, sup { font-size: .83em }"
+    "big             { font-size: 1em }"
+    "small, sub, sup { font-size: 1em }"
     "sub             { vertical-align: sub }"
     "sup             { vertical-align: super }"
     "table           { border-spacing: 2px; }"
@@ -217,7 +211,7 @@ static const char *def_style_sheet = ""
     "s, strike, del  { text-decoration: line-through }"
     "hr              { border: 1px inset }"
     "ol, ul, dir,"
-    "menu, dd        { margin-left: 40px }"
+    "menu, dd        { margin-left: 4em }"
     "ol              { list-style-type: decimal }"
     "ol ul, ul ol,"
     "ul ul, ol ol    { margin-top: 0; margin-bottom: 0 }"
@@ -240,9 +234,11 @@ int foil_udom_module_init(void)
     css_stylesheet_params params;
     css_error err;
 
+    memset(&params, 0, sizeof(params));
     params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
     params.level = CSS_LEVEL_DEFAULT;
     params.charset = FOIL_DEF_CHARSET;
+#if 0
     params.url = NULL;
     params.title = NULL;
     params.allow_quirks = false;
@@ -255,6 +251,7 @@ int foil_udom_module_init(void)
     params.color_pw = NULL;
     params.font = NULL;
     params.font_pw = NULL;
+#endif
 
     err = css_stylesheet_create(&params, &def_ua_sheet);
     if (err != CSS_OK) {
@@ -271,6 +268,7 @@ int foil_udom_module_init(void)
     }
 
     css_stylesheet_data_done(def_ua_sheet);
+
     return 0;
 }
 
@@ -278,6 +276,43 @@ void foil_udom_module_cleanup(void)
 {
     if (def_ua_sheet)
         css_stylesheet_destroy(def_ua_sheet);
+}
+
+static purcth_rdrbox *rdrbox_new_block(void)
+{
+    purcth_rdrbox *box = calloc(1, sizeof(*box));
+
+    if (box) {
+        box->type = PCTH_RDR_BOX_TYPE_BLOCK;
+        box->block_data = calloc(1, sizeof(*box->block_data));
+        if (box->block_data == NULL) {
+            free(box);
+            box = NULL;
+        }
+    }
+
+    return box;
+}
+
+static void rdrbox_delete(purcth_rdrbox *box)
+{
+    free(box->data);
+    free(box);
+}
+
+static void rdrtree_delete(purcth_rdrbox *box)
+{
+    purcth_rdrbox *child = box->first;
+
+    while (child) {
+        purcth_rdrbox *next = child->next;
+        if (child->first)
+            rdrtree_delete(child);
+        else
+            rdrbox_delete(child);
+
+        child = next;
+    }
 }
 
 static void udom_cleanup(purcth_udom *udom)
@@ -288,6 +323,8 @@ static void udom_cleanup(purcth_udom *udom)
         css_stylesheet_destroy(udom->author_sheet);
     if (udom->select_ctx)
         css_select_ctx_destroy(udom->select_ctx);
+    if (udom->initial_cblock)
+        rdrtree_delete(udom->initial_cblock);
 }
 
 purcth_udom *foil_udom_new(purcth_page *page)
@@ -313,8 +350,16 @@ purcth_udom *foil_udom_new(purcth_page *page)
         goto failed;
     }
 
-    /* TODO */
-    (void)page;
+    /* create the initial containing block */
+    udom->initial_cblock = rdrbox_new_block();
+    if (udom->initial_cblock == NULL) {
+        goto failed;
+    }
+
+    udom->initial_cblock->rect.left = 0;
+    udom->initial_cblock->rect.top = 0;
+    udom->initial_cblock->rect.right = foil_page_cols(page) * FOIL_PX_PER_EX;
+    udom->initial_cblock->rect.bottom = foil_page_rows(page) * FOIL_PX_PER_EM;
 
     return udom;
 
@@ -355,6 +400,8 @@ append_style_walker(pcdom_node_t *node, void *ctxt)
     case PCDOM_NODE_TYPE_CDATA_SECTION:
         return PCHTML_ACTION_NEXT;
 
+    /* TODO:
+       handle <base> and <link> element in <head> for imported style sheets */
     case PCDOM_NODE_TYPE_ELEMENT: {
         const char *name;
         size_t len;
@@ -401,10 +448,13 @@ append_style_walker(pcdom_node_t *node, void *ctxt)
 
 struct rendering_ctxt {
     purcth_udom *udom;
+
+    /* the current containing block */
+    struct purcth_rdrbox *current_cblock;
 };
 
 static pchtml_action_t
-rendering_walker(pcdom_node_t *node, void *ctxt)
+udom_maker(pcdom_node_t *node, void *ctxt)
 {
     (void)ctxt;
 
@@ -463,21 +513,10 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         css_error err;
 
         css_stylesheet_params params;
+        memset(&params, 0, sizeof(params));
         params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
         params.level = CSS_LEVEL_DEFAULT;
         params.charset = FOIL_DEF_CHARSET;
-        params.url = NULL;
-        params.title = NULL;
-        params.allow_quirks = false;
-        params.inline_style = false;
-        params.resolve = NULL;
-        params.resolve_pw = NULL;
-        params.import = NULL;
-        params.import_pw = NULL;
-        params.color = NULL;
-        params.color_pw = NULL;
-        params.font = NULL;
-        params.font_pw = NULL;
 
         err = css_stylesheet_create(&params, &udom->author_sheet);
         if (err != CSS_OK) {
@@ -508,8 +547,8 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
     }
 
     pcdom_element_t *root = edom_doc->element;
-    struct rendering_ctxt ctxt = { udom, };
-    pcdom_node_simple_walk(pcdom_interface_node(root), rendering_walker, &ctxt);
+    struct rendering_ctxt ctxt = { udom, udom->initial_cblock };
+    pcdom_node_simple_walk(pcdom_interface_node(root), udom_maker, &ctxt);
     return udom;
 
 failed:

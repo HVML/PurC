@@ -26,6 +26,8 @@
 #ifndef purc_foil_udom_h
 #define purc_foil_udom_h
 
+#include "foil.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

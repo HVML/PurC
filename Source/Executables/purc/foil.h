@@ -39,6 +39,8 @@
 #define FOIL_RDR_NAME           "Foil"
 
 #define FOIL_DEF_CHARSET        "utf-8"
+#define FOIL_PX_PER_EM          8
+#define FOIL_PX_PER_EX          4
 
 #define FOIL_RDR_FEATURES \
     PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \

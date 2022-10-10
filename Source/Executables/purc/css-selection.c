@@ -1392,7 +1392,7 @@ compute_font_size(void *pw, const css_hint *parent, css_hint *size)
     (void)parent;
 
     /* for Foil, the font size always be 10px */
-    size->data.length.value = INTTOFIX(10);
+    size->data.length.value = FLTTOFIX(FOIL_PX_PER_EM);
     size->data.length.unit = CSS_UNIT_PX;
     size->status = CSS_FONT_SIZE_DIMENSION;
 

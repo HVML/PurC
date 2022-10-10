@@ -48,6 +48,7 @@ if (ENABLE_RDR_FOIL)
         workspace.c
         css-selection.c
         udom.c
+        page.c
     )
 endif ()
 
