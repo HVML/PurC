@@ -794,10 +794,26 @@ pcintr_is_variable_token(const char *str);
 pcrdr_msg_data_type
 pcintr_rdr_retrieve_data_type(const char *type_name);
 
+
+/* return true to ignore eval */
+typedef bool (before_eval_attr_fn)(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *attr_name,
+        struct pcvcm_node *vcm);
+
 int
+pcintr_stack_frame_eval_attr_and_content_full(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, before_eval_attr_fn before_eval_attr,
+        bool ignore_content);
+
+static inline int
 pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, bool ignore_content
-        );
+        )
+{
+    return pcintr_stack_frame_eval_attr_and_content_full(stack, frame, NULL,
+            ignore_content);
+}
+
 
 PCA_EXTERN_C_END
 

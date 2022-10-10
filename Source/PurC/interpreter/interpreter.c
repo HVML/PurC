@@ -3383,10 +3383,11 @@ pcintr_is_variable_token(const char *str)
 }
 
 int
-pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame, bool ignore_content
-        )
+pcintr_stack_frame_eval_attr_and_content_full(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, before_eval_attr_fn before_eval_attr,
+        bool ignore_content)
 {
+    UNUSED_PARAM(before_eval_attr);
     int ret = 0;
     pcvdom_element_t elem = frame->pos;
     if (!elem) {
@@ -3413,6 +3414,11 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
                 stack->vcm_eval_pos = frame->eval_attr_pos;
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
+                if (before_eval_attr
+                        && before_eval_attr(stack, frame, attr->key, attr->val)) {
+                    continue;
+                }
+
                 if (!attr->val) {
                     val = purc_variant_make_undefined();
                 }
