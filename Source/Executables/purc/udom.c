@@ -209,7 +209,7 @@ static void udom_cleanup(purcth_udom *udom)
     if (udom->select_ctx)
         css_select_ctx_destroy(udom->select_ctx);
     if (udom->initial_cblock)
-        foil_rdrbox_delete_recursively(udom->initial_cblock);
+        foil_rdrbox_delete_deep(udom->initial_cblock);
 }
 
 purcth_udom *foil_udom_new(purcth_page *page)

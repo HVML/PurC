@@ -82,7 +82,7 @@ void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *node);
 void foil_rdrbox_remove_from_tree(purcth_rdrbox *node);
 
 void foil_rdrbox_delete(purcth_rdrbox *box);
-void foil_rdrbox_delete_recursively(purcth_rdrbox *box);
+void foil_rdrbox_delete_deep(purcth_rdrbox *root);
 
 #ifdef __cplusplus
 }

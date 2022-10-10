@@ -88,116 +88,130 @@ purcth_rdrbox *foil_rdrbox_new_block(void)
     return box;
 }
 
-void foil_rdrbox_append_child(purcth_rdrbox *to, purcth_rdrbox *node)
+void foil_rdrbox_append_child(purcth_rdrbox *to, purcth_rdrbox *box)
 {
     if (to->last != NULL) {
-        to->last->next = node;
+        to->last->next = box;
     }
     else {
-        to->first = node;
+        to->first = box;
     }
 
-    node->parent = to;
-    node->next = NULL;
-    node->prev = to->last;
+    box->parent = to;
+    box->next = NULL;
+    box->prev = to->last;
 
-    to->last = node;
+    to->last = box;
 }
 
-void foil_rdrbox_prepend_child(purcth_rdrbox *to, purcth_rdrbox *node)
+void foil_rdrbox_prepend_child(purcth_rdrbox *to, purcth_rdrbox *box)
 {
     if (to->first != NULL) {
-        to->first->prev = node;
+        to->first->prev = box;
     }
     else {
-        to->last = node;
+        to->last = box;
     }
 
-    node->parent = to;
-    node->next = to->first;
-    node->prev = NULL;
+    box->parent = to;
+    box->next = to->first;
+    box->prev = NULL;
 
-    to->first = node;
+    to->first = box;
 }
 
-void foil_rdrbox_insert_before(purcth_rdrbox *to, purcth_rdrbox *node)
+void foil_rdrbox_insert_before(purcth_rdrbox *to, purcth_rdrbox *box)
 {
     if (to->prev != NULL) {
-        to->prev->next = node;
+        to->prev->next = box;
     }
     else {
         if (to->parent != NULL) {
-            to->parent->first = node;
+            to->parent->first = box;
         }
     }
 
-    node->parent = to->parent;
-    node->next = to;
-    node->prev = to->prev;
+    box->parent = to->parent;
+    box->next = to;
+    box->prev = to->prev;
 
-    to->prev = node;
+    to->prev = box;
 }
 
-void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *node)
+void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *box)
 {
     if (to->next != NULL) {
-        to->next->prev = node;
+        to->next->prev = box;
     }
     else {
         if (to->parent != NULL) {
-            to->parent->last = node;
+            to->parent->last = box;
         }
     }
 
-    node->parent = to->parent;
-    node->next = to->next;
-    node->prev = to;
-    to->next = node;
+    box->parent = to->parent;
+    box->next = to->next;
+    box->prev = to;
+    to->next = box;
 }
 
-void foil_rdrbox_remove_from_tree(purcth_rdrbox *node)
+void foil_rdrbox_remove_from_tree(purcth_rdrbox *box)
 {
-    if (node->parent != NULL) {
-        if (node->parent->first == node) {
-            node->parent->first = node->next;
+    if (box->parent != NULL) {
+        if (box->parent->first == box) {
+            box->parent->first = box->next;
         }
 
-        if (node->parent->last == node) {
-            node->parent->last = node->prev;
+        if (box->parent->last == box) {
+            box->parent->last = box->prev;
         }
     }
 
-    if (node->next != NULL) {
-        node->next->prev = node->prev;
+    if (box->next != NULL) {
+        box->next->prev = box->prev;
     }
 
-    if (node->prev != NULL) {
-        node->prev->next = node->next;
+    if (box->prev != NULL) {
+        box->prev->next = box->next;
     }
 
-    node->parent = NULL;
-    node->next = NULL;
-    node->prev = NULL;
+    box->parent = NULL;
+    box->next = NULL;
+    box->prev = NULL;
 }
 
 void foil_rdrbox_delete(purcth_rdrbox *box)
 {
+    foil_rdrbox_remove_from_tree(box);
     free(box->data);
     free(box);
 }
 
-void foil_rdrbox_delete_recursively(purcth_rdrbox *box)
+void foil_rdrbox_delete_deep(purcth_rdrbox *root)
 {
-    purcth_rdrbox *child = box->first;
+    purcth_rdrbox *tmp;
+    purcth_rdrbox *box = root;
 
-    while (child) {
-        purcth_rdrbox *next = child->next;
-        if (child->first)
-            foil_rdrbox_delete_recursively(child);
-        else
-            foil_rdrbox_delete(child);
+    while (box) {
+        if (box->first) {
+            box = box->first;
+        }
+        else {
+            while (box != root && box->next == NULL) {
+                tmp = box->parent;
+                foil_rdrbox_delete(box);
+                box = tmp;
+            }
 
-        child = next;
+            if (box == root) {
+                foil_rdrbox_delete(box);
+                break;
+            }
+
+            tmp = box->next;
+            foil_rdrbox_delete(box);
+            box = tmp;
+        }
     }
 }
 
