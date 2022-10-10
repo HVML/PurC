@@ -40,12 +40,14 @@
 
 #include "eval.h"
 
+#define PCVCM_EV_WITHOUT_ARGS       "__pcvcm_ev_without_args"
+
 // expression variable
 struct pcvcm_ev {
     struct pcvcm_node *vcm;
     char *method_name;
     char *const_method_name;
-    purc_variant_t const_value;
+    purc_variant_t values;                  // object: stringify(args) : value
     purc_variant_t last_value;
     bool release_vcm;
     bool constantly;
@@ -76,6 +78,9 @@ eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     purc_variant_t result = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 
+    if (args) {
+        purc_variant_unref(args);
+    }
     return result;
 }
 
@@ -83,14 +88,53 @@ static purc_variant_t
 eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
-    if (vcm_ev->const_value) {
-        return vcm_ev->const_value;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return PURC_VARIANT_INVALID;
     }
 
-    vcm_ev->const_value = eval_getter(native_entity, nr_args, argv,
+    purc_variant_t key = PURC_VARIANT_INVALID;
+    purc_variant_t args = PURC_VARIANT_INVALID;
+    if (argv) {
+        args = purc_variant_make_tuple(nr_args, argv);
+        if (!args) {
+            goto out;
+        }
+        char *buf = NULL;
+        purc_variant_stringify_alloc(&buf, args);
+        if (!buf) {
+            goto out;
+        }
+        key = purc_variant_make_string_reuse_buff(buf, strlen(buf), false);
+    }
+    else {
+        key = purc_variant_make_string_static(PCVCM_EV_WITHOUT_ARGS, false);
+    }
+
+    ret = purc_variant_object_get(vcm_ev->values, key);
+    if (ret) {
+        goto out;
+    }
+
+    /* clear not found */
+    purc_clr_error();
+
+    ret = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
-    return vcm_ev->const_value;
+    if (ret) {
+        purc_variant_object_set(vcm_ev->values, key, ret);
+    }
+
+out:
+    if (key) {
+        free(key);
+    }
+    if (args) {
+        purc_variant_unref(args);
+    }
+    return ret;
 }
 
 static purc_variant_t
@@ -235,9 +279,7 @@ on_release(void *native_entity)
     if (vcm_variant->release_vcm) {
         free(vcm_variant->vcm);
     }
-    if (vcm_variant->const_value) {
-        purc_variant_unref(vcm_variant->const_value);
-    }
+    purc_variant_unref(vcm_variant->values);
     if (vcm_variant->last_value) {
         purc_variant_unref(vcm_variant->last_value);
     }
@@ -283,10 +325,16 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
         goto out_free_ev;
     }
 
+    vcm_ev->values = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!vcm_ev->values) {
+        goto out_free_method_name;
+    }
+
     size_t nr = strlen(vcm_ev->method_name) + strlen(PCVCM_EV_CONST_SUFFIX);
     vcm_ev->const_method_name = malloc(nr + 1);
     if (!vcm_ev->method_name) {
-        goto out_free_method_name;
+        goto out_unref_values;
     }
 
     sprintf(vcm_ev->const_method_name, "%s%s", vcm_ev->method_name,
@@ -305,6 +353,9 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
 
 out_free_const_method_name:
     free(vcm_ev->const_method_name);
+
+out_unref_values:
+    purc_variant_unref(vcm_ev->values);
 
 out_free_method_name:
     free(vcm_ev->method_name);
