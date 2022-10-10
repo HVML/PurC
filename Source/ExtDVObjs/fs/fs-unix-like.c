@@ -3314,15 +3314,16 @@ on_dir_rewind (void *native_entity,
 }
 
 static purc_nvariant_method
-property_getter(const char *name)
+property_getter(void* native_entity, const char* key_name)
 {
-    switch (name[0]) {
+    UNUSED_PARAM(native_entity);
 
+    switch (key_name[0]) {
     case 'r':
-        if (strcmp(name, "read") == 0) {
+        if (strcmp(key_name, "read") == 0) {
             return on_dir_read;
         }
-        if (strcmp(name, "rewind") == 0) {
+        if (strcmp(key_name, "rewind") == 0) {
             return on_dir_rewind;
         }
         break;

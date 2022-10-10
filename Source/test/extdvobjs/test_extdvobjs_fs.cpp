@@ -2896,12 +2896,13 @@ TEST(dvobjs, dvobjs_fs_open_dir)
 
     struct purc_native_ops *ops = purc_variant_native_get_ops(dir_object);
     ASSERT_NE(ops, nullptr);
-    purc_nvariant_method func_dir_read = ops->property_getter("read");
-    ASSERT_NE(func_dir_read, nullptr);
-    purc_nvariant_method func_dir_rewind = ops->property_getter("rewind");
-    ASSERT_NE(func_dir_rewind, nullptr);
     void *native = purc_variant_native_get_entity(dir_object);
     ASSERT_NE(native, nullptr);
+
+    purc_nvariant_method func_dir_read = ops->property_getter(native, "read");
+    ASSERT_NE(func_dir_read, nullptr);
+    purc_nvariant_method func_dir_rewind = ops->property_getter(native, "rewind");
+    ASSERT_NE(func_dir_rewind, nullptr);
 
     // read dir
     printf ("TEST dir_read:\n");
