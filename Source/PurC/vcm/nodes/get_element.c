@@ -143,7 +143,7 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
         ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
                 GETTER_METHOD, call_flags);
     }
-    else if (purc_variant_is_type(caller_var, PURC_VARIANT_TYPE_TUPLE)) {
+    else if (purc_variant_is_tuple(caller_var)) {
         if (!has_index) {
             goto out;
         }

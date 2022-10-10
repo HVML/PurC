@@ -2145,6 +2145,11 @@ static inline bool purc_variant_is_set(purc_variant_t v)
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
 
+static inline bool purc_variant_is_tuple(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
+}
+
 /** Check whether the value is a boolean and having value of true. */
 PCA_EXPORT bool
 purc_variant_is_true(purc_variant_t v);
