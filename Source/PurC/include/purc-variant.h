@@ -1480,8 +1480,14 @@ purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT size_t
-purc_variant_tuple_get_size(purc_variant_t tuple);
+static inline ssize_t
+purc_variant_tuple_get_size(purc_variant_t tuple)
+{
+    size_t sz;
+    if (!purc_variant_tuple_size(tuple, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * Gets a member from a tuple by index.

@@ -148,8 +148,7 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
             goto out;
         }
         if (index < 0) {
-            size_t len = 0;
-            purc_variant_tuple_size(caller_var, &len);
+            size_t len = purc_variant_tuple_get_size(caller_var);
             index += len;
         }
         if (index < 0) {
