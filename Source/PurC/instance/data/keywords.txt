@@ -39,7 +39,7 @@ hvml rel
 hvml temporarily temp
 hvml casesensitively case
 hvml caseinsensitively caseless
-hvml _parent _grandparent _root
+hvml _parent _grandparent _root _runner
 hvml _last _nexttolast _topmost
 hvml nosetotail nose-to-tail
 hvml ascendingly asc
