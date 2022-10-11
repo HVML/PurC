@@ -280,6 +280,12 @@ on_release(void *native_entity)
     if (vcm_variant->release_vcm) {
         free(vcm_variant->vcm);
     }
+    if (vcm_variant->method_name) {
+        free(vcm_variant->method_name);
+    }
+    if (vcm_variant->const_method_name) {
+        free(vcm_variant->const_method_name);
+    }
     purc_variant_unref(vcm_variant->values);
     if (vcm_variant->last_value) {
         purc_variant_unref(vcm_variant->last_value);

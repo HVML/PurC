@@ -136,6 +136,7 @@ pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
         }
         pcutils_array_destroy(frame->params_result, true);
     }
+    pcvarmgr_destroy(frame->variables);
     free(frame);
 }
 
