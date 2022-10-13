@@ -271,7 +271,7 @@ purcth_udom *foil_udom_new(purcth_page *page)
     udom->media.overflow_inline = CSS_MEDIA_OVERFLOW_INLINE_NONE;
 
     udom->media.color = INTTOFIX(8);
-    udom->media.color_index = INTTOFIX(1);
+    udom->media.color_index = INTTOFIX(256);
     udom->media.monochrome = INTTOFIX(0);
     udom->media.inverted_colors = INTTOFIX(0);
 
