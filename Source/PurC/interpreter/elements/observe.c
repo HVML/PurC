@@ -811,7 +811,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
 
         int bind_ret = pcintr_bind_named_variable(stack, frame, name,
-                ctxt->at, false, v);
+                ctxt->at, false, false, v);
 
         if (bind_ret != 0) {
             purc_variant_unref(v); // on_release

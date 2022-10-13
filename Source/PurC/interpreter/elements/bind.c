@@ -218,7 +218,7 @@ post_process_val(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     return pcintr_bind_named_variable(&co->stack, frame, s_name, ctxt->at,
-            ctxt->temporarily, val);
+            ctxt->temporarily, false, val);
 }
 
 static int
