@@ -168,6 +168,15 @@ static size_t dump_css_unit(css_fixed val, css_unit unit, char *ptr, size_t len)
 	case CSS_UNIT_KHZ:
 		ret += snprintf(ptr + ret, len - ret, "kHz");
 		break;
+	case CSS_UNIT_DPI:
+		ret += snprintf(ptr + ret, len - ret, "dpi");
+		break;
+	case CSS_UNIT_DPCM:
+		ret += snprintf(ptr + ret, len - ret, "dpcm");
+		break;
+	case CSS_UNIT_DPPX:
+		ret += snprintf(ptr + ret, len - ret, "dppx");
+		break;
 	}
 
 	return ret;

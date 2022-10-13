@@ -239,8 +239,10 @@ purcth_udom *foil_udom_new(purcth_page *page)
     }
 
     /* create the initial containing block */
-    int width = foil_page_cols(page) * FOIL_PX_PER_EX;
-    int height = foil_page_rows(page) * FOIL_PX_PER_EM;
+    int cols = foil_page_cols(page);
+    int rows = foil_page_rows(page);
+    int width = cols * FOIL_PX_PER_EX;
+    int height = rows * FOIL_PX_PER_EM;
 
     udom->initial_cblock = foil_rdrbox_new_block();
     if (udom->initial_cblock == NULL) {
@@ -256,12 +258,14 @@ purcth_udom *foil_udom_new(purcth_page *page)
     udom->media.width  = INTTOFIX(width);
     udom->media.height = INTTOFIX(height);
     // left fields of css_media are not used
-    udom->media.aspect_ratio = INTTOFIX(1);
-    udom->media.orientation = CSS_MEDIA_ORIENTATION_LANDSCAPE;
+    udom->media.aspect_ratio.width = INTTOFIX(cols);
+    udom->media.aspect_ratio.height = INTTOFIX(rows);
+    udom->media.orientation = (cols > rows) ?
+        CSS_MEDIA_ORIENTATION_LANDSCAPE : CSS_MEDIA_ORIENTATION_PORTRAIT;
     udom->media.resolution.value = INTTOFIX(96);
-    udom->media.resolution.unit = CSS_UNIT_PX;
+    udom->media.resolution.unit = CSS_UNIT_DPI;
     udom->media.scan = CSS_MEDIA_SCAN_PROGRESSIVE;
-    udom->media.grid = INTTOFIX(0);
+    udom->media.grid = INTTOFIX(1);
     udom->media.update = CSS_MEDIA_UPDATE_FREQUENCY_NORMAL;
     udom->media.overflow_block = CSS_MEDIA_OVERFLOW_BLOCK_NONE;
     udom->media.overflow_inline = CSS_MEDIA_OVERFLOW_INLINE_NONE;

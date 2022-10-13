@@ -111,8 +111,17 @@ typedef enum css_unit {
 	CSS_UNIT_S                  = 0x1a,
 
 	CSS_UNIT_HZ                 = 0x1b,
-	CSS_UNIT_KHZ                = 0x1c
+	CSS_UNIT_KHZ                = 0x1c,
+
+	CSS_UNIT_DPI                = 0x1d,
+	CSS_UNIT_DPCM               = 0x1e,
+	CSS_UNIT_DPPX               = 0x1f,
 } css_unit;
+
+typedef struct css_media_ratio {
+	css_fixed width;
+	css_fixed height;
+} css_media_ratio;
 
 /**
  * Media orienations
@@ -208,7 +217,7 @@ typedef struct css_media {
 	/* Viewport / page media features */
 	css_fixed             width;  /* In css pixels */
 	css_fixed             height; /* In css pixels */
-	css_fixed             aspect_ratio;
+	css_media_ratio       aspect_ratio;
 	css_media_orientation orientation;
 
 	/* Display quality media features */
