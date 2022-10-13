@@ -79,6 +79,7 @@ pcvarmgr_build_event_observed(const char *name, pcvarmgr_t mgr)
     }
 
     if (!purc_variant_object_set_by_static_ckey(v, KEY_FLAG, flag)) {
+        purc_variant_unref(flag);
         goto failed;
     }
     purc_variant_unref(flag);

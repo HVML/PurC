@@ -144,6 +144,7 @@ reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
         pcrdr_msg *orig = (pcrdr_msg*) hdr;
         if (is_event_match(orig, msg)) {
             if (msg->reduceOpt == PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE) {
+                pcrdr_release_message(msg);
                 return 0;
             }
             // OVERLAY : data
@@ -155,6 +156,7 @@ reduce_event(struct pcinst_msg_queue *queue, pcrdr_msg *msg, bool tail)
                 orig->data = msg->data;
                 purc_variant_ref(orig->data);
             }
+            pcrdr_release_message(msg);
             return 0;
         }
     }

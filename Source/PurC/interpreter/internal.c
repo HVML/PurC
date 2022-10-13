@@ -349,6 +349,11 @@ bind_by_name_space(pcintr_stack_t stack,
         return bind_by_level(stack, frame, name, temporarily, val, (uint64_t)-1);
     }
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _RUNNER)) == atom) {
+        bool ret = purc_bind_runner_variable(name, val);
+        return ret ? 0 : -1;
+    }
+
 not_found:
     if (frame->silently) {
         return bind_at_default(stack, frame, name, temporarily, val);

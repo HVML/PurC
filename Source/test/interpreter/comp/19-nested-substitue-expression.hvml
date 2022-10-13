@@ -1,0 +1,14 @@
+#!/usr/bin/purc
+
+# RESULT: 9UL
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <bind on "$EJSON.stringify($_ARGS[0])" as "e" against "toString" />
+    <bind on "$STREAM.stdout.writelines($e.toString($_ARGS[0]))" as "console" against "puts" />
+    <bind on $MATH.div(1.0, $MATH.sqrt($_ARGS[0])) as 'myConst' against 'reciprocal_of_sqrt' constantly />
+
+    $console.puts($myConst.reciprocal_of_sqrt(2.0))
+
+</hvml>

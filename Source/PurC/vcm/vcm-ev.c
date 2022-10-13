@@ -40,12 +40,14 @@
 
 #include "eval.h"
 
+#define PCVCM_EV_WITHOUT_ARGS       "__pcvcm_ev_without_args"
+
 // expression variable
 struct pcvcm_ev {
     struct pcvcm_node *vcm;
     char *method_name;
     char *const_method_name;
-    purc_variant_t const_value;
+    purc_variant_t values;                  // object: stringify(args) : value
     purc_variant_t last_value;
     bool release_vcm;
     bool constantly;
@@ -76,21 +78,140 @@ eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     purc_variant_t result = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 
+    if (args) {
+        purc_variant_unref(args);
+    }
     return result;
+}
+
+static ssize_t
+cb_calc_md5(void *ctxt, const void *buf, size_t count)
+{
+    pcutils_md5_ctxt *md5_ctxt = ctxt;
+    pcutils_md5_hash(md5_ctxt, buf, count);
+    return count;
+}
+
+static purc_variant_t
+build_const_key(struct pcintr_stack *stack, purc_variant_t args)
+{
+    UNUSED_PARAM(stack);
+    pcutils_md5_ctxt md5_ctxt;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_variant_t key = PURC_VARIANT_INVALID;
+    purc_rwstream_t stream = purc_rwstream_new_for_dump(&md5_ctxt, cb_calc_md5);
+    if (stream == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    key = args;
+    ssize_t nr = purc_variant_tuple_get_size(args);
+    if (nr == 1) {
+        switch (args->type) {
+            case PURC_VARIANT_TYPE_UNDEFINED:
+            case PURC_VARIANT_TYPE_NULL:
+            case PURC_VARIANT_TYPE_BOOLEAN:
+            case PURC_VARIANT_TYPE_EXCEPTION:
+            case PURC_VARIANT_TYPE_NUMBER:
+            case PURC_VARIANT_TYPE_LONGINT:
+            case PURC_VARIANT_TYPE_ULONGINT:
+            case PURC_VARIANT_TYPE_LONGDOUBLE:
+            case PURC_VARIANT_TYPE_ATOMSTRING:
+                key = purc_variant_tuple_get(args, 0);
+                break;
+
+            case PURC_VARIANT_TYPE_STRING:
+            case PURC_VARIANT_TYPE_BSEQUENCE:
+            case PURC_VARIANT_TYPE_DYNAMIC:
+            case PURC_VARIANT_TYPE_NATIVE:
+            case PURC_VARIANT_TYPE_OBJECT:
+            case PURC_VARIANT_TYPE_ARRAY:
+            case PURC_VARIANT_TYPE_SET:
+            case PURC_VARIANT_TYPE_TUPLE:
+            default:
+                key = args;
+                break;
+        }
+    }
+
+    pcutils_md5_begin(&md5_ctxt);
+    if (purc_variant_stringify(stream, key,
+            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+        goto out;
+    }
+
+    purc_rwstream_destroy(stream);
+
+    unsigned char md5[MD5_DIGEST_SIZE];
+    pcutils_md5_end(&md5_ctxt, md5);
+
+
+    /* add scope */
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    if (frame && frame->pos) {
+        uintptr_t p = (uintptr_t)frame->pos;
+        pcutils_md5_hash(&md5_ctxt, (char*)p, sizeof(uintptr_t));
+    }
+
+    char hex[sizeof(md5) * 2 + 1] = {0};
+    pcutils_bin2hex(md5, sizeof(md5), hex, true);
+    ret  = purc_variant_make_string(hex, false);
+out:
+    return ret;
 }
 
 static purc_variant_t
 eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
-    if (vcm_ev->const_value) {
-        return vcm_ev->const_value;
+    struct pcintr_stack *stack = pcintr_get_stack();
+    if (!stack) {
+        return PURC_VARIANT_INVALID;
     }
 
-    vcm_ev->const_value = eval_getter(native_entity, nr_args, argv,
+    purc_variant_t key = PURC_VARIANT_INVALID;
+    purc_variant_t args = PURC_VARIANT_INVALID;
+    if (argv) {
+        args = purc_variant_make_tuple(nr_args, argv);
+        if (!args) {
+            goto out;
+        }
+        key = build_const_key(stack, args);
+    }
+    else {
+        key = purc_variant_make_string_static(PCVCM_EV_WITHOUT_ARGS, false);
+    }
+
+    if (!key) {
+        goto out;
+    }
+
+    ret = purc_variant_object_get(vcm_ev->values, key);
+    if (ret) {
+        purc_variant_ref(ret);
+        goto out;
+    }
+
+    /* clear not found */
+    purc_clr_error();
+
+    ret = pcvcm_eval_sub_expr(vcm_ev->vcm, stack, args,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
-    return vcm_ev->const_value;
+    if (ret) {
+        purc_variant_object_set(vcm_ev->values, key, ret);
+    }
+
+out:
+    if (key) {
+        purc_variant_unref(key);
+    }
+    if (args) {
+        purc_variant_unref(args);
+    }
+    return ret;
 }
 
 static purc_variant_t
@@ -235,9 +356,13 @@ on_release(void *native_entity)
     if (vcm_variant->release_vcm) {
         free(vcm_variant->vcm);
     }
-    if (vcm_variant->const_value) {
-        purc_variant_unref(vcm_variant->const_value);
+    if (vcm_variant->method_name) {
+        free(vcm_variant->method_name);
     }
+    if (vcm_variant->const_method_name) {
+        free(vcm_variant->const_method_name);
+    }
+    purc_variant_unref(vcm_variant->values);
     if (vcm_variant->last_value) {
         purc_variant_unref(vcm_variant->last_value);
     }
@@ -283,10 +408,16 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
         goto out_free_ev;
     }
 
+    vcm_ev->values = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!vcm_ev->values) {
+        goto out_free_method_name;
+    }
+
     size_t nr = strlen(vcm_ev->method_name) + strlen(PCVCM_EV_CONST_SUFFIX);
     vcm_ev->const_method_name = malloc(nr + 1);
     if (!vcm_ev->method_name) {
-        goto out_free_method_name;
+        goto out_unref_values;
     }
 
     sprintf(vcm_ev->const_method_name, "%s%s", vcm_ev->method_name,
@@ -305,6 +436,9 @@ pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
 
 out_free_const_method_name:
     free(vcm_ev->const_method_name);
+
+out_unref_values:
+    purc_variant_unref(vcm_ev->values);
 
 out_free_method_name:
     free(vcm_ev->method_name);

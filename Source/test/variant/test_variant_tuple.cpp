@@ -138,6 +138,7 @@ TEST(variant, tuple_member)
     ASSERT_EQ(v, st);
 
     unref(s);
+    unref(st);
     unref(array);
     unref(object);
     unref(tuple);
@@ -179,3 +180,4 @@ TEST(variant, tuple_as_member)
     unref(object);
     unref(tuple);
 }
+
