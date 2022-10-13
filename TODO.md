@@ -50,7 +50,7 @@
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
 1. [0.9.2] In the implementation of predefined variables, use the interfaces for linear container instead of array.
-1. [0.9.9] Complete the implementation of the following predefined variables:
+1. [0.9.5] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
@@ -80,16 +80,17 @@
 1. [0.9.0] Support for the equivalences and/or abbreviations of some adverb attributes.
 1. [0.9.0] Support for the new prepostion attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same DOM.
+1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
 1. [0.9.2] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
-1. [Pending] The generation and handling mechanism of uncatchable errors:
+1. [0.9.5] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [1.0.0] Review the implementation of all elements.
+1. [0.9.5] Review the implementation of all elements.
+1. [0.9.5] Review all uses of exception names.
 1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
@@ -102,11 +103,6 @@
 1. [0.8.1; Resolved] Implement the `request` tag (only inter-coroutine request).
 1. [0.8.1; Resolved] Provide support for `type` attribute of the element `archetype`. It can be used to specify the type of the template contents, for example, `plain`, `html`, `xgml`, `svg`, or `mathml`.
 
-### 1.6) Repository Management
-
-1. [0.9.0] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
-1. [0.9.0] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
-
 ### 1.6) `purc`
 
 1. [0.9.0] A simple built-in HTML renderer for text terminal via `THREAD` protocol.
@@ -118,6 +114,8 @@
 
 ### 1.8) Others
 
+1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
+1. [0.9.0] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
 1. [1.0.0] Normalize the typedef names.
 1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
