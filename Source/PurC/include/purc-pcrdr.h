@@ -534,7 +534,7 @@ PCA_EXPORT int
 pcrdr_conn_fd(pcrdr_conn* conn);
 
 /**
- * Get the connnection socket type.
+ * Get the connnection type.
  *
  * @param conn: the pointer to the renderer connection.
  *

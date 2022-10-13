@@ -31,6 +31,8 @@
 #include "private/document.h"
 #include "private/debug.h"
 
+#include "ns_const.h"
+
 static purc_document_t create(const char *content, size_t length)
 {
     pchtml_html_document_t *html_doc;
@@ -466,6 +468,58 @@ static pcdoc_element_t special_elem(purc_document_t doc,
     return NULL;
 }
 
+static int
+get_tag_name(purc_document_t doc, pcdoc_element_t elem,
+        const char **local_name, size_t *local_len,
+        const char **prefix, size_t *prefix_len,
+        const char **ns_name, size_t *ns_len)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+    *local_name = (const char *)pcdom_element_local_name(dom_elem, local_len);
+
+    if (prefix)
+        *prefix = (const char *)pcdom_element_prefix(dom_elem, prefix_len);
+
+    if (ns_name) {
+        switch (dom_elem->node.ns) {
+        case PCHTML_NS_HTML:
+        default:
+            *ns_name = PCDOC_NSNAME_HTML;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_HTML) - 1;
+            break;
+
+        case PCHTML_NS_MATH:
+            *ns_name = PCDOC_NSNAME_MATHML;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_MATHML) - 1;
+            break;
+
+        case PCHTML_NS_SVG:
+            *ns_name = PCDOC_NSNAME_SVG;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_SVG) - 1;
+            break;
+
+        case PCHTML_NS_XLINK:
+            *ns_name = PCDOC_NSNAME_XLINK;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_XLINK) - 1;
+            break;
+
+        case PCHTML_NS_XML:
+            *ns_name = PCDOC_NSNAME_XLINK;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_XLINK) - 1;
+            break;
+
+        case PCHTML_NS_XMLNS:
+            *ns_name = PCDOC_NSNAME_XMLNS;
+            if (ns_len) *ns_len = sizeof(PCDOC_NSNAME_XMLNS) - 1;
+            break;
+        }
+    }
+
+    return 0;
+}
+
 static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(doc);
@@ -477,6 +531,118 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
     assert(dom_node->parent->type == PCDOM_NODE_TYPE_ELEMENT);
 
     return (pcdoc_element_t)dom_node->parent;
+}
+
+static pcdoc_node first_child(purc_document_t doc, pcdoc_element_t elem)
+{
+    UNUSED_PARAM(doc);
+
+    pcdoc_node first = { PCDOC_NODE_VOID, { NULL } };
+
+    pcdom_node_t *dom_node = pcdom_interface_node(elem);
+    pcdom_node_t *child = dom_node->first_child;
+    if (child) {
+        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
+            first.type = PCDOC_NODE_ELEMENT;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_TEXT) {
+            first.type = PCDOC_NODE_TEXT;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_CDATA_SECTION) {
+            first.type = PCDOC_NODE_CDATA_SECTION;
+        }
+        else {
+            first.type = PCDOC_NODE_OTHERS;
+        }
+
+        first.data = child;
+    }
+
+    return first;
+}
+
+static pcdoc_node last_child(purc_document_t doc, pcdoc_element_t elem)
+{
+    UNUSED_PARAM(doc);
+
+    pcdoc_node last = { PCDOC_NODE_VOID, { NULL } };
+
+    pcdom_node_t *dom_node = pcdom_interface_node(elem);
+    pcdom_node_t *child = dom_node->last_child;
+    if (child) {
+        if (child->type == PCDOM_NODE_TYPE_ELEMENT) {
+            last.type = PCDOC_NODE_ELEMENT;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_TEXT) {
+            last.type = PCDOC_NODE_TEXT;
+        }
+        else if (child->type == PCDOM_NODE_TYPE_CDATA_SECTION) {
+            last.type = PCDOC_NODE_CDATA_SECTION;
+        }
+        else {
+            last.type = PCDOC_NODE_OTHERS;
+        }
+
+        last.data = child;
+    }
+
+    return last;
+}
+
+static pcdoc_node next_sibling(purc_document_t doc, pcdoc_node node)
+{
+    UNUSED_PARAM(doc);
+
+    pcdoc_node next = { PCDOC_NODE_VOID, { NULL } };
+
+    pcdom_node_t *dom_node = pcdom_interface_node(node.data);
+    pcdom_node_t *sibling = dom_node->next;
+    if (sibling) {
+        if (sibling->type == PCDOM_NODE_TYPE_ELEMENT) {
+            next.type = PCDOC_NODE_ELEMENT;
+        }
+        else if (sibling->type == PCDOM_NODE_TYPE_TEXT) {
+            next.type = PCDOC_NODE_TEXT;
+        }
+        else if (sibling->type == PCDOM_NODE_TYPE_CDATA_SECTION) {
+            next.type = PCDOC_NODE_CDATA_SECTION;
+        }
+        else {
+            next.type = PCDOC_NODE_OTHERS;
+        }
+
+        next.data = sibling;
+    }
+
+    return next;
+}
+
+static pcdoc_node prev_sibling(purc_document_t doc, pcdoc_node node)
+{
+    UNUSED_PARAM(doc);
+
+    pcdoc_node prev = { PCDOC_NODE_VOID, { NULL } };
+
+    pcdom_node_t *dom_node = pcdom_interface_node(node.data);
+    pcdom_node_t *sibling = dom_node->prev;
+    if (sibling) {
+        if (sibling->type == PCDOM_NODE_TYPE_ELEMENT) {
+            prev.type = PCDOC_NODE_ELEMENT;
+        }
+        else if (sibling->type == PCDOM_NODE_TYPE_TEXT) {
+            prev.type = PCDOC_NODE_TEXT;
+        }
+        else if (sibling->type == PCDOM_NODE_TYPE_CDATA_SECTION) {
+            prev.type = PCDOC_NODE_CDATA_SECTION;
+        }
+        else {
+            prev.type = PCDOC_NODE_OTHERS;
+        }
+
+        prev.data = sibling;
+    }
+
+    return prev;
 }
 
 static int children_count(purc_document_t doc, pcdoc_element_t elem,
@@ -524,7 +690,8 @@ node_type(pcdom_node_type_t type)
     return PCDOC_NODE_OTHERS;
 }
 
-static pcdoc_node get_child(purc_document_t doc,
+static pcdoc_node
+get_child(purc_document_t doc,
             pcdoc_element_t elem, pcdoc_node_type type, size_t idx)
 {
     UNUSED_PARAM(doc);
@@ -676,7 +843,12 @@ struct purc_document_ops _pcdoc_html_ops = {
     .new_content = new_content,
     .set_attribute = set_attribute,
     .special_elem = special_elem,
+    .get_tag_name = get_tag_name,
     .get_parent = get_parent,
+    .first_child = first_child,
+    .last_child = last_child,
+    .next_sibling = next_sibling,
+    .prev_sibling = prev_sibling,
     .children_count = children_count,
     .get_child = get_child,
     .get_attribute = get_attribute,

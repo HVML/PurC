@@ -71,6 +71,16 @@ struct purc_document_ops {
     pcdoc_element_t (*special_elem)(purc_document_t doc,
             pcdoc_special_elem elem);
 
+    int (*get_tag_name)(purc_document_t doc, pcdoc_element_t elem,
+            const char **local_name, size_t *local_len,
+            const char **prefix, size_t *prefix_len,
+            const char **ns_name, size_t *ns_len);
+
+    pcdoc_node (*first_child)(purc_document_t doc, pcdoc_element_t elem);
+    pcdoc_node (*last_child)(purc_document_t doc, pcdoc_element_t elem);
+    pcdoc_node (*next_sibling)(purc_document_t doc, pcdoc_node node);
+    pcdoc_node (*prev_sibling)(purc_document_t doc, pcdoc_node node);
+
     pcdoc_element_t (*get_parent)(purc_document_t doc, pcdoc_node node);
 
     // nullable

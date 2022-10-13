@@ -118,6 +118,14 @@ purc_document_unref(purc_document_t doc)
     return refc;
 }
 
+void *
+purc_document_impl_entity(purc_document_t doc, purc_document_type *type)
+{
+    if (type)
+        *type = doc->type;
+    return doc->impl;
+}
+
 unsigned int
 purc_document_delete(purc_document_t doc)
 {
@@ -178,6 +186,18 @@ pcdoc_element_new_content(purc_document_t doc,
         const char *content, size_t len)
 {
     return doc->ops->new_content(doc, elem, op, content, len);
+}
+
+int
+pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
+        const char **local_name, size_t *local_len,
+        const char **prefix, size_t *prefix_len,
+        const char **ns_name, size_t *ns_len)
+{
+    assert(doc->ops->get_tag_name);
+
+    return doc->ops->get_tag_name(doc, elem,
+            local_name, local_len, prefix, prefix_len, ns_name, ns_len);
 }
 
 int
@@ -295,6 +315,13 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
 {
     size_t nrs[PCDOC_NODE_OTHERS + 1] = { };
 
+    if (nr_elements)
+        *nr_elements = 0;
+    if (nr_text_nodes)
+        *nr_text_nodes = 0;
+    if (nr_data_nodes)
+        *nr_data_nodes = 0;
+
     if (doc->ops->children_count) {
         if (doc->ops->children_count(doc, elem, nrs) == 0) {
             if (nr_elements)
@@ -308,13 +335,6 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
             return -1;
         }
     }
-
-    if (nr_elements)
-        *nr_elements = 0;
-    if (nr_text_nodes)
-        *nr_text_nodes = 0;
-    if (nr_data_nodes)
-        *nr_data_nodes = 0;
 
     return 0;
 }
@@ -365,6 +385,46 @@ pcdoc_element_t
 pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node)
 {
     return doc->ops->get_parent(doc, node);
+}
+
+pcdoc_node
+pcdoc_element_first_child(purc_document_t doc, pcdoc_element_t elem)
+{
+    if (doc->ops->first_child)
+        return doc->ops->first_child(doc, elem);
+
+    pcdoc_node first = { PCDOC_NODE_VOID, { NULL } };
+    return first;
+}
+
+pcdoc_node
+pcdoc_element_last_child(purc_document_t doc, pcdoc_element_t elem)
+{
+    if (doc->ops->last_child)
+        return doc->ops->last_child(doc, elem);
+
+    pcdoc_node last = { PCDOC_NODE_VOID, { NULL } };
+    return last;
+}
+
+pcdoc_node
+pcdoc_node_next_sibling(purc_document_t doc, pcdoc_node node)
+{
+    if (doc->ops->next_sibling)
+        return doc->ops->next_sibling(doc, node);
+
+    pcdoc_node next = { PCDOC_NODE_VOID, { NULL } };
+    return next;
+}
+
+pcdoc_node
+pcdoc_node_prev_sibling(purc_document_t doc, pcdoc_node node)
+{
+    if (doc->ops->prev_sibling)
+        return doc->ops->prev_sibling(doc, node);
+
+    pcdoc_node prev = { PCDOC_NODE_VOID, { NULL } };
+    return prev;
 }
 
 int

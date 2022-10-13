@@ -48,6 +48,32 @@ typedef enum {
 
 #define PCDOC_NR_TYPES (PCDOC_K_TYPE_LAST - PCDOC_K_TYPE_FIRST + 1)
 
+/* namespace types */
+typedef enum {
+    PCDOC_K_NAMESPACE_FIRST = 0,
+    PCDOC_K_NAMESPACE__UNDEF = PCDOC_K_NAMESPACE_FIRST,
+#define PCDOC_NSNAME__UNDEF   ""
+    PCDOC_K_NAMESPACE_HTML,
+#define PCDOC_NSNAME_HTML     "html"
+    PCDOC_K_NAMESPACE_MATHML,
+#define PCDOC_NSNAME_MATHML   "mathml"
+    PCDOC_K_NAMESPACE_SVG,
+#define PCDOC_NSNAME_SVG      "svg"
+    PCDOC_K_NAMESPACE_XGML,
+#define PCDOC_NSNAME_XGML     "xgml"
+    PCDOC_K_NAMESPACE_XLINK,
+#define PCDOC_NSNAME_XLINK    "xlink"
+    PCDOC_K_NAMESPACE_XML,
+#define PCDOC_NSNAME_XML      "xml"
+    PCDOC_K_NAMESPACE_XMLNS,
+#define PCDOC_NSNAME_XMLNS    "xmlns"
+
+    /* XXX: change this when you append a new operation */
+    PCDOC_K_NAMESPACE_LAST = PCDOC_K_NAMESPACE_XMLNS,
+} purc_namespace_type;
+
+#define PCDOC_NR_NAMESPACES     (PCDOC_K_NS_LAST - PCDOC_K_NS_FIRST + 1)
+
 /* Special document type */
 #define PCDOC_K_STYPE_INHERIT           "_inherit"
 
@@ -83,6 +109,7 @@ typedef enum {
 typedef struct {
     pcdoc_node_type         type;
     union {
+        void               *data;
         pcdoc_element_t     elem;
         pcdoc_text_node_t   text_node;
         pcdoc_data_node_t   data_node;
@@ -182,6 +209,19 @@ purc_document_unref(purc_document_t doc);
  */
 PCA_EXPORT purc_document_t
 purc_document_load(purc_document_type type, const char *content, size_t len);
+
+/**
+ * Get the underlying implementation entity of a document.
+ *
+ * @param doc: The pointer to the document.
+ * @param type: A location to return the document type.
+ *
+ * Returns: a pointer to the underlying implementation.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT void *
+purc_document_impl_entity(purc_document_t doc, purc_document_type *type);
 
 /**
  * Delete a document.
@@ -310,6 +350,7 @@ pcdoc_element_set_data_content(purc_document_t doc,
  * Insert or replace the content in target markup language of the specific
  * element.
  *
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to an element.
  * @param op: The operation.
  * @param content: a string contains the content in the target markup language.
@@ -325,8 +366,31 @@ pcdoc_element_new_content(purc_document_t doc,
         const char *content, size_t len);
 
 /**
+ * Get the tag name of a specific element.
+ *
+ * @param doc: the pointer to the document.
+ * @param elem: the pointer to the element.
+ * @param local_name: the location to return the local name of the element.
+ * @param local_len: the location to return the length of the local name.
+ * @param prefix: the location to return the prefix of the tag name of the element.
+ * @param prefix_len: the location to return the length of the prefix.
+ * @param ns_name: the location to return the namespace name of the element.
+ * @param ns_len: the location to return the length of the namespace name.
+ *
+ * Returns: 0 for success, -1 for failure.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
+        const char **local_name, size_t *local_len,
+        const char **prefix, size_t *prefix_len,
+        const char **ns_name, size_t *ns_len);
+
+/**
  * Set an attribute of the specified element.
  *
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to the element.
  * @param op: The operation, can be one of the following values:
  *  - PCDOC_OP_UPDATE: update the attribute value.
@@ -354,7 +418,7 @@ static inline int pcdoc_element_remove_attribute(purc_document_t doc,
 /**
  * Get the attribute value of the specific attribute of the specified element.
  *
- * @param doc: the pointer to the doc.
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to the element.
  * @param name: the name of the attribute.
  * @param val: the buffer to return the value of the attribute.
@@ -485,6 +549,50 @@ pcdoc_text_content_get_text(purc_document_t doc, pcdoc_text_node_t text_node,
 PCA_EXPORT int
 pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
         purc_variant_t *data);
+
+/**
+ * Get the first child node of the specified element.
+ *
+ * @param doc: the pointer to the doc.
+ * @param elem: the element.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_element_first_child(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the last child node of the specified element.
+ *
+ * @param doc: the pointer to the doc.
+ * @param elem: the element.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_element_last_child(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the next sibling node of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_node_next_sibling(purc_document_t doc, pcdoc_node node);
+
+/**
+ * Get the previous sibling node of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_node_prev_sibling(purc_document_t doc, pcdoc_node node);
 
 /**
  * Get the number of different children nodes of the speicified element.

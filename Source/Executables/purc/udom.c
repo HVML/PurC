@@ -316,60 +316,40 @@ purcth_rdrbox *foil_udom_find_rdrbox(purcth_udom *udom,
     return data;
 }
 
-static pchtml_action_t
-append_style_walker(pcdom_node_t *node, void *ctxt)
+static int append_style_walker(purc_document_t doc,
+        pcdoc_element_t element, void *ctxt)
 {
-    switch (node->type) {
-    case PCDOM_NODE_TYPE_DOCUMENT_TYPE:
-    case PCDOM_NODE_TYPE_TEXT:
-    case PCDOM_NODE_TYPE_COMMENT:
-    case PCDOM_NODE_TYPE_CDATA_SECTION:
-        return PCHTML_ACTION_NEXT;
+    const char *name;
+    size_t len;
 
-    /* TODO:
-       handle <base> and <link> element in <head> for imported style sheets */
-    case PCDOM_NODE_TYPE_ELEMENT: {
-        const char *name;
-        size_t len;
+    pcdoc_element_get_tag_name(doc, element, &name, &len,
+            NULL, NULL, NULL, NULL);
+    if (strncasecmp(name, "style", len) == 0) {
+        struct purcth_udom *udom = ctxt;
 
-        pcdom_element_t *element;
-        element = pcdom_interface_element(node);
-        name = (const char *)pcdom_element_local_name(element, &len);
-        if (strncasecmp(name, "style", len) == 0) {
-            struct purcth_udom *udom = ctxt;
+        pcdoc_node child = pcdoc_element_first_child(doc, element);
+        while (child.data != NULL) {
+            if (child.type == PCDOC_NODE_TEXT) {
+                const char *text;
+                size_t len;
 
-            pcdom_node_t *child = node->first_child;
-            while (child) {
-                if (child->type == PCDOM_NODE_TYPE_TEXT) {
-                    pcdom_text_t *text;
-
-                    text = pcdom_interface_text(child);
-
+                if (pcdoc_text_content_get_text(doc, child.text_node,
+                            &text, &len) == 0 && len > 0) {
                     css_error err;
                     err = css_stylesheet_append_data(udom->author_sheet,
-                            text->char_data.data.data,
-                            text->char_data.data.length);
+                            (const unsigned char *)text, len);
                     if (err != CSS_OK || err != CSS_NEEDDATA) {
                         LOG_ERROR("Failed to append css data: %d\n", err);
-                        break;
+                        return -1;
                     }
                 }
-
-                child = child->next;
             }
+
+            child = pcdoc_node_next_sibling(doc, child);
         }
-
-        /* walk to the siblings. */
-        return PCHTML_ACTION_NEXT;
     }
 
-    default:
-        /* ignore any unknown node types */
-        break;
-
-    }
-
-    return PCHTML_ACTION_OK;
+    return 0;
 }
 
 struct rendering_ctxt {
@@ -384,20 +364,17 @@ struct rendering_ctxt {
 extern css_select_handler foil_css_select_handler;
 
 static css_select_results *
-select_element_style(const css_media *media,
-        css_select_ctx *select_ctx, pcdom_element_t *element)
+select_element_style(const css_media *media, css_select_ctx *select_ctx,
+        purc_document_t doc, pcdoc_element_t element)
 {
     // prepare inline style
     css_error err;
     css_stylesheet* inline_sheet = NULL;
-    const unsigned char* value;
+    const char* value;
     size_t len;
 
-    value = pcdom_element_get_attribute(element,
-            (const unsigned char *)ATTR_NAME_STYLE,
-            sizeof(ATTR_NAME_STYLE) - 1, &len);
-
-    if (value) {
+    if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_STYLE,
+            &value, &len) == 0 && value) {
         css_stylesheet_params params;
 
         memset(&params, 0, sizeof(params));
@@ -421,7 +398,8 @@ select_element_style(const css_media *media,
 
         err = css_stylesheet_create(&params, &inline_sheet);
         if (err == CSS_OK) {
-            err = css_stylesheet_append_data(inline_sheet, value, len);
+            err = css_stylesheet_append_data(inline_sheet,
+                    (const unsigned char *)value, len);
             if (err == CSS_OK) {
                 css_stylesheet_data_done(inline_sheet);
             }
@@ -489,13 +467,16 @@ failed:
     if (inline_sheet) {
         css_stylesheet_destroy(inline_sheet);
     }
-    if (result)
+
+    if (result) {
         css_select_results_destroy(result);
+    }
+
     return NULL;
 }
 
 static purcth_rdrbox *
-create_rdrbox(struct rendering_ctxt *ctxt, pcdom_element_t *element,
+create_rdrbox(struct rendering_ctxt *ctxt, pcdoc_element_t element,
         css_select_results *result)
 {
     (void)ctxt;
@@ -505,57 +486,37 @@ create_rdrbox(struct rendering_ctxt *ctxt, pcdom_element_t *element,
     return NULL;
 }
 
-static pchtml_action_t
-udom_maker(pcdom_node_t *node, void *ctxt)
+static int udom_maker(purc_document_t doc,
+        pcdoc_element_t element, void *ctxt)
 {
-    (void)ctxt;
+    struct rendering_ctxt *my_ctxt = ctxt;
 
-    switch (node->type) {
-    case PCDOM_NODE_TYPE_DOCUMENT_TYPE:
-        return PCHTML_ACTION_NEXT;
-
-    case PCDOM_NODE_TYPE_TEXT:
-    case PCDOM_NODE_TYPE_COMMENT:
-    case PCDOM_NODE_TYPE_CDATA_SECTION:
-        return PCHTML_ACTION_NEXT;
-
-    case PCDOM_NODE_TYPE_ELEMENT: {
-        struct rendering_ctxt *my_ctxt = ctxt;
-        pcdom_element_t *element;
-        element = pcdom_interface_element(node);
-
-        css_select_results *result;
-        result = select_element_style(&my_ctxt->udom->media,
-                my_ctxt->udom->select_ctx, element);
-        if (result) {
-            create_rdrbox(my_ctxt, element, result);
-        }
-
-        /* walk to the siblings. */
-        return PCHTML_ACTION_NEXT;
+    css_select_results *result;
+    result = select_element_style(&my_ctxt->udom->media,
+            my_ctxt->udom->select_ctx, doc, element);
+    if (result) {
+        create_rdrbox(my_ctxt, element, result);
     }
 
-    default:
-        /* ignore any unknown node types */
-        break;
-    }
-
-    return PCHTML_ACTION_NEXT;
+    return 0;
 }
 
 purcth_udom *
 foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
 {
-    pcdom_document_t *edom_doc;
+    purc_document_t edom_doc;
+    purc_document_type doc_type;
 
     edom_doc = purc_variant_native_get_entity(edom);
     assert(edom_doc);
 
-    size_t len;
-    const char *doctype = (const char *)pcdom_document_type_name(
-            edom_doc->doctype, &len);
+    void *_impl = purc_document_impl_entity(edom_doc, &doc_type);
 
-    if (len == 0 || strcasecmp(doctype, "html")) {
+    if (_impl == NULL) {
+        *retv = PCRDR_SC_NO_CONTENT;
+        goto failed;
+    }
+    else if (doc_type != PCDOC_K_TYPE_HTML && doc_type != PCDOC_K_TYPE_XML) {
         *retv = PCRDR_SC_NOT_ACCEPTABLE;
         goto failed;
     }
@@ -567,9 +528,11 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
+    size_t n;
+
     // parse and append style sheets
-    pcdom_element_t *head;
-    head = pchtml_doc_get_head(pchtml_interface_document(edom_doc));
+    pcdoc_element_t head;
+    head = purc_document_head(edom_doc);
     if (head) {
         css_error err;
 
@@ -586,8 +549,8 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
             goto failed;
         }
 
-        pcdom_node_simple_walk(pcdom_interface_node(head),
-                append_style_walker, udom);
+        pcdoc_travel_descendant_elements(edom_doc, head,
+                append_style_walker, udom, &n);
 
         size_t sz;
         css_stylesheet_size(udom->author_sheet, &sz);
@@ -607,9 +570,9 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    pcdom_element_t *root = edom_doc->element;
     struct rendering_ctxt ctxt = { udom, udom->initial_cblock };
-    pcdom_node_simple_walk(pcdom_interface_node(root), udom_maker, &ctxt);
+    pcdoc_travel_descendant_elements(edom_doc, purc_document_root(edom_doc),
+            udom_maker, &ctxt, &n);
     return udom;
 
 failed:
