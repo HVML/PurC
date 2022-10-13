@@ -260,7 +260,7 @@ static void set_purc_error_by_errno (void)
             break;
 
         case EIO:
-            purc_set_error (PURC_ERROR_SYSTEM_FAULT);
+            purc_set_error (PURC_ERROR_SYS_FAULT);
             break;
 
         default:

@@ -976,7 +976,7 @@ sleep_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 goto failed;
             }
             else {
-                purc_set_error(PURC_ERROR_SYSTEM_FAULT);
+                purc_set_error(PURC_ERROR_SYS_FAULT);
                 goto fatal;
             }
         }
