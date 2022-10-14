@@ -300,7 +300,9 @@ purc_variant_t PcFetcherProcess::requestAsync(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     PcFetcherRequest* session = createRequest();
     if (!session) {
@@ -309,7 +311,7 @@ purc_variant_t PcFetcherProcess::requestAsync(
     }
 
     return session->requestAsync(base_uri, url, method,
-            params, timeout, handler, ctxt);
+            params, timeout, handler, ctxt, tracker, tracker_ctxt);
 }
 
 purc_rwstream_t PcFetcherProcess::requestSync(

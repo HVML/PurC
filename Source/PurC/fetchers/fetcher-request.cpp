@@ -114,7 +114,9 @@ purc_variant_t PcFetcherRequest::requestAsync(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     // TODO send params with http request
     UNUSED_PARAM(params);
@@ -122,6 +124,8 @@ purc_variant_t PcFetcherRequest::requestAsync(
     auto locker = holdLock(m_callbackLock);
     m_callback->handler = handler;
     m_callback->ctxt = ctxt;
+    m_callback->tracker = tracker;
+    m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
 
     String uri;
@@ -367,6 +371,14 @@ void PcFetcherRequest::didReceiveResponse(
     }
     m_bytesReceived = 0;
     m_progressValue = initialProgressValue;
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, request=this] {
+                info->tracker(info->req_id, info->tracker_ctxt,
+                        request->m_progressValue);
+            }
+        );
+    }
     m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
 }
 
@@ -393,6 +405,14 @@ void PcFetcherRequest::didReceiveSharedBuffer(
     increment = (maxProgressValue - m_progressValue) * percentOfRemainingBytes;
     m_progressValue += increment;
     m_progressValue = std::min(m_progressValue, maxProgressValue);
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, request=this] {
+                info->tracker(info->req_id, info->tracker_ctxt,
+                        request->m_progressValue);
+            }
+        );
+    }
 
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
@@ -410,6 +430,15 @@ void PcFetcherRequest::didFinishResourceLoad(
     if (!m_is_async) {
         wakeUp();
         return;
+    }
+
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, request=this] {
+                info->tracker(info->req_id, info->tracker_ctxt,
+                        request->m_progressValue);
+            }
+        );
     }
 
     if (!m_callback->handler) {

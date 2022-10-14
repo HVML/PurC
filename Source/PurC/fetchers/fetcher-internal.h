@@ -59,7 +59,9 @@ typedef purc_variant_t (*pcfetcher_request_async_fn)(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt);
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt);
 
 typedef purc_rwstream_t (*pcfetcher_request_sync_fn)(
         struct pcfetcher* fetcher,
@@ -100,6 +102,9 @@ struct pcfetcher_callback_info {
 
     pcfetcher_response_handler handler;
     void *ctxt;
+
+    pcfetcher_progress_tracker tracker;
+    void *tracker_ctxt;
 };
 
 struct pcfetcher* pcfetcher_local_init(size_t max_conns, size_t cache_quota);
@@ -127,7 +132,9 @@ purc_variant_t pcfetcher_local_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt);
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt);
 
 purc_rwstream_t pcfetcher_local_request_sync(
         struct pcfetcher* fetcher,
@@ -171,7 +178,9 @@ purc_variant_t pcfetcher_remote_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt);
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt);
 
 purc_rwstream_t pcfetcher_remote_request_sync(
         struct pcfetcher* fetcher,

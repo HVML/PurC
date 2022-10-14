@@ -2191,7 +2191,8 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             params,
             timeout,
             on_load_async_done,
-            data);
+            data,
+            NULL, NULL);
 
     if (data->request_id == PURC_VARIANT_INVALID) {
         destroy_load_async_data(data);

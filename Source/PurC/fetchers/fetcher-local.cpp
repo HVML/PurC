@@ -169,7 +169,9 @@ purc_variant_t pcfetcher_local_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     UNUSED_PARAM(fetcher);
     UNUSED_PARAM(url);
@@ -188,6 +190,8 @@ purc_variant_t pcfetcher_local_request_async(
             params, timeout, &info->header);
     info->handler = handler;
     info->ctxt = ctxt;
+    info->tracker = tracker;
+    info->tracker_ctxt = tracker_ctxt;
     info->req_id = purc_variant_make_native(info, NULL);
 
     if (!info->rws) {

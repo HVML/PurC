@@ -70,7 +70,9 @@ public:
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt);
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt);
 
     purc_rwstream_t requestSync(
         const char* base_uri,
@@ -132,6 +134,7 @@ private:
     long long m_estimatedLength {0};
     long long m_bytesReceived {0};
     double m_progressValue;
+
 };
 
 

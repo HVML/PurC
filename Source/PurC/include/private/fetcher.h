@@ -53,6 +53,9 @@ typedef void (*pcfetcher_response_handler)(
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp);
 
+typedef void (*pcfetcher_progress_tracker)(purc_variant_t request_id,
+        void* ctxt, double progress);
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +82,9 @@ purc_variant_t pcfetcher_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt);
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt);
 
 purc_rwstream_t pcfetcher_request_sync(
         const char* url,
