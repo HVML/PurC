@@ -128,6 +128,10 @@ private:
     struct pcfetcher_callback_info *m_callback;
 
     PcFetcherProcess *m_fetcherProcess;
+
+    long long m_estimatedLength {0};
+    long long m_bytesReceived {0};
+    double m_progressValue;
 };
 
 
