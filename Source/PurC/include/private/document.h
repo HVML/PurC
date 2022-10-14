@@ -42,6 +42,11 @@ struct pcdoc_travel_info {
     void *ctxt;
 };
 
+struct pcdoc_travel_attrs_info {
+    size_t nr;
+    void *ctxt;
+};
+
 typedef int (*pcdoc_node_cb)(purc_document_t doc, void *node, void *ctxt);
 
 struct purc_document_ops {
@@ -94,6 +99,25 @@ struct purc_document_ops {
             const char *name, const char **val, size_t *len);
     int (*get_special_attr)(purc_document_t doc, pcdoc_element_t elem,
             pcdoc_special_attr which, const char **val, size_t *len);
+
+    int (*travel_attrs)(purc_document_t doc,
+        pcdoc_element_t element, pcdoc_attribute_cb cb,
+        struct pcdoc_travel_attrs_info *info);
+
+    pcdoc_attr_t (*first_attr)(purc_document_t doc, pcdoc_element_t elem);
+    pcdoc_attr_t (*last_attr)(purc_document_t doc, pcdoc_element_t elem);
+    pcdoc_attr_t (*next_attr)(purc_document_t doc, pcdoc_attr_t attr);
+    pcdoc_attr_t (*prev_attr)(purc_document_t doc, pcdoc_attr_t attr);
+
+    int (*get_attr_info)(purc_document_t doc, pcdoc_attr_t attr,
+        const char **local_name, size_t *local_len,
+        const char **qualified_name, size_t *qualified_len,
+        const char **value, size_t *value_len);
+
+    int (*get_user_data)(purc_document_t doc, pcdoc_node node,
+            void **user_data);
+    int (*set_user_data)(purc_document_t doc, pcdoc_node node,
+            void *user_data);
 
     int (*get_text)(purc_document_t doc, pcdoc_text_node_t text_node,
             const char **text, size_t *len);

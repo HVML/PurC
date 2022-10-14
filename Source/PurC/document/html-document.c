@@ -776,6 +776,122 @@ static int get_special_attr(purc_document_t doc, pcdoc_element_t elem,
     return 0;
 }
 
+static int
+travel_attrs(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_attribute_cb cb,
+        struct pcdoc_travel_attrs_info *info)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+    pcdom_attr_t *attr = pcdom_element_first_attribute(dom_elem);
+
+    while (attr) {
+        const char *name;
+        size_t name_len;
+        const char *value;
+        size_t value_len;
+
+        name = (const char *)pcdom_attr_local_name(attr, &name_len);
+        value = (const char *)pcdom_attr_value(attr, &value_len);
+
+        int r = cb((pcdoc_attr_t)attr, name, name_len, value, value_len,
+                    info->ctxt);
+        info->nr++;
+        if (r)
+            return -1;
+
+        attr = pcdom_element_next_attribute(attr);
+    }
+
+    return 0;
+}
+
+static pcdoc_attr_t
+first_attr(purc_document_t doc, pcdoc_element_t elem)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+    return (pcdoc_attr_t)pcdom_element_first_attribute(dom_elem);
+}
+
+static pcdoc_attr_t
+last_attr(purc_document_t doc, pcdoc_element_t elem)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_element_t *dom_elem = pcdom_interface_element(elem);
+    return (pcdoc_attr_t)pcdom_element_last_attribute(dom_elem);
+}
+
+static pcdoc_attr_t
+next_attr(purc_document_t doc, pcdoc_attr_t attr)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_attr_t *dom_attr = (pcdom_attr_t *)attr;
+    return (pcdoc_attr_t)pcdom_element_next_attribute(dom_attr);
+}
+
+static pcdoc_attr_t
+prev_attr(purc_document_t doc, pcdoc_attr_t attr)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_attr_t *dom_attr = (pcdom_attr_t *)attr;
+    return (pcdoc_attr_t)pcdom_element_prev_attribute(dom_attr);
+}
+
+static int
+get_attr_info(purc_document_t doc, pcdoc_attr_t attr,
+        const char **local_name, size_t *local_len,
+        const char **qualified_name, size_t *qualified_len,
+        const char **value, size_t *value_len)
+{
+    UNUSED_PARAM(doc);
+
+    pcdom_attr_t *dom_attr = (pcdom_attr_t *)attr;
+
+    *local_name = (const char *)pcdom_attr_local_name(dom_attr, local_len);
+
+    if (qualified_name) {
+        *qualified_name = (const char *)pcdom_attr_qualified_name(dom_attr,
+                qualified_len);
+    }
+
+    if (value) {
+        *value = (const char *)pcdom_attr_value(dom_attr, value_len);
+    }
+
+    return 0;
+}
+
+static int
+get_user_data(purc_document_t doc, pcdoc_node node, void **user_data)
+{
+    UNUSED_PARAM(doc);
+    if (node.type == PCDOC_NODE_VOID)
+        return -1;
+
+    pcdom_node_t *dom_node = pcdom_interface_node(node.data);
+    *user_data = dom_node->user;
+    return 0;
+}
+
+static int
+set_user_data(purc_document_t doc, pcdoc_node node, void *user_data)
+{
+    UNUSED_PARAM(doc);
+
+    if (node.type == PCDOC_NODE_VOID)
+        return -1;
+
+    pcdom_node_t *dom_node = pcdom_interface_node(node.data);
+    dom_node->user = user_data;
+    return 0;
+}
+
 static int get_text(purc_document_t doc, pcdoc_text_node_t text_node,
             const char **text, size_t *len)
 {
@@ -797,9 +913,9 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
     pcdom_node_t *ancestor_node = (pcdom_node_t *)ancestor;
     if (info->type == node_type(ancestor_node->type)) {
         int r = cb(doc, ancestor, info->ctxt);
+        info->nr++;
         if (r)
             return -1;
-        info->nr++;
     }
 
     pcdom_node_t *dom_node = pcdom_interface_node(ancestor);
@@ -814,9 +930,9 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
         }
         else if (node_type(child->type) == info->type) {
             int r = cb(doc, child, info->ctxt);
+            info->nr++;
             if (r)
                 return -1;
-            info->nr++;
         }
     }
 
@@ -853,6 +969,14 @@ struct purc_document_ops _pcdoc_html_ops = {
     .get_child = get_child,
     .get_attribute = get_attribute,
     .get_special_attr = get_special_attr,
+    .travel_attrs = travel_attrs,
+    .first_attr = first_attr,
+    .last_attr = last_attr,
+    .next_attr = next_attr,
+    .prev_attr = prev_attr,
+    .get_attr_info = get_attr_info,
+    .get_user_data = get_user_data,
+    .set_user_data = set_user_data,
     .get_text = get_text,
     .get_data = NULL,
     .travel = travel,

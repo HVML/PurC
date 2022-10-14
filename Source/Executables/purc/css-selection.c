@@ -38,6 +38,8 @@
 #define TAG_NAME_FOREIGN            "__FOREIGN"
 #define TAG_NAME_DISINTERESTED      "__DISINTERESTED"
 
+#define cast_to_pcdoc_element_t(node) ((pcdoc_element_t)(node))
+
 /**
  * Callback to retrieve a node's name.
  *
@@ -50,30 +52,13 @@
 static css_error
 node_name(void *pw, void *n, css_qname *qname)
 {
-    (void)pw;
-    pcdom_node_t *node = n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
-
-#if 0
-    if (node->type == PCDOM_NODE_TYPE_TEXT) {
-        name = TAG_NAME_TEXT;
-        len = sizeof(TAG_NAME_TEXT) - 1;
-    }
-    else {
-        name = TAG_NAME_DISINTERESTED;
-        len = sizeof(TAG_NAME_DISINTERESTED) - 1;
-    }
-        else {
-            name = TAG_NAME_FOREIGN;
-            len = sizeof(TAG_NAME_FOREIGN) - 1;
-        }
-#endif
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
     const char *name = NULL;
     size_t len;
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
-    name = (const char *)pcdom_element_local_name(element, &len);
+    pcdoc_element_get_tag_name(doc, ele,
+            &name, &len, NULL, NULL, NULL, NULL);
 
     if (name &&
             lwc_intern_string(name, len, &qname->name) == lwc_error_oom) {
@@ -103,25 +88,21 @@ node_name(void *pw, void *n, css_qname *qname)
 static css_error
 node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
 {
-    (void)pw;
-    pcdom_node_t *node = (pcdom_node_t *)n;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
+
     lwc_string **my_classes = NULL;
     uint32_t nr_classes = 0;
     char *cloned = NULL;
 
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
-
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
-
     const char *value;
-    if (element->attr_class) {
-        value = (const char *)pcdom_attr_value(element->attr_class, NULL);
-    }
-    else
+    size_t len;
+    value = pcdoc_element_class(doc, ele, &len);
+    if (value == NULL) {
         goto done;
+    }
 
-    cloned = strdup(value);
+    cloned = strndup(value, len);
     if (cloned == NULL)
         goto failed;
 
@@ -130,7 +111,7 @@ node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
     char *klass;
     for (str = cloned; ; str = NULL) {
         klass = strtok_r(str, CLASS_SEPARATOR, &saveptr);
-        if (klass && purc_is_valid_identifier(klass)) {
+        if (klass) {
             nr_classes++;
             my_classes = (lwc_string **)realloc(my_classes,
                     sizeof(lwc_string *) * nr_classes);
@@ -142,12 +123,13 @@ node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
                         my_classes + nr_classes - 1);
             if (ec == lwc_error_oom) {
                 nr_classes--;
-                goto done;
+                break;
             }
         }
+        else {
+            break;
+        }
     }
-
-    return nr_classes;
 
 done:
     if (cloned)
@@ -186,22 +168,19 @@ failed:
 static css_error
 node_id(void *pw, void *n, lwc_string **id)
 {
-    (void)pw;
-    pcdom_node_t *node = (pcdom_node_t *)n;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    *id = NULL;
-    if (node->type == PCDOM_NODE_TYPE_ELEMENT) {
-        pcdom_element_t *element;
-        element = pcdom_interface_element(node);
-        if (element->attr_id) {
-            const char *my_id;
-            size_t len;
-
-            my_id = (const char *)pcdom_attr_value(element->attr_id, &len);
-            if (lwc_intern_string(my_id, len, id) == lwc_error_oom) {
-                goto failed;
-            }
+    const char *value;
+    size_t len;
+    value = pcdoc_element_id(doc, ele, &len);
+    if (value) {
+        if (lwc_intern_string(value, len, id) == lwc_error_oom) {
+            goto failed;
         }
+    }
+    else {
+        *id = NULL;
     }
 
     return CSS_OK;
@@ -225,18 +204,18 @@ failed:
 static css_error
 named_parent_node(void *pw, void *n, const css_qname *qname, void **_parent)
 {
-    (void)pw;
+    purc_document_t doc = pw;
+
     *_parent = NULL;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    pcdom_node_t *parent = node->parent;
-    if (parent && parent->type == PCDOM_NODE_TYPE_ELEMENT) {
-        pcdom_element_t *element;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
+    if (parent) {
         const char *name1, *name2;
         size_t len1, len2;
 
-        element = pcdom_interface_element(parent);
-        name1 = (const char *)pcdom_element_local_name(element, &len1);
+        pcdoc_element_get_tag_name(doc, parent,
+                &name1, &len1, NULL, NULL, NULL, NULL);
 
         name2 = lwc_string_data(qname->name);
         len2 = lwc_string_length(qname->name);
@@ -265,34 +244,32 @@ done:
 static css_error
 named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
 {
-    (void)pw;
+    purc_document_t doc = pw;
+
     *sibling = NULL;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
+    while (prev.data) {
+        if (prev.type == PCDOC_NODE_ELEMENT) {
 
-    pcdom_node_t *prev = node->prev;
-    while (prev) {
-        if (prev->type == PCDOM_NODE_TYPE_ELEMENT) {
-
-            pcdom_element_t *element;
             const char *name1, *name2;
             size_t len1, len2;
 
-            element = pcdom_interface_element(prev);
-            name1 = (const char *)pcdom_element_local_name(element, &len1);
+            pcdoc_element_get_tag_name(doc, prev.elem,
+                    &name1, &len1, NULL, NULL, NULL, NULL);
 
             name2 = lwc_string_data(qname->name);
             len2 = lwc_string_length(qname->name);
 
             if (len1 == len2 && strncasecmp(name1, name2, len1) == 0) {
-                *sibling = (void *)prev;
+                *sibling = prev.data;
             }
 
             break;
         }
 
-        prev = prev->prev;
+        prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
     return CSS_OK;
@@ -304,7 +281,7 @@ named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
  * \param pw       HTML document
  * \param node     DOM node
  * \param qname    Node name to search for
- * \param sibling  Pointer to location to receive ancestor
+ * \param sibling  Pointer to location to receive mached sibling
  * \return CSS_OK.
  *
  * \post \a sibling will contain the result, or NULL if there is no match
@@ -313,31 +290,30 @@ static css_error
 named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
         void **sibling)
 {
-    (void)pw;
+    purc_document_t doc = pw;
     *sibling = NULL;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    pcdom_node_t *prev = node->prev;
-    while (prev) {
-        if (prev->type == PCDOM_NODE_TYPE_ELEMENT) {
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
+    while (prev.data) {
+        if (prev.type == PCDOC_NODE_ELEMENT) {
 
-            pcdom_element_t *element;
             const char *name1, *name2;
             size_t len1, len2;
 
-            element = pcdom_interface_element(prev);
-            name1 = (const char *)pcdom_element_local_name(element, &len1);
+            pcdoc_element_get_tag_name(doc, prev.elem,
+                    &name1, &len1, NULL, NULL, NULL, NULL);
 
             name2 = lwc_string_data(qname->name);
             len2 = lwc_string_length(qname->name);
 
             if (len1 == len2 && strncasecmp(name1, name2, len1) == 0) {
-                *sibling = (void *)prev;
+                *sibling = prev.data;
                 break;
             }
         }
 
-        prev = prev->prev;
+        prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
     return CSS_OK;
@@ -356,11 +332,11 @@ named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
 static css_error
 parent_node(void *pw, void *n, void **_parent)
 {
-    (void)pw;
+    purc_document_t doc = pw;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    pcdom_node_t *parent = node->parent;
-    if (parent && parent->type == PCDOM_NODE_TYPE_ELEMENT) {
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
+    if (parent) {
         *_parent = (void *)parent;
     }
     else {
@@ -371,7 +347,7 @@ parent_node(void *pw, void *n, void **_parent)
 }
 
 /**
- * Callback to retrieve the sibling of a node.
+ * Callback to retrieve the previous sibling of a node.
  *
  * \param pw       HTML document
  * \param node     DOM node
@@ -383,18 +359,18 @@ parent_node(void *pw, void *n, void **_parent)
 static css_error
 sibling_node(void *pw, void *n, void **sibling)
 {
-    (void)pw;
+    purc_document_t doc = pw;
     *sibling = NULL;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    pcdom_node_t *prev = node->prev;
-    while (prev) {
-        if (prev->type == PCDOM_NODE_TYPE_ELEMENT) {
-            *sibling = (void *)prev;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
+    while (prev.data) {
+        if (prev.type == PCDOC_NODE_ELEMENT) {
+            *sibling = prev.data;
             break;
         }
 
-        prev = prev->prev;
+        prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
     return CSS_OK;
@@ -414,16 +390,13 @@ sibling_node(void *pw, void *n, void **sibling)
 static css_error
 node_has_name(void *pw, void *n, const css_qname *qname, bool *match)
 {
-    (void)pw;
-    pcdom_node_t *node = n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
-
-    const char *name1;
+    const char *name1 = NULL;
     size_t len1;
-    name1 = (const char *)pcdom_element_local_name(element, &len1);
+    pcdoc_element_get_tag_name(doc, ele,
+            &name1, &len1, NULL, NULL, NULL, NULL);
 
     const char *name2 = lwc_string_data(qname->name);
     size_t len2 = lwc_string_length(qname->name);
@@ -450,20 +423,14 @@ node_has_name(void *pw, void *n, const css_qname *qname, bool *match)
 static css_error
 node_has_class(void *pw, void *n, lwc_string *name, bool *match)
 {
-    (void)pw;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
     *match = false;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
-
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
-
-    if (element->attr_class) {
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_value(element->attr_class, &len1);
-
+    const char *str1;
+    size_t len1;
+    str1 = pcdoc_element_class(doc, ele, &len1);
+    if (str1) {
         const char *str2 = lwc_string_data(name);
         size_t len2 = lwc_string_length(name);
 
@@ -474,10 +441,14 @@ node_has_class(void *pw, void *n, lwc_string *name, bool *match)
         char *klass;
         for (str = haystack; ; str = NULL) {
             klass = strtok_r(str, CLASS_SEPARATOR, &saveptr);
+            if (klass == NULL) {
+                break;
+            }
+
             /* to match values caseinsensitively */
-            if (klass && purc_is_valid_identifier(klass) &&
-                    strncasecmp(klass, str2, len2) == 0) {
+            if (klass && strncasecmp(klass, str2, len2) == 0) {
                 *match = true;
+                break;
             }
         }
 
@@ -501,18 +472,15 @@ node_has_class(void *pw, void *n, lwc_string *name, bool *match)
 static css_error
 node_has_id(void *pw, void *n, lwc_string *name, bool *match)
 {
-    (void)pw;
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
     *match = false;
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
-    if (element->attr_id) {
-        const char *str1;
-        size_t len1;
 
-        str1 = (const char *)pcdom_attr_value(element->attr_id, &len1);
+    const char *str1;
+    size_t len1;
+    str1 = pcdoc_element_id(doc, ele, &len1);
+    if (str1) {
 
         const char *str2 = lwc_string_data(name);
         size_t len2 = lwc_string_length(name);
@@ -540,35 +508,58 @@ node_has_id(void *pw, void *n, lwc_string *name, bool *match)
 static css_error
 node_has_attribute(void *pw, void *n, const css_qname *qname, bool *match)
 {
-    (void)pw;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
+
     *match = false;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    const char *name = lwc_string_data(qname->name);
+    size_t name_len = lwc_string_length(qname->name);
+    assert(name && name_len > 0);
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    char *my_name = strndup(name, name_len);
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
-
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
-
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
-
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            *match = true;
-            break;
-        }
-
-        attr = pcdom_element_next_attribute(attr);
+    const char *value;
+    int ret = pcdoc_element_get_attribute(doc, ele, my_name, &value, NULL);
+    if (ret == 0 && value != NULL) {
+        *match = true;
     }
 
+    free(my_name);
+
     return CSS_OK;
+}
+
+struct attr_to_match {
+    const char *name;
+    size_t name_len;
+
+    const char *value;
+    size_t value_len;
+
+    bool matched;
+};
+
+static int attr_equal_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
+
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
+
+        /* to match values casesensitively */
+        if (to_match->value_len == value_len &&
+                strncmp(to_match->value, value, value_len) == 0) {
+            to_match->matched = true;
+        }
+
+        return -1;  // stop travel
+    }
+
+    return 0;
 }
 
 /**
@@ -588,43 +579,49 @@ static css_error
 node_has_attribute_equal(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_equal_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
+    *match = to_match.matched;
+    return CSS_OK;
+}
 
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
+static int attr_dashmatch_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
 
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value(attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
 
-            /* to match values casesensitively */
-            if (len1 == len2 && strncmp(str1, str2, len1) == 0) {
-                *match = true;
+        /* to match values casesensitively */
+        if (strncmp(value, to_match->value, value_len) == 0) {
+            if (value_len == to_match->value_len) {
+                to_match->matched = true;
             }
-
-            break;
+            else if (value_len > to_match->value_len &&
+                    value[to_match->value_len] == '-') {
+                to_match->matched = true;
+            }
         }
 
-        attr = pcdom_element_next_attribute(attr);
+        return -1;  // stop travel
     }
 
-    return CSS_OK;
+    return 0;
 }
 
 /**
@@ -645,48 +642,57 @@ static css_error
 node_has_attribute_dashmatch(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_dashmatch_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
+    *match = to_match.matched;
+    return CSS_OK;
+}
 
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
+static int attr_includes_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
 
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value (attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
+
+        char *haystack = strndup(value, value_len);
+
+        char *str;
+        char *saveptr;
+        char *token;
+        for (str = haystack; ; str = NULL) {
+            token = strtok_r(str, CLASS_SEPARATOR, &saveptr);
+            if (token == NULL)
+                break;
 
             /* to match values casesensitively */
-            if (strncmp(str1, str2, len1) == 0) {
-                if (len1 == len2) {
-                    *match = true;
-                }
-                else if (len1 > len2 && str1[len2] == '-') {
-                    *match = true;
-                }
+            if (token && strncasecmp(token, to_match->value,
+                        to_match->value_len) == 0) {
+                to_match->matched = true;
+                break;
             }
-
-            break;
         }
 
-        attr = pcdom_element_next_attribute(attr);
+        free(haystack);
+        return -1;  // stop travel
     }
 
-    return CSS_OK;
+    return 0;
 }
 
 /**
@@ -707,52 +713,44 @@ static css_error
 node_has_attribute_includes(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_includes_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
+    *match = to_match.matched;
+    return CSS_OK;
+}
 
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
+static int attr_prefix_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
 
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value(attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
 
-            char *haystack = strndup(str1, len1);
-
-            char *str;
-            char *saveptr;
-            char *token;
-            for (str = haystack; ; str = NULL) {
-                token = strtok_r(str, CLASS_SEPARATOR, &saveptr);
-                /* to match values casesensitively */
-                if (token && strncasecmp(token, str2, len2) == 0) {
-                    *match = true;
-                }
-            }
-
-            free(haystack);
-            break;
+        /* to match values casesensitively */
+        if (value_len >= to_match->value_len &&
+                strncmp(value, to_match->value, to_match->value_len) == 0) {
+            to_match->matched = true;
         }
 
-        attr = pcdom_element_next_attribute(attr);
+        return -1;  // stop travel
     }
 
-    return CSS_OK;
+    return 0;
 }
 
 /**
@@ -773,43 +771,47 @@ static css_error
 node_has_attribute_prefix(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_prefix_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
+    *match = to_match.matched;
+    return CSS_OK;
+}
 
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
+static int attr_suffix_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
 
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value(attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
 
-            /* to match values casesensitively */
-            if (len1 >= len2 && strncmp(str1, str2, len2) == 0) {
-                *match = true;
+        /* to match values casesensitively */
+        if (value_len >= to_match->value_len) {
+            value += value_len;
+            value -= to_match->value_len;
+            if (strncmp(value, to_match->value, to_match->value_len) == 0) {
+                to_match->matched = true;
             }
-
-            break;
         }
 
-        attr = pcdom_element_next_attribute(attr);
+        return -1;  // stop travel
     }
 
-    return CSS_OK;
+    return 0;
 }
 
 /**
@@ -830,47 +832,49 @@ static css_error
 node_has_attribute_suffix(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_suffix_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
+    *match = to_match.matched;
+    return CSS_OK;
+}
 
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
+static int attr_substring_cb(pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt)
+{
+    (void)attr;
+    struct attr_to_match *to_match = ctxt;
 
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value(attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
+    if (to_match->name_len == name_len &&
+            strncasecmp(to_match->name, name, name_len) == 0) {
 
-            /* to match values casesensitively */
-            if (len1 >= len2) {
-                str1 += len1;
-                str1 -= len2;
-                if (strncmp(str1, str2, len2) == 0) {
-                    *match = true;
-                }
-            }
+        char *haystack = strndup(value, value_len);
+        char *needle = strndup(to_match->value, to_match->value_len);
 
-            break;
+        /* to match values casesensitively */
+        if (strstr(haystack, needle)) {
+            to_match->matched = true;
         }
 
-        attr = pcdom_element_next_attribute(attr);
+        free(haystack);
+        free(needle);
+
+        return -1;  // stop travel
     }
 
-    return CSS_OK;
+    return 0;
 }
 
 /**
@@ -891,48 +895,21 @@ static css_error
 node_has_attribute_substring(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    (void)pw;
-    *match = false;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    struct attr_to_match to_match;
 
-    pcdom_element_t *element;
-    element = pcdom_interface_element(node);
+    to_match.name = lwc_string_data(qname->name);
+    to_match.name_len = lwc_string_length(qname->name);
+    to_match.value = lwc_string_data(value);
+    to_match.value_len = lwc_string_length(value);
+    to_match.matched = false;
 
-    pcdom_attr_t *attr;
-    attr = pcdom_element_first_attribute(element);
-    while (attr) {
+    pcdoc_element_travel_attributes(doc, ele,
+            attr_substring_cb, &to_match, NULL);
 
-        const char *str1;
-        size_t len1;
-        str1 = (const char *)pcdom_attr_local_name(attr, &len1);
-
-        const char *str2 = lwc_string_data(qname->name);
-        size_t len2 = lwc_string_length(qname->name);
-
-        if (len1 == len2 && strncasecmp(str1, str2, len1) == 0) {
-            str1 = (const char *)pcdom_attr_value(attr, &len1);
-            str2 = lwc_string_data(value);
-            len2 = lwc_string_length(value);
-
-            char *haystack = strndup(str1, len1);
-            char *needle = strndup(str2, len2);
-
-            /* to match values casesensitively */
-            if (strstr(haystack, needle)) {
-                *match = true;
-            }
-
-            free(haystack);
-            free(needle);
-
-            break;
-        }
-
-        attr = pcdom_element_next_attribute(attr);
-    }
-
+    *match = to_match.matched;
     return CSS_OK;
 }
 
@@ -949,11 +926,10 @@ node_has_attribute_substring(void *pw, void *n, const css_qname *qname,
 static css_error
 node_is_root(void *pw, void *n, bool *match)
 {
-    (void)pw;
+    purc_document_t doc = pw;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    if (node->parent == NULL ||
-            node->parent->type == PCDOM_NODE_TYPE_DOCUMENT) {
+    if (pcdoc_node_get_parent(doc, node) == NULL) {
         *match = true;
     }
     else {
@@ -979,34 +955,29 @@ static css_error
 node_count_siblings(void *pw, void *n, bool same_name, bool after,
         int32_t *count)
 {
-    (void)pw;
-
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    purc_document_t doc = pw;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
     int32_t my_count = 0;
-    pcdom_element_t *element;
 
     const char *name1 = NULL;
     size_t len1 = 0;
     if (same_name) {
-        element = pcdom_interface_element(node);
-        name1 = (const char *)pcdom_element_local_name(element, &len1);
+        pcdoc_element_get_tag_name(doc, node.elem, &name1, &len1,
+                NULL, NULL, NULL, NULL);
     }
 
     if (after) {
-        pcdom_node_t *next = node->next;
+        pcdoc_node next = pcdoc_node_next_sibling(doc, node);
 
-        while (next) {
-            if (next->type == PCDOM_NODE_TYPE_ELEMENT) {
+        while (next.data) {
+            if (next.type == PCDOC_NODE_ELEMENT) {
                 if (name1) {
                     const char *name2;
                     size_t len2;
 
-                    element = pcdom_interface_element(next);
-                    name2 = (const char *)pcdom_element_local_name(element,
-                            &len2);
-
+                    pcdoc_element_get_tag_name(doc, next.elem, &name2, &len2,
+                            NULL, NULL, NULL, NULL);
                     if (len1 == len2 && strncasecmp(name1, name2, len1) == 0)
                         my_count++;
                 }
@@ -1015,22 +986,20 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
                 }
             }
 
-            next = next->next;
+            next = pcdoc_node_next_sibling(doc, next);
         }
     }
     else {
-        pcdom_node_t *prev = node->prev;
+        pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
 
-        while (prev) {
-            if (prev->type == PCDOM_NODE_TYPE_ELEMENT) {
+        while (prev.data) {
+            if (prev.type == PCDOC_NODE_ELEMENT) {
                 if (name1) {
                     const char *name2;
                     size_t len2;
 
-                    element = pcdom_interface_element(prev);
-                    name2 = (const char *)pcdom_element_local_name(element,
-                            &len2);
-
+                    pcdoc_element_get_tag_name(doc, prev.elem, &name2, &len2,
+                            NULL, NULL, NULL, NULL);
                     if (len1 == len2 && strncasecmp(name1, name2, len1) == 0)
                         my_count++;
                 }
@@ -1039,7 +1008,7 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
                 }
             }
 
-            prev = prev->prev;
+            prev = pcdoc_node_prev_sibling(doc, prev);
         }
     }
 
@@ -1060,14 +1029,18 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
 static css_error
 node_is_empty(void *pw, void *n, bool *match)
 {
-    (void)pw;
-    pcdom_node_t *node = (pcdom_node_t *)n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
 
-    if (node->first_child == NULL)
+    size_t nr_child_elements = 0;
+    pcdoc_element_children_count(doc, ele, &nr_child_elements, NULL, NULL);
+
+    if (nr_child_elements == 0) {
         *match = true;
-    else
+    }
+    else {
         *match = false;
+    }
 
     return CSS_OK;
 }
@@ -1295,32 +1268,31 @@ static css_error
 named_ancestor_node(void *pw, void *n, const css_qname *qname,
         void **ancestor)
 {
-    (void)pw;
+    purc_document_t doc = pw;
 
-    pcdom_node_t *node = n;
-    assert(node->type == PCDOM_NODE_TYPE_ELEMENT);
+    const char *to_match_name = lwc_string_data(qname->name);
+    size_t to_match_len  = lwc_string_length(qname->name);
 
     *ancestor = NULL;
-    pcdom_node_t *parent = node->parent;
-    while (parent && parent->type != PCDOM_NODE_TYPE_DOCUMENT) {
-        if (parent->type == PCDOM_NODE_TYPE_ELEMENT) {
-            pcdom_element_t *element;
-            const char *name1, *name2;
-            size_t len1, len2;
 
-            element = pcdom_interface_element(parent);
-            name1 = (const char *)pcdom_element_local_name(element, &len1);
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
+    while (parent) {
+        const char *name;
+        size_t len;
 
-            name2 = lwc_string_data(qname->name);
-            len2 = lwc_string_length(qname->name);
+        pcdoc_element_get_tag_name(doc, parent, &name, &len,
+                NULL, NULL, NULL, NULL);
 
-            if (len1 == len2 && strncasecmp(name1, name2, len1) == 0) {
-                *ancestor = (void *)parent;
-                break;
-            }
+        if (to_match_len == len &&
+                strncasecmp(to_match_name, name, len) == 0) {
+            *ancestor = (void *)parent;
+            break;
         }
 
-        parent = parent->parent;
+        node.type = PCDOC_NODE_ELEMENT;
+        node.data = parent;
+        parent = pcdoc_node_get_parent(doc, node);
     }
 
     return CSS_OK;
@@ -1370,18 +1342,20 @@ static css_error node_presentational_hint( void *pw, void *n,
 static css_error
 set_node_data(void *pw, void *n, void *node_data)
 {
-    (void)pw;
-    pcdom_node_t *node = n;
-    node->user = node_data;
+    purc_document_t doc = pw;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+
+    pcdoc_node_set_user_data(doc, node, node_data);
     return CSS_OK;
 }
 
 static css_error
 get_node_data(void *pw, void *n, void **node_data)
 {
-    (void)pw;
-    pcdom_node_t* node = n;
-    *node_data = node->user;
+    purc_document_t doc = pw;
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+
+    pcdoc_node_get_user_data(doc, node, node_data);
     return CSS_OK;
 }
 

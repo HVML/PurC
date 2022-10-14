@@ -216,6 +216,10 @@ int
 pcdoc_element_get_attribute(purc_document_t doc, pcdoc_element_t elem,
         const char *name, const char **val, size_t *len)
 {
+    // must be a valid attribute name (without space characters)
+    if (!purc_is_valid_identifier(name))
+        return -1;
+
     if (doc->ops->get_attribute) {
         return doc->ops->get_attribute(doc, elem, name, val, len);
     }
@@ -238,47 +242,139 @@ pcdoc_element_get_special_attr(purc_document_t doc, pcdoc_element_t elem,
     return 0;
 }
 
-struct class_token_info {
-    const char *klass;
-    size_t      length;
-
-    bool        found;
-};
-
-static int
-class_token_finder(const char *token, const char *end, void *ud)
-{
-    struct class_token_info *info = (struct class_token_info *)ud;
-
-    if ((size_t)(end - token) != info->length)
-        return 0;
-
-    if (strncmp(token, info->klass, info->length))
-        return 0;
-
-    info->found = true;
-    return 1;
-}
+#define CLASS_SEPARATOR " \f\n\r\t\v"
 
 int
 pcdoc_element_has_class(purc_document_t doc, pcdoc_element_t elem,
         const char *klass, bool *found)
 {
-    const char *s;
+    const char *value;
     size_t len;
-    s = pcdoc_element_class(doc, elem, &len);
 
-    if (s && len > 0) {
-        struct class_token_info info = {
-            .klass      = klass,
-            .length     = strlen(klass),
-            .found      = false,
-        };
+    // must be a valid attribute name (without space characters)
+    if (!purc_is_valid_identifier(klass))
+        return -1;
 
-        pcutils_token_by_delim(s, s + len, ' ',
-                &info, class_token_finder);
-        *found = info.found;
+    *found = false;
+    value = pcdoc_element_class(doc, elem, &len);
+    if (value == NULL) {
         return 0;
+    }
+
+    char *haystack = strndup(value, len);
+
+    char *str;
+    char *saveptr;
+    char *token;
+    for (str = haystack; ; str = NULL) {
+        token = strtok_r(str, CLASS_SEPARATOR, &saveptr);
+        /* to match class name caseinsensitively */
+        if (token) {
+            if (strcasecmp(token, klass) == 0) {
+                *found = true;
+                break;
+            }
+        }
+        else
+            break;
+    }
+
+    free(haystack);
+    return 0;
+}
+
+int
+pcdoc_element_travel_attributes(purc_document_t doc,
+        pcdoc_element_t element, pcdoc_attribute_cb cb, void *ctxt, size_t *n)
+{
+    int ret = 0;
+
+    if (n)
+        *n = 0;
+
+    if (doc->ops->travel_attrs) {
+        struct pcdoc_travel_attrs_info info = { 0, ctxt };
+        ret = doc->ops->travel_attrs(doc, element, cb, &info);
+        if (ret == 0 && n)
+            *n = info.nr;
+    }
+
+    return ret;
+}
+
+pcdoc_attr_t
+pcdoc_element_first_attr(purc_document_t doc, pcdoc_element_t elem)
+{
+    if (doc->ops->first_attr) {
+        return doc->ops->first_attr(doc, elem);
+    }
+
+    return NULL;
+}
+
+pcdoc_attr_t
+pcdoc_element_last_attr(purc_document_t doc, pcdoc_element_t elem)
+{
+    if (doc->ops->last_attr) {
+        return doc->ops->last_attr(doc, elem);
+    }
+
+    return NULL;
+}
+
+pcdoc_attr_t
+pcdoc_attr_next_sibling(purc_document_t doc, pcdoc_attr_t attr)
+{
+    if (doc->ops->next_attr) {
+        return doc->ops->next_attr(doc, attr);
+    }
+
+    return NULL;
+}
+
+pcdoc_attr_t
+pcdoc_attr_prev_sibling(purc_document_t doc, pcdoc_attr_t attr)
+{
+    if (doc->ops->prev_attr) {
+        return doc->ops->prev_attr(doc, attr);
+    }
+
+    return NULL;
+}
+
+int
+pcdoc_attr_get_info(purc_document_t doc, pcdoc_attr_t attr,
+        const char **local_name, size_t *local_len,
+        const char **qualified_name, size_t *qualified_len,
+        const char **value, size_t *value_len)
+{
+    if (doc->ops->get_attr_info) {
+        return doc->ops->get_attr_info(doc, attr,
+                local_name, local_len,
+                qualified_name, qualified_len,
+                value, value_len);
+    }
+
+    return -1;
+}
+
+int
+pcdoc_node_get_user_data(purc_document_t doc, pcdoc_node node,
+        void **user_data)
+{
+    if (doc->ops->get_user_data) {
+        return doc->ops->get_user_data(doc, node, user_data);
+    }
+
+    return -1;
+}
+
+int
+pcdoc_node_set_user_data(purc_document_t doc, pcdoc_node node,
+        void *user_data)
+{
+    if (doc->ops->set_user_data) {
+        return doc->ops->set_user_data(doc, node, user_data);
     }
 
     return -1;
@@ -313,6 +409,7 @@ int
 pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
         size_t *nr_elements, size_t *nr_text_nodes, size_t *nr_data_nodes)
 {
+    int ret = 0;
     size_t nrs[PCDOC_NODE_OTHERS + 1] = { };
 
     if (nr_elements)
@@ -323,7 +420,8 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
         *nr_data_nodes = 0;
 
     if (doc->ops->children_count) {
-        if (doc->ops->children_count(doc, elem, nrs) == 0) {
+        ret = doc->ops->children_count(doc, elem, nrs);
+        if (ret == 0) {
             if (nr_elements)
                 *nr_elements = nrs[PCDOC_NODE_ELEMENT];
             if (nr_text_nodes)
@@ -331,12 +429,9 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
             if (nr_data_nodes)
                 *nr_data_nodes = nrs[PCDOC_NODE_DATA];
         }
-        else {
-            return -1;
-        }
     }
 
-    return 0;
+    return ret;
 }
 
 pcdoc_element_t
