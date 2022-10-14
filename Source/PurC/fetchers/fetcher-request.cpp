@@ -41,7 +41,7 @@
 
 // Always start progress at initialProgressValue. This helps provide feedback as
 // soon as a load starts.
-static const double initialProgressValue = 0.1;
+static const double initialProgressValue = PCFETCHER_INITIAL_PROGRESS;
 
 // Similarly, always leave space at the end. This helps show the user that we're not done
 // until we're done.
@@ -373,9 +373,8 @@ void PcFetcherRequest::didReceiveResponse(
     m_progressValue = initialProgressValue;
     if (m_callback->tracker) {
         struct pcfetcher_callback_info *info = m_callback;
-        m_runloop->dispatch([info, request=this] {
-                info->tracker(info->req_id, info->tracker_ctxt,
-                        request->m_progressValue);
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
             }
         );
     }
@@ -407,9 +406,8 @@ void PcFetcherRequest::didReceiveSharedBuffer(
     m_progressValue = std::min(m_progressValue, maxProgressValue);
     if (m_callback->tracker) {
         struct pcfetcher_callback_info *info = m_callback;
-        m_runloop->dispatch([info, request=this] {
-                info->tracker(info->req_id, info->tracker_ctxt,
-                        request->m_progressValue);
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
             }
         );
     }
@@ -434,9 +432,8 @@ void PcFetcherRequest::didFinishResourceLoad(
 
     if (m_callback->tracker) {
         struct pcfetcher_callback_info *info = m_callback;
-        m_runloop->dispatch([info, request=this] {
-                info->tracker(info->req_id, info->tracker_ctxt,
-                        request->m_progressValue);
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
             }
         );
     }

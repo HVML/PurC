@@ -27,6 +27,8 @@
 
 #include "private/fetcher.h"
 
+#define PCFETCHER_INITIAL_PROGRESS  0.1
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
