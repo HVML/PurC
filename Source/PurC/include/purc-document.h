@@ -548,7 +548,7 @@ typedef int (*pcdoc_attribute_cb)(pcdoc_attr_t attr,
  * @param ctxt: the context data will be passed to the callback.
  * @param n: the buffer to returned the number of attributes travelled.
  *
- * Returns: 0 for all attributes travlled, otherwise the traverse was broken
+ * Returns: 0 for all attributes travelled, otherwise the traverse was broken
  * by the callback.
  *
  * Since: 0.9.0
@@ -838,7 +838,7 @@ typedef int (*pcdoc_element_cb)(purc_document_t doc,
  * @param ctxt: the context data will be passed to the callback.
  * @param n: the buffer to returned the number of elements travelled.
  *
- * Returns: 0 for all descendants travlled, otherwise the traverse was broken
+ * Returns: 0 for all descendants travelled, otherwise the traverse was broken
  * by the callback.
  *
  * Since: 0.2.0
@@ -860,7 +860,7 @@ typedef int (*pcdoc_text_node_cb)(purc_document_t doc,
  * @param ctxt: the context data will be passed to the callback.
  * @param n: the buffer to returned the number of text nodes travelled.
  *
- * Returns: 0 for all descendant text nodes travlled, otherwise the traverse
+ * Returns: 0 for all descendant text nodes travelled, otherwise the traverse
  * was broken by the callback.
  *
  * Since: 0.2.0
@@ -882,7 +882,7 @@ typedef int (*pcdoc_data_node_cb)(purc_document_t doc,
  * @param ctxt: the condata data will be passed to the callback.
  * @param n: the buffer to returned the number of data nodes travelled.
  *
- * Returns: 0 for all descendant data nodes travlled, otherwise the traverse
+ * Returns: 0 for all descendant data nodes travelled, otherwise the traverse
  * was broken by the callback.
  *
  * Since: 0.2.0

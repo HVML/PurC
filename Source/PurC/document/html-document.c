@@ -528,9 +528,11 @@ static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 
     pcdom_node_t *dom_node = pcdom_interface_node(node.elem);
 
-    assert(dom_node->parent->type == PCDOM_NODE_TYPE_ELEMENT);
+    if (dom_node->parent && dom_node->parent->type == PCDOM_NODE_TYPE_ELEMENT) {
+        return (pcdoc_element_t)dom_node->parent;
+    }
 
-    return (pcdoc_element_t)dom_node->parent;
+    return NULL;
 }
 
 static pcdoc_node first_child(purc_document_t doc, pcdoc_element_t elem)
@@ -913,9 +915,9 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
     pcdom_node_t *ancestor_node = (pcdom_node_t *)ancestor;
     if (info->type == node_type(ancestor_node->type)) {
         int r = cb(doc, ancestor, info->ctxt);
-        info->nr++;
         if (r)
             return -1;
+        info->nr++;
     }
 
     pcdom_node_t *dom_node = pcdom_interface_node(ancestor);
@@ -930,9 +932,9 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
         }
         else if (node_type(child->type) == info->type) {
             int r = cb(doc, child, info->ctxt);
-            info->nr++;
             if (r)
                 return -1;
+            info->nr++;
         }
     }
 

@@ -505,7 +505,7 @@ pcdoc_element_last_child(purc_document_t doc, pcdoc_element_t elem)
 pcdoc_node
 pcdoc_node_next_sibling(purc_document_t doc, pcdoc_node node)
 {
-    if (doc->ops->next_sibling)
+    if (doc->ops->next_sibling && node.type != PCDOC_NODE_VOID)
         return doc->ops->next_sibling(doc, node);
 
     pcdoc_node next = { PCDOC_NODE_VOID, { NULL } };
@@ -515,7 +515,7 @@ pcdoc_node_next_sibling(purc_document_t doc, pcdoc_node node)
 pcdoc_node
 pcdoc_node_prev_sibling(purc_document_t doc, pcdoc_node node)
 {
-    if (doc->ops->prev_sibling)
+    if (doc->ops->prev_sibling && node.type != PCDOC_NODE_VOID)
         return doc->ops->prev_sibling(doc, node);
 
     pcdoc_node prev = { PCDOC_NODE_VOID, { NULL } };
