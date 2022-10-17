@@ -104,12 +104,13 @@ extern "C" {
 #endif
 
 /* Initialize workspace module */
-int foil_wsp_init(purcth_renderer *rdr);
+int foil_wsp_module_init(purcth_renderer *rdr);
 /* Clean up the workspace module */
-void foil_wsp_cleanup(purcth_renderer *rdr);
+void foil_wsp_module_cleanup(purcth_renderer *rdr);
 
 /* Create or get a workspace for an endpoint */
-purcth_workspace *foil_wsp_create_or_get_workspace(purcth_endpoint* endpoint);
+purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
+        purcth_endpoint* endpoint);
 
 void foil_wsp_convert_style(void *workspace, void *session,
         struct wsp_widget_info *style, purc_variant_t toolkit_style);

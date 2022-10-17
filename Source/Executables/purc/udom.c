@@ -165,8 +165,11 @@ static css_error resolve_url(void *pw,
     return CSS_OK;
 }
 
-int foil_udom_module_init(void)
+int foil_udom_module_init(purcth_renderer *rdr)
 {
+    if (foil_rdrbox_module_init(rdr))
+        return -1;
+
     css_stylesheet_params params;
     css_error err;
 
@@ -208,10 +211,12 @@ int foil_udom_module_init(void)
     return 0;
 }
 
-void foil_udom_module_cleanup(void)
+void foil_udom_module_cleanup(purcth_renderer *rdr)
 {
     if (def_ua_sheet)
         css_stylesheet_destroy(def_ua_sheet);
+
+    foil_rdrbox_module_cleanup(rdr);
 }
 
 static void udom_cleanup(purcth_udom *udom)

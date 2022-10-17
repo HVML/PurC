@@ -86,8 +86,8 @@ struct purcth_rendering_ctxt {
 extern "C" {
 #endif
 
-int foil_rdrbox_module_init(void);
-void foil_rdrbox_module_cleanup(void);
+int foil_rdrbox_module_init(purcth_renderer *rdr);
+void foil_rdrbox_module_cleanup(purcth_renderer *rdr);
 
 foil_rdrbox *foil_rdrbox_new_block(void);
 

@@ -32,8 +32,8 @@
 extern "C" {
 #endif
 
-int foil_page_module_init(void);
-void foil_page_module_cleanup(void);
+int foil_page_module_init(purcth_renderer *rdr);
+void foil_page_module_cleanup(purcth_renderer *rdr);
 
 purcth_page *foil_page_new(int rows, int cols);
 

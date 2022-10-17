@@ -63,13 +63,15 @@ struct _block_box_data {
     int pl, pt, pr, pb;
 };
 
-int foil_rdrbox_module_init(void)
+int foil_rdrbox_module_init(purcth_renderer *rdr)
 {
+    (void)rdr;
     return 0;
 }
 
-void foil_rdrbox_module_cleanup(void)
+void foil_rdrbox_module_cleanup(purcth_renderer *rdr)
 {
+    (void)rdr;
 }
 
 foil_rdrbox *foil_rdrbox_new_block(void)

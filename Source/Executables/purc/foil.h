@@ -80,7 +80,12 @@ struct purcth_renderer {
 
     char  *features;
 
-    /* The KV list using endpoint URI as the key, and purcth_endpoint* as the value */
+    /* The KV list using app name as the key,
+       and purcth_workspace* as the value */
+    struct kvlist workspace_list;
+
+    /* The KV list using endpoint URI as the key,
+       and purcth_endpoint* as the value */
     struct kvlist endpoint_list;
 
     /* the AVL tree of endpoints sorted by living time */

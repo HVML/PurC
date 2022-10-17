@@ -24,17 +24,19 @@
 */
 
 #include "page.h"
+#include "udom.h"
 #include "workspace.h"
 
 #include <assert.h>
 
-int foil_page_module_init(void)
+int foil_page_module_init(purcth_renderer *rdr)
 {
-    return 0;
+    return foil_udom_module_init(rdr);
 }
 
-void foil_page_module_cleanup(void)
+void foil_page_module_cleanup(purcth_renderer *rdr)
 {
+    foil_udom_module_cleanup(rdr);
 }
 
 purcth_page *foil_page_new(int rows, int cols)

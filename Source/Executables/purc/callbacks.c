@@ -57,12 +57,12 @@ struct purcth_session {
 
 static int foil_prepare(purcth_renderer *rdr)
 {
-    return foil_wsp_init(rdr);
+    return foil_wsp_module_init(rdr);
 }
 
 static void foil_cleanup(purcth_renderer *rdr)
 {
-    foil_wsp_cleanup(rdr);
+    foil_wsp_module_cleanup(rdr);
 }
 
 static purcth_session *
@@ -70,7 +70,7 @@ foil_create_session(purcth_renderer *rdr, purcth_endpoint *edpt)
 {
     purcth_session* sess = calloc(1, sizeof(purcth_session));
 
-    sess->workspace = foil_wsp_create_or_get_workspace(edpt);
+    sess->workspace = foil_wsp_create_or_get_workspace(rdr, edpt);
     if (sess->workspace == NULL) {
         goto failed;
     }

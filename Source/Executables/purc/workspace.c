@@ -29,31 +29,33 @@
 #include "endpoint.h"
 #include "workspace.h"
 #include "udom.h"
+#include "page.h"
 #include "util/sorted-array.h"
 
-static KVLIST(kv_app_workspace, NULL);
-
-int foil_wsp_init(purcth_renderer *rdr)
+int foil_wsp_module_init(purcth_renderer *rdr)
 {
-    (void)rdr;
-    return 0;
+    kvlist_init(&rdr->workspace_list, NULL);
+    return foil_page_module_init(rdr);
 }
 
-void foil_wsp_cleanup(purcth_renderer *rdr)
+void foil_wsp_module_cleanup(purcth_renderer *rdr)
 {
     (void)rdr;
     const char *name;
     void *next, *data;
 
-    kvlist_for_each_safe(&kv_app_workspace, name, next, data) {
+    kvlist_for_each_safe(&rdr->workspace_list, name, next, data) {
         purcth_workspace *workspace = *(purcth_workspace **)data;
         if (workspace->layouter) {
             // TODO: ws_layouter_delete(workspace->layouter);
         }
     }
+
+    foil_page_module_cleanup(rdr);
 }
 
-purcth_workspace *foil_wsp_create_or_get_workspace(purcth_endpoint* endpoint)
+purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
+        purcth_endpoint* endpoint)
 {
     char host[PURC_LEN_HOST_NAME + 1];
     char app[PURC_LEN_APP_NAME + 1];
@@ -67,7 +69,7 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_endpoint* endpoint)
 
     void *data;
     purcth_workspace *workspace;
-    if ((data = kvlist_get(&kv_app_workspace, app_key))) {
+    if ((data = kvlist_get(&rdr->workspace_list, app_key))) {
         workspace = *(purcth_workspace **)data;
         assert(workspace);
     }
@@ -75,7 +77,7 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_endpoint* endpoint)
         workspace = calloc(1, sizeof(purcth_workspace));
         if (workspace) {
             workspace->layouter = NULL;
-            kvlist_set(&kv_app_workspace, app_key, &workspace);
+            kvlist_set(&rdr->workspace_list, app_key, &workspace);
         }
     }
 

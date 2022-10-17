@@ -62,7 +62,8 @@ static void deinit_renderer(purcth_renderer *rdr)
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
         endpoint = *(purcth_endpoint **)data;
 
-        purc_log_info("Deleting endpoint: %s (%p) in deinit_server\n", name, endpoint);
+        purc_log_info("Deleting endpoint: %s (%p) in %s\n",
+                name, endpoint, __func__);
 
         del_endpoint(rdr, endpoint, CDE_EXITING);
         kvlist_delete(&rdr->endpoint_list, name);
@@ -103,7 +104,8 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
             }
             else {
                 purc_set_error(PCRDR_ERROR_PROTOCOL);
-                purc_log_warn("Bye request from unknown endpoint: %s.\n", origin_edpt);
+                purc_log_warn("Bye request from unknown endpoint: %s.\n",
+                        origin_edpt);
             }
         }
         else {
