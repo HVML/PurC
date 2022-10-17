@@ -499,7 +499,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     ctxt->co = stack->co;
     purc_variant_t v;
     v = pcintr_load_from_uri_async(stack, s_src, method, param,
-            on_sync_complete, frame);
+            on_sync_complete, frame, PURC_VARIANT_INVALID);
     purc_variant_unref(param);
 
     if (v == PURC_VARIANT_INVALID)
@@ -690,7 +690,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *parent = pcvdom_element_parent(frame->pos);
 
     bool ok;
-    ok = pcintr_bind_scope_variable(co, parent, s_name, frame->ctnt_var);
+    ok = pcintr_bind_scope_variable(co, parent, s_name, frame->ctnt_var, NULL);
     if (!ok)
         return -1;
 

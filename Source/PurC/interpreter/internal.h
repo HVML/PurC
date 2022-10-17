@@ -149,7 +149,8 @@ pcintr_load_from_uri(pcintr_stack_t stack, const char* uri);
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         enum pcfetcher_request_method method, purc_variant_t params,
-        pcfetcher_response_handler handler, void* ctxt);
+        pcfetcher_response_handler handler, void* ctxt,
+        purc_variant_t progress_event_dest);
 
 bool
 pcintr_save_async_request_id(pcintr_stack_t stack, purc_variant_t req_id);
@@ -445,6 +446,11 @@ int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
         bool temporarily, bool runner_level_enable, purc_variant_t v);
+
+pcvarmgr_t
+pcintr_get_named_variable_mgr_by_at(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, purc_variant_t at, bool temporarily,
+        bool runner_level_enable);
 
 purc_vdom_t
 pcintr_build_concurrently_call_vdom(pcintr_stack_t stack,

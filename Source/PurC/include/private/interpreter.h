@@ -75,6 +75,7 @@
 #define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
+#define MSG_SUB_TYPE_PROGRESS         "progress"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
@@ -610,7 +611,7 @@ pcintr_get_scope_variables(purc_coroutine_t cor, pcvdom_element_t elem)
 
 bool
 pcintr_bind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
-        const char* name, purc_variant_t variant);
+        const char* name, purc_variant_t variant, pcvarmgr_t *mgr);
 
 bool
 pcintr_unbind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
@@ -639,7 +640,8 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
         pcvdom_element_t elem);
 
 purc_variant_t
-pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name);
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name,
+        pcvarmgr_t mgr);
 
 bool
 pcintr_is_named_var_for_event(purc_variant_t val);

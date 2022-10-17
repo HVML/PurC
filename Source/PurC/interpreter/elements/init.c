@@ -703,7 +703,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            method, params, on_sync_complete, frame);
+            method, params, on_sync_complete, frame, PURC_VARIANT_INVALID);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -950,8 +950,18 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     purc_variant_t params;
     params = params_from_with(ctxt);
 
+    pcvarmgr_t mgr = pcintr_get_named_variable_mgr_by_at(stack, frame, ctxt->at,
+        ctxt->temporarily, true);
+    const char *name = purc_variant_get_string_const(ctxt->as);
+    purc_variant_t dest = pcintr_get_named_var_for_event(stack, name, mgr);
+    if (!dest) {
+        return -1;
+    }
+
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            method, params, on_async_complete, data);
+            method, params, on_async_complete, data, dest);
+    purc_variant_unref(dest);
+
     if (data->async_id == PURC_VARIANT_INVALID) {
         load_data_destroy(data);
         return -1;

@@ -2122,12 +2122,14 @@ struct load_async_data {
     pthread_t                  requesting_thread;
     pcintr_stack_t             requesting_stack;
     purc_variant_t             request_id;
+    purc_variant_t             progress_event_dest;
 };
 
 static void
 release_load_async_data(struct load_async_data *data)
 {
     if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->progress_event_dest);
         PURC_VARIANT_SAFE_CLEAR(data->request_id);
         data->handler           = NULL;
         data->ctxt              = NULL;
@@ -2161,14 +2163,37 @@ void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
         void* ctxt, double progress)
 {
     UNUSED_PARAM(request_id);
-    UNUSED_PARAM(ctxt);
-    fprintf(stderr, "progress = %f\n", progress);
+    struct load_async_data *data = (struct load_async_data*)ctxt;
+    fprintf(stderr, "progress = %f|data->progress_event_dest=%p\n", progress, data->progress_event_dest);
+    if (data->progress_event_dest) {
+        purc_variant_t payload = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (!payload) {
+            return;
+        }
+        purc_variant_t prog = purc_variant_make_number(progress);
+        if (!prog) {
+            return;
+        }
+        purc_variant_object_set_by_static_ckey(payload, MSG_SUB_TYPE_PROGRESS,
+                prog);
+
+        pcintr_coroutine_post_event(data->requesting_stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                data->progress_event_dest, MSG_TYPE_CHANGE,
+                MSG_SUB_TYPE_PROGRESS, payload,
+                PURC_VARIANT_INVALID);
+
+        purc_variant_unref(prog);
+        purc_variant_unref(payload);
+    }
 }
 
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         enum pcfetcher_request_method method, purc_variant_t params,
-        pcfetcher_response_handler handler, void* ctxt)
+        pcfetcher_response_handler handler, void* ctxt,
+        purc_variant_t progress_event_dest)
 {
     PC_ASSERT(stack);
     PC_ASSERT(uri);
@@ -2187,6 +2212,12 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     data->requesting_thread    = pthread_self();
     data->requesting_stack     = stack;
     data->request_id           = PURC_VARIANT_INVALID;
+    if (progress_event_dest) {
+        data->progress_event_dest = purc_variant_ref(progress_event_dest);
+    }
+    else {
+        data->progress_event_dest = PURC_VARIANT_INVALID;
+    }
 
     if (stack->co->base_url_string) {
         pcfetcher_set_base_url(stack->co->base_url_string);
@@ -2201,7 +2232,7 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             on_load_async_done,
             data,
             pcintr_fetcher_progress_tracker,
-            stack);
+            data);
 
     if (data->request_id == PURC_VARIANT_INVALID) {
         destroy_load_async_data(data);

@@ -138,7 +138,7 @@ post_process_bind_at_vdom(pcintr_coroutine_t co,
         return -1;
 
     bool ok;
-    ok = pcintr_bind_scope_variable(co, elem, s_name, val);
+    ok = pcintr_bind_scope_variable(co, elem, s_name, val, NULL);
     return ok ? 0 : -1;
 }
 

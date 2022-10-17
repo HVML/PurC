@@ -882,9 +882,12 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
 }
 
 purc_variant_t
-pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name)
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name,
+        pcvarmgr_t mgr)
 {
-    pcvarmgr_t mgr = pcintr_get_coroutine_variables(stack->co);
+    if (!mgr) {
+        mgr = pcintr_get_coroutine_variables(stack->co);
+    }
     return pcvarmgr_build_event_observed(name, mgr);
 }
 
