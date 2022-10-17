@@ -2164,7 +2164,6 @@ void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
 {
     UNUSED_PARAM(request_id);
     struct load_async_data *data = (struct load_async_data*)ctxt;
-    fprintf(stderr, "progress = %f|data->progress_event_dest=%p\n", progress, data->progress_event_dest);
     if (data->progress_event_dest) {
         purc_variant_t payload = purc_variant_make_object(0,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
