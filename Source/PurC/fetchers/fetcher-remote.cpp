@@ -145,12 +145,14 @@ purc_variant_t pcfetcher_remote_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     struct pcfetcher_remote* remote = (struct pcfetcher_remote*)fetcher;
     return remote->process->requestAsync(
             remote->base_uri,
-            url, method, params, timeout, handler, ctxt);
+            url, method, params, timeout, handler, ctxt, tracker, tracker_ctxt);
 }
 
 

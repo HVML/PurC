@@ -86,11 +86,13 @@ purc_variant_t pcfetcher_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     struct pcfetcher* fetcher = get_fetcher();
     return fetcher ? fetcher->request_async(fetcher, url, method,
-            params, timeout, handler, ctxt) : PURC_VARIANT_INVALID;
+            params, timeout, handler, ctxt, tracker, tracker_ctxt) : PURC_VARIANT_INVALID;
 }
 
 purc_rwstream_t pcfetcher_request_sync(

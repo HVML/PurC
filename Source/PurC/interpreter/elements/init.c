@@ -125,7 +125,7 @@ _bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (as) {
         const char *name = purc_variant_get_string_const(as);
         ret = pcintr_bind_named_variable(&co->stack,
-            frame, name, at, temporarily, src);
+            frame, name, at, temporarily, true, src);
     }
     else {
         pcintr_set_question_var(frame, src);

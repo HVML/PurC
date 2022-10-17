@@ -15,7 +15,7 @@
     <body>
         <div id="grandparent">
             <div id="temp">
-                <bind on="$buttons" as="btns" at="_runner"/>
+                <bind on="$buttons" as="btns" at="_root" silently/>
                 <div>
                     $EJSON.count($btns.eval)
                 </div>

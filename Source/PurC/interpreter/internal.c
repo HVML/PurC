@@ -318,7 +318,7 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 static int
 bind_by_name_space(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *ns, const char *name,
-        bool temporarily, purc_variant_t val)
+        bool temporarily, bool runner_level_enable, purc_variant_t val)
 {
     purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, ns);
     if (atom == 0) {
@@ -350,8 +350,15 @@ bind_by_name_space(pcintr_stack_t stack,
     }
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _RUNNER)) == atom) {
-        bool ret = purc_bind_runner_variable(name, val);
-        return ret ? 0 : -1;
+        if (runner_level_enable) {
+            bool ret = purc_bind_runner_variable(name, val);
+            return ret ? 0 : -1;
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                    "at = '%s'", name);
+            return -1;
+        }
     }
 
 not_found:
@@ -366,7 +373,7 @@ not_found:
 int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
-        bool temporarily, purc_variant_t v)
+        bool temporarily, bool runner_level_enable, purc_variant_t v)
 {
     int bind_ret = -1;
     if (!at) {
@@ -382,7 +389,7 @@ pcintr_bind_named_variable(pcintr_stack_t stack,
         }
         else if (s_at[0] == '_') {
             bind_ret = bind_by_name_space(stack, frame, s_at,
-                    name, temporarily, v);
+                    name, temporarily, runner_level_enable, v);
         }
         else {
             uint64_t level;

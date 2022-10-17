@@ -38,6 +38,16 @@
 
 #define DEF_RWS_SIZE 1024
 
+
+// Always start progress at initialProgressValue. This helps provide feedback as
+// soon as a load starts.
+static const double initialProgressValue = PCFETCHER_INITIAL_PROGRESS;
+
+// Similarly, always leave space at the end. This helps show the user that we're not done
+// until we're done.
+static const double finalProgressValue = 0.9; // 1.0 - initialProgressValue
+static const int progressItemDefaultEstimatedLength = 1024 * 16;
+
 using namespace PurCFetcher;
 
 extern "C"  struct pcinst* pcinst_current(void);
@@ -104,7 +114,9 @@ purc_variant_t PcFetcherRequest::requestAsync(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     // TODO send params with http request
     UNUSED_PARAM(params);
@@ -112,6 +124,8 @@ purc_variant_t PcFetcherRequest::requestAsync(
     auto locker = holdLock(m_callbackLock);
     m_callback->handler = handler;
     m_callback->ctxt = ctxt;
+    m_callback->tracker = tracker;
+    m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
 
     String uri;
@@ -332,6 +346,10 @@ void PcFetcherRequest::didReceiveResponse(
     }
 
     m_callback->header.ret_code = response.httpStatusCode();
+    /* files:// */
+    if (m_callback->header.ret_code == 0) {
+        m_callback->header.ret_code = 200;
+    }
     if (m_callback->header.mime_type) {
         free(m_callback->header.mime_type);
     }
@@ -341,7 +359,25 @@ void PcFetcherRequest::didReceiveResponse(
     if (m_callback->rws) {
         purc_rwstream_destroy(m_callback->rws);
     }
-    size_t init = m_callback->header.sz_resp ? m_callback->header.sz_resp : DEF_RWS_SIZE;
+
+    size_t init;
+    if (m_callback->header.sz_resp <= 0) {
+        init = DEF_RWS_SIZE;
+        m_estimatedLength = progressItemDefaultEstimatedLength;
+    }
+    else {
+        init = m_callback->header.sz_resp;
+        m_estimatedLength = m_callback->header.sz_resp;
+    }
+    m_bytesReceived = 0;
+    m_progressValue = initialProgressValue;
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
+            }
+        );
+    }
     m_callback->rws = purc_rwstream_new_buffer(init, INT_MAX);
 }
 
@@ -353,6 +389,29 @@ void PcFetcherRequest::didReceiveSharedBuffer(
     if (m_callback == NULL) {
         return;
     }
+    m_bytesReceived += data.size();
+    if (m_bytesReceived > m_estimatedLength) {
+        m_estimatedLength = m_bytesReceived * 2;
+    }
+    double increment, percentOfRemainingBytes;
+    long long remainingBytes = m_estimatedLength - m_bytesReceived;
+    if (remainingBytes > 0)  // Prevent divide by 0.
+         percentOfRemainingBytes = (double)data.size() / (double)remainingBytes;
+    else
+        percentOfRemainingBytes = 1.0;
+
+    double maxProgressValue = finalProgressValue;
+    increment = (maxProgressValue - m_progressValue) * percentOfRemainingBytes;
+    m_progressValue += increment;
+    m_progressValue = std::min(m_progressValue, maxProgressValue);
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
+            }
+        );
+    }
+
     purc_rwstream_write(m_callback->rws, data.data(), data.size());
 }
 
@@ -361,6 +420,7 @@ void PcFetcherRequest::didFinishResourceLoad(
 {
     UNUSED_PARAM(networkLoadMetrics);
     auto locker = holdLock(m_callbackLock);
+    m_progressValue = 1.0;
     if (m_callback == NULL) {
         return;
     }
@@ -368,6 +428,14 @@ void PcFetcherRequest::didFinishResourceLoad(
     if (!m_is_async) {
         wakeUp();
         return;
+    }
+
+    if (m_callback->tracker) {
+        struct pcfetcher_callback_info *info = m_callback;
+        m_runloop->dispatch([info, progress=m_progressValue] {
+                info->tracker(info->req_id, info->tracker_ctxt, progress);
+            }
+        );
     }
 
     if (!m_callback->handler) {

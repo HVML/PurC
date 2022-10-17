@@ -169,7 +169,9 @@ purc_variant_t pcfetcher_local_request_async(
         purc_variant_t params,
         uint32_t timeout,
         pcfetcher_response_handler handler,
-        void* ctxt)
+        void* ctxt,
+        pcfetcher_progress_tracker tracker,
+        void* tracker_ctxt)
 {
     UNUSED_PARAM(fetcher);
     UNUSED_PARAM(url);
@@ -188,6 +190,8 @@ purc_variant_t pcfetcher_local_request_async(
             params, timeout, &info->header);
     info->handler = handler;
     info->ctxt = ctxt;
+    info->tracker = tracker;
+    info->tracker_ctxt = tracker_ctxt;
     info->req_id = purc_variant_make_native(info, NULL);
 
     if (!info->rws) {
@@ -195,6 +199,14 @@ purc_variant_t pcfetcher_local_request_async(
     }
 
     RunLoop *runloop = &RunLoop::current();
+    if (info->tracker) {
+        runloop->dispatch([info] {
+                info->tracker(info->req_id, info->tracker_ctxt,
+                        PCFETCHER_INITIAL_PROGRESS);
+            }
+        );
+    }
+
 #ifdef NDEBUG
     runloop->dispatch([info] {
 #else
@@ -202,6 +214,9 @@ purc_variant_t pcfetcher_local_request_async(
     double tm = randomNumber() * 5;
     runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
+                if (info->tracker) {
+                    info->tracker(info->req_id, info->tracker_ctxt, 1.0);
+                }
                 if (!info->cancelled) {
                     info->handler(info->req_id, info->ctxt, &info->header,
                             info->rws);

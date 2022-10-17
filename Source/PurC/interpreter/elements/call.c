@@ -231,7 +231,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->call_id = purc_variant_make_ulongint(child_cid);
     if (as) {
         pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at, false,
-                ctxt->call_id);
+                false, ctxt->call_id);
     }
 
     if (ctxt->synchronously) {

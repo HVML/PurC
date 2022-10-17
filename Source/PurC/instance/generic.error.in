@@ -173,8 +173,8 @@ Incompleted
     flags: None
     msg: "Incompleted"
 
-SystemFault
-    except: SystemFault
+SysFault
+    except: SysFault
     flags: None
     msg: "System fault"
 
@@ -243,3 +243,54 @@ RequestFailed
     except: RequestFailed
     flags: None
     msg: "RequestFailed"
+
+ChildTerminated
+    except: ChildTerminated
+    flags: None
+    msg: "ChildTerminated"
+
+Conflict
+    except: Conflict
+    flags: None
+    msg: "Conflict"
+
+Gone
+    except: Gone
+    flags: None
+    msg: "Gone"
+
+MismatchedVersion
+    except: MismatchedVersion
+    flags: None
+    msg: "MismatchedVersion"
+
+NotAcceptable
+    except: NotAcceptable
+    flags: None
+    msg: "NotAcceptable"
+
+NotAllowed
+    except: NotAllowed
+    flags: None
+    msg: "NotAllowed"
+
+NotFound
+    except: NotFound
+    flags: None
+    msg: "NotFound"
+
+TooEarly
+    except: TooEarly
+    flags: None
+    msg: "TooEarly"
+
+UnavailableLegally
+    except: UnavailableLegally
+    flags: None
+    msg: "UnavailableLegally"
+
+UnmetPrecondition
+    except: UnmetPrecondition
+    flags: None
+    msg: "UnmetPrecondition"
+

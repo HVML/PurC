@@ -2157,6 +2157,14 @@ on_load_async_done(
     destroy_load_async_data(data);
 }
 
+void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
+        void* ctxt, double progress)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(ctxt);
+    fprintf(stderr, "progress = %f\n", progress);
+}
+
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         enum pcfetcher_request_method method, purc_variant_t params,
@@ -2191,7 +2199,9 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             params,
             timeout,
             on_load_async_done,
-            data);
+            data,
+            pcintr_fetcher_progress_tracker,
+            stack);
 
     if (data->request_id == PURC_VARIANT_INVALID) {
         destroy_load_async_data(data);
