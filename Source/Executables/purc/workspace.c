@@ -35,7 +35,41 @@
 int foil_wsp_module_init(purcth_renderer *rdr)
 {
     kvlist_init(&rdr->workspace_list, NULL);
+
     return foil_page_module_init(rdr);
+}
+
+static purcth_workspace *workspace_new(purcth_renderer *rdr,
+        const char *app_key)
+{
+    purcth_workspace *workspace = calloc(1, sizeof(purcth_workspace));
+    if (workspace) {
+        workspace->layouter = NULL;
+        workspace->root = foil_widget_new(WSP_WIDGET_TYPE_ROOT, "root", NULL);
+        if (workspace->root == NULL) {
+            free(workspace);
+            workspace = NULL;
+            goto done;
+        }
+
+        kvlist_set(&rdr->workspace_list, app_key, &workspace);
+    }
+
+done:
+    return workspace;
+}
+
+static void workspace_delete(purcth_workspace *workspace)
+{
+    assert(workspace->root);
+
+    if (workspace->layouter) {
+        // TODO: ws_layouter_delete(workspace->layouter);
+    }
+
+    foil_widget_delete_deep(workspace->root);
+
+    free(workspace);
 }
 
 void foil_wsp_module_cleanup(purcth_renderer *rdr)
@@ -46,9 +80,7 @@ void foil_wsp_module_cleanup(purcth_renderer *rdr)
 
     kvlist_for_each_safe(&rdr->workspace_list, name, next, data) {
         purcth_workspace *workspace = *(purcth_workspace **)data;
-        if (workspace->layouter) {
-            // TODO: ws_layouter_delete(workspace->layouter);
-        }
+        workspace_delete(workspace);
     }
 
     foil_page_module_cleanup(rdr);
@@ -74,18 +106,14 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
         assert(workspace);
     }
     else {
-        workspace = calloc(1, sizeof(purcth_workspace));
-        if (workspace) {
-            workspace->layouter = NULL;
-            kvlist_set(&rdr->workspace_list, app_key, &workspace);
-        }
+        workspace = workspace_new(rdr, app_key);
     }
 
     return workspace;
 }
 
 void foil_wsp_convert_style(void *workspace, void *session,
-        struct wsp_widget_info *style, purc_variant_t toolkit_style)
+        struct foil_widget_info *style, purc_variant_t toolkit_style)
 {
     (void)workspace;
     (void)session;
@@ -123,22 +151,28 @@ void foil_wsp_convert_style(void *workspace, void *session,
 
 static purcth_page *
 create_plainwin(purcth_workspace *workspace, purcth_session *sess,
-        void *init_arg, const struct wsp_widget_info *style)
+        void *init_arg, const struct foil_widget_info *style)
 {
-    (void)workspace;
     (void)sess;
     (void)init_arg;
-    (void)style;
 
-    struct purcth_page *plainwin = NULL;
+    struct foil_widget *plainwin;
+    plainwin = foil_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
+            style->name, style->title);
+    if (plainwin) {
 
-    /* TODO */
-    return plainwin;
+        /* TODO: initialize page here */
+
+        foil_widget_append_child(workspace->root, plainwin);
+        return &plainwin->page;
+    }
+
+    return NULL;
 }
 
 void *foil_wsp_create_widget(void *workspace, void *session,
-        wsp_widget_type_t type, void *window,
-        void *parent, void *init_arg, const struct wsp_widget_info *style)
+        foil_widget_type_t type, void *window,
+        void *parent, void *init_arg, const struct foil_widget_info *style)
 {
     (void)window;
     (void)parent;
@@ -168,7 +202,7 @@ destroy_plainwin(purcth_workspace *workspace, purcth_session *sess,
 }
 
 int foil_wsp_destroy_widget(void *workspace, void *session,
-        void *window, void *widget, wsp_widget_type_t type)
+        void *window, void *widget, foil_widget_type_t type)
 {
     (void)window;
     switch (type) {
@@ -184,8 +218,8 @@ int foil_wsp_destroy_widget(void *workspace, void *session,
 }
 
 void foil_wsp_update_widget(void *workspace, void *session,
-        void *widget, wsp_widget_type_t type,
-        const struct wsp_widget_info *style)
+        void *widget, foil_widget_type_t type,
+        const struct foil_widget_info *style)
 {
     (void)workspace;
     (void)session;

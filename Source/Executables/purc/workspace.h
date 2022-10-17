@@ -27,74 +27,12 @@
 #define purc_foil_workspace_h
 
 #include "foil.h"
-
-struct purcth_page {
-    int left, top;
-    int rows, cols;
-    purcth_udom *udom;
-};
-
-typedef enum {
-    WSP_WIDGET_TYPE_NONE  = 0,       /* not-existing */
-    WSP_WIDGET_TYPE_PLAINWINDOW,     /* a plain main window */
-    WSP_WIDGET_TYPE_TABBEDWINDOW,    /* a tabbed main window */
-    WSP_WIDGET_TYPE_CONTAINER,       /* A layout container widget */
-    WSP_WIDGET_TYPE_PANEHOST,        /* the container of paned pages */
-    WSP_WIDGET_TYPE_TABHOST,         /* the container of tabbed pages */
-    WSP_WIDGET_TYPE_PANEDPAGE,       /* a paned page */
-    WSP_WIDGET_TYPE_TABBEDPAGE,      /* a tabbed page */
-} wsp_widget_type_t;
-
-struct wsp_widget {
-    struct wsp_widget  *parent;
-    struct wsp_widget  *first;
-    struct wsp_widget  *last;
-
-    struct wsp_widget  *prev;
-    struct wsp_widget  *next;
-
-    wsp_widget_type_t   type;
-    foil_rect           rect;
-
-    char               *name;
-    char               *title;
-
-    purcth_page         page;
-};
-
-#define WSP_WIDGET_FLAG_NAME      0x00000001
-#define WSP_WIDGET_FLAG_TITLE     0x00000002
-#define WSP_WIDGET_FLAG_GEOMETRY  0x00000004
-#define WSP_WIDGET_FLAG_TOOLKIT   0x00000008
-
-struct wsp_widget_info {
-    unsigned int flags;
-
-    const char *name;
-    const char *title;
-    const char *klass;
-
-    /* geometry */
-    int         x, y;
-    unsigned    w, h;
-
-    /* other styles */
-    const char *backgroundColor;
-    bool        darkMode;
-    bool        fullScreen;
-    bool        withToolbar;
-
-#if 0
-    int         ml, mt, mr, mb; /* margins */
-    int         pl, pt, pr, pb; /* paddings */
-    float       bl, bt, br, bb; /* borders */
-    float       brlt, brtr, brrb, brbl; /* border radius */
-
-    float       opacity;
-#endif
-};
+#include "widget.h"
 
 struct purcth_workspace {
+    /* the root window in the workspace */
+    struct foil_widget *root;
+
     /* TODO: manager of grouped plain windows and pages */
     void *layouter;
 };
@@ -113,18 +51,18 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
         purcth_endpoint* endpoint);
 
 void foil_wsp_convert_style(void *workspace, void *session,
-        struct wsp_widget_info *style, purc_variant_t toolkit_style);
+        struct foil_widget_info *style, purc_variant_t toolkit_style);
 
 void *foil_wsp_create_widget(void *workspace, void *session,
-        wsp_widget_type_t type, void *window,
-        void *parent, void *init_arg, const struct wsp_widget_info *style);
+        foil_widget_type_t type, void *window,
+        void *parent, void *init_arg, const struct foil_widget_info *style);
 
 int foil_wsp_destroy_widget(void *workspace, void *session,
-        void *window, void *widget, wsp_widget_type_t type);
+        void *window, void *widget, foil_widget_type_t type);
 
 void foil_wsp_update_widget(void *workspace, void *session,
-        void *widget, wsp_widget_type_t type,
-        const struct wsp_widget_info *style);
+        void *widget, foil_widget_type_t type,
+        const struct foil_widget_info *style);
 
 purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
         purcth_page *page, purc_variant_t edom, int *retv);

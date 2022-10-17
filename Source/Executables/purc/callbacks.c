@@ -147,7 +147,7 @@ static purcth_page *foil_create_plainwin(purcth_session *sess,
             goto done;
         }
 
-        struct wsp_widget_info style = { };
+        struct foil_widget_info style = { };
         style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
         style.name = name;
         style.title = title;
@@ -221,7 +221,7 @@ foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
         return PCRDR_SC_NOT_ACCEPTABLE;
     }
     else if (strcmp(property, "title") == 0) {
-        struct wsp_widget_info info = { };
+        struct foil_widget_info info = { };
 
         info.title = purc_variant_get_string_const(value);
         if (info.title) {
