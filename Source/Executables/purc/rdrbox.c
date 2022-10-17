@@ -217,6 +217,30 @@ void foil_rdrbox_delete_deep(foil_rdrbox *root)
     }
 }
 
+static const char *display_values[] = {
+    "INHERIT",
+    "INLINE",
+    "BLOCK",
+    "LIST_ITEM",
+    "RUN_IN",
+    "INLINE_BLOCK",
+    "TABLE",
+    "INLINE_TABLE",
+    "TABLE_ROW_GROUP",
+    "TABLE_HEADER_GROUP",
+    "TABLE_FOOTER_GROUP",
+    "TABLE_ROW",
+    "TABLE_COLUMN_GROUP",
+    "TABLE_COLUMN",
+    "TABLE_CELL",
+    "TABLE_CAPTION",
+    "NONE",
+    "FLEX",
+    "INLINE_FLEX",
+    "GRID",
+    "INLINE_GRID",
+};
+
 foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
@@ -236,7 +260,7 @@ foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
     uint8_t display = css_computed_display(
             result->styles[CSS_PSEUDO_ELEMENT_NONE],
             pcdoc_node_get_parent(ctxt->doc, node) == NULL);
-    purc_log_info("\tdisplay: %x\n", display);
+    purc_log_info("\tdisplay: %s\n", display_values[display]);
 
     uint8_t color_type;
     css_color color_argb;
@@ -246,7 +270,7 @@ foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
     if (color_type == CSS_COLOR_INHERIT)
         purc_log_info("\tcolor: 'inherit'\n");
     else
-        purc_log_info("\tcolor: 0x%0x\n", color_argb);
+        purc_log_info("\tcolor: 0x%08x\n", color_argb);
 
     free(my_name);
     return NULL;

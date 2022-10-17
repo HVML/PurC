@@ -191,13 +191,12 @@ void *foil_wsp_create_widget(void *workspace, void *session,
 
 static int
 destroy_plainwin(purcth_workspace *workspace, purcth_session *sess,
-        purcth_page *plain_win)
+        foil_widget *plainwin)
 {
     (void)workspace;
     (void)sess;
-    (void)plain_win;
 
-    /* TODO */
+    foil_widget_delete(plainwin);
     return PCRDR_SC_OK;
 }
 

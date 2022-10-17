@@ -39,7 +39,7 @@
 
 #define FOIL_RDR_NAME           "Foil"
 
-#define FOIL_DEF_CHARSET        "utf-8"
+#define FOIL_DEF_CHARSET        "UTF-8"
 #define FOIL_PX_PER_EM          8
 #define FOIL_PX_PER_EX          4
 

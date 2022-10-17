@@ -921,6 +921,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     if (stack->co->target_page_handle == 0) {
         return true;
     }
+
     int ret_code;
     pcrdr_msg *response_msg = NULL;
 
@@ -932,8 +933,6 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = doc->def_text_type;// VW
     purc_variant_t req_data = PURC_VARIANT_INVALID;
-
-    unsigned opt = 0;
     purc_rwstream_t out = NULL;
 
     switch (stack->co->target_page_type) {
@@ -967,6 +966,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
                 PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
     }
     else {
+        unsigned opt = 0;
 
         out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
         if (out == NULL) {
@@ -1004,6 +1004,11 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
                     inst->conn_to_rdr, target, target_value, operation,
                     element_type, NULL, NULL, data_type, req_data, 0);
         }
+
+        if (out) {
+            purc_rwstream_destroy(out);
+            out = NULL;
+        }
     }
 
     if (response_msg == NULL) {
@@ -1016,10 +1021,6 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     }
 
     pcrdr_release_message(response_msg);
-
-
-    purc_rwstream_destroy(out);
-    out = NULL;
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);

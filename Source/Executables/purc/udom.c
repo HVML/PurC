@@ -177,10 +177,10 @@ int foil_udom_module_init(purcth_renderer *rdr)
     params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
     params.level = CSS_LEVEL_DEFAULT;
     params.charset = FOIL_DEF_CHARSET;
+    params.url = "foo";
+    params.title = "foo";
     params.resolve = resolve_url;
 #if 0
-    params.url = NULL;
-    params.title = NULL;
     params.allow_quirks = false;
     params.inline_style = false;
     params.resolve_pw = NULL;
@@ -200,7 +200,7 @@ int foil_udom_module_init(purcth_renderer *rdr)
 
     err = css_stylesheet_append_data(def_ua_sheet,
             (const unsigned char *)def_style_sheet, strlen(def_style_sheet));
-    if (err != CSS_OK) {
+    if (err != CSS_OK && err != CSS_NEEDDATA ) {
         LOG_ERROR("Failed to append data to UA style sheet: %d\n", err);
         css_stylesheet_destroy(def_ua_sheet);
         return -1;
@@ -391,6 +391,8 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         params.level = CSS_LEVEL_DEFAULT;
         params.charset = FOIL_DEF_CHARSET;
         params.inline_style = true;
+        params.url = "foo";
+        params.title = "foo";
         params.resolve = resolve_url;
 #if 0
         params.url = NULL;
@@ -427,7 +429,7 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
     /* Select style for node */
     css_select_results *result = NULL;
     err = css_select_style(select_ctx, element, media, inline_sheet,
-            &foil_css_select_handler, NULL, &result);
+            &foil_css_select_handler, doc, &result);
     if (err != CSS_OK || result == NULL) {
         goto failed;
     }
@@ -540,6 +542,9 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
         params.level = CSS_LEVEL_DEFAULT;
         params.charset = FOIL_DEF_CHARSET;
+        params.url = "foo";
+        params.title = "foo";
+        params.resolve = resolve_url;
 
         err = css_stylesheet_create(&params, &udom->author_sheet);
         if (err != CSS_OK) {

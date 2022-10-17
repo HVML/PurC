@@ -306,8 +306,7 @@ foil_load_edom(purcth_session *sess, purcth_page *page, purc_variant_t edom,
             page, edom, retv);
 
     if (udom) {
-        sorted_array_add(sess->all_handles, PTR2U64(udom),
-                INT2PTR(HT_UDOM));
+        sorted_array_add(sess->all_handles, PTR2U64(udom), INT2PTR(HT_UDOM));
         *retv = PCRDR_SC_OK;
     }
     else

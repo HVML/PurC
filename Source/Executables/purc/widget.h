@@ -136,8 +136,8 @@ void foil_widget_insert_before(foil_widget *to, foil_widget *widget);
 void foil_widget_insert_after(foil_widget *to, foil_widget *widget);
 void foil_widget_remove_from_tree(foil_widget *widget);
 
-void foil_widget_delete(foil_widget *box);
-void foil_widget_delete_deep(foil_widget *root);
+void foil_widget_delete(foil_widget *widget);
+void foil_widget_delete_deep(foil_widget *widget);
 
 
 #ifdef __cplusplus
