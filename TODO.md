@@ -102,8 +102,9 @@
    - The element `update`: support for `from`, `with`, and `via` attributes.
 1. [0.9.0; Resolved] Support for the equivalence of the context variable `<`: `~`.
 1. [0.9.0] Support for the equivalences and/or abbreviations of some adverb attributes.
-1. [0.9.0; Resolved] Support for the new prepostion attribute: `idd-by`.
+1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.2] Full support for `request` element.
 1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
