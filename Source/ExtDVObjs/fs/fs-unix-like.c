@@ -3431,7 +3431,7 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (0 == closedir(dirp))
         ret_var = purc_variant_make_boolean (true);
     else {
-        purc_set_error (PURC_ERROR_SYSTEM_FAULT);
+        purc_set_error (PURC_ERROR_SYS_FAULT);
         goto failed;
     }
 

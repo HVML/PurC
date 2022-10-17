@@ -522,8 +522,7 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
     if (filestat.st_size == 0) {
-        purc_set_error (PURC_ERROR_NO_DATA);
-        goto failed;
+        goto empty;
     }
 
     if (argv[1] != PURC_VARIANT_INVALID)
@@ -561,6 +560,9 @@ bin_head_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     fclose (fp);
     return ret_var;
+
+empty:
+    return purc_variant_make_byte_sequence_empty();
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -608,8 +610,7 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
     if (filestat.st_size == 0) {
-        purc_set_error (PURC_ERROR_NO_DATA);
-        goto failed;
+        goto empty;
     }
 
     if (argv[1] != NULL)
@@ -649,6 +650,9 @@ bin_tail_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     fclose (fp);
     return ret_var;
+
+empty:
+    return purc_variant_make_byte_sequence_empty();
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
