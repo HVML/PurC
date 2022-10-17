@@ -30,6 +30,10 @@
 
 #include <csseng/csseng.h>
 
+/* The rendered box */
+struct foil_rdrbox;
+typedef struct foil_rdrbox foil_rdrbox;
+
 typedef enum {
     PCTH_RDR_BOX_TYPE_INLINE,
     PCTH_RDR_BOX_TYPE_BLOCK,
@@ -42,13 +46,13 @@ struct _block_box_data;
 struct _inline_block_data;
 struct _marker_box_data;
 
-struct purcth_rdrbox {
-    struct purcth_rdrbox* parent;
-    struct purcth_rdrbox* first;
-    struct purcth_rdrbox* last;
+struct foil_rdrbox {
+    struct foil_rdrbox* parent;
+    struct foil_rdrbox* first;
+    struct foil_rdrbox* last;
 
-    struct purcth_rdrbox* prev;
-    struct purcth_rdrbox* next;
+    struct foil_rdrbox* prev;
+    struct foil_rdrbox* next;
 
     /* type of box */
     pcth_rdrbox_type_k type;
@@ -75,7 +79,7 @@ struct purcth_rendering_ctxt {
     purcth_udom *udom;
 
     /* the current containing block */
-    struct purcth_rdrbox *current_cblock;
+    struct foil_rdrbox *current_cblock;
 };
 
 #ifdef __cplusplus
@@ -85,18 +89,18 @@ extern "C" {
 int foil_rdrbox_module_init(void);
 void foil_rdrbox_module_cleanup(void);
 
-purcth_rdrbox *foil_rdrbox_new_block(void);
+foil_rdrbox *foil_rdrbox_new_block(void);
 
-void foil_rdrbox_append_child(purcth_rdrbox *to, purcth_rdrbox *node);
-void foil_rdrbox_prepend_child(purcth_rdrbox *to, purcth_rdrbox *node);
-void foil_rdrbox_insert_before(purcth_rdrbox *to, purcth_rdrbox *node);
-void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *node);
-void foil_rdrbox_remove_from_tree(purcth_rdrbox *node);
+void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *node);
+void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *node);
+void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *node);
+void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *node);
+void foil_rdrbox_remove_from_tree(foil_rdrbox *node);
 
-void foil_rdrbox_delete(purcth_rdrbox *box);
-void foil_rdrbox_delete_deep(purcth_rdrbox *root);
+void foil_rdrbox_delete(foil_rdrbox *box);
+void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-purcth_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
         pcdoc_element_t element, css_select_results *result);
 
 #ifdef __cplusplus

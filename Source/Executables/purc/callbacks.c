@@ -351,7 +351,7 @@ static int foil_update_udom(purcth_session *sess, purcth_udom *udom,
         goto failed;
     }
 
-    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
         retv = PCRDR_SC_NOT_FOUND;
         goto failed;
@@ -379,7 +379,7 @@ foil_call_method_in_udom(purcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
-    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
         *retv = PCRDR_SC_NOT_FOUND;
         return PURC_VARIANT_INVALID;
@@ -407,7 +407,7 @@ foil_get_property_in_udom(purcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
-    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
         *retv = PCRDR_SC_NOT_FOUND;
         return PURC_VARIANT_INVALID;
@@ -441,7 +441,7 @@ foil_set_property_in_udom(purcth_session *sess,
         return PURC_VARIANT_INVALID;
     }
 
-    purcth_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
+    foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
         *retv = PCRDR_SC_NOT_FOUND;
         return PURC_VARIANT_INVALID;

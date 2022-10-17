@@ -72,9 +72,9 @@ void foil_rdrbox_module_cleanup(void)
 {
 }
 
-purcth_rdrbox *foil_rdrbox_new_block(void)
+foil_rdrbox *foil_rdrbox_new_block(void)
 {
-    purcth_rdrbox *box = calloc(1, sizeof(*box));
+    foil_rdrbox *box = calloc(1, sizeof(*box));
 
     if (box) {
         box->type = PCTH_RDR_BOX_TYPE_BLOCK;
@@ -88,7 +88,7 @@ purcth_rdrbox *foil_rdrbox_new_block(void)
     return box;
 }
 
-void foil_rdrbox_append_child(purcth_rdrbox *to, purcth_rdrbox *box)
+void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box)
 {
     if (to->last != NULL) {
         to->last->next = box;
@@ -104,7 +104,7 @@ void foil_rdrbox_append_child(purcth_rdrbox *to, purcth_rdrbox *box)
     to->last = box;
 }
 
-void foil_rdrbox_prepend_child(purcth_rdrbox *to, purcth_rdrbox *box)
+void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box)
 {
     if (to->first != NULL) {
         to->first->prev = box;
@@ -120,7 +120,7 @@ void foil_rdrbox_prepend_child(purcth_rdrbox *to, purcth_rdrbox *box)
     to->first = box;
 }
 
-void foil_rdrbox_insert_before(purcth_rdrbox *to, purcth_rdrbox *box)
+void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box)
 {
     if (to->prev != NULL) {
         to->prev->next = box;
@@ -138,7 +138,7 @@ void foil_rdrbox_insert_before(purcth_rdrbox *to, purcth_rdrbox *box)
     to->prev = box;
 }
 
-void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *box)
+void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box)
 {
     if (to->next != NULL) {
         to->next->prev = box;
@@ -155,7 +155,7 @@ void foil_rdrbox_insert_after(purcth_rdrbox *to, purcth_rdrbox *box)
     to->next = box;
 }
 
-void foil_rdrbox_remove_from_tree(purcth_rdrbox *box)
+void foil_rdrbox_remove_from_tree(foil_rdrbox *box)
 {
     if (box->parent != NULL) {
         if (box->parent->first == box) {
@@ -180,17 +180,17 @@ void foil_rdrbox_remove_from_tree(purcth_rdrbox *box)
     box->prev = NULL;
 }
 
-void foil_rdrbox_delete(purcth_rdrbox *box)
+void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
     free(box->data);
     free(box);
 }
 
-void foil_rdrbox_delete_deep(purcth_rdrbox *root)
+void foil_rdrbox_delete_deep(foil_rdrbox *root)
 {
-    purcth_rdrbox *tmp;
-    purcth_rdrbox *box = root;
+    foil_rdrbox *tmp;
+    foil_rdrbox *box = root;
 
     while (box) {
         if (box->first) {
@@ -215,7 +215,7 @@ void foil_rdrbox_delete_deep(purcth_rdrbox *root)
     }
 }
 
-purcth_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };

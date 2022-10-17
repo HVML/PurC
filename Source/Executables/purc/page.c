@@ -24,13 +24,9 @@
 */
 
 #include "page.h"
+#include "workspace.h"
 
 #include <assert.h>
-
-struct purcth_page {
-    int rows, cols;
-    purcth_udom *udom;
-};
 
 int foil_page_module_init(void)
 {

@@ -26,6 +26,14 @@
 #ifndef purc_foil_workspace_h
 #define purc_foil_workspace_h
 
+#include "foil.h"
+
+struct purcth_page {
+    int left, top;
+    int rows, cols;
+    purcth_udom *udom;
+};
+
 typedef enum {
     WSP_WIDGET_TYPE_NONE  = 0,       /* not-existing */
     WSP_WIDGET_TYPE_PLAINWINDOW,     /* a plain main window */
@@ -36,6 +44,23 @@ typedef enum {
     WSP_WIDGET_TYPE_PANEDPAGE,       /* a paned page */
     WSP_WIDGET_TYPE_TABBEDPAGE,      /* a tabbed page */
 } wsp_widget_type_t;
+
+struct wsp_widget {
+    struct wsp_widget  *parent;
+    struct wsp_widget  *first;
+    struct wsp_widget  *last;
+
+    struct wsp_widget  *prev;
+    struct wsp_widget  *next;
+
+    wsp_widget_type_t   type;
+    foil_rect           rect;
+
+    char               *name;
+    char               *title;
+
+    purcth_page         page;
+};
 
 #define WSP_WIDGET_FLAG_NAME      0x00000001
 #define WSP_WIDGET_FLAG_TITLE     0x00000002
