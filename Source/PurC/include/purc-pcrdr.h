@@ -665,6 +665,7 @@ typedef enum
 struct pcrdr_msg
 {
     purc_atom_t             __owner;
+    purc_atom_t             __origin;
     void                   *__padding1; // reserved for struct list_head
     void                   *__padding2; // reserved for struct list_head
 

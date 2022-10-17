@@ -200,6 +200,10 @@ int pcrdr_disconnect(pcrdr_conn* conn)
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
     if (msg) {
+        if (conn->type == CT_MOVE_BUFFER) {
+            msg->sourceURI = purc_variant_make_string(
+                    purc_get_endpoint(NULL), false);
+        }
         pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
         pcrdr_release_message(msg);
     }

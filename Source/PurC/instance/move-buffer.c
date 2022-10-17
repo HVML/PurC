@@ -61,6 +61,7 @@ struct pcinst_move_buffer {
 /* the header of the struct pcrdr_msg */
 struct pcrdr_msg_hdr {
     atomic_uint             owner;
+    purc_atom_t             origin;
     struct list_head        ln;
 };
 
@@ -329,6 +330,7 @@ do_move_message(struct pcinst* inst, pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
 
     if (atomic_compare_exchange_strong(&hdr->owner, &inst->endpoint_atom, 0)) {
+        hdr->origin = inst->endpoint_atom;
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])
