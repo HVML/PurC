@@ -535,7 +535,7 @@ PCA_EXPORT int
 pcdoc_element_has_class(purc_document_t doc, pcdoc_element_t elem,
         const char *klass, bool *found);
 
-typedef int (*pcdoc_attribute_cb)(pcdoc_attr_t attr,
+typedef int (*pcdoc_attribute_cb)(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt);
 
@@ -554,8 +554,8 @@ typedef int (*pcdoc_attribute_cb)(pcdoc_attr_t attr,
  * Since: 0.9.0
  */
 PCA_EXPORT int
-pcdoc_element_travel_attributes(purc_document_t doc,
-        pcdoc_element_t element, pcdoc_attribute_cb cb, void *ctxt, size_t *n);
+pcdoc_element_travel_attributes(purc_document_t doc, pcdoc_element_t element,
+        pcdoc_attribute_cb cb, void *ctxt, size_t *n);
 
 /**
  * Get the first attribute of the specified element.

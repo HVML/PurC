@@ -540,10 +540,11 @@ struct attr_to_match {
     bool matched;
 };
 
-static int attr_equal_cb(pcdoc_attr_t attr,
+static int attr_equal_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 
@@ -597,10 +598,11 @@ node_has_attribute_equal(void *pw, void *n, const css_qname *qname,
     return CSS_OK;
 }
 
-static int attr_dashmatch_cb(pcdoc_attr_t attr,
+static int attr_dashmatch_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 
@@ -660,10 +662,11 @@ node_has_attribute_dashmatch(void *pw, void *n, const css_qname *qname,
     return CSS_OK;
 }
 
-static int attr_includes_cb(pcdoc_attr_t attr,
+static int attr_includes_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 
@@ -731,10 +734,11 @@ node_has_attribute_includes(void *pw, void *n, const css_qname *qname,
     return CSS_OK;
 }
 
-static int attr_prefix_cb(pcdoc_attr_t attr,
+static int attr_prefix_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 
@@ -789,10 +793,11 @@ node_has_attribute_prefix(void *pw, void *n, const css_qname *qname,
     return CSS_OK;
 }
 
-static int attr_suffix_cb(pcdoc_attr_t attr,
+static int attr_suffix_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 
@@ -850,10 +855,11 @@ node_has_attribute_suffix(void *pw, void *n, const css_qname *qname,
     return CSS_OK;
 }
 
-static int attr_substring_cb(pcdoc_attr_t attr,
+static int attr_substring_cb(purc_document_t doc, pcdoc_attr_t attr,
         const char *name, size_t name_len,
         const char *value, size_t value_len, void *ctxt)
 {
+    (void)doc;
     (void)attr;
     struct attr_to_match *to_match = ctxt;
 

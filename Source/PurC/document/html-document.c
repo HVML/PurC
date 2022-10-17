@@ -783,8 +783,6 @@ travel_attrs(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_attribute_cb cb,
         struct pcdoc_travel_attrs_info *info)
 {
-    UNUSED_PARAM(doc);
-
     pcdom_element_t *dom_elem = pcdom_interface_element(elem);
     pcdom_attr_t *attr = pcdom_element_first_attribute(dom_elem);
 
@@ -797,8 +795,8 @@ travel_attrs(purc_document_t doc,
         name = (const char *)pcdom_attr_local_name(attr, &name_len);
         value = (const char *)pcdom_attr_value(attr, &value_len);
 
-        int r = cb((pcdoc_attr_t)attr, name, name_len, value, value_len,
-                    info->ctxt);
+        int r = cb(doc, (pcdoc_attr_t)attr,
+                name, name_len, value, value_len, info->ctxt);
         info->nr++;
         if (r)
             return -1;
