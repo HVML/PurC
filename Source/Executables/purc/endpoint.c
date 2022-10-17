@@ -260,6 +260,7 @@ static int on_start_session(purcth_renderer* rdr, purcth_endpoint* endpoint,
         retv = PCRDR_SC_INSUFFICIENT_STORAGE;
     }
     else {
+        retv = PCRDR_SC_OK;
         endpoint->session = info;
     }
 
@@ -766,7 +767,7 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_create_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_create_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -774,7 +775,7 @@ static int on_create_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
     purcth_workspace* workspace = NULL;
     purcth_page* page = NULL;
 
-    if (rdr->cbs.create_page == NULL) {
+    if (rdr->cbs.create_widget == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
         goto failed;
     }
@@ -832,7 +833,7 @@ static int on_create_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
 
     toolkit_style = purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
 
-    page = rdr->cbs.create_page(endpoint->session, workspace,
+    page = rdr->cbs.create_widget(endpoint->session, workspace,
             gid, name, class, title, layout_style,
             toolkit_style, &retv);
 
@@ -847,7 +848,7 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_update_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_update_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -855,7 +856,7 @@ static int on_update_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
     purcth_page *page = NULL;
     pcrdr_msg response = { };
 
-    if (rdr->cbs.create_page == NULL || rdr->cbs.update_page == NULL) {
+    if (rdr->cbs.create_widget == NULL || rdr->cbs.update_widget == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
         goto failed;
     }
@@ -894,7 +895,7 @@ static int on_update_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
         goto failed;
     }
 
-    retv = rdr->cbs.update_page(endpoint->session, workspace,
+    retv = rdr->cbs.update_widget(endpoint->session, workspace,
             page, property, msg->data);
 
 failed:
@@ -908,7 +909,7 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_destroy_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_destroy_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -916,7 +917,7 @@ static int on_destroy_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
     purcth_page *page = NULL;
     pcrdr_msg response = { };
 
-    if (rdr->cbs.create_page == NULL || rdr->cbs.destroy_page == NULL) {
+    if (rdr->cbs.create_widget == NULL || rdr->cbs.destroy_widget == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
         goto failed;
     }
@@ -946,7 +947,7 @@ static int on_destroy_page(purcth_renderer* rdr, purcth_endpoint* endpoint,
         goto failed;
     }
 
-    retv = rdr->cbs.destroy_page(endpoint->session, workspace, page);
+    retv = rdr->cbs.destroy_widget(endpoint->session, workspace, page);
 
 failed:
     response.type = PCRDR_MSG_TYPE_RESPONSE;
@@ -1407,10 +1408,10 @@ static struct request_handler {
     { PCRDR_OPERATION_CALLMETHOD, on_call_method },
     { PCRDR_OPERATION_CLEAR, on_clear },
     { PCRDR_OPERATION_CREATEPLAINWINDOW, on_create_plain_window },
-    { PCRDR_OPERATION_CREATEWIDGET, on_create_page },
+    { PCRDR_OPERATION_CREATEWIDGET, on_create_widget },
     { PCRDR_OPERATION_CREATEWORKSPACE, on_create_workspace },
     { PCRDR_OPERATION_DESTROYPLAINWINDOW, on_destroy_plain_window },
-    { PCRDR_OPERATION_DESTROYWIDGET, on_destroy_page },
+    { PCRDR_OPERATION_DESTROYWIDGET, on_destroy_widget },
     { PCRDR_OPERATION_DESTROYWORKSPACE, on_destroy_workspace },
     { PCRDR_OPERATION_DISPLACE, on_displace },
     { PCRDR_OPERATION_ENDSESSION, on_end_session },
@@ -1426,7 +1427,7 @@ static struct request_handler {
     { PCRDR_OPERATION_STARTSESSION, on_start_session },
     { PCRDR_OPERATION_UPDATE, on_update },
     { PCRDR_OPERATION_UPDATEPLAINWINDOW, on_update_plain_window },
-    { PCRDR_OPERATION_UPDATEWIDGET, on_update_page },
+    { PCRDR_OPERATION_UPDATEWIDGET, on_update_widget },
     { PCRDR_OPERATION_UPDATEWORKSPACE, on_update_workspace },
     { PCRDR_OPERATION_WRITEBEGIN, NULL },
     { PCRDR_OPERATION_WRITEEND, NULL },
@@ -1478,7 +1479,7 @@ int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
         request_handler handler = find_request_handler(
                 purc_variant_get_string_const(msg->operation));
 
-        purc_log_info("Got a request message: %s (handler: %p)\n",
+        purc_log_debug("Got a request message: %s (handler: %p)\n",
                 purc_variant_get_string_const(msg->operation), handler);
 
         if (handler == NOT_FOUND_HANDLER) {
@@ -1509,12 +1510,12 @@ int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
     }
     else if (msg->type == PCRDR_MSG_TYPE_EVENT) {
         // TODO
-        purc_log_info("Got an event message: %s\n",
+        purc_log_warn("Got an event message: %s\n",
                 purc_variant_get_string_const(msg->eventName));
     }
     else {
         // TODO
-        purc_log_info("Got an unknown message: %d\n", msg->type);
+        purc_log_warn("Got an unknown message: %d\n", msg->type);
     }
 
     return PCRDR_SC_OK;

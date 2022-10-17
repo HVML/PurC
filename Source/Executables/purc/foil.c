@@ -76,15 +76,16 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
 {
     const char *operation =
         purc_variant_get_string_const(msg->operation);
-    const char *source_uri =
-        purc_variant_get_string_const(msg->sourceURI);
+    const char *origin_edpt = purc_atom_to_string(msg->__origin);
 
-    if (UNLIKELY(operation == NULL || source_uri == NULL)) {
+    if (UNLIKELY(operation == NULL || origin_edpt == NULL)) {
+        purc_log_error("Bad operation or source URI in message: %s, %s\n",
+                operation, origin_edpt);
         purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
     }
     else {
         if (strcmp(operation, PCRDR_THREAD_OPERATION_HELLO) == 0) {
-            purcth_endpoint *edpt = new_endpoint(rdr, source_uri);
+            purcth_endpoint *edpt = new_endpoint(rdr, origin_edpt);
             if (edpt) {
                 send_initial_response(rdr, edpt);
                 if (rdr->nr_endpoints == 0) {
@@ -92,17 +93,17 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
                 }
             }
             else {
-                purc_log_warn("Cannot create endpoint for %s.\n", source_uri);
+                purc_log_warn("Cannot create endpoint for %s.\n", origin_edpt);
             }
         }
         else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
-            purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
+            purcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
             if (edpt) {
                 del_endpoint(rdr, edpt, CDE_EXITING);
             }
             else {
                 purc_set_error(PCRDR_ERROR_PROTOCOL);
-                purc_log_warn("Bye request from unknown endpoint: %s.\n", source_uri);
+                purc_log_warn("Bye request from unknown endpoint: %s.\n", origin_edpt);
             }
         }
         else {
@@ -156,13 +157,16 @@ static void event_loop(purcth_renderer *rdr)
             }
         }
         else {
-            const char *source_uri =
-                purc_variant_get_string_const(msg->sourceURI);
-            if (source_uri == NULL) {
+            const char *origin_edpt = purc_atom_to_string(msg->__origin);
+            if (origin_edpt == NULL) {
+                const char *operation =
+                    purc_variant_get_string_const(msg->operation);
+                purc_log_error("Bad endpoint in message: %d (%s)\n",
+                        msg->type, operation);
                 purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
             }
             else {
-                purcth_endpoint *edpt = retrieve_endpoint(rdr, source_uri);
+                purcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
                 if (edpt) {
                     update_endpoint_living_time(rdr, edpt);
                     on_endpoint_message(rdr, edpt, msg);
@@ -205,7 +209,7 @@ static void* foil_thread_entry(void* arg)
                 PCINST_MOVE_BUFFER_FLAG_NONE, 16);
     }
 
-    purc_enable_log(true, true);
+    purc_enable_log(false, false);
 
     sem_post(sw);
 
@@ -241,7 +245,7 @@ purc_atom_t foil_init(const char *rdr_uri)
     }
 
     char run_name[PURC_LEN_RUNNER_NAME + 1];
-    if (purc_extract_runner_name(rdr_uri, app_name) == 0) {
+    if (purc_extract_runner_name(rdr_uri, run_name) == 0) {
         purc_log_error("bad renderer URI: %s\n", rdr_uri);
         return 0;
     }

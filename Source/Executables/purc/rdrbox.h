@@ -28,9 +28,7 @@
 
 #include "foil.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <csseng/csseng.h>
 
 typedef enum {
     PCTH_RDR_BOX_TYPE_INLINE,
@@ -71,6 +69,19 @@ struct purcth_rdrbox {
     };
 };
 
+struct purcth_rendering_ctxt {
+    purc_document_t doc;
+
+    purcth_udom *udom;
+
+    /* the current containing block */
+    struct purcth_rdrbox *current_cblock;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int foil_rdrbox_module_init(void);
 void foil_rdrbox_module_cleanup(void);
 
@@ -84,6 +95,9 @@ void foil_rdrbox_remove_from_tree(purcth_rdrbox *node);
 
 void foil_rdrbox_delete(purcth_rdrbox *box);
 void foil_rdrbox_delete_deep(purcth_rdrbox *root);
+
+purcth_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+        pcdoc_element_t element, css_select_results *result);
 
 #ifdef __cplusplus
 }

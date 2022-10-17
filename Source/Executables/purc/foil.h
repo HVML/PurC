@@ -134,15 +134,15 @@ typedef struct purcth_rdr_cbs {
             purcth_page *win);
 
     /* nullable */
-    purcth_page *(*create_page)(purcth_session *, purcth_workspace *,
+    purcth_page *(*create_widget)(purcth_session *, purcth_workspace *,
             const char *gid, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
-    /* null if create_page is null */
-    int (*update_page)(purcth_session *, purcth_workspace *,
+    /* null if create_widget is null */
+    int (*update_widget)(purcth_session *, purcth_workspace *,
             purcth_page *page, const char *property, purc_variant_t value);
-    /* null if create_page is null */
-    int (*destroy_page)(purcth_session *, purcth_workspace *,
+    /* null if create_widget is null */
+    int (*destroy_widget)(purcth_session *, purcth_workspace *,
             purcth_page *page);
 
     /* no write method */

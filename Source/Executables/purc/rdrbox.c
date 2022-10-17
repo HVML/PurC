@@ -215,3 +215,38 @@ void foil_rdrbox_delete_deep(purcth_rdrbox *root)
     }
 }
 
+purcth_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+        pcdoc_element_t elem, css_select_results *result)
+{
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };
+
+    const char *tag_name = NULL;
+    size_t len;
+    char *my_name;
+
+    pcdoc_element_get_tag_name(ctxt->doc, elem, &tag_name, &len,
+            NULL, NULL, NULL, NULL);
+    assert(tag_name != NULL && len > 0);
+    my_name = strndup(tag_name, len);
+
+    purc_log_info("Styles of element (%s):\n", my_name);
+
+    uint8_t display = css_computed_display(
+            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            pcdoc_node_get_parent(ctxt->doc, node) == NULL);
+    purc_log_info("\tdisplay: %x\n", display);
+
+    uint8_t color_type;
+    css_color color_argb;
+    color_type = css_computed_color(
+            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &color_argb);
+    if (color_type == CSS_COLOR_INHERIT)
+        purc_log_info("\tcolor: 'inherit'\n");
+    else
+        purc_log_info("\tcolor: 0x%0x\n", color_argb);
+
+    free(my_name);
+    return NULL;
+}
+

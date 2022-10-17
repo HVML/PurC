@@ -30,7 +30,6 @@
 #include "util/list.h"
 
 #include <assert.h>
-#include <csseng/csseng.h>
 
 typedef enum {
     PCTH_RDR_ALIGN_LEFT,
@@ -154,6 +153,18 @@ static const char *def_style_sheet = ""
     "*[DIR=\"rtl\"]    { direction: rtl; unicode-bidi: embed }"
 ;
 
+static css_error resolve_url(void *pw,
+        const char *base, lwc_string *rel, lwc_string **abs)
+{
+    (void)pw;
+    (void)base;
+
+    /* About as useless as possible */
+    *abs = lwc_string_ref(rel);
+
+    return CSS_OK;
+}
+
 int foil_udom_module_init(void)
 {
     css_stylesheet_params params;
@@ -163,12 +174,12 @@ int foil_udom_module_init(void)
     params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
     params.level = CSS_LEVEL_DEFAULT;
     params.charset = FOIL_DEF_CHARSET;
+    params.resolve = resolve_url;
 #if 0
     params.url = NULL;
     params.title = NULL;
     params.allow_quirks = false;
     params.inline_style = false;
-    params.resolve = NULL;
     params.resolve_pw = NULL;
     params.import = NULL;
     params.import_pw = NULL;
@@ -352,13 +363,6 @@ static int append_style_walker(purc_document_t doc,
     return 0;
 }
 
-struct rendering_ctxt {
-    purcth_udom *udom;
-
-    /* the current containing block */
-    struct purcth_rdrbox *current_cblock;
-};
-
 #define ATTR_NAME_STYLE     "style"
 
 extern css_select_handler foil_css_select_handler;
@@ -382,11 +386,11 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         params.level = CSS_LEVEL_DEFAULT;
         params.charset = FOIL_DEF_CHARSET;
         params.inline_style = true;
+        params.resolve = resolve_url;
 #if 0
         params.url = NULL;
         params.title = NULL;
         params.allow_quirks = false;
-        params.resolve = NULL;
         params.resolve_pw = NULL;
         params.import = NULL;
         params.import_pw = NULL;
@@ -475,27 +479,17 @@ failed:
     return NULL;
 }
 
-static purcth_rdrbox *
-create_rdrbox(struct rendering_ctxt *ctxt, pcdoc_element_t element,
-        css_select_results *result)
-{
-    (void)ctxt;
-    (void)element;
-    (void)result;
-
-    return NULL;
-}
-
 static int udom_maker(purc_document_t doc,
         pcdoc_element_t element, void *ctxt)
 {
-    struct rendering_ctxt *my_ctxt = ctxt;
+    struct purcth_rendering_ctxt *my_ctxt = ctxt;
 
     css_select_results *result;
     result = select_element_style(&my_ctxt->udom->media,
             my_ctxt->udom->select_ctx, doc, element);
     if (result) {
-        create_rdrbox(my_ctxt, element, result);
+        foil_create_rdrbox(my_ctxt, element, result);
+        css_select_results_destroy(result);
     }
 
     return 0;
@@ -570,7 +564,8 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    struct rendering_ctxt ctxt = { udom, udom->initial_cblock };
+    struct purcth_rendering_ctxt ctxt = { edom_doc, udom,
+        udom->initial_cblock };
     pcdoc_travel_descendant_elements(edom_doc, purc_document_root(edom_doc),
             udom_maker, &ctxt, &n);
     return udom;
