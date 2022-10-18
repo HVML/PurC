@@ -27,6 +27,7 @@
 #include "private/rbtree.h"
 #include "private/atom-buckets.h"
 #include "private/sorted-array.h"
+#include "private/url.h"
 
 #include "../helpers.h"
 
@@ -1707,5 +1708,67 @@ TEST(utils, url)
 
         pcutils_broken_down_url_delete(broken_down);
     }
+}
+
+TEST(utils, build_query_base)
+{
+    purc_variant_t v;
+    purc_variant_t ret;
+    const char *buf;
+
+    int r = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
+            "url_query", NULL);
+    ASSERT_EQ(r, PURC_ERROR_OK);
+
+
+    v = purc_variant_make_boolean(true);
+    ret = pcutils_url_build_query(v, NULL,
+                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
+                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+    ASSERT_NE(ret, nullptr);
+    buf = purc_variant_get_string_const(ret);
+    ASSERT_STREQ("0=true", buf);
+    purc_variant_unref(ret);
+    purc_variant_unref(v);
+
+
+    v = purc_variant_make_number(2);
+    ret = pcutils_url_build_query(v, NULL,
+                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
+                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+    ASSERT_NE(ret, nullptr);
+    buf = purc_variant_get_string_const(ret);
+    ASSERT_STREQ("0=2", buf);
+    purc_variant_unref(ret);
+    purc_variant_unref(v);
+
+    v = purc_variant_make_ulongint(2);
+    ret = pcutils_url_build_query(v, NULL,
+                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
+                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+    ASSERT_NE(ret, nullptr);
+    buf = purc_variant_get_string_const(ret);
+    ASSERT_STREQ("0=2UL", buf);
+    purc_variant_unref(ret);
+
+    ret = pcutils_url_build_query(v, NULL,
+                '&', PCUTILS_URL_REAL_NOTATION_JSON,
+                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+    ASSERT_NE(ret, nullptr);
+    buf = purc_variant_get_string_const(ret);
+    ASSERT_STREQ("0=2", buf);
+    purc_variant_unref(ret);
+
+    ret = pcutils_url_build_query(v, "pre_",
+                '&', PCUTILS_URL_REAL_NOTATION_JSON,
+                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+    ASSERT_NE(ret, nullptr);
+    buf = purc_variant_get_string_const(ret);
+    ASSERT_STREQ("pre_0=2", buf);
+    purc_variant_unref(ret);
+    purc_variant_unref(v);
+
+
+    purc_cleanup();
 }
 

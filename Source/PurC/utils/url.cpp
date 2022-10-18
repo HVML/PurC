@@ -636,26 +636,30 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
     case PURC_VARIANT_TYPE_BSEQUENCE:
     case PURC_VARIANT_TYPE_DYNAMIC:
     case PURC_VARIANT_TYPE_NATIVE:
-        if (k) {
-            key = strdup(k);
-        }
-        else if (numeric_prefix) {
-            key = (char*)malloc(strlen(numeric_prefix) + 2);
-            sprintf(key, "%s0\n", numeric_prefix);
-        }
-        else {
-            key = (char*)malloc(2);
-            key[0] = '0';
-        }
+        {
+            if (k) {
+                key = strdup(k);
+            }
+            else if (numeric_prefix) {
+                key = (char*)malloc(strlen(numeric_prefix) + 2);
+                sprintf(key, "%s0", numeric_prefix);
+            }
+            else {
+                key = (char*)malloc(2);
+                key[0] = '0';
+                key[1] = 0;
+            }
 
-        if (!key) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out;
-        }
+            if (!key) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
 
-        encode_string(rws, key, encode_type);
-        purc_rwstream_write(rws, "=", 1);
-        purc_variant_serialize(v, rws, 0, flags, &len_expected);
+            encode_string(rws, key, encode_type);
+            purc_rwstream_write(rws, "=", 1);
+            ssize_t r = purc_variant_serialize(v, rws, 0, flags, &len_expected);
+            ret = r != -1 ? 0 : -1;
+        }
         break;
 
     case PURC_VARIANT_TYPE_EXCEPTION:
@@ -665,7 +669,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
-                sprintf(key, "%s0\n", numeric_prefix);
+                sprintf(key, "%s0", numeric_prefix);
             }
             else {
                 key = (char*)malloc(2);
@@ -691,11 +695,12 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
-                sprintf(key, "%s0\n", numeric_prefix);
+                sprintf(key, "%s0", numeric_prefix);
             }
             else {
                 key = (char*)malloc(2);
                 key[0] = '0';
+                key[1] = 0;
             }
 
             if (!key) {
@@ -717,7 +722,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
-                sprintf(key, "%s0\n", numeric_prefix);
+                sprintf(key, "%s0", numeric_prefix);
             }
             else {
                 key = (char*)malloc(2);
