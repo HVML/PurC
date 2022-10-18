@@ -47,8 +47,6 @@
 
 #define NR_DEF_MAX_MSGS     4
 
-// #define PRINT_DEBUG
-
 struct pcinst_move_buffer {
     struct purc_rwlock  lock;
     struct list_head    msgs;
@@ -138,9 +136,7 @@ pcinst_get_message(void)
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         atomic_init(&hdr->owner, inst->endpoint_atom);
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("New message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
     }
     else {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -156,13 +152,9 @@ pcinst_put_message(pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     purc_atom_t owner = (purc_atom_t)atomic_load(&hdr->owner);
 
-#ifdef PRINT_DEBUG            /* { */
     PC_DEBUG("The current owner atom of message in %s: %x\n", __func__, owner);
-#endif                        /* }*/
     if (owner == inst->endpoint_atom) {
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])
@@ -245,14 +237,10 @@ pcinst_grind_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     purc_atom_t owner = atomic_load(&hdr->owner);
-#ifdef PRINT_DEBUG            /* { */
     PC_DEBUG("message owner in %s: %x\n", __func__, owner);
-#endif                        /* }*/
 
     if (owner == 0) {
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])
