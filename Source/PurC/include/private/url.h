@@ -26,10 +26,43 @@
 #define PURC_PRIVATE_URL_H
 
 #include "purc-utils.h"
+#include "purc-variant.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum pcutils_url_real_notation {
+    PCUTILS_URL_REAL_NOTATION_JSON,
+    PCUTILS_URL_REAL_NOTATION_EJSON
+};
+
+enum pcutils_url_encode_type {
+    PCUTILS_URL_ENCODE_TYPE_RFC1738,
+    PCUTILS_URL_ENCODE_TYPE_RFC3986
+};
+
+enum pcutils_url_decode_dest {
+    PCUTILS_URL_DECODE_DEST_OBJECT,
+    PCUTILS_URL_DECODE_DEST_ARRAY
+};
+
+enum pcutils_url_decode_opt {
+    PCUTILS_URL_DECODE_OPT_AUTO,
+    PCUTILS_URL_DECODE_OPT_BINARY,
+    PCUTILS_URL_DECODE_OPT_STRING
+};
+
+purc_variant_t
+pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
+        char arg_separator, enum pcutils_url_real_notation real_notation,
+        enum pcutils_url_encode_type encode_type);
+
+purc_variant_t
+pcutils_url_parse_query(const char *query, char arg_separator,
+        enum pcutils_url_decode_dest decode_dest,
+        enum pcutils_url_decode_opt decode_opt,
+        enum pcutils_url_encode_type encode_type);
 
 #ifdef __cplusplus
 }

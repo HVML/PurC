@@ -26,11 +26,13 @@
 
 #include <gtest/gtest.h>
 
+#if 0
 static void*
 ref(const void *v)
 {
     return purc_variant_ref((purc_variant_t)v);
 }
+#endif
 
 static void
 unref(void *v)
