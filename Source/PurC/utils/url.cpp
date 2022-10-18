@@ -480,7 +480,9 @@ encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
             goto out;
         }
 
-        purc_rwstream_write(rws, &arg_separator, 1);
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
 
         ret = build_query(rws, key, ov, numeric_prefix,
                 arg_separator, real_notation, encode_type);
@@ -515,7 +517,9 @@ encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%ld", idx);
         }
 
-        purc_rwstream_write(rws, &arg_separator, 1);
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
 
         ret = build_query(rws, key, ov, numeric_prefix,
                 arg_separator, real_notation, encode_type);
@@ -549,7 +553,9 @@ encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%ld", idx);
         }
 
-        purc_rwstream_write(rws, &arg_separator, 1);
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
 
         ret = build_query(rws, key, ov, numeric_prefix,
                 arg_separator, real_notation, encode_type);
@@ -589,7 +595,9 @@ encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%ld", idx);
         }
 
-        purc_rwstream_write(rws, &arg_separator, 1);
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
 
         ret = build_query(rws, key, ov, numeric_prefix,
                 arg_separator, real_notation, encode_type);
