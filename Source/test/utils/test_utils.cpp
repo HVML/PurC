@@ -1710,6 +1710,17 @@ TEST(utils, url)
     }
 }
 
+purc_variant_t
+ejson_to_variant(const char *ejson)
+{
+    struct purc_ejson_parse_tree *ptree = purc_variant_ejson_parse_string(
+            ejson, strlen(ejson));
+    purc_variant_t result = purc_variant_ejson_parse_tree_evalute(ptree, NULL,
+            PURC_VARIANT_INVALID, true);
+    purc_variant_ejson_parse_tree_destroy(ptree);
+    return result;
+}
+
 TEST(utils, build_query_base)
 {
     purc_variant_t v;
@@ -1849,47 +1860,27 @@ TEST(utils, build_query_array)
 
 TEST(utils, build_query_object_array)
 {
-    purc_variant_t object;
-    purc_variant_t v;
-    purc_variant_t ret;
-    const char *buf;
 
     int r = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
             "url_query", NULL);
     ASSERT_EQ(r, PURC_ERROR_OK);
 
+    const char *ejson = "{'obj':['value_1', 'value_2']}";
 
-    object = purc_variant_make_object(0, PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    purc_variant_t v = ejson_to_variant(ejson);
+    ASSERT_NE(v, PURC_VARIANT_INVALID);
 
-    v = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-
-    purc_variant_t v_1 = purc_variant_make_string_static("value_1", false);
-    purc_variant_array_append(v, v_1);
-
-    purc_variant_t v_2 = purc_variant_make_string_static("value_2", false);
-    purc_variant_array_append(v, v_2);
-
-    purc_variant_object_set_by_static_ckey(object, "obj", v);
-
-    ret = pcutils_url_build_query(object, NULL,
+    purc_variant_t ret = pcutils_url_build_query(v, "val_",
                 '&', PCUTILS_URL_REAL_NOTATION_EJSON,
                 PCUTILS_URL_ENCODE_TYPE_RFC1738);
     ASSERT_NE(ret, nullptr);
-    buf = purc_variant_get_string_const(ret);
-    ASSERT_STREQ("0=value_1&1=value_2", buf);
 
-    ret = pcutils_url_build_query(v, "arr",
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
-    ASSERT_NE(ret, nullptr);
-    buf = purc_variant_get_string_const(ret);
+    const char *buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("obj%5B0%5D=value_1&obj%5B1%5D=value_2", buf);
 
-    purc_variant_unref(v_2);
-    purc_variant_unref(v_1);
     purc_variant_unref(ret);
     purc_variant_unref(v);
-    purc_variant_unref(object);
 
     purc_cleanup();
 }
+
