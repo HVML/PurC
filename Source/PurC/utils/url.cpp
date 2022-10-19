@@ -462,6 +462,11 @@ encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
     char *key = NULL;
     purc_variant_t ok;
     purc_variant_t ov;
+    ssize_t nr_size = purc_variant_object_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
     foreach_key_value_in_variant_object(v, ok, ov)
         const char *sk = purc_variant_get_string_const(ok);
         size_t nr_sk = strlen(sk);
@@ -503,6 +508,11 @@ encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
     char key[BUFF_KEY];
     purc_variant_t ov;
     size_t idx;
+    ssize_t nr_size = purc_variant_array_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
     foreach_value_in_variant_array(v, ov, idx)
         if (k) {
             snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
@@ -538,6 +548,11 @@ encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
     char key[BUFF_KEY];
     purc_variant_t ov;
     size_t idx = 0;
+    ssize_t nr_size = purc_variant_set_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
     foreach_value_in_variant_set_order(v, ov)
         if (k) {
             snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
@@ -578,6 +593,10 @@ encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
     purc_variant_t *members;
     size_t sz;
     members = tuple_members(v, &sz);
+    if (sz == 0) {
+        ret = 0;
+        goto out;
+    }
     for (idx = 0; idx < sz; idx++) {
         ov = members[idx];
         if (k) {
