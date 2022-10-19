@@ -41,6 +41,8 @@ set(sample_HVML_FILES
     "hvml/call-concurrently.hvml"
     "hvml/sys-sleep.hvml"
     "hvml/prime-number-sieve.hvml"
+    "hvml/fetch-with-param-0.hvml"
+    "hvml/fetch-with-param-1.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
