@@ -38,8 +38,7 @@
 static int
 build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type);
+        unsigned int flags);
 
 void
 pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down)
@@ -409,11 +408,11 @@ pcutils_url_get_query_value_alloc(
 
 int
 encode_string(purc_rwstream_t rws, const char *s,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     char space[4];
     size_t nr_space;
-    if (encode_type == PCUTILS_URL_ENCODE_TYPE_RFC1738) {
+    if (flags & PCUTILS_URL_OPT_RFC1738) {
         space[0] = '+';
         space[1] = 0;
         nr_space = 1;
@@ -456,8 +455,7 @@ encode_string(purc_rwstream_t rws, const char *s,
 int
 encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     int ret = -1;
     size_t nr_k = k ? strlen(k) : 0;
@@ -485,7 +483,7 @@ encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
         }
 
         ret = build_query(rws, key, ov, numeric_prefix,
-                arg_separator, real_notation, encode_type);
+                arg_separator, flags);
         free(key);
         if (ret != PURC_ERROR_OK) {
             goto out;
@@ -499,8 +497,7 @@ out:
 int
 encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     int ret = -1;
     char key[BUFF_KEY];
@@ -522,7 +519,7 @@ encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
         }
 
         ret = build_query(rws, key, ov, numeric_prefix,
-                arg_separator, real_notation, encode_type);
+                arg_separator, flags);
         if (ret != PURC_ERROR_OK) {
             goto out;
         }
@@ -535,8 +532,7 @@ out:
 int
 encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     int ret = -1;
     char key[BUFF_KEY];
@@ -558,7 +554,7 @@ encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
         }
 
         ret = build_query(rws, key, ov, numeric_prefix,
-                arg_separator, real_notation, encode_type);
+                arg_separator, flags);
         if (ret != PURC_ERROR_OK) {
             goto out;
         }
@@ -572,8 +568,7 @@ out:
 int
 encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     int ret = -1;
     char key[BUFF_KEY];
@@ -600,7 +595,7 @@ encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
         }
 
         ret = build_query(rws, key, ov, numeric_prefix,
-                arg_separator, real_notation, encode_type);
+                arg_separator, flags);
         if (ret != PURC_ERROR_OK) {
             goto out;
         }
@@ -614,15 +609,19 @@ out:
 int
 build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
-        enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        unsigned int flags)
 {
     enum purc_variant_type type;
     int ret = -1;
     char *key = NULL;
     size_t len_expected = 0;
-    unsigned int flags = real_notation == PCUTILS_URL_REAL_NOTATION_JSON ?
-        PCVARIANT_SERIALIZE_OPT_REAL_JSON : PCVARIANT_SERIALIZE_OPT_REAL_EJSON;
+    unsigned int serialize_flags;
+    if (flags & PCUTILS_URL_OPT_REAL_EJSON) {
+        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_EJSON;
+    }
+    else {
+        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_JSON;
+    }
 
     type = purc_variant_get_type(v);
     switch (type) {
@@ -655,9 +654,10 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
                 goto out;
             }
 
-            encode_string(rws, key, encode_type);
+            encode_string(rws, key, flags);
             purc_rwstream_write(rws, "=", 1);
-            ssize_t r = purc_variant_serialize(v, rws, 0, flags, &len_expected);
+            ssize_t r = purc_variant_serialize(v, rws, 0, serialize_flags,
+                    &len_expected);
             ret = r != -1 ? 0 : -1;
         }
         break;
@@ -681,10 +681,10 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
                 goto out;
             }
 
-            encode_string(rws, key, encode_type);
+            encode_string(rws, key, flags);
             purc_rwstream_write(rws, "=", 1);
             const char *s = purc_variant_get_exception_string_const(v);
-            encode_string(rws, s, encode_type);
+            encode_string(rws, s, flags);
         }
         break;
 
@@ -708,10 +708,10 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
                 goto out;
             }
 
-            encode_string(rws, key, encode_type);
+            encode_string(rws, key, flags);
             purc_rwstream_write(rws, "=", 1);
             const char *s = purc_variant_get_atom_string_const(v);
-            encode_string(rws, s, encode_type);
+            encode_string(rws, s, flags);
         }
         break;
 
@@ -735,29 +735,29 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
                 goto out;
             }
 
-            encode_string(rws, key, encode_type);
+            encode_string(rws, key, flags);
             purc_rwstream_write(rws, "=", 1);
             const char *s = purc_variant_get_string_const(v);
-            ret = encode_string(rws, s, encode_type);
+            ret = encode_string(rws, s, flags);
         }
         break;
 
 
     case PURC_VARIANT_TYPE_OBJECT:
         ret = encode_object(rws, k, v, numeric_prefix, arg_separator,
-                real_notation, encode_type);
+                flags);
         break;
     case PURC_VARIANT_TYPE_ARRAY:
         ret = encode_array(rws, k, v, numeric_prefix, arg_separator,
-                real_notation, encode_type);
+                flags);
         break;
     case PURC_VARIANT_TYPE_SET:
         ret = encode_set(rws, k, v, numeric_prefix, arg_separator,
-                real_notation, encode_type);
+                flags);
         break;
     case PURC_VARIANT_TYPE_TUPLE:
         ret = encode_tuple(rws, k, v, numeric_prefix, arg_separator,
-                real_notation, encode_type);
+                flags);
         break;
     default:
         break;
@@ -772,8 +772,7 @@ out:
 
 purc_variant_t
 pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
-        char arg_separator, enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type)
+        char arg_separator, unsigned int flags)
 {
     int err = 0;
     purc_rwstream_t rws  = NULL;
@@ -787,8 +786,7 @@ pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
         goto out;
     }
 
-    err = build_query(rws, NULL, v, numeric_prefix, arg_separator,
-            real_notation, encode_type);
+    err = build_query(rws, NULL, v, numeric_prefix, arg_separator, flags);
     if (err == PURC_ERROR_OK) {
         size_t sz_buffer = 0;
         size_t sz_content = 0;
@@ -804,17 +802,4 @@ out:
     return ret;
 }
 
-purc_variant_t
-pcutils_url_parse_query(const char *query, char arg_separator,
-        enum pcutils_url_decode_dest decode_dest,
-        enum pcutils_url_decode_opt decode_opt,
-        enum pcutils_url_encode_type encode_type)
-{
-    UNUSED_PARAM(query);
-    UNUSED_PARAM(arg_separator);
-    UNUSED_PARAM(decode_dest);
-    UNUSED_PARAM(decode_opt);
-    UNUSED_PARAM(encode_type);
-    return PURC_VARIANT_INVALID;
-}
 

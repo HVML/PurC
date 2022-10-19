@@ -28,41 +28,19 @@
 #include "purc-utils.h"
 #include "purc-variant.h"
 
+#define PCUTILS_URL_OPT_REAL_JSON               0x00000000
+#define PCUTILS_URL_OPT_REAL_EJSON              0x00000001
+#define PCUTILS_URL_OPT_RFC1738                 0x00000000
+#define PCUTILS_URL_OPT_RFC3986                 0x00000002
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum pcutils_url_real_notation {
-    PCUTILS_URL_REAL_NOTATION_JSON,
-    PCUTILS_URL_REAL_NOTATION_EJSON
-};
-
-enum pcutils_url_encode_type {
-    PCUTILS_URL_ENCODE_TYPE_RFC1738,
-    PCUTILS_URL_ENCODE_TYPE_RFC3986
-};
-
-enum pcutils_url_decode_dest {
-    PCUTILS_URL_DECODE_DEST_OBJECT,
-    PCUTILS_URL_DECODE_DEST_ARRAY
-};
-
-enum pcutils_url_decode_opt {
-    PCUTILS_URL_DECODE_OPT_AUTO,
-    PCUTILS_URL_DECODE_OPT_BINARY,
-    PCUTILS_URL_DECODE_OPT_STRING
-};
-
 purc_variant_t
 pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
-        char arg_separator, enum pcutils_url_real_notation real_notation,
-        enum pcutils_url_encode_type encode_type);
+        char arg_separator, unsigned int flags);
 
-purc_variant_t
-pcutils_url_parse_query(const char *query, char arg_separator,
-        enum pcutils_url_decode_dest decode_dest,
-        enum pcutils_url_decode_opt decode_opt,
-        enum pcutils_url_encode_type encode_type);
 
 #ifdef __cplusplus
 }

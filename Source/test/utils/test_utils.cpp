@@ -1734,8 +1734,7 @@ TEST(utils, build_query_base)
 
     v = purc_variant_make_boolean(true);
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON | PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=true", buf);
@@ -1745,8 +1744,7 @@ TEST(utils, build_query_base)
 
     v = purc_variant_make_number(2);
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON | PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=2", buf);
@@ -1755,24 +1753,21 @@ TEST(utils, build_query_base)
 
     v = purc_variant_make_ulongint(2);
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON | PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=2UL", buf);
     purc_variant_unref(ret);
 
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_JSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_JSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=2", buf);
     purc_variant_unref(ret);
 
     ret = pcutils_url_build_query(v, "pre_",
-                '&', PCUTILS_URL_REAL_NOTATION_JSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_JSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("pre_0=2", buf);
@@ -1803,8 +1798,7 @@ TEST(utils, build_query_object)
     purc_variant_object_set_by_static_ckey(v, "second", v_2);
 
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("first=value_1&second=value_2", buf);
@@ -1837,15 +1831,13 @@ TEST(utils, build_query_array)
     purc_variant_array_append(v, v_2);
 
     ret = pcutils_url_build_query(v, NULL,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON | PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=value_1&1=value_2", buf);
 
     ret = pcutils_url_build_query(v, "arr",
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("arr0=value_1&arr1=value_2", buf);
@@ -1921,8 +1913,7 @@ TEST_P(test_build_query, build_query)
     ASSERT_NE(v, PURC_VARIANT_INVALID);
 
     purc_variant_t ret = pcutils_url_build_query(v, data.prefix,
-                '&', PCUTILS_URL_REAL_NOTATION_EJSON,
-                PCUTILS_URL_ENCODE_TYPE_RFC1738);
+                '&', PCUTILS_URL_OPT_REAL_EJSON  |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
 
     const char *buf = purc_variant_get_string_const(ret);
