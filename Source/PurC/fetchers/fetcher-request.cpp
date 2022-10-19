@@ -34,6 +34,8 @@
 #include "ResourceError.h"
 #include "ResourceResponse.h"
 
+#include "private/url.h"
+
 #include <wtf/RunLoop.h>
 
 #define DEF_RWS_SIZE 1024
@@ -128,6 +130,17 @@ purc_variant_t PcFetcherRequest::requestAsync(
     m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
 
+    const char *encode_p = NULL;
+    purc_variant_t encode_val = PURC_VARIANT_INVALID;
+    if (params) {
+        encode_val = pcutils_url_build_query(params, NULL, '&', 0);
+        if (!encode_val) {
+            return NULL;
+        }
+
+        encode_p = purc_variant_get_string_const(encode_val);
+    }
+
     String uri;
     if (base_uri &&
             strncmp(url, base_uri, strlen(base_uri)) != 0) {
@@ -137,9 +150,22 @@ purc_variant_t PcFetcherRequest::requestAsync(
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
+    if (encode_p && encode_p[0]) {
+        if (method == PCFETCHER_REQUEST_METHOD_GET) {
+            wurl->setQuery(encode_p);
+        }
+        else {
+            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+            request.setHTTPContentType("application/x-www-form-urlencoded");
+        }
+    }
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
+
+    if (encode_val) {
+        purc_variant_unref(encode_val);
+    }
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
     NetworkResourceLoadParameters loadParameters;
@@ -171,6 +197,17 @@ purc_rwstream_t PcFetcherRequest::requestSync(
 
     m_is_async = false;
 
+    const char *encode_p = NULL;
+    purc_variant_t encode_val = PURC_VARIANT_INVALID;
+    if (params) {
+        encode_val = pcutils_url_build_query(params, NULL, '&', 0);
+        if (!encode_val) {
+            return NULL;
+        }
+
+        encode_p = purc_variant_get_string_const(encode_val);
+    }
+
     String uri;
     if (base_uri &&
             strncmp(url, base_uri, strlen(base_uri)) != 0) {
@@ -179,10 +216,24 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     uri.append(url);
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
+
     ResourceRequest request;
+    if (encode_p && encode_p[0]) {
+        if (method == PCFETCHER_REQUEST_METHOD_GET) {
+            wurl->setQuery(encode_p);
+        }
+        else {
+            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+            request.setHTTPContentType("application/x-www-form-urlencoded");
+        }
+    }
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
+
+    if (encode_val) {
+        purc_variant_unref(encode_val);
+    }
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
     NetworkResourceLoadParameters loadParameters;
