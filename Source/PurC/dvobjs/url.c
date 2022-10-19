@@ -27,7 +27,33 @@
 #include "purc-helpers.h"
 
 #include "private/utils.h"
+#include "private/url.h"
 #include "private/dvobjs.h"
+#include "private/atom-buckets.h"
+
+enum {
+#define _KW_real_json       "real-json"
+    K_KW_real_json,
+#define _KW_real_ejson      "real-ejson"
+    K_KW_real_ejson,
+#define _KW_rfc1738         "rfc1738"
+    K_KW_rfc1738,
+#define _KW_rfc3986         "rfc3986"
+    K_KW_rfc3986,
+};
+
+#define _KW_DELIMITERS  " \t\n\v\f\r"
+
+static struct keyword_to_atom {
+    const char *    keyword;
+    unsigned int    flag;
+    purc_atom_t     atom;
+} keywords2atoms [] = {
+    { _KW_real_json,        PCUTILS_URL_OPT_REAL_JSON,  0 },
+    { _KW_real_ejson,       PCUTILS_URL_OPT_REAL_EJSON, 0 },
+    { _KW_rfc1738,          PCUTILS_URL_OPT_RFC1738,    0 },
+    { _KW_rfc3986,          PCUTILS_URL_OPT_RFC3986,    0 },
+};
 
 size_t pcdvobj_url_decode_in_place(char *string, size_t length, int rfc)
 {
@@ -339,6 +365,122 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const void *string;
+    const char *numeric_prefix = NULL;
+    const char *options = NULL;
+    size_t options_len;
+    char arg_separator = '&';
+    unsigned int flags = 0;
+    size_t length;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    string = purc_variant_get_string_const_ex(argv[0], &length);
+    if (string == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (nr_args > 1) {
+        size_t len;
+
+        numeric_prefix = purc_variant_get_string_const_ex(argv[1], &len);
+        if (numeric_prefix == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (nr_args > 2) {
+            const char *separator;
+            size_t len;
+
+            separator = purc_variant_get_string_const_ex(argv[2], &len);
+            if (separator == NULL || len > 1) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+
+            arg_separator = separator[0];
+        }
+
+        if (nr_args > 3) {
+            options = purc_variant_get_string_const_ex(argv[3], &options_len);
+            if (options) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+
+            options = pcutils_trim_spaces(options, &options_len);
+            if (len == 0) {
+                options = NULL;
+            }
+        }
+    }
+
+    if (options) {
+        size_t length = 0;
+        const char *option = pcutils_get_next_token_len(options, options_len,
+                _KW_DELIMITERS, &length);
+
+        do {
+
+            if (length > 0 || length <= MAX_LEN_KEYWORD) {
+                purc_atom_t atom;
+
+#if 0
+                /* TODO: use strndupa if it is available */
+                char *tmp = strndup(option, length);
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+                free(tmp);
+#else
+                char tmp[length + 1];
+                strncpy(tmp, option, length);
+                tmp[length]= '\0';
+                atom = purc_atom_try_string_ex(ATOM_BUCKET_DVOBJ, tmp);
+#endif
+
+                if (atom > 0) {
+                    size_t i;
+                    for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+                        if (atom == keywords2atoms[i].atom) {
+                            flags |= keywords2atoms[i].flag;
+                        }
+                    }
+                }
+            }
+
+            if (options_len <= length)
+                break;
+
+            options_len -= length;
+            option = pcutils_get_next_token_len(option + length, options_len,
+                    _KW_DELIMITERS, &length);
+        } while (option);
+    }
+
+    if (length == 0) {
+        return purc_variant_make_string_static("", false);
+    }
+
+    return pcutils_url_build_query(argv[0], numeric_prefix, arg_separator, flags);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_string_static("", false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_url_new(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -346,7 +488,16 @@ purc_variant_t purc_dvobj_url_new(void)
     static struct purc_dvobj_method methods [] = {
         { "encode",     encode_getter,      NULL },
         { "decode",     decode_getter,      NULL },
+        { "build_query", build_query_getter, NULL },
     };
+
+    if (keywords2atoms[0].atom == 0) {
+        for (size_t i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
+            keywords2atoms[i].atom =
+                purc_atom_from_static_string_ex(ATOM_BUCKET_DVOBJ,
+                    keywords2atoms[i].keyword);
+        }
+    }
 
     retv = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
     return retv;
