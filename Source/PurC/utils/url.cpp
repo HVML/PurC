@@ -511,7 +511,7 @@ encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
         }
         else if (numeric_prefix) {
-            snprintf(key, BUFF_KEY, "%s_%ld", numeric_prefix, idx);
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
         }
         else {
             snprintf(key, BUFF_KEY, "%ld", idx);
@@ -547,7 +547,7 @@ encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
         }
         else if (numeric_prefix) {
-            snprintf(key, BUFF_KEY, "%s_%ld", numeric_prefix, idx);
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
         }
         else {
             snprintf(key, BUFF_KEY, "%ld", idx);
@@ -589,7 +589,7 @@ encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
             snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
         }
         else if (numeric_prefix) {
-            snprintf(key, BUFF_KEY, "%s_%ld", numeric_prefix, idx);
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
         }
         else {
             snprintf(key, BUFF_KEY, "%ld", idx);
@@ -727,6 +727,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             else {
                 key = (char*)malloc(2);
                 key[0] = '0';
+                key[1] = 0;
             }
 
             if (!key) {

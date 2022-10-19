@@ -1848,7 +1848,7 @@ TEST(utils, build_query_array)
                 PCUTILS_URL_ENCODE_TYPE_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
-    ASSERT_STREQ("arr_0=value_1&arr_1=value_2", buf);
+    ASSERT_STREQ("arr0=value_1&arr1=value_2", buf);
 
     purc_variant_unref(v_2);
     purc_variant_unref(v_1);
@@ -1858,29 +1858,79 @@ TEST(utils, build_query_array)
     purc_cleanup();
 }
 
-TEST(utils, build_query_object_array)
+struct test_data {
+    const char *ejson;
+    const char *cmp;
+    const char *prefix;
+};
+
+static const struct test_data test_cases[] = {
+    {
+        "null",
+        "0=null",
+        NULL
+    },
+    {
+        "true",
+        "0=true",
+        NULL
+    },
+    {
+
+        "{'obj':['value_1', 'value_2']}",
+        "obj%5B0%5D=value_1&obj%5B1%5D=value_2",
+        NULL
+    },
+    {
+
+        "{'obj':['value_1', 'value_2', {'ka':'b', 'kb':2}]}",
+        "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b&obj%5B2%5D%5Bkb%5D=2",
+        NULL
+    },
+    {
+
+        "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
+        "0=value_1&1=value_2&&2%5Bka%5D=b&2%5Bkb%5D=2",
+        NULL
+    },
+    {
+
+        "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
+        "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b&pre2%5Bkb%5D=2",
+        "pre"
+    }
+};
+
+class test_build_query : public testing::TestWithParam<test_data>
 {
+protected:
+    void SetUp() {
+        purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hybridos.test",
+                "test_build_query", NULL);
+    }
+    void TearDown() {
+        purc_cleanup ();
+    }
+};
 
-    int r = purc_init_ex(PURC_MODULE_VARIANT, "cn.fmsoft.hybridos.test",
-            "url_query", NULL);
-    ASSERT_EQ(r, PURC_ERROR_OK);
+TEST_P(test_build_query, build_query)
+{
+    struct test_data data = GetParam();
 
-    const char *ejson = "{'obj':['value_1', 'value_2']}";
-
-    purc_variant_t v = ejson_to_variant(ejson);
+    purc_variant_t v = ejson_to_variant(data.ejson);
     ASSERT_NE(v, PURC_VARIANT_INVALID);
 
-    purc_variant_t ret = pcutils_url_build_query(v, "val_",
+    purc_variant_t ret = pcutils_url_build_query(v, data.prefix,
                 '&', PCUTILS_URL_REAL_NOTATION_EJSON,
                 PCUTILS_URL_ENCODE_TYPE_RFC1738);
     ASSERT_NE(ret, nullptr);
 
     const char *buf = purc_variant_get_string_const(ret);
-    ASSERT_STREQ("obj%5B0%5D=value_1&obj%5B1%5D=value_2", buf);
+    ASSERT_STREQ(data.cmp, buf);
 
     purc_variant_unref(ret);
     purc_variant_unref(v);
-
-    purc_cleanup();
 }
 
+INSTANTIATE_TEST_SUITE_P(build_query, test_build_query,
+        testing::ValuesIn(test_cases));
