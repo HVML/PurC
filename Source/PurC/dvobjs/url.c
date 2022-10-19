@@ -371,30 +371,31 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const void *string;
     const char *numeric_prefix = NULL;
     const char *options = NULL;
     size_t options_len;
     char arg_separator = '&';
     unsigned int flags = 0;
-    size_t length;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    string = purc_variant_get_string_const_ex(argv[0], &length);
-    if (string == NULL) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
     if (nr_args > 1) {
         size_t len;
 
-        numeric_prefix = purc_variant_get_string_const_ex(argv[1], &len);
-        if (numeric_prefix == NULL) {
+        if (purc_variant_is_null(argv[1])) {
+            numeric_prefix = NULL;
+        }
+        else if (purc_variant_is_string(argv[1])) {
+            numeric_prefix = purc_variant_get_string_const_ex(argv[1], &len);
+            if (numeric_prefix == NULL) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+        }
+        else {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
@@ -414,7 +415,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         if (nr_args > 3) {
             options = purc_variant_get_string_const_ex(argv[3], &options_len);
-            if (options) {
+            if (!options) {
                 purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
                 goto failed;
             }
@@ -465,10 +466,6 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             option = pcutils_get_next_token_len(option + length, options_len,
                     _KW_DELIMITERS, &length);
         } while (option);
-    }
-
-    if (length == 0) {
-        return purc_variant_make_string_static("", false);
     }
 
     return pcutils_url_build_query(argv[0], numeric_prefix, arg_separator, flags);

@@ -904,3 +904,39 @@ positive:
     $URL.decode('HVML+-_.', 'binary', 'rfc3986')
     bx48564d4c
 
+positive:
+    $URL.build_query(true, null, '&', 'rfc1738')
+    0=true
+
+positive:
+    $URL.build_query(true, "pre_", '&', 'rfc1738')
+    pre_0=true
+
+positive:
+    $URL.build_query(2, "pre_", '&', 'rfc1738')
+    pre_0=2
+
+positive:
+    $URL.build_query(2UL, "pre_", '&', 'real-ejson rfc1738')
+    pre_0=2UL
+
+positive:
+    $URL.build_query(2UL, "pre_", '&', 'real-json rfc1738')
+    pre_0=2
+
+positive:
+    $URL.build_query({'obj':['value_1', 'value_2']}, "pre_", '&', 'real-json rfc1738')
+    "obj%5B0%5D=value_1&obj%5B1%5D=value_2"
+
+positive:
+    $URL.build_query({'obj':['value_1', 'value_2', {'ka':'b', 'kb':2}]}, "pre_", '&', 'real-json rfc1738')
+    "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b&obj%5B2%5D%5Bkb%5D=2"
+
+positive:
+    $URL.build_query(['value_1', 'value_2', {'ka':'b', 'kb':2}], null, '&', 'real-json rfc1738')
+    "0=value_1&1=value_2&&2%5Bka%5D=b&2%5Bkb%5D=2"
+
+positive:
+    $URL.build_query(['value_1', 'value_2', {'ka':'b', 'kb':2}], "pre", '&', 'real-json rfc1738')
+    "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b&pre2%5Bkb%5D=2"
+
