@@ -141,8 +141,10 @@ purc_variant_t PcFetcherRequest::requestAsync(
         encode_p = purc_variant_get_string_const(encode_val);
     }
 
+    URL tmp(URL(), url);
+
     String uri;
-    if (base_uri &&
+    if (base_uri && !tmp.isValid() &&
             strncmp(url, base_uri, strlen(base_uri)) != 0) {
         uri.append(base_uri);
     }
@@ -159,6 +161,7 @@ purc_variant_t PcFetcherRequest::requestAsync(
             request.setHTTPContentType("application/x-www-form-urlencoded");
         }
     }
+
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
@@ -208,8 +211,10 @@ purc_rwstream_t PcFetcherRequest::requestSync(
         encode_p = purc_variant_get_string_const(encode_val);
     }
 
+    URL tmp(URL(), url);
+
     String uri;
-    if (base_uri &&
+    if (base_uri && !tmp.isValid() &&
             strncmp(url, base_uri, strlen(base_uri)) != 0) {
         uri.append(base_uri);
     }
