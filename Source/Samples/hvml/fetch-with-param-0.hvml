@@ -3,7 +3,7 @@
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
     <head>
-        <init as="btns" from="http://mg.fmsoft.cn/tools/echo.php" with={a:1, b:2} via="GET" async />
+        <init as="btns" from="http://ws.fmsoft.cn/tools/echo.php" with={a:1, b:2} via="GET" async />
     </head>
 
     <body>
