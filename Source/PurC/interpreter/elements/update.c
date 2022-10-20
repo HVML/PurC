@@ -269,14 +269,6 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(with == PURC_VARIANT_INVALID);
 
     const char* uri = purc_variant_get_string_const(from);
-#if 0
-    purc_variant_t v = pcintr_load_from_uri(&co->stack, uri);
-    if (v == PURC_VARIANT_INVALID) {
-        return purc_get_last_error();
-    }
-    PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-    ctxt->from_result = v;
-#endif
 
     enum pcfetcher_request_method method;
     method = pcintr_method_from_via(ctxt->via);
