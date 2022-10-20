@@ -55,6 +55,7 @@ typedef struct purcth_udom purcth_udom;
 
 typedef struct purcth_rdr_cbs {
     int  (*prepare)(purcth_renderer *);
+    int  (*handle_event)(purcth_renderer *, unsigned long long timeout_usec);
     void (*cleanup)(purcth_renderer *);
 
     purcth_session *(*create_session)(purcth_renderer *, purcth_endpoint *);

@@ -70,6 +70,8 @@
 #define LOG_INFO(x, ...)    \
     purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
 
+struct purcth_rdrimpl_data;
+
 struct purcth_renderer {
     purc_atom_t     master_rid;
     unsigned int    nr_endpoints;
@@ -77,8 +79,6 @@ struct purcth_renderer {
     time_t t_start;
     time_t t_elapsed;
     time_t t_elapsed_last;
-
-    char  *features;
 
     /* The KV list using app name as the key,
        and purcth_workspace* as the value */
@@ -90,6 +90,9 @@ struct purcth_renderer {
 
     /* the AVL tree of endpoints sorted by living time */
     struct avl_tree living_avl;
+
+    /* the data for the renderer implementation */
+    struct purcth_rdrimpl_data *impl;
 
     purcth_rdr_cbs cbs;
 };

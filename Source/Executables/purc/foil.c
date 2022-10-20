@@ -132,8 +132,8 @@ static void event_loop(purcth_renderer *rdr)
             purc_log_error("purc_inst_holding_messages_count failed: %d\n", ret);
         }
         else if (n == 0) {
-            // TODO: call event_loop of renderer
-            pcutils_usleep(10000);  // 10ms
+            if (rdr->cbs.handle_event(rdr, 10000))  // timeout value: 10ms
+                break;
 
             rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
             if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {

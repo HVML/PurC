@@ -30,6 +30,8 @@
 #include "workspace.h"
 #include "udom.h"
 #include "util/sorted-array.h"
+#include "tty/tty.h"
+#include "tty/tty-linemode.h"
 
 /* handle types */
 enum {
@@ -39,6 +41,16 @@ enum {
     HT_CONTAINER,
     HT_WIDGET,
     HT_UDOM,
+};
+
+enum {
+    FOIL_TERM_MODE_LINE = 0,
+    FOIL_TERM_MODE_FULL_SCREEN,
+};
+
+struct purcth_rdrimpl_data {
+    int term_mode;
+    int rows, cols;
 };
 
 struct purcth_session {
@@ -57,11 +69,47 @@ struct purcth_session {
 
 static int foil_prepare(purcth_renderer *rdr)
 {
-    return foil_wsp_module_init(rdr);
+    rdr->impl = calloc(1, sizeof(*rdr->impl));
+    if (rdr->impl) {
+        rdr->impl->term_mode = FOIL_TERM_MODE_LINE;
+
+        const char *term_enc;
+        term_enc = tty_linemode_init(&rdr->impl->rows, &rdr->impl->cols);
+        if (strcasecmp(term_enc, "UTF-8")) {
+            LOG_ERROR("The terminal encoding must be UTF-8, but it is %s\n",
+                    term_enc);
+            goto failed;
+        }
+
+        LOG_INFO("The terminal encoding: %s, size: %d, %d\n",
+                term_enc, rdr->impl->rows, rdr->impl->cols);
+        return foil_wsp_module_init(rdr);
+    }
+
+failed:
+    return -1;
+}
+
+static int
+foil_handle_event(purcth_renderer *rdr, unsigned long long timeout_usec)
+{
+    if (rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
+        if (tty_got_winch(timeout_usec)) {
+            // TODO: handle change of terminal size
+        }
+    }
+
+    return 0;
 }
 
 static void foil_cleanup(purcth_renderer *rdr)
 {
+    if (rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
+        tty_linemode_shutdown();
+    }
+
+    free(rdr->impl);
+
     foil_wsp_module_cleanup(rdr);
 }
 
@@ -468,6 +516,7 @@ void set_renderer_callbacks(purcth_renderer *rdr)
     memset(&rdr->cbs, 0, sizeof(rdr->cbs));
 
     rdr->cbs.prepare = foil_prepare;
+    rdr->cbs.handle_event = foil_handle_event;
     rdr->cbs.cleanup = foil_cleanup;
     rdr->cbs.create_session = foil_create_session;
     rdr->cbs.remove_session = foil_remove_session;

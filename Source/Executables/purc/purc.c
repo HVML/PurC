@@ -142,7 +142,7 @@ static void print_usage(FILE *fp)
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
         "            - `headless`: use the built-in headlesss renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
-        "            - `soeckt`: use the remote socket-based renderer;\n"
+        "            - `socket`: use the remote socket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
         "  -u --rdr-uri=< renderer_uri >\n"

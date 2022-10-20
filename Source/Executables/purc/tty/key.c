@@ -2022,7 +2022,7 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
             }
         }
 
-        if (!block || tty_got_winch ())
+        if (!block || tty_got_winch (0))
         {
             time_addr = &time_out;
             time_out.tv_sec = 0;
@@ -2042,7 +2042,7 @@ tty_get_event (struct Gpm_Event *event, gboolean redo_event, gboolean block)
         {
             if (redo_event)
                 return EV_MOUSE;
-            if (!block || tty_got_winch ())
+            if (!block || tty_got_winch (0))
                 return EV_NONE;
             vfs_timeout_handler ();
         }

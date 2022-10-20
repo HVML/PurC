@@ -185,13 +185,24 @@ tty_got_interrupt (void)
 
 /* --------------------------------------------------------------------------------------------- */
 
+#define USECONDS_PER_SECOND     1000000
+
 gboolean
-tty_got_winch (void)
+tty_got_winch (unsigned long long timeout_usec)
 {
     fd_set fdset;
     /* *INDENT-OFF* */
     /* instant timeout */
-    struct timeval timeout = { .tv_sec = 0, .tv_usec = 0 };
+    struct timeval timeout;
+    if (timeout_usec > USECONDS_PER_SECOND) {
+        timeout.tv_sec = timeout_usec / USECONDS_PER_SECOND;
+        timeout.tv_usec = timeout_usec % USECONDS_PER_SECOND;
+    }
+    else {
+        timeout.tv_sec = 0;
+        timeout.tv_usec = timeout_usec;
+    }
+
     /* *INDENT-ON* */
     int ok;
 
