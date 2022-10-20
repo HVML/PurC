@@ -115,7 +115,7 @@ mc_tty_color_pair_init_special (tty_color_pair_t * mc_color_pair,
 /*** public functions ****************************************************************************/
 /* --------------------------------------------------------------------------------------------- */
 
-void
+int
 tty_color_init_lib (gboolean disable, gboolean force)
 {
     (void) force;
@@ -129,6 +129,7 @@ tty_color_init_lib (gboolean disable, gboolean force)
 
     mc_tty_color_color_pair_attrs = g_hash_table_new_full
         (g_int_hash, g_int_equal, mc_tty_color_attr_destroy_cb, mc_tty_color_attr_destroy_cb);
+    return COLORS;
 }
 
 /* --------------------------------------------------------------------------------------------- */

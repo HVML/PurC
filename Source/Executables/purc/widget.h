@@ -27,14 +27,7 @@
 #define purc_foil_widget_h
 
 #include "foil.h"
-
-/* a page is the client area of a window or widget,
-   which is used to render the content. */
-struct pcmcth_page {
-    int left, top;
-    int rows, cols;
-    pcmcth_udom *udom;
-};
+#include "page.h"
 
 typedef enum {
     WSP_WIDGET_TYPE_NONE  = 0,       /* not-existing */

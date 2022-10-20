@@ -33,7 +33,7 @@
 
 /*** declarations of public functions ************************************************************/
 
-void tty_init_colors (gboolean disable, gboolean force);
+int tty_init_colors (gboolean disable, gboolean force);
 void tty_colors_done (void);
 
 gboolean tty_use_colors (void);

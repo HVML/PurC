@@ -122,11 +122,12 @@ tty_color_get_next__color_pair_number (void)
 /*** public functions ****************************************************************************/
 /* --------------------------------------------------------------------------------------------- */
 
-void
+int
 tty_init_colors (gboolean disable, gboolean force)
 {
-    tty_color_init_lib (disable, force);
+    int colors = tty_color_init_lib (disable, force);
     mc_tty_color__hashtable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    return colors;
 }
 
 /* --------------------------------------------------------------------------------------------- */

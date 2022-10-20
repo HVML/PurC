@@ -49,7 +49,7 @@ const char *tty_color_get_name_by_index (int idx);
 int tty_color_get_index_by_name (const char *color_name);
 int tty_attr_get_bits (const char *attrs);
 
-void tty_color_init_lib (gboolean disable, gboolean force);
+int tty_color_init_lib (gboolean disable, gboolean force);
 void tty_color_deinit_lib (void);
 
 void tty_color_try_alloc_pair_lib (tty_color_pair_t * mc_color_pair);

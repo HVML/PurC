@@ -28,6 +28,46 @@
 
 #include "foil.h"
 
+/* a span is a group of continuous characters which are all with
+   same foreground color and background color and decorations in a row */
+struct foil_row_span_line_mode {
+    /* the code of the foreground color; e.g., "30m" for black */
+    const char *fgc_code;
+
+    /* the code of the background color; e.g., "40m" for black */
+    const char *bgc_code;
+
+    /* the code for the decoration; e.g., "1" for bold */
+    const char *decoration;
+
+    /* the pointer to the text in Unicode codepoints */
+    const uint32_t *ucs;
+
+    /* the number of characters in this span */
+    int n;
+
+    /* the width (columns) of this span */
+    int cols;
+};
+
+struct foil_line_line_mode {
+    unsigned nr_spans;
+    struct foil_row_span_line_mode *spans;
+};
+
+struct foil_contents_line_mode {
+    unsigned nr_lines;
+    struct foil_line_line_mode *lines;
+};
+
+/* a page is the client area of a window or widget,
+   which is used to render the content. */
+struct pcmcth_page {
+    int left, top;
+    int rows, cols;
+    pcmcth_udom *udom;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

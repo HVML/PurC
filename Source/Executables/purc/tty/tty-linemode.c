@@ -98,8 +98,6 @@ tty_linemode_init(int *rows, int *cols)
     return termencoding;
 }
 
-/* --------------------------------------------------------------------------------------------- */
-
 void
 tty_linemode_shutdown(void)
 {

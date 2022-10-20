@@ -71,8 +71,9 @@ static int foil_prepare(pcmcth_renderer *rdr)
             goto failed;
         }
 
-        LOG_INFO("The terminal encoding: %s, size: %d, %d\n",
+        LOG_INFO("The terminal info: encoding (%s), size (%d x %d)\n",
                 term_enc, rdr->impl->rows, rdr->impl->cols);
+
         return foil_wsp_module_init(rdr);
     }
 
