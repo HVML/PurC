@@ -35,13 +35,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-enum VIA {
-    VIA_LOAD,
-    VIA_GET,
-    VIA_POST,
-    VIA_DELETE,
-};
-
 struct ctxt_for_define {
     struct pcvdom_node           *curr;
 

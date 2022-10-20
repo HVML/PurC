@@ -67,6 +67,14 @@ struct pcintr_observer_task {
     purc_variant_t                source;
 };
 
+enum VIA {
+    VIA_UNDEFINED,
+    VIA_LOAD,
+    VIA_GET,
+    VIA_POST,
+    VIA_DELETE,
+};
+
 PCA_EXTERN_C_BEGIN
 
 void
@@ -476,6 +484,9 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
 
 purc_variant_t
 pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently);
+
+enum pcfetcher_request_method
+pcintr_method_from_via(enum VIA via);
 
 PCA_EXTERN_C_END
 

@@ -39,14 +39,6 @@
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
 
-enum VIA {
-    VIA_UNDEFINED,
-    VIA_LOAD,
-    VIA_GET,
-    VIA_POST,
-    VIA_DELETE,
-};
-
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
@@ -635,33 +627,6 @@ out:
     return 0;
 }
 
-static enum pcfetcher_request_method
-method_from_via(enum VIA via)
-{
-    enum pcfetcher_request_method method;
-    switch (via) {
-        case VIA_GET:
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-        case VIA_POST:
-            method = PCFETCHER_REQUEST_METHOD_POST;
-            break;
-        case VIA_DELETE:
-            method = PCFETCHER_REQUEST_METHOD_DELETE;
-            break;
-        case VIA_UNDEFINED:
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-        default:
-            // TODO VW: raise exception for no required value
-            // PC_ASSERT(0);
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-    }
-
-    return method;
-}
-
 static purc_variant_t
 params_from_with(struct ctxt_for_init *ctxt)
 {
@@ -696,7 +661,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     PC_ASSERT(ctxt);
 
     enum pcfetcher_request_method method;
-    method = method_from_via(ctxt->via);
+    method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
     params = params_from_with(ctxt);
@@ -945,7 +910,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
         data->against     = purc_variant_ref(ctxt->against);
 
     enum pcfetcher_request_method method;
-    method = method_from_via(ctxt->via);
+    method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
     params = params_from_with(ctxt);
