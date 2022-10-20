@@ -1,0 +1,34 @@
+<!-- Version 10 -->
+
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+  <body>
+
+    <init as "myFriends">
+        [
+            { "id": 1, "avatar": "/img/avatars/1.png", "name": "Tom",
+                "region": "en_US", "age": 2 },
+            { "id": 2, "avatar": "/img/avatars/2.png", "name": "Jerry",
+                "region": "zh_CN", "age": 3 }
+        ]
+    </init>
+
+    <init as "greetings">
+        { "zh": "您好，", "en": "Hello, " }
+    </init>
+
+    <archetype name="friendItem" src="http://ws.fmsoft.cn/tools/archetype.php" param={a:1,b:2} method="POST">
+    </archetype>
+
+    <ul class="friend-list">
+        <iterate on "$myFriends">
+            <init as oneFriend with $? temp />
+            <update on $oneFriend to "merge" with { greeting: $greetings[$STR.substr($oneFriend.region, 0, 2)] } />
+
+            <choose on $oneFriend>
+                <update on $@ to "append" with $friendItem />
+            </choose>
+        </iterate>
+    </ul>
+
+  </body>
+</hvml>
