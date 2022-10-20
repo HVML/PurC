@@ -43,6 +43,8 @@ set(sample_HVML_FILES
     "hvml/prime-number-sieve.hvml"
     "hvml/fetch-with-param-0.hvml"
     "hvml/fetch-with-param-1.hvml"
+    "hvml/fetch-with-param-2.hvml"
+    "hvml/fetch-with-param-3.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

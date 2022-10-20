@@ -261,14 +261,11 @@ params_from_with(struct ctxt_for_update *ctxt)
 
 static int
 get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        struct ctxt_for_update *ctxt, purc_variant_t from, purc_variant_t with,
-        enum VIA via)
+        struct ctxt_for_update *ctxt)
 {
     UNUSED_PARAM(frame);
-    UNUSED_PARAM(via);
-    PC_ASSERT(with == PURC_VARIANT_INVALID);
 
-    const char* uri = purc_variant_get_string_const(from);
+    const char* uri = purc_variant_get_string_const(ctxt->from);
 
     enum pcfetcher_request_method method;
     method = pcintr_method_from_via(ctxt->via);
@@ -929,10 +926,12 @@ process_attr_with(struct pcintr_stack_frame *frame,
         return -1;
     }
     if (ctxt->from != PURC_VARIANT_INVALID) {
+#if 0
         if (!purc_variant_is_string(val)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
+#endif
         if (attr->op != PCHVML_ATTRIBUTE_OPERATOR) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -1122,8 +1121,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (ctxt->with != PURC_VARIANT_INVALID) {
             PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_OPERATOR);
         }
-        get_source_by_from(stack->co, frame, ctxt, ctxt->from,
-                ctxt->with, ctxt->via);
+        get_source_by_from(stack->co, frame, ctxt);
     }
 
     return ctxt;
