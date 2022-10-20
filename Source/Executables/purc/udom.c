@@ -54,7 +54,7 @@ typedef enum {
     PCTH_RDR_WHITE_SPACE_PRE_LINE,
 } pcth_rdr_white_space_t;
 
-struct purcth_udom {
+struct pcmcth_udom {
     /* the sorted array of eDOM element and the corresponding rendering box. */
     struct sorted_array *elem2rdrbox;
 
@@ -165,7 +165,7 @@ static css_error resolve_url(void *pw,
     return CSS_OK;
 }
 
-int foil_udom_module_init(purcth_renderer *rdr)
+int foil_udom_module_init(pcmcth_renderer *rdr)
 {
     if (foil_rdrbox_module_init(rdr))
         return -1;
@@ -211,7 +211,7 @@ int foil_udom_module_init(purcth_renderer *rdr)
     return 0;
 }
 
-void foil_udom_module_cleanup(purcth_renderer *rdr)
+void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 {
     if (def_ua_sheet)
         css_stylesheet_destroy(def_ua_sheet);
@@ -219,7 +219,7 @@ void foil_udom_module_cleanup(purcth_renderer *rdr)
     foil_rdrbox_module_cleanup(rdr);
 }
 
-static void udom_cleanup(purcth_udom *udom)
+static void udom_cleanup(pcmcth_udom *udom)
 {
     if (udom->elem2rdrbox)
         sorted_array_cleanup(udom->elem2rdrbox);
@@ -231,9 +231,9 @@ static void udom_cleanup(purcth_udom *udom)
         foil_rdrbox_delete_deep(udom->initial_cblock);
 }
 
-purcth_udom *foil_udom_new(purcth_page *page)
+pcmcth_udom *foil_udom_new(pcmcth_page *page)
 {
-    purcth_udom* udom = calloc(1, sizeof(purcth_udom));
+    pcmcth_udom* udom = calloc(1, sizeof(pcmcth_udom));
     if (udom == NULL) {
         goto failed;
     }
@@ -314,13 +314,13 @@ failed:
     return NULL;
 }
 
-void foil_udom_delete(purcth_udom *udom)
+void foil_udom_delete(pcmcth_udom *udom)
 {
     udom_cleanup(udom);
     free(udom);
 }
 
-foil_rdrbox *foil_udom_find_rdrbox(purcth_udom *udom,
+foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
         uint64_t element_handle)
 {
     void *data;
@@ -341,7 +341,7 @@ static int append_style_walker(purc_document_t doc,
     pcdoc_element_get_tag_name(doc, element, &name, &len,
             NULL, NULL, NULL, NULL);
     if (strncasecmp(name, "style", len) == 0) {
-        struct purcth_udom *udom = ctxt;
+        struct pcmcth_udom *udom = ctxt;
 
         pcdoc_node child = pcdoc_element_first_child(doc, element);
         while (child.data != NULL) {
@@ -489,7 +489,7 @@ failed:
 static int udom_maker(purc_document_t doc,
         pcdoc_element_t element, void *ctxt)
 {
-    struct purcth_rendering_ctxt *my_ctxt = ctxt;
+    struct pcmcth_rendering_ctxt *my_ctxt = ctxt;
 
     css_select_results *result;
     result = select_element_style(&my_ctxt->udom->media,
@@ -502,8 +502,8 @@ static int udom_maker(purc_document_t doc,
     return 0;
 }
 
-purcth_udom *
-foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
+pcmcth_udom *
+foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     purc_document_t edom_doc;
     purc_document_type doc_type;
@@ -522,7 +522,7 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    purcth_udom *udom;
+    pcmcth_udom *udom;
     udom = foil_udom_new(page);
     if (udom == NULL) {
         *retv = PCRDR_SC_INSUFFICIENT_STORAGE;
@@ -574,7 +574,7 @@ foil_udom_load_edom(purcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    struct purcth_rendering_ctxt ctxt = { edom_doc, udom,
+    struct pcmcth_rendering_ctxt ctxt = { edom_doc, udom,
         udom->initial_cblock };
     pcdoc_travel_descendant_elements(edom_doc, purc_document_root(edom_doc),
             udom_maker, &ctxt, &n);
@@ -585,7 +585,7 @@ failed:
     return NULL;
 }
 
-int foil_udom_update_rdrbox(purcth_udom *udom, foil_rdrbox *rdrbox,
+int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
     (void)udom;
@@ -598,7 +598,7 @@ int foil_udom_update_rdrbox(purcth_udom *udom, foil_rdrbox *rdrbox,
     return PCRDR_SC_NOT_IMPLEMENTED;
 }
 
-purc_variant_t foil_udom_call_method(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_call_method(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *method, purc_variant_t arg)
 {
     (void)udom;
@@ -610,7 +610,7 @@ purc_variant_t foil_udom_call_method(purcth_udom *udom, foil_rdrbox *rdrbox,
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t foil_udom_get_property(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_get_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property)
 {
     (void)udom;
@@ -621,7 +621,7 @@ purc_variant_t foil_udom_get_property(purcth_udom *udom, foil_rdrbox *rdrbox,
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t foil_udom_set_property(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property, purc_variant_t value)
 {
     (void)udom;

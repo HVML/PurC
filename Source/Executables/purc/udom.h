@@ -33,28 +33,28 @@
 extern "C" {
 #endif
 
-int foil_udom_module_init(purcth_renderer *rdr);
-void foil_udom_module_cleanup(purcth_renderer *rdr);
+int foil_udom_module_init(pcmcth_renderer *rdr);
+void foil_udom_module_cleanup(pcmcth_renderer *rdr);
 
-purcth_udom *foil_udom_new(purcth_page *page);
-void foil_udom_delete(purcth_udom *udom);
+pcmcth_udom *foil_udom_new(pcmcth_page *page);
+void foil_udom_delete(pcmcth_udom *udom);
 
-foil_rdrbox *foil_udom_find_rdrbox(purcth_udom *udom,
+foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
         uint64_t element_handle);
 
-purcth_udom *foil_udom_load_edom(purcth_page *page,
+pcmcth_udom *foil_udom_load_edom(pcmcth_page *page,
         purc_variant_t edom, int *retv);
 
-int foil_udom_update_rdrbox(purcth_udom *udom, foil_rdrbox *rdrbox,
+int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info);
 
-purc_variant_t foil_udom_call_method(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_call_method(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *method, purc_variant_t arg);
 
-purc_variant_t foil_udom_get_property(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_get_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property);
 
-purc_variant_t foil_udom_set_property(purcth_udom *udom, foil_rdrbox *rdrbox,
+purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property, purc_variant_t value);
 
 #ifdef __cplusplus

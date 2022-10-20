@@ -29,7 +29,7 @@
 #include "foil.h"
 #include "widget.h"
 
-struct purcth_workspace {
+struct pcmcth_workspace {
     /* the root window in the workspace */
     struct foil_widget *root;
 
@@ -42,13 +42,13 @@ extern "C" {
 #endif
 
 /* Initialize workspace module */
-int foil_wsp_module_init(purcth_renderer *rdr);
+int foil_wsp_module_init(pcmcth_renderer *rdr);
 /* Clean up the workspace module */
-void foil_wsp_module_cleanup(purcth_renderer *rdr);
+void foil_wsp_module_cleanup(pcmcth_renderer *rdr);
 
 /* Create or get a workspace for an endpoint */
-purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
-        purcth_endpoint* endpoint);
+pcmcth_workspace *foil_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
+        pcmcth_endpoint* endpoint);
 
 void foil_wsp_convert_style(void *workspace, void *session,
         struct foil_widget_info *style, purc_variant_t toolkit_style);
@@ -64,8 +64,8 @@ void foil_wsp_update_widget(void *workspace, void *session,
         void *widget, foil_widget_type_t type,
         const struct foil_widget_info *style);
 
-purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
-        purcth_page *page, purc_variant_t edom, int *retv);
+pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
+        pcmcth_page *page, purc_variant_t edom, int *retv);
 
 #ifdef __cplusplus
 }

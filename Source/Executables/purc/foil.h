@@ -31,8 +31,7 @@
 /* for purc_atom_t */
 #include <purc/purc.h>
 
-#include "util/kvlist.h"
-#include "callbacks.h"
+#include "purcmc-thread.h"
 
 #define FOIL_APP_NAME           "cn.fmsoft.hvml.renderer"
 #define FOIL_RUN_NAME           "foil"
@@ -70,37 +69,20 @@
 #define LOG_INFO(x, ...)    \
     purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
 
-struct purcth_rdrimpl_data;
-
-struct purcth_renderer {
-    purc_atom_t     master_rid;
-    unsigned int    nr_endpoints;
-
-    time_t t_start;
-    time_t t_elapsed;
-    time_t t_elapsed_last;
-
-    /* The KV list using app name as the key,
-       and purcth_workspace* as the value */
-    struct kvlist workspace_list;
-
-    /* The KV list using endpoint URI as the key,
-       and purcth_endpoint* as the value */
-    struct kvlist endpoint_list;
-
-    /* the AVL tree of endpoints sorted by living time */
-    struct avl_tree living_avl;
-
-    /* the data for the renderer implementation */
-    struct purcth_rdrimpl_data *impl;
-
-    purcth_rdr_cbs cbs;
-};
-
 typedef struct foil_rect {
     int left, top;
     int right, bottom;
 } foil_rect;
+
+enum {
+    FOIL_TERM_MODE_LINE = 0,
+    FOIL_TERM_MODE_FULL_SCREEN,
+};
+
+struct pcmcth_rdr_data {
+    int term_mode;
+    int rows, cols;
+};
 
 purc_atom_t foil_init(const char *rdr_uri);
 

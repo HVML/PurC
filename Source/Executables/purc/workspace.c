@@ -25,24 +25,24 @@
 
 #include <assert.h>
 
-#include "callbacks.h"
+#include "purcmc-thread.h"
 #include "endpoint.h"
 #include "workspace.h"
 #include "udom.h"
 #include "page.h"
 #include "util/sorted-array.h"
 
-int foil_wsp_module_init(purcth_renderer *rdr)
+int foil_wsp_module_init(pcmcth_renderer *rdr)
 {
     kvlist_init(&rdr->workspace_list, NULL);
 
     return foil_page_module_init(rdr);
 }
 
-static purcth_workspace *workspace_new(purcth_renderer *rdr,
+static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
         const char *app_key)
 {
-    purcth_workspace *workspace = calloc(1, sizeof(purcth_workspace));
+    pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
         workspace->layouter = NULL;
         workspace->root = foil_widget_new(WSP_WIDGET_TYPE_ROOT, "root", NULL);
@@ -59,7 +59,7 @@ done:
     return workspace;
 }
 
-static void workspace_delete(purcth_workspace *workspace)
+static void workspace_delete(pcmcth_workspace *workspace)
 {
     assert(workspace->root);
 
@@ -72,22 +72,22 @@ static void workspace_delete(purcth_workspace *workspace)
     free(workspace);
 }
 
-void foil_wsp_module_cleanup(purcth_renderer *rdr)
+void foil_wsp_module_cleanup(pcmcth_renderer *rdr)
 {
     (void)rdr;
     const char *name;
     void *next, *data;
 
     kvlist_for_each_safe(&rdr->workspace_list, name, next, data) {
-        purcth_workspace *workspace = *(purcth_workspace **)data;
+        pcmcth_workspace *workspace = *(pcmcth_workspace **)data;
         workspace_delete(workspace);
     }
 
     foil_page_module_cleanup(rdr);
 }
 
-purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
-        purcth_endpoint* endpoint)
+pcmcth_workspace *foil_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
+        pcmcth_endpoint* endpoint)
 {
     char host[PURC_LEN_HOST_NAME + 1];
     char app[PURC_LEN_APP_NAME + 1];
@@ -100,9 +100,9 @@ purcth_workspace *foil_wsp_create_or_get_workspace(purcth_renderer *rdr,
     sprintf(app_key, "%s-%s", host, app);
 
     void *data;
-    purcth_workspace *workspace;
+    pcmcth_workspace *workspace;
     if ((data = kvlist_get(&rdr->workspace_list, app_key))) {
-        workspace = *(purcth_workspace **)data;
+        workspace = *(pcmcth_workspace **)data;
         assert(workspace);
     }
     else {
@@ -149,8 +149,8 @@ void foil_wsp_convert_style(void *workspace, void *session,
     style->flags |= WSP_WIDGET_FLAG_TOOLKIT;
 }
 
-static purcth_page *
-create_plainwin(purcth_workspace *workspace, purcth_session *sess,
+static pcmcth_page *
+create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
         void *init_arg, const struct foil_widget_info *style)
 {
     (void)sess;
@@ -190,7 +190,7 @@ void *foil_wsp_create_widget(void *workspace, void *session,
 }
 
 static int
-destroy_plainwin(purcth_workspace *workspace, purcth_session *sess,
+destroy_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
         foil_widget *plainwin)
 {
     (void)workspace;
@@ -227,13 +227,13 @@ void foil_wsp_update_widget(void *workspace, void *session,
     (void)style;
 }
 
-purcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
-        purcth_page *page, purc_variant_t edom, int *retv)
+pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
+        pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     (void)workspace;
     (void)session;
 
-    purcth_udom *udom = foil_udom_load_edom(page, edom, retv);
+    pcmcth_udom *udom = foil_udom_load_edom(page, edom, retv);
     return udom;
 }
 

@@ -43,21 +43,21 @@ int comp_living_time(const void *k1, const void *k2, void *ptr);
 struct avl_tree;
 void remove_all_living_endpoints(struct avl_tree *avl);
 
-purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri);
-int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause);
-purcth_endpoint* retrieve_endpoint(purcth_renderer* rdr, const char *uri);
-purc_atom_t get_endpoint_rid(purcth_endpoint* endpoint);
-const char *get_endpoint_uri(purcth_endpoint* endpoint);
+pcmcth_endpoint* new_endpoint(pcmcth_renderer* rdr, const char *uri);
+int del_endpoint(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint, int cause);
+pcmcth_endpoint* retrieve_endpoint(pcmcth_renderer* rdr, const char *uri);
+purc_atom_t get_endpoint_rid(pcmcth_endpoint* endpoint);
+const char *get_endpoint_uri(pcmcth_endpoint* endpoint);
 
-void update_endpoint_living_time(purcth_renderer *rdr,
-        purcth_endpoint* endpoint);
+void update_endpoint_living_time(pcmcth_renderer *rdr,
+        pcmcth_endpoint* endpoint);
 
-int check_no_responding_endpoints(purcth_renderer *rdr);
+int check_no_responding_endpoints(pcmcth_renderer *rdr);
 
-int send_message_to_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint,
+int send_message_to_endpoint(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg);
-int send_initial_response(purcth_renderer* rdr, purcth_endpoint* endpoint);
-int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
+int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint);
+int on_endpoint_message(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 
 #endif /* !purc_foil_endpoint_h_ */

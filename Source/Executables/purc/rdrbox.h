@@ -73,10 +73,10 @@ struct foil_rdrbox {
     };
 };
 
-struct purcth_rendering_ctxt {
+struct pcmcth_rendering_ctxt {
     purc_document_t doc;
 
-    purcth_udom *udom;
+    pcmcth_udom *udom;
 
     /* the current containing block */
     struct foil_rdrbox *current_cblock;
@@ -86,8 +86,8 @@ struct purcth_rendering_ctxt {
 extern "C" {
 #endif
 
-int foil_rdrbox_module_init(purcth_renderer *rdr);
-void foil_rdrbox_module_cleanup(purcth_renderer *rdr);
+int foil_rdrbox_module_init(pcmcth_renderer *rdr);
+void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr);
 
 foil_rdrbox *foil_rdrbox_new_block(void);
 
@@ -100,7 +100,7 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *node);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_create_rdrbox(struct pcmcth_rendering_ctxt *ctxt,
         pcdoc_element_t element, css_select_results *result);
 
 #ifdef __cplusplus

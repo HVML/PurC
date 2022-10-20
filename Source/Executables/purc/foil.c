@@ -33,11 +33,10 @@
 
 #include "foil.h"
 #include "endpoint.h"
-#include "callbacks.h"
 
-static int init_renderer(purcth_renderer *rdr)
+static int init_renderer(pcmcth_renderer *rdr)
 {
-    set_renderer_callbacks(rdr);
+    pcmcth_set_renderer_callbacks(rdr);
 
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();
@@ -49,18 +48,18 @@ static int init_renderer(purcth_renderer *rdr)
     return rdr->cbs.prepare(rdr);
 }
 
-static void deinit_renderer(purcth_renderer *rdr)
+static void deinit_renderer(pcmcth_renderer *rdr)
 {
     const char* name;
     void *next, *data;
-    purcth_endpoint *endpoint;
+    pcmcth_endpoint *endpoint;
 
     rdr->cbs.cleanup(rdr);
 
     remove_all_living_endpoints(&rdr->living_avl);
 
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
-        endpoint = *(purcth_endpoint **)data;
+        endpoint = *(pcmcth_endpoint **)data;
 
         purc_log_info("Deleting endpoint: %s (%p) in %s\n",
                 name, endpoint, __func__);
@@ -73,7 +72,7 @@ static void deinit_renderer(purcth_renderer *rdr)
     kvlist_free(&rdr->endpoint_list);
 }
 
-static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
+static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
 {
     const char *operation =
         purc_variant_get_string_const(msg->operation);
@@ -86,7 +85,7 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
     }
     else {
         if (strcmp(operation, PCRDR_THREAD_OPERATION_HELLO) == 0) {
-            purcth_endpoint *edpt = new_endpoint(rdr, origin_edpt);
+            pcmcth_endpoint *edpt = new_endpoint(rdr, origin_edpt);
             if (edpt) {
                 send_initial_response(rdr, edpt);
                 if (rdr->nr_endpoints == 0) {
@@ -98,7 +97,7 @@ static bool handle_instance_request(purcth_renderer *rdr, pcrdr_msg *msg)
             }
         }
         else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
-            purcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
+            pcmcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
             if (edpt) {
                 del_endpoint(rdr, edpt, CDE_EXITING);
             }
@@ -119,7 +118,7 @@ no_any_endpoints:
     return false;
 }
 
-static void event_loop(purcth_renderer *rdr)
+static void event_loop(pcmcth_renderer *rdr)
 {
     (void)rdr;
     size_t n;
@@ -168,7 +167,7 @@ static void event_loop(purcth_renderer *rdr)
                 purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
             }
             else {
-                purcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
+                pcmcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
                 if (edpt) {
                     update_endpoint_living_time(rdr, edpt);
                     on_endpoint_message(rdr, edpt, msg);
@@ -216,7 +215,7 @@ static void* foil_thread_entry(void* arg)
     sem_post(sw);
 
     if (my_arg->rid) {
-        purcth_renderer rdr;
+        pcmcth_renderer rdr;
 
         if (init_renderer(&rdr) == 0) {
             event_loop(&rdr);

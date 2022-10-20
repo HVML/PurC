@@ -30,10 +30,10 @@
 
 /* a page is the client area of a window or widget,
    which is used to render the content. */
-struct purcth_page {
+struct pcmcth_page {
     int left, top;
     int rows, cols;
-    purcth_udom *udom;
+    pcmcth_udom *udom;
 };
 
 typedef enum {
@@ -75,7 +75,7 @@ struct foil_widget {
     foil_widget_resized_cb  on_resized;
     foil_widget_destroy_cb  on_destroy;
 
-    purcth_page         page;
+    pcmcth_page         page;
 
     void               *user_data;
 };

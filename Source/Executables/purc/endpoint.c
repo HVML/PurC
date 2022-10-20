@@ -37,25 +37,25 @@
 #include "endpoint.h"
 #include "util/kvlist.h"
 
-struct purcth_endpoint {
+struct pcmcth_endpoint {
     time_t  t_created;
     time_t  t_living;
 
     purc_atom_t rid;
     const char* uri;
 
-    purcth_session *session;
+    pcmcth_session *session;
 
     /* AVL node for the AVL tree sorted by living time */
     struct avl_node avl;
 };
 
-purc_atom_t get_endpoint_rid(purcth_endpoint* endpoint)
+purc_atom_t get_endpoint_rid(pcmcth_endpoint* endpoint)
 {
     return endpoint->rid;
 }
 
-const char *get_endpoint_uri(purcth_endpoint* endpoint)
+const char *get_endpoint_uri(pcmcth_endpoint* endpoint)
 {
     return endpoint->uri;
 }
@@ -63,8 +63,8 @@ const char *get_endpoint_uri(purcth_endpoint* endpoint)
 int
 comp_living_time(const void *k1, const void *k2, void *ptr)
 {
-    const purcth_endpoint *e1 = k1;
-    const purcth_endpoint *e2 = k2;
+    const pcmcth_endpoint *e1 = k1;
+    const pcmcth_endpoint *e2 = k2;
 
     (void)ptr;
     return e1->t_living - e2->t_living;
@@ -72,27 +72,27 @@ comp_living_time(const void *k1, const void *k2, void *ptr)
 
 void remove_all_living_endpoints(struct avl_tree *avl)
 {
-    purcth_endpoint *endpoint, *tmp;
+    pcmcth_endpoint *endpoint, *tmp;
 
     avl_remove_all_elements(avl, endpoint, avl, tmp) {
         // TODO:
     }
 }
 
-purcth_endpoint* retrieve_endpoint(purcth_renderer* rdr, const char *uri)
+pcmcth_endpoint* retrieve_endpoint(pcmcth_renderer* rdr, const char *uri)
 {
     void *data;
     data = kvlist_get(&rdr->endpoint_list, uri);
     if (data == NULL)
         return NULL;
 
-    return *(purcth_endpoint **)data;
+    return *(pcmcth_endpoint **)data;
 }
 
-purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri)
+pcmcth_endpoint* new_endpoint(pcmcth_renderer* rdr, const char *uri)
 {
     int ec = PCRDR_SUCCESS;
-    purcth_endpoint* endpoint = NULL;
+    pcmcth_endpoint* endpoint = NULL;
 
     if (retrieve_endpoint(rdr, uri)) {
         ec = PCRDR_ERROR_DUPLICATED;
@@ -106,7 +106,7 @@ purcth_endpoint* new_endpoint(purcth_renderer* rdr, const char *uri)
         goto failed;
     }
 
-    endpoint = (purcth_endpoint *)calloc(sizeof(purcth_endpoint), 1);
+    endpoint = (pcmcth_endpoint *)calloc(sizeof(pcmcth_endpoint), 1);
     if (endpoint == NULL) {
         ec = PCRDR_ERROR_NOMEM;
         goto failed;
@@ -144,7 +144,7 @@ failed:
     return NULL;
 }
 
-int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
+int del_endpoint(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint, int cause)
 {
     (void)cause;
 
@@ -163,7 +163,7 @@ int del_endpoint(purcth_renderer* rdr, purcth_endpoint* endpoint, int cause)
 }
 
 void
-update_endpoint_living_time(purcth_renderer *rdr, purcth_endpoint* endpoint)
+update_endpoint_living_time(pcmcth_renderer *rdr, pcmcth_endpoint* endpoint)
 {
     time_t t_curr = purc_get_monotoic_time();
 
@@ -174,11 +174,11 @@ update_endpoint_living_time(purcth_renderer *rdr, purcth_endpoint* endpoint)
     }
 }
 
-int check_no_responding_endpoints(purcth_renderer *rdr)
+int check_no_responding_endpoints(pcmcth_renderer *rdr)
 {
     int n = 0;
     time_t t_curr = purc_get_monotoic_time();
-    purcth_endpoint *endpoint, *tmp;
+    pcmcth_endpoint *endpoint, *tmp;
 
     purc_log_info ("Checking no responding endpoints...\n");
 
@@ -203,7 +203,7 @@ int check_no_responding_endpoints(purcth_renderer *rdr)
     return n;
 }
 
-static int send_simple_response(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int send_simple_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     (void)rdr;
@@ -218,7 +218,7 @@ static int send_simple_response(purcth_renderer* rdr, purcth_endpoint* endpoint,
     return PCRDR_SC_OK;
 }
 
-int send_initial_response(purcth_renderer* rdr, purcth_endpoint* endpoint)
+int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint)
 {
     (void)rdr;
     int retv = PCRDR_SC_OK;
@@ -244,14 +244,14 @@ failed:
     return retv;
 }
 
-typedef int (*request_handler)(purcth_renderer* rdr, purcth_endpoint* endpoint,
+typedef int (*request_handler)(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 
-static int on_start_session(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_start_session(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     pcrdr_msg response = { };
-    purcth_session *info = NULL;
+    pcmcth_session *info = NULL;
 
     endpoint->session = NULL;
     int retv;
@@ -274,7 +274,7 @@ static int on_start_session(purcth_renderer* rdr, purcth_endpoint* endpoint,
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_end_session(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_end_session(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     pcrdr_msg response = { };
@@ -294,12 +294,12 @@ static int on_end_session(purcth_renderer* rdr, purcth_endpoint* endpoint,
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_create_workspace(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_create_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
     pcrdr_msg response = { };
-    purcth_workspace* workspace = NULL;
+    pcmcth_workspace* workspace = NULL;
 
     if (rdr->cbs.create_workspace == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
@@ -342,11 +342,11 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_update_workspace(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_update_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace;
+    pcmcth_workspace *workspace;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_workspace == NULL || rdr->cbs.update_workspace) {
@@ -363,7 +363,7 @@ static int on_update_workspace(purcth_renderer* rdr, purcth_endpoint* endpoint,
 
         unsigned long long int handle;
         handle = strtoull(element, NULL, 16);
-        workspace = (purcth_workspace *)(uintptr_t)handle;
+        workspace = (pcmcth_workspace *)(uintptr_t)handle;
         if (workspace == NULL) {
             retv = PCRDR_SC_BAD_REQUEST;
             goto failed;
@@ -397,11 +397,11 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_destroy_workspace(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_destroy_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace;
+    pcmcth_workspace *workspace;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_workspace == NULL || rdr->cbs.destroy_workspace) {
@@ -418,7 +418,7 @@ static int on_destroy_workspace(purcth_renderer* rdr, purcth_endpoint* endpoint,
 
         unsigned long long int handle;
         handle = strtoull(element, NULL, 16);
-        workspace = (purcth_workspace *)(uintptr_t)handle;
+        workspace = (pcmcth_workspace *)(uintptr_t)handle;
         if (workspace == NULL) {
             retv = PCRDR_SC_BAD_REQUEST;
             goto failed;
@@ -442,12 +442,12 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_set_page_groups(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_set_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
     pcrdr_msg response = { };
-    purcth_workspace* workspace = NULL;
+    pcmcth_workspace* workspace = NULL;
 
     if (rdr->cbs.set_page_groups == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
@@ -490,11 +490,11 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_add_page_groups(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_add_page_groups(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
+    pcmcth_workspace *workspace = NULL;
     pcrdr_msg response = { };
 
     if (rdr->cbs.set_page_groups == NULL ||
@@ -539,11 +539,11 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_remove_page_group(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_remove_page_group(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
+    pcmcth_workspace *workspace = NULL;
     const char *gid;
     pcrdr_msg response = { };
 
@@ -586,14 +586,14 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_create_plain_window(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_create_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
     pcrdr_msg response = { };
 
-    purcth_workspace* workspace = NULL;
-    purcth_page* win = NULL;
+    pcmcth_workspace* workspace = NULL;
+    pcmcth_page* win = NULL;
 
     const char* gid = NULL;
     const char* name = NULL;
@@ -664,12 +664,12 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_update_plain_window(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_update_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
-    purcth_page *win = NULL;
+    pcmcth_workspace *workspace = NULL;
+    pcmcth_page *win = NULL;
     pcrdr_msg response = { };
 
     if (msg->target == PCRDR_MSG_TARGET_WORKSPACE) {
@@ -721,12 +721,12 @@ failed:
 }
 
 static int
-on_destroy_plain_window(purcth_renderer* rdr, purcth_endpoint* endpoint,
+on_destroy_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
-    purcth_page *win = NULL;
+    pcmcth_workspace *workspace = NULL;
+    pcmcth_page *win = NULL;
     pcrdr_msg response = { };
 
     if (msg->target == PCRDR_MSG_TARGET_WORKSPACE) {
@@ -746,7 +746,7 @@ on_destroy_plain_window(purcth_renderer* rdr, purcth_endpoint* endpoint,
 
         unsigned long long int handle;
         handle = strtoull(element, NULL, 16);
-        win = (purcth_page *)(uintptr_t)handle;
+        win = (pcmcth_page *)(uintptr_t)handle;
     }
 
     if (win == NULL) {
@@ -767,13 +767,13 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_create_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_create_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
     pcrdr_msg response = { };
-    purcth_workspace* workspace = NULL;
-    purcth_page* page = NULL;
+    pcmcth_workspace* workspace = NULL;
+    pcmcth_page* page = NULL;
 
     if (rdr->cbs.create_widget == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
@@ -848,12 +848,12 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_update_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_update_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
-    purcth_page *page = NULL;
+    pcmcth_workspace *workspace = NULL;
+    pcmcth_page *page = NULL;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_widget == NULL || rdr->cbs.update_widget == NULL) {
@@ -909,12 +909,12 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_destroy_widget(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_destroy_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    purcth_workspace *workspace = NULL;
-    purcth_page *page = NULL;
+    pcmcth_workspace *workspace = NULL;
+    pcmcth_page *page = NULL;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_widget == NULL || rdr->cbs.destroy_widget == NULL) {
@@ -960,13 +960,13 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_load(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     pcrdr_msg response = { };
     int retv = PCRDR_SC_OK;
-    purcth_page *page = NULL;
-    purcth_udom *dom = NULL;
+    pcmcth_page *page = NULL;
+    pcmcth_udom *dom = NULL;
 
     void *edom;
     if (msg->data == PURC_VARIANT_INVALID ||
@@ -999,15 +999,15 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int update_dom(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int update_dom(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg, int op)
 {
     int retv;
-    purcth_udom *dom = NULL;
+    pcmcth_udom *dom = NULL;
     pcrdr_msg response = { };
 
     if (msg->target == PCRDR_MSG_TARGET_DOM) {
-        dom = (purcth_udom *)(uintptr_t)msg->targetValue;
+        dom = (pcmcth_udom *)(uintptr_t)msg->targetValue;
     }
     else {
         retv = PCRDR_SC_BAD_REQUEST;
@@ -1051,55 +1051,55 @@ done:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_append(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_append(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_APPEND);
 }
 
-static int on_prepend(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_prepend(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_PREPEND);
 }
 
-static int on_insert_after(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_insert_after(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_INSERTAFTER);
 }
 
-static int on_insert_before(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_insert_before(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_INSERTBEFORE);
 }
 
-static int on_displace(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_displace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_DISPLACE);
 }
 
-static int on_clear(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_clear(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_CLEAR);
 }
 
-static int on_erase(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_erase(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_ERASE);
 }
 
-static int on_update(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_update(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     return update_dom(rdr, endpoint, msg, PCRDR_K_OPERATION_UPDATE);
 }
 
-static int on_call_method(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -1155,8 +1155,8 @@ static int on_call_method(purcth_renderer* rdr, purcth_endpoint* endpoint,
             goto failed;
         }
 
-        purcth_udom *dom = NULL;
-        dom = (purcth_udom *)(uintptr_t)msg->targetValue;
+        pcmcth_udom *dom = NULL;
+        dom = (pcmcth_udom *)(uintptr_t)msg->targetValue;
         if (dom == NULL) {
             retv = PCRDR_SC_BAD_REQUEST;
             goto failed;
@@ -1204,7 +1204,7 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_get_property(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_get_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -1254,8 +1254,8 @@ static int on_get_property(purcth_renderer* rdr, purcth_endpoint* endpoint,
             goto failed;
         }
 
-        purcth_udom *dom = NULL;
-        dom = (purcth_udom *)(uintptr_t)msg->targetValue;
+        pcmcth_udom *dom = NULL;
+        dom = (pcmcth_udom *)(uintptr_t)msg->targetValue;
         if (dom == NULL) {
             retv = PCRDR_SC_BAD_REQUEST;
             goto failed;
@@ -1301,7 +1301,7 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
-static int on_set_property(purcth_renderer* rdr, purcth_endpoint* endpoint,
+static int on_set_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
@@ -1351,8 +1351,8 @@ static int on_set_property(purcth_renderer* rdr, purcth_endpoint* endpoint,
             goto failed;
         }
 
-        purcth_udom *dom = NULL;
-        dom = (purcth_udom *)(uintptr_t)msg->targetValue;
+        pcmcth_udom *dom = NULL;
+        dom = (pcmcth_udom *)(uintptr_t)msg->targetValue;
         if (dom == NULL) {
             retv = PCRDR_SC_BAD_REQUEST;
             goto failed;
@@ -1472,7 +1472,7 @@ found:
     return handlers[mid].handler;
 }
 
-int on_endpoint_message(purcth_renderer* rdr, purcth_endpoint* endpoint,
+int on_endpoint_message(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     if (msg->type == PCRDR_MSG_TYPE_REQUEST) {

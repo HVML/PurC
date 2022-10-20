@@ -63,13 +63,13 @@ struct _block_box_data {
     int pl, pt, pr, pb;
 };
 
-int foil_rdrbox_module_init(purcth_renderer *rdr)
+int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
     return 0;
 }
 
-void foil_rdrbox_module_cleanup(purcth_renderer *rdr)
+void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr)
 {
     (void)rdr;
 }
@@ -241,7 +241,7 @@ static const char *display_values[] = {
     "INLINE_GRID",
 };
 
-foil_rdrbox *foil_create_rdrbox(struct purcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_create_rdrbox(struct pcmcth_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };

@@ -32,19 +32,19 @@
 extern "C" {
 #endif
 
-int foil_page_module_init(purcth_renderer *rdr);
-void foil_page_module_cleanup(purcth_renderer *rdr);
+int foil_page_module_init(pcmcth_renderer *rdr);
+void foil_page_module_cleanup(pcmcth_renderer *rdr);
 
-purcth_page *foil_page_new(int rows, int cols);
+pcmcth_page *foil_page_new(int rows, int cols);
 
 /* return the uDOM set for this page */
-purcth_udom *foil_page_delete(purcth_page *page);
+pcmcth_udom *foil_page_delete(pcmcth_page *page);
 
 /* set uDOM and return the old one */
-purcth_udom *foil_page_set_udom(purcth_page *page, purcth_udom *udom);
+pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 
-int foil_page_rows(const purcth_page *page);
-int foil_page_cols(const purcth_page *page);
+int foil_page_rows(const pcmcth_page *page);
+int foil_page_cols(const pcmcth_page *page);
 
 #ifdef __cplusplus
 }

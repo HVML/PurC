@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-#include "callbacks.h"
+#include "purcmc-thread.h"
 #include "endpoint.h"
 #include "workspace.h"
 #include "udom.h"
@@ -43,19 +43,9 @@ enum {
     HT_UDOM,
 };
 
-enum {
-    FOIL_TERM_MODE_LINE = 0,
-    FOIL_TERM_MODE_FULL_SCREEN,
-};
-
-struct purcth_rdrimpl_data {
-    int term_mode;
-    int rows, cols;
-};
-
-struct purcth_session {
-    purcth_renderer *rdr;
-    purcth_endpoint *edpt;
+struct pcmcth_session {
+    pcmcth_renderer *rdr;
+    pcmcth_endpoint *edpt;
 
     /* ungrouped plain windows */
     struct kvlist ug_wins;
@@ -64,10 +54,10 @@ struct purcth_session {
     struct sorted_array *all_handles;
 
     /* the only workspace for all sessions of current app */
-    purcth_workspace *workspace;
+    pcmcth_workspace *workspace;
 };
 
-static int foil_prepare(purcth_renderer *rdr)
+static int foil_prepare(pcmcth_renderer *rdr)
 {
     rdr->impl = calloc(1, sizeof(*rdr->impl));
     if (rdr->impl) {
@@ -91,7 +81,7 @@ failed:
 }
 
 static int
-foil_handle_event(purcth_renderer *rdr, unsigned long long timeout_usec)
+foil_handle_event(pcmcth_renderer *rdr, unsigned long long timeout_usec)
 {
     if (rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
         if (tty_got_winch(timeout_usec)) {
@@ -102,7 +92,7 @@ foil_handle_event(purcth_renderer *rdr, unsigned long long timeout_usec)
     return 0;
 }
 
-static void foil_cleanup(purcth_renderer *rdr)
+static void foil_cleanup(pcmcth_renderer *rdr)
 {
     if (rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
         tty_linemode_shutdown();
@@ -113,10 +103,10 @@ static void foil_cleanup(purcth_renderer *rdr)
     foil_wsp_module_cleanup(rdr);
 }
 
-static purcth_session *
-foil_create_session(purcth_renderer *rdr, purcth_endpoint *edpt)
+static pcmcth_session *
+foil_create_session(pcmcth_renderer *rdr, pcmcth_endpoint *edpt)
 {
-    purcth_session* sess = calloc(1, sizeof(purcth_session));
+    pcmcth_session* sess = calloc(1, sizeof(pcmcth_session));
 
     sess->workspace = foil_wsp_create_or_get_workspace(rdr, edpt);
     if (sess->workspace == NULL) {
@@ -143,7 +133,7 @@ failed:
     return NULL;
 }
 
-static int foil_remove_session(purcth_session *sess)
+static int foil_remove_session(pcmcth_session *sess)
 {
     const char *name;
     void *next, *data;
@@ -153,7 +143,7 @@ static int foil_remove_session(purcth_session *sess)
     LOG_DEBUG("destroy all ungrouped plain windows...\n");
     kvlist_for_each_safe(&sess->ug_wins, name, next, data) {
         /* TODO
-        purcth_page *plain_win = *(purcth_page **)data;
+        pcmcth_page *plain_win = *(pcmcth_page **)data;
         */
     }
 
@@ -170,8 +160,8 @@ static int foil_remove_session(purcth_session *sess)
     return PCRDR_SC_OK;
 }
 
-static purcth_page *foil_create_plainwin(purcth_session *sess,
-        purcth_workspace *workspace,
+static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
+        pcmcth_workspace *workspace,
         const char *gid, const char *name,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
@@ -181,7 +171,7 @@ static purcth_page *foil_create_plainwin(purcth_session *sess,
     (void)layout_style;
     (void)toolkit_style;
 
-    purcth_page *plain_win = NULL;
+    pcmcth_page *plain_win = NULL;
 
     workspace = sess->workspace;
 
@@ -237,8 +227,8 @@ done:
 }
 
 static int
-foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
-        purcth_page *plain_win, const char *property, purc_variant_t value)
+foil_update_plainwin(pcmcth_session *sess, pcmcth_workspace *workspace,
+        pcmcth_page *plain_win, const char *property, purc_variant_t value)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
@@ -292,8 +282,8 @@ foil_update_plainwin(purcth_session *sess, purcth_workspace *workspace,
 }
 
 static int
-foil_destroy_plainwin(purcth_session *sess, purcth_workspace *workspace,
-        purcth_page *plain_win)
+foil_destroy_plainwin(pcmcth_session *sess, pcmcth_workspace *workspace,
+        pcmcth_page *plain_win)
 {
     workspace = sess->workspace;
     return foil_wsp_destroy_widget(workspace, sess, plain_win, plain_win,
@@ -301,9 +291,9 @@ foil_destroy_plainwin(purcth_session *sess, purcth_workspace *workspace,
 }
 
 #if 0
-static purcth_page *
-foil_get_plainwin_page(purcth_session *sess,
-        purcth_page *plain_win, int *retv)
+static pcmcth_page *
+foil_get_plainwin_page(pcmcth_session *sess,
+        pcmcth_page *plain_win, int *retv)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
@@ -319,13 +309,13 @@ foil_get_plainwin_page(purcth_session *sess,
     *retv = PCRDR_SC_OK;
     return NULL;
     /* TODO
-    return (purcth_page *)browser_plain_window_get_view(
+    return (pcmcth_page *)browser_plain_window_get_view(
             BROWSER_PLAIN_WINDOW(plain_win)); */
 }
 #endif
 
-static purcth_page *
-validate_page(purcth_session *sess, purcth_page *page, int *retv)
+static pcmcth_page *
+validate_page(pcmcth_session *sess, pcmcth_page *page, int *retv)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(page), &data)) {
@@ -342,15 +332,15 @@ validate_page(purcth_session *sess, purcth_page *page, int *retv)
     return NULL;
 }
 
-static purcth_udom *
-foil_load_edom(purcth_session *sess, purcth_page *page, purc_variant_t edom,
+static pcmcth_udom *
+foil_load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
         int *retv)
 {
     page = validate_page(sess, page, retv);
     if (page == NULL)
         return NULL;
 
-    purcth_udom *udom = foil_wsp_load_edom_in_page(sess->workspace, sess,
+    pcmcth_udom *udom = foil_wsp_load_edom_in_page(sess->workspace, sess,
             page, edom, retv);
 
     if (udom) {
@@ -363,8 +353,8 @@ foil_load_edom(purcth_session *sess, purcth_page *page, purc_variant_t edom,
     return udom;
 }
 
-static purcth_udom *
-validate_udom(purcth_session *sess, purcth_udom *udom, int *retv)
+static pcmcth_udom *
+validate_udom(pcmcth_session *sess, pcmcth_udom *udom, int *retv)
 {
     void *data;
     if (!sorted_array_find(sess->all_handles, PTR2U64(udom), &data)) {
@@ -380,7 +370,7 @@ validate_udom(purcth_session *sess, purcth_udom *udom, int *retv)
     return NULL;
 }
 
-static int foil_update_udom(purcth_session *sess, purcth_udom *udom,
+static int foil_update_udom(pcmcth_session *sess, pcmcth_udom *udom,
         int op, uint64_t element_handle, const char* property,
         purc_variant_t ref_info)
 {
@@ -411,8 +401,8 @@ failed:
 }
 
 static purc_variant_t
-foil_call_method_in_udom(purcth_session *sess,
-        purcth_udom *udom, uint64_t element_handle,
+foil_call_method_in_udom(pcmcth_session *sess,
+        pcmcth_udom *udom, uint64_t element_handle,
         const char *method, purc_variant_t arg, int* retv)
 {
     udom = validate_udom(sess, udom, retv);
@@ -444,8 +434,8 @@ foil_call_method_in_udom(purcth_session *sess,
 }
 
 static purc_variant_t
-foil_get_property_in_udom(purcth_session *sess,
-        purcth_udom *udom, uint64_t element_handle,
+foil_get_property_in_udom(pcmcth_session *sess,
+        pcmcth_udom *udom, uint64_t element_handle,
         const char *property, int *retv)
 {
     udom = validate_udom(sess, udom, retv);
@@ -478,8 +468,8 @@ foil_get_property_in_udom(purcth_session *sess,
 }
 
 static purc_variant_t
-foil_set_property_in_udom(purcth_session *sess,
-        purcth_udom *udom, uint64_t element_handle,
+foil_set_property_in_udom(pcmcth_session *sess,
+        pcmcth_udom *udom, uint64_t element_handle,
         const char *property, purc_variant_t value, int *retv)
 {
     udom = validate_udom(sess, udom, retv);
@@ -511,7 +501,7 @@ foil_set_property_in_udom(purcth_session *sess,
     return result;
 }
 
-void set_renderer_callbacks(purcth_renderer *rdr)
+void pcmcth_set_renderer_callbacks(pcmcth_renderer *rdr)
 {
     memset(&rdr->cbs, 0, sizeof(rdr->cbs));
 

@@ -29,19 +29,19 @@
 
 #include <assert.h>
 
-int foil_page_module_init(purcth_renderer *rdr)
+int foil_page_module_init(pcmcth_renderer *rdr)
 {
     return foil_udom_module_init(rdr);
 }
 
-void foil_page_module_cleanup(purcth_renderer *rdr)
+void foil_page_module_cleanup(pcmcth_renderer *rdr)
 {
     foil_udom_module_cleanup(rdr);
 }
 
-purcth_page *foil_page_new(int rows, int cols)
+pcmcth_page *foil_page_new(int rows, int cols)
 {
-    purcth_page *page = calloc(1, sizeof(*page));
+    pcmcth_page *page = calloc(1, sizeof(*page));
 
     if (page) {
         page->rows = rows;
@@ -52,28 +52,28 @@ purcth_page *foil_page_new(int rows, int cols)
     return page;
 }
 
-purcth_udom *foil_page_delete(purcth_page *page)
+pcmcth_udom *foil_page_delete(pcmcth_page *page)
 {
-    purcth_udom *udom = page->udom;
+    pcmcth_udom *udom = page->udom;
     free(page);
 
     return udom;
 }
 
-purcth_udom *foil_page_set_udom(purcth_page *page, purcth_udom *udom)
+pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
 {
-    purcth_udom *old_udom = page->udom;
+    pcmcth_udom *old_udom = page->udom;
     page->udom = udom;
 
     return old_udom;
 }
 
-int foil_page_rows(const purcth_page *page)
+int foil_page_rows(const pcmcth_page *page)
 {
     return page->rows;
 }
 
-int foil_page_cols(const purcth_page *page)
+int foil_page_cols(const pcmcth_page *page)
 {
     return page->cols;
 }
