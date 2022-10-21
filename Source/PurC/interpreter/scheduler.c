@@ -175,6 +175,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+#if 0
         stack->terminated = 1;
         if (co->owner->cond_handler) {
             struct purc_cor_term_info term_info;
@@ -184,6 +185,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             /* Call purc_coroutine_dump_stack may set inst->errcode */
             purc_clr_error();
         }
+#endif
         PC_ASSERT(inst->errcode == 0);
     }
 
@@ -259,6 +261,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         pcintr_dump_c_stack(co->stack.exception.bt);
 #endif
         co->stack.except = 0;
+        stack->terminated = 1;
 
         if (!co->stack.exited) {
             co->stack.exited = 1;
