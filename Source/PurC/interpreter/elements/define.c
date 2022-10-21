@@ -45,6 +45,14 @@ struct ctxt_for_define {
     purc_variant_t                with;
 
     enum VIA                      via;
+    purc_variant_t                sync_id;
+    purc_variant_t                params;
+    pcintr_coroutine_t            co;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
+
 
     unsigned int                  under_head:1;
     unsigned int                  async:1;
@@ -59,6 +67,12 @@ ctxt_for_define_destroy(struct ctxt_for_define *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+        if (ctxt->resp) {
+            purc_rwstream_destroy(ctxt->resp);
+            ctxt->resp = NULL;
+        }
         free(ctxt);
     }
 }
@@ -91,6 +105,190 @@ get_name(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     const char *s_name = purc_variant_get_string_const(name);
     return s_name;
+}
+
+static void on_sync_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+    pcintr_stack_frame_t frame;
+    frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_coroutine_t co = ctxt->co;
+    PC_ASSERT(co);
+    PC_ASSERT(co->owner == heap);
+    PC_ASSERT(ctxt->sync_id == request_id);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+        PURC_VARIANT_INVALID, ctxt->sync_id);
+}
+
+static bool
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+{
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, FETCHERSTATE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)data;
+    PC_ASSERT(frame);
+
+    pcintr_stack_t stack = &cor->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_define *ctxt;
+    ctxt = (struct ctxt_for_define*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    if (!ctxt->resp || ctxt->ret_code != 200) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        // FIXME: what error to set
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                ctxt->ret_code);
+        goto out;
+    }
+
+    struct pcvdom_element *elem;
+    elem = pcvdom_util_document_parse_fragment(ctxt->resp, NULL);
+    if (!elem) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    int r = pcvdom_element_append_element(frame->pos, elem);
+    if (r) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+out:
+    pcintr_resume(cor, msg);
+    pcintr_set_current_co(NULL);
+    return 0;
+}
+
+static purc_variant_t
+params_from_with(struct ctxt_for_define *ctxt)
+{
+    purc_variant_t with = ctxt->with;
+
+    purc_variant_t params;
+    if (with == PURC_VARIANT_INVALID) {
+        params = purc_variant_make_object_0();
+    }
+    else if (purc_variant_is_object(with)) {
+        params = purc_variant_ref(with);
+    }
+    else {
+        // TODO VW: raise exceptioin for no suitable value.
+        // PC_ASSERT(0);
+        params = purc_variant_make_object_0();
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+    ctxt->params = params;
+
+    return params;
+}
+
+static int
+get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        struct ctxt_for_define *ctxt)
+{
+    UNUSED_PARAM(frame);
+
+    const char* uri = purc_variant_get_string_const(ctxt->from);
+
+    enum pcfetcher_request_method method;
+    method = pcintr_method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
+    ctxt->co = co;
+    purc_variant_t v = pcintr_load_from_uri_async(&co->stack, uri,
+            method, params, on_sync_complete, frame, PURC_VARIANT_INVALID);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_yield(
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            ctxt->sync_id,
+            MSG_TYPE_FETCHER_STATE,
+            MSG_SUB_TYPE_ASTERISK,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+            );
+
+    purc_clr_error();
+    return 0;
 }
 
 static int
@@ -136,6 +334,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
     }
 
+    int r;
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
         if (!pcfetcher_is_init()) {
@@ -143,30 +342,19 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                     "pcfetcher not initialized");
             return -1;
         }
-
-        const char* uri = purc_variant_get_string_const(from);
-        purc_variant_t v = pcintr_load_vdom_fragment_from_uri(&co->stack, uri);
-        if (v != PURC_VARIANT_INVALID) {
-            PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-            ctxt->from_result = v;
-            // NOTE: clear error!!!
-            purc_clr_error();
-        }
+        r = get_source_by_from(co, frame, ctxt);
     }
+    else {
+        pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
+        PC_ASSERT(parent);
 
-    pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
-    PC_ASSERT(parent);
+        purc_variant_t v = pcintr_wrap_vdom(frame->pos);
+        if (v == PURC_VARIANT_INVALID)
+            return -1;
 
-    purc_variant_t v;
-    if (ctxt->from_result != PURC_VARIANT_INVALID)
-        v = purc_variant_ref(ctxt->from_result);
-    else
-        v = pcintr_wrap_vdom(frame->pos);
-    if (v == PURC_VARIANT_INVALID)
-        return -1;
-
-    int r = post_process_src(co, frame, v);
-    purc_variant_unref(v);
+        r = post_process_src(co, frame, v);
+        purc_variant_unref(v);
+    }
 
     return r ? -1 : 0;
 }
