@@ -49,6 +49,10 @@ set(sample_HVML_FILES
     "hvml/fetch-with-param-5.hvml"
     "hvml/fetch-with-param-6.hvml"
     "hvml/fetch-with-param-7.hvml"
+    "hvml/fetch-with-param-8.hvml"
+    "hvml/fetch-with-param-9.hvml"
+    "hvml/fetch-with-param-a.hvml"
+    "hvml/fetch-with-param-b.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

@@ -1,0 +1,23 @@
+<!-- Execute in Place -->
+
+<hvml target="html">
+
+    <body>
+        <!-- This operation group generates HTML fragment -->
+        <define as="output_html" from="http://mg.fmsoft.cn/tools/define.php" with={a:1, b:2} via="POST" >
+        </define>
+
+        <!-- This operation group prints text to your terminal -->
+        <define as "output_void">
+            <inherit>
+                $STREAM.stdout.writelines($?)
+            </inherit>
+        </define>
+
+        <!-- use `include` element to execute one of the above operation groups
+            in place, according to the target document type of
+            the current HVML coroutine -->
+        <include with ${output_$CRTN.target} on 'Hello, world!' />
+    </body>
+
+</hvml>

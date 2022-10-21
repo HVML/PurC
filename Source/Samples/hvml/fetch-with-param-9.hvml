@@ -1,0 +1,29 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <init as="name" with="world"/>
+            <except type="InvalidValue">
+                you shall NOT see me
+            </except>
+            <except type="*">
+                you shall NOT see me
+            </except>
+            <except type="ArgumentMissed" src="http://mg.fmsoft.cn/tools/except.php" param={a:1,b:2} method="POST">
+            </except>
+            <except type="*">
+                you shall NOT see me
+            </except>
+            <li>
+                <update/>
+            </li>
+        </div>
+    </body>
+
+</hvml>
+
+
+
