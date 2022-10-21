@@ -35,6 +35,10 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define MIN_BUFFER         512
+static const char temp_header[] = "<hvml>\n";
+static const char temp_footer[] = "</hvml>\n";
+
 struct ctxt_for_define {
     struct pcvdom_node           *curr;
 
@@ -173,6 +177,10 @@ out:
 }
 
 static int
+post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src);
+
+static int
 observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
 {
@@ -210,18 +218,33 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto out;
     }
 
-    struct pcvdom_element *elem;
-    elem = pcvdom_util_document_parse_fragment(ctxt->resp, NULL);
-    if (!elem) {
+    purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUFFER, 0);
+    if (!rws) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto out;
     }
 
-    int r = pcvdom_element_append_element(frame->pos, elem);
-    if (r) {
+    purc_rwstream_write(rws, temp_header, strlen(temp_header));
+    purc_rwstream_dump_to_another(ctxt->resp, rws, -1);
+    purc_rwstream_write(rws, temp_footer, strlen(temp_footer));
+
+    size_t nr_hvml = 0;
+    char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
+    purc_vdom_t vdom = purc_load_hvml_from_string(hvml);
+    purc_rwstream_destroy(rws);
+
+    if (!vdom) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto out;
     }
+
+    struct pcvdom_element *root = pcvdom_document_get_root(vdom);
+    purc_variant_t v = pcintr_wrap_vdom(root);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    post_process_src(cor, frame, v);
+    purc_variant_unref(v);
 
 out:
     pcintr_resume(cor, msg);
@@ -291,7 +314,7 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return 0;
 }
 
-static int
+int
 post_process_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src)
 {
@@ -427,13 +450,6 @@ process_attr_with(struct pcintr_stack_frame *frame,
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (ctxt->from != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                "vdom attribute '%s' for element <%s> conflicts with '%s'",
-                purc_atom_to_string(name), element->tag_name,
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, WITH)));
         return -1;
     }
     if (val == PURC_VARIANT_INVALID) {
