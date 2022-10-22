@@ -30,6 +30,7 @@ if (ENABLE_RDR_FOIL)
         "tty/"
         "strutil/"
         "util/"
+        "unicode/"
     )
 endif ()
 

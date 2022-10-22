@@ -36,14 +36,6 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-size_t
-pcutils_string_utf8_chars (const char *p, ssize_t max);
-
-extern const char * const _pcutils_utf8_skip;
-
-#define pcutils_utf8_next_char(p)   \
-    (char *)((p) + _pcutils_utf8_skip[*(const unsigned char *)(p)])
-
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
