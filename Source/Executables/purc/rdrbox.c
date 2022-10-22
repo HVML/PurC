@@ -57,10 +57,9 @@ struct _inline_box_data {
 };
 
 struct _block_box_data {
-    // margins
-    int ml, mt, mr, mb;
-    // paddings
-    int pl, pt, pr, pb;
+    float text_indent;
+
+    unsigned text_align:3;
 };
 
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)

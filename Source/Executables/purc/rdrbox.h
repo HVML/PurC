@@ -46,13 +46,92 @@ typedef struct foil_rdrbox foil_rdrbox;
    property that make a block container box include: 'block', 'inlin-block',
    and 'list-item'.
  */
-#define FOIL_RDRBOX_FLAG_CONTAINER      0x0100
+#define FOIL_RDRBOX_FLAG_CONTAINER      0x00010000
 
 /* Indicates that a box is anonymous box. */
-#define FOIL_RDRBOX_FLAG_ANONYMOUS      0x0200
+#define FOIL_RDRBOX_FLAG_ANONYMOUS      0x00020000
 
 /* Indicates that a box is principal box. */
-#define FOIL_RDRBOX_FLAG_PRINCIPAL      0x0400
+#define FOIL_RDRBOX_FLAG_PRINCIPAL      0x00040000
+
+/* Indicates that the text-decoration is underline. */
+#define FOIL_RDRBOX_FLAG_UNDERLINE      0x00100000
+
+/* Indicates that the text-decoration is overline. */
+#define FOIL_RDRBOX_FLAG_OVERLINE       0x00200000
+
+/* Indicates that the text-decoration is line-through. */
+#define FOIL_RDRBOX_FLAG_LINE_THROUGH   0x00400000
+
+/* Indicates that the text-decoration is blink. */
+#define FOIL_RDRBOX_FLAG_BLINK          0x00800000
+
+/* Indicates that the background is transparent. */
+#define FOIL_RDRBOX_FLAG_BGC_TRANSP     0x01000000
+
+/* the position of a box. */
+enum {
+    FOIL_RDRBOX_POSITION_STATIC = 0,
+    FOIL_RDRBOX_POSITION_RELATIVE,
+    FOIL_RDRBOX_POSITION_ABSOLUTE,
+    FOIL_RDRBOX_POSITION_FIXED,
+    FOIL_RDRBOX_POSITION_STICKY,
+};
+
+/* the float of a box. */
+enum {
+    FOIL_RDRBOX_FLOAT_NONE = 0,
+    FOIL_RDRBOX_FLOAT_LEFT,
+    FOIL_RDRBOX_FLOAT_RIGHT,
+};
+
+/* the direction of a box. */
+enum {
+    FOIL_RDRBOX_DIR_LTR = 0,
+    FOIL_RDRBOX_DIR_RTL,
+};
+
+/* the Unicode bidi of a box. */
+enum {
+    FOIL_RDRBOX_BIDI_NORMAL = 0,
+    FOIL_RDRBOX_BIDI_EMBED,
+    FOIL_RDRBOX_BIDI_ISOLATE,
+    FOIL_RDRBOX_BIDI_BIDI_OVERRIDE,
+    FOIL_RDRBOX_BIDI_ISOLATE_OVERRIDE,
+    FOIL_RDRBOX_BIDI_PLAINTEXT,
+};
+
+/* the text transforms of a box. */
+enum {
+    FOIL_RDRBOX_TEXT_TRANS_NONE = 0,
+    FOIL_RDRBOX_TEXT_TRANS_CAPITALIZE,
+    FOIL_RDRBOX_TEXT_TRANS_UPPERCASE,
+    FOIL_RDRBOX_TEXT_TRANS_LOWERCASE,
+};
+
+/* the white space of a box. */
+enum {
+    FOIL_RDRBOX_WHITE_SPACE_NORMAL = 0,
+    FOIL_RDRBOX_WHITE_SPACE_PRE,
+    FOIL_RDRBOX_WHITE_SPACE_NOWRAP,
+    FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP,
+    FOIL_RDRBOX_WHITE_SPACE_PRE_LINE,
+};
+
+/* the overflow of a box. */
+enum {
+    FOIL_RDRBOX_OVERFLOW_VISIBLE = 0,
+    FOIL_RDRBOX_OVERFLOW_HIDDEN,
+    FOIL_RDRBOX_OVERFLOW_SCROLL,
+    FOIL_RDRBOX_OVERFLOW_AUTO,
+};
+
+/* the visibility of a box. */
+enum {
+    FOIL_RDRBOX_VISIBILITY_VISIBLE = 0,
+    FOIL_RDRBOX_VISIBILITY_HIDDEN,
+    FOIL_RDRBOX_VISIBILITY_COLLAPSE,
+};
 
 typedef enum {
     FOIL_RDRBOX_TYPE_FIRST = 0x0000,
@@ -92,10 +171,31 @@ struct foil_rdrbox {
     /* number of child boxes */
     unsigned nr_children;
 
-    /* the node creates this box */
+    /* the node creating this box */
     pcdoc_node node;
 
-    /* the rectangle of this box */
+    /* properties for all elements */
+    unsigned position:3;
+    unsigned float_type:2;
+    unsigned direction:1;
+    unsigned unicode_bidi:3;
+    unsigned text_transform:2;
+    unsigned white_space:3;
+    unsigned overflow:2;
+    unsigned visibility:2;
+
+    float width, height;    // content width and height
+    float left, right;      // position
+    float mt, ml, mr, mb;   // margins
+    float pt, pl, pr, pb;   // paddings
+
+    float letter_spacing;
+    float word_spacing;
+
+    uint32_t fgc;
+    uint32_t bgc;
+
+    /* the bouding rectangle of this box */
     foil_rect   rect;
 
     /* the extra data of this box */

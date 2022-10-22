@@ -64,7 +64,8 @@ struct pcmcth_udom {
     /* CSS selection context */
     css_select_ctx *select_ctx;
 
-    /* the initial containing block */
+    /* the initial containing block,
+       it's also the root node of the rendering tree. */
     struct foil_rdrbox *initial_cblock;
 
     /* the CSS media */
