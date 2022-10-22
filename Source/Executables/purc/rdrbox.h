@@ -34,11 +34,43 @@
 struct foil_rdrbox;
 typedef struct foil_rdrbox foil_rdrbox;
 
+/* Indicates that a box is a block container box:
+
+   In CSS 2.2, a block-level box is also a block container box
+   unless it is a table box or the principal box of a replaced element.
+
+   Values of the 'display' property which make a non-replaced element
+   generate a block container include 'block', 'list-item' and 'inline-block'.
+
+   In Foil, because there is no replaced element, values of the 'display'
+   property that make a block container box include: 'block', 'inlin-block',
+   and 'list-item'.
+ */
+#define FOIL_RDRBOX_FLAG_CONTAINER      0x0100
+
+/* Indicates that a box is anonymous box. */
+#define FOIL_RDRBOX_FLAG_ANONYMOUS      0x0200
+
+/* Indicates that a box is principal box. */
+#define FOIL_RDRBOX_FLAG_PRINCIPAL      0x0400
+
 typedef enum {
-    PCTH_RDR_BOX_TYPE_INLINE,
-    PCTH_RDR_BOX_TYPE_BLOCK,
-    PCTH_RDR_BOX_TYPE_INLINE_BLOCK,
-    PCTH_RDR_BOX_TYPE_MARKER,
+    FOIL_RDRBOX_TYPE_FIRST = 0x0000,
+
+    FOIL_RDRBOX_TYPE_INLINE = FOIL_RDRBOX_TYPE_FIRST,
+    FOIL_RDRBOX_TYPE_BLOCK,
+    FOIL_RDRBOX_TYPE_INLINE_BLOCK,
+    FOIL_RDRBOX_TYPE_MARKER,
+    FOIL_RDRBOX_TYPE_TABLE,
+    FOIL_RDRBOX_TYPE_INLINE_TABLE,
+    FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP,
+    FOIL_RDRBOX_TYPE_TABLE_COLUMN,
+    FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP,
+    FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP,
+    FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP,
+    FOIL_RDRBOX_TYPE_TABLE_ROW,
+    FOIL_RDRBOX_TYPE_TABLE_CELL,
+    FOIL_RDRBOX_TYPE_TABLE_CAPTION,
 } foil_rdrbox_type_k;
 
 struct _inline_box_data;
@@ -54,11 +86,14 @@ struct foil_rdrbox {
     struct foil_rdrbox* prev;
     struct foil_rdrbox* next;
 
-    /* type of box */
-    foil_rdrbox_type_k type;
+    /* type and flags of this box */
+    unsigned type_flags;
 
     /* number of child boxes */
     unsigned nr_children;
+
+    /* the node creates this box */
+    pcdoc_node node;
 
     /* the rectangle of this box */
     foil_rect   rect;
@@ -70,6 +105,7 @@ struct foil_rdrbox {
         struct _block_box_data      *block_data;
         struct _inline_block_data   *inline_block_data;
         struct _marker_box_data     *marker_data;
+        /* TODO: for other box types */
     };
 };
 

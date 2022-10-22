@@ -79,7 +79,7 @@ foil_rdrbox *foil_rdrbox_new_block(void)
     foil_rdrbox *box = calloc(1, sizeof(*box));
 
     if (box) {
-        box->type = PCTH_RDR_BOX_TYPE_BLOCK;
+        box->type_flags = FOIL_RDRBOX_TYPE_BLOCK;
         box->block_data = calloc(1, sizeof(*box->block_data));
         if (box->block_data == NULL) {
             free(box);
@@ -273,6 +273,9 @@ foil_rdrbox *foil_rdrbox_create(struct pcmcth_rendering_ctxt *ctxt,
         purc_log_info("\tcolor: 0x%08x\n", color_argb);
 
     free(my_name);
-    return NULL;
+    if (display == CSS_DISPLAY_NONE)
+        return NULL;
+
+    return (void *)-1;
 }
 

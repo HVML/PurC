@@ -489,17 +489,22 @@ failed:
 static int udom_maker(purc_document_t doc,
         pcdoc_element_t element, void *ctxt)
 {
+    int ret = PCDOC_TRAVEL_GOON;
+
     struct pcmcth_rendering_ctxt *my_ctxt = ctxt;
 
     css_select_results *result;
     result = select_element_style(&my_ctxt->udom->media,
             my_ctxt->udom->select_ctx, doc, element);
     if (result) {
-        foil_rdrbox_create(my_ctxt, element, result);
+        if (foil_rdrbox_create(my_ctxt, element, result) == NULL) {
+            /* skip descendants for "display: none" */
+            ret = PCDOC_TRAVEL_SKIP;
+        }
         css_select_results_destroy(result);
     }
 
-    return 0;
+    return ret;
 }
 
 pcmcth_udom *
