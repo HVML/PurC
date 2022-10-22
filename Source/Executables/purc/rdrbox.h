@@ -39,7 +39,7 @@ typedef enum {
     PCTH_RDR_BOX_TYPE_BLOCK,
     PCTH_RDR_BOX_TYPE_INLINE_BLOCK,
     PCTH_RDR_BOX_TYPE_MARKER,
-} pcth_rdrbox_type_k;
+} foil_rdrbox_type_k;
 
 struct _inline_box_data;
 struct _block_box_data;
@@ -55,7 +55,7 @@ struct foil_rdrbox {
     struct foil_rdrbox* next;
 
     /* type of box */
-    pcth_rdrbox_type_k type;
+    foil_rdrbox_type_k type;
 
     /* number of child boxes */
     unsigned nr_children;
@@ -100,7 +100,7 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *node);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-foil_rdrbox *foil_create_rdrbox(struct pcmcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create(struct pcmcth_rendering_ctxt *ctxt,
         pcdoc_element_t element, css_select_results *result);
 
 #ifdef __cplusplus

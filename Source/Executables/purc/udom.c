@@ -36,7 +36,7 @@ typedef enum {
     PCTH_RDR_ALIGN_RIGHT,
     PCTH_RDR_ALIGN_CENTER,
     PCTH_RDR_ALIGN_JUSTIFY,
-} pcth_rdr_align_t;
+} foil_rdr_align_t;
 
 typedef enum {
     PCTH_RDR_DECORATION_NONE,
@@ -44,7 +44,7 @@ typedef enum {
     PCTH_RDR_DECORATION_OVERLINE,
     PCTH_RDR_DECORATION_LINE_THROUGH,
     PCTH_RDR_DECORATION_BLINK,
-} pcth_rdr_decoration_t;
+} foil_rdr_decoration_t;
 
 typedef enum {
     PCTH_RDR_WHITE_SPACE_NORMAL,
@@ -52,7 +52,7 @@ typedef enum {
     PCTH_RDR_WHITE_SPACE_NOWRAP,
     PCTH_RDR_WHITE_SPACE_PRE_WRAP,
     PCTH_RDR_WHITE_SPACE_PRE_LINE,
-} pcth_rdr_white_space_t;
+} foil_rdr_white_space_t;
 
 struct pcmcth_udom {
     /* the sorted array of eDOM element and the corresponding rendering box. */
@@ -495,7 +495,7 @@ static int udom_maker(purc_document_t doc,
     result = select_element_style(&my_ctxt->udom->media,
             my_ctxt->udom->select_ctx, doc, element);
     if (result) {
-        foil_create_rdrbox(my_ctxt, element, result);
+        foil_rdrbox_create(my_ctxt, element, result);
         css_select_results_destroy(result);
     }
 
