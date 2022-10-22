@@ -825,6 +825,17 @@ pcdoc_element_get_child_data_node(purc_document_t doc, pcdoc_element_t elem,
 PCA_EXPORT pcdoc_element_t
 pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node);
 
+#define PCDOC_TRAVEL_GOON       (0)
+#define PCDOC_TRAVEL_STOP       (-1)
+#define PCDOC_TRAVEL_SKIP       (1)
+
+/**
+ * The callback for traveling descendant elements.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_element_cb)(purc_document_t doc,
         pcdoc_element_t element, void *ctxt);
 
@@ -836,7 +847,8 @@ typedef int (*pcdoc_element_cb)(purc_document_t doc,
  *      @NULL for the root element of the document.
  * @param cb: the callback for the element travelled.
  * @param ctxt: the context data will be passed to the callback.
- * @param n: the buffer to returned the number of elements travelled.
+ * @param n: the buffer to returned the number of elements travelled, i.e.,
+ *  the number of calling the callback function.
  *
  * Returns: 0 for all descendants travelled, otherwise the traverse was broken
  * by the callback.
@@ -847,6 +859,13 @@ PCA_EXPORT int
 pcdoc_travel_descendant_elements(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_element_cb cb, void *ctxt, size_t *n);
 
+/**
+ * The callback for traveling descendant text nodes.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_text_node_cb)(purc_document_t doc,
         pcdoc_text_node_t text_node, void *ctxt);
 
@@ -869,6 +888,13 @@ PCA_EXPORT int
 pcdoc_travel_descendant_text_nodes(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_text_node_cb cb, void *ctxt, size_t *n);
 
+/**
+ * The callback for traveling descendant data nodes.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_data_node_cb)(purc_document_t doc,
         pcdoc_data_node_t data_node, void *ctxt);
 

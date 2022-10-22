@@ -530,11 +530,11 @@ pcdoc_travel_descendant_elements(purc_document_t doc,
         if (ancestor == NULL)
             ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
 
-        struct pcdoc_travel_info info = { PCDOC_NODE_ELEMENT, 0, ctxt };
-        int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
+        struct pcdoc_travel_info info = { PCDOC_NODE_ELEMENT, true, 0, ctxt };
+        doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
         if (n)
             *n = info.nr;
-        return r;
+        return info.all ? 0 : -1;
     }
 
     if (n)
@@ -550,7 +550,7 @@ pcdoc_travel_descendant_text_nodes(purc_document_t doc,
         if (ancestor == NULL)
             ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
 
-        struct pcdoc_travel_info info = { PCDOC_NODE_TEXT, 0, ctxt };
+        struct pcdoc_travel_info info = { PCDOC_NODE_TEXT, true, 0, ctxt };
         int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
         if (n)
             *n = info.nr;
@@ -570,7 +570,7 @@ pcdoc_travel_descendant_data_nodes(purc_document_t doc,
         if (ancestor == NULL)
             ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
 
-        struct pcdoc_travel_info info = { PCDOC_NODE_DATA, 0, ctxt };
+        struct pcdoc_travel_info info = { PCDOC_NODE_DATA, true, 0, ctxt };
         int r = doc->ops->travel(doc, ancestor, (pcdoc_node_cb)cb, &info);
         if (n)
             *n = info.nr;
@@ -612,7 +612,8 @@ pcdoc_serialize_text_contents_to_stream(purc_document_t doc,
             ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
 
         struct serialize_info info = { opts, out };
-        struct pcdoc_travel_info travel_info = { PCDOC_NODE_TEXT, 0, &info };
+        struct pcdoc_travel_info travel_info = {
+            PCDOC_NODE_TEXT, true, 0, &info };
         int r = doc->ops->travel(doc, ancestor,
                 (pcdoc_node_cb)serialize_text_node, &travel_info);
         return r;

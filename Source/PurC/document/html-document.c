@@ -913,9 +913,15 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
     pcdom_node_t *ancestor_node = (pcdom_node_t *)ancestor;
     if (info->type == node_type(ancestor_node->type)) {
         int r = cb(doc, ancestor, info->ctxt);
-        if (r)
-            return -1;
         info->nr++;
+        if (r == PCDOC_TRAVEL_SKIP) {
+            info->all = false;
+            return 0;
+        }
+        else if (r == PCDOC_TRAVEL_STOP) {
+            info->all = false;
+            return -1;
+        }
     }
 
     pcdom_node_t *dom_node = pcdom_interface_node(ancestor);
@@ -930,9 +936,15 @@ travel(purc_document_t doc, pcdoc_element_t ancestor,
         }
         else if (node_type(child->type) == info->type) {
             int r = cb(doc, child, info->ctxt);
-            if (r)
-                return -1;
             info->nr++;
+            if (r == PCDOC_TRAVEL_SKIP) {
+                info->all = false;
+                return 0;
+            }
+            else if (r == PCDOC_TRAVEL_STOP) {
+                info->all = false;
+                return -1;
+            }
         }
     }
 

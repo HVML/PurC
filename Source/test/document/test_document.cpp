@@ -346,7 +346,7 @@ static int my_element_cb(purc_document_t doc,
         str->push_back(',');
     }
 
-    return 0;
+    return PCDOC_TRAVEL_GOON;
 }
 
 static int my_element_cb_2(purc_document_t doc,
@@ -360,7 +360,7 @@ static int my_element_cb_2(purc_document_t doc,
             NULL, NULL, NULL, NULL);
     if (ret == 0) {
         if (strncmp(local_name, "li", 2) == 0) {
-            return -1;
+            return PCDOC_TRAVEL_STOP;
         }
 
         std::string *str = static_cast<std::string *>(ctxt);
@@ -368,7 +368,7 @@ static int my_element_cb_2(purc_document_t doc,
         str->push_back(',');
     }
 
-    return 0;
+    return PCDOC_TRAVEL_GOON;
 }
 
 static int my_text_cb_2(purc_document_t doc,
@@ -387,7 +387,7 @@ static int my_text_cb_2(purc_document_t doc,
             NULL, NULL, NULL, NULL);
     if (ret == 0) {
         if (strncmp(local_name, "ul", 2) == 0) {
-            return -1;
+            return PCDOC_TRAVEL_STOP;
         }
 
         const char *text;
@@ -400,7 +400,7 @@ static int my_text_cb_2(purc_document_t doc,
         }
     }
 
-    return 0;
+    return PCDOC_TRAVEL_GOON;
 }
 
 TEST(document, travel_descendants)
@@ -524,7 +524,7 @@ TEST(document, travel_descendants)
 
     ASSERT_EQ(ret, -1);
     ASSERT_STREQ(result.c_str(), "div,h2,a,ul,");
-    ASSERT_EQ(nr, 4);
+    ASSERT_EQ(nr, 5);
 
     result = "";
     ret = pcdoc_travel_descendant_text_nodes(doc,
@@ -532,7 +532,7 @@ TEST(document, travel_descendants)
 
     ASSERT_EQ(ret, -1);
     ASSERT_STREQ(result.c_str(), "Quick Table of Contents\n");
-    ASSERT_EQ(nr, 1);
+    ASSERT_EQ(nr, 2);
 
     unsigned int refc = purc_document_delete(doc);
     ASSERT_EQ(refc, 1);

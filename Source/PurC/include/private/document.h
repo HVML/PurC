@@ -38,6 +38,7 @@
 
 struct pcdoc_travel_info {
     pcdoc_node_type type;
+    bool all;
     size_t nr;
     void *ctxt;
 };
