@@ -109,7 +109,7 @@ struct foil_rdrbox {
     };
 };
 
-struct pcmcth_rendering_ctxt {
+struct foil_rendering_ctxt {
     purc_document_t doc;
 
     pcmcth_udom *udom;
@@ -136,7 +136,7 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *node);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-foil_rdrbox *foil_rdrbox_create(struct pcmcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
         pcdoc_element_t element, css_select_results *result);
 
 #ifdef __cplusplus

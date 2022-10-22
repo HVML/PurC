@@ -486,25 +486,50 @@ failed:
     return NULL;
 }
 
-static int udom_maker(purc_document_t doc,
-        pcdoc_element_t element, void *ctxt)
+static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
+        pcdoc_element_t ancestor)
 {
-    int ret = PCDOC_TRAVEL_GOON;
-
-    struct pcmcth_rendering_ctxt *my_ctxt = ctxt;
-
-    css_select_results *result;
-    result = select_element_style(&my_ctxt->udom->media,
-            my_ctxt->udom->select_ctx, doc, element);
+    pcdoc_node node;
+    css_select_results *result = NULL;
+    result = select_element_style(&ctxt->udom->media,
+            ctxt->udom->select_ctx, ctxt->doc, ancestor);
     if (result) {
-        if (foil_rdrbox_create(my_ctxt, element, result) == NULL) {
-            /* skip descendants for "display: none" */
-            ret = PCDOC_TRAVEL_SKIP;
-        }
+        /* skip descendants for "display: none" */
+        if (foil_rdrbox_create(ctxt, ancestor, result) == NULL)
+            goto done;
         css_select_results_destroy(result);
+        result = NULL;
+    }
+    else {
+        goto failed;
     }
 
-    return ret;
+    /* continue for the children */
+    node = pcdoc_element_first_child(ctxt->doc, ancestor);
+
+    while (node.type != PCDOC_NODE_VOID) {
+        if (node.type == PCDOC_NODE_ELEMENT) {
+            if (make_rdrtree(ctxt, node.elem))
+                goto failed;
+        }
+        else if (node.type == PCDOC_NODE_TEXT) {
+        }
+        else if (node.type == PCDOC_NODE_CDATA_SECTION) {
+            LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
+        }
+
+        node = pcdoc_node_next_sibling(ctxt->doc, node);
+    }
+
+done:
+    if (result)
+        css_select_results_destroy(result);
+    return 0;
+
+failed:
+    if (result)
+        css_select_results_destroy(result);
+    return -1;
 }
 
 pcmcth_udom *
@@ -534,8 +559,6 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    size_t n;
-
     // parse and append style sheets
     pcdoc_element_t head;
     head = purc_document_head(edom_doc);
@@ -558,6 +581,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
             goto failed;
         }
 
+        size_t n;
         pcdoc_travel_descendant_elements(edom_doc, head,
                 append_style_walker, udom, &n);
 
@@ -579,10 +603,9 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    struct pcmcth_rendering_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock };
-    pcdoc_travel_descendant_elements(edom_doc, purc_document_root(edom_doc),
-            udom_maker, &ctxt, &n);
+    struct foil_rendering_ctxt ctxt = { edom_doc, udom, udom->initial_cblock };
+    make_rdrtree(&ctxt, purc_document_root(edom_doc));
+
     return udom;
 
 failed:

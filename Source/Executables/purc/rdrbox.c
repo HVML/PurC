@@ -241,7 +241,7 @@ static const char *display_values[] = {
     "INLINE_GRID",
 };
 
-foil_rdrbox *foil_rdrbox_create(struct pcmcth_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };
@@ -278,4 +278,5 @@ foil_rdrbox *foil_rdrbox_create(struct pcmcth_rendering_ctxt *ctxt,
 
     return (void *)-1;
 }
+
 
