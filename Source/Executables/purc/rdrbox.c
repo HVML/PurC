@@ -361,6 +361,30 @@ static uint8_t used_value_position(struct foil_rendering_ctxt *ctxt,
     return ctxt->parent_box->position;
 }
 
+/* calculate widths and margins */
+static void
+calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+}
+
+/* calculate heights and margins */
+static void
+calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+}
+
+/* adjust position according to 'vertical-align' */
+static void
+adjust_position_vertically(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+}
+
 foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
@@ -408,18 +432,88 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
         box->containing_block.right = ctxt->initial_cblock->width;
         box->containing_block.bottom = ctxt->initial_cblock->height;
     }
-    else {
+    else if (box->position == FOIL_RDRBOX_POSITION_STATIC ||
+            box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
+        /* the containing block is formed by the content edge of
+           the nearest ancestor box that is a block container or
+           which establishes a formatting context. */
+
+        const foil_rdrbox *container;
+        container = foil_rdrbox_find_container_for_relative(ctxt,
+                ctxt->parent_box);
+        assert(container);
+        foil_rdrbox_content_box(container, &box->containing_block);
+    }
+    else if (box->position == FOIL_RDRBOX_POSITION_FIXED) {
+        box->containing_block.left = 0;
+        box->containing_block.top = 0;
+        box->containing_block.right = ctxt->initial_cblock->width;
+        box->containing_block.bottom = ctxt->initial_cblock->height;
+    }
+    else if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
+        /* the containing block is established by the nearest ancestor
+           with a 'position' of 'absolute', 'relative' or 'fixed',
+           in the following way:
+
+           In the case that the ancestor is an inline element,
+           the containing block is the bounding box around the padding boxes
+           of the first and the last inline boxes generated for that element.
+
+           Otherwise, the containing block is formed by the padding edge of
+           the ancestor.
+
+           If there is no such ancestor, the containing block is
+           the initial containing block. */
+
+        const foil_rdrbox *container;
+        container = foil_rdrbox_find_container_for_absolute(ctxt,
+                ctxt->parent_box);
+        if (container) {
+            if (container->type == FOIL_RDRBOX_TYPE_INLINE)
+                foil_rdrbox_form_containing_block(container,
+                        &box->containing_block);
+            else
+                foil_rdrbox_padding_box(container, &box->containing_block);
+        }
+        else {
+            box->containing_block.left = 0;
+            box->containing_block.top = 0;
+            box->containing_block.right = ctxt->initial_cblock->width;
+            box->containing_block.bottom = ctxt->initial_cblock->height;
+        }
     }
 
-    uint8_t color_type;
+    /* calculate widths and margins */
+    calc_widths_margins(ctxt, box);
+
+    /* calculate heights and margins */
+    calc_heights_margins(ctxt, box);
+
+    /* adjust position according to 'vertical-align' */
+    adjust_position_vertically(ctxt, box);
+
+    /* determine foreground color */
     css_color color_argb;
-    color_type = css_computed_color(
+    uint8_t color_type = css_computed_color(
             result->styles[CSS_PSEUDO_ELEMENT_NONE],
             &color_argb);
     if (color_type == CSS_COLOR_INHERIT)
-        purc_log_info("\tcolor: 'inherit'\n");
+        box->fgc = ctxt->parent_box->fgc;
     else
-        purc_log_info("\tcolor: 0x%08x\n", color_argb);
+        box->fgc = color_argb;
+
+    LOG_DEBUG("\tcolor: 0x%08x\n", box->fgc);
+
+    /* determine background color */
+    color_type = css_computed_background_color(
+            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &color_argb);
+    if (color_type == CSS_COLOR_INHERIT)
+        box->bgc = ctxt->parent_box->bgc;
+    else
+        box->bgc = color_argb;
+
+    LOG_DEBUG("\tbackground color: 0x%08x\n", box->bgc);
 
     if (tag_name)
         free(tag_name);
@@ -437,4 +531,86 @@ failed:
     return NULL;
 }
 
+bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
+{
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
+        return false;
+
+    rc->left   = box->containing_block.left   + box->left +
+        box->ml + box->bl + box->pl;
+    rc->top    = box->containing_block.top    + box->top  +
+        box->mt + box->bt + box->pt;
+    rc->right  = box->containing_block.right  + box->left +
+        box->mr + box->br + box->pr;
+    rc->bottom = box->containing_block.bottom + box->top  +
+        box->mb + box->bb + box->pb;
+    return true;
+}
+
+bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc)
+{
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
+        return false;
+
+    rc->left   = box->containing_block.left   + box->left + box->ml + box->bl;
+    rc->top    = box->containing_block.top    + box->top  + box->mt + box->bt;
+    rc->right  = box->containing_block.right  + box->left + box->mr + box->br;
+    rc->bottom = box->containing_block.bottom + box->top  + box->mb + box->bb;
+
+    return true;
+}
+
+bool foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc)
+{
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
+        return false;
+
+    rc->left   = box->containing_block.left   + box->left + box->ml;
+    rc->top    = box->containing_block.top    + box->top  + box->mt;
+    rc->right  = box->containing_block.right  + box->left + box->mr;
+    rc->bottom = box->containing_block.bottom + box->top  + box->mb;
+
+    return true;
+}
+
+bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc)
+{
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
+        return false;
+
+    rc->left   = box->containing_block.left   + box->left;
+    rc->top    = box->containing_block.top    + box->top;
+    rc->right  = box->containing_block.right  + box->left;
+    rc->bottom = box->containing_block.bottom + box->top;
+
+    return true;
+}
+
+bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc)
+{
+    (void)box;
+    (void)rc;
+
+    return false;
+}
+
+const foil_rdrbox *
+foil_rdrbox_find_container_for_relative(foil_rendering_ctxt *ctxt,
+        const foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+
+    return ctxt->initial_cblock;
+}
+
+const foil_rdrbox *
+foil_rdrbox_find_container_for_absolute(foil_rendering_ctxt *ctxt,
+        const foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+
+    return NULL;
+}
 

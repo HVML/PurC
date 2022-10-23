@@ -175,10 +175,11 @@ struct foil_rdrbox {
     unsigned overflow:2;
     unsigned visibility:2;
 
-    int width, height;    // content width and height
-    int left, right;      // position
-    int mt, ml, mr, mb;   // margins
-    int pt, pl, pr, pb;   // paddings
+    int width, height;      // content width and height
+    int left, top;          // position
+    int mt, ml, mr, mb;     // margins
+    int bt, bl, br, bb;     // borders
+    int pt, pl, pr, pb;     // paddings
 
     int letter_spacing;
     int word_spacing;
@@ -187,7 +188,7 @@ struct foil_rdrbox {
     uint32_t bgc;   // ARGB
 
     /* the containing block */
-    foil_rect   containing_block;
+    foil_rect containing_block;
 
     /* the creator of the current containing block */
     struct foil_rdrbox *cblock_creator;
@@ -203,7 +204,7 @@ struct foil_rdrbox {
     };
 };
 
-struct foil_rendering_ctxt {
+typedef struct foil_rendering_ctxt {
     purc_document_t doc;
 
     pcmcth_udom *udom;
@@ -213,7 +214,7 @@ struct foil_rendering_ctxt {
 
     /* the box for the parent element */
     struct foil_rdrbox *parent_box;
-};
+} foil_rendering_ctxt;
 
 #ifdef __cplusplus
 extern "C" {
@@ -224,17 +225,31 @@ void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr);
 
 foil_rdrbox *foil_rdrbox_new(uint8_t type);
 
-void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *node);
-void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *node);
-void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *node);
-void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *node);
-void foil_rdrbox_remove_from_tree(foil_rdrbox *node);
+void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box);
+void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
+void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
+void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
+void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt,
         pcdoc_element_t element, css_select_results *result);
+
+bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
+bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);
+bool foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc);
+bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc);
+
+bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc);
+
+const foil_rdrbox *
+foil_rdrbox_find_container_for_relative(foil_rendering_ctxt *ctxt,
+        const foil_rdrbox *box);
+const foil_rdrbox *
+foil_rdrbox_find_container_for_absolute(foil_rendering_ctxt *ctxt,
+        const foil_rdrbox *box);
 
 #ifdef __cplusplus
 }
