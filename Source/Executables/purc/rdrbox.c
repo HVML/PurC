@@ -23,6 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "rdrbox.h"
 
 #include <assert.h>
@@ -57,9 +59,15 @@ struct _inline_box_data {
 };
 
 struct _block_box_data {
-    float text_indent;
+    int text_indent;
 
-    unsigned text_align:3;
+    uint8_t text_align:3;
+};
+
+struct _inline_block_data {
+    int foo, bar;
+
+    uint8_t text_align:3;
 };
 
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
@@ -73,20 +81,48 @@ void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr)
     (void)rdr;
 }
 
-foil_rdrbox *foil_rdrbox_new_block(void)
+foil_rdrbox *foil_rdrbox_new(uint8_t type)
 {
     foil_rdrbox *box = calloc(1, sizeof(*box));
 
-    if (box) {
-        box->type_flags = FOIL_RDRBOX_TYPE_BLOCK;
+    if (box == NULL)
+        goto failed;
+
+    box->type = type;
+    switch (type) {
+    case FOIL_RDRBOX_TYPE_BLOCK:
         box->block_data = calloc(1, sizeof(*box->block_data));
         if (box->block_data == NULL) {
-            free(box);
-            box = NULL;
+            goto failed;
         }
+        break;
+
+    case FOIL_RDRBOX_TYPE_INLINE:
+        box->inline_data = calloc(1, sizeof(*box->inline_data));
+        if (box->inline_data == NULL) {
+            goto failed;
+        }
+        break;
+
+    case FOIL_RDRBOX_TYPE_INLINE_BLOCK:
+        box->inline_block_data = calloc(1, sizeof(*box->inline_block_data));
+        if (box->inline_block_data == NULL) {
+            goto failed;
+        }
+        break;
+
+    default:
+        // TODO:
+        LOG_WARN("Not supported box type: %d\n", type);
+        goto failed;
     }
 
     return box;
+
+failed:
+    if (box)
+        free(box);
+    return NULL;
 }
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box)
@@ -216,12 +252,12 @@ void foil_rdrbox_delete_deep(foil_rdrbox *root)
     }
 }
 
-static const char *display_values[] = {
-    "INHERIT",
+#ifndef NDEBUG
+static const char *literal_values_boxtype[] = {
     "INLINE",
     "BLOCK",
     "LIST_ITEM",
-    "RUN_IN",
+    "MARKER",
     "INLINE_BLOCK",
     "TABLE",
     "INLINE_TABLE",
@@ -233,33 +269,147 @@ static const char *display_values[] = {
     "TABLE_COLUMN",
     "TABLE_CELL",
     "TABLE_CAPTION",
-    "NONE",
-    "FLEX",
-    "INLINE_FLEX",
-    "GRID",
-    "INLINE_GRID",
 };
+
+static const char *literal_values_position[] = {
+    "STATIC",
+    "RELATIVE",
+    "ABSOLUTE",
+    "FIXED",
+    "STICKY",
+};
+#endif
+
+#define INVALID_USED_VALUE_UINT8     0xFF
+
+static uint8_t
+used_value_display(struct foil_rendering_ctxt *ctxt, uint8_t computed)
+{
+    assert(ctxt->parent_box);
+
+    if (computed == CSS_DISPLAY_INHERIT) {
+        goto inherit;
+    }
+    else {
+        static const struct uint8_values_map {
+            uint8_t from;
+            uint8_t to;
+        } display_value_map[] = {
+            { CSS_DISPLAY_INLINE, FOIL_RDRBOX_TYPE_INLINE },
+            { CSS_DISPLAY_BLOCK, FOIL_RDRBOX_TYPE_BLOCK },
+            { CSS_DISPLAY_LIST_ITEM, FOIL_RDRBOX_TYPE_LIST_ITEM },
+            { CSS_DISPLAY_RUN_IN, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+            { CSS_DISPLAY_INLINE_BLOCK, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+            { CSS_DISPLAY_TABLE, FOIL_RDRBOX_TYPE_TABLE },
+            { CSS_DISPLAY_INLINE_TABLE, FOIL_RDRBOX_TYPE_INLINE_TABLE },
+            { CSS_DISPLAY_TABLE_ROW_GROUP,  FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP },
+            { CSS_DISPLAY_TABLE_HEADER_GROUP, FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP },
+            { CSS_DISPLAY_TABLE_FOOTER_GROUP, FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP },
+            { CSS_DISPLAY_TABLE_ROW, FOIL_RDRBOX_TYPE_TABLE_ROW },
+            { CSS_DISPLAY_TABLE_COLUMN_GROUP, FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP },
+            { CSS_DISPLAY_TABLE_COLUMN, FOIL_RDRBOX_TYPE_TABLE_COLUMN },
+            { CSS_DISPLAY_TABLE_CELL, FOIL_RDRBOX_TYPE_TABLE_CELL },
+            { CSS_DISPLAY_TABLE_CAPTION, FOIL_RDRBOX_TYPE_TABLE_CAPTION },
+            { CSS_DISPLAY_NONE, INVALID_USED_VALUE_UINT8 },
+
+            // TODO
+            { CSS_DISPLAY_FLEX, FOIL_RDRBOX_TYPE_BLOCK },
+            { CSS_DISPLAY_INLINE_FLEX, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+            { CSS_DISPLAY_GRID, FOIL_RDRBOX_TYPE_BLOCK },
+            { CSS_DISPLAY_INLINE_GRID, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+        };
+
+        int lower = 0;
+        int upper = PCA_TABLESIZE(display_value_map) - 1;
+
+        while (lower <= upper) {
+            int mid = (lower + upper) >> 1;
+
+            if (computed < display_value_map[mid].from)
+                upper = mid - 1;
+            else if (computed > display_value_map[mid].from)
+                lower = mid + 1;
+            else
+                return display_value_map[mid].to;
+        }
+    }
+
+inherit:
+    return ctxt->parent_box->type;
+}
+
+static uint8_t used_value_position(struct foil_rendering_ctxt *ctxt,
+        uint8_t computed)
+{
+    switch (computed) {
+        case CSS_POSITION_STATIC:
+            return FOIL_RDRBOX_POSITION_STATIC;
+
+        case CSS_POSITION_RELATIVE:
+            return FOIL_RDRBOX_POSITION_RELATIVE;
+
+        case CSS_POSITION_ABSOLUTE:
+            return FOIL_RDRBOX_POSITION_ABSOLUTE;
+
+        case CSS_POSITION_FIXED:
+            return FOIL_RDRBOX_POSITION_FIXED;
+
+        default:
+            break;
+    }
+
+    return ctxt->parent_box->position;
+}
 
 foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
         pcdoc_element_t elem, css_select_results *result)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };
-
-    const char *tag_name = NULL;
+    const char *name;
     size_t len;
-    char *my_name;
+    char *tag_name = NULL;
+    foil_rdrbox *box = NULL;
 
-    pcdoc_element_get_tag_name(ctxt->doc, elem, &tag_name, &len,
+    pcdoc_element_get_tag_name(ctxt->doc, elem, &name, &len,
             NULL, NULL, NULL, NULL);
-    assert(tag_name != NULL && len > 0);
-    my_name = strndup(tag_name, len);
+    assert(name != NULL && len > 0);
+    tag_name = strndup(name, len);
 
-    purc_log_info("Styles of element (%s):\n", my_name);
+    LOG_DEBUG("Styles of element (%s):\n", tag_name);
 
+    /* determine the box type */
     uint8_t display = css_computed_display(
             result->styles[CSS_PSEUDO_ELEMENT_NONE],
             pcdoc_node_get_parent(ctxt->doc, node) == NULL);
-    purc_log_info("\tdisplay: %s\n", display_values[display]);
+
+    // return INVALID_USED_VALUE_UINT8 for 'display:none;'
+    uint8_t type = used_value_display(ctxt, display);
+    if (type == INVALID_USED_VALUE_UINT8) {
+        LOG_DEBUG("\tdisplay: %s\n", "none");
+        goto failed;
+    }
+
+    LOG_DEBUG("\ttype: %s\n", literal_values_boxtype[type]);
+
+    /* allocate a new rdrbox */
+    box = foil_rdrbox_new(type);
+    if (box == NULL)
+        goto failed;
+
+    uint8_t position = css_computed_position(
+            result->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    box->position = used_value_position(ctxt, position);
+    LOG_DEBUG("\tposition: %s\n", literal_values_position[box->position]);
+
+    /* determine the containing block */
+    if (purc_document_root(ctxt->doc) == elem) {
+        box->containing_block.left = 0;
+        box->containing_block.top = 0;
+        box->containing_block.right = ctxt->initial_cblock->width;
+        box->containing_block.bottom = ctxt->initial_cblock->height;
+    }
+    else {
+    }
 
     uint8_t color_type;
     css_color color_argb;
@@ -271,11 +421,20 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
     else
         purc_log_info("\tcolor: 0x%08x\n", color_argb);
 
-    free(my_name);
-    if (display == CSS_DISPLAY_NONE)
-        return NULL;
+    if (tag_name)
+        free(tag_name);
 
-    return (void *)-1;
+    foil_rdrbox_append_child(ctxt->parent_box, box);
+    return box;
+
+failed:
+    if (tag_name)
+        free(tag_name);
+
+    if (box)
+        foil_rdrbox_delete(box);
+
+    return NULL;
 }
 
 

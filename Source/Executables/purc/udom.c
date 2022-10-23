@@ -261,15 +261,29 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     int width = cols * FOIL_PX_PER_EX;
     int height = rows * FOIL_PX_PER_EM;
 
-    udom->initial_cblock = foil_rdrbox_new_block();
+    udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
         goto failed;
     }
 
-    udom->initial_cblock->rect.left = 0;
-    udom->initial_cblock->rect.top = 0;
-    udom->initial_cblock->rect.right = width;
-    udom->initial_cblock->rect.bottom = height;
+    /* set some fileds having non-zero values of
+       the initial containing block */
+    udom->initial_cblock->node.type = PCDOC_NODE_VOID;
+    udom->initial_cblock->node.data = NULL;
+
+    udom->initial_cblock->is_initial = 1;
+
+    udom->initial_cblock->width = width;
+    udom->initial_cblock->height = height;
+
+    udom->initial_cblock->fgc = FOIL_DEF_FGC;
+    udom->initial_cblock->bgc = FOIL_DEF_BGC;
+
+    udom->initial_cblock->containing_block.left = 0;
+    udom->initial_cblock->containing_block.top = 0;
+    udom->initial_cblock->containing_block.right = width;
+    udom->initial_cblock->containing_block.right = height;
+    udom->initial_cblock->cblock_creator = NULL;
 
     udom->media.type = CSS_MEDIA_TTY;
     udom->media.width  = INTTOFIX(width);
@@ -604,7 +618,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    struct foil_rendering_ctxt ctxt = { edom_doc, udom, udom->initial_cblock };
+    struct foil_rendering_ctxt ctxt = { edom_doc, udom,
+        udom->initial_cblock, udom->initial_cblock };
     make_rdrtree(&ctxt, purc_document_root(edom_doc));
 
     return udom;

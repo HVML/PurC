@@ -29,6 +29,9 @@
 #include "foil.h"
 #include "rdrbox.h"
 
+#define FOIL_DEF_FGC        0xFFFFFFFF
+#define FOIL_DEF_BGC        0xFF000000
+
 #ifdef __cplusplus
 extern "C" {
 #endif

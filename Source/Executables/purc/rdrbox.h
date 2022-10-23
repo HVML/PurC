@@ -34,41 +34,6 @@
 struct foil_rdrbox;
 typedef struct foil_rdrbox foil_rdrbox;
 
-/* Indicates that a box is a block container box:
-
-   In CSS 2.2, a block-level box is also a block container box
-   unless it is a table box or the principal box of a replaced element.
-
-   Values of the 'display' property which make a non-replaced element
-   generate a block container include 'block', 'list-item' and 'inline-block'.
-
-   In Foil, because there is no replaced element, values of the 'display'
-   property that make a block container box include: 'block', 'inlin-block',
-   and 'list-item'.
- */
-#define FOIL_RDRBOX_FLAG_CONTAINER      0x00010000
-
-/* Indicates that a box is anonymous box. */
-#define FOIL_RDRBOX_FLAG_ANONYMOUS      0x00020000
-
-/* Indicates that a box is principal box. */
-#define FOIL_RDRBOX_FLAG_PRINCIPAL      0x00040000
-
-/* Indicates that the text-decoration is underline. */
-#define FOIL_RDRBOX_FLAG_UNDERLINE      0x00100000
-
-/* Indicates that the text-decoration is overline. */
-#define FOIL_RDRBOX_FLAG_OVERLINE       0x00200000
-
-/* Indicates that the text-decoration is line-through. */
-#define FOIL_RDRBOX_FLAG_LINE_THROUGH   0x00400000
-
-/* Indicates that the text-decoration is blink. */
-#define FOIL_RDRBOX_FLAG_BLINK          0x00800000
-
-/* Indicates that the background is transparent. */
-#define FOIL_RDRBOX_FLAG_BGC_TRANSP     0x01000000
-
 /* the position of a box. */
 enum {
     FOIL_RDRBOX_POSITION_STATIC = 0,
@@ -133,24 +98,23 @@ enum {
     FOIL_RDRBOX_VISIBILITY_COLLAPSE,
 };
 
-typedef enum {
-    FOIL_RDRBOX_TYPE_FIRST = 0x0000,
-
-    FOIL_RDRBOX_TYPE_INLINE = FOIL_RDRBOX_TYPE_FIRST,
+enum {
+    FOIL_RDRBOX_TYPE_INLINE = 0,
     FOIL_RDRBOX_TYPE_BLOCK,
-    FOIL_RDRBOX_TYPE_INLINE_BLOCK,
+    FOIL_RDRBOX_TYPE_LIST_ITEM,
     FOIL_RDRBOX_TYPE_MARKER,
+    FOIL_RDRBOX_TYPE_INLINE_BLOCK,
     FOIL_RDRBOX_TYPE_TABLE,
     FOIL_RDRBOX_TYPE_INLINE_TABLE,
     FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP,
-    FOIL_RDRBOX_TYPE_TABLE_COLUMN,
-    FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP,
     FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP,
     FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP,
     FOIL_RDRBOX_TYPE_TABLE_ROW,
+    FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP,
+    FOIL_RDRBOX_TYPE_TABLE_COLUMN,
     FOIL_RDRBOX_TYPE_TABLE_CELL,
     FOIL_RDRBOX_TYPE_TABLE_CAPTION,
-} foil_rdrbox_type_k;
+};
 
 struct _inline_box_data;
 struct _block_box_data;
@@ -165,38 +129,68 @@ struct foil_rdrbox {
     struct foil_rdrbox* prev;
     struct foil_rdrbox* next;
 
-    /* type and flags of this box */
-    unsigned type_flags;
-
     /* number of child boxes */
     unsigned nr_children;
 
-    /* the node creating this box */
+    /* the node creating this box;
+       for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_node node;
 
-    /* properties for all elements */
+    /* Indicates that a box is a block container box:
+
+       In CSS 2.2, a block-level box is also a block container box
+       unless it is a table box or the principal box of a replaced element.
+
+       Values of the 'display' property which make a non-replaced element
+       generate a block container include 'block', 'list-item' and 'inline-block'.
+
+       In Foil, because there is no replaced element, values of the 'display'
+       property that make a block container box include: 'block', 'inlin-block',
+       and 'list-item'.
+     */
+    uint8_t is_container:1;
+
+    /* Indicates that a box is anonymous box. */
+    uint8_t is_anonymous:1;
+
+    /* Indicates that a box is principal box. */
+    uint8_t is_principal:1;
+
+    /* Indicates that a box is the intial containing block. */
+    uint8_t is_initial:1;
+
+    /* used values of properties for all elements */
+    unsigned type:4;
     unsigned position:3;
     unsigned float_type:2;
     unsigned direction:1;
+    unsigned bgc_transparent:1;
     unsigned unicode_bidi:3;
     unsigned text_transform:2;
+    unsigned text_deco_underline:1;
+    unsigned text_deco_overline:1;
+    unsigned text_deco_line_through:1;
+    unsigned text_deco_blink:1;
     unsigned white_space:3;
     unsigned overflow:2;
     unsigned visibility:2;
 
-    float width, height;    // content width and height
-    float left, right;      // position
-    float mt, ml, mr, mb;   // margins
-    float pt, pl, pr, pb;   // paddings
+    int width, height;    // content width and height
+    int left, right;      // position
+    int mt, ml, mr, mb;   // margins
+    int pt, pl, pr, pb;   // paddings
 
-    float letter_spacing;
-    float word_spacing;
+    int letter_spacing;
+    int word_spacing;
 
-    uint32_t fgc;
-    uint32_t bgc;
+    uint32_t fgc;   // ARGB
+    uint32_t bgc;   // ARGB
 
-    /* the bouding rectangle of this box */
-    foil_rect   rect;
+    /* the containing block */
+    foil_rect   containing_block;
+
+    /* the creator of the current containing block */
+    struct foil_rdrbox *cblock_creator;
 
     /* the extra data of this box */
     union {
@@ -214,8 +208,11 @@ struct foil_rendering_ctxt {
 
     pcmcth_udom *udom;
 
-    /* the current containing block */
-    struct foil_rdrbox *current_cblock;
+    /* the initial containing block  */
+    const struct foil_rdrbox *initial_cblock;
+
+    /* the box for the parent element */
+    struct foil_rdrbox *parent_box;
 };
 
 #ifdef __cplusplus
@@ -225,7 +222,7 @@ extern "C" {
 int foil_rdrbox_module_init(pcmcth_renderer *rdr);
 void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr);
 
-foil_rdrbox *foil_rdrbox_new_block(void);
+foil_rdrbox *foil_rdrbox_new(uint8_t type);
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *node);
 void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *node);
