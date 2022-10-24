@@ -168,7 +168,8 @@ struct foil_rdrbox {
     unsigned text_deco_line_through:1;
     unsigned text_deco_blink:1;
     unsigned white_space:3;
-    unsigned overflow:2;
+    unsigned overflow_x:2;
+    unsigned overflow_y:2;
     unsigned visibility:2;
 
     int width, height;      // content width and height

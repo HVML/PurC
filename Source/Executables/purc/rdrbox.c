@@ -910,6 +910,19 @@ calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
         dtrm_margin_top_bottom(ctxt, box);
         dtrm_height_replaced(ctxt, box);
     }
+    else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && !box->is_replaced &&
+            ctxt->in_normal_flow) {
+        uint8_t overflow = css_computed_overflow_y(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+        if (overflow == CSS_OVERFLOW_INHERIT)
+            overflow = ctxt->parent_box->overflow_y;
+
+        if (overflow == CSS_OVERFLOW_VISIBLE) {
+            dtrm_margin_top_bottom(ctxt, box);
+
+            // delay the determination of the height of this box.
+        }
+    }
 }
 
 /* adjust position according to 'vertical-align' */
