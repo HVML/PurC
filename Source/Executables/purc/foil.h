@@ -42,6 +42,11 @@
 #define FOIL_PX_PER_EM          8
 #define FOIL_PX_PER_EX          4
 
+#define FOIL_PX_GRID_CELL_H     8
+#define FOIL_PX_GRID_CELL_W     4
+#define FOIL_PX_REPLACED_W      320
+#define FOIL_PX_REPLACED_H      160
+
 #define FOIL_RDR_FEATURES \
     PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \
     FOIL_RDR_NAME ":" PURC_VERSION_STRING "\n" \

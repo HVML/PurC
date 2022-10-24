@@ -363,16 +363,16 @@ static uint8_t used_value_position(foil_rendering_ctxt *ctxt,
 static int round_width(float w)
 {
     if (w > 0)
-        return (int)(w / FOIL_PX_PER_EX + 0.5) * FOIL_PX_PER_EX;
+        return (int)(w / FOIL_PX_GRID_CELL_W + 0.5) * FOIL_PX_GRID_CELL_W;
 
-    return (int)(w / FOIL_PX_PER_EX - 0.5) * FOIL_PX_PER_EX;
+    return (int)(w / FOIL_PX_GRID_CELL_W - 0.5) * FOIL_PX_GRID_CELL_W;
 }
 
 static int round_height(float h)
 {
     if (h > 0)
-        return (int)(h / FOIL_PX_PER_EM + 0.5) * FOIL_PX_PER_EM;
-    return (int)(h / FOIL_PX_PER_EM - 0.5) * FOIL_PX_PER_EM;
+        return (int)(h / FOIL_PX_GRID_CELL_H + 0.5) * FOIL_PX_GRID_CELL_H;
+    return (int)(h / FOIL_PX_GRID_CELL_H - 0.5) * FOIL_PX_GRID_CELL_H;
 }
 
 static int calc_used_value_widths(foil_rdrbox *box,
@@ -391,11 +391,11 @@ static int calc_used_value_widths(foil_rdrbox *box,
         break;
 
     case CSS_UNIT_EX:
-        v = round_width(FIXTOFLT(length) * FOIL_PX_PER_EX);
+        v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
         break;
 
     case CSS_UNIT_EM:
-        v = round_width(FIXTOFLT(length) * FOIL_PX_PER_EM);
+        v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
         break;
 
     default:
@@ -423,11 +423,11 @@ static int calc_used_value_heights(foil_rdrbox *box,
         break;
 
     case CSS_UNIT_EX:
-        v = round_height(FIXTOFLT(length) * FOIL_PX_PER_EX);
+        v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
         break;
 
     case CSS_UNIT_EM:
-        v = round_height(FIXTOFLT(length) * FOIL_PX_PER_EM);
+        v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
         break;
 
     default:
@@ -442,8 +442,6 @@ static int calc_used_value_heights(foil_rdrbox *box,
 static void
 dtrm_margin_left_right(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 {
-    assert(box->type == FOIL_RDRBOX_TYPE_INLINE);
-
     uint8_t value;
     css_fixed length;
     css_unit unit;
@@ -477,6 +475,49 @@ dtrm_margin_left_right(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
             break;
         case CSS_MARGIN_SET:
             box->mr = calc_used_value_widths(box, unit, length);
+            break;
+        default:
+            assert(0);  // must be a bug
+            break;
+    }
+}
+
+static void
+dtrm_margin_top_bottom(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t value;
+    css_fixed length;
+    css_unit unit;
+    value = css_computed_margin_top(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &length, &unit);
+    switch (value) {
+        case CSS_MARGIN_AUTO:
+            box->mt = 0;
+            break;
+        case CSS_MARGIN_INHERIT:
+            box->mt = ctxt->parent_box->mt;
+            break;
+        case CSS_MARGIN_SET:
+            box->mr = calc_used_value_heights(box, unit, length);
+            break;
+        default:
+            assert(0);  // must be a bug
+            break;
+    }
+
+    value = css_computed_margin_bottom(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &length, &unit);
+    switch (value) {
+        case CSS_MARGIN_AUTO:
+            box->mb = 0;
+            break;
+        case CSS_MARGIN_INHERIT:
+            box->mb = ctxt->parent_box->mb;
+            break;
+        case CSS_MARGIN_SET:
+            box->mb = calc_used_value_heights(box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -520,6 +561,14 @@ get_intrinsic_height(foil_rendering_ctxt *ctxt)
     return (int)l;
 }
 
+static int
+get_intrinsic_ratio(foil_rendering_ctxt *ctxt)
+{
+    (void)ctxt;
+
+    return 2.0f; // always assume the instrinsic ratio is 2:1
+}
+
 static uint8_t
 dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 {
@@ -547,7 +596,7 @@ dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 
     int intrinsic_width = get_intrinsic_width(ctxt);
     int intrinsic_height = get_intrinsic_height(ctxt);
-    const int intrinsic_ratio = 2; // always assume the instrinsic ratio is 2:1
+    float intrinsic_ratio = get_intrinsic_ratio(ctxt);
 
     if (width_v == CSS_WIDTH_AUTO && height_v == CSS_HEIGHT_AUTO
             && intrinsic_width > 0) {
@@ -555,14 +604,14 @@ dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v == CSS_HEIGHT_AUTO
             && intrinsic_height > 0) {
-        box->width = round_height(intrinsic_height) / intrinsic_ratio;
+        box->width = round_width(intrinsic_height * intrinsic_ratio);
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v != CSS_HEIGHT_AUTO) {
         int height = 0;
         if (height_v == CSS_HEIGHT_INHERIT)
             height = ctxt->parent_box->height;
         height = calc_used_value_heights(box, height_u, height_l);
-        box->width = height / intrinsic_ratio;
+        box->width = round_width(height * intrinsic_ratio);
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v == CSS_HEIGHT_AUTO
             && intrinsic_ratio > 0) {
@@ -572,7 +621,51 @@ dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
         box->width = round_width(intrinsic_width);
     }
     else if (width_v == CSS_WIDTH_AUTO) {
-        box->width = 300;
+        box->width = FOIL_PX_REPLACED_W;
+    }
+
+    return width_v;
+}
+
+static uint8_t
+dtrm_height_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t width_v, height_v;
+    css_fixed width_l, height_l;
+    css_unit width_u, height_u;
+
+    assert(box->is_replaced);
+
+    height_v = css_computed_height(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &height_l, &height_u);
+    if (height_v != CSS_WIDTH_AUTO) {
+        if (height_v == CSS_HEIGHT_INHERIT)
+            box->height = ctxt->parent_box->height;
+        box->height = calc_used_value_heights(box, height_u, height_l);
+
+        return height_v;
+    }
+
+    width_v = css_computed_width(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &width_l, &width_u);
+
+    int intrinsic_height = get_intrinsic_height(ctxt);
+    float intrinsic_ratio = get_intrinsic_ratio(ctxt);
+
+    if (width_v == CSS_WIDTH_AUTO && height_v == CSS_HEIGHT_AUTO
+            && intrinsic_height > 0) {
+        box->height = round_height(intrinsic_height);
+    }
+    else if (height_v == CSS_HEIGHT_AUTO && intrinsic_ratio > 0) {
+        box->height = round_height(box->width / intrinsic_ratio);
+    }
+    else if (height_v == CSS_HEIGHT_AUTO && intrinsic_height > 0) {
+        box->height = round_height(intrinsic_height);
+    }
+    else if (height_v == CSS_WIDTH_AUTO) {
+        box->height = FOIL_PX_REPLACED_H;
     }
 
     return width_v;
@@ -599,7 +692,7 @@ dtrm_width_shrink_to_fit(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 
     /* TODO */
     LOG_WARN("Not implemented: %s\n", __func__);
-    box->width = FOIL_PX_PER_EX * 10;
+    box->width = FOIL_PX_GRID_CELL_W * 10;
     return CSS_WIDTH_SET;
 }
 
@@ -804,8 +897,19 @@ calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 static void
 calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 {
-    (void)ctxt;
-    (void)box;
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced) {
+        box->height = -1; // not apply
+    }
+    else if (box->is_replaced && (box->type == FOIL_RDRBOX_TYPE_INLINE ||
+                (box->type == FOIL_RDRBOX_TYPE_BLOCK &&
+                    ctxt->in_normal_flow) ||
+                (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
+                    ctxt->in_normal_flow) ||
+                ctxt->pos_schema == FOIL_RDRBOX_POSSCHEMA_FLOATS)) {
+
+        dtrm_margin_top_bottom(ctxt, box);
+        dtrm_height_replaced(ctxt, box);
+    }
 }
 
 /* adjust position according to 'vertical-align' */
