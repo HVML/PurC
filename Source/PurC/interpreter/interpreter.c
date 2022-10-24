@@ -1558,20 +1558,12 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
 
     purc_variant_t result = pcintr_coroutine_get_result(co);
 
-    if (heap->cond_handler) {
-        if (stack->terminated) {
-            struct purc_cor_term_info term_info;
-            term_info.except = stack->exception.error_except;
-            term_info.doc = stack->doc;
-            co->owner->cond_handler(PURC_COND_COR_TERMINATED, co, &term_info);
-        }
-        else {
-            /* TODO: pass real result here */
-            struct purc_cor_exit_info info = {
-                result,
-                stack->doc };
-            heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
-        }
+    if (heap->cond_handler && !stack->terminated) {
+        /* TODO: pass real result here */
+        struct purc_cor_exit_info info = {
+            result,
+            stack->doc };
+        heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
 
     if (co->curator) {
