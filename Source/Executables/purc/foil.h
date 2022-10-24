@@ -84,7 +84,25 @@ struct pcmcth_rdr_data {
     int rows, cols;
 };
 
+static inline int foil_rect_width(const foil_rect *rc)
+{
+    return rc->right - rc->left;
+}
+
+static inline int foil_rect_height(const foil_rect *rc)
+{
+    return rc->bottom - rc->top;
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 purc_atom_t foil_init(const char *rdr_uri);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* purc_foil_h */
 

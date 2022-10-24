@@ -184,10 +184,10 @@ struct foil_rdrbox {
     uint32_t bgc;   // ARGB
 
     /* the containing block */
-    foil_rect containing_block;
+    foil_rect cblock_rect;
 
     /* the creator of the current containing block */
-    struct foil_rdrbox *cblock_creator;
+    const foil_rdrbox *cblock_creator;
 
     /* the extra data of this box */
     union {
@@ -198,6 +198,14 @@ struct foil_rdrbox {
         struct _marker_box_data     *marker_data;
         /* TODO: for other box types */
     };
+};
+
+enum {
+    FOIL_RDRBOX_POSSCHEMA_BLOCK_FORMAT = 0,
+    FOIL_RDRBOX_POSSCHEMA_INLINE_FORMAT,
+    FOIL_RDRBOX_POSSCHEMA_RELATIVE,
+    FOIL_RDRBOX_POSSCHEMA_FLOATS,
+    FOIL_RDRBOX_POSSCHEMA_ABSOLUTE,
 };
 
 typedef struct foil_rendering_ctxt {
@@ -219,6 +227,10 @@ typedef struct foil_rendering_ctxt {
 
     /* the tag name of the current element */
     char *tag_name;
+
+    unsigned pos_schema:3;
+    unsigned in_normal_flow:1;
+
 } foil_rendering_ctxt;
 
 #ifdef __cplusplus

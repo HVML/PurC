@@ -278,10 +278,10 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->fgc = FOIL_DEF_FGC;
     udom->initial_cblock->bgc = FOIL_DEF_BGC;
 
-    udom->initial_cblock->containing_block.left = 0;
-    udom->initial_cblock->containing_block.top = 0;
-    udom->initial_cblock->containing_block.right = width;
-    udom->initial_cblock->containing_block.right = height;
+    udom->initial_cblock->cblock_rect.left = 0;
+    udom->initial_cblock->cblock_rect.top = 0;
+    udom->initial_cblock->cblock_rect.right = width;
+    udom->initial_cblock->cblock_rect.right = height;
     udom->initial_cblock->cblock_creator = NULL;
 
     udom->media.type = CSS_MEDIA_TTY;
@@ -622,7 +622,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     struct foil_rendering_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL };
+        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL, 0, 0 };
     make_rdrtree(&ctxt, purc_document_root(edom_doc));
 
     return udom;
