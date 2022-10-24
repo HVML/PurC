@@ -48,6 +48,7 @@
 #define BUILTIN_VAR_CRTN        PURC_PREDEF_VARNAME_CRTN
 
 #define YIELD_EVENT_HANDLER     "_yield_event_handler"
+#define ATTR_FOR                "for"
 
 static inline time_t
 timespec_to_ms(const struct timespec *ts)
@@ -144,6 +145,122 @@ handle_rdr_conn_lost(struct pcinst *inst)
     inst->conn_to_rdr = NULL;
 }
 
+bool
+is_match_except(purc_variant_t for_val, purc_atom_t except)
+{
+    bool match = false;
+    char *except_msg = NULL;
+    if (!for_val || !purc_variant_is_string(for_val)) {
+        goto out;
+    }
+
+    const char *msg = purc_variant_get_string_const(for_val);
+    if (msg == NULL || strcmp(msg, "*") == 0) {
+        match = true;
+        goto out;
+    }
+
+    except_msg = strdup(msg);
+    if (!except_msg) {
+        // FIXME: throw exception in catch block
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        match = false;
+        goto out;
+    }
+
+    char* ctx = except_msg;
+    char* tok = strtok_r(ctx, " ", &ctx);
+    while (tok) {
+        purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, tok);
+        if (t == except) {
+            match = true;
+            break;
+        }
+        tok = strtok_r(ctx, " ", &ctx);
+    }
+
+out:
+    if (except_msg) {
+        free(except_msg);
+    }
+    return match;
+}
+
+bool
+is_same_level_catched(pcintr_stack_t stack, struct pcvdom_node *node)
+{
+    bool catch = false;
+
+    while (node) {
+        if (node->type == PCVDOM_NODE_ELEMENT) {
+            pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(node);
+            struct pcvdom_attr *attr = pcvdom_element_find_attr(element, ATTR_FOR);
+            if (!attr) {
+                catch = true;
+                break;
+            }
+
+            struct pcvcm_eval_ctxt *vcm_ctxt = NULL;
+            if (stack->vcm_ctxt) {
+                vcm_ctxt = stack->vcm_ctxt;
+                stack->vcm_ctxt = NULL;
+            }
+            purc_variant_t v = pcintr_eval_vcm(stack, attr->val, true);
+            purc_clr_error();
+            pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+            if (vcm_ctxt) {
+                stack->vcm_ctxt = vcm_ctxt;
+            }
+            catch = is_match_except(v, stack->exception.error_except);
+            PURC_VARIANT_SAFE_CLEAR(v);
+            if (catch) {
+                break;
+            }
+        }
+        node = pcvdom_node_next_sibling(node);
+        purc_clr_error();
+    }
+
+    return catch;
+}
+
+bool
+is_match_catch_tag(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(stack);
+    UNUSED_PARAM(frame);
+
+    bool catch = false;
+    pcvdom_element_t elem = frame->pos;
+    struct pcvdom_node *node = &elem->node;
+    if (node) {
+        node = pcvdom_node_first_child(node);
+        purc_clr_error();
+        if (node) {
+            catch = is_same_level_catched(stack, node);
+            if (catch) {
+                goto out;
+            }
+        }
+    }
+
+    struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
+    while (p && p->pos) {
+        node = pcvdom_node_next_sibling(&p->pos->node);
+        purc_clr_error();
+        if (node) {
+            catch = is_same_level_catched(stack, node);
+            if (catch) {
+                goto out;
+            }
+        }
+        p = pcintr_stack_frame_get_parent(p);
+    }
+
+out:
+    return catch;
+}
+
 
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
@@ -175,6 +292,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #ifndef NDEBUG                     /* { */
         pcintr_dump_stack(stack);
 #endif                             /* } */
+//        bool catched = is_match_catch_tag(stack, frame);
 #if 0
         stack->terminated = 1;
         if (co->owner->cond_handler) {
