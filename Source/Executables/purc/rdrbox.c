@@ -84,7 +84,6 @@ void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr)
 foil_rdrbox *foil_rdrbox_new(uint8_t type)
 {
     foil_rdrbox *box = calloc(1, sizeof(*box));
-
     if (box == NULL)
         goto failed;
 
@@ -283,7 +282,7 @@ static const char *literal_values_position[] = {
 #define INVALID_USED_VALUE_UINT8     0xFF
 
 static uint8_t
-used_value_display(struct foil_rendering_ctxt *ctxt, uint8_t computed)
+used_value_display(foil_rendering_ctxt *ctxt, uint8_t computed)
 {
     assert(ctxt->parent_box);
 
@@ -338,7 +337,7 @@ inherit:
     return ctxt->parent_box->type;
 }
 
-static uint8_t used_value_position(struct foil_rendering_ctxt *ctxt,
+static uint8_t used_value_position(foil_rendering_ctxt *ctxt,
         uint8_t computed)
 {
     switch (computed) {
@@ -385,25 +384,32 @@ adjust_position_vertically(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
     (void)box;
 }
 
-foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
-        pcdoc_element_t elem, css_select_results *result)
+/* TODO: check whether an element is replaced or non-replaced */
+static int
+is_replaced_element(pcdoc_element_t elem, const char *tag_name)
 {
-    pcdoc_node node = { PCDOC_NODE_ELEMENT, { elem } };
+    (void)elem;
+    (void)tag_name;
+    return 0;
+}
+
+foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
+{
+    pcdoc_node node = { PCDOC_NODE_ELEMENT, { ctxt->elem } };
     const char *name;
     size_t len;
-    char *tag_name = NULL;
     foil_rdrbox *box = NULL;
 
-    pcdoc_element_get_tag_name(ctxt->doc, elem, &name, &len,
+    pcdoc_element_get_tag_name(ctxt->doc, ctxt->elem, &name, &len,
             NULL, NULL, NULL, NULL);
     assert(name != NULL && len > 0);
-    tag_name = strndup(name, len);
+    ctxt->tag_name = strndup(name, len);
 
-    LOG_DEBUG("Styles of element (%s):\n", tag_name);
+    LOG_DEBUG("Styles of element (%s):\n", ctxt->tag_name);
 
     /* determine the box type */
     uint8_t display = css_computed_display(
-            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
             pcdoc_node_get_parent(ctxt->doc, node) == NULL);
 
     // return INVALID_USED_VALUE_UINT8 for 'display:none;'
@@ -415,18 +421,22 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
 
     LOG_DEBUG("\ttype: %s\n", literal_values_boxtype[type]);
 
-    /* allocate a new rdrbox */
+    /* allocate the principal box */
     box = foil_rdrbox_new(type);
     if (box == NULL)
         goto failed;
 
+    box->owner = ctxt->elem;
+    box->is_principal = 1;
+    box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+
     uint8_t position = css_computed_position(
-            result->styles[CSS_PSEUDO_ELEMENT_NONE]);
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
     box->position = used_value_position(ctxt, position);
     LOG_DEBUG("\tposition: %s\n", literal_values_position[box->position]);
 
     /* determine the containing block */
-    if (purc_document_root(ctxt->doc) == elem) {
+    if (purc_document_root(ctxt->doc) == ctxt->elem) {
         box->containing_block.left = 0;
         box->containing_block.top = 0;
         box->containing_block.right = ctxt->initial_cblock->width;
@@ -495,7 +505,7 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
     /* determine foreground color */
     css_color color_argb;
     uint8_t color_type = css_computed_color(
-            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
             &color_argb);
     if (color_type == CSS_COLOR_INHERIT)
         box->fgc = ctxt->parent_box->fgc;
@@ -506,7 +516,7 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
 
     /* determine background color */
     color_type = css_computed_background_color(
-            result->styles[CSS_PSEUDO_ELEMENT_NONE],
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
             &color_argb);
     if (color_type == CSS_COLOR_INHERIT)
         box->bgc = ctxt->parent_box->bgc;
@@ -515,15 +525,26 @@ foil_rdrbox *foil_rdrbox_create(struct foil_rendering_ctxt *ctxt,
 
     LOG_DEBUG("\tbackground color: 0x%08x\n", box->bgc);
 
-    if (tag_name)
-        free(tag_name);
+    if (ctxt->tag_name)
+        free(ctxt->tag_name);
 
     foil_rdrbox_append_child(ctxt->parent_box, box);
+
+    /* TODO
+    if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
+        // allocate the marker box
+        box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
+        if (box == NULL)
+            goto failed;
+        box->owner = ctxt->elem;
+        box->is_anonymous = 1;
+    } */
+
     return box;
 
 failed:
-    if (tag_name)
-        free(tag_name);
+    if (ctxt->tag_name)
+        free(ctxt->tag_name);
 
     if (box)
         foil_rdrbox_delete(box);

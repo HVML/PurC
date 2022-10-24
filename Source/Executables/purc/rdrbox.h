@@ -132,31 +132,28 @@ struct foil_rdrbox {
     /* number of child boxes */
     unsigned nr_children;
 
-    /* the node creating this box;
+    /* the element creating this box;
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
-    pcdoc_node node;
+    pcdoc_element_t owner;
 
     /* Indicates that a box is a block container box:
 
        In CSS 2.2, a block-level box is also a block container box
        unless it is a table box or the principal box of a replaced element.
 
-       Values of the 'display' property which make a non-replaced element
-       generate a block container include 'block', 'list-item' and 'inline-block'.
-
-       In Foil, because there is no replaced element, values of the 'display'
-       property that make a block container box include: 'block', 'inlin-block',
-       and 'list-item'.
      */
     uint8_t is_container:1;
 
-    /* Indicates that a box is anonymous box. */
+    /* Indicates that this box is anonymous box. */
     uint8_t is_anonymous:1;
 
-    /* Indicates that a box is principal box. */
+    /* Indicates that this box is principal box. */
     uint8_t is_principal:1;
 
-    /* Indicates that a box is the intial containing block. */
+    /* Indicates that the element generating this box is a replaced one. */
+    uint8_t is_replaced:1;
+
+    /* Indicates that this box is the intial containing block. */
     uint8_t is_initial:1;
 
     /* used values of properties for all elements */
@@ -164,7 +161,6 @@ struct foil_rdrbox {
     unsigned position:3;
     unsigned float_type:2;
     unsigned direction:1;
-    unsigned bgc_transparent:1;
     unsigned unicode_bidi:3;
     unsigned text_transform:2;
     unsigned text_deco_underline:1;
@@ -214,6 +210,15 @@ typedef struct foil_rendering_ctxt {
 
     /* the box for the parent element */
     struct foil_rdrbox *parent_box;
+
+    /* the current element */
+    pcdoc_element_t elem;
+
+    /* the current styles */
+    css_select_results *computed;
+
+    /* the tag name of the current element */
+    char *tag_name;
 } foil_rendering_ctxt;
 
 #ifdef __cplusplus
@@ -234,8 +239,7 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
-foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt,
-        pcdoc_element_t element, css_select_results *result);
+foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);

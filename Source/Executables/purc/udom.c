@@ -268,8 +268,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     /* set some fileds having non-zero values of
        the initial containing block */
-    udom->initial_cblock->node.type = PCDOC_NODE_VOID;
-    udom->initial_cblock->node.data = NULL;
+    udom->initial_cblock->owner = NULL;
 
     udom->initial_cblock->is_initial = 1;
 
@@ -504,13 +503,15 @@ failed:
 static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
         pcdoc_element_t ancestor)
 {
-    pcdoc_node node;
+    foil_rdrbox *box;
     css_select_results *result = NULL;
     result = select_element_style(&ctxt->udom->media,
             ctxt->udom->select_ctx, ctxt->doc, ancestor);
     if (result) {
         /* skip descendants for "display: none" */
-        if (foil_rdrbox_create(ctxt, ancestor, result) == NULL)
+        ctxt->elem = ancestor;
+        ctxt->computed = result;
+        if ((box = foil_rdrbox_create(ctxt)) == NULL)
             goto done;
         css_select_results_destroy(result);
         result = NULL;
@@ -520,10 +521,12 @@ static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
     }
 
     /* continue for the children */
+    pcdoc_node node;
     node = pcdoc_element_first_child(ctxt->doc, ancestor);
 
     while (node.type != PCDOC_NODE_VOID) {
         if (node.type == PCDOC_NODE_ELEMENT) {
+            ctxt->parent_box = box;
             if (make_rdrtree(ctxt, node.elem))
                 goto failed;
         }
@@ -619,7 +622,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     struct foil_rendering_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock, udom->initial_cblock };
+        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL };
     make_rdrtree(&ctxt, purc_document_root(edom_doc));
 
     return udom;
