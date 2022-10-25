@@ -253,36 +253,85 @@ void foil_rdrbox_delete_deep(foil_rdrbox *root)
 
 #ifndef NDEBUG
 static const char *literal_values_boxtype[] = {
-    "INLINE",
-    "BLOCK",
-    "LIST_ITEM",
-    "MARKER",
-    "INLINE_BLOCK",
-    "TABLE",
-    "INLINE_TABLE",
-    "TABLE_ROW_GROUP",
-    "TABLE_HEADER_GROUP",
-    "TABLE_FOOTER_GROUP",
-    "TABLE_ROW",
-    "TABLE_COLUMN_GROUP",
-    "TABLE_COLUMN",
-    "TABLE_CELL",
-    "TABLE_CAPTION",
+    "inline",
+    "block",
+    "list-item",
+    "marker",
+    "inline-block",
+    "table",
+    "inline-table",
+    "table-row_group",
+    "table-header-group",
+    "table-footer-group",
+    "table-row",
+    "table-column-group",
+    "table-column",
+    "table-cell",
+    "table-caption",
 };
 
 static const char *literal_values_position[] = {
-    "STATIC",
-    "RELATIVE",
-    "ABSOLUTE",
-    "FIXED",
-    "STICKY",
+    "static",
+    "relative",
+    "absolute",
+    "fixed",
+    "sticky",
 };
-#endif
+
+static const char *literal_values_float[] = {
+    "none",
+    "left",
+    "right",
+};
+
+static const char *literal_values_direction[] = {
+    "ltr",
+    "rtl",
+};
+
+static const char *literal_values_visibility[] = {
+    "visible",
+    "hidden",
+    "collapse",
+};
+
+static const char *literal_values_overflow[] = {
+    "visible",
+    "hidden",
+    "scroll",
+    "auto",
+};
+
+static const char *literal_values_unicode_bidi[] = {
+    "normal",
+    "embed",
+    "isolate",
+    "bidi_override",
+    "isolate_override",
+    "plaintext",
+};
+
+static const char *literal_values_text_transform[] = {
+    "none",
+    "capitalize",
+    "uppercase",
+    "lowercase",
+};
+
+static const char *literal_values_white_space[] = {
+    "normal",
+    "pre",
+    "nowrap",
+    "pre-wrap",
+    "pre-line",
+};
+
+#endif /* not defined NDEBUG */
 
 #define INVALID_USED_VALUE_UINT8     0xFF
 
 static uint8_t
-used_value_display(foil_rendering_ctxt *ctxt, uint8_t computed)
+display_to_type(foil_rendering_ctxt *ctxt, uint8_t computed)
 {
     assert(ctxt->parent_box);
 
@@ -337,27 +386,225 @@ inherit:
     return ctxt->parent_box->type;
 }
 
-static uint8_t used_value_position(foil_rendering_ctxt *ctxt,
-        uint8_t computed)
+static bool is_table_box(foil_rdrbox *box)
 {
-    switch (computed) {
-        case CSS_POSITION_STATIC:
-            return FOIL_RDRBOX_POSITION_STATIC;
+    return box->type >= FOIL_RDRBOX_TYPE_TABLE &&
+        box->type <= FOIL_RDRBOX_TYPE_TABLE_CAPTION;
+}
 
-        case CSS_POSITION_RELATIVE:
-            return FOIL_RDRBOX_POSITION_RELATIVE;
+/* display, positionn, and float must be determined
+   before calling this function */
+static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *box)
+{
+    uint8_t v;
 
-        case CSS_POSITION_ABSOLUTE:
-            return FOIL_RDRBOX_POSITION_ABSOLUTE;
-
-        case CSS_POSITION_FIXED:
-            return FOIL_RDRBOX_POSITION_FIXED;
-
-        default:
-            break;
+    /* determine direction */
+    v = css_computed_direction(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_DIRECTION_INHERIT) {
+        box->direction = ctxt->parent_box->direction;
+    }
+    else if (v == CSS_DIRECTION_RTL) {
+        box->direction = FOIL_RDRBOX_DIRECTION_RTL;
+    }
+    else {
+        box->direction = FOIL_RDRBOX_DIRECTION_LTR;
     }
 
-    return ctxt->parent_box->position;
+    LOG_DEBUG("\tdirection: %s\n", literal_values_direction[box->direction]);
+
+    /* determine visibility */
+    v = css_computed_visibility(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_VISIBILITY_INHERIT) {
+        box->visibility = ctxt->parent_box->visibility;
+    }
+    else {
+        switch (v) {
+        case CSS_VISIBILITY_HIDDEN:
+            box->visibility = FOIL_RDRBOX_VISIBILITY_HIDDEN;
+            break;
+        case CSS_VISIBILITY_COLLAPSE:
+            box->visibility = FOIL_RDRBOX_VISIBILITY_COLLAPSE;
+            break;
+        case CSS_VISIBILITY_VISIBLE:
+        default:
+            box->visibility = FOIL_RDRBOX_VISIBILITY_VISIBLE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tvisibility: %s\n",
+            literal_values_visibility[box->visibility]);
+
+    /* determine overflow_x */
+    v = css_computed_overflow_x(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_OVERFLOW_INHERIT) {
+        box->overflow_x = ctxt->parent_box->overflow_x;
+    }
+    else {
+        switch (v) {
+        case CSS_OVERFLOW_HIDDEN:
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_HIDDEN;
+            break;
+        case CSS_OVERFLOW_SCROLL:
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_SCROLL;
+            break;
+        case CSS_OVERFLOW_AUTO:
+            if (is_table_box(box))
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            else
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            break;
+        default:
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\toverflow_x: %s\n", literal_values_overflow[box->overflow_x]);
+
+    /* determine overflow_y */
+    v = css_computed_overflow_y(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_OVERFLOW_INHERIT) {
+        box->overflow_y = ctxt->parent_box->overflow_y;
+    }
+    else {
+        switch (v) {
+        case CSS_OVERFLOW_HIDDEN:
+            box->overflow_y = FOIL_RDRBOX_OVERFLOW_HIDDEN;
+            break;
+        case CSS_OVERFLOW_SCROLL:
+            box->overflow_y = FOIL_RDRBOX_OVERFLOW_SCROLL;
+            break;
+        case CSS_OVERFLOW_AUTO:
+            if (is_table_box(box))
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            else
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            break;
+        default:
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\toverflow_y: %s\n", literal_values_overflow[box->overflow_y]);
+
+    /* determine unicode_bidi */
+    v = css_computed_unicode_bidi(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_UNICODE_BIDI_INHERIT) {
+        box->unicode_bidi = ctxt->parent_box->unicode_bidi;
+    }
+    else {
+        switch (v) {
+        case CSS_UNICODE_BIDI_EMBED:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_EMBED;
+            break;
+        case CSS_UNICODE_BIDI_ISOLATE:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE;
+            break;
+        case CSS_UNICODE_BIDI_BIDI_OVERRIDE:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_BIDI_OVERRIDE;
+            break;
+        case CSS_UNICODE_BIDI_ISOLATE_OVERRIDE:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE_OVERRIDE;
+            break;
+        case CSS_UNICODE_BIDI_PLAINTEXT:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_PLAINTEXT;
+            break;
+        default:
+            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_NORMAL;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tunicode_bidi: %s\n", literal_values_unicode_bidi[box->unicode_bidi]);
+
+    /* determine foreground color */
+    css_color color_argb;
+    v = css_computed_color(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &color_argb);
+    if (v == CSS_COLOR_INHERIT)
+        box->fgc = ctxt->parent_box->fgc;
+    else
+        box->fgc = color_argb;
+
+    LOG_DEBUG("\tcolor: 0x%08x\n", box->fgc);
+
+    /* determine background color */
+    v = css_computed_background_color(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            &color_argb);
+    if (v == CSS_COLOR_INHERIT)
+        box->bgc = ctxt->parent_box->bgc;
+    else
+        box->bgc = color_argb;
+
+    LOG_DEBUG("\tbackground color: 0x%08x\n", box->bgc);
+
+    /* determine text_transform */
+    v = css_computed_text_transform(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_TEXT_TRANSFORM_INHERIT) {
+        box->text_transform = ctxt->parent_box->text_transform;
+    }
+    else {
+        switch (v) {
+        case CSS_TEXT_TRANSFORM_CAPITALIZE:
+            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE;
+            break;
+        case CSS_TEXT_TRANSFORM_UPPERCASE:
+            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE;
+            break;
+        case CSS_TEXT_TRANSFORM_LOWERCASE:
+            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE;
+            break;
+        case CSS_TEXT_TRANSFORM_NONE:
+        default:
+            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_NONE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\ttext_transform: %s\n",
+            literal_values_text_transform[box->text_transform]);
+
+    /* determine white_space */
+    v = css_computed_white_space(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_WHITE_SPACE_INHERIT) {
+        box->white_space = ctxt->parent_box->white_space;
+    }
+    else {
+        switch (v) {
+        case CSS_WHITE_SPACE_PRE:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE;
+            break;
+        case CSS_WHITE_SPACE_NOWRAP:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_NOWRAP;
+            break;
+        case CSS_WHITE_SPACE_PRE_WRAP:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP;
+            break;
+        case CSS_WHITE_SPACE_PRE_LINE:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_LINE;
+            break;
+        case CSS_WHITE_SPACE_NORMAL:
+        default:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_NORMAL;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\twhite_space: %s\n",
+            literal_values_white_space[box->white_space]);
+
 }
 
 static int round_width(float w)
@@ -780,7 +1027,7 @@ dtrm_margin_left_right_block_normal(foil_rendering_ctxt *ctxt,
             box->width = 0;
         }
 
-        if (box->cblock_creator->direction == FOIL_RDRBOX_DIR_LTR) {
+        if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
             box->mr = cblock_width -
                 box->width - box->pl - box->bl - box->pr - box->br - box->ml;
         }
@@ -912,15 +1159,25 @@ calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && !box->is_replaced &&
             ctxt->in_normal_flow) {
-        uint8_t overflow = css_computed_overflow_y(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-        if (overflow == CSS_OVERFLOW_INHERIT)
-            overflow = ctxt->parent_box->overflow_y;
 
-        if (overflow == CSS_OVERFLOW_VISIBLE) {
-            dtrm_margin_top_bottom(ctxt, box);
+        css_fixed height_l;
+        css_unit height_u;
+        uint8_t height_v = css_computed_height(
+                ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+                &height_l, &height_u);
 
-            // delay the determination of the height of this box.
+        if (height_v != CSS_WIDTH_AUTO) {
+            if (height_v == CSS_HEIGHT_INHERIT)
+                box->height = ctxt->parent_box->height;
+            box->height = calc_used_value_heights(box, height_u, height_l);
+        }
+        else {
+            if (box->overflow_y == CSS_OVERFLOW_VISIBLE) {
+                dtrm_margin_top_bottom(ctxt, box);
+
+                // set height is pending.
+                box->height_pending = 1;
+            }
         }
     }
 }
@@ -962,7 +1219,7 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
             pcdoc_node_get_parent(ctxt->doc, node) == NULL);
 
     // return INVALID_USED_VALUE_UINT8 for 'display:none;'
-    uint8_t type = used_value_display(ctxt, display);
+    uint8_t type = display_to_type(ctxt, display);
     if (type == INVALID_USED_VALUE_UINT8) {
         LOG_DEBUG("\tdisplay: %s\n", "none");
         goto failed;
@@ -979,10 +1236,66 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
     box->is_principal = 1;
     box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
 
-    uint8_t position = css_computed_position(
+    uint8_t v;
+    v = css_computed_position(
             ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    box->position = used_value_position(ctxt, position);
+    if (v == CSS_POSITION_INHERIT) {
+        box->position = ctxt->parent_box->position;
+    }
+    else {
+        switch (v) {
+        case CSS_POSITION_RELATIVE:
+            box->position = FOIL_RDRBOX_POSITION_RELATIVE;
+            break;
+
+        case CSS_POSITION_ABSOLUTE:
+            box->position = FOIL_RDRBOX_POSITION_ABSOLUTE;
+            break;
+
+        case CSS_POSITION_FIXED:
+            box->position = FOIL_RDRBOX_POSITION_FIXED;
+            break;
+
+        /* CSSEng does not support position: sticky so far
+        case CSS_POSITION_STICKY:
+            box->position = FOIL_RDRBOX_POSITION_STICKY;
+            break; */
+
+        case CSS_POSITION_STATIC:
+        default:
+            box->position = FOIL_RDRBOX_POSITION_STATIC;
+            break;
+        }
+    }
+
     LOG_DEBUG("\tposition: %s\n", literal_values_position[box->position]);
+
+    /* determine float */
+    v = css_computed_float(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_FLOAT_INHERIT) {
+        box->floating = ctxt->parent_box->floating;
+    }
+    else {
+        switch (v) {
+        case CSS_FLOAT_LEFT:
+            box->floating = FOIL_RDRBOX_FLOAT_LEFT;
+            break;
+
+        case CSS_FLOAT_RIGHT:
+            box->floating = FOIL_RDRBOX_FLOAT_RIGHT;
+            break;
+
+        case CSS_FLOAT_NONE:
+        default:
+            box->floating = FOIL_RDRBOX_FLOAT_NONE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
+
+    /* TODO: determine the positioning schema */
 
     /* determine the containing block */
     if (purc_document_root(ctxt->doc) == ctxt->elem) {
@@ -1046,6 +1359,9 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
         box->cblock_creator = ctxt->initial_cblock;
     }
 
+    /* determine the used values for common properties */
+    dtrm_used_values_common_properties(ctxt, box);
+
     /* calculate widths and margins */
     calc_widths_margins(ctxt, box);
 
@@ -1054,29 +1370,6 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
 
     /* adjust position according to 'vertical-align' */
     adjust_position_vertically(ctxt, box);
-
-    /* determine foreground color */
-    css_color color_argb;
-    uint8_t color_type = css_computed_color(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &color_argb);
-    if (color_type == CSS_COLOR_INHERIT)
-        box->fgc = ctxt->parent_box->fgc;
-    else
-        box->fgc = color_argb;
-
-    LOG_DEBUG("\tcolor: 0x%08x\n", box->fgc);
-
-    /* determine background color */
-    color_type = css_computed_background_color(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &color_argb);
-    if (color_type == CSS_COLOR_INHERIT)
-        box->bgc = ctxt->parent_box->bgc;
-    else
-        box->bgc = color_argb;
-
-    LOG_DEBUG("\tbackground color: 0x%08x\n", box->bgc);
 
     if (ctxt->tag_name)
         free(ctxt->tag_name);

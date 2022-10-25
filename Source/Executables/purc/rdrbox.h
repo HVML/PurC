@@ -52,26 +52,26 @@ enum {
 
 /* the direction of a box. */
 enum {
-    FOIL_RDRBOX_DIR_LTR = 0,
-    FOIL_RDRBOX_DIR_RTL,
+    FOIL_RDRBOX_DIRECTION_LTR = 0,
+    FOIL_RDRBOX_DIRECTION_RTL,
 };
 
 /* the Unicode bidi of a box. */
 enum {
-    FOIL_RDRBOX_BIDI_NORMAL = 0,
-    FOIL_RDRBOX_BIDI_EMBED,
-    FOIL_RDRBOX_BIDI_ISOLATE,
-    FOIL_RDRBOX_BIDI_BIDI_OVERRIDE,
-    FOIL_RDRBOX_BIDI_ISOLATE_OVERRIDE,
-    FOIL_RDRBOX_BIDI_PLAINTEXT,
+    FOIL_RDRBOX_UNICODE_BIDI_NORMAL = 0,
+    FOIL_RDRBOX_UNICODE_BIDI_EMBED,
+    FOIL_RDRBOX_UNICODE_BIDI_ISOLATE,
+    FOIL_RDRBOX_UNICODE_BIDI_BIDI_OVERRIDE,
+    FOIL_RDRBOX_UNICODE_BIDI_ISOLATE_OVERRIDE,
+    FOIL_RDRBOX_UNICODE_BIDI_PLAINTEXT,
 };
 
 /* the text transforms of a box. */
 enum {
-    FOIL_RDRBOX_TEXT_TRANS_NONE = 0,
-    FOIL_RDRBOX_TEXT_TRANS_CAPITALIZE,
-    FOIL_RDRBOX_TEXT_TRANS_UPPERCASE,
-    FOIL_RDRBOX_TEXT_TRANS_LOWERCASE,
+    FOIL_RDRBOX_TEXT_TRANSFORM_NONE = 0,
+    FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE,
+    FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE,
+    FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE,
 };
 
 /* the white space of a box. */
@@ -159,8 +159,11 @@ struct foil_rdrbox {
     /* used values of properties for all elements */
     unsigned type:4;
     unsigned position:3;
-    unsigned float_type:2;
+    unsigned floating:2;
     unsigned direction:1;
+    unsigned visibility:2;
+    unsigned overflow_x:2;
+    unsigned overflow_y:2;
     unsigned unicode_bidi:3;
     unsigned text_transform:2;
     unsigned text_deco_underline:1;
@@ -168,9 +171,9 @@ struct foil_rdrbox {
     unsigned text_deco_line_through:1;
     unsigned text_deco_blink:1;
     unsigned white_space:3;
-    unsigned overflow_x:2;
-    unsigned overflow_y:2;
-    unsigned visibility:2;
+
+    /* layout flags */
+    unsigned height_pending:1;
 
     int width, height;      // content width and height
     int left, top;          // position
