@@ -5,6 +5,11 @@
 </head>
 
 <body>
+    <observe against="buttons" for="change:progress">
+        <inherit>
+            $STREAM.stdout.writelines($EJSON.stringify($?.progress))
+        </inherit>
+    </observe>
     <observe against="buttons" for="change:displaced">
         <exit/>
     </observe>

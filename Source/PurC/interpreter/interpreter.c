@@ -60,6 +60,7 @@
 #define COROUTINE_PREFIX    "COROUTINE"
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 #define ATTR_NAME_ID        "id"
+#define ATTR_NAME_IDD_BY    "idd-by"
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4
 
@@ -2121,12 +2122,14 @@ struct load_async_data {
     pthread_t                  requesting_thread;
     pcintr_stack_t             requesting_stack;
     purc_variant_t             request_id;
+    purc_variant_t             progress_event_dest;
 };
 
 static void
 release_load_async_data(struct load_async_data *data)
 {
     if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->progress_event_dest);
         PURC_VARIANT_SAFE_CLEAR(data->request_id);
         data->handler           = NULL;
         data->ctxt              = NULL;
@@ -2156,10 +2159,40 @@ on_load_async_done(
     destroy_load_async_data(data);
 }
 
+void pcintr_fetcher_progress_tracker(purc_variant_t request_id,
+        void* ctxt, double progress)
+{
+    UNUSED_PARAM(request_id);
+    struct load_async_data *data = (struct load_async_data*)ctxt;
+    if (data->progress_event_dest) {
+        purc_variant_t payload = purc_variant_make_object(0,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        if (!payload) {
+            return;
+        }
+        purc_variant_t prog = purc_variant_make_number(progress);
+        if (!prog) {
+            return;
+        }
+        purc_variant_object_set_by_static_ckey(payload, MSG_SUB_TYPE_PROGRESS,
+                prog);
+
+        pcintr_coroutine_post_event(data->requesting_stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                data->progress_event_dest, MSG_TYPE_CHANGE,
+                MSG_SUB_TYPE_PROGRESS, payload,
+                PURC_VARIANT_INVALID);
+
+        purc_variant_unref(prog);
+        purc_variant_unref(payload);
+    }
+}
+
 purc_variant_t
 pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
         enum pcfetcher_request_method method, purc_variant_t params,
-        pcfetcher_response_handler handler, void* ctxt)
+        pcfetcher_response_handler handler, void* ctxt,
+        purc_variant_t progress_event_dest)
 {
     PC_ASSERT(stack);
     PC_ASSERT(uri);
@@ -2178,6 +2211,12 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
     data->requesting_thread    = pthread_self();
     data->requesting_stack     = stack;
     data->request_id           = PURC_VARIANT_INVALID;
+    if (progress_event_dest) {
+        data->progress_event_dest = purc_variant_ref(progress_event_dest);
+    }
+    else {
+        data->progress_event_dest = PURC_VARIANT_INVALID;
+    }
 
     if (stack->co->base_url_string) {
         pcfetcher_set_base_url(stack->co->base_url_string);
@@ -2190,6 +2229,8 @@ pcintr_load_from_uri_async(pcintr_stack_t stack, const char* uri,
             params,
             timeout,
             on_load_async_done,
+            data,
+            pcintr_fetcher_progress_tracker,
             data);
 
     if (data->request_id == PURC_VARIANT_INVALID) {
@@ -2284,7 +2325,8 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
         goto end;
     }
 
-    purc_nvariant_method native_func = ops->property_getter(DOC_QUERY);
+    void *entity = purc_variant_native_get_entity(doc);
+    purc_nvariant_method native_func = ops->property_getter(entity, DOC_QUERY);
     if (!native_func) {
         PC_ASSERT(0);
         goto end;
@@ -2297,7 +2339,7 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
     }
 
     // TODO: silenly
-    ret = native_func (purc_variant_native_get_entity(doc), 1, &arg, silently);
+    ret = native_func (entity, 1, &arg, silently);
     purc_variant_unref(arg);
 end:
     return ret;
@@ -2726,17 +2768,20 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     UNUSED_PARAM(var);
     UNUSED_PARAM(ops);
 
+    struct pcintr_stack_frame *frame;
+    struct pcintr_stack_frame_normal *frame_normal;
+    purc_variant_t name_val = PURC_VARIANT_INVALID;
+
+    unsigned call_flags = PCVRT_CALL_FLAG_NONE;
     void *native_entity = purc_variant_native_get_entity(var);
 
     // create virtual frame
-    struct pcintr_stack_frame_normal *frame_normal;
     frame_normal = pcintr_push_stack_frame_normal(stack);
-    if (!frame_normal)
-        return;
+    if (!frame_normal) {
+        goto out;
+    }
 
-    struct pcintr_stack_frame *frame;
     frame = &frame_normal->frame;
-
     frame->ops = pcintr_get_ops_by_element(observer->pos);
     frame->scope = observer->scope;
     frame->pos = observer->pos;
@@ -2744,39 +2789,53 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     frame->must_yield = pcintr_is_element_must_yield(frame->pos) ?  1 : 0;
     frame->edom_element = observer->edom_element;
 
+    if (frame->silently) {
+        call_flags= PCVRT_CALL_FLAG_SILENTLY;
+    }
+
+    // method name
+    purc_nvariant_method method_name = ops->property_getter(native_entity,
+            PCVCM_EV_PROPERTY_METHOD_NAME);
+    name_val = method_name(native_entity, 0, NULL, call_flags);
+
+    const char *m = purc_variant_get_string_const(name_val);
+
     // eval value
-    purc_nvariant_method eval_getter = ops->property_getter(
-            PCVCM_EV_PROPERTY_EVAL);
-    purc_variant_t new_val = eval_getter(native_entity, 0, NULL,
-            frame->silently ? true : false);
+    purc_nvariant_method eval_getter = ops->property_getter(native_entity, m);
+    purc_variant_t new_val = eval_getter(native_entity, 0, NULL, call_flags);
     pop_stack_frame(stack);
 
     if (!new_val) {
-        return;
+        goto out;
     }
 
     // get last value
-    purc_nvariant_method last_value_getter = ops->property_getter(
+    purc_nvariant_method last_value_getter = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
     purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
-            frame->silently ? true : false);
+            call_flags);
     int cmp = purc_variant_compare_ex(new_val, last_value,
             PCVARIANT_COMPARE_OPT_AUTO);
     if (cmp == 0) {
         purc_variant_unref(new_val);
-        return;
+        goto out;
     }
 
-    purc_nvariant_method last_value_setter = ops->property_setter(
+    purc_nvariant_method last_value_setter = ops->property_setter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
-    last_value_setter(native_entity, 1, &new_val,
-            frame->silently ? true : false);
+    last_value_setter(native_entity, 1, &new_val, call_flags);
 
     // dispatch change event
     pcintr_coroutine_post_event(stack->co->cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
             var, MSG_TYPE_CHANGE, NULL,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+out:
+    if (name_val) {
+        purc_variant_unref(name_val);
+    }
+    return;
 }
 
 purc_runloop_t
@@ -2834,7 +2893,8 @@ event_timer_fire(pcintr_timer_t timer, const char* id, void* data)
         purc_variant_t var = p->observed;
         struct purc_native_ops *ops = purc_variant_native_get_ops(var);
         if (ops && ops->property_getter) {
-            purc_nvariant_method is_vcm_ev = ops->property_getter(
+            void *entity = purc_variant_native_get_entity(var);
+            purc_nvariant_method is_vcm_ev = ops->property_getter(entity,
                     PCVCM_EV_PROPERTY_VCM_EV);
             if (is_vcm_ev) {
                 pcintr_observe_vcm_ev(stack, p, var, ops);
@@ -3363,15 +3423,30 @@ pcintr_is_variable_token(const char *str)
 }
 
 int
-pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
-        struct pcintr_stack_frame *frame, bool ignore_content
-        )
+pcintr_stack_frame_eval_attr_and_content_full(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, before_eval_attr_fn before_eval_attr,
+        bool ignore_content)
 {
+    UNUSED_PARAM(before_eval_attr);
     int ret = 0;
+    pcvdom_element_t elem = frame->pos;
+    if (!elem) {
+        goto out;
+    }
+
     pcutils_array_t *attrs = frame->pos->attrs;
     size_t nr_params = pcutils_array_length(attrs);
     struct pcvdom_attr *attr = NULL;
     purc_variant_t val;
+
+    bool is_operation_tag = false;
+    const char *name = elem->tag_name;
+    const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+            strlen(name));
+    if (entry &&
+            (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB))) {
+        is_operation_tag = true;
+    }
 
     while (frame->eval_step != STACK_FRAME_EVAL_STEP_DONE) {
         switch (frame->eval_step) {
@@ -3379,6 +3454,11 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
             for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
                 stack->vcm_eval_pos = frame->eval_attr_pos;
                 attr = pcutils_array_get(attrs, frame->eval_attr_pos);
+                if (before_eval_attr
+                        && before_eval_attr(stack, frame, attr->key, attr->val)) {
+                    continue;
+                }
+
                 if (!attr->val) {
                     val = purc_variant_make_undefined();
                 }
@@ -3404,8 +3484,15 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
                 purc_clr_error();
                 pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
                 stack->vcm_ctxt = NULL;
-                if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
-                    frame->elem_id = purc_variant_ref(val);
+                if (is_operation_tag) {
+                    if (strcmp(attr->key, ATTR_NAME_IDD_BY) == 0) {
+                        frame->elem_id = purc_variant_ref(val);
+                    }
+                }
+                else {
+                    if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
+                        frame->elem_id = purc_variant_ref(val);
+                    }
                 }
                 pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
                         val);

@@ -43,6 +43,7 @@
 #define EVENT_EXCEPT            "except:"
 
 #define ATTR_KEY_ID             "id"
+#define ATTR_KEY_IDD_BY         "idd-by"
 
 #define KEY_FLAG                "__name_observe"
 #define KEY_NAME                "name"
@@ -78,6 +79,7 @@ pcvarmgr_build_event_observed(const char *name, pcvarmgr_t mgr)
     }
 
     if (!purc_variant_object_set_by_static_ckey(v, KEY_FLAG, flag)) {
+        purc_variant_unref(flag);
         goto failed;
     }
     purc_variant_unref(flag);
@@ -553,6 +555,7 @@ enum purc_symbol_var _to_symbol(char symbol)
     case '?':
         return PURC_SYMBOL_VAR_QUESTION_MARK;
     case '<':
+    case '~':
         return PURC_SYMBOL_VAR_LESS_THAN;
     case '@':
         return PURC_SYMBOL_VAR_AT_SIGN;
@@ -617,8 +620,17 @@ pcintr_find_anchor_symbolized_var(pcintr_stack_t stack, const char *anchor,
 
     while (frame) {
         pcvdom_element_t elem = frame->pos;
-        purc_variant_t elem_id = pcvdom_element_eval_attr_val(stack, elem,
-                ATTR_KEY_ID);
+        purc_variant_t elem_id;
+        const char *name = elem->tag_name;
+        const struct pchvml_tag_entry* entry = pchvml_tag_static_search(name,
+                strlen(name));
+        if (entry &&
+                (entry->cats & (PCHVML_TAGCAT_TEMPLATE | PCHVML_TAGCAT_VERB))) {
+            elem_id = pcvdom_element_eval_attr_val(stack, elem, ATTR_KEY_IDD_BY);
+        }
+        else {
+            elem_id = pcvdom_element_eval_attr_val(stack, elem, ATTR_KEY_ID);
+        }
         if (!elem_id) {
             frame = pcintr_stack_frame_get_parent(frame);
             continue;
@@ -870,9 +882,12 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
 }
 
 purc_variant_t
-pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name)
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name,
+        pcvarmgr_t mgr)
 {
-    pcvarmgr_t mgr = pcintr_get_coroutine_variables(stack->co);
+    if (!mgr) {
+        mgr = pcintr_get_coroutine_variables(stack->co);
+    }
     return pcvarmgr_build_event_observed(name, mgr);
 }
 

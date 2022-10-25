@@ -1,0 +1,12 @@
+#!/usr/bin/purc
+
+# RESULT: 14UL
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <bind on "$STREAM.stdout.writelines($_ARGS[0])" as "console" against "puts" />
+
+    $console.puts('Hello, world!')
+
+</hvml>

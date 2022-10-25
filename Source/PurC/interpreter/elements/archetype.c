@@ -54,7 +54,7 @@ struct ctxt_for_archetype {
     int                           err;
     purc_rwstream_t               resp;
 
-    purc_variant_t                stringify_from_src;
+    struct pcvcm_node            *vcm_from_src;
 
     purc_variant_t                contents;
 };
@@ -70,7 +70,9 @@ ctxt_for_archetype_destroy(struct ctxt_for_archetype *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->type);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->contents);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->stringify_from_src);
+        if (ctxt->vcm_from_src) {
+            pcvcm_node_destroy(ctxt->vcm_from_src);
+        }
         if (ctxt->resp) {
             purc_rwstream_destroy(ctxt->resp);
             ctxt->resp = NULL;
@@ -282,11 +284,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_type(frame, element, name, val);
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static int
@@ -416,34 +415,10 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto dispatch_except;
     }
 
-    ret = purc_variant_load_from_json_stream(ctxt->resp);
-    if (ret == PURC_VARIANT_INVALID)
+    ctxt->vcm_from_src = (struct pcvcm_node*)purc_variant_ejson_parse_stream(
+            ctxt->resp);
+    if (ctxt->vcm_from_src == NULL)
         goto dispatch_except;
-
-    PRINT_VARIANT(ret);
-    if (!purc_variant_is_string(ret)) {
-        ssize_t sz;
-        char *s = NULL;
-        sz = purc_variant_stringify_alloc(&s, ret);
-        if (sz <= 0)
-            goto dispatch_except;
-
-        PC_ASSERT(s[sz] == '\0');
-        purc_variant_t v;
-        bool check_encoding = true;
-        v = purc_variant_make_string_reuse_buff(s, sz, check_encoding);
-        if (v == PURC_VARIANT_INVALID) {
-            free(s);
-            goto dispatch_except;
-        }
-        PURC_VARIANT_SAFE_CLEAR(ret);
-        ret = v;
-    }
-
-    PC_ASSERT(purc_variant_is_string(ret));
-    PC_ASSERT(ctxt->stringify_from_src == PURC_VARIANT_INVALID);
-    ctxt->stringify_from_src = ret;
-    ret = PURC_VARIANT_INVALID;
 
     PC_ASSERT(purc_get_last_error()==0);
     has_except = false;
@@ -502,7 +477,7 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     ctxt->co = stack->co;
     purc_variant_t v;
     v = pcintr_load_from_uri_async(stack, s_src, method, param,
-            on_sync_complete, frame);
+            on_sync_complete, frame, PURC_VARIANT_INVALID);
     purc_variant_unref(param);
 
     if (v == PURC_VARIANT_INVALID)
@@ -635,7 +610,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(ctxt);
 
     // successfully loading from external src
-    if (ctxt->stringify_from_src)
+    if (ctxt->vcm_from_src)
         return 0;
 
     struct pcvcm_node *vcm = content->vcm;
@@ -660,19 +635,12 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!contents)
         return -1;
 
-    if (ctxt->stringify_from_src) {
-        const char *s;
-        s = purc_variant_get_string_const(ctxt->stringify_from_src);
-
-        struct pcvcm_node *vcm;
-        vcm = pcvcm_node_new_string(s);
-        if (!vcm)
-            return -1;
-
+    if (ctxt->vcm_from_src) {
         bool to_free = true;
-        int r = pcintr_template_set(ctxt->contents, vcm, ctxt->type, to_free);
+        int r = pcintr_template_set(ctxt->contents, ctxt->vcm_from_src,
+                ctxt->type, to_free);
+        ctxt->vcm_from_src = NULL;
         if (r) {
-            pcvcm_node_destroy(vcm);
             return -1;
         }
     }
@@ -693,7 +661,7 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct pcvdom_element *parent = pcvdom_element_parent(frame->pos);
 
     bool ok;
-    ok = pcintr_bind_scope_variable(co, parent, s_name, frame->ctnt_var);
+    ok = pcintr_bind_scope_variable(co, parent, s_name, frame->ctnt_var, NULL);
     if (!ok)
         return -1;
 

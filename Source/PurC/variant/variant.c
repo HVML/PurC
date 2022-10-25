@@ -1927,7 +1927,7 @@ numberify_native(purc_variant_t value)
     if (!ops || !ops->property_getter)
         return 0.0;
 
-    purc_nvariant_method getter = (ops->property_getter)("__number");
+    purc_nvariant_method getter = (ops->property_getter)(native, "__number");
     if (!getter)
         return 0.0;
 
@@ -2108,7 +2108,7 @@ booleanize_native(purc_variant_t value)
     if (!ops || !ops->property_getter)
         return false;
 
-    purc_nvariant_method getter = (ops->property_getter)("__boolean");
+    purc_nvariant_method getter = (ops->property_getter)(native, "__boolean");
     if (!getter)
         return false;
 

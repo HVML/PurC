@@ -1,0 +1,10 @@
+<hvml target="html">
+    <head>
+    </head>
+    <body>
+        <bind on="$STREAM.stdout.writelines($_ARGS[0])" as="console" against="puts" />
+        <inherit>
+            $console.puts('Hello, world!')
+        </inherit>
+    </body>
+</hvml>

@@ -146,7 +146,7 @@ static const char *except_messages[] = {
     "Name resolution failed",
     /* PURC_EXCEPT_REQUEST_FAILED */
     "Request failed",
-    /* PURC_EXCEPT_SYSTEM_FAULT */
+    /* PURC_EXCEPT_SYS_FAULT */
     "System fault",
     /* PURC_EXCEPT_OS_FAILURE */
     "OS failure",
@@ -160,6 +160,26 @@ static const char *except_messages[] = {
     "Incompleted",
     /* PURC_EXCEPT_DUPLICATE_NAME */
     "Duplicate name",
+    /* PURC_EXCEPT_CHILD_TERMINATED */
+    "ChildTerminated",
+    /* PURC_EXCEPT_CONFLICT */
+    "Conflict",
+    /* PURC_EXCEPT_GONE */
+    "Gone",
+    /* PURC_EXCEPT_MISMATCHED_VERSION */
+    "MismatchedVersion",
+    /* PURC_EXCEPT_NOT_ACCEPTABLE */
+    "NotAcceptable",
+    /* PURC_EXCEPT_NOT_ALLOWED */
+    "NotAllowed",
+    /* PURC_EXCEPT_NOT_FOUND */
+    "NotFound",
+    /* PURC_EXCEPT_TOO_EARLY */
+    "TooEarly",
+    /* PURC_EXCEPT_UNAVAILABLE_LEGALLY */
+    "UnavailableLegally",
+    /* PURC_EXCEPT_UNMET_PRECONDITION */
+    "UnmetPrecondition"
 };
 
 

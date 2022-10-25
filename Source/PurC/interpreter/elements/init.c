@@ -39,14 +39,6 @@
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
 
-enum VIA {
-    VIA_UNDEFINED,
-    VIA_LOAD,
-    VIA_GET,
-    VIA_POST,
-    VIA_DELETE,
-};
-
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
 
@@ -125,7 +117,7 @@ _bind_src(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (as) {
         const char *name = purc_variant_get_string_const(as);
         ret = pcintr_bind_named_variable(&co->stack,
-            frame, name, at, temporarily, src);
+            frame, name, at, temporarily, true, src);
     }
     else {
         pcintr_set_question_var(frame, src);
@@ -446,17 +438,20 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQ)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->uniquely = 1;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASE)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 1;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASELESS)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 0;
         return 0;
@@ -477,8 +472,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_for(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
-            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name)
-    {
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->temporarily = 1;
         if (ctxt->async) {
@@ -508,11 +502,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "unknown vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static void on_sync_complete(purc_variant_t request_id, void *ud,
@@ -638,33 +629,6 @@ out:
     return 0;
 }
 
-static enum pcfetcher_request_method
-method_from_via(enum VIA via)
-{
-    enum pcfetcher_request_method method;
-    switch (via) {
-        case VIA_GET:
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-        case VIA_POST:
-            method = PCFETCHER_REQUEST_METHOD_POST;
-            break;
-        case VIA_DELETE:
-            method = PCFETCHER_REQUEST_METHOD_DELETE;
-            break;
-        case VIA_UNDEFINED:
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-        default:
-            // TODO VW: raise exception for no required value
-            // PC_ASSERT(0);
-            method = PCFETCHER_REQUEST_METHOD_GET;
-            break;
-    }
-
-    return method;
-}
-
 static purc_variant_t
 params_from_with(struct ctxt_for_init *ctxt)
 {
@@ -699,14 +663,14 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     PC_ASSERT(ctxt);
 
     enum pcfetcher_request_method method;
-    method = method_from_via(ctxt->via);
+    method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
     params = params_from_with(ctxt);
 
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            method, params, on_sync_complete, frame);
+            method, params, on_sync_complete, frame, PURC_VARIANT_INVALID);
     if (v == PURC_VARIANT_INVALID)
         return -1;
 
@@ -948,13 +912,23 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
         data->against     = purc_variant_ref(ctxt->against);
 
     enum pcfetcher_request_method method;
-    method = method_from_via(ctxt->via);
+    method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
     params = params_from_with(ctxt);
 
+    pcvarmgr_t mgr = pcintr_get_named_variable_mgr_by_at(stack, frame, ctxt->at,
+        ctxt->temporarily, true);
+    const char *name = purc_variant_get_string_const(ctxt->as);
+    purc_variant_t dest = pcintr_get_named_var_for_event(stack, name, mgr);
+    if (!dest) {
+        return -1;
+    }
+
     data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
-            method, params, on_async_complete, data);
+            method, params, on_async_complete, data, dest);
+    purc_variant_unref(dest);
+
     if (data->async_id == PURC_VARIANT_INVALID) {
         load_data_destroy(data);
         return -1;

@@ -143,6 +143,38 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
         ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
                 GETTER_METHOD, call_flags);
     }
+    else if (purc_variant_is_tuple(caller_var)) {
+        if (!has_index) {
+            goto out;
+        }
+        if (index < 0) {
+            size_t len = purc_variant_tuple_get_size(caller_var);
+            index += len;
+        }
+        if (index < 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+
+        purc_variant_t val = purc_variant_tuple_get(caller_var, index);
+        if (val == PURC_VARIANT_INVALID) {
+            goto out;
+        }
+
+        if (!purc_variant_is_dynamic(val)) {
+            ret_var = val;
+            purc_variant_ref(ret_var);
+            goto out;
+        }
+
+        if (!pcvcm_eval_is_handle_as_getter(frame->node)) {
+            ret_var = val;
+            purc_variant_ref(ret_var);
+            goto out;
+        }
+        ret_var = pcvcm_eval_call_dvariant_method(caller_var, val, 0, NULL,
+                GETTER_METHOD, call_flags);
+    }
     else if (purc_variant_is_set(caller_var)) {
         if (!has_index) {
             goto out;

@@ -1,0 +1,20 @@
+# RESULT: { "a": "1", "b": "2", "method": "POST" }
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="btns" from="http://ws.fmsoft.cn/tools/echo.php" with={a:1, b:2} via="POST" async />
+    </head>
+
+    <body>
+        <observe against="btns" for="change:progress">
+            <inherit>
+                $STREAM.stdout.writelines($EJSON.stringify($?.progress))
+            </inherit>
+        </observe>
+        <observe against="btns" for="change:displaced">
+            <exit with $btns/>
+        </observe>
+    </body>
+</hvml>
+

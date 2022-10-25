@@ -75,6 +75,8 @@ init_030
 init_031
 init_032
 init_033
+init_034
+init_035
 
 
 clear_001
@@ -185,6 +187,8 @@ bind_018
 
 ### at="N" N not exists(silently)
 #####bind_019
+bind_020
+bind_021
 
 observe_001
 observe_002

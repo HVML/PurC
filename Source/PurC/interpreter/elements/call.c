@@ -231,7 +231,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     ctxt->call_id = purc_variant_make_ulongint(child_cid);
     if (as) {
         pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at, false,
-                ctxt->call_id);
+                false, ctxt->call_id);
     }
 
     if (ctxt->synchronously) {
@@ -418,7 +418,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
         return process_attr_at(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONCURRENTLY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CONC)) == name) {
         ctxt->concurrently = 1;
         return 0;
     }
@@ -443,11 +444,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static void*

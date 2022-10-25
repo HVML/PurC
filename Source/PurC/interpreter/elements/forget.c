@@ -201,11 +201,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static void*
@@ -262,7 +259,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
-        purc_variant_t v = pcintr_get_named_var_for_event(stack, name);
+        purc_variant_t v = pcintr_get_named_var_for_event(stack, name, NULL);
         pcintr_revoke_observer_ex(stack, v, ctxt->msg_type_atom, ctxt->sub_type);
         purc_variant_unref(v);
     }

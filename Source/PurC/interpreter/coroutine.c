@@ -86,9 +86,9 @@ create_scoped_variables(purc_coroutine_t cor, struct pcvdom_node *node)
 
 bool
 pcintr_bind_scope_variable(purc_coroutine_t cor, struct pcvdom_element *elem,
-        const char *name, purc_variant_t variant)
+        const char *name, purc_variant_t variant, pcvarmgr_t *mgr)
 {
-    if (!cor || !elem || !name || !variant) {
+    if (!cor || !elem) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         return false;
     }
@@ -97,6 +97,15 @@ pcintr_bind_scope_variable(purc_coroutine_t cor, struct pcvdom_element *elem,
     pcvarmgr_t scoped_variables = create_scoped_variables(cor, node);
     if (!scoped_variables)
         return false;
+
+    if (mgr) {
+        *mgr = scoped_variables;
+    }
+
+    if (!name || !variant) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        return false;
+    }
 
     return pcvarmgr_add(scoped_variables, name, variant);
 }

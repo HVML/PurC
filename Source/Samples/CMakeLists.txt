@@ -41,6 +41,18 @@ set(sample_HVML_FILES
     "hvml/call-concurrently.hvml"
     "hvml/sys-sleep.hvml"
     "hvml/prime-number-sieve.hvml"
+    "hvml/fetch-with-param-0.hvml"
+    "hvml/fetch-with-param-1.hvml"
+    "hvml/fetch-with-param-2.hvml"
+    "hvml/fetch-with-param-3.hvml"
+    "hvml/fetch-with-param-4.hvml"
+    "hvml/fetch-with-param-5.hvml"
+    "hvml/fetch-with-param-6.hvml"
+    "hvml/fetch-with-param-7.hvml"
+    "hvml/fetch-with-param-8.hvml"
+    "hvml/fetch-with-param-9.hvml"
+    "hvml/fetch-with-param-a.hvml"
+    "hvml/fetch-with-param-b.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

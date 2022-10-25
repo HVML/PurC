@@ -55,6 +55,24 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 }
 
 static purc_variant_t
+find_from_frame(struct pcvcm_eval_ctxt *ctxt, const char *name)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct list_head *stack = &ctxt->stack;
+    struct pcvcm_eval_stack_frame *p, *n;
+    list_for_each_entry_reverse_safe(p, n, stack, ln) {
+        ret = pcvarmgr_get(p->variables, name);
+        if (ret) {
+            goto out;
+        }
+    }
+
+out:
+    purc_clr_error();
+    return ret;
+}
+
+static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
@@ -71,7 +89,11 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     const char *sname = purc_variant_get_string_const(name);
-    ret = ctxt->find_var(ctxt->find_var_ctxt, sname);
+    ret = find_from_frame(ctxt, sname);
+    if (!ret) {
+        ret = ctxt->find_var(ctxt->find_var_ctxt, sname);
+    }
+
 out:
     if (ret) {
         purc_variant_ref(ret);

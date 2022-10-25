@@ -536,16 +536,20 @@ typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
 /** the operation set for native entity */
 struct purc_native_ops {
     /** query the getter for a specific property. */
-    purc_nvariant_method (*property_getter)(const char* propert_name);
+    purc_nvariant_method (*property_getter)(void* native_entity,
+            const char* propert_name);
 
     /** query the setter for a specific property. */
-    purc_nvariant_method (*property_setter)(const char* property_name);
+    purc_nvariant_method (*property_setter)(void* native_entity,
+            const char* property_name);
 
     /** query the cleaner for a specific property. */
-    purc_nvariant_method (*property_cleaner)(const char* property_name);
+    purc_nvariant_method (*property_cleaner)(void* native_entity,
+            const char* property_name);
 
     /** query the eraser for a specific property. */
-    purc_nvariant_method (*property_eraser)(const char* property_name);
+    purc_nvariant_method (*property_eraser)(void* native_entity,
+            const char* property_name);
 
     /** the updater to update the content represented by
       * the native entity (nullable). */
@@ -1476,8 +1480,14 @@ purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT size_t
-purc_variant_tuple_get_size(purc_variant_t tuple);
+static inline ssize_t
+purc_variant_tuple_get_size(purc_variant_t tuple)
+{
+    size_t sz;
+    if (!purc_variant_tuple_size(tuple, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
 
 /**
  * Gets a member from a tuple by index.
@@ -2133,6 +2143,11 @@ static inline bool purc_variant_is_array(purc_variant_t v)
 static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
+}
+
+static inline bool purc_variant_is_tuple(purc_variant_t v)
+{
+    return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
 }
 
 /** Check whether the value is a boolean and having value of true. */

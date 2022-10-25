@@ -37,10 +37,16 @@
 #define EXTRA_PROTECT_FLAG                          0x0001
 #define EXTRA_SUGAR_FLAG                            0x0002
 
+#define PCVCM_EV_DEFAULT_METHOD_NAME                "eval"
+#define PCVCM_EV_CONST_SUFFIX                       "_const"
+
+#define PCVCM_EV_PROPERTY_METHOD_NAME               "method_name"
+#define PCVCM_EV_PROPERTY_CONST_METHOD_NAME         "const_method_name"
 #define PCVCM_EV_PROPERTY_EVAL                      "eval"
 #define PCVCM_EV_PROPERTY_EVAL_CONST                "eval_const"
 #define PCVCM_EV_PROPERTY_VCM_EV                    "vcm_ev"
 #define PCVCM_EV_PROPERTY_LAST_VALUE                "last_value"
+#define PCVCM_EV_PROPERTY_CONSTANTLY                "constantly"
 
 
 enum pcvcm_node_type {
@@ -255,6 +261,10 @@ purc_variant_t pcvcm_eval(struct pcvcm_node *tree, struct pcintr_stack *stack,
 purc_variant_t pcvcm_eval_again(struct pcvcm_node *tree,
         struct pcintr_stack *stack, bool silently, bool timeout);
 
+/* substitue expression  */
+purc_variant_t pcvcm_eval_sub_expr(struct pcvcm_node *tree,
+        struct pcintr_stack *stack, purc_variant_t args, bool silently);
+
 void
 pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt);
 
@@ -266,7 +276,8 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         int indent, bool ignore_prefix);
 
 purc_variant_t
-pcvcm_to_expression_variable(struct pcvcm_node *vcm, bool release_vcm);
+pcvcm_to_expression_variable(struct pcvcm_node *vcm, const char *method_name,
+        bool constantly, bool release_vcm);
 
 #define PRINT_VCM_NODE(_node) do {                                        \
     size_t len;                                                           \

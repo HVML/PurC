@@ -32,6 +32,7 @@ caseless
 
 nosetotail
     type: adverb
+    alias: nose-to-tail
 
 as
     type: prep
@@ -94,11 +95,41 @@ onto
 within
     type: prep
 
+onlyif
+    type: prep
+
+idd-by
+    type: prep
+
+against
+    type: prep
+
 silently
     type: adverb
 
 noreturn
     type: adverb
+    alias: no-return
+
+const
+    type: adverb
+    alias: constantly
+
+conc
+    type: adverb
+    alias: concurrently
 
 must-yield
     type: adverb
+
+indv
+    type: adverb
+    alias: individually
+
+resp
+    type: adverb
+    alias: responsively
+
+temp
+    type: adverb
+    alias: temporarily

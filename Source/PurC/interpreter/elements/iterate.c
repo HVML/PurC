@@ -38,7 +38,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define ATTR_NAME_ID        "id"
+#define ATTR_NAME_IDD_BY    "idd-by"
 #define DEFAULT_RULE        "RANGE: FROM 0"
 
 enum step_for_iterate {
@@ -611,7 +611,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         ctxt->with_attr_idx = idx;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSETOTAIL)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NOSE_TO_TAIL)) == name) {
         ctxt->nosetotail = 1;
         purc_variant_t val = purc_variant_make_boolean(true);
         pcutils_array_set(frame->attrs_result, idx, val);
@@ -630,11 +631,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static int
@@ -924,7 +922,7 @@ eval_attr(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     for (; frame->eval_attr_pos < nr_params; frame->eval_attr_pos++) {
         attr = pcutils_array_get(attrs, frame->eval_attr_pos);
         name = PCHVML_KEYWORD_ATOM(HVML, attr->key);
-        if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
+        if (strcmp(attr->key, ATTR_NAME_IDD_BY) == 0) {
             val = pcintr_eval_vcm(stack, attr->val, frame->silently);
             set_attr_val(stack, frame, frame->eval_attr_pos, val);
             if (!val) {

@@ -1,0 +1,14 @@
+# RESULT: { "a": "1", "b": "2", "method": "POST" }
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="btns" with={}/>
+        <update on="$btns" from="http://ws.fmsoft.cn/tools/echo.php" with={a:1, b:2} via="POST" to="merge" />
+    </head>
+
+    <body>
+        <exit with $btns/>
+    </body>
+</hvml>
+

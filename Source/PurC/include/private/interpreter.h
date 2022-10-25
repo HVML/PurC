@@ -75,6 +75,7 @@
 #define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
+#define MSG_SUB_TYPE_PROGRESS         "progress"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
@@ -610,7 +611,7 @@ pcintr_get_scope_variables(purc_coroutine_t cor, pcvdom_element_t elem)
 
 bool
 pcintr_bind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
-        const char* name, purc_variant_t variant);
+        const char* name, purc_variant_t variant, pcvarmgr_t *mgr);
 
 bool
 pcintr_unbind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
@@ -639,7 +640,8 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
         pcvdom_element_t elem);
 
 purc_variant_t
-pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name);
+pcintr_get_named_var_for_event(pcintr_stack_t stack, const char *name,
+        pcvarmgr_t mgr);
 
 bool
 pcintr_is_named_var_for_event(purc_variant_t val);
@@ -794,10 +796,26 @@ pcintr_is_variable_token(const char *str);
 pcrdr_msg_data_type
 pcintr_rdr_retrieve_data_type(const char *type_name);
 
+
+/* return true to ignore eval */
+typedef bool (before_eval_attr_fn)(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *attr_name,
+        struct pcvcm_node *vcm);
+
 int
+pcintr_stack_frame_eval_attr_and_content_full(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, before_eval_attr_fn before_eval_attr,
+        bool ignore_content);
+
+static inline int
 pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, bool ignore_content
-        );
+        )
+{
+    return pcintr_stack_frame_eval_attr_and_content_full(stack, frame, NULL,
+            ignore_content);
+}
+
 
 PCA_EXTERN_C_END
 

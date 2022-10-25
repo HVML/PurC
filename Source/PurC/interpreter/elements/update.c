@@ -42,6 +42,7 @@
 struct ctxt_for_update {
     struct pcvdom_node           *curr;
 
+    enum VIA                      via;
     purc_variant_t                on;
     purc_variant_t                to;
     purc_variant_t                at;
@@ -53,6 +54,14 @@ struct ctxt_for_update {
 
     purc_variant_t                literal;
     purc_variant_t                template_data_type;
+
+    purc_variant_t                sync_id;
+    purc_variant_t                params;
+    pcintr_coroutine_t            co;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
 };
 
 static void
@@ -67,6 +76,12 @@ ctxt_for_update_destroy(struct ctxt_for_update *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->literal);
         PURC_VARIANT_SAFE_CLEAR(ctxt->template_data_type);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+        if (ctxt->resp) {
+            purc_rwstream_destroy(ctxt->resp);
+            ctxt->resp = NULL;
+        }
         free(ctxt);
     }
 }
@@ -102,15 +117,184 @@ get_source_by_with(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 }
 
+static void on_sync_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    PC_ASSERT(heap);
+    PC_ASSERT(pcintr_get_coroutine() == NULL);
+
+    pcintr_stack_frame_t frame;
+    frame = (pcintr_stack_frame_t)ud;
+    PC_ASSERT(frame);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    pcintr_coroutine_t co = ctxt->co;
+    PC_ASSERT(co);
+    PC_ASSERT(co->owner == heap);
+    PC_ASSERT(ctxt->sync_id == request_id);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
+
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+        PURC_VARIANT_INVALID, ctxt->sync_id);
+}
+
+static bool
+is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+{
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, FETCHERSTATE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)data;
+    PC_ASSERT(frame);
+
+    pcintr_stack_t stack = &cor->stack;
+    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
+
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+
+    if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    if (!ctxt->resp || ctxt->ret_code != 200) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        // FIXME: what error to set
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                ctxt->ret_code);
+        goto out;
+    }
+
+    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
+    PRINT_VARIANT(ret);
+    if (ret == PURC_VARIANT_INVALID) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    ctxt->from_result = ret;
+
+out:
+    pcintr_resume(cor, msg);
+    pcintr_set_current_co(NULL);
+    return 0;
+}
+
 static purc_variant_t
+params_from_with(struct ctxt_for_update *ctxt)
+{
+    purc_variant_t with = ctxt->with;
+
+    purc_variant_t params;
+    if (with == PURC_VARIANT_INVALID) {
+        params = purc_variant_make_object_0();
+    }
+    else if (purc_variant_is_object(with)) {
+        params = purc_variant_ref(with);
+    }
+    else {
+        // TODO VW: raise exceptioin for no suitable value.
+        // PC_ASSERT(0);
+        params = purc_variant_make_object_0();
+    }
+
+    PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+    ctxt->params = params;
+
+    return params;
+}
+
+static int
 get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-    purc_variant_t from, purc_variant_t with)
+        struct ctxt_for_update *ctxt)
 {
     UNUSED_PARAM(frame);
-    PC_ASSERT(with == PURC_VARIANT_INVALID);
 
-    const char* uri = purc_variant_get_string_const(from);
-    return pcintr_load_from_uri(&co->stack, uri);
+    const char* uri = purc_variant_get_string_const(ctxt->from);
+
+    enum pcfetcher_request_method method;
+    method = pcintr_method_from_via(ctxt->via);
+
+    purc_variant_t params;
+    params = params_from_with(ctxt);
+
+    ctxt->co = co;
+    purc_variant_t v = pcintr_load_from_uri_async(&co->stack, uri,
+            method, params, on_sync_complete, frame, PURC_VARIANT_INVALID);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_yield(
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            ctxt->sync_id,
+            MSG_TYPE_FETCHER_STATE,
+            MSG_SUB_TYPE_ASTERISK,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+            );
+
+    purc_clr_error();
+    return 0;
 }
 
 static int
@@ -608,6 +792,49 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_via(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    const char *s_val = purc_variant_get_string_const(val);
+    if (!s_val)
+        return -1;
+
+    if (strcmp(s_val, "LOAD") == 0) {
+        ctxt->via = VIA_LOAD;
+        return 0;
+    }
+
+    if (strcmp(s_val, "GET") == 0) {
+        ctxt->via = VIA_GET;
+        return 0;
+    }
+
+    if (strcmp(s_val, "POST") == 0) {
+        ctxt->via = VIA_POST;
+        return 0;
+    }
+
+    if (strcmp(s_val, "DELETE") == 0) {
+        ctxt->via = VIA_DELETE;
+        return 0;
+    }
+
+    purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+            "unknown vdom attribute '%s = %s' for element <%s>",
+            purc_atom_to_string(name), s_val, element->tag_name);
+    return -1;
+}
+
+static int
 process_attr_on(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -699,10 +926,12 @@ process_attr_with(struct pcintr_stack_frame *frame,
         return -1;
     }
     if (ctxt->from != PURC_VARIANT_INVALID) {
+#if 0
         if (!purc_variant_is_string(val)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
+#endif
         if (attr->op != PCHVML_ATTRIBUTE_OPERATOR) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -806,6 +1035,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, VIA)) == name) {
+        return process_attr_via(frame, element, name, val);
+    }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
     }
@@ -822,12 +1054,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "vdom attribute '%s' for element <%s>",
-            purc_atom_to_string(name), element->tag_name);
-
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+    /* ignore other attr */
+    return 0;
 }
 
 static void*
@@ -880,6 +1108,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
     }
 
+    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    if (content && !purc_variant_is_undefined(content)) {
+        ctxt->literal = purc_variant_ref(content);
+    }
+
     // FIXME
     // load from network
     purc_variant_t from = ctxt->from;
@@ -888,20 +1121,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (ctxt->with != PURC_VARIANT_INVALID) {
             PC_ASSERT(ctxt->with_op == PCHVML_ATTRIBUTE_OPERATOR);
         }
-        purc_variant_t v;
-        v = get_source_by_from(stack->co, frame, ctxt->from, ctxt->with);
-        if (v == PURC_VARIANT_INVALID) {
-            PC_ASSERT(purc_get_last_error());
-            return ctxt;
-        }
-        PURC_VARIANT_SAFE_CLEAR(ctxt->from_result);
-        ctxt->from_result = v;
+        get_source_by_from(stack->co, frame, ctxt);
     }
 
-    purc_variant_t content = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
-    if (content && !purc_variant_is_undefined(content)) {
-        ctxt->literal = purc_variant_ref(content);
-    }
     return ctxt;
 }
 

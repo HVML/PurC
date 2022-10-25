@@ -82,6 +82,7 @@ struct pcvcm_eval_stack_frame {
     pcutils_array_t        *params;
     pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
+    struct pcvarmgr        *variables; // _ARGS
 
     size_t                  nr_params;
     size_t                  pos;
@@ -167,7 +168,7 @@ pcvcm_eval_get_attach_variant(struct pcvcm_node *node)
 }
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
-        struct pcvcm_eval_ctxt **ctxt_out,
+        struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently);
 
@@ -175,6 +176,9 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt *ctxt,
         find_var_fn find_var, void *find_var_ctxt,
         bool silently, bool timeout);
+
+purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
+        struct pcvcm_eval_ctxt *ctxt, purc_variant_t args, bool silently);
 
 #ifdef __cplusplus
 }

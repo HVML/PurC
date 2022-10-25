@@ -23,10 +23,22 @@
  */
 
 #include "purc-utils.h"
+#include "purc-errors.h"
+#include "purc-rwstream.h"
 
+#include "private/variant.h"
+#include "private/url.h"
 #include "wtf/URL.h"
 #include "wtf/ASCIICType.h"
 #include "wtf/text/StringBuilder.h"
+
+#define BUFF_MIN                1024
+#define BUFF_KEY                1024
+
+static int
+build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags);
 
 void
 pcutils_broken_down_url_clear(struct purc_broken_down_url *broken_down)
@@ -393,4 +405,420 @@ pcutils_url_get_query_value_alloc(
     *value_buff = strndup(value, value_len);
     return true;
 }
+
+int
+encode_string(purc_rwstream_t rws, const char *s,
+        unsigned int flags)
+{
+    char space[4];
+    size_t nr_space;
+    if (flags & PCUTILS_URL_OPT_RFC1738) {
+        space[0] = '+';
+        space[1] = 0;
+        nr_space = 1;
+    }
+    else {
+        space[0] = '%';
+        space[1] = '2';
+        space[2] = '0';
+        space[3] = 0;
+        nr_space = 3;
+    }
+
+    size_t nr = strlen(s);
+    for (size_t i = 0; i < nr; i++) {
+        const char byte = s[i];
+        if (byte == 0x20) {
+            purc_rwstream_write(rws, &space, nr_space);
+        }
+        else if (byte == 0x2A
+            || byte == 0x2D
+            || byte == 0x2E
+            || (byte >= 0x30 && byte <= 0x39)
+            || (byte >= 0x41 && byte <= 0x5A)
+            || byte == 0x5F
+            || (byte >= 0x61 && byte <= 0x7A)) {
+            purc_rwstream_write(rws, &byte, 1);
+        }
+        else {
+            purc_rwstream_write(rws, "%", 1);
+            char v = upperNibbleToASCIIHexDigit(byte);
+            purc_rwstream_write(rws, &v, 1);
+
+            v = lowerNibbleToASCIIHexDigit(byte);
+            purc_rwstream_write(rws, &v, 1);
+        }
+    }
+    return 0;
+}
+
+int
+encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags)
+{
+    int ret = -1;
+    size_t nr_k = k ? strlen(k) : 0;
+    char *key = NULL;
+    purc_variant_t ok;
+    purc_variant_t ov;
+    ssize_t nr_size = purc_variant_object_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
+    foreach_key_value_in_variant_object(v, ok, ov)
+        const char *sk = purc_variant_get_string_const(ok);
+        size_t nr_sk = strlen(sk);
+        if (k) {
+            key = (char*)malloc(nr_k + nr_sk + 3);
+            sprintf(key, "%s[%s]", k, sk);
+        }
+        else {
+            key = strdup(sk);
+        }
+        if (!key) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            ret = PURC_ERROR_OUT_OF_MEMORY;
+            goto out;
+        }
+
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
+
+        ret = build_query(rws, key, ov, numeric_prefix,
+                arg_separator, flags);
+        free(key);
+        if (ret != PURC_ERROR_OK) {
+            goto out;
+        }
+    end_foreach;
+
+out:
+    return ret;
+}
+
+int
+encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags)
+{
+    int ret = -1;
+    char key[BUFF_KEY];
+    purc_variant_t ov;
+    size_t idx;
+    ssize_t nr_size = purc_variant_array_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
+    foreach_value_in_variant_array(v, ov, idx)
+        if (k) {
+            snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
+        }
+        else if (numeric_prefix) {
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
+        }
+        else {
+            snprintf(key, BUFF_KEY, "%ld", idx);
+        }
+
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
+
+        ret = build_query(rws, key, ov, numeric_prefix,
+                arg_separator, flags);
+        if (ret != PURC_ERROR_OK) {
+            goto out;
+        }
+    end_foreach;
+
+out:
+    return ret;
+}
+
+int
+encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags)
+{
+    int ret = -1;
+    char key[BUFF_KEY];
+    purc_variant_t ov;
+    size_t idx = 0;
+    ssize_t nr_size = purc_variant_set_get_size(v);
+    if (nr_size == 0) {
+        ret = 0;
+        goto out;
+    }
+    foreach_value_in_variant_set_order(v, ov)
+        if (k) {
+            snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
+        }
+        else if (numeric_prefix) {
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
+        }
+        else {
+            snprintf(key, BUFF_KEY, "%ld", idx);
+        }
+
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
+
+        ret = build_query(rws, key, ov, numeric_prefix,
+                arg_separator, flags);
+        if (ret != PURC_ERROR_OK) {
+            goto out;
+        }
+        idx++;
+    end_foreach;
+
+out:
+    return ret;
+}
+
+int
+encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags)
+{
+    int ret = -1;
+    char key[BUFF_KEY];
+    purc_variant_t ov;
+    size_t idx = 0;
+
+    purc_variant_t *members;
+    size_t sz;
+    members = tuple_members(v, &sz);
+    if (sz == 0) {
+        ret = 0;
+        goto out;
+    }
+    for (idx = 0; idx < sz; idx++) {
+        ov = members[idx];
+        if (k) {
+            snprintf(key, BUFF_KEY, "%s[%ld]", k, idx);
+        }
+        else if (numeric_prefix) {
+            snprintf(key, BUFF_KEY, "%s%ld", numeric_prefix, idx);
+        }
+        else {
+            snprintf(key, BUFF_KEY, "%ld", idx);
+        }
+
+        if (purc_rwstream_tell(rws) > 0) {
+            purc_rwstream_write(rws, &arg_separator, 1);
+        }
+
+        ret = build_query(rws, key, ov, numeric_prefix,
+                arg_separator, flags);
+        if (ret != PURC_ERROR_OK) {
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+
+
+int
+build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
+        const char *numeric_prefix, char arg_separator,
+        unsigned int flags)
+{
+    enum purc_variant_type type;
+    int ret = -1;
+    char *key = NULL;
+    size_t len_expected = 0;
+    unsigned int serialize_flags;
+    if (flags & PCUTILS_URL_OPT_REAL_EJSON) {
+        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_EJSON;
+    }
+    else {
+        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_JSON;
+    }
+
+    type = purc_variant_get_type(v);
+    switch (type) {
+    case PURC_VARIANT_TYPE_UNDEFINED:
+    case PURC_VARIANT_TYPE_NULL:
+    case PURC_VARIANT_TYPE_BOOLEAN:
+    case PURC_VARIANT_TYPE_NUMBER:
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+    case PURC_VARIANT_TYPE_BSEQUENCE:
+    case PURC_VARIANT_TYPE_DYNAMIC:
+    case PURC_VARIANT_TYPE_NATIVE:
+        {
+            if (k) {
+                key = strdup(k);
+            }
+            else if (numeric_prefix) {
+                key = (char*)malloc(strlen(numeric_prefix) + 2);
+                sprintf(key, "%s0", numeric_prefix);
+            }
+            else {
+                key = (char*)malloc(2);
+                key[0] = '0';
+                key[1] = 0;
+            }
+
+            if (!key) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+
+            encode_string(rws, key, flags);
+            purc_rwstream_write(rws, "=", 1);
+            ssize_t r = purc_variant_serialize(v, rws, 0, serialize_flags,
+                    &len_expected);
+            ret = r != -1 ? 0 : -1;
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_EXCEPTION:
+        {
+            if (k) {
+                key = strdup(k);
+            }
+            else if (numeric_prefix) {
+                key = (char*)malloc(strlen(numeric_prefix) + 2);
+                sprintf(key, "%s0", numeric_prefix);
+            }
+            else {
+                key = (char*)malloc(2);
+                key[0] = '0';
+            }
+
+            if (!key) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+
+            encode_string(rws, key, flags);
+            purc_rwstream_write(rws, "=", 1);
+            const char *s = purc_variant_get_exception_string_const(v);
+            encode_string(rws, s, flags);
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_ATOMSTRING:
+        {
+            if (k) {
+                key = strdup(k);
+            }
+            else if (numeric_prefix) {
+                key = (char*)malloc(strlen(numeric_prefix) + 2);
+                sprintf(key, "%s0", numeric_prefix);
+            }
+            else {
+                key = (char*)malloc(2);
+                key[0] = '0';
+                key[1] = 0;
+            }
+
+            if (!key) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+
+            encode_string(rws, key, flags);
+            purc_rwstream_write(rws, "=", 1);
+            const char *s = purc_variant_get_atom_string_const(v);
+            encode_string(rws, s, flags);
+        }
+        break;
+
+    case PURC_VARIANT_TYPE_STRING:
+        {
+            if (k) {
+                key = strdup(k);
+            }
+            else if (numeric_prefix) {
+                key = (char*)malloc(strlen(numeric_prefix) + 2);
+                sprintf(key, "%s0", numeric_prefix);
+            }
+            else {
+                key = (char*)malloc(2);
+                key[0] = '0';
+                key[1] = 0;
+            }
+
+            if (!key) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+
+            encode_string(rws, key, flags);
+            purc_rwstream_write(rws, "=", 1);
+            const char *s = purc_variant_get_string_const(v);
+            ret = encode_string(rws, s, flags);
+        }
+        break;
+
+
+    case PURC_VARIANT_TYPE_OBJECT:
+        ret = encode_object(rws, k, v, numeric_prefix, arg_separator,
+                flags);
+        break;
+    case PURC_VARIANT_TYPE_ARRAY:
+        ret = encode_array(rws, k, v, numeric_prefix, arg_separator,
+                flags);
+        break;
+    case PURC_VARIANT_TYPE_SET:
+        ret = encode_set(rws, k, v, numeric_prefix, arg_separator,
+                flags);
+        break;
+    case PURC_VARIANT_TYPE_TUPLE:
+        ret = encode_tuple(rws, k, v, numeric_prefix, arg_separator,
+                flags);
+        break;
+    default:
+        break;
+    }
+
+out:
+    if (key) {
+        free(key);
+    }
+    return ret;
+}
+
+purc_variant_t
+pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
+        char arg_separator, unsigned int flags)
+{
+    int err = 0;
+    purc_rwstream_t rws  = NULL;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (!v) {
+        goto out;
+    }
+
+    rws = purc_rwstream_new_buffer(BUFF_MIN, 0);
+    if(!rws) {
+        goto out;
+    }
+
+    err = build_query(rws, NULL, v, numeric_prefix, arg_separator, flags);
+    if (err == PURC_ERROR_OK) {
+        size_t sz_buffer = 0;
+        size_t sz_content = 0;
+        char *content = NULL;
+        content = (char*)purc_rwstream_get_mem_buffer_ex(rws, &sz_content,
+                &sz_buffer, true);
+        ret = purc_variant_make_string_reuse_buff(content, sz_buffer, false);
+    }
+
+    purc_rwstream_destroy(rws);
+
+out:
+    return ret;
+}
+
 

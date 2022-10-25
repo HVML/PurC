@@ -26,10 +26,21 @@
 #define PURC_PRIVATE_URL_H
 
 #include "purc-utils.h"
+#include "purc-variant.h"
+
+#define PCUTILS_URL_OPT_REAL_JSON               0x00000000
+#define PCUTILS_URL_OPT_REAL_EJSON              0x00000001
+#define PCUTILS_URL_OPT_RFC1738                 0x00000000
+#define PCUTILS_URL_OPT_RFC3986                 0x00000002
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+purc_variant_t
+pcutils_url_build_query(purc_variant_t v, const char *numeric_prefix,
+        char arg_separator, unsigned int flags);
+
 
 #ifdef __cplusplus
 }

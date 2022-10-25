@@ -88,22 +88,23 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.0] Improve the implementation of the element `bind`:
+1. [0.9.0; Resolved] Improve the implementation of the element `bind`:
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
-1. [0.9.0] Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.0] Improve the data fetcher to generate the progress events when fetching data.
-1. [0.9.0] Improve the function to get data from remote data fetcher:
+1. [0.9.0; Resolved] Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.0; Resolved] Improve the data fetcher to generate the progress events when fetching data.
+1. [0.9.0; Resolved] Improve the function to get data from remote data fetcher:
    - The element `archetype`: support for `src`, `param`, and `method` attributes.
    - The element `archedata`: support for `src`, `param`, and `method` attributes.
    - The element `execpt`: support for `src`, `param`, and `method` attributes.
    - The element `init`: support for `from`, `with`, and `via` attrigbutes.
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
-1. [0.9.0] Support for the equivalence of the context variable `<`: `~`.
-1. [0.9.0] Support for the equivalences and/or abbreviations of some adverb attributes.
-1. [0.9.0] Support for the new prepostion attribute: `idd-by`.
+1. [0.9.0; Resolved] Support for the equivalence of the context variable `<`: `~`.
+1. [0.9.0; Resolved] Support for the equivalences and/or abbreviations of some adverb attributes.
+1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+1. [0.9.2] Full support for `request` element.
 1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
