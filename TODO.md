@@ -47,7 +47,7 @@
 
 ### 2.1) Variants
 
-1. [0.9.0] Basic support for the new variant type: tuple.
+1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 1. [0.9.2] Full support for the new variant type: tuple.
 1. [0.9.4] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
