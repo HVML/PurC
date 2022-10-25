@@ -52,8 +52,8 @@ purc_is_feature_enabled(enum purc_feature feature)
             if (PCA_ENABLE_RENDERER_THREAD)
                 return true;
             break;
-        case PURC_FEATURE_RENDERER_PURCMC:
-            if (PCA_ENABLE_RENDERER_PURCMC)
+        case PURC_FEATURE_RENDERER_SOCKET:
+            if (PCA_ENABLE_RENDERER_SOCKET)
                 return true;
             break;
         case PURC_FEATURE_RENDERER_HIBUS:

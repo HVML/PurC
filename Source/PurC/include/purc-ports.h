@@ -79,6 +79,9 @@ bool purc_rwlock_reader_trylock (purc_rwlock *rw_lock);
 PCA_EXPORT
 void purc_rwlock_reader_unlock (purc_rwlock *rw_lock);
 
+unsigned int pcutils_sleep(unsigned int seconds);
+int pcutils_usleep(unsigned long long usec);
+
 PCA_EXTERN_C_END
 
 #endif /* not defined PURC_PURC_PORTS_H */

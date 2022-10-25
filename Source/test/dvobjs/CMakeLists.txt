@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_dvobjs_system)
 
 list(APPEND test_dvobjs_system_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -37,9 +36,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_system DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_datetime)
 
 list(APPEND test_dvobjs_datetime_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -66,9 +64,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_datetime DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_ejson)
 
 list(APPEND test_dvobjs_ejson_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
     ${GLIB_INCLUDE_DIR}
@@ -97,9 +94,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_ejson DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_ejson_more)
 
 list(APPEND test_dvobjs_ejson_more_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
     ${GLIB_INCLUDE_DIR}
@@ -128,10 +124,10 @@ GTEST_DISCOVER_TESTS(test_dvobjs_ejson_more DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_coroutine)
 
 list(APPEND test_dvobjs_coroutine_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -157,10 +153,10 @@ GTEST_DISCOVER_TESTS(test_dvobjs_coroutine DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_text)
 
 list(APPEND test_dvobjs_text_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -186,9 +182,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_text DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_logical)
 
 list(APPEND test_dvobjs_logical_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -216,9 +211,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_logical DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_string)
 
 list(APPEND test_dvobjs_string_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -245,9 +239,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_string DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_overall)
 
 list(APPEND test_dvobjs_overall_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -275,9 +268,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_overall DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_stream)
 
 list(APPEND test_dvobjs_stream_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -305,9 +297,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_stream DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_stream_observe_readable)
 
 list(APPEND test_stream_observe_readable_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -333,9 +324,8 @@ GTEST_DISCOVER_TESTS(test_stream_observe_readable DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_stream_observe_writable)
 
 list(APPEND test_stream_observe_writable_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -361,9 +351,8 @@ GTEST_DISCOVER_TESTS(test_stream_observe_writable DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_dvobjs_runner)
 
 list(APPEND test_dvobjs_runner_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -391,9 +380,8 @@ GTEST_DISCOVER_TESTS(test_dvobjs_runner DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_string_substitution)
 
 list(APPEND test_string_substitution_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )

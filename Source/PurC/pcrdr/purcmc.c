@@ -93,7 +93,7 @@ static pcrdr_msg *my_read_message (pcrdr_conn* conn)
     pcrdr_msg* msg = NULL;
     int err_code = 0, retval;
 
-    retval = pcrdr_purcmc_read_packet_alloc (conn, &packet, &data_len);
+    retval = pcrdr_socket_read_packet_alloc (conn, &packet, &data_len);
     if (retval) {
         PC_DEBUG ("Failed to read packet\n");
         goto done;
@@ -141,7 +141,7 @@ static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
     size_t packet_len;
     const char * packet = purc_rwstream_get_mem_buffer (buffer, &packet_len);
 
-    if (pcrdr_purcmc_send_text_packet (conn, packet, packet_len) < 0) {
+    if (pcrdr_socket_send_text_packet (conn, packet, packet_len) < 0) {
         goto done;
     }
 
@@ -285,7 +285,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
         goto error;
     }
 
-    (*conn)->prot = PURC_RDRPROT_PURCMC;
+    (*conn)->prot = PURC_RDRCOMM_SOCKET;
     (*conn)->type = CT_UNIX_SOCKET;
     (*conn)->fd = fd;
     (*conn)->timeout_ms = 10;   /* 10 milliseconds */
@@ -316,7 +316,7 @@ error:
     return -1;
 }
 
-int pcrdr_purcmc_connect_via_web_socket (const char* host_name, int port,
+int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     UNUSED_PARAM(host_name);
@@ -329,7 +329,7 @@ int pcrdr_purcmc_connect_via_web_socket (const char* host_name, int port,
     return -1;
 }
 
-int pcrdr_purcmc_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_packet)
+int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_packet)
 {
     unsigned int offset;
     int err_code = 0;
@@ -450,7 +450,7 @@ done:
     return err_code;
 }
 
-int pcrdr_purcmc_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_packet)
+int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_packet)
 {
     char* packet_buf = NULL;
     int err_code = 0;
@@ -595,7 +595,7 @@ done:
     return 0;
 }
 
-int pcrdr_purcmc_send_text_packet (pcrdr_conn* conn, const char* text, size_t len)
+int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t len)
 {
     int retv = 0;
 
@@ -652,7 +652,7 @@ int pcrdr_purcmc_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
 
 #define SCHEMA_UNIX_SOCKET  "unix://"
 
-pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     pcrdr_msg *msg = NULL;
@@ -673,7 +673,7 @@ pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
     char buff[PCRDR_DEF_PACKET_BUFF_SIZE];
     size_t len = sizeof(buff);
 
-    if (pcrdr_purcmc_read_packet(*conn, buff, &len) < 0)
+    if (pcrdr_socket_read_packet(*conn, buff, &len) < 0)
         goto failed;
 
     if (pcrdr_parse_packet(buff, len, &msg) < 0)
@@ -694,7 +694,7 @@ failed:
 
 #else   /* for OS not Linux or Unix */
 
-pcrdr_msg *pcrdr_purcmc_connect(const char* renderer_uri,
+pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
     purc_set_error(PCRDR_ERROR_NOT_IMPLEMENTED);

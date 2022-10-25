@@ -3,22 +3,19 @@ set_property(DIRECTORY . PROPERTY FOLDER "PurC")
 include(PurCCommon)
 include(MyMacros.cmake)
 
-configure_file(include/purc-version.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-version.h @ONLY)
-configure_file(include/purc-features.h.in ${PurC_DERIVED_SOURCES_DIR}/purc-features.h @ONLY)
+configure_file(include/purc-version.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-version.h @ONLY)
+configure_file(include/purc-features.h.in ${FORWARDING_HEADERS_DIR}/purc/purc-features.h @ONLY)
 
 set(PurC_PRIVATE_INCLUDE_DIRECTORIES
     "${CMAKE_BINARY_DIR}"
     "${PURC_DIR}"
     "${PURC_DIR}/include"
     "${PurC_DERIVED_SOURCES_DIR}"
-    "${FORWARDING_HEADERS_DIR}"
-    "${CMAKE_BINARY_DIR}/Source/PurC"
+    "${FORWARDING_HEADERS_DIR}/purc"
 )
 
 # TODO: List the headers should be installed to system here.
-set(PurC_INSTALLED_HEADERS
-    "${PurC_DERIVED_SOURCES_DIR}/purc-version.h"
-    "${PurC_DERIVED_SOURCES_DIR}/purc-features.h"
+set(PurC_FRAMEWORK_HEADERS
     "${PURC_DIR}/include/purc-macros.h"
     "${PURC_DIR}/include/purc-errors.h"
     "${PURC_DIR}/include/purc-variant.h"
@@ -34,6 +31,15 @@ set(PurC_INSTALLED_HEADERS
     "${PURC_DIR}/include/purc-executor.h"
     "${PURC_DIR}/include/purc-document.h"
     "${PURC_DIR}/include/purc.h"
+)
+
+set(PurC_INSTALLED_HEADERS ${PurC_FRAMEWORK_HEADERS})
+list(APPEND PurC_INSTALLED_HEADERS
+    "${FORWARDING_HEADERS_DIR}/purc/purc-version.h"
+    "${FORWARDING_HEADERS_DIR}/purc/purc-features.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
+#    "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
 )
 
 # TODO: List the directorires which do not contain any platform-dependent C source files
@@ -95,7 +101,7 @@ if (ENABLE_XML)
 endif ()
 
 set(PurC_INTERFACE_LIBRARIES PurC)
-set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR})
+set(PurC_INTERFACE_INCLUDE_DIRECTORIES ${PurC_FRAMEWORK_HEADERS_DIR})
 
 PURC_FRAMEWORK_DECLARE(PurC)
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
@@ -133,7 +139,9 @@ add_custom_command(
             ${PURC_DIR}/html/html_tag_const.h.in
             ${PURC_DIR}/html/html_tag_res.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/tags.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_foo.c"
+# COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_tag_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-tag-const.h"
+# COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/ns_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-dom-ns-const.h"
     COMMENT "Generating files for HTML tags and interfaces by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
@@ -141,11 +149,14 @@ list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/html_foo.c)
 
 # Generate constants for HTML attributes
 add_custom_command(
-    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c" "${PurC_DERIVED_SOURCES_DIR}/html_attr_res.h" "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h"
+    OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+        "${PurC_DERIVED_SOURCES_DIR}/html_attr_res.h"
+        "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h"
     MAIN_DEPENDENCY ${PURC_DIR}/html/attr.py
     DEPENDS ${PURC_DIR}/html/attr_res.h.in ${PURC_DIR}/html/attr_const.h.in
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/html/attr.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_attr_foo.c"
+#    COMMAND ${CMAKE_COMMAND} -E copy "${PurC_DERIVED_SOURCES_DIR}/html_attr_const.h" "${FORWARDING_HEADERS_DIR}/purc/purc-html-attr-const.h"
     COMMENT "Generating html_attr_res.h and html_attr_const.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/html/"
     VERBATIM)
@@ -156,7 +167,7 @@ add_custom_command(
     OUTPUT "${PurC_DERIVED_SOURCES_DIR}/html_bar.c" "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${PURC_DIR}/html/str_res.h.in"
         "${PurC_DERIVED_SOURCES_DIR}/str_res.h"
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/html_bar.c"
     DEPENDS "${PURC_DIR}/html/str_res.h.in"
     COMMENT "Copying str_res.h.in to DerivedSources"
     VERBATIM)
@@ -187,7 +198,7 @@ add_custom_command(
             "--kw_h_in"     "${_kw_h_in}"
             "--kw_inc_in"   "${_kw_inc_in}"
             "--without-print"
-    COMMAND touch "${_kw_foo}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${_kw_foo}"
     COMMENT "Generating keywords.h/keywords.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"
     VERBATIM)
@@ -208,7 +219,7 @@ add_custom_command(
     DEPENDS "${PURC_DIR}/hvml/data/attrs.txt"
             "${PURC_DIR}/hvml/data/attr-static-list.inc.in"
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-attrs-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/hvml-attr-foo.c"
     COMMENT "Generating hvml-attr-static-list.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/hvml/"
     VERBATIM)
@@ -224,7 +235,7 @@ add_custom_command(
             "${PURC_DIR}/hvml/data/tag-static-list.inc.in"
             "${PURC_DIR}/hvml/data/tag.h.in"
     COMMAND ${Python3_EXECUTABLE} ${PURC_DIR}/hvml/make-tags-table.py "${PurC_DERIVED_SOURCES_DIR}" --without-print
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/hvml-tag-foo.c"
     COMMENT "Generating hvml-tag-static-list.inc/hvml-tag.h by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/hvml/"
     VERBATIM)
@@ -239,7 +250,7 @@ add_custom_command(
            "${PurC_DERIVED_SOURCES_DIR}/rwstream_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/hvml_err_msgs.inc"
            "${PurC_DERIVED_SOURCES_DIR}/pcrdr_err_msgs.inc"
-    MAIN_DEPENDENCY ${BUILD_TOOLS_DIR}/make-error-info.py
+    MAIN_DEPENDENCY ${CODE_TOOLS_DIR}/make-error-info.py
     DEPENDS "${PURC_DIR}/instance/generic.error.in"
             ${PURC_DIR}/executors/executor.error.in
             ${PURC_DIR}/variant/variant.error.in
@@ -247,7 +258,7 @@ add_custom_command(
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
             ${PURC_DIR}/pcrdr/pcrdr.error.in
-    COMMAND ${Python3_EXECUTABLE} ${BUILD_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
+    COMMAND ${Python3_EXECUTABLE} ${CODE_TOOLS_DIR}/make-error-info.py "${PurC_DERIVED_SOURCES_DIR}"
             ${PURC_DIR}/instance/generic.error.in
             ${PURC_DIR}/executors/executor.error.in
             ${PURC_DIR}/variant/variant.error.in
@@ -255,30 +266,28 @@ add_custom_command(
             ${PURC_DIR}/utils/rwstream.error.in
             ${PURC_DIR}/hvml/hvml.error.in
             ${PURC_DIR}/pcrdr/pcrdr.error.in
-    COMMAND touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c"
     COMMENT "Generating *_err_msgs.inc by using ${Python3_EXECUTABLE}"
     WORKING_DIRECTORY "${PURC_DIR}/instance/"
     VERBATIM)
 list(APPEND PurC_SOURCES ${PurC_DERIVED_SOURCES_DIR}/purc-error-except.c)
 
-
 PURC_WRAP_SOURCELIST(${PurC_SOURCES})
 
-PURC_COPY_FILES(PurC_CopyPrivateHeaders
-    DESTINATION ${PurC_PRIVATE_FRAMEWORK_HEADERS_DIR}/PurC
-    FILES ${PurC_PRIVATE_FRAMEWORK_HEADERS}
+PURC_COPY_FILES(PurC_CopyHeaders
+    DESTINATION ${PurC_FRAMEWORK_HEADERS_DIR}/purc
+    FILES ${PurC_FRAMEWORK_HEADERS}
     FLATTENED
 )
-list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyPrivateHeaders)
-# PurC_CopyPrivateHeaders needs to have a direct or indirect
+list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyHeaders)
+# PurC_CopyHeaders needs to have a direct or indirect
 # dependency of PurC target for CMake Visual Studio generator to
 # eliminate duplicated custom commands. Otherwise, CSSPropertyNames.h
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
-    add_dependencies(PurC_CopyPrivateHeaders PurC)
+    add_dependencies(PurC_CopyHeaders PurC)
     add_dependencies(PurC WTF)
 endif ()
-
 
 PURC_COMPUTE_SOURCES(PurC)
 PURC_FRAMEWORK(PurC)

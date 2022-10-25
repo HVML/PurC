@@ -18,7 +18,7 @@
 */
 
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/utils.h"
 #include "private/debug.h"
 #include "../helpers.h"
@@ -607,7 +607,7 @@ TEST(interpreter, basic)
     unsigned int modules = (PURC_MODULE_HVML | PURC_MODULE_PCRDR) & ~PURC_HAVE_FETCHER;
 
     struct purc_instance_extra_info info = { };
-    info.renderer_prot = PURC_RDRPROT_HEADLESS;
+    info.renderer_comm = PURC_RDRCOMM_HEADLESS;
     info.workspace_name = "main";
 
     PurCInstance purc(modules, "cn.fmsoft.hybridos.test", "test_attach_rdr",

@@ -17,9 +17,9 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 
-#include "purc-executor.h"
+#include "purc/purc-executor.h"
 
 #include "private/utils.h"
 

@@ -18,7 +18,7 @@
 */
 
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include <stdio.h>
 #include <errno.h>

@@ -8,9 +8,8 @@ macro(GEN_TEST _name)
     PURC_EXECUTABLE_DECLARE(test_exe${_name})
 
     list(APPEND test_exe${_name}_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/Source/PurC/executors/parsers
         ${WTF_DIR}
@@ -60,9 +59,8 @@ unset(_targets)
 PURC_EXECUTABLE_DECLARE(test_executors)
 
 list(APPEND test_executors_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )

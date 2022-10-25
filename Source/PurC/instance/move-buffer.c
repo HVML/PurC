@@ -47,8 +47,6 @@
 
 #define NR_DEF_MAX_MSGS     4
 
-// #define PRINT_DEBUG
-
 struct pcinst_move_buffer {
     struct purc_rwlock  lock;
     struct list_head    msgs;
@@ -61,6 +59,7 @@ struct pcinst_move_buffer {
 /* the header of the struct pcrdr_msg */
 struct pcrdr_msg_hdr {
     atomic_uint             owner;
+    purc_atom_t             origin;
     struct list_head        ln;
 };
 
@@ -137,9 +136,7 @@ pcinst_get_message(void)
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
         atomic_init(&hdr->owner, inst->endpoint_atom);
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("New message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
     }
     else {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -155,13 +152,9 @@ pcinst_put_message(pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     purc_atom_t owner = (purc_atom_t)atomic_load(&hdr->owner);
 
-#ifdef PRINT_DEBUG            /* { */
     PC_DEBUG("The current owner atom of message in %s: %x\n", __func__, owner);
-#endif                        /* }*/
     if (owner == inst->endpoint_atom) {
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])
@@ -244,14 +237,10 @@ pcinst_grind_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
     purc_atom_t owner = atomic_load(&hdr->owner);
-#ifdef PRINT_DEBUG            /* { */
     PC_DEBUG("message owner in %s: %x\n", __func__, owner);
-#endif                        /* }*/
 
     if (owner == 0) {
-#ifdef PRINT_DEBUG            /* { */
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
-#endif                        /* }*/
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])
@@ -329,6 +318,7 @@ do_move_message(struct pcinst* inst, pcrdr_msg *msg)
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
 
     if (atomic_compare_exchange_strong(&hdr->owner, &inst->endpoint_atom, 0)) {
+        hdr->origin = inst->endpoint_atom;
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
             if (msg->variants[i])

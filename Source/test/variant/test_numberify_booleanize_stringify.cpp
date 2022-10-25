@@ -17,13 +17,13 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include "private/ejson.h"
 #include "private/list.h"
 #include "private/stringbuilder.h"
 #include "private/utils.h"
-#include "purc-rwstream.h"
+#include "purc/purc-rwstream.h"
 
 #include <stdio.h>
 #include <gtest/gtest.h>

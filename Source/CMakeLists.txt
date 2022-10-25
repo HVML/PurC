@@ -7,9 +7,15 @@
 
 add_subdirectory(WTF)
 
+add_subdirectory(CodeTools)
+
 add_subdirectory(PurC)
 
 add_subdirectory(ExtDVObjs)
+
+add_subdirectory(CSSEng)
+
+add_subdirectory(DOMRuler)
 
 add_subdirectory(Samples)
 

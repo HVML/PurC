@@ -1,8 +1,6 @@
 set(PurCExternalExecutor_INCLUDE_DIRECTORIES
-    ${CMAKE_BINARY_DIR}
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${WTF_DIR}
 )
 

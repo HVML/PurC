@@ -42,9 +42,9 @@
 
 /* Constants */
 #define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
-#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "100"
-#define PCRDR_PURCMC_PROTOCOL_VERSION           100
-#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   100
+#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "110"
+#define PCRDR_PURCMC_PROTOCOL_VERSION           110
+#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   110
 
 #define PCRDR_PURCMC_US_PATH                    "/var/tmp/purcmc.sock"
 #define PCRDR_PURCMC_WS_PORT                    "7702"
@@ -65,6 +65,9 @@
 #define PCRDR_SOURCEURI_ANONYMOUS       "-"
 
 #define PCRDR_DEFAULT_WORKSPACE         "main"
+
+#define PCRDR_THREAD_OPERATION_HELLO    "hello"
+#define PCRDR_THREAD_OPERATION_BYE      "bye"
 
 /* operations */
 enum {
@@ -192,25 +195,22 @@ enum {
 
 /* Protocol types */
 typedef enum {
-    PURC_RDRPROT_HEADLESS  = 0,
-#define PURC_RDRPROT_NAME_HEADLESS      "HEADLESS"
-#define PURC_RDRPROT_VERSION_HEADLESS   100
-    PURC_RDRPROT_THREAD,
-#define PURC_RDRPROT_NAME_THREAD        "THREAD"
-#define PURC_RDRPROT_VERSION_THREAD     100
-    PURC_RDRPROT_PURCMC,
-#define PURC_RDRPROT_NAME_PURCMC        PCRDR_PURCMC_PROTOCOL_NAME
-#define PURC_RDRPROT_VERSION_PURCMC     PCRDR_PURCMC_PROTOCOL_VERSION
-    PURC_RDRPROT_HIBUS,
-#define PURC_RDRPROT_NAME_HIBUS         "HIBUS"
-#define PURC_RDRPROT_VERSION_HIBUS      100
-} purc_rdrprot_t;
+    PURC_RDRCOMM_HEADLESS  = 0,
+#define PURC_RDRCOMM_NAME_HEADLESS      "HEADLESS"
+    PURC_RDRCOMM_THREAD,
+#define PURC_RDRCOMM_NAME_THREAD        "THREAD"
+    PURC_RDRCOMM_SOCKET,
+#define PURC_RDRCOMM_NAME_SOCKET        "SOCKET"
+    PURC_RDRCOMM_HIBUS,
+#define PURC_RDRCOMM_NAME_HIBUS         "HIBUS"
+} purc_rdrcomm_t;
 
 /* Connection types */
 enum {
     CT_PLAIN_FILE = 0,
     CT_UNIX_SOCKET = 1,
     CT_WEB_SOCKET,
+    CT_MOVE_BUFFER,
 };
 
 /* The frame operation codes for UnixSocket */
@@ -476,7 +476,7 @@ pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the host name of the PurCMC server.
+ * Returns the host name of the socket server.
  *
  * Since: 0.1.0
  */
@@ -488,7 +488,7 @@ pcrdr_conn_srv_host_name(pcrdr_conn* conn);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the host name of the current PurCMC client.
+ * Returns the host name of the current endpoint.
  *
  * Since: 0.1.0
  */
@@ -500,7 +500,7 @@ pcrdr_conn_own_host_name(pcrdr_conn* conn);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the app name of the current PurCMC client.
+ * Returns the app name of the current endpoint.
  *
  * Since: 0.1.0
  */
@@ -512,7 +512,7 @@ pcrdr_conn_app_name(pcrdr_conn* conn);
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the runner name of the current PurCMC client.
+ * Returns the runner name of the current endpoint.
  *
  * Since: 0.1.0
  */
@@ -531,36 +531,41 @@ pcrdr_conn_runner_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_socket_fd(pcrdr_conn* conn);
+pcrdr_conn_fd(pcrdr_conn* conn);
 
 /**
- * Get the connnection socket type.
+ * Get the connnection type.
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the socket type of the renderer connection.
+ * Returns the type of the renderer connection.
  *
- * Returns: \a CT_UNIX_SOCKET for UnixSocket, and \a CT_WEB_SOCKET for WebSocket.
+ * Returns: \a CT_PLAIN_FILE for plain file,
+ *          \a CT_UNIX_SOCKET for UnixSocket,
+ *          \a CT_WEB_SOCKET for WebSocket.
+ *      and \a CT_MOVE_BUFFER for move buffer (shared eDOM).
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_socket_type(pcrdr_conn* conn);
+pcrdr_conn_type(pcrdr_conn* conn);
 
 /**
- * Get the connnection protocol.
+ * Get the communication method of a connection to the renderer.
  *
  * @param conn: the pointer to the renderer connection.
  *
- * Returns the protocol of the renderer connection.
+ * Returns the communcation method of the renderer connection.
  *
- * Returns: \a PURC_RDRPROT_PURCMC for PurCMC,
- *      and \a PURC_RDRPROT_HIBUS for hiBus.
+ * Returns: \a PURC_RDRCOMM_SOCKET for using socket,
+ *          \a PURC_RDRCOMM_HEADLESS for headless,
+ *          \a PURC_RDRCOMM_THREAD for using thread,
+ *      and \a PURC_RDRCOMM_HIBUS for using hiBus.
  *
  * Since: 0.1.0
  */
-PCA_EXPORT purc_rdrprot_t
-pcrdr_conn_protocol(pcrdr_conn* conn);
+PCA_EXPORT purc_rdrcomm_t
+pcrdr_conn_comm_method(pcrdr_conn* conn);
 
 typedef enum {
     PCRDR_MSG_TYPE_FIRST = 0,
@@ -660,6 +665,7 @@ typedef enum
 struct pcrdr_msg
 {
     purc_atom_t             __owner;
+    purc_atom_t             __origin;
     void                   *__padding1; // reserved for struct list_head
     void                   *__padding2; // reserved for struct list_head
 
@@ -1132,29 +1138,29 @@ pcrdr_thread_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**
- * Connect to a PurCMC renderer.
+ * Connect to a socket-based renderer.
  *
  * @param renderer_uri: the URI of the renderer.
  * @param app_name: the app name.
  * @param runner_name: the runner name.
  * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
  *
- * Connects to a PurCMC renderer.
+ * Connects to a socket-based renderer.
  *
  * Returns: The initial response message; NULL on error.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_msg *
-pcrdr_purcmc_connect(const char* renderer_uri,
+pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
 /**@}*/
 
 /**
- * @defgroup pcrdr_purcmc PurCMC renderer functions
+ * @defgroup pcrdr_socket Socket-based renderer functions
  *
- * The functions for PurCMC renderer.
+ * The functions for socket-based renderer.
  * @{
  */
 
@@ -1182,7 +1188,7 @@ pcrdr_purcmc_connect(const char* renderer_uri,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_purcmc_read_packet(pcrdr_conn* conn,
+pcrdr_socket_read_packet(pcrdr_conn* conn,
         char* packet_buf, size_t *sz_packet);
 
 /**
@@ -1208,24 +1214,24 @@ pcrdr_purcmc_read_packet(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_purcmc_read_packet_alloc(pcrdr_conn* conn,
+pcrdr_socket_read_packet_alloc(pcrdr_conn* conn,
         void **packet, size_t *sz_packet);
 
 /**
- * Send a text packet to the PurCMC server.
+ * Send a text packet to the socket-based renderer.
  *
  * @param conn: the pointer to the renderer connection.
  * @param text: the pointer to the text to send.
  * @param txt_len: the length to send.
  *
- * Sends a text packet to the PurCMC server.
+ * Sends a text packet to the socket-based renderer.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_purcmc_send_text_packet(pcrdr_conn* conn,
+pcrdr_socket_send_text_packet(pcrdr_conn* conn,
         const char *text, size_t txt_len);
 
 /**@}*/

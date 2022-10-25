@@ -19,7 +19,7 @@
 
 
 
-#include "purc.h"
+#include "purc/purc.h"
 
 #include "TestExtDVObj.h"
 

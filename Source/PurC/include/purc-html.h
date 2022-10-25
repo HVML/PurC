@@ -61,6 +61,8 @@ typedef struct pchtml_html_body_element pchtml_html_body_element_t;
 struct pchtml_html_parser;
 typedef struct pchtml_html_parser pchtml_html_parser_t;
 
+#define pchtml_interface_document(obj) ((pchtml_html_document_t *) (obj))
+
 PCA_EXTERN_C_BEGIN
 
 // API for parser

@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_local_fetcher)
 
 list(APPEND test_local_fetcher_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
     "${FORWARDING_HEADERS_DIR}"
@@ -39,9 +38,8 @@ GTEST_DISCOVER_TESTS(test_local_fetcher DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_fetcher)
 
 list(APPEND test_fetcher_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
     "${FORWARDING_HEADERS_DIR}"

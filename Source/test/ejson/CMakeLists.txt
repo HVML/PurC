@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_stack)
 
 list(APPEND test_stack_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -36,9 +35,8 @@ GTEST_DISCOVER_TESTS(test_stack DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_ejson)
 
 list(APPEND test_ejson_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR})
 
@@ -63,9 +61,8 @@ GTEST_DISCOVER_TESTS(test_ejson DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_ejson_vcm)
 
 list(APPEND test_ejson_vcm_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR})
 
@@ -90,9 +87,8 @@ GTEST_DISCOVER_TESTS(test_ejson_vcm DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_ref)
 
 list(APPEND test_ref_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR})
 
@@ -117,9 +113,8 @@ GTEST_DISCOVER_TESTS(test_ref DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_jsonee)
 
 list(APPEND test_jsonee_PRIVATE_INCLUDE_DIRECTORIES
-        ${PURC_DIR}/include
-        ${PurC_DERIVED_SOURCES_DIR}
-        ${PURC_DIR}
+        ${FORWARDING_HEADERS_DIR}
+        ${PURC_DIR} ${PURC_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${WTF_DIR})
 

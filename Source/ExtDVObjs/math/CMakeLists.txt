@@ -35,9 +35,10 @@ PURC_PARSERS_GEN_IN(parsers "${_parsers}" "_l")
 unset(_parsers)
 
 set(MATH_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    "${FORWARDING_HEADERS_DIR}/purc"
+    "${PURC_DIR}/include"
+    "${PurC_DERIVED_SOURCES_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 set(MATH_LIBRARIES

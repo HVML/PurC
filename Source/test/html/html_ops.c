@@ -19,7 +19,7 @@
 
 
 #include "html_ops.h"
-#include "purc-html.h"
+#include "purc/purc-html.h"
 
 #include "private/debug.h"
 #include "./html/interfaces/document.h"

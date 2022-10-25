@@ -32,10 +32,28 @@
 
 #define PCRDR_TIME_DEF_EXPECTED         5
 
+enum {
+#define PCRDR_SELECTOR_ID       "id"
+    PCRDR_K_SELECTOR_ID_b        = 0x01,
+#define PCRDR_SELECTOR_HANDLE   "handle"
+    PCRDR_K_SELECTOR_HANDLE_b   = 0x02,
+#define PCRDR_SELECTOR_HANDLES  "handles"
+    PCRDR_K_SELECTOR_HANDLES_b  = 0x04,
+#define PCRDR_SELECTOR_CSS      "css"
+    PCRDR_K_SELECTOR_CSS_b      = 0x08,
+#define PCRDR_SELECTOR_XPATH    "xpath"
+    PCRDR_K_SELECTOR_XPATH_b    = 0x10,
+};
+
 /* the capabilities of a renderer */
 struct renderer_capabilities {
     /* the protocol name */
     char   *prot_name;
+
+    /* the renderer name */
+    char   *rdr_name;
+    /* the renderer version */
+    char   *rdr_version;
 
     /* the HTML version if supported, else NULL */
     char   *html_version;
@@ -49,16 +67,19 @@ struct renderer_capabilities {
 
     /* the max number of workspaces;
        0 for not supported, -1 for unlimited */
-    long int    workspace;
+    int    workspace;
     /* the max number of tabbed windows;
        0 for not supported, -1 for unlimited */
-    long int    tabbedWindow;
+    int    tabbedWindow;
     /* the max number of widgets in one tabbed window;
        0 for not supported, -1 for unlimited */
-    long int    widgetInTabbedWindow;
+    int    widgetInTabbedWindow;
     /* the max number of plain windows;
        0 for not supported, -1 for unlimited */
-    long int    plainWindow;
+    int    plainWindow;
+
+    /* the element selectors supported */
+    unsigned    selectors;
 
     /* the session handle */
     uint64_t    session_handle;

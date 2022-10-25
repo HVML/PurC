@@ -1,4 +1,6 @@
-add_subdirectory(api)
+add_subdirectory(PurC)
+add_subdirectory(CSSEng)
+add_subdirectory(DOMRuler)
 #add_subdirectory(fetcher)
 
 PURC_COPY_FILES(ScriptToRunSamples

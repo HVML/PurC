@@ -17,9 +17,9 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/hashtable.h"
-#include "purc-variant.h"
+#include "purc/purc-variant.h"
 #include "private/variant.h"
 #include "private/ejson-parser.h"
 #include "private/debug.h"

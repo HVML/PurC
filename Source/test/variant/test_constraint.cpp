@@ -18,7 +18,7 @@
 */
 
 #undef NDEBUG
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/debug.h"
 #include "private/ejson-parser.h"
 #include "private/variant.h"

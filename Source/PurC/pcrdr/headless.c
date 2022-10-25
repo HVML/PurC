@@ -1475,7 +1475,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         fputs("\n<<<END\n", (*conn)->prot_data->fp);
     }
 
-    (*conn)->prot = PURC_RDRPROT_HEADLESS;
+    (*conn)->prot = PURC_RDRCOMM_HEADLESS;
     (*conn)->type = CT_PLAIN_FILE;
     (*conn)->fd = -1;
     (*conn)->timeout_ms = 10;   /* 10 milliseconds */

@@ -17,9 +17,9 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc-variant.h"
-#include "purc-dvobjs.h"
-#include "purc-ports.h"
+#include "purc/purc-variant.h"
+#include "purc/purc-dvobjs.h"
+#include "purc/purc-ports.h"
 
 #include "config.h"
 #include "../helpers.h"

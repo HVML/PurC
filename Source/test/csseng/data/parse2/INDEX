@@ -1,0 +1,25 @@
+# Index file for automated parser tests
+#
+# Test				Description
+
+tests1.dat			Basic tests
+eof.dat				Unexpected EOF tests
+comments.dat			Comment tests
+selectors.dat			Invalid selector tests
+illegal-values.dat		Illegal value tests
+malformed-declarations.dat	Malformed declaration tests
+unknown-properties.dat		Unknown property tests
+bgpos.dat			Illegal background-position values
+au.dat				Aural property tests
+bg.dat				Background property tests
+border.dat			Border property tests
+font.dat			Font property tests
+list.dat			List property tests
+margin.dat			Margin property tests
+outline.dat			Outline property tests
+overflow.dat			Overflow property tests
+padding.dat			Padding property tests
+multicol.dat			Multi-column layout property tests
+flexbox.dat			Flexbox properties and shorthands tests
+units.dat			Length unit tests
+dodgy-media-block.dat		Media block with incomplete ruleset

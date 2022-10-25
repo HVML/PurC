@@ -124,19 +124,19 @@ const char* pcrdr_conn_runner_name(pcrdr_conn* conn)
     return conn->runner_name;
 }
 
-int pcrdr_conn_socket_fd(pcrdr_conn* conn)
+int pcrdr_conn_fd(pcrdr_conn* conn)
 {
     return conn->fd;
 }
 
-int pcrdr_conn_socket_type(pcrdr_conn* conn)
+int pcrdr_conn_type(pcrdr_conn* conn)
 {
     return conn->type;
 }
 
-purc_rdrprot_t pcrdr_conn_protocol(pcrdr_conn* conn)
+purc_rdrcomm_t pcrdr_conn_comm_method(pcrdr_conn* conn)
 {
-    return (purc_rdrprot_t)conn->prot;
+    return (purc_rdrcomm_t)conn->prot;
 }
 
 int pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms)
@@ -200,6 +200,10 @@ int pcrdr_disconnect(pcrdr_conn* conn)
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
             PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
     if (msg) {
+        if (conn->type == CT_MOVE_BUFFER) {
+            msg->sourceURI = purc_variant_make_string(
+                    purc_get_endpoint(NULL), false);
+        }
         pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
         pcrdr_release_message(msg);
     }

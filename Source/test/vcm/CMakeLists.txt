@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_vcm)
 
 list(APPEND test_vcm_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -37,9 +36,8 @@ GTEST_DISCOVER_TESTS(test_vcm DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_eval)
 
 list(APPEND test_eval_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )

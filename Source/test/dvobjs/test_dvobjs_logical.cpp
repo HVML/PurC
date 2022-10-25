@@ -17,7 +17,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
 #include "private/variant.h"

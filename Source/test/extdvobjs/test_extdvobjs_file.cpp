@@ -20,10 +20,10 @@
 
 
 #include "config.h"
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
-#include "purc-variant.h"
+#include "purc/purc-variant.h"
 #include "private/variant.h"
 #include "private/errors.h"
 #include "private/debug.h"

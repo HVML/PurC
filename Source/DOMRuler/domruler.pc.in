@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: DOM Ruler
+Description: A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSSEng.
+Version: 1.2.1
+Requires: glib-2.0 > 2.40, csseng > 0.9.1
+Libs: -L${libdir} -ldomruler
+Cflags: -I${includedir}

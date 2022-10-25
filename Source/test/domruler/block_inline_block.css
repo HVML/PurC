@@ -1,0 +1,72 @@
+#root { 
+    display: block; 
+    color: blue;
+}
+
+#title { 
+    display: block; 
+    position: relative; 
+    left:25%;
+    top:15%;
+    width: 50%; 
+    height: 50%; 
+    color: #123; 
+} 
+
+#description { 
+    display: inline-block; 
+    position: relative; 
+    left:40%;
+    top:0%;
+    width: 4%; 
+    height: 4%; 
+    color: #124; 
+}
+
+#page { 
+    display:inline-grid;
+    position: relative; 
+    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-rows: 25% 25% 25% 25%;
+    left:52%;
+    width: 4%; 
+    height: 4%; 
+}
+
+#indicator { 
+    display: inline-block; 
+    position: relative; 
+    left:0%;
+    top:0%;
+    width: 100%; 
+    height: 5%; 
+    color: #126; 
+}
+
+#hiweb { 
+    color: #127; 
+    font-size:10px;
+    grid-row-start:2;
+    grid-row-end:3;
+    grid-column-start:2;
+    grid-column-end:3;
+}
+
+#hiweb2 { 
+    color: #127; 
+    font-size:10px;
+    grid-row-start:3;
+    grid-row-end:4;
+    grid-column-start:4;
+    grid-column-end:5;
+}
+
+#hijs { 
+    color: #128; 
+    background:red;
+}
+
+#hijs2 { 
+    color: #128; 
+    background:red;
+}

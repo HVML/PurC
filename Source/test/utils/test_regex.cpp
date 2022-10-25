@@ -17,10 +17,10 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 
-#include "purc-rwstream.h"
-#include "purc-utils.h"
+#include "purc/purc-rwstream.h"
+#include "purc/purc-utils.h"
 #include "private/regex.h"
 #include "config.h"
 

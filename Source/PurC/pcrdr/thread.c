@@ -68,7 +68,6 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
         return 0;
     }
 
-    // it's time to read a fake response message.
     return 1;
 }
 
@@ -103,8 +102,29 @@ static int my_ping_peer(pcrdr_conn* conn)
 
 static int my_disconnect(pcrdr_conn* conn)
 {
+    int err_code = PURC_ERROR_OK;
+
+    /* say bye to the renderer thread */
+    pcrdr_msg *bye_msg = pcrdr_make_request_message(
+            PCRDR_MSG_TARGET_INSTANCE, 0,
+            PCRDR_THREAD_OPERATION_BYE,
+            PCRDR_REQUESTID_NORETURN,
+            purc_get_endpoint(NULL),
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+            NULL, PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+    if (bye_msg) {
+        size_t n = purc_inst_move_message(conn->prot_data->rdr_atom, bye_msg);
+        pcrdr_release_message(bye_msg);
+        if (n == 0)
+            err_code = PCRDR_ERROR_UNEXPECTED;
+    }
+    else {
+        err_code = PURC_ERROR_OUT_OF_MEMORY;
+    }
+
     free(conn->prot_data);
-    return 0;
+    return err_code;
 }
 
 #define SCHEMA_LOCAL_FILE  "file://"
@@ -145,8 +165,8 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
         goto failed;
     }
 
-    (*conn)->prot = PURC_RDRPROT_THREAD;
-    (*conn)->type = CT_PLAIN_FILE;
+    (*conn)->prot = PURC_RDRCOMM_THREAD;
+    (*conn)->type = CT_MOVE_BUFFER;
     (*conn)->fd = -1;
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);
@@ -163,7 +183,29 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
 
     list_head_init (&(*conn)->pending_requests);
 
-    /* read the initial response message from the rendere thread */
+    /* say hello to the renderer thread */
+    pcrdr_msg *hello_msg = pcrdr_make_request_message(
+            PCRDR_MSG_TARGET_INSTANCE, 0,
+            PCRDR_THREAD_OPERATION_HELLO,
+            PCRDR_REQUESTID_INITIAL,
+            purc_get_endpoint(NULL),
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+            NULL, PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+
+    if (hello_msg) {
+        size_t n = purc_inst_move_message(rdr_atom, hello_msg);
+        pcrdr_release_message(hello_msg);
+        if (n == 0) {
+            err_code = PCRDR_ERROR_UNEXPECTED;
+            goto failed;
+        }
+    }
+    else {
+        err_code = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
+    }
+
+    /* read the initial response message from the renderer thread */
     int left_ms = PCRDR_DEF_TIME_EXPECTED * 1000;
     while (left_ms > 0) {
         if (my_wait_message(*conn, 10) == 0)

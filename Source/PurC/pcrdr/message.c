@@ -421,7 +421,7 @@ _COMPILE_TIME_ASSERT(types,
 static bool on_type(pcrdr_msg *msg, char *value)
 {
     for (size_t i = 0; i < PCA_TABLESIZE(type_names); i++) {
-        if (pcutils_strcasecmp(value, type_names[i]) == 0) {
+        if (strcasecmp(value, type_names[i]) == 0) {
             msg->type = PCRDR_MSG_TYPE_FIRST + i;
             return true;
         }
@@ -463,7 +463,7 @@ static bool on_target(pcrdr_msg *msg, char *value)
 
     size_t i;
     for (i = 0; i < PCA_TABLESIZE(target_names); i++) {
-        if (pcutils_strcasecmp(value, target_names[i]) == 0) {
+        if (strcasecmp(value, target_names[i]) == 0) {
             msg->target = PCRDR_MSG_TARGET_FIRST + i;
             break;
         }
@@ -533,7 +533,7 @@ static bool on_element(pcrdr_msg *msg, char *value)
 
     size_t i;
     for (i = 0; i < PCA_TABLESIZE(element_type_names); i++) {
-        if (pcutils_strcasecmp(value, element_type_names[i]) == 0) {
+        if (strcasecmp(value, element_type_names[i]) == 0) {
             msg->elementType = PCRDR_MSG_ELEMENT_TYPE_FIRST + i;
             break;
         }
@@ -621,7 +621,7 @@ pcrdr_data_type_name(pcrdr_msg_data_type data_type)
 static bool on_data_type(pcrdr_msg *msg, char *value)
 {
     for (size_t i = 0; i < PCA_TABLESIZE(data_type_names); i++) {
-        if (pcutils_strcasecmp(value, data_type_names[i]) == 0) {
+        if (strcasecmp(value, data_type_names[i]) == 0) {
             msg->dataType = PCRDR_MSG_DATA_TYPE_FIRST + i;
             return true;
         }
@@ -680,7 +680,7 @@ static key_op find_key_op(const char* key)
         int cmp;
 
         mid = (low + high) / 2;
-        cmp = pcutils_strcasecmp(key, key_ops[mid].key);
+        cmp = strcasecmp(key, key_ops[mid].key);
         if (cmp == 0) {
             goto found;
         }
@@ -1121,7 +1121,7 @@ pcrdr_parse_renderer_capabilities(const char *data)
             break;
         }
 
-        if (line_no == 0) {
+        if (line_no == 0) { /* protocol name and version code */
             char *prot_name, *prot_version;
             char *saveptr2;
             prot_name = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
@@ -1138,9 +1138,30 @@ pcrdr_parse_renderer_capabilities(const char *data)
             if (rdr_caps->prot_name == NULL)
                 goto failed;
 
-            rdr_caps->prot_version = strtol(prot_name, NULL, 10);
+            rdr_caps->prot_version = (int)strtol(prot_version, NULL, 10);
         }
-        else if (line_no == 1) {    /* markup versions */
+        else if (line_no == 1) { /* renderer name and version */
+            char *rdr_name, *rdr_version;
+            char *saveptr2;
+            rdr_name = strtok_r(line, STR_PAIR_SEPARATOR, &saveptr2);
+            if (rdr_name == NULL) {
+                goto failed;
+            }
+
+            rdr_version = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+            if (rdr_version == NULL) {
+                goto failed;
+            }
+
+            rdr_caps->rdr_name = strdup(rdr_name);
+            if (rdr_caps->rdr_name == NULL)
+                goto failed;
+
+            rdr_caps->rdr_version = strdup(rdr_version);
+            if (rdr_caps->rdr_version == NULL)
+                goto failed;
+        }
+        else if (line_no == 2) {    /* markup versions */
             char *str2, *value;
             char *saveptr2;
 
@@ -1163,24 +1184,24 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     goto failed;
                 }
 
-                if (pcutils_strcasecmp(markup, "html") == 0) {
+                if (strcasecmp(markup, "html") == 0) {
                     rdr_caps->html_version = strdup(version);
                     if (rdr_caps->html_version == NULL)
                         goto failed;
                 }
-                else if (pcutils_strcasecmp(markup, "xgml") == 0) {
+                else if (strcasecmp(markup, "xgml") == 0) {
                     rdr_caps->xgml_version = strdup(version);
                     if (rdr_caps->xgml_version == NULL)
                         goto failed;
                 }
-                else if (pcutils_strcasecmp(markup, "xml") == 0) {
+                else if (strcasecmp(markup, "xml") == 0) {
                     rdr_caps->xml_version = strdup(version);
                     if (rdr_caps->xml_version == NULL)
                         goto failed;
                 }
             }
         }
-        else if (line_no == 2) {    /* windowing capabilities */
+        else if (line_no == 3) {    /* windowing capabilities */
             char *str2, *value;
             char *saveptr2;
 
@@ -1203,21 +1224,21 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     goto failed;
                 }
 
-                if (pcutils_strcasecmp(cap, "workspace") == 0) {
-                    rdr_caps->workspace = strtol(limit, NULL, 10);
+                if (strcasecmp(cap, "workspace") == 0) {
+                    rdr_caps->workspace = (int)strtol(limit, NULL, 10);
                 }
-                else if (pcutils_strcasecmp(cap, "tabbedWindow") == 0) {
-                    rdr_caps->tabbedWindow = strtol(limit, NULL, 10);
+                else if (strcasecmp(cap, "tabbedWindow") == 0) {
+                    rdr_caps->tabbedWindow = (int)strtol(limit, NULL, 10);
                 }
-                else if (pcutils_strcasecmp(cap, "widgetInTabbedWindow") == 0) {
-                    rdr_caps->widgetInTabbedWindow = strtol(limit, NULL, 10);
+                else if (strcasecmp(cap, "widgetInTabbedWindow") == 0) {
+                    rdr_caps->widgetInTabbedWindow = (int)strtol(limit, NULL, 10);
                 }
-                else if (pcutils_strcasecmp(cap, "plainWindow") == 0) {
-                    rdr_caps->plainWindow = strtol(limit, NULL, 10);
+                else if (strcasecmp(cap, "plainWindow") == 0) {
+                    rdr_caps->plainWindow = (int)strtol(limit, NULL, 10);
                 }
             }
         }
-        else if (line_no >= 3) {
+        else if (line_no >= 4) {
             char *cap, *value;
             char *saveptr2;
 
@@ -1231,8 +1252,41 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 break;
             }
 
+            if (strcasecmp(cap, "DOMElementSelectors") == 0) {
+
+                char *str3, *member;
+                char *saveptr3;
+                for (str3 = value; ; str3 = NULL) {
+                    member = strtok_r(str3, STR_MEMBER_SEPARATOR, &saveptr3);
+                    if (member == NULL) {
+                        break;
+                    }
+
+                    if (strcasecmp(member, PCRDR_SELECTOR_ID) == 0) {
+                        rdr_caps->selectors |= PCRDR_K_SELECTOR_ID_b;
+                    }
+                    else if (strcasecmp(member, PCRDR_SELECTOR_HANDLE) == 0) {
+                        rdr_caps->selectors |= PCRDR_K_SELECTOR_HANDLE_b;
+                    }
+                    else if (strcasecmp(member, PCRDR_SELECTOR_HANDLES) == 0) {
+                        rdr_caps->selectors |= PCRDR_K_SELECTOR_HANDLES_b;
+                    }
+                    else if (strcasecmp(member, PCRDR_SELECTOR_CSS) == 0) {
+                        rdr_caps->selectors |= PCRDR_K_SELECTOR_CSS_b;
+                    }
+                    else if (strcasecmp(member, PCRDR_SELECTOR_XPATH) == 0) {
+                        rdr_caps->selectors |= PCRDR_K_SELECTOR_XPATH_b;
+                    }
+                }
+
+                PC_INFO("selectors: %x\n", rdr_caps->selectors);
+            }
+            else {
+                PC_WARN("Unknown renderer capability: %s\n", cap);
+                break;
+            }
 #if 0
-            if (pcutils_strcasecmp(cap, "windowLevels") == 0) {
+            if (strcasecmp(cap, "windowLevels") == 0) {
                 if (rdr_caps->windowLevel <= 0) {
                     PC_WARN("Found windowLevels but windowLevel is <= 0");
                     break;
@@ -1272,7 +1326,6 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 rdr_caps->windowLevel = 0;
             }
 #endif
-            PC_WARN("Unknown renderer capability: %s\n", cap);
             break;
         }
 

@@ -18,7 +18,7 @@
 */
 
 #include "config.h"
-#include "purc.h"
+#include "purc/purc.h"
 
 #include "TestDVObj.h"
 #include "../helpers.h"

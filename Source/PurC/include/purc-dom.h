@@ -148,7 +148,7 @@ struct pcdom_node {
     pcdom_event_target_t event_target;
 
     /* For example: <LalAla:DiV Fix:Me="value"> */
-    uintptr_t           local_name; /* , lowercase, without prefix: div */
+    uintptr_t           local_name; /* lowercase, without prefix: div */
     uintptr_t           prefix;     /* lowercase: lalala */
     uintptr_t           ns;         /* namespace */
 

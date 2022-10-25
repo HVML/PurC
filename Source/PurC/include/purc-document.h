@@ -48,6 +48,32 @@ typedef enum {
 
 #define PCDOC_NR_TYPES (PCDOC_K_TYPE_LAST - PCDOC_K_TYPE_FIRST + 1)
 
+/* namespace types */
+typedef enum {
+    PCDOC_K_NAMESPACE_FIRST = 0,
+    PCDOC_K_NAMESPACE__UNDEF = PCDOC_K_NAMESPACE_FIRST,
+#define PCDOC_NSNAME__UNDEF   ""
+    PCDOC_K_NAMESPACE_HTML,
+#define PCDOC_NSNAME_HTML     "html"
+    PCDOC_K_NAMESPACE_MATHML,
+#define PCDOC_NSNAME_MATHML   "mathml"
+    PCDOC_K_NAMESPACE_SVG,
+#define PCDOC_NSNAME_SVG      "svg"
+    PCDOC_K_NAMESPACE_XGML,
+#define PCDOC_NSNAME_XGML     "xgml"
+    PCDOC_K_NAMESPACE_XLINK,
+#define PCDOC_NSNAME_XLINK    "xlink"
+    PCDOC_K_NAMESPACE_XML,
+#define PCDOC_NSNAME_XML      "xml"
+    PCDOC_K_NAMESPACE_XMLNS,
+#define PCDOC_NSNAME_XMLNS    "xmlns"
+
+    /* XXX: change this when you append a new operation */
+    PCDOC_K_NAMESPACE_LAST = PCDOC_K_NAMESPACE_XMLNS,
+} purc_namespace_type;
+
+#define PCDOC_NR_NAMESPACES     (PCDOC_K_NS_LAST - PCDOC_K_NS_FIRST + 1)
+
 /* Special document type */
 #define PCDOC_K_STYPE_INHERIT           "_inherit"
 
@@ -71,6 +97,10 @@ struct pcdoc_node_others;
 typedef struct pcdoc_node_others pcdoc_node_others;
 typedef struct pcdoc_node_others *pcdoc_node_others_t;
 
+struct pcdoc_attr;
+typedef struct pcdoc_attr pcdoc_attr;
+typedef struct pcdoc_attr *pcdoc_attr_t;
+
 typedef enum {
     PCDOC_NODE_ELEMENT = 0,
     PCDOC_NODE_TEXT,
@@ -83,6 +113,7 @@ typedef enum {
 typedef struct {
     pcdoc_node_type         type;
     union {
+        void               *data;
         pcdoc_element_t     elem;
         pcdoc_text_node_t   text_node;
         pcdoc_data_node_t   data_node;
@@ -182,6 +213,19 @@ purc_document_unref(purc_document_t doc);
  */
 PCA_EXPORT purc_document_t
 purc_document_load(purc_document_type type, const char *content, size_t len);
+
+/**
+ * Get the underlying implementation entity of a document.
+ *
+ * @param doc: The pointer to the document.
+ * @param type: A location to return the document type.
+ *
+ * Returns: a pointer to the underlying implementation.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT void *
+purc_document_impl_entity(purc_document_t doc, purc_document_type *type);
 
 /**
  * Delete a document.
@@ -310,6 +354,7 @@ pcdoc_element_set_data_content(purc_document_t doc,
  * Insert or replace the content in target markup language of the specific
  * element.
  *
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to an element.
  * @param op: The operation.
  * @param content: a string contains the content in the target markup language.
@@ -325,8 +370,31 @@ pcdoc_element_new_content(purc_document_t doc,
         const char *content, size_t len);
 
 /**
+ * Get the tag name of a specific element.
+ *
+ * @param doc: the pointer to the document.
+ * @param elem: the pointer to the element.
+ * @param local_name: the location to return the local name of the element.
+ * @param local_len: the location to return the length of the local name.
+ * @param prefix: the location to return the prefix of the tag name of the element.
+ * @param prefix_len: the location to return the length of the prefix.
+ * @param ns_name: the location to return the namespace name of the element.
+ * @param ns_len: the location to return the length of the namespace name.
+ *
+ * Returns: 0 for success, -1 for failure.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
+        const char **local_name, size_t *local_len,
+        const char **prefix, size_t *prefix_len,
+        const char **ns_name, size_t *ns_len);
+
+/**
  * Set an attribute of the specified element.
  *
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to the element.
  * @param op: The operation, can be one of the following values:
  *  - PCDOC_OP_UPDATE: update the attribute value.
@@ -354,7 +422,7 @@ static inline int pcdoc_element_remove_attribute(purc_document_t doc,
 /**
  * Get the attribute value of the specific attribute of the specified element.
  *
- * @param doc: the pointer to the doc.
+ * @param doc: the pointer to the document.
  * @param elem: the pointer to the element.
  * @param name: the name of the attribute.
  * @param val: the buffer to return the value of the attribute.
@@ -385,6 +453,8 @@ typedef enum {
  * @param len (nullable): the buffer to return the length of the value.
  *
  * Returns: 0 for success, -1 for no that attribute defined.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_element_get_special_attr(purc_document_t doc, pcdoc_element_t elem,
@@ -399,6 +469,8 @@ pcdoc_element_get_special_attr(purc_document_t doc, pcdoc_element_t elem,
  * @param len (nullable): the buffer to return the length of the value.
  *
  * Returns: 0 for success, -1 for no `id` attribute defined.
+ *
+ * Since: 0.2.0
  */
 static inline const char *
 pcdoc_element_id(purc_document_t doc, pcdoc_element_t elem, size_t *len)
@@ -426,6 +498,8 @@ pcdoc_element_id(purc_document_t doc, pcdoc_element_t elem, size_t *len)
  * @param len (nullable): the buffer to return the length of the value.
  *
  * Returns: 0 for success, -1 for no `class` attribute defined.
+ *
+ * Since: 0.2.0
  */
 static inline const char *
 pcdoc_element_class(purc_document_t doc, pcdoc_element_t elem, size_t *len)
@@ -454,10 +528,114 @@ pcdoc_element_class(purc_document_t doc, pcdoc_element_t elem, size_t *len)
  *
  * Returns: 0 for success (the reult is reliable), -1 for bad class name or
  *  other errors.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_element_has_class(purc_document_t doc, pcdoc_element_t elem,
         const char *klass, bool *found);
+
+typedef int (*pcdoc_attribute_cb)(purc_document_t doc, pcdoc_attr_t attr,
+        const char *name, size_t name_len,
+        const char *value, size_t value_len, void *ctxt);
+
+/**
+ * Travel all attributes of the specified element.
+ *
+ * @param doc: the pointer to the doc.
+ * @param element: the element.
+ * @param cb: the callback for the attribute found.
+ * @param ctxt: the context data will be passed to the callback.
+ * @param n: the buffer to returned the number of attributes travelled.
+ *
+ * Returns: 0 for all attributes travelled, otherwise the traverse was broken
+ * by the callback.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_element_travel_attributes(purc_document_t doc, pcdoc_element_t element,
+        pcdoc_attribute_cb cb, void *ctxt, size_t *n);
+
+/**
+ * Get the first attribute of the specified element.
+ *
+ * @param doc: the pointer to the document.
+ * @param elem: the element.
+ *
+ * Returns: The pointer to the desired attribute, NULL for no such attribute.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_attr_t
+pcdoc_element_first_attr(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the last attribute of the specified element.
+ *
+ * @param doc: the pointer to the document.
+ * @param elem: the element.
+ *
+ * Returns: The pointer to the desired attribute, NULL for no such attribute.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_attr_t
+pcdoc_element_last_attr(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the next sibling of the current attribute.
+ *
+ * @param doc: the pointer to the document.
+ * @param attr: the current attribute.
+ *
+ * Returns: The pointer to the desired attribute, NULL for no such attribute.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_attr_t
+pcdoc_attr_next_sibling(purc_document_t doc, pcdoc_attr_t attr);
+
+/**
+ * Get the previous sibling of the current attribute.
+ *
+ * @param doc: the pointer to the document.
+ * @param attr: the current attribute.
+ *
+ * Returns: The pointer to the desired attribute, NULL for no such attribute.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_attr_t
+pcdoc_attr_prev_sibling(purc_document_t doc, pcdoc_attr_t attr);
+
+/**
+ * Get the name and value of a specific attribute.
+ *
+ * @param doc: the pointer to the document.
+ * @param attr: the pointer to the attribute.
+ * @param local_name: the pointer to the location to return
+ *      the local name of the attribute.
+ * @param local_len: the pointer to the location to return
+ *      the length of the local name.
+ * @param qualified_name (nullable): the pointer to the location to return
+ *      the qualified name (with prefix) of the attribute.
+ * @param qualified_len (nullable): the pointer to the location to return
+ *      the length of the qualified name.
+ * @param value (nullable): the pointer to the location to return
+ *      the value of the attribute.
+ * @param value_len (nullable): the pointer to the location to return
+ *      the length of the value.
+ *
+ * Returns: 0 for success, -1 for failure.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_attr_get_info(purc_document_t doc, pcdoc_attr_t attr,
+        const char **local_name, size_t *local_len,
+        const char **qualified_name, size_t *qualified_len,
+        const char **value, size_t *value_len);
 
 /**
  * Get the text of a text node.
@@ -468,6 +646,8 @@ pcdoc_element_has_class(purc_document_t doc, pcdoc_element_t elem,
  * @param len (nullable): the buffer to return the length of the text.
  *
  * Returns: 0 for success (the reult is reliable), -1 for errors.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_text_content_get_text(purc_document_t doc, pcdoc_text_node_t text_node,
@@ -481,10 +661,94 @@ pcdoc_text_content_get_text(purc_document_t doc, pcdoc_text_node_t text_node,
  * @param data: the buffer to return the variant.
  *
  * Returns: 0 for success (the reult is reliable), -1 on failure.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
         purc_variant_t *data);
+
+/**
+ * Get the first child node of the specified element.
+ *
+ * @param doc: the pointer to the doc.
+ * @param elem: the element.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_element_first_child(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the last child node of the specified element.
+ *
+ * @param doc: the pointer to the doc.
+ * @param elem: the element.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_element_last_child(purc_document_t doc, pcdoc_element_t elem);
+
+/**
+ * Get the next sibling node of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_node_next_sibling(purc_document_t doc, pcdoc_node node);
+
+/**
+ * Get the previous sibling node of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ *
+ * Returns: The desired node, PCDOC_NODE_VOID type for no such node.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT pcdoc_node
+pcdoc_node_prev_sibling(purc_document_t doc, pcdoc_node node);
+
+/**
+ * Get the user data of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ * @param user_data The pointer to the location to receive the user data.
+ *
+ * Returns: 0 for success, -1 on failure.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_node_get_user_data(purc_document_t doc, pcdoc_node node,
+        void **user_data);
+
+/**
+ * Set the user data of the specified node.
+ *
+ * @param doc: the pointer to the doc.
+ * @param node: the node.
+ * @param user_data The the user data to set.
+ *
+ * Returns: 0 for success, -1 on failure.
+ *
+ * Since: 0.9.0
+ */
+PCA_EXPORT int
+pcdoc_node_set_user_data(purc_document_t doc, pcdoc_node node,
+        void *user_data);
 
 /**
  * Get the number of different children nodes of the speicified element.
@@ -499,6 +763,8 @@ pcdoc_data_content_get_data(purc_document_t doc, pcdoc_data_node_t data_node,
  *      the buffer to return the number of data nodes.
  *
  * Returns: 0 for success, -1 on failure.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
@@ -512,6 +778,8 @@ pcdoc_element_children_count(purc_document_t doc, pcdoc_element_t elem,
  * @param idx: the index of the child element.
  *
  * Returns: the pointer to the child element; @NULL for the bad index value.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT pcdoc_element_t
 pcdoc_element_get_child_element(purc_document_t doc, pcdoc_element_t elem,
@@ -525,6 +793,8 @@ pcdoc_element_get_child_element(purc_document_t doc, pcdoc_element_t elem,
  * @param idx: the index of the child text node.
  *
  * Returns: the pointer to the child text node; @NULL for the bad index value.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT pcdoc_text_node_t
 pcdoc_element_get_child_text_node(purc_document_t doc, pcdoc_element_t elem,
@@ -538,6 +808,8 @@ pcdoc_element_get_child_text_node(purc_document_t doc, pcdoc_element_t elem,
  * @param idx: the index of the child data node.
  *
  * Returns: the pointer to the child data node; @NULL for the bad index value.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT pcdoc_data_node_t
 pcdoc_element_get_child_data_node(purc_document_t doc, pcdoc_element_t elem,
@@ -547,10 +819,23 @@ pcdoc_element_get_child_data_node(purc_document_t doc, pcdoc_element_t elem,
  * Get the parent element of a document node.
  *
  * Returns: the pointer to the parent element or @NULL if the node is the root.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT pcdoc_element_t
 pcdoc_node_get_parent(purc_document_t doc, pcdoc_node node);
 
+#define PCDOC_TRAVEL_GOON       (0)
+#define PCDOC_TRAVEL_STOP       (-1)
+#define PCDOC_TRAVEL_SKIP       (1)
+
+/**
+ * The callback for traveling descendant elements.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_element_cb)(purc_document_t doc,
         pcdoc_element_t element, void *ctxt);
 
@@ -562,15 +847,25 @@ typedef int (*pcdoc_element_cb)(purc_document_t doc,
  *      @NULL for the root element of the document.
  * @param cb: the callback for the element travelled.
  * @param ctxt: the context data will be passed to the callback.
- * @param n: the buffer to returned the number of elements travelled.
+ * @param n: the buffer to returned the number of elements travelled, i.e.,
+ *  the number of calling the callback function.
  *
- * Returns: 0 for all descendants travlled, otherwise the traverse was broken
+ * Returns: 0 for all descendants travelled, otherwise the traverse was broken
  * by the callback.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_travel_descendant_elements(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_element_cb cb, void *ctxt, size_t *n);
 
+/**
+ * The callback for traveling descendant text nodes.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_text_node_cb)(purc_document_t doc,
         pcdoc_text_node_t text_node, void *ctxt);
 
@@ -584,13 +879,22 @@ typedef int (*pcdoc_text_node_cb)(purc_document_t doc,
  * @param ctxt: the context data will be passed to the callback.
  * @param n: the buffer to returned the number of text nodes travelled.
  *
- * Returns: 0 for all descendant text nodes travlled, otherwise the traverse
+ * Returns: 0 for all descendant text nodes travelled, otherwise the traverse
  * was broken by the callback.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_travel_descendant_text_nodes(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_text_node_cb cb, void *ctxt, size_t *n);
 
+/**
+ * The callback for traveling descendant data nodes.
+ * Returns
+ *  - PCDOC_TRAVEL_GOON for continuing the travel,
+ *  - PCDOC_TRAVEL_STOP for stopping the travel,
+ *  - PCDOC_TRAVEL_SKIP for skipping the descendants.
+ */
 typedef int (*pcdoc_data_node_cb)(purc_document_t doc,
         pcdoc_data_node_t data_node, void *ctxt);
 
@@ -604,8 +908,10 @@ typedef int (*pcdoc_data_node_cb)(purc_document_t doc,
  * @param ctxt: the condata data will be passed to the callback.
  * @param n: the buffer to returned the number of data nodes travelled.
  *
- * Returns: 0 for all descendant data nodes travlled, otherwise the traverse
+ * Returns: 0 for all descendant data nodes travelled, otherwise the traverse
  * was broken by the callback.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_travel_descendant_data_nodes(purc_document_t doc,
@@ -635,6 +941,8 @@ enum pcdoc_serialize_opt {
  * @param out: the output stream.
  *
  * Returns: 0 for succes, -1 for errors.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_serialize_text_contents_to_stream(purc_document_t doc,
@@ -658,6 +966,8 @@ purc_document_serialize_text_contents_to_stream(purc_document_t doc,
  * @param out: the output stream.
  *
  * Returns: 0 for succes, -1 for errors.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 pcdoc_serialize_descendants_to_stream(purc_document_t doc,
@@ -671,6 +981,8 @@ pcdoc_serialize_descendants_to_stream(purc_document_t doc,
  * @param out: the output stream.
  *
  * Returns: 0 for succes, -1 for errors.
+ *
+ * Since: 0.2.0
  */
 PCA_EXPORT int
 purc_document_serialize_contents_to_stream(purc_document_t doc,
@@ -680,6 +992,8 @@ purc_document_serialize_contents_to_stream(purc_document_t doc,
  * Find the first element matching the CSS selector from the descendants.
  *
  * Returns: the pointer to the matching element or @NULL if no such one.
+ *
+ * Note: Unimplemented.
  */
 PCA_EXPORT pcdoc_element_t
 pcdoc_find_element_in_descendants(purc_document_t doc,
@@ -689,6 +1003,8 @@ pcdoc_find_element_in_descendants(purc_document_t doc,
  * Find the first element matching the CSS selector in the document.
  *
  * Returns: the pointer to the matching element or @NULL if no such one.
+ *
+ * Note: Unimplemented.
  */
 static inline pcdoc_element_t
 pcdoc_find_element_in_document(purc_document_t doc, const char *selector)
@@ -701,6 +1017,8 @@ pcdoc_find_element_in_document(purc_document_t doc, const char *selector)
  * of the specified element according to the CSS selector.
  *
  * Returns: A pointer to the element collection; @NULL on failure.
+ *
+ * Note: Unimplemented.
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
@@ -711,6 +1029,8 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
  * the whole document according to the CSS selector.
  *
  * Returns: A pointer to the element collection; @NULL on failure.
+ *
+ * Note: Unimplemented.
  */
 static inline pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_document(purc_document_t doc,
@@ -724,6 +1044,8 @@ pcdoc_elem_coll_new_from_document(purc_document_t doc,
  * in the specific element collection.
  *
  * Returns: A pointer to the new element collection; @NULL on failure.
+ *
+ * Note: Unimplemented.
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_select(purc_document_t doc,
@@ -731,6 +1053,8 @@ pcdoc_elem_coll_select(purc_document_t doc,
 
 /**
  * Delete the speicified element collection.
+ *
+ * Note: Unimplemented.
  */
 PCA_EXPORT void
 pcdoc_elem_coll_delete(purc_document_t doc,

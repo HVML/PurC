@@ -527,3 +527,14 @@ macro(PURC_CREATE_SYMLINK target src dest)
         COMMENT "Create symlink from ${src} to ${dest}")
 endmacro()
 
+# Append the all C/CXX files in the specified directory list to the source list
+macro(PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST result)
+    set(filelist "")
+    foreach(module ${ARGN})
+        list(APPEND filelist ${module}/*.c)
+        list(APPEND filelist ${module}/*.cpp)
+    endforeach()
+    file(GLOB_RECURSE ${result} RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${filelist})
+    unset(filelist)
+endmacro()
+

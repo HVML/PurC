@@ -1,0 +1,97 @@
+#data
+* { overflow: auto; }
+#errors
+#expected
+| *
+|  overflow-x: auto
+|  overflow-y: auto
+#reset
+
+#data
+* { overflow: hidden; }
+#errors
+#expected
+| *
+|  overflow-x: hidden
+|  overflow-y: hidden
+#reset
+
+#data
+* { overflow: visible; }
+#errors
+#expected
+| *
+|  overflow-x: visible
+|  overflow-y: visible
+#reset
+
+#data
+* { overflow: scroll; }
+#errors
+#expected
+| *
+|  overflow-x: scroll
+|  overflow-y: scroll
+#reset
+
+#data
+* { overflow: inherit; }
+#errors
+#expected
+| *
+|  overflow-x: inherit
+|  overflow-y: inherit
+#reset
+
+#data
+* { overflow-x: inherit; }
+#errors
+#expected
+| *
+|  overflow-x: inherit
+#reset
+
+#data
+* { overflow-x: scroll; }
+#errors
+#expected
+| *
+|  overflow-x: scroll
+#reset
+
+#data
+* { overflow-y: visible; }
+#errors
+#expected
+| *
+|  overflow-y: visible
+#reset
+
+#data
+* { overflow-y: auto; }
+#errors
+#expected
+| *
+|  overflow-y: auto
+#reset
+
+#data
+* { overflow-x: visible; overflow-y: hidden; }
+#errors
+#expected
+| *
+|  overflow-x: visible
+|  overflow-y: hidden
+#reset
+
+#data
+* { overflow-y: auto; overflow-x: inherit; }
+#errors
+#expected
+| *
+|  overflow-y: auto
+|  overflow-x: inherit
+#reset
+
+
+

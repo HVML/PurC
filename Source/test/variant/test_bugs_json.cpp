@@ -17,12 +17,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "purc.h"
+#include "purc/purc.h"
 
-#include "private/hvml.h"
-#include "private/utils.h"
-#include "purc-rwstream.h"
-#include "hvml/hvml-token.h"
 #include "private/ejson-parser.h"
 #include "private/debug.h"
 

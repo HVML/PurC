@@ -101,6 +101,31 @@ static pcdoc_element_t special_elem(purc_document_t doc,
     return (pcdoc_element_t)doc;
 }
 
+static int
+get_tag_name(purc_document_t doc, pcdoc_element_t elem,
+        const char **local_name, size_t *local_len,
+        const char **prefix, size_t *prefix_len,
+        const char **ns_name, size_t *ns_len)
+{
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(elem);
+
+    *local_name = "";
+    if (local_len) *local_len = 0;
+
+    if (prefix) {
+        *prefix = "";
+        if (prefix_len) *prefix_len = 0;
+    }
+
+    if (ns_name) {
+        *ns_name = PCDOC_NSNAME__UNDEF;
+        if (ns_len) *ns_len = sizeof(PCDOC_NSNAME__UNDEF) - 1;
+    }
+
+    return 0;
+}
+
 static pcdoc_element_t get_parent(purc_document_t doc, pcdoc_node node)
 {
     UNUSED_PARAM(node);
@@ -115,6 +140,7 @@ struct purc_document_ops _pcdoc_void_ops = {
     .new_text_content = new_text_content,
     .new_content = new_content,
     .special_elem = special_elem,
+    .get_tag_name = get_tag_name,
     .get_parent = get_parent,
 };
 

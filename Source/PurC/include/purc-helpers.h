@@ -37,12 +37,17 @@
 #include "purc-macros.h"
 #include "purc-utils.h"
 
-#define PURC_LEN_HOST_NAME             127
-#define PURC_LEN_APP_NAME              127
-#define PURC_LEN_RUNNER_NAME           63
-#define PURC_LEN_IDENTIFIER            63
+#define PURC_LEN_HOST_NAME              127
+#define PURC_LEN_APP_NAME               127
+#define PURC_LEN_RUNNER_NAME            63
+#define PURC_LEN_IDENTIFIER             63
+
+#define PURC_EDPT_SCHEMA                "edpt://"
+#define PURC_LEN_EDPT_SCHEMA            7
+
 #define PURC_LEN_ENDPOINT_NAME         \
-    (PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + PURC_LEN_RUNNER_NAME + 3)
+    (PURC_LEN_EDPT_SCHEMA + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
+     PURC_LEN_RUNNER_NAME + 2)
 #define PURC_LEN_UNIQUE_ID             63
 #define PURC_LEN_PROPERTY_NAME         255
 
@@ -84,9 +89,12 @@ PCA_EXPORT int
 purc_assemble_endpoint_name_ex(const char *host_name, const char *app_name,
         const char *runner_name, char *buff, size_t sz);
 
-PCA_EXPORT int
+static inline int
 purc_assemble_endpoint_name(const char *host_name, const char *app_name,
-        const char *runner_name, char *buff);
+        const char *runner_name, char *buff) {
+    return purc_assemble_endpoint_name_ex (host_name,
+        app_name, runner_name, buff, PURC_LEN_ENDPOINT_NAME + 1);
+}
 
 PCA_EXPORT char *
 purc_assemble_endpoint_name_alloc(const char *host_name,

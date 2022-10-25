@@ -17,9 +17,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <purc.h>
-
-#include <purc-executor.h>
+#include <purc/purc-executor.h>
 
 extern purc_variant_t
 get_member(purc_variant_t on_value, purc_variant_t with_value)

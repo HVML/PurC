@@ -8,10 +8,10 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_hvml)
 
 list(APPEND test_hvml_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -36,12 +36,12 @@ GTEST_DISCOVER_TESTS(test_hvml DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_sbst)
 
 list(APPEND test_sbst_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
+    ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR}/hvml
     ${PURC_DIR}/html
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 
@@ -66,11 +66,11 @@ GTEST_DISCOVER_TESTS(test_sbst DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_tokenizer)
 
 list(APPEND test_tokenizer_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${PURC_DIR}/hvml
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
     ${CMAKE_BINARY_DIR}
+    ${PurC_DERIVED_SOURCES_DIR}
     ${WTF_DIR}
 )
 

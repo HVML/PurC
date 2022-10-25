@@ -111,19 +111,21 @@ purc_atom_t pcrdr_try_operation_atom(const char *op)
     return purc_atom_try_string_ex(ATOM_BUCKET_RDROP, op);
 }
 
-static const char *prot_names[] = {
-    PURC_RDRPROT_NAME_HEADLESS,
-    PURC_RDRPROT_NAME_THREAD,
-    PURC_RDRPROT_NAME_PURCMC,
-    PURC_RDRPROT_NAME_HIBUS,
+#if 0   /* deprecated code */
+static const char *comm_names[] = {
+    PURC_RDRCOMM_NAME_HEADLESS,
+    PURC_RDRCOMM_NAME_THREAD,
+    PURC_RDRCOMM_NAME_SOCKET,
+    PURC_RDRCOMM_NAME_HIBUS,
 };
 
-static const int prot_vers[] = {
-    PURC_RDRPROT_VERSION_HEADLESS,
-    PURC_RDRPROT_VERSION_THREAD,
-    PURC_RDRPROT_VERSION_PURCMC,
-    PURC_RDRPROT_VERSION_HIBUS,
+static const int comm_vers[] = {
+    PURC_RDRCOMM_VERSION_HEADLESS,
+    PURC_RDRCOMM_VERSION_THREAD,
+    PURC_RDRCOMM_VERSION_SOCKET,
+    PURC_RDRCOMM_VERSION_HIBUS,
 };
+#endif
 
 static int _init_once(void)
 {
@@ -148,18 +150,23 @@ static int _init_instance(struct pcinst *curr_inst,
     struct pcinst *inst = curr_inst;
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
-    purc_rdrprot_t rdr_prot;
+    // purc_rdrcomm_t rdr_comm;
 
     if (extra_info == NULL ||
-            extra_info->renderer_prot == PURC_RDRPROT_HEADLESS) {
-        rdr_prot = PURC_RDRPROT_HEADLESS;
+            extra_info->renderer_comm == PURC_RDRCOMM_HEADLESS) {
+        // rdr_comm = PURC_RDRCOMM_HEADLESS;
         msg = pcrdr_headless_connect(
             extra_info ? extra_info->renderer_uri : NULL,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
-    else if (extra_info->renderer_prot == PURC_RDRPROT_PURCMC) {
-        rdr_prot = PURC_RDRPROT_PURCMC;
-        msg = pcrdr_purcmc_connect(extra_info->renderer_uri,
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_SOCKET) {
+        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        msg = pcrdr_socket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+    }
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
+        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
     else {
@@ -194,9 +201,9 @@ static int _init_instance(struct pcinst *curr_inst,
 
     purc_variant_t vs[10] = { NULL };
     vs[0] = purc_variant_make_string_static("protocolName", false);
-    vs[1] = purc_variant_make_string_static(prot_names[rdr_prot], false);
+    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
     vs[2] = purc_variant_make_string_static("protocolVersion", false);
-    vs[3] = purc_variant_make_ulongint(prot_vers[rdr_prot]);
+    vs[3] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
     vs[4] = purc_variant_make_string_static("hostName", false);
     vs[5] = purc_variant_make_string_static(inst->conn_to_rdr->own_host_name,
             false);

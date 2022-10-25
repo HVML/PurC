@@ -618,6 +618,14 @@ pcutils_get_next_token_len(const char *str, size_t str_len,
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
 
+PCA_EXPORT size_t
+pcutils_string_utf8_chars(const char *p, ssize_t max);
+
+extern const char * const _pcutils_utf8_skip;
+
+#define pcutils_utf8_next_char(p)   \
+    (char *)((p) + _pcutils_utf8_skip[*(const unsigned char *)(p)])
+
 /** Check validation of Unicode characters in a UTF-8 encoded string. */
 PCA_EXPORT bool
 pcutils_string_check_utf8_len(const char* str, size_t max_len,

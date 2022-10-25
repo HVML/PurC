@@ -19,11 +19,11 @@
 
 #undef NDEBUG
 
-#include "purc.h"
+#include "purc/purc.h"
 #include "private/list.h"
 #include "private/html.h"
 #include "private/dom.h"
-#include "purc-html.h"
+#include "purc/purc-html.h"
 #include "./html/interfaces/document.h"
 #include "private/interpreter.h"
 #include "html_ops.h"

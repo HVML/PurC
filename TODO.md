@@ -130,8 +130,8 @@
 
 ### 2.6) `purc`
 
-1. [0.9.0] A simple built-in HTML renderer for text terminal via `THREAD` protocol.
-1. [0.9.2] A full-featured and full-screen built-in HTML renderer for text terminal via `THREAD` protocol.
+1. [0.9.0] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
+1. [0.9.2] Enhance `foil` to support full-screen and multiple-page rendering.
 
 ### 2.7) More Platforms
 

@@ -7,9 +7,9 @@ if (NOT TARGET PurC::PurC)
     # Just assuming Windows for the moment
     add_library(PurC::PurC STATIC IMPORTED)
     set_target_properties(PurC::PurC PROPERTIES
-        IMPORTED_LOCATION ${WEBKIT_LIBRARIES_LINK_DIR}/PurC${DEBUG_SUFFIX}.lib
+        IMPORTED_LOCATION ${PURC_LIBRARIES_LINK_DIR}/PurC${DEBUG_SUFFIX}.lib
         # Should add Apple libraries here when https://bugs.webkit.org/show_bug.cgi?id=205085 lands
-        INTERFACE_LINK_LIBRARIES "PurC::WTF;PurC::JavaScriptCore"
+        INTERFACE_LINK_LIBRARIES "PurC::WTF"
     )
     set(PurC_PRIVATE_FRAMEWORK_HEADERS_DIR "${CMAKE_BINARY_DIR}/../include/private")
     target_include_directories(PurC::PurC INTERFACE

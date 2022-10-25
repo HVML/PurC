@@ -1,3 +1,5 @@
+add_subdirectory(csseng)
+add_subdirectory(domruler)
 add_subdirectory(utils)
 add_subdirectory(rwstream)
 add_subdirectory(variant)
@@ -16,6 +18,7 @@ add_subdirectory(interpreter)
 add_subdirectory(fetcher)
 add_subdirectory(wtf)
 add_subdirectory(externals)
+add_subdirectory(document)
 
 PURC_COPY_FILES(TEST_Script
     DESTINATION ${CMAKE_BINARY_DIR}/

@@ -21,8 +21,8 @@
 #ifndef PURC_TEST_INTR_TOOLS_H
 #define PURC_TEST_INTR_TOOLS_H
 
-#include "purc-macros.h"
-#include "purc-document.h"
+#include "purc/purc-macros.h"
+#include "purc/purc-document.h"
 
 #include "config.h"
 

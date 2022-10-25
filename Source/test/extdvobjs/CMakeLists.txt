@@ -8,9 +8,8 @@ enable_testing()
 PURC_EXECUTABLE_DECLARE(test_extdvobjs_math)
 
 list(APPEND test_extdvobjs_math_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -39,9 +38,8 @@ GTEST_DISCOVER_TESTS(test_extdvobjs_math DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_extdvobjs_fs)
 
 list(APPEND test_extdvobjs_fs_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
@@ -70,9 +68,8 @@ GTEST_DISCOVER_TESTS(test_extdvobjs_fs DISCOVERY_TIMEOUT 10)
 PURC_EXECUTABLE_DECLARE(test_extdvobjs_file)
 
 list(APPEND test_extdvobjs_file_PRIVATE_INCLUDE_DIRECTORIES
-    ${PURC_DIR}/include
-    ${PurC_DERIVED_SOURCES_DIR}
-    ${PURC_DIR}
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )

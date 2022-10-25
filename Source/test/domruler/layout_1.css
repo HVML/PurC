@@ -1,0 +1,50 @@
+#root { 
+    display: block; 
+    color: blue;
+}
+
+#title { 
+    position: relative; 
+    left: 20%; 
+    width: 100%; 
+    height: 20%; 
+    color: #123; 
+} 
+
+#description { 
+    position: relative; 
+    width: 100%; 
+    height: 10%; 
+    color: #124; 
+}
+
+#page { 
+    position: relative; 
+    width: 100%; 
+    height: 60%; 
+    color: #125; 
+}
+
+#indicator { 
+    position: relative; 
+    width: 100%; 
+    height: 10%; 
+    color: #126; 
+}
+
+hiweb { 
+    position: relative; 
+    width: 100%; 
+    height: 25%; 
+    color: #127; 
+    font-family: "Times New Roman", Times, serif; 
+    font-size:10px;
+}
+
+hijs { 
+    position: relative; 
+    width: 100%; 
+    height: 50%; 
+    color: #128; 
+    background:red;
+}

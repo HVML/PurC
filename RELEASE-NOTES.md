@@ -1,7 +1,40 @@
 # Release Notes
 
+- [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.0
+
+On Otc. 31, 2022, HVML Community announces the availability of PurC 0.9.0,
+   which is also the third alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.0
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   * Rename type `purc_rdrprot_t` to `purc_rdrcomm_t`.
+   * Rename macro `PURC_RDRPROT_HEADLESS` to `PURC_RDRCOMM_HEADLESS`.
+   * Rename macro `PURC_RDRPROT_THREAD` to `PURC_RDRCOMM_THREAD`.
+   * Rename macro `PURC_RDRPROT_PURCMC` to `PURC_RDRCOMM_SOCKET`.
+   * Rename macro `PURC_RDRPROT_HIBUS` to `PURC_RDRCOMM_HIBUS`.
+   * Rename the field `renderer_prot` of `struct purc_instance_extra_info` to `renderer_comm`.
+   * Change the value of macro `PCRDR_PURCMC_PROTOCOL_VERSION` to 110.
+   * Rename function `pcrdr_conn_protocol()` to `pcrdr_conn_comm_method()`.
+   * Rename function `pcrdr_purcmc_connect()` to `pcrdr_socket_connect()`.
+   * Rename function `pcrdr_purcmc_read_packet()` to `pcrdr_socket_read_packet()`.
+   * Rename function `pcrdr_purcmc_read_packet_alloc()` to `pcrdr_socket_read_packet_alloc()`.
+   * Rename function `pcrdr_purcmc_send_packet()` to `pcrdr_socket_send_packet()`.
+   * Rename macro `PCA_ENABLE_RENDERER_PURCMC` to `PCA_ENABLE_RENDERER_SOCKET`.
+* ADJUSTMENTS:
+   * Use `edpt://` instead of `@` as the schema of an endpoint URI.
+* ENHANCEMENTS:
+* OPTIMIZATIONS:
+* IMPROVEMENTS:
+* BUGFIXES:
 
 ## Version 0.8.2
 
@@ -14,7 +47,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 In this version, we fixed some bugs and made som enhancements:
 
-* BUGFIXING:
+* BUGFIXES:
    - The content of an `iterate` element may be evaluated twice.
    - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.
    - Refactor eJSON parser to support the varoius string patterns.
@@ -31,7 +64,7 @@ In this version, we fixed some bugs and made som enhancements:
    - Support for using Unihan characters in variable names and property/method names. See Section 2.2.2 of [HVML Specifiction V1.0].
 * OPTIMIZATIONS:
    - Optimize the content evaluation of foreign elements: make sure there is only one text node after evaluating the contents `$< Hello, world! --from COROUTINE-$CRTN.cid`.
-* IMPROVEMENT:
+* IMPROVEMENTS:
    - When the contents of the target document is very large, send the contents by using operations `writeBegin`, `writeMore`, and `writeEnd`.
    - Raise exceptions if encounter errors when the fetcher failed to load a resource of a given URL.
 * TUNING:
