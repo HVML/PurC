@@ -92,8 +92,8 @@
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
 1. [0.9.0; Resolved] Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.0] Improve the data fetcher to generate the progress events when fetching data.
-1. [0.9.0] Improve the function to get data from remote data fetcher:
+1. [0.9.0; Resolved] Improve the data fetcher to generate the progress events when fetching data.
+1. [0.9.0; Resolved] Improve the function to get data from remote data fetcher:
    - The element `archetype`: support for `src`, `param`, and `method` attributes.
    - The element `archedata`: support for `src`, `param`, and `method` attributes.
    - The element `execpt`: support for `src`, `param`, and `method` attributes.
