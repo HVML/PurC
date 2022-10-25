@@ -444,12 +444,14 @@ attr_found_val(struct pcintr_stack_frame *frame,
         ctxt->uniquely = 1;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASE)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 1;
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name
+            || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASELESS)) == name) {
         PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 0;
         return 0;
