@@ -101,7 +101,7 @@
    - The element `define`: support for `from`, `with`, and `via` attributes.
    - The element `update`: support for `from`, `with`, and `via` attributes.
 1. [0.9.0; Resolved] Support for the equivalence of the context variable `<`: `~`.
-1. [0.9.0] Support for the equivalences and/or abbreviations of some adverb attributes.
+1. [0.9.0; Resolved] Support for the equivalences and/or abbreviations of some adverb attributes.
 1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.2] Full support for `request` element.
