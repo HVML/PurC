@@ -623,13 +623,15 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
         case CSS_UNICODE_BIDI_PLAINTEXT:
             box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_PLAINTEXT;
             break;
+        case CSS_UNICODE_BIDI_NORMAL:
         default:
             box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_NORMAL;
             break;
         }
     }
 
-    LOG_DEBUG("\tunicode-bidi: %s\n", literal_values_unicode_bidi[box->unicode_bidi]);
+    LOG_DEBUG("\tunicode-bidi: %s\n",
+            literal_values_unicode_bidi[box->unicode_bidi]);
 
     /* determine text_transform */
     v = css_computed_text_transform(
@@ -820,7 +822,6 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
         box->word_break = ctxt->parent_box->word_break;
     else {
         switch (v) {
-        /* XXX: should be CSS_WORD_BREAK_BREAK_WORD */
         case CSS_WORD_BREAK_BREAK_WORD:
             box->word_break = FOIL_RDRBOX_WORD_BREAK_BREAK_WORD;
             break;
