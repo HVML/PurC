@@ -33,15 +33,15 @@ css_error css__cascade_unicode_bidi(uint32_t opv, css_style *style,
 		case UNICODE_BIDI_BIDI_OVERRIDE:
 			value = CSS_UNICODE_BIDI_BIDI_OVERRIDE;
 			break;
-        case UNICODE_BIDI_ISOLATE:
-            value = CSS_UNICODE_BIDI_ISOLATE;
-            break;
-        case UNICODE_BIDI_ISOLATE_OVERRIDE:
-            value = CSS_UNICODE_BIDI_ISOLATE_OVERRIDE;
-            break;
-        case UNICODE_BIDI_PLAINTEXT:
-            value = CSS_UNICODE_BIDI_PLAINTEXT;
-            break;
+		case UNICODE_BIDI_ISOLATE:
+			value = CSS_UNICODE_BIDI_ISOLATE;
+			break;
+		case UNICODE_BIDI_ISOLATE_OVERRIDE:
+			value = CSS_UNICODE_BIDI_ISOLATE_OVERRIDE;
+			break;
+		case UNICODE_BIDI_PLAINTEXT:
+			value = CSS_UNICODE_BIDI_PLAINTEXT;
+			break;
 		}
 	}
 
