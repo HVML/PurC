@@ -505,6 +505,8 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
 {
     uint8_t v;
 
+    LOG_DEBUG("Common style properties of element (%s):\n", ctxt->tag_name);
+
     /* determine direction */
     v = css_computed_direction(
             ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
@@ -1452,7 +1454,7 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
     assert(name != NULL && len > 0);
     ctxt->tag_name = strndup(name, len);
 
-    LOG_DEBUG("Styles of element (%s):\n", ctxt->tag_name);
+    LOG_DEBUG("Layout style properties of element (%s):\n", ctxt->tag_name);
 
     /* determine the box type */
     uint8_t display = css_computed_display(
