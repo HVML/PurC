@@ -26,10 +26,11 @@ find_package(LibCheck 0.15.2)
 find_package(LibXml2 2.8.0)
 find_package(HiBus 100)
 find_package(OpenSSL 1.1.1)
-#find_package(LibSoup 2.54.0)
-#find_package(CURL 7.60.0)
-#find_package(SQLite3 3.10.0)
-#find_package(MySQLClient 20.0.0)
+
+find_package(LibSoup 2.54.0)
+find_package(CURL 7.60.0)
+find_package(SQLite3 3.10.0)
+find_package(MySQLClient 20.0.0)
 
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)
@@ -106,10 +107,12 @@ endif ()
 set(PurC_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/PurC/purc.pc)
 set(CSSEng_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/CSSEng/csseng.pc)
 set(DOMRuler_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/DOMRuler/domruler.pc)
+set(RemoteFetcher_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/RemoteFetcher/purc_fetcher.pc)
 
 set(PurC_LIBRARY_TYPE SHARED)
 set(CSSEng_LIBRARY_TYPE SHARED)
 set(DOMRuler_LIBRARY_TYPE SHARED)
+set(RemoteFetcher_LIBRARY_TYPE SHARED)
 
 # CMake does not automatically add --whole-archive when building shared objects from
 # a list of convenience libraries. This can lead to missing symbols in the final output.

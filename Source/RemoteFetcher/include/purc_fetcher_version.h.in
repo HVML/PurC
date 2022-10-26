@@ -1,0 +1,163 @@
+/**
+ * @file purc_fetcher_version.h
+ * @author Vincent Wei (https://github.com/VincentWei)
+ * @date 2021/09/18
+ * @brief The version of PurCFetcher.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurCFetcher, which contains the examples of my course:
+ * _the Best Practices of C Language_.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the “Software”), to
+ * deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom
+ * the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef PURCFETCHER_PURCFETCHER_VERSION_H
+#define PURCFETCHER_PURCFETCHER_VERSION_H
+
+#include "purc_fetcher_macros.h"
+
+/**
+ * PURCFETCHER_VERSION_MAJOR:
+ *
+ * Like purc_fetcher_get_major_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define PURCFETCHER_VERSION_MAJOR (@PROJECT_VERSION_MAJOR@)
+
+/**
+ * PURCFETCHER_VERSION_MINOR:
+ *
+ * Like purc_fetcher_get_minor_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define PURCFETCHER_VERSION_MINOR (@PROJECT_VERSION_MINOR@)
+
+/**
+ * PURCFETCHER_VERSION_MICRO:
+ *
+ * Like purc_fetcher_get_micro_version(), but from the headers used at
+ * application compile time, rather than from the library linked
+ * against at application run time.
+ *
+ * Since 0.0.1
+ */
+#define PURCFETCHER_VERSION_MICRO (@PROJECT_VERSION_MICRO@)
+
+#define PURCFETCHER_VERSION_STRING ("@PROJECT_VERSION@")
+
+/**
+ * PURCFETCHER_CHECK_VERSION:
+ *
+ * @major: major version (e.g. 1 for version 1.2.5)
+ * @minor: minor version (e.g. 2 for version 1.2.5)
+ * @micro: micro version (e.g. 5 for version 1.2.5)
+ *
+ * Returns: %TRUE if the version of the PurCFetcher header files
+ * is the same as or newer than the passed-in version.
+ *
+ * Since 0.0.1
+ */
+#define PURCFETCHER_CHECK_VERSION(major, minor, micro) \
+    (PURCFETCHER_VERSION_MAJOR > (major) || \
+    (PURCFETCHER_VERSION_MAJOR == (major) && PURCFETCHER_VERSION_MINOR > (minor)) || \
+    (PURCFETCHER_VERSION_MAJOR == (major) && PURCFETCHER_VERSION_MINOR == (minor) && \
+     PURCFETCHER_VERSION_MICRO >= (micro)))
+
+PURCFETCHER_EXTERN_C_BEGIN
+
+/**
+ * purc_fetcher_get_major_version:
+ *
+ * Returns: The major version of PurCFetcher.
+ *
+ * Since 0.0.1
+ */
+PURCFETCHER_INLINE int
+purc_fetcher_get_major_version(void)
+{
+    return PURCFETCHER_VERSION_MAJOR;
+}
+
+/**
+ * purc_fetcher_get_minor_version:
+ *
+ * Returns: The minor version of PurCFetcher.
+ *
+ * Since 0.0.1
+ */
+PURCFETCHER_INLINE int
+purc_fetcher_get_minor_version(void)
+{
+    return PURCFETCHER_VERSION_MINOR;
+}
+
+/**
+ * purc_fetcher_get_micro_version:
+ *
+ * Returns: The micro version of PurCFetcher.
+ *
+ * Since 0.0.1
+ */
+PURCFETCHER_INLINE int
+purc_fetcher_get_micro_version(void)
+{
+    return PURCFETCHER_VERSION_MICRO;
+}
+
+/**
+ * purc_fetcher_get_versions:
+ *
+ * @major: the buffer for major version (nullable).
+ * @minor: the buffer for minor version (nullable).
+ * @micro: the buffer for micro version (nullable).
+ *
+ * Returns: none.
+ *
+ * Since 0.0.1
+ */
+PURCFETCHER_INLINE void
+purc_fetcher_get_versions (int *major, int *minor, int *micro) {
+    if (major) *major = PURCFETCHER_VERSION_MAJOR;
+    if (minor) *minor = PURCFETCHER_VERSION_MINOR;
+    if (micro) *micro = PURCFETCHER_VERSION_MICRO;
+}
+
+/**
+ * purc_fetcher_version_string:
+ *
+ * Returns: the pointer to the PurCFetcher version string, e.g.,
+ * "1.2.3" for version 1.2.3.
+ *
+ * Since 0.0.1
+ */
+PURCFETCHER_INLINE const char *
+purc_fetcher_get_version_string (void) {
+    return PURCFETCHER_VERSION_STRING;
+}
+
+PURCFETCHER_EXTERN_C_END
+
+#endif /* not defined PURCFETCHER_PURCFETCHER_VERSION_H */

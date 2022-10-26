@@ -21,14 +21,15 @@ add_subdirectory(Samples)
 
 add_subdirectory(Executables)
 
+if (ENABLE_BUILD_REMOTE_FETCHER)
+    add_subdirectory(ThirdParty/xdgmime)
+    add_subdirectory(RemoteFetcher)
+endif ()
+
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)
     add_subdirectory(valgrind)
     add_subdirectory(test)
-endif ()
-
-if (ENABLE_BUILD_REMOTE_FETCHER)
-    add_subdirectory(ThirdParty/xdgmime)
 endif ()
 
 PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()

@@ -1,0 +1,13 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: PurCFetcher
+Description: The remote data fetcher for PurC.
+URL: https://github.com/HVML/PurC-Fetcher
+Version: @PROJECT_VERSION@
+Requires.private: @PURCFETCHER_PKGCONFIG_REQUIRES@
+Libs: -L${libdir} -lpurc_fetcher
+Libs.private: @PURCFETCHER_PKGCONFIG_LIBS@
+Cflags: -I${includedir} @PURCFETCHER_PKGCONFIG_CFLAGS@

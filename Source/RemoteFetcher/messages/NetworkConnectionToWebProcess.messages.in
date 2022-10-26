@@ -1,0 +1,77 @@
+# Copyright (C) 2012-2019 Apple Inc. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1.  Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+# 2.  Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+messages -> NetworkConnectionToWebProcess LegacyReceiver {
+
+    ScheduleResourceLoad(PurCFetcher::NetworkResourceLoadParameters resourceLoadParameters)
+    PerformSynchronousLoad(PurCFetcher::NetworkResourceLoadParameters resourceLoadParameters) -> (PurCFetcher::ResourceError error, PurCFetcher::ResourceResponse response, Vector<char> data) Synchronous
+    TestProcessIncomingSyncMessagesWhenWaitingForSyncReply(PurCFetcher::WebPageProxyIdentifier pageID) -> (bool handled) Synchronous
+    LoadPing(PurCFetcher::NetworkResourceLoadParameters resourceLoadParameters)
+    RemoveLoadIdentifier(uint64_t resourceLoadIdentifier)
+    PageLoadCompleted(PurCFetcher::PageIdentifier webPageID)
+    BrowsingContextRemoved(PurCFetcher::WebPageProxyIdentifier webPageProxyID, PurCFetcher::PageIdentifier webPageID, PurCFetcher::FrameIdentifier webFrameID)
+    PrefetchDNS(String hostname)
+    PreconnectTo(Optional<uint64_t> preconnectionIdentifier, PurCFetcher::NetworkResourceLoadParameters loadParameters);
+
+    StartDownload(PurCFetcher::DownloadID downloadID, PurCFetcher::ResourceRequest request, enum:bool Optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain, String suggestedName)
+    ConvertMainResourceLoadToDownload(uint64_t mainResourceLoadIdentifier, PurCFetcher::DownloadID downloadID, PurCFetcher::ResourceRequest request, PurCFetcher::ResourceResponse response, enum:bool Optional<PurCFetcher::NavigatingToAppBoundDomain> isNavigatingToAppBoundDomain)
+
+    CookiesForDOM(URL firstParty, struct PurCFetcher::SameSiteInfo sameSiteInfo, URL url, PurCFetcher::FrameIdentifier frameID, PurCFetcher::PageIdentifier pageID, enum:bool PurCFetcher::IncludeSecureCookies includeSecureCookies, enum:bool PurCFetcher::ShouldAskITP shouldAskITP, enum:bool PurCFetcher::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking) -> (String cookieString, bool didAccessSecureCookies) Synchronous
+    SetCookiesFromDOM(URL firstParty, struct PurCFetcher::SameSiteInfo sameSiteInfo, URL url, PurCFetcher::FrameIdentifier frameID, PurCFetcher::PageIdentifier pageID, enum:bool PurCFetcher::ShouldAskITP shouldAskITP, String cookieString, enum:bool PurCFetcher::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking)
+    CookieRequestHeaderFieldValue(URL firstParty, struct PurCFetcher::SameSiteInfo sameSiteInfo, URL url, Optional<PurCFetcher::FrameIdentifier> frameID, Optional<PurCFetcher::PageIdentifier> pageID, enum:bool PurCFetcher::IncludeSecureCookies includeSecureCookies, enum:bool PurCFetcher::ShouldAskITP shouldAskITP, enum:bool PurCFetcher::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking) -> (String cookieString, bool didAccessSecureCookies) Synchronous
+    GetRawCookies(URL firstParty, struct PurCFetcher::SameSiteInfo sameSiteInfo, URL url, Optional<PurCFetcher::FrameIdentifier> frameID, Optional<PurCFetcher::PageIdentifier> pageID, enum:bool PurCFetcher::ShouldAskITP shouldAskITP, enum:bool PurCFetcher::ShouldRelaxThirdPartyCookieBlocking shouldRelaxThirdPartyCookieBlocking) -> (Vector<PurCFetcher::Cookie> cookies) Synchronous
+    SetRawCookie(struct PurCFetcher::Cookie cookie)
+    DeleteCookie(URL url, String cookieName)
+    DomCookiesForHost(String host, bool subscribeToCookieChangeNotifications) -> (Vector<PurCFetcher::Cookie> cookies) Synchronous
+#if HAVE(COOKIE_CHANGE_LISTENER_API)
+    UnsubscribeFromCookieChangeNotifications(HashSet<String> hosts)
+#endif
+
+    SetCaptureExtraNetworkLoadMetricsEnabled(bool enabled)
+
+    CreateSocketStream(URL url, String cachePartition, PurCFetcher::WebSocketIdentifier identifier)
+    CreateSocketChannel(PurCFetcher::ResourceRequest request, String protocol, PurCFetcher::WebSocketIdentifier identifier)
+
+    AddOriginAccessWhitelistEntry(String sourceOrigin, String destinationProtocol, String destinationHost, bool allowDestinationSubdomains);
+    RemoveOriginAccessWhitelistEntry(String sourceOrigin, String destinationProtocol, String destinationHost, bool allowDestinationSubdomains);
+    ResetOriginAccessWhitelists();
+
+    GetNetworkLoadInformationResponse(uint64_t resourceLoadIdentifier) -> (PurCFetcher::ResourceResponse response) Synchronous
+    GetNetworkLoadIntermediateInformation(uint64_t resourceLoadIdentifier) -> (Vector<PurCFetcher::NetworkTransactionInformation> transactions) Synchronous
+    TakeNetworkLoadInformationMetrics(uint64_t resourceLoadIdentifier) -> (PurCFetcher::NetworkLoadMetrics networkMetrics) Synchronous
+
+#if ENABLE(SERVICE_WORKER)
+    EstablishSWContextConnection(PurCFetcher::RegistrableDomain domain) -> () Async
+    CloseSWContextConnection()
+#endif
+
+    UpdateQuotaBasedOnSpaceUsageForTesting(struct PurCFetcher::ClientOrigin origin)
+    CreateNewMessagePortChannel(struct PurCFetcher::MessagePortIdentifier port1, struct PurCFetcher::MessagePortIdentifier port2)
+    EntangleLocalPortInThisProcessToRemote(struct PurCFetcher::MessagePortIdentifier local, struct PurCFetcher::MessagePortIdentifier remote)
+    MessagePortDisentangled(struct PurCFetcher::MessagePortIdentifier local)
+    MessagePortClosed(struct PurCFetcher::MessagePortIdentifier local)
+    TakeAllMessagesForPort(struct PurCFetcher::MessagePortIdentifier port) -> (Vector<PurCFetcher::MessageWithMessagePorts> messages, uint64_t messageBatchIdentifier) Async
+    PostMessageToRemote(struct PurCFetcher::MessageWithMessagePorts message, struct PurCFetcher::MessagePortIdentifier remote)
+    CheckRemotePortForActivity(struct PurCFetcher::MessagePortIdentifier port) -> (bool hasActivity) Async
+    DidDeliverMessagePortMessages(uint64_t messageBatchIdentifier)
+    RegisterURLSchemesAsCORSEnabled(Vector<String> schemes);
+}

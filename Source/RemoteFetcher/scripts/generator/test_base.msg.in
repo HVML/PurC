@@ -1,0 +1,6 @@
+base -> test_base {
+    uint32_t id;
+    struct pcfetcher_string name;
+    struct pcfetcher_url url;
+    array pcfetcher_string addrs;
+}

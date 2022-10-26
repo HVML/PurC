@@ -1,0 +1,108 @@
+/**
+ * @file purc_fetcher_features.h
+ * @author Vincent Wei (<https://github.com/VincentWei>)
+ * @date 2021/09/18
+ * @brief The API to test features enabled in compile time.
+ *
+ * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ *
+ * This file is a part of PurCFetcher, which contains the examples of my course:
+ * _the Best Practices of C Language_.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the “Software”), to
+ * deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom
+ * the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef PURCFETCHER_PURCFETCHER_FEATURES_H
+#define PURCFETCHER_PURCFETCHER_FEATURES_H
+
+#include <stdbool.h>
+
+#include "purc_fetcher_macros.h"
+
+/**
+ * purc_fetcher_feature:
+ *
+ * @PURCFETCHER_FEATURE_HTML:
+ *      The HTML parser is enabled.
+ * @PURCFETCHER_FEATURE_XGML:
+ *      The XGML parser is enabled.
+ * @PURCFETCHER_FEATURE_XML:
+ *      The XML parser is enabled.
+ * @PURCFETCHER_FEATURE_LCMD:
+ *      The URL schema LCMD is enabled.
+ * @PURCFETCHER_FEATURE_LSQL:
+ *      The URL schema LSQL is enabled.
+ * @PURCFETCHER_FEATURE_RSQL:
+ *      The URL schema RSQL is enabled.
+ * @PURCFETCHER_FEATURE_HTTP:
+ *      The URL schema HTTP is enabled.
+ * @PURCFETCHER_FEATURE_HIBUS:
+ *      The listener on hiBus is enabled.
+ * @PURCFETCHER_FEATURE_MQTT:
+ *      The listener on connnection MQTT is enabled.
+ * @PURCFETCHER_FEATURE_SSL:
+ *      The secure socket connection is enabled.
+ *
+ * Enum values used for testing feature.
+ */
+enum purc_fetcher_feature {
+    PURCFETCHER_FEATURE_HTML,
+    PURCFETCHER_FEATURE_XGML,
+    PURCFETCHER_FEATURE_XML,
+    PURCFETCHER_FEATURE_LCMD,
+    PURCFETCHER_FEATURE_LSQL,
+    PURCFETCHER_FEATURE_RSQL,
+    PURCFETCHER_FEATURE_HTTP,
+    PURCFETCHER_FEATURE_HIBUS,
+    PURCFETCHER_FEATURE_MQTT,
+    PURCFETCHER_FEATURE_SSL,
+};
+
+#define _PURCFETCHER_ON      1
+#define _PURCFETCHER_OFF     0
+
+#define PURCFETCHER_ENABLE_HTML                 _PURCFETCHER_@ENABLE_HTML@
+#define PURCFETCHER_ENABLE_XGML                 _PURCFETCHER_@ENABLE_XGML@
+#define PURCFETCHER_ENABLE_XML                  _PURCFETCHER_@ENABLE_XML@
+#define PURCFETCHER_ENABLE_LCMD                 _PURCFETCHER_@ENABLE_LCMD@
+#define PURCFETCHER_ENABLE_LSQL                 _PURCFETCHER_@ENABLE_LSQL@
+#define PURCFETCHER_ENABLE_RSQL                 _PURCFETCHER_@ENABLE_RSQL@
+#define PURCFETCHER_ENABLE_HTTP                 _PURCFETCHER_@ENABLE_HTTP@
+#define PURCFETCHER_ENABLE_HIBUS                _PURCFETCHER_@ENABLE_HIBUS@
+#define PURCFETCHER_ENABLE_MQTT                 _PURCFETCHER_@ENABLE_MQTT@
+#define PURCFETCHER_ENABLE_SSL                  _PURCFETCHER_@ENABLE_SSL@
+
+PURCFETCHER_EXTERN_C_BEGIN
+
+/**
+ * purc_fetcher_is_feature_enabled:
+ *
+ * @feature: the feature identifier.
+ *
+ * @see_also #purc_fetcher_feature
+ *
+ * Returns: @true for enabled, otherwise false.
+ */
+PURCFETCHER_EXPORT bool
+purc_fetcher_is_feature_enabled(enum purc_fetcher_feature feature);
+
+PURCFETCHER_EXTERN_C_END
+
+#endif /* not defined PURCFETCHER_PURCFETCHER_FEATURES_H */
+
