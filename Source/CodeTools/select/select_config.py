@@ -164,6 +164,7 @@ style = {
     ('text_overflow', 2, 'string'),
     ('text_shadow', 5, None, None, 'CSS_TEXT_SHADOW_SET', None, ('get', 'set')),
     ('word_break', 4),
+    ('line_break', 4),
     ('word_wrap', 4),
     ('baseline_shift', 4),
     ('clip_path', 1, 'string'),
