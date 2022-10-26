@@ -1,4 +1,4 @@
-set(RemoteFetcher_OUTPUT_NAME purc_fetcher)
+set(RemoteFetcher_OUTPUT_NAME remote_fetcher)
 
 list(APPEND RemoteFetcher_PRIVATE_INCLUDE_DIRECTORIES
     "${REMOTEFETCHER_DIR}/ipc/unix"
@@ -41,7 +41,7 @@ if (ENABLE_SOCKET_STREAM)
     )
 endif ()
 
-configure_file(ports/linux/purc_fetcher.pc.in ${RemoteFetcher_PKGCONFIG_FILE} @ONLY)
+configure_file(ports/linux/remote_fetcher.pc.in ${RemoteFetcher_PKGCONFIG_FILE} @ONLY)
 install(FILES "${RemoteFetcher_PKGCONFIG_FILE}"
         DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
 )

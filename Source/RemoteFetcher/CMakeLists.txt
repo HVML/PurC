@@ -112,7 +112,7 @@ if (UNIX)
     endif ()
 endif ()
 
-set(RemoteFetcher_INTERFACE_LIBRARIES PurCFetcher)
+set(RemoteFetcher_INTERFACE_LIBRARIES RemoteFetcher)
 set(RemoteFetcher_INTERFACE_INCLUDE_DIRECTORIES ${RemoteFetcher_PRIVATE_FRAMEWORK_HEADERS_DIR})
 
 PURC_FRAMEWORK_DECLARE(RemoteFetcher)
@@ -121,7 +121,7 @@ PURC_INCLUDE_CONFIG_FILES_IF_EXISTS()
 PURC_WRAP_SOURCELIST(${RemoteFetcher_SOURCES})
 
 PURC_COPY_FILES(RemoteFetcher_CopyPrivateHeaders
-    DESTINATION ${RemoteFetcher_PRIVATE_FRAMEWORK_HEADERS_DIR}/purc_fetcher
+    DESTINATION ${RemoteFetcher_PRIVATE_FRAMEWORK_HEADERS_DIR}/remote_fetcher
     FILES ${RemoteFetcher_PRIVATE_FRAMEWORK_HEADERS}
     FLATTENED
 )
@@ -164,5 +164,5 @@ install(TARGETS RemoteFetcher
 )
 
 install(FILES ${RemoteFetcher_INSTALLED_HEADERS}
-        DESTINATION "${HEADER_INSTALL_DIR}/purc_fetcher"
+        DESTINATION "${HEADER_INSTALL_DIR}/remote_fetcher"
 )
