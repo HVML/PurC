@@ -98,6 +98,44 @@ enum {
     FOIL_RDRBOX_VISIBILITY_COLLAPSE,
 };
 
+/* the text-align of a block container. */
+enum {
+    FOIL_RDRBOX_TEXT_ALIGN_LEFT = 0,
+    FOIL_RDRBOX_TEXT_ALIGN_RIGHT,
+    FOIL_RDRBOX_TEXT_ALIGN_CENTER,
+    FOIL_RDRBOX_TEXT_ALIGN_JUSTIFY,
+};
+
+/* the text-overflow of a block container. */
+enum {
+    FOIL_RDRBOX_TEXT_OVERFLOW_CLIP = 0,
+    FOIL_RDRBOX_TEXT_OVERFLOW_ELLIPSIS,
+};
+
+/* the word-break of a box. */
+enum {
+    FOIL_RDRBOX_WORD_BREAK_NORMAL = 0,
+    FOIL_RDRBOX_WORD_BREAK_KEEP_ALL,
+    FOIL_RDRBOX_WORD_BREAK_BREAK_ALL,
+    FOIL_RDRBOX_WORD_BREAK_BREAK_WORD,
+};
+
+/* the line-break of a box. */
+enum {
+    FOIL_RDRBOX_LINE_BREAK_AUTO = 0,
+    FOIL_RDRBOX_LINE_BREAK_LOOSE,
+    FOIL_RDRBOX_LINE_BREAK_NORMAL,
+    FOIL_RDRBOX_LINE_BREAK_STRICT,
+    FOIL_RDRBOX_LINE_BREAK_ANYWHERE,
+};
+
+/* the word-wrap of a box. */
+enum {
+    FOIL_RDRBOX_WORD_WRAP_NORMAL = 0,
+    FOIL_RDRBOX_WORD_WRAP_BREAK_WORD,
+    FOIL_RDRBOX_WORD_WRAP_ANYWHERE,
+};
+
 enum {
     FOIL_RDRBOX_TYPE_INLINE = 0,
     FOIL_RDRBOX_TYPE_BLOCK,
@@ -158,6 +196,7 @@ struct foil_rdrbox {
 
     /* used values of properties for all elements */
     unsigned type:4;
+    unsigned is_block_container:1;
     unsigned position:3;
     unsigned floating:2;
     unsigned direction:1;
@@ -171,6 +210,18 @@ struct foil_rdrbox {
     unsigned text_deco_line_through:1;
     unsigned text_deco_blink:1;
     unsigned white_space:3;
+    unsigned text_align:2;
+    unsigned text_overflow:1;
+    unsigned word_break:2;
+    unsigned line_break:3;
+    unsigned word_wrap:2;
+
+    int letter_spacing;
+    int word_spacing;
+    int text_indent;
+
+    uint32_t fgc;   // ARGB
+    uint32_t bgc;   // ARGB
 
     /* layout flags */
     unsigned height_pending:1;
@@ -180,12 +231,6 @@ struct foil_rdrbox {
     int mt, ml, mr, mb;     // margins
     int bt, bl, br, bb;     // borders
     int pt, pl, pr, pb;     // paddings
-
-    int letter_spacing;
-    int word_spacing;
-
-    uint32_t fgc;   // ARGB
-    uint32_t bgc;   // ARGB
 
     /* the containing block */
     foil_rect cblock_rect;
