@@ -803,6 +803,12 @@ uint8_t css_computed_text_indent(const css_computed_style *style,
 	return get_text_indent(style, length, unit);
 }
 
+uint8_t css_computed_text_overflow(const css_computed_style *style,
+		lwc_string **string)
+{
+	return get_text_overflow(style, string);
+}
+
 uint8_t css_computed_white_space(const css_computed_style *style)
 {
 	return get_white_space(style);
@@ -1866,6 +1872,12 @@ uint8_t css_computed_text_shadow(
 uint8_t css_computed_word_break(const css_computed_style *style)
 {
     return get_word_break(style);
+}
+
+uint8_t css_computed_line_break(
+        const css_computed_style *style)
+{
+    return get_line_break(style);
 }
 
 uint8_t css_computed_word_wrap(const css_computed_style *style)

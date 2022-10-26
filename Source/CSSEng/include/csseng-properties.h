@@ -184,6 +184,7 @@ enum css_properties_e {
 	CSS_PROP_STROKE_MITERLIMIT = 0xa6,
 	CSS_PROP_TEXT_ANCHOR = 0xa7,
 	CSS_PROP_TEXT_RENDERING = 0xa8,
+	CSS_PROP_LINE_BREAK = 0xa9,
 
 	CSS_N_PROPERTIES
 };
@@ -1004,16 +1005,26 @@ enum css_text_shadow_e {
 
 enum css_word_break_e {
     CSS_WORD_BREAK_INHERIT        = 0x0,
-    CSS_WORD_BREAK_AUTO           = 0x1,
-    CSS_WORD_BREAK_NORMAL         = 0x2,
-    CSS_WORD_BREAK_BREAK_ALL      = 0x3,
-    CSS_WORD_BREAK_KEEP_ALL       = 0x4
+    CSS_WORD_BREAK_NORMAL         = 0x1,
+    CSS_WORD_BREAK_BREAK_ALL      = 0x2,
+    CSS_WORD_BREAK_KEEP_ALL       = 0x3,
+    CSS_WORD_BREAK_BREAK_WORD     = 0x4,
+};
+
+enum css_line_break_e {
+    CSS_LINE_BREAK_INHERIT        = 0x0,
+    CSS_LINE_BREAK_AUTO           = 0x1,
+    CSS_LINE_BREAK_LOOSE          = 0x2,
+    CSS_LINE_BREAK_NORMAL         = 0x3,
+    CSS_LINE_BREAK_STRICT         = 0x4,
+    CSS_LINE_BREAK_ANYWHERE       = 0x5,
 };
 
 enum css_word_wrap_e {
     CSS_WORD_WRAP_INHERIT        = 0x0,
     CSS_WORD_WRAP_NORMAL         = 0x1,
-    CSS_WORD_WRAP_BREAK_WORD     = 0x2
+    CSS_WORD_WRAP_BREAK_WORD     = 0x2,
+    CSS_WORD_WRAP_ANYWHERE       = 0x3
 };
 
 enum css_baseline_shift_e {

@@ -549,6 +549,9 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "bevel", SLEN("bevel") },
 	{ "optimizelegibility", SLEN("optimizelegibility") },
 	{ "ellipsis", SLEN("ellipsis") },
+	{ "loose", SLEN("loose") },
+	{ "strict", SLEN("strict") },
+	{ "anywhere", SLEN("anywhere") },
 
 
 	{ "aliceblue", SLEN("aliceblue") },
