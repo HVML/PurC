@@ -1627,6 +1627,8 @@ TEST(utils, url)
     for (size_t i = 0; i < sizeof(good_url)/sizeof(good_url[0]); i++) {
         struct purc_broken_down_url broken_down;
 
+        memset(&broken_down, 0, sizeof(broken_down));
+
         printf("breaking down: %s\n", good_url[i].url);
 
         bool ret = pcutils_url_break_down(&broken_down, good_url[i].url);
