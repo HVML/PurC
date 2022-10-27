@@ -30,7 +30,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/ExportMacros.h>
 
-#if OS(LINUX)
+#if OS(LINUX) || PLATFORM(MAC)
 #define USE_NCURSES                         1
 #endif
 

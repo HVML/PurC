@@ -41,7 +41,7 @@
 
 #include <ctype.h>
 
-#ifdef HAVE_STRVERSCMP
+#if HAVE(STRVERSCMP)
 int strverscmp(const char *s1, const char *s2);
 #endif /* HAVE_STRVERSCMP */
 
@@ -51,7 +51,7 @@ int strverscmp(const char *s1, const char *s2);
 
 /*** file scope macro definitions ****************************************************************/
 
-#ifndef HAVE_STRVERSCMP
+#if !HAVE(STRVERSCMP)
 
 /* states: S_N: normal, S_I: comparing integral part, S_F: comparing
    fractional parts, S_Z: idem but with leading Zeroes only */
@@ -84,7 +84,7 @@ int strverscmp(const char *s1, const char *s2);
 int
 str_verscmp (const char *s1, const char *s2)
 {
-#ifdef HAVE_STRVERSCMP
+#if HAVE(STRVERSCMP)
     return strverscmp (s1, s2);
 
 #else /* HAVE_STRVERSCMP */
