@@ -105,7 +105,7 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(ENABLE_LCMD "Toggle support for LCMD protocol" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_LSQL "Toggle support for LSQL protocol" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_RSQL "Toggle support for RSQL protocol" PUBLIC OFF)
-    PURC_OPTION_DEFINE(ENABLE_HTTP "Toggle support for HTTP protocol" PUBLIC OFF)
+    PURC_OPTION_DEFINE(ENABLE_HTTP "Toggle support for HTTP protocol" PRIVATE ON)
 #PURC_OPTION_DEPEND(ENABLE_XSLT ENABLE_XML)
 endmacro()
 
