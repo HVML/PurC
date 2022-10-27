@@ -80,7 +80,7 @@ You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g.
 
 We assume that you are using Linux.
 
-After fetched the source of PurC, you can change to the root of the source treen,
+After fetched the source of PurC, you can change to the root of the source tree,
       and use the following command line to build and install PurC:
 
 ```
@@ -325,7 +325,7 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 ```
 
 Assume you named the enhanced version as `hello-10.hvml`,
-       we can run the two program as two coroutines in parallel by specifying the command line flag `-l`:
+       we can run the program as two coroutines in parallel by specifying the command line flag `-l`:
 
 ```bash
 $ purc -l hello-10.hvml hello-10.hvml
