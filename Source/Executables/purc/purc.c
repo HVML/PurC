@@ -154,7 +154,7 @@ static void print_usage(FILE *fp)
         "            - For the renderer comm method `socket`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
-        "  -t --request=< json_file | - >\n"
+        "  -q --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
         "        stdin stream.\n"
@@ -162,13 +162,13 @@ static void print_usage(FILE *fp)
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
         "\n"
-        "  -b --verbose\n"
+        "  -v --verbose\n"
         "        Execute the program(s) with verbose output.\n"
         "\n"
-        "  -c --copying\n"
+        "  -C --copying\n"
         "        Display detailed copying information and exit.\n"
         "\n"
-        "  -v --version\n"
+        "  -V --version\n"
         "        Display version information and exit.\n"
         "\n"
         "  -h --help\n"
@@ -369,18 +369,18 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:t:lbCvh";
+    static const char short_options[] = "a:r:d:c:u:q:lvCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
         { "data-fetcher"   , required_argument , NULL , 'd' },
         { "rdr-comm"       , required_argument , NULL , 'c' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
-        { "request"        , required_argument , NULL , 't' },
+        { "request"        , required_argument , NULL , 'q' },
         { "parallel"       , no_argument       , NULL , 'l' },
-        { "verbose"        , no_argument       , NULL , 'b' },
+        { "verbose"        , no_argument       , NULL , 'v' },
         { "copying"        , no_argument       , NULL , 'C' },
-        { "version"        , no_argument       , NULL , 'v' },
+        { "version"        , no_argument       , NULL , 'V' },
         { "help"           , no_argument       , NULL , 'h' },
         { 0, 0, 0, 0 }
     };
