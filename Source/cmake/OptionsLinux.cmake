@@ -26,12 +26,24 @@ find_package(LibCheck 0.15.2)
 find_package(LibXml2 2.8.0)
 find_package(HiBus 100)
 find_package(OpenSSL 1.1.1)
+#find_package(CURL 7.60.0)
 
-find_package(LibSoup 2.54.0)
-find_package(LibGcrypt 1.6.0 REQUIRED)
-find_package(CURL 7.60.0)
-find_package(SQLite3 3.10.0)
-find_package(MySQLClient 20.0.0)
+if (ENABLE_BUILD_REMOTE_FETCHER)
+    set(ENABLE_LCMD ON)
+    set(ENABLE_LSQL ON)
+
+    find_package(LibSoup 2.54.0)
+    find_package(LibGcrypt 1.6.0 REQUIRED)
+
+if (ENABLE_LSQL)
+    find_package(SQLite3 3.10.0)
+endif ()
+
+if (ENABLE_RSQL)
+    find_package(MySQLClient 20.0.0)
+endif ()
+
+endif ()
 
 if (NOT GLIB_FOUND)
     set(ENABLE_SOCKET_STREAM_DEFAULT OFF)
