@@ -1,4 +1,4 @@
-set(RemoteFetcher_OUTPUT_NAME remote_fetcher)
+set(RemoteFetcher_OUTPUT_NAME purc-fetcher)
 
 include_directories(/usr/local/opt/libgpg-error/include/)
 add_definitions(-Wno-deprecated-declarations)
@@ -45,7 +45,7 @@ if (ENABLE_SOCKET_STREAM)
     )
 endif ()
 
-configure_file(ports/linux/remote_fetcher.pc.in ${RemoteFetcher_PKGCONFIG_FILE} @ONLY)
+configure_file(ports/linux/purc-fetcher.pc.in ${RemoteFetcher_PKGCONFIG_FILE} @ONLY)
 install(FILES "${RemoteFetcher_PKGCONFIG_FILE}"
         DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
 )

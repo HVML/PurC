@@ -3,10 +3,10 @@ exec_prefix=${prefix}
 libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: RemoteFetcher
+Name: PurC Fetcher
 Description: The remote data fetcher for PurC.
 Version: @PROJECT_VERSION@
 Requires.private: @PURCFETCHER_PKGCONFIG_REQUIRES@
-Libs: -L${libdir} -lremote_fetcher
+Libs: -L${libdir} -lpurc-fetcher
 Libs.private: @PURCFETCHER_PKGCONFIG_LIBS@
 Cflags: -I${includedir} @PURCFETCHER_PKGCONFIG_CFLAGS@

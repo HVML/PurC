@@ -164,5 +164,5 @@ install(TARGETS RemoteFetcher
 )
 
 install(FILES ${RemoteFetcher_INSTALLED_HEADERS}
-        DESTINATION "${HEADER_INSTALL_DIR}/remote_fetcher"
+        DESTINATION "${HEADER_INSTALL_DIR}/purc-fetcher"
 )

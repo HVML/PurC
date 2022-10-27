@@ -108,7 +108,7 @@ endif ()
 set(PurC_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/PurC/purc.pc)
 set(CSSEng_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/CSSEng/csseng.pc)
 set(DOMRuler_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/DOMRuler/domruler.pc)
-set(RemoteFetcher_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/RemoteFetcher/remote_fetcher.pc)
+set(RemoteFetcher_PKGCONFIG_FILE ${CMAKE_BINARY_DIR}/Source/RemoteFetcher/purc-fetcher.pc)
 
 set(PurC_LIBRARY_TYPE SHARED)
 set(CSSEng_LIBRARY_TYPE SHARED)
