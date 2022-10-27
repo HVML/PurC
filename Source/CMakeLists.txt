@@ -17,14 +17,14 @@ add_subdirectory(CSSEng)
 
 add_subdirectory(DOMRuler)
 
-add_subdirectory(Samples)
-
-add_subdirectory(Executables)
-
 if (ENABLE_BUILD_REMOTE_FETCHER)
     add_subdirectory(ThirdParty/xdgmime)
     add_subdirectory(RemoteFetcher)
 endif ()
+
+add_subdirectory(Samples)
+
+add_subdirectory(Executables)
 
 if (ENABLE_API_TESTS)
     add_subdirectory(ThirdParty/gtest)

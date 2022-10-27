@@ -28,6 +28,7 @@ find_package(HiBus 100)
 find_package(OpenSSL 1.1.1)
 
 find_package(LibSoup 2.54.0)
+find_package(LibGcrypt 1.6.0 REQUIRED)
 find_package(CURL 7.60.0)
 find_package(SQLite3 3.10.0)
 find_package(MySQLClient 20.0.0)
