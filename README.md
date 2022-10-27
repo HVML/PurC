@@ -770,14 +770,18 @@ The source tree of PurC contains the following modules:
 - `Source/PurC/bindings/`: The bindings for Python, Lua, and other programming languages.
 - `Source/ExtDVObjs/math/`: The implementation of the external dynamic variant object `$MATH`.
 - `Source/ExtDVObjs/fs/`: The implementation of the external dynamic variant object `$FS` and `$FILE`.
+- `Source/CSSEng/`: The CSS parsing and selecting engine derived from libcss of NetSurf project.
+- `Source/DOMRuler/`: The library to lay out and stylize a DOM tree by using CSSEng.
+- `Source/RemoteFetcher/`: The library used by the PurC Remote Fetcher.
 - `Source/WTF/`: The simplified WTF (Web Template Framework) from WebKit.
 - `Source/cmake/`: The cmake modules.
 - `Source/ThirdParty/`: The third-party libraries, such as `gtest`.
 - `Source/test/`: The unit test programs.
 - `Source/Samples/api`: Samples for using the API of PurC.
 - `Source/Samples/hvml`: HVML sample programs.
-- `Source/Executables/`: The executables, i.e., the command line programs.
+- `Source/Executables/`: The executables.
 - `Source/Executables/purc`: The standalone HVML interpreter/debugger based-on PurC, which is an interactive command line program.
+- `Source/Executables/purc-fetcher`: The ultimate executable of PurC Remote Fetcher.
 - `Source/Tools/`: The tools or scripts for maintaining this project.
 - `Source/Tools/aur`: AUR package packaging scripts.
 - `Source/Tools/debian`: DEB package packaging scripts.
@@ -832,9 +836,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+### CSSEng
+
+### DOMRuler
+
 ### ExtDVObjs/fs
 
 Copyright (C) 2022 LIU Xin
+Copyright (C) 2022 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
