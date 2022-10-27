@@ -79,6 +79,11 @@ typedef struct foil_rect {
     int right, bottom;
 } foil_rect;
 
+typedef struct foil_size{
+    int cx;
+    int cy;
+} foil_size;
+
 enum {
     FOIL_TERM_MODE_LINE = 0,
     FOIL_TERM_MODE_FULL_SCREEN,
