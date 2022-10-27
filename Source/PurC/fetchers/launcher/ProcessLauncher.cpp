@@ -39,7 +39,7 @@
 #include <wtf/glib/GUniquePtr.h>
 
 
-#define FETCHER_NAME   "purcfetcher"
+#define FETCHER_NAME   "purc-fetcher"
 
 namespace PurCFetcher {
 
