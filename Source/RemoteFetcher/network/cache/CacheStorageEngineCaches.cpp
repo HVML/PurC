@@ -87,7 +87,7 @@ void Caches::retrieveOriginFromDirectory(const String& folderPath, WorkQueue& qu
         channel->read(0, std::numeric_limits<size_t>::max(), nullptr, [completionHandler = WTFMove(completionHandler)](const Data& data, int error) mutable {
             ASSERT(RunLoop::isMain());
             if (error) {
-                RELEASE_LOG_ERROR(CacheStorage, "Caches::retrieveOriginFromDirectory failed reading channel with error %d", error);
+//                RELEASE_LOG_ERROR(CacheStorage, "Caches::retrieveOriginFromDirectory failed reading channel with error %d", error);
                 completionHandler(PurCWTF::nullopt);
                 return;
             }
@@ -152,7 +152,7 @@ void Caches::initialize(PurCFetcher::DOMCacheEngine::CompletionCallback&& callba
     size_t capacity = std::numeric_limits<size_t>::max(); // We use a per-origin quota instead of a global capacity.
     auto storage = Storage::open(m_rootPath, Storage::Mode::AvoidRandomness, capacity);
     if (!storage) {
-        RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed opening storage");
+        //RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed opening storage");
         callback(Error::WriteDisk);
         return;
     }
@@ -163,7 +163,7 @@ void Caches::initialize(PurCFetcher::DOMCacheEngine::CompletionCallback&& callba
 
     storeOrigin([this] (Optional<Error>&& error) mutable {
         if (error) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed storing origin with error %d", static_cast<int>(*error));
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed storing origin with error %d", static_cast<int>(*error));
 
             auto pendingCallbacks = WTFMove(m_pendingInitializationCallbacks);
             for (auto& callback : pendingCallbacks)
@@ -177,7 +177,7 @@ void Caches::initialize(PurCFetcher::DOMCacheEngine::CompletionCallback&& callba
             makeDirty();
 
             if (!result.has_value()) {
-                RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed reading caches from disk with error %d", static_cast<int>(result.error()));
+//                RELEASE_LOG_ERROR(CacheStorage, "Caches::initialize failed reading caches from disk with error %d", static_cast<int>(result.error()));
 
                 auto pendingCallbacks = WTFMove(m_pendingInitializationCallbacks);
                 for (auto& callback : pendingCallbacks)
@@ -460,14 +460,14 @@ void Caches::readCachesFromDisk(PurCWTF::Function<void(Expected<Vector<Cache>, E
         }
 
         if (error) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::readCachesFromDisk failed reading caches from disk with error %d", error);
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::readCachesFromDisk failed reading caches from disk with error %d", error);
             callback(makeUnexpected(Error::ReadDisk));
             return;
         }
 
         auto result = decodeCachesNames(data);
         if (!result.has_value()) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::decodeCachesNames failed decoding caches with error %d", static_cast<int>(result.error()));
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::decodeCachesNames failed decoding caches with error %d", static_cast<int>(result.error()));
             callback(makeUnexpected(result.error()));
             return;
         }
@@ -498,7 +498,7 @@ void Caches::writeCachesToDisk(CompletionCallback&& callback)
     m_engine->writeFile(cachesListFilename(m_rootPath), encodeCacheNames(m_caches), [this, protectedThis = makeRef(*this), callback = WTFMove(callback)](Optional<Error>&& error) mutable {
         m_isWritingCachesToDisk = false;
         if (error)
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::writeCachesToDisk failed writing caches to disk with error %d", static_cast<int>(*error));
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::writeCachesToDisk failed writing caches to disk with error %d", static_cast<int>(*error));
 
         callback(WTFMove(error));
         while (!m_pendingWritingCachesToDiskCallbacks.isEmpty() && !m_isWritingCachesToDisk)
@@ -554,7 +554,7 @@ void Caches::writeRecord(const Cache& cache, const RecordInformation& recordInfo
 
     m_storage->store(Cache::encode(recordInformation, record), { }, [this, protectedThis = makeRef(*this), protectedStorage = makeRef(*m_storage), callback = WTFMove(callback)](int error) mutable {
         if (error) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::writeRecord failed with error %d", error);
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::writeRecord failed with error %d", error);
             callback(Error::WriteDisk);
             return;
         }
@@ -580,14 +580,14 @@ void Caches::readRecord(const NetworkCache::Key& key, PurCWTF::Function<void(Exp
 
     m_storage->retrieve(key, 4, [protectedStorage = makeRef(*m_storage), callback = WTFMove(callback)](std::unique_ptr<Storage::Record> storage, const Storage::Timings&) mutable {
         if (!storage) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::readRecord failed reading record from disk");
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::readRecord failed reading record from disk");
             callback(makeUnexpected(Error::ReadDisk));
             return false;
         }
 
         auto record = Cache::decode(*storage);
         if (!record) {
-            RELEASE_LOG_ERROR(CacheStorage, "Caches::readRecord failed decoding record from disk");
+//            RELEASE_LOG_ERROR(CacheStorage, "Caches::readRecord failed decoding record from disk");
             callback(makeUnexpected(Error::ReadDisk));
             return false;
         }

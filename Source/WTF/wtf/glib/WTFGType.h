@@ -75,7 +75,7 @@ static void type_name##_init(TypeName* self, gpointer) \
 GType type_name##_get_type(void) \
 { \
     static volatile gsize g_define_type_id__volatile = 0; \
-    if (g_once_init_enter(&g_define_type_id__volatile)) { \
+    if (g_once_init_enter((unsigned long*)&g_define_type_id__volatile)) { \
         GType g_define_type_id = type_name##_get_type_once(); \
         g_once_init_leave(&g_define_type_id__volatile, g_define_type_id); \
     } \

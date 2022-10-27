@@ -37,15 +37,9 @@ using namespace PurCFetcher::DOMCacheEngine;
 using namespace CacheStorage;
 
 #undef RELEASE_LOG_IF_ALLOWED
-#define RELEASE_LOG_IF_ALLOWED(fmt, ...) RELEASE_LOG_IF(sessionID().isAlwaysOnLoggingAllowed(), CacheStorage, "%p - CacheStorageEngineConnection::" fmt, &m_connection.connection(), ##__VA_ARGS__)
-#define RELEASE_LOG_FUNCTION_IF_ALLOWED_IN_CALLBACK(functionName, fmt, resultGetter) \
-    if (!result.has_value())\
-        RELEASE_LOG_ERROR_IF(sessionID.isAlwaysOnLoggingAllowed(), CacheStorage, "CacheStorageEngineConnection::%s - failed - error %d", functionName, (int)result.error()); \
-    else {\
-        auto value = resultGetter(result.value()); \
-        UNUSED_PARAM(value); \
-        RELEASE_LOG_IF(sessionID.isAlwaysOnLoggingAllowed(), CacheStorage, "CacheStorageEngineConnection::%s - succeeded - " fmt, functionName, value); \
-    }
+#define RELEASE_LOG_IF_ALLOWED(fmt, ...) 
+#define RELEASE_LOG_FUNCTION_IF_ALLOWED_IN_CALLBACK(fmt, ...) 
+
 CacheStorageEngineConnection::CacheStorageEngineConnection(NetworkConnectionToWebProcess& connection)
     : m_connection(connection)
 {

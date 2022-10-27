@@ -18,6 +18,17 @@ add_definitions(-DPURC_LIBEXEC_DIR="${LIBEXEC_INSTALL_DIR}")
 find_package(ZLIB 1.2.0 REQUIRED)
 find_package(GLIB 2.44.0 REQUIRED COMPONENTS gio gio-unix gmodule gobject)
 
+if (ENABLE_BUILD_REMOTE_FETCHER)
+    find_package(LibSoup 2.54.0)
+    find_package(LibGcrypt 1.6.0 REQUIRED)
+    find_package(SQLite3 3.10.0)
+
+if (ENABLE_RSQL)
+    find_package(MySQLClient 20.0.0)
+endif ()
+
+endif ()
+
 # On macOS, search Homebrew for keg-only versions of Bison and Flex. Xcode does
 # not provide new enough versions for us to use.
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
