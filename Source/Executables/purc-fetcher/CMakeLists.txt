@@ -23,5 +23,5 @@ set_target_properties(purc-fetcher PROPERTIES
 PURC_COMPUTE_SOURCES(purc-fetcher)
 PURC_FRAMEWORK(purc-fetcher)
 
-install(TARGETS purc DESTINATION "${EXEC_INSTALL_DIR}/")
+install(TARGETS purc-fetcher DESTINATION "${EXEC_INSTALL_DIR}/")
 
