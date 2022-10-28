@@ -151,7 +151,7 @@ private:
 
 inline double timeClip(double t)
 {
-    if (std::abs(t) > maxECMAScriptTime)
+    if (std::fabs(t) > maxECMAScriptTime)
         return std::numeric_limits<double>::quiet_NaN();
     return std::trunc(t) + 0.0;
 }

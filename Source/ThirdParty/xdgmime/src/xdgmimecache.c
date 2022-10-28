@@ -85,8 +85,8 @@ struct _XdgMimeCache
   char   *buffer;
 };
 
-#define GET_UINT16(cache,offset) (ntohs(*(xdg_uint16_t*)((cache) + (offset))))
-#define GET_UINT32(cache,offset) (ntohl(*(xdg_uint32_t*)((cache) + (offset))))
+#define GET_UINT16(cache,offset) (ntohs(*(xdg_uint16_t*)(void*)((cache) + (offset))))
+#define GET_UINT32(cache,offset) (ntohl(*(xdg_uint32_t*)(void*)((cache) + (offset))))
 
 XdgMimeCache *
 _xdg_mime_cache_ref (XdgMimeCache *cache)
