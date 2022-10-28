@@ -136,6 +136,29 @@ enum {
     FOIL_RDRBOX_WORD_WRAP_ANYWHERE,
 };
 
+/* the list-style-type of a list-item box. */
+enum {
+    FOIL_RDRBOX_LIST_STYLE_TYPE_DISC = 0,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_NONE,
+};
+
+/* the list-style-position of a list-item box. */
+enum {
+    FOIL_RDRBOX_LIST_STYLE_POSITION_OUTSIDE = 0,
+    FOIL_RDRBOX_LIST_STYLE_POSITION_INSIDE,
+};
+
 enum {
     FOIL_RDRBOX_TYPE_INLINE = 0,
     FOIL_RDRBOX_TYPE_BLOCK,
@@ -157,6 +180,7 @@ enum {
 struct _inline_box_data;
 struct _block_box_data;
 struct _inline_block_data;
+struct _list_item_data;
 struct _marker_box_data;
 
 struct foil_rdrbox {
@@ -216,6 +240,9 @@ struct foil_rdrbox {
     unsigned line_break:3;
     unsigned word_wrap:2;
 
+    unsigned list_style_type:4;
+    unsigned list_style_position:1;
+
     int letter_spacing;
     int word_spacing;
     int text_indent;
@@ -244,6 +271,7 @@ struct foil_rdrbox {
         struct _inline_box_data     *inline_data;
         struct _block_box_data      *block_data;
         struct _inline_block_data   *inline_block_data;
+        struct _list_item_data      *list_item_data;
         struct _marker_box_data     *marker_data;
         /* TODO: for other box types */
     };

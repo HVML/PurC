@@ -64,6 +64,15 @@ struct _inline_block_data {
     uint8_t text_align:3;
 };
 
+struct _marker_box_data {
+    const char *glyph;
+    char *number_or_alphabet;
+};
+
+struct _list_item_data {
+    foil_rdrbox *mark_box;  /* NULL for no marker */
+};
+
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
@@ -93,6 +102,20 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
     case FOIL_RDRBOX_TYPE_INLINE:
         box->inline_data = calloc(1, sizeof(*box->inline_data));
         if (box->inline_data == NULL) {
+            goto failed;
+        }
+        break;
+
+    case FOIL_RDRBOX_TYPE_LIST_ITEM:
+        box->list_item_data = calloc(1, sizeof(*box->list_item_data));
+        if (box->list_item_data == NULL) {
+            goto failed;
+        }
+        break;
+
+    case FOIL_RDRBOX_TYPE_MARKER:
+        box->marker_data = calloc(1, sizeof(*box->marker_data));
+        if (box->marker_data == NULL) {
             goto failed;
         }
         break;
@@ -351,6 +374,27 @@ static const char *literal_values_word_wrap[] = {
     "normal",
     "break-word",
     "anywhere",
+};
+
+static const char *literal_values_list_style_type[] = {
+    "disc",
+    "circle",
+    "square",
+    "decimal",
+    "decimal-leading-zero",
+    "lower-roman",
+    "upper-roman",
+    "lower-greek",
+    "lower-latin",
+    "upper-latin",
+    "armenian",
+    "georgian",
+    "none",
+};
+
+static const char *literal_values_list_style_position[] = {
+    "outside",
+    "inside",
 };
 
 #endif /* not defined NDEBUG */
@@ -903,6 +947,95 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
 
     LOG_DEBUG("\tword-wrap: %s\n",
             literal_values_word_wrap[box->word_wrap]);
+
+    /* determine list-style-type
+       (Foil always assumes list-style-image is `none`) */
+    v = css_computed_list_style_type(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_LIST_STYLE_TYPE_INHERIT)
+        box->list_style_type = ctxt->parent_box->list_style_type;
+    else {
+        switch (v) {
+        default:
+        case CSS_LIST_STYLE_TYPE_DISC:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DISC;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_CIRCLE:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_SQUARE:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_DECIMAL:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
+        case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
+        case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_ARMENIAN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_GEORGIAN:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
+            break;
+
+        case CSS_LIST_STYLE_TYPE_NONE:
+            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_NONE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tlist-style-type: %s\n",
+            literal_values_list_style_type[box->list_style_type]);
+
+    /* determine word-wrap */
+    v = css_computed_list_style_position(
+            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (v == CSS_LIST_STYLE_POSITION_INHERIT)
+        box->list_style_position = ctxt->parent_box->list_style_position;
+    else {
+        switch (v) {
+        default:
+        case CSS_LIST_STYLE_POSITION_OUTSIDE:
+            box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_OUTSIDE;
+            break;
+
+        case CSS_LIST_STYLE_POSITION_INSIDE:
+            box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_INSIDE;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tlist-style-position: %s\n",
+            literal_values_list_style_position[box->list_style_position]);
 
     /* determine foreground color */
     css_color color_argb;
