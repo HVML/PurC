@@ -307,11 +307,11 @@ negative:
     WrongDataType
 
 positive:
-    $FS.file_is("/etc/mime.types", "file")
+    $FS.file_is("/bin/ls", "file")
     true
 
 positive:
-    $FS.file_is("/etc", "dir")
+    $FS.file_is("/", "dir")
     true
 
 positive:

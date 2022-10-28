@@ -1125,6 +1125,7 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
+#if OS(LINUX)
     // Bizarre file
     printf ("TEST disk_usage: nr_args = 1, param[0] = '/proc/meminfo':\n");
     param[0] = purc_variant_make_string ("/proc/meminfo", true);
@@ -1141,6 +1142,7 @@ TEST(dvobjs, dvobjs_fs_disk_usage)
     dump_object (ret_var);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
+#endif
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -1278,7 +1280,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // Normal file
     printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'file':\n");
-    param[0] = purc_variant_make_string ("/etc/mime.types", true);
+    param[0] = purc_variant_make_string ("/bin/ls", true);
     param[1] = purc_variant_make_string ("file", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -1288,7 +1290,7 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // Dir
     printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'dir':\n");
-    param[0] = purc_variant_make_string ("/etc", true);
+    param[0] = purc_variant_make_string ("/", true);
     param[1] = purc_variant_make_string ("dir", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
@@ -1308,10 +1310,11 @@ TEST(dvobjs, dvobjs_fs_file_is)
 
     // Un-executable
     printf ("TEST file_is: nr_args = 2, param[0] = un_exe, param[1] = 'exe':\n");
-    param[0] = purc_variant_make_string ("/etc/mime.types", true);
+    param[0] = purc_variant_make_string ("/bin/ls", true);
     param[1] = purc_variant_make_string ("exe", true);
     ret_var = func (NULL, 2, param, false);
-    ASSERT_TRUE(pcvariant_is_false(ret_var));
+    ASSERT_NE(ret_var, nullptr);
+    ASSERT_TRUE(pcvariant_is_true(ret_var));
     purc_variant_unref(param[0]);
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
@@ -1530,8 +1533,8 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     // String param
-    printf ("TEST chown: nr_args = 1, param[0] = '/bin/vi':\n");
-    param[0] = purc_variant_make_string ("/bin/vi", true);
+    printf ("TEST chown: nr_args = 1, param[0] = '/usr/bin/vi':\n");
+    param[0] = purc_variant_make_string ("/usr/bin/vi", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("return: %s\n", purc_variant_get_string_const (ret_var));
@@ -1599,6 +1602,7 @@ TEST(dvobjs, dvobjs_fs_lstat)
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
+#if OS(LINUX)
     // Bizarre file
     printf ("TEST lstat: nr_args = 1, param[0] = '/proc/meminfo':\n");
     param[0] = purc_variant_make_string ("/proc/meminfo", true);
@@ -1615,6 +1619,7 @@ TEST(dvobjs, dvobjs_fs_lstat)
     dump_object (ret_var);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
+#endif
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -1998,7 +2003,11 @@ TEST(dvobjs, dvobjs_fs_realpath)
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+#if OS(LINUX)
     ASSERT_STREQ (purc_variant_get_string_const(ret_var), "/tmp");
+#elif PLATFORM(MAC)
+    ASSERT_STREQ (purc_variant_get_string_const(ret_var), "/private/tmp");
+#endif
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
 
@@ -2231,6 +2240,7 @@ TEST(dvobjs, dvobjs_fs_stat)
     purc_variant_unref(param[1]);
     purc_variant_unref(ret_var);
 
+#if OS(LINUX)
     // Bizarre file
     printf ("TEST stat: nr_args = 1, param[0] = '/proc/meminfo':\n");
     param[0] = purc_variant_make_string ("/proc/meminfo", true);
@@ -2247,6 +2257,7 @@ TEST(dvobjs, dvobjs_fs_stat)
     dump_object (ret_var);
     purc_variant_unref(param[0]);
     purc_variant_unref(ret_var);
+#endif
 
     // Clean up
     purc_variant_unload_dvobj (fs);
@@ -2889,7 +2900,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
 
     // opendir param: dir_path
     printf ("TEST opendir: nr_args = 1, param[0] = dir_path:\n");
-    param[0] = purc_variant_make_string ("/sys/dev/block", false);
+    param[0] = purc_variant_make_string ("/", false);
     dir_object = func_opendir (NULL, 1, param, false);
     ASSERT_NE(dir_object, nullptr);
     purc_variant_unref(param[0]);

@@ -44,6 +44,8 @@
 #include <pwd.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <grp.h>
+#include <uuid/uuid.h>
 
 #if OS(LINUX)
 #include <mntent.h>
@@ -1570,7 +1572,6 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *string_group = NULL;
     uint64_t uint_gid; 
     gid_t gid;
-    struct passwd *pwd;
     char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -1597,13 +1598,13 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
 
         if (*endptr != '\0') {              /* Was not pure numeric string */
-            pwd = getpwnam(string_group);   /* Try getting GID for username */
-            if (pwd == NULL) {
+            struct group *grp = getgrnam(string_group);
+            if (grp == NULL) {
                 purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
                 goto failed;
             }
 
-            gid = pwd->pw_gid;
+            gid = grp->gr_gid;
         }
     }
 
@@ -2099,7 +2100,6 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *string_group = NULL;
     uint64_t uint_gid; 
     gid_t gid;
-    struct passwd *pwd;
     char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -2126,13 +2126,13 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         gid = strtol(string_group, &endptr, 10);  /* Allow a numeric string */
 
         if (*endptr != '\0') {              /* Was not pure numeric string */
-            pwd = getpwnam(string_group);   /* Try getting GID for username */
-            if (pwd == NULL) {
+            struct group *grp = getgrnam(string_group);
+            if (grp == NULL) {
                 purc_set_error (PURC_ERROR_BAD_NAME);
                 goto failed;
             }
 
-            gid = pwd->pw_gid;
+            gid = grp->gr_gid;
         }
     }
 
