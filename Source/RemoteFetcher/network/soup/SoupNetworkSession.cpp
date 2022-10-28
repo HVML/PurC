@@ -272,6 +272,7 @@ void SoupNetworkSession::flushCache()
     soup_cache_dump(m_soupCache.get());
 }
 
+#if 0
 static inline bool stringIsNumeric(const char* str)
 {
     while (*str) {
@@ -281,6 +282,7 @@ static inline bool stringIsNumeric(const char* str)
     }
     return true;
 }
+#endif
 
 void SoupNetworkSession::setupProxy()
 {

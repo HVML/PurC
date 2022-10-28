@@ -39,8 +39,8 @@ namespace PurCFetcher {
 struct CookieRequestHeaderFieldProxy;
 class SocketStreamHandleClient;
 
-typedef struct {
-    void *empty { nullptr };
+typedef struct SourceApplicationAuditToken {
+    void *empty = nullptr;
 } SourceApplicationAuditToken;
 
 class SocketStreamHandle : public ThreadSafeRefCounted<SocketStreamHandle, PurCWTF::DestructionThread::Main> {

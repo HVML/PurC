@@ -275,6 +275,7 @@ purc_variant_t build_test_cmp(purc_variant_t test_case_variant)
     return cmp;
 }
 
+#if 0
 static inline int
 cmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
@@ -288,6 +289,7 @@ cmp(purc_variant_t l, purc_variant_t r, void *ud)
         return 0;
     return 1;
 }
+#endif
 
 void compare_result(purc_variant_t dst, purc_variant_t cmp)
 {

@@ -153,7 +153,7 @@ TEST(document, basic)
     ASSERT_EQ(ret, 0);
 
     const char *value;
-    size_t len;
+    size_t len = 0;
 
     /* special attributes */
     // root element has no `id` attribute
