@@ -623,7 +623,7 @@ TEST(dvobjs, dvobjs_fs_chgrp)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     // String param
-    printf ("TEST chgrp: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
+    printf ("TEST chgrp: nr_args = 2, param[0] = %s, param[1] = 'root':\n", file_path);
     param[0] = purc_variant_make_string (file_path, true);
     param[1] = purc_variant_make_string ("sys", true);
     ret_var = func (NULL, 2, param, false);
@@ -803,7 +803,7 @@ TEST(dvobjs, dvobjs_fs_chown)
     // String param
     printf ("TEST chown: nr_args = 2, param[0] = file_path, param[1] = 'root':\n");
     param[0] = purc_variant_make_string (file_path, true);
-    param[1] = purc_variant_make_string ("sys", true);
+    param[1] = purc_variant_make_string ("root", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_NE(ret_var, nullptr);
     ASSERT_EQ(purc_variant_is_type (ret_var, PURC_VARIANT_TYPE_BOOLEAN), true);
