@@ -51,6 +51,7 @@ if (ENABLE_RDR_FOIL)
         udom.c
         page.c
         rdrbox.c
+        rdrbox-marker.c
         widget.c
     )
 endif ()

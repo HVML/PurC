@@ -259,11 +259,14 @@ struct foil_rdrbox {
     int bt, bl, br, bb;     // borders
     int pt, pl, pr, pb;     // paddings
 
-    /* the containing block */
+    /* the bounding rectangle of the containing block */
     foil_rect cblock_rect;
 
     /* the creator of the current containing block */
     const foil_rdrbox *cblock_creator;
+
+    /* the number of child list items */
+    unsigned nr_child_list_items;
 
     /* the extra data of this box */
     union {
@@ -275,6 +278,9 @@ struct foil_rdrbox {
         struct _marker_box_data     *marker_data;
         /* TODO: for other box types */
     };
+
+    /* the callback to cleanup the extra data */
+    void (*cb_data_cleanup)(void *data);
 };
 
 enum {
@@ -318,6 +324,8 @@ int foil_rdrbox_module_init(pcmcth_renderer *rdr);
 void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr);
 
 foil_rdrbox *foil_rdrbox_new(uint8_t type);
+void foil_rdrbox_delete(foil_rdrbox *box);
+void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
@@ -325,10 +333,10 @@ void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
-void foil_rdrbox_delete(foil_rdrbox *box);
-void foil_rdrbox_delete_deep(foil_rdrbox *root);
-
 foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt);
+
+bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *marker, const foil_rdrbox *list_item);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);

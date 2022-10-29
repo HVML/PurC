@@ -26,52 +26,9 @@
 #undef NDEBUG
 
 #include "rdrbox.h"
+#include "rdrbox-internal.h"
 
 #include <assert.h>
-
-struct _text_segment {
-    struct list_head ln;
-
-    unsigned i; // the index of first character
-    unsigned n; // number of characters in this segment
-
-    /* position of this segment in the containing block box */
-    int x, y;
-
-    /* rows taken by this segment (always be 1). */
-    unsigned height;
-    /* columns taken by this segment. */
-    unsigned width;
-};
-
-struct _inline_box_data {
-    /* the code points of text in Unicode (should be in visual order) */
-    uint32_t *ucs;
-
-    /* the text segments */
-    struct list_head segs;
-};
-
-struct _block_box_data {
-    int text_indent;
-
-    uint8_t text_align:3;
-};
-
-struct _inline_block_data {
-    int foo, bar;
-
-    uint8_t text_align:3;
-};
-
-struct _marker_box_data {
-    const char *glyph;
-    char *number_or_alphabet;
-};
-
-struct _list_item_data {
-    foil_rdrbox *mark_box;  /* NULL for no marker */
-};
 
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
@@ -139,6 +96,21 @@ failed:
     if (box)
         free(box);
     return NULL;
+}
+
+void foil_rdrbox_delete(foil_rdrbox *box)
+{
+    foil_rdrbox_remove_from_tree(box);
+
+    if (box->data) {
+        if (box->cb_data_cleanup) {
+            box->cb_data_cleanup(box->data);
+        }
+
+        free(box->data);
+    }
+
+    free(box);
 }
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box)
@@ -231,13 +203,6 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *box)
     box->parent = NULL;
     box->next = NULL;
     box->prev = NULL;
-}
-
-void foil_rdrbox_delete(foil_rdrbox *box)
-{
-    foil_rdrbox_remove_from_tree(box);
-    free(box->data);
-    free(box);
 }
 
 void foil_rdrbox_delete_deep(foil_rdrbox *root)
@@ -1314,7 +1279,7 @@ dtrm_width_shrink_to_fit(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
     }
 
     /* TODO */
-    LOG_WARN("Not implemented: %s\n", __func__);
+    LOG_WARN("Not implemented\n");
     box->width = FOIL_PX_GRID_CELL_W * 10;
     return CSS_WIDTH_SET;
 }
@@ -1498,7 +1463,7 @@ calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
         dtrm_margin_left_right(ctxt, box);
     }
     else if (ctxt->pos_schema == FOIL_RDRBOX_POSSCHEMA_ABSOLUTE) {
-        LOG_WARN("Not implemented for absolutely positioned in %s\n", __func__);
+        LOG_WARN("Not implemented for absolutely positioned\n");
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
             ctxt->in_normal_flow) {
@@ -1512,7 +1477,7 @@ calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
         dtrm_margin_left_right(ctxt, box);
     }
     else {
-        LOG_ERROR("Should not be here in %s\n", __func__);
+        LOG_ERROR("Should not be here\n");
     }
 }
 
@@ -1752,15 +1717,25 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
 
     foil_rdrbox_append_child(ctxt->parent_box, box);
 
-    /* TODO
     if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
-        // allocate the marker box
-        box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
-        if (box == NULL)
-            goto failed;
-        box->owner = ctxt->elem;
-        box->is_anonymous = 1;
-    } */
+        ctxt->parent_box->nr_child_list_items++;
+
+        if (box->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE) {
+            // allocate the marker box
+            foil_rdrbox *marker_box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
+            if (marker_box == NULL)
+                goto failed;
+
+            if (foil_rdrbox_init_marker_box(ctxt, marker_box, box)) {
+                foil_rdrbox_insert_before(box, marker_box);
+            }
+            else {
+                LOG_ERROR("Failed to initialize marker box\n");
+                foil_rdrbox_delete(marker_box);
+                goto failed;
+            }
+        }
+    }
 
     return box;
 
