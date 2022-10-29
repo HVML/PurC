@@ -869,10 +869,11 @@ enum css_visibility_e {
 enum css_white_space_e {
 	CSS_WHITE_SPACE_INHERIT			= 0x0,
 	CSS_WHITE_SPACE_NORMAL			= 0x1,
-	CSS_WHITE_SPACE_PRE			= 0x2,
+	CSS_WHITE_SPACE_PRE				= 0x2,
 	CSS_WHITE_SPACE_NOWRAP			= 0x3,
 	CSS_WHITE_SPACE_PRE_WRAP		= 0x4,
-	CSS_WHITE_SPACE_PRE_LINE		= 0x5
+	CSS_WHITE_SPACE_PRE_LINE		= 0x5,
+	CSS_WHITE_SPACE_BREAK_SPACES	= 0x6,
 };
 
 enum css_widows_e {

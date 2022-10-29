@@ -399,6 +399,7 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "pre", SLEN("pre") },
 	{ "nowrap", SLEN("nowrap") },
 	{ "pre-wrap", SLEN("pre-wrap") },
+	{ "break-spaces", SLEN("break-spaces") },
 	{ "pre-line", SLEN("pre-line") },
 	{ "leftwards", SLEN("leftwards") },
 	{ "rightwards", SLEN("rightwards") },

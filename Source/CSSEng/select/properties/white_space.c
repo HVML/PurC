@@ -35,6 +35,9 @@ css_error css__cascade_white_space(uint32_t opv, css_style *style,
 		case WHITE_SPACE_PRE_WRAP:
 			value = CSS_WHITE_SPACE_PRE_WRAP;
 			break;
+		case WHITE_SPACE_BREAK_SPACES:
+			value = CSS_WHITE_SPACE_BREAK_SPACES;
+			break;
 		case WHITE_SPACE_PRE_LINE:
 			value = CSS_WHITE_SPACE_PRE_LINE;
 			break;
