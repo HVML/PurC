@@ -65,6 +65,7 @@ struct _inline_block_data {
 };
 
 struct _list_item_data {
+    unsigned index;           /* index in the parent box */
     foil_rdrbox *marker_box;  /* NULL for no marker */
 };
 

@@ -1718,6 +1718,7 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
     foil_rdrbox_append_child(ctxt->parent_box, box);
 
     if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
+        box->list_item_data->index = ctxt->parent_box->nr_child_list_items;
         ctxt->parent_box->nr_child_list_items++;
 
         if (box->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE) {
@@ -1726,14 +1727,8 @@ foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
             if (marker_box == NULL)
                 goto failed;
 
-            if (foil_rdrbox_init_marker_box(ctxt, marker_box, box)) {
-                foil_rdrbox_insert_before(box, marker_box);
-            }
-            else {
-                LOG_ERROR("Failed to initialize marker box\n");
-                foil_rdrbox_delete(marker_box);
-                goto failed;
-            }
+            foil_rdrbox_insert_before(box, marker_box);
+            box->list_item_data->marker_box = marker_box;
         }
     }
 
@@ -1747,6 +1742,23 @@ failed:
         foil_rdrbox_delete(box);
 
     return NULL;
+}
+
+bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+{
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
+            box->list_item_data->marker_box) {
+        if (!foil_rdrbox_init_marker_box(ctxt,
+                    box->list_item_data->marker_box, box)) {
+            LOG_ERROR("Failed to initialize marker box\n");
+            goto failed;
+        }
+    }
+
+    return true;
+
+failed:
+    return false;
 }
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)

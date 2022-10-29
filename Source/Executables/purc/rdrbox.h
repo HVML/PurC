@@ -333,7 +333,11 @@ void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
+/* create rendering box */
 foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt);
+
+/* initialize type-specific data for rendering box */
+bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box);
 
 bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);

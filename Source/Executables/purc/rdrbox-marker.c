@@ -238,6 +238,7 @@ bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
 
     buff[0] = '\0';
     const unsigned nr_items = list_item->parent->nr_child_list_items;
+    const unsigned index = list_item->list_item_data->index;
     struct _marker_box_data *data = marker->marker_data;
     switch (list_item->list_style_type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DISC:
@@ -256,40 +257,40 @@ bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
-        numbering_decimal(nr_items + 1, buff, sizeof(buff));
+        numbering_decimal(index + 1, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-        numbering_decimal_leading_zero(nr_items + 1, 100,
+        numbering_decimal_leading_zero(index, nr_items,
                 buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
-        numbering_lower_roman(nr_items + 1, buff, sizeof(buff));
+        numbering_lower_roman(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
-        numbering_upper_roman(nr_items + 1, buff, sizeof(buff));
+        numbering_upper_roman(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
-        numbering_armenian(nr_items + 1, buff, sizeof(buff));
+        numbering_armenian(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
-        numbering_georgian(nr_items + 1, buff, sizeof(buff));
+        numbering_georgian(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
-        alphabetic_lower_greek(nr_items + 1, buff, sizeof(buff));
+        alphabetic_lower_greek(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
-        alphabetic_lower_latin(nr_items + 1, buff, sizeof(buff));
+        alphabetic_lower_latin(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
-        alphabetic_upper_latin(nr_items + 1, buff, sizeof(buff));
+        alphabetic_upper_latin(index, buff, sizeof(buff));
         break;
 
     }
