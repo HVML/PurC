@@ -35,24 +35,27 @@
 #define FOIL_UCHAR_IDSPACE           0x3000
 #define FOIL_UCHAR_LINE_SEPARATOR    0x2028
 
+#include "rdrbox.h"
+
 /**
  * \def FOIL_WSR_NORMAL
  *
- * \brief This value directs \a GetUCharsUntilParagraphBoundary
+ * \brief This value directs \a foil_ustr_from_utf8_until_paragraph_boundary
  * collapses sequences of white space into a single character.
  * Lines may wrap at allowed soft wrap opportunities.
  */
-#define FOIL_WSR_NORMAL          0x00
+#define FOIL_WSR_NORMAL          FOIL_RDRBOX_WHITE_SPACE_NORMAL
 
 /**
  * \def FOIL_WSR_PRE
  *
- * \brief This value prevents \a GetUCharsUntilParagraphBoundary from collapsing
+ * \brief This value prevents \a foil_ustr_from_utf8_until_paragraph_boundary
+ * from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the specified extent overflows it.
  */
-#define FOIL_WSR_PRE             0x01
+#define FOIL_WSR_PRE             FOIL_RDRBOX_WHITE_SPACE_PRE
 
 /**
  * \def FOIL_WSR_NOWRAP
@@ -60,7 +63,7 @@
  * \brief Like \a FOIL_WSR_NORMAL, this value collapses white spaces; but like
  * \a FOIL_WSR_PRE, it does not allow wrapping.
  */
-#define FOIL_WSR_NOWRAP          0x02
+#define FOIL_WSR_NOWRAP          FOIL_RDRBOX_WHITE_SPACE_NOWRAP
 
 /**
  * \def FOIL_WSR_PRE_WRAP
@@ -68,7 +71,7 @@
  * \brief Like \a FOIL_WSR_PRE, this value preserves white space; but like
  * \a FOIL_WSR_NORMAL, it allows wrapping.
  */
-#define FOIL_WSR_PRE_WRAP        0x03
+#define FOIL_WSR_PRE_WRAP        FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP
 
 /**
  * \def FOIL_WSR_BREAK_SPACES
@@ -81,10 +84,10 @@
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be FOIL_WSR_BREAK_SPACES, the manner
- * of \a GetUCharsUntilParagraphBoundary will conform
+ * of \a foil_ustr_from_utf8_until_paragraph_boundary will conform
  * to CSS Text Module Level 3.
  */
-#define FOIL_WSR_BREAK_SPACES    0x04
+#define FOIL_WSR_BREAK_SPACES    FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES
 
 /**
  * \def FOIL_WSR_PRE_LINE
@@ -93,7 +96,7 @@
  * allows wrapping, but preserves segment breaks in the source
  * as forced line breaks.
  */
-#define FOIL_WSR_PRE_LINE        0x05
+#define FOIL_WSR_PRE_LINE        FOIL_RDRBOX_WHITE_SPACE_PRE_LINE
 
 /**
  * \def FOIL_CTR_NONE
@@ -110,21 +113,21 @@
  * \brief Puts the first typographic letter unit of each word,
  * if lowercase, in titlecase; other characters are unaffected.
  */
-#define FOIL_CTR_CAPITALIZE      0x01
+#define FOIL_CTR_CAPITALIZE      FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE
 
 /**
  * \def FOIL_CTR_UPPERCASE
  *
  * \brief Puts all letters in uppercase.
  */
-#define FOIL_CTR_UPPERCASE       0x02
+#define FOIL_CTR_UPPERCASE       FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE
 
 /**
  * \def FOIL_CTR_LOWERCASE
  *
  * \brief Puts all letters in lowercase.
  */
-#define FOIL_CTR_LOWERCASE       0x03
+#define FOIL_CTR_LOWERCASE       FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE
 
 /**
  * \def FOIL_CTR_FULL_WIDTH
@@ -134,7 +137,7 @@
  * it is left as is. This value is typically used to typeset
  * Latin letters and digits as if they were ideographic characters.
  */
-#define FOIL_CTR_FULL_WIDTH      0x10
+#define FOIL_CTR_FULL_WIDTH      FOIL_RDRBOX_TEXT_TRANSFORM_FULL_WIDTH
 
 /**
  * \def FOIL_CTR_FULL_SIZE_KANA
@@ -145,7 +148,7 @@
  * Kana to compensate for legibility issues at the small font sizes
  * typically used in ruby.
  */
-#define FOIL_CTR_FULL_SIZE_KANA  0x20
+#define FOIL_CTR_FULL_SIZE_KANA  FOIL_RDRBOX_TEXT_TRANSFORM_FULL_SIZE_KANA
 
 /**
  * \def FOIL_WBR_NORMAL
@@ -153,28 +156,28 @@
  * \brief Words break according to their customary rules, as defined
  * by UNICODE LINE BREAKING ALGORITHM.
  */
-#define FOIL_WBR_NORMAL          0x00
+#define FOIL_WBR_NORMAL          FOIL_RDRBOX_WORD_BREAK_NORMAL
 
 /**
  * \def FOIL_WBR_BREAK_ALL
  *
  * \brief Breaking is allowed within “words”.
  */
-#define FOIL_WBR_BREAK_ALL       0x01
+#define FOIL_WBR_BREAK_ALL       FOIL_RDRBOX_WORD_BREAK_BREAK_ALL
 
 /**
  * \def FOIL_WBR_KEEP_ALL
  *
  * \brief Breaking is forbidden within “words”.
  */
-#define FOIL_WBR_KEEP_ALL        0x02
+#define FOIL_WBR_KEEP_ALL        FOIL_RDRBOX_WORD_BREAK_KEEP_ALL
 
 /**
  * \def FOIL_LBP_NORMAL
  *
  * \brief Breaks text using the most common set of line-breaking rules.
  */
-#define FOIL_LBP_NORMAL          0x00
+#define FOIL_LBP_NORMAL          FOIL_RDRBOX_LINE_BREAK_NORMAL
 
 /**
  * \def FOIL_LBP_LOOSE
@@ -182,14 +185,14 @@
  * \brief Breaks text using the least restrictive set of line-breaking rules.
  * Typically used for short lines, such as in newspapers.
  */
-#define FOIL_LBP_LOOSE           0x01
+#define FOIL_LBP_LOOSE           FOIL_RDRBOX_LINE_BREAK_LOOSE
 
 /**
  * \def FOIL_LBP_STRICT
  *
  * \brief Breaks text using the most stringent set of line-breaking rules.
  */
-#define FOIL_LBP_STRICT          0x02
+#define FOIL_LBP_STRICT          FOIL_RDRBOX_LINE_BREAK_STRICT
 
 /**
  * \def FOIL_LBP_ANYWHERE
@@ -201,7 +204,7 @@
  * breaking class or mandated by the word breaking rule. The different wrapping
  * opportunities must not be prioritized. Hyphenation is not applied.
  */
-#define FOIL_LBP_ANYWHERE        0x03
+#define FOIL_LBP_ANYWHERE        FOIL_RDRBOX_LINE_BREAK_ANYWHERE
 
 /**
  * Unknown breaking code.
@@ -1030,7 +1033,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
  * \param ctr The character transformation rule; see \a char_transform_rules.
  * \param wbr The word breaking rule; see \a word_break_rules.
  * \param lbp The line breaking policy; see \a line_break_policies.
- * \param ucs The uint32_t string.
+ * \param ucs The Unicode characters.
  * \param nr_ucs The length of the uint32_t string.
  * \param break_oppos The pointer to a buffer to store the address of a
  *        Uint16 array which will return the break opportunities of the uchars.

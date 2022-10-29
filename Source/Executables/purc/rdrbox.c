@@ -691,6 +691,9 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
         case CSS_WHITE_SPACE_PRE_LINE:
             box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_LINE;
             break;
+        case CSS_WHITE_SPACE_BREAK_SPACES:
+            box->white_space = FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES;
+            break;
         case CSS_WHITE_SPACE_NORMAL:
         default:
             box->white_space = FOIL_RDRBOX_WHITE_SPACE_NORMAL;
@@ -834,7 +837,8 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
     else {
         switch (v) {
         case CSS_WORD_BREAK_BREAK_WORD:
-            box->word_break = FOIL_RDRBOX_WORD_BREAK_BREAK_WORD;
+            /* this is a legacy keyword */
+            box->word_break = FOIL_RDRBOX_WORD_BREAK_NORMAL;
             break;
 
         case CSS_WORD_BREAK_BREAK_ALL:
@@ -1540,7 +1544,7 @@ is_replaced_element(pcdoc_element_t elem, const char *tag_name)
     return 0;
 }
 
-foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt)
+foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { ctxt->elem } };
     const char *name;
@@ -1744,11 +1748,50 @@ failed:
     return NULL;
 }
 
+foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *parent)
+{
+    foil_rdrbox *box;
+
+    box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
+    if (box == NULL)
+        goto failed;
+
+    box->owner = ctxt->elem;
+    box->is_anonymous = 1;
+
+    foil_rdrbox_append_child(parent, box);
+    return box;
+
+failed:
+    return NULL;
+}
+
+/* create an anonymous inline box */
+foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *parent)
+{
+    foil_rdrbox *box;
+
+    box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_INLINE);
+    if (box == NULL)
+        goto failed;
+
+    box->owner = ctxt->elem;
+    box->is_anonymous = 1;
+
+    foil_rdrbox_append_child(parent, box);
+    return box;
+
+failed:
+    return NULL;
+}
+
 bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
             box->list_item_data->marker_box) {
-        if (!foil_rdrbox_init_marker_box(ctxt,
+        if (!foil_rdrbox_init_marker_data(ctxt,
                     box->list_item_data->marker_box, box)) {
             LOG_ERROR("Failed to initialize marker box\n");
             goto failed;

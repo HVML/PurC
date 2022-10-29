@@ -511,7 +511,7 @@ static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
         /* skip descendants for "display: none" */
         ctxt->elem = ancestor;
         ctxt->computed = result;
-        if ((box = foil_rdrbox_create(ctxt)) == NULL)
+        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL)
             goto done;
         css_select_results_destroy(result);
         result = NULL;
@@ -531,6 +531,27 @@ static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
                 goto failed;
         }
         else if (node.type == PCDOC_NODE_TEXT) {
+            const char *text = NULL;
+            size_t len = 0;
+            pcdoc_text_content_get_text(ctxt->doc,
+                    node.text_node, &text, &len);
+
+            if (ctxt->parent_box->is_block_container) {
+                if (text && len > 0) {
+                    foil_rdrbox *my_box;
+                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                ctxt->parent_box)) == NULL)
+                        goto done;
+
+                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                        goto done;
+                }
+            }
+            else if (ctxt->parent_box->type == FOIL_RDRBOX_TYPE_INLINE) {
+                if (!foil_rdrbox_init_inline_data(ctxt,
+                                ctxt->parent_box, text, len))
+                    goto done;
+            }
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {
             LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");

@@ -29,24 +29,23 @@
 #include <purc/purc-utils.h>
 #include <stdint.h>
 
+#include "unicode/unicode.h"
+
 struct _text_segment {
     struct list_head ln;
 
-    unsigned i; // the index of first character
-    unsigned n; // number of characters in this segment
+    /* the code points of text in Unicode (logical order) */
+    uint32_t *ucs;
 
-    /* position of this segment in the containing block box */
-    int x, y;
+    /* the break opportunities of the characters */
+    foil_break_oppo_t *break_oppos;
 
-    /* rows taken by this segment (always be 1). */
-    unsigned height;
-    /* columns taken by this segment. */
-    unsigned width;
+    size_t nr_ucs;
 };
 
 struct _inline_box_data {
-    /* the code points of text in Unicode (should be in visual order) */
-    uint32_t *ucs;
+    foil_langcode_t lang;
+    unsigned nr_segs;
 
     /* the text segments */
     struct list_head segs;

@@ -69,9 +69,11 @@ enum {
 /* the text transforms of a box. */
 enum {
     FOIL_RDRBOX_TEXT_TRANSFORM_NONE = 0,
-    FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE,
-    FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE,
-    FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE,
+    FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE = 0x01,
+    FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE = 0x02,
+    FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE = 0x03,
+    FOIL_RDRBOX_TEXT_TRANSFORM_FULL_WIDTH = 0x10,
+    FOIL_RDRBOX_TEXT_TRANSFORM_FULL_SIZE_KANA = 0x20,
 };
 
 /* the white space of a box. */
@@ -80,6 +82,7 @@ enum {
     FOIL_RDRBOX_WHITE_SPACE_PRE,
     FOIL_RDRBOX_WHITE_SPACE_NOWRAP,
     FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP,
+    FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES,
     FOIL_RDRBOX_WHITE_SPACE_PRE_LINE,
 };
 
@@ -117,7 +120,6 @@ enum {
     FOIL_RDRBOX_WORD_BREAK_NORMAL = 0,
     FOIL_RDRBOX_WORD_BREAK_KEEP_ALL,
     FOIL_RDRBOX_WORD_BREAK_BREAK_ALL,
-    FOIL_RDRBOX_WORD_BREAK_BREAK_WORD,
 };
 
 /* the line-break of a box. */
@@ -333,13 +335,26 @@ void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
-/* create rendering box */
-foil_rdrbox *foil_rdrbox_create(foil_rendering_ctxt *ctxt);
+/* create the principal box and the subsidiary box (such marker) */
+foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt);
 
-/* initialize type-specific data for rendering box */
+/* create an anonymous block box */
+foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *parent);
+
+/* create an anonymous inline box */
+foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_rendering_ctxt *ctxt,
+        foil_rdrbox *parent);
+
+/* initialize type-specific data for a rendering box */
 bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box);
 
-bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
+/* initialize the data of an inline box */
+bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box,
+        const char *text, size_t len);
+
+/* initialize the data of a marker box */
+bool foil_rdrbox_init_marker_data(foil_rendering_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);

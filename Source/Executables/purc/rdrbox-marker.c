@@ -222,7 +222,7 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
     return true;
 }
 
-bool foil_rdrbox_init_marker_box(foil_rendering_ctxt *ctxt,
+bool foil_rdrbox_init_marker_data(foil_rendering_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item)
 {
     char buff[128];
