@@ -41,7 +41,7 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 2 > sz_buf)
+    if (len + 3 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -55,7 +55,8 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
     }
 
     buf[len] = '.';
-    buf[len + 1] = '\0';
+    buf[len + 1] = ' ';
+    buf[len + 2] = '\0';
     return true;
 }
 
@@ -75,7 +76,7 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 2 > sz_buf) {
+    if (len + 3 > sz_buf) {
         return false;
     }
 
@@ -95,7 +96,8 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
     }
 
     buf[len] = '.';
-    buf[len + 1] = '\0';
+    buf[len + 1] = ' ';
+    buf[len + 2] = '\0';
     return true;
 }
 
@@ -146,7 +148,7 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 2 > sz_buf)
+    if (len + 3 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -159,8 +161,9 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '.';
-    buf[len + 1] = '\0';
+    buf[len] = ')';
+    buf[len + 1] = ' ';
+    buf[len + 2] = '\0';
     return true;
 }
 
@@ -175,7 +178,7 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 2 > sz_buf)
+    if (len + 3 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -188,8 +191,9 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '.';
-    buf[len + 1] = '\0';
+    buf[len] = ')';
+    buf[len + 1] = ' ';
+    buf[len + 2] = '\0';
     return true;
 }
 
@@ -210,7 +214,7 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
 
     /* The lenght of UTF-8 encoding of a greek letter is 2:
        U+03B1 -> CE B1 */
-    if ((len + 1) * 2 > sz_buf)
+    if (len * 2 + 3 > sz_buf)
         return false;
 
     ssize_t pos = (len - 1) * 2;
@@ -224,8 +228,9 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
         pos -= 2;
     }
 
-    buf[len * 2] = '.';
-    buf[len * 2 + 1] = '\0';
+    buf[len * 2] = ')';
+    buf[len * 2 + 1] = ' ';
+    buf[len * 2 + 2] = '\0';
     return true;
 }
 

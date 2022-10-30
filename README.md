@@ -472,7 +472,38 @@ Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/fibonacci-ht
 [18, 1597L]
 ```
 
-You can also direct `purc` to connect to a real renderer, for example, `xGUI Pro`.
+`purc` now contains a built-in renderer called `Foil`.
+This renderer can show the contents of the target document in your terminal:
+
+```bash
+$ bin/purc --rdr-channel=thread hvml/fibonacci-html-temp.hvml
+      Fibonacci Numbers less than 2000
+        1. 0
+        2. 1
+        3. 1
+        4. 2
+        5. 3
+        6. 5
+        7. 8
+        8. 13
+        9. 21
+        10. 34
+        11. 55
+        12. 89
+        13. 144
+        14. 233
+        15. 377
+        16. 610
+        17. 987
+        18. 1597
+      Totally 18 numbers
+```
+
+In version 0.9.0, Foil is not fully functional.
+In the near future, Foil will provide support for most features of CSS 2.2 and some features of CSS Level 3,
+   in order that you can get the similiar experience like a web browser.
+
+You can also direct `purc` to connect to a graphics renderer, for example, `xGUI Pro`.
 It is an advanced HVML renderer based on WebKit.
 
 Assume that you have installed xGUI Pro on your system,

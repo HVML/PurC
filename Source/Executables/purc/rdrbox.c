@@ -23,11 +23,12 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 
+#include <stdio.h>
 #include <assert.h>
 
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
@@ -1785,6 +1786,8 @@ foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
 
     box->owner = ctxt->elem;
     box->is_anonymous = 1;
+    box->is_block_level = 1;
+    box->is_block_container = 1;
 
     foil_rdrbox_append_child(parent, box);
     return box;
@@ -1805,6 +1808,7 @@ foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
 
     box->owner = ctxt->elem;
     box->is_anonymous = 1;
+    box->is_inline_level = 1;
 
     foil_rdrbox_append_child(parent, box);
     return box;
@@ -1897,8 +1901,6 @@ foil_rdrbox_find_container_for_absolute(foil_create_ctxt *ctxt,
 }
 
 #ifndef NDEBUG
-#include <stdio.h>
-
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level)
 {
@@ -1975,8 +1977,62 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level)
 {
-    // do nothing
+    (void)box;
+    (void)doc;
+    (void)level;
 }
 
 #endif /* defined NDEBUG */
+
+void foil_rdrbox_render_before(const foil_rdrbox *box, unsigned level)
+{
+    if (box->is_block_level && box->first && box->first->is_inline_level) {
+        char indent[level * 2 + 1];
+
+        indent[level * 2] = '\0';
+        unsigned n = 0;
+        while (n < level) {
+            indent[n * 2] = ' ';
+            indent[n * 2 + 1] = ' ';
+            n++;
+        }
+
+        fputs(indent, stdout);
+    }
+}
+
+void foil_rdrbox_render_content(const foil_rdrbox *box, unsigned level)
+{
+    (void)level;
+
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
+        if (box->list_item_data->marker_box) {
+            foil_rdrbox *marker = box->list_item_data->marker_box;
+            fputs(purc_atom_to_string(marker->marker_data->atom), stdout);
+        }
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+        struct _inline_box_data *inline_data = box->inline_data;
+        struct _text_segment *p;
+        list_for_each_entry(p, &inline_data->segs, ln) {
+            for (size_t i = 0; i < p->nr_ucs; i++) {
+                char utf8[10];
+                unsigned len = pcutils_unichar_to_utf8(p->ucs[i],
+                        (unsigned char *)utf8);
+                utf8[len] = 0;
+                fputs(utf8, stdout);
+            }
+
+        }
+    }
+}
+
+void foil_rdrbox_render_after(const foil_rdrbox *box, unsigned level)
+{
+    (void)level;
+
+    if (box->is_block_level && box->first && box->first->is_inline_level) {
+        fputs("\n", stdout);
+    }
+}
 

@@ -234,6 +234,11 @@ static size_t get_next_uchar(const char *mstr, size_t mstr_len,
 {
     const char *next = pcutils_utf8_next_char(mstr);
     size_t mclen = next - mstr;
+
+    if (mclen > mstr_len) {
+        return 0;
+    }
+
     if (mclen > 0 && mstr_len >= mclen) {
         gunichar uch = g_utf8_get_char(mstr);
         *uc = uch;
@@ -265,7 +270,7 @@ static size_t collapse_space(const char* mstr, size_t mstr_len)
 {
     uint32_t uc;
     GUnicodeBreakType bt;
-    size_t cosumed = 0;
+    size_t consumed = 0;
 
     do {
         size_t mclen;
@@ -280,10 +285,10 @@ static size_t collapse_space(const char* mstr, size_t mstr_len)
 
         mstr += mclen;
         mstr_len -= mclen;
-        cosumed += mclen;
+        consumed += mclen;
     } while (1);
 
-    return cosumed;
+    return consumed;
 }
 
 /*
@@ -294,7 +299,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
         size_t mstr_len, uint8_t wsr, uint32_t** uchars, size_t* nr_uchars)
 {
     struct ustr_ctxt ctxt;
-    size_t cosumed = 0;
+    size_t consumed = 0;
     bool col_sp = false;
     bool col_nl = false;
 
@@ -332,7 +337,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
 
         mstr += mclen;
         mstr_len -= mclen;
-        cosumed += mclen;
+        consumed += mclen;
 
         if ((wsr == FOIL_WSR_NORMAL || wsr == FOIL_WSR_NOWRAP
                 || wsr == FOIL_WSR_PRE_LINE) && uc == FOIL_UCHAR_TAB) {
@@ -354,6 +359,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
             cosumed_one_loop += next_mclen;
 
             if (col_nl) {
+                assert(ctxt.n > 0);
                 ctxt.n--;
             }
             else {
@@ -367,6 +373,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
                 || bt == G_UNICODE_BREAK_NEXT_LINE) {
 
             if (col_nl) {
+                assert(ctxt.n > 0);
                 ctxt.n--;
             }
             else {
@@ -381,7 +388,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
 
         mstr_len -= cosumed_one_loop;
         mstr += cosumed_one_loop;
-        cosumed += cosumed_one_loop;
+        consumed += cosumed_one_loop;
     }
 
     if (ctxt.n > 0) {
@@ -391,7 +398,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
     else
         goto error;
 
-    return cosumed;
+    return consumed;
 
 error:
     if (ctxt.ucs) free(ctxt.ucs);

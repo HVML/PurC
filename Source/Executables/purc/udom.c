@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -602,6 +602,7 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
                     foil_rdrbox_remove_from_tree(inln);
                     foil_rdrbox_append_child(block, inln);
 
+                    block->nr_child_inlines++;
                     n++;
                 }
                 inln = inln->next;
@@ -626,6 +627,7 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
             foil_rdrbox_remove_from_tree(child);
             foil_rdrbox_prepend_child(block, child);
 
+            block->nr_child_inlines++;
             n++;
         }
 
@@ -685,9 +687,27 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *ancestor)
 }
 
 static void
-render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 {
     foil_rdrbox_dump(ancestor, ctxt->doc, ctxt->level);
+
+    /* travel children */
+    foil_rdrbox *child = ancestor->first;
+    while (child) {
+
+        ctxt->level++;
+        dump_rdrtree(ctxt, child);
+        ctxt->level--;
+
+        child = child->next;
+    }
+}
+
+static void
+render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+{
+    foil_rdrbox_render_before(ancestor, ctxt->level);
+    foil_rdrbox_render_content(ancestor, ctxt->level);
 
     /* travel children */
     foil_rdrbox *child = ancestor->first;
@@ -699,6 +719,8 @@ render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 
         child = child->next;
     }
+
+    foil_rdrbox_render_after(ancestor, ctxt->level);
 }
 
 pcmcth_udom *
@@ -788,9 +810,15 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
-    /* render the whole tree */
     foil_render_ctxt render_ctxt = { edom_doc, udom, page, 0 };
+
+    /* dump the whole tree */
+    LOG_DEBUG("Calling dump_rdrtree...\n");
+    dump_rdrtree(&render_ctxt, udom->initial_cblock);
+
+    /* render the whole tree */
     LOG_DEBUG("Calling render_rdrtree...\n");
+    render_ctxt.level = 0;
     render_rdrtree(&render_ctxt, udom->initial_cblock);
     return udom;
 
