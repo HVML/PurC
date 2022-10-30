@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -1580,6 +1580,13 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt)
     box->owner = ctxt->elem;
     box->is_principal = 1;
     box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+
+    /* whether is a block contianer */
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_LIST_ITEM)
+        box->is_block_container = 1;
+    else if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK)
+        box->is_block_container = 1;
 
     uint8_t v;
     v = css_computed_position(

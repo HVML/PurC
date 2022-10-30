@@ -23,6 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "util/list.h"
@@ -70,7 +72,7 @@ bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt,
         uint32_t *ucs;
         size_t nr_ucs;
 
-        consumed = foil_ustr_from_utf8_until_paragraph_boundary(text, len,
+        consumed = foil_ustr_from_utf8_until_paragraph_boundary(text, left,
                 box->white_space, &ucs, &nr_ucs);
 
         if (consumed == 0)
@@ -101,6 +103,11 @@ bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt,
 
             list_add_tail(&seg->ln, &inline_data->segs);
             inline_data->nr_segs++;
+
+            unsigned char utf8[7];
+            unsigned _len = pcutils_unichar_to_utf8(ucs[0], utf8);
+            utf8[_len] = 0;
+            LOG_DEBUG("a new line segment: %s...\n", utf8);
         }
 
         left -= consumed;

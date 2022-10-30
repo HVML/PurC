@@ -23,6 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "udom.h"
 #include "page.h"
 #include "rdrbox.h"
@@ -525,6 +527,7 @@ static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
     node = pcdoc_element_first_child(ctxt->doc, ancestor);
 
     while (node.type != PCDOC_NODE_VOID) {
+
         if (node.type == PCDOC_NODE_ELEMENT) {
             ctxt->parent_box = box;
             if (make_rdrtree(ctxt, node.elem))
