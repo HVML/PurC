@@ -502,8 +502,8 @@ failed:
     return NULL;
 }
 
-static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
-        pcdoc_element_t ancestor)
+static int
+make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 {
     foil_rdrbox *box;
     css_select_results *result = NULL;
@@ -539,22 +539,22 @@ static int make_rdrtree(struct foil_rendering_ctxt *ctxt,
             pcdoc_text_content_get_text(ctxt->doc,
                     node.text_node, &text, &len);
 
-            if (ctxt->parent_box->is_block_container) {
-                if (text && len > 0) {
-                    foil_rdrbox *my_box;
-                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
-                                ctxt->parent_box)) == NULL)
-                        goto done;
+            if (text && len > 0) {
+                foil_rdrbox *my_box;
+                if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                box)) == NULL)
+                    goto done;
 
-                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
-                        goto done;
-                }
+                if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                    goto done;
             }
-            else if (ctxt->parent_box->type == FOIL_RDRBOX_TYPE_INLINE) {
+#if 0
+            else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
                 if (!foil_rdrbox_init_inline_data(ctxt,
                                 ctxt->parent_box, text, len))
                     goto done;
             }
+#endif
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {
             LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
@@ -572,6 +572,133 @@ failed:
     if (result)
         css_select_results_destroy(result);
     return -1;
+}
+
+static int
+create_anonymous_blocks(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    unsigned n = 0;
+    assert(box->is_block_container);
+
+    /* handle inline boxes before any block children */
+    foil_rdrbox *child = box->first;
+    foil_rdrbox *start = NULL;
+    while (child) {
+
+        if (child->is_inline_level)
+            start = child;
+
+        if (child->is_block_level && start != NULL) {
+            foil_rdrbox *block;
+            block = foil_rdrbox_create_anonymous_block(ctxt, box);
+
+            if (block == NULL)
+                goto failed;
+
+            foil_rdrbox *inln = start;
+            while (inln != child) {
+                if (inln->is_inline_level) {
+                    foil_rdrbox_remove_from_tree(inln);
+                    foil_rdrbox_append_child(block, inln);
+
+                    n++;
+                }
+                inln = inln->next;
+            }
+        }
+
+        child = child->next;
+        start = NULL;
+    }
+
+    /* handle left inline boxes */
+    child = box->last;
+    while (child) {
+
+        foil_rdrbox *block;
+        block = foil_rdrbox_create_anonymous_block(ctxt, box);
+
+        if (block == NULL)
+            goto failed;
+
+        if (child->is_inline_level) {
+            foil_rdrbox_remove_from_tree(child);
+            foil_rdrbox_prepend_child(block, child);
+
+            n++;
+        }
+
+        child = child->prev;
+    }
+
+    assert(n == box->nr_child_inlines);
+    box->nr_child_inlines = 0;
+
+    return 0;
+
+failed:
+    return -1;
+}
+
+static int
+normalize_rdrtree(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *ancestor)
+{
+    foil_rdrbox *box = ancestor;
+    if (box->parent && box->parent->is_block_container &&
+            box->is_block_level && box->parent->nr_child_inlines) {
+        /* force the box to have only block-level boxes
+           by creating anonymous block box */
+        if (create_anonymous_blocks(ctxt, box->parent))
+            goto failed;
+    }
+
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        if (box->is_block_container && child->is_block_level &&
+                box->nr_child_inlines) {
+            if (create_anonymous_blocks(ctxt, box->parent))
+                goto failed;
+        }
+
+        if (normalize_rdrtree(ctxt, child))
+            goto failed;
+
+        child = child->next;
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
+static void
+layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *ancestor)
+{
+    // TODO
+    (void)ctxt;
+    (void)ancestor;
+}
+
+static void
+render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+{
+    foil_rdrbox_dump(ancestor, ctxt->doc, ctxt->level);
+
+    /* travel children */
+    foil_rdrbox *child = ancestor->first;
+    while (child) {
+
+        ctxt->level++;
+        render_rdrtree(ctxt, child);
+        ctxt->level--;
+
+        child = child->next;
+    }
 }
 
 pcmcth_udom *
@@ -645,10 +772,26 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         }
     }
 
-    struct foil_rendering_ctxt ctxt = { edom_doc, udom,
+    /* create the box tree */
+    foil_create_ctxt ctxt = { edom_doc, udom,
         udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL, 0, 0 };
-    make_rdrtree(&ctxt, purc_document_root(edom_doc));
+    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+        goto failed;
 
+    /* check and create anonymous block box if need */
+    LOG_DEBUG("Calling normalize_rdrtree...\n");
+    if (normalize_rdrtree(&ctxt, udom->initial_cblock))
+        goto failed;
+
+    /* determine the pending properties (height) and lay out the boxes */
+    foil_layout_ctxt layout_ctxt = { edom_doc, udom };
+    LOG_DEBUG("Calling layout_rdrtree...\n");
+    layout_rdrtree(&layout_ctxt, udom->initial_cblock);
+
+    /* render the whole tree */
+    foil_render_ctxt render_ctxt = { edom_doc, udom, page, 0 };
+    LOG_DEBUG("Calling render_rdrtree...\n");
+    render_rdrtree(&render_ctxt, udom->initial_cblock);
     return udom;
 
 failed:

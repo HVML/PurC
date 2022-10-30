@@ -23,6 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 
@@ -39,7 +41,7 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 1 > sz_buf)
+    if (len + 2 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -52,7 +54,8 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '\0';
+    buf[len] = '.';
+    buf[len + 1] = '\0';
     return true;
 }
 
@@ -72,7 +75,7 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 1 > sz_buf) {
+    if (len + 2 > sz_buf) {
         return false;
     }
 
@@ -91,7 +94,8 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         pos--;
     }
 
-    buf[len] = '\0';
+    buf[len] = '.';
+    buf[len + 1] = '\0';
     return true;
 }
 
@@ -142,7 +146,7 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 1 > sz_buf)
+    if (len + 2 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -155,7 +159,8 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '\0';
+    buf[len] = '.';
+    buf[len + 1] = '\0';
     return true;
 }
 
@@ -170,7 +175,7 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 1 > sz_buf)
+    if (len + 2 > sz_buf)
         return false;
 
     ssize_t pos = len - 1;
@@ -183,7 +188,8 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '\0';
+    buf[len] = '.';
+    buf[len + 1] = '\0';
     return true;
 }
 
@@ -218,11 +224,12 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
         pos -= 2;
     }
 
-    buf[len] = '\0';
+    buf[len * 2] = '.';
+    buf[len * 2 + 1] = '\0';
     return true;
 }
 
-bool foil_rdrbox_init_marker_data(foil_rendering_ctxt *ctxt,
+bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item)
 {
     char buff[128];
@@ -258,6 +265,7 @@ bool foil_rdrbox_init_marker_data(foil_rendering_ctxt *ctxt,
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
         numbering_decimal(index + 1, buff, sizeof(buff));
+        LOG_DEBUG("%s\n", buff);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:

@@ -53,7 +53,7 @@ static foil_langcode_t get_lang(pcdoc_element_t elem)
     return FOIL_LANGCODE_en;
 }
 
-bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt,
+bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
         foil_rdrbox *box, const char *text, size_t len)
 {
     (void)ctxt;
@@ -103,11 +103,6 @@ bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt,
 
             list_add_tail(&seg->ln, &inline_data->segs);
             inline_data->nr_segs++;
-
-            unsigned char utf8[7];
-            unsigned _len = pcutils_unichar_to_utf8(ucs[0], utf8);
-            utf8[_len] = 0;
-            LOG_DEBUG("a new line segment: %s...\n", utf8);
         }
 
         left -= consumed;

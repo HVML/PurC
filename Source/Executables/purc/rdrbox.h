@@ -200,13 +200,8 @@ struct foil_rdrbox {
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_element_t owner;
 
-    /* Indicates that a box is a block container box:
-
-       In CSS 2.2, a block-level box is also a block container box
-       unless it is a table box or the principal box of a replaced element.
-
-     */
-    uint8_t is_container:1;
+    uint8_t is_block_level:1;
+    uint8_t is_inline_level:1;
 
     /* Indicates that this box is anonymous box. */
     uint8_t is_anonymous:1;
@@ -270,6 +265,9 @@ struct foil_rdrbox {
     /* the number of child list items */
     unsigned nr_child_list_items;
 
+    /* the number of inline level child boxes */
+    unsigned nr_child_inlines;
+
     /* the extra data of this box */
     union {
         void *data;     // aliases
@@ -293,7 +291,7 @@ enum {
     FOIL_RDRBOX_POSSCHEMA_ABSOLUTE,
 };
 
-typedef struct foil_rendering_ctxt {
+typedef struct foil_create_ctxt {
     purc_document_t doc;
 
     pcmcth_udom *udom;
@@ -315,8 +313,19 @@ typedef struct foil_rendering_ctxt {
 
     unsigned pos_schema:3;
     unsigned in_normal_flow:1;
+} foil_create_ctxt;
 
-} foil_rendering_ctxt;
+typedef struct foil_layout_ctxt {
+    purc_document_t doc;
+    pcmcth_udom *udom;
+} foil_layout_ctxt;
+
+typedef struct foil_render_ctxt {
+    purc_document_t doc;
+    pcmcth_udom *udom;
+    pcmcth_page *page;
+    unsigned level;
+} foil_render_ctxt;
 
 #ifdef __cplusplus
 extern "C" {
@@ -329,32 +338,35 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
 
+void foil_rdrbox_dump(const foil_rdrbox *box,
+        purc_document_t doc, unsigned level);
+
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
-/* create the principal box and the subsidiary box (such marker) */
-foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt);
+/* create the principal box and the subsidiary box (e.g. marker) */
+foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt);
 
 /* create an anonymous block box */
-foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
         foil_rdrbox *parent);
 
 /* create an anonymous inline box */
-foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
         foil_rdrbox *parent);
 
 /* initialize type-specific data for a rendering box */
-bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box);
+bool foil_rdrbox_init_data(foil_create_ctxt *ctxt, foil_rdrbox *box);
 
 /* initialize the data of an inline box */
-bool foil_rdrbox_init_inline_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box,
+bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const char *text, size_t len);
 
 /* initialize the data of a marker box */
-bool foil_rdrbox_init_marker_data(foil_rendering_ctxt *ctxt,
+bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
@@ -365,10 +377,10 @@ bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc);
 
 const foil_rdrbox *
-foil_rdrbox_find_container_for_relative(foil_rendering_ctxt *ctxt,
+foil_rdrbox_find_container_for_relative(foil_create_ctxt *ctxt,
         const foil_rdrbox *box);
 const foil_rdrbox *
-foil_rdrbox_find_container_for_absolute(foil_rendering_ctxt *ctxt,
+foil_rdrbox_find_container_for_absolute(foil_create_ctxt *ctxt,
         const foil_rdrbox *box);
 
 #ifdef __cplusplus

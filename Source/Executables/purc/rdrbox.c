@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -367,7 +367,7 @@ static const char *literal_values_list_style_position[] = {
 #define INVALID_USED_VALUE_UINT8     0xFF
 
 static uint8_t
-display_to_type(foil_rendering_ctxt *ctxt, uint8_t computed)
+display_to_type(foil_create_ctxt *ctxt, uint8_t computed)
 {
     assert(ctxt->parent_box);
 
@@ -509,7 +509,7 @@ static int calc_used_value_heights(foil_rdrbox *box,
 
 /* display, positionn, and float must be determined
    before calling this function */
-static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
+static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
         foil_rdrbox *box)
 {
     uint8_t v;
@@ -1032,7 +1032,7 @@ static void dtrm_used_values_common_properties(foil_rendering_ctxt *ctxt,
 }
 
 static void
-dtrm_margin_left_right(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+dtrm_margin_left_right(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t value;
     css_fixed length;
@@ -1075,7 +1075,7 @@ dtrm_margin_left_right(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static void
-dtrm_margin_top_bottom(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+dtrm_margin_top_bottom(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t value;
     css_fixed length;
@@ -1118,7 +1118,7 @@ dtrm_margin_top_bottom(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static int
-get_intrinsic_width(foil_rendering_ctxt *ctxt)
+get_intrinsic_width(foil_create_ctxt *ctxt)
 {
     int l = 0;
     const char *value;
@@ -1136,7 +1136,7 @@ get_intrinsic_width(foil_rendering_ctxt *ctxt)
 }
 
 static int
-get_intrinsic_height(foil_rendering_ctxt *ctxt)
+get_intrinsic_height(foil_create_ctxt *ctxt)
 {
     int l = 0;
     const char *value;
@@ -1154,7 +1154,7 @@ get_intrinsic_height(foil_rendering_ctxt *ctxt)
 }
 
 static int
-get_intrinsic_ratio(foil_rendering_ctxt *ctxt)
+get_intrinsic_ratio(foil_create_ctxt *ctxt)
 {
     (void)ctxt;
 
@@ -1162,7 +1162,7 @@ get_intrinsic_ratio(foil_rendering_ctxt *ctxt)
 }
 
 static uint8_t
-dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+dtrm_width_replaced(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t width_v, height_v;
     css_fixed width_l, height_l;
@@ -1220,7 +1220,7 @@ dtrm_width_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static uint8_t
-dtrm_height_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+dtrm_height_replaced(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t width_v, height_v;
     css_fixed width_l, height_l;
@@ -1264,7 +1264,7 @@ dtrm_height_replaced(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static uint8_t
-dtrm_width_shrink_to_fit(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+dtrm_width_shrink_to_fit(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t width_v;
     css_fixed width_l;
@@ -1289,7 +1289,7 @@ dtrm_width_shrink_to_fit(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static void
-dtrm_margin_left_right_block_normal(foil_rendering_ctxt *ctxt,
+dtrm_margin_left_right_block_normal(foil_create_ctxt *ctxt,
         foil_rdrbox *box, uint8_t width_v)
 {
     int nr_autos = 0;
@@ -1416,7 +1416,7 @@ dtrm_margin_left_right_block_normal(foil_rendering_ctxt *ctxt,
 
 /* calculate widths and margins */
 static void
-calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+calc_widths_margins(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         if (box->is_replaced) {
@@ -1487,7 +1487,7 @@ calc_widths_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 
 /* calculate heights and margins */
 static void
-calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+calc_heights_margins(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced) {
         box->height = -1; // not apply
@@ -1529,7 +1529,7 @@ calc_heights_margins(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
 
 /* adjust position according to 'vertical-align' */
 static void
-adjust_position_vertically(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
+adjust_position_vertically(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
     (void)box;
@@ -1544,7 +1544,7 @@ is_replaced_element(pcdoc_element_t elem, const char *tag_name)
     return 0;
 }
 
-foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt)
+foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { ctxt->elem } };
     const char *name;
@@ -1580,6 +1580,18 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt)
     box->owner = ctxt->elem;
     box->is_principal = 1;
     box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+
+    /* whether is a block level box */
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||
+            box->type == FOIL_RDRBOX_TYPE_TABLE)
+        box->is_block_level = 1;
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
+        box->is_inline_level = 1;
+        ctxt->parent_box->nr_child_inlines++;
+    }
 
     /* whether is a block contianer */
     if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
@@ -1735,11 +1747,18 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_rendering_ctxt *ctxt)
         if (box->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE) {
             // allocate the marker box
             foil_rdrbox *marker_box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
-            if (marker_box == NULL)
+            if (marker_box == NULL) {
+                LOG_ERROR("Failed to create marker box\n");
                 goto failed;
+            }
 
             foil_rdrbox_insert_before(box, marker_box);
             box->list_item_data->marker_box = marker_box;
+
+            if (!foil_rdrbox_init_marker_data(ctxt, marker_box, box)) {
+                LOG_ERROR("Failed to initialize marker box\n");
+                goto failed;
+            }
         }
     }
 
@@ -1755,7 +1774,7 @@ failed:
     return NULL;
 }
 
-foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
         foil_rdrbox *parent)
 {
     foil_rdrbox *box;
@@ -1775,7 +1794,7 @@ failed:
 }
 
 /* create an anonymous inline box */
-foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_rendering_ctxt *ctxt,
+foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
         foil_rdrbox *parent)
 {
     foil_rdrbox *box;
@@ -1792,23 +1811,6 @@ foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_rendering_ctxt *ctxt,
 
 failed:
     return NULL;
-}
-
-bool foil_rdrbox_init_data(foil_rendering_ctxt *ctxt, foil_rdrbox *box)
-{
-    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
-            box->list_item_data->marker_box) {
-        if (!foil_rdrbox_init_marker_data(ctxt,
-                    box->list_item_data->marker_box, box)) {
-            LOG_ERROR("Failed to initialize marker box\n");
-            goto failed;
-        }
-    }
-
-    return true;
-
-failed:
-    return false;
 }
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
@@ -1875,7 +1877,7 @@ bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc)
 }
 
 const foil_rdrbox *
-foil_rdrbox_find_container_for_relative(foil_rendering_ctxt *ctxt,
+foil_rdrbox_find_container_for_relative(foil_create_ctxt *ctxt,
         const foil_rdrbox *box)
 {
     (void)ctxt;
@@ -1885,7 +1887,7 @@ foil_rdrbox_find_container_for_relative(foil_rendering_ctxt *ctxt,
 }
 
 const foil_rdrbox *
-foil_rdrbox_find_container_for_absolute(foil_rendering_ctxt *ctxt,
+foil_rdrbox_find_container_for_absolute(foil_create_ctxt *ctxt,
         const foil_rdrbox *box)
 {
     (void)ctxt;
@@ -1893,4 +1895,88 @@ foil_rdrbox_find_container_for_absolute(foil_rendering_ctxt *ctxt,
 
     return NULL;
 }
+
+#ifndef NDEBUG
+#include <stdio.h>
+
+void foil_rdrbox_dump(const foil_rdrbox *box,
+        purc_document_t doc, unsigned level)
+{
+    unsigned n = 0;
+    char indent[level * 2 + 1];
+
+    indent[level * 2] = '\0';
+    while (n < level) {
+        indent[n * 2] = ' ';
+        indent[n * 2 + 1] = ' ';
+        n++;
+    }
+
+    char *name = NULL;
+    if (box->is_initial) {
+        name = strdup("initial");
+    }
+    else if (box->is_principal) {
+        const char *tag_name;
+        size_t len;
+        pcdoc_element_get_tag_name(doc, box->owner, &tag_name, &len,
+                NULL, NULL, NULL, NULL);
+        name = strndup(tag_name, len);
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        name = strdup("marker");
+    }
+    else {
+        name = strdup("anonymous");
+    }
+
+    fputs(indent, stdout);
+    fprintf(stdout, "box for %s: "
+            "(type: %s; position: %s; float: %s; block container: %s; "
+            "block level: %s; inline level: %s; replaced: %s)\n",
+            name,
+            literal_values_boxtype[box->type],
+            literal_values_position[box->position],
+            literal_values_float[box->floating],
+            box->is_block_container ? "yes" : "no",
+            box->is_block_level ? "yes" : "no",
+            box->is_inline_level ? "yes" : "no",
+            box->is_replaced ? "yes" : "no");
+
+    if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        fputs(indent, stdout);
+        fputs(" content: ", stdout);
+        fputs(purc_atom_to_string(box->marker_data->atom), stdout);
+        fputs("\n", stdout);
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+        fputs(indent, stdout);
+        fputs(" content: ", stdout);
+
+        struct _inline_box_data *inline_data = box->inline_data;
+        struct _text_segment *p;
+        list_for_each_entry(p, &inline_data->segs, ln) {
+            char utf8[16];
+            unsigned len = pcutils_unichar_to_utf8(p->ucs[0],
+                    (unsigned char *)utf8);
+            utf8[len] = 0;
+            strcat(utf8, "…");
+            fputs(utf8, stdout);
+        }
+        fputs("\n", stdout);
+    }
+
+    if (name)
+        free(name);
+}
+
+#else
+
+void foil_rdrbox_dump(const foil_rdrbox *box,
+        purc_document_t doc, unsigned level)
+{
+    // do nothing
+}
+
+#endif /* defined NDEBUG */
 
