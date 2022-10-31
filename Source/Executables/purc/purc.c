@@ -1303,6 +1303,7 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
+#if ENABLE(RDR_FOIL)
         opts->rdr_prot = "thread";
 
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
@@ -1311,10 +1312,15 @@ int main(int argc, char** argv)
         }
 
         if (foil_init(opts->rdr_uri) == 0) {
-            fprintf(stdout, "Failed to initialize built-in thread renderer: %s\n",
+            fprintf(stdout,
+                    "Failed to initialize the built-in Foil renderer: %s\n",
                     opts->rdr_prot);
             return EXIT_FAILURE;
         }
+#else
+        fprintf(stdout, "The built-in Foil renderer is not enabled\n");
+        return EXIT_FAILURE;
+#endif
     }
     else {
         if (strcmp(opts->rdr_prot, "socket")) {
