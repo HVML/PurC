@@ -141,7 +141,7 @@
 ### 2.8) Others
 
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
-1. [0.9.0] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
+1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
 1. [1.0.0] Normalize the typedef names.
 1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
