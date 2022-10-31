@@ -31,7 +31,26 @@ In this version, we fixed some bugs and made som enhancements:
    * Rename macro `PCA_ENABLE_RENDERER_PURCMC` to `PCA_ENABLE_RENDERER_SOCKET`.
 * ADJUSTMENTS:
    * Use `edpt://` instead of `@` as the schema of an endpoint URI.
+   * Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
+   * Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 * ENHANCEMENTS:
+   * Basic support for the new variant type: tuple.
+   * Improve the implementation of the element `bind`:
+      - The support for the adverb attribute `constantly`.
+      - The support for the substituting expression.
+   * Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+   * Improve the data fetcher to generate the progress events when fetching data.
+   * Improve the function to get data from remote data fetcher:
+      - The element `archetype`: support for `src`, `param`, and `method` attributes.
+      - The element `archedata`: support for `src`, `param`, and `method` attributes.
+      - The element `execpt`: support for `src`, `param`, and `method` attributes.
+      - The element `init`: support for `from`, `with`, and `via` attrigbutes.
+      - The element `define`: support for `from`, `with`, and `via` attributes.
+      - The element `update`: support for `from`, `with`, and `via` attributes.
+   * Support for the equivalence of the context variable `<`: `~`.
+   * Support for the equivalences and/or abbreviations of some adverb attributes.
+   * Support for the new preposition attribute: `idd-by`.
+   * A simple built-in HTML renderer (Foil) for text terminal via `THREAD` channel.
 * OPTIMIZATIONS:
 * IMPROVEMENTS:
 * BUGFIXES:
