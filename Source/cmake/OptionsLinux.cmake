@@ -108,12 +108,12 @@ else ()
     SET_AND_EXPOSE_TO_BUILD(HAVE_OPENSSL ON)
 endif ()
 
-# Public options specific to the HybridOS port. Do not add any options here unless
+# Public options specific to the Linux port. Do not add any options here unless
 # there is a strong reason we should support changing the value of the option,
 # and the option is not relevant to any other PurC ports.
 #PURC_OPTION_DEFINE(USE_SYSTEMD "Whether to enable journald logging" PUBLIC ON)
 
-# Private options specific to the HybridOS port. Changing these options is
+# Private options specific to the Linux port. Changing these options is
 # completely unsupported. They are intended for use only by PurC developers.
 #PURC_OPTION_DEFINE(USE_ANGLE_WEBGL "Whether to use ANGLE as WebGL backend." PRIVATE OFF)
 #PURC_OPTION_DEPEND(ENABLE_WEBGL ENABLE_GRAPHICS_CONTEXT_GL)
