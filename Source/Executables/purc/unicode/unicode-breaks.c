@@ -1789,7 +1789,7 @@ static bool are_prev_uchars_nu_AND_nu_sy_is(
         last = ctxt->n - 3;
     }
 
-    LOG_DEBUG("%s: break type of last (%d/%d): %d\n",
+    LOG_DEBUG("%s: break type of last (%ld/%ld): %d\n",
             __FUNCTION__, last, ctxt->n, ctxt->bts[last]);
     if (ctxt->bts[last] == G_UNICODE_BREAK_NUMERIC)
         return true;
@@ -1805,7 +1805,7 @@ static bool are_prev_uchars_nu_AND_nu_sy_is(
             break;
     }
 
-    LOG_DEBUG("%s: break type of first (%d/%d): %d\n",
+    LOG_DEBUG("%s: break type of first (%ld/%ld): %d\n",
             __FUNCTION__, i, ctxt->n, ctxt->bts[i]);
     if (i == last)
         return false;
@@ -2921,7 +2921,7 @@ next_uchar:
         nr_left_ucs -= consumed_one_loop;
         ucs_left += consumed_one_loop;
 
-        LOG_DEBUG("%s: nr_ucs: %d, ctxt.n: %d, nr_left_ucs: %d\n",
+        LOG_DEBUG("%s: nr_ucs: %ld, ctxt.n: %ld, nr_left_ucs: %ld\n",
                 __FUNCTION__, nr_ucs, ctxt.n, nr_left_ucs);
 #if 0
         // Do not return if we got any BK!
@@ -2949,7 +2949,7 @@ next_uchar:
         ssize_t n;
         for (n = 1; n < ctxt.n; n++) {
             if ((ctxt.bos[n] & FOIL_BOV_LB_MASK) == FOIL_BOV_UNKNOWN) {
-                LOG_DEBUG ("LB31 Break everywhere else: %d\n", n);
+                LOG_DEBUG ("LB31 Break everywhere else: %ld\n", n);
                 ctxt.bos[n] &= ~FOIL_BOV_LB_MASK;
                 ctxt.bos[n] |= FOIL_BOV_LB_ALLOWED;
             }

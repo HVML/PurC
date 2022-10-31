@@ -522,7 +522,7 @@ static int calc_hanged_glyphs_extent(my_glyph_args* args,
         }
     }
 
-    LOG_DEBUG("hanged_start(%d) hanged_end(%d) n(%d) hanged_extent(%d)\n",
+    LOG_DEBUG("hanged_start(%ld) hanged_end(%ld) n(%d) hanged_extent(%d)\n",
         args->hanged_start, args->hanged_end, n, hanged_extent);
 
     return hanged_extent;
@@ -652,7 +652,7 @@ static int calc_hanged_glyphs_end(my_glyph_args* args,
         pos[i].hanged = gis[i].hanged;
     }
 
-    LOG_DEBUG("hanged_start(%d) hanged_end(%d) n(%d) hanged_extent(%d)\n",
+    LOG_DEBUG("hanged_start(%ld) hanged_end(%ld) n(%d) hanged_extent(%d)\n",
         args->hanged_start, args->hanged_end, n, hanged_extent);
 
     return hanged_extent;
