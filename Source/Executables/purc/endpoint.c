@@ -346,7 +346,7 @@ static int on_update_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    pcmcth_workspace *workspace;
+    pcmcth_workspace *workspace = NULL;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_workspace == NULL || rdr->cbs.update_workspace) {
@@ -401,7 +401,7 @@ static int on_destroy_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     int retv = PCRDR_SC_OK;
-    pcmcth_workspace *workspace;
+    pcmcth_workspace *workspace = NULL;
     pcrdr_msg response = { };
 
     if (rdr->cbs.create_workspace == NULL || rdr->cbs.destroy_workspace) {
@@ -1106,7 +1106,7 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     pcrdr_msg response = { };
     purc_variant_t result = PURC_VARIANT_INVALID;
 
-    const char *method;
+    const char *method = NULL;
     purc_variant_t arg = PURC_VARIANT_INVALID;
 
     if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON) {

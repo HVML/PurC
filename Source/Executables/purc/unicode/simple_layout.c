@@ -765,6 +765,7 @@ static void init_glyph_info(my_glyph_args* args, int i,
     gi->orientation = FOIL_GLYPH_ORIENT_UPRIGHT;
 }
 
+#if 0
 static inline int shrink_total_extent(my_glyph_args* args, int total_extent,
         const foil_glyph_extinfo* ges)
 {
@@ -772,6 +773,7 @@ static inline int shrink_total_extent(my_glyph_args* args, int total_extent,
     return total_extent - ges->line_adv;
 
 }
+#endif
 
 static int get_glyph_extent_info(my_glyph_args* args, uint32_t gv,
         my_glyph_info* gi, foil_glyph_extinfo* ges)

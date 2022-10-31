@@ -370,7 +370,7 @@ static int append_style_walker(purc_document_t doc,
                     css_error err;
                     err = css_stylesheet_append_data(udom->author_sheet,
                             (const unsigned char *)text, len);
-                    if (err != CSS_OK || err != CSS_NEEDDATA) {
+                    if (err != CSS_OK && err != CSS_NEEDDATA) {
                         LOG_ERROR("Failed to append css data: %d\n", err);
                         return -1;
                     }
@@ -728,6 +728,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     purc_document_t edom_doc;
     purc_document_type doc_type;
+    pcmcth_udom *udom = NULL;
 
     edom_doc = purc_variant_native_get_entity(edom);
     assert(edom_doc);
@@ -743,7 +744,6 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    pcmcth_udom *udom;
     udom = foil_udom_new(page);
     if (udom == NULL) {
         *retv = PCRDR_SC_INSUFFICIENT_STORAGE;

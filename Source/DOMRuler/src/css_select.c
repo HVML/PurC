@@ -1325,10 +1325,12 @@ int hl_css_select_result_destroy(css_select_results *result)
 
 css_fixed css_screen_dpi = F_90;
 css_fixed css_baseline_pixel_density = F_96;
+#if 0
 static inline css_fixed css_pixels_css_to_physical(
         css_fixed css_pixels)
 {
     return FDIV(FMUL(css_pixels, css_screen_dpi),
             css_baseline_pixel_density);
 }
+#endif
 

@@ -64,7 +64,7 @@ static int interval_compare(const void *key, const void *elt)
     return false; \
 } \
 \
-static inline bool _unicode_is_##name(uint32_t ch) \
+static UNUSED_FUNCTION inline bool _unicode_is_##name(uint32_t ch) \
 {  \
     return foil_uchar_is_##name(ch);\
 }

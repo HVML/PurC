@@ -161,7 +161,7 @@ uintptr_t purc_runloop_add_fd_monitor(purc_runloop_t runloop, int fd,
     RunLoop *runLoop = (RunLoop*)runloop;
 
     return runLoop->addFdMonitor(fd, to_gio_condition(event),
-            [callback, ctxt, runLoop, co] (gint fd, GIOCondition condition) -> gboolean {
+            [callback, ctxt] (gint fd, GIOCondition condition) -> gboolean {
             PC_ASSERT(pcintr_get_runloop()==nullptr);
             purc_runloop_io_event io_event;
             io_event = to_runloop_io_event(condition);

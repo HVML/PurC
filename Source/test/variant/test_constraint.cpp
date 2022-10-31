@@ -714,8 +714,12 @@ TEST(constraint, object_order)
         struct record {
             const char *s;
         } records[] = {
-            "{first:xiaohong,last:xu}",
-            "{last:xu,first:xiaohong}",
+            {
+                "{first:xiaohong,last:xu}"
+            },
+            {
+                "{last:xu,first:xiaohong}"
+            },
         };
 
         purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
@@ -729,8 +733,12 @@ TEST(constraint, object_order)
         struct record {
             const char *s;
         } records[] = {
-            "{name:[{first:xiaohong,last:xu}], extra:foo}",
-            "{extra:foo, name:[{first:xiaohong,last:xu}]}",
+            {
+                "{name:[{first:xiaohong,last:xu}], extra:foo}"
+            },
+            {
+                "{extra:foo, name:[{first:xiaohong,last:xu}]}"
+            },
         };
 
         purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
@@ -744,10 +752,18 @@ TEST(constraint, object_order)
         struct record {
             const char *s;
         } records[] = {
-            "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
-            "[!name,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]",
-            "[!name,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]",
-            "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+            {
+                "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]"
+            },
+            {
+                "[!name,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]"
+            },
+            {
+                "[!name,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]"
+            },
+            {
+                "[!name,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]"
+            }
         };
 
         purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
@@ -761,10 +777,18 @@ TEST(constraint, object_order)
         struct record {
             const char *s;
         } records[] = {
-            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
-            "[!,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]",
-            "[!,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]",
-            "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]",
+            {
+                "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]"
+            },
+            {
+                "[!,{extra:foo, name:[{first:xiaohong,last:xu},[]]},{extra:bar, name:[{first:shuming,last:xue},[]]}]"
+            },
+            {
+                "[!,{extra:bar,name:[{first:shuming,last:xue},[]]},{extra:foo,name:[{first:xiaohong,last:xu},[]]}]"
+            },
+            {
+                "[!,{name:[{first:xiaohong,last:xu},[]], extra:foo},{name:[{first:shuming,last:xue},[]], extra:bar}]"
+            },
         };
 
         purc_variant_t v0 = pcejson_parser_parse_string(records[0].s, 0, 0);
