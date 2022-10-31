@@ -780,7 +780,8 @@ enum op_white_space {
 	WHITE_SPACE_PRE			= 0x0001,
 	WHITE_SPACE_NOWRAP		= 0x0002,
 	WHITE_SPACE_PRE_WRAP		= 0x0003,
-	WHITE_SPACE_PRE_LINE		= 0x0004
+	WHITE_SPACE_BREAK_SPACES	= 0x0004,
+	WHITE_SPACE_PRE_LINE		= 0x0005,
 };
 
 enum op_widows {
@@ -911,7 +912,16 @@ enum op_text_shadow {
 enum op_word_break {
     WORD_BREAK_NORMAL      = 0x0000,
     WORD_BREAK_BREAK_ALL   = 0x0001,
-    WORD_BREAK_KEEP_ALL    = 0x0002
+    WORD_BREAK_KEEP_ALL    = 0x0002,
+    WORD_BREAK_BREAK_WORD  = 0x0003,
+};
+
+enum op_line_break {
+    LINE_BREAK_AUTO        = 0x0000,
+    LINE_BREAK_LOOSE       = 0x0001,
+    LINE_BREAK_NORMAL      = 0x0002,
+    LINE_BREAK_STRICT      = 0x0003,
+    LINE_BREAK_ANYWHERE    = 0x0004,
 };
 
 enum op_word_wrap {

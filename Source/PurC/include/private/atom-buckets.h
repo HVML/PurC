@@ -43,7 +43,7 @@ enum pcatom_bucket {
     ATOM_BUCKET_DVOBJ,  /* the keywords of DVObjs: all, default, ... */
 
     /* XXX: change this if you add a new atom bucket. */
-    ATOM_BUCKET_LAST = ATOM_BUCKET_RDROP,
+    ATOM_BUCKET_LAST = ATOM_BUCKET_DVOBJ,
 };
 
 /* Make sure ATOM_BUCKET_LAST is less than PURC_ATOM_BUCKETS_NR */

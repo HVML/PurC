@@ -323,6 +323,10 @@ uint8_t css_computed_text_indent(
 		const css_computed_style *style,
 		css_fixed *length, css_unit *unit);
 
+uint8_t css_computed_text_overflow(
+		const css_computed_style *style,
+		lwc_string **string);
+
 uint8_t css_computed_white_space(
 		const css_computed_style *style);
 
@@ -530,6 +534,9 @@ uint8_t css_computed_text_shadow(
         css_color* text_shadow_color);
 
 uint8_t css_computed_word_break(
+        const css_computed_style *style);
+
+uint8_t css_computed_line_break(
         const css_computed_style *style);
 
 uint8_t css_computed_word_wrap(

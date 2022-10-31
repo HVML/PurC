@@ -1278,8 +1278,6 @@ pcrdr_parse_renderer_capabilities(const char *data)
                         rdr_caps->selectors |= PCRDR_K_SELECTOR_XPATH_b;
                     }
                 }
-
-                PC_INFO("selectors: %x\n", rdr_caps->selectors);
             }
             else {
                 PC_WARN("Unknown renderer capability: %s\n", cap);

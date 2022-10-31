@@ -201,8 +201,11 @@ typedef unsigned int purc_atom_t;
 /** The atom bucket identifier for exception name */
 #define PURC_ATOM_BUCKET_EXCEPT 1
 
+/** The atom bucket identifier reserved for built-in renderer */
+#define PURC_ATOM_BUCKET_RDR    (PURC_ATOM_BUCKETS_NR - 1)
+
 /** The atom bucket identifier reserved for user usage */
-#define PURC_ATOM_BUCKET_USER   (PURC_ATOM_BUCKETS_NR - 1)
+#define PURC_ATOM_BUCKET_USER   (PURC_ATOM_BUCKET_RDR - 1)
 
 PCA_EXTERN_C_BEGIN
 
@@ -667,6 +670,9 @@ pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,
 PCA_EXPORT uint32_t *
 pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
         size_t *nr_chars);
+
+PCA_EXPORT unsigned
+pcutils_unichar_to_utf8(uint32_t uc, unsigned char* buff);
 
 PCA_EXPORT char *
 pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,

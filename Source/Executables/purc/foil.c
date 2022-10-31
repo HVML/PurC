@@ -210,7 +210,7 @@ static void* foil_thread_entry(void* arg)
                 PCINST_MOVE_BUFFER_FLAG_NONE, 16);
     }
 
-    purc_enable_log(false, false);
+    purc_enable_log(true, false);
 
     sem_post(sw);
 

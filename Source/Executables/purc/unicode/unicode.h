@@ -35,24 +35,27 @@
 #define FOIL_UCHAR_IDSPACE           0x3000
 #define FOIL_UCHAR_LINE_SEPARATOR    0x2028
 
+#include "rdrbox.h"
+
 /**
  * \def FOIL_WSR_NORMAL
  *
- * \brief This value directs \a GetUCharsUntilParagraphBoundary
+ * \brief This value directs \a foil_ustr_from_utf8_until_paragraph_boundary
  * collapses sequences of white space into a single character.
  * Lines may wrap at allowed soft wrap opportunities.
  */
-#define FOIL_WSR_NORMAL          0x00
+#define FOIL_WSR_NORMAL          FOIL_RDRBOX_WHITE_SPACE_NORMAL
 
 /**
  * \def FOIL_WSR_PRE
  *
- * \brief This value prevents \a GetUCharsUntilParagraphBoundary from collapsing
+ * \brief This value prevents \a foil_ustr_from_utf8_until_paragraph_boundary
+ * from collapsing
  * sequences of white space. Segment breaks such as line feeds are
  * preserved as forced line breaks. Lines only break at forced line breaks;
  * content that does not fit within the specified extent overflows it.
  */
-#define FOIL_WSR_PRE             0x01
+#define FOIL_WSR_PRE             FOIL_RDRBOX_WHITE_SPACE_PRE
 
 /**
  * \def FOIL_WSR_NOWRAP
@@ -60,7 +63,7 @@
  * \brief Like \a FOIL_WSR_NORMAL, this value collapses white spaces; but like
  * \a FOIL_WSR_PRE, it does not allow wrapping.
  */
-#define FOIL_WSR_NOWRAP          0x02
+#define FOIL_WSR_NOWRAP          FOIL_RDRBOX_WHITE_SPACE_NOWRAP
 
 /**
  * \def FOIL_WSR_PRE_WRAP
@@ -68,7 +71,7 @@
  * \brief Like \a FOIL_WSR_PRE, this value preserves white space; but like
  * \a FOIL_WSR_NORMAL, it allows wrapping.
  */
-#define FOIL_WSR_PRE_WRAP        0x03
+#define FOIL_WSR_PRE_WRAP        FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP
 
 /**
  * \def FOIL_WSR_BREAK_SPACES
@@ -81,10 +84,10 @@
  *      white space glyph, including between white space characters.
  *
  * When white space rule is specified to be FOIL_WSR_BREAK_SPACES, the manner
- * of \a GetUCharsUntilParagraphBoundary will conform
+ * of \a foil_ustr_from_utf8_until_paragraph_boundary will conform
  * to CSS Text Module Level 3.
  */
-#define FOIL_WSR_BREAK_SPACES    0x04
+#define FOIL_WSR_BREAK_SPACES    FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES
 
 /**
  * \def FOIL_WSR_PRE_LINE
@@ -93,7 +96,7 @@
  * allows wrapping, but preserves segment breaks in the source
  * as forced line breaks.
  */
-#define FOIL_WSR_PRE_LINE        0x05
+#define FOIL_WSR_PRE_LINE        FOIL_RDRBOX_WHITE_SPACE_PRE_LINE
 
 /**
  * \def FOIL_CTR_NONE
@@ -110,21 +113,21 @@
  * \brief Puts the first typographic letter unit of each word,
  * if lowercase, in titlecase; other characters are unaffected.
  */
-#define FOIL_CTR_CAPITALIZE      0x01
+#define FOIL_CTR_CAPITALIZE      FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE
 
 /**
  * \def FOIL_CTR_UPPERCASE
  *
  * \brief Puts all letters in uppercase.
  */
-#define FOIL_CTR_UPPERCASE       0x02
+#define FOIL_CTR_UPPERCASE       FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE
 
 /**
  * \def FOIL_CTR_LOWERCASE
  *
  * \brief Puts all letters in lowercase.
  */
-#define FOIL_CTR_LOWERCASE       0x03
+#define FOIL_CTR_LOWERCASE       FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE
 
 /**
  * \def FOIL_CTR_FULL_WIDTH
@@ -134,7 +137,7 @@
  * it is left as is. This value is typically used to typeset
  * Latin letters and digits as if they were ideographic characters.
  */
-#define FOIL_CTR_FULL_WIDTH      0x10
+#define FOIL_CTR_FULL_WIDTH      FOIL_RDRBOX_TEXT_TRANSFORM_FULL_WIDTH
 
 /**
  * \def FOIL_CTR_FULL_SIZE_KANA
@@ -145,7 +148,7 @@
  * Kana to compensate for legibility issues at the small font sizes
  * typically used in ruby.
  */
-#define FOIL_CTR_FULL_SIZE_KANA  0x20
+#define FOIL_CTR_FULL_SIZE_KANA  FOIL_RDRBOX_TEXT_TRANSFORM_FULL_SIZE_KANA
 
 /**
  * \def FOIL_WBR_NORMAL
@@ -153,28 +156,28 @@
  * \brief Words break according to their customary rules, as defined
  * by UNICODE LINE BREAKING ALGORITHM.
  */
-#define FOIL_WBR_NORMAL          0x00
+#define FOIL_WBR_NORMAL          FOIL_RDRBOX_WORD_BREAK_NORMAL
 
 /**
  * \def FOIL_WBR_BREAK_ALL
  *
  * \brief Breaking is allowed within “words”.
  */
-#define FOIL_WBR_BREAK_ALL       0x01
+#define FOIL_WBR_BREAK_ALL       FOIL_RDRBOX_WORD_BREAK_BREAK_ALL
 
 /**
  * \def FOIL_WBR_KEEP_ALL
  *
  * \brief Breaking is forbidden within “words”.
  */
-#define FOIL_WBR_KEEP_ALL        0x02
+#define FOIL_WBR_KEEP_ALL        FOIL_RDRBOX_WORD_BREAK_KEEP_ALL
 
 /**
  * \def FOIL_LBP_NORMAL
  *
  * \brief Breaks text using the most common set of line-breaking rules.
  */
-#define FOIL_LBP_NORMAL          0x00
+#define FOIL_LBP_NORMAL          FOIL_RDRBOX_LINE_BREAK_NORMAL
 
 /**
  * \def FOIL_LBP_LOOSE
@@ -182,14 +185,14 @@
  * \brief Breaks text using the least restrictive set of line-breaking rules.
  * Typically used for short lines, such as in newspapers.
  */
-#define FOIL_LBP_LOOSE           0x01
+#define FOIL_LBP_LOOSE           FOIL_RDRBOX_LINE_BREAK_LOOSE
 
 /**
  * \def FOIL_LBP_STRICT
  *
  * \brief Breaks text using the most stringent set of line-breaking rules.
  */
-#define FOIL_LBP_STRICT          0x02
+#define FOIL_LBP_STRICT          FOIL_RDRBOX_LINE_BREAK_STRICT
 
 /**
  * \def FOIL_LBP_ANYWHERE
@@ -201,7 +204,7 @@
  * breaking class or mandated by the word breaking rule. The different wrapping
  * opportunities must not be prioritized. Hyphenation is not applied.
  */
-#define FOIL_LBP_ANYWHERE        0x03
+#define FOIL_LBP_ANYWHERE        FOIL_RDRBOX_LINE_BREAK_ANYWHERE
 
 /**
  * Unknown breaking code.
@@ -581,6 +584,358 @@ typedef enum {
     FOIL_LANGCODE_zu,
 } foil_langcode_t;
 
+/**
+ * \defgroup glyph_render_flags Glyph Rendering Flags
+ *
+ * The glyph rendering flags indicate \a GetGlyphsExtentFromUChars and
+ * \a CreateLayout how to lay out the text:
+ *      - The writing mode (horizontal or vertical) and the glyph orientation;
+ *      - The indentation mode (none, first line or hanging);
+ *      - Whether and how to break if the line overflows the max extent;
+ *      - Whether and how to ellipsize if the line overflows the max extent;
+ *      - The alignment of lines;
+ *      - Whether and how to adjust the glyph position for alignment of justify;
+ *      - The hanging punctation method;
+ *      - Remove or hange the spaces at the start and/or end of the line.
+ * @{
+ */
+
+#define FOIL_GRF_WRITING_MODE_MASK               0xF0000000
+#define FOIL_GRF_WRITING_MODE_VERTICAL_FLAG      0x20000000
+/**
+ * Top-to-bottom horizontal direction.
+ * Both the writing mode and the typographic mode are horizontal.
+ */
+#define FOIL_GRF_WRITING_MODE_HORIZONTAL_TB      0x00000000
+/**
+ * Bottom-to-top horizontal direction.
+ * Both the writing mode and the typographic mode are horizontal,
+ * but lines are generated from bottom to top.
+ */
+#define FOIL_GRF_WRITING_MODE_HORIZONTAL_BT      0x10000000
+/**
+ * Right-to-left vertical direction.
+ * Both the writing mode and the typographic mode are vertical,
+ * but the lines are generated from right to left.
+ */
+#define FOIL_GRF_WRITING_MODE_VERTICAL_RL        0x20000000
+/**
+ * Left-to-right vertical direction.
+ * Both the writing mode and the typographic mode are vertical.
+ * but the lines are generated from left to right.
+ */
+#define FOIL_GRF_WRITING_MODE_VERTICAL_LR        0x30000000
+
+#define FOIL_GRF_TEXT_ORIENTATION_MASK           0x0F000000
+/**
+ * The glyphs are individually typeset upright in
+ * vertical lines with vertical font metrics.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_UPRIGHT        0x00000000
+/**
+ * The glyphs typeset a run rotated 90° clockwise
+ * from their upright orientation.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_SIDEWAYS       0x01000000
+/**
+ * The glyphs are individually typeset upside down in
+ * vertical lines with vertical font metrics.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_UPSIDE_DOWN    0x02000000
+/**
+ * The glyphs typeset a run rotated 90° counter-clockwise
+ * from their upright orientation.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_SIDEWAYS_LEFT  0x03000000
+/**
+ * In vertical writing modes, all typographic character units
+ * keep in their intrinsic orientation.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_AUTO           0x04000000
+/**
+ * In vertical writing modes, typographic character units from
+ * horizontal-only scripts are typeset sideways, i.e. 90° clockwise
+ * from their standard orientation in horizontal text.
+ * Typographic character units from vertical scripts are
+ * typeset with their intrinsic orientation.
+ */
+#define FOIL_GRF_TEXT_ORIENTATION_MIXED          0x05000000
+
+#define FOIL_GRF_TEXT_ORIENTATION_LINE           0x06000000
+
+#define FOIL_GRF_LINE_EXTENT_MASK                0x00C00000
+/**
+ * The maximal line extent is fixed.
+ * The maximal line extent value you passed to \a LayoutNextLine
+ * will be ignored.
+ */
+#define FOIL_GRF_LINE_EXTENT_FIXED               0x00000000
+/**
+ * The maximal line extent is variable. You should pass the desired
+ * maximal line extent value for a new line when calling
+ * \a LayoutNextLine. The intent mode will be ignored as well.
+ */
+#define FOIL_GRF_LINE_EXTENT_VARIABLE            0x00400000
+
+#define FOIL_GRF_INDENT_MASK                     0x00300000
+/**
+ * No indentation.
+ */
+#define FOIL_GRF_INDENT_NONE                     0x00000000
+/**
+ * The first line is indented.
+ */
+#define FOIL_GRF_INDENT_FIRST_LINE               0x00100000
+/**
+ * Indent all the lines of a paragraph except the first line.
+ */
+#define FOIL_GRF_INDENT_HANGING                  0x00200000
+
+#define FOIL_GRF_OVERFLOW_WRAP_MASK              0x000C0000
+/**
+ * Lines may break only at allowed break points.
+ */
+#define FOIL_GRF_OVERFLOW_WRAP_NORMAL            0x00000000
+/**
+ * Lines may break only at word seperators.
+ */
+#define FOIL_GRF_OVERFLOW_WRAP_BREAK_WORD        0x00040000
+/**
+ * An otherwise unbreakable sequence of characters may be broken
+ * at an arbitrary point if there are no otherwise-acceptable
+ * break points in the line.
+ */
+#define FOIL_GRF_OVERFLOW_WRAP_ANYWHERE          0x00080000
+
+#define FOIL_GRF_OVERFLOW_ELLIPSIZE_MASK         0x00030000
+/**
+ * No ellipsization
+ */
+#define FOIL_GRF_OVERFLOW_ELLIPSIZE_NONE         0x00000000
+/**
+ * Omit characters at the start of the text
+ */
+#define FOIL_GRF_OVERFLOW_ELLIPSIZE_START        0x00010000
+/**
+ * Omit characters in the middle of the text
+ */
+#define FOIL_GRF_OVERFLOW_ELLIPSIZE_MIDDLE       0x00020000
+/**
+ * Omit characters at the end of the text
+ */
+#define FOIL_GRF_OVERFLOW_ELLIPSIZE_END          0x00030000
+
+#define FOIL_GRF_ALIGN_MASK                      0x0000F000
+/**
+ * Text content is aligned to the start edge of the line box.
+ */
+#define FOIL_GRF_ALIGN_START                     0x00000000
+/**
+ * Text content is aligned to the end edge of the line box.
+ */
+#define FOIL_GRF_ALIGN_END                       0x00001000
+/**
+ * Text content is aligned to the line left edge of the line box.
+ * In vertical writing modes, this will be the physical top edge.
+ */
+#define FOIL_GRF_ALIGN_LEFT                      0x00002000
+/**
+ * Text content is aligned to the line right edge of the line box.
+ * In vertical writing modes, this will be the physical bottom edge.
+ */
+#define FOIL_GRF_ALIGN_RIGHT                     0x00003000
+/**
+ * Text content is centered within the line box.
+ */
+#define FOIL_GRF_ALIGN_CENTER                    0x00004000
+/**
+ * All lines will be justified according to the method specified by
+ * FOIL_GRF_TEXT_JUSTIFY_XXX, in order to exactly fill the line box.
+ *
+ * If you specify only a valid justification method (not FOIL_GRF_TEXT_JUSTIFY_NONE)
+ * without FOIL_GRF_ALIGN_JUSTIFY, the last line will not be justified.
+ */
+#define FOIL_GRF_ALIGN_JUSTIFY                   0x00005000
+
+#define FOIL_GRF_TEXT_JUSTIFY_MASK               0x00000F00
+/**
+ * Do not justify.
+ */
+#define FOIL_GRF_TEXT_JUSTIFY_NONE               0x00000000
+/**
+ * Justification adjusts primarily the spacing at word separators
+ * and between CJK typographic letter units along with secondarily
+ * between Southeast Asian typographic letter units.
+ */
+#define FOIL_GRF_TEXT_JUSTIFY_AUTO               0x00000100
+/**
+ * Justification adjusts spacing at word separators only.
+ */
+#define FOIL_GRF_TEXT_JUSTIFY_INTER_WORD         0x00000200
+/**
+ * Justification adjusts spacing between each pair of adjacent
+ * typographic character units.
+ */
+#define FOIL_GRF_TEXT_JUSTIFY_INTER_CHAR         0x00000300
+
+#define FOIL_GRF_HANGING_PUNC_MASK               0x000000F0
+/**
+ * No character hangs.
+ */
+#define FOIL_GRF_HANGING_PUNC_NONE               0x00000000
+/**
+ * A stop or comma at the end of a line hangs.
+ */
+#define FOIL_GRF_HANGING_PUNC_FORCE_END          0x00000010
+/**
+ * A stop or comma at the end of a line hangs
+ * if it does not otherwise fit prior to justification.
+ */
+#define FOIL_GRF_HANGING_PUNC_ALLOW_END          0x00000020
+/**
+ * An opening bracket or quote at the start of the line hangs.
+ */
+#define FOIL_GRF_HANGING_PUNC_OPEN               0x00000040
+/**
+ * An closing bracket or quote at the end of the line hangs.
+ */
+#define FOIL_GRF_HANGING_PUNC_CLOSE              0x00000080
+
+#define FOIL_GRF_SPACES_MASK                     0x0000000F
+/**
+ * All spaces are kept.
+ */
+#define FOIL_GRF_SPACES_KEEP                     0x00000000
+/**
+ * A sequence of spaces at the start of a line is removed.
+ */
+#define FOIL_GRF_SPACES_REMOVE_START             0x00000001
+/**
+ * A sequence of spaces at the end of a line is removed.
+ */
+#define FOIL_GRF_SPACES_REMOVE_END               0x00000002
+/**
+ * A sequence of spaces at the end of a line hangs.
+ */
+#define FOIL_GRF_SPACES_HANGE_END                0x00000004
+
+/** @} end of glyph_render_flags */
+
+typedef enum {
+    FOIL_GLYPH_GRAVITY_SOUTH = 0,
+    FOIL_GLYPH_GRAVITY_EAST,
+    FOIL_GLYPH_GRAVITY_NORTH,
+    FOIL_GLYPH_GRAVITY_WEST,
+    FOIL_GLYPH_GRAVITY_AUTO,
+} foil_glyph_gravity;
+
+typedef enum {
+    FOIL_GLYPH_ORIENT_UPRIGHT        = FOIL_GLYPH_GRAVITY_SOUTH,
+    FOIL_GLYPH_ORIENT_SIDEWAYS       = FOIL_GLYPH_GRAVITY_EAST,
+    FOIL_GLYPH_ORIENT_UPSIDE_DOWN    = FOIL_GLYPH_GRAVITY_NORTH,
+    FOIL_GLYPH_ORIENT_SIDEWAYS_LEFT  = FOIL_GLYPH_GRAVITY_WEST,
+} foil_glyph_orient;
+
+typedef enum {
+    FOIL_GLYPH_HANGED_NONE = 0,
+    FOIL_GLYPH_HANGED_START,
+    FOIL_GLYPH_HANGED_END,
+} foil_glyph_hanged;
+
+/**
+ * The glyph extent information.
+ */
+typedef struct _foil_glyph_extinfo {
+    /** The bounding box of the glyph. */
+    int bbox_x, bbox_y, bbox_w, bbox_h;
+    /** The advance values of the glyph. */
+    int adv_x, adv_y;
+    /** The extra spacing values of the glyph. */
+    int extra_x, extra_y;
+    /** The advance value of the glyph along the line direction. */
+    int line_adv;
+    /**
+     * Whether suppress the glyph.
+     */
+    uint8_t suppressed:1;
+    /**
+     * Whether is a whitespace glyph.
+     */
+    uint8_t whitespace:1;
+    /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - FOIL_GLYPH_ORIENT_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - FOIL_GLYPH_ORIENT_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     *  - FOIL_GLYPH_ORIENT_SIDEWAYS_LEFT\n
+     *      the glyph rotates 90° counter-clockwise from horizontal.
+     *  - FOIL_GLYPH_ORIENT_UPSIDE_DOWN\n
+     *      the glyph is in the inverted horizontal orientation.
+     */
+    uint8_t orientation:2;
+} foil_glyph_extinfo;
+
+/**
+ * The glyph position information.
+ */
+typedef struct _foil_glyph_pos {
+    /**
+     * The x coordinate of the glyph position.
+     */
+    int x;
+    /**
+     * The y coordinate of the glyph position.
+     */
+    int y;
+    /**
+     * The x offset of the glyph position.
+     */
+    int x_off;
+    /**
+     * The y offset of the glyph position.
+     */
+    int y_off;
+    /**
+     * The line advance of the glyph.
+     */
+    int advance;
+    /**
+     * Whether suppress the glyph.
+     */
+    uint8_t suppressed:1;
+    /**
+     * Whether is a whitespace glyph.
+     */
+    uint8_t whitespace:1;
+    /**
+     * Whether is an ellipsized glyph.
+     */
+    uint8_t ellipsis:1;
+    /**
+     * The orientation of the glyph; can be one of the following values:
+     *  - FOIL_GLYPH_ORIENT_UPRIGHT\n
+     *      the glyph is in the standard horizontal orientation.
+     *  - FOIL_GLYPH_ORIENT_SIDEWAYS\n
+     *      the glyph rotates 90° clockwise from horizontal.
+     *  - FOIL_GLYPH_ORIENT_SIDEWAYS_LEFT\n
+     *      the glyph rotates 90° counter-clockwise from horizontal.
+     *  - FOIL_GLYPH_ORIENT_UPSIDE_DOWN\n
+     *      the glyph is upside down.
+     */
+    uint8_t orientation:2;
+    /**
+     * Whether hanged the glyph; can be one of the following values:
+     *  - FOIL_GLYPH_HANGED_NONE\n
+     *      the glyph is not hanged.
+     *  - FOIL_GLYPH_HANGED_START\n
+     *      the glyph is hanged at the start of the line.
+     *  - FOIL_GLYPH_HANGED_END\n
+     *      the glyph is hanged at the end of the line.
+     */
+    uint8_t hanged:2;
+} foil_glyph_pos;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -678,7 +1033,7 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
  * \param ctr The character transformation rule; see \a char_transform_rules.
  * \param wbr The word breaking rule; see \a word_break_rules.
  * \param lbp The line breaking policy; see \a line_break_policies.
- * \param ucs The uint32_t string.
+ * \param ucs The Unicode characters.
  * \param nr_ucs The length of the uint32_t string.
  * \param break_oppos The pointer to a buffer to store the address of a
  *        Uint16 array which will return the break opportunities of the uchars.
@@ -701,6 +1056,67 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
 size_t foil_ustr_get_breaks(foil_langcode_t langcode,
         uint8_t ctr, uint8_t wbr, uint8_t lbp,
         uint32_t* ucs, size_t nr_ucs, foil_break_oppo_t** break_oppos);
+
+/**
+ * \brief Get the visual extent info of all glyphs fitting in the specified
+ *      maximal output extent.
+ *
+ * This function gets the visual extent information of a glyph string which can
+ * fit a line with the specified maximal extent.
+ *
+ * \param uchars The pointer to the unicode string.
+ * \param nr_uchars The number of characters.
+ * \param break_oppos The pointer to the break opportunities array of the glyphs.
+ *      It should be returned by \a foil_ustr_get_breaks. However, the caller
+ *      should skip the first unit (the break opportunity before the first glyph)
+ *      when passing the pointer to this function.
+ * \param render_flags The render flags; see \a glyph_render_flags.
+ * \param x The x-position of first glyph.
+ * \param y The y-position of first glyph.
+ * \param letter_spacing This parameter specifies additional spacing
+ *      (commonly called tracking) between adjacent glyphs.
+ * \param word_spacing This parameter specifies the additional spacing between
+ *      words.
+ * \param tab_size The tab size used to render preserved tab characters.
+ * \param max_extent The maximal output extent value. No limit when it is < 0.
+ * \param line_size The buffer to store the line extent info; can be NULL.
+ * \param glyphs The buffer to store the glyphs, which can fit in
+ *      the max extent; cannot be NULL.
+ * \param glyph_ext_info The buffer to store the extent info of all glyphs
+ *      which can fit in the max extent; can be NULL.
+ * \param glyph_pos The buffer to store the positions and orientations of
+ *      all glyphs which can fit in the max extent; cannot be NULL.
+ *
+ * \return The number of characters which can be fit to the maximal extent.
+ *      The glyphs and the extent info of every glyphs which are fit in
+ *      the maximal extent will be returned through \a glyphs and
+ *      \a glyph_ext_info (if it was not NULL), and the
+ *      line extent info will be returned through \a line_size
+ *      if it was not NULL. Note the function will return immediately if
+ *      it encounters a mandatory breaking.
+ *
+ * \note This function ignore the special types (such as diacritic mark,
+ *      vowel, contextual form, ligature, and so on) of the Unicode characters.
+ *
+ * \note Any invisible format character including SOFT HYPHEN (U+00AD)
+ *      will be ignored (suppressed).
+ *
+ * \note The position coordinates of the first glyph are
+ *      with respect to the top-left corner of the output rectangle
+ *      if the writing mode is FOIL_GRF_WRITING_MODE_HORIZONTAL_TB or
+ *      FOIL_GRF_WRITING_MODE_VERTICAL_LR, otherwise they are with respect
+ *      to the top-right corner of the output rectangle. However,
+ *      the positions contained in \a glyph_pos are always with respect to
+ *      the top-left corner of the resulting output line rectangle.
+ *
+ * \note This function ignore the orientation flags and always treated as
+ *      FOIL_GRF_TEXT_ORIENTATION_UPRIGHT.
+ */
+size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
+        const foil_break_oppo_t* break_oppos, uint32_t render_flags,
+        int x, int y, int letter_spacing, int word_spacing, int tab_size,
+        int max_extent, foil_size* line_size, uint32_t* glyphs,
+        foil_glyph_extinfo* glyph_ext_info, foil_glyph_pos* glyph_pos);
 
 #ifdef __cplusplus
 }

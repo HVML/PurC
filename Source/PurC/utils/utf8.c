@@ -286,11 +286,11 @@ pcutils_string_utf8_chars(const char *p, ssize_t max)
     ((uint16_t)(((uint8_t)(low)) | (((uint16_t)((uint8_t)(high))) << 8)))
 
 /* copy from MiniGUI */
-static size_t
-utf8_from_uc(uint32_t uc, unsigned char* mchar)
+unsigned
+pcutils_unichar_to_utf8(uint32_t uc, unsigned char* mchar)
 {
     int first;
-    size_t len;
+    unsigned len;
 
     if (uc < 0x80) {
         first = 0;
@@ -408,7 +408,7 @@ string_decode_utf16(const unsigned char* bytes, size_t max_len,
         /* got a Unicode code point */
         unsigned char mchar[6];
         size_t mchar_len;
-        mchar_len = utf8_from_uc(uc, mchar);
+        mchar_len = pcutils_unichar_to_utf8(uc, mchar);
         if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
@@ -483,7 +483,7 @@ string_decode_utf32(const unsigned char* bytes, size_t max_len,
         /* got a Unicode code point */
         unsigned char mchar[6];
         size_t mchar_len;
-        mchar_len = utf8_from_uc(uc, mchar);
+        mchar_len = pcutils_unichar_to_utf8(uc, mchar);
         if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
@@ -861,7 +861,7 @@ pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
     while (n < nr_chars) {
         unsigned char mchar[6];
         size_t mchar_len;
-        mchar_len = utf8_from_uc(ucs[n], mchar);
+        mchar_len = pcutils_unichar_to_utf8(ucs[n], mchar);
         if (pcutils_mystring_append_mchar(&mystr, mchar, mchar_len)) {
             goto fatal;
         }
