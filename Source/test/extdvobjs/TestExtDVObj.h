@@ -58,4 +58,3 @@ private:
     dvobj_map_t m_extdvobjs;
     struct purc_variant_stat m_init_stat;
 };
-

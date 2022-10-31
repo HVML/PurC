@@ -63,8 +63,6 @@
 
 #define FS_DVOBJ_VERSION    0
 
-#define CKEY_DIR        "DIR"
-
 purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
@@ -266,7 +264,7 @@ static void set_purc_error_by_errno (void)
             break;
 
         default:
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
     }
 }
 
@@ -376,16 +374,19 @@ static mode_t str_to_mode (const char *input, mode_t mode)
         case STAGE_VALUE: {
             switch (*input) {
                 case 'r':
+                    op_stage = STAGE_VALUE;
                     op_value |= 0x04;
                     input ++;
                     break;
 
                 case 'w':
+                    op_stage = STAGE_VALUE;
                     op_value |= 0x02;
                     input ++;
                     break;
 
                 case 'x':
+                    op_stage = STAGE_VALUE;
                     op_value |= 0x01;
                     input ++;
                     break;
@@ -469,12 +470,13 @@ static const char *get_basename_ex (const char *string_path,
         }
         temp_ptr ++;
     }
+    (*fname_length) = (base_end - base_begin);
 
     temp_ptr = base_begin;
     while (temp_ptr < base_end) {
         if ('.' == *temp_ptr) {
             (*ext_begin) = temp_ptr + 1;
-            (*fname_length) = (base_begin - temp_ptr);
+            (*fname_length) = (temp_ptr - base_begin);
         }
         temp_ptr ++;
     }
@@ -523,16 +525,71 @@ static const char *get_dir_path (const char *string_path,
     return string_path;
 }
 
+static bool find_mountpoint (char *dir)
+{
+    // On Linux, slash (/) is used as directory separator character.
+    const char separator = '/';
+    char  *dir_end = dir + strlen(dir) - 1;
+    struct stat  st;
+    dev_t  orig_dev;
+    char   last_char;
+    char  *last_char_pos;
+
+    if (stat (dir, &st) != 0)
+        return false;
+    
+    orig_dev = st.st_dev;
+
+    while (dir_end > (dir + 1)) {
+
+        while (dir_end > dir && separator == *dir_end) {
+            dir_end--;
+        }
+        while (dir_end > dir && separator != *dir_end) {
+            dir_end--;
+        }
+        if (dir_end <= dir) {
+            last_char_pos = dir + 1;
+        }
+        else {
+            last_char_pos = dir_end;
+            (*dir_end) = '\0';
+        }
+
+        // set dir to dirname
+        last_char = (*last_char_pos);
+        (*last_char_pos) = '\0';
+
+        // printf ("------ find_mountpoint: current path is: %s\n", dir);
+        if (stat (dir, &st) != 0) {
+            // printf ("------ find_mountpoint: get st error\n");
+            return false;
+        }
+
+        // printf ("------ find_mountpoint: current st_dev is: %d\n", (int)st.st_dev);
+        
+        if (st.st_dev != orig_dev) {// we crossed the device border
+            // printf ("------ find_mountpoint: normal return\n");
+            (*last_char_pos) = last_char;
+            return true;
+        }
+    }
+
+    // printf ("------ find_mountpoint: search to '/'\n");
+    return true;
+}
+
 
 enum {
     FN_OPTION_STAT,
     FN_OPTION_LSTAT,
 };
 static purc_variant_t
-get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
+get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
 {
     const char *string_filename = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "type mode_digits uid gid size rdev ctime";
     const char *flag = NULL;
     struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -540,20 +597,21 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
+
     if (nr_args > 1) {
         string_flags = purc_variant_get_string_const (argv[1]);
         if (NULL == string_flags) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         if (strcmp(string_flags, "all") == 0) {
@@ -561,7 +619,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
                     uid gid size rdev blksize blocks atime ctime mtime";
         }
         else if (strcmp(string_flags, "default") == 0) {
-            string_flags = "type mode_digits uid gid size rdev ctime";
+            ; // Nothing to do
         }
     }
 
@@ -570,20 +628,20 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
         case FN_OPTION_STAT:
             if (lstat(string_filename, &st) == -1) {
                 purc_set_error (PURC_ERROR_WRONG_STAGE);
-                return purc_variant_make_boolean (false);
+                goto failed;
             }
             break;
 
         case FN_OPTION_LSTAT:
             if (lstat(string_filename, &st) == -1) {
                 purc_set_error (PURC_ERROR_WRONG_STAGE);
-                return purc_variant_make_boolean (false);
+                goto failed;
             }
             break;
 
         default:
             purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
-            return purc_variant_make_boolean (false);
+            goto failed;
     }
 
     ret_var = purc_variant_make_object (0,
@@ -596,6 +654,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
 
         while (purc_isspace(*flag))
             flag ++;
+
         switch (*flag) {
         case 'd':
             if (strcmp_len (flag, "dev", &flag_len) == 0) {
@@ -647,9 +706,9 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
             if (strcmp_len (flag, "mode_digits", &flag_len) == 0) {
                 // returns file mode like '0644'.
                 char string_mode[] = "0000";
-                string_mode[1] += (st.st_mode & 0x0F00) >> 8;
-                string_mode[2] += (st.st_mode & 0x00F0) >> 4;
-                string_mode[3] += (st.st_mode & 0x000F);
+                string_mode[1] += (st.st_mode & 0x01C0) >> 6;
+                string_mode[2] += (st.st_mode & 0x0038) >> 3;
+                string_mode[3] += (st.st_mode & 0x0007);
                 val = purc_variant_make_string (string_mode, true);
                 purc_variant_object_set_by_static_ckey (ret_var, "type", val);
                 purc_variant_unref (val);
@@ -813,7 +872,7 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
         default:
             purc_variant_unref (ret_var);
             purc_set_error (PURC_ERROR_WRONG_STAGE);
-            return purc_variant_make_boolean (false);
+            goto failed;
         }
 
         if (0 == flag_len)
@@ -823,6 +882,12 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv)
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);;
+
+    return PURC_VARIANT_INVALID;
 }
 
 
@@ -831,7 +896,6 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     char dir_name[PATH_MAX + 1];
     char filename[PATH_MAX + NAME_MAX + 1];
@@ -846,27 +910,27 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     strncpy (dir_name, string_filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the filter
     if ((nr_args > 1) && (argv[1] == NULL ||
             (!purc_variant_is_string (argv[1])))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if ((nr_args > 1) && (argv[1] != NULL))
         filter = purc_variant_get_string_const (argv[1]);
@@ -878,20 +942,29 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         while (head) {
             if (wildcard == NULL) {
                 wildcard = malloc (sizeof(struct wildcard_list));
-                if (wildcard == NULL)
-                    goto error;
+                if (wildcard == NULL) {
+                    purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                    goto discontinue;
+                }
+
                 temp_wildcard = wildcard;
             }
             else {
                 temp_wildcard->next = malloc (sizeof(struct wildcard_list));
-                if (temp_wildcard->next == NULL)
-                    goto error;
+                if (temp_wildcard->next == NULL) {
+                    purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                    goto discontinue;
+                }
+
                 temp_wildcard = temp_wildcard->next;
             }
             temp_wildcard->next = NULL;
             temp_wildcard->wildcard = malloc (length + 1);
-            if (temp_wildcard->wildcard == NULL)
-                goto error;
+            if (temp_wildcard->wildcard == NULL) {
+                purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                goto discontinue;
+            }
+
             strncpy(temp_wildcard->wildcard, head, length);
             *(temp_wildcard->wildcard + length) = 0x00;
             pcdvobjs_remove_space (temp_wildcard->wildcard);
@@ -907,7 +980,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if ((dir = opendir (dir_name)) == NULL) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        goto error;
+        goto discontinue;
     }
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
@@ -1079,7 +1152,7 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     closedir(dir);
 
-error:
+discontinue:
     while (wildcard) {
         if (wildcard->wildcard)
             free (wildcard->wildcard);
@@ -1088,6 +1161,12 @@ error:
         free (temp_wildcard);
     }
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1095,7 +1174,6 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     enum display_order {
         DISPLAY_MODE = 1,
@@ -1125,27 +1203,27 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     strncpy (dir_name, string_filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the filter
     if ((nr_args > 1) && (argv[1] != PURC_VARIANT_INVALID &&
             (!purc_variant_is_string (argv[1])))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if ((nr_args > 1) && (argv[1] != NULL))
         filter = purc_variant_get_string_const (argv[1]);
@@ -1157,20 +1235,29 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         while (head) {
             if (wildcard == NULL) {
                 wildcard = malloc (sizeof(struct wildcard_list));
-                if (wildcard == NULL)
-                    goto error;
+                if (wildcard == NULL) {
+                    purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                    goto discontinue;
+                }
+
                 temp_wildcard = wildcard;
             }
             else {
                 temp_wildcard->next = malloc (sizeof(struct wildcard_list));
-                if (temp_wildcard->next == NULL)
-                    goto error;
+                if (temp_wildcard->next == NULL) {
+                    purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                    goto discontinue;
+                }
+
                 temp_wildcard = temp_wildcard->next;
             }
             temp_wildcard->next = NULL;
             temp_wildcard->wildcard = malloc (length + 1);
-            if (temp_wildcard->wildcard == NULL)
-                goto error;
+            if (temp_wildcard->wildcard == NULL) {
+                purc_set_error (PURC_ERROR_OUT_OF_MEMORY);
+                goto discontinue;
+            }
+
             strncpy(temp_wildcard->wildcard, head, length);
             *(temp_wildcard->wildcard + length) = 0x00;
             pcdvobjs_remove_space (temp_wildcard->wildcard);
@@ -1181,7 +1268,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     // get the mode
     if ((nr_args > 2) && (argv[2] == NULL || (!purc_variant_is_string (argv[2])))) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        goto error;
+        goto discontinue;
     }
     if ((nr_args > 2) && (argv[2] != NULL)) {
         mode = purc_variant_get_string_const (argv[2]);
@@ -1290,8 +1377,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     char info[PATH_MAX] = {0};
 
     if ((dir = opendir (dir_name)) == NULL) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        goto error;
+        set_purc_error_by_errno();
+        goto discontinue;
     }
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
@@ -1416,7 +1503,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     closedir(dir);
 
-error:
+discontinue:
     while (wildcard) {
         if (wildcard->wildcard)
             free (wildcard->wildcard);
@@ -1425,6 +1512,12 @@ error:
         free (temp_wildcard);
     }
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1432,7 +1525,6 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
     const char *string_suffix = NULL;
@@ -1442,7 +1534,7 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
@@ -1453,11 +1545,21 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     if (nr_args > 1) {
         string_suffix = purc_variant_get_string_const (argv[1]);
+        if (NULL == string_suffix) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
     }
 
     base_begin = get_basename (string_path, string_suffix, &length);
     ret_string = purc_variant_make_string_ex(base_begin, length, true);
     return ret_string;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1465,7 +1567,6 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_group = NULL;
@@ -1476,7 +1577,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // Get the file name
@@ -1490,7 +1591,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_group = purc_variant_get_string_const (argv[1]);
         if (NULL == filename || NULL == string_group) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         // group : string_name | gid
@@ -1517,6 +1618,12 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1524,7 +1631,6 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_mode = NULL;
@@ -1535,7 +1641,7 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name and the mode
@@ -1543,7 +1649,7 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     string_mode = purc_variant_get_string_const (argv[1]);
     if (NULL == filename || NULL == string_mode) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // new_mode : string_mode | int (octal | decimal)
@@ -1558,13 +1664,13 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         if (stat(filename, &filestat) < 0) {
             set_purc_error_by_errno ();
-            return purc_variant_make_boolean (false);
+            goto failed;
         }
 
-        new_mode = str_to_mode (string_mode, filestat.st_mode);
+        new_mode = str_to_mode (string_mode, 0xFFF & filestat.st_mode);
         if (INVALID_MODE == new_mode) {
             purc_set_error (PURC_ERROR_INVALID_VALUE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
@@ -1572,11 +1678,17 @@ chmod_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         ret_var = purc_variant_make_boolean (true);
     }
     else {
-        set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1584,7 +1696,6 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_owner = NULL;
@@ -1596,7 +1707,7 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // Get the file name
@@ -1610,7 +1721,7 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_owner = purc_variant_get_string_const (argv[1]);
         if (NULL == filename || NULL == string_owner) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         // owner : string_name | uid
@@ -1619,8 +1730,8 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (*endptr != '\0') {               /* Was not pure numeric string */
             pwd = getpwnam (string_owner);   /* Try getting UID for username */
             if (pwd == NULL) {
-                purc_set_error (PURC_ERROR_BAD_NAME);
-                return PURC_VARIANT_INVALID;
+                set_purc_error_by_errno ();
+                goto failed;
             }
 
             uid = pwd->pw_uid;
@@ -1633,10 +1744,16 @@ chown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        goto failed;
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1644,7 +1761,6 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename_from = NULL;
     const char *filename_to = NULL;
@@ -1652,7 +1768,7 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
@@ -1660,7 +1776,7 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     filename_to   = purc_variant_get_string_const (argv[1]);
     if (NULL == filename_from || NULL == filename_to) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (filecopy (filename_from, filename_to)) {
@@ -1668,10 +1784,16 @@ copy_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        goto failed;
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1679,7 +1801,6 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
     const char *dir_begin = NULL;
@@ -1689,7 +1810,7 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
@@ -1702,13 +1823,19 @@ dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         // Get the levels
         if (! purc_variant_cast_to_ulongint (argv[1], &levels, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
     dir_begin = get_dir_path (string_path, levels, &length);
     ret_string = purc_variant_make_string_ex(dir_begin, length, true);
     return ret_string;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1716,9 +1843,9 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_dir = NULL;
+    char mntpoint_buffer[PATH_MAX + 1];
     struct statfs fsu;
     struct stat   st;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -1726,24 +1853,24 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the directory
     string_dir = purc_variant_get_string_const (argv[0]);
     if (NULL == string_dir) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (statfs (string_dir, &fsu) != 0) {
         set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
     if (stat (string_dir, &st) != 0) {
         set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
     ret_var = purc_variant_make_object_0 ();
@@ -1770,8 +1897,14 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // mount_point
 #if OS(LINUX)
-    // TODO
-    val = purc_variant_make_string ("/", false);
+    strncpy (mntpoint_buffer, string_dir, sizeof(mntpoint_buffer)-1);
+    mntpoint_buffer[sizeof(mntpoint_buffer)-1] = '\0';
+    if (find_mountpoint (mntpoint_buffer)) {
+        val = purc_variant_make_string(mntpoint_buffer, false);
+    }
+    else {
+        val = purc_variant_make_string("/", false);
+    }
 #elif OS(DARWIN)
     val = purc_variant_make_string (fsu.f_mntonname, false);
 #endif
@@ -1784,11 +1917,17 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_unref (val);
 
     // dev_minor
-    val = purc_variant_make_ulongint ((long) major(st.st_dev));
+    val = purc_variant_make_ulongint ((long) minor(st.st_dev));
     purc_variant_object_set_by_static_ckey (ret_var, "dev_minor", val);
     purc_variant_unref (val);
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1796,28 +1935,36 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name or dir name
     string_filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == string_filename) {
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
 
-    if (access(string_filename, F_OK | R_OK) != 0)  {
-            ret_var = purc_variant_make_boolean (true);
+    if (access(string_filename, F_OK | R_OK) == 0)  {
+        ret_var = purc_variant_make_boolean (true);
     }
     else {
-        set_purc_error_by_errno ();
         ret_var = purc_variant_make_boolean (false);
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1825,16 +1972,14 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     const char *string_which = NULL;
     struct stat st;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name and which type
@@ -1843,19 +1988,19 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (NULL == string_filename || NULL == string_which) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (lstat(string_filename, &st) == -1) {
-        purc_set_error (PURC_ERROR_WRONG_STAGE);
-        return PURC_VARIANT_INVALID;
+        set_purc_error_by_errno ();
+        goto failed;
     }
 
     switch (string_which[0]) {
         case 'd':
             if (strcmp(string_which, "dir") == 0) {
                 if (S_IFDIR == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1863,7 +2008,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'f':
             if (strcmp(string_which, "file") == 0) {
                 if (S_IFREG == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1871,12 +2016,12 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 's':
             if (strcmp(string_which, "symlink") == 0) {
                 if (S_IFLNK == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             if (strcmp(string_which, "socket") == 0) {
                 if (S_IFSOCK == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1884,7 +2029,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'p':
             if (strcmp(string_which, "pipe") == 0) {
                 if (S_IFIFO == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1892,7 +2037,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'b':
             if (strcmp(string_which, "block") == 0) {
                 if (S_IFBLK == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1900,7 +2045,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'c':
             if (strcmp(string_which, "char") == 0) {
                 if (S_IFCHR == (st.st_mode & S_IFMT)) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1909,7 +2054,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             if (strcmp(string_which, "exe") == 0 ||
                 strcmp(string_which, "executable") == 0) {
                 if (st.st_mode & S_IEXEC) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1918,7 +2063,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             if (strcmp(string_which, "read") == 0 ||
                 strcmp(string_which, "readable") == 0) {
                 if (st.st_mode & S_IREAD) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
@@ -1927,14 +2072,22 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             if (strcmp(string_which, "write") == 0 ||
                 strcmp(string_which, "writable") == 0) {
                 if (st.st_mode & S_IWRITE) {
-                    return purc_variant_make_boolean (true);
+                    goto success;
                 }
             }
             break;
     }
 
-    ret_var = purc_variant_make_boolean (false);
-    return ret_var;
+    return purc_variant_make_boolean (false);
+
+success:
+    return purc_variant_make_boolean (true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -1942,7 +2095,6 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_group = NULL;
@@ -1953,7 +2105,7 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // Get the file name
@@ -1967,7 +2119,7 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_group = purc_variant_get_string_const (argv[1]);
         if (NULL == filename || NULL == string_group) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         // group : string_name | gid
@@ -1977,7 +2129,7 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             struct group *grp = getgrnam(string_group);
             if (grp == NULL) {
                 purc_set_error (PURC_ERROR_BAD_NAME);
-                return PURC_VARIANT_INVALID;
+                goto failed;
             }
 
             gid = grp->gr_gid;
@@ -1990,10 +2142,16 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        goto failed;
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2001,7 +2159,6 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     const char *string_owner = NULL;
@@ -2013,7 +2170,7 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // Get the file name
@@ -2027,7 +2184,7 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_owner = purc_variant_get_string_const (argv[1]);
         if (NULL == filename || NULL == string_owner) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         // owner : string_name | uid
@@ -2037,7 +2194,7 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             pwd = getpwnam (string_owner);   /* Try getting UID for username */
             if (pwd == NULL) {
                 purc_set_error (PURC_ERROR_BAD_NAME);
-                return PURC_VARIANT_INVALID;
+                goto failed;
             }
 
             uid = pwd->pw_uid;
@@ -2050,10 +2207,16 @@ lchown_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        goto failed;
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2061,7 +2224,6 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
     struct stat st;
@@ -2069,23 +2231,29 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (lstat(string_filename, &st) == -1) {
-        purc_set_error (PURC_ERROR_WRONG_STAGE);
-        return purc_variant_make_boolean (false);;
+        set_purc_error_by_errno ();
+        goto failed;
     }
 
     ret_var = purc_variant_make_number (st.st_dev);
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2093,9 +2261,8 @@ lstat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    return get_stat_result (FN_OPTION_LSTAT, nr_args, argv);
+    return get_stat_result (FN_OPTION_LSTAT, nr_args, argv, call_flags);
 }
 
 static purc_variant_t
@@ -2103,15 +2270,13 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_target = NULL;
     const char *string_link = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
@@ -2119,16 +2284,21 @@ link_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     string_link = purc_variant_get_string_const (argv[1]);
     if (NULL == string_target || NULL == string_link) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (link(string_target, string_link) == -1) {
         set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
-    ret_var = purc_variant_make_boolean (true);
-    return ret_var;
+    return purc_variant_make_boolean (true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2136,29 +2306,32 @@ mkdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (mkdir (filename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0)
-        ret_var = purc_variant_make_boolean (false);
-    else
-        ret_var = purc_variant_make_boolean (true);
+    if (mkdir (filename, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0) {
+        return purc_variant_make_boolean (true);
+    }
 
-    return ret_var;
+    set_purc_error_by_errno ();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2166,10 +2339,9 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_path = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "dirname basename extension filename";
     const char *dir_begin = NULL;
     const char *base_begin = NULL;
     const char *ext_begin = NULL;
@@ -2183,24 +2355,29 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
     string_path = purc_variant_get_string_const (argv[0]);
     if (NULL == string_path) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
+
     if (nr_args > 1) {
-        string_flags = purc_variant_get_string_const (argv[1]);
+        const char *string_param = NULL;
+        string_param = purc_variant_get_string_const (argv[1]);
         if (NULL == string_flags) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
-        if (strcmp(string_flags, "all") == 0) {
-            string_flags = "dirname basename extension filename";
+        if (strcmp(string_param, "all") == 0) {
+            ; // Nothing to do
+        }
+        else {
+            string_flags = string_param;
         }
     }
 
@@ -2218,7 +2395,9 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             case 'd':
                 if (strcmp_len (flag, "dirname", &flag_len) == 0) {
                     dir_begin = get_dir_path (string_path, 1, &dir_length);
-                    val = purc_variant_make_string_ex(dir_begin, dir_length, true);
+                    val = dir_begin ?
+                            purc_variant_make_string_ex(dir_begin, dir_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "dirname", val);
                     purc_variant_unref (val);
                 }
@@ -2233,21 +2412,29 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 }
 
                 if (strcmp_len (flag, "basename", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (base_begin, base_length, true);
+                    val = base_begin ?
+                            purc_variant_make_string_ex (base_begin, base_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "basename", val);
                     purc_variant_unref (val);
                     break;
                 }
-
+                
+                //printf ("ext_begin: %s, ext_length=%ld\n", ext_begin, ext_length);
                 if (strcmp_len (flag, "extension", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (ext_begin, ext_length, true);
+                    val = ext_begin ?
+                            purc_variant_make_string_ex (ext_begin, ext_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "extension", val);
                     purc_variant_unref (val);
                     break;
                 }
 
+                //printf ("base_begin: %s, fname_length=%ld\n", base_begin, fname_length);
                 if (strcmp_len (flag, "filename", &flag_len) == 0) {
-                    val = purc_variant_make_string_ex (base_begin, fname_length, true);
+                    val = base_begin ?
+                            purc_variant_make_string_ex (base_begin, fname_length, true)
+                          : purc_variant_make_null();
                     purc_variant_object_set_by_static_ckey (ret_var, "filename", val);
                     purc_variant_unref (val);
                     break;
@@ -2257,7 +2444,7 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             default:
                 purc_variant_unref (ret_var);
                 purc_set_error (PURC_ERROR_WRONG_STAGE);
-                return purc_variant_make_boolean (false);
+                goto failed;
         }
 
         if (0 == flag_len)
@@ -2267,6 +2454,12 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2274,35 +2467,40 @@ readlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    char buffer[PATH_MAX];
+    char buffer[PATH_MAX] = {};
     const char *string_path = NULL;
     ssize_t nbytes;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_path = purc_variant_get_string_const (argv[0]);
     if (NULL == string_path) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     nbytes = readlink(string_path, buffer, sizeof(buffer));
     if (nbytes == -1) {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        return purc_variant_make_boolean (false);
     }
     else {
         ret_var = purc_variant_make_string (buffer, true);
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2310,7 +2508,6 @@ realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     char resolved_path[PATH_MAX];
     const char *string_path = NULL;
@@ -2318,25 +2515,31 @@ realpath_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_path = purc_variant_get_string_const (argv[0]);
     if (NULL == string_path) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (NULL == realpath(string_path, resolved_path)) {
         set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        goto failed;
     }
     else {
         ret_var = purc_variant_make_string (resolved_path, true);
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2344,15 +2547,13 @@ rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_from = NULL;
     const char *string_to = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
@@ -2360,18 +2561,20 @@ rename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     string_to = purc_variant_get_string_const (argv[1]);
     if (NULL == string_from || NULL == string_to) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (0 == rename(string_from, string_to)) {
-        ret_var = purc_variant_make_boolean (true);
-    }
-    else {
-        set_purc_error_by_errno ();
-        ret_var = purc_variant_make_boolean (false);
+        return purc_variant_make_boolean (true);
     }
 
-    return ret_var;
+    set_purc_error_by_errno ();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2379,34 +2582,34 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     DIR *dirp;
     struct dirent *dp;
     struct stat dir_stat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool empty = true;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (access(filename, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return purc_variant_make_boolean (false);
+        set_purc_error_by_errno ();
+        goto failed;
     }
 
-    if (stat(filename, &dir_stat) < 0)
-        return purc_variant_make_boolean (false);
+    if (stat(filename, &dir_stat) < 0) {
+        set_purc_error_by_errno ();
+        goto failed;
+    }
 
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir(filename);
@@ -2431,11 +2634,13 @@ rmdir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (empty)
-        ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
+        return purc_variant_make_boolean (true);
 
-    return ret_var;
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2443,9 +2648,8 @@ stat_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    return get_stat_result (FN_OPTION_STAT, nr_args, argv);
+    return get_stat_result (FN_OPTION_STAT, nr_args, argv, call_flags);
 }
 
 static purc_variant_t
@@ -2453,15 +2657,13 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_target = NULL;
     const char *string_link = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
@@ -2469,16 +2671,21 @@ symlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     string_link = purc_variant_get_string_const (argv[1]);
     if (NULL == string_target || NULL == string_link) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (symlink(string_target, string_link) == -1) {
         set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
-    ret_var = purc_variant_make_boolean (true);
-    return ret_var;
+    return purc_variant_make_boolean (true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 #define TEMP_TEMPLATE      "purc-XXXXXX"
@@ -2489,25 +2696,23 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     char filename[PATH_MAX + 1];
     const char *string_directory = NULL;
     const char *string_prefix = NULL;
     size_t dir_length = 0;
     size_t prefix_length = 0;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the parameters
     string_directory = purc_variant_get_string_const (argv[0]);
     if (NULL == string_directory) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     dir_length = strlen (string_directory);
 
@@ -2515,14 +2720,14 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_prefix = purc_variant_get_string_const (argv[1]);
         if (NULL == string_prefix) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
         prefix_length = strlen (string_prefix);
     }
 
     if ((dir_length + prefix_length + TEMP_TEMPLATE_LEN + 1) >= PATH_MAX) {
         purc_set_error (PURC_ERROR_TOO_LONG);
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
     strncpy (filename, string_directory, sizeof(filename)-1);
@@ -2534,20 +2739,28 @@ tempname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     if ((dir_length + prefix_length + TEMP_TEMPLATE_LEN + 1) >= PATH_MAX) {
         purc_set_error (PURC_ERROR_TOO_LONG);
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
-    strncat (filename, string_prefix, sizeof(filename) - 1);
+    if (string_prefix) {
+        strncat (filename, string_prefix, sizeof(filename) - 1);
+    }
     strncat (filename, TEMP_TEMPLATE, sizeof(filename) - 1);
+
     int tmp_fd;
     if ((tmp_fd = mkstemp (filename)) == -1) {
-        purc_set_error (PURC_ERROR_INTERNAL_FAILURE);
-        return purc_variant_make_boolean (false);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
     }
 
     close(tmp_fd);
-    ret_var = purc_variant_make_string (filename, true);
-    return ret_var;
+    return purc_variant_make_string (filename, true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2555,7 +2768,6 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     uint64_t mtime = UTIME_NOW;
@@ -2564,14 +2776,14 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
     if (nr_args > 1) {
         if (PURC_VARIANT_TYPE_ULONGINT == argv[1]->type) {
@@ -2580,7 +2792,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
     if (nr_args > 2) {
@@ -2589,7 +2801,7 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
         else {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
@@ -2603,8 +2815,10 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             ret_var = purc_variant_make_boolean (true);
             close (fd);
         }
-        else
-            ret_var = purc_variant_make_boolean (false);
+        else {
+            set_purc_error_by_errno ();
+            goto failed;
+        }
     }
     else {      // change time
         struct timespec newtime[2];
@@ -2614,11 +2828,18 @@ touch_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             ret_var = purc_variant_make_boolean (true);
         }
         else {
-            ret_var = purc_variant_make_boolean (false);
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            goto failed;
         }
     }
 
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2626,14 +2847,12 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     mode_t mask;
     mode_t old_mask;
     char *endptr;
     char umask_octal[5];
     const char *string_mask = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         // get the current umask
@@ -2644,7 +2863,7 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_mask = purc_variant_get_string_const (argv[0]);
         if (NULL == string_mask) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         if ('0' == string_mask[0]) {
@@ -2653,11 +2872,19 @@ umask_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         else {
             mask = strtol (string_mask, &endptr, 10); /* Decimal */
         }
+
+        //This system call always succeeds and the previous value of the mask is returned.
+        //mask = umask (mask);        
     }
 
     snprintf (umask_octal, sizeof(umask_octal), "0%o", mask);
-    ret_var = purc_variant_make_string (umask_octal, true);
-    return ret_var;
+    return purc_variant_make_string (umask_octal, true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2665,42 +2892,47 @@ unlink_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
     struct stat filestat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (access(filename, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        return purc_variant_make_boolean (false);
+        set_purc_error_by_errno ();
+        goto failed;
     }
 
-    if (stat(filename, &filestat) < 0)
-        return purc_variant_make_boolean (false);
+    if (stat(filename, &filestat) < 0) {
+        set_purc_error_by_errno ();
+        goto failed;
+    }
 
     if (S_ISREG(filestat.st_mode)) {
-        if (unlink (filename) == 0)
-            ret_var = purc_variant_make_boolean (true);
-        else
-            ret_var = purc_variant_make_boolean (false);
+        if (unlink (filename) == 0) {
+            return purc_variant_make_boolean (true);
+        }
+        else {
+            set_purc_error_by_errno ();
+            return purc_variant_make_boolean (false);
+        }
     }
-    else
-        ret_var = purc_variant_make_boolean (false);
 
-    return ret_var;
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2708,29 +2940,32 @@ rm_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *filename = NULL;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     filename = purc_variant_get_string_const (argv[0]);
     if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (remove_dir ((char *)filename))
-        ret_var = purc_variant_make_boolean (false);
-    else
-        ret_var = purc_variant_make_boolean (true);
+    if (remove_dir ((char *)filename) == 0)
+        return purc_variant_make_boolean (true);
+    
+    set_purc_error_by_errno ();
+    return purc_variant_make_boolean (false);
 
-    return ret_var;
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2738,10 +2973,9 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "";
     const char *flag;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool        flag_binary = false;
@@ -2756,21 +2990,21 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (nr_args > 1) {
         string_flags = purc_variant_get_string_const (argv[1]);
         if (NULL == string_flags) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
@@ -2778,16 +3012,16 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         // Get the offset
         if (! purc_variant_cast_to_longint (argv[2], &offset, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
     if (nr_args > 3) {
-        // Get the offset
+        // Get the length
         uint64_t len;
         if (! purc_variant_cast_to_ulongint (argv[3], &len, false)) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
 
         length = len;
@@ -2817,7 +3051,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         else {
             purc_variant_unref (ret_var);
             purc_set_error (PURC_ERROR_WRONG_STAGE);
-            return purc_variant_make_boolean (false);
+            goto failed;
         }
 
         if (0 == flag_len)
@@ -2828,27 +3062,17 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // Get whole file size
     if (stat(string_filename, &filestat) < 0) {
-        set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        purc_set_error (PURC_ERROR_NOT_EXISTS);
+        goto failed;
     }
     filesize = filestat.st_size;
-
-    if (flag_binary)
-        fp = fopen (string_filename, "rb");
-    else
-        fp = fopen (string_filename, "r");
-
-    if (NULL == fp) {
-        set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
-    }
 
     if (offset < 0) {
         offset = filesize + offset;// offset < 0 !!!
     }
     if (offset < 0 || (size_t)offset >= filesize) {
         purc_set_error (PURC_ERROR_WRONG_STAGE);
-        goto err;
+        goto failed;
     }
 
     if ((filesize - offset) < length)
@@ -2856,11 +3080,21 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (length <= 0) {
         purc_set_error (PURC_ERROR_WRONG_STAGE);
-        goto err;
+        goto failed;
     }
 
     bsequence = malloc (length + 1);
     bsequence[length] = 0x0;
+
+    if (flag_binary)
+        fp = fopen (string_filename, "rb");
+    else
+        fp = fopen (string_filename, "r");
+
+    if (NULL == fp) {
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
 
     if (offset > 0)
         fseek (fp, offset, SEEK_SET);
@@ -2869,7 +3103,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (readsize != length && flag_strict) {
         // throw `BadEncoding` exception
         purc_set_error (PURC_ERROR_BAD_ENCODING);
-        goto err;
+        goto failed;
     }
 
     if (flag_binary)
@@ -2881,14 +3115,17 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     fclose (fp);
     return ret_var;
 
-err:
+failed:
     if (bsequence)
         free (bsequence);
 
     if (fp)
         fclose (fp);
 
-    return purc_variant_make_boolean (false);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -2896,10 +3133,9 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_filename = NULL;
-    const char *string_flags = NULL;
+    const char *string_flags = "";
     const char *flag;
     const char *string_content;
     FILE       *fp = NULL;
@@ -2909,18 +3145,17 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     bool        flag_lock = false;
     bool        flag_append = false;
     bool        flag_binary = false;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_filename = purc_variant_get_string_const (argv[0]);
     if (NULL == string_filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     if (nr_args > 1) {
@@ -2931,7 +3166,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     (const void **)&bsequence, &sz_bseq))
             {
                 purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-                return PURC_VARIANT_INVALID;
+                goto failed;
             }
 
             flag_binary = true;
@@ -2942,7 +3177,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         string_flags = purc_variant_get_string_const (argv[2]);
         if (NULL == string_flags) {
             purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            return PURC_VARIANT_INVALID;
+            goto failed;
         }
     }
 
@@ -2961,10 +3196,15 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         else if (strcmp_len (flag, "append", &flag_len) == 0) {
             flag_append = true;
         }
+        if (strcmp_len (flag, "binary", &flag_len) == 0) {
+            flag_binary = true;
+        }
+        else if (strcmp_len (flag, "string", &flag_len) == 0) {
+            flag_binary = false;
+        }
         else {
-            purc_variant_unref (ret_var);
             purc_set_error (PURC_ERROR_WRONG_STAGE);
-            return purc_variant_make_boolean (false);
+            goto failed;
         }
 
         if (0 == flag_len)
@@ -2987,23 +3227,22 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (NULL == fp) {
-        set_purc_error_by_errno ();
-        return purc_variant_make_boolean (false);
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
     }
 
     if (-1 == flock (fileno(fp), LOCK_SH | LOCK_NB)) {
         // File locked.
         purc_set_error (PURC_ERROR_ACCESS_DENIED);
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
     flock(fileno(fp), LOCK_UN);
 
     if (flag_lock) {
         if (flock (fileno(fp), LOCK_EX) != 0) {
-            set_purc_error_by_errno();
-            fclose (fp);
-            return purc_variant_make_boolean (false);
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            goto failed;
         }
     }
 
@@ -3016,44 +3255,31 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         flock (fileno(fp), LOCK_UN);
     }
     fclose (fp);
+    return purc_variant_make_ulongint (writesize);
 
-    ret_var = purc_variant_make_ulongint (writesize);
-    return ret_var;
+failed:
+    if (fp)
+        fclose (fp);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
-struct pcdvobjs_dir_stream {
-    DIR* dirp;
-    char dirpath[PATH_MAX];
-};
-
 static purc_variant_t
-dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+on_dir_read (void *native_entity,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    struct pcdvobjs_dir_stream *dir_stream;
-    DIR *dirp;
-    char fullpath[PATH_MAX + NAME_MAX + 1];
+    DIR *dirp = (DIR *)native_entity;
     struct dirent *dp;
-    purc_variant_t dir_var;
 
-    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
-    }
-
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
     if (NULL == dirp) {
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     while ((dp = readdir(dirp)) != NULL) {
@@ -3061,68 +3287,60 @@ dir_read_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 || (strcmp(dp->d_name, "..") == 0))
             continue;
 
-        snprintf(fullpath, sizeof(fullpath), "%s/%s",
-                dir_stream->dirpath,
-                dp->d_name);
-        return purc_variant_make_string (fullpath, true);
+        return purc_variant_make_string (dp->d_name, true);
     }
 
-    return purc_variant_make_boolean (false);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-dir_rewind_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+on_dir_rewind (void *native_entity,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    struct pcdvobjs_dir_stream *dir_stream;
-    DIR *dirp;
-    purc_variant_t dir_var;
-
-    dir_var = purc_variant_object_get_by_ckey(root, CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+    if (native_entity) {
+        rewinddir((DIR *)native_entity);
+        return purc_variant_make_boolean (true);
     }
 
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
-    if (NULL == dirp) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    rewinddir(dirp);
-
-    return purc_variant_make_boolean (true);
+    return purc_variant_make_boolean (false);
 }
 
-static bool add_dir_native(purc_variant_t v, DIR *dirp,
-        const char *string_pathname)
+static purc_nvariant_method
+property_getter(void* native_entity, const char* key_name)
 {
-    struct pcdvobjs_dir_stream *dir_stream = calloc(1,
-            sizeof(struct pcdvobjs_dir_stream));
-    dir_stream->dirp = dirp;
-    strncpy(dir_stream->dirpath, string_pathname, sizeof(dir_stream->dirpath)-1);
+    UNUSED_PARAM(native_entity);
 
-    purc_variant_t var = purc_variant_make_native((void *)dir_stream, NULL);
-    if (var == PURC_VARIANT_INVALID) {
-        return false;
+    switch (key_name[0]) {
+    case 'r':
+        if (strcmp(key_name, "read") == 0) {
+            return on_dir_read;
+        }
+        if (strcmp(key_name, "rewind") == 0) {
+            return on_dir_rewind;
+        }
+        break;
+
+    default:
+        break;
     }
 
-    if (! purc_variant_object_set_by_static_ckey(v, CKEY_DIR, var)) {
-        purc_variant_unref(var);
-        return false;
-    }
+    return NULL;
+}
 
-    purc_variant_unref(var);
-    return true;
+static void
+on_release(void *native_entity)
+{
+    if (native_entity) {
+        closedir((DIR *)native_entity);
+    }
 }
 
 static purc_variant_t
@@ -3130,7 +3348,6 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
     const char *string_pathname = NULL;
     DIR *dirp;
@@ -3139,45 +3356,55 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
     // get the file name
     string_pathname = purc_variant_get_string_const (argv[0]);
     if (NULL == string_pathname) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    if (access (string_pathname, F_OK | R_OK) != 0)
-        return purc_variant_make_boolean (false);
+    if (access (string_pathname, F_OK | R_OK) != 0) {
+        purc_set_error (PURC_ERROR_NOT_EXISTS);
+        goto failed;
+    }
 
-    if (stat (string_pathname, &dir_stat) < 0)
-        return purc_variant_make_boolean (false);
+    if (stat (string_pathname, &dir_stat) < 0) {
+        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
 
     if (S_ISDIR(dir_stat.st_mode)) {
         dirp = opendir (string_pathname);
+        if (NULL == dirp) {
+            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            goto failed;
+        }
     }
     else {
-        return purc_variant_make_boolean (false);
+        goto failed;
     }
 
-    static struct purc_dvobj_method dirStream[] = {
-        {"read",    dir_read_getter,      NULL},
-        {"rewind",  dir_rewind_getter,    NULL},
+    static const struct purc_native_ops ops = {
+        .property_getter = property_getter,
+        .on_observe = NULL,
+        .on_forget = NULL,
+        .on_release = on_release,
     };
 
-    ret_var = purc_dvobj_make_from_methods(dirStream,
-            PCA_TABLESIZE(dirStream));
+    ret_var = purc_variant_make_native((void *)dirp, &ops);
     if (ret_var == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
+    
+    return ret_var;
 
-    if (add_dir_native(ret_var, dirp, string_pathname)) {
-        return ret_var;
-    }
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
 
-    purc_variant_unref(ret_var);
     return PURC_VARIANT_INVALID;
 }
 
@@ -3186,41 +3413,36 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
-    UNUSED_PARAM(call_flags);
 
-    struct pcdvobjs_dir_stream *dir_stream;
     DIR *dirp;
-    purc_variant_t dir_var;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
-        return PURC_VARIANT_INVALID;
+        goto failed;
     }
 
-    dir_var = purc_variant_object_get_by_ckey(argv[0], CKEY_DIR);
-    if (dir_var == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    dir_stream = (struct pcdvobjs_dir_stream *)(dir_var->ptr_ptr[0]);
-    if (NULL == dir_stream) {
-        return PURC_VARIANT_INVALID;
-    }
-
-    dirp = dir_stream->dirp;
+    dirp = (DIR *)purc_variant_native_get_entity(argv[0]);
     if (NULL == dirp) {
-        return PURC_VARIANT_INVALID;
+        purc_set_error (PURC_ERROR_NO_DATA);
+        goto failed;
     }
 
     if (0 == closedir(dirp))
         ret_var = purc_variant_make_boolean (true);
-    else
-        ret_var = purc_variant_make_boolean (false);
+    else {
+        purc_set_error (PURC_ERROR_SYS_FAULT);
+        goto failed;
+    }
 
-    purc_variant_object_remove_by_static_ckey(argv[0], CKEY_DIR, true);
-    free (dir_stream);
+    argv[0]->ptr_ptr[0] = NULL;
     return ret_var;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean (false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t pcdvobjs_create_fs(void)

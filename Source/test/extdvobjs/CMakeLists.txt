@@ -50,6 +50,7 @@ target_compile_definitions(test_extdvobjs_fs PRIVATE SOPATH="${CMAKE_BINARY_DIR}
 
 set(test_extdvobjs_fs_SOURCES
     test_extdvobjs_fs.cpp
+    TestExtDVObj.cpp
     helper.cpp
 )
 
