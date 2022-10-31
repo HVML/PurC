@@ -18,18 +18,38 @@ add_definitions(-DPURC_LIBEXEC_DIR="${LIBEXEC_INSTALL_DIR}")
 find_package(ZLIB 1.2.0 REQUIRED)
 find_package(GLIB 2.44.0 REQUIRED COMPONENTS gio gio-unix gmodule gobject)
 
-if (ENABLE_BUILD_REMOTE_FETCHER)
+# FIXME
+if (NOT DEFINED ENABLE_REMOTE_FETCHER)
+    set(ENABLE_REMOTE_FETCHER ${_PURC_AVAILABLE_OPTIONS_INITIAL_VALUE_ENABLE_REMOTE_FETCHER})
+endif ()
+
+if (ENABLE_REMOTE_FETCHER)
     set(ENABLE_LCMD ON)
     set(ENABLE_LSQL ON)
 
     find_package(LibSoup 2.54.0)
-    find_package(LibGcrypt 1.6.0 REQUIRED)
+    find_package(LibGcrypt 1.6.0)
     find_package(SQLite3 3.10.0)
 
-if (ENABLE_RSQL)
-    find_package(MySQLClient 20.0.0)
+    if (ENABLE_RSQL)
+        find_package(MySQLClient 20.0.0)
+    endif ()
+
 endif ()
 
+if (ENABLE_REMOTE_FETCHER)
+    if (NOT LIBSOUP_FOUND OR NOT LIBGCRYPT_FOUND OR NOT SQLITE3_FOUND)
+        set(ENABLE_REMOTE_FETCHER OFF)
+        set(ENABLE_LCMD OFF)
+        set(ENABLE_LSQL OFF)
+        set(ENABLE_RSQL OFF)
+        message(WARNING "Not found some dependent libraries(LibSoup, LibGcrpt or SQLite3), set ENABLE_REMOTE_FETCHER OFF ${SQLITE3_FOUND}")
+    endif ()
+
+    if (ENABLE_RSQL AND NOT MYSQLCLIENT_FOUND)
+        set(ENABLE_RSQL OFF)
+        message(WARNING "Not found dependent library MySQLClient, set ENABLE_RSQL OFF")
+    endif ()
 endif ()
 
 # On macOS, search Homebrew for keg-only versions of Bison and Flex. Xcode does
