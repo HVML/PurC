@@ -101,7 +101,6 @@ macro(PURC_OPTION_BEGIN)
     PURC_OPTION_DEFINE(USE_SYSTEM_MALLOC "Toggle system allocator instead of PurC's custom allocator" PRIVATE ${USE_SYSTEM_MALLOC_DEFAULT})
     PURC_OPTION_DEFINE(ENABLE_ICU "Enable icu" PUBLIC OFF)
 
-    PURC_OPTION_DEFINE(ENABLE_BUILD_REMOTE_FETCHER "Toggle build remote fetcher" PUBLIC ON)
     PURC_OPTION_DEFINE(ENABLE_LCMD "Toggle support for LCMD protocol" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_LSQL "Toggle support for LSQL protocol" PUBLIC OFF)
     PURC_OPTION_DEFINE(ENABLE_RSQL "Toggle support for RSQL protocol" PUBLIC OFF)
