@@ -239,6 +239,8 @@ static bool
 move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t arr);
 static bool
 move_keys_in_cloned_set(struct travel_context *ctxt, purc_variant_t arr);
+static bool
+move_keys_in_cloned_tuple(struct travel_context *ctxt, purc_variant_t arr);
 
 static bool
 move_keys_in_cloned_array(struct travel_context *ctxt, purc_variant_t arr)
@@ -254,11 +256,15 @@ move_keys_in_cloned_array(struct travel_context *ctxt, purc_variant_t arr)
             break;
 
         case PURC_VARIANT_TYPE_OBJECT:
-            move_keys_in_cloned_array(ctxt, v);
+            move_keys_in_cloned_object(ctxt, v);
             break;
 
         case PURC_VARIANT_TYPE_SET:
             move_keys_in_cloned_set(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_keys_in_cloned_tuple(ctxt, v);
             break;
 
         default:
@@ -300,6 +306,11 @@ move_keys_in_cloned_object(struct travel_context *ctxt, purc_variant_t obj)
             move_keys_in_cloned_set(ctxt, v);
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_variant_in(ctxt->inst, k);
+            move_keys_in_cloned_tuple(ctxt, v);
+            break;
+
         default:
             break;
         }
@@ -328,12 +339,54 @@ move_keys_in_cloned_set(struct travel_context *ctxt, purc_variant_t set)
             move_keys_in_cloned_set(ctxt, v);
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_keys_in_cloned_tuple(ctxt, v);
+            break;
+
         default:
             // immutable element
             break;
         }
 
     } end_foreach;
+
+    return true;
+}
+
+static bool
+move_keys_in_cloned_tuple(struct travel_context *ctxt, purc_variant_t arr)
+{
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(arr, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            move_keys_in_cloned_array(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            move_keys_in_cloned_object(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            move_keys_in_cloned_set(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_keys_in_cloned_tuple(ctxt, v);
+            break;
+
+        default:
+            // immutable element
+            break;
+        }
+
+    }
 
     return true;
 }
@@ -355,6 +408,10 @@ move_keys_in_cloned_container(struct travel_context *ctxt,
             move_keys_in_cloned_set(ctxt, cntr);
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_keys_in_cloned_tuple(ctxt, cntr);
+            break;
+
         default:
             assert(0);
             break;
@@ -371,6 +428,9 @@ move_or_clone_mutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t v);
 static bool
 move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
+        purc_variant_t v);
+static bool
+move_or_clone_mutable_descendants_in_tuple(struct travel_context *ctxt,
         purc_variant_t v);
 
 static bool
@@ -553,6 +613,64 @@ move_or_clone_mutable_descendants_in_set(struct travel_context *ctxt,
 }
 
 static bool
+move_or_clone_mutable_descendants_in_tuple(struct travel_context *ctxt,
+        purc_variant_t tuple)
+{
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        purc_variant_t retv;
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            if (v->refc == 1) {
+                move_variant_in(ctxt->inst, v);
+                move_or_clone_mutable_descendants_in_array(ctxt, v);
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            if (v->refc == 1) {
+                move_variant_in(ctxt->inst, v);
+                move_or_clone_mutable_descendants_in_object(ctxt, v);
+            }
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            if (v->refc == 1) {
+                move_variant_in(ctxt->inst, v);
+                move_or_clone_mutable_descendants_in_set(ctxt, v);
+            }
+            break;
+
+        default:
+            // immutable element
+            break;
+        }
+
+        if (IS_CONTAINER(v->type) && v->refc > 1) {
+            retv = purc_variant_container_clone_recursively(v);
+            if (retv == PURC_VARIANT_INVALID) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return false;
+            }
+
+            move_keys_in_cloned_container(ctxt, retv);
+
+            pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
+
+    };
+
+    return true;
+}
+
+static bool
 move_or_clone_mutable_descendants(struct travel_context *ctxt,
         purc_variant_t v)
 {
@@ -563,6 +681,8 @@ move_or_clone_mutable_descendants(struct travel_context *ctxt,
             return move_or_clone_mutable_descendants_in_object(ctxt, v);
         case PURC_VARIANT_TYPE_SET:
             return move_or_clone_mutable_descendants_in_set(ctxt, v);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return move_or_clone_mutable_descendants_in_tuple(ctxt, v);
         default:
             break;
     }
@@ -578,6 +698,9 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
         purc_variant_t v);
 static bool
 move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
+        purc_variant_t v);
+static bool
+move_or_clone_immutable_descendants_in_tuple(struct travel_context *ctxt,
         purc_variant_t v);
 
 static bool
@@ -603,6 +726,11 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
 
         case PURC_VARIANT_TYPE_SET:
             move_or_clone_immutable_descendants_in_set(ctxt, v);
+            retv = v;
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_or_clone_immutable_descendants_in_tuple(ctxt, v);
             retv = v;
             break;
 
@@ -645,6 +773,10 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
 
         case PURC_VARIANT_TYPE_SET:
             move_or_clone_immutable_descendants_in_set(ctxt, v);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_or_clone_immutable_descendants_in_tuple(ctxt, v);
             break;
 
         default:
@@ -692,6 +824,11 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
             retv = v;
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_or_clone_immutable_descendants_in_tuple(ctxt, v);
+            retv = v;
+            break;
+
         default:
             retv = move_or_clone_immutable(ctxt->inst, v);
             if (retv == PURC_VARIANT_INVALID) {
@@ -713,6 +850,60 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
 }
 
 static bool
+move_or_clone_immutable_descendants_in_tuple(struct travel_context *ctxt,
+        purc_variant_t tuple)
+{
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        purc_variant_t retv;
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            move_or_clone_immutable_descendants_in_array(ctxt, v);
+            retv = v;
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            move_or_clone_immutable_descendants_in_object(ctxt, v);
+            retv = v;
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            move_or_clone_immutable_descendants_in_set(ctxt, v);
+            retv = v;
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            move_or_clone_immutable_descendants_in_tuple(ctxt, v);
+            retv = v;
+            break;
+
+        default:
+            retv = move_or_clone_immutable(ctxt->inst, v);
+            if (retv == PURC_VARIANT_INVALID) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                return false;
+            }
+            break;
+        }
+
+        if (retv != v) {
+            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+                pcutils_arrlist_append(ctxt->vrts_to_unref, v);
+        }
+
+    };
+
+    return true;
+}
+
+static bool
 move_or_clone_immutable_descendants(struct travel_context *ctxt,
         purc_variant_t v)
 {
@@ -723,6 +914,8 @@ move_or_clone_immutable_descendants(struct travel_context *ctxt,
             return move_or_clone_immutable_descendants_in_object(ctxt, v);
         case PURC_VARIANT_TYPE_SET:
             return move_or_clone_immutable_descendants_in_set(ctxt, v);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return move_or_clone_immutable_descendants_in_tuple(ctxt, v);
         default:
             break;
     }
@@ -815,6 +1008,7 @@ static purc_variant_t move_variant_out(purc_variant_t v);
 static purc_variant_t move_array_descendants_out(purc_variant_t v);
 static purc_variant_t move_object_descendants_out(purc_variant_t v);
 static purc_variant_t move_set_descendants_out(purc_variant_t v);
+static purc_variant_t move_tuple_descendants_out(purc_variant_t v);
 
 static purc_variant_t move_array_descendants_out(purc_variant_t arr)
 {
@@ -838,6 +1032,11 @@ static purc_variant_t move_array_descendants_out(purc_variant_t arr)
 
         case PURC_VARIANT_TYPE_SET:
             retv = move_set_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            retv = move_tuple_descendants_out(v);
             move_container_self_out(retv);
             break;
 
@@ -876,6 +1075,11 @@ static purc_variant_t move_object_descendants_out(purc_variant_t obj)
             move_container_self_out(retv);
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            retv = move_tuple_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
         default:
             retv = move_variant_out(v);
             break;
@@ -911,6 +1115,11 @@ static purc_variant_t move_set_descendants_out(purc_variant_t set)
             move_container_self_out(retv);
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            retv = move_tuple_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
         default:
             retv = move_variant_out(v);
             break;
@@ -920,6 +1129,49 @@ static purc_variant_t move_set_descendants_out(purc_variant_t set)
     } end_foreach;
 
     return set;
+}
+
+static purc_variant_t move_tuple_descendants_out(purc_variant_t tuple)
+{
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        purc_variant_t retv;
+
+        switch (v->type) {
+        case PURC_VARIANT_TYPE_ARRAY:
+            retv = move_array_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
+        case PURC_VARIANT_TYPE_OBJECT:
+            retv = move_object_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
+        case PURC_VARIANT_TYPE_SET:
+            retv = move_set_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            retv = move_tuple_descendants_out(v);
+            move_container_self_out(retv);
+            break;
+
+        default:
+            retv = move_variant_out(v);
+            break;
+        }
+
+    }
+
+    return tuple;
 }
 
 static purc_variant_t move_variant_out(purc_variant_t v)
@@ -975,6 +1227,9 @@ static purc_variant_t move_variant_out(purc_variant_t v)
         }
         else if (v->type == PURC_VARIANT_TYPE_SET) {
             retv = move_set_descendants_out(v);
+        }
+        else if (v->type == PURC_VARIANT_TYPE_TUPLE) {
+            retv = move_tuple_descendants_out(v);
         }
     }
 
