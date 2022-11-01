@@ -153,6 +153,32 @@ end:
     return ret;
 }
 
+static bool
+tuple_foreach(purc_variant_t tuple, foreach_func func, void* ctxt, bool silently)
+{
+    bool ret = false;
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+    assert(members);
+    if (sz <= 0) {
+        ret = true;
+        goto end;
+    }
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        if (!func(ctxt, v, PURC_VARIANT_INVALID, silently)) {
+            goto end;
+        }
+    }
+    ret = true;
+
+end:
+    return ret;
+}
+
 bool
 pcvariant_object_clear(purc_variant_t object, bool silently)
 {
@@ -513,7 +539,10 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     bool ret = false;
 
-    if (!purc_variant_is_array(src) && !purc_variant_is_set(src)) {
+    enum purc_variant_type type = purc_variant_get_type(src);
+    if ((type != PURC_VARIANT_TYPE_ARRAY)
+            && (type != PURC_VARIANT_TYPE_SET)
+            && (type != PURC_VARIANT_TYPE_TUPLE)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
@@ -522,11 +551,14 @@ array_displace(purc_variant_t dst, purc_variant_t src, bool silently)
         goto end;
     }
 
-    if (purc_variant_is_array(src)) {
+    if (type == PURC_VARIANT_TYPE_ARRAY) {
         ret = array_foreach(src, append_array_member, dst, silently);
     }
-    else {
+    else if (type == PURC_VARIANT_TYPE_SET) {
         ret = set_foreach(src, append_array_member, dst, silently);
+    }
+    else {
+        ret = tuple_foreach(src, append_array_member, dst, silently);
     }
 
 end:
@@ -538,21 +570,26 @@ array_remove(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     bool ret = false;
 
-    if (!purc_variant_is_array(src) && !purc_variant_is_set(src)) {
+    enum purc_variant_type type = purc_variant_get_type(src);
+    if ((type != PURC_VARIANT_TYPE_ARRAY)
+            && (type != PURC_VARIANT_TYPE_SET)
+            && (type != PURC_VARIANT_TYPE_TUPLE)) {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         goto end;
     }
 
-    if (purc_variant_is_array(src)) {
+    if (type == PURC_VARIANT_TYPE_ARRAY) {
         ret = array_foreach(src, remove_array_member, dst, silently);
     }
-    else {
+    else if (type == PURC_VARIANT_TYPE_SET) {
         ret = set_foreach(src, remove_array_member, dst, silently);
+    }
+    else {
+        ret = tuple_foreach(src, append_array_member, dst, silently);
     }
 
 end:
     return ret;
-    return false;
 }
 
 static bool
@@ -592,6 +629,16 @@ set_displace(purc_variant_t dst, purc_variant_t src, bool silently)
             ret = true;
             break;
 
+        case PURC_VARIANT_TYPE_TUPLE:
+            if (!pcvariant_set_clear(dst, silently)) {
+                goto end;
+            }
+            if (!tuple_foreach(src, add_set_member, dst, silently)) {
+                goto end;
+            }
+            ret = true;
+            break;
+
         default:
             SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
             ret = false;
@@ -625,6 +672,13 @@ set_remove(purc_variant_t dst, purc_variant_t src, bool silently)
 
         case PURC_VARIANT_TYPE_SET:
             if (!set_foreach(src, remove_set_member, dst, silently)) {
+                goto end;
+            }
+            ret = true;
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            if (!tuple_foreach(src, remove_set_member, dst, silently)) {
                 goto end;
             }
             ret = true;
@@ -896,6 +950,9 @@ purc_variant_set_unite(purc_variant_t set,
     else if (purc_variant_is_array(src)) {
         ret = array_foreach(src, add_set_member_override, set, silently);
     }
+    else if (purc_variant_is_tuple(src)) {
+        ret = tuple_foreach(src, add_set_member_override, set, silently);
+    }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
@@ -945,6 +1002,11 @@ purc_variant_set_intersect(purc_variant_t set,
             ret = set_displace(set, result, silently);
         }
     }
+    else if (purc_variant_is_tuple(src)) {
+        if(tuple_foreach(src, intersect_set, &c_ctxt, silently)) {
+            ret = set_displace(set, result, silently);
+        }
+    }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
@@ -982,6 +1044,9 @@ purc_variant_set_subtract(purc_variant_t set,
     else if (purc_variant_is_array(src)) {
         ret = array_foreach(src, subtract_set, set, silently);
     }
+    else if (purc_variant_is_tuple(src)) {
+        ret = tuple_foreach(src, subtract_set, set, silently);
+    }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
         ret = false;
@@ -1017,6 +1082,9 @@ purc_variant_set_xor(purc_variant_t set,
     }
     else if (purc_variant_is_array(src)) {
         ret = array_foreach(src, xor_set, set, silently);
+    }
+    else if (purc_variant_is_tuple(src)) {
+        ret = tuple_foreach(src, xor_set, set, silently);
     }
     else {
         SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
@@ -1068,6 +1136,10 @@ purc_variant_set_overwrite(purc_variant_t set,
 
         case PURC_VARIANT_TYPE_SET:
             ret = set_foreach(src, set_member_overwrite, set, silently);
+            break;
+
+        case PURC_VARIANT_TYPE_TUPLE:
+            ret = tuple_foreach(src, set_member_overwrite, set, silently);
             break;
 
         default:
