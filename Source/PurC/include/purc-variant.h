@@ -1894,13 +1894,19 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
  * A flag for the purc_variant_serialize() function which causes
  * the output to print unique keys of a set.
  */
-#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS                0x10000000
+#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS                0x00001000
+
+/**
+ * A flag for the purc_variant_serialize() function which serializes
+ * a tuple by using EJSON notation.
+ */
+#define PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON             0x00002000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the function ignores the output errors.
  */
-#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x20000000
+#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x10000000
 
 /**
  * Serialize a variant value
