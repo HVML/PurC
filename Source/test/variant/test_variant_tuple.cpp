@@ -231,3 +231,30 @@ TEST(variant, tuple_serialize)
     unref(tuple);
 }
 
+TEST(variant, tuple_serialize_ejson)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant_tuple", false);
+
+    char buf[8192];
+
+    purc_variant_t tuple = purc_variant_make_tuple(1, NULL);
+    ASSERT_NE(tuple, nullptr);
+
+    purc_variant_t s = purc_variant_make_string_static("abc", false);
+    ASSERT_NE(s, nullptr);
+
+    purc_variant_tuple_set(tuple, 0, s);
+
+    purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
+    size_t len_expected = 0;
+    purc_variant_serialize(tuple, my_rws,
+            0,
+            PCVARIANT_SERIALIZE_OPT_PLAIN | PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON,
+            &len_expected);
+    buf[len_expected] = 0;
+    ASSERT_STREQ("[!\"abc\"]", buf);
+
+    purc_rwstream_destroy(my_rws);
+    unref(s);
+    unref(tuple);
+}
