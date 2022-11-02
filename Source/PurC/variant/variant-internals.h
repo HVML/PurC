@@ -227,6 +227,25 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj);
 void
 pcvar_kv_it_next(struct kv_iterator *it);
 
+struct tuple_iterator {
+    purc_variant_t                tuple;
+    size_t                        nr_members;
+    size_t                        idx;
+
+    purc_variant_t                curr;
+    purc_variant_t                next;
+    purc_variant_t                prev;
+};
+
+struct tuple_iterator
+pcvar_tuple_it_first(purc_variant_t tuple);
+struct tuple_iterator
+pcvar_tuple_it_last(purc_variant_t tuple);
+void
+pcvar_tuple_it_next(struct tuple_iterator *it);
+void
+pcvar_tuple_it_prev(struct tuple_iterator *it);
+
 bool
 pcvar_rev_update_chain_pre_handler(
         purc_variant_t src,  // the source variant.

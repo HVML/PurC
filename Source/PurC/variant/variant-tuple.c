@@ -167,3 +167,112 @@ void pcvariant_tuple_release(purc_variant_t tuple)
     }
 }
 
+static void
+it_refresh(struct tuple_iterator *it, size_t idx)
+{
+    size_t sz;
+    purc_variant_t *members = tuple_members(it->tuple, &sz);
+
+    it->idx = idx;
+    it->curr = members[idx];
+    it->prev = idx > 0 ? members[idx - 1] : PURC_VARIANT_INVALID;
+    it->next = idx < sz - 1 ? members[idx + 1] : PURC_VARIANT_INVALID;
+}
+
+struct tuple_iterator
+pcvar_tuple_it_first(purc_variant_t tuple)
+{
+    struct tuple_iterator it = {
+        .tuple = tuple,
+        .nr_members = 0,
+        .idx  = -1,
+        .curr = PURC_VARIANT_INVALID,
+        .next = PURC_VARIANT_INVALID,
+        .prev = PURC_VARIANT_INVALID,
+    };
+
+    if (tuple == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    size_t nr = purc_variant_tuple_get_size(tuple);
+    if (nr == 0) {
+        goto out;
+    }
+
+    it.nr_members = nr;
+    it_refresh(&it, 0);
+out:
+    return it;
+}
+
+struct tuple_iterator
+pcvar_tuple_it_last(purc_variant_t tuple)
+{
+    struct tuple_iterator it = {
+        .tuple = tuple,
+        .nr_members = 0,
+        .idx  = -1,
+        .curr = PURC_VARIANT_INVALID,
+        .next = PURC_VARIANT_INVALID,
+        .prev = PURC_VARIANT_INVALID,
+    };
+
+    if (tuple == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    size_t nr = purc_variant_tuple_get_size(tuple);
+    if (nr == 0) {
+        goto out;
+    }
+
+    it.nr_members = nr;
+    it_refresh(&it, nr - 1);
+out:
+    return it;
+}
+
+void
+pcvar_tuple_it_next(struct tuple_iterator *it)
+{
+    if (it->curr == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    size_t idx = it->idx + 1;
+    if (idx < it->nr_members) {
+        it_refresh(it, idx);
+    }
+    else {
+        it->idx = -1;
+        it->curr = PURC_VARIANT_INVALID;
+        it->next = PURC_VARIANT_INVALID;
+        it->prev = PURC_VARIANT_INVALID;
+    }
+
+out:
+    return;
+}
+
+void
+pcvar_tuple_it_prev(struct tuple_iterator *it)
+{
+    if (it->curr == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    if (it->idx > 0) {
+        it_refresh(it, it->idx - 1);
+    }
+    else {
+        it->idx = -1;
+        it->curr = PURC_VARIANT_INVALID;
+        it->next = PURC_VARIANT_INVALID;
+        it->prev = PURC_VARIANT_INVALID;
+    }
+
+out:
+    return;
+}
+
