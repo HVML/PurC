@@ -275,3 +275,107 @@ out:
     return;
 }
 
+variant_tuple_t
+pcvar_tuple_get_data(purc_variant_t tuple)
+{
+    return (variant_tuple_t)tuple->sz_ptr[1];
+}
+
+void
+pcvar_tuple_break_edge_to_parent(purc_variant_t tuple,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_tuple(tuple));
+    variant_tuple_t data = pcvar_tuple_get_data(tuple);
+    if (!data)
+        return;
+
+    if (!data->rev_update_chain)
+        return;
+
+    pcutils_map_erase(data->rev_update_chain, edge->tuple_me);
+}
+
+int
+pcvar_tuple_build_edge_to_parent(purc_variant_t tuple,
+        struct pcvar_rev_update_edge *edge)
+{
+    PC_ASSERT(purc_variant_is_tuple(tuple));
+    variant_tuple_t data = pcvar_tuple_get_data(tuple);
+    if (!data)
+        return 0;
+
+    if (!data->rev_update_chain) {
+        data->rev_update_chain = pcvar_create_rev_update_chain();
+        if (!data->rev_update_chain)
+            return -1;
+    }
+
+    pcutils_map_entry *entry;
+    entry = pcutils_map_find(data->rev_update_chain, edge->tuple_me);
+    if (entry)
+        return 0;
+
+    int r;
+    r = pcutils_map_insert(data->rev_update_chain,
+            edge->tuple_me, edge->parent);
+
+    return r ? -1 : 0;
+}
+
+int
+pcvar_tuple_build_rue_downward(purc_variant_t tuple)
+{
+    PC_ASSERT(purc_variant_is_tuple(tuple));
+
+    variant_tuple_t data = pcvar_tuple_get_data(tuple);
+    if (!data)
+        return 0;
+
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        struct pcvar_rev_update_edge edge = {
+            .parent         = tuple,
+            .tuple_me       = (struct tuple_node*)v,
+        };
+        int r = pcvar_build_edge_to_parent(v, &edge);
+        if (r)
+            return -1;
+        r = pcvar_build_rue_downward(v);
+        if (r)
+            return -1;
+    }
+
+    return 0;
+}
+
+void
+pcvar_tuple_break_rue_downward(purc_variant_t tuple)
+{
+    PC_ASSERT(purc_variant_is_tuple(tuple));
+
+    variant_tuple_t data = pcvar_tuple_get_data(tuple);
+    if (!data)
+        return;
+
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        struct pcvar_rev_update_edge edge = {
+            .parent         = tuple,
+            .tuple_me       = (struct tuple_node*)v,
+        };
+        pcvar_break_edge_to_parent(v, &edge);
+        pcvar_break_rue_downward(v);
+    }
+}
+
