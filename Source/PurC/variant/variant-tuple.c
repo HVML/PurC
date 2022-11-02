@@ -29,6 +29,82 @@
 #include "purc-errors.h"
 #include "purc-utils.h"
 
+static inline void
+changed(purc_variant_t tuple, purc_variant_t pos,
+        purc_variant_t o, purc_variant_t n,
+        bool check)
+{
+    if (!check)
+        return;
+
+    purc_variant_t vals[] = { pos, o, n };
+
+    pcvariant_on_post_fired(tuple, PCVAR_OPERATION_CHANGE,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static inline bool
+change(purc_variant_t tuple, purc_variant_t pos,
+        purc_variant_t o, purc_variant_t n,
+        bool check)
+{
+    if (!check)
+        return true;
+
+    purc_variant_t vals[] = { pos, o, n };
+
+    return pcvariant_on_pre_fired(tuple, PCVAR_OPERATION_CHANGE,
+            PCA_TABLESIZE(vals), vals);
+}
+
+static int
+check_change(purc_variant_t tuple, size_t idx, purc_variant_t val)
+{
+    if (!pcvar_container_belongs_to_set(tuple))
+        return 0;
+
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+
+    purc_variant_t _new = purc_variant_make_tuple(sz, NULL);
+    if (_new == PURC_VARIANT_INVALID) {
+        return -1;
+    }
+
+    bool r = false;
+    do {
+        bool found = false;
+        purc_variant_t v;
+        for (size_t i = 0; i < sz; i++) {
+            v = members[i];
+            if (i == idx) {
+                found = true;
+            }
+
+            r = purc_variant_tuple_set(_new, i, i == idx ? val : v);
+            if (!r)
+                break;
+        };
+
+        if (!r)
+            break;
+
+        PC_ASSERT(found);
+
+        r = pcvar_reverse_check(tuple, _new);
+        if (r)
+            break;
+
+        PURC_VARIANT_SAFE_CLEAR(_new);
+
+        return 0;
+    } while (0);
+
+    PURC_VARIANT_SAFE_CLEAR(_new);
+    return -1;
+}
+
 purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
 {
     purc_variant_t vrt = pcvariant_get(PVT(_TUPLE));
@@ -113,8 +189,29 @@ bool purc_variant_tuple_set(purc_variant_t tuple,
     if (value == members[idx])
         return true;
 
+
+    purc_variant_t old = purc_variant_ref(members[idx]);
+    purc_variant_t pos = purc_variant_make_longint(idx);
+    if (!change(tuple, pos, old, value, true)) {
+        purc_variant_unref(old);
+        purc_variant_unref(pos);
+        return false;
+    }
+
+    if (check_change(tuple, idx, value)) {
+        purc_variant_unref(old);
+        purc_variant_unref(pos);
+        return false;
+    }
+
     purc_variant_unref(members[idx]);
     members[idx] = purc_variant_ref(value);
+
+    pcvar_adjust_set_by_descendant(tuple);
+    changed(tuple, pos, old, value, true);
+
+    purc_variant_unref(old);
+    purc_variant_unref(pos);
     return true;
 }
 
