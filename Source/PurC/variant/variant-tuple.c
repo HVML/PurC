@@ -37,31 +37,29 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
         return PURC_VARIANT_INVALID;
     }
 
-    purc_variant_t *members;
-    if (argc < PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE) {
-        vrt->size = argc;
-
-        members = vrt->vrt_vrt;
-    }
-    else {
-        members = calloc(argc, sizeof(purc_variant_t));
-
-        vrt->size = PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE;
-        vrt->sz_ptr[0] = (uintptr_t)argc;   /* real size of the tuple */
-        vrt->sz_ptr[1] = (uintptr_t)members;
-    }
-
-    if (members == NULL) {
-        pcvariant_put(vrt);
+    variant_tuple_t data = (variant_tuple_t)calloc(1, sizeof(*data));
+    if (!data) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return PURC_VARIANT_INVALID;
     }
+
+    data->members = calloc(argc, sizeof(purc_variant_t));
+    if (data->members == NULL) {
+        pcvariant_put(vrt);
+        free(data);
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    vrt->sz_ptr[0] = (uintptr_t)argc;   /* real size of the tuple */
+    vrt->sz_ptr[1] = (uintptr_t)data;
+
 
     size_t inited = 0;
     if (argv) {
         for (size_t n = 0; n < argc; n++) {
             if (argv[n]) {
-                members[n] = purc_variant_ref(argv[n]);
+                data->members[n] = purc_variant_ref(argv[n]);
                 inited = n + 1;
             }
             else {
@@ -72,10 +70,11 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
 
     /* initialize left members as null variants. */
     for (size_t n = inited; n < argc; n++) {
-        members[n] = purc_variant_make_null();
+        data->members[n] = purc_variant_make_null();
     }
 
     vrt->type = PURC_VARIANT_TYPE_TUPLE;
+    vrt->flags = PCVARIANT_FLAG_EXTRA_SIZE;
     vrt->refc = 1;
     return vrt;
 }
@@ -162,9 +161,9 @@ void pcvariant_tuple_release(purc_variant_t tuple)
         PURC_VARIANT_SAFE_CLEAR(members[n]);
     }
 
-    if (tuple->size >= PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE) {
-        free((void *)tuple->sz_ptr[1]);
-    }
+    variant_tuple_t data = (variant_tuple_t) tuple->sz_ptr[1];
+    free(data->members);
+    free(data);
 }
 
 static void

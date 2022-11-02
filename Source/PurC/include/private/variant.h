@@ -223,6 +223,7 @@ purc_variant *pcvariant_alloc_0(void) WTF_INTERNAL;
 void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 struct pcinst;
+struct tuple_node;
 
 struct pcvar_rev_update_edge {
     purc_variant_t                   parent;
@@ -231,6 +232,7 @@ struct pcvar_rev_update_edge {
         struct set_node             *set_me;
         struct obj_node             *obj_me;
         struct arr_node             *arr_me;
+        struct tuple_node           *tuple_me;
     };
 };
 
@@ -290,6 +292,19 @@ struct variant_arr {
     // val: parent
     pcutils_map                     *rev_update_chain;
 };
+
+
+// internal struct used by variant-tuple
+typedef struct variant_tuple      *variant_tuple_t;
+
+struct variant_tuple {
+    purc_variant_t                *members; // struct tuple_node* (purc_variant_t)
+
+    // key: arr_node/obj_node/set_node/tuple_node
+    // val: parent
+    pcutils_map                   *rev_update_chain;
+};
+
 
 #define PCVARIANT_SORT_DESC            0x10000000
 #define PCVARIANT_SORT_ASC             0x00000000
@@ -406,13 +421,9 @@ purc_variant_t *tuple_members(purc_variant_t tuple, size_t *sz)
     if (UNLIKELY(!(tuple && tuple->type == PVT(_TUPLE))))
         return NULL;
 
-    if (tuple->size >= PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE) {
-        *sz = (size_t)tuple->sz_ptr[0];
-        return (purc_variant_t *)tuple->sz_ptr[1];
-    }
-
-    *sz = (size_t)tuple->size;
-    return tuple->vrt_vrt;
+    variant_tuple_t data = (variant_tuple_t) tuple->sz_ptr[1];
+    *sz = (size_t)tuple->sz_ptr[0];
+    return data->members;
 }
 
 // md5 shall be at least 33 bytes long
