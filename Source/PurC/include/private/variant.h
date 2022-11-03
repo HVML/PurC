@@ -159,10 +159,6 @@ struct purc_variant {
              - `sz_ptr[1]` stores the atom. */
         uintptr_t   sz_ptr[2];
 
-#define PCVARIANT_MIN_TUPLE_SIZE_USING_EXTRA_SPACE  4
-        /* for tuple with members less than 4. */
-        purc_variant_t vrt_vrt[2];
-
         /* for short string and byte sequence; the real space size of `bytes`
            is `max(sizeof(long double), sizeof(void*) * 2)` */
         uint8_t     bytes[0];
