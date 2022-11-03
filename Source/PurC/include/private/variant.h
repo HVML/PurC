@@ -44,7 +44,8 @@ PCA_EXTERN_C_BEGIN
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
 #define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
                         t == PURC_VARIANT_TYPE_ARRAY || \
-                        t == PURC_VARIANT_TYPE_SET)
+                        t == PURC_VARIANT_TYPE_SET || \
+                        t == PURC_VARIANT_TYPE_TUPLE)
 
 #define MAX_RESERVED_VARIANTS   32
 #define DEF_EMBEDDED_LEVELS     64

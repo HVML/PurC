@@ -258,3 +258,86 @@ TEST(variant, tuple_serialize_ejson)
     unref(s);
     unref(tuple);
 }
+
+static bool tuple_change_handler (
+        purc_variant_t src,
+        pcvar_op_t op,
+        void *ctxt,
+        size_t nr_args,
+        purc_variant_t *argv
+        )
+{
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    uint64_t pos;
+    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    fprintf(stderr, "change listener\n");
+    fprintf(stderr, "nr_args=%ld\n", nr_args);
+    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
+    fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
+    fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));
+    return true;
+}
+
+static bool tuple_changed_handler (
+        purc_variant_t src,
+        pcvar_op_t op,
+        void *ctxt,
+        size_t nr_args,
+        purc_variant_t *argv
+        )
+{
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    uint64_t pos;
+    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    fprintf(stderr, "changed listener\n");
+    fprintf(stderr, "nr_args=%ld\n", nr_args);
+    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
+    fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
+    fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));
+    return true;
+}
+
+TEST(variant, tuple_listener)
+{
+    PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant_tuple", false);
+
+    purc_variant_t tuple = purc_variant_make_tuple(1, NULL);
+    ASSERT_NE(tuple, nullptr);
+
+
+    purc_variant_t s = purc_variant_make_string_static("abc", false);
+    ASSERT_NE(s, nullptr);
+
+    int op = PCVAR_OPERATION_CHANGE;
+    struct pcvar_listener *prev;
+    prev = purc_variant_register_pre_listener(tuple, (pcvar_op_t)op,
+            tuple_change_handler, tuple);
+    ASSERT_NE(prev, nullptr);
+
+    struct pcvar_listener *listener;
+    listener = purc_variant_register_post_listener(tuple, (pcvar_op_t)op,
+            tuple_changed_handler, tuple);
+
+    ASSERT_NE(listener, nullptr);
+
+    purc_variant_tuple_set(tuple, 0, s);
+
+
+
+    purc_variant_revoke_listener(tuple, prev);
+    purc_variant_revoke_listener(tuple, listener);
+    unref(s);
+    unref(tuple);
+}
