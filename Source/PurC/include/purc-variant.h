@@ -46,7 +46,7 @@ PCA_EXTERN_C_BEGIN
 /**
  * Gets the size of a variant wrapper.
  *
- * Returns: 
+ * Returns: The size of a variant wrapper.
  *
  * Since: 0.1.1
  */
@@ -54,11 +54,11 @@ PCA_EXPORT size_t
 purc_variant_wrapper_size(void);
 
 /**
- * Gets the reference count of a variant value
+ * Gets the reference count of a variant value.
  *
- * @param value: the variant value
+ * @param value: The variant value.
  *
- * Returns: 
+ * Returns: The reference count of the variant.
  *
  * Since: 0.1.0
  */
@@ -66,11 +66,12 @@ PCA_EXPORT unsigned int
 purc_variant_ref_count(purc_variant_t value);
 
 /**
- * Adds ref for a variant value
+ * Increments the reference count of a variant value by one.
  *
- * @param value: variant value to be operated
+ * @param value: the variant value.
  *
- * Returns: A purc_variant_t on success, PURC_VARIANT_INVALID on failure.
+ * Returns: The passed in variant value on success,
+ *  PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -78,13 +79,10 @@ PCA_EXPORT purc_variant_t
 purc_variant_ref(purc_variant_t value);
 
 /**
- * substract ref for a variant value. When ref is zero, releases the resource
- * occupied by the data
+ * Decrements the reference count of a variant value by one.
+ * If the reference count drops to 0, the variant will be released.
  *
- * @param value: variant value to be operated
- *
- * Note: When the reference count reaches zero, the system will release
- *      all memory used by value.
+ * @param value: The variant value to unreference.
  *
  * Since: 0.0.1
  */
@@ -92,23 +90,26 @@ PCA_EXPORT unsigned int
 purc_variant_unref(purc_variant_t value);
 
 /**
- * Creates a variant value of undefined type.
+ * Creates a variant representing an undefined value.
  *
- * Returns: A purc_variant_t with undefined type.
+ * Returns: A variant having value of `undefined`.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_undefined(void);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_undefined(void);
 
 /**
- * Creates a variant value of exception type.
+ * Creates a variant representing an exception.
  *
- * Returns: A purc_variant_t with exception type.
+ * @param except_atom: The atom value of the exception.
+ *
+ * Returns: A variant having value of the specified exception atom.
  *
  * Since: 0.0.2
  */
-PCA_EXPORT purc_variant_t purc_variant_make_exception(purc_atom_t except_atom);
+PCA_EXPORT purc_variant_t
+purc_variant_make_exception(purc_atom_t except_atom);
 
 /**
  * Gets the pointer of string which is encapsulated in exception atom string type.
@@ -131,7 +132,6 @@ purc_variant_get_exception_string_const(purc_variant_t value);
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t purc_variant_make_null(void);
-
 
 /**
  * Creates a variant value of boolean type.
