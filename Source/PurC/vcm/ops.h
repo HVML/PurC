@@ -113,6 +113,9 @@ pcvcm_get_cjsonee_op_or_ops();
 struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_cjsonee_op_semicolon_ops();
 
+struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_constant_ops();
+
 struct pcvcm_node *
 select_param_default(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos);

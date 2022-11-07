@@ -65,6 +65,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_cjsonee_op_and_ops,
     pcvcm_get_cjsonee_op_or_ops,
     pcvcm_get_cjsonee_op_semicolon_ops,
+    pcvcm_get_constant_ops,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \
