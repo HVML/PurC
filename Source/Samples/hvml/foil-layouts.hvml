@@ -3,10 +3,10 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
     <head>
-        <base href="$CRTN.base" />
-        <link rel='stylesheet' type='text/css' href='assets/foil-layouts.css' />
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) />
+        <link rel='stylesheet' type='text/css' href='hvml/assets/foil-layouts.css' />
 
-        <update on "$T.map" from "assets/messages-foil-layouts-{$SYS.locale}.json" to "merge" silently />
+        <update on "$T.map" from "hvml/assets/messages-foil-layouts-{$SYS.locale}.json" to "merge" silently />
 
         <title>$T.get('Foil Layouts')</title>
     </head>
