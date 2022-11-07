@@ -679,6 +679,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_DOUBLE_QUOTED);
     }
+    if (character == '#' && !tkz_stack_is_empty()) {
+        ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
+    }
 //    CHECK_FINISHED();
     RECONSUME_IN(EJSON_TKZ_STATE_UNQUOTED);
 END_STATE()
@@ -2926,6 +2929,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_NUMERIC_CHARACTER_REFERENCE_END)
     APPEND_TO_TEMP_BUFFER(uc);
     RESET_STRING_BUFFER();
     RECONSUME_IN(parser->return_state);
+END_STATE()
+
+BEGIN_STATE(EJSON_TKZ_STATE_LINE_COMMENT)
+    if (character == '\n' || is_eof(character)
+            || parser->is_finished(parser, character)) {
+        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+    }
+    ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
 END_STATE()
 
 PCEJSON_PARSER_END
