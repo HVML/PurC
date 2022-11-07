@@ -1,0 +1,44 @@
+#!/user/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+    <head>
+        <base href="$CRTN.base" />
+        <link rel='stylesheet' type='text/css' href='assets/foil-layouts.css' />
+
+        <update on "$T.map" from "assets/messages-foil-layouts-{$SYS.locale}.json" to "merge" silently />
+
+        <title>$T.get('Foil Layouts')</title>
+    </head>
+
+    <body>
+        <define as "orderedListItems">
+            <h1>$STR.format_p($T.get('Fibonacci Numbers less than #0'), $?)</h1>
+
+            <init as "count" with 2 temp />
+            <init as "last_one" with 0L temp />
+            <init as "last_two" with 1L temp />
+
+            <ol>
+                <li>$last_one</li>
+                <li>$last_two</li>
+
+                <iterate on $last_two onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, $last_one) nosetotail >
+                    <init as "last_one" at "3" with $last_two temp />
+                    <init as "last_two" at "3" with $? temp />
+
+                    <update on "$3!" at ".count" to "displace" with += 1 />
+
+                    <li>$?</li>
+                </iterate>
+            </ol>
+
+            <p>$STR.format_p($T.get('Totally #0 numbers'), $count)</p>
+        </define>
+
+        <include with $orderedListItems on 2000L />
+
+    </body>
+
+</hvml>
+
