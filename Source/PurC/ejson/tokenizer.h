@@ -66,6 +66,7 @@
 #define ETT_OR                          '|'         /* CJSONEE OP: || */
 #define ETT_SEMICOLON                   ';'         /* CJSONEE OP: ; */
 #define ETT_STRING                      '"'         /* String: temp  */
+#define ETT_BACKQUOTE                   '`'         /* BACKQUOTE  */
 
 
 #if (defined __DEV_EJSON__ && __DEV_EJSON__)
@@ -249,8 +250,10 @@ enum pcejson_tkz_state {
     EJSON_TKZ_STATE_DECIMAL_CHARACTER_REFERENCE,
     EJSON_TKZ_STATE_NUMERIC_CHARACTER_REFERENCE_END,
     EJSON_TKZ_STATE_LINE_COMMENT,
+    EJSON_TKZ_STATE_BACKQUOTE,
+    EJSON_TKZ_STATE_BACKQUOTE_CONTENT,
 
-    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_LINE_COMMENT,
+    EJSON_TKZ_STATE_LAST = EJSON_TKZ_STATE_BACKQUOTE_CONTENT,
 };
 
 
