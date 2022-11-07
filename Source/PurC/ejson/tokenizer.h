@@ -46,6 +46,7 @@
 /* EJSON_TOKEN_TYPE */
 #define ETT_OBJECT                      '{'         /* { "key":"value" } */
 #define ETT_ARRAY                       '['         /* [value, value] */
+#define ETT_TUPLE                       '!'         /* [!value, value] */
 #define ETT_GET_VARIABLE                '$'         /* $VARIABLE */
 #define ETT_GET_ELEMENT                 '.'         /* $VARIABLE.ELEMENT */
 #define ETT_GET_ELEMENT_BY_BRACKET      'E'         /* $VARIABLE[ELEMENT] */

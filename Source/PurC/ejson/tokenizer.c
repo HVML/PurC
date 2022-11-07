@@ -645,6 +645,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_BRACE);
     }
     if (character == '[') {
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_LEFT_BRACKET);
     }
     if (character == ']') {
@@ -1007,7 +1008,43 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACKET)
         RETURN_AND_STOP_PARSE();
     }
 
+
     if (character == '[') {
+        if (tkz_buffer_is_empty(parser->temp_buffer)) {
+            APPEND_TO_TEMP_BUFFER(character);
+            ADVANCE_TO(EJSON_TKZ_STATE_LEFT_BRACKET);
+        }
+    }
+    else if (character == '!') {
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_LEFT_BRACKET);
+    }
+
+    if (tkz_buffer_equal_to(parser->temp_buffer, "[!", 2)) {
+        RESET_TEMP_BUFFER();
+        if (!pcejson_inc_depth(parser)) {
+            SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
+            return -1;
+        }
+        if (top == NULL) {
+            tkz_stack_push(ETT_TUPLE);
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        uint32_t type = top->type;
+        // FIXME:
+        if (type == ETT_OBJECT || type == ETT_ARRAY || type == ETT_TUPLE
+                || type == ETT_STRING || type == ETT_VALUE) {
+            tkz_stack_push(ETT_TUPLE);
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+        }
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
+    else if (tkz_buffer_equal_to(parser->temp_buffer, "[", 1)) {
+        RESET_TEMP_BUFFER();
+
         if (!pcejson_inc_depth(parser)) {
             SET_ERR(PCEJSON_ERROR_MAX_DEPTH_EXCEEDED);
             return -1;
@@ -1015,7 +1052,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACKET)
         if (top == NULL) {
             tkz_stack_push(ETT_ARRAY);
             tkz_stack_push(ETT_VALUE);
-            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
         uint32_t type = top->type;
         // FIXME:
@@ -1023,18 +1060,18 @@ BEGIN_STATE(EJSON_TKZ_STATE_LEFT_BRACKET)
                 type == ETT_STRING || type == ETT_VALUE) {
             tkz_stack_push(ETT_ARRAY);
             tkz_stack_push(ETT_VALUE);
-            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
 
         if (type == ETT_GET_VARIABLE || is_get_element(type)) {
             tkz_stack_push(ETT_GET_ELEMENT_BY_BRACKET);
             tkz_stack_push(ETT_VALUE);
-            ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+            RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
         }
 
         tkz_stack_push(ETT_GET_ELEMENT_BY_BRACKET);
         tkz_stack_push(ETT_VALUE);
-        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
 
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
