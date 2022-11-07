@@ -4,7 +4,7 @@
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
     <head>
         <base href=$CRTN.base(! "file://$SYS.cwd" ) />
-        <link rel='stylesheet' type='text/css' href='hvml/assets/foil-layouts.css' />
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-layouts-{$REQ.case}.css" hvml:silently />
 
         <update on "$T.map" from "hvml/assets/messages-foil-layouts-{$STR.substr($SYS.locale, 0, 2)}.json" to "merge" silently />
 
@@ -12,31 +12,69 @@
     </head>
 
     <body>
-        <define as "orderedListItems">
-            <h1>$STR.format_p($T.get('Fibonacci Numbers less than #0'), $?)</h1>
+        <define as "paragraphs">
+            <SECTION id="paragraphs">
+                <P>
+                    $T.get('This text is defined by the first P.')
+                    <BR />
+                    $T.get('There is a line-break before this text')
+                    <SPAN>$T.get('This text defined by SPAN')</SPAN>
+                </P>
 
-            <init as "count" with 2 temp />
-            <init as "last_one" with 0L temp />
-            <init as "last_two" with 1L temp />
-
-            <ol>
-                <li>$last_one</li>
-                <li>$last_two</li>
-
-                <iterate on $last_two onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, $last_one) nosetotail >
-                    <init as "last_one" at "3" with $last_two temp />
-                    <init as "last_two" at "3" with $? temp />
-
-                    <update on "$3!" at ".count" to "displace" with += 1 />
-
-                    <li>$?</li>
-                </iterate>
-            </ol>
-
-            <p>$STR.format_p($T.get('Totally #0 numbers'), $count)</p>
+                <P>
+                    $T.get('This text is defined by the second P.')
+                    <STRONG>$T.get('This text is defined by STRONG')</STRONG>
+                    $T.get('This text is after STRONG.')
+                </P>
+            </SECTION>
         </define>
 
-        <include with $orderedListItems on 2000L />
+        <define as "anonymousBlocks">
+            <SECTION id="anonymousBlocks">
+                <DIV style="display:block">
+                      $T.get('there is an anonymous block box around this text.')
+                  <P style="display:block">$T.get('This text is in the block box created by `p`.')</P>
+                </DIV>
+
+                <P style="display:inline;">
+                    $T.get('This is anonymous text before the SPAN.')
+                    <SPAN style="display:block;">$T.get('This is the content of SPAN.')</SPAN>
+                    $T.get('This is anonymous text after the SPAN.')
+                </P>
+
+            </SECTION>
+        </define>
+
+        <define as "unorderedListItems">
+            <SECTION id="unorderedListItems">
+                <ul>
+                    <li>$T.get('The first item.')</li>
+                    <li>$T.get('The second item.')</li>
+                    <li>$T.get('The third item.')</li>
+                </ul>
+            </SECTION>
+        </define>
+
+        <define as "orderedListItems">
+            <SECTION id="orderedListItems">
+                <h1>$STR.format_p($T.get('Numbers less than #0'), $?)</h1>
+
+                <ol>
+                    <iterate on 0L onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, 1L) nosetotail >
+                        <li>$STR.format_p($T.get('Number #0'), $?)</li>
+                    </iterate>
+                </ol>
+
+             </SECTION>
+        </define>
+
+        <include with $paragraphs />
+
+        <include with $anonymousBlocks />
+
+        <include with $unorderedListItems />
+
+        <include with $orderedListItems on 100L />
 
     </body>
 
