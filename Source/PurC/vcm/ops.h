@@ -60,6 +60,9 @@ struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_array_ops();
 
 struct pcvcm_eval_stack_frame_ops *
+pcvcm_get_tuple_ops();
+
+struct pcvcm_eval_stack_frame_ops *
 pcvcm_get_string_ops();
 
 struct pcvcm_eval_stack_frame_ops *
