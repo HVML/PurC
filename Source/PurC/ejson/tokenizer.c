@@ -3007,7 +3007,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_BACKQUOTE_CONTENT)
                 (struct pctree_node*)node);
     }
 
-    if (character == '`') {
+    if (character == '`' || is_eof(character)
+            || parser->is_finished(parser, character)) {
         pcejson_token_close(top);
         update_tkz_stack(parser);
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
