@@ -1516,6 +1516,43 @@ purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
 PCA_EXPORT bool
 purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 
+#define PCVARIANT_SAFLAG_ASC            0x0000
+#define PCVARIANT_SAFLAG_DESC           0x0001
+#define PCVARIANT_SAFLAG_DEFAULT        0x0000
+
+typedef int  (*pcvariant_compare_method) (purc_variant_t v1, purc_variant_t v2);
+
+PCA_EXPORT purc_variant_t
+purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
+        pcvariant_compare_method cmp);
+
+PCA_EXPORT int
+purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
+
+PCA_EXPORT bool
+purc_variant_sorted_array_remove(purc_variant_t array, purc_variant_t value);
+
+PCA_EXPORT bool
+purc_variant_sorted_array_delete(purc_variant_t array, size_t idx);
+
+PCA_EXPORT bool
+purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
+
+PCA_EXPORT purc_variant_t
+purc_variant_sorted_array_get(purc_variant_t array, size_t idx);
+
+PCA_EXPORT bool
+purc_variant_sorted_array_size(purc_variant_t array, size_t *sz);
+
+static inline ssize_t purc_variant_sorted_array_get_size(purc_variant_t array)
+{
+    size_t sz;
+    if (!purc_variant_sorted_array_size(array, &sz))
+        return PURC_VARIANT_BADSIZE;
+    return sz;
+}
+
+
 /**
  * Gets the size of a linear container variant.
  *
