@@ -57,7 +57,7 @@
 
         <define as "orderedListItems">
             <SECTION id="orderedListItems">
-                <h1>$STR.format_p($T.get('Numbers less than #0'), $?)</h1>
+                <h1 hvml:silently>$STR.format_p($T.get('Numbers less than #0'), $?)</h1>
 
                 <ol>
                     <iterate on 0L onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, 1L) nosetotail >
