@@ -211,6 +211,10 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     }
 
     if (!ctxt->resp || ctxt->ret_code != 200) {
+        if (frame->silently) {
+            frame->next_step = NEXT_STEP_ON_POPPING;
+            goto out;
+        }
         frame->next_step = NEXT_STEP_ON_POPPING;
         // FIXME: what error to set
         purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
