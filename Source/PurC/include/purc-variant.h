@@ -90,9 +90,10 @@ PCA_EXPORT unsigned int
 purc_variant_unref(purc_variant_t value);
 
 /**
- * Creates a variant representing an undefined value.
+ * Creates a variant which represents an undefined value.
  *
- * Returns: A variant having value of `undefined`.
+ * Returns: A variant having value of `undefined`,
+ *      or @PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -100,11 +101,12 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_undefined(void);
 
 /**
- * Creates a variant representing an exception.
+ * Creates a variant which represents an exception.
  *
  * @param except_atom: The atom value of the exception.
  *
- * Returns: A variant having value of the specified exception atom.
+ * Returns: A variant having value of the specified exception atom,
+ *      or @PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
  */
@@ -112,99 +114,103 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_exception(purc_atom_t except_atom);
 
 /**
- * Gets the pointer of string which is encapsulated in exception atom string type.
+ * Gets the exception name of an exception variant.
  *
- * @param value: the data of exception type
+ * @param value: An exception variant created by \ purc_variant_make_exception().
  *
- * Returns: The pointer of const char string,
- *      or NULL if value is not string type.
+ * Returns: The pointer to the exception name which is a null-terminated string,
+ *      or @NULL if the variant is not an exception.
  *
  * Since: 0.0.2
  */
-PCA_EXPORT const char*
+PCA_EXPORT const char *
 purc_variant_get_exception_string_const(purc_variant_t value);
 
 /**
- * Creates a variant value of null type.
+ * Creates a variant which represents a null value.
  *
- * Returns: A purc_variant_t with null type.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t purc_variant_make_null(void);
-
-/**
- * Creates a variant value of boolean type.
- *
- * @param b: the initial value of created data
- *
- * Returns: A purc_variant_t with boolean type.
+ * Returns: A variant having value of `null`.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_boolean(bool b);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_null(void);
 
 /**
- * Creates a variant value of number type.
+ * Creates a variant which represents a boolean value.
  *
- * @param d: the initial value of created data
+ * @param b: A boolean value.
  *
- * Returns: A purc_variant_t with number type,
+ * Returns: A variant having specified boolean value,
+ *      or @PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_boolean(bool b);
+
+/**
+ * Creates a variant which represents a number value.
+ *
+ * @param d: A double value which specifying the number.
+ *
+ * Returns: A variant having the specified number value,
+ *      or @PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_number(double d);
+
+/**
+ * Creates a variant which represents an unsigned long integer value.
+ *
+ * @param u64: A uint64_t value which specifying the unsigned long integer.
+ *
+ * Returns: A variant having the specified unsigned long integer value,
  *      or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_number(double d);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_ulongint(uint64_t u64);
 
 /**
- * Creates a variant value of long int type.
+ * Creates a variant which represents a long integer value.
  *
- * @param u64: the initial value of unsigned long int type
+ * @param u64: A int64_t value which specifying the long integer.
  *
- * Returns: A purc_variant_t with long integer type,
+ * Returns: A variant having the specified long integer value,
  *      or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_ulongint(uint64_t u64);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_longint(int64_t i64);
 
 /**
- * Creates a variant value of long int type.
+ * Creates a variant which represents a high precision float number.
  *
- * @param u64: the initial value of signed long int type
+ * @param lf: A long double value which specifying
+ *      the high precision float number.
  *
- * Returns: A purc_variant_t with long int type,
+ * Returns: A variant having the specified high precision float number,
  *      or PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT purc_variant_t purc_variant_make_longint(int64_t u64);
-
-
-/**
- * Creates a variant value of long double type.
- *
- * @param d: the initial value of created data
- *
- * Returns: A purc_variant_t with long double type,
- *      or PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t purc_variant_make_longdouble(long double lf);
-
+PCA_EXPORT purc_variant_t
+purc_variant_make_longdouble(long double lf);
 
 /**
- * Creates a variant value of string type.
+ * Creates a variant which represents a null-terminated string in UTF-8 encoding.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ * @param str_utf8: The pointer to a null-terminated string
+ *      which is in UTF-8 encoding.
+ * @param check_encoding: Whether to check the encoding.
  *
- * Returns: A purc_variant_t with string type,
- *      or PURC_VARIANT_INVALID on failure.
+ * Returns: A variant contains the specified text string in UTF-8 encoding,
+ *      or @PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -212,13 +218,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_string(const char* str_utf8, bool check_encoding);
 
 /**
- * Creates a variant value of string type from a static C string.
+ * Creates a variant which represents a null-terminted static string
+ * in UTF-8 encoding.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ * @param str_utf8: The pointer to a null-terminated string
+ *      which is in UTF-8 encoding.
+ * @param check_encoding: Whether to check the encoding.
  *
- * Returns: A purc_variant_t with string type,
- *      or PURC_VARIANT_INVALID on failure.
+ * Returns: A variant contains the pointer to the static string,
+ *      or @PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
  */
