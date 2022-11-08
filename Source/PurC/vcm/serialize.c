@@ -164,6 +164,12 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         purc_rwstream_write(rws, ")", 1);
         break;
 
+    case PCVCM_NODE_TYPE_TUPLE:
+        purc_rwstream_write(rws, "make_tuple(", 11);
+        write_child_node_rwstream(rws, node, handle);
+        purc_rwstream_write(rws, ")", 1);
+        break;
+
     case PCVCM_NODE_TYPE_STRING:
         purc_rwstream_write(rws, "\"", 1);
         purc_rwstream_write(rws, (char*)node->sz_ptr[1],
@@ -273,6 +279,11 @@ pcvcm_node_write_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
         purc_rwstream_write(rws, " ; ", 3);
         break;
+    case PCVCM_NODE_TYPE_CONSTANT:
+        purc_rwstream_write(rws, "`", 1);
+        write_child_node_rwstream(rws, node, handle);
+        purc_rwstream_write(rws, "`", 1);
+        break;
     }
 }
 
@@ -295,6 +306,12 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
 
     case PCVCM_NODE_TYPE_ARRAY:
         purc_rwstream_write(rws, "[ ", 2);
+        write_child_node_rwstream(rws, node, handle);
+        purc_rwstream_write(rws, " ]", 2);
+        break;
+
+    case PCVCM_NODE_TYPE_TUPLE:
+        purc_rwstream_write(rws, "[! ", 2);
         write_child_node_rwstream(rws, node, handle);
         purc_rwstream_write(rws, " ]", 2);
         break;
@@ -455,6 +472,15 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
         break;
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
         purc_rwstream_write(rws, " ; ", 3);
+        break;
+
+    case PCVCM_NODE_TYPE_CONSTANT:
+    {
+        purc_rwstream_write(rws, "`", 1);
+        write_child_node_rwstream_ex(rws, node, false, handle);
+        purc_rwstream_write(rws, "`", 1);
+        break;
+    }
         break;
     }
 }
