@@ -70,7 +70,8 @@ void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_tuple_release (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_tuple_release   (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_sorted_array_release (purc_variant_t value)    WTF_INTERNAL;
 
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;

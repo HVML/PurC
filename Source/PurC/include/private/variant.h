@@ -221,6 +221,7 @@ void pcvariant_free(purc_variant *v) WTF_INTERNAL;
 
 struct pcinst;
 struct tuple_node;
+struct sorted_array_node;
 
 struct pcvar_rev_update_edge {
     purc_variant_t                   parent;
@@ -230,6 +231,7 @@ struct pcvar_rev_update_edge {
         struct obj_node             *obj_me;
         struct arr_node             *arr_me;
         struct tuple_node           *tuple_me;
+        struct sorted_array_node    *sorted_array_me;
     };
 };
 
@@ -298,6 +300,18 @@ struct variant_tuple {
     purc_variant_t                *members; // struct tuple_node* (purc_variant_t)
 
     // key: arr_node/obj_node/set_node/tuple_node
+    // val: parent
+    pcutils_map                   *rev_update_chain;
+};
+
+
+// internal struct used by variant-sorted-array
+typedef struct variant_sorted_array *variant_sorted_array_t;
+
+struct variant_sorted_array {
+    struct sorted_array           *sa;
+
+    // key: arr_node/obj_node/set_node/tuple_node/sorted_array_node
     // val: parent
     pcutils_map                   *rev_update_chain;
 };

@@ -104,7 +104,11 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
 
         case PURC_VARIANT_TYPE_TUPLE:
-            count = 2;
+            count = purc_variant_tuple_get_size(argv[0]);
+            break;
+
+        case PURC_VARIANT_TYPE_SORTED_ARRAY:
+            count = purc_variant_sorted_array_get_size(argv[0]);
             break;
         }
     }
@@ -367,6 +371,7 @@ stringify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_TUPLE:
+        case PURC_VARIANT_TYPE_SORTED_ARRAY:
             n = purc_variant_stringify_alloc(&buff, argv[0]);
             if (n == (size_t)-1) {
                 // Keep the error code set by purc_variant_stringify_alloc.

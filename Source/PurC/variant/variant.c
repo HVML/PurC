@@ -67,6 +67,7 @@ static pcvariant_release_fn variant_releasers[PURC_VARIANT_TYPE_NR] = {
     pcvariant_array_release,        // PURC_VARIANT_TYPE_ARRAY
     pcvariant_set_release,          // PURC_VARIANT_TYPE_SET
     pcvariant_tuple_release,        // PURC_VARIANT_TYPE_TUPLE
+    pcvariant_sorted_array_release, // PURC_VARIANT_TYPE_SORTED_ARRAY
 };
 
 
@@ -262,6 +263,7 @@ static const char *typenames[] = {
     PURC_VARIANT_TYPE_NAME_ARRAY,
     PURC_VARIANT_TYPE_NAME_SET,
     PURC_VARIANT_TYPE_NAME_TUPLE,
+    PURC_VARIANT_TYPE_NAME_SORTED_ARRAY,
 };
 
 /* Make sure the number of variant types matches the size of `type_names` */
