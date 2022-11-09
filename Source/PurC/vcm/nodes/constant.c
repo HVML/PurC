@@ -56,8 +56,23 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
-    //TODO
-    return PURC_VARIANT_INVALID;
+
+    purc_variant_t array =
+        purc_variant_make_sorted_array(PCVARIANT_SAFLAG_ASC, 4, NULL);
+    if (array == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    for (size_t i = 0; i < frame->nr_params; i++) {
+        purc_variant_t v = pcutils_array_get(frame->params_result, i);
+        int r = purc_variant_sorted_array_add(array, v);
+        if(r != 0 && r != -1) {
+            goto out;
+        }
+    }
+
+out:
+    return array;
 }
 
 
