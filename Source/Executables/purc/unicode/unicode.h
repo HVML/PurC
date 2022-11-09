@@ -969,6 +969,9 @@ foil_emoji_iterator* foil_emoji_iterator_init(foil_emoji_iterator *iter,
 bool foil_emoji_iterator_next(foil_emoji_iterator *iter);
 void foil_emoji_iterator_fini(foil_emoji_iterator *iter);
 
+foil_langcode_t foil_langcode_from_iso639_1(const char *iso639_1_code);
+const char* foil_langcode_to_iso639_1(foil_langcode_t lc);
+
 /**
  * \fn foil_ustr_from_utf8_until_paragraph_boundary
  * \brief Convert a UTF-8 character string to a Unicode character

@@ -30,6 +30,7 @@
 #include "rdrbox.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
+#include "unicode/unicode.h"
 
 #include <assert.h>
 
@@ -80,6 +81,10 @@ struct pcmcth_udom {
 
     /* size of page in rows and columns */
     unsigned cols, rows;
+
+    /* title */
+    uint32_t *title_ucs;
+    size_t    title_len;
 };
 
 static css_stylesheet *def_ua_sheet;
@@ -93,9 +98,12 @@ static const char *def_style_sheet = ""
     "h1, h2, h3, h4,"
     "h5, h6, noframes,"
     "ol, p, ul, center,"
-    "dir, hr, menu, pre   { display: block; unicode-bidi: embed }"
+    "dir, hr, menu, pre,"
+    "header, nav, article, footer," // HTML 5 tags
+    "section, address, aside { display: block; unicode-bidi: embed }"
+    "abbr            { display: inline }"
     "li              { display: list-item }"
-    "head            { display: none }"
+    "head, area      { display: none }"
     "table           { display: table }"
     "tr              { display: table-row }"
     "thead           { display: table-header-group }"
@@ -107,6 +115,7 @@ static const char *def_style_sheet = ""
     "caption         { display: table-caption }"
     "th              { font-weight: bolder; text-align: center }"
     "caption         { text-align: center }"
+    "address         { font-style: italic }"
     "body            { margin: 1em 1ex }"
     "h1              { margin: 3em 0 1em 0 }"
     "h2              { margin: 2em 0 1em 0 }"
@@ -226,7 +235,8 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
-
+    if (udom->title_ucs)
+        free(udom->title_ucs);
     if (udom->elem2rdrbox)
         sorted_array_cleanup(udom->elem2rdrbox);
     if (udom->base)
@@ -416,17 +426,19 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
 #define TAG_NAME_BASE           "base"
 #define TAG_NAME_LINK           "link"
 #define TAG_NAME_STYLE          "style"
+#define TAG_NAME_TITLE          "title"
 
 #define ATTR_NAME_STYLE         "style"
 #define ATTR_NAME_HREF          "href"
 #define ATTR_NAME_REL           "rel"
 #define ATTR_NAME_TYPE          "type"
+#define ATTR_NAME_LANG          "lang"
 
 #define ATTR_VALUE_STYLESHEET   "stylesheet"
 #define ATTR_VALUE_TEXT_CSS     "text/css"
 
-static int append_style_walker(purc_document_t doc,
-        pcdoc_element_t element, void *ctxt)
+static int
+head_walker(purc_document_t doc, pcdoc_element_t element, void *ctxt)
 {
     const char *name, *value;
     size_t len;
@@ -502,6 +514,28 @@ static int append_style_walker(purc_document_t doc,
             }
 
             child = pcdoc_node_next_sibling(doc, child);
+        }
+    }
+    else if (len == (sizeof(TAG_NAME_TITLE) - 1) &&
+            strncasecmp(name, TAG_NAME_TITLE, len) == 0) {
+
+        pcdoc_node child = pcdoc_element_first_child(doc, element);
+        if (child.type == PCDOC_NODE_TEXT) {
+            const char *text;
+            size_t len;
+
+            if (pcdoc_text_content_get_text(doc, child.text_node,
+                        &text, &len) == 0 && len > 0) {
+                LOG_DEBUG("title: %s\n", text);
+                size_t consumed;
+                consumed = foil_ustr_from_utf8_until_paragraph_boundary(
+                        text, len, FOIL_WSR_NOWRAP,
+                        &udom->title_ucs, &udom->title_len);
+                if (consumed == 0) {
+                    udom->title_ucs = NULL;
+                    udom->title_len = 0;
+                }
+            }
         }
     }
 
@@ -831,8 +865,8 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 static void
 render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 {
-    foil_rdrbox_render_before(ancestor, ctxt->level);
-    foil_rdrbox_render_content(ancestor, ctxt->level);
+    foil_rdrbox_render_before(ctxt, ancestor, ctxt->level);
+    foil_rdrbox_render_content(ctxt, ancestor, ctxt->level);
 
     /* travel children */
     foil_rdrbox *child = ancestor->first;
@@ -845,7 +879,24 @@ render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
         child = child->next;
     }
 
-    foil_rdrbox_render_after(ancestor, ctxt->level);
+    foil_rdrbox_render_after(ctxt, ancestor, ctxt->level);
+}
+
+uint8_t
+foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
+{
+    const char *value;
+    size_t len;
+
+    if (elem == NULL)
+        elem = purc_document_root(doc);
+
+    if (pcdoc_element_get_attribute(doc, elem, ATTR_NAME_LANG,
+                &value, &len) == 0 && len == 2) {
+        return (uint8_t)foil_langcode_from_iso639_1(value);
+    }
+
+    return (uint8_t)FOIL_LANGCODE_unknown;
 }
 
 pcmcth_udom *
@@ -875,6 +926,13 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
+    /* get default language code */
+    udom->initial_cblock->lang_code = foil_udom_get_langcode(edom_doc, NULL);
+    if (udom->initial_cblock->lang_code == FOIL_LANGCODE_unknown) {
+        // XXX: default lang
+        udom->initial_cblock->lang_code = FOIL_LANGCODE_en;
+    }
+
     // parse and append style sheets
     pcdoc_element_t head;
     head = purc_document_head(edom_doc);
@@ -898,8 +956,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         }
 
         size_t n;
-        pcdoc_travel_descendant_elements(edom_doc, head,
-                append_style_walker, udom, &n);
+        pcdoc_travel_descendant_elements(edom_doc, head, head_walker,
+                udom, &n);
 
         size_t sz;
         css_stylesheet_size(udom->author_sheet, &sz);
@@ -950,6 +1008,14 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 failed:
     foil_udom_delete(udom);
     return NULL;
+}
+
+const uint32_t *
+foil_udom_get_title(pcmcth_udom *udom, size_t *len)
+{
+    if (len)
+        *len = udom->title_len;
+    return udom->title_ucs;
 }
 
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,

@@ -239,6 +239,7 @@ struct foil_rdrbox {
 
     unsigned list_style_type:4;
     unsigned list_style_position:1;
+    unsigned lang_code:8;
 
     int letter_spacing;
     int word_spacing;
@@ -341,9 +342,12 @@ void foil_rdrbox_delete_deep(foil_rdrbox *root);
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level);
 
-void foil_rdrbox_render_before(const foil_rdrbox *box, unsigned level);
-void foil_rdrbox_render_content(const foil_rdrbox *box, unsigned level);
-void foil_rdrbox_render_after(const foil_rdrbox *box, unsigned level);
+void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level);
+void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level);
+void foil_rdrbox_render_after(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level);
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);

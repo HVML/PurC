@@ -48,6 +48,9 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
 pcmcth_udom *foil_udom_load_edom(pcmcth_page *page,
         purc_variant_t edom, int *retv);
 
+const uint32_t *foil_udom_get_title(pcmcth_udom *udom, size_t *len);
+uint8_t foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem);
+
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info);
 

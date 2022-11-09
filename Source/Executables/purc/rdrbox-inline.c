@@ -46,13 +46,6 @@ static void inline_data_cleaner(void *data)
     }
 }
 
-static foil_langcode_t get_lang(pcdoc_element_t elem)
-{
-    (void)elem;
-    // TODO
-    return FOIL_LANGCODE_en;
-}
-
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
         foil_rdrbox *box, const char *text, size_t len)
 {
@@ -62,7 +55,6 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
     size_t left = len;
 
     struct _inline_box_data *inline_data = box->inline_data;
-    inline_data->lang = get_lang(box->owner);
     inline_data->nr_paras = 0;
 
     box->cb_data_cleanup = inline_data_cleaner;
@@ -93,7 +85,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
             if (lbp == FOIL_RDRBOX_LINE_BREAK_AUTO)
                 lbp = FOIL_RDRBOX_LINE_BREAK_NORMAL;
 
-            foil_ustr_get_breaks(inline_data->lang, box->text_transform,
+            foil_ustr_get_breaks(box->lang_code, box->text_transform,
                     box->word_break, lbp, ucs, nr_ucs, &seg->break_oppos);
             if (seg->break_oppos == NULL) {
                 LOG_ERROR("failed when getting break opportunities\n");

@@ -23,10 +23,11 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
+#include "udom.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -1985,8 +1986,27 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
 
 #endif /* defined NDEBUG */
 
-void foil_rdrbox_render_before(const foil_rdrbox *box, unsigned level)
+void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level)
 {
+    /* print title */
+    if (level == 0) {
+        size_t title_len;
+        const uint32_t *title_ucs =
+            foil_udom_get_title(ctxt->udom, &title_len);
+
+        if (title_ucs) {
+            for (size_t i = 0; i < title_len; i++) {
+                char utf8[10];
+                unsigned len = pcutils_unichar_to_utf8(title_ucs[i],
+                        (unsigned char *)utf8);
+                utf8[len] = 0;
+                fputs(utf8, stdout);
+            }
+            fputs("\n", stdout);
+        }
+    }
+
     if (box->is_block_level && box->first && box->first->is_inline_level) {
         char indent[level * 2 + 1];
 
@@ -1998,13 +2018,14 @@ void foil_rdrbox_render_before(const foil_rdrbox *box, unsigned level)
             n++;
         }
 
-        fprintf(stdout, "%d", level);
         fputs(indent, stdout);
     }
 }
 
-void foil_rdrbox_render_content(const foil_rdrbox *box, unsigned level)
+void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level)
 {
+    (void)ctxt;
     (void)level;
 
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
@@ -2029,8 +2050,10 @@ void foil_rdrbox_render_content(const foil_rdrbox *box, unsigned level)
     }
 }
 
-void foil_rdrbox_render_after(const foil_rdrbox *box, unsigned level)
+void foil_rdrbox_render_after(foil_render_ctxt *ctxt,
+        const foil_rdrbox *box, unsigned level)
 {
+    (void)ctxt;
     (void)level;
 
     if (box->is_block_level && box->first && box->first->is_inline_level) {
