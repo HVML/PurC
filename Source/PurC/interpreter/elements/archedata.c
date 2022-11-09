@@ -475,10 +475,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
-        return NULL;
-    }
-
     PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
 
     struct ctxt_for_archedata *ctxt;
@@ -492,6 +488,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
+        return NULL;
+    }
+
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);

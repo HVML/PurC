@@ -214,10 +214,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame = pcintr_stack_get_bottom_frame(stack);
     PC_ASSERT(frame);
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
-
     struct ctxt_for_match *ctxt;
     ctxt = (struct ctxt_for_match*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -229,6 +225,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);

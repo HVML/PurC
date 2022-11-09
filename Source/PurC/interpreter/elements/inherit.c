@@ -79,10 +79,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
     }
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
-
     struct ctxt_for_inherit *ctxt;
     ctxt = (struct ctxt_for_inherit*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -94,6 +90,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     struct pcvdom_element *element = frame->pos;
     PC_ASSERT(element);
@@ -222,11 +222,9 @@ again:
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr), first_child);
-                PC_ASSERT(stack->except == 0);
             goto again;
         case PCVDOM_NODE_COMMENT:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
-                PC_ASSERT(stack->except == 0);
             goto again;
         default:
             PC_ASSERT(0); // Not implemented yet

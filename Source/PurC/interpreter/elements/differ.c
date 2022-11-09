@@ -79,10 +79,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
     }
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
-
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -93,6 +89,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
         purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,

@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -62,6 +62,7 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
         if (box->inline_data == NULL) {
             goto failed;
         }
+        INIT_LIST_HEAD(&box->inline_data->paras);
         break;
 
     case FOIL_RDRBOX_TYPE_LIST_ITEM:
@@ -1956,8 +1957,8 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
         fputs(" content: ", stdout);
 
         struct _inline_box_data *inline_data = box->inline_data;
-        struct _text_segment *p;
-        list_for_each_entry(p, &inline_data->segs, ln) {
+        struct text_paragraph *p;
+        list_for_each_entry(p, &inline_data->paras, ln) {
             char utf8[16];
             unsigned len = pcutils_unichar_to_utf8(p->ucs[0],
                     (unsigned char *)utf8);
@@ -1997,6 +1998,7 @@ void foil_rdrbox_render_before(const foil_rdrbox *box, unsigned level)
             n++;
         }
 
+        fprintf(stdout, "%d", level);
         fputs(indent, stdout);
     }
 }
@@ -2013,8 +2015,8 @@ void foil_rdrbox_render_content(const foil_rdrbox *box, unsigned level)
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         struct _inline_box_data *inline_data = box->inline_data;
-        struct _text_segment *p;
-        list_for_each_entry(p, &inline_data->segs, ln) {
+        struct text_paragraph *p;
+        list_for_each_entry(p, &inline_data->paras, ln) {
             for (size_t i = 0; i < p->nr_ucs; i++) {
                 char utf8[10];
                 unsigned len = pcutils_unichar_to_utf8(p->ucs[i],

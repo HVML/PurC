@@ -362,6 +362,16 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     int r;
+    pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
+    PC_ASSERT(parent);
+
+    purc_variant_t v = pcintr_wrap_vdom(frame->pos);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    r = post_process_src(co, frame, v);
+    purc_variant_unref(v);
+
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
         if (!pcfetcher_is_init()) {
@@ -370,17 +380,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
         r = get_source_by_from(co, frame, ctxt);
-    }
-    else {
-        pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
-        PC_ASSERT(parent);
-
-        purc_variant_t v = pcintr_wrap_vdom(frame->pos);
-        if (v == PURC_VARIANT_INVALID)
-            return -1;
-
-        r = post_process_src(co, frame, v);
-        purc_variant_unref(v);
     }
 
     return r ? -1 : 0;
@@ -600,10 +599,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
-
     struct ctxt_for_define *ctxt;
     ctxt = (struct ctxt_for_define*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -617,6 +612,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     frame->attr_vars = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
