@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "purc-document.h"
 #include "purc-errors.h"
