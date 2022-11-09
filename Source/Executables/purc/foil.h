@@ -74,6 +74,14 @@
 #define LOG_INFO(x, ...)    \
     purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
 
+#ifndef MIN
+#   define MIN(x, y)   (((x) > (y)) ? (y) : (x))
+#endif
+
+#ifndef MAX
+#   define MAX(x, y)   (((x) < (y)) ? (y) : (x))
+#endif
+
 typedef struct foil_rect {
     int left, top;
     int right, bottom;
