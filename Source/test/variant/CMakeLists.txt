@@ -385,3 +385,32 @@ set(test_variant_tuple_LIBRARIES
 PURC_COMPUTE_SOURCES(test_variant_tuple)
 PURC_FRAMEWORK(test_variant_tuple)
 GTEST_DISCOVER_TESTS(test_variant_tuple DISCOVERY_TIMEOUT 10)
+
+# test_variant_sorted_array
+PURC_EXECUTABLE_DECLARE(test_variant_sorted_array)
+
+list(APPEND test_variant_sorted_array_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR}/include
+    ${PurC_DERIVED_SOURCES_DIR}
+    ${PURC_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_variant_sorted_array)
+
+set(test_variant_sorted_array_SOURCES
+    test_variant_sorted_array.cpp
+)
+
+set(test_variant_sorted_array_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_variant_sorted_array)
+PURC_FRAMEWORK(test_variant_sorted_array)
+GTEST_DISCOVER_TESTS(test_variant_sorted_array DISCOVERY_TIMEOUT 10)

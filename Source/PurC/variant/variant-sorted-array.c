@@ -35,7 +35,7 @@
 
 #define SORTED_ARRAY_ATOM_BUCKET    ATOM_BUCKET_DEF
 
-static purc_atom_t sorted_array_type_atom;
+static purc_atom_t sorted_array_type_atom = 0;
 
 struct pcvariant_sorted_array {
     struct sorted_array           *sa;
@@ -145,7 +145,7 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
 
     data->sa = pcutils_sorted_array_create(sa_flags, sz_init, sacb_free_def,
             cmp_fn);
-    if (data->sa) {
+    if (!data->sa) {
         goto out;
     }
 
@@ -153,6 +153,11 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
         .property_getter = property_getter,
         .on_release = on_release,
     };
+
+    if (sorted_array_type_atom == 0) {
+        sorted_array_type_atom = purc_atom_from_static_string_ex(
+                SORTED_ARRAY_ATOM_BUCKET, SORTED_ARRAY_PROP_TYPE);
+    }
 
     ret_var = purc_variant_make_native(data, &ops);
 
@@ -198,7 +203,7 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx)
     }
 
     size_t nr_size = pcutils_sorted_array_count(sa);
-    if (idx > nr_size) {
+    if (idx >= nr_size) {
         return false;
     }
 
