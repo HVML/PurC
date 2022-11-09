@@ -699,6 +699,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
         RECONSUME_IN(EJSON_TKZ_STATE_DOUBLE_QUOTED);
     }
     if (character == '#' && !tkz_stack_is_empty()) {
+        SET_RETURN_STATE(EJSON_TKZ_STATE_CONTROL);
         ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
     }
     if (character == '`') {
@@ -1267,6 +1268,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
         }
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
+    if (character == '#') {
+        SET_RETURN_STATE(EJSON_TKZ_STATE_AFTER_VALUE);
+        ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
+    }
     if (type == ETT_STRING || type == ETT_UNQUOTED_S) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
@@ -1302,6 +1307,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_BEFORE_NAME)
     if (character == '$') {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
+    if (character == '#') {
+        SET_RETURN_STATE(EJSON_TKZ_STATE_BEFORE_NAME);
+        ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
+    }
     if (is_ascii_alpha(character) || character == '_') {
         RESET_TEMP_BUFFER();
         if (type == ETT_OBJECT) {
@@ -1332,6 +1341,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_NAME)
 
         tkz_stack_push(ETT_VALUE);
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (character == '#') {
+        SET_RETURN_STATE(EJSON_TKZ_STATE_AFTER_NAME);
+        ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
     RETURN_AND_STOP_PARSE();
@@ -2996,7 +3009,7 @@ END_STATE()
 BEGIN_STATE(EJSON_TKZ_STATE_LINE_COMMENT)
     if (character == '\n' || is_eof(character)
             || parser->is_finished(parser, character)) {
-        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+        ADVANCE_TO(parser->return_state);
     }
     ADVANCE_TO(EJSON_TKZ_STATE_LINE_COMMENT);
 END_STATE()
