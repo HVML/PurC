@@ -362,6 +362,16 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
     int r;
+    pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
+    PC_ASSERT(parent);
+
+    purc_variant_t v = pcintr_wrap_vdom(frame->pos);
+    if (v == PURC_VARIANT_INVALID)
+        return -1;
+
+    r = post_process_src(co, frame, v);
+    purc_variant_unref(v);
+
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
         if (!pcfetcher_is_init()) {
@@ -370,17 +380,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             return -1;
         }
         r = get_source_by_from(co, frame, ctxt);
-    }
-    else {
-        pcvdom_element_t parent = pcvdom_element_parent(frame->pos);
-        PC_ASSERT(parent);
-
-        purc_variant_t v = pcintr_wrap_vdom(frame->pos);
-        if (v == PURC_VARIANT_INVALID)
-            return -1;
-
-        r = post_process_src(co, frame, v);
-        purc_variant_unref(v);
     }
 
     return r ? -1 : 0;
