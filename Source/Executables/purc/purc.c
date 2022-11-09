@@ -399,7 +399,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             print_usage(stdout);
             return -1;
 
-        case 'v':
+        case 'V':
             print_version(stdout);
             return -1;
 
@@ -466,7 +466,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
             break;
 
-        case 't':
+        case 'q':
             if (strcmp(optarg, "-") == 0 ||
                     is_json_or_ejson_file(optarg)) {
                 opts->request = strdup(optarg);
@@ -482,7 +482,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             opts->parallel = true;
             break;
 
-        case 'b':
+        case 'v':
             opts->verbose = true;
             break;
 

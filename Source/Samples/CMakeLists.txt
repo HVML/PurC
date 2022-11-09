@@ -54,6 +54,8 @@ set(sample_HVML_FILES
     "hvml/fetch-with-param-9.hvml"
     "hvml/fetch-with-param-a.hvml"
     "hvml/fetch-with-param-b.hvml"
+    "hvml/foil-layouts.hvml"
+    "hvml/assets/messages-foil-layouts-zh.json"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

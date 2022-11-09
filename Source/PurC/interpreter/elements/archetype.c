@@ -410,6 +410,10 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     bool has_except = true;
 
     if (!ctxt->resp || ctxt->ret_code != 200) {
+        if (frame->silently) {
+            frame->next_step = NEXT_STEP_ON_POPPING;
+            goto out;
+        }
         purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
                 ctxt->ret_code);
         goto dispatch_except;
@@ -437,7 +441,7 @@ clean_rws:
 
     frame->next_step = NEXT_STEP_SELECT_CHILD;
 
-
+out:
     pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
     return 0;

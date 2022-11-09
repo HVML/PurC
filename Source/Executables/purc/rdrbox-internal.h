@@ -36,11 +36,10 @@ struct _text_segment {
 
     /* the code points of text in Unicode (logical order) */
     uint32_t *ucs;
+    size_t nr_ucs;
 
     /* the break opportunities of the characters */
     foil_break_oppo_t *break_oppos;
-
-    size_t nr_ucs;
 };
 
 struct _inline_box_data {
