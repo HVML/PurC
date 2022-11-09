@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -366,6 +366,7 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
     if (href[0] == '/' && href[1] != '/' && udom->base &&
             strcasecmp(udom->base->schema, "file") == 0) {
 
+        LOG_DEBUG("Try to load CSS from file (absolute path): %s\n", href);
         css = purc_load_file_contents(href, &length);
     }
     else if (strchr(href, ':')) {
@@ -376,9 +377,13 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
         pcutils_url_break_down(&broken_down, href);
 
         if (strcasecmp(broken_down.schema, "file") == 0) {
+            LOG_DEBUG("Try to load CSS from file (absolute path): %s\n",
+                    broken_down.path);
             css = purc_load_file_contents(broken_down.path, &length);
         }
         else {
+            LOG_WARN("Loading CSS from remote URL is not suppored: %s\n",
+                    href);
             /* TODO: load from remote fetcher */
         }
 
@@ -392,6 +397,7 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
         strcat(path, "/");
         strcat(path, href);
 
+        LOG_DEBUG("Try to load CSS from file (relative path): %s\n", path);
         css = purc_load_file_contents(path, &length);
     }
 
