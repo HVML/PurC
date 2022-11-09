@@ -31,7 +31,7 @@
 
 #include "unicode/unicode.h"
 
-struct _text_segment {
+struct text_paragraph {
     struct list_head ln;
 
     /* the code points of text in Unicode (logical order) */
@@ -44,10 +44,10 @@ struct _text_segment {
 
 struct _inline_box_data {
     foil_langcode_t lang;
-    unsigned nr_segs;
+    unsigned nr_paras;
 
     /* the text segments */
-    struct list_head segs;
+    struct list_head paras;
 };
 
 struct _block_box_data {

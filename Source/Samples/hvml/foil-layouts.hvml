@@ -21,13 +21,13 @@
                 <P>
                     This text is defined by the first P.
                     <BR />
-                    There is a line-break before this text
-                    <SPAN>This text defined by SPAN</SPAN>
+                    There is a line-break before this text.
+                    <SPAN>This text defined by SPAN.</SPAN>
                 </P>
 
                 <P>
                     This text is defined by the second P.
-                    <STRONG>This text is defined by STRONG</STRONG>
+                    <STRONG>This text is defined by STRONG. </STRONG>
                     This text is after STRONG.
                 </P>
             </SECTION>
@@ -78,10 +78,6 @@
                 <init as styleCase at '_root' with 'displayBlock' />
             </catch>
         </choose>
-
-        <inherit>
-            $STREAM.stdout.writelines("case: $styleCase")
-        </inherit>
 
         <include with ${$styleCase} />
 
