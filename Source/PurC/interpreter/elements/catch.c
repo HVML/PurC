@@ -245,6 +245,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     pcintr_exception_clear(&cache);
+    if (stack->vcm_ctxt) {
+        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+        stack->vcm_ctxt = NULL;
+    }
     ctxt->exception = NULL;
 
     return ctxt;

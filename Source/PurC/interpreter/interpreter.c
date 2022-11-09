@@ -1279,6 +1279,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         pcintr_exception_clear(&stack->exception);
         stack->except = 0;
+        if (stack->vcm_ctxt) {
+            pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+            stack->vcm_ctxt = NULL;
+        }
 
         pcdoc_element_t target;
         target = frame->edom_element;
