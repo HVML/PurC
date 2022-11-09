@@ -2061,11 +2061,9 @@ typedef enum purc_variant_type
     PURC_VARIANT_TYPE_SET,
 #define PURC_VARIANT_TYPE_NAME_TUPLE        "tuple"
     PURC_VARIANT_TYPE_TUPLE,
-#define PURC_VARIANT_TYPE_NAME_SORTED_ARRAY "sorted_array"
-    PURC_VARIANT_TYPE_SORTED_ARRAY,
 
     /* XXX: change this if you append a new type. */
-    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_SORTED_ARRAY,
+    PURC_VARIANT_TYPE_LAST = PURC_VARIANT_TYPE_TUPLE,
 } purc_variant_type;
 
 #define PURC_VARIANT_TYPE_NR \
@@ -2207,11 +2205,6 @@ static inline bool purc_variant_is_set(purc_variant_t v)
 static inline bool purc_variant_is_tuple(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
-}
-
-static inline bool purc_variant_is_sorted_array(purc_variant_t v)
-{
-    return purc_variant_is_type(v, PURC_VARIANT_TYPE_SORTED_ARRAY);
 }
 
 /** Check whether the value is a boolean and having value of true. */
