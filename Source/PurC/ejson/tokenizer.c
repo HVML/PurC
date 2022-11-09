@@ -830,15 +830,16 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         }
         uint32_t type = top->type;
         switch (type) {
-        case '{':
+        case ETT_OBJECT:
             ADVANCE_TO(EJSON_TKZ_STATE_BEFORE_NAME);
             break;
-        case '[':
+        case ETT_ARRAY:
+        case ETT_TUPLE:
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
             break;
-        case '(':
-        case '<':
+        case ETT_CALL_GETTER:
+        case ETT_CALL_SETTER:
             tkz_stack_push(ETT_VALUE);
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
             break;
@@ -2673,7 +2674,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
     }
     else if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         top = tkz_stack_top();
-        if (top->type == 'V' && top->node) {
+        if (top->type == ETT_VALUE && top->node) {
             struct pcejson_token *token = tkz_stack_pop();
 
             top = tkz_stack_top();
