@@ -3020,10 +3020,24 @@ BEGIN_STATE(EJSON_TKZ_STATE_BACKQUOTE_CONTENT)
         struct pcvcm_node *node = pcvcm_node_new_ulongint(t);
         pctree_node_append_child((struct pctree_node*)top->node,
                 (struct pctree_node*)node);
+        RESET_TEMP_BUFFER();
+        ADVANCE_TO(EJSON_TKZ_STATE_BACKQUOTE_CONTENT);
     }
 
     if (character == '`' || is_eof(character)
             || parser->is_finished(parser, character)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            const char *buf = tkz_buffer_get_bytes(parser->temp_buffer);
+            purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, buf);
+            if (t == 0) {
+                SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+                RETURN_AND_STOP_PARSE();
+            }
+            struct pcvcm_node *node = pcvcm_node_new_ulongint(t);
+            pctree_node_append_child((struct pctree_node*)top->node,
+                    (struct pctree_node*)node);
+            RESET_TEMP_BUFFER();
+        }
         pcejson_token_close(top);
         update_tkz_stack(parser);
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);

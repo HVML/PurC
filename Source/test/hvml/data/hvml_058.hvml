@@ -1,0 +1,21 @@
+<hvml target="html">
+    <head>
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch for=`EntityNotFound NoData`>
+                <init as 'styleCase' at '_root' with 'displayBlock' />
+            </catch>
+        </init>
+    </head>
+    <body>
+        <except type=`NoData`>
+            <img src="wait.png" />
+        </except>
+        <except type=`NotIterable`>
+            <p>Bad user data!</p>
+        </except>
+        <catch for `NoData`>
+        </catch>
+        <catch for `ANY`>
+        </catch>
+    </body>
+</hvml>

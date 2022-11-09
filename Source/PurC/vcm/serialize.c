@@ -67,10 +67,21 @@ write_child_node_rwstream_ex(purc_rwstream_t rws, struct pcvcm_node *node,
 {
     struct pcvcm_node *child = pcvcm_node_first_child(node);
     while (child) {
-        handle(rws, child, false);
-        child = pcvcm_node_next_child(child);
-        if (child && print_comma) {
-            purc_rwstream_write(rws, ",", 1);
+        if (node->type == PCVCM_NODE_TYPE_CONSTANT) {
+            purc_atom_t atom = (purc_atom_t)child->u64;
+            const char *s = purc_atom_to_string(atom);
+            purc_rwstream_write(rws, s, strlen(s));
+            child = pcvcm_node_next_child(child);
+            if (child) {
+                purc_rwstream_write(rws, " ", 1);
+            }
+        }
+        else {
+            handle(rws, child, false);
+            child = pcvcm_node_next_child(child);
+            if (child && print_comma) {
+                purc_rwstream_write(rws, ",", 1);
+            }
         }
     }
 }
