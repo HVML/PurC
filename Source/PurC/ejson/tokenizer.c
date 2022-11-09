@@ -376,11 +376,16 @@ is_match_right_parenthesis(uint32_t type)
 static int
 back_container_top(struct pcejson *parser)
 {
-    PLOG("try to back_container size=%d|\n", tkz_stack_size());
+    if (parser->enable_log) {
+        PLOG("try to back_container size=%d|\n", tkz_stack_size());
+    }
     struct pcejson_token *token = tkz_stack_top();
     while (token) {
         int nr = tkz_stack_size();
-        PLOG("token->type=%c|closed=%d\n", token->type, pcejson_token_is_closed(token));
+        if (parser->enable_log) {
+            PLOG("token->type=%c|closed=%d\n", token->type,
+                    pcejson_token_is_closed(token));
+        }
 
         if (is_match_right_brace(token->type)) {
             break;
@@ -403,19 +408,26 @@ back_container_top(struct pcejson *parser)
         }
         break;
     }
-    PLOG("end to back_container size=%d\n", tkz_stack_size());
+    if (parser->enable_log) {
+        PLOG("end to back_container size=%d\n", tkz_stack_size());
+    }
     return 0;
 }
 
 static int
 close_container(struct pcejson *parser, uint32_t character)
 {
-    PLOG("try to close_container size=%d|type=%c\n", tkz_stack_size(),
-            character);
+    if (parser->enable_log) {
+        PLOG("try to close_container size=%d|type=%c\n", tkz_stack_size(),
+                character);
+    }
     struct pcejson_token *token = tkz_stack_top();
     while (token) {
         int nr = tkz_stack_size();
-        PLOG("token->type=%c|closed=%d\n", token->type, pcejson_token_is_closed(token));
+        if (parser->enable_log) {
+            PLOG("token->type=%c|closed=%d\n", token->type,
+                    pcejson_token_is_closed(token));
+        }
 
         if (character == '}' && is_match_right_brace(token->type)) {
             pcejson_token_close(token);
@@ -450,8 +462,10 @@ close_container(struct pcejson *parser, uint32_t character)
         }
         break;
     }
-    PLOG("end to close_container size=%d|type=%c\n", tkz_stack_size(),
-            character);
+    if (parser->enable_log) {
+        PLOG("end to close_container size=%d|type=%c\n", tkz_stack_size(),
+                character);
+    }
     return 0;
 
 }
@@ -463,7 +477,6 @@ update_result(struct pcvcm_node *node)
     if (node->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
         size_t nr = pcvcm_node_children_count(node);
         if (nr == 1) {
-            PLOG("CONCAT_STRING: only one child, merge\n");
             result = pcvcm_node_first_child(node);
             pcvcm_node_remove_child(node, result);
             pcvcm_node_destroy(node);
@@ -562,13 +575,15 @@ print_parser_state(struct pcejson *parser)
     node = pcvcm_node_to_string(vcm_node, &len);
 
     const char *tbuf = tkz_buffer_get_bytes(parser->temp_buffer);
-    PLOG(
-            "in %-60s|uc=%2s|hex=0x%04X"
-            "|top=%1c|stack.size=%2ld|stack=%s|node=%s|tmp_buffer=%s|"
-            "\n",
-            parser->state_name, buf, character,
-            type, nr_stack, s_stack, node, tbuf
-        );
+    if (parser->enable_log) {
+        PLOG(
+                "in %-60s|uc=%2s|hex=0x%04X"
+                "|top=%1c|stack.size=%2ld|stack=%s|node=%s|tmp_buffer=%s|"
+                "\n",
+                parser->state_name, buf, character,
+                type, nr_stack, s_stack, node, tbuf
+            );
+    }
     free(s_stack);
     free(node);
 }

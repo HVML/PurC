@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -59,6 +59,8 @@ typedef enum {
 struct pcmcth_udom {
     /* the sorted array of eDOM element and the corresponding rendering box. */
     struct sorted_array *elem2rdrbox;
+
+    struct purc_broken_down_url *base;
 
     /* author-defined style sheet */
     css_stylesheet *author_sheet;
@@ -224,8 +226,11 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
+
     if (udom->elem2rdrbox)
         sorted_array_cleanup(udom->elem2rdrbox);
+    if (udom->base)
+        pcutils_broken_down_url_delete(udom->base);
     if (udom->author_sheet)
         css_stylesheet_destroy(udom->author_sheet);
     if (udom->select_ctx)
@@ -243,6 +248,11 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->elem2rdrbox = sorted_array_create(SAFLAG_DEFAULT, 8, NULL, NULL);
     if (udom->elem2rdrbox == NULL) {
+        goto failed;
+    }
+
+    udom->base = pcutils_broken_down_url_new();
+    if (udom->base == NULL) {
         goto failed;
     }
 
@@ -348,16 +358,130 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
     return data;
 }
 
+static void load_css(struct pcmcth_udom *udom, const char *href)
+{
+    char *css = NULL;
+    size_t length;
+
+    if (href[0] == '/' && href[1] != '/' && udom->base &&
+            strcasecmp(udom->base->schema, "file") == 0) {
+
+        LOG_DEBUG("Try to load CSS from file (absolute path): %s\n", href);
+        css = purc_load_file_contents(href, &length);
+    }
+    else if (strchr(href, ':')) {
+        /* href contains an absolute URL */
+        struct purc_broken_down_url broken_down;
+
+        memset(&broken_down, 0, sizeof(broken_down));
+        pcutils_url_break_down(&broken_down, href);
+
+        if (strcasecmp(broken_down.schema, "file") == 0) {
+            LOG_DEBUG("Try to load CSS from file (absolute path): %s\n",
+                    broken_down.path);
+            css = purc_load_file_contents(broken_down.path, &length);
+        }
+        else {
+            LOG_WARN("Loading CSS from remote URL is not suppored: %s\n",
+                    href);
+            /* TODO: load from remote fetcher */
+        }
+
+        pcutils_broken_down_url_clear(&broken_down);
+    }
+    else if (udom->base && strcasecmp(udom->base->schema, "file") == 0) {
+        /* href contains a relative URL */
+        char path[strlen(udom->base->path) + strlen(href) + 4];
+
+        strcpy(path, udom->base->path);
+        strcat(path, "/");
+        strcat(path, href);
+
+        LOG_DEBUG("Try to load CSS from file (relative path): %s\n", path);
+        css = purc_load_file_contents(path, &length);
+    }
+
+    if (css) {
+        css_error err;
+        err = css_stylesheet_append_data(udom->author_sheet,
+                (const unsigned char *)css, length);
+        if (err != CSS_OK && err != CSS_NEEDDATA) {
+            LOG_WARN("Failed to append css data from file: %d\n", err);
+        }
+
+        free(css);
+    }
+}
+
+#define TAG_NAME_BASE           "base"
+#define TAG_NAME_LINK           "link"
+#define TAG_NAME_STYLE          "style"
+
+#define ATTR_NAME_STYLE         "style"
+#define ATTR_NAME_HREF          "href"
+#define ATTR_NAME_REL           "rel"
+#define ATTR_NAME_TYPE          "type"
+
+#define ATTR_VALUE_STYLESHEET   "stylesheet"
+#define ATTR_VALUE_TEXT_CSS     "text/css"
+
 static int append_style_walker(purc_document_t doc,
         pcdoc_element_t element, void *ctxt)
 {
-    const char *name;
+    const char *name, *value;
     size_t len;
+    char *css_href = NULL;
 
+    struct pcmcth_udom *udom = (struct pcmcth_udom *)ctxt;
     pcdoc_element_get_tag_name(doc, element, &name, &len,
             NULL, NULL, NULL, NULL);
-    if (strncasecmp(name, "style", len) == 0) {
-        struct pcmcth_udom *udom = ctxt;
+
+    if (len == (sizeof(TAG_NAME_BASE) - 1) &&
+            strncasecmp(name, TAG_NAME_BASE, len) == 0) {
+
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_HREF,
+                &value, &len) == 0 && len > 0) {
+            if (udom->base->schema) {
+                LOG_WARN("Multiple base element found; old base overridden\n");
+                pcutils_broken_down_url_clear(udom->base);
+            }
+
+            char *base_url = strndup(value, len);
+            if (!pcutils_url_break_down(udom->base, base_url)) {
+                LOG_WARN("Bad href value for base element: %s\n", base_url);
+            }
+            free(base_url);
+        }
+    }
+    else if (len == (sizeof(TAG_NAME_LINK) - 1) &&
+            strncasecmp(name, TAG_NAME_LINK, len) == 0) {
+
+        /* check if the value of attribute `rel` is `stylesheet` */
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_REL,
+                &value, &len) == 0 && len > 0) {
+            if (len != (sizeof(ATTR_VALUE_STYLESHEET) - 1) ||
+                    strncasecmp(value, ATTR_VALUE_STYLESHEET, len)) {
+                goto done;
+            }
+        }
+
+        /* check if the value of attribute `type` is `text/css`
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_TYPE,
+                &value, &len) == 0 && len > 0) {
+            if (len != (sizeof(ATTR_VALUE_TEXT_CSS) - 1) ||
+                    strncasecmp(value, ATTR_VALUE_TEXT_CSS, len)) {
+                goto done;
+            }
+        }*/
+
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_HREF,
+                &value, &len) == 0 && len > 0) {
+            css_href = strndup(value, len);
+            load_css(udom, css_href);
+        }
+    }
+    else if (len == (sizeof(TAG_NAME_STYLE) - 1) &&
+            strncasecmp(name, TAG_NAME_STYLE, len) == 0) {
 
         pcdoc_node child = pcdoc_element_first_child(doc, element);
         while (child.data != NULL) {
@@ -381,10 +505,11 @@ static int append_style_walker(purc_document_t doc,
         }
     }
 
+done:
+    if (css_href)
+        free(css_href);
     return 0;
 }
-
-#define ATTR_NAME_STYLE     "style"
 
 extern css_select_handler foil_css_select_handler;
 

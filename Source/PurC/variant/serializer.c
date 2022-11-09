@@ -1002,7 +1002,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             MY_CHECK(n);
 
             /* TODO: might use '(' in the future. */
-            MY_WRITE(rws, "[", 1);
+            if (flags & PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON)
+                MY_WRITE(rws, "[!", 2);
+            else
+                MY_WRITE(rws, "[", 1);
+
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 

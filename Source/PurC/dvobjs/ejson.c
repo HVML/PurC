@@ -104,7 +104,7 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
 
         case PURC_VARIANT_TYPE_TUPLE:
-            count = 2;
+            count = purc_variant_tuple_get_size(argv[0]);
             break;
         }
     }

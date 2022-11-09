@@ -190,8 +190,18 @@ pcvar_tuple_numberify(purc_variant_t val)
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_set(val));
 
-    PC_ASSERT(0); // Not implemented yet
-    return 0;
+    double d = 0.0;
+    purc_variant_t *members;
+    size_t sz;
+    members = tuple_members(val, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        d += pcvar_numberify(v);
+    }
+    return d;
 }
 
 double

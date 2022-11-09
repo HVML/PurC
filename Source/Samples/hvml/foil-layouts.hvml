@@ -1,0 +1,87 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <init as 'styleCase' at '_root' with 'displayBlock' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-layouts-{$styleCase}.css" />
+
+        <title>Foil Layouts: $styleCase</title>
+    </head>
+
+    <body>
+        <define as "displayBlock" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
+            <SECTION id="displayBlock">
+                <P>
+                    This text is defined by the first P.
+                    <BR />
+                    There is a line-break before this text.
+                    <SPAN>This text defined by SPAN.</SPAN>
+                </P>
+
+                <P>
+                    This text is defined by the second P.
+                    <STRONG>This text is defined by STRONG. </STRONG>
+                    This text is after STRONG.
+                </P>
+            </SECTION>
+        </define>
+
+        <define as "anonymousBlocks" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
+            <SECTION id="anonymousBlocks">
+                <DIV style="display:block">
+                      There is an anonymous block box around this text.
+                  <P style="display:block">This text is in the block box created by `p`.</P>
+                </DIV>
+
+                <P style="display:inline;">
+                    This is anonymous text before the SPAN.
+                    <SPAN style="display:block;">This is the content of SPAN.</SPAN>
+                    This is anonymous text after the SPAN.
+                </P>
+
+            </SECTION>
+        </define>
+
+        <define as "unorderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
+            <SECTION id="unorderedListItems">
+                <ul>
+                    <li>The first item.</li>
+                    <li>The second item.</li>
+                    <li>The third item.</li>
+                </ul>
+            </SECTION>
+        </define>
+
+        <define as "orderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
+            <SECTION id="orderedListItems">
+                <h1 hvml:silently>$STR.format_p('Numbers less than #0', $?)</h1>
+
+                <ol>
+                    <iterate on 0L onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, 1L) nosetotail >
+                        <li>$STR.format_p('Number #0', $?)</li>
+                    </iterate>
+                </ol>
+
+             </SECTION>
+        </define>
+
+        <!-- check validation of ${$styleCase} -->
+        <choose on ${$styleCase}>
+            <catch>
+                <init as styleCase at '_root' with 'displayBlock' />
+            </catch>
+        </choose>
+
+        <include with ${$styleCase} />
+
+    </body>
+
+</hvml>
+

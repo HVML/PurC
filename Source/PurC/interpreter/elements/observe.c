@@ -683,12 +683,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
-                ignore_content)) {
-        return NULL;
-    }
-
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -700,6 +694,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt_destroy = ctxt_destroy;
 
     frame->pos = pos; // ATTENTION!!
+
+    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
+                ignore_content)) {
+        return NULL;
+    }
 
     if (NULL == pcintr_stack_frame_get_parent(frame)) {
         PC_ASSERT(frame->edom_element);

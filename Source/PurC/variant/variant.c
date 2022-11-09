@@ -2162,7 +2162,7 @@ purc_variant_booleanize(purc_variant_t value)
         // return numberify_set(value) != 0.0 ? true : false;
 
     case PURC_VARIANT_TYPE_TUPLE:
-        return true;
+        return purc_variant_tuple_get_size(value) != 0;
 
     case PURC_VARIANT_TYPE_DYNAMIC:
         return booleanize_dynamic(value);
