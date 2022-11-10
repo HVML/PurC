@@ -245,9 +245,10 @@ purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
  * @param str_utf8: The pointer to a null-terminated string which is encoded
  *      in UTF-8.
  * @param sz_buff: The size of the buffer (not the length of the string).
- * @param check_encoding: Whether to check str_utf the encoding.
+ * @param check_encoding: Whether to check the encoding.
  *
- * Returns: A variant contains the specified text string in UTF-8 encoding,
+ * Returns: A variant which contains the specified string in UTF-8 encoding
+ *      and takes the ownership of the string buffer,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
@@ -257,14 +258,15 @@ purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
         bool check_encoding);
 
 /**
- * Creates a variant value of string type by using non-null-terminated buffer
+ * Creates a variant which represents a null-terminated string in UTF-8
+ * encoding by copying the specified string with specified length at most.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param len: the length of string to be used at most
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ * @param str_utf8: The pointer to a string which is encoded in UTF-8.
+ * @param len: The length of string to be copied at most in bytes.
+ * @param check_encoding: Whether to check the encoding.
  *
- * Returns: A purc_variant_t with string type,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Returns: A variant which copies the string of specified length in
+ *  UTF-8 encoding, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.5
  */
