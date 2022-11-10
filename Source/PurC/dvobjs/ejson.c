@@ -289,7 +289,7 @@ failed:
 }
 
 static purc_variant_t
-numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+numerify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -302,7 +302,7 @@ numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         assert(argv[0]);
-        number = purc_variant_numberify(argv[0]);
+        number = purc_variant_numerify(argv[0]);
     }
 
     return purc_variant_make_number(number);
@@ -2751,7 +2751,7 @@ purc_variant_t purc_dvobj_ejson_new(void)
         { "count",      count_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },
-        { "numberify",  numberify_getter, NULL },
+        { "numerify",  numerify_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },
         { "serialize",  serialize_getter, NULL },

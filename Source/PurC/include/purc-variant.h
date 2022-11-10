@@ -2288,7 +2288,7 @@ purc_variant_usage_stat(void);
  * Since: 0.0.3
  */
 PCA_EXPORT double
-purc_variant_numberify(purc_variant_t value);
+purc_variant_numerify(purc_variant_t value);
 
 /**
  * Booleanize a variant value to boolean

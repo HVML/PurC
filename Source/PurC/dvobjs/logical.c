@@ -195,12 +195,12 @@ eq_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean(pcutils_equal_doubles(v1, v2));
@@ -220,12 +220,12 @@ ne_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean(!pcutils_equal_doubles(v1, v2));
@@ -245,12 +245,12 @@ gt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean((v1 > v2));
@@ -270,12 +270,12 @@ ge_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean((v1 >= v2));
@@ -295,12 +295,12 @@ lt_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean((v1 < v2));
@@ -320,12 +320,12 @@ le_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         v2 = 0;
     }
     else if (nr_args == 1) {
-        v1 = purc_variant_numberify(argv[0]);
+        v1 = purc_variant_numerify(argv[0]);
         v2 = 0;
     }
     else {
-        v1 = purc_variant_numberify(argv[0]);
-        v2 = purc_variant_numberify(argv[1]);
+        v1 = purc_variant_numerify(argv[0]);
+        v2 = purc_variant_numerify(argv[1]);
     }
 
     return purc_variant_make_boolean((v1 <= v2));

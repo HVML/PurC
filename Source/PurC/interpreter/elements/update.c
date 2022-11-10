@@ -413,7 +413,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t target = on;
     purc_variant_t at  = ctxt->at;
     if (at != PURC_VARIANT_INVALID) {
-        double d = purc_variant_numberify(at);
+        double d = purc_variant_numerify(at);
         size_t idx = d;
         purc_variant_t v = purc_variant_array_get(on, idx);
         PC_ASSERT(v != PURC_VARIANT_INVALID);

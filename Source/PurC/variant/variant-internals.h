@@ -318,37 +318,37 @@ pcvar_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
         int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt));
 
 double
-pcvar_str_numberify(purc_variant_t val);
+pcvar_str_numerify(purc_variant_t val);
 
 double
-pcvar_atom_numberify(purc_variant_t val);
+pcvar_atom_numerify(purc_variant_t val);
 
 double
-pcvar_bs_numberify(purc_variant_t val);
+pcvar_bs_numerify(purc_variant_t val);
 
 double
-pcvar_dynamic_numberify(purc_variant_t val);
+pcvar_dynamic_numerify(purc_variant_t val);
 
 double
-pcvar_native_numberify(purc_variant_t val);
+pcvar_native_numerify(purc_variant_t val);
 
 double
-pcvar_obj_numberify(purc_variant_t val);
+pcvar_obj_numerify(purc_variant_t val);
 
 double
-pcvar_arr_numberify(purc_variant_t val);
+pcvar_arr_numerify(purc_variant_t val);
 
 double
-pcvar_set_numberify(purc_variant_t val);
+pcvar_set_numerify(purc_variant_t val);
 
 double
-pcvar_tuple_numberify(purc_variant_t val);
+pcvar_tuple_numerify(purc_variant_t val);
 
 double
-pcvar_numberify(purc_variant_t val);
+pcvar_numerify(purc_variant_t val);
 
 int
-pcvar_diff_numberify(purc_variant_t l, purc_variant_t r);
+pcvar_diff_numerify(purc_variant_t l, purc_variant_t r);
 
 
 typedef int (*stringify_f)(const unsigned char *s, size_t len, void *ctxt);

@@ -82,7 +82,7 @@ iterate(struct pcexec_exe_formula_inst *exe_formula_inst)
     purc_variant_t curr = exe_formula_inst->curr;
     purc_variant_t k = purc_variant_make_string_static("X", false);
     purc_variant_t v = purc_variant_object_get(curr, k);
-    double d = purc_variant_numberify(v);
+    double d = purc_variant_numerify(v);
 
     bool ok = false;
     do {
@@ -122,7 +122,7 @@ check_curr(struct pcexec_exe_formula_inst *exe_formula_inst)
     purc_variant_t curr = exe_formula_inst->curr;
     purc_variant_t k = purc_variant_make_string_static("X", false);
     purc_variant_t v = purc_variant_object_get(curr, k);
-    double d = purc_variant_numberify(v);
+    double d = purc_variant_numerify(v);
 
     bool ok = false;
     do {
@@ -154,7 +154,7 @@ fetch_begin(struct pcexec_exe_formula_inst *exe_formula_inst)
     purc_exec_iter_t it = &inst->it;
     purc_variant_t input = inst->input;
 
-    double d = purc_variant_numberify(input);
+    double d = purc_variant_numerify(input);
 
     purc_variant_t curr;
     curr = purc_variant_make_object(0, NULL, PURC_VARIANT_INVALID);
@@ -403,7 +403,7 @@ exe_formula_reduce(purc_exec_inst_t inst, const char* rule)
 
     for(; it; it = it_next(exe_formula_inst, NULL)) {
         purc_variant_t v = it_value(exe_formula_inst);
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         ++count;
         if (isnan(d))
             continue;

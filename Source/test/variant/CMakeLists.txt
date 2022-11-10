@@ -193,32 +193,32 @@ PURC_COMPUTE_SOURCES(test_load_from_json)
 PURC_FRAMEWORK(test_load_from_json)
 GTEST_DISCOVER_TESTS(test_load_from_json DISCOVERY_TIMEOUT 10)
 
-# test_numberify_booleanize_stringify
-PURC_EXECUTABLE_DECLARE(test_numberify_booleanize_stringify)
+# test_numerify_booleanize_stringify
+PURC_EXECUTABLE_DECLARE(test_numerify_booleanize_stringify)
 
-list(APPEND test_numberify_booleanize_stringify_PRIVATE_INCLUDE_DIRECTORIES
+list(APPEND test_numerify_booleanize_stringify_PRIVATE_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
     ${PURC_DIR} ${PURC_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${WTF_DIR}
 )
 
-PURC_EXECUTABLE(test_numberify_booleanize_stringify)
+PURC_EXECUTABLE(test_numerify_booleanize_stringify)
 
-set(test_numberify_booleanize_stringify_SOURCES
-    test_numberify_booleanize_stringify.cpp
+set(test_numerify_booleanize_stringify_SOURCES
+    test_numerify_booleanize_stringify.cpp
 )
 
-set(test_numberify_booleanize_stringify_LIBRARIES
+set(test_numerify_booleanize_stringify_LIBRARIES
     PurC::PurC
     gtest_main
     gtest
     pthread
 )
 
-PURC_COMPUTE_SOURCES(test_numberify_booleanize_stringify)
-PURC_FRAMEWORK(test_numberify_booleanize_stringify)
-GTEST_DISCOVER_TESTS(test_numberify_booleanize_stringify DISCOVERY_TIMEOUT 10)
+PURC_COMPUTE_SOURCES(test_numerify_booleanize_stringify)
+PURC_FRAMEWORK(test_numerify_booleanize_stringify)
+GTEST_DISCOVER_TESTS(test_numerify_booleanize_stringify DISCOVERY_TIMEOUT 10)
 
 # test_container
 PURC_EXECUTABLE_DECLARE(test_container)

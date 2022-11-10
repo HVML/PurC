@@ -158,7 +158,7 @@ fetch_begin(struct pcexec_exe_objformula_inst *exe_objformula_inst)
     int ok = true;
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(input, k, v)
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         v = purc_variant_make_number(d);
         PC_ASSERT(v != PURC_VARIANT_INVALID); // FIXME: exception or not?
         ok = purc_variant_object_set(curr, k, v);
@@ -413,7 +413,7 @@ exe_objformula_reduce(purc_exec_inst_t inst, const char* rule)
 
     for(; it; it = it_next(exe_objformula_inst, NULL)) {
         purc_variant_t v = it_value(exe_objformula_inst);
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         ++count;
         if (isnan(d))
             continue;

@@ -441,7 +441,7 @@ exe_char_reduce(purc_exec_inst_t inst, const char* rule)
 
     for(; it; it = it_next(exe_char_inst, NULL)) {
         purc_variant_t v = it_value(exe_char_inst);
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         ++count;
         if (isnan(d))
             continue;

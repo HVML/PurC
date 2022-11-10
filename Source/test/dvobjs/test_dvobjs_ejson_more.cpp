@@ -131,7 +131,7 @@ static void run_testcases(const struct ejson_result *test_cases, size_t n)
     purc_cleanup();
 }
 
-purc_variant_t numberify(purc_variant_t dvobj, const char* name)
+purc_variant_t numerify(purc_variant_t dvobj, const char* name)
 {
     double d = 0;
 
@@ -147,7 +147,7 @@ purc_variant_t numberify(purc_variant_t dvobj, const char* name)
     return purc_variant_make_number(d);
 }
 
-static bool numberify_vrtcmp(purc_variant_t result, purc_variant_t expected)
+static bool numerify_vrtcmp(purc_variant_t result, purc_variant_t expected)
 {
     double r1, r2;
 
@@ -159,45 +159,45 @@ static bool numberify_vrtcmp(purc_variant_t result, purc_variant_t expected)
     return false;
 }
 
-TEST(dvobjs, numberify)
+TEST(dvobjs, numerify)
 {
     static const struct ejson_result test_cases[] = {
         { "zero",
-            "$EJSON.numberify",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify",
+            numerify, numerify_vrtcmp, 0 },
         { "zero",
-            "$EJSON.numberify(null)",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify(null)",
+            numerify, numerify_vrtcmp, 0 },
         { "zero",
-            "$EJSON.numberify(false)",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify(false)",
+            numerify, numerify_vrtcmp, 0 },
         { "zero",
-            "$EJSON.numberify([])",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify([])",
+            numerify, numerify_vrtcmp, 0 },
         { "zero",
-            "$EJSON.numberify({})",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify({})",
+            numerify, numerify_vrtcmp, 0 },
         { "1.0",
-            "$EJSON.numberify(true)",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify(true)",
+            numerify, numerify_vrtcmp, 0 },
         { "1.0",
-            "$EJSON.numberify(1.0)",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify(1.0)",
+            numerify, numerify_vrtcmp, 0 },
         { "1.0",
-            "$EJSON.numberify('1.0')",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify('1.0')",
+            numerify, numerify_vrtcmp, 0 },
         { "2.0",
-            "$EJSON.numberify([1.0, 1.0])",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify([1.0, 1.0])",
+            numerify, numerify_vrtcmp, 0 },
         { "2.0",
-            "$EJSON.numberify({x:1.0, y:1.0})",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify({x:1.0, y:1.0})",
+            numerify, numerify_vrtcmp, 0 },
         { "0",
-            "$EJSON.numberify($EJSON)",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify($EJSON)",
+            numerify, numerify_vrtcmp, 0 },
         { "3.0",
-            "$EJSON.numberify($EJSON.numberify(3.0))",
-            numberify, numberify_vrtcmp, 0 },
+            "$EJSON.numerify($EJSON.numerify(3.0))",
+            numerify, numerify_vrtcmp, 0 },
     };
 
     run_testcases(test_cases, PCA_TABLESIZE(test_cases));
@@ -426,7 +426,7 @@ TEST(dvobjs, isequal)
             "$EJSON.isequal($EJSON.booleanize, $EJSON.booleanize)",
             isequal, isequal_vrtcmp, 0 },
         { "false",
-            "$EJSON.isequal($EJSON.booleanize, $EJSON.numberify)",
+            "$EJSON.isequal($EJSON.booleanize, $EJSON.numerify)",
             isequal, isequal_vrtcmp, 0 },
     };
 

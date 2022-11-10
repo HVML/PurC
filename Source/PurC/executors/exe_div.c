@@ -108,7 +108,7 @@ fetch_begin(struct pcexec_exe_div_inst *exe_div_inst)
     purc_exec_iter_t it = &inst->it;
     purc_variant_t input = inst->input;
 
-    double curr = purc_variant_numberify(input);
+    double curr = purc_variant_numerify(input);
 
     if (!check_curr(exe_div_inst, curr))
         return NULL;
@@ -344,7 +344,7 @@ exe_div_reduce(purc_exec_inst_t inst, const char* rule)
 
     for(; it; it = it_next(exe_div_inst, NULL)) {
         purc_variant_t v = it_value(exe_div_inst);
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         ++count;
         if (isnan(d))
             continue;
