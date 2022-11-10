@@ -105,7 +105,7 @@
         </div>
 
         <observe on="#theScaleRange" for="change">
-            <update on="$myResult" at=".scale" with="$EJSON.numberify($?.targetValue)" />
+            <update on="$myResult" at=".scale" with="$EJSON.numerify($?.targetValue)" />
             <update on="#theScale" at="textContent" with="$?.targetValue" />
         </observe>
 

@@ -1,5 +1,5 @@
 /*
- * @file numberify.c
+ * @file numerify.c
  * @author Xu Xiaohong
  * @date 2022/06/29
  * @brief The implementation of public part for variant.
@@ -25,7 +25,7 @@
 #include "variant-internals.h"
 
 static double
-_numberify_str(const char *s)
+_numerify_str(const char *s)
 {
     PC_ASSERT(s);
     if (!*s)
@@ -35,28 +35,28 @@ _numberify_str(const char *s)
 }
 
 double
-pcvar_str_numberify(purc_variant_t val)
+pcvar_str_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_string(val));
 
     const char *s = purc_variant_get_string_const(val);
-    return _numberify_str(s);
+    return _numerify_str(s);
 }
 
 double
-pcvar_atom_numberify(purc_variant_t val)
+pcvar_atom_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_atomstring(val) ||
             purc_variant_is_exception(val));
 
     const char *s = purc_atom_to_string(val->atom);
-    return _numberify_str(s);
+    return _numerify_str(s);
 }
 
 double
-pcvar_bs_numberify(purc_variant_t val)
+pcvar_bs_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_bsequence(val));
@@ -76,7 +76,7 @@ pcvar_bs_numberify(purc_variant_t val)
 }
 
 double
-pcvar_dynamic_numberify(purc_variant_t val)
+pcvar_dynamic_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_dynamic(val));
@@ -92,14 +92,14 @@ pcvar_dynamic_numberify(purc_variant_t val)
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
-    double d = pcvar_numberify(v);
+    double d = pcvar_numerify(v);
     PURC_VARIANT_SAFE_CLEAR(v);
 
     return d;
 }
 
 double
-pcvar_native_numberify(purc_variant_t val)
+pcvar_native_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_native(val));
@@ -123,14 +123,14 @@ pcvar_native_numberify(purc_variant_t val)
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
-    double d = pcvar_numberify(v);
+    double d = pcvar_numerify(v);
     PURC_VARIANT_SAFE_CLEAR(v);
 
     return d;
 }
 
 double
-pcvar_obj_numberify(purc_variant_t val)
+pcvar_obj_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_object(val));
@@ -139,7 +139,7 @@ pcvar_obj_numberify(purc_variant_t val)
 
     purc_variant_t v;
     foreach_value_in_variant_object(val, v) {
-        d += pcvar_numberify(v);
+        d += pcvar_numerify(v);
     }
     end_foreach;
 
@@ -147,7 +147,7 @@ pcvar_obj_numberify(purc_variant_t val)
 }
 
 double
-pcvar_arr_numberify(purc_variant_t val)
+pcvar_arr_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_array(val));
@@ -158,7 +158,7 @@ pcvar_arr_numberify(purc_variant_t val)
     size_t idx;
     foreach_value_in_variant_array(val, v, idx) {
         UNUSED_PARAM(idx);
-        d += pcvar_numberify(v);
+        d += pcvar_numerify(v);
     }
     end_foreach;
 
@@ -166,7 +166,7 @@ pcvar_arr_numberify(purc_variant_t val)
 }
 
 double
-pcvar_set_numberify(purc_variant_t val)
+pcvar_set_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_set(val));
@@ -177,7 +177,7 @@ pcvar_set_numberify(purc_variant_t val)
     size_t idx;
     foreach_value_in_variant_set_order(val, v) {
         UNUSED_PARAM(idx);
-        d += pcvar_numberify(v);
+        d += pcvar_numerify(v);
     }
     end_foreach;
 
@@ -185,7 +185,7 @@ pcvar_set_numberify(purc_variant_t val)
 }
 
 double
-pcvar_tuple_numberify(purc_variant_t val)
+pcvar_tuple_numerify(purc_variant_t val)
 {
     PC_ASSERT(val);
     PC_ASSERT(purc_variant_is_set(val));
@@ -199,13 +199,13 @@ pcvar_tuple_numberify(purc_variant_t val)
     purc_variant_t v;
     for (size_t idx = 0; idx < sz; idx++) {
         v = members[idx];
-        d += pcvar_numberify(v);
+        d += pcvar_numerify(v);
     }
     return d;
 }
 
 double
-pcvar_numberify(purc_variant_t val)
+pcvar_numerify(purc_variant_t val)
 {
     PC_ASSERT(val != PURC_VARIANT_INVALID);
 
@@ -220,7 +220,7 @@ pcvar_numberify(purc_variant_t val)
             return val->b ? 1 : 0;
 
         case PURC_VARIANT_TYPE_EXCEPTION:
-            return pcvar_atom_numberify(val);
+            return pcvar_atom_numerify(val);
 
         case PURC_VARIANT_TYPE_NUMBER:
             return val->d;
@@ -235,31 +235,31 @@ pcvar_numberify(purc_variant_t val)
             return (double)val->ld;
 
         case PURC_VARIANT_TYPE_ATOMSTRING:
-            return pcvar_atom_numberify(val);
+            return pcvar_atom_numerify(val);
 
         case PURC_VARIANT_TYPE_STRING:
-            return pcvar_str_numberify(val);
+            return pcvar_str_numerify(val);
 
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            return pcvar_bs_numberify(val);
+            return pcvar_bs_numerify(val);
 
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return pcvar_dynamic_numberify(val);
+            return pcvar_dynamic_numerify(val);
 
         case PURC_VARIANT_TYPE_NATIVE:
-            return pcvar_native_numberify(val);
+            return pcvar_native_numerify(val);
 
         case PURC_VARIANT_TYPE_OBJECT:
-            return pcvar_obj_numberify(val);
+            return pcvar_obj_numerify(val);
 
         case PURC_VARIANT_TYPE_ARRAY:
-            return pcvar_arr_numberify(val);
+            return pcvar_arr_numerify(val);
 
         case PURC_VARIANT_TYPE_SET:
-            return pcvar_set_numberify(val);
+            return pcvar_set_numerify(val);
 
         case PURC_VARIANT_TYPE_TUPLE:
-            return pcvar_tuple_numberify(val);
+            return pcvar_tuple_numerify(val);
 
         default:
             PC_ASSERT(0);
@@ -270,10 +270,10 @@ pcvar_numberify(purc_variant_t val)
 }
 
 int
-pcvar_diff_numberify(purc_variant_t l, purc_variant_t r)
+pcvar_diff_numerify(purc_variant_t l, purc_variant_t r)
 {
-    double ld = pcvar_numberify(l);
-    double rd = pcvar_numberify(r);
+    double ld = pcvar_numerify(l);
+    double rd = pcvar_numerify(r);
 
     // FIXME: delta compare??? NaN/Inf??? fpclassify???
     if (ld < rd)

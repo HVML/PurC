@@ -36,7 +36,7 @@ create_rwstream(void)
 }
 #endif
 
-struct numberify_record
+struct numerify_record
 {
     double                     d;
     const char                *str;
@@ -61,7 +61,7 @@ load_variant(const char *s)
 }
 
 static inline void
-do_numberify(struct numberify_record *p)
+do_numerify(struct numerify_record *p)
 {
     purc_variant_t v;
     v = load_variant(p->str);
@@ -70,13 +70,13 @@ do_numberify(struct numberify_record *p)
         return;
     }
 
-    double d = purc_variant_numberify(v);
+    double d = purc_variant_numerify(v);
     purc_variant_unref(v);
 
     ASSERT_EQ(d, p->d) << "[" << p->str << "]";
 }
 
-TEST(variant, numberify)
+TEST(variant, numerify)
 {
     purc_instance_extra_info info = {};
     int ret;
@@ -87,7 +87,7 @@ TEST(variant, numberify)
             "test_init", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    struct numberify_record records[] = {
+    struct numerify_record records[] = {
         { 0.0, "undefined" },
         { 0.0, "null" },
         { 1.0, "true" },
@@ -105,8 +105,8 @@ TEST(variant, numberify)
     };
 
     for (size_t i=0; i<PCA_TABLESIZE(records); ++i) {
-        struct numberify_record *p = records + i;
-        do_numberify(p);
+        struct numerify_record *p = records + i;
+        do_numerify(p);
     }
 
     cleanup = purc_cleanup ();
