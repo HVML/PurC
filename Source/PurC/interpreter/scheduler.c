@@ -146,43 +146,16 @@ handle_rdr_conn_lost(struct pcinst *inst)
 }
 
 bool
-is_match_except(purc_variant_t for_val, purc_atom_t except)
+is_match_except(purc_variant_t for_var, purc_atom_t except)
 {
     bool match = false;
-    char *except_msg = NULL;
-    if (!for_val || !purc_variant_is_string(for_val)) {
-        goto out;
+    if (for_var != PURC_VARIANT_INVALID) {
+        match = pcintr_match_exception(except, for_var);
     }
-
-    const char *msg = purc_variant_get_string_const(for_val);
-    if (msg == NULL || strcmp(msg, "*") == 0) {
+    else {
         match = true;
-        goto out;
     }
 
-    except_msg = strdup(msg);
-    if (!except_msg) {
-        // FIXME: throw exception in catch block
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        match = false;
-        goto out;
-    }
-
-    char* ctx = except_msg;
-    char* tok = strtok_r(ctx, " ", &ctx);
-    while (tok) {
-        purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, tok);
-        if (t == except) {
-            match = true;
-            break;
-        }
-        tok = strtok_r(ctx, " ", &ctx);
-    }
-
-out:
-    if (except_msg) {
-        free(except_msg);
-    }
     return match;
 }
 

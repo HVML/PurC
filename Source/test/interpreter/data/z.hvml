@@ -6,17 +6,17 @@
     <body>
         <div class="ab" id="abC">
             <update on="$@" at="attr.class" to="displace" />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="EntityNotFound">
+            <catch for=`EntityNotFound`>
                 <!-- catched but do nothing -->
                 <back to=2 />
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.entry_not_found" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>

@@ -60,7 +60,7 @@
                                 <update on="$TIMERS" to="overwrite">
                                     { "id" : "input", "active" : "no" }
                                 </update>
-                                <catch for='*'>
+                                <catch for=`ANY`>
                                     <update on="#expression" at="attr.value" with="ERR" />
                                 </catch>
                             </choose>

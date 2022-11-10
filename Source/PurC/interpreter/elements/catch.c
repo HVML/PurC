@@ -74,45 +74,15 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     PC_ASSERT(ctxt->exception);
     PC_ASSERT(ctxt->exception->error_except);
 
-    const char *msg = NULL;
     purc_variant_t for_var = ctxt->for_var;
     if (for_var != PURC_VARIANT_INVALID) {
-        if (!purc_variant_is_string(for_var)) {
-            // FIXME: throw exception in catch block
-            PC_ASSERT(0);
-            return -1;
-        }
-
-        msg = purc_variant_get_string_const(for_var);
+        ctxt->match = pcintr_match_exception(ctxt->exception->error_except,
+                for_var);
     }
-
-    if (msg == NULL || strcmp(msg, "*") == 0) {
+    else {
         ctxt->match = true;
-        return 0;
     }
 
-    char* except_msg = strdup(msg);
-    if (!except_msg) {
-        ctxt->match = false;
-        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        // FIXME: throw exception in catch block
-        PC_ASSERT(0);
-        return -1;
-    }
-
-    char* ctx = except_msg;
-    char* tok = strtok_r(ctx, " ", &ctx);
-    while (tok) {
-        purc_atom_t t = purc_atom_try_string_ex(ATOM_BUCKET_EXCEPT, tok);
-        if (t == ctxt->exception->error_except) {
-            PC_ASSERT(t);
-            ctxt->match = true;
-            break;
-        }
-        tok = strtok_r(ctx, " ", &ctx);
-    }
-
-    free(except_msg);
     return 0;
 }
 

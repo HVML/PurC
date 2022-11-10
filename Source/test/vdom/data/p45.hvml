@@ -2,13 +2,13 @@
     <body id="errorPage">
         <choose on="$locales" to="update" in="#the-footer" by="KEY: $global.locale">
             <update on="~ p > a" textContent="$?.se_name" attr.href="$?.se_url" attr.title="$?.se_title" />
-            <catch for="error:nodata">
+            <catch for=`NoData`>
                 <update on="~ p" textContent='You forget to define the $locales/$global variables!' />
             </catch>
-            <catch for="error:*">
+            <catch for=`ANY`>
                 <update on="~ p" textContent='You forget to define the $locales/$global variables!' />
             </catch>
-            <catch for="KeyError">
+            <catch for=`NoSuchKey`>
                 <update on="~ p > a" textContent="Google" attr.href="https://www.google.com" attr.title="Google" />
             </catch>
             <catch>

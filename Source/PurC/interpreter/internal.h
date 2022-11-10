@@ -489,7 +489,7 @@ enum pcfetcher_request_method
 pcintr_method_from_via(enum VIA via);
 
 bool
-pcintr_match_exception(int except, purc_variant_t constant);
+pcintr_match_exception(purc_atom_t except, purc_variant_t constant);
 
 PCA_EXTERN_C_END
 

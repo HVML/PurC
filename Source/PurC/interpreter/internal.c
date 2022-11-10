@@ -613,7 +613,7 @@ pcintr_method_from_via(enum VIA via)
 }
 
 bool
-pcintr_match_exception(int except, purc_variant_t constant)
+pcintr_match_exception(purc_atom_t except, purc_variant_t constant)
 {
     bool ret = false;
     if (except == 0 || !constant || !pcvariant_is_sorted_array(constant)) {
@@ -633,12 +633,7 @@ pcintr_match_exception(int except, purc_variant_t constant)
         goto out;
     }
 
-    purc_atom_t atom = purc_get_except_atom_by_id(except);
-    if (!atom) {
-        goto out;
-    }
-
-    v = purc_variant_make_ulongint((uint64_t)atom);
+    v = purc_variant_make_ulongint((uint64_t)except);
     if (!v) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
