@@ -170,7 +170,7 @@
             if (_v == PURC_VARIANT_INVALID)                          \
                 YYABORT;                                             \
         }                                                            \
-        _r = purc_variant_numberify(_v);                             \
+        _r = purc_variant_numerify(_v);                             \
     } while (0)
 }
 

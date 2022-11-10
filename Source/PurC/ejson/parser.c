@@ -205,6 +205,14 @@ pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type)
         }
         break;
 
+    case ETT_TUPLE:
+        token->node = pcvcm_node_new_tuple(0, NULL);
+        if (!token->node) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+        break;
+
     case ETT_CALL_GETTER:
         token->node = pcvcm_node_new_call_getter(NULL, 0, NULL);
         if (!token->node) {
@@ -294,6 +302,14 @@ pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type)
 
     case ETT_SEMICOLON:
         token->node = pcvcm_node_new_cjsonee_op_semicolon();
+        if (!token->node) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+        break;
+
+    case ETT_BACKQUOTE:
+        token->node = pcvcm_node_new_constant(0, NULL);
         if (!token->node) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             goto failed;

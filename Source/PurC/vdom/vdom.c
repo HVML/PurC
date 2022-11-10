@@ -1368,8 +1368,8 @@ static purc_variant_t
 tokenwised_eval_attr_num(enum pchvml_attr_operator op,
         purc_variant_t ll, purc_variant_t rr)
 {
-    double ld = purc_variant_numberify(ll);
-    double rd = purc_variant_numberify(rr);
+    double ld = purc_variant_numerify(ll);
+    double rd = purc_variant_numerify(rr);
 
     switch (op) {
         case PCHVML_ATTRIBUTE_OPERATOR:

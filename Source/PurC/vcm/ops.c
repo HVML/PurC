@@ -47,6 +47,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_undefined_ops,
     pcvcm_get_object_ops,
     pcvcm_get_array_ops,
+    pcvcm_get_tuple_ops,
     pcvcm_get_string_ops,
     pcvcm_get_null_ops,
     pcvcm_get_boolean_ops,
@@ -64,6 +65,7 @@ static get_ops_fn frame_ops[] = {
     pcvcm_get_cjsonee_op_and_ops,
     pcvcm_get_cjsonee_op_or_ops,
     pcvcm_get_cjsonee_op_semicolon_ops,
+    pcvcm_get_constant_ops,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \

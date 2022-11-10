@@ -624,6 +624,16 @@ is_unquoted_attr_finished(struct pcejson *ejson, uint32_t character)
 }
 
 bool
+is_backquote_attr_finished(struct pcejson *ejson, uint32_t character)
+{
+    UNUSED_PARAM(ejson);
+    if (character == '`') {
+        return true;
+    }
+    return false;
+}
+
+bool
 is_content_text_finished(struct pcejson *ejson, uint32_t character)
 {
     UNUSED_PARAM(ejson);
@@ -884,6 +894,11 @@ BEGIN_STATE(TKZ_STATE_BEFORE_ATTRIBUTE_VALUE)
         RESET_TEMP_BUFFER();
         RESET_QUOTED_COUNTER();
         RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED);
+    }
+    if (character == '`') {
+        RESET_TEMP_BUFFER();
+        RESET_QUOTED_COUNTER();
+        RECONSUME_IN(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE);
     }
     RESET_TEMP_BUFFER();
     RESET_QUOTED_COUNTER();
@@ -1961,6 +1976,23 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_UNQUOTED)
     struct pcvcm_node *node = NULL;
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_unquoted_attr_finished);
+    if (node) {
+        tkz_reader_reconsume_last_char(parser->reader);
+        pchvml_token_append_vcm_to_attr(parser->token, node);
+        END_TOKEN_ATTR();
+        ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
+    }
+    RETURN_AND_STOP_PARSE();
+END_STATE()
+
+BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_BACKQUOTE)
+    tkz_reader_reconsume_last_char(parser->reader);
+    uint32_t flags = PCEJSON_FLAG_ALL & ~PCEJSON_FLAG_MULTI_JSONEE;
+    pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
+            flags);
+    struct pcvcm_node *node = NULL;
+    pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
+            parser->ejson_parser_max_depth, is_backquote_attr_finished);
     if (node) {
         tkz_reader_reconsume_last_char(parser->reader);
         pchvml_token_append_vcm_to_attr(parser->token, node);

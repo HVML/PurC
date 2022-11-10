@@ -336,8 +336,8 @@ comp_raw(purc_variant_t l, purc_variant_t r, bool by_number,
         bool ascendingly, bool casesensitively)
 {
     if (by_number) {
-        double dl = l ? purc_variant_numberify(l) : 0.0f;
-        double dr = r ? purc_variant_numberify(r) : 0.0f;
+        double dl = l ? purc_variant_numerify(l) : 0.0f;
+        double dr = r ? purc_variant_numerify(r) : 0.0f;
         return comp_number(dl, dr, ascendingly);
     }
 

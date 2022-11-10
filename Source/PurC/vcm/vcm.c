@@ -43,6 +43,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_UNDEFINED,
     PCVCM_NODE_TYPE_NAME_OBJECT,
     PCVCM_NODE_TYPE_NAME_ARRAY,
+    PCVCM_NODE_TYPE_NAME_TUPLE,
     PCVCM_NODE_TYPE_NAME_STRING,
     PCVCM_NODE_TYPE_NAME_NULL,
     PCVCM_NODE_TYPE_NAME_BOOLEAN,
@@ -60,6 +61,7 @@ static const char *typenames[] = {
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_AND,
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_OR,
     PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON,
+    PCVCM_NODE_TYPE_NAME_CONSTANT,
 };
 
 #define _COMPILE_TIME_ASSERT(name, x)               \
@@ -610,3 +612,34 @@ pcvcm_eval_again_ex(struct pcvcm_node *tree, struct pcvcm_eval_ctxt *ctxt,
         silently, timeout);
 }
 
+struct pcvcm_node *
+pcvcm_node_new_tuple(size_t nr_nodes, struct pcvcm_node **nodes)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_TUPLE, false);
+    if (!n) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < nr_nodes; i++) {
+        struct pcvcm_node *v = nodes[i];
+        pcvcm_node_append_child(n, v);
+    }
+
+    return n;
+}
+
+struct pcvcm_node *
+pcvcm_node_new_constant(size_t nr_nodes, struct pcvcm_node **nodes)
+{
+    struct pcvcm_node *n = pcvcm_node_new(PCVCM_NODE_TYPE_CONSTANT, false);
+    if (!n) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < nr_nodes; i++) {
+        struct pcvcm_node *v = nodes[i];
+        pcvcm_node_append_child(n, v);
+    }
+
+    return n;
+}
