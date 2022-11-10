@@ -260,4 +260,10 @@ purc_variant_sorted_array_size(purc_variant_t array, size_t *sz)
     return true;
 }
 
+bool
+pcvariant_is_sorted_array(purc_variant_t v)
+{
+    struct sorted_array *sa = get_sorted_array(v);
+    return (sa != NULL);
+}
 

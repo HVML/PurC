@@ -488,6 +488,9 @@ pcintr_eval_vcm(pcintr_stack_t stack, struct pcvcm_node *node, bool silently);
 enum pcfetcher_request_method
 pcintr_method_from_via(enum VIA via);
 
+bool
+pcintr_match_exception(int except, purc_variant_t constant);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

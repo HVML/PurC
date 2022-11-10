@@ -612,3 +612,28 @@ pcintr_method_from_via(enum VIA via)
     return method;
 }
 
+bool
+pcintr_match_exception(int except, purc_variant_t constant)
+{
+    bool ret = false;
+    if (except == 0 || !constant || !pcvariant_is_sorted_array(constant)) {
+        goto out;
+    }
+
+    purc_atom_t atom = purc_get_except_atom_by_id(except);
+    if (!atom) {
+        goto out;
+    }
+
+    purc_variant_t v = purc_variant_make_ulongint((uint64_t)atom);
+    if (!v) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    ret = purc_variant_sorted_array_find(constant, v);
+    purc_variant_unref(v);
+out:
+    return ret;
+}
+
