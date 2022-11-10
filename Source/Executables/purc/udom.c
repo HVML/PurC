@@ -34,59 +34,6 @@
 
 #include <assert.h>
 
-typedef enum {
-    PCTH_RDR_ALIGN_LEFT,
-    PCTH_RDR_ALIGN_RIGHT,
-    PCTH_RDR_ALIGN_CENTER,
-    PCTH_RDR_ALIGN_JUSTIFY,
-} foil_rdr_align_t;
-
-typedef enum {
-    PCTH_RDR_DECORATION_NONE,
-    PCTH_RDR_DECORATION_UNDERLINE,
-    PCTH_RDR_DECORATION_OVERLINE,
-    PCTH_RDR_DECORATION_LINE_THROUGH,
-    PCTH_RDR_DECORATION_BLINK,
-} foil_rdr_decoration_t;
-
-typedef enum {
-    PCTH_RDR_WHITE_SPACE_NORMAL,
-    PCTH_RDR_WHITE_SPACE_PRE,
-    PCTH_RDR_WHITE_SPACE_NOWRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_WRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_LINE,
-} foil_rdr_white_space_t;
-
-struct pcmcth_udom {
-    /* the sorted array of eDOM element and the corresponding rendering box. */
-    struct sorted_array *elem2rdrbox;
-
-    struct purc_broken_down_url *base;
-
-    /* author-defined style sheet */
-    css_stylesheet *author_sheet;
-
-    /* CSS selection context */
-    css_select_ctx *select_ctx;
-
-    /* the initial containing block,
-       it's also the root node of the rendering tree. */
-    struct foil_rdrbox *initial_cblock;
-
-    /* the CSS media */
-    css_media media;
-
-    /* size of whole page in pixels */
-    unsigned width, height;
-
-    /* size of page in rows and columns */
-    unsigned cols, rows;
-
-    /* title */
-    uint32_t *title_ucs;
-    size_t    title_len;
-};
-
 static css_stylesheet *def_ua_sheet;
 /* copy from https://www.w3.org/TR/2011/REC-CSS2-20110607/sample.html#q22.0 */
 static const char *def_style_sheet = ""
@@ -235,6 +182,8 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
+    if (udom->counters)
+        g_hash_table_destroy(udom->counters);
     if (udom->title_ucs)
         free(udom->title_ucs);
     if (udom->elem2rdrbox)
@@ -247,6 +196,44 @@ static void udom_cleanup(pcmcth_udom *udom)
         css_select_ctx_destroy(udom->select_ctx);
     if (udom->initial_cblock)
         foil_rdrbox_delete_deep(udom->initial_cblock);
+}
+
+static const char *initial_quotes[] = {
+    "\"",
+    "\"",
+    "'",
+    "'",
+};
+
+static guint cb_lwc_string_hash(gconstpointer v)
+{
+    const char *str;
+    size_t len;
+
+    str = lwc_string_data((lwc_string *)v);
+    len = lwc_string_length((lwc_string *)v);
+
+    char buff[len + 1];
+    strncpy(buff, str, len);
+    buff[len] = 0;
+
+    return g_str_hash(buff);
+}
+
+static gboolean
+cb_lwc_string_equal(gconstpointer a, gconstpointer b)
+{
+    bool is_equal;
+    lwc_error error;
+    error = lwc_string_isequal((lwc_string *)a, (lwc_string *)b, &is_equal);
+    (void)error;
+    return is_equal;
+}
+
+static void
+cb_lwc_string_key_destroy(gpointer data)
+{
+    lwc_string_unref((lwc_string *)data);
 }
 
 pcmcth_udom *foil_udom_new(pcmcth_page *page)
@@ -277,6 +264,9 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
+    udom->counters = g_hash_table_new_full(cb_lwc_string_hash,
+            cb_lwc_string_equal, cb_lwc_string_key_destroy, NULL);
+
     /* create the initial containing block */
     int cols = foil_page_cols(page);
     int rows = foil_page_rows(page);
@@ -285,6 +275,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
+        LOG_ERROR("Failed to allocate initial containing block\n");
         goto failed;
     }
 
@@ -299,6 +290,25 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock->fgc = FOIL_DEF_FGC;
     udom->initial_cblock->bgc = FOIL_DEF_BGC;
+
+    udom->initial_cblock->quotes.nr_strings = PCA_TABLESIZE(initial_quotes);
+    udom->initial_cblock->quotes.strings =
+        calloc(PCA_TABLESIZE(initial_quotes), sizeof(lwc_string *));
+    if (udom->initial_cblock->quotes.strings == NULL) {
+        LOG_ERROR("Failed to create initial quotes\n");
+        goto failed;
+    }
+
+    for (size_t i = 0; i < PCA_TABLESIZE(initial_quotes); i++) {
+        if (lwc_intern_string(initial_quotes[i], strlen(initial_quotes[i]),
+                    &udom->initial_cblock->quotes.strings[i])) {
+            LOG_ERROR("Failed to intern initial quote string\n");
+            goto failed;
+        }
+
+        LOG_DEBUG("quote string[%u]: %p\n",
+                (unsigned)i, udom->initial_cblock->quotes.strings[i]);
+    }
 
     udom->initial_cblock->cblock_rect.left = 0;
     udom->initial_cblock->cblock_rect.top = 0;
@@ -1044,14 +1054,6 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 failed:
     foil_udom_delete(udom);
     return NULL;
-}
-
-const uint32_t *
-foil_udom_get_title(pcmcth_udom *udom, size_t *len)
-{
-    if (len)
-        *len = udom->title_len;
-    return udom->title_ucs;
 }
 
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,

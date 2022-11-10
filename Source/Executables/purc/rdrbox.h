@@ -185,6 +185,13 @@ struct _inline_block_data;
 struct _list_item_data;
 struct _marker_box_data;
 
+struct _quote_strings {
+    /* when `quotes` is `none`, nr_strings is zero */
+    size_t nr_strings;
+
+    lwc_string **strings;
+};
+
 struct foil_rdrbox {
     struct foil_rdrbox* parent;
     struct foil_rdrbox* first;
@@ -253,6 +260,8 @@ struct foil_rdrbox {
 
     uint32_t fgc;   // ARGB
     uint32_t bgc;   // ARGB
+
+    struct _quote_strings quotes;  // inherited
 
     /* layout flags */
     unsigned height_pending:1;

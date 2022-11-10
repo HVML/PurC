@@ -29,8 +29,46 @@
 #include "foil.h"
 #include "rdrbox.h"
 
+#include <glib.h>
+
 #define FOIL_DEF_FGC        0xFFFFFFFF
 #define FOIL_DEF_BGC        0xFF000000
+
+struct pcmcth_udom {
+    /* the sorted array of eDOM element and the corresponding rendering box. */
+    struct sorted_array *elem2rdrbox;
+
+    struct purc_broken_down_url *base;
+
+    /* author-defined style sheet */
+    css_stylesheet *author_sheet;
+
+    /* CSS selection context */
+    css_select_ctx *select_ctx;
+
+    /* the initial containing block,
+       it's also the root node of the rendering tree. */
+    struct foil_rdrbox *initial_cblock;
+
+    /* the CSS media */
+    css_media media;
+
+    /* size of whole page in pixels */
+    unsigned width, height;
+
+    /* size of page in rows and columns */
+    unsigned cols, rows;
+
+    /* title */
+    uint32_t *title_ucs;
+    size_t    title_len;
+
+    /* counters */
+    GHashTable *counters;
+
+    /* quoting depth */
+    int quoting_depth;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +86,6 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
 pcmcth_udom *foil_udom_load_edom(pcmcth_page *page,
         purc_variant_t edom, int *retv);
 
-const uint32_t *foil_udom_get_title(pcmcth_udom *udom, size_t *len);
 uint8_t foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem);
 
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,

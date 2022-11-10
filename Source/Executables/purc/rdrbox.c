@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -104,6 +104,15 @@ failed:
 void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
+
+    if (box->quotes.strings) {
+        for (size_t i = 0; i < box->quotes.nr_strings; i++) {
+            LOG_DEBUG("unref quote string: %p\n", box->quotes.strings[i]);
+            lwc_string_unref(box->quotes.strings[i]);
+        }
+
+        free(box->quotes.strings);
+    }
 
     if (box->data) {
         if (box->cb_data_cleanup) {
@@ -988,7 +997,7 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     LOG_DEBUG("\tlist-style-type: %s\n",
             literal_values_list_style_type[box->list_style_type]);
 
-    /* determine word-wrap */
+    /* determine list-style-position */
     v = css_computed_list_style_position(
             ctxt->style);
     if (v == CSS_LIST_STYLE_POSITION_INHERIT)
@@ -1032,6 +1041,45 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     LOG_DEBUG("\tbackground-color: 0x%08x\n", box->bgc);
 
+    /* determine quotes */
+    lwc_string **quotes = NULL;
+    size_t n = 0;
+    v = css_computed_quotes(ctxt->style, &quotes);
+    if (v == CSS_QUOTES_INHERIT) {
+        n = ctxt->parent_box->quotes.nr_strings;
+        quotes = ctxt->parent_box->quotes.strings;
+    }
+    else if (v == CSS_QUOTES_STRING) {
+        size_t n = 0;
+        while (quotes[n]) {
+            n++;
+        }
+
+        /* if n is odd */
+        if ((n % 2)) {
+            LOG_WARN("Bad quote strings: %u; ignored\n", (unsigned)n);
+            n = 0;
+        }
+    }
+    else {
+        // keep zeros
+    }
+
+    if (n > 0 && quotes != NULL) {
+        box->quotes.strings = calloc(n, sizeof(lwc_string *));
+        if (box->quotes.strings) {
+            for (size_t i = 0; i < n; i++) {
+                box->quotes.strings[i] = lwc_string_ref(quotes[i]);
+            }
+
+            box->quotes.nr_strings = n;
+        }
+        else {
+            LOG_WARN("Failed allocate memory for quote strings\n");
+        }
+    }
+
+    LOG_DEBUG("\tquotes: %u\n", (unsigned)box->quotes.nr_strings);
 }
 
 static void
@@ -1783,11 +1831,9 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
         box->is_pseudo = 1;
     }
 
-    const char *text = "";
-    size_t len = 0;
-
-    const css_computed_content_item *content;
-    uint8_t v = css_computed_content(ctxt->style, &content);
+    GString *text = NULL;
+    const css_computed_content_item *ctnt_item;
+    uint8_t v = css_computed_content(ctxt->style, &ctnt_item);
 
     if (v == CSS_CONTENT_INHERIT || v == CSS_CONTENT_NONE ||
             v == CSS_CONTENT_NORMAL) {
@@ -1795,67 +1841,106 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
     }
     else {
         assert(v == CSS_CONTENT_SET);
-        switch (content->type) {
-        case CSS_COMPUTED_CONTENT_NONE:
-            // do nothing
-            break;
+        text = g_string_new("");
 
-        case CSS_COMPUTED_CONTENT_STRING:
-            text = lwc_string_data(content->data.string);
-            len = lwc_string_length(content->data.string);
-            break;
+        const char *str;
+        size_t len;
 
-        case CSS_COMPUTED_CONTENT_ATTR:
-            {
+        while (ctnt_item) {
+            LOG_ERROR("content item type: %d\n", (int)ctnt_item->type);
+
+            switch (ctnt_item->type) {
+            case CSS_COMPUTED_CONTENT_NONE:
+                ctnt_item = NULL;
+                continue;
+
+            case CSS_COMPUTED_CONTENT_STRING:
+                str = lwc_string_data(ctnt_item->data.string);
+                len = lwc_string_length(ctnt_item->data.string);
+                g_string_append_len(text, str, len);
+                break;
+
+            case CSS_COMPUTED_CONTENT_ATTR: {
                 const char *v;
                 size_t l;
-                v = lwc_string_data(content->data.attr);
-                l = lwc_string_length(content->data.attr);
+                v = lwc_string_data(ctnt_item->data.attr);
+                l = lwc_string_length(ctnt_item->data.attr);
 
                 if (l > 0) {
                     char *attr_name = strndup(v, l);
                     pcdoc_element_get_attribute(ctxt->doc, ctxt->elem,
-                                attr_name, &text, &len);
+                                attr_name, &str, &len);
                     free(attr_name);
+
+                    g_string_append_len(text, str, len);
                 }
+                break;
             }
-            break;
 
-        case CSS_COMPUTED_CONTENT_COUNTER:
-            // TODO
-            break;
+            case CSS_COMPUTED_CONTENT_URI:
+                g_string_append(text, "<URI>");
+                break;
 
-        case CSS_COMPUTED_CONTENT_COUNTERS:
-            // TODO
-            break;
+            case CSS_COMPUTED_CONTENT_COUNTER:
+                // TODO
+                break;
 
-        case CSS_COMPUTED_CONTENT_OPEN_QUOTE:
-            // TODO
-            break;
+            case CSS_COMPUTED_CONTENT_COUNTERS:
+                // TODO
+                break;
 
-        case CSS_COMPUTED_CONTENT_CLOSE_QUOTE:
-            // TODO
-            break;
+            case CSS_COMPUTED_CONTENT_OPEN_QUOTE: {
+                if (box->quotes.nr_strings > 0 &&
+                        ctxt->udom->quoting_depth >= 0) {
+                    size_t i = ctxt->udom->quoting_depth * 2;
+                    if (i >= box->quotes.nr_strings) {
+                        i = box->quotes.nr_strings - 2;
+                    }
 
-        case CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE:
-            // TODO
-            break;
+                    str = lwc_string_data(box->quotes.strings[i]);
+                    len = lwc_string_length(box->quotes.strings[i]);
+                    g_string_append_len(text, str, len);
+                }
 
-        case CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE:
-            // TODO
-            break;
+                ctxt->udom->quoting_depth--;
+                break;
+            }
 
-        case CSS_COMPUTED_CONTENT_URI:
-            text = "501";
-            len = 3;
-            break;
+            case CSS_COMPUTED_CONTENT_CLOSE_QUOTE: {
+                if (box->quotes.nr_strings > 0 &&
+                        ctxt->udom->quoting_depth >= 0) {
+                    size_t i = ctxt->udom->quoting_depth * 2 + 1;
+                    if (i >= box->quotes.nr_strings) {
+                        i = box->quotes.nr_strings - 1;
+                    }
 
-        default:
-            assert(0);
-            break;
+                    str = lwc_string_data(box->quotes.strings[i]);
+                    len = lwc_string_length(box->quotes.strings[i]);
+                    g_string_append_len(text, str, len);
+                }
+
+                ctxt->udom->quoting_depth--;
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE:
+                ctxt->udom->quoting_depth++;
+                break;
+
+            case CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE:
+                ctxt->udom->quoting_depth--;
+                break;
+
+            default:
+                LOG_ERROR("bad content item type: %d\n", (int)ctnt_item->type);
+                assert(0);
+                break;
+            }
+
+            ctnt_item++;
         }
 
-        if (text && len > 0) {
+        if (text) {
             foil_rdrbox *inline_box;
             if (principal->is_block_level) {
                 if ((inline_box = foil_rdrbox_create_anonymous_inline(ctxt,
@@ -1866,14 +1951,19 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                 inline_box = box;
             }
 
-            if (!foil_rdrbox_init_inline_data(ctxt, inline_box, text, len))
+            if (!foil_rdrbox_init_inline_data(ctxt, inline_box,
+                        text->str, text->len))
                 goto failed;
+
+            g_string_free(text, TRUE);
         }
     }
 
     return box;
 
 failed:
+    if (text)
+        g_string_free(text, TRUE);
     if (box)
         foil_rdrbox_delete(box);
     return NULL;
@@ -2119,14 +2209,10 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
 {
     /* print title */
     if (level == 0) {
-        size_t title_len;
-        const uint32_t *title_ucs =
-            foil_udom_get_title(ctxt->udom, &title_len);
-
-        if (title_ucs) {
-            for (size_t i = 0; i < title_len; i++) {
+        if (ctxt->udom->title_ucs) {
+            for (size_t i = 0; i < ctxt->udom->title_len; i++) {
                 char utf8[10];
-                unsigned len = pcutils_unichar_to_utf8(title_ucs[i],
+                unsigned len = pcutils_unichar_to_utf8(ctxt->udom->title_ucs[i],
                         (unsigned char *)utf8);
                 utf8[len] = 0;
                 fputs(utf8, stdout);
