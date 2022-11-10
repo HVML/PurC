@@ -200,6 +200,9 @@ struct foil_rdrbox {
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_element_t owner;
 
+    /* the pricipal box if this box is created for an pseudo element */
+    struct foil_rdrbox *principal;
+
     uint8_t is_block_level:1;
     uint8_t is_inline_level:1;
 
@@ -208,6 +211,9 @@ struct foil_rdrbox {
 
     /* Indicates that this box is principal box. */
     uint8_t is_principal:1;
+
+    /* Indicates that this box is created for an pseudo element. */
+    uint8_t is_pseudo:1;
 
     /* Indicates that the element generating this box is a replaced one. */
     uint8_t is_replaced:1;
@@ -307,7 +313,8 @@ typedef struct foil_create_ctxt {
     pcdoc_element_t elem;
 
     /* the current styles */
-    css_select_results *computed;
+    const css_select_results *computed;
+    const css_computed_style *style;
 
     /* the tag name of the current element */
     char *tag_name;
@@ -357,6 +364,14 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
 /* create the principal box and the subsidiary box (e.g. marker) */
 foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt);
+
+/* create the box for :before pseudo element */
+foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal);
+
+/* create the box for :after pseudo element */
+foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal);
 
 /* create an anonymous block box */
 foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,

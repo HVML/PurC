@@ -672,10 +672,41 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         /* skip descendants for "display: none" */
         ctxt->elem = ancestor;
         ctxt->computed = result;
-        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL)
+
+        const char *name;
+        size_t len;
+
+        pcdoc_element_get_tag_name(ctxt->doc, ctxt->elem, &name, &len,
+                NULL, NULL, NULL, NULL);
+        assert(name != NULL && len > 0);
+        ctxt->tag_name = strndup(name, len);
+
+        LOG_DEBUG("Creating boxes for element: %s\n", ctxt->tag_name);
+
+        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
+            LOG_WARN("Failed to create principal rdrbox for element\n");
             goto done;
+        }
+
+        /* handle :before and :after pseudo elements */
+        if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
+            if (foil_rdrbox_create_before(ctxt, box) == NULL) {
+                LOG_WARN("Failed to create rdrbox for :before pseudo element\n");
+                goto done;
+            }
+        }
+        else if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
+            if (foil_rdrbox_create_after(ctxt, box) == NULL) {
+                LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
+                goto done;
+            }
+        }
+
         css_select_results_destroy(result);
-        result = NULL;
+
+        free(ctxt->tag_name);
+        ctxt->computed = result = NULL;
+        ctxt->tag_name = NULL;
     }
     else {
         goto failed;
@@ -723,11 +754,15 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
     }
 
 done:
+    if (ctxt->tag_name)
+        free(ctxt->tag_name);
     if (result)
         css_select_results_destroy(result);
     return 0;
 
 failed:
+    if (ctxt->tag_name)
+        free(ctxt->tag_name);
     if (result)
         css_select_results_destroy(result);
     return -1;
@@ -979,7 +1014,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL, 0, 0 };
+        udom->initial_cblock, udom->initial_cblock,
+        NULL, NULL, NULL, NULL, 0, 0 };
     if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
         goto failed;
 
