@@ -259,10 +259,10 @@ purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
 
 /**
  * Creates a variant which represents a null-terminated string in UTF-8
- * encoding by copying the specified string with specified length at most.
+ * encoding by copying a string, but at most the specified length copied.
  *
  * @param str_utf8: The pointer to a string which is encoded in UTF-8.
- * @param len: The length of string to be copied at most in bytes.
+ * @param len: The length of string (in bytes) to be copied at most.
  * @param check_encoding: Whether to check the encoding.
  *
  * Returns: A variant which copies the string of specified length in
@@ -275,26 +275,36 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
         bool check_encoding);
 
 /**
- * Gets the pointer of the string buffer which is encapsulated in string type.
+ * Gets the pointer of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
- * @param value: the data in string, atomstring, or exception type.
- * @param str_len: the pointer to a buffer to receive the length of the string
- *  (not including the terminating null byte), nullable.
+ * Note that you should not change the contents in the buffer
+ * pointed to by the return value.
  *
- * Returns: The pointer of the string, or NULL if value is not a string type.
+ * @param value: A string, an atom, or an exception variant.
+ * @param length (nullable): The pointer to a size_t buffer to receive
+ *      the length of the string (not including the terminating null byte).
+ *
+ * Returns: The pointer to the string in UTF-8 encoding, or %NULL if
+ *      the variant does not respresent a string, an atom, or an exception.
  *
  * Since: 0.1.0
  */
 PCA_EXPORT const char*
-purc_variant_get_string_const_ex(purc_variant_t value, size_t *str_len);
+purc_variant_get_string_const_ex(purc_variant_t value, size_t *length);
 
 
 /**
- * Gets the pointer of the string buffer which is encapsulated in string type.
+ * Gets the pointer of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
- * @param value: the data in string, atomstring, or exception type.
+ * Note that you should not change the contents in the buffer
+ * pointed to by the return value.
  *
- * Returns: The pointer of char string, or NULL if value is not a string type.
+ * @param value: A string, an atom, or an exception variant.
+ *
+ * Returns: The pointer to the string in UTF-8 encoding, or %NULL if
+ *      the variant does not respresent a string, an atom, or an exception.
  *
  * Since: 0.0.1
  */
@@ -305,13 +315,14 @@ purc_variant_get_string_const(purc_variant_t value)
 }
 
 /**
- * Get the length in bytes of a string variant value.
+ * Gets the length of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
- * @param value: the variant value of string type
- * @param length: the buffer to receive the length (including the terminating
- *  null byte) of the string.
+ * @param value: A string, an atom, or an exception variant.
+ * @param length (nullable): The pointer to a size_t buffer to receive
+ *      the length of the string (not including the terminating null byte).
  *
- * Returns: @true on success, otherwise @false (the variant is not a string).
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -319,16 +330,19 @@ PCA_EXPORT bool
 purc_variant_string_bytes(purc_variant_t value, size_t *length);
 
 /**
- * Get the size in bytes of the space used by a string variant value.
+ * Gets the length of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
- * @param value: the variant value of string type.
+ * @param value: A string, an atom, or an exception variant.
  *
- * Returns: The size in bytes of the space used by the string variant;
- *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a string.
+ * Returns: The length in bytes (not including the terminating null byte)
+ *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the variant
+ *  is not a string, an atom, or an exception variant.
  *
  * Since: 0.0.1
  */
-static inline ssize_t purc_variant_string_size(purc_variant_t value)
+static inline ssize_t
+purc_variant_string_size(purc_variant_t value)
 {
     size_t len;
     if (!purc_variant_string_bytes(value, &len))
