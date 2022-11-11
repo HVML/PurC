@@ -6,15 +6,15 @@
     <body>
         <div>
             <init as="name" with="world"/>
-            <except type="InvalidValue">
+            <except type=`InvalidValue`>
                 you shall NOT see me
             </except>
-            <except type="*">
+            <except type=`ANY`>
                 you shall NOT see me
             </except>
-            <except type="ArgumentMissed" src="http://mg.fmsoft.cn/tools/except.php" param={a:1,b:2} method="GET">
+            <except type=`ArgumentMissed` src="http://mg.fmsoft.cn/tools/except.php" param={a:1,b:2} method="GET">
             </except>
-            <except type="*">
+            <except type=`ANY`>
                 you shall NOT see me
             </except>
             <li>

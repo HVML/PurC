@@ -27,7 +27,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<iterate on=getVariable("?") to="append" in="#the-user-list" with=getVariable("user_item") by="CLASS: IUser">
 PCHVML_TOKEN_VCM_TREE|"
                 "
-PCHVML_TOKEN_START_TAG|<error type="notready">
+PCHVML_TOKEN_START_TAG|<error type=`NotReady`>
 PCHVML_TOKEN_VCM_TREE|"<img src="wait.gif" />
                 "
 PCHVML_TOKEN_END_TAG|</error>

@@ -21,10 +21,10 @@
 
         <ul id="the-user-list" class="user-list">
             <iterate on="$users" to="append" in="#the-user-list" with="$user_item" by="CLASS: IUser">
-                <error type="notready">
+                <error type=`NotReady`>
                     <img src="wait.gif" />
                 </error>
-                <except type="StopIteration">
+                <except on=`InvalidValue`>
                     <p>Bad user data!</p>
                 </except>
             </iterate>

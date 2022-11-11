@@ -6,16 +6,16 @@
     <body>
         <div>
             <init as="name" with="world"/>
-            <except type="InvalidValue">
+            <except type=`InvalidValue`>
                 you shall NOT see me
             </except>
-            <except type="*">
+            <except type=`ANY`>
                 you shall NOT see me
             </except>
-            <except type="ArgumentMissed">
+            <except type=`ArgumentMissed`>
                 hello $name
             </except>
-            <except type="*">
+            <except type=`ANY`>
                 you shall NOT see me
             </except>
             <li>

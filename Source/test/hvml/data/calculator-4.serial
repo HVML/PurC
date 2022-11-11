@@ -222,7 +222,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<update on=getVariable("@") to="append" with=getVariable("button")/>
 PCHVML_TOKEN_VCM_TREE|"
                         "
-PCHVML_TOKEN_START_TAG|<except type="NoData" raw>
+PCHVML_TOKEN_START_TAG|<except type=`NoData` raw>
 PCHVML_TOKEN_VCM_TREE|"<p>Bad data!</p>
                         "
 PCHVML_TOKEN_END_TAG|</except>

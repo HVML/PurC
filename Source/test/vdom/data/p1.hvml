@@ -40,10 +40,10 @@
 
         <ul class="user-list">
             <iterate on="$users" to="append" with="$user_item" by="CLASS: IUser">
-                <error type="nodata">
+                <error type=`NoData`>
                     <img src="wait.png" />
                 </error>
-                <except type="StopIteration">
+                <except type=`InvalidValue`>
                     <p>Bad user data!</p>
                 </except>
             </iterate>
@@ -69,13 +69,13 @@
                 </match>
                 <match for="*" to="displace" with="$footer_def">
                 </match>
-                <error type="nodata">
+                <error type=`NoData`>
                     <p>You forget to define the $global variable!</p>
                 </error>
-                <except type="KeyError">
+                <except type=`NoSuchKey`>
                     <p>Bad global data!</p>
                 </except>
-                <except type="IdentifierError">
+                <except type=`InvalidValue`>
                     <p>Bad archetype data!</p>
                 </except>
             </test>

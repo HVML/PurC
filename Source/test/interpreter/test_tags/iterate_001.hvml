@@ -14,7 +14,7 @@
                 <ul>
                     <iterate on="$numbers">
                         <update on="$@" to="append" with="$?" />
-                        <except type="NoData" raw>
+                        <except type=`NoData` raw>
                             <p>Bad data!</p>
                         </except>
                     </iterate>

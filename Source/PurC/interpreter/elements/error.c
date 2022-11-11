@@ -77,12 +77,6 @@ process_attr_type(struct pcintr_stack_frame *frame,
                 purc_atom_to_string(name), element->tag_name);
         return -1;
     }
-    if (!purc_variant_is_string(val)) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> is not string",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
 
     ctxt->type = purc_variant_ref(val);
 
@@ -171,13 +165,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    if (ctxt->type == PURC_VARIANT_INVALID) {
-        ctxt->type = purc_variant_make_string("*", false);
-    }
-
-    if (ctxt->type == PURC_VARIANT_INVALID)
-        return ctxt;
-
     return ctxt;
 }
 
@@ -244,7 +231,6 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!contents)
         return -1;
 
-    PC_ASSERT(ctxt->type != PURC_VARIANT_INVALID);
     int r;
     r = pcintr_bind_template(frame->error_templates,
             ctxt->type, ctxt->contents);

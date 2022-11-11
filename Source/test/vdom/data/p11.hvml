@@ -19,10 +19,10 @@
                 <match for="*" to="displace" with="#footer-others">
                 </match>
 
-                <error type="nodata">
+                <error type=`NoData`>
                     <p>You forget to define the $global variable!</p>
                 </error>
-                <except type="KeyError">
+                <except type=`NoSuchKey`>
                     <p>Bad global data!</p>
                 </except>
             </test>

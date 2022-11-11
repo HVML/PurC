@@ -9,7 +9,7 @@
 
         <observe on="$mqtt" for="event:$new_user" to="iterate">
             <iterate on="$?" to="append" in="#the-user-list" with="$user_item" by="CLASS: IUser">
-                <error type="notready">
+                <error type=`NotReady`>
                     <img src="wait.gif" />
                 </error>
                 <except>
