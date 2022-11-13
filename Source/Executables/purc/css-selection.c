@@ -1217,10 +1217,22 @@ node_is_target(void *pw, void *n, bool *match)
 static css_error node_is_lang(void *pw, void *n,
         lwc_string *lang, bool *match)
 {
-    (void)pw;
-    (void)n;
-    (void)lang;
+    purc_document_t doc = pw;
+    pcdoc_element_t ele = n;
+
+    const char *target_lang = lwc_string_data(lang);
+    size_t target_len = lwc_string_length(lang);
+
+    const char *found_lang;
+    size_t found_len;
+    int ret = foil_doc_get_element_lang(doc, ele, &found_lang, &found_len);
+
     *match = false;
+    if (ret == 0 && found_lang &&
+            strncasecmp(target_lang, found_lang, target_len) == 0) {
+        *match = true;
+    }
+
     return CSS_OK;
 }
 

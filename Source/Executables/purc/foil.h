@@ -28,7 +28,6 @@
 
 #include <time.h>
 
-/* for purc_atom_t */
 #include <purc/purc.h>
 
 #include "purcmc-thread.h"
@@ -117,6 +116,9 @@ extern "C" {
 #endif
 
 purc_atom_t foil_init(const char *rdr_uri);
+
+int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
+        const char **lang, size_t *len);
 
 #ifdef __cplusplus
 }

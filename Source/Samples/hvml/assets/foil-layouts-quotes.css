@@ -1,6 +1,7 @@
 /* Specify pairs of quotes for two levels in two languages */
 q:lang(en) { quotes: '"' '"' "'" "'" }
-q:lang(no) { quotes: "«" "»" '"' '"' }
+q:lang(zh) { quotes: '“' '”' "‘" "’" }
+q:lang(no) { quotes: "«" "»" '<' '>' }
 
 /* Insert quotes before and after Q element content */
 q:before { content: open-quote }

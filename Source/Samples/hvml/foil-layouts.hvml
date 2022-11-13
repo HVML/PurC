@@ -83,6 +83,9 @@
                 <P>
                     <Q>Quote me!</Q>
                 </P>
+                <P lang="zh">
+                    <Q>中文双引号包起来<Q>单引号</Q></Q>
+                </P>
                 <P lang="no">
                     <Q>Trøndere gråter når <Q>Vinsjan på kaia</Q> blir deklamert.</Q>
                 </P>
