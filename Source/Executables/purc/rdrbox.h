@@ -331,7 +331,7 @@ typedef struct foil_create_ctxt {
     const css_computed_style *style;
 
     /* the tag name of the current element */
-    char *tag_name;
+    const char *tag_name;
 
     unsigned pos_schema:3;
     unsigned in_normal_flow:1;

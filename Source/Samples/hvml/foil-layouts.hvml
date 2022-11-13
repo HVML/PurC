@@ -6,7 +6,7 @@
         <base href=$CRTN.base(! "file://$SYS.cwd" ) />
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
-                <init as 'styleCase' at '_root' with 'displayBlock' />
+                <init as 'styleCase' at '_root' with 'quotes' />
             </catch>
         </init>
 
@@ -16,8 +16,9 @@
     </head>
 
     <body>
-        <define as "displayBlock" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="displayBlock">
+        <init as 'caseName' with 'displayBlock' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <P>
                     This text is defined by the first P.
                     <BR />
@@ -33,8 +34,9 @@
             </SECTION>
         </define>
 
-        <define as "anonymousBlocks" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="anonymousBlocks">
+        <init as 'caseName' with 'anonymousBlocks' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <DIV style="display:block">
                       There is an anonymous block box around this text.
                   <P style="display:block">This text is in the block box created by `p`.</P>
@@ -49,8 +51,9 @@
             </SECTION>
         </define>
 
-        <define as "unorderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="unorderedListItems">
+        <init as 'caseName' with 'unorderedListItems' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <ul>
                     <li>The first item.</li>
                     <li>The second item.</li>
@@ -59,8 +62,10 @@
             </SECTION>
         </define>
 
-        <define as "orderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="orderedListItems">
+        <init as 'caseName' with 'orderedListItems' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+
+            <SECTION id="$caseName">
                 <h1 hvml:silently>$STR.format_p('Numbers less than #0', $?)</h1>
 
                 <ol>
@@ -71,6 +76,19 @@
 
              </SECTION>
         </define>
+
+        <init as 'caseName' with 'quotes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <P>
+                    <Q>Quote me!</Q>
+                </P>
+                <P>
+                    <Q lang="no">Trøndere gråter når <Q>Vinsjan på kaia</Q> blir deklamert.</Q>
+                </P>
+            </SECTION>
+        </define>
+
 
         <!-- check validation of ${$styleCase} -->
         <choose on ${$styleCase}>

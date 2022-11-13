@@ -67,7 +67,8 @@ struct pcmcth_udom {
     GHashTable *counters;
 
     /* quoting depth */
-    int quoting_depth;
+    int nr_open_quotes;
+    int nr_close_quotes;
 };
 
 #ifdef __cplusplus

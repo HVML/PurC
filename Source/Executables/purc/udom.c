@@ -648,49 +648,40 @@ failed:
 static int
 make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 {
+    char *tag_name = NULL;
     foil_rdrbox *box;
     css_select_results *result = NULL;
+
     result = select_element_style(&ctxt->udom->media,
             ctxt->udom->select_ctx, ctxt->doc, ancestor);
     if (result) {
-        /* skip descendants for "display: none" */
-        ctxt->elem = ancestor;
-        ctxt->computed = result;
-
         const char *name;
         size_t len;
 
-        pcdoc_element_get_tag_name(ctxt->doc, ctxt->elem, &name, &len,
+        pcdoc_element_get_tag_name(ctxt->doc, ancestor, &name, &len,
                 NULL, NULL, NULL, NULL);
         assert(name != NULL && len > 0);
-        ctxt->tag_name = strndup(name, len);
+        tag_name = strndup(name, len);
 
-        LOG_DEBUG("Creating boxes for element: %s\n", ctxt->tag_name);
+        LOG_DEBUG("Creating boxes for element: %s\n", tag_name);
 
+        ctxt->tag_name = tag_name;
+        ctxt->elem = ancestor;
+        ctxt->computed = result;
+        /* skip descendants for "display: none" */
         if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
             LOG_WARN("Failed to create principal rdrbox for element\n");
             goto done;
         }
 
-        /* handle :before and :after pseudo elements */
+        /* handle :before pseudo elements */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
             if (foil_rdrbox_create_before(ctxt, box) == NULL) {
                 LOG_WARN("Failed to create rdrbox for :before pseudo element\n");
                 goto done;
             }
         }
-        else if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
-            if (foil_rdrbox_create_after(ctxt, box) == NULL) {
-                LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
-                goto done;
-            }
-        }
 
-        css_select_results_destroy(result);
-
-        free(ctxt->tag_name);
-        ctxt->computed = result = NULL;
-        ctxt->tag_name = NULL;
     }
     else {
         goto failed;
@@ -710,9 +701,10 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         else if (node.type == PCDOC_NODE_TEXT) {
             const char *text = NULL;
             size_t len = 0;
-            pcdoc_text_content_get_text(ctxt->doc,
-                    node.text_node, &text, &len);
+            pcdoc_text_content_get_text(ctxt->doc, node.text_node,
+                    &text, &len);
 
+            LOG_INFO("text content of %s: %s\n", tag_name, text);
             if (text && len > 0) {
                 foil_rdrbox *my_box;
                 if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
@@ -722,13 +714,6 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
                 if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
                     goto done;
             }
-#if 0
-            else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
-                if (!foil_rdrbox_init_inline_data(ctxt,
-                                ctxt->parent_box, text, len))
-                    goto done;
-            }
-#endif
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {
             LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
@@ -737,16 +722,27 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         node = pcdoc_node_next_sibling(ctxt->doc, node);
     }
 
+    /* handle :after pseudo elements */
+    ctxt->tag_name = tag_name;
+    ctxt->elem = ancestor;
+    ctxt->computed = result;
+    if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
+        if (foil_rdrbox_create_after(ctxt, box) == NULL) {
+            LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
+            goto done;
+        }
+    }
+
 done:
-    if (ctxt->tag_name)
-        free(ctxt->tag_name);
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return 0;
 
 failed:
-    if (ctxt->tag_name)
-        free(ctxt->tag_name);
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return -1;

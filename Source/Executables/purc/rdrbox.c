@@ -1895,8 +1895,6 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     /* adjust position according to 'vertical-align' */
     adjust_position_vertically(ctxt, box);
 
-    foil_rdrbox_append_child(ctxt->parent_box, box);
-
     if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         box->list_item_data->index = ctxt->parent_box->nr_child_list_items;
         ctxt->parent_box->nr_child_list_items++;
@@ -1938,6 +1936,7 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
     if ((box = create_rdrbox_from_style(ctxt))) {
         box->is_principal = 1;
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+        foil_rdrbox_append_child(ctxt->parent_box, box);
     }
 
     return box;
@@ -1950,6 +1949,7 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
 
     if ((box = create_rdrbox_from_style(ctxt))) {
         box->principal = principal;
+        box->is_anonymous = 1;
         box->is_pseudo = 1;
     }
 
@@ -2012,9 +2012,13 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                 break;
 
             case CSS_COMPUTED_CONTENT_OPEN_QUOTE: {
-                if (box->quotes && box->quotes->nr_strings > 0 &&
-                        ctxt->udom->quoting_depth >= 0) {
-                    size_t i = ctxt->udom->quoting_depth * 2;
+                int quoting_depth =
+                    ctxt->udom->nr_open_quotes - ctxt->udom->nr_close_quotes;
+                if (quoting_depth < 0)
+                    quoting_depth = 0;
+
+                if (box->quotes && box->quotes->nr_strings > 0) {
+                    size_t i = quoting_depth * 2;
                     if (i >= box->quotes->nr_strings) {
                         i = box->quotes->nr_strings - 2;
                     }
@@ -2024,14 +2028,20 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                     g_string_append_len(text, str, len);
                 }
 
-                ctxt->udom->quoting_depth--;
+                ctxt->udom->nr_open_quotes++;
                 break;
             }
 
             case CSS_COMPUTED_CONTENT_CLOSE_QUOTE: {
-                if (box->quotes && box->quotes->nr_strings > 0 &&
-                        ctxt->udom->quoting_depth >= 0) {
-                    size_t i = ctxt->udom->quoting_depth * 2 + 1;
+                ctxt->udom->nr_close_quotes++;
+
+                int quoting_depth =
+                    ctxt->udom->nr_open_quotes - ctxt->udom->nr_close_quotes;
+                if (quoting_depth < 0)
+                    quoting_depth = 0;
+
+                if (box->quotes && box->quotes->nr_strings > 0) {
+                    size_t i = quoting_depth * 2 + 1;
                     if (i >= box->quotes->nr_strings) {
                         i = box->quotes->nr_strings - 1;
                     }
@@ -2040,17 +2050,15 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                     len = lwc_string_length(box->quotes->strings[i]);
                     g_string_append_len(text, str, len);
                 }
-
-                ctxt->udom->quoting_depth--;
                 break;
             }
 
             case CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE:
-                ctxt->udom->quoting_depth++;
+                ctxt->udom->nr_open_quotes++;
                 break;
 
             case CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE:
-                ctxt->udom->quoting_depth--;
+                ctxt->udom->nr_close_quotes++;
                 break;
 
             default:
@@ -2062,17 +2070,18 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
             ctnt_item++;
         }
 
-        if (text) {
+        if (text && text->len > 0) {
             foil_rdrbox *inline_box;
-            if (principal->is_block_level) {
+            if (box->is_block_level) {
                 if ((inline_box = foil_rdrbox_create_anonymous_inline(ctxt,
-                                principal)) == NULL)
+                                box)) == NULL)
                     goto failed;
             }
             else {
                 inline_box = box;
             }
 
+            LOG_DEBUG("inline content: %s\n", text->str);
             if (!foil_rdrbox_init_inline_data(ctxt, inline_box,
                         text->str, text->len))
                 goto failed;
@@ -2098,7 +2107,9 @@ foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
 
     ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_BEFORE];
     if ((box = create_content_box(ctxt, principal))) {
-        foil_rdrbox_insert_before(box, principal);
+        LOG_DEBUG("created a box for :before pseudo element for %s\n",
+                ctxt->tag_name);
+        foil_rdrbox_insert_before(principal, box);
     }
 
     return box;
@@ -2111,7 +2122,9 @@ foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
 
     ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_AFTER];
     if ((box = create_content_box(ctxt, principal))) {
-        foil_rdrbox_insert_after(box, principal);
+        LOG_DEBUG("created a box for :after pseudo element for %s\n",
+                ctxt->tag_name);
+        foil_rdrbox_insert_after(principal, box);
     }
 
     return box;
@@ -2269,6 +2282,9 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     }
     else if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         name = strdup("marker");
+    }
+    else if (box->is_pseudo) {
+        name = strdup("pseudo");
     }
     else {
         name = strdup("anonymous");
