@@ -198,13 +198,6 @@ static void udom_cleanup(pcmcth_udom *udom)
         foil_rdrbox_delete_deep(udom->initial_cblock);
 }
 
-static const char *initial_quotes[] = {
-    "\"",
-    "\"",
-    "'",
-    "'",
-};
-
 static guint cb_lwc_string_hash(gconstpointer v)
 {
     const char *str;
@@ -290,25 +283,6 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock->fgc = FOIL_DEF_FGC;
     udom->initial_cblock->bgc = FOIL_DEF_BGC;
-
-    udom->initial_cblock->quotes.nr_strings = PCA_TABLESIZE(initial_quotes);
-    udom->initial_cblock->quotes.strings =
-        calloc(PCA_TABLESIZE(initial_quotes), sizeof(lwc_string *));
-    if (udom->initial_cblock->quotes.strings == NULL) {
-        LOG_ERROR("Failed to create initial quotes\n");
-        goto failed;
-    }
-
-    for (size_t i = 0; i < PCA_TABLESIZE(initial_quotes); i++) {
-        if (lwc_intern_string(initial_quotes[i], strlen(initial_quotes[i]),
-                    &udom->initial_cblock->quotes.strings[i])) {
-            LOG_ERROR("Failed to intern initial quote string\n");
-            goto failed;
-        }
-
-        LOG_DEBUG("quote string[%u]: %p\n",
-                (unsigned)i, udom->initial_cblock->quotes.strings[i]);
-    }
 
     udom->initial_cblock->cblock_rect.left = 0;
     udom->initial_cblock->cblock_rect.top = 0;
@@ -977,6 +951,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         // XXX: default lang
         udom->initial_cblock->lang_code = FOIL_LANGCODE_en;
     }
+    udom->initial_cblock->quotes =
+        foil_quotes_get_initial(udom->initial_cblock->lang_code);
 
     // parse and append style sheets
     pcdoc_element_t head;

@@ -101,17 +101,149 @@ failed:
     return NULL;
 }
 
+foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings)
+{
+    foil_quotes *quotes;
+
+    quotes = calloc(1, sizeof(*quotes));
+    if (G_LIKELY(quotes)) {
+        quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
+
+        if (quotes->strings == NULL) {
+            LOG_ERROR("Failed to create initial quotes\n");
+            goto failed;
+        }
+
+        quotes->nr_strings = 0;
+        for (unsigned i = 0; i < nr_strings; i++) {
+            if (lwc_intern_string(strings[i], strlen(strings[i]),
+                        &quotes->strings[i])) {
+                LOG_ERROR("Failed to intern quote string\n");
+                goto failed;
+            }
+
+            quotes->nr_strings++;
+            LOG_DEBUG("Interned quote string: %p\n", quotes->strings[i]);
+        }
+
+        quotes->refc = 1;
+    }
+
+    return quotes;
+
+failed:
+    foil_quotes_delete(quotes);
+    return NULL;
+}
+
+foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings)
+{
+    foil_quotes *quotes;
+
+    quotes = calloc(1, sizeof(*quotes));
+    if (G_LIKELY(quotes)) {
+        quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
+
+        if (quotes->strings == NULL) {
+            LOG_ERROR("Failed to create initial quotes\n");
+            goto failed;
+        }
+
+        quotes->nr_strings = 0;
+        for (unsigned i = 0; i < nr_strings && strings[i] != NULL; i++) {
+            quotes->strings[i] = lwc_string_ref(strings[i]);
+            quotes->nr_strings++;
+        }
+
+        quotes->refc = 1;
+    }
+
+    return quotes;
+
+failed:
+    foil_quotes_delete(quotes);
+    return NULL;
+}
+
+static const char *quotes_en[] = {
+    "\"",
+    "\"",
+    "'",
+    "'",
+};
+
+static const char *quotes_zh[] = {
+    "“",
+    "”",
+    "‘",
+    "’",
+};
+
+/* must be sorted against langcode */
+static struct lang_quotes {
+    uint8_t         code;
+    uint8_t         nr_strings;
+    const char    **strings;
+    foil_quotes    *quotes;
+} lang_quotes [] = {
+    { FOIL_LANGCODE_en, (uint8_t)PCA_TABLESIZE(quotes_en), quotes_en, NULL },
+    { FOIL_LANGCODE_zh, (uint8_t)PCA_TABLESIZE(quotes_zh), quotes_zh, NULL },
+};
+
+/* get the initial qutoes for specific language code */
+foil_quotes *foil_quotes_get_initial(uint8_t lang_code)
+{
+    static ssize_t max = PCA_TABLESIZE(lang_quotes) - 1;
+
+    struct lang_quotes *found = NULL;
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        mid = (low + high) / 2;
+        found = lang_quotes + mid;
+        if (lang_code == found->code) {
+            goto found;
+        }
+        else {
+            if (lang_code < found->code) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    /* use `en` as the default */
+    return foil_quotes_get_initial(FOIL_LANGCODE_en);
+
+found:
+    if (found->quotes)
+        return foil_quotes_ref(found->quotes);
+
+    found->quotes = foil_quotes_new(found->nr_strings, found->strings);
+    return found->quotes;
+}
+
+void foil_quotes_delete(foil_quotes *quotes)
+{
+    if (quotes->strings) {
+        for (unsigned i = 0; i < quotes->nr_strings; i++) {
+            LOG_DEBUG("unref interned quote string: %p\n", quotes->strings[i]);
+            lwc_string_unref(quotes->strings[i]);
+        }
+
+        free(quotes->strings);
+    }
+
+    free(quotes);
+}
+
 void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
 
-    if (box->quotes.strings) {
-        for (size_t i = 0; i < box->quotes.nr_strings; i++) {
-            LOG_DEBUG("unref quote string: %p\n", box->quotes.strings[i]);
-            lwc_string_unref(box->quotes.strings[i]);
-        }
-
-        free(box->quotes.strings);
+    if (box->quotes) {
+        foil_quotes_unref(box->quotes);
     }
 
     if (box->data) {
@@ -1042,16 +1174,16 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     LOG_DEBUG("\tbackground-color: 0x%08x\n", box->bgc);
 
     /* determine quotes */
-    lwc_string **quotes = NULL;
-    size_t n = 0;
-    v = css_computed_quotes(ctxt->style, &quotes);
+    lwc_string **strings = NULL;
+    v = css_computed_quotes(ctxt->style, &strings);
     if (v == CSS_QUOTES_INHERIT) {
-        n = ctxt->parent_box->quotes.nr_strings;
-        quotes = ctxt->parent_box->quotes.strings;
+        if (ctxt->parent_box->quotes) {
+            box->quotes = foil_quotes_ref(ctxt->parent_box->quotes);
+        }
     }
     else if (v == CSS_QUOTES_STRING) {
         size_t n = 0;
-        while (quotes[n]) {
+        while (strings[n]) {
             n++;
         }
 
@@ -1060,26 +1192,16 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
             LOG_WARN("Bad quote strings: %u; ignored\n", (unsigned)n);
             n = 0;
         }
+
+        if (n > 0 && strings != NULL) {
+            box->quotes = foil_quotes_new_lwc(n, strings);
+        }
     }
     else {
-        // keep zeros
+        // keep NULL
     }
 
-    if (n > 0 && quotes != NULL) {
-        box->quotes.strings = calloc(n, sizeof(lwc_string *));
-        if (box->quotes.strings) {
-            for (size_t i = 0; i < n; i++) {
-                box->quotes.strings[i] = lwc_string_ref(quotes[i]);
-            }
-
-            box->quotes.nr_strings = n;
-        }
-        else {
-            LOG_WARN("Failed allocate memory for quote strings\n");
-        }
-    }
-
-    LOG_DEBUG("\tquotes: %u\n", (unsigned)box->quotes.nr_strings);
+    LOG_DEBUG("\tquotes: %p\n", box->quotes);
 }
 
 static void
@@ -1890,15 +2012,15 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                 break;
 
             case CSS_COMPUTED_CONTENT_OPEN_QUOTE: {
-                if (box->quotes.nr_strings > 0 &&
+                if (box->quotes && box->quotes->nr_strings > 0 &&
                         ctxt->udom->quoting_depth >= 0) {
                     size_t i = ctxt->udom->quoting_depth * 2;
-                    if (i >= box->quotes.nr_strings) {
-                        i = box->quotes.nr_strings - 2;
+                    if (i >= box->quotes->nr_strings) {
+                        i = box->quotes->nr_strings - 2;
                     }
 
-                    str = lwc_string_data(box->quotes.strings[i]);
-                    len = lwc_string_length(box->quotes.strings[i]);
+                    str = lwc_string_data(box->quotes->strings[i]);
+                    len = lwc_string_length(box->quotes->strings[i]);
                     g_string_append_len(text, str, len);
                 }
 
@@ -1907,15 +2029,15 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
             }
 
             case CSS_COMPUTED_CONTENT_CLOSE_QUOTE: {
-                if (box->quotes.nr_strings > 0 &&
+                if (box->quotes && box->quotes->nr_strings > 0 &&
                         ctxt->udom->quoting_depth >= 0) {
                     size_t i = ctxt->udom->quoting_depth * 2 + 1;
-                    if (i >= box->quotes.nr_strings) {
-                        i = box->quotes.nr_strings - 1;
+                    if (i >= box->quotes->nr_strings) {
+                        i = box->quotes->nr_strings - 1;
                     }
 
-                    str = lwc_string_data(box->quotes.strings[i]);
-                    len = lwc_string_length(box->quotes.strings[i]);
+                    str = lwc_string_data(box->quotes->strings[i]);
+                    len = lwc_string_length(box->quotes->strings[i]);
                     g_string_append_len(text, str, len);
                 }
 

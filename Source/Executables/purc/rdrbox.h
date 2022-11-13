@@ -185,12 +185,16 @@ struct _inline_block_data;
 struct _list_item_data;
 struct _marker_box_data;
 
-struct _quote_strings {
-    /* when `quotes` is `none`, nr_strings is zero */
-    size_t nr_strings;
+typedef struct foil_quotes {
+    /* reference count */
+    unsigned refc;
 
+    /* the numer of quotation mark strings contained in strings */
+    unsigned nr_strings;
+
+    /* the list of pairs of quotation marks */
     lwc_string **strings;
-};
+} foil_quotes;
 
 struct foil_rdrbox {
     struct foil_rdrbox* parent;
@@ -261,7 +265,8 @@ struct foil_rdrbox {
     uint32_t fgc;   // ARGB
     uint32_t bgc;   // ARGB
 
-    struct _quote_strings quotes;  // inherited
+    // NULL when `quotes` is `none`
+    foil_quotes *quotes;
 
     /* layout flags */
     unsigned height_pending:1;
@@ -400,6 +405,34 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
 /* initialize the data of a marker box */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);
+
+/* create a new qutoes */
+foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings);
+foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings);
+
+/* delete a qutoes object */
+void foil_quotes_delete(foil_quotes *quotes);
+
+/* reference a qutoes object */
+static inline foil_quotes *
+foil_quotes_ref(foil_quotes *quotes)
+{
+    quotes->refc++;
+    return quotes;
+}
+
+/* un-reference a quotes object */
+static inline void
+foil_quotes_unref(foil_quotes *quotes)
+{
+    assert(quotes->refc > 0);
+    quotes->refc--;
+    if (quotes->refc == 0)
+        foil_quotes_delete(quotes);
+}
+
+/* get the initial qutoes for specific language code */
+foil_quotes *foil_quotes_get_initial(uint8_t lang_code);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);
