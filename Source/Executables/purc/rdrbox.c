@@ -110,7 +110,7 @@ foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings)
         quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
 
         if (quotes->strings == NULL) {
-            LOG_ERROR("Failed to create initial quotes\n");
+            LOG_ERROR("Failed to allocate space for quote strings\n");
             goto failed;
         }
 
@@ -145,7 +145,7 @@ foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings)
         quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
 
         if (quotes->strings == NULL) {
-            LOG_ERROR("Failed to create initial quotes\n");
+            LOG_ERROR("Failed to allocate space for quote strings\n");
             goto failed;
         }
 
@@ -238,12 +238,70 @@ void foil_quotes_delete(foil_quotes *quotes)
     free(quotes);
 }
 
+foil_counters *foil_counters_new(const css_computed_counter *css_counters)
+{
+    foil_counters *counters;
+
+    counters = calloc(1, sizeof(*counters));
+    if (G_LIKELY(counters)) {
+        size_t n = 0;
+        if (css_counters[n].name) {
+            n++;
+        }
+
+        counters->counters = calloc(n, sizeof(foil_named_counter));
+        if (counters->counters == NULL) {
+            LOG_ERROR("Failed to allocate space for named counters\n");
+            goto failed;
+        }
+
+        counters->nr_counters = 0;
+        for (unsigned i = 0; i < n; i++) {
+            counters->counters[i].name = lwc_string_ref(css_counters[i].name);
+            counters->counters[i].value = FIXTOINT(css_counters[i].value);
+
+            counters->nr_counters++;
+        }
+
+        counters->refc = 1;
+    }
+
+    return counters;
+
+failed:
+    foil_counters_delete(counters);
+    return NULL;
+}
+
+void foil_counters_delete(foil_counters *counters)
+{
+    if (counters->counters) {
+        for (unsigned i = 0; i < counters->nr_counters; i++) {
+            LOG_DEBUG("unref interned counter name string: %p\n",
+                    counters->counters[i].name);
+            lwc_string_unref(counters->counters[i].name);
+        }
+
+        free(counters->counters);
+    }
+
+    free(counters);
+}
+
 void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
 
     if (box->quotes) {
         foil_quotes_unref(box->quotes);
+    }
+
+    if (box->counter_reset) {
+        foil_counters_unref(box->counter_reset);
+    }
+
+    if (box->counter_incrm) {
+        foil_counters_unref(box->counter_incrm);
     }
 
     if (box->data) {
@@ -1189,8 +1247,8 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
         /* if n is odd */
         if ((n % 2)) {
-            LOG_WARN("Bad quote strings: %u; ignored\n", (unsigned)n);
-            n = 0;
+            LOG_WARN("Bad number of quote strings: %u\n", (unsigned)n);
+            n = (n >> 1) << 1;
         }
 
         if (n > 0 && strings != NULL) {
@@ -1202,6 +1260,74 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     }
 
     LOG_DEBUG("\tquotes: %p\n", box->quotes);
+
+    const css_computed_counter *counters;
+
+    /* determine counter-reset */
+    v = css_computed_counter_reset(ctxt->style, &counters);
+    if (v == CSS_COUNTER_RESET_INHERIT) {
+        if (ctxt->parent_box->counter_reset)
+            box->counter_reset =
+                foil_counters_ref(ctxt->parent_box->counter_reset);
+    }
+    else if (v == CSS_COUNTER_RESET_NAMED) {
+        box->counter_reset = foil_counters_new(counters);
+        if (box->counter_reset == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-reset\n");
+        }
+    }
+    else {
+        // do nothing.
+    }
+
+    if (box->counter_reset) {
+        for (size_t i = 0; i < box->counter_reset->nr_counters; i++) {
+            lwc_string *name =
+                lwc_string_ref(box->counter_reset->counters[i].name);
+
+            g_hash_table_replace(ctxt->udom->counters,
+                    name, (gpointer)box->counter_reset->counters[i].value);
+        }
+    }
+
+    /* determine counter-increment */
+    v = css_computed_counter_increment(ctxt->style, &counters);
+    if (v == CSS_COUNTER_INCREMENT_INHERIT) {
+        if (ctxt->parent_box->counter_incrm)
+            box->counter_incrm =
+                foil_counters_ref(ctxt->parent_box->counter_incrm);
+    }
+    else if (v == CSS_COUNTER_INCREMENT_NAMED) {
+        box->counter_incrm = foil_counters_new(counters);
+        if (box->counter_incrm == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-increment\n");
+        }
+    }
+    else {
+        // do nothing
+    }
+
+    if (box->counter_incrm) {
+        for (size_t i = 0; i < box->counter_incrm->nr_counters; i++) {
+            intptr_t value = box->counter_incrm->counters[i].value;
+            intptr_t old_value;
+
+            lwc_string *name =
+                lwc_string_ref(box->counter_reset->counters[i].name);
+            if (g_hash_table_lookup_extended(ctxt->udom->counters,
+                        box->counter_incrm->counters[i].name, NULL,
+                        (gpointer *)&old_value)) {
+                value = old_value + value;
+                g_hash_table_replace(ctxt->udom->counters,
+                        name, (gpointer)value);
+            }
+            else {
+                g_hash_table_replace(ctxt->udom->counters,
+                        name, (gpointer)value);
+            }
+        }
+    }
+
 }
 
 static void

@@ -428,16 +428,16 @@ enum css_content_e {
 
 enum css_counter_increment_e {
 	CSS_COUNTER_INCREMENT_INHERIT		= 0x0,
+	CSS_COUNTER_INCREMENT_NONE		= 0x1,
 	/* Consult pointer in struct to determine which */
-	CSS_COUNTER_INCREMENT_NAMED		= 0x1,
-	CSS_COUNTER_INCREMENT_NONE		= 0x1
+	CSS_COUNTER_INCREMENT_NAMED		= 0x2,
 };
 
 enum css_counter_reset_e {
 	CSS_COUNTER_RESET_INHERIT		= 0x0,
+	CSS_COUNTER_RESET_NONE			= 0x1,
 	/* Consult pointer in struct to determine which */
-	CSS_COUNTER_RESET_NAMED			= 0x1,
-	CSS_COUNTER_RESET_NONE			= 0x1
+	CSS_COUNTER_RESET_NAMED			= 0x2,
 };
 
 enum css_cursor_e {

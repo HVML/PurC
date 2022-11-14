@@ -205,10 +205,12 @@ static void udom_cleanup(pcmcth_udom *udom)
 
 static guint cb_lwc_string_hash(gconstpointer v)
 {
+    return lwc_string_hash_value((lwc_string *)v);
+#if 0
     const char *str;
     size_t len;
 
-    str = lwc_string_data((lwc_string *)v);
+    str = 
     len = lwc_string_length((lwc_string *)v);
 
     char buff[len + 1];
@@ -216,6 +218,7 @@ static guint cb_lwc_string_hash(gconstpointer v)
     buff[len] = 0;
 
     return g_str_hash(buff);
+#endif
 }
 
 static gboolean
@@ -538,7 +541,8 @@ extern css_select_handler foil_css_select_handler;
 
 static css_select_results *
 select_element_style(const css_media *media, css_select_ctx *select_ctx,
-        purc_document_t doc, pcdoc_element_t element)
+        purc_document_t doc, pcdoc_element_t element,
+        css_select_results *parent_result)
 {
     // prepare inline style
     css_error err;
@@ -598,7 +602,27 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         goto failed;
     }
 
-    /* TODO: handle styles for pseudo elements */
+    (void)parent_result;
+    /* We do not use css_computed_style_compose, as this function
+       just clones the values for `inherit` for complex properties.
+       This is not a smart way.
+
+    css_computed_style *composed = NULL;
+    if (parent_result) {
+        err = css_computed_style_compose(
+                parent_result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                foil_css_select_handler.compute_font_size, NULL,
+                &composed);
+        if (err != CSS_OK) {
+            goto failed;
+        }
+
+        css_computed_style_destroy(result->styles[CSS_PSEUDO_ELEMENT_NONE]);
+        result->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;
+    } */
+
+    /* compose styles for pseudo elements */
     int pseudo_element;
     css_computed_style *composed = NULL;
     for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
@@ -651,14 +675,15 @@ failed:
 }
 
 static int
-make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
+make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
+        css_select_results *parent_result)
 {
     char *tag_name = NULL;
     foil_rdrbox *box;
     css_select_results *result = NULL;
 
     result = select_element_style(&ctxt->udom->media,
-            ctxt->udom->select_ctx, ctxt->doc, ancestor);
+            ctxt->udom->select_ctx, ctxt->doc, ancestor, parent_result);
     if (result) {
         const char *name;
         size_t len;
@@ -700,7 +725,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 
         if (node.type == PCDOC_NODE_ELEMENT) {
             ctxt->parent_box = box;
-            if (make_rdrtree(ctxt, node.elem))
+            if (make_rdrtree(ctxt, node.elem, result))
                 goto failed;
         }
         else if (node.type == PCDOC_NODE_TEXT) {
@@ -1003,7 +1028,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     foil_create_ctxt ctxt = { edom_doc, udom,
         udom->initial_cblock, udom->initial_cblock,
         NULL, NULL, NULL, NULL, 0, 0 };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+    if (make_rdrtree(&ctxt, purc_document_root(edom_doc), NULL))
         goto failed;
 
     /* check and create anonymous block box if need */
