@@ -31,6 +31,7 @@
 #include "private/dvobjs.h"
 #include "purc-runloop.h"
 #include "private/stringbuilder.h"
+#include "private/atom-buckets.h"
 
 #include "html/interfaces/document.h"
 
@@ -62,6 +63,7 @@ struct ctxt_for_update {
     int                           ret_code;
     int                           err;
     purc_rwstream_t               resp;
+    purc_atom_t                   op;
 };
 
 static void
@@ -424,9 +426,8 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     const char *op = purc_variant_get_string_const(to);
-    PC_ASSERT(op);
 
-    if (strcmp(op, "append") == 0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == ctxt->op) {
         bool ok = purc_variant_array_append(target, src);
         return ok ? 0 : -1;
     }
@@ -466,7 +467,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
-    if (strcmp(op, "displace")==0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE)) == ctxt->op) {
         if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_ARRAY)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -482,7 +483,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    if (strcmp(op, "unite")==0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNITE)) == ctxt->op) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -494,7 +495,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    if (strcmp(op, "overwrite")==0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, OVERWRITE)) == ctxt->op) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -511,22 +512,22 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static pcdoc_operation convert_operation(const char *to)
+static pcdoc_operation convert_operation(purc_atom_t to)
 {
     pcdoc_operation op;
-    if (strcmp(to, "append") == 0) {
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == to) {
         op = PCDOC_OP_APPEND;
     }
-    else if (strcmp(to, "prepend") == 0) {
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, PREPEND)) == to) {
         op = PCDOC_OP_PREPEND;
     }
-    else if (strcmp(to, "insertBefore") == 0) {
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTBEFORE)) == to) {
         op = PCDOC_OP_INSERTBEFORE;
     }
-    else if (strcmp(to, "insertAfter") == 0) {
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTAFTER)) == to) {
         op = PCDOC_OP_INSERTAFTER;
     }
-    else if (strcmp(to, "displace") == 0) {
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE)) == to) {
         op = PCDOC_OP_DISPLACE;
     }
     else {
@@ -539,7 +540,8 @@ static pcdoc_operation convert_operation(const char *to)
 static int
 update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
-        pcintr_attribute_op with_eval, purc_variant_t template_data_type)
+        pcintr_attribute_op with_eval, purc_variant_t template_data_type,
+        purc_atom_t operator)
 {
     UNUSED_PARAM(stack);
     char *t = NULL;
@@ -561,7 +563,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(to);
+    pcdoc_operation op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
                 template_data_type, true);
@@ -582,12 +584,13 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 static int
 update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        pcintr_attribute_op with_eval, purc_atom_t operator)
 {
     UNUSED_PARAM(stack);
+    UNUSED_PARAM(to);
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(to);
+    pcdoc_operation op = convert_operation(operator);
     if (op == PCDOC_OP_UNKNOWN) {
         return -1;
     }
@@ -687,7 +690,8 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
 static int
 update_target(pcintr_stack_t stack, pcdoc_element_t target,
         purc_variant_t at, purc_variant_t to, purc_variant_t src,
-        pcintr_attribute_op with_eval, purc_variant_t template_data_type)
+        pcintr_attribute_op with_eval, purc_variant_t template_data_type,
+        purc_atom_t operator)
 {
     const char *s_to = "displace";
     if (to != PURC_VARIANT_INVALID) {
@@ -704,10 +708,10 @@ update_target(pcintr_stack_t stack, pcdoc_element_t target,
 
     if (!s_at) {
         return update_target_child(stack, target, s_to, src, with_eval,
-                template_data_type);
+                template_data_type, operator);
     }
     if (strcmp(s_at, "textContent") == 0) {
-        return update_target_content(stack, target, s_to, src, with_eval);
+        return update_target_content(stack, target, s_to, src, with_eval, operator);
     }
     if (strncmp(s_at, "attr.", 5) == 0) {
         s_at += 5;
@@ -726,7 +730,8 @@ update_elements(pcintr_stack_t stack,
         purc_variant_t elems, purc_variant_t at, purc_variant_t to,
         purc_variant_t src,
         pcintr_attribute_op with_eval,
-        purc_variant_t template_data_type)
+        purc_variant_t template_data_type,
+        purc_atom_t operator)
 {
     PC_ASSERT(purc_variant_is_native(elems));
     size_t idx = 0;
@@ -736,7 +741,7 @@ update_elements(pcintr_stack_t stack,
         if (!target)
             break;
         int r = update_target(stack, target, at, to, src, with_eval,
-                template_data_type);
+                template_data_type, operator);
         if (r)
             return -1;
     }
@@ -759,13 +764,23 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t template_data_type  = ctxt->template_data_type;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
 
+    ctxt->op = pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE));
+    if (to != PURC_VARIANT_INVALID) {
+        const char *s_to = purc_variant_get_string_const(to);
+        ctxt->op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, s_to);
+        if (!ctxt->op) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return -1;
+        }
+    }
+
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         // const char *s = purc_variant_get_string_const(src);
         // PC_ASSERT(to != PURC_VARIANT_INVALID);
         return update_elements(&co->stack, on, at, to, src, with_eval,
-                template_data_type);
+                template_data_type, ctxt->op);
     }
     if (type == PURC_VARIANT_TYPE_OBJECT) {
         return update_object(&co->stack, on, at, to, src, with_eval);
@@ -787,7 +802,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         int r = 0;
         if (elem) {
             r = update_elements(&co->stack, elems, at, to, src, with_eval,
-                    template_data_type);
+                    template_data_type, ctxt->op);
         }
         purc_variant_unref(elems);
         return r ? -1 : 0;
