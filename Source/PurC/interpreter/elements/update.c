@@ -418,10 +418,9 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         double d = purc_variant_numerify(at);
         size_t idx = d;
         purc_variant_t v = purc_variant_array_get(on, idx);
-        PC_ASSERT(v != PURC_VARIANT_INVALID);
-        if (v == PURC_VARIANT_INVALID)
+        if (v == PURC_VARIANT_INVALID) {
             return -1;
-        PC_ASSERT(v != PURC_VARIANT_INVALID); // Not implemented yet
+        }
         target = v;
     }
 
@@ -509,6 +508,51 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     PC_DEBUGX("op: %s", op);
     PC_ASSERT(0); // Not implemented yet
+    return -1;
+}
+
+static int
+update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t src,
+        pcintr_attribute_op with_eval)
+{
+    UNUSED_PARAM(with_eval);
+    UNUSED_PARAM(co);
+    struct ctxt_for_update *ctxt;
+    ctxt = (struct ctxt_for_update*)frame->ctxt;
+    PC_ASSERT(ctxt);
+    purc_variant_t on  = ctxt->on;
+    purc_variant_t to  = ctxt->to;
+    PC_ASSERT(on != PURC_VARIANT_INVALID);
+    PC_ASSERT(to != PURC_VARIANT_INVALID);
+
+    purc_variant_t target = on;
+    purc_variant_t at  = ctxt->at;
+    if (at != PURC_VARIANT_INVALID) {
+        double d = purc_variant_numerify(at);
+        size_t idx = d;
+        bool r = purc_variant_tuple_set(on, idx, src);
+        if (!r) {
+            return -1;
+        }
+    }
+
+    const char *op = purc_variant_get_string_const(to);
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == ctxt->op) {
+        bool ok = purc_variant_array_append(target, src);
+        return ok ? 0 : -1;
+    }
+
+    struct pcvdom_element *element = frame->pos;
+    PC_ASSERT(element);
+
+    purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+            "vdom attribute '%s'='%s' for element <%s>",
+            pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
+            op, element->tag_name);
+    PC_ASSERT(0);
+
     return -1;
 }
 
@@ -790,6 +834,9 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     if (type == PURC_VARIANT_TYPE_SET) {
         return update_set(co, frame, src, with_eval);
+    }
+    if (type == PURC_VARIANT_TYPE_TUPLE) {
+        return update_tuple(co, frame, src, with_eval);
     }
     if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
