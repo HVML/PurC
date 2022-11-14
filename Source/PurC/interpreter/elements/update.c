@@ -543,32 +543,69 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     PC_ASSERT(on != PURC_VARIANT_INVALID);
     PC_ASSERT(to != PURC_VARIANT_INVALID);
 
-    purc_variant_t target = on;
+    const char *op = purc_variant_get_string_const(to);
+    struct pcvdom_element *element = frame->pos;
+
     purc_variant_t at  = ctxt->at;
+
+    size_t idx = -1;
     if (at != PURC_VARIANT_INVALID) {
-        double d = purc_variant_numerify(at);
-        size_t idx = d;
-        bool r = purc_variant_tuple_set(on, idx, src);
+        uint64_t u64;
+        bool r = purc_variant_cast_to_ulongint(at, &u64, false);
         if (!r) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
     }
 
-    const char *op = purc_variant_get_string_const(to);
+    bool r = false;
+    switch (ctxt->op) {
+    case UPDATE_OP_DISPLACE:
+        if (at) {
+            r = purc_variant_tuple_set(on, idx, src);
+        }
+        else {
+            r = purc_variant_container_displace(on, src, frame->silently);
+        }
+        if (!r) {
+            return -1;
+        }
+        break;
 
-    if (UPDATE_OP_APPEND == ctxt->op) {
-        bool ok = purc_variant_array_append(target, src);
-        return ok ? 0 : -1;
+    case UPDATE_OP_REMOVE:
+        if (at) {
+            purc_variant_t v = purc_variant_make_undefined();
+            r = purc_variant_tuple_set(on, idx, v);
+            purc_variant_unref(v);
+        }
+        else {
+            r = purc_variant_container_remove(on, src, frame->silently);
+        }
+        if (!r) {
+            return -1;
+        }
+        break;
+
+    case UPDATE_OP_MERGE:
+    case UPDATE_OP_APPEND:
+    case UPDATE_OP_PREPEND:
+    case UPDATE_OP_INSERTBEFORE:
+    case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_UNITE:
+    case UPDATE_OP_INTERSECT:
+    case UPDATE_OP_SUBTRACT:
+    case UPDATE_OP_XOR:
+    case UPDATE_OP_OVERWRITE:
+    case UPDATE_OP_CALL:
+    case UPDATE_OP_UNKNOWN:
+    default:
+        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                "vdom attribute '%s'='%s' for element <%s>",
+                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
+                op, element->tag_name);
+        return -1;
     }
 
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
-
-    purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-            "vdom attribute '%s'='%s' for element <%s>",
-            pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
-            op, element->tag_name);
-    PC_ASSERT(0);
 
     return -1;
 }
