@@ -40,6 +40,23 @@
 #include <pthread.h>
 #include <unistd.h>
 
+enum hvml_update_op {
+    UPDATE_OP_DISPLACE,
+    UPDATE_OP_APPEND,
+    UPDATE_OP_PREPEND,
+    UPDATE_OP_MERGE,
+    UPDATE_OP_REMOVE,
+    UPDATE_OP_INSERTBEFORE,
+    UPDATE_OP_INSERTAFTER,
+    UPDATE_OP_UNITE,
+    UPDATE_OP_INTERSECT,
+    UPDATE_OP_SUBTRACT,
+    UPDATE_OP_XOR,
+    UPDATE_OP_OVERWRITE,
+    UPDATE_OP_CALL,
+    UPDATE_OP_UNKNOWN
+};
+
 struct ctxt_for_update {
     struct pcvdom_node           *curr;
 
@@ -63,7 +80,7 @@ struct ctxt_for_update {
     int                           ret_code;
     int                           err;
     purc_rwstream_t               resp;
-    purc_atom_t                   op;
+    enum hvml_update_op           op;
 };
 
 static void
@@ -426,7 +443,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     const char *op = purc_variant_get_string_const(to);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == ctxt->op) {
+    if (UPDATE_OP_APPEND == ctxt->op) {
         bool ok = purc_variant_array_append(target, src);
         return ok ? 0 : -1;
     }
@@ -466,7 +483,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     const char *op = purc_variant_get_string_const(to);
     PC_ASSERT(op);
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE)) == ctxt->op) {
+    if (UPDATE_OP_DISPLACE == ctxt->op) {
         if (!purc_variant_is_type(src, PURC_VARIANT_TYPE_ARRAY)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -482,7 +499,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNITE)) == ctxt->op) {
+    if (UPDATE_OP_UNITE == ctxt->op) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -494,7 +511,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
         return 0;
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, OVERWRITE)) == ctxt->op) {
+    if (UPDATE_OP_OVERWRITE == ctxt->op) {
         if (!purc_variant_is_type(on, PURC_VARIANT_TYPE_SET)) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
@@ -539,7 +556,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     const char *op = purc_variant_get_string_const(to);
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == ctxt->op) {
+    if (UPDATE_OP_APPEND == ctxt->op) {
         bool ok = purc_variant_array_append(target, src);
         return ok ? 0 : -1;
     }
@@ -556,26 +573,29 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return -1;
 }
 
-static pcdoc_operation convert_operation(purc_atom_t to)
+static pcdoc_operation convert_operation(enum hvml_update_op operator)
 {
     pcdoc_operation op;
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == to) {
+
+    switch (operator) {
+    case UPDATE_OP_APPEND:
         op = PCDOC_OP_APPEND;
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, PREPEND)) == to) {
+        break;
+    case UPDATE_OP_PREPEND:
         op = PCDOC_OP_PREPEND;
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTBEFORE)) == to) {
+        break;
+    case UPDATE_OP_INSERTBEFORE:
         op = PCDOC_OP_INSERTBEFORE;
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTAFTER)) == to) {
+        break;
+    case UPDATE_OP_INSERTAFTER:
         op = PCDOC_OP_INSERTAFTER;
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE)) == to) {
+        break;
+    case UPDATE_OP_DISPLACE:
         op = PCDOC_OP_DISPLACE;
-    }
-    else {
+        break;
+    default:
         op = PCDOC_OP_UNKNOWN;
+        break;
     }
 
     return op;
@@ -585,7 +605,7 @@ static int
 update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
         pcintr_attribute_op with_eval, purc_variant_t template_data_type,
-        purc_atom_t operator)
+        enum hvml_update_op operator)
 {
     UNUSED_PARAM(stack);
     char *t = NULL;
@@ -628,7 +648,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 static int
 update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
-        pcintr_attribute_op with_eval, purc_atom_t operator)
+        pcintr_attribute_op with_eval, enum hvml_update_op operator)
 {
     UNUSED_PARAM(stack);
     UNUSED_PARAM(to);
@@ -735,7 +755,7 @@ static int
 update_target(pcintr_stack_t stack, pcdoc_element_t target,
         purc_variant_t at, purc_variant_t to, purc_variant_t src,
         pcintr_attribute_op with_eval, purc_variant_t template_data_type,
-        purc_atom_t operator)
+        enum hvml_update_op operator)
 {
     const char *s_to = "displace";
     if (to != PURC_VARIANT_INVALID) {
@@ -775,7 +795,7 @@ update_elements(pcintr_stack_t stack,
         purc_variant_t src,
         pcintr_attribute_op with_eval,
         purc_variant_t template_data_type,
-        purc_atom_t operator)
+        enum hvml_update_op operator)
 {
     PC_ASSERT(purc_variant_is_native(elems));
     size_t idx = 0;
@@ -793,6 +813,57 @@ update_elements(pcintr_stack_t stack,
     return 0;
 }
 
+static enum hvml_update_op
+to_operator(const char *to)
+{
+    enum hvml_update_op ret = UPDATE_OP_UNKNOWN;
+    purc_atom_t op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, to);
+    if (!op) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE)) == op) {
+        ret = UPDATE_OP_DISPLACE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, APPEND)) == op) {
+        ret = UPDATE_OP_APPEND;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, PREPEND)) == op) {
+        ret = UPDATE_OP_PREPEND;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, MERGE)) == op) {
+        ret = UPDATE_OP_MERGE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTBEFORE)) == op) {
+        ret = UPDATE_OP_INSERTBEFORE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTAFTER)) == op) {
+        ret = UPDATE_OP_INSERTAFTER;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNITE)) == op) {
+        ret = UPDATE_OP_UNITE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INTERSECT)) == op) {
+        ret = UPDATE_OP_INTERSECT;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SUBTRACT)) == op) {
+        ret = UPDATE_OP_SUBTRACT;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, XOR)) == op) {
+        ret = UPDATE_OP_XOR;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, OVERWRITE)) == op) {
+        ret = UPDATE_OP_OVERWRITE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CALL)) == op) {
+        ret = UPDATE_OP_CALL;
+    }
+
+out:
+    return ret;
+}
+
 static int
 process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src,
@@ -808,11 +879,11 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t template_data_type  = ctxt->template_data_type;
     PC_ASSERT(on != PURC_VARIANT_INVALID);
 
-    ctxt->op = pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DISPLACE));
+    ctxt->op = UPDATE_OP_DISPLACE;
     if (to != PURC_VARIANT_INVALID) {
         const char *s_to = purc_variant_get_string_const(to);
-        ctxt->op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, s_to);
-        if (!ctxt->op) {
+        ctxt->op = to_operator(s_to);
+        if (ctxt->op == UPDATE_OP_UNKNOWN) {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
