@@ -187,8 +187,6 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
-    if (udom->counters)
-        g_hash_table_destroy(udom->counters);
     if (udom->title_ucs)
         free(udom->title_ucs);
     if (udom->elem2rdrbox)
@@ -201,40 +199,6 @@ static void udom_cleanup(pcmcth_udom *udom)
         css_select_ctx_destroy(udom->select_ctx);
     if (udom->initial_cblock)
         foil_rdrbox_delete_deep(udom->initial_cblock);
-}
-
-static guint cb_lwc_string_hash(gconstpointer v)
-{
-    return lwc_string_hash_value((lwc_string *)v);
-#if 0
-    const char *str;
-    size_t len;
-
-    str = 
-    len = lwc_string_length((lwc_string *)v);
-
-    char buff[len + 1];
-    strncpy(buff, str, len);
-    buff[len] = 0;
-
-    return g_str_hash(buff);
-#endif
-}
-
-static gboolean
-cb_lwc_string_equal(gconstpointer a, gconstpointer b)
-{
-    bool is_equal;
-    lwc_error error;
-    error = lwc_string_isequal((lwc_string *)a, (lwc_string *)b, &is_equal);
-    (void)error;
-    return is_equal;
-}
-
-static void
-cb_lwc_string_key_destroy(gpointer data)
-{
-    lwc_string_unref((lwc_string *)data);
 }
 
 pcmcth_udom *foil_udom_new(pcmcth_page *page)
@@ -264,9 +228,6 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     if (err != CSS_OK) {
         goto failed;
     }
-
-    udom->counters = g_hash_table_new_full(cb_lwc_string_hash,
-            cb_lwc_string_equal, cb_lwc_string_key_destroy, NULL);
 
     /* create the initial containing block */
     int cols = foil_page_cols(page);
@@ -698,6 +659,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
         ctxt->tag_name = tag_name;
         ctxt->elem = ancestor;
         ctxt->computed = result;
+
         /* skip descendants for "display: none" */
         if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
             LOG_WARN("Failed to create principal rdrbox for element\n");
@@ -756,6 +718,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
     ctxt->tag_name = tag_name;
     ctxt->elem = ancestor;
     ctxt->computed = result;
+    ctxt->parent_box = box->parent;
     if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
         if (foil_rdrbox_create_after(ctxt, box) == NULL) {
             LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
@@ -838,7 +801,9 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
         child = child->prev;
     }
 
-    assert(n == box->nr_child_inlines);
+    LOG_DEBUG("Moved inline boxes: %u vs %u\n",
+            (unsigned)box->nr_child_inlines, (unsigned)n);
+    //assert(n == box->nr_child_inlines);
     box->nr_child_inlines = 0;
 
     return 0;

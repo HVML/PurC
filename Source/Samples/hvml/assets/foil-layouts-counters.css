@@ -1,0 +1,14 @@
+BODY {
+    counter-reset: chapter;      /* Create a chapter counter scope */
+}
+H1:before {
+    content: "Chapter " counter(chapter) ". ";
+    counter-increment: chapter;  /* Add 1 to chapter */
+}
+H1 {
+    counter-reset: section;      /* Set section to 0 */
+}
+H2:before {
+    content: counter(chapter) "." counter(section) " ";
+    counter-increment: section;
+}

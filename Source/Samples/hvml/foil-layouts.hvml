@@ -6,7 +6,8 @@
         <base href=$CRTN.base(! "file://$SYS.cwd" ) />
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
-                <init as 'styleCase' at '_root' with 'quotes' />
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'counters' />
             </catch>
         </init>
 
@@ -97,6 +98,20 @@
             </SECTION>
         </define>
 
+        <init as 'caseName' with 'counters' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <H1>The 1st head in level 1 (Chapter 1. )</H1>
+                <H2>The 1st head in level 2 (1.1 )</H2>
+                <H2>The 2nd head in level 2 (1.2 )</H2>
+                <H2>The 3rd head in level 2 (1.3 )</H2>
+
+                <H1>The 1st head in level 1 (Chapter 2. )</H1>
+                <H2>The 1st head in level 2 (2.1 )</H2>
+                <H2>The 2nd head in level 2 (2.2 )</H2>
+                <H2>The 3rd head in level 2 (2.3 )</H2>
+            </SECTION>
+        </define>
 
         <!-- check validation of ${$styleCase} -->
         <choose on ${$styleCase}>

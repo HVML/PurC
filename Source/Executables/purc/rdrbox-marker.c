@@ -234,37 +234,26 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
     return true;
 }
 
-bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
-        foil_rdrbox *marker, const foil_rdrbox *list_item)
+purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
+        const unsigned index, uint8_t type)
 {
-    char buff[128];
-
-    assert(list_item->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE);
-
-    marker->owner = ctxt->elem;
-    marker->is_anonymous = 1;
-
-    /* copy some properties from the principal box */
-    marker->fgc = list_item->fgc;
-    marker->bgc = list_item->bgc;
+    char buff[LEN_BUF_INTEGER];
+    purc_atom_t atom = 0;
 
     buff[0] = '\0';
-    const unsigned nr_items = list_item->parent->nr_child_list_items;
-    const unsigned index = list_item->list_item_data->index;
-    struct _marker_box_data *data = marker->marker_data;
-    switch (list_item->list_style_type) {
+    switch (type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DISC:
-        data->atom = purc_atom_from_static_string_ex(
+        atom = purc_atom_from_static_string_ex(
                 PURC_ATOM_BUCKET_RDR, "●");
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE:
-        data->atom = purc_atom_from_static_string_ex(
+        atom = purc_atom_from_static_string_ex(
                 PURC_ATOM_BUCKET_RDR, "○");
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE:
-        data->atom = purc_atom_from_static_string_ex(
+        atom = purc_atom_from_static_string_ex(
                 PURC_ATOM_BUCKET_RDR, "□");
         break;
 
@@ -309,9 +298,30 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     }
 
     if (buff[0]) {
-        data->atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_RDR, buff);
+        atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_RDR, buff);
     }
 
+    return atom;
+}
+
+bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
+        foil_rdrbox *marker, const foil_rdrbox *list_item)
+{
+    assert(list_item->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE);
+
+    marker->owner = ctxt->elem;
+    marker->is_anonymous = 1;
+
+    /* copy some properties from the principal box */
+    marker->fgc = list_item->fgc;
+    marker->bgc = list_item->bgc;
+
+    const unsigned nr_items = list_item->parent->nr_child_list_items;
+    const unsigned index = list_item->list_item_data->index;
+    struct _marker_box_data *data = marker->marker_data;
+
+    data->atom = foil_rdrbox_list_number(nr_items, index,
+            list_item->list_style_type);
     return (data->atom != 0);
 }
 

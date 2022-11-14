@@ -242,13 +242,16 @@ foil_counters *foil_counters_new(const css_computed_counter *css_counters)
 {
     foil_counters *counters;
 
+    size_t n = 0;
+    if (css_counters[n].name) {
+        n++;
+    }
+
+    if (n == 0)
+        return NULL;
+
     counters = calloc(1, sizeof(*counters));
     if (G_LIKELY(counters)) {
-        size_t n = 0;
-        if (css_counters[n].name) {
-            n++;
-        }
-
         counters->counters = calloc(n, sizeof(foil_named_counter));
         if (counters->counters == NULL) {
             LOG_ERROR("Failed to allocate space for named counters\n");
@@ -303,6 +306,9 @@ void foil_rdrbox_delete(foil_rdrbox *box)
     if (box->counter_incrm) {
         foil_counters_unref(box->counter_incrm);
     }
+
+    if (box->counters_table)
+        g_hash_table_destroy(box->counters_table);
 
     if (box->data) {
         if (box->cb_data_cleanup) {
@@ -709,9 +715,253 @@ static int calc_used_value_heights(foil_rdrbox *box,
     return v;
 }
 
+static guint cb_lwc_string_hash(gconstpointer v)
+{
+    return lwc_string_hash_value((lwc_string *)v);
+#if 0
+    const char *str;
+    size_t len;
+
+    str = lwc_string_data((lwc_string *)v);
+    len = lwc_string_length((lwc_string *)v);
+
+    char buff[len + 1];
+    strncpy(buff, str, len);
+    buff[len] = 0;
+
+    return g_str_hash(buff);
+#endif
+}
+
+static gboolean
+cb_lwc_string_equal(gconstpointer a, gconstpointer b)
+{
+    bool is_equal;
+    lwc_error error;
+    error = lwc_string_isequal((lwc_string *)a, (lwc_string *)b, &is_equal);
+    (void)error;
+    return is_equal;
+}
+
+static void
+cb_lwc_string_key_destroy(gpointer data)
+{
+    lwc_string_unref((lwc_string *)data);
+}
+
+#if 0
+static void
+cb_clone_counter(gpointer key, gpointer value, gpointer user_data)
+{
+    GHashTable *dst_table = (GHashTable *)user_data;
+    lwc_string_ref((lwc_string *)key);
+
+    g_hash_table_insert(dst_table, key, value);
+}
+#endif
+
+static GHashTable *create_counters_table(foil_create_ctxt *ctxt)
+{
+    (void)ctxt;
+    return g_hash_table_new_full(cb_lwc_string_hash,
+            cb_lwc_string_equal, cb_lwc_string_key_destroy, NULL);
+
+#if 0
+    GHashTable *dst_table;
+    if (G_UNLIKELY(dst_table == NULL)) {
+        return NULL;
+    }
+
+    if (ctxt->scoped_counters_table) {
+        g_hash_table_foreach(ctxt->scoped_counters_table,
+                cb_clone_counter, dst_table);
+    }
+#endif
+}
+
+static GHashTable *find_counters_table(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, const lwc_string *name, intptr_t *value)
+{
+    foil_rdrbox *parent = box->parent;
+
+    while (box) {
+        if (box->counters_table) {
+            LOG_DEBUG("box has a counters table: %p\n", box);
+            if (g_hash_table_lookup_extended(box->counters_table,
+                        name, NULL, (gpointer *)value)) {
+                return box->counters_table;
+            }
+        }
+
+        box = box->prev;
+    }
+
+    if (parent) {
+        return find_counters_table(ctxt, parent, name, value);
+    }
+
+    return NULL;
+}
+
+static uint8_t normalize_list_style_type(uint8_t v)
+{
+    switch (v) {
+    default:
+    case CSS_LIST_STYLE_TYPE_DISC:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DISC;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_CIRCLE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_SQUARE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_DECIMAL:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
+    case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
+    case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_ARMENIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_GEORGIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_NONE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_NONE;
+        break;
+    }
+
+    return v;
+}
+
+typedef void (*cb_matched_counter)(void *ctxt, foil_rdrbox *box,
+        lwc_string *name, gpointer value);
+
+static void
+travel_box_up_for_counter(foil_rdrbox *box, lwc_string *name,
+        cb_matched_counter func, void *ctxt)
+{
+    foil_rdrbox *parent = box->parent;
+
+    while (box) {
+        if (box->counters_table) {
+            gpointer value;
+            if (g_hash_table_lookup_extended(box->counters_table,
+                        name, NULL, &value)) {
+                func(ctxt, box, name, value);
+            }
+        }
+
+        box = box->prev;
+    }
+
+    if (parent) {
+        return travel_box_up_for_counter(parent, name, func, ctxt);
+    }
+}
+
+struct counters_ctxt {
+    const css_computed_content_item *ctnt_item;
+    GString *text;
+
+    uint8_t type;
+    const char *sep_str;
+    size_t sep_len;
+};
+
+static void on_matched_counter(void *ctxt, foil_rdrbox *box,
+        lwc_string *name, gpointer value)
+{
+    struct counters_ctxt *my_ctxt = ctxt;
+    (void)box;
+    (void)name;
+
+    intptr_t counter = (intptr_t)value;
+    if (counter < 0)
+        counter = 0;
+
+    purc_atom_t atom = foil_rdrbox_list_number(0,
+            (unsigned)counter, my_ctxt->type);
+    if (atom) {
+        g_string_prepend(my_ctxt->text, purc_atom_to_string(atom));
+    }
+
+    if (my_ctxt->sep_str && my_ctxt->sep_len > 0) {
+        g_string_prepend_len(my_ctxt->text, my_ctxt->sep_str, my_ctxt->sep_len);
+    }
+}
+
+static void
+generate_content_from_counters(foil_create_ctxt *ctxt, foil_rdrbox *box,
+        const css_computed_content_item *ctnt_item, GString *text)
+{
+    (void)ctxt;
+
+    LOG_ERROR("called\n");
+
+    struct counters_ctxt my_ctxt;
+    my_ctxt.ctnt_item = ctnt_item;
+    my_ctxt.text = text;
+
+    // must be called for a pseudo element
+    assert(box->principal);
+
+    my_ctxt.type = ctnt_item->data.counters.style;
+    if (my_ctxt.type == 0)
+        my_ctxt.type = CSS_LIST_STYLE_TYPE_DECIMAL;
+    my_ctxt.type = normalize_list_style_type(my_ctxt.type);
+
+    if (ctnt_item->data.counters.sep) {
+        my_ctxt.sep_str = lwc_string_data(ctnt_item->data.counters.sep);
+        my_ctxt.sep_len = lwc_string_length(ctnt_item->data.counters.sep);
+    }
+    else {
+        my_ctxt.sep_str = NULL;
+        my_ctxt.sep_len = 0;
+    }
+
+    travel_box_up_for_counter(box, ctnt_item->data.counters.name,
+            on_matched_counter, &my_ctxt);
+
+    if (my_ctxt.sep_len > 0 && text->len > my_ctxt.sep_len) {
+        g_string_erase(text, 0, my_ctxt.sep_len);
+    }
+}
+
 /* display, positionn, and float must be determined
    before calling this function */
-static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
+static void dtrm_common_properties(foil_create_ctxt *ctxt,
         foil_rdrbox *box)
 {
     uint8_t v;
@@ -1126,62 +1376,7 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     if (v == CSS_LIST_STYLE_TYPE_INHERIT)
         box->list_style_type = ctxt->parent_box->list_style_type;
     else {
-        switch (v) {
-        default:
-        case CSS_LIST_STYLE_TYPE_DISC:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DISC;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_CIRCLE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_SQUARE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_DECIMAL:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
-        case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
-        case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_ARMENIAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_GEORGIAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_NONE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_NONE;
-            break;
-        }
+        box->list_style_type = normalize_list_style_type(v);
     }
 
     LOG_DEBUG("\tlist-style-type: %s\n",
@@ -1260,73 +1455,6 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     }
 
     LOG_DEBUG("\tquotes: %p\n", box->quotes);
-
-    const css_computed_counter *counters;
-
-    /* determine counter-reset */
-    v = css_computed_counter_reset(ctxt->style, &counters);
-    if (v == CSS_COUNTER_RESET_INHERIT) {
-        if (ctxt->parent_box->counter_reset)
-            box->counter_reset =
-                foil_counters_ref(ctxt->parent_box->counter_reset);
-    }
-    else if (v == CSS_COUNTER_RESET_NAMED) {
-        box->counter_reset = foil_counters_new(counters);
-        if (box->counter_reset == NULL) {
-            LOG_WARN("Failed to create foil_counters for counter-reset\n");
-        }
-    }
-    else {
-        // do nothing.
-    }
-
-    if (box->counter_reset) {
-        for (size_t i = 0; i < box->counter_reset->nr_counters; i++) {
-            lwc_string *name =
-                lwc_string_ref(box->counter_reset->counters[i].name);
-
-            g_hash_table_replace(ctxt->udom->counters,
-                    name, (gpointer)box->counter_reset->counters[i].value);
-        }
-    }
-
-    /* determine counter-increment */
-    v = css_computed_counter_increment(ctxt->style, &counters);
-    if (v == CSS_COUNTER_INCREMENT_INHERIT) {
-        if (ctxt->parent_box->counter_incrm)
-            box->counter_incrm =
-                foil_counters_ref(ctxt->parent_box->counter_incrm);
-    }
-    else if (v == CSS_COUNTER_INCREMENT_NAMED) {
-        box->counter_incrm = foil_counters_new(counters);
-        if (box->counter_incrm == NULL) {
-            LOG_WARN("Failed to create foil_counters for counter-increment\n");
-        }
-    }
-    else {
-        // do nothing
-    }
-
-    if (box->counter_incrm) {
-        for (size_t i = 0; i < box->counter_incrm->nr_counters; i++) {
-            intptr_t value = box->counter_incrm->counters[i].value;
-            intptr_t old_value;
-
-            lwc_string *name =
-                lwc_string_ref(box->counter_reset->counters[i].name);
-            if (g_hash_table_lookup_extended(ctxt->udom->counters,
-                        box->counter_incrm->counters[i].name, NULL,
-                        (gpointer *)&old_value)) {
-                value = old_value + value;
-                g_hash_table_replace(ctxt->udom->counters,
-                        name, (gpointer)value);
-            }
-            else {
-                g_hash_table_replace(ctxt->udom->counters,
-                        name, (gpointer)value);
-            }
-        }
-    }
 
 }
 
@@ -2010,7 +2138,7 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     }
 
     /* determine the used values for common properties */
-    dtrm_used_values_common_properties(ctxt, box);
+    dtrm_common_properties(ctxt, box);
 
     /* calculate widths and margins */
     calc_widths_margins(ctxt, box);
@@ -2052,6 +2180,117 @@ failed:
     return NULL;
 }
 
+/* call this function after attaching the box to the rendering tree */
+static void
+dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    const css_computed_counter *counters;
+    uint8_t v;
+
+    /* determine counter-reset */
+    v = css_computed_counter_reset(ctxt->style, &counters);
+#if 0
+    if (v == CSS_COUNTER_RESET_INHERIT) {
+        if (ctxt->parent_box->counter_reset)
+            box->counter_reset =
+                foil_counters_ref(ctxt->parent_box->counter_reset);
+    }
+    else if (v == CSS_COUNTER_RESET_NAMED) {
+    }
+    else {
+        // do nothing.
+    }
+#endif
+
+    if (v == CSS_COUNTER_RESET_NONE || counters == NULL) {
+    }
+    else {
+        box->counter_reset = foil_counters_new(counters);
+        if (box->counter_reset == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-reset\n");
+        }
+    }
+
+    if (box->counter_reset) {
+        if ((box->counters_table = create_counters_table(ctxt)) == NULL) {
+            LOG_WARN("Failed to create new hash table for counters\n");
+        }
+        else {
+            for (size_t i = 0; i < box->counter_reset->nr_counters; i++) {
+                lwc_string *name =
+                    lwc_string_ref(box->counter_reset->counters[i].name);
+                g_hash_table_replace(box->counters_table,
+                        name, (gpointer)box->counter_reset->counters[i].value);
+            }
+        }
+    }
+
+    LOG_DEBUG("counter-reset for %s: %d; counters table: %p\n",
+            ctxt->tag_name, v, box->counters_table);
+
+    /* determine counter-increment */
+    v = css_computed_counter_increment(ctxt->style, &counters);
+#if 0
+    if (v == CSS_COUNTER_INCREMENT_INHERIT) {
+        if (ctxt->parent_box->counter_incrm)
+            box->counter_incrm =
+                foil_counters_ref(ctxt->parent_box->counter_incrm);
+    }
+    else if (v == CSS_COUNTER_INCREMENT_NAMED) {
+    }
+    else {
+        // do nothing
+    }
+#endif
+
+    if (v == CSS_COUNTER_INCREMENT_NONE || counters == NULL) {
+    }
+    else {
+        box->counter_incrm = foil_counters_new(counters);
+        if (box->counter_incrm == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-increment\n");
+        }
+    }
+
+    if (box->counter_incrm) {
+        for (size_t i = 0; i < box->counter_incrm->nr_counters; i++) {
+            intptr_t old_value;
+            GHashTable *counters_table =
+                find_counters_table(ctxt, box,
+                        box->counter_incrm->counters[i].name, &old_value);
+
+            if (counters_table) {
+                intptr_t new_value;
+                new_value = old_value + box->counter_incrm->counters[i].value;
+
+                lwc_string *name =
+                    lwc_string_ref(box->counter_incrm->counters[i].name);
+                g_hash_table_replace(counters_table,
+                        name, (gpointer)new_value);
+            }
+            else {
+                /* behave as though a counter-reset had reset the counter to 0
+                   on that element or pseudo-element. */
+                if (box->counters_table == NULL) {
+                    if ((box->counters_table = create_counters_table(ctxt)) == NULL) {
+                        LOG_WARN("Failed to create new hash table for counters\n");
+                    }
+                }
+
+                if (box->counters_table) {
+                    lwc_string *name =
+                        lwc_string_ref(box->counter_incrm->counters[i].name);
+                    g_hash_table_replace(box->counters_table,
+                            name, (gpointer)0);
+                }
+            }
+        }
+    }
+
+    LOG_DEBUG("counter-increment for %s: %d; counters table: %p\n",
+            ctxt->tag_name, v, box->counters_table);
+}
+
 foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
 {
     foil_rdrbox *box;
@@ -2063,13 +2302,15 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         box->is_principal = 1;
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
         foil_rdrbox_append_child(ctxt->parent_box, box);
+
+        dtrm_counter_properties(ctxt, box);
     }
 
     return box;
 }
 
 static foil_rdrbox *
-create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
+create_pseudo_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
 {
     foil_rdrbox *box;
 
@@ -2079,6 +2320,12 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
         box->is_pseudo = 1;
     }
 
+    return box;
+}
+
+static void
+init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
     GString *text = NULL;
     const css_computed_content_item *ctnt_item;
     uint8_t v = css_computed_content(ctxt->style, &ctnt_item);
@@ -2129,13 +2376,40 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
                 g_string_append(text, "<URI>");
                 break;
 
-            case CSS_COMPUTED_CONTENT_COUNTER:
-                // TODO
-                break;
+            case CSS_COMPUTED_CONTENT_COUNTER: {
+                intptr_t value;
+                if (find_counters_table(ctxt, box,
+                            ctnt_item->data.counter.name, &value)) {
 
-            case CSS_COMPUTED_CONTENT_COUNTERS:
-                // TODO
+                    uint8_t type = ctnt_item->data.counter.style;
+                    if (type == 0)
+                        type = CSS_LIST_STYLE_TYPE_DECIMAL;
+                    type = normalize_list_style_type(type);
+
+                    if (value < 0)
+                        value = 0;
+
+                    LOG_DEBUG("Counter type: %d; value: %u\n",
+                            type, (unsigned)value);
+                    purc_atom_t atom = foil_rdrbox_list_number(0,
+                           (unsigned)value, type);
+
+                    if (atom) {
+                        g_string_append(text, purc_atom_to_string(atom));
+                    }
+                }
+                else {
+                    LOG_ERROR("Could not find counters table for counter: %s\n",
+                            lwc_string_data(ctnt_item->data.counter.name));
+                }
+
                 break;
+            }
+
+            case CSS_COMPUTED_CONTENT_COUNTERS: {
+                generate_content_from_counters(ctxt, box, ctnt_item, text);
+                break;
+            }
 
             case CSS_COMPUTED_CONTENT_OPEN_QUOTE: {
                 int quoting_depth =
@@ -2216,14 +2490,11 @@ create_content_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
         }
     }
 
-    return box;
+    return;
 
 failed:
     if (text)
         g_string_free(text, TRUE);
-    if (box)
-        foil_rdrbox_delete(box);
-    return NULL;
 }
 
 foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
@@ -2232,10 +2503,12 @@ foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
     foil_rdrbox *box;
 
     ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_BEFORE];
-    if ((box = create_content_box(ctxt, principal))) {
+    if ((box = create_pseudo_box(ctxt, principal))) {
         LOG_DEBUG("created a box for :before pseudo element for %s\n",
                 ctxt->tag_name);
         foil_rdrbox_insert_before(principal, box);
+        dtrm_counter_properties(ctxt, box);
+        init_pseudo_box_content(ctxt, box);
     }
 
     return box;
@@ -2247,10 +2520,12 @@ foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
     foil_rdrbox *box;
 
     ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_AFTER];
-    if ((box = create_content_box(ctxt, principal))) {
+    if ((box = create_pseudo_box(ctxt, principal))) {
         LOG_DEBUG("created a box for :after pseudo element for %s\n",
                 ctxt->tag_name);
         foil_rdrbox_insert_after(principal, box);
+        dtrm_counter_properties(ctxt, box);
+        init_pseudo_box_content(ctxt, box);
     }
 
     return box;
@@ -2290,6 +2565,7 @@ foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
     box->owner = ctxt->elem;
     box->is_anonymous = 1;
     box->is_inline_level = 1;
+    parent->nr_child_inlines++;
 
     foil_rdrbox_append_child(parent, box);
     return box;

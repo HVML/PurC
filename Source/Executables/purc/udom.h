@@ -63,9 +63,6 @@ struct pcmcth_udom {
     uint32_t *title_ucs;
     size_t    title_len;
 
-    /* counters */
-    GHashTable *counters;
-
     /* quoting depth */
     int nr_open_quotes;
     int nr_close_quotes;

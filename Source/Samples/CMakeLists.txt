@@ -56,6 +56,7 @@ set(sample_HVML_FILES
     "hvml/fetch-with-param-b.hvml"
     "hvml/foil-layouts.hvml"
     "hvml/assets/foil-layouts-quotes.css"
+    "hvml/assets/foil-layouts-counters.css"
     "hvml/assets/messages-foil-layouts-zh.json"
 )
 

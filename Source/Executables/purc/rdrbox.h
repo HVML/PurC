@@ -28,6 +28,7 @@
 
 #include "foil.h"
 
+#include <glib.h>
 #include <csseng/csseng.h>
 
 /* The rendered box */
@@ -281,14 +282,17 @@ struct foil_rdrbox {
     uint32_t fgc;   // ARGB
     uint32_t bgc;   // ARGB
 
-    // NULL when `quotes` is `none`
+    /* NULL when `quotes` is `none` */
     foil_quotes *quotes;
 
-    // NULL when `counter-reset` is `none`.
+    /* NULL when `counter-reset` is `none`. */
     foil_counters *counter_reset;
 
-    // NULL when `counter-increment` is `none`.
+    /* NULL when `counter-increment` is `none`. */
     foil_counters *counter_incrm;
+
+    /* Store all effective counters */
+    GHashTable *counters_table;
 
     /* layout flags */
     unsigned height_pending:1;
@@ -423,6 +427,10 @@ bool foil_rdrbox_init_data(foil_create_ctxt *ctxt, foil_rdrbox *box);
 /* initialize the data of an inline box */
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const char *text, size_t len);
+
+/* get the list number according to the list-item-type */
+purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
+        const unsigned index, uint8_t type);
 
 /* initialize the data of a marker box */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,

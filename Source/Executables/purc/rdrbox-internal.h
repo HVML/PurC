@@ -31,6 +31,8 @@
 
 #include "unicode/unicode.h"
 
+#define LEN_BUF_INTEGER 128
+
 struct text_paragraph {
     struct list_head ln;
 
