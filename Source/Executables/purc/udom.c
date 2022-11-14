@@ -35,6 +35,7 @@
 #include <assert.h>
 
 static css_stylesheet *def_ua_sheet;
+
 /* copy from https://www.w3.org/TR/2011/REC-CSS2-20110607/sample.html#q22.0 */
 static const char *def_style_sheet = ""
     "html, address,"
@@ -106,7 +107,11 @@ static const char *def_style_sheet = ""
     ":link, :visited { text-decoration: underline }"
     ":focus          { outline: thin dotted invert }"
     ""
-    "/* Begin bidirectionality settings (do not change) */"
+    /* Insert quotes before and after Q element content */
+    "q:before        { content: open-quote }"   // HTML 5 tag
+    "q:after         { content: close-quote }"  // HTML 5 tag
+    ""
+    /* Begin bidirectionality settings (do not change) */
     "BDO[DIR=\"ltr\"]  { direction: ltr; unicode-bidi: bidi-override }"
     "BDO[DIR=\"rtl\"]  { direction: rtl; unicode-bidi: bidi-override }"
     ""
