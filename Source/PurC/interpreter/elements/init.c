@@ -143,7 +143,6 @@ _init_set_with(purc_variant_t set, purc_variant_t arr)
         bool ok;
         ok = purc_variant_set_add(set, v, overwrite);
         if (!ok) {
-            PC_ASSERT(purc_get_last_error());
             return -1;
         }
     }
@@ -284,7 +283,6 @@ process_attr_from(struct pcintr_stack_frame *frame,
     }
     ctxt->from = purc_variant_ref(val);
     ctxt->from_uri = purc_variant_get_string_const(ctxt->from);
-    PC_ASSERT(ctxt->from_uri);
 
     return 0;
 }
@@ -424,10 +422,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
+    UNUSED_PARAM(attr);
     UNUSED_PARAM(ud);
-
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -440,19 +436,16 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQUELY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNIQ)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->uniquely = 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASE)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASELESS)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 0;
         return 0;
     }
@@ -473,7 +466,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPORARILY)) == name ||
             pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMP)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->temporarily = 1;
         if (ctxt->async) {
             purc_log_warn("'asynchronously' is ignored because of 'temporarily'");
@@ -483,7 +475,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNCHRONOUSLY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASYNC)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->async = 1;
         if (ctxt->temporarily) {
             purc_log_warn("'asynchronously' is ignored because of 'temporarily'");
@@ -493,7 +484,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNCHRONOUSLY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SYNC)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->async = 0;
         return 0;
     }
@@ -510,25 +500,15 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
+    UNUSED_PARAM(request_id);
     UNUSED_PARAM(ud);
     UNUSED_PARAM(resp_header);
     UNUSED_PARAM(resp);
 
-    pcintr_heap_t heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    PC_ASSERT(pcintr_get_coroutine() == NULL);
-
     pcintr_stack_frame_t frame;
     frame = (pcintr_stack_frame_t)ud;
-    PC_ASSERT(frame);
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
-
-    pcintr_coroutine_t co = ctxt->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->owner == heap);
-    PC_ASSERT(ctxt->sync_id == request_id);
 
     PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
     PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
@@ -536,7 +516,6 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
 
     ctxt->ret_code = resp_header->ret_code;
     ctxt->resp = resp;
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
     if (ctxt->co->stack.exited) {
         return;
@@ -588,14 +567,9 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     int r;
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)data;
-    PC_ASSERT(frame);
-
-    pcintr_stack_t stack = &cor->stack;
-    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     if (ctxt->ret_code == RESP_CODE_USER_STOP) {
         frame->next_step = NEXT_STEP_ON_POPPING;
@@ -647,7 +621,6 @@ params_from_with(struct ctxt_for_init *ctxt)
     }
     else {
         // TODO VW: raise exceptioin for no suitable value.
-        // PC_ASSERT(0);
         params = purc_variant_make_object_0();
     }
 
@@ -664,7 +637,6 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     enum pcfetcher_request_method method;
     method = pcintr_method_from_via(ctxt->via);
@@ -721,7 +693,6 @@ static void load_data_release(struct load_data *data)
 {
     if (data) {
         PURC_VARIANT_SAFE_CLEAR(data->async_id);
-        PC_ASSERT(data->async_id == PURC_VARIANT_INVALID);
         data->co = NULL;
         data->vdom_element = NULL;
         PURC_VARIANT_SAFE_CLEAR(data->as);
@@ -748,8 +719,6 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
     pcintr_stack_t stack = &co->stack;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame->type == STACK_FRAME_TYPE_PSEUDO);
-    PC_ASSERT(data->vdom_element == frame->pos);
 
     if (data->ret_code == RESP_CODE_USER_STOP)
         return;
@@ -774,12 +743,11 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
     purc_variant_t src;
     src = _generate_src(data->against, data->uniquely, caseless, ret);
     if (src != PURC_VARIANT_INVALID) {
-        int r = _bind_src(co, frame, // NULL
+        _bind_src(co, frame, // NULL
                 data->as, data->at,
                 data->under_head, data->temporarily,
                 src);
         purc_variant_unref(src);
-        PC_ASSERT(r == 0);
     }
 
     PURC_VARIANT_SAFE_CLEAR(ret);
@@ -789,10 +757,8 @@ static void on_async_resume(void *ud)
 {
     struct load_data *data;
     data = (struct load_data*)ud;
-    PC_ASSERT(data);
 
     pcintr_coroutine_t co = pcintr_get_coroutine();
-    PC_ASSERT(co == data->co);
 
     pcintr_unregister_cancel(&data->cancel);
 
@@ -847,26 +813,19 @@ static void on_async_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
+    UNUSED_PARAM(request_id);
+
     PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
     PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
     PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
 
-    pcintr_heap_t heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    PC_ASSERT(pcintr_get_coroutine() == NULL);
-
     struct load_data *data;
     data = (struct load_data*)ud;
-    PC_ASSERT(data);
 
     pcintr_coroutine_t co = data->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->owner == heap);
-    PC_ASSERT(data->async_id == request_id);
 
     data->ret_code = resp_header->ret_code;
     data->resp = resp;
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
     if (co->stack.exited) {
         return;
@@ -885,7 +844,6 @@ static void load_data_cancel(void *ud)
 {
     struct load_data *data;
     data = (struct load_data*)ud;
-    PC_ASSERT(data);
 
     pcfetcher_cancel_async(data->async_id);
 }
@@ -897,7 +855,6 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     struct load_data *data;
     data = (struct load_data*)calloc(1, sizeof(*data));
@@ -960,7 +917,6 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
         );
 
     pcintr_register_cancel(&data->cancel);
-    PC_ASSERT(co->state == CO_STATE_RUNNING);
 
     return 0;
 }
@@ -1059,8 +1015,6 @@ process_from(pcintr_coroutine_t co)
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
-
     if (stack->except)
         return NULL;
 
@@ -1092,7 +1046,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     int r;
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
@@ -1139,18 +1092,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
@@ -1174,7 +1122,6 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     if (ctxt->with && !ctxt->from)
         return 0;
@@ -1193,7 +1140,6 @@ static int
 on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_content *content)
 {
-    PC_ASSERT(content);
 
     pcintr_stack_t stack = &co->stack;
     if (stack->except)
@@ -1201,7 +1147,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     if (ctxt->from) {
         if (!ctxt->async)
@@ -1243,7 +1188,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    UNUSED_PARAM(comment);
     return 0;
 }
 
@@ -1256,11 +1201,9 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     struct ctxt_for_init *ctxt;
     ctxt = (struct ctxt_for_init*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     if (ctxt->from && ctxt->async && ctxt->literal == PURC_VARIANT_INVALID) {
         purc_variant_t v = purc_variant_make_null();
-        PC_ASSERT(v != PURC_VARIANT_INVALID);
         int r = post_process(co, frame, v);
         purc_variant_unref(v);
         return r;
@@ -1272,12 +1215,11 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -1319,7 +1261,7 @@ again:
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
             {
@@ -1337,10 +1279,10 @@ again:
                 return NULL;
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 

@@ -95,10 +95,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(val);
     UNUSED_PARAM(ud);
 
-    PC_ASSERT(attr);
-
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
-
     if (name) {
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, RAW)) == name) {
             return 0;
@@ -113,20 +109,16 @@ attr_found_val(struct pcintr_stack_frame *frame,
         }
 
         PC_DEBUGX("name: %s", purc_atom_to_string(name));
-        PC_ASSERT(0);
         return -1;
     }
 
     PC_DEBUGX("name: %s", attr->key);
-    PC_ASSERT(0);
-    return -1;
+    return 0;
 }
 
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
-
     if (stack->except)
         return NULL;
 
@@ -156,7 +148,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     int r;
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
@@ -171,18 +162,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_error *ctxt;
     ctxt = (struct ctxt_for_error*)frame->ctxt;
@@ -200,21 +186,16 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(content);
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
+    UNUSED_PARAM(content);
 
     struct ctxt_for_error *ctxt;
     ctxt = (struct ctxt_for_error*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     struct pcvcm_node *vcm = content->vcm;
     if (!vcm)
         return 0;
 
     // NOTE: element is still the owner of vcm_content
-    PC_ASSERT(ctxt->contents);
     bool to_free = false;
     return pcintr_template_set(ctxt->contents, vcm, PURC_VARIANT_INVALID, to_free);
 }
@@ -253,7 +234,6 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         return -1;
 
     struct pcvdom_element *scope = frame->scope;
-    PC_ASSERT(scope);
 
     bool ok;
     ok = pcintr_bind_scope_variable(scope, s_name, frame->ctnt_var);
@@ -268,12 +248,10 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
-
+    UNUSED_PARAM(ud);
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -306,30 +284,29 @@ again:
 
     if (curr == NULL) {
         purc_clr_error();
-        int r = on_child_finished(co, frame);
-        PC_ASSERT(0 == r);
+        on_child_finished(co, frame);
         return NULL;
     }
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_CONTENT:
             if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
                 return NULL;
             goto again;
         case PCVDOM_NODE_COMMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 static struct pcintr_element_ops

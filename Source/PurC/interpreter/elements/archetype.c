@@ -313,25 +313,15 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
         const struct pcfetcher_resp_header *resp_header,
         purc_rwstream_t resp)
 {
+    UNUSED_PARAM(request_id);
     UNUSED_PARAM(ud);
     UNUSED_PARAM(resp_header);
     UNUSED_PARAM(resp);
 
-    pcintr_heap_t heap = pcintr_get_heap();
-    PC_ASSERT(heap);
-    PC_ASSERT(pcintr_get_coroutine() == NULL);
-
     pcintr_stack_frame_t frame;
     frame = (pcintr_stack_frame_t)ud;
-    PC_ASSERT(frame);
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-    PC_ASSERT(ctxt);
-
-    pcintr_coroutine_t co = ctxt->co;
-    PC_ASSERT(co);
-    PC_ASSERT(co->owner == heap);
-    PC_ASSERT(ctxt->sync_id == request_id);
 
     PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
     PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
@@ -339,7 +329,6 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
 
     ctxt->ret_code = resp_header->ret_code;
     ctxt->resp = resp;
-    PC_ASSERT(purc_get_last_error() == PURC_ERROR_OK);
 
     if (ctxt->co->stack.exited) {
         return;
@@ -390,14 +379,9 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 
     struct pcintr_stack_frame *frame;
     frame = (struct pcintr_stack_frame*)data;
-    PC_ASSERT(frame);
-
-    pcintr_stack_t stack = &cor->stack;
-    PC_ASSERT(frame == pcintr_stack_get_bottom_frame(stack));
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
@@ -424,12 +408,12 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     if (ctxt->vcm_from_src == NULL)
         goto dispatch_except;
 
-    PC_ASSERT(purc_get_last_error()==0);
     has_except = false;
 
 dispatch_except:
     if (has_except) {
-        PC_ASSERT(purc_get_last_error());
+        PC_DEBUG("%s error=%s\n", __func__,
+                purc_get_error_message(purc_get_last_error()));
     }
 
 clean_rws:
@@ -454,7 +438,6 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
 
     const char *s_src = purc_variant_get_string_const(ctxt->src);
-    PC_ASSERT(s_src);
 
     const char *s_method = "GET";
     if (ctxt->method != PURC_VARIANT_INVALID) {
@@ -505,8 +488,6 @@ process_by_src(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
-
     if (stack->except)
         return NULL;
 
@@ -514,8 +495,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-
-    PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)calloc(1, sizeof(*ctxt));
@@ -543,7 +522,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return ctxt;
 
     struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     int r;
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
@@ -560,11 +538,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (ctxt->src != PURC_VARIANT_INVALID) {
         process_by_src(stack, frame);
-        PC_ASSERT(purc_get_last_error() == 0);
         return ctxt;
     }
 
-    PC_ASSERT(frame->ctnt_var == PURC_VARIANT_INVALID);
     if (!ctxt->type && stack->co->target) {
         ctxt->type = purc_variant_make_string(stack->co->target, false);
     }
@@ -575,18 +551,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
@@ -604,14 +575,9 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(content);
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_archetype *ctxt;
     ctxt = (struct ctxt_for_archetype*)frame->ctxt;
-    PC_ASSERT(ctxt);
 
     // successfully loading from external src
     if (ctxt->vcm_from_src)
@@ -622,7 +588,6 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return 0;
 
     // NOTE: element is still the owner of vcm_content
-    PC_ASSERT(ctxt->contents);
     bool to_free = false;
     return pcintr_template_set(ctxt->contents, vcm, ctxt->type, to_free);
 }
@@ -675,12 +640,11 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -713,30 +677,30 @@ again:
 
     if (curr == NULL) {
         purc_clr_error();
-        int r = on_child_finished(co, frame);
-        PC_ASSERT(0 == r);
+        on_child_finished(co, frame);
         return NULL;
     }
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_CONTENT:
             if (on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr)))
                 return NULL;
             goto again;
         case PCVDOM_NODE_COMMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+            break;
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 
