@@ -563,11 +563,12 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         goto failed;
     }
 
-    (void)parent_result;
-    /* We do not use css_computed_style_compose, as this function
-       just clones the values for `inherit` for complex properties.
-       This is not a smart way.
+    /* XXX: css_computed_style_compose() of CSSEng just clones the values for
+       `inherit` for complex properties, e.g., `counter-reset` and
+       `counter-increment`.
 
+       This is not a smart way. One can optimize this by introducing
+       reference count to the values of these complex properties. */
     css_computed_style *composed = NULL;
     if (parent_result) {
         err = css_computed_style_compose(
@@ -581,11 +582,11 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
 
         css_computed_style_destroy(result->styles[CSS_PSEUDO_ELEMENT_NONE]);
         result->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;
-    } */
+    }
 
     /* compose styles for pseudo elements */
     int pseudo_element;
-    css_computed_style *composed = NULL;
+    composed = NULL;
     for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
             pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
             pseudo_element++) {

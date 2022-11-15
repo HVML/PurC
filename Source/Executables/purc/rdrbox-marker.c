@@ -30,7 +30,7 @@
 
 #include <assert.h>
 
-static bool
+static unsigned
 numbering_decimal(unsigned u, char *buf, size_t sz_buf)
 {
     unsigned len = 0;
@@ -41,8 +41,10 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 3 > sz_buf)
-        return false;
+    if (len > sz_buf)
+        return 0;
+
+    buf[len] = '\0';
 
     ssize_t pos = len - 1;
     while (u) {
@@ -54,13 +56,10 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = '.';
-    buf[len + 1] = ' ';
-    buf[len + 2] = '\0';
-    return true;
+    return len;
 }
 
-static bool
+static unsigned
 numbering_decimal_leading_zero(unsigned u, unsigned max,
         char *buf, size_t sz_buf)
 {
@@ -76,9 +75,11 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len + 3 > sz_buf) {
-        return false;
+    if (len > sz_buf) {
+        return 0;
     }
+
+    buf[len] = '\0';
 
     ssize_t pos = len - 1;
     while (u && pos > 0) {
@@ -95,49 +96,46 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         pos--;
     }
 
-    buf[len] = '.';
-    buf[len + 1] = ' ';
-    buf[len + 2] = '\0';
-    return true;
+    return len;
 }
 
-static bool
+static unsigned
 numbering_lower_roman(unsigned u, char *buf, size_t sz_buf)
 {
     (void)u;
     (void)sz_buf;
     strcpy(buf, "TODO/lower-roman");
-    return true;
+    return strlen(buf);
 }
 
-static bool
+static unsigned
 numbering_upper_roman(unsigned u, char *buf, size_t sz_buf)
 {
     (void)u;
     (void)sz_buf;
     strcpy(buf, "TODO/upper-roman");
-    return true;
+    return strlen(buf);
 }
 
-static bool
+static unsigned
 numbering_georgian(unsigned u, char *buf, size_t sz_buf)
 {
     (void)u;
     (void)sz_buf;
     strcpy(buf, "TODO/numbering georgian");
-    return true;
+    return strlen(buf);
 }
 
-static bool
+static unsigned
 numbering_armenian(unsigned u, char *buf, size_t sz_buf)
 {
     (void)u;
     (void)sz_buf;
     strcpy(buf, "TODO/numbering armenian");
-    return true;
+    return strlen(buf);
 }
 
-static bool
+static unsigned
 alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
 {
     unsigned len = 0;
@@ -148,8 +146,10 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 3 > sz_buf)
-        return false;
+    if (len > sz_buf)
+        return 0;
+
+    buf[len] = '\0';
 
     ssize_t pos = len - 1;
     while (u) {
@@ -161,13 +161,10 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = ')';
-    buf[len + 1] = ' ';
-    buf[len + 2] = '\0';
-    return true;
+    return len;
 }
 
-static bool
+static unsigned
 alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
 {
     unsigned len = 0;
@@ -178,8 +175,10 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len + 3 > sz_buf)
-        return false;
+    if (len > sz_buf)
+        return 0;
+
+    buf[len] = '\0';
 
     ssize_t pos = len - 1;
     while (u) {
@@ -191,13 +190,10 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         pos--;
     }
 
-    buf[len] = ')';
-    buf[len + 1] = ' ';
-    buf[len + 2] = '\0';
-    return true;
+    return len;
 }
 
-static bool
+static unsigned
 alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
 {
     unsigned len = 0;
@@ -214,10 +210,13 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
 
     /* The lenght of UTF-8 encoding of a greek letter is 2:
        U+03B1 -> CE B1 */
-    if (len * 2 + 3 > sz_buf)
-        return false;
+    len *= 2;
+    if (len > sz_buf)
+        return 0;
 
-    ssize_t pos = (len - 1) * 2;
+    buf[len] = '\0';
+
+    ssize_t pos = len - 2;
     while (u) {
         unsigned r = u % nr_greek_letters;
         u = u / nr_greek_letters;
@@ -228,76 +227,86 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
         pos -= 2;
     }
 
-    buf[len * 2] = ')';
-    buf[len * 2 + 1] = ' ';
-    buf[len * 2 + 2] = '\0';
-    return true;
+    return len;
 }
 
+#define UTF8STR_OF_DISC_CHAR    "●"
+#define UTF8STR_OF_CIRCLE_CHAR  "○"
+#define UTF8STR_OF_SQUARE_CHAR  "□"
+
 purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
-        const unsigned index, uint8_t type)
+        const unsigned index, uint8_t type, const char *tail)
 {
-    char buff[LEN_BUF_INTEGER];
+    unsigned tail_len = tail ? strlen(tail) : 0;
+    char buff[LEN_BUF_INTEGER + tail_len + 4];
+    unsigned len;
     purc_atom_t atom = 0;
 
     buff[0] = '\0';
     switch (type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DISC:
-        atom = purc_atom_from_static_string_ex(
-                PURC_ATOM_BUCKET_RDR, "●");
+        strcpy(buff, UTF8STR_OF_DISC_CHAR);
+        len = sizeof(UTF8STR_OF_DISC_CHAR) - 1;
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE:
-        atom = purc_atom_from_static_string_ex(
-                PURC_ATOM_BUCKET_RDR, "○");
+        strcpy(buff, UTF8STR_OF_CIRCLE_CHAR);
+        len = sizeof(UTF8STR_OF_CIRCLE_CHAR) - 1;
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE:
-        atom = purc_atom_from_static_string_ex(
-                PURC_ATOM_BUCKET_RDR, "□");
+        strcpy(buff, UTF8STR_OF_SQUARE_CHAR);
+        len = sizeof(UTF8STR_OF_SQUARE_CHAR) - 1;
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
-        numbering_decimal(index + 1, buff, sizeof(buff));
-        LOG_DEBUG("%s\n", buff);
+        len = numbering_decimal(index + 1, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-        numbering_decimal_leading_zero(index, nr_items,
+        len = numbering_decimal_leading_zero(index, nr_items,
                 buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
-        numbering_lower_roman(index, buff, sizeof(buff));
+        len = numbering_lower_roman(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
-        numbering_upper_roman(index, buff, sizeof(buff));
+        len = numbering_upper_roman(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
-        numbering_armenian(index, buff, sizeof(buff));
+        len = numbering_armenian(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
-        numbering_georgian(index, buff, sizeof(buff));
+        len = numbering_georgian(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
-        alphabetic_lower_greek(index, buff, sizeof(buff));
+        len = alphabetic_lower_greek(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
-        alphabetic_lower_latin(index, buff, sizeof(buff));
+        len = alphabetic_lower_latin(index, buff, sizeof(buff));
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
-        alphabetic_upper_latin(index, buff, sizeof(buff));
+        len = alphabetic_upper_latin(index, buff, sizeof(buff));
         break;
-
     }
 
     if (buff[0]) {
+        unsigned i = 0;
+        if (tail && (len + tail_len) < sizeof(buff)) {
+            while (tail[i]) {
+                buff[len + i] = tail[i];
+                i++;
+            }
+        }
+        buff[len + i] = '\0';
+
         atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_RDR, buff);
     }
 
@@ -319,9 +328,26 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     const unsigned nr_items = list_item->parent->nr_child_list_items;
     const unsigned index = list_item->list_item_data->index;
     struct _marker_box_data *data = marker->marker_data;
+    const char *tail = NULL;
+
+    switch (list_item->list_style_type) {
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
+        tail = ". ";
+        break;
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
+        tail = ") ";
+        break;
+    }
 
     data->atom = foil_rdrbox_list_number(nr_items, index,
-            list_item->list_style_type);
+            list_item->list_style_type, tail);
     return (data->atom != 0);
 }
 

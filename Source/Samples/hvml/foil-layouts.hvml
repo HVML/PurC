@@ -100,7 +100,8 @@
 
         <init as 'caseName' with 'counters' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
-            <SECTION id="$caseName">
+           <SECTION id="$caseName">
+              <DIV class="simple">
                 <H1>The 1st head in level 1 (Chapter 1. )</H1>
                 <H2>The 1st head in level 2 (1.1 )</H2>
                 <H2>The 2nd head in level 2 (1.2 )</H2>
@@ -110,7 +111,133 @@
                 <H2>The 1st head in level 2 (2.1 )</H2>
                 <H2>The 2nd head in level 2 (2.2 )</H2>
                 <H2>The 3rd head in level 2 (2.3 )</H2>
-            </SECTION>
+              </DIV>
+
+              <DIV class="counter">
+                <OL>                    <!-- {item[0]=0        -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item              <!--  item[0]++ (=2)   -->
+                    <OL>                <!--  {item[1]=0       -->
+                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
+                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
+                      <LI>item          <!--   item[1]++ (=3)  -->
+                        <OL>            <!--   {item[2]=0      -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                        <OL>            <!--   }{item[2]=0     -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                      </LI>             <!--   }               -->
+                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
+                    </OL>               <!--                   -->
+                  </LI>                 <!--  }                -->
+                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
+                </OL>                   <!--                   -->
+                <OL>                    <!-- }{item[0]=0       -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
+                </OL>                   <!--                   -->
+             </DIV>
+
+              <DIV class="counters">
+                <OL>                    <!-- {item[0]=0        -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item              <!--  item[0]++ (=2)   -->
+                    <OL>                <!--  {item[1]=0       -->
+                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
+                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
+                      <LI>item          <!--   item[1]++ (=3)  -->
+                        <OL>            <!--   {item[2]=0      -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                        <OL>            <!--   }{item[2]=0     -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                      </LI>             <!--   }               -->
+                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
+                    </OL>               <!--                   -->
+                  </LI>                 <!--  }                -->
+                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
+                </OL>                   <!--                   -->
+                <OL>                    <!-- }{item[0]=0       -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
+                </OL>                   <!--                   -->
+             </DIV>
+
+              <DIV class="style">
+                <H1>The 1st head in level 1 (Chapter 1. )</H1>
+
+                <H2>The 1st head in level 2 (1.1 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 2nd head in level 2 (1.2 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+                <H2>The 3rd head in level 2 (1.3 )</H2>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H1>The 1st head in level 1 (Chapter 2. )</H1>
+                <H2>The 1st head in level 2 (2.1 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 2nd head in level 2 (2.2 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 3rd head in level 2 (2.3 )</H2>
+
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+              </DIV>
+           </SECTION>
+
         </define>
 
         <!-- check validation of ${$styleCase} -->

@@ -430,7 +430,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
 
 /* get the list number according to the list-item-type */
 purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
-        const unsigned index, uint8_t type);
+        const unsigned index, uint8_t type, const char *tail);
 
 /* initialize the data of a marker box */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
