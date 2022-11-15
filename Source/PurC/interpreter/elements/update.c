@@ -536,19 +536,6 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         break;
 
     case UPDATE_OP_REMOVE:
-        if (at) {
-            purc_variant_t v = purc_variant_make_undefined();
-            r = purc_variant_tuple_set(on, idx, v);
-            purc_variant_unref(v);
-        }
-        else {
-            r = purc_variant_container_remove(on, src, frame->silently);
-        }
-        if (!r) {
-            return -1;
-        }
-        break;
-
     case UPDATE_OP_MERGE:
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
@@ -562,7 +549,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     case UPDATE_OP_CALL:
     case UPDATE_OP_UNKNOWN:
     default:
-        purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+        purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
                 "vdom attribute '%s'='%s' for element <%s>",
                 pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
                 op, element->tag_name);
