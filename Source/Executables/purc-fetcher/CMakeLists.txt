@@ -1,27 +1,27 @@
 include(PurCCommon)
 include(target/RemoteFetcher)
 
-PURC_EXECUTABLE_DECLARE(purc-fetcher)
+PURC_EXECUTABLE_DECLARE(purc_fetcher)
 
-list(APPEND purc-fetcher_INCLUDE_DIRECTORIES
+list(APPEND purc_fetcher_INCLUDE_DIRECTORIES
     ${FORWARDING_HEADERS_DIR}
 )
 
-set(purc-fetcher_SOURCES
+set(purc_fetcher_SOURCES
     fetcher.cpp
 )
 
-set(purc-fetcher_LIBRARIES
+set(purc_fetcher_LIBRARIES
     PurC::RemoteFetcher
     pthread
 )
 
-set_target_properties(purc-fetcher PROPERTIES
+set_target_properties(purc_fetcher PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-PURC_COMPUTE_SOURCES(purc-fetcher)
-PURC_FRAMEWORK(purc-fetcher)
+PURC_COMPUTE_SOURCES(purc_fetcher)
+PURC_FRAMEWORK(purc_fetcher)
 
-install(TARGETS purc-fetcher DESTINATION "${EXEC_INSTALL_DIR}/")
+install(TARGETS purc_fetcher DESTINATION "${EXEC_INSTALL_DIR}/")
 
