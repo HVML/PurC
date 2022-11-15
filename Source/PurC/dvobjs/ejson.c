@@ -96,15 +96,9 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            count = purc_variant_array_get_size(argv[0]);
-            break;
-
         case PURC_VARIANT_TYPE_SET:
-            count = purc_variant_set_get_size(argv[0]);
-            break;
-
         case PURC_VARIANT_TYPE_TUPLE:
-            count = purc_variant_tuple_get_size(argv[0]);
+            count = purc_variant_linear_container_get_size(argv[0]);
             break;
         }
     }
@@ -1716,10 +1710,10 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         const char *formats, size_t formats_left, bool silently)
 {
     size_t item_idx = 0, nr_items;
-    bool items_in_array = (nr_args == 1) &&
-        purc_variant_array_size(argv[0], &nr_items);
+    bool items_in_linear_container = (nr_args == 1) &&
+        purc_variant_linear_container_size(argv[0], &nr_items);
 
-    if (!items_in_array) {
+    if (!items_in_linear_container) {
         nr_items = nr_args;
     }
 
@@ -1742,8 +1736,8 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         }
 
         purc_variant_t item;
-        if (items_in_array) {
-            item = purc_variant_array_get(argv[0], item_idx);
+        if (items_in_linear_container) {
+            item = purc_variant_linear_container_get(argv[0], item_idx);
             assert(item);   // item must be valid
         }
         else {
