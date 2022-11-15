@@ -845,11 +845,24 @@ static uint8_t normalize_list_style_type(uint8_t v)
         break;
 
     case CSS_LIST_STYLE_TYPE_ARMENIAN:
-        v = FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN;
+    case CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ARMENIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ARMENIAN;
         break;
 
     case CSS_LIST_STYLE_TYPE_GEORGIAN:
         v = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_CJK_DECIMAL:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_TIBETAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_TIBETAN;
         break;
 
     case CSS_LIST_STYLE_TYPE_NONE:

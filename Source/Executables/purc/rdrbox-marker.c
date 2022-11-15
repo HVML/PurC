@@ -360,9 +360,38 @@ alphabetic_lower_greek(GString *text, int number)
     return len;
 }
 
+static unsigned numbering_numeric(GString *text, int number,
+        const char *numeric_symbols[])
+{
+    if (number < 0)
+        return numbering_decimal(text, number);
+
+    if (number == 0) {
+        g_string_assign(text, numeric_symbols[0]);
+        return text->len;
+    }
+
+    while (number) {
+        unsigned r = number % 10;
+        number = number / 10;
+
+        g_string_prepend(text, numeric_symbols[r]);
+    }
+
+    return text->len;
+}
+
 #define UTF8STR_OF_DISC_CHAR    "●"
 #define UTF8STR_OF_CIRCLE_CHAR  "○"
 #define UTF8STR_OF_SQUARE_CHAR  "□"
+
+static const char *cjk_numeric_symbols[] = {
+    "〇", "一", "二", "三", "四", "五", "六", "七", "八", "九",
+};
+
+static const char *tibetan_numeric_symbols[] = {
+    "༠", "༡", "༢", "༣", "༤", "༥", "༦", "༧", "༨", "༩",
+};
 
 char *foil_rdrbox_list_number(const int max,
         const int number, uint8_t type, const char *tail)
@@ -398,7 +427,11 @@ char *foil_rdrbox_list_number(const int max,
         numbering_roman(text, number, true);
         break;
 
-    case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ARMENIAN:
+        numbering_armenian(text, number, false);
+        break;
+
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ARMENIAN:
         numbering_armenian(text, number, true);
         break;
 
@@ -416,6 +449,14 @@ char *foil_rdrbox_list_number(const int max,
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
         alphabetic_upper_latin(text, number);
+        break;
+
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL:
+        numbering_numeric(text, number, cjk_numeric_symbols);
+        break;
+
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_TIBETAN:
+        numbering_numeric(text, number, tibetan_numeric_symbols);
         break;
     }
 
@@ -455,14 +496,20 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
         tail = ". ";
         break;
+
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
-    case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ARMENIAN:
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ARMENIAN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
         tail = ") ";
+        break;
+
+    case FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL:
+        tail = "、";
         break;
     }
 
