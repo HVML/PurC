@@ -28,10 +28,12 @@
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 
+#include <glib.h>
+
 #include <assert.h>
 
 static unsigned
-numbering_decimal(unsigned u, char *buf, size_t sz_buf)
+numbering_decimal(GString *text, unsigned u)
 {
     unsigned len = 0;
     unsigned tmp = u;
@@ -41,10 +43,7 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len > sz_buf)
-        return 0;
-
-    buf[len] = '\0';
+    g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
     while (u) {
@@ -52,7 +51,7 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
         u = u / 10;
 
         assert(pos >= 0);
-        buf[pos] = '0' + r;
+        text->str[pos] = '0' + r;
         pos--;
     }
 
@@ -60,11 +59,10 @@ numbering_decimal(unsigned u, char *buf, size_t sz_buf)
 }
 
 static unsigned
-numbering_decimal_leading_zero(unsigned u, unsigned max,
-        char *buf, size_t sz_buf)
+numbering_decimal_leading_zero(GString *text, unsigned u, unsigned max)
 {
     if (u > max) {
-        return numbering_decimal(u, buf, sz_buf);
+        return numbering_decimal(text, u);
     }
 
     unsigned len = 0;
@@ -75,11 +73,7 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         tmp = tmp / 10;
     } while (tmp);
 
-    if (len > sz_buf) {
-        return 0;
-    }
-
-    buf[len] = '\0';
+    g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
     while (u && pos > 0) {
@@ -87,12 +81,12 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
         u = u / 10;
 
         assert(pos >= 0);
-        buf[pos] = '0' + r;
+        text->str[pos] = '0' + r;
         pos--;
     }
 
-    while (pos > 0) {
-        buf[pos] = '0';
+    while (pos >= 0) {
+        text->str[pos] = '0';
         pos--;
     }
 
@@ -100,43 +94,39 @@ numbering_decimal_leading_zero(unsigned u, unsigned max,
 }
 
 static unsigned
-numbering_lower_roman(unsigned u, char *buf, size_t sz_buf)
+numbering_lower_roman(GString *text, unsigned u)
 {
     (void)u;
-    (void)sz_buf;
-    strcpy(buf, "TODO/lower-roman");
-    return strlen(buf);
+    g_string_assign(text, "TODO/lower-roman");
+    return text->len;
 }
 
 static unsigned
-numbering_upper_roman(unsigned u, char *buf, size_t sz_buf)
+numbering_upper_roman(GString *text, unsigned u)
 {
     (void)u;
-    (void)sz_buf;
-    strcpy(buf, "TODO/upper-roman");
-    return strlen(buf);
+    g_string_assign(text, "TODO/upper-roman");
+    return text->len;
 }
 
 static unsigned
-numbering_georgian(unsigned u, char *buf, size_t sz_buf)
+numbering_georgian(GString *text, unsigned u)
 {
     (void)u;
-    (void)sz_buf;
-    strcpy(buf, "TODO/numbering georgian");
-    return strlen(buf);
+    g_string_assign(text, "TODO/numbering georgian");
+    return text->len;
 }
 
 static unsigned
-numbering_armenian(unsigned u, char *buf, size_t sz_buf)
+numbering_armenian(GString *text, unsigned u)
 {
     (void)u;
-    (void)sz_buf;
-    strcpy(buf, "TODO/numbering armenian");
-    return strlen(buf);
+    g_string_assign(text, "TODO/numbering armenian");
+    return text->len;
 }
 
 static unsigned
-alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
+alphabetic_lower_latin(GString *text, unsigned u)
 {
     unsigned len = 0;
     unsigned tmp = u;
@@ -146,10 +136,7 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len > sz_buf)
-        return 0;
-
-    buf[len] = '\0';
+    g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
     while (u) {
@@ -157,7 +144,7 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
         u = u / 26;
 
         assert(pos >= 0);
-        buf[pos] = 'a' + r;
+        text->str[pos] = 'a' + r;
         pos--;
     }
 
@@ -165,7 +152,7 @@ alphabetic_lower_latin(unsigned u, char *buf, size_t sz_buf)
 }
 
 static unsigned
-alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
+alphabetic_upper_latin(GString *text, unsigned u)
 {
     unsigned len = 0;
     unsigned tmp = u;
@@ -175,10 +162,7 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         tmp = tmp / 26;
     } while (tmp);
 
-    if (len > sz_buf)
-        return 0;
-
-    buf[len] = '\0';
+    g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
     while (u) {
@@ -186,7 +170,7 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
         u = u / 26;
 
         assert(pos >= 0);
-        buf[pos] = 'A' + r;
+        text->str[pos] = 'A' + r;
         pos--;
     }
 
@@ -194,7 +178,7 @@ alphabetic_upper_latin(unsigned u, char *buf, size_t sz_buf)
 }
 
 static unsigned
-alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
+alphabetic_lower_greek(GString *text, unsigned u)
 {
     unsigned len = 0;
     unsigned tmp = u;
@@ -211,10 +195,7 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
     /* The lenght of UTF-8 encoding of a greek letter is 2:
        U+03B1 -> CE B1 */
     len *= 2;
-    if (len > sz_buf)
-        return 0;
-
-    buf[len] = '\0';
+    g_string_set_size(text, len);
 
     ssize_t pos = len - 2;
     while (u) {
@@ -223,7 +204,7 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
 
         assert(pos >= 0);
         pcutils_unichar_to_utf8(uchar_lower_greek_first + r,
-                (unsigned char *)buf + pos);
+                (unsigned char *)text->str + pos);
         pos -= 2;
     }
 
@@ -234,83 +215,73 @@ alphabetic_lower_greek(unsigned u, char *buf, size_t sz_buf)
 #define UTF8STR_OF_CIRCLE_CHAR  "○"
 #define UTF8STR_OF_SQUARE_CHAR  "□"
 
-purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
-        const unsigned index, uint8_t type, const char *tail)
+char *foil_rdrbox_list_number(const unsigned max,
+        const unsigned number, uint8_t type, const char *tail)
 {
-    unsigned tail_len = tail ? strlen(tail) : 0;
-    char buff[LEN_BUF_INTEGER + tail_len + 4];
-    unsigned len;
-    purc_atom_t atom = 0;
+    GString *text = g_string_new("");
 
-    buff[0] = '\0';
     switch (type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DISC:
-        strcpy(buff, UTF8STR_OF_DISC_CHAR);
-        len = sizeof(UTF8STR_OF_DISC_CHAR) - 1;
+        g_string_append(text, UTF8STR_OF_DISC_CHAR);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE:
-        strcpy(buff, UTF8STR_OF_CIRCLE_CHAR);
-        len = sizeof(UTF8STR_OF_CIRCLE_CHAR) - 1;
+        g_string_append(text, UTF8STR_OF_CIRCLE_CHAR);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE:
-        strcpy(buff, UTF8STR_OF_SQUARE_CHAR);
-        len = sizeof(UTF8STR_OF_SQUARE_CHAR) - 1;
+        g_string_append(text, UTF8STR_OF_SQUARE_CHAR);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
-        len = numbering_decimal(index + 1, buff, sizeof(buff));
+        numbering_decimal(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-        len = numbering_decimal_leading_zero(index, nr_items,
-                buff, sizeof(buff));
+        numbering_decimal_leading_zero(text, number, max);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
-        len = numbering_lower_roman(index, buff, sizeof(buff));
+        numbering_lower_roman(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
-        len = numbering_upper_roman(index, buff, sizeof(buff));
+        numbering_upper_roman(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
-        len = numbering_armenian(index, buff, sizeof(buff));
+        numbering_armenian(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
-        len = numbering_georgian(index, buff, sizeof(buff));
+        numbering_georgian(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
-        len = alphabetic_lower_greek(index, buff, sizeof(buff));
+        alphabetic_lower_greek(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
-        len = alphabetic_lower_latin(index, buff, sizeof(buff));
+        alphabetic_lower_latin(text, number);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
-        len = alphabetic_upper_latin(index, buff, sizeof(buff));
+        alphabetic_upper_latin(text, number);
         break;
     }
 
-    if (buff[0]) {
-        unsigned i = 0;
-        if (tail && (len + tail_len) < sizeof(buff)) {
-            while (tail[i]) {
-                buff[len + i] = tail[i];
-                i++;
-            }
-        }
-        buff[len + i] = '\0';
-
-        atom = purc_atom_from_string_ex(PURC_ATOM_BUCKET_RDR, buff);
+    if (tail) {
+        g_string_append(text, tail);
     }
 
-    return atom;
+    return g_string_free(text, FALSE);
+}
+
+static void marker_data_cleaner(void *data)
+{
+    struct _marker_box_data *marker_data = (struct _marker_box_data *)data;
+    if (marker_data && marker_data->text)
+        free(marker_data->text);
 }
 
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
@@ -346,8 +317,9 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         break;
     }
 
-    data->atom = foil_rdrbox_list_number(nr_items, index,
+    data->text = foil_rdrbox_list_number(nr_items, index + 1,
             list_item->list_style_type, tail);
-    return (data->atom != 0);
+    marker->cb_data_cleanup = marker_data_cleaner;
+    return (data->text != NULL);
 }
 

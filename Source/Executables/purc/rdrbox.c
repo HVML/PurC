@@ -904,14 +904,14 @@ static void on_matched_counter(void *ctxt, foil_rdrbox *box,
     (void)name;
 
     intptr_t counter = (intptr_t)value;
-    counter--;    // foil_rdrbox_list_number() uses index
     if (counter < 0)
         counter = 0;
 
-    purc_atom_t atom = foil_rdrbox_list_number(0,
+    char *number = foil_rdrbox_list_number(0,
             (unsigned)counter, my_ctxt->type, NULL);
-    if (atom) {
-        g_string_prepend(my_ctxt->text, purc_atom_to_string(atom));
+    if (number) {
+        g_string_prepend(my_ctxt->text, number);
+        free(number);
     }
 
     if (my_ctxt->sep_str && my_ctxt->sep_len > 0) {
@@ -2055,26 +2055,19 @@ dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
     /* determine counter-reset */
     v = css_computed_counter_reset(ctxt->style, &counters);
-#if 0
     if (v == CSS_COUNTER_RESET_INHERIT) {
         if (ctxt->parent_box->counter_reset)
             box->counter_reset =
                 foil_counters_ref(ctxt->parent_box->counter_reset);
     }
-    else if (v == CSS_COUNTER_RESET_NAMED) {
-    }
-    else {
-        // do nothing.
-    }
-#endif
-
-    if (v == CSS_COUNTER_RESET_NONE || counters == NULL) {
-    }
-    else {
+    else if (v == CSS_COUNTER_RESET_NAMED && counters != NULL) {
         box->counter_reset = foil_counters_new(counters);
         if (box->counter_reset == NULL) {
             LOG_WARN("Failed to create foil_counters for counter-reset\n");
         }
+    }
+    else {
+        // do nothing.
     }
 
     if (box->counter_reset) {
@@ -2096,26 +2089,19 @@ dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
     /* determine counter-increment */
     v = css_computed_counter_increment(ctxt->style, &counters);
-#if 0
     if (v == CSS_COUNTER_INCREMENT_INHERIT) {
         if (ctxt->parent_box->counter_incrm)
             box->counter_incrm =
                 foil_counters_ref(ctxt->parent_box->counter_incrm);
     }
-    else if (v == CSS_COUNTER_INCREMENT_NAMED) {
-    }
-    else {
-        // do nothing
-    }
-#endif
-
-    if (v == CSS_COUNTER_INCREMENT_NONE || counters == NULL) {
-    }
-    else {
+    else if (v == CSS_COUNTER_INCREMENT_NAMED && counters != NULL) {
         box->counter_incrm = foil_counters_new(counters);
         if (box->counter_incrm == NULL) {
             LOG_WARN("Failed to create foil_counters for counter-increment\n");
         }
+    }
+    else {
+        // do nothing
     }
 
     if (box->counter_incrm) {
@@ -2252,15 +2238,14 @@ init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
                         type = CSS_LIST_STYLE_TYPE_DECIMAL;
                     type = normalize_list_style_type(type);
 
-                    value--;    // foil_rdrbox_list_number() uses index
                     if (value < 0)
                         value = 0;
 
-                    purc_atom_t atom = foil_rdrbox_list_number(0,
+                    char *number = foil_rdrbox_list_number(0,
                            (unsigned)value, type, NULL);
-
-                    if (atom) {
-                        g_string_append(text, purc_atom_to_string(atom));
+                    if (number) {
+                        g_string_append(text, number);
+                        free(number);
                     }
                 }
                 else {
@@ -2573,7 +2558,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         fputs(indent, stdout);
         fputs(" content: ", stdout);
-        fputs(purc_atom_to_string(box->marker_data->atom), stdout);
+        fputs(box->marker_data->text, stdout);
         fputs("\n", stdout);
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
@@ -2650,7 +2635,7 @@ void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         if (box->list_item_data->marker_box) {
             foil_rdrbox *marker = box->list_item_data->marker_box;
-            fputs(purc_atom_to_string(marker->marker_data->atom), stdout);
+            fputs(marker->marker_data->text, stdout);
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {

@@ -428,9 +428,11 @@ bool foil_rdrbox_init_data(foil_create_ctxt *ctxt, foil_rdrbox *box);
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const char *text, size_t len);
 
-/* get the list number according to the list-item-type */
-purc_atom_t foil_rdrbox_list_number(const unsigned nr_items,
-        const unsigned index, uint8_t type, const char *tail);
+/* get the list number according to the list-item-type.
+   the caller will take the ownership of the returned string,
+   should free it after done. */
+char *foil_rdrbox_list_number(const unsigned max,
+        const unsigned number, uint8_t type, const char *tail);
 
 /* initialize the data of a marker box */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,

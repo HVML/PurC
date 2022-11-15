@@ -70,7 +70,7 @@ struct _list_item_data {
 };
 
 struct _marker_box_data {
-    purc_atom_t atom;
+    char *text;
 };
 
 #ifdef __cplusplus
