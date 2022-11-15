@@ -503,6 +503,7 @@ css_error css__cascade_counter_increment_reset(uint32_t opv, css_style *style,
 				v = *((uint32_t *) style->bytecode);
 				advance_bytecode(style, sizeof(css_code_t));
 			}
+			value = CSS_COUNTER_INCREMENT_NAMED;
 		}
 			break;
 		case COUNTER_INCREMENT_NONE:
@@ -531,7 +532,6 @@ css_error css__cascade_counter_increment_reset(uint32_t opv, css_style *style,
 	if (css__outranks_existing(getOpcode(opv), isImportant(opv), state,
 			isInherit(opv))) {
 		css_error error;
-
 		error = fun(state->computed, value, counters);
 		if (error != CSS_OK && n_counters > 0)
 			free(counters);
