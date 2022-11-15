@@ -48,7 +48,7 @@
 ### 2.1) Variants
 
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
-1. [0.9.2] Full support for the new variant type: tuple.
+1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
 ### 2.2) eJSON and HVML Parsing and Evaluating
@@ -61,15 +61,15 @@
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
 1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
-1. [0.9.2] Support line comments in CJSONEE.
-1. [0.9.2] Support for tuples.
-1. [0.9.2] Support for string constants.
+1. [0.9.2; Resolved] Support line comments in CJSONEE.
+1. [0.9.2; Resolved] Support for tuples.
+1. [0.9.2; Resolved] Support for string constants.
 
 ### 2.3) Predefined Variables
 
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
-1. [0.9.2] In the implementation of predefined variables, use the interfaces for linear container instead of array.
+1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.6] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
