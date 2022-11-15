@@ -34,6 +34,7 @@ css_error css__parse_list_style_type_value(css_language *c, const css_token *ide
 	/* IDENT (disc, circle, square, decimal, decimal-leading-zero,
 	 *	  lower-roman, upper-roman, lower-greek, lower-latin,
 	 *	  upper-latin, armenian, georgian, lower-alpha, upper-alpha,
+	 *	  upper-armenian, lower-armenian, cjk-decimal, tibetan, XXX(VW)
 	 *	  none)
 	 */
 	if ((lwc_string_caseless_isequal(
@@ -93,6 +94,22 @@ css_error css__parse_list_style_type_value(css_language *c, const css_token *ide
 			&match) == lwc_error_ok && match)) {
 		*value = CSS_LIST_STYLE_TYPE_UPPER_ALPHA;
 	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[UPPER_ARMENIAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[LOWER_ARMENIAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[CJK_DECIMAL],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_CJK_DECIMAL;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[TIBETAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_TIBETAN;
+	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[NONE],
 			&match) == lwc_error_ok && match)) {
 		*value = CSS_LIST_STYLE_TYPE_NONE;
@@ -101,7 +118,6 @@ css_error css__parse_list_style_type_value(css_language *c, const css_token *ide
 
 	return CSS_OK;
 }
-
 
 
 /**
