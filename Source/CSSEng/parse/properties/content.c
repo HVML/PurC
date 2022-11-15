@@ -245,7 +245,7 @@ css_error css__parse_content(css_language *c,
 
 					consumeWhitespace(vector, ctx);
 				} else {
-					opv |= LIST_STYLE_TYPE_DECIMAL <<
+					opv |= CSS_LIST_STYLE_TYPE_DECIMAL <<
 						CONTENT_COUNTER_STYLE_SHIFT;
 				}
 
@@ -352,7 +352,7 @@ css_error css__parse_content(css_language *c,
 
 					consumeWhitespace(vector, ctx);
 				} else {
-					opv |= LIST_STYLE_TYPE_DECIMAL <<
+					opv |= CSS_LIST_STYLE_TYPE_DECIMAL <<
 						CONTENT_COUNTERS_STYLE_SHIFT;
 				}
 
