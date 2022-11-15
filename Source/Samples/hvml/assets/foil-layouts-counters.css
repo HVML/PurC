@@ -25,9 +25,9 @@ DIV.style  { counter-reset: chno bq notecntr p }
 DIV.style H1 {
     counter-reset: section;
 }
-DIV.style H1:before        { content: counter(chno, upper-latin) ". " }
-DIV.style H2:before        { content: counter(section, upper-roman) " - " }
-DIV.style BLOCKQUOTE:after { content: " [" counter(bq, lower-greek) "]" }
-DIV.style DIV.note:before  { content: counter(notecntr, disc) " " }
-DIV.style P:before         { content: counter(p, none) }
+DIV.style H1:before        { content: counter(chno, upper-latin) ". "; counter-increment: chno }
+DIV.style H2:before        { content: counter(section, upper-roman) " - "; counter-increment: section }
+DIV.style BLOCKQUOTE:after { content: " [" counter(bq, lower-greek) "]"; counter-increment: bq }
+DIV.style DIV.note:before  { content: counter(notecntr, disc) " "; counter-increment: notecntr }
+DIV.style P:before         { content: counter(p, none); counter-increment: notecntr }
 

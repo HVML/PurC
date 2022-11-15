@@ -697,7 +697,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
             pcdoc_text_content_get_text(ctxt->doc, node.text_node,
                     &text, &len);
 
-            LOG_INFO("text content of %s: %s\n", tag_name, text);
+            LOG_DEBUG("text content of %s: %s\n", tag_name, text);
             if (text && len > 0) {
                 foil_rdrbox *my_box;
                 if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,

@@ -33,10 +33,15 @@
 #include <assert.h>
 
 static unsigned
-numbering_decimal(GString *text, unsigned u)
+numbering_decimal(GString *text, int u)
 {
     unsigned len = 0;
-    unsigned tmp = u;
+    int tmp = u;
+
+    if (u <= 0) {
+        g_string_printf(text, "%d", u);
+        return text->len;
+    }
 
     do {
         len++;
@@ -59,14 +64,14 @@ numbering_decimal(GString *text, unsigned u)
 }
 
 static unsigned
-numbering_decimal_leading_zero(GString *text, unsigned u, unsigned max)
+numbering_decimal_leading_zero(GString *text, int u, int max)
 {
-    if (u > max) {
+    if (u <= 0 || u > max) {
         return numbering_decimal(text, u);
     }
 
     unsigned len = 0;
-    unsigned tmp = max;
+    int tmp = max;
 
     do {
         len++;
@@ -94,42 +99,58 @@ numbering_decimal_leading_zero(GString *text, unsigned u, unsigned max)
 }
 
 static unsigned
-numbering_lower_roman(GString *text, unsigned u)
+numbering_lower_roman(GString *text, int u)
 {
-    (void)u;
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     g_string_assign(text, "TODO/lower-roman");
     return text->len;
 }
 
 static unsigned
-numbering_upper_roman(GString *text, unsigned u)
+numbering_upper_roman(GString *text, int u)
 {
-    (void)u;
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     g_string_assign(text, "TODO/upper-roman");
     return text->len;
 }
 
 static unsigned
-numbering_georgian(GString *text, unsigned u)
+numbering_georgian(GString *text, int u)
 {
-    (void)u;
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     g_string_assign(text, "TODO/numbering georgian");
     return text->len;
 }
 
 static unsigned
-numbering_armenian(GString *text, unsigned u)
+numbering_armenian(GString *text, int u)
 {
-    (void)u;
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     g_string_assign(text, "TODO/numbering armenian");
     return text->len;
 }
 
 static unsigned
-alphabetic_lower_latin(GString *text, unsigned u)
+alphabetic_lower_latin(GString *text, int u)
 {
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     unsigned len = 0;
-    unsigned tmp = u;
+    int tmp = u;
 
     do {
         len++;
@@ -144,7 +165,7 @@ alphabetic_lower_latin(GString *text, unsigned u)
         u = u / 26;
 
         assert(pos >= 0);
-        text->str[pos] = 'a' + r;
+        text->str[pos] = 'a' + r - 1;
         pos--;
     }
 
@@ -152,10 +173,14 @@ alphabetic_lower_latin(GString *text, unsigned u)
 }
 
 static unsigned
-alphabetic_upper_latin(GString *text, unsigned u)
+alphabetic_upper_latin(GString *text, int u)
 {
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     unsigned len = 0;
-    unsigned tmp = u;
+    int tmp = u;
 
     do {
         len++;
@@ -170,7 +195,7 @@ alphabetic_upper_latin(GString *text, unsigned u)
         u = u / 26;
 
         assert(pos >= 0);
-        text->str[pos] = 'A' + r;
+        text->str[pos] = 'A' + r - 1;
         pos--;
     }
 
@@ -178,10 +203,14 @@ alphabetic_upper_latin(GString *text, unsigned u)
 }
 
 static unsigned
-alphabetic_lower_greek(GString *text, unsigned u)
+alphabetic_lower_greek(GString *text, int u)
 {
+    if (u <= 0) {
+        return numbering_decimal(text, u);
+    }
+
     unsigned len = 0;
-    unsigned tmp = u;
+    int tmp = u;
     static const uint32_t uchar_lower_greek_first = 0x03B1;  // α
     static const uint32_t uchar_upper_greek_last  = 0x03C9;  // ω
     static const unsigned nr_greek_letters =
@@ -203,7 +232,7 @@ alphabetic_lower_greek(GString *text, unsigned u)
         u = u / nr_greek_letters;
 
         assert(pos >= 0);
-        pcutils_unichar_to_utf8(uchar_lower_greek_first + r,
+        pcutils_unichar_to_utf8(uchar_lower_greek_first + r - 1,
                 (unsigned char *)text->str + pos);
         pos -= 2;
     }
@@ -215,8 +244,8 @@ alphabetic_lower_greek(GString *text, unsigned u)
 #define UTF8STR_OF_CIRCLE_CHAR  "○"
 #define UTF8STR_OF_SQUARE_CHAR  "□"
 
-char *foil_rdrbox_list_number(const unsigned max,
-        const unsigned number, uint8_t type, const char *tail)
+char *foil_rdrbox_list_number(const int max,
+        const int number, uint8_t type, const char *tail)
 {
     GString *text = g_string_new("");
 

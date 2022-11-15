@@ -243,7 +243,7 @@ foil_counters *foil_counters_new(const css_computed_counter *css_counters)
     foil_counters *counters;
 
     size_t n = 0;
-    if (css_counters[n].name) {
+    while (css_counters[n].name) {
         n++;
     }
 
@@ -782,7 +782,6 @@ static GHashTable *find_counters_table(foil_create_ctxt *ctxt,
 
     while (box) {
         if (box->counters_table) {
-            LOG_DEBUG("box has a counters table: %p\n", box);
             if (g_hash_table_lookup_extended(box->counters_table,
                         name, NULL, (gpointer *)value)) {
                 return box->counters_table;
@@ -904,11 +903,8 @@ static void on_matched_counter(void *ctxt, foil_rdrbox *box,
     (void)name;
 
     intptr_t counter = (intptr_t)value;
-    if (counter < 0)
-        counter = 0;
-
-    char *number = foil_rdrbox_list_number(0,
-            (unsigned)counter, my_ctxt->type, NULL);
+    char *number = foil_rdrbox_list_number(0, (int)counter,
+            my_ctxt->type, NULL);
     if (number) {
         g_string_prepend(my_ctxt->text, number);
         free(number);
@@ -924,8 +920,6 @@ generate_content_from_counters(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const css_computed_content_item *ctnt_item, GString *text)
 {
     (void)ctxt;
-
-    LOG_ERROR("called\n");
 
     struct counters_ctxt my_ctxt;
     my_ctxt.ctnt_item = ctnt_item;
@@ -2114,11 +2108,9 @@ dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
             if (counters_table) {
                 intptr_t new_value;
                 new_value = old_value + box->counter_incrm->counters[i].value;
-
                 lwc_string *name =
                     lwc_string_ref(box->counter_incrm->counters[i].name);
-                g_hash_table_replace(counters_table,
-                        name, (gpointer)new_value);
+                g_hash_table_replace(counters_table, name, (gpointer)new_value);
             }
             else {
                 /* behave as though a counter-reset had reset the counter to 0
@@ -2139,8 +2131,8 @@ dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
         }
     }
 
-    LOG_DEBUG("counter-increment for %s: %d; counters: %p\n",
-            ctxt->tag_name, v, counters);
+    LOG_DEBUG("counter-increment for %s: %d; counters: %p; counter_incrm: %p\n",
+            ctxt->tag_name, v, counters, box->counter_incrm);
 }
 
 foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
@@ -2238,11 +2230,8 @@ init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
                         type = CSS_LIST_STYLE_TYPE_DECIMAL;
                     type = normalize_list_style_type(type);
 
-                    if (value < 0)
-                        value = 0;
-
-                    char *number = foil_rdrbox_list_number(0,
-                           (unsigned)value, type, NULL);
+                    char *number = foil_rdrbox_list_number(0, (int)value,
+                            type, NULL);
                     if (number) {
                         g_string_append(text, number);
                         free(number);
