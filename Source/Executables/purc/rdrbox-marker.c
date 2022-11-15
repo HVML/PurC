@@ -33,13 +33,13 @@
 #include <assert.h>
 
 static unsigned
-numbering_decimal(GString *text, int u)
+numbering_decimal(GString *text, int number)
 {
     unsigned len = 0;
-    int tmp = u;
+    int tmp = number;
 
-    if (u <= 0) {
-        g_string_printf(text, "%d", u);
+    if (number <= 0) {
+        g_string_printf(text, "%d", number);
         return text->len;
     }
 
@@ -51,9 +51,9 @@ numbering_decimal(GString *text, int u)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
-    while (u) {
-        unsigned r = u % 10;
-        u = u / 10;
+    while (number) {
+        unsigned r = number % 10;
+        number = number / 10;
 
         assert(pos >= 0);
         text->str[pos] = '0' + r;
@@ -64,10 +64,10 @@ numbering_decimal(GString *text, int u)
 }
 
 static unsigned
-numbering_decimal_leading_zero(GString *text, int u, int max)
+numbering_decimal_leading_zero(GString *text, int number, int max)
 {
-    if (u <= 0 || u > max) {
-        return numbering_decimal(text, u);
+    if (number <= 0 || number > max) {
+        return numbering_decimal(text, number);
     }
 
     unsigned len = 0;
@@ -81,9 +81,9 @@ numbering_decimal_leading_zero(GString *text, int u, int max)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
-    while (u && pos > 0) {
-        unsigned r = u % 10;
-        u = u / 10;
+    while (number && pos > 0) {
+        unsigned r = number % 10;
+        number = number / 10;
 
         assert(pos >= 0);
         text->str[pos] = '0' + r;
@@ -98,59 +98,179 @@ numbering_decimal_leading_zero(GString *text, int u, int max)
     return len;
 }
 
+/* Note that this function is copied from LGPL'd WebKit */
 static unsigned
-numbering_lower_roman(GString *text, int u)
+numbering_roman(GString *text, int number, bool upper_lower)
 {
-    if (u <= 0) {
-        return numbering_decimal(text, u);
+    // Big enough to store largest roman number less than 3999 which
+    // is 3888 (MMMDCCCLXXXVIII)
+    if (number < 1 || number > 3999) {
+        return numbering_decimal(text, number);
     }
 
-    g_string_assign(text, "TODO/lower-roman");
+#if 0
+    const gunichar udigits[] = {
+        0x2160, /* Ⅰ */
+        0x2161, /* Ⅱ */
+        0x2162, /* Ⅲ */
+        0x2163, /* Ⅳ */
+        0x2164, /* Ⅴ */
+        0x2165, /* Ⅵ */
+        0x2166, /* Ⅶ */
+        0x2167, /* Ⅷ */
+        0x2168, /* Ⅸ */
+        0x2169, /* Ⅹ */
+        0x216A, /* Ⅺ */
+        0x216B, /* Ⅻ */
+        0x216C, /* Ⅼ */
+        0x216D, /* Ⅽ */
+        0x216E, /* Ⅾ */
+        0x216F, /* Ⅿ */
+    };
+    unsigned upper_off = upper_lower ? 0 : (0x2170 - 0x2160);
+#endif
+
+    const unsigned size = 15;
+    g_string_set_size(text, size);
+
+    unsigned length = 0;
+    const char ldigits[] = { 'i', 'v', 'x', 'l', 'c', 'd', 'm' };
+    const char udigits[] = { 'I', 'V', 'X', 'L', 'C', 'D', 'M' };
+    const char *digits = upper_lower ? udigits : ldigits;
+    int d = 0;
+
+    do {
+        int num = number % 10;
+        if (num % 5 < 4)
+            for (int i = num % 5; i > 0; i--)
+                text->str[size - ++length] = digits[d];
+        if (num >= 4 && num <= 8)
+            text->str[size - ++length] = digits[d + 1];
+        if (num == 9)
+            text->str[size - ++length] = digits[d + 2];
+        if (num % 5 == 4)
+            text->str[size - ++length] = digits[d];
+        number /= 10;
+        d += 2;
+    } while (number);
+
+    assert(length <= size);
+    if (length < size)
+        g_string_erase(text, 0, size - length);
+
+    return text->len;
+}
+
+/* Note that this function is copied from LGPL'd WebKit */
+static unsigned
+numbering_georgian(GString *text, int number)
+{
+    if (number < 1 || number > 19999) {
+        return numbering_decimal(text, number);
+    }
+
+    if (number > 9999)
+        g_string_append_unichar(text, 0x10F5);
+
+    int thousands;
+    if ((thousands = (number / 1000) % 10)) {
+        static const gunichar georgianThousands[9] = {
+            0x10E9, 0x10EA, 0x10EB, 0x10EC, 0x10ED, 0x10EE, 0x10F4, 0x10EF, 0x10F0
+        };
+        g_string_append_unichar(text, georgianThousands[thousands - 1]);
+    }
+
+    int hundreds;
+    if ((hundreds = (number / 100) % 10)) {
+        static const gunichar georgianHundreds[9] = {
+            0x10E0, 0x10E1, 0x10E2, 0x10F3, 0x10E4, 0x10E5, 0x10E6, 0x10E7, 0x10E8
+        };
+        g_string_append_unichar(text, georgianHundreds[hundreds - 1]);
+    }
+
+    int tens;
+    if ((tens = (number / 10) % 10)) {
+        static const gunichar georgianTens[9] = {
+            0x10D8, 0x10D9, 0x10DA, 0x10DB, 0x10DC, 0x10F2, 0x10DD, 0x10DE, 0x10DF
+        };
+        g_string_append_unichar(text, georgianTens[tens - 1]);
+    }
+
+    int ones;
+    if ((ones = number % 10)) {
+        static const gunichar georgianOnes[9] = {
+            0x10D0, 0x10D1, 0x10D2, 0x10D3, 0x10D4, 0x10D5, 0x10D6, 0x10F1, 0x10D7
+        };
+        g_string_append_unichar(text, georgianOnes[ones - 1]);
+    }
+
+    return text->len;
+}
+
+/* Note that this function is copied from LGPL'd WebKit */
+static void to_armenian_under_10000(GString *text, int number,
+        bool upper, bool circumflex)
+{
+    assert(number >= 0 && number < 10000);
+
+    int lower_off = upper ? 0 : 0x0030;
+    int thousands;
+    if ((thousands = number / 1000)) {
+        if (thousands == 7) {
+            g_string_append_unichar(text, 0x0552 + lower_off);
+            if (circumflex)
+                g_string_append_unichar(text, 0x0302);
+        } else {
+            g_string_append_unichar(text, (0x054C - 1 + lower_off) + thousands);
+            if (circumflex)
+                g_string_append_unichar(text, 0x0302);
+        }
+    }
+
+    int hundreds;
+    if ((hundreds = (number / 100) % 10)) {
+        g_string_append_unichar(text, (0x0543 - 1 + lower_off) + hundreds);
+        if (circumflex)
+            g_string_append_unichar(text, 0x0302);
+    }
+
+    int tens;
+    if ((tens = (number / 10) % 10)) {
+        g_string_append_unichar(text, (0x053A - 1 + lower_off) + tens);
+        if (circumflex)
+            g_string_append_unichar(text, 0x0302);
+    }
+
+    int ones;
+    if ((ones = number % 10)) {
+        g_string_append_unichar(text, (0x531 - 1 + lower_off) + ones);
+        if (circumflex)
+            g_string_append_unichar(text, 0x0302);
+    }
+}
+
+/* Note that this function is copied from LGPL'd WebKit */
+static unsigned
+numbering_armenian(GString *text, int number, bool upper_lower)
+{
+    if (number < 0 || number > 99999999) {
+        return numbering_decimal(text, number);
+    }
+
+    to_armenian_under_10000(text, number / 10000, upper_lower, true);
+    to_armenian_under_10000(text, number % 10000, upper_lower, false);
     return text->len;
 }
 
 static unsigned
-numbering_upper_roman(GString *text, int u)
+alphabetic_lower_latin(GString *text, int number)
 {
-    if (u <= 0) {
-        return numbering_decimal(text, u);
-    }
-
-    g_string_assign(text, "TODO/upper-roman");
-    return text->len;
-}
-
-static unsigned
-numbering_georgian(GString *text, int u)
-{
-    if (u <= 0) {
-        return numbering_decimal(text, u);
-    }
-
-    g_string_assign(text, "TODO/numbering georgian");
-    return text->len;
-}
-
-static unsigned
-numbering_armenian(GString *text, int u)
-{
-    if (u <= 0) {
-        return numbering_decimal(text, u);
-    }
-
-    g_string_assign(text, "TODO/numbering armenian");
-    return text->len;
-}
-
-static unsigned
-alphabetic_lower_latin(GString *text, int u)
-{
-    if (u <= 0) {
-        return numbering_decimal(text, u);
+    if (number <= 0) {
+        return numbering_decimal(text, number);
     }
 
     unsigned len = 0;
-    int tmp = u;
+    int tmp = number;
 
     do {
         len++;
@@ -160,9 +280,9 @@ alphabetic_lower_latin(GString *text, int u)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
-    while (u) {
-        unsigned r = u % 26;
-        u = u / 26;
+    while (number) {
+        unsigned r = number % 26;
+        number = number / 26;
 
         assert(pos >= 0);
         text->str[pos] = 'a' + r - 1;
@@ -173,14 +293,14 @@ alphabetic_lower_latin(GString *text, int u)
 }
 
 static unsigned
-alphabetic_upper_latin(GString *text, int u)
+alphabetic_upper_latin(GString *text, int number)
 {
-    if (u <= 0) {
-        return numbering_decimal(text, u);
+    if (number <= 0) {
+        return numbering_decimal(text, number);
     }
 
     unsigned len = 0;
-    int tmp = u;
+    int tmp = number;
 
     do {
         len++;
@@ -190,9 +310,9 @@ alphabetic_upper_latin(GString *text, int u)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
-    while (u) {
-        unsigned r = u % 26;
-        u = u / 26;
+    while (number) {
+        unsigned r = number % 26;
+        number = number / 26;
 
         assert(pos >= 0);
         text->str[pos] = 'A' + r - 1;
@@ -203,18 +323,18 @@ alphabetic_upper_latin(GString *text, int u)
 }
 
 static unsigned
-alphabetic_lower_greek(GString *text, int u)
+alphabetic_lower_greek(GString *text, int number)
 {
-    if (u <= 0) {
-        return numbering_decimal(text, u);
+    if (number <= 0) {
+        return numbering_decimal(text, number);
     }
 
     unsigned len = 0;
-    int tmp = u;
+    int tmp = number;
     static const uint32_t uchar_lower_greek_first = 0x03B1;  // α
-    static const uint32_t uchar_upper_greek_last  = 0x03C9;  // ω
+    static const uint32_t uchar_lower_greek_last  = 0x03C9;  // ω
     static const unsigned nr_greek_letters =
-        uchar_upper_greek_last - uchar_lower_greek_first + 1;
+        uchar_lower_greek_last - uchar_lower_greek_first + 1;
 
     do {
         len++;
@@ -227,9 +347,9 @@ alphabetic_lower_greek(GString *text, int u)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 2;
-    while (u) {
-        unsigned r = u % nr_greek_letters;
-        u = u / nr_greek_letters;
+    while (number) {
+        unsigned r = number % nr_greek_letters;
+        number = number / nr_greek_letters;
 
         assert(pos >= 0);
         pcutils_unichar_to_utf8(uchar_lower_greek_first + r - 1,
@@ -271,15 +391,15 @@ char *foil_rdrbox_list_number(const int max,
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
-        numbering_lower_roman(text, number);
+        numbering_roman(text, number, false);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN:
-        numbering_upper_roman(text, number);
+        numbering_roman(text, number, true);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN:
-        numbering_armenian(text, number);
+        numbering_armenian(text, number, true);
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN:
