@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -101,9 +101,214 @@ failed:
     return NULL;
 }
 
+foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings)
+{
+    foil_quotes *quotes;
+
+    quotes = calloc(1, sizeof(*quotes));
+    if (G_LIKELY(quotes)) {
+        quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
+
+        if (quotes->strings == NULL) {
+            LOG_ERROR("Failed to allocate space for quote strings\n");
+            goto failed;
+        }
+
+        quotes->nr_strings = 0;
+        for (unsigned i = 0; i < nr_strings; i++) {
+            if (lwc_intern_string(strings[i], strlen(strings[i]),
+                        &quotes->strings[i])) {
+                LOG_ERROR("Failed to intern quote string\n");
+                goto failed;
+            }
+
+            quotes->nr_strings++;
+            LOG_DEBUG("Interned quote string: %p\n", quotes->strings[i]);
+        }
+
+        quotes->refc = 1;
+    }
+
+    return quotes;
+
+failed:
+    foil_quotes_delete(quotes);
+    return NULL;
+}
+
+foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings)
+{
+    foil_quotes *quotes;
+
+    quotes = calloc(1, sizeof(*quotes));
+    if (G_LIKELY(quotes)) {
+        quotes->strings = calloc(nr_strings, sizeof(lwc_string *));
+
+        if (quotes->strings == NULL) {
+            LOG_ERROR("Failed to allocate space for quote strings\n");
+            goto failed;
+        }
+
+        quotes->nr_strings = 0;
+        for (unsigned i = 0; i < nr_strings && strings[i] != NULL; i++) {
+            quotes->strings[i] = lwc_string_ref(strings[i]);
+            quotes->nr_strings++;
+        }
+
+        quotes->refc = 1;
+    }
+
+    return quotes;
+
+failed:
+    foil_quotes_delete(quotes);
+    return NULL;
+}
+
+static const char *quotes_en[] = {
+    "\"",
+    "\"",
+    "'",
+    "'",
+};
+
+static const char *quotes_zh[] = {
+    "“",
+    "”",
+    "‘",
+    "’",
+};
+
+/* must be sorted against langcode */
+static struct lang_quotes {
+    uint8_t         code;
+    uint8_t         nr_strings;
+    const char    **strings;
+    foil_quotes    *quotes;
+} lang_quotes [] = {
+    { FOIL_LANGCODE_en, (uint8_t)PCA_TABLESIZE(quotes_en), quotes_en, NULL },
+    { FOIL_LANGCODE_zh, (uint8_t)PCA_TABLESIZE(quotes_zh), quotes_zh, NULL },
+};
+
+/* get the initial qutoes for specific language code */
+foil_quotes *foil_quotes_get_initial(uint8_t lang_code)
+{
+    static ssize_t max = PCA_TABLESIZE(lang_quotes) - 1;
+
+    struct lang_quotes *found = NULL;
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        mid = (low + high) / 2;
+        found = lang_quotes + mid;
+        if (lang_code == found->code) {
+            goto found;
+        }
+        else {
+            if (lang_code < found->code) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    /* use `en` as the default */
+    return foil_quotes_get_initial(FOIL_LANGCODE_en);
+
+found:
+    if (found->quotes)
+        return foil_quotes_ref(found->quotes);
+
+    found->quotes = foil_quotes_new(found->nr_strings, found->strings);
+    return found->quotes;
+}
+
+void foil_quotes_delete(foil_quotes *quotes)
+{
+    if (quotes->strings) {
+        for (unsigned i = 0; i < quotes->nr_strings; i++) {
+            LOG_DEBUG("unref interned quote string: %p\n", quotes->strings[i]);
+            lwc_string_unref(quotes->strings[i]);
+        }
+
+        free(quotes->strings);
+    }
+
+    free(quotes);
+}
+
+foil_counters *foil_counters_new(const css_computed_counter *css_counters)
+{
+    foil_counters *counters;
+
+    size_t n = 0;
+    while (css_counters[n].name) {
+        n++;
+    }
+
+    if (n == 0)
+        return NULL;
+
+    counters = calloc(1, sizeof(*counters));
+    if (G_LIKELY(counters)) {
+        counters->counters = calloc(n, sizeof(foil_named_counter));
+        if (counters->counters == NULL) {
+            LOG_ERROR("Failed to allocate space for named counters\n");
+            goto failed;
+        }
+
+        counters->nr_counters = 0;
+        for (unsigned i = 0; i < n; i++) {
+            counters->counters[i].name = lwc_string_ref(css_counters[i].name);
+            counters->counters[i].value = FIXTOINT(css_counters[i].value);
+
+            counters->nr_counters++;
+        }
+
+        counters->refc = 1;
+    }
+
+    return counters;
+
+failed:
+    foil_counters_delete(counters);
+    return NULL;
+}
+
+void foil_counters_delete(foil_counters *counters)
+{
+    if (counters->counters) {
+        for (unsigned i = 0; i < counters->nr_counters; i++) {
+            LOG_DEBUG("unref interned counter name string: %p\n",
+                    counters->counters[i].name);
+            lwc_string_unref(counters->counters[i].name);
+        }
+
+        free(counters->counters);
+    }
+
+    free(counters);
+}
+
 void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
+
+    if (box->quotes) {
+        foil_quotes_unref(box->quotes);
+    }
+
+    if (box->counter_reset) {
+        foil_counters_unref(box->counter_reset);
+    }
+
+    if (box->counter_incrm) {
+        foil_counters_unref(box->counter_incrm);
+    }
+
+    if (box->counters_table)
+        g_hash_table_destroy(box->counters_table);
 
     if (box->data) {
         if (box->cb_data_cleanup) {
@@ -374,55 +579,51 @@ display_to_type(foil_create_ctxt *ctxt, uint8_t computed)
 {
     assert(ctxt->parent_box);
 
-    if (computed == CSS_DISPLAY_INHERIT) {
-        goto inherit;
-    }
-    else {
-        static const struct uint8_values_map {
-            uint8_t from;
-            uint8_t to;
-        } display_value_map[] = {
-            { CSS_DISPLAY_INLINE, FOIL_RDRBOX_TYPE_INLINE },
-            { CSS_DISPLAY_BLOCK, FOIL_RDRBOX_TYPE_BLOCK },
-            { CSS_DISPLAY_LIST_ITEM, FOIL_RDRBOX_TYPE_LIST_ITEM },
-            { CSS_DISPLAY_RUN_IN, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
-            { CSS_DISPLAY_INLINE_BLOCK, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
-            { CSS_DISPLAY_TABLE, FOIL_RDRBOX_TYPE_TABLE },
-            { CSS_DISPLAY_INLINE_TABLE, FOIL_RDRBOX_TYPE_INLINE_TABLE },
-            { CSS_DISPLAY_TABLE_ROW_GROUP,  FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP },
-            { CSS_DISPLAY_TABLE_HEADER_GROUP, FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP },
-            { CSS_DISPLAY_TABLE_FOOTER_GROUP, FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP },
-            { CSS_DISPLAY_TABLE_ROW, FOIL_RDRBOX_TYPE_TABLE_ROW },
-            { CSS_DISPLAY_TABLE_COLUMN_GROUP, FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP },
-            { CSS_DISPLAY_TABLE_COLUMN, FOIL_RDRBOX_TYPE_TABLE_COLUMN },
-            { CSS_DISPLAY_TABLE_CELL, FOIL_RDRBOX_TYPE_TABLE_CELL },
-            { CSS_DISPLAY_TABLE_CAPTION, FOIL_RDRBOX_TYPE_TABLE_CAPTION },
-            { CSS_DISPLAY_NONE, INVALID_USED_VALUE_UINT8 },
+    assert(computed != CSS_DISPLAY_INHERIT);
 
-            // TODO
-            { CSS_DISPLAY_FLEX, FOIL_RDRBOX_TYPE_BLOCK },
-            { CSS_DISPLAY_INLINE_FLEX, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
-            { CSS_DISPLAY_GRID, FOIL_RDRBOX_TYPE_BLOCK },
-            { CSS_DISPLAY_INLINE_GRID, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
-        };
+    static const struct uint8_values_map {
+        uint8_t from;
+        uint8_t to;
+    } display_value_map[] = {
+        { CSS_DISPLAY_INLINE, FOIL_RDRBOX_TYPE_INLINE },
+        { CSS_DISPLAY_BLOCK, FOIL_RDRBOX_TYPE_BLOCK },
+        { CSS_DISPLAY_LIST_ITEM, FOIL_RDRBOX_TYPE_LIST_ITEM },
+        { CSS_DISPLAY_RUN_IN, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+        { CSS_DISPLAY_INLINE_BLOCK, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+        { CSS_DISPLAY_TABLE, FOIL_RDRBOX_TYPE_TABLE },
+        { CSS_DISPLAY_INLINE_TABLE, FOIL_RDRBOX_TYPE_INLINE_TABLE },
+        { CSS_DISPLAY_TABLE_ROW_GROUP,  FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP },
+        { CSS_DISPLAY_TABLE_HEADER_GROUP, FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP },
+        { CSS_DISPLAY_TABLE_FOOTER_GROUP, FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP },
+        { CSS_DISPLAY_TABLE_ROW, FOIL_RDRBOX_TYPE_TABLE_ROW },
+        { CSS_DISPLAY_TABLE_COLUMN_GROUP, FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP },
+        { CSS_DISPLAY_TABLE_COLUMN, FOIL_RDRBOX_TYPE_TABLE_COLUMN },
+        { CSS_DISPLAY_TABLE_CELL, FOIL_RDRBOX_TYPE_TABLE_CELL },
+        { CSS_DISPLAY_TABLE_CAPTION, FOIL_RDRBOX_TYPE_TABLE_CAPTION },
+        { CSS_DISPLAY_NONE, INVALID_USED_VALUE_UINT8 },
 
-        int lower = 0;
-        int upper = PCA_TABLESIZE(display_value_map) - 1;
+        // TODO
+        { CSS_DISPLAY_FLEX, FOIL_RDRBOX_TYPE_BLOCK },
+        { CSS_DISPLAY_INLINE_FLEX, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+        { CSS_DISPLAY_GRID, FOIL_RDRBOX_TYPE_BLOCK },
+        { CSS_DISPLAY_INLINE_GRID, FOIL_RDRBOX_TYPE_INLINE_BLOCK },
+    };
 
-        while (lower <= upper) {
-            int mid = (lower + upper) >> 1;
+    int lower = 0;
+    int upper = PCA_TABLESIZE(display_value_map) - 1;
 
-            if (computed < display_value_map[mid].from)
-                upper = mid - 1;
-            else if (computed > display_value_map[mid].from)
-                lower = mid + 1;
-            else
-                return display_value_map[mid].to;
-        }
+    while (lower <= upper) {
+        int mid = (lower + upper) >> 1;
+
+        if (computed < display_value_map[mid].from)
+            upper = mid - 1;
+        else if (computed > display_value_map[mid].from)
+            lower = mid + 1;
+        else
+            return display_value_map[mid].to;
     }
 
-inherit:
-    return ctxt->parent_box->type;
+    return FOIL_RDRBOX_TYPE_INLINE;
 }
 
 static bool is_table_box(foil_rdrbox *box)
@@ -510,9 +711,261 @@ static int calc_used_value_heights(foil_rdrbox *box,
     return v;
 }
 
+static guint cb_lwc_string_hash(gconstpointer v)
+{
+    return lwc_string_hash_value((lwc_string *)v);
+#if 0
+    const char *str;
+    size_t len;
+
+    str = lwc_string_data((lwc_string *)v);
+    len = lwc_string_length((lwc_string *)v);
+
+    char buff[len + 1];
+    strncpy(buff, str, len);
+    buff[len] = 0;
+
+    return g_str_hash(buff);
+#endif
+}
+
+static gboolean
+cb_lwc_string_equal(gconstpointer a, gconstpointer b)
+{
+    bool is_equal;
+    lwc_error error;
+    error = lwc_string_isequal((lwc_string *)a, (lwc_string *)b, &is_equal);
+    (void)error;
+    return is_equal;
+}
+
+static void
+cb_lwc_string_key_destroy(gpointer data)
+{
+    lwc_string_unref((lwc_string *)data);
+}
+
+#if 0
+static void
+cb_clone_counter(gpointer key, gpointer value, gpointer user_data)
+{
+    GHashTable *dst_table = (GHashTable *)user_data;
+    lwc_string_ref((lwc_string *)key);
+
+    g_hash_table_insert(dst_table, key, value);
+}
+#endif
+
+static GHashTable *create_counters_table(foil_create_ctxt *ctxt)
+{
+    (void)ctxt;
+    return g_hash_table_new_full(cb_lwc_string_hash,
+            cb_lwc_string_equal, cb_lwc_string_key_destroy, NULL);
+
+#if 0
+    GHashTable *dst_table;
+    if (G_UNLIKELY(dst_table == NULL)) {
+        return NULL;
+    }
+
+    if (ctxt->scoped_counters_table) {
+        g_hash_table_foreach(ctxt->scoped_counters_table,
+                cb_clone_counter, dst_table);
+    }
+#endif
+}
+
+static GHashTable *find_counters_table(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, const lwc_string *name, intptr_t *value)
+{
+    foil_rdrbox *parent = box->parent;
+
+    while (box) {
+        if (box->counters_table) {
+            if (g_hash_table_lookup_extended(box->counters_table,
+                        name, NULL, (gpointer *)value)) {
+                return box->counters_table;
+            }
+        }
+
+        box = box->prev;
+    }
+
+    if (parent) {
+        return find_counters_table(ctxt, parent, name, value);
+    }
+
+    return NULL;
+}
+
+static uint8_t normalize_list_style_type(uint8_t v)
+{
+    switch (v) {
+    default:
+    case CSS_LIST_STYLE_TYPE_DISC:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DISC;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_CIRCLE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_SQUARE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_DECIMAL:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
+    case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
+    case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_ARMENIAN:
+    case CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ARMENIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ARMENIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_GEORGIAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_CJK_DECIMAL:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_TIBETAN:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_TIBETAN;
+        break;
+
+    case CSS_LIST_STYLE_TYPE_NONE:
+        v = FOIL_RDRBOX_LIST_STYLE_TYPE_NONE;
+        break;
+    }
+
+    return v;
+}
+
+typedef void (*cb_matched_counter)(void *ctxt, foil_rdrbox *box,
+        lwc_string *name, gpointer value);
+
+static void
+travel_box_up_for_counter(foil_rdrbox *box, lwc_string *name,
+        cb_matched_counter func, void *ctxt)
+{
+    foil_rdrbox *parent = box->parent;
+
+    while (box) {
+        if (box->counters_table) {
+            gpointer value;
+            if (g_hash_table_lookup_extended(box->counters_table,
+                        name, NULL, &value)) {
+                func(ctxt, box, name, value);
+            }
+        }
+
+        box = box->prev;
+    }
+
+    if (parent) {
+        return travel_box_up_for_counter(parent, name, func, ctxt);
+    }
+}
+
+struct counters_ctxt {
+    const css_computed_content_item *ctnt_item;
+    GString *text;
+
+    uint8_t type;
+    const char *sep_str;
+    size_t sep_len;
+};
+
+static void on_matched_counter(void *ctxt, foil_rdrbox *box,
+        lwc_string *name, gpointer value)
+{
+    struct counters_ctxt *my_ctxt = ctxt;
+    (void)box;
+    (void)name;
+
+    intptr_t counter = (intptr_t)value;
+    char *number = foil_rdrbox_list_number(0, (int)counter,
+            my_ctxt->type, NULL);
+    if (number) {
+        g_string_prepend(my_ctxt->text, number);
+        free(number);
+    }
+
+    if (my_ctxt->sep_str && my_ctxt->sep_len > 0) {
+        g_string_prepend_len(my_ctxt->text, my_ctxt->sep_str, my_ctxt->sep_len);
+    }
+}
+
+static void
+generate_content_from_counters(foil_create_ctxt *ctxt, foil_rdrbox *box,
+        const css_computed_content_item *ctnt_item, GString *text)
+{
+    (void)ctxt;
+
+    struct counters_ctxt my_ctxt;
+    my_ctxt.ctnt_item = ctnt_item;
+    my_ctxt.text = text;
+
+    // must be called for a pseudo element
+    assert(box->principal);
+
+    my_ctxt.type = ctnt_item->data.counters.style;
+    if (my_ctxt.type == 0)
+        my_ctxt.type = CSS_LIST_STYLE_TYPE_DECIMAL;
+    my_ctxt.type = normalize_list_style_type(my_ctxt.type);
+
+    if (ctnt_item->data.counters.sep) {
+        my_ctxt.sep_str = lwc_string_data(ctnt_item->data.counters.sep);
+        my_ctxt.sep_len = lwc_string_length(ctnt_item->data.counters.sep);
+    }
+    else {
+        my_ctxt.sep_str = NULL;
+        my_ctxt.sep_len = 0;
+    }
+
+    travel_box_up_for_counter(box, ctnt_item->data.counters.name,
+            on_matched_counter, &my_ctxt);
+
+    if (my_ctxt.sep_len > 0 && text->len > my_ctxt.sep_len) {
+        g_string_erase(text, 0, my_ctxt.sep_len);
+    }
+}
+
 /* display, positionn, and float must be determined
    before calling this function */
-static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
+static void dtrm_common_properties(foil_create_ctxt *ctxt,
         foil_rdrbox *box)
 {
     uint8_t v;
@@ -520,12 +973,9 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     LOG_DEBUG("Common style properties of element (%s):\n", ctxt->tag_name);
 
     /* determine direction */
-    v = css_computed_direction(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_DIRECTION_INHERIT) {
-        box->direction = ctxt->parent_box->direction;
-    }
-    else if (v == CSS_DIRECTION_RTL) {
+    v = css_computed_direction(ctxt->style);
+    assert(v != CSS_DIRECTION_INHERIT);
+    if (v == CSS_DIRECTION_RTL) {
         box->direction = FOIL_RDRBOX_DIRECTION_RTL;
     }
     else {
@@ -536,23 +986,19 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine visibility */
     v = css_computed_visibility(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_VISIBILITY_INHERIT) {
-        box->visibility = ctxt->parent_box->visibility;
-    }
-    else {
-        switch (v) {
-        case CSS_VISIBILITY_HIDDEN:
-            box->visibility = FOIL_RDRBOX_VISIBILITY_HIDDEN;
-            break;
-        case CSS_VISIBILITY_COLLAPSE:
-            box->visibility = FOIL_RDRBOX_VISIBILITY_COLLAPSE;
-            break;
-        case CSS_VISIBILITY_VISIBLE:
-        default:
-            box->visibility = FOIL_RDRBOX_VISIBILITY_VISIBLE;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_VISIBILITY_INHERIT);
+    switch (v) {
+    case CSS_VISIBILITY_HIDDEN:
+        box->visibility = FOIL_RDRBOX_VISIBILITY_HIDDEN;
+        break;
+    case CSS_VISIBILITY_COLLAPSE:
+        box->visibility = FOIL_RDRBOX_VISIBILITY_COLLAPSE;
+        break;
+    case CSS_VISIBILITY_VISIBLE:
+    default:
+        box->visibility = FOIL_RDRBOX_VISIBILITY_VISIBLE;
+        break;
     }
 
     LOG_DEBUG("\tvisibility: %s\n",
@@ -560,88 +1006,76 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine overflow_x */
     v = css_computed_overflow_x(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_OVERFLOW_INHERIT) {
-        box->overflow_x = ctxt->parent_box->overflow_x;
-    }
-    else {
-        switch (v) {
-        case CSS_OVERFLOW_HIDDEN:
-            box->overflow_x = FOIL_RDRBOX_OVERFLOW_HIDDEN;
-            break;
-        case CSS_OVERFLOW_SCROLL:
-            box->overflow_x = FOIL_RDRBOX_OVERFLOW_SCROLL;
-            break;
-        case CSS_OVERFLOW_AUTO:
-            if (is_table_box(box))
-                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
-            else
-                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
-            break;
-        default:
-            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_OVERFLOW_INHERIT);
+    switch (v) {
+    case CSS_OVERFLOW_HIDDEN:
+        box->overflow_x = FOIL_RDRBOX_OVERFLOW_HIDDEN;
+        break;
+    case CSS_OVERFLOW_SCROLL:
+        box->overflow_x = FOIL_RDRBOX_OVERFLOW_SCROLL;
+        break;
+    case CSS_OVERFLOW_AUTO:
+        if (is_table_box(box))
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+        else
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+        break;
+    default:
+        box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
+        break;
     }
 
     LOG_DEBUG("\toverflow-x: %s\n", literal_values_overflow[box->overflow_x]);
 
     /* determine overflow_y */
     v = css_computed_overflow_y(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_OVERFLOW_INHERIT) {
-        box->overflow_y = ctxt->parent_box->overflow_y;
-    }
-    else {
-        switch (v) {
-        case CSS_OVERFLOW_HIDDEN:
-            box->overflow_y = FOIL_RDRBOX_OVERFLOW_HIDDEN;
-            break;
-        case CSS_OVERFLOW_SCROLL:
-            box->overflow_y = FOIL_RDRBOX_OVERFLOW_SCROLL;
-            break;
-        case CSS_OVERFLOW_AUTO:
-            if (is_table_box(box))
-                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
-            else
-                box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
-            break;
-        default:
-            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_OVERFLOW_INHERIT);
+    switch (v) {
+    case CSS_OVERFLOW_HIDDEN:
+        box->overflow_y = FOIL_RDRBOX_OVERFLOW_HIDDEN;
+        break;
+    case CSS_OVERFLOW_SCROLL:
+        box->overflow_y = FOIL_RDRBOX_OVERFLOW_SCROLL;
+        break;
+    case CSS_OVERFLOW_AUTO:
+        if (is_table_box(box))
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+        else
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+        break;
+    default:
+        box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE;
+        break;
     }
 
     LOG_DEBUG("\toverflow-y: %s\n", literal_values_overflow[box->overflow_y]);
 
     /* determine unicode_bidi */
     v = css_computed_unicode_bidi(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_UNICODE_BIDI_INHERIT) {
-        box->unicode_bidi = ctxt->parent_box->unicode_bidi;
-    }
-    else {
-        switch (v) {
-        case CSS_UNICODE_BIDI_EMBED:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_EMBED;
-            break;
-        case CSS_UNICODE_BIDI_ISOLATE:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE;
-            break;
-        case CSS_UNICODE_BIDI_BIDI_OVERRIDE:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_BIDI_OVERRIDE;
-            break;
-        case CSS_UNICODE_BIDI_ISOLATE_OVERRIDE:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE_OVERRIDE;
-            break;
-        case CSS_UNICODE_BIDI_PLAINTEXT:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_PLAINTEXT;
-            break;
-        case CSS_UNICODE_BIDI_NORMAL:
-        default:
-            box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_NORMAL;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_UNICODE_BIDI_INHERIT);
+    switch (v) {
+    case CSS_UNICODE_BIDI_EMBED:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_EMBED;
+        break;
+    case CSS_UNICODE_BIDI_ISOLATE:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE;
+        break;
+    case CSS_UNICODE_BIDI_BIDI_OVERRIDE:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_BIDI_OVERRIDE;
+        break;
+    case CSS_UNICODE_BIDI_ISOLATE_OVERRIDE:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_ISOLATE_OVERRIDE;
+        break;
+    case CSS_UNICODE_BIDI_PLAINTEXT:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_PLAINTEXT;
+        break;
+    case CSS_UNICODE_BIDI_NORMAL:
+    default:
+        box->unicode_bidi = FOIL_RDRBOX_UNICODE_BIDI_NORMAL;
+        break;
     }
 
     LOG_DEBUG("\tunicode-bidi: %s\n",
@@ -649,26 +1083,22 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine text_transform */
     v = css_computed_text_transform(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_TEXT_TRANSFORM_INHERIT) {
-        box->text_transform = ctxt->parent_box->text_transform;
-    }
-    else {
-        switch (v) {
-        case CSS_TEXT_TRANSFORM_CAPITALIZE:
-            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE;
-            break;
-        case CSS_TEXT_TRANSFORM_UPPERCASE:
-            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE;
-            break;
-        case CSS_TEXT_TRANSFORM_LOWERCASE:
-            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE;
-            break;
-        case CSS_TEXT_TRANSFORM_NONE:
-        default:
-            box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_NONE;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_TEXT_TRANSFORM_INHERIT);
+    switch (v) {
+    case CSS_TEXT_TRANSFORM_CAPITALIZE:
+        box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_CAPITALIZE;
+        break;
+    case CSS_TEXT_TRANSFORM_UPPERCASE:
+        box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_UPPERCASE;
+        break;
+    case CSS_TEXT_TRANSFORM_LOWERCASE:
+        box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_LOWERCASE;
+        break;
+    case CSS_TEXT_TRANSFORM_NONE:
+    default:
+        box->text_transform = FOIL_RDRBOX_TEXT_TRANSFORM_NONE;
+        break;
     }
 
     LOG_DEBUG("\ttext-transform: %s\n",
@@ -676,32 +1106,28 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine white-space */
     v = css_computed_white_space(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_WHITE_SPACE_INHERIT) {
-        box->white_space = ctxt->parent_box->white_space;
-    }
-    else {
-        switch (v) {
-        case CSS_WHITE_SPACE_PRE:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE;
-            break;
-        case CSS_WHITE_SPACE_NOWRAP:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_NOWRAP;
-            break;
-        case CSS_WHITE_SPACE_PRE_WRAP:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP;
-            break;
-        case CSS_WHITE_SPACE_PRE_LINE:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_LINE;
-            break;
-        case CSS_WHITE_SPACE_BREAK_SPACES:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES;
-            break;
-        case CSS_WHITE_SPACE_NORMAL:
-        default:
-            box->white_space = FOIL_RDRBOX_WHITE_SPACE_NORMAL;
-            break;
-        }
+            ctxt->style);
+    assert(v != CSS_WHITE_SPACE_INHERIT);
+    switch (v) {
+    case CSS_WHITE_SPACE_PRE:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE;
+        break;
+    case CSS_WHITE_SPACE_NOWRAP:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_NOWRAP;
+        break;
+    case CSS_WHITE_SPACE_PRE_WRAP:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_WRAP;
+        break;
+    case CSS_WHITE_SPACE_PRE_LINE:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_PRE_LINE;
+        break;
+    case CSS_WHITE_SPACE_BREAK_SPACES:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_BREAK_SPACES;
+        break;
+    case CSS_WHITE_SPACE_NORMAL:
+    default:
+        box->white_space = FOIL_RDRBOX_WHITE_SPACE_NORMAL;
+        break;
     }
 
     LOG_DEBUG("\twhite-space: %s\n",
@@ -709,14 +1135,9 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine text-decoration */
     v = css_computed_text_decoration(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_TEXT_DECORATION_INHERIT) {
-        box->text_deco_underline = ctxt->parent_box->text_deco_underline;
-        box->text_deco_overline = ctxt->parent_box->text_deco_overline;
-        box->text_deco_line_through = ctxt->parent_box->text_deco_line_through;
-        box->text_deco_blink = ctxt->parent_box->text_deco_blink;
-    }
-    else if (v != CSS_TEXT_DECORATION_NONE) {
+            ctxt->style);
+    assert(v != CSS_TEXT_DECORATION_INHERIT);
+    if (v != CSS_TEXT_DECORATION_NONE) {
         if (v & CSS_TEXT_DECORATION_BLINK)
             box->text_deco_blink = 1;
         if (v & CSS_TEXT_DECORATION_LINE_THROUGH)
@@ -739,12 +1160,10 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine letter-spacing */
     v = css_computed_letter_spacing(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            ctxt->style,
             &length, &unit);
-    if (v == CSS_LETTER_SPACING_INHERIT) {
-        box->letter_spacing = ctxt->parent_box->letter_spacing;
-    }
-    else if (v == CSS_LETTER_SPACING_SET) {
+    assert(v != CSS_LETTER_SPACING_INHERIT);
+    if (v == CSS_LETTER_SPACING_SET) {
         box->letter_spacing = calc_used_value_widths(box, unit, length);
     }
     /* CSS_LETTER_SPACING_NORMAL */
@@ -758,12 +1177,10 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine word-spacing */
     v = css_computed_word_spacing(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+            ctxt->style,
             &length, &unit);
-    if (v == CSS_WORD_SPACING_INHERIT) {
-        box->word_spacing = ctxt->parent_box->word_spacing;
-    }
-    else if (v == CSS_WORD_SPACING_SET) {
+    assert(v != CSS_WORD_SPACING_INHERIT);
+    if (v == CSS_WORD_SPACING_SET) {
         box->word_spacing = calc_used_value_widths(box, unit, length);
     }
     /* CSS_WORD_SPACING_NORMAL */
@@ -776,15 +1193,9 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     if (box->is_block_container) {
         /* determine text-indent */
-        v = css_computed_text_indent(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &length, &unit);
-        if (v == CSS_TEXT_INDENT_INHERIT) {
-            box->text_indent = ctxt->parent_box->text_indent;
-        }
-        else {
-            box->text_indent = calc_used_value_widths(box, unit, length);
-        }
+        v = css_computed_text_indent(ctxt->style, &length, &unit);
+        assert(v != CSS_TEXT_INDENT_INHERIT);
+        box->text_indent = calc_used_value_widths(box, unit, length);
 
         if (box->text_indent < 0)
             box->text_indent = 0;
@@ -792,27 +1203,22 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
         LOG_DEBUG("\ttext-indent: %d\n", box->text_indent);
 
         /* determine text-align */
-        v = css_computed_text_align(
-                ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-        if (v == CSS_TEXT_ALIGN_INHERIT) {
-            box->text_align = ctxt->parent_box->text_align;
-        }
-        else {
-            switch (v) {
-            case CSS_TEXT_ALIGN_RIGHT:
-                box->text_align = FOIL_RDRBOX_TEXT_ALIGN_RIGHT;
-                break;
-            case CSS_TEXT_ALIGN_CENTER:
-                box->text_align = FOIL_RDRBOX_TEXT_ALIGN_CENTER;
-                break;
-            case CSS_TEXT_ALIGN_JUSTIFY:
-                box->text_align = FOIL_RDRBOX_TEXT_ALIGN_JUSTIFY;
-                break;
-            case CSS_TEXT_ALIGN_LEFT:
-            default:
-                box->text_align = FOIL_RDRBOX_TEXT_ALIGN_LEFT;
-                break;
-            }
+        v = css_computed_text_align(ctxt->style);
+        assert(v != CSS_TEXT_ALIGN_INHERIT);
+        switch (v) {
+        case CSS_TEXT_ALIGN_RIGHT:
+            box->text_align = FOIL_RDRBOX_TEXT_ALIGN_RIGHT;
+            break;
+        case CSS_TEXT_ALIGN_CENTER:
+            box->text_align = FOIL_RDRBOX_TEXT_ALIGN_CENTER;
+            break;
+        case CSS_TEXT_ALIGN_JUSTIFY:
+            box->text_align = FOIL_RDRBOX_TEXT_ALIGN_JUSTIFY;
+            break;
+        case CSS_TEXT_ALIGN_LEFT:
+        default:
+            box->text_align = FOIL_RDRBOX_TEXT_ALIGN_LEFT;
+            break;
         }
 
         LOG_DEBUG("\ttext-align: %s\n",
@@ -822,7 +1228,7 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
            Note that CSSEng has a wrong interface for text-overflow */
         lwc_string *string;
         v = css_computed_text_overflow(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE], &string);
+            ctxt->style, &string);
         if (v == CSS_TEXT_OVERFLOW_ELLIPSIS)
             box->text_overflow = FOIL_RDRBOX_TEXT_OVERFLOW_ELLIPSIS;
         else
@@ -833,88 +1239,76 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
     }
 
     /* determine word-break */
-    v = css_computed_word_break(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_WORD_BREAK_INHERIT)
-        box->word_break = ctxt->parent_box->word_break;
-    else {
-        switch (v) {
-        case CSS_WORD_BREAK_BREAK_WORD:
-            /* this is a legacy keyword */
-            box->word_break = FOIL_RDRBOX_WORD_BREAK_NORMAL;
-            break;
+    v = css_computed_word_break(ctxt->style);
+    assert(v != CSS_WORD_BREAK_INHERIT);
+    switch (v) {
+    case CSS_WORD_BREAK_BREAK_WORD:
+        /* this is a legacy keyword */
+        box->word_break = FOIL_RDRBOX_WORD_BREAK_NORMAL;
+        break;
 
-        case CSS_WORD_BREAK_BREAK_ALL:
-            box->word_break = FOIL_RDRBOX_WORD_BREAK_BREAK_ALL;
-            break;
+    case CSS_WORD_BREAK_BREAK_ALL:
+        box->word_break = FOIL_RDRBOX_WORD_BREAK_BREAK_ALL;
+        break;
 
-        case CSS_WORD_BREAK_KEEP_ALL:
-            box->word_break = FOIL_RDRBOX_WORD_BREAK_KEEP_ALL;
-            break;
+    case CSS_WORD_BREAK_KEEP_ALL:
+        box->word_break = FOIL_RDRBOX_WORD_BREAK_KEEP_ALL;
+        break;
 
-        case CSS_WORD_BREAK_NORMAL:
-        default:
-            box->word_break = FOIL_RDRBOX_WORD_BREAK_NORMAL;
-            break;
-        }
+    case CSS_WORD_BREAK_NORMAL:
+    default:
+        box->word_break = FOIL_RDRBOX_WORD_BREAK_NORMAL;
+        break;
     }
 
     LOG_DEBUG("\tword-break: %s\n",
             literal_values_word_break[box->word_break]);
 
     /* determine line-break */
-    v = css_computed_line_break(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_LINE_BREAK_INHERIT)
-        box->line_break = ctxt->parent_box->line_break;
-    else {
-        switch (v) {
-        case CSS_LINE_BREAK_LOOSE:
-            box->line_break = FOIL_RDRBOX_LINE_BREAK_LOOSE;
-            break;
+    v = css_computed_line_break(ctxt->style);
+    assert(v != CSS_LINE_BREAK_INHERIT);
+    switch (v) {
+    case CSS_LINE_BREAK_LOOSE:
+        box->line_break = FOIL_RDRBOX_LINE_BREAK_LOOSE;
+        break;
 
-        case CSS_LINE_BREAK_NORMAL:
-            box->line_break = FOIL_RDRBOX_LINE_BREAK_NORMAL;
-            break;
+    case CSS_LINE_BREAK_NORMAL:
+        box->line_break = FOIL_RDRBOX_LINE_BREAK_NORMAL;
+        break;
 
-        case CSS_LINE_BREAK_STRICT:
-            box->line_break = FOIL_RDRBOX_LINE_BREAK_STRICT;
-            break;
+    case CSS_LINE_BREAK_STRICT:
+        box->line_break = FOIL_RDRBOX_LINE_BREAK_STRICT;
+        break;
 
-        case CSS_LINE_BREAK_ANYWHERE:
-            box->line_break = FOIL_RDRBOX_LINE_BREAK_ANYWHERE;
-            break;
+    case CSS_LINE_BREAK_ANYWHERE:
+        box->line_break = FOIL_RDRBOX_LINE_BREAK_ANYWHERE;
+        break;
 
-        case CSS_LINE_BREAK_AUTO:
-        default:
-            box->line_break = FOIL_RDRBOX_LINE_BREAK_AUTO;
-            break;
-        }
+    case CSS_LINE_BREAK_AUTO:
+    default:
+        box->line_break = FOIL_RDRBOX_LINE_BREAK_AUTO;
+        break;
     }
 
     LOG_DEBUG("\tline-break: %s\n",
             literal_values_line_break[box->line_break]);
 
     /* determine word-wrap */
-    v = css_computed_word_wrap(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_WORD_WRAP_INHERIT)
-        box->word_wrap = ctxt->parent_box->word_wrap;
-    else {
-        switch (v) {
-        case CSS_WORD_WRAP_BREAK_WORD:
-            box->word_wrap = FOIL_RDRBOX_WORD_WRAP_BREAK_WORD;
-            break;
+    v = css_computed_word_wrap(ctxt->style);
+    assert(v != CSS_WORD_WRAP_INHERIT);
+    switch (v) {
+    case CSS_WORD_WRAP_BREAK_WORD:
+        box->word_wrap = FOIL_RDRBOX_WORD_WRAP_BREAK_WORD;
+        break;
 
-        case CSS_WORD_WRAP_ANYWHERE:
-            box->word_wrap = FOIL_RDRBOX_WORD_WRAP_ANYWHERE;
-            break;
+    case CSS_WORD_WRAP_ANYWHERE:
+        box->word_wrap = FOIL_RDRBOX_WORD_WRAP_ANYWHERE;
+        break;
 
-        case CSS_WORD_WRAP_NORMAL:
-        default:
-            box->word_wrap = FOIL_RDRBOX_WORD_WRAP_NORMAL;
-            break;
-        }
+    case CSS_WORD_WRAP_NORMAL:
+    default:
+        box->word_wrap = FOIL_RDRBOX_WORD_WRAP_NORMAL;
+        break;
     }
 
     LOG_DEBUG("\tword-wrap: %s\n",
@@ -922,88 +1316,25 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine list-style-type
        (Foil always assumes list-style-image is `none`) */
-    v = css_computed_list_style_type(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_LIST_STYLE_TYPE_INHERIT)
-        box->list_style_type = ctxt->parent_box->list_style_type;
-    else {
-        switch (v) {
-        default:
-        case CSS_LIST_STYLE_TYPE_DISC:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DISC;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_CIRCLE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_CIRCLE;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_SQUARE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_SQUARE;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_DECIMAL:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_ROMAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_UPPER_ROMAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ROMAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_GREEK:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_LOWER_ALPHA:
-        case CSS_LIST_STYLE_TYPE_LOWER_LATIN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_UPPER_ALPHA:
-        case CSS_LIST_STYLE_TYPE_UPPER_LATIN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_ARMENIAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_GEORGIAN:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN;
-            break;
-
-        case CSS_LIST_STYLE_TYPE_NONE:
-            box->list_style_type = FOIL_RDRBOX_LIST_STYLE_TYPE_NONE;
-            break;
-        }
-    }
+    v = css_computed_list_style_type(ctxt->style);
+    assert(v != CSS_LIST_STYLE_TYPE_INHERIT);
+    box->list_style_type = normalize_list_style_type(v);
 
     LOG_DEBUG("\tlist-style-type: %s\n",
             literal_values_list_style_type[box->list_style_type]);
 
-    /* determine word-wrap */
-    v = css_computed_list_style_position(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_LIST_STYLE_POSITION_INHERIT)
-        box->list_style_position = ctxt->parent_box->list_style_position;
-    else {
-        switch (v) {
-        default:
-        case CSS_LIST_STYLE_POSITION_OUTSIDE:
-            box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_OUTSIDE;
-            break;
+    /* determine list-style-position */
+    v = css_computed_list_style_position(ctxt->style);
+    assert(v != CSS_LIST_STYLE_POSITION_INHERIT);
+    switch (v) {
+    default:
+    case CSS_LIST_STYLE_POSITION_OUTSIDE:
+        box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_OUTSIDE;
+        break;
 
-        case CSS_LIST_STYLE_POSITION_INSIDE:
-            box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_INSIDE;
-            break;
-        }
+    case CSS_LIST_STYLE_POSITION_INSIDE:
+        box->list_style_position = FOIL_RDRBOX_LIST_STYLE_POSITION_INSIDE;
+        break;
     }
 
     LOG_DEBUG("\tlist-style-position: %s\n",
@@ -1011,26 +1342,48 @@ static void dtrm_used_values_common_properties(foil_create_ctxt *ctxt,
 
     /* determine foreground color */
     css_color color_argb;
-    v = css_computed_color(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &color_argb);
-    if (v == CSS_COLOR_INHERIT)
-        box->fgc = ctxt->parent_box->fgc;
-    else
-        box->fgc = color_argb;
+    v = css_computed_color(ctxt->style, &color_argb);
+    assert(v != CSS_COLOR_INHERIT);
+    box->fgc = color_argb;
 
     LOG_DEBUG("\tcolor: 0x%08x\n", box->fgc);
 
     /* determine background color */
-    v = css_computed_background_color(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &color_argb);
-    if (v == CSS_COLOR_INHERIT)
-        box->bgc = ctxt->parent_box->bgc;
-    else
-        box->bgc = color_argb;
+    v = css_computed_background_color(ctxt->style, &color_argb);
+    assert(v != CSS_COLOR_INHERIT);
+    box->bgc = color_argb;
 
     LOG_DEBUG("\tbackground-color: 0x%08x\n", box->bgc);
+
+    /* determine quotes */
+    lwc_string **strings = NULL;
+    v = css_computed_quotes(ctxt->style, &strings);
+    if (v == CSS_QUOTES_INHERIT) {
+        if (ctxt->parent_box->quotes) {
+            box->quotes = foil_quotes_ref(ctxt->parent_box->quotes);
+        }
+    }
+    else if (v == CSS_QUOTES_STRING && strings != NULL) {
+        size_t n = 0;
+        while (strings[n]) {
+            n++;
+        }
+
+        /* if n is odd */
+        if ((n % 2)) {
+            LOG_WARN("Bad number of quote strings: %u\n", (unsigned)n);
+            n = (n >> 1) << 1;
+        }
+
+        if (n > 0 && strings != NULL) {
+            box->quotes = foil_quotes_new_lwc(n, strings);
+        }
+    }
+    else {
+        // keep NULL
+    }
+
+    LOG_DEBUG("\tquotes: %p\n", box->quotes);
 
 }
 
@@ -1040,15 +1393,11 @@ dtrm_margin_left_right(foil_create_ctxt *ctxt, foil_rdrbox *box)
     uint8_t value;
     css_fixed length;
     css_unit unit;
-    value = css_computed_margin_left(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &length, &unit);
+    value = css_computed_margin_left(ctxt->style, &length, &unit);
+    assert(value != CSS_MARGIN_INHERIT);
     switch (value) {
         case CSS_MARGIN_AUTO:
             box->ml = 0;
-            break;
-        case CSS_MARGIN_INHERIT:
-            box->ml = ctxt->parent_box->ml;
             break;
         case CSS_MARGIN_SET:
             box->ml = calc_used_value_widths(box, unit, length);
@@ -1058,15 +1407,11 @@ dtrm_margin_left_right(foil_create_ctxt *ctxt, foil_rdrbox *box)
             break;
     }
 
-    value = css_computed_margin_right(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &length, &unit);
+    value = css_computed_margin_right(ctxt->style, &length, &unit);
+    assert(value != CSS_MARGIN_INHERIT);
     switch (value) {
         case CSS_MARGIN_AUTO:
             box->mr = 0;
-            break;
-        case CSS_MARGIN_INHERIT:
-            box->mr = ctxt->parent_box->mr;
             break;
         case CSS_MARGIN_SET:
             box->mr = calc_used_value_widths(box, unit, length);
@@ -1083,15 +1428,12 @@ dtrm_margin_top_bottom(foil_create_ctxt *ctxt, foil_rdrbox *box)
     uint8_t value;
     css_fixed length;
     css_unit unit;
-    value = css_computed_margin_top(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &length, &unit);
+
+    value = css_computed_margin_top(ctxt->style, &length, &unit);
+    assert(value != CSS_MARGIN_INHERIT);
     switch (value) {
         case CSS_MARGIN_AUTO:
             box->mt = 0;
-            break;
-        case CSS_MARGIN_INHERIT:
-            box->mt = ctxt->parent_box->mt;
             break;
         case CSS_MARGIN_SET:
             box->mr = calc_used_value_heights(box, unit, length);
@@ -1101,15 +1443,11 @@ dtrm_margin_top_bottom(foil_create_ctxt *ctxt, foil_rdrbox *box)
             break;
     }
 
-    value = css_computed_margin_bottom(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &length, &unit);
+    value = css_computed_margin_bottom(ctxt->style, &length, &unit);
+    assert(value != CSS_MARGIN_INHERIT);
     switch (value) {
         case CSS_MARGIN_AUTO:
             box->mb = 0;
-            break;
-        case CSS_MARGIN_INHERIT:
-            box->mb = ctxt->parent_box->mb;
             break;
         case CSS_MARGIN_SET:
             box->mb = calc_used_value_heights(box, unit, length);
@@ -1173,21 +1511,17 @@ dtrm_width_replaced(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
     assert(box->is_replaced);
 
-    width_v = css_computed_width(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &width_l, &width_u);
+    width_v = css_computed_width(ctxt->style, &width_l, &width_u);
+    assert(width_v != CSS_WIDTH_INHERIT);
 
     if (width_v != CSS_WIDTH_AUTO) {
-        if (width_v == CSS_HEIGHT_INHERIT)
-            box->width = ctxt->parent_box->width;
         box->width = calc_used_value_widths(box, width_u, width_l);
 
         return width_v;
     }
 
-    height_v = css_computed_height(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &height_l, &height_u);
+    height_v = css_computed_height(ctxt->style, &height_l, &height_u);
+    assert(height_v != CSS_HEIGHT_INHERIT);
 
     int intrinsic_width = get_intrinsic_width(ctxt);
     int intrinsic_height = get_intrinsic_height(ctxt);
@@ -1203,8 +1537,6 @@ dtrm_width_replaced(foil_create_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v != CSS_HEIGHT_AUTO) {
         int height = 0;
-        if (height_v == CSS_HEIGHT_INHERIT)
-            height = ctxt->parent_box->height;
         height = calc_used_value_heights(box, height_u, height_l);
         box->width = round_width(height * intrinsic_ratio);
     }
@@ -1231,20 +1563,15 @@ dtrm_height_replaced(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
     assert(box->is_replaced);
 
-    height_v = css_computed_height(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &height_l, &height_u);
+    height_v = css_computed_height(ctxt->style, &height_l, &height_u);
+    assert(height_v != CSS_HEIGHT_INHERIT);
     if (height_v != CSS_WIDTH_AUTO) {
-        if (height_v == CSS_HEIGHT_INHERIT)
-            box->height = ctxt->parent_box->height;
         box->height = calc_used_value_heights(box, height_u, height_l);
 
         return height_v;
     }
 
-    width_v = css_computed_width(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &width_l, &width_u);
+    width_v = css_computed_width(ctxt->style, &width_l, &width_u);
 
     int intrinsic_height = get_intrinsic_height(ctxt);
     float intrinsic_ratio = get_intrinsic_ratio(ctxt);
@@ -1273,13 +1600,10 @@ dtrm_width_shrink_to_fit(foil_create_ctxt *ctxt, foil_rdrbox *box)
     css_fixed width_l;
     css_unit width_u;
 
-    width_v = css_computed_width(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-            &width_l, &width_u);
+    width_v = css_computed_width(ctxt->style, &width_l, &width_u);
+    assert(width_v != CSS_WIDTH_INHERIT);
 
     if (width_v != CSS_WIDTH_AUTO) {
-        if (width_v == CSS_HEIGHT_INHERIT)
-            box->width = ctxt->parent_box->width;
         box->width = calc_used_value_widths(box, width_u, width_l);
 
         return width_v;
@@ -1304,36 +1628,28 @@ dtrm_margin_left_right_block_normal(foil_create_ctxt *ctxt,
     uint8_t padding_left_v;
     css_fixed padding_left_l;
     css_unit padding_left_u;
-    padding_left_v = css_computed_padding_left(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+    padding_left_v = css_computed_padding_left(ctxt->style,
             &padding_left_l, &padding_left_u);
-    if (padding_left_v == CSS_PADDING_INHERIT)
-        box->pl = ctxt->parent_box->pl;
-    else
-        box->pl = calc_used_value_widths(box, padding_left_u, padding_left_l);
+    assert(padding_left_v != CSS_PADDING_INHERIT);
+    box->pl = calc_used_value_widths(box, padding_left_u, padding_left_l);
 
     uint8_t padding_right_v;
     css_fixed padding_right_l;
     css_unit padding_right_u;
-    padding_right_v = css_computed_padding_right(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+    padding_right_v = css_computed_padding_right(ctxt->style,
             &padding_right_l, &padding_right_u);
-    if (padding_right_v == CSS_PADDING_INHERIT)
-        box->pr = ctxt->parent_box->pr;
-    else
-        box->pr = calc_used_value_widths(box, padding_right_u, padding_right_l);
+    assert(padding_right_v != CSS_PADDING_INHERIT);
+    box->pr = calc_used_value_widths(box, padding_right_u, padding_right_l);
 
     uint8_t margin_left_v;
     css_fixed margin_left_l;
     css_unit margin_left_u;
-    margin_left_v = css_computed_margin_left(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+    margin_left_v = css_computed_margin_left(ctxt->style,
             &margin_left_l, &margin_left_u);
+    assert(margin_left_v != CSS_MARGIN_INHERIT);
+
     if (margin_left_v == CSS_MARGIN_AUTO) {
         nr_autos++;
-    }
-    else if (margin_left_v == CSS_MARGIN_INHERIT) {
-        box->ml = ctxt->parent_box->ml;
     }
     else {
         box->ml = calc_used_value_widths(box, margin_left_u, margin_left_l);
@@ -1342,14 +1658,11 @@ dtrm_margin_left_right_block_normal(foil_create_ctxt *ctxt,
     uint8_t margin_right_v;
     css_fixed margin_right_l;
     css_unit margin_right_u;
-    margin_right_v = css_computed_margin_right(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+    margin_right_v = css_computed_margin_right(ctxt->style,
             &margin_right_l, &margin_right_u);
+    assert(margin_right_v != CSS_MARGIN_INHERIT);
     if (margin_right_v == CSS_MARGIN_AUTO) {
         nr_autos++;
-    }
-    else if (margin_right_v == CSS_MARGIN_INHERIT) {
-        box->mr = ctxt->parent_box->mr;
     }
     else {
         box->mr = calc_used_value_widths(box, margin_right_u, margin_right_l);
@@ -1443,14 +1756,10 @@ calc_widths_margins(foil_create_ctxt *ctxt, foil_rdrbox *box)
         else {
             css_fixed width_l;
             css_unit width_u;
-            width_v = css_computed_width(
-                    ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
-                    &width_l, &width_u);
+            width_v = css_computed_width(ctxt->style, &width_l, &width_u);
+            assert(width_v != CSS_WIDTH_INHERIT);
             if (width_v == CSS_WIDTH_AUTO) {
                 box->width = 0;
-            }
-            else if (width_v == CSS_WIDTH_INHERIT) {
-                box->width = ctxt->parent_box->width;
             }
             else {
                 box->width = calc_used_value_widths(box, width_u, width_l);
@@ -1510,22 +1819,18 @@ calc_heights_margins(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
         css_fixed height_l;
         css_unit height_u;
-        uint8_t height_v = css_computed_height(
-                ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+        uint8_t height_v = css_computed_height(ctxt->style,
                 &height_l, &height_u);
+        assert(height_v != CSS_HEIGHT_INHERIT);
 
         if (height_v != CSS_WIDTH_AUTO) {
-            if (height_v == CSS_HEIGHT_INHERIT)
-                box->height = ctxt->parent_box->height;
             box->height = calc_used_value_heights(box, height_u, height_l);
         }
-        else {
-            if (box->overflow_y == CSS_OVERFLOW_VISIBLE) {
-                dtrm_margin_top_bottom(ctxt, box);
+        else if (box->overflow_y == CSS_OVERFLOW_VISIBLE) {
+            dtrm_margin_top_bottom(ctxt, box);
 
-                // set height is pending.
-                box->height_pending = 1;
-            }
+            // set height is pending.
+            box->height_pending = 1;
         }
     }
 }
@@ -1547,23 +1852,14 @@ is_replaced_element(pcdoc_element_t elem, const char *tag_name)
     return 0;
 }
 
-foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
+static foil_rdrbox *
+create_rdrbox_from_style(foil_create_ctxt *ctxt)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { ctxt->elem } };
-    const char *name;
-    size_t len;
     foil_rdrbox *box = NULL;
 
-    pcdoc_element_get_tag_name(ctxt->doc, ctxt->elem, &name, &len,
-            NULL, NULL, NULL, NULL);
-    assert(name != NULL && len > 0);
-    ctxt->tag_name = strndup(name, len);
-
-    LOG_DEBUG("Layout style properties of element (%s):\n", ctxt->tag_name);
-
     /* determine the box type */
-    uint8_t display = css_computed_display(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE],
+    uint8_t display = css_computed_display(ctxt->style,
             pcdoc_node_get_parent(ctxt->doc, node) == NULL);
 
     // return INVALID_USED_VALUE_UINT8 for 'display:none;'
@@ -1581,8 +1877,6 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         goto failed;
 
     box->owner = ctxt->elem;
-    box->is_principal = 1;
-    box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
 
     /* whether is a block level box */
     if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
@@ -1604,60 +1898,50 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         box->is_block_container = 1;
 
     uint8_t v;
-    v = css_computed_position(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_POSITION_INHERIT) {
-        box->position = ctxt->parent_box->position;
-    }
-    else {
-        switch (v) {
-        case CSS_POSITION_RELATIVE:
-            box->position = FOIL_RDRBOX_POSITION_RELATIVE;
-            break;
+    v = css_computed_position(ctxt->style);
+    assert(v != CSS_POSITION_INHERIT);
+    switch (v) {
+    case CSS_POSITION_RELATIVE:
+        box->position = FOIL_RDRBOX_POSITION_RELATIVE;
+        break;
 
-        case CSS_POSITION_ABSOLUTE:
-            box->position = FOIL_RDRBOX_POSITION_ABSOLUTE;
-            break;
+    case CSS_POSITION_ABSOLUTE:
+        box->position = FOIL_RDRBOX_POSITION_ABSOLUTE;
+        break;
 
-        case CSS_POSITION_FIXED:
-            box->position = FOIL_RDRBOX_POSITION_FIXED;
-            break;
+    case CSS_POSITION_FIXED:
+        box->position = FOIL_RDRBOX_POSITION_FIXED;
+        break;
 
-        /* CSSEng does not support position: sticky so far
-        case CSS_POSITION_STICKY:
-            box->position = FOIL_RDRBOX_POSITION_STICKY;
-            break; */
+    /* CSSEng does not support position: sticky so far
+    case CSS_POSITION_STICKY:
+        box->position = FOIL_RDRBOX_POSITION_STICKY;
+        break; */
 
-        case CSS_POSITION_STATIC:
-        default:
-            box->position = FOIL_RDRBOX_POSITION_STATIC;
-            break;
-        }
+    case CSS_POSITION_STATIC:
+    default:
+        box->position = FOIL_RDRBOX_POSITION_STATIC;
+        break;
     }
 
     LOG_DEBUG("\tposition: %s\n", literal_values_position[box->position]);
 
     /* determine float */
-    v = css_computed_float(
-            ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE]);
-    if (v == CSS_FLOAT_INHERIT) {
-        box->floating = ctxt->parent_box->floating;
-    }
-    else {
-        switch (v) {
-        case CSS_FLOAT_LEFT:
-            box->floating = FOIL_RDRBOX_FLOAT_LEFT;
-            break;
+    v = css_computed_float(ctxt->style);
+    assert(v != CSS_FLOAT_INHERIT);
+    switch (v) {
+    case CSS_FLOAT_LEFT:
+        box->floating = FOIL_RDRBOX_FLOAT_LEFT;
+        break;
 
-        case CSS_FLOAT_RIGHT:
-            box->floating = FOIL_RDRBOX_FLOAT_RIGHT;
-            break;
+    case CSS_FLOAT_RIGHT:
+        box->floating = FOIL_RDRBOX_FLOAT_RIGHT;
+        break;
 
-        case CSS_FLOAT_NONE:
-        default:
-            box->floating = FOIL_RDRBOX_FLOAT_NONE;
-            break;
-        }
+    case CSS_FLOAT_NONE:
+    default:
+        box->floating = FOIL_RDRBOX_FLOAT_NONE;
+        break;
     }
 
     LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
@@ -1727,7 +2011,7 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
     }
 
     /* determine the used values for common properties */
-    dtrm_used_values_common_properties(ctxt, box);
+    dtrm_common_properties(ctxt, box);
 
     /* calculate widths and margins */
     calc_widths_margins(ctxt, box);
@@ -1737,11 +2021,6 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
 
     /* adjust position according to 'vertical-align' */
     adjust_position_vertically(ctxt, box);
-
-    if (ctxt->tag_name)
-        free(ctxt->tag_name);
-
-    foil_rdrbox_append_child(ctxt->parent_box, box);
 
     if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         box->list_item_data->index = ctxt->parent_box->nr_child_list_items;
@@ -1768,13 +2047,340 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
     return box;
 
 failed:
-    if (ctxt->tag_name)
-        free(ctxt->tag_name);
-
     if (box)
         foil_rdrbox_delete(box);
 
     return NULL;
+}
+
+/* call this function after attaching the box to the rendering tree */
+static void
+dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    const css_computed_counter *counters;
+    uint8_t v;
+
+    /* determine counter-reset */
+    v = css_computed_counter_reset(ctxt->style, &counters);
+    if (v == CSS_COUNTER_RESET_INHERIT) {
+        if (ctxt->parent_box->counter_reset)
+            box->counter_reset =
+                foil_counters_ref(ctxt->parent_box->counter_reset);
+    }
+    else if (v == CSS_COUNTER_RESET_NAMED && counters != NULL) {
+        box->counter_reset = foil_counters_new(counters);
+        if (box->counter_reset == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-reset\n");
+        }
+    }
+    else {
+        // do nothing.
+    }
+
+    if (box->counter_reset) {
+        if ((box->counters_table = create_counters_table(ctxt)) == NULL) {
+            LOG_WARN("Failed to create new hash table for counters\n");
+        }
+        else {
+            for (size_t i = 0; i < box->counter_reset->nr_counters; i++) {
+                lwc_string *name =
+                    lwc_string_ref(box->counter_reset->counters[i].name);
+                g_hash_table_replace(box->counters_table,
+                        name, (gpointer)box->counter_reset->counters[i].value);
+            }
+        }
+    }
+
+    LOG_DEBUG("counter-reset for %s: %d; counters: %p; counters table: %p\n",
+            ctxt->tag_name, v, counters, box->counters_table);
+
+    /* determine counter-increment */
+    v = css_computed_counter_increment(ctxt->style, &counters);
+    if (v == CSS_COUNTER_INCREMENT_INHERIT) {
+        if (ctxt->parent_box->counter_incrm)
+            box->counter_incrm =
+                foil_counters_ref(ctxt->parent_box->counter_incrm);
+    }
+    else if (v == CSS_COUNTER_INCREMENT_NAMED && counters != NULL) {
+        box->counter_incrm = foil_counters_new(counters);
+        if (box->counter_incrm == NULL) {
+            LOG_WARN("Failed to create foil_counters for counter-increment\n");
+        }
+    }
+    else {
+        // do nothing
+    }
+
+    if (box->counter_incrm) {
+        for (size_t i = 0; i < box->counter_incrm->nr_counters; i++) {
+            intptr_t old_value;
+            GHashTable *counters_table =
+                find_counters_table(ctxt, box,
+                        box->counter_incrm->counters[i].name, &old_value);
+
+            if (counters_table) {
+                intptr_t new_value;
+                new_value = old_value + box->counter_incrm->counters[i].value;
+                lwc_string *name =
+                    lwc_string_ref(box->counter_incrm->counters[i].name);
+                g_hash_table_replace(counters_table, name, (gpointer)new_value);
+            }
+            else {
+                /* behave as though a counter-reset had reset the counter to 0
+                   on that element or pseudo-element. */
+                if (box->counters_table == NULL) {
+                    if ((box->counters_table = create_counters_table(ctxt)) == NULL) {
+                        LOG_WARN("Failed to create new hash table for counters\n");
+                    }
+                }
+
+                if (box->counters_table) {
+                    lwc_string *name =
+                        lwc_string_ref(box->counter_incrm->counters[i].name);
+                    g_hash_table_replace(box->counters_table,
+                            name, (gpointer)0);
+                }
+            }
+        }
+    }
+
+    LOG_DEBUG("counter-increment for %s: %d; counters: %p; counter_incrm: %p\n",
+            ctxt->tag_name, v, counters, box->counter_incrm);
+}
+
+foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
+{
+    foil_rdrbox *box;
+
+    assert(ctxt->tag_name);
+
+    ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE];
+    if ((box = create_rdrbox_from_style(ctxt))) {
+        box->is_principal = 1;
+        box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+        foil_rdrbox_append_child(ctxt->parent_box, box);
+
+        dtrm_counter_properties(ctxt, box);
+    }
+
+    return box;
+}
+
+static foil_rdrbox *
+create_pseudo_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
+{
+    foil_rdrbox *box;
+
+    if ((box = create_rdrbox_from_style(ctxt))) {
+        box->principal = principal;
+        box->is_anonymous = 1;
+        box->is_pseudo = 1;
+    }
+
+    return box;
+}
+
+static void
+init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    GString *text = NULL;
+    const css_computed_content_item *ctnt_item;
+    uint8_t v = css_computed_content(ctxt->style, &ctnt_item);
+    assert(v != CSS_CONTENT_INHERIT);
+
+    if (v == CSS_CONTENT_NONE || v == CSS_CONTENT_NORMAL) {
+        // do nothing
+    }
+    else {
+        assert(v == CSS_CONTENT_SET);
+        text = g_string_new("");
+
+        const char *str;
+        size_t len;
+
+        while (ctnt_item) {
+            LOG_ERROR("content item type: %d\n", (int)ctnt_item->type);
+
+            switch (ctnt_item->type) {
+            case CSS_COMPUTED_CONTENT_NONE:
+                ctnt_item = NULL;
+                continue;
+
+            case CSS_COMPUTED_CONTENT_STRING:
+                str = lwc_string_data(ctnt_item->data.string);
+                len = lwc_string_length(ctnt_item->data.string);
+                g_string_append_len(text, str, len);
+                break;
+
+            case CSS_COMPUTED_CONTENT_ATTR: {
+                const char *v;
+                size_t l;
+                v = lwc_string_data(ctnt_item->data.attr);
+                l = lwc_string_length(ctnt_item->data.attr);
+
+                if (l > 0) {
+                    char *attr_name = strndup(v, l);
+                    pcdoc_element_get_attribute(ctxt->doc, ctxt->elem,
+                                attr_name, &str, &len);
+                    free(attr_name);
+
+                    g_string_append_len(text, str, len);
+                }
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_URI:
+                g_string_append(text, "<URI>");
+                break;
+
+            case CSS_COMPUTED_CONTENT_COUNTER: {
+                intptr_t value;
+                if (find_counters_table(ctxt, box,
+                            ctnt_item->data.counter.name, &value)) {
+
+                    uint8_t type = ctnt_item->data.counter.style;
+                    if (type == 0)
+                        type = CSS_LIST_STYLE_TYPE_DECIMAL;
+                    type = normalize_list_style_type(type);
+
+                    char *number = foil_rdrbox_list_number(0, (int)value,
+                            type, NULL);
+                    if (number) {
+                        g_string_append(text, number);
+                        free(number);
+                    }
+                }
+                else {
+                    LOG_ERROR("Could not find counters table for counter: %s\n",
+                            lwc_string_data(ctnt_item->data.counter.name));
+                }
+
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_COUNTERS: {
+                generate_content_from_counters(ctxt, box, ctnt_item, text);
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_OPEN_QUOTE: {
+                int quoting_depth =
+                    ctxt->udom->nr_open_quotes - ctxt->udom->nr_close_quotes;
+                if (quoting_depth < 0)
+                    quoting_depth = 0;
+
+                if (box->quotes && box->quotes->nr_strings > 0) {
+                    size_t i = quoting_depth * 2;
+                    if (i >= box->quotes->nr_strings) {
+                        i = box->quotes->nr_strings - 2;
+                    }
+
+                    str = lwc_string_data(box->quotes->strings[i]);
+                    len = lwc_string_length(box->quotes->strings[i]);
+                    g_string_append_len(text, str, len);
+                }
+
+                ctxt->udom->nr_open_quotes++;
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_CLOSE_QUOTE: {
+                ctxt->udom->nr_close_quotes++;
+
+                int quoting_depth =
+                    ctxt->udom->nr_open_quotes - ctxt->udom->nr_close_quotes;
+                if (quoting_depth < 0)
+                    quoting_depth = 0;
+
+                if (box->quotes && box->quotes->nr_strings > 0) {
+                    size_t i = quoting_depth * 2 + 1;
+                    if (i >= box->quotes->nr_strings) {
+                        i = box->quotes->nr_strings - 1;
+                    }
+
+                    str = lwc_string_data(box->quotes->strings[i]);
+                    len = lwc_string_length(box->quotes->strings[i]);
+                    g_string_append_len(text, str, len);
+                }
+                break;
+            }
+
+            case CSS_COMPUTED_CONTENT_NO_OPEN_QUOTE:
+                ctxt->udom->nr_open_quotes++;
+                break;
+
+            case CSS_COMPUTED_CONTENT_NO_CLOSE_QUOTE:
+                ctxt->udom->nr_close_quotes++;
+                break;
+
+            default:
+                LOG_ERROR("bad content item type: %d\n", (int)ctnt_item->type);
+                assert(0);
+                break;
+            }
+
+            ctnt_item++;
+        }
+
+        if (text && text->len > 0) {
+            foil_rdrbox *inline_box;
+            if (box->is_block_level) {
+                if ((inline_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                box)) == NULL)
+                    goto failed;
+            }
+            else {
+                inline_box = box;
+            }
+
+            LOG_DEBUG("inline content: %s\n", text->str);
+            if (!foil_rdrbox_init_inline_data(ctxt, inline_box,
+                        text->str, text->len))
+                goto failed;
+
+            g_string_free(text, TRUE);
+        }
+    }
+
+    return;
+
+failed:
+    if (text)
+        g_string_free(text, TRUE);
+}
+
+foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal)
+{
+    foil_rdrbox *box;
+
+    ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_BEFORE];
+    if ((box = create_pseudo_box(ctxt, principal))) {
+        LOG_DEBUG("created a box for :before pseudo element for %s\n",
+                ctxt->tag_name);
+        foil_rdrbox_insert_before(principal, box);
+        dtrm_counter_properties(ctxt, box);
+        init_pseudo_box_content(ctxt, box);
+    }
+
+    return box;
+}
+
+foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal)
+{
+    foil_rdrbox *box;
+
+    ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_AFTER];
+    if ((box = create_pseudo_box(ctxt, principal))) {
+        LOG_DEBUG("created a box for :after pseudo element for %s\n",
+                ctxt->tag_name);
+        foil_rdrbox_insert_after(principal, box);
+        dtrm_counter_properties(ctxt, box);
+        init_pseudo_box_content(ctxt, box);
+    }
+
+    return box;
 }
 
 foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
@@ -1811,6 +2417,7 @@ foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
     box->owner = ctxt->elem;
     box->is_anonymous = 1;
     box->is_inline_level = 1;
+    parent->nr_child_inlines++;
 
     foil_rdrbox_append_child(parent, box);
     return box;
@@ -1930,6 +2537,9 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     else if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         name = strdup("marker");
     }
+    else if (box->is_pseudo) {
+        name = strdup("pseudo");
+    }
     else {
         name = strdup("anonymous");
     }
@@ -1950,7 +2560,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         fputs(indent, stdout);
         fputs(" content: ", stdout);
-        fputs(purc_atom_to_string(box->marker_data->atom), stdout);
+        fputs(box->marker_data->text, stdout);
         fputs("\n", stdout);
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
@@ -1991,14 +2601,10 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
 {
     /* print title */
     if (level == 0) {
-        size_t title_len;
-        const uint32_t *title_ucs =
-            foil_udom_get_title(ctxt->udom, &title_len);
-
-        if (title_ucs) {
-            for (size_t i = 0; i < title_len; i++) {
+        if (ctxt->udom->title_ucs) {
+            for (size_t i = 0; i < ctxt->udom->title_len; i++) {
                 char utf8[10];
-                unsigned len = pcutils_unichar_to_utf8(title_ucs[i],
+                unsigned len = pcutils_unichar_to_utf8(ctxt->udom->title_ucs[i],
                         (unsigned char *)utf8);
                 utf8[len] = 0;
                 fputs(utf8, stdout);
@@ -2031,7 +2637,7 @@ void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         if (box->list_item_data->marker_box) {
             foil_rdrbox *marker = box->list_item_data->marker_box;
-            fputs(purc_atom_to_string(marker->marker_data->atom), stdout);
+            fputs(marker->marker_data->text, stdout);
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {

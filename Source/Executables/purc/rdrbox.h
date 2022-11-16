@@ -28,6 +28,7 @@
 
 #include "foil.h"
 
+#include <glib.h>
 #include <csseng/csseng.h>
 
 /* The rendered box */
@@ -150,8 +151,11 @@ enum {
     FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK,
     FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN,
     FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN,
-    FOIL_RDRBOX_LIST_STYLE_TYPE_ARMENIAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ARMENIAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_ARMENIAN,
     FOIL_RDRBOX_LIST_STYLE_TYPE_GEORGIAN,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL,
+    FOIL_RDRBOX_LIST_STYLE_TYPE_TIBETAN,
     FOIL_RDRBOX_LIST_STYLE_TYPE_NONE,
 };
 
@@ -185,6 +189,33 @@ struct _inline_block_data;
 struct _list_item_data;
 struct _marker_box_data;
 
+typedef struct foil_quotes {
+    /* reference count */
+    unsigned refc;
+
+    /* the number of quotation mark strings contained in strings */
+    unsigned nr_strings;
+
+    /* the list of pairs of quotation marks */
+    lwc_string **strings;
+} foil_quotes;
+
+typedef struct foil_named_counter {
+    lwc_string *name;
+    intptr_t    value;
+} foil_named_counter;
+
+typedef struct foil_counters {
+    /* reference count */
+    unsigned refc;
+
+    /* the number of named counters */
+    unsigned nr_counters;
+
+    /* the list of named counters */
+    foil_named_counter *counters;
+} foil_counters;
+
 struct foil_rdrbox {
     struct foil_rdrbox* parent;
     struct foil_rdrbox* first;
@@ -200,6 +231,9 @@ struct foil_rdrbox {
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_element_t owner;
 
+    /* the pricipal box if this box is created for an pseudo element */
+    struct foil_rdrbox *principal;
+
     uint8_t is_block_level:1;
     uint8_t is_inline_level:1;
 
@@ -208,6 +242,9 @@ struct foil_rdrbox {
 
     /* Indicates that this box is principal box. */
     uint8_t is_principal:1;
+
+    /* Indicates that this box is created for an pseudo element. */
+    uint8_t is_pseudo:1;
 
     /* Indicates that the element generating this box is a replaced one. */
     uint8_t is_replaced:1;
@@ -247,6 +284,18 @@ struct foil_rdrbox {
 
     uint32_t fgc;   // ARGB
     uint32_t bgc;   // ARGB
+
+    /* NULL when `quotes` is `none` */
+    foil_quotes *quotes;
+
+    /* NULL when `counter-reset` is `none`. */
+    foil_counters *counter_reset;
+
+    /* NULL when `counter-increment` is `none`. */
+    foil_counters *counter_incrm;
+
+    /* Store all effective counters */
+    GHashTable *counters_table;
 
     /* layout flags */
     unsigned height_pending:1;
@@ -307,10 +356,11 @@ typedef struct foil_create_ctxt {
     pcdoc_element_t elem;
 
     /* the current styles */
-    css_select_results *computed;
+    const css_select_results *computed;
+    const css_computed_style *style;
 
     /* the tag name of the current element */
-    char *tag_name;
+    const char *tag_name;
 
     unsigned pos_schema:3;
     unsigned in_normal_flow:1;
@@ -358,6 +408,14 @@ void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 /* create the principal box and the subsidiary box (e.g. marker) */
 foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt);
 
+/* create the box for :before pseudo element */
+foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal);
+
+/* create the box for :after pseudo element */
+foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
+        foil_rdrbox *principal);
+
 /* create an anonymous block box */
 foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
         foil_rdrbox *parent);
@@ -373,9 +431,63 @@ bool foil_rdrbox_init_data(foil_create_ctxt *ctxt, foil_rdrbox *box);
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const char *text, size_t len);
 
+/* get the list number according to the list-item-type.
+   the caller will take the ownership of the returned string,
+   should free it after done. */
+char *foil_rdrbox_list_number(const int max,
+        const int number, uint8_t type, const char *tail);
+
 /* initialize the data of a marker box */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);
+
+/* create a new quotes */
+foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings);
+foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings);
+
+/* delete a quotes object */
+void foil_quotes_delete(foil_quotes *quotes);
+
+/* reference a quotes object */
+static inline foil_quotes *
+foil_quotes_ref(foil_quotes *quotes)
+{
+    quotes->refc++;
+    return quotes;
+}
+
+/* un-reference a quotes object */
+static inline void
+foil_quotes_unref(foil_quotes *quotes)
+{
+    assert(quotes->refc > 0);
+    quotes->refc--;
+    if (quotes->refc == 0)
+        foil_quotes_delete(quotes);
+}
+
+/* get the initial quotes for specific language code */
+foil_quotes *foil_quotes_get_initial(uint8_t lang_code);
+
+/* methods to operate foil_counter */
+foil_counters *foil_counters_new(const css_computed_counter *counters);
+void foil_counters_delete(foil_counters *counters);
+
+static inline foil_counters *
+foil_counters_ref(foil_counters *counters)
+{
+    counters->refc++;
+    return counters;
+}
+
+static inline void
+foil_counters_unref(foil_counters *counters)
+{
+    assert(counters->refc > 0);
+    counters->refc--;
+    if (counters->refc == 0)
+        foil_counters_delete(counters);
+}
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);

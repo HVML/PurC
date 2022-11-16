@@ -34,60 +34,8 @@
 
 #include <assert.h>
 
-typedef enum {
-    PCTH_RDR_ALIGN_LEFT,
-    PCTH_RDR_ALIGN_RIGHT,
-    PCTH_RDR_ALIGN_CENTER,
-    PCTH_RDR_ALIGN_JUSTIFY,
-} foil_rdr_align_t;
-
-typedef enum {
-    PCTH_RDR_DECORATION_NONE,
-    PCTH_RDR_DECORATION_UNDERLINE,
-    PCTH_RDR_DECORATION_OVERLINE,
-    PCTH_RDR_DECORATION_LINE_THROUGH,
-    PCTH_RDR_DECORATION_BLINK,
-} foil_rdr_decoration_t;
-
-typedef enum {
-    PCTH_RDR_WHITE_SPACE_NORMAL,
-    PCTH_RDR_WHITE_SPACE_PRE,
-    PCTH_RDR_WHITE_SPACE_NOWRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_WRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_LINE,
-} foil_rdr_white_space_t;
-
-struct pcmcth_udom {
-    /* the sorted array of eDOM element and the corresponding rendering box. */
-    struct sorted_array *elem2rdrbox;
-
-    struct purc_broken_down_url *base;
-
-    /* author-defined style sheet */
-    css_stylesheet *author_sheet;
-
-    /* CSS selection context */
-    css_select_ctx *select_ctx;
-
-    /* the initial containing block,
-       it's also the root node of the rendering tree. */
-    struct foil_rdrbox *initial_cblock;
-
-    /* the CSS media */
-    css_media media;
-
-    /* size of whole page in pixels */
-    unsigned width, height;
-
-    /* size of page in rows and columns */
-    unsigned cols, rows;
-
-    /* title */
-    uint32_t *title_ucs;
-    size_t    title_len;
-};
-
 static css_stylesheet *def_ua_sheet;
+
 /* copy from https://www.w3.org/TR/2011/REC-CSS2-20110607/sample.html#q22.0 */
 static const char *def_style_sheet = ""
     "html, address,"
@@ -159,7 +107,11 @@ static const char *def_style_sheet = ""
     ":link, :visited { text-decoration: underline }"
     ":focus          { outline: thin dotted invert }"
     ""
-    "/* Begin bidirectionality settings (do not change) */"
+    /* Insert quotes before and after Q element content */
+    "q:before        { content: open-quote }"   // HTML 5 tag
+    "q:after         { content: close-quote }"  // HTML 5 tag
+    ""
+    /* Begin bidirectionality settings (do not change) */
     "BDO[DIR=\"ltr\"]  { direction: ltr; unicode-bidi: bidi-override }"
     "BDO[DIR=\"rtl\"]  { direction: rtl; unicode-bidi: bidi-override }"
     ""
@@ -285,6 +237,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
+        LOG_ERROR("Failed to allocate initial containing block\n");
         goto failed;
     }
 
@@ -549,7 +502,8 @@ extern css_select_handler foil_css_select_handler;
 
 static css_select_results *
 select_element_style(const css_media *media, css_select_ctx *select_ctx,
-        purc_document_t doc, pcdoc_element_t element)
+        purc_document_t doc, pcdoc_element_t element,
+        css_select_results *parent_result)
 {
     // prepare inline style
     css_error err;
@@ -609,9 +563,30 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         goto failed;
     }
 
-    /* TODO: handle styles for pseudo elements */
-    int pseudo_element;
+    /* XXX: css_computed_style_compose() of CSSEng just clones the values for
+       `inherit` for complex properties, e.g., `counter-reset` and
+       `counter-increment`.
+
+       This is not a smart way. One can optimize this by introducing
+       reference count to the values of these complex properties. */
     css_computed_style *composed = NULL;
+    if (parent_result) {
+        err = css_computed_style_compose(
+                parent_result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                foil_css_select_handler.compute_font_size, NULL,
+                &composed);
+        if (err != CSS_OK) {
+            goto failed;
+        }
+
+        css_computed_style_destroy(result->styles[CSS_PSEUDO_ELEMENT_NONE]);
+        result->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;
+    }
+
+    /* compose styles for pseudo elements */
+    int pseudo_element;
+    composed = NULL;
     for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
             pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
             pseudo_element++) {
@@ -662,20 +637,44 @@ failed:
 }
 
 static int
-make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
+make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
+        css_select_results *parent_result)
 {
+    char *tag_name = NULL;
     foil_rdrbox *box;
     css_select_results *result = NULL;
+
     result = select_element_style(&ctxt->udom->media,
-            ctxt->udom->select_ctx, ctxt->doc, ancestor);
+            ctxt->udom->select_ctx, ctxt->doc, ancestor, parent_result);
     if (result) {
-        /* skip descendants for "display: none" */
+        const char *name;
+        size_t len;
+
+        pcdoc_element_get_tag_name(ctxt->doc, ancestor, &name, &len,
+                NULL, NULL, NULL, NULL);
+        assert(name != NULL && len > 0);
+        tag_name = strndup(name, len);
+
+        LOG_DEBUG("Creating boxes for element: %s\n", tag_name);
+
+        ctxt->tag_name = tag_name;
         ctxt->elem = ancestor;
         ctxt->computed = result;
-        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL)
+
+        /* skip descendants for "display: none" */
+        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
+            LOG_WARN("Failed to create principal rdrbox for element\n");
             goto done;
-        css_select_results_destroy(result);
-        result = NULL;
+        }
+
+        /* handle :before pseudo elements */
+        if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
+            if (foil_rdrbox_create_before(ctxt, box) == NULL) {
+                LOG_WARN("Failed to create rdrbox for :before pseudo element\n");
+                goto done;
+            }
+        }
+
     }
     else {
         goto failed;
@@ -689,15 +688,16 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 
         if (node.type == PCDOC_NODE_ELEMENT) {
             ctxt->parent_box = box;
-            if (make_rdrtree(ctxt, node.elem))
+            if (make_rdrtree(ctxt, node.elem, result))
                 goto failed;
         }
         else if (node.type == PCDOC_NODE_TEXT) {
             const char *text = NULL;
             size_t len = 0;
-            pcdoc_text_content_get_text(ctxt->doc,
-                    node.text_node, &text, &len);
+            pcdoc_text_content_get_text(ctxt->doc, node.text_node,
+                    &text, &len);
 
+            LOG_DEBUG("text content of %s: %s\n", tag_name, text);
             if (text && len > 0) {
                 foil_rdrbox *my_box;
                 if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
@@ -707,13 +707,6 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
                 if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
                     goto done;
             }
-#if 0
-            else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
-                if (!foil_rdrbox_init_inline_data(ctxt,
-                                ctxt->parent_box, text, len))
-                    goto done;
-            }
-#endif
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {
             LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
@@ -722,12 +715,28 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         node = pcdoc_node_next_sibling(ctxt->doc, node);
     }
 
+    /* handle :after pseudo elements */
+    ctxt->tag_name = tag_name;
+    ctxt->elem = ancestor;
+    ctxt->computed = result;
+    ctxt->parent_box = box->parent;
+    if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
+        if (foil_rdrbox_create_after(ctxt, box) == NULL) {
+            LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
+            goto done;
+        }
+    }
+
 done:
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return 0;
 
 failed:
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return -1;
@@ -793,7 +802,9 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
         child = child->prev;
     }
 
-    assert(n == box->nr_child_inlines);
+    LOG_DEBUG("Moved inline boxes: %u vs %u\n",
+            (unsigned)box->nr_child_inlines, (unsigned)n);
+    //assert(n == box->nr_child_inlines);
     box->nr_child_inlines = 0;
 
     return 0;
@@ -932,6 +943,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         // XXX: default lang
         udom->initial_cblock->lang_code = FOIL_LANGCODE_en;
     }
+    udom->initial_cblock->quotes =
+        foil_quotes_get_initial(udom->initial_cblock->lang_code);
 
     // parse and append style sheets
     pcdoc_element_t head;
@@ -979,8 +992,9 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL, 0, 0 };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+        udom->initial_cblock, udom->initial_cblock,
+        NULL, NULL, NULL, NULL, 0, 0 };
+    if (make_rdrtree(&ctxt, purc_document_root(edom_doc), NULL))
         goto failed;
 
     /* check and create anonymous block box if need */
@@ -1008,14 +1022,6 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 failed:
     foil_udom_delete(udom);
     return NULL;
-}
-
-const uint32_t *
-foil_udom_get_title(pcmcth_udom *udom, size_t *len)
-{
-    if (len)
-        *len = udom->title_len;
-    return udom->title_ucs;
 }
 
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,

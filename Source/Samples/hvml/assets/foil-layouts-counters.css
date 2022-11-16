@@ -1,0 +1,33 @@
+DIV.simple {
+    counter-reset: chapter;      /* Create a chapter counter scope */
+}
+DIV.simple H1:before {
+    content: "Chapter " counter(chapter) ". ";
+    counter-increment: chapter;  /* Add 1 to chapter */
+}
+DIV.simple H1 {
+    counter-reset: section;      /* Set section to 0 */
+}
+DIV.simple H2:before {
+    content: counter(chapter) "." counter(section) " ";
+    counter-increment: section;
+}
+
+DIV.counter OL { counter-reset: item }
+DIV.counter LI { display: block }
+DIV.counter LI:before { content: counter(item) ". "; counter-increment: item }
+
+DIV.counters OL { counter-reset: item }
+DIV.counters LI { display: block }
+DIV.counters LI:before { content: counters(item, ".") " "; counter-increment: item }
+
+DIV.style  { counter-reset: chno bq notecntr p }
+DIV.style H1 {
+    counter-reset: section;
+}
+DIV.style H1:before        { content: counter(chno, upper-latin) ". "; counter-increment: chno }
+DIV.style H2:before        { content: counter(section, upper-roman) " - "; counter-increment: section }
+DIV.style BLOCKQUOTE:after { content: " [" counter(bq, lower-greek) "]"; counter-increment: bq }
+DIV.style DIV.note:before  { content: counter(notecntr, disc) " "; counter-increment: notecntr }
+DIV.style P:before         { content: counter(p, none); counter-increment: notecntr }
+

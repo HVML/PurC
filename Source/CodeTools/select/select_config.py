@@ -50,7 +50,7 @@ style = {
     ('font_weight', 4),
     ('justify_content', 3),
     ('list_style_position', 2),
-    ('list_style_type', 4),
+    ('list_style_type', 5),
     ('overflow_x', 3),
     ('overflow_y', 3),
     ('outline_style', 4),
@@ -196,10 +196,10 @@ style = {
     ('text_anchor', 4),
     ('text_rendering', 4),
     # Uncommon group, arrays
-    ('counter_increment', 1, 'counter_arr', None, 'CSS_COUNTER_INCREMENT_NONE',
+    ('counter_increment', 2, 'counter_arr', None, 'CSS_COUNTER_INCREMENT_NONE',
         'Encode counter_increment as an array of name, value pairs, '
         'terminated with a blank entry.'),
-    ('counter_reset', 1, 'counter_arr', None, 'CSS_COUNTER_RESET_NONE',
+    ('counter_reset', 2, 'counter_arr', None, 'CSS_COUNTER_RESET_NONE',
         'Encode counter_reset as an array of name, value pairs, '
         'terminated with a blank entry.'),
     ('cursor', 5, 'string_arr', None, 'CSS_CURSOR_AUTO',

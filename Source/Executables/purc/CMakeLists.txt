@@ -42,6 +42,7 @@ list(APPEND purc_SOURCES
 if (ENABLE_RDR_FOIL)
     list(APPEND purc_SOURCES
         foil.c
+        helpers.c
         screen.c
         endpoint.c
         callbacks.c

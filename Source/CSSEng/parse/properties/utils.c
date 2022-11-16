@@ -34,74 +34,90 @@ css_error css__parse_list_style_type_value(css_language *c, const css_token *ide
 	/* IDENT (disc, circle, square, decimal, decimal-leading-zero,
 	 *	  lower-roman, upper-roman, lower-greek, lower-latin,
 	 *	  upper-latin, armenian, georgian, lower-alpha, upper-alpha,
+	 *	  upper-armenian, lower-armenian, cjk-decimal, tibetan, XXX(VW)
 	 *	  none)
 	 */
 	if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[DISC],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_DISC;
+		*value = CSS_LIST_STYLE_TYPE_DISC;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[CIRCLE],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_CIRCLE;
+		*value = CSS_LIST_STYLE_TYPE_CIRCLE;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[SQUARE],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_SQUARE;
+		*value = CSS_LIST_STYLE_TYPE_SQUARE;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[DECIMAL],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_DECIMAL;
+		*value = CSS_LIST_STYLE_TYPE_DECIMAL;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[DECIMAL_LEADING_ZERO],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
+		*value = CSS_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[LOWER_ROMAN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_LOWER_ROMAN;
+		*value = CSS_LIST_STYLE_TYPE_LOWER_ROMAN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[UPPER_ROMAN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_UPPER_ROMAN;
+		*value = CSS_LIST_STYLE_TYPE_UPPER_ROMAN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[LOWER_GREEK],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_LOWER_GREEK;
+		*value = CSS_LIST_STYLE_TYPE_LOWER_GREEK;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[LOWER_LATIN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_LOWER_LATIN;
+		*value = CSS_LIST_STYLE_TYPE_LOWER_LATIN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[UPPER_LATIN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_UPPER_LATIN;
+		*value = CSS_LIST_STYLE_TYPE_UPPER_LATIN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[ARMENIAN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_ARMENIAN;
+		*value = CSS_LIST_STYLE_TYPE_ARMENIAN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[GEORGIAN],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_GEORGIAN;
+		*value = CSS_LIST_STYLE_TYPE_GEORGIAN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[LOWER_ALPHA],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_LOWER_ALPHA;
+		*value = CSS_LIST_STYLE_TYPE_LOWER_ALPHA;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[UPPER_ALPHA],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_UPPER_ALPHA;
+		*value = CSS_LIST_STYLE_TYPE_UPPER_ALPHA;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[UPPER_ARMENIAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[LOWER_ARMENIAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[CJK_DECIMAL],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_CJK_DECIMAL;
+	} else if ((lwc_string_caseless_isequal(
+			ident->idata, c->strings[TIBETAN],
+			&match) == lwc_error_ok && match)) {
+		*value = CSS_LIST_STYLE_TYPE_TIBETAN;
 	} else if ((lwc_string_caseless_isequal(
 			ident->idata, c->strings[NONE],
 			&match) == lwc_error_ok && match)) {
-		*value = LIST_STYLE_TYPE_NONE;
+		*value = CSS_LIST_STYLE_TYPE_NONE;
 	} else
 		return CSS_INVALID;
 
 	return CSS_OK;
 }
-
 
 
 /**

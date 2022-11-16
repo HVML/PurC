@@ -31,6 +31,8 @@
 
 #include "unicode/unicode.h"
 
+#define LEN_BUF_INTEGER 128
+
 struct text_paragraph {
     struct list_head ln;
 
@@ -68,7 +70,7 @@ struct _list_item_data {
 };
 
 struct _marker_box_data {
-    purc_atom_t atom;
+    char *text;
 };
 
 #ifdef __cplusplus

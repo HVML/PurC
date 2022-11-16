@@ -6,7 +6,8 @@
         <base href=$CRTN.base(! "file://$SYS.cwd" ) />
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
-                <init as 'styleCase' at '_root' with 'displayBlock' />
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'inlineBoxes' />
             </catch>
         </init>
 
@@ -16,8 +17,28 @@
     </head>
 
     <body>
-        <define as "displayBlock" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="displayBlock">
+        <init as 'caseName' with 'inlineBoxes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <P>
+                    This text is defined by the first P.
+                    <BR />
+                    There is a line-break before this text.
+                    <SPAN>This text defined by <Q>SPAN</Q>.</SPAN>
+                    This text is after SPAN.
+                </P>
+
+                <P>
+                    This text is defined by the second P.
+                    <STRONG>This text is defined by <Q>STRONG</Q>.</STRONG>
+                    This text is after STRONG.
+                </P>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'displayBlock' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <P>
                     This text is defined by the first P.
                     <BR />
@@ -33,8 +54,9 @@
             </SECTION>
         </define>
 
-        <define as "anonymousBlocks" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="anonymousBlocks">
+        <init as 'caseName' with 'anonymousBlocks' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <DIV style="display:block">
                       There is an anonymous block box around this text.
                   <P style="display:block">This text is in the block box created by `p`.</P>
@@ -49,8 +71,9 @@
             </SECTION>
         </define>
 
-        <define as "unorderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="unorderedListItems">
+        <init as 'caseName' with 'unorderedListItems' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
                 <ul>
                     <li>The first item.</li>
                     <li>The second item.</li>
@@ -59,8 +82,10 @@
             </SECTION>
         </define>
 
-        <define as "orderedListItems" from "hvml/assets/foil-layouts-{$styleCase}.html" silently>
-            <SECTION id="orderedListItems">
+        <init as 'caseName' with 'orderedListItems' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+
+            <SECTION id="$caseName">
                 <h1 hvml:silently>$STR.format_p('Numbers less than #0', $?)</h1>
 
                 <ol>
@@ -70,6 +95,168 @@
                 </ol>
 
              </SECTION>
+        </define>
+
+        <init as 'caseName' with 'quotes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <P>
+                    <Q>Quote me!</Q>
+                </P>
+                <P lang="zh">
+                    <Q>中文双引号<Q>嵌套单引号</Q></Q>
+                </P>
+                <P lang="no">
+                    <Q>Trøndere gråter når <Q>Vinsjan på kaia</Q> blir deklamert.</Q>
+                </P>
+
+                <!-- samples from MDN -->
+                <div lang="es"><q>This Spanish quote has a <q>nested</q> quote inside.</q></div>
+                <div lang="fr"><q>This French quote has a <q>nested</q> quote inside.</q></div>
+                <div lang="de"><q>This German quote has a <q>nested</q> quote inside.</q></div>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'counters' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+           <SECTION id="$caseName">
+              <DIV class="simple">
+                <H1>The 1st head in level 1 (Chapter 1. )</H1>
+                <H2>The 1st head in level 2 (1.1 )</H2>
+                <H2>The 2nd head in level 2 (1.2 )</H2>
+                <H2>The 3rd head in level 2 (1.3 )</H2>
+
+                <H1>The 1st head in level 1 (Chapter 2. )</H1>
+                <H2>The 1st head in level 2 (2.1 )</H2>
+                <H2>The 2nd head in level 2 (2.2 )</H2>
+                <H2>The 3rd head in level 2 (2.3 )</H2>
+              </DIV>
+
+              <DIV class="counter">
+                <OL>                    <!-- {item[0]=0        -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item              <!--  item[0]++ (=2)   -->
+                    <OL>                <!--  {item[1]=0       -->
+                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
+                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
+                      <LI>item          <!--   item[1]++ (=3)  -->
+                        <OL>            <!--   {item[2]=0      -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                        <OL>            <!--   }{item[2]=0     -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                      </LI>             <!--   }               -->
+                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
+                    </OL>               <!--                   -->
+                  </LI>                 <!--  }                -->
+                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
+                </OL>                   <!--                   -->
+                <OL>                    <!-- }{item[0]=0       -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
+                </OL>                   <!--                   -->
+             </DIV>
+
+              <DIV class="counters">
+                <OL>                    <!-- {item[0]=0        -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item              <!--  item[0]++ (=2)   -->
+                    <OL>                <!--  {item[1]=0       -->
+                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
+                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
+                      <LI>item          <!--   item[1]++ (=3)  -->
+                        <OL>            <!--   {item[2]=0      -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                        <OL>            <!--   }{item[2]=0     -->
+                          <LI>item</LI> <!--    item[2]++ (=1) -->
+                        </OL>           <!--                   -->
+                      </LI>             <!--   }               -->
+                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
+                    </OL>               <!--                   -->
+                  </LI>                 <!--  }                -->
+                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
+                </OL>                   <!--                   -->
+                <OL>                    <!-- }{item[0]=0       -->
+                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
+                </OL>                   <!--                   -->
+             </DIV>
+
+              <DIV class="style">
+                <H1>The 1st head in level 1 (A. )</H1>
+
+                <H2>The 1st head in level 2 (1.1 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 2nd head in level 2 (1.2 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+                <H2>The 3rd head in level 2 (1.3 )</H2>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H1>The 1st head in level 1 (Chapter 2. )</H1>
+                <H2>The 1st head in level 2 (2.1 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 2nd head in level 2 (2.2 )</H2>
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+                <H2>The 3rd head in level 2 (2.3 )</H2>
+
+                <P>
+                    This is a pragraph.
+                </P>
+                <BLOCKQUOTE>
+                    This is a blockquote.
+                </BLOCKQUOTE>
+                <DIV class="note">
+                   This is a note.
+                </DIV>
+
+              </DIV>
+           </SECTION>
+
         </define>
 
         <!-- check validation of ${$styleCase} -->
