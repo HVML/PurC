@@ -774,11 +774,13 @@ create_anonymous_blocks_for_block_container(struct foil_create_ctxt *ctxt,
 
             foil_rdrbox *inln = start;
             while (inln != NULL && inln != child) {
+                foil_rdrbox *next = inln->next;
+
                 if (inln->is_inline_level) {
                     foil_rdrbox_remove_from_tree(inln);
                     foil_rdrbox_append_child(block, inln);
                 }
-                inln = inln->next;
+                inln = next;
             }
 
             start = NULL;
@@ -796,11 +798,13 @@ create_anonymous_blocks_for_block_container(struct foil_create_ctxt *ctxt,
 
         foil_rdrbox *inln = start;
         while (inln != NULL) {
+            foil_rdrbox *next = inln->next;
+
             if (inln->is_inline_level) {
                 foil_rdrbox_remove_from_tree(inln);
                 foil_rdrbox_append_child(block, inln);
             }
-            inln = inln->next;
+            inln = next;
         }
     }
 
@@ -881,7 +885,7 @@ normalize_rdrtree(struct foil_create_ctxt *ctxt,
             child = child->next;
 
             foil_rdrbox_delete(tmp);
-            LOG_INFO("an empty anonymous inline box removed\n");
+            LOG_WARN("an empty anonymous inline box removed\n");
             continue;
         }
 
@@ -893,10 +897,12 @@ normalize_rdrtree(struct foil_create_ctxt *ctxt,
         child = child->next;
     }
 
+#ifndef NDEBUG
     char *name = foil_rdrbox_get_name(ctxt->doc, box);
-    LOG_INFO("box (%s) has %u inlines and %u blocks\n",
+    LOG_DEBUG("box (%s) has %u inlines and %u blocks\n",
             name, nr_inlines, nr_blocks);
     free(name);
+#endif
 
     if (box->is_block_container && nr_inlines > 0 && nr_blocks > 0) {
         /* force the box to have only block-level boxes
