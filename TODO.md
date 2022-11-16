@@ -49,7 +49,6 @@
 
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
-1. [0.9.2] Full support for the new variant type: tuple.
 1. [0.9.2] Implement some new APIs:
    - `purc_variant_make_atom()`
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
@@ -109,11 +108,11 @@
 1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
 1. [0.9.2] Full support for `request` element.
-1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
+1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.4] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
@@ -154,6 +153,8 @@
 
 ### 2.9) Known Bugs
 
+1. [0.9.2] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
+1. [0.9.2] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
 1. [0.8.2; Resolved] The condition handler will get `PURC_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2; Resolved] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
