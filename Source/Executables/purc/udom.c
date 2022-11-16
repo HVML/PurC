@@ -668,7 +668,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
             goto done;
         }
 
-        /* handle :before pseudo elements */
+        /* handle :before pseudo element */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
             if (foil_rdrbox_create_before(ctxt, box) == NULL) {
                 LOG_WARN("Failed to create rdrbox for :before pseudo element\n");
@@ -724,7 +724,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
         node = pcdoc_node_next_sibling(ctxt->doc, node);
     }
 
-    /* handle :after pseudo elements */
+    /* handle :after pseudo element */
     ctxt->tag_name = tag_name;
     ctxt->elem = ancestor;
     ctxt->computed = result;
@@ -785,13 +785,17 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
                 inln = inln->next;
             }
         }
+        else {
+            start = NULL;
+        }
 
         child = child->next;
-        start = NULL;
     }
 
+#if 0
     /* handle left inline boxes */
     child = box->last;
+    foil_rdrbox *start = NULL;
     while (child) {
 
         foil_rdrbox *block;
@@ -810,6 +814,7 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
 
         child = child->prev;
     }
+#endif
 
     LOG_DEBUG("Moved inline boxes: %u vs %u\n",
             (unsigned)box->nr_child_inlines, (unsigned)n);
@@ -841,7 +846,7 @@ normalize_rdrtree(struct foil_create_ctxt *ctxt,
 
         if (box->is_block_container && child->is_block_level &&
                 box->nr_child_inlines) {
-            if (create_anonymous_blocks(ctxt, box->parent))
+            if (create_anonymous_blocks(ctxt, box))
                 goto failed;
         }
 

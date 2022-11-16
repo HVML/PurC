@@ -2358,7 +2358,13 @@ foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
     if ((box = create_pseudo_box(ctxt, principal))) {
         LOG_DEBUG("created a box for :before pseudo element for %s\n",
                 ctxt->tag_name);
-        foil_rdrbox_insert_before(principal, box);
+        if (principal->is_block_level && box->is_inline_level) {
+            foil_rdrbox_prepend_child(principal, box);
+        }
+        else {
+            foil_rdrbox_insert_before(principal, box);
+        }
+
         dtrm_counter_properties(ctxt, box);
         init_pseudo_box_content(ctxt, box);
     }
@@ -2375,7 +2381,12 @@ foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
     if ((box = create_pseudo_box(ctxt, principal))) {
         LOG_DEBUG("created a box for :after pseudo element for %s\n",
                 ctxt->tag_name);
-        foil_rdrbox_insert_after(principal, box);
+        if (principal->is_block_level && box->is_inline_level) {
+            foil_rdrbox_append_child(principal, box);
+        }
+        else {
+            foil_rdrbox_insert_after(principal, box);
+        }
         dtrm_counter_properties(ctxt, box);
         init_pseudo_box_content(ctxt, box);
     }
