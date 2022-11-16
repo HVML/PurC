@@ -651,7 +651,12 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
 
                 pcintr_set_input_var(stack, val);
                 ctxt->on = val;
-                ctxt->before_first_iterate_step = FUNC_STEP_2ND;
+                if (ctxt->stop) {
+                    ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                }
+                else {
+                    ctxt->before_first_iterate_step = FUNC_STEP_2ND;
+                }
                 break;
 
             case FUNC_STEP_2ND:
@@ -698,7 +703,12 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     goto out;
                 }
                 ctxt->in = val;
-                ctxt->before_first_iterate_step = FUNC_STEP_3RD;
+                if (ctxt->stop) {
+                    ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                }
+                else {
+                    ctxt->before_first_iterate_step = FUNC_STEP_3RD;
+                }
                 break;
 
             case FUNC_STEP_3RD:
@@ -720,7 +730,12 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     PURC_VARIANT_SAFE_CLEAR(ctxt->with);
                     ctxt->with = with;
                 }
-                ctxt->before_first_iterate_step = FUNC_STEP_4TH;
+                if (ctxt->stop) {
+                    ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                }
+                else {
+                    ctxt->before_first_iterate_step = FUNC_STEP_4TH;
+                }
                 break;
 
             case FUNC_STEP_4TH:
@@ -743,7 +758,12 @@ before_first_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     PURC_VARIANT_SAFE_CLEAR(ctxt->evalued_rule);
                     ctxt->evalued_rule = val;
                 }
-                ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                if (ctxt->stop) {
+                    ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                }
+                else {
+                    ctxt->before_first_iterate_step = FUNC_STEP_DONE;
+                }
                 break;
 
             case FUNC_STEP_DONE:
@@ -825,7 +845,12 @@ do_iterate(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                     goto out;
                 }
             }
-            ctxt->do_iterate_step = FUNC_STEP_2ND;
+            if (ctxt->stop) {
+                ctxt->do_iterate_step = FUNC_STEP_DONE;
+            }
+            else {
+                ctxt->do_iterate_step = FUNC_STEP_2ND;
+            }
             break;
 
         case FUNC_STEP_2ND:
@@ -950,7 +975,12 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
-                ctxt->step = STEP_BEFORE_ITERATE;
+                if (ctxt->stop) {
+                    ctxt->step = STEP_AFTER_ITERATE;
+                }
+                else {
+                    ctxt->step = STEP_BEFORE_ITERATE;
+                }
                 break;
 
             case STEP_BEFORE_ITERATE:
@@ -958,7 +988,12 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
                 if (err != PURC_ERROR_OK) {
                     goto out;
                 }
-                ctxt->step = STEP_ITERATE;
+                if (ctxt->stop) {
+                    ctxt->step = STEP_AFTER_ITERATE;
+                }
+                else {
+                    ctxt->step = STEP_ITERATE;
+                }
                 break;
 
             case STEP_ITERATE:
