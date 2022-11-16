@@ -7,7 +7,7 @@
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
                 <!-- set the default case -->
-                <init as 'styleCase' at '_root' with 'counters' />
+                <init as 'styleCase' at '_root' with 'inlineBoxes' />
             </catch>
         </init>
 
@@ -17,6 +17,25 @@
     </head>
 
     <body>
+        <init as 'caseName' with 'inlineBoxes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <P>
+                    This text is defined by the first P.
+                    <BR />
+                    There is a line-break before this text.
+                    <SPAN>This text defined by <Q>SPAN</Q>.</SPAN>
+                    This text is after SPAN.
+                </P>
+
+                <P>
+                    This text is defined by the second P.
+                    <STRONG>This text is defined by <Q>STRONG</Q>.</STRONG>
+                    This text is after STRONG.
+                </P>
+            </SECTION>
+        </define>
+
         <init as 'caseName' with 'displayBlock' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
             <SECTION id="$caseName">
