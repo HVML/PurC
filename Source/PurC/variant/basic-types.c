@@ -268,7 +268,7 @@ purc_variant_t purc_variant_make_string_reuse_buff(char* str_utf8,
     const char *end;
 
     if (check_encoding) {
-        if (!pcutils_string_check_utf8_len(str_utf8, sz_buff, &nr_chars, &end)) {
+        if (!pcutils_string_check_utf8(str_utf8, -1, &nr_chars, &end)) {
             pcinst_set_error (PURC_ERROR_BAD_ENCODING);
             return PURC_VARIANT_INVALID;
         }
