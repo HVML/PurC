@@ -35,6 +35,7 @@
 #include <time.h>
 
 #include "purc-macros.h"
+#include "purc-variant.h"
 #include "purc-utils.h"
 
 #define PURC_LEN_HOST_NAME              127
@@ -425,6 +426,21 @@ purc_log_error(const char *msg, ...)
     purc_log_with_tag("ERROR", msg, ap);
     va_end(ap);
 }
+
+/**
+ * Make an object from a URL query string which conforms to RFC 1738
+ * or RFC 3986.
+ *
+ * @param query: The pointer to a null-terminated query string.
+ * @param rfc1738: Use RFC 1738 ('+' for space) or RFC 3986;
+ *       %true for RFC 1738.
+ *
+ * Returns: An object variant on success, %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.2
+ */
+purc_variant_t
+purc_make_object_from_query_string(const char *query, bool rfc1738);
 
 /**@}*/
 

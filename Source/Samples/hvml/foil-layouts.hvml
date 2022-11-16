@@ -7,7 +7,7 @@
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
                 <!-- set the default case -->
-                <init as 'styleCase' at '_root' with 'inlineBoxes' />
+                <init as 'styleCase' at '_root' with 'anonymousBlocks' />
             </catch>
         </init>
 
@@ -21,17 +21,19 @@
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
             <SECTION id="$caseName">
                 <P>
-                    This text is defined by the first P.
+                    This text is defined by the first <Q>P</Q>.
                     <BR />
                     There is a line-break before this text.
-                    <SPAN>This text defined by <Q>SPAN</Q>.</SPAN>
-                    This text is after SPAN.
+                    <SPAN>This text is defined by <Q>SPAN</Q>.</SPAN>
+                    This text is after <Q>SPAN</Q>.
                 </P>
 
                 <P>
-                    This text is defined by the second P.
+                    This text is defined by the second <Q>P</Q>.
+                    <BR />
+                    There is a line-break before this text.
                     <STRONG>This text is defined by <Q>STRONG</Q>.</STRONG>
-                    This text is after STRONG.
+                    This text is after <Q>STRONG</Q>.
                 </P>
             </SECTION>
         </define>
@@ -39,33 +41,35 @@
         <init as 'caseName' with 'displayBlock' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
             <SECTION id="$caseName">
+              <DIV>This text is defined by <Q>DIV</Q>.
                 <P>
-                    This text is defined by the first P.
+                    This text is defined by the first <Q>P</Q>.
                     <BR />
                     There is a line-break before this text.
-                    <SPAN>This text defined by SPAN.</SPAN>
+                    <SPAN>This text defined by <Q>SPAN</Q>.</SPAN>
                 </P>
 
                 <P>
-                    This text is defined by the second P.
-                    <STRONG>This text is defined by STRONG. </STRONG>
-                    This text is after STRONG.
+                    This text is defined by the second <Q>P</Q>.
+                    <STRONG>This text is defined by <Q>STRONG</Q>. </STRONG>
+                    This text is after <Q>STRONG</Q>.
                 </P>
+              </DIV>
             </SECTION>
         </define>
 
         <init as 'caseName' with 'anonymousBlocks' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
             <SECTION id="$caseName">
-                <DIV style="display:block">
+                <DIV>
                       There is an anonymous block box around this text.
-                  <P style="display:block">This text is in the block box created by `p`.</P>
+                  <P>This text is in the block box created by <Q>P</Q>.</P>
                 </DIV>
 
                 <P style="display:inline;">
-                    This is anonymous text before the SPAN.
-                    <SPAN style="display:block;">This is the content of SPAN.</SPAN>
-                    This is anonymous text after the SPAN.
+                    This is anonymous text before the <Q>SPAN</Q>.
+                    <SPAN style="display:block;">This is the content of <Q>SPAN</Q>.</SPAN>
+                    This is anonymous text after the <Q>SPAN</Q>.
                 </P>
 
             </SECTION>

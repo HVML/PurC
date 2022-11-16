@@ -1,0 +1,7 @@
+DIV:before {
+    content: "<DIV ";
+}
+
+DIV:after {
+    content: " DIV> ";
+}

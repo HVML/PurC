@@ -406,7 +406,7 @@ pcutils_url_get_query_value_alloc(
     return true;
 }
 
-int
+static int
 encode_string(purc_rwstream_t rws, const char *s,
         unsigned int flags)
 {
@@ -452,7 +452,7 @@ encode_string(purc_rwstream_t rws, const char *s,
     return 0;
 }
 
-int
+static int
 encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
         unsigned int flags)
@@ -499,7 +499,7 @@ out:
     return ret;
 }
 
-int
+static int
 encode_array(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
         unsigned int flags)
@@ -539,7 +539,7 @@ out:
     return ret;
 }
 
-int
+static int
 encode_set(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
         unsigned int flags)
@@ -580,7 +580,7 @@ out:
     return ret;
 }
 
-int
+static int
 encode_tuple(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
         unsigned int flags)
@@ -624,8 +624,7 @@ out:
     return ret;
 }
 
-
-int
+static int
 build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
         const char *numeric_prefix, char arg_separator,
         unsigned int flags)

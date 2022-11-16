@@ -1008,7 +1008,7 @@ pcutils_url_is_valid(const char *url);
 
 /**
  * Copy the value of the specified key from a broken down URL to the specified
- * bufffer if found.
+ * buffer if found.
  *
  * @param broken_down The broken down URL.
  * @param key The pointer to the key string.
