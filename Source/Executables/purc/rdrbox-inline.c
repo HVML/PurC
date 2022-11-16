@@ -55,9 +55,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
     size_t left = len;
 
     struct _inline_box_data *inline_data = box->inline_data;
-    inline_data->nr_paras = 0;
-
-    box->cb_data_cleanup = inline_data_cleaner;
+    assert(inline_data && inline_data->nr_paras == 0);
 
     while (left > 0) {
         uint32_t *ucs;
@@ -99,6 +97,9 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
         left -= consumed;
         text += consumed;
     }
+
+    if (inline_data->nr_paras > 0)
+        box->cb_data_cleanup = inline_data_cleaner;
 
     return true;
 

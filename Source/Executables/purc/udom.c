@@ -28,6 +28,7 @@
 #include "udom.h"
 #include "page.h"
 #include "rdrbox.h"
+#include "rdrbox-internal.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
 #include "unicode/unicode.h"
@@ -699,13 +700,21 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
 
             LOG_DEBUG("text content of %s: %s\n", tag_name, text);
             if (text && len > 0) {
-                foil_rdrbox *my_box;
-                if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
-                                box)) == NULL)
-                    goto done;
 
-                if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
-                    goto done;
+                if (box->type == FOIL_RDRBOX_TYPE_INLINE &&
+                        box->inline_data->nr_paras == 0) {
+                    if (!foil_rdrbox_init_inline_data(ctxt, box, text, len))
+                        goto done;
+                }
+                else {
+                    foil_rdrbox *my_box;
+                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                    box)) == NULL)
+                        goto done;
+
+                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                        goto done;
+                }
             }
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {

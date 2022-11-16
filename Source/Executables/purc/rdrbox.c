@@ -2614,17 +2614,7 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
     }
 
     if (box->is_block_level && box->first && box->first->is_inline_level) {
-        char indent[level * 2 + 1];
-
-        indent[level * 2] = '\0';
-        unsigned n = 0;
-        while (n < level) {
-            indent[n * 2] = ' ';
-            indent[n * 2 + 1] = ' ';
-            n++;
-        }
-
-        fputs(indent, stdout);
+        fputs("\n", stdout);
     }
 }
 
