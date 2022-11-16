@@ -574,7 +574,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.9.0) - a standalone HVML interpreter/debugger based-on PurC.
+purc (0.9.2) - a standalone HVML interpreter/debugger based-on PurC.
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -615,7 +615,11 @@ The following options can be supplied to the command:
   -q --request=< json_file | - >
         The JSON file contains the request data which will be passed to
         the HVML programs; use `-` if the JSON data will be given through
-        stdin stream.
+        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)
+
+  -s --query=< query_string >
+        Use a URL query string (in RFC 3986) for the request data which will be passed to
+        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
 
   -l --parallel
         Execute multiple programs in parallel.

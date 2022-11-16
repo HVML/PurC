@@ -1,8 +1,28 @@
 # Release Notes
 
+- [Version 0.9.2](#version-092)
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.2
+
+On Nov. 30, 2022, HVML Community announces the availability of PurC 0.9.2,
+   which is also the forth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.2
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+* ADJUSTMENTS:
+* ENHANCEMENTS:
+   * Support for using a URL query string (in RFC 3986) for the request data of `purc`.
+* OPTIMIZATIONS:
+* IMPROVEMENTS:
+* BUGFIXES:
 
 ## Version 0.9.0
 
