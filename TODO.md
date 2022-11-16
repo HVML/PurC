@@ -153,8 +153,8 @@
 
 ### 2.9) Known Bugs
 
-1. [0.9.2] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
-1. [0.9.2] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
+1. [0.9.2; Resolved] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
+1. [0.9.2; Resolved] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
 1. [0.8.2; Resolved] The condition handler will get `PURC_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2; Resolved] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
