@@ -336,7 +336,7 @@ purc_variant_string_bytes(purc_variant_t value, size_t *length);
  * @param value: A string, an atom, or an exception variant.
  *
  * Returns: The length in bytes (not including the terminating null byte)
- *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the variant
+ *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the value
  *  is not a string, an atom, or an exception variant.
  *
  * Since: 0.0.1
@@ -351,13 +351,16 @@ purc_variant_string_size(purc_variant_t value)
 }
 
 /**
- * Get the number of valid characters in a string variant value.
+ * Gets the number of valid characters of the string contained in
+ * the specified variant, if the variant represents a string, an atom,
+ * or an exception variant.
  *
- * @param value: the variant value in string, atomstring, or exception type.
- * @param nr_chars: the buffer to receive the number of valid characters
- *      in the string.
+ * @param value: A string, an atom, or an exception variant.
+ * @param nr_chars: The pointer to a size_t buffer to receive the number of
+ *  valid characters in the string.
  *
- * Returns: @true on success, and @false when the value is not a string.
+ * Returns: %true on success, and %false if the value is not a string,
+ * an atom, or an exception variant.
  *
  * Since: 0.1.0
  */
@@ -365,12 +368,28 @@ PCA_EXPORT bool
 purc_variant_string_chars(purc_variant_t value, size_t *nr_chars);
 
 /**
- * Creates a variant value of atom string type.
+ * Creates a variant which represents an atom.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ * @param atom: An atom value returned by purc_atom_from_string_ex() or
+ *      purc_atom_from_string_static_ex().
  *
- * Returns: A purc_variant_t with atom string type,
+ * Returns: A variant contains the given atom,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.2
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_atom(purc_atom_t atom);
+
+/**
+ * Creates a variant which represents an atom corresponding to the given
+ * string.
+ *
+ * @param str_utf8: The pointer to a null-terminated string
+ *      which is encoded in UTF-8.
+ * @param check_encoding: Whether to check the encoding.
+ *
+ * Returns: A variant contains the atom corresponding to the given string,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
@@ -380,12 +399,14 @@ purc_variant_make_atom_string(const char* str_utf8,
         bool check_encoding);
 
 /**
- * Creates a variant value of atom string type.
+ * Creates a variant which represents an atom corresponding to the given
+ * static string.
  *
- * @param str_utf8: the pointer of a string which is in UTF-8 encoding
- * @param check_encoding: whether check str_utf8 in UTF-8 encoding
+ * @param str_utf8: The pointer to a null-terminated static string
+ *      which is encoded in UTF-8.
+ * @param check_encoding: Whether to check the encoding.
  *
- * Returns: A purc_variant_t with atom string type,
+ * Returns: A variant contains the atom corresponding to the given string,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
@@ -396,12 +417,13 @@ purc_variant_make_atom_string_static(const char* str_utf8,
 
 
 /**
- * Gets the pointer of string which is encapsulated in atom string type.
+ * Gets the pointer to the string which is associated to the atom contained in
+ * the given atom variant.
  *
- * @param value: the data of atom string type
+ * @param value: An atom variant.
  *
- * Returns: The pointer of const char string,
- *      or NULL if value is not string type.
+ * Returns: The pointer to the string which is associated to the atom,
+ *      or %NULL if the variant does not respresent an atom.
  *
  * Since: 0.0.1
  */
