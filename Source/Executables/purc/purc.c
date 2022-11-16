@@ -157,7 +157,11 @@ static void print_usage(FILE *fp)
         "  -q --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
-        "        stdin stream.\n"
+        "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
+        "\n"
+        "  -s --query=< query string >\n"
+        "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
+        "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
         "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
@@ -183,6 +187,7 @@ struct my_opts {
     const char *rdr_prot;
     char *rdr_uri;
     char *request;
+    char *query;
 
     pcutils_array_t *urls;
     pcutils_array_t *body_ids;
@@ -277,6 +282,9 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
         free(opts->contents->list[i]);
     }
 
+    if (opts->query)
+        free(opts->query);
+
     if (opts->request)
         free(opts->request);
 
@@ -369,7 +377,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:q:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:q:s:lvCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -377,6 +385,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "rdr-comm"       , required_argument , NULL , 'c' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 'q' },
+        { "query"          , required_argument , NULL , 's' },
         { "parallel"       , no_argument       , NULL , 'l' },
         { "verbose"        , no_argument       , NULL , 'v' },
         { "copying"        , no_argument       , NULL , 'C' },
@@ -474,9 +483,11 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             else {
                 goto bad_arg;
             }
-
             break;
 
+        case 's':
+            opts->query = strdup(optarg);
+            break;
 
         case 'l':
             opts->parallel = true;
@@ -638,6 +649,12 @@ static purc_variant_t get_request_data(struct my_opts *opts)
     }
 
     return v;
+}
+
+static purc_variant_t parse_query_string(struct my_opts *opts)
+{
+    /* we use rfc 3986 */
+    return purc_make_object_from_query_string(opts->query, false);
 }
 
 static purc_variant_t get_dvobj(void* ctxt, const char* name)
@@ -1358,6 +1375,15 @@ int main(int argc, char** argv)
             if (opts->verbose)
                 fprintf(stderr, "Failed to get the request data from %s\n",
                     opts->request);
+            my_opts_delete(opts, true);
+            goto failed;
+        }
+    }
+    else if (opts->query) {
+        if ((request = parse_query_string(opts)) == PURC_VARIANT_INVALID) {
+            if (opts->verbose)
+                fprintf(stderr, "Failed to parse the query string: %s\n",
+                    opts->query);
             my_opts_delete(opts, true);
             goto failed;
         }

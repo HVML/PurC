@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "purc-helpers.h"
+#include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/debug.h"
 
@@ -754,6 +755,81 @@ bool purc_hvml_uri_get_query_value_alloc(const char *uri, const char *key,
 
     *value_buff = strndup(value, value_len);
     return true;
+}
+
+static purc_variant_t
+decode_percent_escaped(const char *str, size_t len, bool rfc1738)
+{
+    DECL_MYSTRING(mystr);
+    int ret = pcdvobj_url_decode(&mystr, str, len,
+            rfc1738 ? PURC_K_KW_rfc1738 : PURC_K_KW_rfc3986, true);
+    if (ret > 0) {
+        pcutils_mystring_free(&mystr);
+        goto failed;
+    }
+    else if (ret < 0) {
+        goto failed;
+    }
+
+    if (pcutils_mystring_done(&mystr)) {
+        goto failed;
+    }
+
+    return purc_variant_make_string_reuse_buff(mystr.buff,
+            mystr.sz_space, true);
+
+failed:
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+purc_make_object_from_query_string(const char *query, bool rfc1738)
+{
+    purc_variant_t obj = purc_variant_make_object_0();
+
+    if (UNLIKELY(obj == PURC_VARIANT_INVALID))
+        return obj;
+
+    const char *left = query;
+    while (*left) {
+        const char *key = left;
+        unsigned int key_len = get_key_len(left);
+        if (key_len == 0)
+            break;
+
+        purc_variant_t vk = decode_percent_escaped(key, key_len, rfc1738);
+        if (vk == PURC_VARIANT_INVALID)
+            break;
+
+        const char *value = left + key_len;
+        if (*value != KV_SEPERATOR)
+            break;
+
+        value++;
+        unsigned int value_len = get_value_len(value);
+        purc_variant_t vv = decode_percent_escaped(value, value_len, rfc1738);
+        if (vv == PURC_VARIANT_INVALID) {
+            purc_variant_unref(vk);
+            break;
+        }
+
+        bool success = purc_variant_object_set(obj, vk, vv);
+        purc_variant_unref(vk);
+        purc_variant_unref(vv);
+
+        if (!success) {
+            break;
+        }
+
+        left = value + value_len;
+        if (*left == PAIR_SEPERATOR)
+            left++;
+
+        if (*left == FRAG_SEPERATOR)
+            break;
+    }
+
+    return obj;
 }
 
 #if HAVE(STDATOMIC_H)
