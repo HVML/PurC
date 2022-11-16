@@ -158,7 +158,7 @@
 
                 <choose on="$STREAM.close($?)" />
 
-                <catch for='*'>
+                <catch for=`ANY`>
                     <update on="#theExpression" at="textContent" with="ERROR" />
                 </catch>
             </choose>

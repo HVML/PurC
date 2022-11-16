@@ -6,12 +6,12 @@
     <body>
         <div>
             <define>
-                <catch for="ArgumentMissed">
+                <catch for=`ArgumentMissed`>
                     <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
                 </catch>
             </define>
         </div>
-        <catch for="EntityNotFound">
+        <catch for=`EntityNotFound`>
             <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
         </catch>
     </body>

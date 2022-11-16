@@ -74,6 +74,21 @@ hvml TOKEN
 hvml CHAR
 hvml FILTER
 
+# update
+hvml displace
+hvml append
+hvml prepend
+hvml merge
+hvml remove
+hvml insertBefore
+hvml insertAfter
+hvml unite
+hvml intersect
+hvml subtract
+hvml xor
+hvml overwrite
+hvml call
+
 # msg
 msg event
 msg change

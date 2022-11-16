@@ -90,7 +90,7 @@
 
         <observe on=".equal" for="click" to="update">
             <update on="$expression" value="$_PY.eval($expression)">
-                <catch for="*" to="update">
+                <catch for=`ANY` to="update">
                     <update on="$expression" value="ERROR" />
                 </catch>
             </update>

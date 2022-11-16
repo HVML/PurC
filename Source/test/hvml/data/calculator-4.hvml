@@ -60,7 +60,7 @@
                                 <update on="$TIMERS" to="overwrite">
                                     { "id" : "input", "active" : "no" }
                                 </update>
-                                <catch for='*'>
+                                <catch for=`ANY`>
                                     <update on="#expression" at="attr.value" with="ERR" />
                                 </catch>
                             </choose>
@@ -91,7 +91,7 @@
                 <ul>
                     <iterate on="$buttons">
                         <update on="$@" to="append" with="$button" />
-                        <except type="NoData" raw>
+                        <except type=`NoData` raw>
                             <p>Bad data!</p>
                         </except>
                     </iterate>

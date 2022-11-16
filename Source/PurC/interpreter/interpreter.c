@@ -3117,14 +3117,47 @@ int
 pcintr_bind_template(purc_variant_t templates,
         purc_variant_t type, purc_variant_t contents)
 {
-    PC_ASSERT(templates != PURC_VARIANT_INVALID);
-    PC_ASSERT(type != PURC_VARIANT_INVALID);
-    PC_ASSERT(contents != PURC_VARIANT_INVALID);
+    int ret = -1;
+    if (type == PURC_VARIANT_INVALID) {
+        type = purc_variant_make_string("ANY", false);
+        if (purc_variant_object_set(templates, type, contents)) {
+            ret = 0;
+        }
+        purc_variant_unref(type);
+        goto out;
+    }
 
-    bool ok;
-    ok = purc_variant_object_set(templates, type, contents);
+    if (!pcvariant_is_sorted_array(type)) {
+        goto out;
+    }
 
-    return ok ? 0 : -1;
+    size_t nr = purc_variant_sorted_array_get_size(type);
+    for (size_t i = 0; i < nr; i++) {
+        purc_variant_t v = purc_variant_sorted_array_get(type, i);
+        uint64_t uv;
+        bool ok = purc_variant_cast_to_ulongint(v, &uv, false);
+        if (!ok) {
+            goto out;
+        }
+
+        const char *s = purc_atom_to_string((purc_atom_t)uv);
+        purc_variant_t t = purc_variant_make_string(s, false);
+        if (!t) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+
+        ok = purc_variant_object_set(templates, t, contents);
+        purc_variant_unref(t);
+        if (!ok) {
+            goto out;
+        }
+    }
+
+    ret = 0;
+
+out:
+    return ret;
 }
 
 void

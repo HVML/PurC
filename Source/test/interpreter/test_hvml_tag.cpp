@@ -158,7 +158,7 @@ TEST_P(TestHVMLTag, hvml_tags)
     struct buffer buf;
     buf.dump_buff = nullptr;
 
-    purc_enable_log(true, false);
+//    purc_enable_log(true, false);
 
     purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
     ASSERT_NE(vdom, nullptr);

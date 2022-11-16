@@ -7,61 +7,61 @@
         <div class="ab" id="abC">
             <update>
                 <!-- this would be bypassed -->
-                <catch for="InvalidValue">
+                <catch for=`InvalidValue`>
                     <update on="$@" at="attr.invalid_value" to="displace" with="ill_implemented" />
                 </catch>
             </update>
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="ArgumentMissed">
+            <catch for=`ArgumentMissed`>
                 <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadName">
+            <catch for=`BadName`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update/>
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadName ArgumentMissed">
+            <catch for=`BadName ArgumentMissed`>
                 <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadNameX ArgumentMissedX">
+            <catch for=`BadName`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.argumentmissed" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>

@@ -43,7 +43,7 @@
                 <nodata>
                     <img src="wait.png" />
                 </nodata>
-                <except on="StopIteration">
+                <except on=`InvalidValue`>
                     <p>Bad user data!</p>
                 </except>
             </iterate>
@@ -69,13 +69,13 @@
                 </match>
                 <match for="*" to="displace" with="#footer-def">
                 </match>
-                <error on="nodata">
+                <error on=`NoData`>
                     <p>You forget to define the $global variable!</p>
                 </error>
-                <except on="KeyError">
+                <except on=`NoSuchKey`>
                     <p>Bad global data!</p>
                 </except>
-                <except on="IdentifierError">
+                <except on=`InvalidValue`>
                     <p>Bad archetype data!</p>
                 </except>
             </test>

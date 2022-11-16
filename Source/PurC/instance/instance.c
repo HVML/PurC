@@ -61,10 +61,10 @@
 
 #define FETCHER_MAX_CONNS        100
 #define FETCHER_CACHE_QUOTA      10240
-#define EXCEPT_ANY               "ANY"
 
 static struct const_str_atom _except_names[] = {
     { "OK", 0 },
+    { "ANY", 0 },
     { "Again", 0 },
     { "BadEncoding", 0 },
     { "BadHVMLTag", 0 },
@@ -181,7 +181,6 @@ except_init_once(void)
             return -1;
     }
 
-    purc_atom_from_static_string_ex(ATOM_BUCKET_EXCEPT, EXCEPT_ANY);
     return 0;
 }
 

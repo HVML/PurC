@@ -695,13 +695,13 @@ implode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         return PURC_VARIANT_INVALID;
     }
 
-    // argv[1] must be array
+    // argv[1] must be linear container
     if ((argv[1] == PURC_VARIANT_INVALID) ||
-            !purc_variant_is_array (argv[1])) {
+            !purc_variant_linear_container_size (argv[1], &array_size)) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         return PURC_VARIANT_INVALID;
     }
-    purc_variant_array_size (argv[1], &array_size);
+
     if (array_size == 0) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         return PURC_VARIANT_INVALID;
@@ -721,7 +721,7 @@ implode_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     size_t string_size = 0;
 
     for (i = 0; i < array_size; i++) {
-        val = purc_variant_array_get (argv[1], i);
+        val = purc_variant_linear_container_get (argv[1], i);
         if (!purc_variant_is_string (val))
             continue;
 
@@ -1031,12 +1031,20 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         format_size = purc_variant_string_size (argv[0]);
     }
 
-    if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (purc_variant_is_array (argv[1])))
+    if (argv[1] == PURC_VARIANT_INVALID) {
+        purc_rwstream_destroy(rwstream);
+        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        return PURC_VARIANT_INVALID;
+    }
+
+    enum purc_variant_type vt = purc_variant_get_type(argv[1]);
+    if (vt == PURC_VARIANT_TYPE_ARRAY || vt == PURC_VARIANT_TYPE_SET
+            || vt == PURC_VARIANT_TYPE_TUPLE) {
         type = 0;
-    else if ((argv[1] != PURC_VARIANT_INVALID) &&
-            (purc_variant_is_object (argv[1])))
+    }
+    else if (vt == PURC_VARIANT_TYPE_OBJECT) {
         type = 1;
+    }
     else {
         purc_rwstream_destroy(rwstream);
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
@@ -1059,7 +1067,7 @@ format_p_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             pcdvobjs_remove_space (buffer);
             index = atoi (buffer);
 
-            tmp_var = purc_variant_array_get (argv[1], index);
+            tmp_var = purc_variant_linear_container_get (argv[1], index);
             if (tmp_var == PURC_VARIANT_INVALID) {
                 purc_rwstream_destroy (rwstream);
                 return PURC_VARIANT_INVALID;

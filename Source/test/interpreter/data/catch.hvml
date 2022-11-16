@@ -6,57 +6,57 @@
     <body>
         <div class="ab" id="abC">
             <update on="$@" at="attr.class" to="displace" />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="EntityNotFound">
+            <catch for=`EntityNotFound`>
                 <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update on="$@" at="attr.class" to="displace" />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadName">
+            <catch for=`BadName`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update on="$@" at="attr.class" to="displace" />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadName EntityNotFound">
+            <catch for=`BadName EntityNotFound`>
                 <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>
         <div class="ab" id="abC">
             <update on="$@" at="attr.class" to="displace" />
-            <catch for="InvalidValue">
+            <catch for=`InvalidValue`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
             </catch>
-            <catch for="BadNameX EntityNotFoundX">
+            <catch for=`EntityNotFound`>
                 <!-- this would be bypassed -->
                 <update on="$@" at="attr.entity_not_found" to="displace" with="matched" />
             </catch>
-            <catch for="*">
+            <catch for=`ANY`>
                 <update on="$@" at="attr.star" to="displace" with="matched" />
             </catch>
         </div>

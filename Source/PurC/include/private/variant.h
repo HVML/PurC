@@ -445,6 +445,10 @@ int
 pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
         const char *md5r, purc_variant_t r, purc_variant_t set);
 
+bool
+pcvariant_is_sorted_array(purc_variant_t v);
+
+
 PCA_EXTERN_C_END
 
 /* VWNOTE (WARN)

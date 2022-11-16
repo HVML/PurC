@@ -239,6 +239,40 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
     }
 }
 
+#define TAG_NAME_FOR        "for"
+#define TAG_NAME_TYPE       "type"
+
+static bool
+element_attr_syntax_detection(struct pcvdom_element *elem, const char *name,
+        struct pcvcm_node *value)
+{
+    UNUSED_PARAM(elem);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(value);
+#if 0
+    switch (elem->tag_id) {
+    case PCHVML_TAG_CATCH:
+        if ((strcmp(name, TAG_NAME_FOR) == 0) &&
+                (value->type != PCVCM_NODE_TYPE_CONSTANT)) {
+            return false;
+        }
+        break;
+
+    case PCHVML_TAG_EXCEPT:
+    case PCHVML_TAG_ERROR:
+        if ((strcmp(name, TAG_NAME_TYPE) == 0) &&
+                (value->type != PCVCM_NODE_TYPE_CONSTANT)) {
+            return false;
+        }
+        break;
+
+    default:
+        return true;
+    }
+#endif
+    return true;
+}
+
 static struct pcvdom_element*
 create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
@@ -264,6 +298,10 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
         name = pchvml_token_attr_get_name(attr);
         op = pchvml_token_attr_get_operator(attr);
         vcm = (struct pcvcm_node*)pchvml_token_attr_get_value_ex(attr, true);
+
+        if (!element_attr_syntax_detection(elem, name, vcm)) {
+            goto end;
+        }
 
         struct pcvdom_attr *vattr;
         vattr = pcvdom_attr_create(name, op, vcm);
