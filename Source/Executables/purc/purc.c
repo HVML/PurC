@@ -159,7 +159,7 @@ static void print_usage(FILE *fp)
         "        the HVML programs; use `-` if the JSON data will be given through\n"
         "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
         "\n"
-        "  -s --query=< query string >\n"
+        "  -s --query=< query_string >\n"
         "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
         "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
         "\n"
