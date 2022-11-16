@@ -7,7 +7,7 @@
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
                 <!-- set the default case -->
-                <init as 'styleCase' at '_root' with 'displayBlock' />
+                <init as 'styleCase' at '_root' with 'anonymousBlocks' />
             </catch>
         </init>
 

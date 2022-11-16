@@ -541,7 +541,7 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         if (err == CSS_OK) {
             err = css_stylesheet_append_data(inline_sheet,
                     (const unsigned char *)value, len);
-            if (err == CSS_OK) {
+            if (err == CSS_OK || err == CSS_NEEDDATA) {
                 css_stylesheet_data_done(inline_sheet);
             }
             else {
