@@ -1887,7 +1887,6 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
             box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
             box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
         box->is_inline_level = 1;
-        ctxt->parent_box->nr_child_inlines++;
     }
 
     /* whether is a block contianer */
@@ -2158,6 +2157,9 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
     if ((box = create_rdrbox_from_style(ctxt))) {
         box->is_principal = 1;
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
+        if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
+            box->is_inline_box = 1;
+
         foil_rdrbox_append_child(ctxt->parent_box, box);
 
         dtrm_counter_properties(ctxt, box);
@@ -2395,7 +2397,7 @@ foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
 }
 
 foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
-        foil_rdrbox *parent)
+        foil_rdrbox *parent, foil_rdrbox *before, foil_rdrbox *after)
 {
     foil_rdrbox *box;
 
@@ -2408,7 +2410,15 @@ foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
     box->is_block_level = 1;
     box->is_block_container = 1;
 
-    foil_rdrbox_append_child(parent, box);
+    if (before) {
+        foil_rdrbox_insert_before(before, box);
+    }
+    else if (after) {
+        foil_rdrbox_insert_after(after, box);
+    }
+    else if (parent) {
+        foil_rdrbox_append_child(parent, box);
+    }
     return box;
 
 failed:
@@ -2428,7 +2438,7 @@ foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
     box->owner = ctxt->elem;
     box->is_anonymous = 1;
     box->is_inline_level = 1;
-    parent->nr_child_inlines++;
+    box->is_inline_box = 1;
 
     foil_rdrbox_append_child(parent, box);
     return box;
@@ -2520,6 +2530,38 @@ foil_rdrbox_find_container_for_absolute(foil_create_ctxt *ctxt,
     return NULL;
 }
 
+char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box)
+{
+    char *name = NULL;
+
+    if (box->is_initial) {
+        name = strdup("initial");
+    }
+    else if (box->is_principal) {
+        if (doc) {
+            const char *tag_name;
+            size_t len;
+            pcdoc_element_get_tag_name(doc, box->owner, &tag_name, &len,
+                    NULL, NULL, NULL, NULL);
+            name = strndup(tag_name, len);
+        }
+        else {
+            name = strdup("principal");
+        }
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        name = strdup("marker");
+    }
+    else if (box->is_pseudo) {
+        name = strdup("pseudo");
+    }
+    else {
+        name = strdup("anonymous");
+    }
+
+    return name;
+}
+
 #ifndef NDEBUG
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level)
@@ -2534,26 +2576,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
         n++;
     }
 
-    char *name = NULL;
-    if (box->is_initial) {
-        name = strdup("initial");
-    }
-    else if (box->is_principal) {
-        const char *tag_name;
-        size_t len;
-        pcdoc_element_get_tag_name(doc, box->owner, &tag_name, &len,
-                NULL, NULL, NULL, NULL);
-        name = strndup(tag_name, len);
-    }
-    else if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
-        name = strdup("marker");
-    }
-    else if (box->is_pseudo) {
-        name = strdup("pseudo");
-    }
-    else {
-        name = strdup("anonymous");
-    }
+    char *name = foil_rdrbox_get_name(doc, box);
 
     fputs(indent, stdout);
     fprintf(stdout, "box for %s: "

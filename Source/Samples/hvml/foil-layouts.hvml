@@ -67,7 +67,7 @@
                 </DIV>
 
                 <P style="display:inline;">
-                    This is anonymous text before the SPAN.
+                    This is anonymous text before the <Q>SPAN</Q>.
                     <SPAN style="display:block;">This is the content of <Q>SPAN</Q>.</SPAN>
                     This is anonymous text after the <Q>SPAN</Q>.
                 </P>
