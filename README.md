@@ -612,12 +612,12 @@ The following options can be supplied to the command:
             - For the renderer comm method `socket`,
               default value is `unix:///var/tmp/purcmc.sock`.
 
-  -q --request=< json_file | - >
+  -j --request=< json_file | - >
         The JSON file contains the request data which will be passed to
         the HVML programs; use `-` if the JSON data will be given through
         STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)
 
-  -s --query=< query_string >
+  -q --query=< query_string >
         Use a URL query string (in RFC 3986) for the request data which will be passed to
         the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
 
