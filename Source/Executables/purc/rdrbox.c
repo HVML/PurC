@@ -2608,21 +2608,23 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
             nr_ucs += p->nr_ucs;
         }
 
-        fprintf(stdout, " content (%u paras, %u chars): ",
-                inline_data->nr_paras, (unsigned)nr_ucs);
+        fprintf(stdout, " content (paras: %u, chars: %u, ws: %d):\n",
+                inline_data->nr_paras, (unsigned)nr_ucs, box->white_space);
 
         list_for_each_entry(p, &inline_data->paras, ln) {
-            char utf8[16];
-            if (g_unichar_isgraph(p->ucs[0])) {
-                unsigned len = pcutils_unichar_to_utf8(p->ucs[0],
-                        (unsigned char *)utf8);
-                utf8[len] = 0;
+            for (size_t i = 0; i < p->nr_ucs; i++) {
+                char utf8[16];
+                if (g_unichar_isgraph(p->ucs[i])) {
+                    unsigned len = pcutils_unichar_to_utf8(p->ucs[i],
+                            (unsigned char *)utf8);
+                    utf8[len] = 0;
+                }
+                else {
+                    sprintf(utf8, "<U+%X>", p->ucs[i]);
+                }
+                fputs(utf8, stdout);
             }
-            else {
-                sprintf(utf8, "U+0x%04X", p->ucs[0]);
-            }
-            strcat(utf8, "…");
-            fputs(utf8, stdout);
+            // strcat(utf8, "…");
         }
         fputs("\n", stdout);
     }

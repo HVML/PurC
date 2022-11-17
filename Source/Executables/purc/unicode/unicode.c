@@ -239,7 +239,7 @@ static size_t get_next_uchar(const char *mstr, size_t mstr_len,
         return 0;
     }
 
-    if (mclen > 0 && mstr_len >= mclen) {
+    if (mclen > 0) {
         gunichar uch = g_utf8_get_char(mstr);
         *uc = uch;
     }
