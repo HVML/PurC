@@ -1,9 +1,9 @@
 #!/usr/bin/purc
 
 <!DOCTYPE hvml>
-<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)">
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
     <head>
-        <base href=$CRTN.base(! "file://$SYS.cwd" ) />
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
                 <!-- set the default case -->
