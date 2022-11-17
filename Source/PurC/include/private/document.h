@@ -35,6 +35,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/map.h"
 
 struct pcdoc_travel_info {
     pcdoc_node_type type;
@@ -143,6 +144,11 @@ struct purc_document_ops {
             pcdoc_elem_coll_t src_coll, const char *selector);
 };
 
+struct pcdoc_elem_content {
+    pcutils_mraw_t     *text;
+    pcutils_str_t      *data;
+};
+
 struct purc_document {
     purc_document_type type;
     pcrdr_msg_data_type def_text_type;
@@ -154,6 +160,9 @@ struct purc_document {
     unsigned refc;
 
     struct purc_document_ops *ops;
+
+    pcutils_mraw_t           *text;
+    pcutils_map              *elem_content;  // elem pcdoc_elem_content map.
 
     void *impl;
 };
@@ -174,6 +183,13 @@ extern "C" {
 extern struct purc_document_ops _pcdoc_void_ops WTF_INTERNAL;
 extern struct purc_document_ops _pcdoc_plain_ops WTF_INTERNAL;
 extern struct purc_document_ops _pcdoc_html_ops WTF_INTERNAL;
+
+
+struct pcdoc_elem_content *
+pcdoc_elem_content_create(pcutils_mraw_t *text);
+
+void
+pcdoc_elem_content_destroy(struct pcdoc_elem_content *c);
 
 #ifdef __cplusplus
 }
