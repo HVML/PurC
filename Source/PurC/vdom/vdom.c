@@ -411,21 +411,66 @@ int
 pcvdom_element_set_vcm_content(struct pcvdom_element *elem,
         struct pcvcm_node *vcm_content)
 {
+    int ret = -1;
+    bool b = false;
+    struct pcvdom_content *content = NULL;
+    enum pcvcm_node_type type;
+
     if (!elem || !vcm_content) {
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        goto out;
     }
 
-    static struct pcvdom_content *content;
+    type = vcm_content->type;
+    if (type == PCVCM_NODE_TYPE_STRING) {
+        struct pcvdom_node *last_child = pcvdom_node_last_child(&elem->node);
+        struct pcvdom_content *last_content = PCVDOM_CONTENT_FROM_NODE(last_child);
+        if (!last_child || !last_content) {
+            goto normal;
+        }
+
+        struct pcvcm_node *last_vcm = last_content->vcm;
+        if (last_vcm->type == PCVCM_NODE_TYPE_STRING) {
+            struct pcvcm_node *cs = pcvcm_node_new_concat_string(0, NULL);
+            if (!cs) {
+                goto out;
+            }
+            b = pcvcm_node_append_child(cs, last_vcm);
+            if (!b) {
+                pcvcm_node_destroy(cs);
+                goto out;
+            }
+
+            b = pcvcm_node_append_child(cs, vcm_content);
+            if (!b) {
+                pcvcm_node_destroy(cs);
+                goto out;
+            }
+
+            last_content->vcm = cs;
+            ret = 0;
+            goto out;
+        }
+        else if (last_vcm->type == PCVCM_NODE_TYPE_FUNC_CONCAT_STRING) {
+            if (pcvcm_node_append_child(last_vcm, vcm_content)) {
+                ret = 0;
+            }
+            goto out;
+        }
+    }
+
+normal:
     content = content_create(vcm_content);
-    if (!content)
-        return -1;
+    if (!content) {
+        goto out;
+    }
 
-    bool b;
-    b = pctree_node_append_child(&elem->node.node, &content->node.node);
-    PC_ASSERT(b);
+    if (pctree_node_append_child(&elem->node.node, &content->node.node)) {
+        ret = 0;
+    }
 
-    return 0;
+out:
+    return ret;
 }
 
 // accessor api

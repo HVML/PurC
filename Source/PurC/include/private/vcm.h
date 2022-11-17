@@ -241,6 +241,15 @@ pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)
     }
 }
 
+static inline bool
+pcvcm_node_append_child(struct pcvcm_node *parent, struct pcvcm_node *child)
+{
+    if (!child) {
+        return false;
+    }
+    return pctree_node_append_child(&parent->tree_node, &child->tree_node);
+}
+
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);
 
 char *pcvcm_node_serialize(struct pcvcm_node *node, size_t *nr_bytes);

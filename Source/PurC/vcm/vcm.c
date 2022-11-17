@@ -97,14 +97,6 @@ pcvcm_node_new_undefined()
     return pcvcm_node_new(PCVCM_NODE_TYPE_UNDEFINED, true);
 }
 
-static inline void
-pcvcm_node_append_child(struct pcvcm_node *parent, struct pcvcm_node *child)
-{
-    pctree_node_append_child(
-            (struct pctree_node*)parent,
-            (struct pctree_node*)child
-            );
-}
 
 struct pcvcm_node *
 pcvcm_node_new_object(size_t nr_nodes, struct pcvcm_node **nodes)
