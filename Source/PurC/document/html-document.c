@@ -439,6 +439,12 @@ static int set_attribute(purc_document_t doc,
         return dom_set_element_attribute(dom_elem, name, "", 0);
     }
     else if (op == PCDOC_OP_DISPLACE) {
+        /* when value is NULL, use name instead */
+        if (val == NULL) {
+            val = name;
+            len = strlen(name);
+        }
+
         return dom_set_element_attribute(dom_elem, name,
                 val, len ? len : strlen(val));
     }
