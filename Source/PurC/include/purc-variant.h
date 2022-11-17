@@ -382,7 +382,7 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_atom(purc_atom_t atom);
 
 /**
- * Creates a variant which represents an atom corresponding to the given
+ * Creates a variant which represents the atom corresponding to the given
  * string.
  *
  * @param str_utf8: The pointer to a null-terminated string
@@ -399,7 +399,7 @@ purc_variant_make_atom_string(const char* str_utf8,
         bool check_encoding);
 
 /**
- * Creates a variant which represents an atom corresponding to the given
+ * Creates a variant which represents the atom corresponding to the given
  * static string.
  *
  * @param str_utf8: The pointer to a null-terminated static string
@@ -414,7 +414,6 @@ purc_variant_make_atom_string(const char* str_utf8,
 PCA_EXPORT purc_variant_t
 purc_variant_make_atom_string_static(const char* str_utf8,
         bool check_encoding);
-
 
 /**
  * Gets the pointer to the string which is associated to the atom contained in
@@ -431,12 +430,14 @@ PCA_EXPORT const char*
 purc_variant_get_atom_string_const(purc_variant_t value);
 
 /**
- * Creates a variant value of byte sequence type by coping the content.
+ * Creates a variant which represents a byte sequence (`bsequence` for short).
+ * Note that the new variant will hold a copy of the specified byte sequence
+ * if success.
  *
- * @param bytes: the pointer of a byte sequence.
- * @param nr_bytes: the number of bytes in sequence.
+ * @param bytes: The pointer to a byte sequence.
+ * @param nr_bytes: The number of bytes in the sequence.
  *
- * Returns: A purc_variant_t with byte sequence type,
+ * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
@@ -445,12 +446,14 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
 /**
- * Creates a variant value of byte sequence type from a static C byte array.
+ * Creates a variant which represents a byte sequence (`bsequence` for short).
+ * Note that the new variant will only hold the pointer to the byte sequence,
+ * not a copy of the byte sequence.
  *
- * @param bytes: the pointer of a byte sequence.
- * @param nr_bytes: the number of bytes in sequence.
+ * @param bytes: The pointer to a byte sequence.
+ * @param nr_bytes: The number of bytes in the sequence.
  *
- * Returns: A purc_variant_t with string type,
+ * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
@@ -459,14 +462,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_static(const void* bytes, size_t nr_bytes);
 
 /**
- * Creates a variant value of byte sequence type by reusing the bytes buffer.
- * The buffer will be released by calling free() when the variant is destroyed.
+ * Creates a variant which represents a byte sequence (`bsequence` for short)
+ * by reusing the buffer storing the bytes. Note that the buffer will be
+ * released by calling free() when the variant is destroyed.
  *
- * @param bytes: the pointer of a byte sequence.
- * @param nr_bytes: the number of bytes in sequence.
- * @param sz_buff: the size of the bytes buffer.
+ * @param bytes: The pointer to a byte sequence.
+ * @param nr_bytes: The number of bytes in the sequence.
+ * @param sz_buff: The size of the buffer storing the bytes.
  *
- * Returns: A purc_variant_t with string type,
+ * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
