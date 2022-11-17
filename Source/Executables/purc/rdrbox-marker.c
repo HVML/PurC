@@ -482,9 +482,9 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     marker->owner = ctxt->elem;
     marker->is_anonymous = 1;
 
-    /* copy some properties from the principal box */
-    marker->fgc = list_item->fgc;
-    marker->bgc = list_item->bgc;
+    /* TODO: copy values of inheritable properties from the principal box */
+    marker->color = list_item->color;
+    marker->background_color = list_item->background_color;
 
     const unsigned nr_items = list_item->parent->nr_child_list_items;
     const unsigned index = list_item->list_item_data->index;
