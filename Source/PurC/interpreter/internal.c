@@ -35,6 +35,8 @@
 #include "private/utils.h"
 #include "private/variant.h"
 
+#include "hvml-attr.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -641,6 +643,25 @@ pcintr_match_exception(purc_atom_t except, purc_variant_t constant)
 
     ret = purc_variant_sorted_array_find(constant, v);
     purc_variant_unref(v);
+out:
+    return ret;
+}
+
+bool
+pcintr_is_hvml_attr(const char *name)
+{
+    bool ret = false;
+    const struct pchvml_attr_entry *entry;
+    if (!name) {
+        goto out;
+    }
+
+    entry = pchvml_attr_static_search(name, strlen(name));
+    if (entry && ((entry->type == PCHVML_ATTR_TYPE_ADVERB) ||
+                (entry->type == PCHVML_ATTR_TYPE_PREP))) {
+        ret = true;
+    }
+
 out:
     return ret;
 }

@@ -1252,6 +1252,10 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_SELECT_CHILD;
 }
 
+static int
+insert_cached_text_node(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr);
+
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -1300,6 +1304,11 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     } while (0);
 
     if (frame->ops.on_popping) {
+        struct pcintr_stack_frame * parent = pcintr_stack_frame_get_parent(frame);
+        if (parent == NULL || parent->edom_element != frame->edom_element) {
+            insert_cached_text_node(frame->owner->doc, frame->edom_element,
+                    !stack->inherit);
+        }
         ok = frame->ops.on_popping(&co->stack, frame->ctxt);
         if (co->stack.exited)
             PC_ASSERT(ok);
@@ -3310,11 +3319,42 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
     co->state = state;
 }
 
+int
+insert_cached_text_node(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr)
+{
+    // insert catched text node
+    pcdoc_operation op = PCDOC_OP_APPEND;
+    pcutils_map_entry *entry = pcutils_map_find(doc->elem_content, elem);
+    if (!entry) {
+        return 0;
+    }
+
+    struct pcdoc_elem_content *elem_content = NULL;
+    elem_content = (struct pcdoc_elem_content*) entry->val;
+    const char *txt = (const char *)pcutils_str_data(elem_content->data);
+    size_t len = pcutils_str_length(elem_content->data);
+    pcdoc_text_node_t text_node = pcdoc_element_new_text_content(doc, elem,
+            op, txt, len);
+    pcutils_map_erase(doc->elem_content, elem);
+
+    // TODO: append/prepend textContent?
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                txt, len);
+    }
+    return 0;
+}
+
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
+
+    insert_cached_text_node(doc, elem, sync_to_rdr);
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
     if (new_elem && sync_to_rdr) {
@@ -3324,24 +3364,40 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     return new_elem;
 }
 
-pcdoc_text_node_t
+int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
 {
-    pcdoc_text_node_t text_node;
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(sync_to_rdr);
+    if (op == PCDOC_OP_APPEND) {
+        struct pcdoc_elem_content *elem_content = NULL;
+        pcutils_map_entry *entry = pcutils_map_find(doc->elem_content, elem);
+        if (entry) {
+            elem_content = (struct pcdoc_elem_content*) entry->val;
+        }
+        else {
+            elem_content = pcdoc_elem_content_create(doc->text);
+            pcutils_map_insert(doc->elem_content, elem, elem_content);
+        }
 
-    text_node = pcdoc_element_new_text_content(doc, elem, op,
-            txt, len);
-
-    // TODO: append/prepend textContent?
-    pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
-        pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
-                txt, len);
+        pcutils_str_append(elem_content->data, elem_content->text,
+                (const unsigned char*)txt, len);
     }
+    else {
+        pcdoc_text_node_t text_node;
+        text_node = pcdoc_element_new_text_content(doc, elem, op,
+                txt, len);
 
-    return text_node;
+        // TODO: append/prepend textContent?
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+            pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                    elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                    txt, len);
+        }
+    }
+    return 0;
 }
 
 pcdoc_node
@@ -3351,6 +3407,8 @@ pcintr_util_new_content(purc_document_t doc,
         bool sync_to_rdr)
 {
     pcdoc_node node;
+    insert_cached_text_node(doc, elem, sync_to_rdr);
+
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
     pcrdr_msg_data_type type = doc->def_text_type;

@@ -30,8 +30,35 @@
 
 #include "private/document.h"
 #include "private/debug.h"
+#include "private/str.h"
+#include "private/map.h"
 
 #include "ns_const.h"
+
+struct pcdoc_elem_content *
+pcdoc_elem_content_create(pcutils_mraw_t *text)
+{
+    struct pcdoc_elem_content *c = calloc(1, sizeof(*c));
+    c->text = text;
+    c->data = pcutils_str_create();
+    pcutils_str_init(c->data, text, 1024);
+    return c;
+}
+
+void
+pcdoc_elem_content_destroy(struct pcdoc_elem_content *c)
+{
+    if (!c) {
+        return;
+    }
+    pcutils_str_destroy(c->data, c->text, true);
+    free(c);
+}
+
+static void map_free_val_fn(void *val)
+{
+    pcdoc_elem_content_destroy((struct pcdoc_elem_content*)val);
+}
 
 static purc_document_t create(const char *content, size_t length)
 {
@@ -71,6 +98,11 @@ static purc_document_t create(const char *content, size_t length)
     doc->ops = &_pcdoc_html_ops;
     doc->impl = html_doc;
 
+    doc->text = pcutils_mraw_create();
+    pcutils_mraw_init(doc->text, 1024);
+    doc->elem_content = pcutils_map_create(NULL, NULL, NULL,
+                (free_val_fn)map_free_val_fn, NULL, false);
+
     return doc;
 }
 
@@ -78,6 +110,13 @@ static void destroy(purc_document_t doc)
 {
     assert(doc->impl);
     pchtml_html_document_destroy(doc->impl);
+
+    if (doc->elem_content) {
+        pcutils_map_destroy(doc->elem_content);
+    }
+    if (doc->text) {
+        doc->text = pcutils_mraw_create();
+    }
     free(doc);
 }
 

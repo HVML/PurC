@@ -491,6 +491,9 @@ pcintr_method_from_via(enum VIA via);
 bool
 pcintr_match_exception(purc_atom_t except, purc_variant_t constant);
 
+bool
+pcintr_is_hvml_attr(const char *name);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

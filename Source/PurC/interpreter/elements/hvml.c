@@ -84,6 +84,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
     else {
         /* VW: only set attributes other than `target` to
            the root element of eDOM */
+        if (pcintr_is_hvml_attr(attr->key)) {
+            return 0;
+        }
 
         /* inherit doc do not send */
         pcintr_util_set_attribute(frame->owner->doc,

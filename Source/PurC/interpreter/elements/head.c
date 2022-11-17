@@ -68,6 +68,9 @@ attr_found(struct pcintr_stack_frame *frame,
     UNUSED_PARAM(attr);
     UNUSED_PARAM(ud);
 
+    if (pcintr_is_hvml_attr(attr->key)) {
+        return 0;
+    }
     pcintr_stack_t stack = (pcintr_stack_t) ud;
     int r = pcintr_set_edom_attribute(stack, attr, val);
 

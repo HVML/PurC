@@ -1,5 +1,5 @@
-<hvml target="html">
-    <body>
+<hvml target="html" silently>
+    <body silently>
         <div>$CRTN.target</div>
     </body>
 </hvml>

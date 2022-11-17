@@ -711,7 +711,7 @@ pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr);
 
-pcdoc_text_node_t
+int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr);
 
