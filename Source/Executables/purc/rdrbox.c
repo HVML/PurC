@@ -2599,15 +2599,28 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         fputs(indent, stdout);
-        fputs(" content: ", stdout);
 
         struct _inline_box_data *inline_data = box->inline_data;
+
+        size_t nr_ucs = 0;
         struct text_paragraph *p;
         list_for_each_entry(p, &inline_data->paras, ln) {
+            nr_ucs += p->nr_ucs;
+        }
+
+        fprintf(stdout, " content (%u paras, %u chars): ",
+                inline_data->nr_paras, (unsigned)nr_ucs);
+
+        list_for_each_entry(p, &inline_data->paras, ln) {
             char utf8[16];
-            unsigned len = pcutils_unichar_to_utf8(p->ucs[0],
-                    (unsigned char *)utf8);
-            utf8[len] = 0;
+            if (g_unichar_isgraph(p->ucs[0])) {
+                unsigned len = pcutils_unichar_to_utf8(p->ucs[0],
+                        (unsigned char *)utf8);
+                utf8[len] = 0;
+            }
+            else {
+                sprintf(utf8, "U+0x%04X", p->ucs[0]);
+            }
             strcat(utf8, "…");
             fputs(utf8, stdout);
         }

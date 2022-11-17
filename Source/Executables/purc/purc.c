@@ -154,12 +154,12 @@ static void print_usage(FILE *fp)
         "            - For the renderer comm method `socket`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
-        "  -q --request=< json_file | - >\n"
+        "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
         "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
         "\n"
-        "  -s --query=< query_string >\n"
+        "  -q --query=< query_string >\n"
         "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
         "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
         "\n"
@@ -377,15 +377,15 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:q:s:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:lvCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
         { "data-fetcher"   , required_argument , NULL , 'd' },
         { "rdr-comm"       , required_argument , NULL , 'c' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
-        { "request"        , required_argument , NULL , 'q' },
-        { "query"          , required_argument , NULL , 's' },
+        { "request"        , required_argument , NULL , 'j' },
+        { "query"          , required_argument , NULL , 'q' },
         { "parallel"       , no_argument       , NULL , 'l' },
         { "verbose"        , no_argument       , NULL , 'v' },
         { "copying"        , no_argument       , NULL , 'C' },
@@ -475,7 +475,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
             break;
 
-        case 'q':
+        case 'j':
             if (strcmp(optarg, "-") == 0 ||
                     is_json_or_ejson_file(optarg)) {
                 opts->request = strdup(optarg);
@@ -485,7 +485,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             }
             break;
 
-        case 's':
+        case 'q':
             opts->query = strdup(optarg);
             break;
 
