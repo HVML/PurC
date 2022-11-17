@@ -614,7 +614,6 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
     if (request) {
         purc_variant_object_set_by_static_ckey(run_info.opts,
                 KEY_FLAG_REQUEST, request);
-        purc_variant_unref(request);
     }
 }
 
@@ -1425,6 +1424,7 @@ int main(int argc, char** argv)
     }
 
 failed:
+    purc_variant_unref(request);
     if (run_info.opts)
         purc_variant_unref(run_info.opts);
     if (run_info.app_info)
