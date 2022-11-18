@@ -1243,7 +1243,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE)
     }
     if (character == '"' || character == '\'') {
         update_tkz_stack(parser);
-        ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
+        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
     }
     if (character == '}') {
         RECONSUME_IN(EJSON_TKZ_STATE_RIGHT_BRACE);
