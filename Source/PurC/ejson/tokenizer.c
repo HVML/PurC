@@ -113,7 +113,11 @@ next_input:                                                                 \
         return -1;                                                          \
     }                                                                       \
                                                                             \
-    if (is_separator(character)) {                                          \
+    if (is_separator(character) && (                                        \
+           (parser->state != EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED)     \
+        && (parser->state != EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)           \
+        && (parser->state != EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)           \
+                                                                     )) {   \
         if (parser->prev_separator == ',' && character == ',') {            \
             SET_ERR(PCEJSON_ERROR_UNEXPECTED_COMMA);                        \
             return -1;                                                      \
