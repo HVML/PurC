@@ -27,11 +27,6 @@
 
 #include "private/document.h"
 
-static void map_free_val_fn(void *val)
-{
-    pcdoc_elem_content_destroy((struct pcdoc_elem_content*)val);
-}
-
 static purc_document_t create(const char *content, size_t length)
 {
     UNUSED_PARAM(content);
@@ -51,21 +46,11 @@ static purc_document_t create(const char *content, size_t length)
     doc->ops = &_pcdoc_void_ops;
     doc->impl = NULL;
 
-    doc->text = pcutils_mraw_create();
-    pcutils_mraw_init(doc->text, 1024);
-    doc->elem_content = pcutils_map_create(NULL, NULL, NULL,
-                (free_val_fn)map_free_val_fn, NULL, false);
     return doc;
 }
 
 static void destroy(purc_document_t doc)
 {
-    if (doc->elem_content) {
-        pcutils_map_destroy(doc->elem_content);
-    }
-    if (doc->text) {
-        doc->text = pcutils_mraw_create();
-    }
     free(doc);
 }
 

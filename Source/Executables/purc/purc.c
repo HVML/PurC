@@ -1426,7 +1426,9 @@ int main(int argc, char** argv)
     }
 
 failed:
-    purc_variant_unref(request);
+    if (request) {
+        purc_variant_unref(request);
+    }
     if (run_info.opts)
         purc_variant_unref(run_info.opts);
     if (run_info.app_info)

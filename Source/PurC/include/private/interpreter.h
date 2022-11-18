@@ -240,6 +240,11 @@ struct pcintr_stack {
 
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
+
+    // current dom text content
+    pcdoc_element_t               curr_edom_elem;
+    pcutils_mraw_t               *mraw;
+    pcutils_str_t                *curr_edom_elem_text_content;
 };
 
 enum pcintr_coroutine_stage {

@@ -362,6 +362,15 @@ stack_release(pcintr_stack_t stack)
         pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
         stack->vcm_ctxt = NULL;
     }
+
+    if (stack->curr_edom_elem_text_content) {
+        pcutils_str_destroy(stack->curr_edom_elem_text_content,
+                stack->mraw, true);
+    }
+
+    if (stack->mraw) {
+        pcutils_mraw_destroy(stack->mraw, true);
+    }
 }
 
 enum pcintr_req_state {
@@ -484,6 +493,10 @@ stack_init(pcintr_stack_t stack)
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
     stack->timeout = false;
+    stack->mraw = pcutils_mraw_create();
+    pcutils_mraw_init(stack->mraw, 1024);
+    stack->curr_edom_elem_text_content = pcutils_str_create();
+    pcutils_str_init(stack->curr_edom_elem_text_content, stack->mraw, 1024);
 }
 
 static void _cleanup_instance(struct pcinst* inst)
@@ -1253,8 +1266,7 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 }
 
 static int
-insert_cached_text_node(purc_document_t doc, pcdoc_element_t elem,
-        bool sync_to_rdr);
+insert_cached_text_node(purc_document_t doc, bool sync_to_rdr);
 
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
@@ -1306,8 +1318,7 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (frame->ops.on_popping) {
         struct pcintr_stack_frame * parent = pcintr_stack_frame_get_parent(frame);
         if (parent == NULL || parent->edom_element != frame->edom_element) {
-            insert_cached_text_node(frame->owner->doc, frame->edom_element,
-                    !stack->inherit);
+            insert_cached_text_node(frame->owner->doc, !stack->inherit);
         }
         ok = frame->ops.on_popping(&co->stack, frame->ctxt);
         if (co->stack.exited)
@@ -3320,31 +3331,32 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
 }
 
 int
-insert_cached_text_node(purc_document_t doc, pcdoc_element_t elem,
-        bool sync_to_rdr)
+insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 {
     // insert catched text node
+    pcintr_stack_t stack = pcintr_get_stack();
     pcdoc_operation op = PCDOC_OP_APPEND;
-    pcutils_map_entry *entry = pcutils_map_find(doc->elem_content, elem);
-    if (!entry) {
-        return 0;
+    pcdoc_element_t elem = stack->curr_edom_elem;
+    pcutils_str_t *str = stack->curr_edom_elem_text_content;
+
+    size_t len = pcutils_str_length(str);
+    if (!elem || len == 0) {
+        goto out;
     }
 
-    struct pcdoc_elem_content *elem_content = NULL;
-    elem_content = (struct pcdoc_elem_content*) entry->val;
-    const char *txt = (const char *)pcutils_str_data(elem_content->data);
-    size_t len = pcutils_str_length(elem_content->data);
+    const char *txt = (const char *)pcutils_str_data(str);
     pcdoc_text_node_t text_node = pcdoc_element_new_text_content(doc, elem,
             op, txt, len);
-    pcutils_map_erase(doc->elem_content, elem);
+    pcutils_str_clean(str);
 
     // TODO: append/prepend textContent?
-    pcintr_stack_t stack = pcintr_get_stack();
     if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, op,
                 elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
+
+out:
     return 0;
 }
 
@@ -3354,7 +3366,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 {
     pcdoc_element_t new_elem;
 
-    insert_cached_text_node(doc, elem, sync_to_rdr);
+    insert_cached_text_node(doc, sync_to_rdr);
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
     if (new_elem && sync_to_rdr) {
@@ -3370,21 +3382,21 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 {
     UNUSED_PARAM(op);
     UNUSED_PARAM(sync_to_rdr);
-    if (op == PCDOC_OP_APPEND) {
-        struct pcdoc_elem_content *elem_content = NULL;
-        pcutils_map_entry *entry = pcutils_map_find(doc->elem_content, elem);
-        if (entry) {
-            elem_content = (struct pcdoc_elem_content*) entry->val;
-        }
-        else {
-            elem_content = pcdoc_elem_content_create(doc->text);
-            pcutils_map_insert(doc->elem_content, elem, elem_content);
-        }
+    pcintr_stack_t stack = pcintr_get_stack();
+    if (stack->curr_edom_elem != elem) {
+        insert_cached_text_node(doc, sync_to_rdr);
+        stack->curr_edom_elem = elem;
+    }
 
-        pcutils_str_append(elem_content->data, elem_content->text,
+    if (op == PCDOC_OP_APPEND) {
+        pcutils_str_append(stack->curr_edom_elem_text_content, stack->mraw,
                 (const unsigned char*)txt, len);
     }
     else {
+        if (stack->curr_edom_elem == elem) {
+            insert_cached_text_node(doc, sync_to_rdr);
+        }
+
         pcdoc_text_node_t text_node;
         text_node = pcdoc_element_new_text_content(doc, elem, op,
                 txt, len);
@@ -3407,7 +3419,7 @@ pcintr_util_new_content(purc_document_t doc,
         bool sync_to_rdr)
 {
     pcdoc_node node;
-    insert_cached_text_node(doc, elem, sync_to_rdr);
+    insert_cached_text_node(doc, sync_to_rdr);
 
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
