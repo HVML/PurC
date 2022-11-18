@@ -1,7 +1,7 @@
 DIV:before {
-    content: "<DIV ";
+    content: "【DIV——";
 }
 
 DIV:after {
-    content: " DIV> ";
+    content: "——DIV】";
 }
