@@ -194,7 +194,7 @@ struct ustr_ctxt {
     uint32_t*   ucs;
     size_t      len_buff;
     size_t      n;
-    uint8_t     wsr;
+    uint8_t     nl_collapsed;   // if a segment break has been collapsed
 };
 
 static size_t usctxt_init_spaces(struct ustr_ctxt* ctxt, size_t size)
@@ -209,7 +209,16 @@ static size_t usctxt_init_spaces(struct ustr_ctxt* ctxt, size_t size)
         return 0;
 
     ctxt->n = 0;
+    ctxt->nl_collapsed = 0;
     return ctxt->len_buff;
+}
+
+static void remove_spaces_pushed(struct ustr_ctxt* ctxt)
+{
+    while (ctxt->n > 0 && (ctxt->ucs[ctxt->n - 1] == FOIL_UCHAR_TAB ||
+                ctxt->ucs[ctxt->n - 1] == FOIL_UCHAR_SPACE)) {
+        ctxt->n--;
+    }
 }
 
 static size_t usctxt_push_back(struct ustr_ctxt* ctxt, uint32_t uc)
@@ -266,6 +275,29 @@ static size_t is_next_mchar_lf(const char* mstr, size_t mstr_len,
             G_UNICODE_BREAK_LINE_FEED);
 }
 
+static size_t ignore_spaces_following(const char* mstr, size_t mstr_len)
+{
+    uint32_t uc;
+    size_t consumed = 0;
+
+    do {
+        size_t mclen;
+
+        mclen = get_next_uchar(mstr, mstr_len, &uc);
+        if (mclen == 0)
+            break;
+
+        if (uc != FOIL_UCHAR_SPACE && uc != FOIL_UCHAR_TAB)
+            break;
+
+        mstr += mclen;
+        mstr_len -= mclen;
+        consumed += mclen;
+    } while (1);
+
+    return consumed;
+}
+
 static size_t collapse_space(const char* mstr, size_t mstr_len)
 {
     uint32_t uc;
@@ -295,8 +327,9 @@ static size_t collapse_space(const char* mstr, size_t mstr_len)
     Reference:
     [CSS Text Module Level 3](https://www.w3.org/TR/css-text-3/)
  */
-size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
-        size_t mstr_len, uint8_t wsr, uint32_t** uchars, size_t* nr_uchars)
+size_t foil_ustr_from_utf8_until_paragraph_boundary(
+        const char* mstr, size_t mstr_len, uint8_t wsr,
+        uint32_t** uchars, size_t* nr_uchars)
 {
     struct ustr_ctxt ctxt;
     size_t consumed = 0;
@@ -316,7 +349,6 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
     if (mstr_len == 0)
         return 0;
 
-    ctxt.wsr = wsr;
     if (usctxt_init_spaces(&ctxt, mstr_len >> 1) <= 0) {
         goto error;
     }
@@ -349,6 +381,8 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
         if (usctxt_push_back(&ctxt, uc) == 0)
             goto error;
 
+        bool not_nl = true;
+
         /* Check mandatory breaks */
         if (bt == G_UNICODE_BREAK_MANDATORY) {
             break;
@@ -358,12 +392,34 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
                         &next_uc)) > 0) {
             cosumed_one_loop += next_mclen;
 
+            assert(ctxt.n > 0);
             if (col_nl) {
-                assert(ctxt.n > 0);
                 ctxt.n--;
+                remove_spaces_pushed(&ctxt);
+                cosumed_one_loop += ignore_spaces_following(mstr + next_mclen,
+                        mstr_len - next_mclen);
+
+                if (ctxt.nl_collapsed == 0) {
+                    if (ctxt.n > 0) {
+                        if (!g_unichar_iswide_cjk(ctxt.ucs[ctxt.n - 1])) {
+                            // convert it to a SPACE
+                            if (usctxt_push_back(&ctxt, FOIL_UCHAR_SPACE) == 0)
+                                goto error;
+                        }
+                    }
+
+                    ctxt.nl_collapsed = 1;
+                }
+                else {
+                    // ignore it.
+                }
+
+                not_nl = false;
             }
             else {
-                if (usctxt_push_back(&ctxt, next_uc) == 0)
+                /* Transform into a preserved line feed (U+000A). */
+                ctxt.n--;
+                if (usctxt_push_back(&ctxt, FOIL_UCHAR_LINE_FEED) == 0)
                     goto error;
                 break;
             }
@@ -372,11 +428,33 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
                 || bt == G_UNICODE_BREAK_LINE_FEED
                 || bt == G_UNICODE_BREAK_NEXT_LINE) {
 
+            assert(ctxt.n > 0);
             if (col_nl) {
-                assert(ctxt.n > 0);
                 ctxt.n--;
+                remove_spaces_pushed(&ctxt);
+                cosumed_one_loop += ignore_spaces_following(mstr, mstr_len);
+
+                if (ctxt.nl_collapsed == 0) {
+                    if (ctxt.n > 0) {
+                        if (!g_unichar_iswide_cjk(ctxt.ucs[ctxt.n - 1])) {
+                            // convert it to a SPACE
+                            if (usctxt_push_back(&ctxt, FOIL_UCHAR_SPACE) == 0)
+                                goto error;
+                        }
+                    }
+
+                    ctxt.nl_collapsed = 1;
+                }
+                else {
+                    // ignore it.
+                }
+                not_nl = false;
             }
             else {
+                /* Transform into a preserved line feed (U+000A). */
+                ctxt.n--;
+                if (usctxt_push_back(&ctxt, FOIL_UCHAR_LINE_FEED) == 0)
+                    goto error;
                 break;
             }
         }
@@ -385,6 +463,9 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
                 || bt == G_UNICODE_BREAK_ZERO_WIDTH_SPACE)) {
             cosumed_one_loop += collapse_space(mstr, mstr_len);
         }
+
+        if (not_nl)
+            ctxt.nl_collapsed = 0;
 
         mstr_len -= cosumed_one_loop;
         mstr += cosumed_one_loop;

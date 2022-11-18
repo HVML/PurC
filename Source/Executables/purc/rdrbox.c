@@ -2608,7 +2608,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
             nr_ucs += p->nr_ucs;
         }
 
-        fprintf(stdout, " content (paras: %u, chars: %u, ws: %d):\n",
+        fprintf(stdout, " content (paras: %u, chars: %u, ws: %d): ",
                 inline_data->nr_paras, (unsigned)nr_ucs, box->white_space);
 
         list_for_each_entry(p, &inline_data->paras, ln) {

@@ -46,7 +46,7 @@
                     This text is defined by the first <Q>P</Q>.
                     <BR />
                     There is a line-break before this text.
-                    <SPAN>This text defined by <Q>SPAN</Q>.</SPAN>
+                    <SPAN>This text is defined by <Q>SPAN</Q>.</SPAN>
                 </P>
 
                 <P>

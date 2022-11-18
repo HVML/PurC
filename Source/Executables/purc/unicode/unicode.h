@@ -30,6 +30,7 @@
 #define purc_foil_unicode_h
 
 #define FOIL_UCHAR_TAB               0x0009
+#define FOIL_UCHAR_LINE_FEED         0x000A
 #define FOIL_UCHAR_SPACE             0x0020
 #define FOIL_UCHAR_SHY               0x00AD
 #define FOIL_UCHAR_IDSPACE           0x3000
@@ -990,7 +991,7 @@ const char* foil_langcode_to_iso639_1(foil_langcode_t lc);
  * Note that you are responsible for freeing the uint32_t string allocated
  * by this function.
  *
- * \param logfont The logfont used to parse the string.
+ * \param lang The language code.
  * \param mstr The pointer to the multi-byte string.
  * \param mstr_len The length of \a mstr in bytes.
  * \param wsr The white space rule; see \a white_space_rules.
@@ -1001,8 +1002,9 @@ const char* foil_langcode_to_iso639_1(foil_langcode_t lc);
  *
  * \return The number of the bytes consumed in \a mstr; zero on error.
  */
-size_t foil_ustr_from_utf8_until_paragraph_boundary(const char* mstr,
-        size_t mstr_len, uint8_t wsr, uint32_t** uchars, size_t* nr_uchars);
+size_t foil_ustr_from_utf8_until_paragraph_boundary(
+        const char* mstr, size_t mstr_len, uint8_t wsr,
+        uint32_t** uchars, size_t* nr_uchars);
 
 /**
  * \fn foil_ustr_get_breaks
