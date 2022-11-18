@@ -268,17 +268,20 @@ html_escape_unichar(uint32_t uc, pchtml_html_serialize_cb_f cb, void *ctx)
     return status;
 }
 
-static int
+static unsigned int
 html_escape_unichar_no_quotes(uint32_t uc,
         pchtml_html_serialize_cb_f cb, void *ctx)
 {
     unsigned int status = PCHTML_STATUS_OK;
-    const char *entity = NULL;
+    const char *entity;
 
     if (uc != 0x22 && uc != 0x27)
         entity = pchtml_get_character_entity(uc);
+    else
+        entity = NULL;
 
     if (entity) {
+        assert(strcmp("&quot;", entity));
         html_serialize_send(entity, strlen(entity), ctx);
     }
     else {
@@ -726,6 +729,8 @@ html_serialize_send_escaping_attribute_string(
         const unsigned char *next =
             (const unsigned char *)pcutils_utf8_next_char(data);
         uint32_t uc = pcutils_utf8_to_unichar(data);
+        if (uc == 0)
+            break;
 
         if (html_escape_unichar(uc, cb, ctx) == PCHTML_STATUS_CONTINUE) {
             html_serialize_send(data, (next - data), ctx);
@@ -749,6 +754,8 @@ html_serialize_send_escaping_string(const unsigned char *data,
         const unsigned char *next =
             (const unsigned char *)pcutils_utf8_next_char(data);
         uint32_t uc = pcutils_utf8_to_unichar(data);
+        if (uc == 0)
+            break;
 
         if (html_escape_unichar_no_quotes(uc, cb, ctx) ==
                 PCHTML_STATUS_CONTINUE) {
@@ -1104,7 +1111,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
                             return status;
                         }
 
-                        if (node->next == NULL &&
+                        if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES) == 0 &&
                                 (opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
                             html_serialize_send("\n", 1, ctx);
                         }
@@ -1147,6 +1154,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
                     }
 
                     if (node->next == NULL &&
+                            (opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES) == 0 &&
                             (opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
                         html_serialize_send("\n", 1, ctx);
                     }
@@ -1527,6 +1535,8 @@ html_serialize_pretty_send_escaping_string(
         const unsigned char *next =
             (const unsigned char *)pcutils_utf8_next_char(data);
         uint32_t uc = pcutils_utf8_to_unichar(data);
+        if (uc == 0)
+            break;
 
         bool sent = false;
         /* TODO: for any printable chars */
@@ -1574,6 +1584,8 @@ html_serialize_pretty_send_string(const unsigned char *data,
             const unsigned char *next =
                 (const unsigned char*)pcutils_utf8_next_char(data);
             uint32_t uc = pcutils_utf8_to_unichar(data);
+            if (uc == 0)
+                break;
 
             /* TODO: for any printable chars */
             if (uc < 0x20) {
