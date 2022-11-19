@@ -3,7 +3,7 @@
         <div>$CRTN.target</div>
         <div>$RUNNER.app_name</div>
         <div>$RUNNER.run_name</div>
-        <div>$EJSON.type($RUNNER.rid)</div>
+        <div>$DATA.type($RUNNER.rid)</div>
         <div>$RUNNER.uri</div>
     </body>
 </hvml>

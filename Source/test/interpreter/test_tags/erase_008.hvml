@@ -11,7 +11,7 @@
     </head>
     <body>
         <div>
-            $EJSON.count($buttons)
+            $DATA.count($buttons)
         </div>
         <erase on="$buttons" at="[1]"/>
         <div>

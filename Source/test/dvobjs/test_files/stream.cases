@@ -8,7 +8,7 @@
 #    EntityNotFound
 #
 #positive:
-#    $EJSON.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
+#    $DATA.type($STREAM.open('file:///tmp/test_stream_not_exist', 'create'))
 #    'native'
 #
 #positive:
@@ -16,7 +16,7 @@
 #    true
 #
 #positive:
-#    $EJSON.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
+#    $DATA.type($STREAM.open('file:///tmp/test_stream_create', 'read write create truncate'))
 #    'native'
 #
 #positive:

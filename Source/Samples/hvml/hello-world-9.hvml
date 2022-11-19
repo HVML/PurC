@@ -26,7 +26,7 @@
                 $STREAM.stdout.writelines($STR.join('Timer foobar expired: ', $DATETIME.fmttime('%H:%M:%S')))
             </inherit>
 
-            <test with $L.gt($EJSON.arith('-', $SYS.time, $startTime), 10) >
+            <test with $L.gt($DATA.arith('-', $SYS.time, $startTime), 10) >
                 <exit with "Ok" />
             </test>
 

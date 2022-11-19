@@ -7,7 +7,7 @@
 <body>
     <observe against="buttons" for="change:progress">
         <inherit>
-            $STREAM.stdout.writelines($EJSON.stringify($?.progress))
+            $STREAM.stdout.writelines($DATA.stringify($?.progress))
         </inherit>
     </observe>
     <observe against="buttons" for="change:displaced">

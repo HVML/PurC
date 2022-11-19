@@ -27,7 +27,7 @@ PCHVML_TOKEN_START_TAG|<init as="startTime" with=getElement(getVariable("SYS"),"
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),10) with=callGetter(getElement(getVariable("EJSON"),"arith_calc"),"+",getVariable("0<"),1) nosetotail>
+PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),10) with=callGetter(getElement(getVariable("DATA"),"arith_calc"),"+",getVariable("0<"),1) nosetotail>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<sleep with=callGetter(getElement(getVariable("SYS"),"random"),10)>
@@ -41,5 +41,5 @@ PCHVML_TOKEN_END_TAG|</iterate>
 PCHVML_TOKEN_VCM_TREE|"
 
     "
-PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("STR"),"join"),"I slept for ",callGetter(getElement(getVariable("EJSON"),"arith_calc"),"-",getElement(getVariable("SYS"),"time"),getVariable("startTime"))," seconds totally")) ; callGetter(getElement(getVariable("L"),"lt"),callGetter(getElement(getVariable("EJSON"),"arith_calc"),"-",getElement(getVariable("SYS"),"time"),getVariable("startTime")),0) }}
+PCHVML_TOKEN_VCM_TREE|{{ callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),callGetter(getElement(getVariable("STR"),"join"),"I slept for ",callGetter(getElement(getVariable("DATA"),"arith_calc"),"-",getElement(getVariable("SYS"),"time"),getVariable("startTime"))," seconds totally")) ; callGetter(getElement(getVariable("L"),"lt"),callGetter(getElement(getVariable("DATA"),"arith_calc"),"-",getElement(getVariable("SYS"),"time"),getVariable("startTime")),0) }}
 PCHVML_TOKEN_END_TAG|</hvml>

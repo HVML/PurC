@@ -17,15 +17,15 @@
             <div id="temp">
                 <bind on="$buttons" as="btns" at="3"/>
                 <div>
-                    $EJSON.count($btns.eval)
+                    $DATA.count($btns.eval)
                 </div>
             </div>
             <div>
-                $EJSON.count($btns.eval)
+                $DATA.count($btns.eval)
             </div>
         </div>
         <div>
-            $EJSON.count($btns.eval)
+            $DATA.count($btns.eval)
         </div>
     </body>
 

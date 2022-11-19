@@ -24,18 +24,18 @@
     <body>
         <div id="showCount">
             <div>
-                $EJSON.count($btns.eval)
+                $DATA.count($btns.eval)
             </div>
         </div>
         <div id="temp">
             <bind on="$buttons2" as="btns" temporarily />
             <div>
-                $EJSON.count($btns.eval)
+                $DATA.count($btns.eval)
             </div>
         </div>
         <div id="showCountMain">
             <div>
-                $EJSON.count($btns.eval)
+                $DATA.count($btns.eval)
             </div>
         </div>
     </body>

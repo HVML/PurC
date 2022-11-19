@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON([-NaN])></hvml>
+<hvml ejson=$DATA([-NaN])></hvml>

@@ -10,7 +10,7 @@
 
     <body>
         <ul>
-            <iterate on 0L onlyif $L.lt($0~, 10L) with $EJSON.arith('+', $0~, 1L) nosetotail >
+            <iterate on 0L onlyif $L.lt($0~, 10L) with $DATA.arith('+', $0~, 1L) nosetotail >
                 <li>$? Hello, world! -- from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>

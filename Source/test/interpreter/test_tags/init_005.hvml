@@ -13,7 +13,7 @@
     <body>
         <div id="showCount">
             <div>
-                $EJSON.count($buttons)
+                $DATA.count($buttons)
             </div>
         </div>
         <div id="temp">
@@ -27,7 +27,7 @@
                 ]
             </init>
             <div>
-                $EJSON.count($buttons)
+                $DATA.count($buttons)
             </div>
         </div>
     </body>

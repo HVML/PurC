@@ -9,7 +9,7 @@
                 <init as="evenNumbers" with="init as string" >
                 </init>
                 <div>
-                    $EJSON.type($evenNumbers)
+                    $DATA.type($evenNumbers)
                 </div>
             </div>
         </div>

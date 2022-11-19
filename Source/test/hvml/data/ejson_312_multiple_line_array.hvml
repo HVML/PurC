@@ -1,4 +1,4 @@
-<hvml ejson=$EJSON(
+<hvml ejson=$DATA(
     [
         3,
         4

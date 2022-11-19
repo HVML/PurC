@@ -17,12 +17,12 @@
             <div id="temp">
                 <bind on="$buttons" as="btns" at="_root" silently/>
                 <div>
-                    $EJSON.count($btns.eval)
+                    $DATA.count($btns.eval)
                 </div>
             </div>
         </div>
         <div>
-            $EJSON.count($btns.eval)
+            $DATA.count($btns.eval)
         </div>
     </body>
 

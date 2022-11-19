@@ -80,8 +80,8 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
     else if (strcmp(name, "CRTN") == 0) {
         dvobj = purc_dvobj_coroutine_new(NULL);
     }
-    else if (strcmp(name, "EJSON") == 0) {
-        dvobj = purc_dvobj_ejson_new();
+    else if (strcmp(name, "DATA") == 0) {
+        dvobj = purc_dvobj_data_new();
     }
     else if (strcmp(name, "RUNNER") == 0) {
         dvobj = purc_dvobj_runner_new();

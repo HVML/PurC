@@ -16,11 +16,11 @@
                     ]
                 </init>
                 <div>
-                    $EJSON.count($buttons)
+                    $DATA.count($buttons)
                 </div>
             </div>
             <div>
-                $EJSON.count($buttons)
+                $DATA.count($buttons)
             </div>
         </inherit>
     </body>

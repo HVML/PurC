@@ -105,7 +105,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<observe on=getVariable("TIMERS") for="expired:input">
 PCHVML_TOKEN_VCM_TREE|"
                     "
-PCHVML_TOKEN_START_TAG|<test on=getElement(getElement(getVariable("buttons"),callGetter(getElement(getVariable("SYS"),"random"),callGetter(getElement(getVariable("EJSON"),"count"),getVariable("buttons")))),"letters")>
+PCHVML_TOKEN_START_TAG|<test on=getElement(getElement(getVariable("buttons"),callGetter(getElement(getVariable("SYS"),"random"),callGetter(getElement(getVariable("DATA"),"count"),getVariable("buttons")))),"letters")>
 PCHVML_TOKEN_VCM_TREE|"
                         "
 PCHVML_TOKEN_START_TAG|<match for="AS '='" exclusively>

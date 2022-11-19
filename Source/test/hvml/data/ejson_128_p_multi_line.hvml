@@ -1,4 +1,4 @@
-<hvml ejson=$EJSON({
+<hvml ejson=$DATA({
     id:         1234567890UL,
     nickname:   "David",
     signature:

@@ -16,7 +16,7 @@
                     ]
                 </init>
                 <div>
-                    $EJSON.count($buttons)
+                    $DATA.count($buttons)
                 </div>
             </div>
         </div>

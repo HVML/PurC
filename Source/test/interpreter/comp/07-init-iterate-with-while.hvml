@@ -5,7 +5,7 @@
 <!DOCTYPE hvml>
 <hvml target="void">
     <init as "evenNumbers" with [0L] >
-        <iterate with $EJSON.arith('+', $evenNumbers[-1], 2) while $L.lt($0?, 8L) >
+        <iterate with $DATA.arith('+', $evenNumbers[-1], 2) while $L.lt($0?, 8L) >
             <update on $evenNumbers to "append" with $? />
         </iterate>
     </init>

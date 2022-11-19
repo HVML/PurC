@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON({"a": true} "x")></hvml>
+<hvml ejson=$DATA({"a": true} "x")></hvml>

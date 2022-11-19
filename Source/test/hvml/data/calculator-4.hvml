@@ -33,7 +33,7 @@
 
         <init as="info">
             {
-                "chars" : $exp_chars[$SYS.random($EJSON.count($exp_chars))],
+                "chars" : $exp_chars[$SYS.random($DATA.count($exp_chars))],
                 "index" : 0,
             }
         </init>

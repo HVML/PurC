@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON(["\uD800\n"])></hvml>
+<hvml ejson=$DATA(["\uD800\n"])></hvml>

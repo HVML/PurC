@@ -93,7 +93,7 @@
                 <h1 hvml:silently>$STR.format_p('Numbers less than #0', $?)</h1>
 
                 <ol>
-                    <iterate on 0L onlyif $L.lt($0~, $2?) with $EJSON.arith('+', $0~, 1L) nosetotail >
+                    <iterate on 0L onlyif $L.lt($0~, $2?) with $DATA.arith('+', $0~, 1L) nosetotail >
                         <li>$STR.format_p('Number #0', $?)</li>
                     </iterate>
                 </ol>

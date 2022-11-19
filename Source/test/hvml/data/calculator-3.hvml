@@ -70,7 +70,7 @@
             <div id="c_text">
                 <input type="text" id="expression" value="0" readonly="readonly" />
                 <observe on="$TIMERS" for="expired:input">
-                    <test on="$buttons[$SYS.random($EJSON.count($buttons))].letters">
+                    <test on="$buttons[$SYS.random($DATA.count($buttons))].letters">
                         <match for="AS '='" exclusively>
                             <choose on="$MATH.eval($DOC.query('#expression').attr('value'))">
                                 <update on="#expression" at="attr.value" with="$?" />
