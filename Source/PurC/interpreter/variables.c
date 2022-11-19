@@ -194,7 +194,7 @@ pcintr_bind_builtin_runner_variables(void)
     }
 #endif
 
-    /* $L, $STR, $URL, $EJSON, $STREAM, $DATETIME
+    /* $L, $STR, $URL, $DATA, $STREAM, $DATETIME
      * are all runner-level variables */
 
     // $L
@@ -218,12 +218,12 @@ pcintr_bind_builtin_runner_variables(void)
     }
     purc_variant_unref(url);
 
-    // $EJSON
-    purc_variant_t ejson = purc_dvobj_ejson_new();
-    if (!purc_bind_runner_variable(PURC_PREDEF_VARNAME_EJSON, ejson)) {
+    // $DATA
+    purc_variant_t data = purc_dvobj_data_new();
+    if (!purc_bind_runner_variable(PURC_PREDEF_VARNAME_DATA, data)) {
         goto out;
     }
-    purc_variant_unref(ejson);
+    purc_variant_unref(data);
 
     // $STREAM
     purc_variant_t stream = purc_dvobj_stream_new();

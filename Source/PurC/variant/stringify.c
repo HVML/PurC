@@ -140,7 +140,7 @@ pcvar_obj_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(",", ctxt, cb);
         if (r)
             return r;
     }
@@ -167,7 +167,7 @@ pcvar_arr_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(";", ctxt, cb);
         if (r)
             return r;
     }
@@ -192,7 +192,7 @@ pcvar_set_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(";", ctxt, cb);
         if (r)
             return r;
     }
@@ -222,7 +222,7 @@ pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(";", ctxt, cb);
         if (r)
             return r;
     }

@@ -1,8 +1,8 @@
 /*
- * @file ejson.c
+ * @file data.c
  * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
- * @brief The implementation of EJSON dynamic variant object.
+ * @brief The implementation of DATA dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -2741,7 +2741,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t purc_dvobj_ejson_new(void)
+purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
         { "type",       type_getter, NULL },

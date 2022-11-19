@@ -46,15 +46,16 @@
 #define PURC_PREDEF_VARNAME_RUNNER      "RUNNER"
 #define PURC_PREDEF_VARNAME_L           "L"
 #define PURC_PREDEF_VARNAME_STR         "STR"
-#define PURC_PREDEF_VARNAME_URL         "URL"
-#define PURC_PREDEF_VARNAME_EJSON       "EJSON"
+#define PURC_PREDEF_VARNAME_DATA        "DATA"
 #define PURC_PREDEF_VARNAME_STREAM      "STREAM"
 #define PURC_PREDEF_VARNAME_DATETIME    "DATETIME"
+#define PURC_PREDEF_VARNAME_URL         "URL"
 
 #define PURC_PREDEF_VARNAME_SYS_ZH      "系统"
 #define PURC_PREDEF_VARNAME_RUNNER_ZH   "行者"
 #define PURC_PREDEF_VARNAME_L_ZH        "逻辑"
 #define PURC_PREDEF_VARNAME_STR_ZH      "字符串"
+#define PURC_PREDEF_VARNAME_DATA_ZH     "数据"
 #define PURC_PREDEF_VARNAME_STREAM_ZH   "流"
 #define PURC_PREDEF_VARNAME_DATETIME_ZH "时间"
 
@@ -127,9 +128,9 @@ purc_dvobj_coroutine_new(struct pcintr_coroutine* cor);
 PCA_EXPORT purc_variant_t
 purc_dvobj_doc_new(purc_document_t doc);
 
-/** Make a dynamic variant object for built-in `$EJSON` variable. */
+/** Make a dynamic variant object for built-in `$DATA` variable. */
 PCA_EXPORT purc_variant_t
-purc_dvobj_ejson_new(void);
+purc_dvobj_data_new(void);
 
 /** Make a dynamic variant object for built-in `$L` variable. */
 PCA_EXPORT purc_variant_t
