@@ -775,6 +775,27 @@ static GHashTable *create_counters_table(foil_create_ctxt *ctxt)
 #endif
 }
 
+static GHashTable *
+find_counters_table_in_prev_siblings(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, const lwc_string *name)
+{
+    (void)ctxt;
+    foil_rdrbox *prev = box->prev;
+
+    while (prev) {
+        if (prev->counters_table) {
+            if (g_hash_table_lookup_extended(prev->counters_table,
+                        name, NULL, NULL)) {
+                return prev->counters_table;
+            }
+        }
+
+        prev = prev->prev;
+    }
+
+    return NULL;
+}
+
 static GHashTable *find_counters_table(foil_create_ctxt *ctxt,
         foil_rdrbox *box, const lwc_string *name, intptr_t *value)
 {
@@ -2081,7 +2102,13 @@ dtrm_counter_properties(foil_create_ctxt *ctxt, foil_rdrbox *box)
             for (size_t i = 0; i < box->counter_reset->nr_counters; i++) {
                 lwc_string *name =
                     lwc_string_ref(box->counter_reset->counters[i].name);
-                g_hash_table_replace(box->counters_table,
+                GHashTable *counters_table =
+                    find_counters_table_in_prev_siblings(ctxt, box, name);
+
+                if (counters_table == NULL)
+                    counters_table = box->counters_table;
+
+                g_hash_table_replace(counters_table,
                         name, (gpointer)box->counter_reset->counters[i].value);
             }
         }
