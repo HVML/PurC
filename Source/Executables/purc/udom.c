@@ -904,6 +904,15 @@ normalize_rdrtree(struct foil_create_ctxt *ctxt,
     free(name);
 #endif
 
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
+            box->list_item_data->marker_box) {
+        if (!foil_rdrbox_init_marker_data(ctxt,
+                    box->list_item_data->marker_box, box)) {
+            LOG_ERROR("Failed to initialize marker box\n");
+            goto failed;
+        }
+    }
+
     if (box->is_block_container && nr_inlines > 0 && nr_blocks > 0) {
         /* force the box to have only block-level boxes
            by creating anonymous block box */

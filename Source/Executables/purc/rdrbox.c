@@ -2033,13 +2033,10 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
                 goto failed;
             }
 
-            foil_rdrbox_insert_before(box, marker_box);
+            marker_box->owner = ctxt->elem;
+            marker_box->is_anonymous = 1;
             box->list_item_data->marker_box = marker_box;
-
-            if (!foil_rdrbox_init_marker_data(ctxt, marker_box, box)) {
-                LOG_ERROR("Failed to initialize marker box\n");
-                goto failed;
-            }
+            foil_rdrbox_insert_before(box, marker_box);
         }
     }
 

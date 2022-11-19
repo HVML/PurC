@@ -13,7 +13,7 @@
 
         <link rel="stylesheet" type="text/css" href="hvml/assets/foil-layouts-{$styleCase}.css" />
 
-        <title>Foil Layouts: $styleCase</title>
+        <title>Foil Layouts - $styleCase</title>
     </head>
 
     <body>
@@ -83,6 +83,12 @@
                     <li>The second item.</li>
                     <li>The third item.</li>
                 </ul>
+
+                <ul style="list-style-type:circle">
+                    <li>The first item.</li>
+                    <li>The second item.</li>
+                    <li>The third item.</li>
+                </ul>
             </SECTION>
         </define>
 
@@ -90,14 +96,24 @@
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
 
             <SECTION id="$caseName">
-                <h1 hvml:silently>$STR.format_p('Numbers less than #0', $?)</h1>
-
                 <ol>
-                    <iterate on 0L onlyif $L.lt($0~, $2?) with $DATA.arith('+', $0~, 1L) nosetotail >
-                        <li>$STR.format_p('Number #0', $?)</li>
-                    </iterate>
+                    <li>The first item.</li>
+                    <li>The second item.</li>
+                    <li>The third item.</li>
                 </ol>
 
+                <ol style="list-style-type:decimal-leading-zero">
+                    <li>The item 0. (01)</li>
+                    <li>The item 1. (02)</li>
+                    <li>The item 2. (03)</li>
+                    <li>The item 3. (04)</li>
+                    <li>The item 4. (05)</li>
+                    <li>The item 5. (06)</li>
+                    <li>The item 6. (07)</li>
+                    <li>The item 7. (08)</li>
+                    <li>The item 8. (09)</li>
+                    <li>The item 9. (10)</li>
+                </ol>
              </SECTION>
         </define>
 
@@ -125,137 +141,137 @@
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
            <SECTION id="$caseName">
               <DIV class="simple">
-                <H1>The 1st head in level 1 (Chapter 1. )</H1>
-                <H2>The 1st head in level 2 (1.1 )</H2>
-                <H2>The 2nd head in level 2 (1.2 )</H2>
-                <H2>The 3rd head in level 2 (1.3 )</H2>
+                <H1>The 1st head in level 1 (Chapter 1.)</H1>
+                <H2>The 1st head in level 2 (1.1)</H2>
+                <H2>The 2nd head in level 2 (1.2)</H2>
+                <H2>The 3rd head in level 2 (1.3)</H2>
 
-                <H1>The 1st head in level 1 (Chapter 2. )</H1>
-                <H2>The 1st head in level 2 (2.1 )</H2>
-                <H2>The 2nd head in level 2 (2.2 )</H2>
-                <H2>The 3rd head in level 2 (2.3 )</H2>
+                <H1>The 2nd head in level 1 (Chapter 2.)</H1>
+                <H2>The 1st head in level 2 (2.1)</H2>
+                <H2>The 2nd head in level 2 (2.2)</H2>
+                <H2>The 3rd head in level 2 (2.3)</H2>
               </DIV>
 
               <DIV class="counter">
-                <OL>                    <!-- {item[0]=0        -->
-                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
-                  <LI>item              <!--  item[0]++ (=2)   -->
-                    <OL>                <!--  {item[1]=0       -->
-                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
-                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
-                      <LI>item          <!--   item[1]++ (=3)  -->
-                        <OL>            <!--   {item[2]=0      -->
-                          <LI>item</LI> <!--    item[2]++ (=1) -->
-                        </OL>           <!--                   -->
-                        <OL>            <!--   }{item[2]=0     -->
-                          <LI>item</LI> <!--    item[2]++ (=1) -->
-                        </OL>           <!--                   -->
-                      </LI>             <!--   }               -->
-                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
-                    </OL>               <!--                   -->
-                  </LI>                 <!--  }                -->
-                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
-                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
-                </OL>                   <!--                   -->
-                <OL>                    <!-- }{item[0]=0       -->
-                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
-                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
-                </OL>                   <!--                   -->
+                <OL>                        <!-- {item[0]=0        -->
+                  <LI>item (1)</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item (2)              <!--  item[0]++ (=2)   -->
+                    <OL>                    <!--  {item[1]=0       -->
+                      <LI>item (1)</LI>     <!--   item[1]++ (=1)  -->
+                      <LI>item (2)</LI>     <!--   item[1]++ (=2)  -->
+                      <LI>item (3)          <!--   item[1]++ (=3)  -->
+                        <OL>                <!--   {item[2]=0      -->
+                          <LI>item (1)</LI> <!--    item[2]++ (=1) -->
+                        </OL>               <!--                   -->
+                        <OL>                <!--   }{item[2]=0     -->
+                          <LI>item (1)</LI> <!--    item[2]++ (=1) -->
+                        </OL>               <!--                   -->
+                      </LI>                 <!--   }               -->
+                      <LI>item (4)</LI>     <!--   item[1]++ (=4)  -->
+                    </OL>                   <!--                   -->
+                  </LI>                     <!--  }                -->
+                  <LI>item (3)</LI>         <!--  item[0]++ (=3)   -->
+                  <LI>item (4)</LI>         <!--  item[0]++ (=4)   -->
+                </OL>                       <!--                   -->
+                <OL>                        <!-- }{item[0]=0       -->
+                  <LI>item (1)</LI>         <!--  item[0]++ (=1)   -->
+                  <LI>item (2)</LI>         <!--  item[0]++ (=2)   -->
+                </OL>                       <!--                   -->
              </DIV>
 
               <DIV class="counters">
-                <OL>                    <!-- {item[0]=0        -->
-                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
-                  <LI>item              <!--  item[0]++ (=2)   -->
-                    <OL>                <!--  {item[1]=0       -->
-                      <LI>item</LI>     <!--   item[1]++ (=1)  -->
-                      <LI>item</LI>     <!--   item[1]++ (=2)  -->
-                      <LI>item          <!--   item[1]++ (=3)  -->
-                        <OL>            <!--   {item[2]=0      -->
-                          <LI>item</LI> <!--    item[2]++ (=1) -->
-                        </OL>           <!--                   -->
-                        <OL>            <!--   }{item[2]=0     -->
-                          <LI>item</LI> <!--    item[2]++ (=1) -->
-                        </OL>           <!--                   -->
-                      </LI>             <!--   }               -->
-                      <LI>item</LI>     <!--   item[1]++ (=4)  -->
-                    </OL>               <!--                   -->
-                  </LI>                 <!--  }                -->
-                  <LI>item</LI>         <!--  item[0]++ (=3)   -->
-                  <LI>item</LI>         <!--  item[0]++ (=4)   -->
-                </OL>                   <!--                   -->
-                <OL>                    <!-- }{item[0]=0       -->
-                  <LI>item</LI>         <!--  item[0]++ (=1)   -->
-                  <LI>item</LI>         <!--  item[0]++ (=2)   -->
-                </OL>                   <!--                   -->
+                <OL>                            <!-- {item[0]=0        -->
+                  <LI>item (1)</LI>             <!--  item[0]++ (=1)   -->
+                  <LI>item (2)                  <!--  item[0]++ (=2)   -->
+                    <OL>                        <!--  {item[1]=0       -->
+                      <LI>item (2.1)</LI>       <!--   item[1]++ (=1)  -->
+                      <LI>item (2.2)</LI>       <!--   item[1]++ (=2)  -->
+                      <LI>item (2.3)            <!--   item[1]++ (=3)  -->
+                        <OL>                    <!--   {item[2]=0      -->
+                          <LI>item (2.3.1)</LI> <!--    item[2]++ (=1) -->
+                        </OL>                   <!--                   -->
+                        <OL>                    <!--   }{item[2]=0     -->
+                          <LI>item (2.3.1)</LI> <!--    item[2]++ (=1) -->
+                        </OL>                   <!--                   -->
+                      </LI>                     <!--   }               -->
+                      <LI>item (2.4)</LI>       <!--   item[1]++ (=4)  -->
+                    </OL>                       <!--                   -->
+                  </LI>                         <!--  }                -->
+                  <LI>item (3)</LI>             <!--  item[0]++ (=3)   -->
+                  <LI>item (4)</LI>             <!--  item[0]++ (=4)   -->
+                </OL>                           <!--                   -->
+                <OL>                            <!-- }{item[0]=0       -->
+                  <LI>item (1)</LI>             <!--  item[0]++ (=1)   -->
+                  <LI>item (2)</LI>             <!--  item[0]++ (=2)   -->
+                </OL>                           <!--                   -->
              </DIV>
 
               <DIV class="style">
-                <H1>The 1st head in level 1 (A. )</H1>
+                <H1>The 1st head in level 1 (A.)</H1>
 
-                <H2>The 1st head in level 2 (1.1 )</H2>
+                <H2>The 1st head in level 2 (I)</H2>
                 <P>
                     This is a pragraph.
                 </P>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote [α]
                 </BLOCKQUOTE>
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
 
-                <H2>The 2nd head in level 2 (1.2 )</H2>
+                <H2>The 2nd head in level 2 (II)</H2>
                 <P>
                     This is a pragraph.
                 </P>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote. [β]
                 </BLOCKQUOTE>
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
-                <H2>The 3rd head in level 2 (1.3 )</H2>
+                <H2>The 3rd head in level 2 (III)</H2>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote. [γ]
                 </BLOCKQUOTE>
 
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
 
-                <H1>The 1st head in level 1 (Chapter 2. )</H1>
-                <H2>The 1st head in level 2 (2.1 )</H2>
+                <H1>The 2nd head in level 1 (B.)</H1>
+                <H2>The 4th head in level 2 (I)</H2>
                 <P>
                     This is a pragraph.
                 </P>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote. [δ]
                 </BLOCKQUOTE>
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
 
-                <H2>The 2nd head in level 2 (2.2 )</H2>
+                <H2>The 5th head in level 2 (II)</H2>
                 <P>
                     This is a pragraph.
                 </P>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote. [ε]
                 </BLOCKQUOTE>
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
 
-                <H2>The 3rd head in level 2 (2.3 )</H2>
+                <H2>The 6th head in level 2 (III)</H2>
 
                 <P>
                     This is a pragraph.
                 </P>
                 <BLOCKQUOTE>
-                    This is a blockquote.
+                    This is a blockquote. [ζ]
                 </BLOCKQUOTE>
                 <DIV class="note">
-                   This is a note.
+                   This is a note. (disc)
                 </DIV>
 
               </DIV>
@@ -269,6 +285,10 @@
                 <init as styleCase at '_root' with 'displayBlock' />
             </catch>
         </choose>
+
+        <HEADER>
+            <H1>Used Layout: $styleCase</H1>
+        </HEADER>
 
         <include with ${$styleCase} />
 

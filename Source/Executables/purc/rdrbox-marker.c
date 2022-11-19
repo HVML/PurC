@@ -81,7 +81,7 @@ numbering_decimal_leading_zero(GString *text, int number, int max)
     g_string_set_size(text, len);
 
     ssize_t pos = len - 1;
-    while (number && pos > 0) {
+    while (number && pos >= 0) {
         unsigned r = number % 10;
         number = number / 10;
 
@@ -477,10 +477,8 @@ static void marker_data_cleaner(void *data)
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item)
 {
+    (void)ctxt;
     assert(list_item->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE);
-
-    marker->owner = ctxt->elem;
-    marker->is_anonymous = 1;
 
     /* TODO: copy values of inheritable properties from the principal box */
     marker->color = list_item->color;
@@ -494,7 +492,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     switch (list_item->list_style_type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-        tail = ". ";
+        tail = ".";
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
@@ -505,7 +503,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
-        tail = ") ";
+        tail = ")";
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL:
@@ -513,6 +511,8 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         break;
     }
 
+    printf("list style type: %d, index: %u/%u\n",
+            list_item->list_style_type, index, nr_items);
     data->text = foil_rdrbox_list_number(nr_items, index + 1,
             list_item->list_style_type, tail);
     marker->cb_data_cleanup = marker_data_cleaner;
