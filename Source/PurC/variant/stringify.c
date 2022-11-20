@@ -140,7 +140,7 @@ pcvar_obj_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(",", ctxt, cb);
         if (r)
             return r;
     }
@@ -167,7 +167,7 @@ pcvar_arr_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(";", ctxt, cb);
         if (r)
             return r;
     }
@@ -192,7 +192,7 @@ pcvar_set_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
         if (r)
             return r;
 
-        r = _stringify_str("\n", ctxt, cb);
+        r = _stringify_str(";", ctxt, cb);
         if (r)
             return r;
     }
@@ -209,8 +209,25 @@ pcvar_tuple_stringify(purc_variant_t val, void *ctxt, stringify_f cb)
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(cb);
 
-    PC_ASSERT(0); // Not implemented yet
-    return -1;
+    int r = 0;
+    purc_variant_t *members;
+    size_t sz;
+    members = tuple_members(val, &sz);
+    assert(members);
+
+    purc_variant_t v;
+    for (size_t idx = 0; idx < sz; idx++) {
+        v = members[idx];
+        r = pcvar_stringify(v, ctxt, cb);
+        if (r)
+            return r;
+
+        r = _stringify_str(";", ctxt, cb);
+        if (r)
+            return r;
+    }
+
+    return r;
 }
 
 int

@@ -26,23 +26,47 @@ find_package(LibCheck 0.15.2)
 find_package(LibXml2 2.8.0)
 find_package(HiBus 100)
 find_package(OpenSSL 1.1.1)
+find_package(LibSoup 2.54.0)
+find_package(LibGcrypt 1.6.0)
+find_package(SQLite3 3.10.0)
+find_package(MySQLClient 20.0.0)
+
 #find_package(CURL 7.60.0)
 
-if (ENABLE_BUILD_REMOTE_FETCHER)
-    set(ENABLE_LCMD ON)
-    set(ENABLE_LSQL ON)
-
-    find_package(LibSoup 2.54.0)
-    find_package(LibGcrypt 1.6.0 REQUIRED)
-
-if (ENABLE_LSQL)
-    find_package(SQLite3 3.10.0)
+if (NOT LIBSOUP_FOUND)
+    set(ENABLE_REMOTE_FETCHER_DEFAULT OFF)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_LIBSOUP OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_LIBSOUP ON)
 endif ()
 
-if (ENABLE_RSQL)
-    find_package(MySQLClient 20.0.0)
+if (NOT LIBGCRYPT_FOUND)
+    set(ENABLE_REMOTE_FETCHER_DEFAULT OFF)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_LIBGCRYPT OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_LIBGCRYPT ON)
 endif ()
 
+if (NOT SQLITE3_FOUND)
+    set(ENABLE_LSQL_DEFAULT OFF)
+    set(ENABLE_REMOTE_FETCHER_DEFAULT OFF)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_SQLITE3 OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_SQLITE3 ON)
+endif ()
+
+if (NOT MYSQLCLIENT_FOUND)
+    set(ENABLE_RSQL_DEFAULT OFF)
+    set(ENABLE_REMOTE_FETCHER_DEFAULT OFF)
+    SET_AND_EXPOSE_TO_BUILD(HAVE_MYSQLCLIENT OFF)
+else ()
+    SET_AND_EXPOSE_TO_BUILD(HAVE_MYSQLCLIENT ON)
+endif ()
+
+if (NOT ENABLE_REMOTE_FETCHER_DEFAULT OR NOT ENABLE_REMOTE_FETCHER)
+    set(ENABLE_LCMD OFF)
+    set(ENABLE_LSQL OFF)
+    set(ENABLE_RSQL OFF)
 endif ()
 
 if (NOT GLIB_FOUND)
@@ -90,16 +114,20 @@ else ()
     SET_AND_EXPOSE_TO_BUILD(HAVE_OPENSSL ON)
 endif ()
 
-# Public options specific to the HybridOS port. Do not add any options here unless
+# Public options specific to the Linux port. Do not add any options here unless
 # there is a strong reason we should support changing the value of the option,
 # and the option is not relevant to any other PurC ports.
 #PURC_OPTION_DEFINE(USE_SYSTEMD "Whether to enable journald logging" PUBLIC ON)
 
-# Private options specific to the HybridOS port. Changing these options is
+# Private options specific to the Linux port. Changing these options is
 # completely unsupported. They are intended for use only by PurC developers.
 #PURC_OPTION_DEFINE(USE_ANGLE_WEBGL "Whether to use ANGLE as WebGL backend." PRIVATE OFF)
 #PURC_OPTION_DEPEND(ENABLE_WEBGL ENABLE_GRAPHICS_CONTEXT_GL)
 
+PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_REMOTE_FETCHER PUBLIC ${ENABLE_REMOTE_FETCHER_DEFAULT})
+PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_LCMD PUBLIC ${ENABLE_LCMD_DEFAULT})
+PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_LSQL PUBLIC ${ENABLE_LSQL_DEFAULT})
+PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_RSQL PUBLIC ${ENABLE_RSQL_DEFAULT})
 PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_SOCKET_STREAM PUBLIC ${ENABLE_SOCKET_STREAM_DEFAULT})
 PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_RDR_FOIL PUBLIC ${ENABLE_RDR_FOIL_DEFAULT})
 PURC_OPTION_DEFAULT_PORT_VALUE(ENABLE_XML PUBLIC ${ENABLE_XML_DEFAULT})

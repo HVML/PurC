@@ -17,7 +17,7 @@ add_subdirectory(CSSEng)
 
 add_subdirectory(DOMRuler)
 
-if (ENABLE_BUILD_REMOTE_FETCHER)
+if (ENABLE_REMOTE_FETCHER)
     add_subdirectory(ThirdParty/xdgmime)
     add_subdirectory(RemoteFetcher)
 endif ()

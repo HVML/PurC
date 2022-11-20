@@ -4,11 +4,11 @@
     </head>
 
     <body>
-        <except type="*">
+        <except type=`ANY`>
             you shall not see me
         </except>
         <init as="file" from="FS" via="LOAD" for="file"/>
-        <update on="$@" to="append" with="$EJSON.type($file)"/>
+        <update on="$@" to="append" with="$DATA.type($file)"/>
     </body>
 
 </hvml>

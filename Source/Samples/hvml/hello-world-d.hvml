@@ -1,0 +1,68 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="void">
+
+    $STREAM.stdout.writelines([
+            "Hello, world!     ,--.-,,-,--,       ,-.-.       ___               ",
+            "Hello, world!     /==/  /|=|  |,--.-./=/ ,/.-._ .'=.'\\   _.-.      ",
+            "Hello, world!     |==|_ ||=|, /==/, ||=| -/==/ \\|==|  |.-,.'|      ",
+            "Hello, world!     |==| ,|/=| _\\==\\,  \\ / ,|==|,|  / - |==|, |      ",
+            "Hello, world!     |==|- `-' _ |\\==\\ - ' - /==|  \\/  , |==|- |      ",
+            "Hello, world!     |==|  _     | \\==\\ ,   ||==|- ,   _ |==|, |      ",
+            "Hello, world!     |==|   .-. ,\\ |==| -  ,/|==| _ /\\   |==|- `-._   ",
+            "Hello, world!     /==/, //=/  | \\==\\  _ / /==/  / / , /==/ - , ,/  ",
+            "Hello, world!     `--`-' `-`--`  `--`--'  `--`./  `--``--`-----'   "])
+
+    <body>
+        <div>
+$STREAM.stdout.writelines("""
+Hello, world!     ,--.-,,-,--,       ,-.-.       ___             
+Hello, world!     /==/  /|=|  |,--.-./=/ ,/.-._ .'=.'\   _.-.     
+Hello, world!     |==|_ ||=|, /==/, ||=| -/==/ \|==|  |.-,.'|     
+Hello, world!     |==| ,|/=| _\==\,  \ / ,|==|,|  / - |==|, |     
+Hello, world!     |==|- `-' _ |\==\ - ' - /==|  \/  , |==|- |     
+Hello, world!     |==|  _     | \==\ ,   ||==|- ,   _ |==|, |     
+Hello, world!     |==|   .-. ,\ |==| -  ,/|==| _ /\   |==|- `-._  
+Hello, world!     /==/, //=/  | \==\  _ / /==/  / / , /==/ - , ,/ 
+Hello, world!     `--`-' `-`--`  `--`--'  `--`./  `--``--`-----'  
+""")
+        </div>
+        <div>
+            $STREAM.stdout.writelines("Hello, world!     ,--.-,,-,--,       ,-.-.       ___                ")
+            $STREAM.stdout.writelines("Hello, world!     /==/  /|=|  |,--.-./=/ ,/.-._ .'=.'\\   _.-.      ")
+            $STREAM.stdout.writelines("Hello, world!     |==|_ ||=|, /==/, ||=| -/==/ \\|==|  |.-,.'|      ")
+            $STREAM.stdout.writelines("Hello, world!     |==| ,|/=| _\\==\\,  \\ / ,|==|,|  / - |==|, |    ")
+            $STREAM.stdout.writelines("Hello, world!     |==|- `-' _ |\\==\\ - ' - /==|  \\/  , |==|- |    ")
+            $STREAM.stdout.writelines("Hello, world!     |==|  _     | \\==\\ ,   ||==|- ,   _ |==|, |     ")
+            $STREAM.stdout.writelines("Hello, world!     |==|   .-. ,\\ |==| -  ,/|==| _ /\\   |==|- `-._  ")
+            $STREAM.stdout.writelines("Hello, world!     /==/, //=/  | \\==\\  _ / /==/  / / , /==/ - , ,/ ")
+            $STREAM.stdout.writelines("Hello, world!     `--`-' `-`--`  `--`--'  `--`./  `--``--`-----'    ")
+            $STREAM.stdout.writelines("                                                                    ")
+        </div>
+        <div>
+            {{
+                $STREAM.stdout.writelines("Hello, world!     ,--.-,,-,--,       ,-.-.       ___                ") &&
+                $STREAM.stdout.writelines("Hello, world!     /==/  /|=|  |,--.-./=/ ,/.-._ .'=.'\\   _.-.      ") &&
+                $STREAM.stdout.writelines("Hello, world!     |==|_ ||=|, /==/, ||=| -/==/ \\|==|  |.-,.'|      ") &&
+                $STREAM.stdout.writelines("Hello, world!     |==| ,|/=| _\\==\\,  \\ / ,|==|,|  / - |==|, |    ") &&
+                $STREAM.stdout.writelines("Hello, world!     |==|- `-' _ |\\==\\ - ' - /==|  \\/  , |==|- |    ") &&
+                $STREAM.stdout.writelines("Hello, world!     |==|  _     | \\==\\ ,   ||==|- ,   _ |==|, |     ") &&
+                $STREAM.stdout.writelines("Hello, world!     |==|   .-. ,\\ |==| -  ,/|==| _ /\\   |==|- `-._  ") &&
+                $STREAM.stdout.writelines("Hello, world!     /==/, //=/  | \\==\\  _ / /==/  / / , /==/ - , ,/ ") &&
+                $STREAM.stdout.writelines("Hello, world!     `--`-' `-`--`  `--`--'  `--`./  `--``--`-----'    ") &&
+                $STREAM.stdout.writelines("                                                                    ")
+            }}
+        </div>
+    </body>
+
+    $STREAM.stdout.writelines(
+            "Hello, world!     ,--.-,,-,--,       ,-.-.       ___               ",
+            "Hello, world!     /==/  /|=|  |,--.-./=/ ,/.-._ .'=.'\\   _.-.      ",
+            "Hello, world!     |==|_ ||=|, /==/, ||=| -/==/ \\|==|  |.-,.'|      ",
+            "Hello, world!     |==| ,|/=| _\\==\\,  \\ / ,|==|,|  / - |==|, |      ",
+            "Hello, world!     |==|- `-' _ |\\==\\ - ' - /==|  \\/  , |==|- |      ",
+            "Hello, world!     |==|  _     | \\==\\ ,   ||==|- ,   _ |==|, |      ",
+            "Hello, world!     |==|   .-. ,\\ |==| -  ,/|==| _ /\\   |==|- `-._   ",
+            "Hello, world!     /==/, //=/  | \\==\\  _ / /==/  / / , /==/ - , ,/  ",
+            "Hello, world!     `--`-' `-`--`  `--`--'  `--`./  `--``--`-----'   ")
+</hvml>
+

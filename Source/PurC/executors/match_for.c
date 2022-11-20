@@ -53,7 +53,7 @@ match_for_rule_eval(struct match_for_rule *rule, purc_variant_t val,
         return string_matching_logical_expression_match(smle, val, result);
     }
 
-    double curr = purc_variant_numberify(val);
+    double curr = purc_variant_numerify(val);
     return number_comparing_logical_expression_match(ncle, curr, result);
 }
 

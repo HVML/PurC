@@ -1,6 +1,6 @@
 <hvml>
     <div>
-        $EJSON({
+        $DATA({
                 "id": "$?.attr.data_value", "avatar": "$?.content[0].attr.src",
                 "name": "$?.children[1].textContent", "region": "$?.attr.data_region"
         })

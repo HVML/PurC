@@ -207,10 +207,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
+    UNUSED_PARAM(attr);
     UNUSED_PARAM(ud);
-
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     struct ctxt_for_sort *ctxt;
     ctxt = (struct ctxt_for_sort*)frame->ctxt;
@@ -229,25 +227,21 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASESENSITIVELY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASE)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASEINSENSITIVELY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CASELESS)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->casesensitively= 0;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASCENDINGLY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ASC)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->ascendingly= 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESCENDINGLY)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESC)) == name) {
-        PC_ASSERT(purc_variant_is_undefined(val));
         ctxt->ascendingly= 0;
         return 0;
     }
@@ -336,8 +330,8 @@ comp_raw(purc_variant_t l, purc_variant_t r, bool by_number,
         bool ascendingly, bool casesensitively)
 {
     if (by_number) {
-        double dl = l ? purc_variant_numberify(l) : 0.0f;
-        double dr = r ? purc_variant_numberify(r) : 0.0f;
+        double dl = l ? purc_variant_numerify(l) : 0.0f;
+        double dr = r ? purc_variant_numerify(r) : 0.0f;
         return comp_number(dl, dr, ascendingly);
     }
 
@@ -524,7 +518,6 @@ sort_val(pcintr_stack_t stack, purc_variant_t val)
 {
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
 
     struct ctxt_for_sort *ctxt;
     ctxt = (struct ctxt_for_sort*)frame->ctxt;
@@ -551,10 +544,6 @@ static purc_variant_t
 do_internal(purc_exec_ops_t ops,
         const char *rule, purc_variant_t on, purc_variant_t with)
 {
-    PC_ASSERT(ops->create);
-    PC_ASSERT(ops->choose);
-    PC_ASSERT(ops->destroy);
-
     purc_exec_inst_t exec_inst;
     exec_inst = ops->create(PURC_EXEC_TYPE_CHOOSE, on, false);
     if (!exec_inst)
@@ -564,13 +553,10 @@ do_internal(purc_exec_ops_t ops,
 
     purc_variant_t value;
     value = ops->choose(exec_inst, rule);
-    bool ok;
-    ok = ops->destroy(exec_inst);
-    PC_ASSERT(ok);
+    ops->destroy(exec_inst);
     exec_inst = NULL;
 
     if (value == PURC_VARIANT_INVALID) {
-        PC_ASSERT(purc_get_last_error());
         return PURC_VARIANT_INVALID;
     }
 
@@ -582,16 +568,10 @@ do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
         const char *rule, purc_variant_t on, purc_variant_t with,
         purc_variant_t against, bool desc, bool caseless)
 {
-    PC_ASSERT(ops->chooser);
-    PC_ASSERT(ops->iterator);
-    PC_ASSERT(ops->reducer);
-    PC_ASSERT(ops->sorter);
-
     purc_variant_t value;
     value = ops->sorter(rule, on, with, against, desc, caseless);
 
     if (value == PURC_VARIANT_INVALID) {
-        PC_ASSERT(purc_get_last_error());
         return -1;
     }
 
@@ -606,17 +586,11 @@ do_external_func(struct pcintr_stack_frame *frame, pcexec_func_ops_t ops,
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
     if (stack->except)
         return NULL;
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
 
     struct ctxt_for_sort *ctxt;
     ctxt = (struct ctxt_for_sort*)calloc(1, sizeof(*ctxt));
@@ -633,8 +607,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
     struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     int r;
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
@@ -661,7 +638,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->by != PURC_VARIANT_INVALID) {
         // TODO:
         const char *rule = purc_variant_get_string_const(ctxt->by);
-        PC_ASSERT(rule);
 
         purc_variant_t on   = ctxt->on;
         purc_variant_t with = ctxt->with;
@@ -694,7 +670,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 return ctxt;
 
             default:
-                PC_ASSERT(0);
+                purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+                return ctxt;
         }
     }
     else {
@@ -713,18 +690,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_sort *ctxt;
     ctxt = (struct ctxt_for_sort*)frame->ctxt;
@@ -751,7 +723,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(content);
+    UNUSED_PARAM(content);
 }
 
 static void
@@ -760,19 +732,18 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    UNUSED_PARAM(comment);
 }
 
 
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -812,7 +783,7 @@ again:
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
             {
@@ -827,10 +798,10 @@ again:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 

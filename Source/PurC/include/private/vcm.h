@@ -58,6 +58,8 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_OBJECT,
 #define PCVCM_NODE_TYPE_NAME_ARRAY                  "array"
     PCVCM_NODE_TYPE_ARRAY,
+#define PCVCM_NODE_TYPE_NAME_TUPLE                  "tuple"
+    PCVCM_NODE_TYPE_TUPLE,
 #define PCVCM_NODE_TYPE_NAME_STRING                 "string"
     PCVCM_NODE_TYPE_STRING,
 #define PCVCM_NODE_TYPE_NAME_NULL                   "null"
@@ -92,8 +94,10 @@ enum pcvcm_node_type {
     PCVCM_NODE_TYPE_CJSONEE_OP_OR,
 #define PCVCM_NODE_TYPE_NAME_CJSONEE_OP_SEMICOLON   "cjsonee_op_semicolon"
     PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON,
+#define PCVCM_NODE_TYPE_NAME_CONSTANT               "constant"
+    PCVCM_NODE_TYPE_CONSTANT,
 
-    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON,
+    PCVCM_NODE_TYPE_LAST = PCVCM_NODE_TYPE_CONSTANT,
 };
 
 #define PCVCM_NODE_TYPE_NR \
@@ -175,6 +179,12 @@ struct pcvcm_node *pcvcm_node_new_cjsonee_op_or();
 
 struct pcvcm_node *pcvcm_node_new_cjsonee_op_semicolon();
 
+struct pcvcm_node *pcvcm_node_new_tuple(size_t nr_nodes,
+        struct pcvcm_node **nodes);
+
+struct pcvcm_node *pcvcm_node_new_constant(size_t nr_nodes,
+        struct pcvcm_node **nodes);
+
 static inline enum pcvcm_node_type
 pcvcm_node_get_type(struct pcvcm_node *node) {
     return node->type;
@@ -229,6 +239,15 @@ pcvcm_node_remove_child(struct pcvcm_node *parent, struct pcvcm_node *child)
     if (child) {
         pctree_node_remove(&child->tree_node);
     }
+}
+
+static inline bool
+pcvcm_node_append_child(struct pcvcm_node *parent, struct pcvcm_node *child)
+{
+    if (!child) {
+        return false;
+    }
+    return pctree_node_append_child(&parent->tree_node, &child->tree_node);
 }
 
 char *pcvcm_node_to_string(struct pcvcm_node *node, size_t *nr_bytes);

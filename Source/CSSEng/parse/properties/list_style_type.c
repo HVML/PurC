@@ -41,6 +41,7 @@ css_error css__parse_list_style_type(css_language *c,
 	/* IDENT (disc, circle, square, decimal, decimal-leading-zero,
 	 *	  lower-roman, upper-roman, lower-greek, lower-latin,
 	 *	  upper-latin, armenian, georgian, lower-alpha, upper-alpha,
+	 *	  upper-armenian, lower-armenian, cjk-decimal, tibetan, XXX(VW)
 	 *	  none, inherit)
 	 */
 	ident = parserutils_vector_iterate(vector, ctx);

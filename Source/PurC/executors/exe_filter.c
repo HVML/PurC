@@ -232,7 +232,7 @@ filter_rule_eval(struct filter_rule *rule, purc_variant_t val, bool *result)
         return string_matching_logical_expression_match(smle, val, result);
     }
 
-    double curr = purc_variant_numberify(val);
+    double curr = purc_variant_numerify(val);
     return number_comparing_logical_expression_match(ncle, curr, result);
 }
 
@@ -647,7 +647,7 @@ exe_filter_reduce(purc_exec_inst_t inst, const char* rule)
 
     for(; it; it = it_next(exe_filter_inst, NULL)) {
         purc_variant_t v = it_value(exe_filter_inst);
-        double d = purc_variant_numberify(v);
+        double d = purc_variant_numerify(v);
         ++count;
         if (isnan(d))
             continue;

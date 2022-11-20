@@ -1,0 +1,41 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+    <body>
+        <div>
+            {{
+                $STREAM.stdout.writelines('Hello, world!') || # line comment
+                $STREAM.stdout.writelines('Hello, world!')
+            }}
+        </div>
+        <div>
+            {{
+                $STREAM.stdout.writelines('Hello, world!') # line comment before second
+                || $STREAM.stdout.writelines('Hello, world!')
+            }}
+        </div>
+        <init as="test">
+            {
+                "key": # this is key
+                "v1", # this is value
+                "k2": "v2" # this is comment before comma
+                , "k3" # this is after name
+                : "v3"
+            }
+        </init>
+        <init as="test2">
+            [
+                "v1", # comment after v1 comma
+                "v2" # comment before v2 comma
+                ,"v3"
+            ]
+        </init>
+        <init as="test3">
+        {
+            "key":{"a":1}# comment after right brace
+            , "key2":[1, 2, 3]# comment after right bracket
+            , "key3": $abc(1, 2)# comment after right parenthesis
+            , "key4": $xyz# comment after variable
+        }
+        </init>
+    </body>
+</hvml>

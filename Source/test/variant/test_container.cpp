@@ -280,8 +280,8 @@ static inline int
 cmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
     (void)ud;
-    double dl = purc_variant_numberify(l);
-    double dr = purc_variant_numberify(r);
+    double dl = purc_variant_numerify(l);
+    double dr = purc_variant_numerify(r);
 
     if (dl < dr)
         return -1;

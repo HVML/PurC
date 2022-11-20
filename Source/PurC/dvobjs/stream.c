@@ -557,48 +557,52 @@ writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
         goto out;
     }
 
-    data = argv[0];
-    enum purc_variant_type type = purc_variant_get_type(data);
+    for (size_t i = 0; i < nr_args; i++) {
+        data = argv[i];
+        enum purc_variant_type type = purc_variant_get_type(data);
 
-    switch (type) {
-    case PURC_VARIANT_TYPE_STRING:
-        break;
-    case PURC_VARIANT_TYPE_ARRAY:
-        {
-            size_t sz_array = purc_variant_array_get_size(data);
-            for (size_t i = 0; i < sz_array; i++) {
-                if (!purc_variant_is_string(
-                            purc_variant_array_get(data, i))) {
-                    purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                    goto out;
+        switch (type) {
+        case PURC_VARIANT_TYPE_STRING:
+            break;
+        case PURC_VARIANT_TYPE_ARRAY:
+        case PURC_VARIANT_TYPE_SET:
+        case PURC_VARIANT_TYPE_TUPLE:
+            {
+                size_t sz_container = purc_variant_linear_container_get_size(data);
+                for (size_t i = 0; i < sz_container; i++) {
+                    if (!purc_variant_is_string(
+                                purc_variant_linear_container_get(data, i))) {
+                        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                        goto out;
+                    }
                 }
             }
+            break;
+        default:
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto out;
         }
-        break;
-    default:
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto out;
-    }
 
-    const char *buffer = NULL;
-    ssize_t buffer_size = 0;
-    if (purc_variant_is_string(data)) {
-        buffer = (const char *)purc_variant_get_string_const(data);
-        buffer_size = strlen(buffer);
-        if (buffer && buffer_size > 0) {
-            nr_write = purc_rwstream_write (rwstream, buffer, buffer_size);
-            nr_write += purc_rwstream_write(rwstream, "\n", 1);
-        }
-    }
-    else {
-        size_t sz_array = purc_variant_array_get_size(data);
-        for (size_t i = 0; i < sz_array; i++) {
-            purc_variant_t var = purc_variant_array_get(data, i);
-            buffer = (const char *)purc_variant_get_string_const(var);
-            buffer_size = strlen(buffer);
+        const char *buffer = NULL;
+        size_t buffer_size = 0;
+        if (purc_variant_is_string(data)) {
+            buffer = (const char *)purc_variant_get_string_const_ex(data,
+                    &buffer_size);
             if (buffer && buffer_size > 0) {
-                nr_write += purc_rwstream_write (rwstream, buffer, buffer_size);
+                nr_write += purc_rwstream_write(rwstream, buffer, buffer_size);
                 nr_write += purc_rwstream_write(rwstream, "\n", 1);
+            }
+        }
+        else {
+            size_t sz_container = purc_variant_linear_container_get_size(data);
+            for (size_t i = 0; i < sz_container; i++) {
+                purc_variant_t var = purc_variant_linear_container_get(data, i);
+                buffer = (const char *)purc_variant_get_string_const_ex(var,
+                        &buffer_size);
+                if (buffer && buffer_size > 0) {
+                    nr_write += purc_rwstream_write(rwstream, buffer, buffer_size);
+                    nr_write += purc_rwstream_write(rwstream, "\n", 1);
+                }
             }
         }
     }
@@ -1333,8 +1337,11 @@ out:
 
 #define MAX_NR_ARGS 1024
 
+#ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wclobbered"
+#endif
+
 static
 struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
         purc_variant_t option)
@@ -1498,7 +1505,10 @@ out_close_fd:
     close(pipefd_stdout[1]);
     return NULL;
 }
+
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 
 static
 struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,

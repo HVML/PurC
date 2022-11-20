@@ -1477,8 +1477,8 @@ bool purc_variant_cast_to_byte_sequence(purc_variant_t v,
 static int compare_number_method (purc_variant_t v1, purc_variant_t v2)
 {
     int ret = 0;
-    double number1 = purc_variant_numberify (v1);
-    double number2 = purc_variant_numberify (v2);
+    double number1 = purc_variant_numerify (v1);
+    double number2 = purc_variant_numerify (v2);
 
     if (equal_doubles (number1, number2))
         ret = 0;
@@ -1851,7 +1851,7 @@ bool purc_variant_unload_dvobj (purc_variant_t dvobj)
 }
 
 static double
-numberify_str(const char *s)
+numerify_str(const char *s)
 {
     if (!s || !*s)
         return 0.0;
@@ -1860,7 +1860,7 @@ numberify_str(const char *s)
 }
 
 static double
-numberify_bs(const unsigned char *s, size_t nr)
+numerify_bs(const unsigned char *s, size_t nr)
 {
     if (!s || nr == 0)
         return 0.0;
@@ -1887,7 +1887,7 @@ numberify_bs(const unsigned char *s, size_t nr)
 }
 
 static double
-numberify_dynamic(purc_variant_t value)
+numerify_dynamic(purc_variant_t value)
 {
     purc_dvariant_method getter;
     getter = purc_variant_dynamic_get_getter(value);
@@ -1899,14 +1899,14 @@ numberify_dynamic(purc_variant_t value)
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
-    double d = purc_variant_numberify(v);
+    double d = purc_variant_numerify(v);
     purc_variant_unref(v);
 
     return d;
 }
 
 static double
-numberify_native(purc_variant_t value)
+numerify_native(purc_variant_t value)
 {
     void *native = value->ptr_ptr[0];
 
@@ -1924,14 +1924,14 @@ numberify_native(purc_variant_t value)
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
-    double d = purc_variant_numberify(v);
+    double d = purc_variant_numerify(v);
     purc_variant_unref(v);
 
     return d;
 }
 
 static double
-numberify_array(purc_variant_t value)
+numerify_array(purc_variant_t value)
 {
     size_t sz;
     if (!purc_variant_array_size(value, &sz))
@@ -1941,40 +1941,40 @@ numberify_array(purc_variant_t value)
 
     for (size_t i=0; i<sz; ++i) {
         purc_variant_t v = purc_variant_array_get(value, i);
-        d += purc_variant_numberify(v);
+        d += purc_variant_numerify(v);
     }
 
     return d;
 }
 
 static double
-numberify_object(purc_variant_t value)
+numerify_object(purc_variant_t value)
 {
     double d = 0.0;
 
     purc_variant_t v;
     foreach_value_in_variant_object(value, v)
-        d += purc_variant_numberify(v);
+        d += purc_variant_numerify(v);
     end_foreach;
 
     return d;
 }
 
 static double
-numberify_set(purc_variant_t value)
+numerify_set(purc_variant_t value)
 {
     double d = 0.0;
 
     purc_variant_t v;
     foreach_value_in_variant_set_order(value, v)
-        d += purc_variant_numberify(v);
+        d += purc_variant_numerify(v);
     end_foreach;
 
     return d;
 }
 
 static double
-numberify_tuple(purc_variant_t value)
+numerify_tuple(purc_variant_t value)
 {
     purc_variant_t *members;
     size_t sz;
@@ -1984,14 +1984,14 @@ numberify_tuple(purc_variant_t value)
 
     double d = 0;
     for (size_t n = 0; n < sz; n++) {
-        d += purc_variant_numberify(members[n]);
+        d += purc_variant_numerify(members[n]);
     }
 
     return d;
 }
 
 double
-purc_variant_numberify(purc_variant_t value)
+purc_variant_numerify(purc_variant_t value)
 {
     PC_ASSERT(value != PURC_VARIANT_INVALID);
 
@@ -2020,25 +2020,25 @@ purc_variant_numberify(purc_variant_t value)
             return value->ld;
         case PURC_VARIANT_TYPE_ATOMSTRING:
             s = purc_variant_get_atom_string_const(value);
-            return numberify_str(s);
+            return numerify_str(s);
         case PURC_VARIANT_TYPE_STRING:
             s = purc_variant_get_string_const(value);
-            return numberify_str(s);
+            return numerify_str(s);
         case PURC_VARIANT_TYPE_BSEQUENCE:
             bs = purc_variant_get_bytes_const(value, &nr);
-            return numberify_bs(bs, nr);
+            return numerify_bs(bs, nr);
         case PURC_VARIANT_TYPE_DYNAMIC:
-            return numberify_dynamic(value);
+            return numerify_dynamic(value);
         case PURC_VARIANT_TYPE_NATIVE:
-            return numberify_native(value);
+            return numerify_native(value);
         case PURC_VARIANT_TYPE_OBJECT:
-            return numberify_object(value);
+            return numerify_object(value);
         case PURC_VARIANT_TYPE_ARRAY:
-            return numberify_array(value);
+            return numerify_array(value);
         case PURC_VARIANT_TYPE_SET:
-            return numberify_set(value);
+            return numerify_set(value);
         case PURC_VARIANT_TYPE_TUPLE:
-            return numberify_tuple(value);
+            return numerify_tuple(value);
         default:
             PC_ASSERT(0);
             break;
@@ -2054,7 +2054,7 @@ booleanize_str(const char *s)
     if (!s || !*s)
         return false;
 
-    return numberify_str(s) != 0.0 ? true : false;
+    return numerify_str(s) != 0.0 ? true : false;
 }
 
 static bool
@@ -2063,7 +2063,7 @@ booleanize_bs(const unsigned char *s, size_t nr)
     if (!s || nr == 0)
         return false;
 
-    return numberify_bs(s, nr) != 0.0 ? true : false;
+    return numerify_bs(s, nr) != 0.0 ? true : false;
 }
 #endif
 
@@ -2151,18 +2151,18 @@ purc_variant_booleanize(purc_variant_t value)
 
     case PURC_VARIANT_TYPE_OBJECT:
         return purc_variant_object_get_size(value) != 0;
-        // return numberify_object(value) != 0.0 ? true : false;
+        // return numerify_object(value) != 0.0 ? true : false;
 
     case PURC_VARIANT_TYPE_ARRAY:
         return purc_variant_array_get_size(value) != 0;
-        // return numberify_array(value) != 0.0 ? true : false;
+        // return numerify_array(value) != 0.0 ? true : false;
 
     case PURC_VARIANT_TYPE_SET:
         return purc_variant_set_get_size(value) != 0;
-        // return numberify_set(value) != 0.0 ? true : false;
+        // return numerify_set(value) != 0.0 ? true : false;
 
     case PURC_VARIANT_TYPE_TUPLE:
-        return true;
+        return purc_variant_tuple_get_size(value) != 0;
 
     case PURC_VARIANT_TYPE_DYNAMIC:
         return booleanize_dynamic(value);
@@ -3048,10 +3048,10 @@ u64_diff(uint64_t l, uint64_t r)
 };
 
 static int
-str_numberify_diff(const char *l, const char *r)
+str_numerify_diff(const char *l, const char *r)
 {
-    double ld = numberify_str(l);
-    double rd = numberify_str(r);
+    double ld = numerify_str(l);
+    double rd = numerify_str(r);
 
     return number_diff(ld, rd);
 }
@@ -3068,7 +3068,7 @@ str_diff(const char *l, const char *r, struct comp_ex_data *data)
             return strcmp(ls, rs);
 
         case PCVARIANT_COMPARE_OPT_NUMBER:
-            return str_numberify_diff(ls, rs);
+            return str_numerify_diff(ls, rs);
 
         case PCVARIANT_COMPARE_OPT_CASE:
             return strcmp(ls, rs);
@@ -3097,7 +3097,7 @@ atom_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
         case PCVARIANT_COMPARE_OPT_NUMBER:
             ls = purc_atom_to_string(l->atom);
             rs = purc_atom_to_string(r->atom);
-            return str_numberify_diff(ls, rs);
+            return str_numerify_diff(ls, rs);
 
         case PCVARIANT_COMPARE_OPT_CASE:
             ls = purc_atom_to_string(l->atom);
@@ -3204,10 +3204,10 @@ homo_scalar_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
 }
 
 static int
-numberify_diff(purc_variant_t l, purc_variant_t r)
+numerify_diff(purc_variant_t l, purc_variant_t r)
 {
-    double ld = purc_variant_numberify(l);
-    double rd = purc_variant_numberify(r);
+    double ld = purc_variant_numerify(l);
+    double rd = purc_variant_numerify(r);
 
     return number_diff(ld, rd);
 }
@@ -3331,7 +3331,7 @@ scalar_diff(purc_variant_t l, purc_variant_t r, void *ctxt)
                 return data->diff;
 
             case PCVARIANT_COMPARE_OPT_NUMBER:
-                data->diff = numberify_diff(l, r);
+                data->diff = numerify_diff(l, r);
                 return data->diff;
 
             case PCVARIANT_COMPARE_OPT_CASE:

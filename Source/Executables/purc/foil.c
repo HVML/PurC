@@ -100,6 +100,9 @@ static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
             pcmcth_endpoint *edpt = retrieve_endpoint(rdr, origin_edpt);
             if (edpt) {
                 del_endpoint(rdr, edpt, CDE_EXITING);
+                if (rdr->nr_endpoints == 0) {
+                    goto no_any_endpoints;
+                }
             }
             else {
                 purc_set_error(PCRDR_ERROR_PROTOCOL);
@@ -225,6 +228,7 @@ static void* foil_thread_entry(void* arg)
     }
 
     if (ret == PURC_ERROR_OK) {
+        LOG_INFO("Foil is going to be cleaned up and the thread is exiting.\n");
         purc_cleanup();
     }
 
@@ -233,11 +237,11 @@ static void* foil_thread_entry(void* arg)
 
 #define SEM_NAME_SYNC_START     "sync-foil-start"
 
+static pthread_t foil_th;
 purc_atom_t foil_init(const char *rdr_uri)
 {
     int ret;
     struct thread_arg arg;
-    pthread_t th;
 
     char app_name[PURC_LEN_APP_NAME + 1];
     if (purc_extract_app_name(rdr_uri, app_name) == 0) {
@@ -265,7 +269,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 
     arg.app_name = app_name;
     arg.run_name = run_name;
-    ret = pthread_create(&th, &attr, foil_thread_entry, &arg);
+    ret = pthread_create(&foil_th, &attr, foil_thread_entry, &arg);
     if (ret) {
         purc_log_error("failed to create thread for built-in renderer: %s\n",
                 strerror(errno));
@@ -283,5 +287,10 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 failed:
     pthread_attr_destroy(&attr);
     return 0;
+}
+
+void foil_sync_exit(void)
+{
+    pthread_join(foil_th, NULL);
 }
 

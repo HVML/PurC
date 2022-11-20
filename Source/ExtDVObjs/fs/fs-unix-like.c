@@ -525,6 +525,7 @@ static const char *get_dir_path (const char *string_path,
     return string_path;
 }
 
+#if OS(LINUX)
 static bool find_mountpoint (char *dir)
 {
     // On Linux, slash (/) is used as directory separator character.
@@ -578,6 +579,7 @@ static bool find_mountpoint (char *dir)
     // printf ("------ find_mountpoint: search to '/'\n");
     return true;
 }
+#endif
 
 
 enum {
@@ -1845,7 +1847,9 @@ disk_usage_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     const char *string_dir = NULL;
+#if OS(LINUX)
     char mntpoint_buffer[PATH_MAX + 1];
+#endif
     struct statfs fsu;
     struct stat   st;
     purc_variant_t val = PURC_VARIANT_INVALID;

@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if 0
 static inline
 bool hl_verify_handler(DOMRulerNodeOp *op)
 {
@@ -46,6 +47,7 @@ bool hl_verify_handler(DOMRulerNodeOp *op)
     }
     return true;
 }
+#endif
 
 struct DOMRulerCtxt *domruler_create(uint32_t width, uint32_t height,
         uint32_t dpi, uint32_t density)

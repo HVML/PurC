@@ -106,7 +106,6 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
             smsg = MSG_TYPE_CHANGE;
             break;
         default:
-            PC_ASSERT(0);
             break;
     }
 
@@ -176,7 +175,6 @@ regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
                 PCVAR_OPERATION_CHANGE, base_variant_msg_listener, stack);
     }
     else {
-        PC_ASSERT(0);
         return false;
     }
 
@@ -394,10 +392,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_attr *attr,
         void *ud)
 {
+    UNUSED_PARAM(attr);
     UNUSED_PARAM(ud);
-
-    PC_ASSERT(name);
-    PC_ASSERT(attr->op == PCHVML_ATTRIBUTE_OPERATOR);
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
         return process_attr_for(frame, element, name, val);
@@ -456,7 +452,6 @@ register_named_var_observer(pcintr_stack_t stack,
     purc_variant_t at = pcintr_get_at_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
-    PC_ASSERT(edom_element);
 
     struct pcintr_observer *result = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
@@ -482,7 +477,6 @@ register_native_var_observer(pcintr_stack_t stack,
     purc_variant_t observed = on;
     struct pcintr_observer *observer = NULL;
     struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
-    PC_ASSERT(ops && ops->on_observe);
 
     void *native_entity = purc_variant_native_get_entity(observed);
 
@@ -496,7 +490,6 @@ register_native_var_observer(pcintr_stack_t stack,
     purc_variant_t at = pcintr_get_at_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
-    PC_ASSERT(edom_element);
 
     observer = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
@@ -562,7 +555,6 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     purc_variant_t at = pcintr_get_at_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
-    PC_ASSERT(edom_element);
 
     return pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
@@ -611,7 +603,6 @@ register_default_observer(pcintr_stack_t stack,
     purc_variant_t at = pcintr_get_at_var(frame);
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
-    PC_ASSERT(edom_element);
 
     return pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
@@ -673,8 +664,6 @@ process_variant_observer(pcintr_stack_t stack,
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
-
     if (stack->except)
         return NULL;
 
@@ -682,12 +671,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-
-    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
-                ignore_content)) {
-        return NULL;
-    }
 
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)calloc(1, sizeof(*ctxt));
@@ -701,15 +684,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     frame->pos = pos; // ATTENTION!!
 
+    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
+                ignore_content)) {
+        return NULL;
+    }
+
     if (NULL == pcintr_stack_frame_get_parent(frame)) {
-        PC_ASSERT(frame->edom_element);
-        purc_variant_t at = pcintr_get_at_var(frame);
-        PC_ASSERT(!purc_variant_is_undefined(at));
         return ctxt;
     }
 
     struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     int r;
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
@@ -794,7 +779,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (observer == NULL) {
-        PC_ASSERT(purc_get_last_error());
         return ctxt;
     }
 
@@ -828,18 +812,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
@@ -893,14 +872,14 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    UNUSED_PARAM(comment);
 }
 
 
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     if (stack->co->stage == CO_STAGE_FIRST_RUN) {
         return NULL;
@@ -909,7 +888,6 @@ select_child(pcintr_stack_t stack, void* ud)
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
@@ -953,14 +931,12 @@ again:
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
             {
                 pcvdom_element_t element = PCVDOM_ELEMENT_FROM_NODE(curr);
                 on_element(co, frame, element);
-// FIXME:
-//                PC_ASSERT(stack->except == 0);
                 return element;
             }
         case PCVDOM_NODE_CONTENT:
@@ -970,10 +946,10 @@ again:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 

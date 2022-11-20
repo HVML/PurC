@@ -20,7 +20,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<hvml target="void">
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),10) with=callGetter(getElement(getVariable("EJSON"),"arith"),"+",getVariable("0<"),1) nosetotail>
+PCHVML_TOKEN_START_TAG|<iterate on=0 onlyif=callGetter(getElement(getVariable("L"),"lt"),getVariable("0<"),10) with=callGetter(getElement(getVariable("DATA"),"arith"),"+",getVariable("0<"),1) nosetotail>
 PCHVML_TOKEN_VCM_TREE|"
         "
 PCHVML_TOKEN_START_TAG|<inherit>

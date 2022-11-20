@@ -1,0 +1,27 @@
+<hvml target="html">
+    <head>
+    </head>
+    <body>
+        <init as 'tupleData' with [! 1, 2, 3]>
+        </init>
+        <init as 'content'>
+            [!
+                "abc",
+                1,
+                "def",
+                2
+            ]
+        </init>
+        <init as 'objectContent'>
+            {
+                "key":
+                [!
+                    "abc",
+                    1,
+                    "def",
+                    2
+                ]
+            }
+        </init>
+    </body>
+</hvml>

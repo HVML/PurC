@@ -522,7 +522,7 @@ static int calc_hanged_glyphs_extent(my_glyph_args* args,
         }
     }
 
-    LOG_DEBUG("hanged_start(%d) hanged_end(%d) n(%d) hanged_extent(%d)\n",
+    LOG_DEBUG("hanged_start(%ld) hanged_end(%ld) n(%d) hanged_extent(%d)\n",
         args->hanged_start, args->hanged_end, n, hanged_extent);
 
     return hanged_extent;
@@ -652,7 +652,7 @@ static int calc_hanged_glyphs_end(my_glyph_args* args,
         pos[i].hanged = gis[i].hanged;
     }
 
-    LOG_DEBUG("hanged_start(%d) hanged_end(%d) n(%d) hanged_extent(%d)\n",
+    LOG_DEBUG("hanged_start(%ld) hanged_end(%ld) n(%d) hanged_extent(%d)\n",
         args->hanged_start, args->hanged_end, n, hanged_extent);
 
     return hanged_extent;
@@ -765,6 +765,7 @@ static void init_glyph_info(my_glyph_args* args, int i,
     gi->orientation = FOIL_GLYPH_ORIENT_UPRIGHT;
 }
 
+#if 0
 static inline int shrink_total_extent(my_glyph_args* args, int total_extent,
         const foil_glyph_extinfo* ges)
 {
@@ -772,6 +773,7 @@ static inline int shrink_total_extent(my_glyph_args* args, int total_extent,
     return total_extent - ges->line_adv;
 
 }
+#endif
 
 static int get_glyph_extent_info(my_glyph_args* args, uint32_t gv,
         my_glyph_info* gi, foil_glyph_extinfo* ges)

@@ -211,6 +211,32 @@ rebuild_set_ex(purc_variant_t set, pcutils_map *cache)
 }
 
 static purc_variant_t
+rebuild_tuple_ex(purc_variant_t tuple, pcutils_map *cache)
+{
+    struct pcutils_map_entry *entry;
+    entry = pcutils_map_find(cache, tuple);
+    if (entry) {
+        PC_ASSERT(entry->val);
+        return purc_variant_ref((purc_variant_t)entry->val);
+    }
+
+    size_t sz;
+    purc_variant_t *members;
+    members = tuple_members(tuple, &sz);
+
+    purc_variant_t _new = purc_variant_make_tuple(sz, members);
+    if (_new == PURC_VARIANT_INVALID)
+        return PURC_VARIANT_INVALID;
+
+    int r =  pcutils_map_insert(cache, tuple, _new);
+    if (r) {
+        PURC_VARIANT_SAFE_CLEAR(_new);
+        return PURC_VARIANT_INVALID;
+    }
+    return _new;
+}
+
+static purc_variant_t
 rebuild_ex(purc_variant_t val, pcutils_map *cache)
 {
     switch (val->type) {
@@ -220,6 +246,8 @@ rebuild_ex(purc_variant_t val, pcutils_map *cache)
             return rebuild_obj_ex(val, cache);
         case PURC_VARIANT_TYPE_SET:
             return rebuild_set_ex(val, cache);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return rebuild_tuple_ex(val, cache);
         default:
             return purc_variant_ref(val);
     }
@@ -290,6 +318,7 @@ reverse_check(struct reverse_checker *checker)
     variant_arr_t arr_data;
     variant_obj_t obj_data;
     variant_set_t set_data;
+    variant_tuple_t tuple_data;
 
 again:
     nr = pcutils_map_get_size(checker->input);
@@ -319,6 +348,10 @@ again:
             case PURC_VARIANT_TYPE_SET:
                 set_data = pcvar_set_get_data(_old);
                 r = reverse_check_chain(set_data->rev_update_chain, checker);
+                break;
+            case PURC_VARIANT_TYPE_TUPLE:
+                tuple_data = pcvar_tuple_get_data(_old);
+                r = reverse_check_chain(tuple_data->rev_update_chain, checker);
                 break;
             default:
                 PC_ASSERT(0);
@@ -416,6 +449,7 @@ get_chain(purc_variant_t val)
     variant_arr_t arr_data;
     variant_obj_t obj_data;
     variant_set_t set_data;
+    variant_tuple_t tuple_data;
 
     switch (val->type) {
         case PURC_VARIANT_TYPE_ARRAY:
@@ -427,6 +461,9 @@ get_chain(purc_variant_t val)
         case PURC_VARIANT_TYPE_SET:
             set_data = pcvar_set_get_data(val);
             return set_data->rev_update_chain;
+        case PURC_VARIANT_TYPE_TUPLE:
+            tuple_data = pcvar_tuple_get_data(val);
+            return tuple_data->rev_update_chain;
         default:
             PC_ASSERT(0);
             break;

@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON(['single quote'])></hvml>
+<hvml ejson=$DATA(['single quote'])></hvml>

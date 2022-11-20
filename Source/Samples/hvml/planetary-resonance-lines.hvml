@@ -51,7 +51,7 @@ svg {
                 <circle id="earthorbit" cx="250" cy="250" r="165" />
             </g>
             <g id="lineGroup" transform="rotate(-90 250 250)">
-                <iterate on 0 onlyif $L.le($0<, 300) with $EJSON.arith('+', $0<, 1) nosetotail >
+                <iterate on 0 onlyif $L.le($0<, 300) with $DATA.arith('+', $0<, 1) nosetotail >
                     <line id="line$?" x1="0" y1="0" x2="1" y2="1" stroke="hsla(0, 50%, 50%, 0)" />
                 </iterate>
             </g>

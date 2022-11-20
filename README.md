@@ -574,7 +574,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.9.0) - a standalone HVML interpreter/debugger based-on PurC.
+purc (0.9.2) - a standalone HVML interpreter/debugger based-on PurC.
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -612,10 +612,14 @@ The following options can be supplied to the command:
             - For the renderer comm method `socket`,
               default value is `unix:///var/tmp/purcmc.sock`.
 
-  -t --request=< json_file | - >
+  -j --request=< json_file | - >
         The JSON file contains the request data which will be passed to
         the HVML programs; use `-` if the JSON data will be given through
-        stdin stream.
+        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)
+
+  -q --query=< query_string >
+        Use a URL query string (in RFC 3986) for the request data which will be passed to
+        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.
 
   -l --parallel
         Execute multiple programs in parallel.
@@ -869,7 +873,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### CSSEng
 
+CSSEng is derived from LibCSS, LibParserUtils, and LibWapcaplet of [NetSurf project](https://www.netsurf-browser.org/).
+
+These libraries are all licensed under MIT License.
+
+Copyright 2007 ~ 2020 developers of NetSurf project.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+           to deal in the Software without restriction, including without limitation the rights to use,
+           copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+           and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The new source files developed by FMSoft are licensed under LGPLv3:
+
+Copyright (C) 2021, 2022 [FMSoft Technologies]
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ### DOMRuler
+
+Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General License for more details.
+
+You should have received a copy of the GNU Lesser General License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### ExtDVObjs/fs
 
@@ -890,6 +945,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
+
+Copyright (C) 2022 [FMSoft Technologies]
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+### purc-fetcher
 
 Copyright (C) 2022 [FMSoft Technologies]
 

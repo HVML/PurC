@@ -335,8 +335,8 @@ pcutils_unichar_to_utf8(uint32_t uc, unsigned char* mchar)
     return len;
 }
 
-static uint32_t
-utf8_to_uc(const char* mchar)
+uint32_t
+pcutils_utf8_to_unichar(const unsigned char* mchar)
 {
     uint32_t uc = *((unsigned char *)(mchar++));
     int n, t;
@@ -585,7 +585,7 @@ pcutils_string_encode_utf16le(const char* utf8, size_t len, size_t nr_chars,
         uint16_t w1, w2;
         size_t len;
 
-        uc = utf8_to_uc(p);
+        uc = pcutils_utf8_to_unichar((const unsigned char *)p);
         if (uc > 0x10FFFF) {
             break;
         }
@@ -645,7 +645,7 @@ pcutils_string_encode_utf32le(const char* utf8, size_t len, size_t nr_chars,
     while (nr_chars > 0 && *p) {
         uint32_t uc;
 
-        uc = utf8_to_uc(p);
+        uc = pcutils_utf8_to_unichar((const unsigned char *)p);
         if (uc > 0x10FFFF) {
             break;
         }
@@ -689,7 +689,7 @@ pcutils_string_encode_utf16be(const char* utf8, size_t len, size_t nr_chars,
         uint16_t w1, w2;
         size_t len;
 
-        uc = utf8_to_uc(p);
+        uc = pcutils_utf8_to_unichar((const unsigned char *)p);
         if (uc > 0x10FFFF) {
             break;
         }
@@ -749,7 +749,7 @@ pcutils_string_encode_utf32be(const char* utf8, size_t len, size_t nr_chars,
     while (nr_chars > 0 && *p) {
         uint32_t uc;
 
-        uc = utf8_to_uc(p);
+        uc = pcutils_utf8_to_unichar((const unsigned char *)p);
         if (uc > 0x10FFFF) {
             break;
         }
@@ -814,7 +814,7 @@ pcutils_string_decode_utf8(uint32_t *ucs, size_t max_chars,
     size_t n = 0;
 
     while (*p && n < max_chars) {
-        ucs[n] = utf8_to_uc(p);
+        ucs[n] = pcutils_utf8_to_unichar((const unsigned char *)p);
         p = pcutils_utf8_next_char(p);
         n++;
     }
@@ -840,7 +840,7 @@ pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
     const char *p = str_utf8;
     n = 0;
     while (*p) {
-        ucs[n] = utf8_to_uc(p);
+        ucs[n] = pcutils_utf8_to_unichar((const unsigned char *)p);
         p = pcutils_utf8_next_char(p);
         n++;
     }

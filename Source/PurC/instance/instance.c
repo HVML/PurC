@@ -22,9 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "purc.h"
-
 #include "config.h"
+
+#include "purc.h"
 
 #include "private/instance.h"
 #include "private/errors.h"
@@ -64,6 +64,7 @@
 
 static struct const_str_atom _except_names[] = {
     { "OK", 0 },
+    { "ANY", 0 },
     { "Again", 0 },
     { "BadEncoding", 0 },
     { "BadHVMLTag", 0 },

@@ -12,7 +12,7 @@
     <body id="main">
         <update on $RUNNER.myObj to "merge" with { 'channel0': [], 'primes': [] } />
 
-        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <iterate on 0 onlyif $L.lt($0<, $REQ.nrPrimes) with $DATA.arith('+', $0<, 1) nosetotail >
             <init as channelIdx with "$?" />
             <init as inChannel with "channel$?" />
             <observe on $RUNNER.myObj[$inChannel] for "grown" >
@@ -27,17 +27,17 @@
     </body>
 
     <body id="first">
-        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $EJSON.arith('+', $0<, 1) nosetotail >
+        <iterate on 2 onlyif $L.lt($0<, $REQ.maxn) with $DATA.arith('+', $0<, 1) nosetotail >
             <update on $RUNNER.myObj.channel0 to append with $? />
         </iterate>
     </body>
 
     <body id="sieve">
         <init as inChannel with "channel$REQ.idx" />
-        <init as outChannel with "channel$EJSON.arith('+', $REQ.idx, 1)" />
+        <init as outChannel with "channel$DATA.arith('+', $REQ.idx, 1)" />
 
         <observe on $RUNNER.myObj[$inChannel] for "grown" >
-            <test with $EJSON.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
+            <test with $DATA.arith('%', $RUNNER.myObj[$inChannel][-1], $REQ.prime)) >
                 <update on $RUNNER.myObj[$outChannel] to "append" with $RUNNER.myObj[$inChannel][-1] />
             </test>
         </observe>

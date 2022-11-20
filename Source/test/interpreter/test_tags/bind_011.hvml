@@ -20,18 +20,18 @@
     <body>
         <bind on="$data" as="btns" />
         <div>
-            $EJSON.count($btns.eval)
+            $DATA.count($btns.eval)
         </div>
         <div id="grandparent">
             <div id="temp">
                 <bind on="$buttons" temporarily as="btns" at="_topmost"/>
                 <div>
-                    $EJSON.count($btns.eval)
+                    $DATA.count($btns.eval)
                 </div>
             </div>
         </div>
         <div>
-            $EJSON.count($btns.eval)
+            $DATA.count($btns.eval)
         </div>
     </body>
 

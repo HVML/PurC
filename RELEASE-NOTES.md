@@ -1,8 +1,28 @@
 # Release Notes
 
+- [Version 0.9.2](#version-092)
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.2
+
+On Nov. 30, 2022, HVML Community announces the availability of PurC 0.9.2,
+   which is also the forth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.2
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+* ADJUSTMENTS:
+* ENHANCEMENTS:
+   * Support for using a URL query string (in RFC 3986) for the request data of `purc`.
+* OPTIMIZATIONS:
+* IMPROVEMENTS:
+* BUGFIXES:
 
 ## Version 0.9.0
 
@@ -31,7 +51,26 @@ In this version, we fixed some bugs and made som enhancements:
    * Rename macro `PCA_ENABLE_RENDERER_PURCMC` to `PCA_ENABLE_RENDERER_SOCKET`.
 * ADJUSTMENTS:
    * Use `edpt://` instead of `@` as the schema of an endpoint URI.
+   * Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
+   * Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 * ENHANCEMENTS:
+   * Basic support for the new variant type: tuple.
+   * Improve the implementation of the element `bind`:
+      - The support for the adverb attribute `constantly`.
+      - The support for the substituting expression.
+   * Improve the element `init` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
+   * Improve the data fetcher to generate the progress events when fetching data.
+   * Improve the function to get data from remote data fetcher:
+      - The element `archetype`: support for `src`, `param`, and `method` attributes.
+      - The element `archedata`: support for `src`, `param`, and `method` attributes.
+      - The element `execpt`: support for `src`, `param`, and `method` attributes.
+      - The element `init`: support for `from`, `with`, and `via` attrigbutes.
+      - The element `define`: support for `from`, `with`, and `via` attributes.
+      - The element `update`: support for `from`, `with`, and `via` attributes.
+   * Support for the equivalence of the context variable `<`: `~`.
+   * Support for the equivalences and/or abbreviations of some adverb attributes.
+   * Support for the new preposition attribute: `idd-by`.
+   * A simple built-in HTML renderer (Foil) for text terminal via `THREAD` channel.
 * OPTIMIZATIONS:
 * IMPROVEMENTS:
 * BUGFIXES:

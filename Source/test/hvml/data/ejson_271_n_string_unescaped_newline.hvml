@@ -1,2 +1,2 @@
-<hvml ejson=$EJSON(["new
+<hvml ejson=$DATA(["new
 line"])></hvml>

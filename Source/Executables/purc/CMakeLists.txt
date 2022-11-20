@@ -32,9 +32,8 @@ if (ENABLE_RDR_FOIL)
         "util/"
         "unicode/"
     )
+    PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
 endif ()
-
-PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
 
 list(APPEND purc_SOURCES
     purc.c
@@ -43,6 +42,7 @@ list(APPEND purc_SOURCES
 if (ENABLE_RDR_FOIL)
     list(APPEND purc_SOURCES
         foil.c
+        helpers.c
         screen.c
         endpoint.c
         callbacks.c

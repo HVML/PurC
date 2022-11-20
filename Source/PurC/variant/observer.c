@@ -207,6 +207,11 @@ pcvar_break_rue_downward(purc_variant_t val)
                 return;
             pcvar_object_break_rue_downward(val);
             return;
+        case PURC_VARIANT_TYPE_TUPLE:
+            if (pcvar_container_belongs_to_set(val))
+                return;
+            pcvar_tuple_break_rue_downward(val);
+            return;
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
@@ -220,7 +225,6 @@ pcvar_break_rue_downward(purc_variant_t val)
         case PURC_VARIANT_TYPE_BSEQUENCE:
         case PURC_VARIANT_TYPE_DYNAMIC:
         case PURC_VARIANT_TYPE_NATIVE:
-        case PURC_VARIANT_TYPE_TUPLE:
             return;
         default:
             PC_DEBUGX("%d", val->type);
@@ -247,7 +251,7 @@ pcvar_break_edge_to_parent(purc_variant_t val,
             pcvar_set_break_edge_to_parent(val, edge);
             return;
         case PURC_VARIANT_TYPE_TUPLE:
-            // TODO
+            pcvar_tuple_break_edge_to_parent(val, edge);
             return;
         default:
             PC_ASSERT(0);
@@ -263,6 +267,8 @@ pcvar_build_rue_downward(purc_variant_t val)
             return pcvar_array_build_rue_downward(val);
         case PURC_VARIANT_TYPE_OBJECT:
             return pcvar_object_build_rue_downward(val);
+        case PURC_VARIANT_TYPE_TUPLE:
+            return pcvar_tuple_build_rue_downward(val);
         case PURC_VARIANT_TYPE_SET:
         case PURC_VARIANT_TYPE_NULL:
         case PURC_VARIANT_TYPE_BOOLEAN:
@@ -302,8 +308,7 @@ pcvar_build_edge_to_parent(purc_variant_t val,
         case PURC_VARIANT_TYPE_SET:
             return pcvar_set_build_edge_to_parent(val, edge);
         case PURC_VARIANT_TYPE_TUPLE:
-            //TODO
-            return 0;
+            return pcvar_tuple_build_edge_to_parent(val, edge);
         default:
             PC_ASSERT(0);
             break;
@@ -346,6 +351,14 @@ pcvar_container_belongs_to_set(purc_variant_t val)
         case PURC_VARIANT_TYPE_SET:
             {
                 variant_set_t data = pcvar_set_get_data(val);
+                PC_ASSERT(data);
+                if (is_rev_update_chain_empty(data->rev_update_chain))
+                    return false;
+                return true;
+            }
+        case PURC_VARIANT_TYPE_TUPLE:
+            {
+                variant_tuple_t data = pcvar_tuple_get_data(val);
                 PC_ASSERT(data);
                 if (is_rev_update_chain_empty(data->rev_update_chain))
                     return false;

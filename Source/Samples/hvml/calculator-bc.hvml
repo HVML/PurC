@@ -105,7 +105,7 @@
         </div>
 
         <observe on="#theScaleRange" for="change">
-            <update on="$myResult" at=".scale" with="$EJSON.numberify($?.targetValue)" />
+            <update on="$myResult" at=".scale" with="$DATA.numerify($?.targetValue)" />
             <update on="#theScale" at="textContent" with="$?.targetValue" />
         </observe>
 
@@ -158,7 +158,7 @@
 
                 <choose on="$STREAM.close($?)" />
 
-                <catch for='*'>
+                <catch for=`ANY`>
                     <update on="#theExpression" at="textContent" with="ERROR" />
                 </catch>
             </choose>

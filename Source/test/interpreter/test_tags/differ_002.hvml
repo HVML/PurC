@@ -24,7 +24,7 @@
         </archetype>
 
         <footer id="the-footer">
-            <test with="$EJSON.isequal($global.locale, 'zh_HK')" in='#the-footer'>
+            <test with="$DATA.isequal($global.locale, 'zh_HK')" in='#the-footer'>
                 <match for="AS 'zh_CN'" exclusively>
                     <update on="$@" to="displace" with="$footer_cn" />
                 </match>

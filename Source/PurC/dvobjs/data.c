@@ -1,8 +1,8 @@
 /*
- * @file ejson.c
+ * @file data.c
  * @author Geng Yue, Vincent Wei
  * @date 2021/07/02
- * @brief The implementation of EJSON dynamic variant object.
+ * @brief The implementation of DATA dynamic variant object.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -96,15 +96,9 @@ count_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             break;
 
         case PURC_VARIANT_TYPE_ARRAY:
-            count = purc_variant_array_get_size(argv[0]);
-            break;
-
         case PURC_VARIANT_TYPE_SET:
-            count = purc_variant_set_get_size(argv[0]);
-            break;
-
         case PURC_VARIANT_TYPE_TUPLE:
-            count = 2;
+            count = purc_variant_linear_container_get_size(argv[0]);
             break;
         }
     }
@@ -289,7 +283,7 @@ failed:
 }
 
 static purc_variant_t
-numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+numerify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -302,7 +296,7 @@ numberify_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else {
         assert(argv[0]);
-        number = purc_variant_numberify(argv[0]);
+        number = purc_variant_numerify(argv[0]);
     }
 
     return purc_variant_make_number(number);
@@ -1568,11 +1562,14 @@ purc_dvobj_pack_real(struct pcdvobj_bytes_buff *bf, purc_variant_t item,
         goto failed;
     }
 
+    enum purc_variant_type vt = purc_variant_get_type(item);
+    bool is_linear_container = ((vt == PURC_VARIANT_TYPE_ARRAY) ||
+            (vt == PURC_VARIANT_TYPE_SET) || (vt == PURC_VARIANT_TYPE_TUPLE));
     for (size_t n = 0; n < quantity; n++) {
         purc_variant_t real_item;
 
-        if (purc_variant_is_array(item)) {
-            real_item = purc_variant_array_get(item, n);
+        if (is_linear_container) {
+            real_item = purc_variant_linear_container_get(item, n);
             if (real_item == PURC_VARIANT_INVALID) {
                 purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
                 goto failed;
@@ -1716,10 +1713,10 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         const char *formats, size_t formats_left, bool silently)
 {
     size_t item_idx = 0, nr_items;
-    bool items_in_array = (nr_args == 1) &&
-        purc_variant_array_size(argv[0], &nr_items);
+    bool items_in_linear_container = (nr_args == 1) &&
+        purc_variant_linear_container_size(argv[0], &nr_items);
 
-    if (!items_in_array) {
+    if (!items_in_linear_container) {
         nr_items = nr_args;
     }
 
@@ -1742,8 +1739,8 @@ purc_dvobj_pack_variants(struct pcdvobj_bytes_buff *bf,
         }
 
         purc_variant_t item;
-        if (items_in_array) {
-            item = purc_variant_array_get(argv[0], item_idx);
+        if (items_in_linear_container) {
+            item = purc_variant_linear_container_get(argv[0], item_idx);
             assert(item);   // item must be valid
         }
         else {
@@ -2744,14 +2741,14 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-purc_variant_t purc_dvobj_ejson_new(void)
+purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
         { "type",       type_getter, NULL },
         { "count",      count_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },
-        { "numberify",  numberify_getter, NULL },
+        { "numerify",  numerify_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },
         { "serialize",  serialize_getter, NULL },

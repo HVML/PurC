@@ -113,6 +113,32 @@ set_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
 }
 
 static int
+tuple_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
+        int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt))
+{
+    struct tuple_iterator lit, rit;
+    lit = pcvar_tuple_it_first(l);
+    rit = pcvar_tuple_it_first(r);
+
+    while (lit.curr && rit.curr) {
+        int r = parallel_walk(lit.curr, rit.curr, ctxt, cb);
+        if (r)
+            return r;
+
+        pcvar_tuple_it_next(&lit);
+        pcvar_tuple_it_next(&rit);
+    }
+
+    if (lit.curr == NULL && rit.curr == NULL)
+        return 0;
+
+    if (lit.curr)
+        return parallel_walk(lit.curr, PURC_VARIANT_INVALID, ctxt, cb);
+    else
+        return parallel_walk(PURC_VARIANT_INVALID, rit.curr, ctxt, cb);
+}
+
+static int
 parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
         int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt))
 {
@@ -143,8 +169,7 @@ parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
             break;
 
         case PURC_VARIANT_TYPE_TUPLE:
-            PC_ASSERT(0); // Not implemented yet
-            // tuple_parallel_walk(l, r, ctxt, cb);
+            return tuple_parallel_walk(l, r, ctxt, cb);
             break;
 
         default:

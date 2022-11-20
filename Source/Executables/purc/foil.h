@@ -28,7 +28,6 @@
 
 #include <time.h>
 
-/* for purc_atom_t */
 #include <purc/purc.h>
 
 #include "purcmc-thread.h"
@@ -74,6 +73,14 @@
 #define LOG_INFO(x, ...)    \
     purc_log_info("%s: " x, __func__, ##__VA_ARGS__)
 
+#ifndef MIN
+#   define MIN(x, y)   (((x) > (y)) ? (y) : (x))
+#endif
+
+#ifndef MAX
+#   define MAX(x, y)   (((x) < (y)) ? (y) : (x))
+#endif
+
 typedef struct foil_rect {
     int left, top;
     int right, bottom;
@@ -109,6 +116,10 @@ extern "C" {
 #endif
 
 purc_atom_t foil_init(const char *rdr_uri);
+void foil_sync_exit(void);
+
+int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
+        const char **lang, size_t *len);
 
 #ifdef __cplusplus
 }

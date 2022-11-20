@@ -1,0 +1,55 @@
+PCHVML_TOKEN_START_TAG|<hvml target="html">
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<head>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with=getElement(getVariable("REQ"),"case")>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_START_TAG|<catch for=`EntityNotFound NoData`>
+PCHVML_TOKEN_VCM_TREE|"
+                "
+PCHVML_TOKEN_START_TAG|<init as="styleCase" at="_root" with="displayBlock"/>
+PCHVML_TOKEN_VCM_TREE|"
+            "
+PCHVML_TOKEN_END_TAG|</catch>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</init>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</head>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_START_TAG|<body>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<except type=`NoData`>
+PCHVML_TOKEN_VCM_TREE|"<img src="wait.png" />
+        "
+PCHVML_TOKEN_END_TAG|</except>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<except type=`NotIterable`>
+PCHVML_TOKEN_VCM_TREE|"<p>Bad user data!</p>
+        "
+PCHVML_TOKEN_END_TAG|</except>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<catch for=`NoData`>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</catch>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_START_TAG|<catch for=`ANY`>
+PCHVML_TOKEN_VCM_TREE|"
+        "
+PCHVML_TOKEN_END_TAG|</catch>
+PCHVML_TOKEN_VCM_TREE|"
+    "
+PCHVML_TOKEN_END_TAG|</body>
+PCHVML_TOKEN_VCM_TREE|"
+"
+PCHVML_TOKEN_END_TAG|</hvml>

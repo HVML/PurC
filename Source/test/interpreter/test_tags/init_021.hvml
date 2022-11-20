@@ -9,7 +9,7 @@
                 <init as="evenNumbers" with=[0,] >
                 </init>
                 <div>
-                    $EJSON.count($evenNumbers)
+                    $DATA.count($evenNumbers)
                 </div>
             </div>
         </div>

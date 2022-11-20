@@ -660,7 +660,11 @@ Opcodes
 		b     => georgian,
 		c     => lower-alpha,
 		d     => upper-alpha,
-		e     => none,
+		e     => upper-armenian,
+		f     => lower-armenian,
+		10    => cjk-decimal,
+		11    => tibetan,
+		12    => none,
 		other => Reserved for future expansion.
 
 30 - margin-top

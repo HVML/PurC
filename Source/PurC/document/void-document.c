@@ -45,6 +45,7 @@ static purc_document_t create(const char *content, size_t length)
 
     doc->ops = &_pcdoc_void_ops;
     doc->impl = NULL;
+
     return doc;
 }
 

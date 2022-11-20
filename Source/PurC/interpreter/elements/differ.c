@@ -56,7 +56,6 @@ ctxt_destroy(void *ctxt)
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack && pos);
     if (stack->except)
         return NULL;
 
@@ -64,7 +63,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
 
     struct pcintr_stack_frame *parent;
     parent = pcintr_stack_frame_get_parent(frame);
@@ -79,10 +77,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->eval_step = STACK_FRAME_EVAL_STEP_CONTENT;
     }
 
-    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        return NULL;
-    }
-
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)calloc(1, sizeof(*ctxt));
     if (!ctxt) {
@@ -93,6 +87,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->ctxt = ctxt;
     frame->ctxt_destroy = ctxt_destroy;
     frame->pos = pos; // ATTENTION!!
+
+    if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
 
     if (!parent || !parent->pos || parent->pos->tag_id != PCHVML_TAG_TEST) {
         purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
@@ -106,18 +104,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
-
-    struct pcvdom_element *element = frame->pos;
-    PC_ASSERT(element);
 
     struct ctxt_for_differ *ctxt;
     ctxt = (struct ctxt_for_differ*)frame->ctxt;
@@ -153,18 +146,17 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    UNUSED_PARAM(comment);
 }
 
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -203,7 +195,7 @@ again:
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
             {
@@ -213,17 +205,15 @@ again:
             }
         case PCVDOM_NODE_CONTENT:
             on_content(co, frame, PCVDOM_CONTENT_FROM_NODE(curr));
-                PC_ASSERT(stack->except == 0);
             goto again;
         case PCVDOM_NODE_COMMENT:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
-                PC_ASSERT(stack->except == 0);
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 

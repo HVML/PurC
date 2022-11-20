@@ -17,7 +17,7 @@
         <init as "big" with {{ $L.gt($x, $y) && $x || $y }} temp />
         <init as "small" with {{ $L.lt($x, $y) && $x || $y }} temp />
 
-        <test with $L.eq($EJSON.arith('%', $big, $small), 0) >
+        <test with $L.eq($DATA.arith('%', $big, $small), 0) >
             <return with $small >
                 $STREAM.stdout.writelines("returns $small for $small and $big")
 
@@ -26,12 +26,12 @@
 
         <!-- Note that `$0<` refers to the context variable `<`
             in the current stack frame -->
-        <iterate on $EJSON.arith('/', $small, 2) onlyif $L.gt($0<, 0)
-                with $EJSON.arith('-', $0<, 1) nosetotail >
+        <iterate on $DATA.arith('/', $small, 2) onlyif $L.gt($0<, 0)
+                with $DATA.arith('-', $0<, 1) nosetotail >
 
             <test with $L.eval('a == 0 && b == 0',
-                    { a: $EJSON.arith('%', $big, $?),
-                      b: $EJSON.arith('%', $small, $?) }) >
+                    { a: $DATA.arith('%', $big, $?),
+                      b: $DATA.arith('%', $small, $?) }) >
                 <return with $?>
                     $STREAM.stdout.writelines("returns $? for $small and $big")
 

@@ -202,6 +202,15 @@ is_tag_of_hvml_verb_cat(enum pchvml_tag_id id)
 }
 
 static inline bool
+is_hvml_verb_or_template(enum pchvml_tag_id id)
+{
+    const struct pchvml_tag_entry *entry;
+    entry = pchvml_tag_static_get_by_id(id);
+
+    return entry && (entry->cats & (PCHVML_TAGCAT_VERB | PCHVML_TAGCAT_TEMPLATE));
+}
+
+static inline bool
 is_top_node_of_body(struct pcvdom_gen *gen)
 {
     struct pcvdom_node *top = top_node(gen);
@@ -239,6 +248,40 @@ set_parser_state_if_necessary(struct pcvdom_gen *gen)
     }
 }
 
+#define TAG_NAME_FOR        "for"
+#define TAG_NAME_TYPE       "type"
+
+static bool
+element_attr_syntax_detection(struct pcvdom_element *elem, const char *name,
+        struct pcvcm_node *value)
+{
+    UNUSED_PARAM(elem);
+    UNUSED_PARAM(name);
+    UNUSED_PARAM(value);
+#if 0
+    switch (elem->tag_id) {
+    case PCHVML_TAG_CATCH:
+        if ((strcmp(name, TAG_NAME_FOR) == 0) &&
+                (value->type != PCVCM_NODE_TYPE_CONSTANT)) {
+            return false;
+        }
+        break;
+
+    case PCHVML_TAG_EXCEPT:
+    case PCHVML_TAG_ERROR:
+        if ((strcmp(name, TAG_NAME_TYPE) == 0) &&
+                (value->type != PCVCM_NODE_TYPE_CONSTANT)) {
+            return false;
+        }
+        break;
+
+    default:
+        return true;
+    }
+#endif
+    return true;
+}
+
 static struct pcvdom_element*
 create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
@@ -264,6 +307,10 @@ create_element(struct pcvdom_gen *gen, struct pchvml_token *token)
         name = pchvml_token_attr_get_name(attr);
         op = pchvml_token_attr_get_operator(attr);
         vcm = (struct pcvcm_node*)pchvml_token_attr_get_value_ex(attr, true);
+
+        if (!element_attr_syntax_detection(elem, name, vcm)) {
+            goto end;
+        }
 
         struct pcvdom_attr *vattr;
         vattr = pcvdom_attr_create(name, op, vcm);
@@ -496,23 +543,25 @@ create_comment(struct pcvdom_gen *gen, struct pchvml_token *token)
 static int
 set_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
 {
-    UNUSED_PARAM(gen);
-
-    // FIXME: filter whitespaces
-    if (pchvml_token_is_whitespace(token))
-        return 0;
-
     int r = 0;
-
     struct pcvdom_node *node = top_node(gen);
     PC_ASSERT(node);
     PC_ASSERT(PCVDOM_NODE_IS_ELEMENT(node));
-
     struct pcvdom_element *element = PCVDOM_ELEMENT_FROM_NODE(node);
+
+    // filter whitespaces
+    if (pchvml_token_is_whitespace(token) && (
+                is_hvml_verb_or_template(element->tag_id)
+                || element->tag_id == PCHVML_TAG_HVML)) {
+        goto out;
+    }
+
     struct pcvcm_node *vcm_content;
     vcm_content = pchvml_token_detach_vcm_content(token);
-    if (!vcm_content) // FIXME: why?
-        return 0;
+    if (!vcm_content) { // FIXME: why?
+        goto out;
+    }
+
     r = pcvdom_element_set_vcm_content(element, vcm_content);
     PC_ASSERT(r == 0);
 
@@ -521,6 +570,7 @@ set_vcm_tree(struct pcvdom_gen *gen, struct pchvml_token *token)
         FAIL_RET();
     }
 
+out:
     return 0;
 }
 
@@ -804,12 +854,7 @@ on_mode_in_hvml(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token)) {
-            return 0; // just ignore
-        }
-        else {
-            return set_vcm_tree(gen, token);
-        }
+        return set_vcm_tree(gen, token);
     }
     else if (type==VTT(_EOF)) {
         FAIL_RET();
@@ -893,12 +938,7 @@ on_mode_before_head(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0; // just ignore
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token)) {
-            return 0; // just ignore
-        }
-        else {
-            return set_vcm_tree(gen, token);
-        }
+        return set_vcm_tree(gen, token);
     }
     else if (type==VTT(_END_TAG)) {
         const char *tag = pchvml_token_get_name(token);
@@ -1288,12 +1328,7 @@ on_mode_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token)) {
-            return 0; // just ignore
-        }
-        else {
-            return set_vcm_tree(gen, token);
-        }
+        return set_vcm_tree(gen, token);
     }
     else if (type==VTT(_START_TAG)) {
         PC_ASSERT(gen->doc);
@@ -1342,12 +1377,7 @@ on_mode_after_after_body(struct pcvdom_gen *gen, struct pchvml_token *token)
         return 0;
     }
     else if (type==VTT(_VCM_TREE)) {
-        if (pchvml_token_is_whitespace(token)) {
-            return 0; // just ignore
-        }
-        else {
-            return set_vcm_tree(gen, token);
-        }
+        return set_vcm_tree(gen, token);
     }
 
     FAIL_RET();

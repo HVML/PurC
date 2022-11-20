@@ -17,7 +17,7 @@
    + [2.6) `purc`](#26-purc)
    + [2.7) More Platforms](#27-more-platforms)
    + [2.8) Others](#28-others)
-   + [2.9) Known Bugs](#29-known-bugs)
+   + [2.9) Known Bugs and Test Cases](#29-known-bugs-and-test-cases)
 
 [//]:# (END OF TOC)
 
@@ -48,7 +48,9 @@
 ### 2.1) Variants
 
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
-1. [0.9.2] Full support for the new variant type: tuple.
+1. [0.9.2; Resolved] Full support for the new variant type: tuple.
+1. [0.9.2] Implement some new APIs:
+   - `purc_variant_make_atom()`
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
 ### 2.2) eJSON and HVML Parsing and Evaluating
@@ -61,21 +63,22 @@
    - `$SYS.time,$SYS.time~$SYS.time-$SYS.time@$SYS.time#$SYS.time%$SYS.time^$SYS.time&$SYS.time*$SYS.time+$SYS.time=$SYS.time\$SYS.time|$SYS.time>$SYS.time:$SYS.time!$SYS.time<$SYS.time?$SYS.time;`
    - `$SYS.time；$SYS.time、$SYS.time　$SYS.timeａ$SYS.time。$SYS.time，$SYS.time“$SYS.time”$SYS.time`
 1. [0.8.2; Resolved] Keep self-closed foreign elements not changed.
-1. [0.9.2] Support line comments in CJSONEE.
-1. [0.9.2] Support for tuples.
-1. [0.9.2] Support for string constants.
+1. [0.9.2] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
+1. [0.9.2; Resolved] Support line comments in CHEE.
+1. [0.9.2; Resolved] Support for tuples.
+1. [0.9.2; Resolved] Support for string constants.
 
 ### 2.3) Predefined Variables
 
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
-1. [0.9.2] In the implementation of predefined variables, use the interfaces for linear container instead of array.
+1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.6] Complete the implementation of the following predefined variables:
    - `$RDR`
    - `$DOC`
    - `$URL`
    - `$STR`
-1. [0.9.9] Support for the following URI schemas for `$STREAM`:
+1. [0.9.8] Support for the following URI schemas for `$STREAM`:
    - `fifo`
 1. [0.9.9] Support for the following filters for `$STREAM`:
    - `hibus`
@@ -84,7 +87,7 @@
 ### 2.4) eDOM
 
 1. [0.9.4] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
-1. [0.9.4] Optimize the implementation of the map from `id` and `class` to element.
+1. [0.9.4] Optimize the implementation of the map from `id` and `class` to element(s).
 1. [Pending] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 2.5) Interpreter
@@ -105,12 +108,12 @@
 1. [0.9.0; Resolved] Support for the equivalences and/or abbreviations of some adverb attributes.
 1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.2] Full support for `request` element.
-1. [0.9.2] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.2] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
+1. [0.9.2] Full support for `request` element.
+1. [0.9.4] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.4] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
@@ -132,6 +135,7 @@
 ### 2.6) `purc`
 
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
+1. [0.9.2] Ehance `foil` to support more properties and layouts except for table.
 1. [0.9.4] Enhance `foil` to support full-screen and multiple-page rendering.
 
 ### 2.7) More Platforms
@@ -141,7 +145,7 @@
 ### 2.8) Others
 
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
-1. [0.9.0] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
+1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
 1. [1.0.0] Normalize the typedef names.
 1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
@@ -149,14 +153,19 @@
 1. [1.0.0] Tune API description.
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
 
-### 2.9) Known Bugs
+### 2.9) Known Bugs and Test Cases
 
+1. [0.9.2] Add new test cases for new bugs.
+1. [0.9.2] Crash if the content of a foreign element starts with a `(` character.
+1. [0.9.2; Resolved] The exrepssions in `hvml` might be evaluated twice.
+1. [0.9.2; Resolved] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
+1. [0.9.2; Resolved] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
 1. [0.8.2; Resolved] The condition handler will get `PURC_COND_COR_EXITED` after got `PURC_COND_COR_TERMINATED`.
 1. [0.8.2; Resolved] When dumping the stacks, we should use the writing order the attributes of an element, not the sorted order.
 1. [0.8.2; Resolved] Some requests to renderer might be sent twice.
 1. [0.8.1; Resolved] The content of an `iterate` element may be evaluated twice.
 1. [0.8.1; Resolved] The samples with bad result:
-   - Incorrect evaluation logic of a CJSONEE with `&&` and `||`.
+   - Incorrect evaluation logic of a CHEE with `&&` and `||`.
    - `hvml/greatest-common-divisor.hvml`: Adjust the evaluating logic of CJSONSEE.
    - `hvml/hello-world-c-bad.hvml`: `$0<) Helo, world! -- from HVML COROUTINE # $CRTN.cid"`; expected: `0) Helo, world! -- from HVML COROUTINE # $CRTN.cid`; but got `0`.
 1. [0.8.1; Resolved] Improve eJSON parser to support the following patterns:

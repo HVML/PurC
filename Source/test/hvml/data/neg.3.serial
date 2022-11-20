@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<body>
 PCHVML_TOKEN_VCM_TREE|"
         "
-PCHVML_TOKEN_START_TAG|<iterate on=getVariable("users") to="update" in="#the-user-list" by=concatString("RANGE: FROM 0 TO ",callGetter(getElement(getVariable("EJSON"),"number"),getVariable("users")),"  ADVANCE 2")>
+PCHVML_TOKEN_START_TAG|<iterate on=getVariable("users") to="update" in="#the-user-list" by=concatString("RANGE: FROM 0 TO ",callGetter(getElement(getVariable("DATA"),"number"),getVariable("users")),"  ADVANCE 2")>
 PCHVML_TOKEN_VCM_TREE|"
             "
 PCHVML_TOKEN_START_TAG|<update on=concatString("~[id=user-",getElement(getVariable("?"),"id"),"] span") attr.class*="text-* text-info"/>

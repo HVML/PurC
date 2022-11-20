@@ -674,6 +674,9 @@ pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
 PCA_EXPORT unsigned
 pcutils_unichar_to_utf8(uint32_t uc, unsigned char* buff);
 
+PCA_EXPORT uint32_t
+pcutils_utf8_to_unichar(const unsigned char* mchar);
+
 PCA_EXPORT char *
 pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
         size_t *sz_space);
@@ -1008,7 +1011,7 @@ pcutils_url_is_valid(const char *url);
 
 /**
  * Copy the value of the specified key from a broken down URL to the specified
- * bufffer if found.
+ * buffer if found.
  *
  * @param broken_down The broken down URL.
  * @param key The pointer to the key string.

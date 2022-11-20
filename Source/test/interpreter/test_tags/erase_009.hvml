@@ -11,9 +11,9 @@
     </head>
     <body>
         <div>
-            $EJSON.count($buttons)
+            $DATA.count($buttons)
         </div>
-        <iterate on="$EJSON.count($buttons)" by="SUB: GE 0 BY 2">
+        <iterate on="$DATA.count($buttons)" by="SUB: GE 0 BY 2">
             <erase on="$buttons" at="[$?]" />
         </iterate>
         <div>

@@ -285,7 +285,7 @@ list(APPEND PurC_INTERFACE_DEPENDENCIES PurC_CopyHeaders)
 # eliminate duplicated custom commands. Otherwise, CSSPropertyNames.h
 # will be generated in both projects.
 if (NOT INTERNAL_BUILD)
-    add_dependencies(PurC_CopyHeaders PurC)
+    add_dependencies(PurC PurC_CopyHeaders)
     add_dependencies(PurC WTF)
 endif ()
 

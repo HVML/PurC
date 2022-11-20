@@ -12,7 +12,7 @@
             $RUNNER.user(! 'begin', $SYS.time_us )
         </inherit>
 
-        <iterate on 0L onlyif $L.lt($0~, 1000L) with $EJSON.arith('+', $0~, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0~, 1000L) with $DATA.arith('+', $0~, 1) nosetotail >
             $myConst.reciprocal_of_sqrt_const(2.0)
         </iterate>
 
@@ -24,7 +24,7 @@
             $RUNNER.user(! 'b2', $SYS.time_us )
         </inherit>
 
-        <iterate on 0L onlyif $L.lt($0~, 1000L) with $EJSON.arith('+', $0~, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0~, 1000L) with $DATA.arith('+', $0~, 1) nosetotail >
             $myConst.reciprocal_of_sqrt(2.0)
         </iterate>
 

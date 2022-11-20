@@ -154,10 +154,14 @@ static void print_usage(FILE *fp)
         "            - For the renderer comm method `socket`,\n"
         "              default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
-        "  -q --request=< json_file | - >\n"
+        "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
-        "        stdin stream.\n"
+        "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
+        "\n"
+        "  -q --query=< query_string >\n"
+        "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
+        "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
         "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
@@ -183,6 +187,7 @@ struct my_opts {
     const char *rdr_prot;
     char *rdr_uri;
     char *request;
+    char *query;
 
     pcutils_array_t *urls;
     pcutils_array_t *body_ids;
@@ -277,6 +282,9 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
         free(opts->contents->list[i]);
     }
 
+    if (opts->query)
+        free(opts->query);
+
     if (opts->request)
         free(opts->request);
 
@@ -369,14 +377,15 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:q:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:lvCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
         { "data-fetcher"   , required_argument , NULL , 'd' },
         { "rdr-comm"       , required_argument , NULL , 'c' },
         { "rdr-uri"        , required_argument , NULL , 'u' },
-        { "request"        , required_argument , NULL , 'q' },
+        { "request"        , required_argument , NULL , 'j' },
+        { "query"          , required_argument , NULL , 'q' },
         { "parallel"       , no_argument       , NULL , 'l' },
         { "verbose"        , no_argument       , NULL , 'v' },
         { "copying"        , no_argument       , NULL , 'C' },
@@ -399,7 +408,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             print_usage(stdout);
             return -1;
 
-        case 'v':
+        case 'V':
             print_version(stdout);
             return -1;
 
@@ -466,7 +475,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
             break;
 
-        case 't':
+        case 'j':
             if (strcmp(optarg, "-") == 0 ||
                     is_json_or_ejson_file(optarg)) {
                 opts->request = strdup(optarg);
@@ -474,15 +483,17 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             else {
                 goto bad_arg;
             }
-
             break;
 
+        case 'q':
+            opts->query = strdup(optarg);
+            break;
 
         case 'l':
             opts->parallel = true;
             break;
 
-        case 'b':
+        case 'v':
             opts->verbose = true;
             break;
 
@@ -603,7 +614,6 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
     if (request) {
         purc_variant_object_set_by_static_ckey(run_info.opts,
                 KEY_FLAG_REQUEST, request);
-        purc_variant_unref(request);
     }
 }
 
@@ -638,6 +648,12 @@ static purc_variant_t get_request_data(struct my_opts *opts)
     }
 
     return v;
+}
+
+static purc_variant_t parse_query_string(struct my_opts *opts)
+{
+    /* we use rfc 3986 */
+    return purc_make_object_from_query_string(opts->query, false);
 }
 
 static purc_variant_t get_dvobj(void* ctxt, const char* name)
@@ -1150,6 +1166,7 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+            opt |= PCDOC_SERIALIZE_OPT_HUMAN_READABLE;
 
             fprintf(stdout, ">> The document generated:\n");
             purc_document_serialize_contents_to_stream(exit_info->doc,
@@ -1191,6 +1208,7 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             unsigned opt = 0;
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+            opt |= PCDOC_SERIALIZE_OPT_HUMAN_READABLE;
 
             fprintf(stdout, ">> The document generated:\n");
             purc_document_serialize_contents_to_stream(term_info->doc,
@@ -1254,6 +1272,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 int main(int argc, char** argv)
 {
     int ret;
+    purc_atom_t foil_atom = 0;
     bool success = true;
 
     struct my_opts *opts = my_opts_new();
@@ -1303,6 +1322,7 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
+#if ENABLE(RDR_FOIL)
         opts->rdr_prot = "thread";
 
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
@@ -1310,11 +1330,16 @@ int main(int argc, char** argv)
             opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
         }
 
-        if (foil_init(opts->rdr_uri) == 0) {
-            fprintf(stdout, "Failed to initialize built-in thread renderer: %s\n",
+        if ((foil_atom = foil_init(opts->rdr_uri)) == 0) {
+            fprintf(stdout,
+                    "Failed to initialize the built-in Foil renderer: %s\n",
                     opts->rdr_prot);
             return EXIT_FAILURE;
         }
+#else
+        fprintf(stdout, "The built-in Foil renderer is not enabled\n");
+        return EXIT_FAILURE;
+#endif
     }
     else {
         if (strcmp(opts->rdr_prot, "socket")) {
@@ -1356,6 +1381,15 @@ int main(int argc, char** argv)
             goto failed;
         }
     }
+    else if (opts->query) {
+        if ((request = parse_query_string(opts)) == PURC_VARIANT_INVALID) {
+            if (opts->verbose)
+                fprintf(stderr, "Failed to parse the query string: %s\n",
+                    opts->query);
+            my_opts_delete(opts, true);
+            goto failed;
+        }
+    }
 
     run_info.dump_stm = purc_rwstream_new_for_dump(stdout, cb_stdio_write);
 
@@ -1380,7 +1414,6 @@ int main(int argc, char** argv)
             success = false;
         }
 
-        my_opts_delete(opts, false);
     }
     else {
         assert(!opts->parallel);
@@ -1389,10 +1422,19 @@ int main(int argc, char** argv)
             success = false;
         }
 
+    }
+
+    if (opts->app_info) {
+        my_opts_delete(opts, false);
+    }
+    else {
         my_opts_delete(opts, true);
     }
 
 failed:
+    if (request) {
+        purc_variant_unref(request);
+    }
     if (run_info.opts)
         purc_variant_unref(run_info.opts);
     if (run_info.app_info)
@@ -1401,6 +1443,9 @@ failed:
         purc_rwstream_destroy(run_info.dump_stm);
 
     purc_cleanup();
+
+    if (foil_atom)
+        foil_sync_exit();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

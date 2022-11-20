@@ -362,6 +362,15 @@ stack_release(pcintr_stack_t stack)
         pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
         stack->vcm_ctxt = NULL;
     }
+
+    if (stack->curr_edom_elem_text_content) {
+        pcutils_str_destroy(stack->curr_edom_elem_text_content,
+                stack->mraw, true);
+    }
+
+    if (stack->mraw) {
+        pcutils_mraw_destroy(stack->mraw, true);
+    }
 }
 
 enum pcintr_req_state {
@@ -484,6 +493,10 @@ stack_init(pcintr_stack_t stack)
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
     stack->timeout = false;
+    stack->mraw = pcutils_mraw_create();
+    pcutils_mraw_init(stack->mraw, 1024);
+    stack->curr_edom_elem_text_content = pcutils_str_create();
+    pcutils_str_init(stack->curr_edom_elem_text_content, stack->mraw, 1024);
 }
 
 static void _cleanup_instance(struct pcinst* inst)
@@ -1252,6 +1265,9 @@ after_pushed(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     frame->next_step = NEXT_STEP_SELECT_CHILD;
 }
 
+static int
+insert_cached_text_node(purc_document_t doc, bool sync_to_rdr);
+
 static void
 on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
@@ -1279,6 +1295,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
         pcintr_exception_clear(&stack->exception);
         stack->except = 0;
+        if (stack->vcm_ctxt) {
+            pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
+            stack->vcm_ctxt = NULL;
+        }
 
         pcdoc_element_t target;
         target = frame->edom_element;
@@ -1296,6 +1316,10 @@ on_popping(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     } while (0);
 
     if (frame->ops.on_popping) {
+        struct pcintr_stack_frame * parent = pcintr_stack_frame_get_parent(frame);
+        if (parent == NULL || parent->edom_element != frame->edom_element) {
+            insert_cached_text_node(frame->owner->doc, !stack->inherit);
+        }
         ok = frame->ops.on_popping(&co->stack, frame->ctxt);
         if (co->stack.exited)
             PC_ASSERT(ok);
@@ -3113,14 +3137,47 @@ int
 pcintr_bind_template(purc_variant_t templates,
         purc_variant_t type, purc_variant_t contents)
 {
-    PC_ASSERT(templates != PURC_VARIANT_INVALID);
-    PC_ASSERT(type != PURC_VARIANT_INVALID);
-    PC_ASSERT(contents != PURC_VARIANT_INVALID);
+    int ret = -1;
+    if (type == PURC_VARIANT_INVALID) {
+        type = purc_variant_make_string("ANY", false);
+        if (purc_variant_object_set(templates, type, contents)) {
+            ret = 0;
+        }
+        purc_variant_unref(type);
+        goto out;
+    }
 
-    bool ok;
-    ok = purc_variant_object_set(templates, type, contents);
+    if (!pcvariant_is_sorted_array(type)) {
+        goto out;
+    }
 
-    return ok ? 0 : -1;
+    size_t nr = purc_variant_sorted_array_get_size(type);
+    for (size_t i = 0; i < nr; i++) {
+        purc_variant_t v = purc_variant_sorted_array_get(type, i);
+        uint64_t uv;
+        bool ok = purc_variant_cast_to_ulongint(v, &uv, false);
+        if (!ok) {
+            goto out;
+        }
+
+        const char *s = purc_atom_to_string((purc_atom_t)uv);
+        purc_variant_t t = purc_variant_make_string(s, false);
+        if (!t) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+
+        ok = purc_variant_object_set(templates, t, contents);
+        purc_variant_unref(t);
+        if (!ok) {
+            goto out;
+        }
+    }
+
+    ret = 0;
+
+out:
+    return ret;
 }
 
 void
@@ -3273,11 +3330,43 @@ pcintr_coroutine_set_state_with_location(pcintr_coroutine_t co,
     co->state = state;
 }
 
+int
+insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
+{
+    // insert catched text node
+    pcintr_stack_t stack = pcintr_get_stack();
+    pcdoc_operation op = PCDOC_OP_APPEND;
+    pcdoc_element_t elem = stack->curr_edom_elem;
+    pcutils_str_t *str = stack->curr_edom_elem_text_content;
+
+    size_t len = pcutils_str_length(str);
+    if (!elem || len == 0) {
+        goto out;
+    }
+
+    const char *txt = (const char *)pcutils_str_data(str);
+    pcdoc_text_node_t text_node = pcdoc_element_new_text_content(doc, elem,
+            op, txt, len);
+    pcutils_str_clean(str);
+
+    // TODO: append/prepend textContent?
+    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+        pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                txt, len);
+    }
+
+out:
+    return 0;
+}
+
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
+
+    insert_cached_text_node(doc, sync_to_rdr);
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
     if (new_elem && sync_to_rdr) {
@@ -3287,24 +3376,40 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     return new_elem;
 }
 
-pcdoc_text_node_t
+int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
 {
-    pcdoc_text_node_t text_node;
-
-    text_node = pcdoc_element_new_text_content(doc, elem, op,
-            txt, len);
-
-    // TODO: append/prepend textContent?
+    UNUSED_PARAM(op);
+    UNUSED_PARAM(sync_to_rdr);
     pcintr_stack_t stack = pcintr_get_stack();
-    if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
-        pcintr_rdr_send_dom_req_simple_raw(stack, op,
-                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
-                txt, len);
+    if (stack->curr_edom_elem != elem) {
+        insert_cached_text_node(doc, sync_to_rdr);
+        stack->curr_edom_elem = elem;
     }
 
-    return text_node;
+    if (op == PCDOC_OP_APPEND) {
+        pcutils_str_append(stack->curr_edom_elem_text_content, stack->mraw,
+                (const unsigned char*)txt, len);
+    }
+    else {
+        if (stack->curr_edom_elem == elem) {
+            insert_cached_text_node(doc, sync_to_rdr);
+        }
+
+        pcdoc_text_node_t text_node;
+        text_node = pcdoc_element_new_text_content(doc, elem, op,
+                txt, len);
+
+        // TODO: append/prepend textContent?
+        pcintr_stack_t stack = pcintr_get_stack();
+        if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+            pcintr_rdr_send_dom_req_simple_raw(stack, op,
+                    elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                    txt, len);
+        }
+    }
+    return 0;
 }
 
 pcdoc_node
@@ -3314,6 +3419,8 @@ pcintr_util_new_content(purc_document_t doc,
         bool sync_to_rdr)
 {
     pcdoc_node node;
+    insert_cached_text_node(doc, sync_to_rdr);
+
     node = pcdoc_element_new_content(doc, elem, op, content, len);
 
     pcrdr_msg_data_type type = doc->def_text_type;

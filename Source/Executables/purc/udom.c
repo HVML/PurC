@@ -23,64 +23,20 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
 #include "rdrbox.h"
+#include "rdrbox-internal.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
+#include "unicode/unicode.h"
 
 #include <assert.h>
 
-typedef enum {
-    PCTH_RDR_ALIGN_LEFT,
-    PCTH_RDR_ALIGN_RIGHT,
-    PCTH_RDR_ALIGN_CENTER,
-    PCTH_RDR_ALIGN_JUSTIFY,
-} foil_rdr_align_t;
-
-typedef enum {
-    PCTH_RDR_DECORATION_NONE,
-    PCTH_RDR_DECORATION_UNDERLINE,
-    PCTH_RDR_DECORATION_OVERLINE,
-    PCTH_RDR_DECORATION_LINE_THROUGH,
-    PCTH_RDR_DECORATION_BLINK,
-} foil_rdr_decoration_t;
-
-typedef enum {
-    PCTH_RDR_WHITE_SPACE_NORMAL,
-    PCTH_RDR_WHITE_SPACE_PRE,
-    PCTH_RDR_WHITE_SPACE_NOWRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_WRAP,
-    PCTH_RDR_WHITE_SPACE_PRE_LINE,
-} foil_rdr_white_space_t;
-
-struct pcmcth_udom {
-    /* the sorted array of eDOM element and the corresponding rendering box. */
-    struct sorted_array *elem2rdrbox;
-
-    /* author-defined style sheet */
-    css_stylesheet *author_sheet;
-
-    /* CSS selection context */
-    css_select_ctx *select_ctx;
-
-    /* the initial containing block,
-       it's also the root node of the rendering tree. */
-    struct foil_rdrbox *initial_cblock;
-
-    /* the CSS media */
-    css_media media;
-
-    /* size of whole page in pixels */
-    unsigned width, height;
-
-    /* size of page in rows and columns */
-    unsigned cols, rows;
-};
-
 static css_stylesheet *def_ua_sheet;
+
 /* copy from https://www.w3.org/TR/2011/REC-CSS2-20110607/sample.html#q22.0 */
 static const char *def_style_sheet = ""
     "html, address,"
@@ -91,9 +47,12 @@ static const char *def_style_sheet = ""
     "h1, h2, h3, h4,"
     "h5, h6, noframes,"
     "ol, p, ul, center,"
-    "dir, hr, menu, pre   { display: block; unicode-bidi: embed }"
+    "dir, hr, menu, pre,"
+    "header, nav, article, footer," // HTML 5 tags
+    "section, address, aside { display: block; unicode-bidi: embed }"
+    "abbr            { display: inline }"
     "li              { display: list-item }"
-    "head            { display: none }"
+    "head, area      { display: none }"
     "table           { display: table }"
     "tr              { display: table-row }"
     "thead           { display: table-header-group }"
@@ -105,6 +64,7 @@ static const char *def_style_sheet = ""
     "caption         { display: table-caption }"
     "th              { font-weight: bolder; text-align: center }"
     "caption         { text-align: center }"
+    "address         { font-style: italic }"
     "body            { margin: 1em 1ex }"
     "h1              { margin: 3em 0 1em 0 }"
     "h2              { margin: 2em 0 1em 0 }"
@@ -148,7 +108,11 @@ static const char *def_style_sheet = ""
     ":link, :visited { text-decoration: underline }"
     ":focus          { outline: thin dotted invert }"
     ""
-    "/* Begin bidirectionality settings (do not change) */"
+    /* Insert quotes before and after Q element content */
+    "q:before        { content: open-quote }"   // HTML 5 tag
+    "q:after         { content: close-quote }"  // HTML 5 tag
+    ""
+    /* Begin bidirectionality settings (do not change) */
     "BDO[DIR=\"ltr\"]  { direction: ltr; unicode-bidi: bidi-override }"
     "BDO[DIR=\"rtl\"]  { direction: rtl; unicode-bidi: bidi-override }"
     ""
@@ -224,8 +188,12 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
+    if (udom->title_ucs)
+        free(udom->title_ucs);
     if (udom->elem2rdrbox)
         sorted_array_cleanup(udom->elem2rdrbox);
+    if (udom->base)
+        pcutils_broken_down_url_delete(udom->base);
     if (udom->author_sheet)
         css_stylesheet_destroy(udom->author_sheet);
     if (udom->select_ctx)
@@ -243,6 +211,11 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->elem2rdrbox = sorted_array_create(SAFLAG_DEFAULT, 8, NULL, NULL);
     if (udom->elem2rdrbox == NULL) {
+        goto failed;
+    }
+
+    udom->base = pcutils_broken_down_url_new();
+    if (udom->base == NULL) {
         goto failed;
     }
 
@@ -265,6 +238,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
+        LOG_ERROR("Failed to allocate initial containing block\n");
         goto failed;
     }
 
@@ -277,8 +251,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->width = width;
     udom->initial_cblock->height = height;
 
-    udom->initial_cblock->fgc = FOIL_DEF_FGC;
-    udom->initial_cblock->bgc = FOIL_DEF_BGC;
+    udom->initial_cblock->color = FOIL_DEF_FGC;
+    udom->initial_cblock->background_color = FOIL_DEF_BGC;
 
     udom->initial_cblock->cblock_rect.left = 0;
     udom->initial_cblock->cblock_rect.top = 0;
@@ -348,16 +322,132 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
     return data;
 }
 
-static int append_style_walker(purc_document_t doc,
-        pcdoc_element_t element, void *ctxt)
+static void load_css(struct pcmcth_udom *udom, const char *href)
 {
-    const char *name;
-    size_t len;
+    char *css = NULL;
+    size_t length;
 
+    if (href[0] == '/' && href[1] != '/' && udom->base &&
+            strcasecmp(udom->base->schema, "file") == 0) {
+
+        LOG_DEBUG("Try to load CSS from file (absolute path): %s\n", href);
+        css = purc_load_file_contents(href, &length);
+    }
+    else if (strchr(href, ':')) {
+        /* href contains an absolute URL */
+        struct purc_broken_down_url broken_down;
+
+        memset(&broken_down, 0, sizeof(broken_down));
+        pcutils_url_break_down(&broken_down, href);
+
+        if (strcasecmp(broken_down.schema, "file") == 0) {
+            LOG_DEBUG("Try to load CSS from file (absolute path): %s\n",
+                    broken_down.path);
+            css = purc_load_file_contents(broken_down.path, &length);
+        }
+        else {
+            LOG_WARN("Loading CSS from remote URL is not suppored: %s\n",
+                    href);
+            /* TODO: load from remote fetcher */
+        }
+
+        pcutils_broken_down_url_clear(&broken_down);
+    }
+    else if (udom->base && strcasecmp(udom->base->schema, "file") == 0) {
+        /* href contains a relative URL */
+        char path[strlen(udom->base->path) + strlen(href) + 4];
+
+        strcpy(path, udom->base->path);
+        strcat(path, "/");
+        strcat(path, href);
+
+        LOG_DEBUG("Try to load CSS from file (relative path): %s\n", path);
+        css = purc_load_file_contents(path, &length);
+    }
+
+    if (css) {
+        css_error err;
+        err = css_stylesheet_append_data(udom->author_sheet,
+                (const unsigned char *)css, length);
+        if (err != CSS_OK && err != CSS_NEEDDATA) {
+            LOG_WARN("Failed to append css data from file: %d\n", err);
+        }
+
+        free(css);
+    }
+}
+
+#define TAG_NAME_BASE           "base"
+#define TAG_NAME_LINK           "link"
+#define TAG_NAME_STYLE          "style"
+#define TAG_NAME_TITLE          "title"
+
+#define ATTR_NAME_STYLE         "style"
+#define ATTR_NAME_HREF          "href"
+#define ATTR_NAME_REL           "rel"
+#define ATTR_NAME_TYPE          "type"
+#define ATTR_NAME_LANG          "lang"
+
+#define ATTR_VALUE_STYLESHEET   "stylesheet"
+#define ATTR_VALUE_TEXT_CSS     "text/css"
+
+static int
+head_walker(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    const char *name, *value;
+    size_t len;
+    char *css_href = NULL;
+
+    struct pcmcth_udom *udom = (struct pcmcth_udom *)ctxt;
     pcdoc_element_get_tag_name(doc, element, &name, &len,
             NULL, NULL, NULL, NULL);
-    if (strncasecmp(name, "style", len) == 0) {
-        struct pcmcth_udom *udom = ctxt;
+
+    if (len == (sizeof(TAG_NAME_BASE) - 1) &&
+            strncasecmp(name, TAG_NAME_BASE, len) == 0) {
+
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_HREF,
+                &value, &len) == 0 && len > 0) {
+            if (udom->base->schema) {
+                LOG_WARN("Multiple base element found; old base overridden\n");
+                pcutils_broken_down_url_clear(udom->base);
+            }
+
+            char *base_url = strndup(value, len);
+            if (!pcutils_url_break_down(udom->base, base_url)) {
+                LOG_WARN("Bad href value for base element: %s\n", base_url);
+            }
+            free(base_url);
+        }
+    }
+    else if (len == (sizeof(TAG_NAME_LINK) - 1) &&
+            strncasecmp(name, TAG_NAME_LINK, len) == 0) {
+
+        /* check if the value of attribute `rel` is `stylesheet` */
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_REL,
+                &value, &len) == 0 && len > 0) {
+            if (len != (sizeof(ATTR_VALUE_STYLESHEET) - 1) ||
+                    strncasecmp(value, ATTR_VALUE_STYLESHEET, len)) {
+                goto done;
+            }
+        }
+
+        /* check if the value of attribute `type` is `text/css`
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_TYPE,
+                &value, &len) == 0 && len > 0) {
+            if (len != (sizeof(ATTR_VALUE_TEXT_CSS) - 1) ||
+                    strncasecmp(value, ATTR_VALUE_TEXT_CSS, len)) {
+                goto done;
+            }
+        }*/
+
+        if (pcdoc_element_get_attribute(doc, element, ATTR_NAME_HREF,
+                &value, &len) == 0 && len > 0) {
+            css_href = strndup(value, len);
+            load_css(udom, css_href);
+        }
+    }
+    else if (len == (sizeof(TAG_NAME_STYLE) - 1) &&
+            strncasecmp(name, TAG_NAME_STYLE, len) == 0) {
 
         pcdoc_node child = pcdoc_element_first_child(doc, element);
         while (child.data != NULL) {
@@ -370,7 +460,7 @@ static int append_style_walker(purc_document_t doc,
                     css_error err;
                     err = css_stylesheet_append_data(udom->author_sheet,
                             (const unsigned char *)text, len);
-                    if (err != CSS_OK || err != CSS_NEEDDATA) {
+                    if (err != CSS_OK && err != CSS_NEEDDATA) {
                         LOG_ERROR("Failed to append css data: %d\n", err);
                         return -1;
                     }
@@ -380,17 +470,41 @@ static int append_style_walker(purc_document_t doc,
             child = pcdoc_node_next_sibling(doc, child);
         }
     }
+    else if (len == (sizeof(TAG_NAME_TITLE) - 1) &&
+            strncasecmp(name, TAG_NAME_TITLE, len) == 0) {
 
+        pcdoc_node child = pcdoc_element_first_child(doc, element);
+        if (child.type == PCDOC_NODE_TEXT) {
+            const char *text;
+            size_t len;
+
+            if (pcdoc_text_content_get_text(doc, child.text_node,
+                        &text, &len) == 0 && len > 0) {
+                LOG_DEBUG("title: %s\n", text);
+                size_t consumed;
+                consumed = foil_ustr_from_utf8_until_paragraph_boundary(
+                        text, len, FOIL_WSR_NOWRAP,
+                        &udom->title_ucs, &udom->title_len);
+                if (consumed == 0) {
+                    udom->title_ucs = NULL;
+                    udom->title_len = 0;
+                }
+            }
+        }
+    }
+
+done:
+    if (css_href)
+        free(css_href);
     return 0;
 }
-
-#define ATTR_NAME_STYLE     "style"
 
 extern css_select_handler foil_css_select_handler;
 
 static css_select_results *
 select_element_style(const css_media *media, css_select_ctx *select_ctx,
-        purc_document_t doc, pcdoc_element_t element)
+        purc_document_t doc, pcdoc_element_t element,
+        css_select_results *parent_result)
 {
     // prepare inline style
     css_error err;
@@ -427,7 +541,7 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         if (err == CSS_OK) {
             err = css_stylesheet_append_data(inline_sheet,
                     (const unsigned char *)value, len);
-            if (err == CSS_OK) {
+            if (err == CSS_OK || err == CSS_NEEDDATA) {
                 css_stylesheet_data_done(inline_sheet);
             }
             else {
@@ -450,9 +564,30 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
         goto failed;
     }
 
-    /* TODO: handle styles for pseudo elements */
-    int pseudo_element;
+    /* XXX: css_computed_style_compose() of CSSEng just clones the values for
+       `inherit` for complex properties, e.g., `counter-reset` and
+       `counter-increment`.
+
+       This is not a smart way. One can optimize this by introducing
+       reference count to the values of these complex properties. */
     css_computed_style *composed = NULL;
+    if (parent_result) {
+        err = css_computed_style_compose(
+                parent_result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                foil_css_select_handler.compute_font_size, NULL,
+                &composed);
+        if (err != CSS_OK) {
+            goto failed;
+        }
+
+        css_computed_style_destroy(result->styles[CSS_PSEUDO_ELEMENT_NONE]);
+        result->styles[CSS_PSEUDO_ELEMENT_NONE] = composed;
+    }
+
+    /* compose styles for pseudo elements */
+    int pseudo_element;
+    composed = NULL;
     for (pseudo_element = CSS_PSEUDO_ELEMENT_NONE + 1;
             pseudo_element < CSS_PSEUDO_ELEMENT_COUNT;
             pseudo_element++) {
@@ -503,20 +638,45 @@ failed:
 }
 
 static int
-make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
+make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
+        css_select_results *parent_result)
 {
+    char *tag_name = NULL;
     foil_rdrbox *box;
     css_select_results *result = NULL;
+
     result = select_element_style(&ctxt->udom->media,
-            ctxt->udom->select_ctx, ctxt->doc, ancestor);
+            ctxt->udom->select_ctx, ctxt->doc, ancestor, parent_result);
     if (result) {
-        /* skip descendants for "display: none" */
+        const char *name;
+        size_t len;
+
+        pcdoc_element_get_tag_name(ctxt->doc, ancestor, &name, &len,
+                NULL, NULL, NULL, NULL);
+        assert(name != NULL && len > 0);
+        tag_name = strndup(name, len);
+
+        LOG_DEBUG("Creating boxes for element: %s\n", tag_name);
+
+        ctxt->tag_name = tag_name;
         ctxt->elem = ancestor;
         ctxt->computed = result;
-        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL)
+
+        /* skip descendants for "display: none" */
+        if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
+            LOG_WARN("Non principal rdrbox created fo element %s\n",
+                    ctxt->tag_name);
             goto done;
-        css_select_results_destroy(result);
-        result = NULL;
+        }
+
+        /* handle :before pseudo element */
+        if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
+            if (foil_rdrbox_create_before(ctxt, box) == NULL) {
+                LOG_WARN("Failed to create rdrbox for :before pseudo element\n");
+                goto done;
+            }
+        }
+
     }
     else {
         goto failed;
@@ -530,31 +690,32 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 
         if (node.type == PCDOC_NODE_ELEMENT) {
             ctxt->parent_box = box;
-            if (make_rdrtree(ctxt, node.elem))
+            if (make_rdrtree(ctxt, node.elem, result))
                 goto failed;
         }
         else if (node.type == PCDOC_NODE_TEXT) {
             const char *text = NULL;
             size_t len = 0;
-            pcdoc_text_content_get_text(ctxt->doc,
-                    node.text_node, &text, &len);
+            pcdoc_text_content_get_text(ctxt->doc, node.text_node,
+                    &text, &len);
 
             if (text && len > 0) {
-                foil_rdrbox *my_box;
-                if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
-                                box)) == NULL)
-                    goto done;
 
-                if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
-                    goto done;
+                if (box->type == FOIL_RDRBOX_TYPE_INLINE &&
+                        box->inline_data->nr_paras == 0) {
+                    if (!foil_rdrbox_init_inline_data(ctxt, box, text, len))
+                        goto done;
+                }
+                else {
+                    foil_rdrbox *my_box;
+                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                    box)) == NULL)
+                        goto done;
+
+                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                        goto done;
+                }
             }
-#if 0
-            else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
-                if (!foil_rdrbox_init_inline_data(ctxt,
-                                ctxt->parent_box, text, len))
-                    goto done;
-            }
-#endif
         }
         else if (node.type == PCDOC_NODE_CDATA_SECTION) {
             LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
@@ -563,22 +724,37 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         node = pcdoc_node_next_sibling(ctxt->doc, node);
     }
 
+    /* handle :after pseudo element */
+    ctxt->tag_name = tag_name;
+    ctxt->elem = ancestor;
+    ctxt->computed = result;
+    ctxt->parent_box = box->parent;
+    if (result->styles[CSS_PSEUDO_ELEMENT_AFTER]) {
+        if (foil_rdrbox_create_after(ctxt, box) == NULL) {
+            LOG_WARN("Failed to create rdrbox for :after pseudo element\n");
+            goto done;
+        }
+    }
+
 done:
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return 0;
 
 failed:
+    if (tag_name)
+        free(tag_name);
     if (result)
         css_select_results_destroy(result);
     return -1;
 }
 
 static int
-create_anonymous_blocks(struct foil_create_ctxt *ctxt,
+create_anonymous_blocks_for_block_container(struct foil_create_ctxt *ctxt,
         struct foil_rdrbox *box)
 {
-    unsigned n = 0;
     assert(box->is_block_container);
 
     /* handle inline boxes before any block children */
@@ -586,56 +762,103 @@ create_anonymous_blocks(struct foil_create_ctxt *ctxt,
     foil_rdrbox *start = NULL;
     while (child) {
 
-        if (child->is_inline_level)
+        if (child->is_inline_level && start == NULL)
             start = child;
 
         if (child->is_block_level && start != NULL) {
-            foil_rdrbox *block;
-            block = foil_rdrbox_create_anonymous_block(ctxt, box);
 
+            foil_rdrbox *block;
+            block = foil_rdrbox_create_anonymous_block(ctxt, box, start, NULL);
             if (block == NULL)
                 goto failed;
 
             foil_rdrbox *inln = start;
-            while (inln != child) {
+            while (inln != NULL && inln != child) {
+                foil_rdrbox *next = inln->next;
+
                 if (inln->is_inline_level) {
                     foil_rdrbox_remove_from_tree(inln);
                     foil_rdrbox_append_child(block, inln);
-
-                    block->nr_child_inlines++;
-                    n++;
                 }
-                inln = inln->next;
+                inln = next;
             }
+
+            start = NULL;
         }
 
         child = child->next;
-        start = NULL;
     }
 
     /* handle left inline boxes */
-    child = box->last;
-    while (child) {
-
+    if (start) {
         foil_rdrbox *block;
-        block = foil_rdrbox_create_anonymous_block(ctxt, box);
-
+        block = foil_rdrbox_create_anonymous_block(ctxt, box, start, NULL);
         if (block == NULL)
             goto failed;
 
-        if (child->is_inline_level) {
-            foil_rdrbox_remove_from_tree(child);
-            foil_rdrbox_prepend_child(block, child);
+        foil_rdrbox *inln = start;
+        while (inln != NULL) {
+            foil_rdrbox *next = inln->next;
 
-            block->nr_child_inlines++;
-            n++;
+            if (inln->is_inline_level) {
+                foil_rdrbox_remove_from_tree(inln);
+                foil_rdrbox_append_child(block, inln);
+            }
+            inln = next;
         }
-
-        child = child->prev;
     }
 
-    assert(n == box->nr_child_inlines);
-    box->nr_child_inlines = 0;
+    return 0;
+
+failed:
+    return -1;
+}
+
+static int
+create_anonymous_blocks_for_inline_box(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    assert(box->is_inline_box && box->parent);
+
+    /* create a new anonymous block box and insert before box */
+    foil_rdrbox *block;
+    block = foil_rdrbox_create_anonymous_block(ctxt, box->parent, box, NULL);
+    if (block == NULL)
+        goto failed;
+
+    /* move the current box as the child of the anonymous block box */
+    foil_rdrbox_remove_from_tree(box);
+    foil_rdrbox_append_child(block, box);
+
+    /* travel for the children of the current box */
+    foil_rdrbox *child = box->first;
+    foil_rdrbox *last_sibling = block;
+    while (child) {
+        foil_rdrbox *next = child->next;
+
+        if (child->is_inline_level) {
+            if (block == NULL) {
+                block = foil_rdrbox_create_anonymous_block(ctxt,
+                        box->parent->parent, NULL, last_sibling);
+                if (block == NULL)
+                    goto failed;
+                last_sibling = block;
+            }
+
+            foil_rdrbox_remove_from_tree(child);
+            foil_rdrbox_append_child(block, child);
+        }
+        else {
+            assert(child->is_block_level);
+
+            foil_rdrbox_remove_from_tree(child);
+            foil_rdrbox_append_child(block->parent, child);
+            last_sibling = child;
+            block = NULL;   /* mark to create a new anonyouse block */
+        }
+
+        child = next;
+    }
 
     return 0;
 
@@ -645,29 +868,69 @@ failed:
 
 static int
 normalize_rdrtree(struct foil_create_ctxt *ctxt,
-        struct foil_rdrbox *ancestor)
+        struct foil_rdrbox *box)
 {
-    foil_rdrbox *box = ancestor;
-    if (box->parent && box->parent->is_block_container &&
-            box->is_block_level && box->parent->nr_child_inlines) {
-        /* force the box to have only block-level boxes
-           by creating anonymous block box */
-        if (create_anonymous_blocks(ctxt, box->parent))
-            goto failed;
-    }
+    unsigned nr_inlines = 0;
+    unsigned nr_blocks = 0;
 
     /* continue for the children */
     foil_rdrbox *child = box->first;
     while (child) {
 
-        if (box->is_block_container && child->is_block_level &&
-                box->nr_child_inlines) {
-            if (create_anonymous_blocks(ctxt, box->parent))
-                goto failed;
+        // remove empty anonymous inline box
+        if (child->type == FOIL_RDRBOX_TYPE_INLINE && child->is_anonymous &&
+                child->first == NULL && child->inline_data->nr_paras == 0) {
+
+            foil_rdrbox *tmp = child;
+            child = child->next;
+
+            foil_rdrbox_delete(tmp);
+            LOG_WARN("an empty anonymous inline box removed\n");
+            continue;
         }
 
-        if (normalize_rdrtree(ctxt, child))
+        if (child->is_inline_level)
+            nr_inlines++;
+        else
+            nr_blocks++;
+
+        child = child->next;
+    }
+
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->doc, box);
+    LOG_DEBUG("box (%s) has %u inlines and %u blocks\n",
+            name, nr_inlines, nr_blocks);
+    free(name);
+#endif
+
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
+            box->list_item_data->marker_box) {
+        if (!foil_rdrbox_init_marker_data(ctxt,
+                    box->list_item_data->marker_box, box)) {
+            LOG_ERROR("Failed to initialize marker box\n");
             goto failed;
+        }
+    }
+
+    if (box->is_block_container && nr_inlines > 0 && nr_blocks > 0) {
+        /* force the box to have only block-level boxes
+           by creating anonymous block box */
+        if (create_anonymous_blocks_for_block_container(ctxt, box))
+            goto failed;
+    }
+    else if (box->is_inline_box && nr_blocks > 0) {
+        if (create_anonymous_blocks_for_inline_box(ctxt, box))
+            goto failed;
+    }
+
+    /* continue for the children */
+    child = box->first;
+    while (child) {
+
+        if (child->first)
+            if (normalize_rdrtree(ctxt, child))
+                goto failed;
 
         child = child->next;
     }
@@ -689,6 +952,7 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *ancestor)
 static void
 dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 {
+#ifndef NDEBUG
     foil_rdrbox_dump(ancestor, ctxt->doc, ctxt->level);
 
     /* travel children */
@@ -701,13 +965,17 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 
         child = child->next;
     }
+#else
+    (void)ctxt;
+    (void)ancestor;
+#endif
 }
 
 static void
 render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 {
-    foil_rdrbox_render_before(ancestor, ctxt->level);
-    foil_rdrbox_render_content(ancestor, ctxt->level);
+    foil_rdrbox_render_before(ctxt, ancestor, ctxt->level);
+    foil_rdrbox_render_content(ctxt, ancestor, ctxt->level);
 
     /* travel children */
     foil_rdrbox *child = ancestor->first;
@@ -720,7 +988,24 @@ render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
         child = child->next;
     }
 
-    foil_rdrbox_render_after(ancestor, ctxt->level);
+    foil_rdrbox_render_after(ctxt, ancestor, ctxt->level);
+}
+
+uint8_t
+foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
+{
+    const char *value;
+    size_t len;
+
+    if (elem == NULL)
+        elem = purc_document_root(doc);
+
+    if (pcdoc_element_get_attribute(doc, elem, ATTR_NAME_LANG,
+                &value, &len) == 0 && len == 2) {
+        return (uint8_t)foil_langcode_from_iso639_1(value);
+    }
+
+    return (uint8_t)FOIL_LANGCODE_unknown;
 }
 
 pcmcth_udom *
@@ -728,6 +1013,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     purc_document_t edom_doc;
     purc_document_type doc_type;
+    pcmcth_udom *udom = NULL;
 
     edom_doc = purc_variant_native_get_entity(edom);
     assert(edom_doc);
@@ -743,12 +1029,20 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    pcmcth_udom *udom;
     udom = foil_udom_new(page);
     if (udom == NULL) {
         *retv = PCRDR_SC_INSUFFICIENT_STORAGE;
         goto failed;
     }
+
+    /* get default language code */
+    udom->initial_cblock->lang_code = foil_udom_get_langcode(edom_doc, NULL);
+    if (udom->initial_cblock->lang_code == FOIL_LANGCODE_unknown) {
+        // XXX: default lang
+        udom->initial_cblock->lang_code = FOIL_LANGCODE_en;
+    }
+    udom->initial_cblock->quotes =
+        foil_quotes_get_initial(udom->initial_cblock->lang_code);
 
     // parse and append style sheets
     pcdoc_element_t head;
@@ -773,8 +1067,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         }
 
         size_t n;
-        pcdoc_travel_descendant_elements(edom_doc, head,
-                append_style_walker, udom, &n);
+        pcdoc_travel_descendant_elements(edom_doc, head, head_walker,
+                udom, &n);
 
         size_t sz;
         css_stylesheet_size(udom->author_sheet, &sz);
@@ -796,8 +1090,9 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { edom_doc, udom,
-        udom->initial_cblock, udom->initial_cblock, NULL, NULL, NULL, 0, 0 };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+        udom->initial_cblock, udom->initial_cblock,
+        NULL, NULL, NULL, NULL, 0, 0 };
+    if (make_rdrtree(&ctxt, purc_document_root(edom_doc), NULL))
         goto failed;
 
     /* check and create anonymous block box if need */

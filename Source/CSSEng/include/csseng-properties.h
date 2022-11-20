@@ -428,16 +428,16 @@ enum css_content_e {
 
 enum css_counter_increment_e {
 	CSS_COUNTER_INCREMENT_INHERIT		= 0x0,
+	CSS_COUNTER_INCREMENT_NONE		= 0x1,
 	/* Consult pointer in struct to determine which */
-	CSS_COUNTER_INCREMENT_NAMED		= 0x1,
-	CSS_COUNTER_INCREMENT_NONE		= 0x1
+	CSS_COUNTER_INCREMENT_NAMED		= 0x2,
 };
 
 enum css_counter_reset_e {
 	CSS_COUNTER_RESET_INHERIT		= 0x0,
+	CSS_COUNTER_RESET_NONE			= 0x1,
 	/* Consult pointer in struct to determine which */
-	CSS_COUNTER_RESET_NAMED			= 0x1,
-	CSS_COUNTER_RESET_NONE			= 0x1
+	CSS_COUNTER_RESET_NAMED			= 0x2,
 };
 
 enum css_cursor_e {
@@ -655,7 +655,11 @@ enum css_list_style_type_e {
 	CSS_LIST_STYLE_TYPE_GEORGIAN		= 0xc,
 	CSS_LIST_STYLE_TYPE_LOWER_ALPHA		= 0xd,
 	CSS_LIST_STYLE_TYPE_UPPER_ALPHA		= 0xe,
-	CSS_LIST_STYLE_TYPE_NONE		= 0xf
+	CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN	= 0x0f,
+	CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN	= 0x10,
+	CSS_LIST_STYLE_TYPE_CJK_DECIMAL	= 0x11,
+	CSS_LIST_STYLE_TYPE_TIBETAN		= 0x12,
+	CSS_LIST_STYLE_TYPE_NONE		= 0x13,
 };
 
 enum css_margin_e {

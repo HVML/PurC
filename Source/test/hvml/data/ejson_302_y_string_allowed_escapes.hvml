@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON(["\"\\\/\b\f\n\r\t"])></hvml>
+<hvml ejson=$DATA(["\"\\\/\b\f\n\r\t"])></hvml>

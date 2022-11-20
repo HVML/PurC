@@ -36,21 +36,14 @@ static void inline_data_cleaner(void *data)
 {
     struct _inline_box_data *inline_data = (struct _inline_box_data *)data;
 
-    struct _text_segment *p, *n;
-    list_for_each_entry_safe(p, n, &inline_data->segs, ln) {
+    struct text_paragraph *p, *n;
+    list_for_each_entry_safe(p, n, &inline_data->paras, ln) {
         list_del(&p->ln);
         free(p->ucs);
         if (p->break_oppos)
             free(p->break_oppos);
         free(p);
     }
-}
-
-static foil_langcode_t get_lang(pcdoc_element_t elem)
-{
-    (void)elem;
-    // TODO
-    return FOIL_LANGCODE_en;
 }
 
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
@@ -62,11 +55,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
     size_t left = len;
 
     struct _inline_box_data *inline_data = box->inline_data;
-    inline_data->lang = get_lang(box->owner);
-    inline_data->nr_segs = 0;
-    INIT_LIST_HEAD(&inline_data->segs);
-
-    box->cb_data_cleanup = inline_data_cleaner;
+    assert(inline_data && inline_data->nr_paras == 0);
 
     while (left > 0) {
         uint32_t *ucs;
@@ -81,7 +70,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
         if (nr_ucs > 0) {
             assert(ucs);
 
-            struct _text_segment *seg;
+            struct text_paragraph *seg;
             seg = calloc(1, sizeof(*seg));
             if (seg == NULL)
                 goto failed;
@@ -94,20 +83,23 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
             if (lbp == FOIL_RDRBOX_LINE_BREAK_AUTO)
                 lbp = FOIL_RDRBOX_LINE_BREAK_NORMAL;
 
-            foil_ustr_get_breaks(inline_data->lang, box->text_transform,
+            foil_ustr_get_breaks(box->lang_code, box->text_transform,
                     box->word_break, lbp, ucs, nr_ucs, &seg->break_oppos);
             if (seg->break_oppos == NULL) {
                 LOG_ERROR("failed when getting break opportunities\n");
                 goto failed;
             }
 
-            list_add_tail(&seg->ln, &inline_data->segs);
-            inline_data->nr_segs++;
+            list_add_tail(&seg->ln, &inline_data->paras);
+            inline_data->nr_paras++;
         }
 
         left -= consumed;
         text += consumed;
     }
+
+    if (inline_data->nr_paras > 0)
+        box->cb_data_cleanup = inline_data_cleaner;
 
     return true;
 

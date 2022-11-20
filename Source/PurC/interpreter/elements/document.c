@@ -74,9 +74,6 @@ token_found(const char *start, const char *end, void *ud)
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
-    PC_ASSERT(stack);
-    PC_ASSERT(stack->mode == STACK_VDOM_BEFORE_HVML);
-
     if (stack->except)
         return NULL;
 
@@ -88,7 +85,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(frame);
 
     struct ctxt_for_document *ctxt;
     ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
@@ -105,7 +101,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     struct pcvdom_document *document;
     document = stack->vdom;
-    PC_ASSERT(document);
     struct pcvdom_doctype  *doctype = &document->doctype;
     const char *system_info = doctype->system_info;
     if (system_info) {
@@ -135,7 +130,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 static bool
 on_popping(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
     switch (stack->mode) {
         case STACK_VDOM_BEFORE_HVML:
             stack->mode = STACK_VDOM_AFTER_HVML;
@@ -144,13 +139,11 @@ on_popping(pcintr_stack_t stack, void* ud)
             stack->mode = STACK_VDOM_AFTER_HVML;
             break;
         case STACK_VDOM_IN_HEAD:
-            PC_ASSERT(0);
             break;
         case STACK_VDOM_AFTER_HEAD:
             stack->mode = STACK_VDOM_AFTER_HVML;
             break;
         case STACK_VDOM_IN_BODY:
-            //PC_ASSERT(0);
             break;
         case STACK_VDOM_AFTER_BODY:
             stack->mode = STACK_VDOM_AFTER_HVML;
@@ -158,13 +151,11 @@ on_popping(pcintr_stack_t stack, void* ud)
         case STACK_VDOM_AFTER_HVML:
             break;
         default:
-            PC_ASSERT(0);
             break;
     }
 
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (frame->ctxt == NULL)
         return true;
@@ -194,7 +185,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(content);
+    UNUSED_PARAM(content);
 }
 
 static void
@@ -203,18 +194,17 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
-    PC_ASSERT(comment);
+    UNUSED_PARAM(comment);
 }
 
 static pcvdom_element_t
 select_child(pcintr_stack_t stack, void* ud)
 {
-    PC_ASSERT(stack);
+    UNUSED_PARAM(ud);
 
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
-    PC_ASSERT(ud == frame->ctxt);
 
     if (stack->back_anchor == frame)
         stack->back_anchor = NULL;
@@ -251,7 +241,7 @@ again:
 
     switch (curr->type) {
         case PCVDOM_NODE_DOCUMENT:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
             break;
         case PCVDOM_NODE_ELEMENT:
             {
@@ -268,10 +258,10 @@ again:
             on_comment(co, frame, PCVDOM_COMMENT_FROM_NODE(curr));
             goto again;
         default:
-            PC_ASSERT(0); // Not implemented yet
+            purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     }
 
-    PC_ASSERT(0);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL; // NOTE: never reached here!!!
 }
 

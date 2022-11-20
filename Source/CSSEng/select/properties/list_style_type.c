@@ -22,6 +22,8 @@ css_error css__cascade_list_style_type(uint32_t opv, css_style *style,
 	UNUSED(style);
 
 	if (isInherit(opv) == false) {
+        value = getValue(opv);
+#if 0 // VW
 		switch (getValue(opv)) {
 		case LIST_STYLE_TYPE_DISC:
 			value = CSS_LIST_STYLE_TYPE_DISC;
@@ -65,10 +67,23 @@ css_error css__cascade_list_style_type(uint32_t opv, css_style *style,
 		case LIST_STYLE_TYPE_UPPER_ALPHA:
 			value = CSS_LIST_STYLE_TYPE_UPPER_ALPHA;
 			break;
+		case LIST_STYLE_TYPE_UPPER_ARMENIAN:
+			value = CSS_LIST_STYLE_TYPE_UPPER_ARMENIAN;
+			break;
+		case LIST_STYLE_TYPE_LOWER_ARMENIAN:
+			value = CSS_LIST_STYLE_TYPE_LOWER_ARMENIAN;
+			break;
+		case LIST_STYLE_TYPE_CJK_DECIMAL:
+			value = CSS_LIST_STYLE_TYPE_CJK_DECIMAL;
+			break;
+		case LIST_STYLE_TYPE_TIBETAN:
+			value = CSS_LIST_STYLE_TYPE_TIBETAN;
+			break;
 		case LIST_STYLE_TYPE_NONE:
 			value = CSS_LIST_STYLE_TYPE_NONE;
 			break;
 		}
+#endif
 	}
 
 	if (css__outranks_existing(getOpcode(opv), isImportant(opv), state,

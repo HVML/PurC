@@ -70,7 +70,8 @@ void pcvariant_native_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_object_release  (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_array_release   (purc_variant_t value)    WTF_INTERNAL;
 void pcvariant_set_release     (purc_variant_t value)    WTF_INTERNAL;
-void pcvariant_tuple_release (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_tuple_release   (purc_variant_t value)    WTF_INTERNAL;
+void pcvariant_sorted_array_release (purc_variant_t value)    WTF_INTERNAL;
 
 variant_arr_t
 pcvar_arr_get_data(purc_variant_t arr) WTF_INTERNAL;
@@ -78,6 +79,8 @@ variant_obj_t
 pcvar_obj_get_data(purc_variant_t obj) WTF_INTERNAL;
 variant_set_t
 pcvar_set_get_data(purc_variant_t set) WTF_INTERNAL;
+variant_tuple_t
+pcvar_tuple_get_data(purc_variant_t tuple) WTF_INTERNAL;
 void
 pcvar_adjust_set_by_descendant(purc_variant_t val) WTF_INTERNAL;
 
@@ -120,6 +123,8 @@ void
 pcvar_array_break_rue_downward(purc_variant_t arr);
 void
 pcvar_object_break_rue_downward(purc_variant_t obj);
+void
+pcvar_tuple_break_rue_downward(purc_variant_t tuple);
 
 // break edge belongs to `val` and it's children's edges
 // when `val` becomes dangling
@@ -135,6 +140,9 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
 void
 pcvar_set_break_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
+void
+pcvar_tuple_break_edge_to_parent(purc_variant_t tuple,
+        struct pcvar_rev_update_edge *edge);
 
 // build children's reverse update edges recursively
 int
@@ -143,6 +151,8 @@ int
 pcvar_array_build_rue_downward(purc_variant_t arr);
 int
 pcvar_object_build_rue_downward(purc_variant_t obj);
+int
+pcvar_tuple_build_rue_downward(purc_variant_t tuple);
 
 // build edge for `val` and it's children's edges
 int
@@ -157,6 +167,10 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
 int
 pcvar_set_build_edge_to_parent(purc_variant_t set,
         struct pcvar_rev_update_edge *edge);
+int
+pcvar_tuple_build_edge_to_parent(purc_variant_t tuple,
+        struct pcvar_rev_update_edge *edge);
+
 
 struct obj_iterator {
     purc_variant_t                obj;
@@ -227,6 +241,25 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj);
 void
 pcvar_kv_it_next(struct kv_iterator *it);
 
+struct tuple_iterator {
+    purc_variant_t                tuple;
+    size_t                        nr_members;
+    size_t                        idx;
+
+    purc_variant_t                curr;
+    purc_variant_t                next;
+    purc_variant_t                prev;
+};
+
+struct tuple_iterator
+pcvar_tuple_it_first(purc_variant_t tuple);
+struct tuple_iterator
+pcvar_tuple_it_last(purc_variant_t tuple);
+void
+pcvar_tuple_it_next(struct tuple_iterator *it);
+void
+pcvar_tuple_it_prev(struct tuple_iterator *it);
+
 bool
 pcvar_rev_update_chain_pre_handler(
         purc_variant_t src,  // the source variant.
@@ -285,37 +318,37 @@ pcvar_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
         int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt));
 
 double
-pcvar_str_numberify(purc_variant_t val);
+pcvar_str_numerify(purc_variant_t val);
 
 double
-pcvar_atom_numberify(purc_variant_t val);
+pcvar_atom_numerify(purc_variant_t val);
 
 double
-pcvar_bs_numberify(purc_variant_t val);
+pcvar_bs_numerify(purc_variant_t val);
 
 double
-pcvar_dynamic_numberify(purc_variant_t val);
+pcvar_dynamic_numerify(purc_variant_t val);
 
 double
-pcvar_native_numberify(purc_variant_t val);
+pcvar_native_numerify(purc_variant_t val);
 
 double
-pcvar_obj_numberify(purc_variant_t val);
+pcvar_obj_numerify(purc_variant_t val);
 
 double
-pcvar_arr_numberify(purc_variant_t val);
+pcvar_arr_numerify(purc_variant_t val);
 
 double
-pcvar_set_numberify(purc_variant_t val);
+pcvar_set_numerify(purc_variant_t val);
 
 double
-pcvar_tuple_numberify(purc_variant_t val);
+pcvar_tuple_numerify(purc_variant_t val);
 
 double
-pcvar_numberify(purc_variant_t val);
+pcvar_numerify(purc_variant_t val);
 
 int
-pcvar_diff_numberify(purc_variant_t l, purc_variant_t r);
+pcvar_diff_numerify(purc_variant_t l, purc_variant_t r);
 
 
 typedef int (*stringify_f)(const unsigned char *s, size_t len, void *ctxt);

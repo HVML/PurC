@@ -35,6 +35,7 @@
 
 #include "private/debug.h"
 #include "private/errors.h"
+#include "private/map.h"
 
 struct pcdoc_travel_info {
     pcdoc_node_type type;
@@ -141,6 +142,11 @@ struct purc_document_ops {
     int (*elem_coll_filter)(purc_document_t doc,
             pcdoc_elem_coll_t dst_coll,
             pcdoc_elem_coll_t src_coll, const char *selector);
+};
+
+struct pcdoc_elem_content {
+    pcutils_mraw_t     *text;
+    pcutils_str_t      *data;
 };
 
 struct purc_document {

@@ -108,7 +108,7 @@ static int my_disconnect(pcrdr_conn* conn)
     pcrdr_msg *bye_msg = pcrdr_make_request_message(
             PCRDR_MSG_TARGET_INSTANCE, 0,
             PCRDR_THREAD_OPERATION_BYE,
-            PCRDR_REQUESTID_NORETURN,
+            NULL,
             purc_get_endpoint(NULL),
             PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
             NULL, PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
@@ -116,13 +116,37 @@ static int my_disconnect(pcrdr_conn* conn)
     if (bye_msg) {
         size_t n = purc_inst_move_message(conn->prot_data->rdr_atom, bye_msg);
         pcrdr_release_message(bye_msg);
-        if (n == 0)
+        if ( n == 0) {
             err_code = PCRDR_ERROR_UNEXPECTED;
+            goto failed;
+        }
     }
     else {
         err_code = PURC_ERROR_OUT_OF_MEMORY;
+        goto failed;
     }
 
+    int left_ms = PCRDR_DEF_TIME_EXPECTED * 1000;
+    while (left_ms > 0) {
+        if (my_wait_message(conn, 10) == 0)
+            left_ms -= 10;
+        else
+            break;
+    }
+
+    if (left_ms <= 0) {
+        err_code = PCRDR_ERROR_TIMEOUT;
+        goto failed;
+    }
+
+    pcrdr_msg *msg = purc_inst_take_away_message(0);
+    if (msg == NULL) {
+        err_code = PCRDR_ERROR_UNEXPECTED;
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+
+failed:
     free(conn->prot_data);
     return err_code;
 }

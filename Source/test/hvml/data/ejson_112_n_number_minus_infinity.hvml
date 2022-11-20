@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON([-Infinity])></hvml>
+<hvml ejson=$DATA([-Infinity])></hvml>

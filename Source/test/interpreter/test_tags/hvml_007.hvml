@@ -1,8 +1,8 @@
 <hvml target="html" id="ab" value="test" custom="cust">
     <body>
         <div>$CRTN.target</div>
-        <div>$EJSON.type($CRTN.cid)</div>
-        <div>$EJSON.type($CRTN.token)</div>
-        <div>$EJSON.type($CRTN.uri)</div>
+        <div>$DATA.type($CRTN.cid)</div>
+        <div>$DATA.type($CRTN.token)</div>
+        <div>$DATA.type($CRTN.uri)</div>
     </body>
 </hvml>

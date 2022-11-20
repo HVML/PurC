@@ -15,8 +15,7 @@ project(PurC C CXX)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(WARNING "No CMAKE_BUILD_TYPE value specified, defaulting to RelWithDebInfo.")
-    #set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build." FORCE)
 else ()
     message(STATUS "The CMake build type is: ${CMAKE_BUILD_TYPE}")
 endif ()
@@ -31,8 +30,7 @@ set(ALL_PORTS
     Mac
     Windows
 )
-#set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
-set(PORT "Linux" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
+set(PORT "NOPORT" CACHE STRING "choose which PurC port to build (one of ${ALL_PORTS})")
 
 list(FIND ALL_PORTS ${PORT} RET)
 if (${RET} EQUAL -1)
@@ -140,7 +138,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 #------------------------------------------------------------------------------
 include(PurCCommon)
 
-SET_PROJECT_VERSION(0 9 0)
+SET_PROJECT_VERSION(0 9 2)
 
 add_subdirectory(Source)
 

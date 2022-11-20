@@ -15,7 +15,7 @@
         <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
 
         <ul>
-            <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1L) nosetotail >
+            <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1L) nosetotail >
                 <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
             </iterate>
         </ul>

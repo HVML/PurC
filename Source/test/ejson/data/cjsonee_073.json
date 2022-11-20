@@ -1,7 +1,7 @@
 {{
     $STREAM.stdout.writelines({{
         $SYS.cwd(! '/root') && $FS.list_prt ||
-        'Cannot change directory to "/root"''
+        'Cannot change directory to "/root"'
    ||$A&&$A.B||$A()&&$A(123)||$A.X.Y(123) }})
 }}
 

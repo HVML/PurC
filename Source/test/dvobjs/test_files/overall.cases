@@ -312,497 +312,497 @@ positive:
     $STR.nr_bytes( bx08 )
     1UL
 
-# test cases for $EJSON.fetchreal with quantity specified
+# test cases for $DATA.fetchreal with quantity specified
 negative:
-    $EJSON.fetchreal(bx12345678, 'i16:10')
+    $DATA.fetchreal(bx12345678, 'i16:10')
     InvalidValue
 
 negative:
-    $EJSON.fetchreal(bx12345678, 'i16:-3')
+    $DATA.fetchreal(bx12345678, 'i16:-3')
     InvalidValue
 
 negative:
-    $EJSON.fetchreal(bx12345678, 'i16:3')
+    $DATA.fetchreal(bx12345678, 'i16:3')
     InvalidValue
 
 negative:
-    $EJSON.fetchreal(bx12345678, 'asdf:')
+    $DATA.fetchreal(bx12345678, 'asdf:')
     InvalidValue
 
 negative:
-    $EJSON.fetchreal(bx12345678, ':sadf')
+    $DATA.fetchreal(bx12345678, ':sadf')
     InvalidValue
 
 positive:
-    $EJSON.fetchreal(bx00000000, 'i16:0')
+    $DATA.fetchreal(bx00000000, 'i16:0')
     0L
 
 positive:
-    $EJSON.fetchreal(bx00020004, 'i16be')
+    $DATA.fetchreal(bx00020004, 'i16be')
     2L
 
 positive:
-    $EJSON.fetchreal(bx00020004, ' i16be:1 ', 2)
+    $DATA.fetchreal(bx00020004, ' i16be:1 ', 2)
     4L
 
 positive:
-    $EJSON.fetchreal(bx00020004, ' i16be:2 ')
+    $DATA.fetchreal(bx00020004, ' i16be:2 ')
     [2L, 4L]
 
-# test cases for $EJSON.crc32
+# test cases for $DATA.crc32
 negative:
-    $EJSON.crc32
+    $DATA.crc32
     ArgumentMissed
 
 negative:
-    $EJSON.crc32('HVML', 'unknown')
+    $DATA.crc32('HVML', 'unknown')
     InvalidValue
 
 positive:
-    $EJSON.crc32('HVML', null, 'ulongint')
+    $DATA.crc32('HVML', null, 'ulongint')
     761839935UL
 
 # define `ulongint`
 positive:
-    $EJSON.crc32('HVML', null, 'asdfklasfd')
+    $DATA.crc32('HVML', null, 'asdfklasfd')
     761839935UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32', 'ulongint')
     761839935UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/BZIP2', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/BZIP2', 'ulongint')
     583601153UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/MPEG-2', 'ulongint')
     3711366142UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/POSIX', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/POSIX', 'ulongint')
     3855470970UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/XFER', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/XFER', 'ulongint')
     2600375422UL
 
 positive:
-    $EJSON.fetchreal($EJSON.crc32('HVML', 'CRC-32/MPEG-2', 'binary'), 'u32')
+    $DATA.fetchreal($DATA.crc32('HVML', 'CRC-32/MPEG-2', 'binary'), 'u32')
     3711366142UL
 
 # ENDIAN-dependent
 positive:
-    $EJSON.crc32('HVML')
+    $DATA.crc32('HVML')
     761839935UL
 
 positive:
-    $EJSON.crc32('HVML', null, 'binary')
+    $DATA.crc32('HVML', null, 'binary')
     bx3FC1682D
 
 # ENDIAN-dependent
 positive:
-    $EJSON.crc32('HVML', null, 'lowercase')
+    $DATA.crc32('HVML', null, 'lowercase')
     '3fc1682d'
 
 # ENDIAN-dependent
 positive:
-    $EJSON.crc32('HVML', null, 'uppercase')
+    $DATA.crc32('HVML', null, 'uppercase')
     '3FC1682D'
 
 # ENDIAN-dependent
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/POSIX')
+    $DATA.crc32('HVML', 'CRC-32/POSIX')
     3855470970UL
 
 # ENDIAN-dependent
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/POSIX', 'uppercase')
+    $DATA.crc32('HVML', 'CRC-32/POSIX', 'uppercase')
     '7AD1CDE5'
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/ISCSI', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/ISCSI', 'ulongint')
     1088443129UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32C', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32C', 'ulongint')
     1088443129UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/BASE91-D', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/BASE91-D', 'ulongint')
     3051174686UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32D', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32D', 'ulongint')
     3051174686UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/JAMCRC', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/JAMCRC', 'ulongint')
     3533127360UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32/AIXM', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32/AIXM', 'ulongint')
     355205254UL
 
 positive:
-    $EJSON.crc32('HVML', 'CRC-32Q', 'ulongint')
+    $DATA.crc32('HVML', 'CRC-32Q', 'ulongint')
     355205254UL
 
-# test cases for $EJSON.md5
+# test cases for $DATA.md5
 negative:
-    $EJSON.md5
+    $DATA.md5
     ArgumentMissed
 
 positive:
-    $EJSON.md5('HVML')
+    $DATA.md5('HVML')
     bxb2565228770ec540692d8a0cfcd3a990
 
 positive:
-    $EJSON.md5('HVML', 'binary')
+    $DATA.md5('HVML', 'binary')
     bxb2565228770ec540692d8a0cfcd3a990
 
 positive:
-    $EJSON.md5('HVML', 'lowercase')
+    $DATA.md5('HVML', 'lowercase')
     'b2565228770ec540692d8a0cfcd3a990'
 
 positive:
-    $EJSON.md5('HVML', 'uppercase')
+    $DATA.md5('HVML', 'uppercase')
     'B2565228770EC540692D8A0CFCD3A990'
 
-# test cases for $EJSON.sha1
+# test cases for $DATA.sha1
 negative:
-    $EJSON.sha1
+    $DATA.sha1
     ArgumentMissed
 
 positive:
-    $EJSON.sha1('HVML')
+    $DATA.sha1('HVML')
     bxda03f74dd36a33cf908ad0ae743510772d120983
 
 positive:
-    $EJSON.sha1('HVML', 'binary')
+    $DATA.sha1('HVML', 'binary')
     bxda03f74dd36a33cf908ad0ae743510772d120983
 
 positive:
-    $EJSON.sha1('HVML', 'lowercase')
+    $DATA.sha1('HVML', 'lowercase')
     'da03f74dd36a33cf908ad0ae743510772d120983'
 
 positive:
-    $EJSON.sha1('HVML', 'uppercase')
+    $DATA.sha1('HVML', 'uppercase')
     'DA03F74DD36A33CF908AD0AE743510772D120983'
 
-# test cases for $EJSON.bin2hex
+# test cases for $DATA.bin2hex
 negative:
-    $EJSON.bin2hex
+    $DATA.bin2hex
     ArgumentMissed
 
 negative:
-    $EJSON.bin2hex(null)
+    $DATA.bin2hex(null)
     WrongDataType
 
 negative:
-    $EJSON.bin2hex('HVML', 'dasf')
+    $DATA.bin2hex('HVML', 'dasf')
     InvalidValue
 
 positive:
-    $EJSON.bin2hex('HVML')
+    $DATA.bin2hex('HVML')
     '48564d4c'
 
 positive:
-    $EJSON.bin2hex('HVML', 'lowercase')
+    $DATA.bin2hex('HVML', 'lowercase')
     '48564d4c'
 
 positive:
-    $EJSON.bin2hex('HVML', 'uppercase')
+    $DATA.bin2hex('HVML', 'uppercase')
     '48564D4C'
 
-# test cases for $EJSON.hex2bin
+# test cases for $DATA.hex2bin
 negative:
-    $EJSON.hex2bin
+    $DATA.hex2bin
     ArgumentMissed
 
 negative:
-    $EJSON.hex2bin(null)
+    $DATA.hex2bin(null)
     WrongDataType
 
 negative:
-    $EJSON.hex2bin('asdaf')
+    $DATA.hex2bin('asdaf')
     BadEncoding
 
 positive:
-    $EJSON.hex2bin('0FF')
+    $DATA.hex2bin('0FF')
     bb0000.1111
 
 positive:
-    $EJSON.hex2bin('0FF0')
+    $DATA.hex2bin('0FF0')
     bx0ff0
 
 positive:
-    $EJSON.hex2bin('48564d4c')
+    $DATA.hex2bin('48564d4c')
     bx48564d4c
 
-# test cases for $EJSON.base64_encode
+# test cases for $DATA.base64_encode
 negative:
-    $EJSON.base64_encode
+    $DATA.base64_encode
     ArgumentMissed
 
 negative:
-    $EJSON.base64_encode(false)
+    $DATA.base64_encode(false)
     WrongDataType
 
 positive:
-    $EJSON.base64_encode('HVML')
+    $DATA.base64_encode('HVML')
     'SFZNTA=='
 
 positive:
-    $EJSON.base64_encode(bx48564d4c)
+    $DATA.base64_encode(bx48564d4c)
     'SFZNTA=='
 
 positive:
-    $EJSON.base64_encode('HVML 是全球首款可编程标记语言')
+    $DATA.base64_encode('HVML 是全球首款可编程标记语言')
     'SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='
 
-# test cases for $EJSON.base64_decode
+# test cases for $DATA.base64_decode
 negative:
-    $EJSON.base64_decode
+    $DATA.base64_decode
     ArgumentMissed
 
 negative:
-    $EJSON.base64_decode(false)
+    $DATA.base64_decode(false)
     WrongDataType
 
 positive:
-    $EJSON.base64_decode('SFZNTA==')
+    $DATA.base64_decode('SFZNTA==')
     bx48564d4c
 
 positive:
-    $EJSON.fetchstr($EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
+    $DATA.fetchstr($DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='), 'utf8')
     'HVML 是全球首款可编程标记语言'
 
-# test cases for $EJSON.pack
+# test cases for $DATA.pack
 negative:
-    $EJSON.pack
+    $DATA.pack
     ArgumentMissed
 
 negative:
-    $EJSON.pack("")
+    $DATA.pack("")
     ArgumentMissed
 
 negative:
-    $EJSON.pack("", true)
+    $DATA.pack("", true)
     InvalidValue
 
 negative:
-    $EJSON.pack("utf8", true)
+    $DATA.pack("utf8", true)
     WrongDataType
 
 positive:
-    $EJSON.pack( "i16le i32le", 10, 10)
+    $DATA.pack( "i16le i32le", 10, 10)
     bx0a000a000000
 
 positive:
-    $EJSON.pack( "i16le:2 i32le", [[10, 15], 255])
+    $DATA.pack( "i16le:2 i32le", [[10, 15], 255])
     bx0A000F00FF000000
 
 positive:
-    $EJSON.pack( "i16le:2 i32le", [10, 15], 255)
+    $DATA.pack( "i16le:2 i32le", [10, 15], 255)
     bx0A000F00FF000000
 
-# test cases for $EJSON.unpack
+# test cases for $DATA.unpack
 negative:
-    $EJSON.unpack
+    $DATA.unpack
     ArgumentMissed
     []
 
 negative:
-    $EJSON.unpack("")
+    $DATA.unpack("")
     ArgumentMissed
     []
 
 negative:
-    $EJSON.unpack("", bx00FF)
+    $DATA.unpack("", bx00FF)
     InvalidValue
     []
 
 negative:
-    $EJSON.unpack(false, false)
+    $DATA.unpack(false, false)
     WrongDataType
     []
 
 negative:
-    $EJSON.unpack("utf8", false)
+    $DATA.unpack("utf8", false)
     WrongDataType
     []
 
 positive:
-    $EJSON.unpack("utf8", $EJSON.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
+    $DATA.unpack("utf8", $DATA.base64_decode('SFZNTCDmmK/lhajnkIPpppbmrL7lj6/nvJbnqIvmoIforrDor63oqIA='))
     'HVML 是全球首款可编程标记语言'
 
 positive:
-    $EJSON.unpack("i16le i32le", bx0a000a000000)
+    $DATA.unpack("i16le i32le", bx0a000a000000)
     [10L, 10L]
 
 positive:
-    $EJSON.unpack("i16le:2 i32le", bx0A000F00FF000000)
+    $DATA.unpack("i16le:2 i32le", bx0A000F00FF000000)
     [[10L, 15L], 255L]
 
 positive:
-    $EJSON.unpack("i16le:2 i32le", $EJSON.pack("i16le:2 i32le", [[10, 15], 255]))
+    $DATA.unpack("i16le:2 i32le", $DATA.pack("i16le:2 i32le", [[10, 15], 255]))
     [[10L, 15L], 255L]
 
 positive:
-    $EJSON.unpack("i16le", bx0a000a000000)
+    $DATA.unpack("i16le", bx0a000a000000)
     10L
 
-# test cases for $EJSON.arith
+# test cases for $DATA.arith
 negative:
-    $EJSON.arith
+    $DATA.arith
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.arith('5', 6)
+    $DATA.arith('5', 6)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.arith(5, 6, 8)
+    $DATA.arith(5, 6, 8)
     WrongDataType
     undefined
 
 negative:
-    $EJSON.arith('090', 5, 3)
+    $DATA.arith('090', 5, 3)
     InvalidValue
     undefined
 
 negative:
-    $EJSON.arith('/', "5", 0)
+    $DATA.arith('/', "5", 0)
     InvalidValue
     undefined
 
 negative:
-    $EJSON.arith('%', "5", 0)
+    $DATA.arith('%', "5", 0)
     InvalidValue
     undefined
 
 negative:
-    $EJSON.arith('^', "5", -1)
+    $DATA.arith('^', "5", -1)
     InvalidValue
     undefined
 
 negative:
-    $EJSON.arith('^', [], -1)
+    $DATA.arith('^', [], -1)
     WrongDataType
     undefined
 
 positive:
-    $EJSON.arith('+', "5", 0)
+    $DATA.arith('+', "5", 0)
     5L
 
 positive:
-    $EJSON.arith('-', "abc", 3)
+    $DATA.arith('-', "abc", 3)
     -3L
 
 positive:
-    $EJSON.arith('-', "3", 4)
+    $DATA.arith('-', "3", 4)
     -1L
 
 positive:
-    $EJSON.arith('/', 80, 4)
+    $DATA.arith('/', 80, 4)
     20L
 
 positive:
-    $EJSON.arith('%', 5, 3)
+    $DATA.arith('%', 5, 3)
     2L
 
 positive:
-    $EJSON.arith('^', 3, 0)
+    $DATA.arith('^', 3, 0)
     1L
 
 positive:
-    $EJSON.arith('^', -3, 2)
+    $DATA.arith('^', -3, 2)
     9L
 
-# test cases for $EJSON.bitwise
+# test cases for $DATA.bitwise
 negative:
-    $EJSON.bitwise
+    $DATA.bitwise
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('~')
+    $DATA.bitwise('~')
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('&', 0)
+    $DATA.bitwise('&', 0)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('|', 0)
+    $DATA.bitwise('|', 0)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('^', 0)
+    $DATA.bitwise('^', 0)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('<', 0)
+    $DATA.bitwise('<', 0)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('>', 0)
+    $DATA.bitwise('>', 0)
     ArgumentMissed
     undefined
 
 negative:
-    $EJSON.bitwise('/', "5", 0)
+    $DATA.bitwise('/', "5", 0)
     InvalidValue
     undefined
 
 negative:
-    $EJSON.bitwise('~', [])
+    $DATA.bitwise('~', [])
     WrongDataType
     undefined
 
 negative:
-    $EJSON.bitwise('^', "5", {})
+    $DATA.bitwise('^', "5", {})
     WrongDataType
     undefined
 
 positive:
-    $EJSON.bitwise('&', 15, 0)
+    $DATA.bitwise('&', 15, 0)
     0UL
 
 positive:
-    $EJSON.bitwise('|', 15, 0)
+    $DATA.bitwise('|', 15, 0)
     15UL
 
 positive:
-    $EJSON.bitwise('~', -1UL)
+    $DATA.bitwise('~', -1UL)
     0UL
 
 positive:
-    $EJSON.bitwise('^', 0, -1UL)
+    $DATA.bitwise('^', 0, -1UL)
     -1UL
 
 positive:
-    $EJSON.bitwise('<', 1, 3)
+    $DATA.bitwise('<', 1, 3)
     8UL
 
 positive:
-    $EJSON.bitwise('>', 16, 4)
+    $DATA.bitwise('>', 16, 4)
     1UL
 
 positive:
-    $EJSON.bitwise('<', 1, 200)
+    $DATA.bitwise('<', 1, 200)
     256UL
 
 positive:
-    $EJSON.bitwise('>', 16, 200)
+    $DATA.bitwise('>', 16, 200)
     0UL
 
 # test cases for $URL.encode

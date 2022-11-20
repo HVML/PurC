@@ -17,7 +17,7 @@
             <div id="temp">
                 <bind on="$buttons" as="btns" at="_last"/>
                 <div>
-                    $EJSON.count($btns.eval)
+                    $DATA.count($btns.eval)
                 </div>
             </div>
         </div>

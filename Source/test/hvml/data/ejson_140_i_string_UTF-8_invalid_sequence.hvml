@@ -1,1 +1,1 @@
-<hvml ejson=$EJSON(["日ш�"])></hvml>
+<hvml ejson=$DATA(["日ш�"])></hvml>

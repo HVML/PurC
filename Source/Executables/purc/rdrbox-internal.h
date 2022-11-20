@@ -31,24 +31,25 @@
 
 #include "unicode/unicode.h"
 
-struct _text_segment {
+#define LEN_BUF_INTEGER 128
+
+struct text_paragraph {
     struct list_head ln;
 
     /* the code points of text in Unicode (logical order) */
     uint32_t *ucs;
+    size_t nr_ucs;
 
     /* the break opportunities of the characters */
     foil_break_oppo_t *break_oppos;
-
-    size_t nr_ucs;
 };
 
 struct _inline_box_data {
     foil_langcode_t lang;
-    unsigned nr_segs;
+    unsigned nr_paras;
 
     /* the text segments */
-    struct list_head segs;
+    struct list_head paras;
 };
 
 struct _block_box_data {
@@ -69,7 +70,7 @@ struct _list_item_data {
 };
 
 struct _marker_box_data {
-    purc_atom_t atom;
+    char *text;
 };
 
 #ifdef __cplusplus

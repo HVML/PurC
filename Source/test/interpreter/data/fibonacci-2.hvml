@@ -27,7 +27,7 @@
         </section>
 
         <footer>
-            <p>Totally $EJSON.count($2!.fibonacci) numbers.</p>
+            <p>Totally $DATA.count($2!.fibonacci) numbers.</p>
         </footer>
     </body>
 

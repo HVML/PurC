@@ -68,7 +68,7 @@ TEST(dvobjs, type)
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = purc_dvobj_ejson_new();
+    purc_variant_t ejson = purc_dvobj_data_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -233,7 +233,7 @@ TEST(dvobjs, count)
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = purc_dvobj_ejson_new();
+    purc_variant_t ejson = purc_dvobj_data_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -396,7 +396,7 @@ TEST(dvobjs, compare)
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = purc_dvobj_ejson_new();
+    purc_variant_t ejson = purc_dvobj_data_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
@@ -562,7 +562,7 @@ TEST(dvobjs, sort)
             "dvobjs", &info);
     ASSERT_EQ (ret, PURC_ERROR_OK);
 
-    purc_variant_t ejson = purc_dvobj_ejson_new();
+    purc_variant_t ejson = purc_dvobj_data_new();
     ASSERT_NE(ejson, nullptr);
     ASSERT_EQ(purc_variant_is_object (ejson), true);
 
