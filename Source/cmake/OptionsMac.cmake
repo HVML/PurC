@@ -22,9 +22,9 @@ if (ENABLE_BUILD_REMOTE_FETCHER)
     set(ENABLE_LCMD ON)
     set(ENABLE_LSQL ON)
 
-    find_package(LibSoup 2.54.0)
     find_package(LibGcrypt 1.6.0 REQUIRED)
-    find_package(SQLite3 3.10.0)
+    find_package(SQLite3 3.10.0 REQUIRED)
+    find_package(LibSoup 2.54.0 REQUIRED)
 
 if (ENABLE_RSQL)
     find_package(MySQLClient 20.0.0)
