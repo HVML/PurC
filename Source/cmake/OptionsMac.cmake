@@ -87,9 +87,8 @@ else ()
 endif ()
 
 if (NOT ENABLE_REMOTE_FETCHER_DEFAULT OR NOT ENABLE_REMOTE_FETCHER)
-    set(ENABLE_LCMD OFF)
-    set(ENABLE_LSQL OFF)
-    set(ENABLE_RSQL OFF)
+    set(ENABLE_LSQL_DEFAULT OFF)
+    set(ENABLE_RSQL_DEFAULT OFF)
 endif ()
 
 if (NOT GLIB_FOUND)
@@ -136,8 +135,6 @@ else ()
     set(ENABLE_SSL_DEFAULT ON)
     SET_AND_EXPOSE_TO_BUILD(HAVE_OPENSSL ON)
 endif ()
-
-message(STATUS "ENABLE_REMOTE_FETCHER_DEFAULT: ${ENABLE_REMOTE_FETCHER_DEFAULT}")
 
 # Private options shared with other PurC ports. Add options here only if
 # we need a value different from the default defined in PurCFeatures.cmake.
