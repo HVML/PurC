@@ -952,6 +952,7 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *ancestor)
 static void
 dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 {
+#ifndef NDEBUG
     foil_rdrbox_dump(ancestor, ctxt->doc, ctxt->level);
 
     /* travel children */
@@ -964,6 +965,10 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 
         child = child->next;
     }
+#else
+    (void)ctxt;
+    (void)ancestor;
+#endif
 }
 
 static void

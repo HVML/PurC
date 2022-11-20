@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -441,7 +441,6 @@ void foil_rdrbox_delete_deep(foil_rdrbox *root)
     }
 }
 
-#ifndef NDEBUG
 static const char *literal_values_boxtype[] = {
     "inline",
     "block",
@@ -474,6 +473,7 @@ static const char *literal_values_float[] = {
     "right",
 };
 
+#ifndef NDEBUG
 static const char *literal_values_direction[] = {
     "ltr",
     "rtl",
@@ -577,6 +577,7 @@ static const char *literal_values_list_style_position[] = {
 static uint8_t
 display_to_type(foil_create_ctxt *ctxt, uint8_t computed)
 {
+    (void)ctxt;
     assert(ctxt->parent_box);
 
     assert(computed != CSS_DISPLAY_INHERIT);
@@ -1646,21 +1647,21 @@ dtrm_margin_left_right_block_normal(foil_create_ctxt *ctxt,
     if (width_v == CSS_WIDTH_AUTO)
         nr_autos++;
 
-    uint8_t padding_left_v;
+    uint8_t v;
     css_fixed padding_left_l;
     css_unit padding_left_u;
-    padding_left_v = css_computed_padding_left(ctxt->style,
+    v = css_computed_padding_left(ctxt->style,
             &padding_left_l, &padding_left_u);
-    assert(padding_left_v != CSS_PADDING_INHERIT);
+    assert(v != CSS_PADDING_INHERIT);
     box->pl = calc_used_value_widths(box, padding_left_u, padding_left_l);
 
-    uint8_t padding_right_v;
     css_fixed padding_right_l;
     css_unit padding_right_u;
-    padding_right_v = css_computed_padding_right(ctxt->style,
+    v = css_computed_padding_right(ctxt->style,
             &padding_right_l, &padding_right_u);
-    assert(padding_right_v != CSS_PADDING_INHERIT);
+    assert(v != CSS_PADDING_INHERIT);
     box->pr = calc_used_value_widths(box, padding_right_u, padding_right_l);
+    (void)v;
 
     uint8_t margin_left_v;
     css_fixed margin_left_l;
@@ -2586,7 +2587,6 @@ char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box)
     return name;
 }
 
-#ifndef NDEBUG
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level)
 {
@@ -2656,18 +2656,6 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     if (name)
         free(name);
 }
-
-#else
-
-void foil_rdrbox_dump(const foil_rdrbox *box,
-        purc_document_t doc, unsigned level)
-{
-    (void)box;
-    (void)doc;
-    (void)level;
-}
-
-#endif /* defined NDEBUG */
 
 void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)

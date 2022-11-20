@@ -511,8 +511,6 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         break;
     }
 
-    printf("list style type: %d, index: %u/%u\n",
-            list_item->list_style_type, index, nr_items);
     data->text = foil_rdrbox_list_number(nr_items, index + 1,
             list_item->list_style_type, tail);
     marker->cb_data_cleanup = marker_data_cleaner;
