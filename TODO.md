@@ -17,7 +17,7 @@
    + [2.6) `purc`](#26-purc)
    + [2.7) More Platforms](#27-more-platforms)
    + [2.8) Others](#28-others)
-   + [2.9) Known Bugs](#29-known-bugs)
+   + [2.9) Known Bugs and Test Cases](#29-known-bugs-and-test-cases)
 
 [//]:# (END OF TOC)
 
@@ -135,6 +135,7 @@
 ### 2.6) `purc`
 
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
+1. [0.9.2] Ehance `foil` to support more properties and layouts except for table.
 1. [0.9.4] Enhance `foil` to support full-screen and multiple-page rendering.
 
 ### 2.7) More Platforms
