@@ -1272,6 +1272,7 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 int main(int argc, char** argv)
 {
     int ret;
+    purc_atom_t foil_atom = 0;
     bool success = true;
 
     struct my_opts *opts = my_opts_new();
@@ -1329,7 +1330,7 @@ int main(int argc, char** argv)
             opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
         }
 
-        if (foil_init(opts->rdr_uri) == 0) {
+        if ((foil_atom = foil_init(opts->rdr_uri)) == 0) {
             fprintf(stdout,
                     "Failed to initialize the built-in Foil renderer: %s\n",
                     opts->rdr_prot);
@@ -1413,7 +1414,6 @@ int main(int argc, char** argv)
             success = false;
         }
 
-        my_opts_delete(opts, false);
     }
     else {
         assert(!opts->parallel);
@@ -1422,6 +1422,12 @@ int main(int argc, char** argv)
             success = false;
         }
 
+    }
+
+    if (opts->app_info) {
+        my_opts_delete(opts, false);
+    }
+    else {
         my_opts_delete(opts, true);
     }
 
@@ -1437,6 +1443,9 @@ failed:
         purc_rwstream_destroy(run_info.dump_stm);
 
     purc_cleanup();
+
+    if (foil_atom)
+        foil_sync_exit();
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

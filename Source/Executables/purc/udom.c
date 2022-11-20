@@ -664,7 +664,8 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
 
         /* skip descendants for "display: none" */
         if ((box = foil_rdrbox_create_principal(ctxt)) == NULL) {
-            LOG_WARN("Failed to create principal rdrbox for element\n");
+            LOG_WARN("Non principal rdrbox created fo element %s\n",
+                    ctxt->tag_name);
             goto done;
         }
 
@@ -698,7 +699,6 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
             pcdoc_text_content_get_text(ctxt->doc, node.text_node,
                     &text, &len);
 
-            LOG_DEBUG("text content of %s: %s\n", tag_name, text);
             if (text && len > 0) {
 
                 if (box->type == FOIL_RDRBOX_TYPE_INLINE &&
