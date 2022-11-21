@@ -1497,7 +1497,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
         parser->nr_quoted++;
         size_t nr_buf_chars = tkz_buffer_get_size_in_chars(
                 parser->temp_buffer);
-        if (parser->nr_quoted > 1 || nr_buf_chars >= 1) {
+        if (nr_buf_chars >= 1) {
              /* V */
             tkz_stack_drop_top();
              /* S */
@@ -1511,9 +1511,26 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
             RESET_QUOTED_COUNTER();
             RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
         }
+        else if (parser->nr_quoted == 3) {
+            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED);
+        }
         else {
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED);
         }
+    }
+    if (parser->nr_quoted == 2) {
+        /* V */
+        tkz_stack_drop_top();
+        /* S */
+        tkz_stack_drop_top();
+        top = tkz_stack_push(ETT_STRING);
+        top->node = pcvcm_node_new_string(
+                tkz_buffer_get_bytes(parser->temp_buffer)
+                );
+        update_tkz_stack(parser);
+        RESET_TEMP_BUFFER();
+        RESET_QUOTED_COUNTER();
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
     }
     if (character == '\\') {
         SET_RETURN_STATE(curr_state);
@@ -1528,6 +1545,36 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED)
+    if (character == '\'') {
+        parser->nr_quoted++;
+        if (parser->nr_quoted > 3) {
+            APPEND_TO_TEMP_BUFFER(character);
+        }
+        if (parser->nr_quoted >= 6
+                && tkz_buffer_end_with(parser->temp_buffer,
+                    "\'\'\'", 3)) {
+            tkz_buffer_delete_tail_chars(parser->temp_buffer, 3);
+            /* V */
+            tkz_stack_drop_top();
+            /* D */
+            tkz_stack_drop_top();
+            top = tkz_stack_push(ETT_STRING);
+            top->node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer)
+                    );
+            update_tkz_stack(parser);
+            RESET_TEMP_BUFFER();
+            RESET_QUOTED_COUNTER();
+            ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
+        }
+        ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED);
+    }
+    if (is_eof(character)) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
+        RETURN_AND_STOP_PARSE();
+    }
+    APPEND_TO_TEMP_BUFFER(character);
+    ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED);
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)

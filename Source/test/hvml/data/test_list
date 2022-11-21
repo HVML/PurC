@@ -470,6 +470,7 @@ ejson_312_multiple_line_array
 ejson_313_multiple_comma_on_array PCEJSON_ERROR_UNEXPECTED_COMMA
 ejson_314_key_value_with_minus
 ejson_315_p_hex_integer
+ejson_316_p_multi_line_by_triple_single_quoted
 neg.1
 neg.2
 neg.3

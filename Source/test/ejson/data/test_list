@@ -129,6 +129,7 @@ p_long_integer
 p_hex_integer
 p_unsigned_long_integer
 p_multi_line
+p_multi_line_by_single_quoted
 p_single_quote_key
 p_byte_sequence
 y_number_real_capital_e
