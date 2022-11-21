@@ -114,7 +114,7 @@ next_input:                                                                 \
     }                                                                       \
                                                                             \
     if (is_separator(character) && (                                        \
-           (parser->state != EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED)     \
+           (parser->state != EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)     \
         && (parser->state != EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)           \
         && (parser->state != EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)           \
                                                                      )) {   \
@@ -1527,6 +1527,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED);
 END_STATE()
 
+BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_SINGLE_QUOTED)
+END_STATE()
+
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
     if (character == '"') {
         if (parser->nr_quoted == 0) {
@@ -1534,7 +1537,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             ADVANCE_TO(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
         }
         else if (parser->nr_quoted == 1) {
-            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TWO_DOUBLE_QUOTED);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_DOUBLE_QUOTED);
         }
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_DOUBLE_QUOTED);
     }
@@ -1626,14 +1629,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VALUE_DOUBLE_QUOTED)
     RETURN_AND_STOP_PARSE();
 END_STATE()
 
-BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TWO_DOUBLE_QUOTED)
+BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_DOUBLE_QUOTED)
     if (character == '"') {
         if (parser->nr_quoted == 1) {
             parser->nr_quoted++;
-            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TWO_DOUBLE_QUOTED);
+            ADVANCE_TO(EJSON_TKZ_STATE_VALUE_DOUBLE_DOUBLE_QUOTED);
         }
         else if (parser->nr_quoted == 2) {
-            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
         }
     }
     if (top->type == ETT_VALUE) {
@@ -1661,7 +1664,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TWO_DOUBLE_QUOTED)
     RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE);
 END_STATE()
 
-BEGIN_STATE(EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED)
+BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
     if (character == '\"') {
         parser->nr_quoted++;
         if (parser->nr_quoted > 3) {
@@ -1684,14 +1687,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED)
             RESET_QUOTED_COUNTER();
             ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
         }
-        ADVANCE_TO(EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED);
+        ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
     }
     if (is_eof(character)) {
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
-    ADVANCE_TO(EJSON_TKZ_STATE_VALUE_THREE_DOUBLE_QUOTED);
+    ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_KEYWORD)
