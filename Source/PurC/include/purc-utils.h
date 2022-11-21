@@ -467,13 +467,25 @@ PCA_EXPORT int
 pcutils_get_random_seed(void);
 
 /**
+ * pcutils_get_prev_fibonacci_number:
+ *
+ * @n: a size_t number
+ *
+ * Gets previous fibonacci number before @n.
+ *
+ * @return The greatest fibonacci number less than @n.
+ */
+PCA_EXPORT size_t
+pcutils_get_prev_fibonacci_number(size_t n);
+
+/**
  * pcutils_get_next_fibonacci_number:
  *
- * Gets next fibonacci sequence number.
+ * @n: a size_t number
  *
- * @param n: current number
+ * Gets next fibonacci number after @n.
  *
- * @return the next fibonacci sequence number.
+ * @return The least fibonacci sequence greater than @n.
  */
 PCA_EXPORT size_t
 pcutils_get_next_fibonacci_number(size_t n);
@@ -621,8 +633,20 @@ pcutils_get_next_token_len(const char *str, size_t str_len,
 PCA_EXPORT char*
 pcutils_escape_string_for_json(const char* str);
 
+/**
+ * Counts the number of Unicode characters in a UTF-8 string until
+ * reaching the ax length of bytes or encountering a null byte.
+ * If len < 0, the string must be null-terminated.  */
 PCA_EXPORT size_t
 pcutils_string_utf8_chars(const char *p, ssize_t max);
+
+/**
+ * Counts the number of Unicode characters in a UTF-8 string which
+ * can contains null characters. But if len < 0, the string must be
+ * null-terminated.
+ */
+PCA_EXPORT size_t
+pcutils_string_utf8_chars_with_nulls(const char *p, ssize_t len);
 
 extern const char * const _pcutils_utf8_skip;
 

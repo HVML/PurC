@@ -281,6 +281,40 @@ pcutils_string_utf8_chars(const char *p, ssize_t max)
     return nr_chars;
 }
 
+size_t
+pcutils_string_utf8_chars_with_nulls(const char *p, ssize_t len)
+{
+    size_t nr_chars = 0;
+    const char *start = p;
+
+    if (p == NULL || len == 0)
+        return 0;
+
+    if (len < 0) {
+        while (*p) {
+            p = pcutils_utf8_next_char(p);
+            ++nr_chars;
+        }
+    }
+    else {
+        p = pcutils_utf8_next_char(p);
+
+        while (p - start < len) {
+            ++nr_chars;
+            p = pcutils_utf8_next_char(p);
+        }
+
+        /* only do the last nr_chars increment if we got a complete
+         * char (don't count partial chars)
+         */
+        if (p - start <= len)
+            ++nr_chars;
+    }
+
+    return nr_chars;
+}
+
+
 /* copy from MiniGUI */
 #define MAKEWORD16(low, high)   \
     ((uint16_t)(((uint8_t)(low)) | (((uint16_t)((uint8_t)(high))) << 8)))

@@ -176,6 +176,28 @@ failed:
     return -1;
 }
 
+size_t pcutils_get_prev_fibonacci_number(size_t n)
+{
+    size_t fib_0 = 0;
+    size_t fib_1 = 1;
+    size_t fib_n = 0;
+
+    if (n == 0) {
+        return 0;
+    }
+    else if (n <= 2) {
+        return n - 1;
+    }
+
+    while (fib_n < n) {
+        fib_n = fib_1 + fib_0;
+        fib_0 = fib_1;
+        fib_1 = fib_n;
+    }
+
+    return fib_0;
+}
+
 size_t pcutils_get_next_fibonacci_number(size_t n)
 {
     size_t fib_0 = 0;
@@ -186,11 +208,12 @@ size_t pcutils_get_next_fibonacci_number(size_t n)
         return n + 1;
     }
 
-    for (size_t i = 2; fib_n <= n; i++) {
+    while (fib_n <= n) {
         fib_n = fib_1 + fib_0;
         fib_0 = fib_1;
         fib_1 = fib_n;
     }
+
     return fib_n;
 }
 
