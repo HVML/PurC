@@ -416,10 +416,29 @@ pcvcm_node_serialize_to_rwstream(purc_rwstream_t rws, struct pcvcm_node *node,
     }
 
     case PCVCM_NODE_TYPE_FUNC_CONCAT_STRING:
-        purc_rwstream_write(rws, "\"", 1);
+    {
+        char c[4] = {0};
+        c[0] = '"';
+
+        struct pcvcm_node *child = pcvcm_node_first_child(node);
+        while (child) {
+            if (child->type == PCVCM_NODE_TYPE_STRING) {
+                char *buf = (char*)child->sz_ptr[1];
+                if (buf && strchr(buf, '\n')) {
+                    c[0] = '"';
+                    c[1] = '"';
+                    c[2] = '"';
+                    break;
+                }
+            }
+            child = pcvcm_node_next_child(child);
+        }
+
+        purc_rwstream_write(rws, &c, strlen(c));
         write_concat_string_node_serialize_rwstream(rws, node, handle);
-        purc_rwstream_write(rws, "\"", 1);
+        purc_rwstream_write(rws, &c, strlen(c));
         break;
+    }
 
     case PCVCM_NODE_TYPE_FUNC_GET_VARIABLE:
     {

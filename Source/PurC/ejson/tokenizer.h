@@ -67,6 +67,7 @@
 #define ETT_SEMICOLON                   ';'         /* CJSONEE OP: ; */
 #define ETT_STRING                      '"'         /* String: temp  */
 #define ETT_BACKQUOTE                   '`'         /* BACKQUOTE  */
+#define ETT_TRIPLE_DOUBLE_QUOTED        'T'         /* triple double quoted  */
 
 
 #if (defined __DEV_EJSON__ && __DEV_EJSON__)
