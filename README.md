@@ -252,7 +252,7 @@ For an example, you can save the following program as `exception.hvml`:
 ```hvml
 <!DOCTYPE hvml>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail >
         $STREAM.stdout.writelines("$0<) Hello, world! $CRTN.foo")
     </iterate>
 </hvml>
@@ -276,7 +276,7 @@ The main coroutine terminated due to an uncaught exception: NoSuchKey.
 >> The document generated:
 
 >> The executing stack frame(s):
-#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$EJSON.arith( "+", $0<, 1 ) nosetotail>
+#00: <iterate on=0 onlyif=$L.lt( $0<, 10 ) with=$DATA.arith( "+", $0<, 1 ) nosetotail>
   ATTRIBUTES:
     on: 0
     onlyif: true
@@ -321,7 +321,7 @@ For example, we enhance the first HVML program to print `Hello, world!` 10 times
 ```hvml
 <!DOCTYPE hvml>
 <hvml target="void">
-    <iterate on 0 onlyif $L.lt($0<, 10) with $EJSON.arith('+', $0<, 1) nosetotail must-yield >
+    <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1) nosetotail must-yield >
         $STREAM.stdout.writelines(
                 $STR.join($0<, ") Hello, world! --from COROUTINE-", $CRTN.cid))
     </iterate>
