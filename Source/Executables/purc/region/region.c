@@ -229,14 +229,14 @@ bool foil_region_is_rect_in (const foil_region_p region, const foil_rect* rect)
 void foil_region_init (foil_region_p pRgn, foil_block_heap_p heap)
 {
      pRgn->type = NULLREGION;
-     foil_rect_setEmpty (&pRgn->rcBound);
+     foil_rect_empty (&pRgn->rcBound);
      pRgn->head = NULL;
      pRgn->tail = NULL;
 
      pRgn->heap = heap;   // read-only field.
 }
 
-/* return bound rect of a region */
+#if 0
 void foil_region_get_bound_rect (foil_region_p pRgn, foil_rect *pRect)
 {
      *pRect = pRgn->rcBound;
@@ -249,6 +249,7 @@ bool foil_region_is_empty (const foil_region* pRgn)
 
      return false;
 }
+#endif
 
 void foil_region_empty (foil_region_p pRgn)
 {
@@ -262,7 +263,7 @@ void foil_region_empty (foil_region_p pRgn)
     }
 
     pRgn->type = NULLREGION;
-    foil_rect_setEmpty (&pRgn->rcBound);
+    foil_rect_empty (&pRgn->rcBound);
     pRgn->head = NULL;
     pRgn->tail = NULL;
 }

@@ -363,9 +363,13 @@ bool foil_region_intersect (foil_region_p dst_rgn,
  * \param region The pointer to the region.
  * \param rect The pointer to the result rect.
  *
- * \sa Isfoil_region_empty
+ * \sa foil_region_is_empty
  */
-void foil_region_get_bound_rect (foil_region_p region, foil_rect *rect);
+static inline void
+foil_region_get_bound_rect (foil_region_p region, foil_rect *rect)
+{
+     *rect = region->rcBound;
+}
 
 /**
  * \fn bool foil_region_set (foil_region_p region, const foil_rect* rect)
@@ -386,7 +390,7 @@ void foil_region_get_bound_rect (foil_region_p region, foil_rect *rect);
 bool foil_region_set (foil_region_p region, const foil_rect* rect);
 
 /**
- * \fn bool Isfoil_region_empty (const foil_region* region)
+ * \fn bool foil_region_is_empty (const foil_region* region)
  * \brief Determine whether a region is an empty region.
  *
  * This function determines whether the region pointed to by \a region is
@@ -398,7 +402,12 @@ bool foil_region_set (foil_region_p region, const foil_rect* rect);
  *
  * \sa foil_region_empty
  */
-bool Isfoil_region_empty (const foil_region* region);
+static inline bool foil_region_is_empty (const foil_region* region) {
+     if (region->head == NULL)
+         return true;
+
+     return false;
+}
 
 /**
  * \fn bool foil_region_add_rect (foil_region_p region, const foil_rect* rect)
