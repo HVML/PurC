@@ -503,9 +503,9 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**
- * Creates an empty byte sequence variant.
+ * Creates a variant which represents an empty byte sequence.
  *
- * Returns: A purc_variant_t with byte sequence type,
+ * Returns: An empty bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
