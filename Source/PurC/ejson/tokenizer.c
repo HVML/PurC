@@ -635,6 +635,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
     if (is_eof(character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
     }
+    if (top && top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+    }
     if (is_whitespace(character)) {
         if (!top) {
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
@@ -1759,6 +1763,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            tkz_stack_drop_top();
+            top = tkz_stack_push(ETT_STRING);
+            top->node = pcvcm_node_new_string(
+                    tkz_buffer_get_bytes(parser->temp_buffer)
+                    );
+            update_tkz_stack(parser);
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+        }
+        RECONSUME_IN(EJSON_TKZ_STATE_DOLLAR);
+    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
 END_STATE()
@@ -2869,6 +2886,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
     else {
         update_tkz_stack(parser);
         top = tkz_stack_top();
+        if (top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+        }
         if (top->type == ETT_GET_ELEMENT ||
                 top->type == ETT_GET_ELEMENT_BY_BRACKET ||
                 top->type == ETT_GET_VARIABLE) {
