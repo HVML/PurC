@@ -167,26 +167,25 @@ static size_t shift_ucs_right(foil_unistr *unistr, ssize_t pos, size_t nr_chars)
 {
     assert(nr_chars > 0);
 
-    size_t real_pos = 0;
+    size_t real_pos;
     if (pos < 0) {
-        if ((size_t)-pos > unistr->len)
-            real_pos = 0;
-        else
-            real_pos = unistr->len + pos;
+        real_pos = unistr->len;
     }
     else {
-        if ((size_t)pos >= unistr->len)
-            real_pos = unistr->len - 1;
+        if ((size_t)pos > unistr->len)
+            real_pos = unistr->len;
         else
-            real_pos = unistr->len + pos;
+            real_pos = pos;
     }
 
-    real_pos += nr_chars;
-    size_t n = nr_chars;
-    while (n > 0) {
-        unistr->ucs[real_pos + nr_chars] = unistr->ucs[real_pos];
-        real_pos--;
-        n--;
+    if (real_pos < unistr->len) {
+        size_t nr_to_copy = unistr->len - real_pos;
+        size_t n = unistr->len - real_pos - 1;
+        while (nr_to_copy > 0) {
+            unistr->ucs[n + nr_chars] = unistr->ucs[n];
+            n--;
+            nr_to_copy--;
+        }
     }
 
     return real_pos;
@@ -204,6 +203,8 @@ foil_unistr *foil_unistr_insert_len(foil_unistr *unistr, ssize_t pos,
         }
         else {
             size_t real_pos = shift_ucs_right(unistr, pos, nr_chars);
+            unistr->len += nr_chars;
+
             const char *next = str_utf8;
             while (nr_chars > 0) {
                 unistr->ucs[real_pos++] =
@@ -212,8 +213,6 @@ foil_unistr *foil_unistr_insert_len(foil_unistr *unistr, ssize_t pos,
                 next = pcutils_utf8_next_char(next);
                 nr_chars--;
             }
-
-            unistr->len += nr_chars;
         }
     }
 
@@ -228,8 +227,8 @@ foil_unistr *foil_unistr_insert_unichar(foil_unistr *unistr, ssize_t pos,
         unistr = NULL;
     }
     else {
-        shift_ucs_right(unistr, pos, 1);
-        unistr->ucs[unistr->len] = unichar;
+        size_t real_pos = shift_ucs_right(unistr, pos, 1);
+        unistr->ucs[real_pos] = unichar;
         unistr->len += 1;
     }
 
@@ -237,34 +236,20 @@ foil_unistr *foil_unistr_insert_unichar(foil_unistr *unistr, ssize_t pos,
 }
 
 foil_unistr *foil_unistr_erase(foil_unistr *unistr,
-        ssize_t pos, ssize_t nr_chars)
+        size_t pos, ssize_t nr_chars)
 {
-    if (nr_chars == 0)
+    if (nr_chars == 0 || pos >= unistr->len)
         return unistr;
 
-    size_t real_pos = 0;
-    if (pos < 0) {
-        if ((size_t)-pos > unistr->len)
-            real_pos = 0;
-        else
-            real_pos = unistr->len + pos;
-    }
-    else {
-        if ((size_t)pos >= unistr->len)
-            real_pos = unistr->len - 1;
-        else
-            real_pos = unistr->len + pos;
+    if (nr_chars < 0 || (pos + nr_chars) >= unistr->len) {
+        return foil_unistr_truncate(unistr, pos);
     }
 
-    if (nr_chars < 0 || (real_pos + (size_t)nr_chars) > unistr->len) {
-        return foil_unistr_truncate(unistr, real_pos);
-    }
-
-    size_t n = nr_chars;
-    while (n > 0) {
-        unistr->ucs[real_pos + nr_chars] = unistr->ucs[real_pos];
-        real_pos++;
-        n--;
+    size_t nr_to_copy = unistr->len - pos;
+    while (nr_to_copy > 0) {
+        unistr->ucs[pos] = unistr->ucs[pos + nr_chars];
+        pos++;
+        nr_to_copy--;
     }
 
     if (deflate_unistr(unistr, nr_chars)) {

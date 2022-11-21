@@ -51,7 +51,7 @@ foil_unistr *foil_unistr_new_len(const char *str_utf8, ssize_t len);
  * Creates a new %foil_unistr, initialized with the given null-terminated
  * UTF-8 string.
  */
-foil_unistr *foil_unistr_new(const char *str_utf8)
+static inline foil_unistr *foil_unistr_new(const char *str_utf8)
 {
     return foil_unistr_new_len(str_utf8, -1);
 }
@@ -104,14 +104,14 @@ static inline void foil_unistr_delete(foil_unistr *unistr)
 
 /**
  * Inserts all Unicode characters in a UTF-8 string into a foil_unistr
- * at the given postion, expanding it if necessary.
+ * at the given position, expanding it if necessary.
  */
 foil_unistr *foil_unistr_insert_len(foil_unistr *unistr, ssize_t pos,
         const char *str_utf8, ssize_t len);
 
 /**
  * Inserts all Unicode characters in a null-terminated UTF-8 string into a
- * foil_unistr at the given postion, expanding it if necessary.
+ * foil_unistr at the given position, expanding it if necessary.
  */
 static inline foil_unistr *
 foil_unistr_insert(foil_unistr *unistr, ssize_t pos, const char *str_utf8)
@@ -119,9 +119,8 @@ foil_unistr_insert(foil_unistr *unistr, ssize_t pos, const char *str_utf8)
     return foil_unistr_insert_len(unistr, pos, str_utf8, -1);
 }
 
-
 /**
- * Inserts a Unicode character into a foil_unistr at the given postion,
+ * Inserts a Unicode character into a foil_unistr at the given position,
  * expanding it if necessary.
  */
 foil_unistr *foil_unistr_insert_unichar(foil_unistr *unistr, ssize_t pos,
@@ -171,7 +170,7 @@ foil_unistr_append_unichar(foil_unistr *unistr, uint32_t unichar)
  * Removes len bytes from a foil_unistr, starting at position @pos.
  * The rest of the foil_unistr is shifted down to fill the gap.
  */
-foil_unistr *foil_unistr_erase(foil_unistr *unistr, ssize_t pos, ssize_t len);
+foil_unistr *foil_unistr_erase(foil_unistr *unistr, size_t pos, ssize_t len);
 
 /**
  * Cuts off the end of the foil_unistr, leaving the first @len characters.

@@ -1269,11 +1269,124 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
     return nr_executed > 0;
 }
 
+#ifndef NDEBUG
+#include "util/unistring.h"
+
+static void test_unistring(void)
+{
+    const char *str = "0123456789\0abcdef";
+
+    foil_unistr *unistr;
+
+    unistr = foil_unistr_new_len(str, -1);
+    assert(unistr->len == 10);
+    assert(unistr->sz >= 10);
+
+    uint32_t *ucs = foil_unistr_free(unistr, false);
+    assert(ucs != NULL);
+
+    free(ucs);
+
+    unistr = foil_unistr_new_len(str, 17);
+    assert(unistr->len == 17);
+    assert(unistr->sz >= 17);
+    assert(unistr->ucs[10] == 0);
+
+    foil_unistr_append_unichar(unistr, 0);
+    assert(unistr->len == 18);
+    assert(unistr->sz == 21);
+    assert(unistr->ucs[10] == 0);
+    assert(unistr->ucs[17] == 0);
+
+    foil_unistr_prepend_unichar(unistr, 0);
+    assert(unistr->len == 19);
+    assert(unistr->sz == 21);
+    assert(unistr->ucs[0] == 0);
+    assert(unistr->ucs[11] == 0);
+    assert(unistr->ucs[18] == 0);
+
+    foil_unistr_set_size(unistr, 20);
+    assert(unistr->sz >= 20);
+    assert(unistr->ucs[0] == 0);
+    assert(unistr->ucs[11] == 0);
+    assert(unistr->ucs[18] == 0);
+
+    foil_unistr_delete(unistr);
+
+    unistr = foil_unistr_new(str);
+    assert(unistr->len == 10);
+    assert(unistr->sz >= 10);
+    assert(unistr->ucs[0] == '0');
+    assert(unistr->ucs[9] == '9');
+
+    const char *str2 = "abcdef";
+    unistr = foil_unistr_insert_len(unistr, 2, str2, 2);
+    assert(unistr->len == 12);
+    assert(unistr->sz >= 12);
+    assert(unistr->ucs[2] == 'a');
+    assert(unistr->ucs[3] == 'b');
+
+    unistr = foil_unistr_insert(unistr, -1, str2);
+    assert(unistr->len == 18);
+    assert(unistr->sz >= 18);
+    assert(unistr->ucs[2] == 'a');
+    assert(unistr->ucs[3] == 'b');
+    assert(unistr->ucs[12] == 'a');
+    assert(unistr->ucs[13] == 'b');
+    assert(unistr->ucs[17] == 'f');
+
+    unistr = foil_unistr_truncate(unistr, 19);
+    assert(unistr->len == 18);
+
+    unistr = foil_unistr_truncate(unistr, 10);
+    assert(unistr->len == 10);
+    assert(unistr->sz >= 10);
+    assert(unistr->ucs[2] == 'a');
+    assert(unistr->ucs[3] == 'b');
+
+    foil_unistr_delete(unistr);
+
+    unistr = foil_unistr_new(str);
+    foil_unistr_erase(unistr, 0, 2);
+    assert(unistr->len == 8);
+    assert(unistr->sz >= 8);
+    assert(unistr->ucs[0] == '2');
+    assert(unistr->ucs[1] == '3');
+    assert(unistr->ucs[7] == '9');
+
+    unistr = foil_unistr_new(str);
+    foil_unistr_erase(unistr, 8, 1);
+    assert(unistr->len == 9);
+    assert(unistr->sz >= 9);
+    assert(unistr->ucs[0] == '0');
+    assert(unistr->ucs[1] == '1');
+    assert(unistr->ucs[8] == '9');
+
+    foil_unistr_erase(unistr, 6, 3);
+    assert(unistr->len == 6);
+    assert(unistr->sz >= 6);
+    assert(unistr->ucs[0] == '0');
+    assert(unistr->ucs[1] == '1');
+    assert(unistr->ucs[5] == '5');
+
+    foil_unistr_assign_len(unistr, str, 17);
+    assert(unistr->len == 17);
+    assert(unistr->sz >= 17);
+    assert(unistr->ucs[10] == 0);
+
+    foil_unistr_delete(unistr);
+}
+#endif
+
 int main(int argc, char** argv)
 {
     int ret;
     purc_atom_t foil_atom = 0;
     bool success = true;
+
+#ifndef NDEBUG
+    test_unistring();
+#endif
 
     struct my_opts *opts = my_opts_new();
     if (read_option_args(opts, argc, argv)) {
