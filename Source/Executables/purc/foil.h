@@ -81,12 +81,27 @@
 #   define MAX(x, y)   (((x) < (y)) ? (y) : (x))
 #endif
 
+/* round n to multiple of m */
+#define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
+
+#if defined(_WIN64)
+#   define SIZEOF_PTR   8
+#   define SIZEOF_HPTR  4
+#elif defined(__LP64__)
+#   define SIZEOF_PTR   8
+#   define SIZEOF_HPTR  4
+#else
+#   define SIZEOF_PTR   4
+#   define SIZEOF_HPTR  2
+#endif
+
 typedef struct foil_rect {
     int left, top;
     int right, bottom;
 } foil_rect;
+typedef foil_rect *foil_rect_p;
 
-typedef struct foil_size{
+typedef struct foil_size {
     int cx;
     int cy;
 } foil_size;
