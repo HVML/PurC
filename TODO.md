@@ -156,7 +156,8 @@
 ### 2.9) Known Bugs and Test Cases
 
 1. [0.9.2] Add new test cases for new bugs.
-1. [0.9.2] Crash if the content of a foreign element starts with a `(` character.
+1. [0.9.2] Check eJSON parser for C0 control characters in strings.
+1. [0.9.2] Crash if the content of a foreign element contains a `(` character.
 1. [0.9.2; Resolved] The exrepssions in `hvml` might be evaluated twice.
 1. [0.9.2; Resolved] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
 1. [0.9.2; Resolved] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
