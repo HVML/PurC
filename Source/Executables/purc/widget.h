@@ -51,6 +51,8 @@ typedef int  (*foil_widget_resized_cb)(foil_widget *);
 typedef void (*foil_widget_destroy_cb)(foil_widget *);
 
 struct foil_widget {
+    pcmcth_page         page;
+
     struct foil_widget *parent;
     struct foil_widget *first;
     struct foil_widget *last;
@@ -68,8 +70,6 @@ struct foil_widget {
     foil_widget_moved_cb    on_moved;
     foil_widget_resized_cb  on_resized;
     foil_widget_destroy_cb  on_destroy;
-
-    pcmcth_page         page;
 
     void               *user_data;
 };

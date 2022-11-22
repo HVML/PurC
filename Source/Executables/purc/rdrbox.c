@@ -295,6 +295,10 @@ void foil_rdrbox_delete(foil_rdrbox *box)
 {
     foil_rdrbox_remove_from_tree(box);
 
+    if (box->computed_style) {
+        css_computed_style_destroy(box->computed_style);
+    }
+
     if (box->quotes) {
         foil_quotes_unref(box->quotes);
     }
@@ -2188,6 +2192,10 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         foil_rdrbox_append_child(ctxt->parent_box, box);
 
         dtrm_counter_properties(ctxt, box);
+
+        /* reserved computed style */
+        box->computed_style = ctxt->style;
+        ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
     }
 
     return box;
@@ -2394,6 +2402,9 @@ foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
 
         dtrm_counter_properties(ctxt, box);
         init_pseudo_box_content(ctxt, box);
+
+        box->computed_style = ctxt->style;
+        ctxt->computed->styles[CSS_PSEUDO_ELEMENT_BEFORE] = NULL;
     }
 
     return box;
@@ -2416,6 +2427,9 @@ foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
         }
         dtrm_counter_properties(ctxt, box);
         init_pseudo_box_content(ctxt, box);
+
+        box->computed_style = ctxt->style;
+        ctxt->computed->styles[CSS_PSEUDO_ELEMENT_AFTER] = NULL;
     }
 
     return box;

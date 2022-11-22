@@ -179,7 +179,7 @@ tty_color_get_name_by_index (int idx)
     /* Create and return the strings in "colorNNN" or "#rrggbb" format. */
     if ((idx >= 16 && idx < 256) || (idx & (1 << 24)) != 0)
     {
-        char name[9];
+        char name[32];
 
         if (idx < 256)
             sprintf (name, "color%d", idx);

@@ -188,6 +188,7 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
+    LOG_INFO("called\n");
     if (udom->title_ucs)
         free(udom->title_ucs);
     if (udom->elem2rdrbox)
@@ -504,7 +505,7 @@ extern css_select_handler foil_css_select_handler;
 static css_select_results *
 select_element_style(const css_media *media, css_select_ctx *select_ctx,
         purc_document_t doc, pcdoc_element_t element,
-        css_select_results *parent_result)
+        foil_rdrbox *parent_box)
 {
     // prepare inline style
     css_error err;
@@ -571,9 +572,9 @@ select_element_style(const css_media *media, css_select_ctx *select_ctx,
        This is not a smart way. One can optimize this by introducing
        reference count to the values of these complex properties. */
     css_computed_style *composed = NULL;
-    if (parent_result) {
+    if (parent_box && parent_box->computed_style) {
         err = css_computed_style_compose(
-                parent_result->styles[CSS_PSEUDO_ELEMENT_NONE],
+                parent_box->computed_style,
                 result->styles[CSS_PSEUDO_ELEMENT_NONE],
                 foil_css_select_handler.compute_font_size, NULL,
                 &composed);
@@ -638,15 +639,14 @@ failed:
 }
 
 static int
-make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
-        css_select_results *parent_result)
+make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
 {
     char *tag_name = NULL;
     foil_rdrbox *box;
     css_select_results *result = NULL;
 
     result = select_element_style(&ctxt->udom->media,
-            ctxt->udom->select_ctx, ctxt->doc, ancestor, parent_result);
+            ctxt->udom->select_ctx, ctxt->doc, ancestor, ctxt->parent_box);
     if (result) {
         const char *name;
         size_t len;
@@ -690,7 +690,7 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor,
 
         if (node.type == PCDOC_NODE_ELEMENT) {
             ctxt->parent_box = box;
-            if (make_rdrtree(ctxt, node.elem, result))
+            if (make_rdrtree(ctxt, node.elem))
                 goto failed;
         }
         else if (node.type == PCDOC_NODE_TEXT) {
@@ -1092,7 +1092,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     foil_create_ctxt ctxt = { edom_doc, udom,
         udom->initial_cblock, udom->initial_cblock,
         NULL, NULL, NULL, NULL, 0, 0 };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc), NULL))
+    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
         goto failed;
 
     /* check and create anonymous block box if need */

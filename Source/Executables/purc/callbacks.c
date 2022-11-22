@@ -143,9 +143,8 @@ static int foil_remove_session(pcmcth_session *sess)
 
     LOG_DEBUG("destroy all ungrouped plain windows...\n");
     kvlist_for_each_safe(&sess->ug_wins, name, next, data) {
-        /* TODO
-        pcmcth_page *plain_win = *(pcmcth_page **)data;
-        */
+        pcmcth_page *page = *(pcmcth_page **)data;
+        foil_udom_delete(page->udom);
     }
 
     LOG_DEBUG("destroy kvlist for ungrouped plain windows...\n");
@@ -347,6 +346,7 @@ foil_load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
     if (udom) {
         sorted_array_add(sess->all_handles, PTR2U64(udom), INT2PTR(HT_UDOM));
         *retv = PCRDR_SC_OK;
+        foil_page_set_udom(page, udom);
     }
     else
         *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;

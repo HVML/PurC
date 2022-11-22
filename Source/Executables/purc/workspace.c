@@ -83,6 +83,7 @@ void foil_wsp_module_cleanup(pcmcth_renderer *rdr)
         workspace_delete(workspace);
     }
 
+    kvlist_free(&rdr->workspace_list);
     foil_page_module_cleanup(rdr);
 }
 

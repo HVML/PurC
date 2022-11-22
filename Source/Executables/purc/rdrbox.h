@@ -232,8 +232,11 @@ struct foil_rdrbox {
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_element_t owner;
 
-    /* the pricipal box if this box is created for an pseudo element */
+    /* the pricipal box if this box is created for a pseudo element */
     struct foil_rdrbox *principal;
+
+    /* the computed CSS style */
+    css_computed_style *computed_style;
 
     // Indicates that this box is anonymous box.
     uint32_t is_anonymous:1;
@@ -362,8 +365,8 @@ typedef struct foil_create_ctxt {
     pcdoc_element_t elem;
 
     /* the current styles */
-    const css_select_results *computed;
-    const css_computed_style *style;
+    css_select_results *computed;
+    css_computed_style *style;
 
     /* the tag name of the current element */
     const char *tag_name;

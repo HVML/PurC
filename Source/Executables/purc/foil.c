@@ -38,6 +38,7 @@ static int init_renderer(pcmcth_renderer *rdr)
 {
     pcmcth_set_renderer_callbacks(rdr);
 
+    rdr->master_rid = 0;
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();
     rdr->t_elapsed = rdr->t_elapsed_last = 0;
@@ -156,6 +157,7 @@ static void event_loop(pcmcth_renderer *rdr)
         if (msg->type == PCRDR_MSG_TYPE_REQUEST &&
                 msg->target == PCRDR_MSG_TARGET_INSTANCE) {
             if (!handle_instance_request(rdr, msg)) {
+                pcrdr_release_message(msg);
                 purc_log_warn("No any living endpoints, quiting...\n");
                 break;
             }
@@ -204,12 +206,12 @@ static void* foil_thread_entry(void* arg)
     struct thread_arg *my_arg = (struct thread_arg *)arg;
     sem_t *sw = my_arg->wait;
 
-    my_arg->rid = 0;
+    purc_atom_t rid = 0;
     // initial purc instance
     int ret = purc_init_ex(PURC_MODULE_EJSON | PURC_MODULE_HTML,
             my_arg->app_name, my_arg->run_name, NULL);
     if (ret == PURC_ERROR_OK) {
-        my_arg->rid = purc_inst_create_move_buffer(
+        rid = my_arg->rid = purc_inst_create_move_buffer(
                 PCINST_MOVE_BUFFER_FLAG_NONE, 16);
     }
 
@@ -217,7 +219,7 @@ static void* foil_thread_entry(void* arg)
 
     sem_post(sw);
 
-    if (my_arg->rid) {
+    if (rid) {
         pcmcth_renderer rdr;
 
         if (init_renderer(&rdr) == 0) {

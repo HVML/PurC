@@ -288,6 +288,9 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
     if (opts->request)
         free(opts->request);
 
+    if (opts->rdr_uri)
+        free(opts->rdr_uri);
+
     if (opts->app_info)
         free(opts->app_info);
 
@@ -1353,6 +1356,7 @@ static void test_unistring(void)
     assert(unistr->ucs[0] == '2');
     assert(unistr->ucs[1] == '3');
     assert(unistr->ucs[7] == '9');
+    foil_unistr_delete(unistr);
 
     unistr = foil_unistr_new(str);
     foil_unistr_erase(unistr, 8, 1);
