@@ -180,12 +180,18 @@ static size_t shift_ucs_right(foil_unistr *unistr, ssize_t pos, size_t nr_chars)
 
     if (real_pos < unistr->len) {
         size_t nr_to_copy = unistr->len - real_pos;
+#if 0
         size_t n = unistr->len - real_pos - 1;
         while (nr_to_copy > 0) {
             unistr->ucs[n + nr_chars] = unistr->ucs[n];
             n--;
             nr_to_copy--;
         }
+#else
+        uint32_t *src = unistr->ucs + real_pos;
+        uint32_t *dst = src + nr_chars;
+        memmove(dst, src, sizeof(uint32_t) * nr_to_copy);
+#endif
     }
 
     return real_pos;
@@ -246,11 +252,17 @@ foil_unistr *foil_unistr_erase(foil_unistr *unistr,
     }
 
     size_t nr_to_copy = unistr->len - pos;
+#if 0
     while (nr_to_copy > 0) {
         unistr->ucs[pos] = unistr->ucs[pos + nr_chars];
         pos++;
         nr_to_copy--;
     }
+#else
+    uint32_t *dst = unistr->ucs + pos;
+    uint32_t *src = dst + nr_chars;
+    memmove(dst, src, sizeof(uint32_t) * nr_to_copy);
+#endif
 
     if (deflate_unistr(unistr, nr_chars)) {
         free(unistr);
