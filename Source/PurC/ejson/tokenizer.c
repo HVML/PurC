@@ -1034,6 +1034,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_BRACE)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '.' || character == '[') {
+        if ((top->type == ETT_VALUE || top->type == ETT_PROTECT) && top->node
+                && (top->node->type == PCVCM_NODE_TYPE_FUNC_GET_VARIABLE)) {
+            top->type = ETT_GET_VARIABLE;
+        }
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     update_tkz_stack(parser);
@@ -2934,6 +2938,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         }
         if (is_parse_finished(parser, character)) {
             RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
+        }
+        if (top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
         }
         size_t nr = tkz_stack_size();
         if (nr == 1 && pcejson_token_is_closed(top)) {
