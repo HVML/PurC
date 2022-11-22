@@ -1357,6 +1357,12 @@ void pcrdr_release_renderer_capabilities(
     if (rdr_caps->xml_version)
         free(rdr_caps->xml_version);
 
+    if (rdr_caps->rdr_name)
+        free(rdr_caps->rdr_name);
+
+    if (rdr_caps->rdr_version)
+        free(rdr_caps->rdr_version);
+
 #if 0
     if (rdr_caps->windowLevel > 0) {
         assert(rdr_caps->window_levels);
