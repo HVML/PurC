@@ -25,6 +25,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "config.h"
 
 #include <stdlib.h>
@@ -208,11 +210,16 @@ static int send_simple_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 {
     (void)rdr;
     pcrdr_msg *my_msg = pcrdr_clone_message(msg);
-    if (my_msg == NULL)
+    if (my_msg == NULL) {
         return PCRDR_SC_INSUFFICIENT_STORAGE;
+    }
 
-    if (purc_inst_move_message(endpoint->rid, my_msg) == 0)
+    LOG_DEBUG("Moving a response message to %u (time: %lu)\n",
+            endpoint->rid, time(NULL));
+    if (purc_inst_move_message(endpoint->rid, my_msg) == 0) {
+        LOG_ERROR("Failed to move message to %u\n", endpoint->rid);
         return PCRDR_SC_INTERNAL_SERVER_ERROR;
+    }
 
     pcrdr_release_message(my_msg);
     return PCRDR_SC_OK;
@@ -253,6 +260,7 @@ static int on_start_session(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     pcrdr_msg response = { };
     pcmcth_session *info = NULL;
 
+    LOG_DEBUG("called (time %lu)\n", time(NULL));
     endpoint->session = NULL;
     int retv;
     info = rdr->cbs.create_session(rdr, endpoint);

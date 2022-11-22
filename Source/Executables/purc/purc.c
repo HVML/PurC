@@ -1488,6 +1488,8 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    purc_enable_log(true, false);
+
     purc_variant_t request = PURC_VARIANT_INVALID;
     if (opts->request) {
         if ((request = get_request_data(opts)) == PURC_VARIANT_INVALID) {

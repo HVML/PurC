@@ -226,8 +226,11 @@ static int _init_instance(struct pcinst *curr_inst,
     msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
-    if (pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
+    int ret;
+    if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
+        printf("Operation startSession failed: %s\n",
+               purc_get_error_message(purc_get_last_error()));
         goto failed;
     }
     pcrdr_release_message(msg);

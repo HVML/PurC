@@ -23,6 +23,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// #undef NDEBUG
+
 #include "config.h"
 
 #include "purc-pcrdr.h"
@@ -58,7 +60,7 @@ struct pcinst_move_buffer {
 
 /* the header of the struct pcrdr_msg */
 struct pcrdr_msg_hdr {
-    atomic_uint             owner;
+    atomic_uint             refcnt;
     purc_atom_t             origin;
     struct list_head        ln;
 };
@@ -67,7 +69,7 @@ struct pcrdr_msg_hdr {
 #define _COMPILE_TIME_ASSERT(name, x)               \
        typedef int _dummy_ ## name[(x) * 2 - 1]
 _COMPILE_TIME_ASSERT(onwer_atom,
-        sizeof(atomic_uint) == sizeof(purc_atom_t));
+        sizeof(atomic_uint) == sizeof(unsigned int));
 _COMPILE_TIME_ASSERT(list_head,
         sizeof(struct list_head) == (sizeof(void *) * 2));
 #undef _COMPILE_TIME_ASSERT
@@ -135,7 +137,7 @@ pcinst_get_message(void)
 
     if (msg) {
         struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-        atomic_init(&hdr->owner, inst->endpoint_atom);
+        atomic_init(&hdr->refcnt, 1);
         PC_DEBUG("New message in %s: %p\n", __func__, msg);
     }
     else {
@@ -148,12 +150,11 @@ pcinst_get_message(void)
 void
 pcinst_put_message(pcrdr_msg *msg)
 {
-    struct pcinst* inst = pcinst_current();
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    purc_atom_t owner = (purc_atom_t)atomic_load(&hdr->owner);
+    unsigned int refcnt = atomic_fetch_sub(&hdr->refcnt, 1);
 
-    PC_DEBUG("The current owner atom of message in %s: %x\n", __func__, owner);
-    if (owner == inst->endpoint_atom) {
+    PC_DEBUG("The old refcnt of message in %s: %u\n", __func__, refcnt);
+    if (refcnt == 1) {
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
@@ -236,10 +237,10 @@ static void
 pcinst_grind_message(pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-    purc_atom_t owner = atomic_load(&hdr->owner);
-    PC_DEBUG("message owner in %s: %x\n", __func__, owner);
+    unsigned int refcnt = atomic_fetch_sub(&hdr->refcnt, 1);
+    PC_DEBUG("refcnt of message in %s: %u\n", __func__, refcnt);
 
-    if (owner == 0) {
+    if (refcnt == 1) {
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
@@ -254,7 +255,7 @@ pcinst_grind_message(pcrdr_msg *msg)
 #endif
     }
     else {
-        PC_ERROR("Freeing a message not owned by the move buffer: %p\n", msg);
+        PC_ERROR("Grinding a message refc > 1: %p (%u)\n", msg, refcnt);
     }
 }
 
@@ -317,34 +318,22 @@ do_move_message(struct pcinst* inst, pcrdr_msg *msg)
 {
     struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
 
-    if (atomic_compare_exchange_strong(&hdr->owner, &inst->endpoint_atom, 0)) {
-        hdr->origin = inst->endpoint_atom;
+    atomic_fetch_add(&hdr->refcnt, 1);
+    hdr->origin = inst->endpoint_atom;
 
-        for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
-            if (msg->variants[i])
-                msg->variants[i] = pcvariant_move_heap_in(msg->variants[i]);
-        }
-    }
-    else {
-        PC_ERROR("Moving a message not owned by the current inst: %p\n", msg);
+    for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
+        if (msg->variants[i])
+            msg->variants[i] = pcvariant_move_heap_in(msg->variants[i]);
     }
 }
 
 static void
 do_take_message(struct pcinst* inst, pcrdr_msg *msg)
 {
-    unsigned int mb_owner = 0;
-    struct pcrdr_msg_hdr *hdr = (struct pcrdr_msg_hdr *)msg;
-
-    if (atomic_compare_exchange_strong(&hdr->owner, &mb_owner,
-                inst->endpoint_atom)) {
-        for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
-            if (msg->variants[i])
-                msg->variants[i] = pcvariant_move_heap_out(msg->variants[i]);
-        }
-    }
-    else {
-        PC_ERROR("Taking a message not owned by the move buffer: %p\n", msg);
+    (void)inst;
+    for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
+        if (msg->variants[i])
+            msg->variants[i] = pcvariant_move_heap_out(msg->variants[i]);
     }
 }
 
