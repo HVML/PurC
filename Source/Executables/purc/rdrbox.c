@@ -2587,6 +2587,22 @@ char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box)
     return name;
 }
 
+static void dump_ucs(const uint32_t *ucs, size_t nr_ucs)
+{
+    for (size_t i = 0; i < nr_ucs; i++) {
+        char utf8[16];
+        if (g_unichar_isgraph(ucs[i])) {
+            unsigned len = pcutils_unichar_to_utf8(ucs[i],
+                    (unsigned char *)utf8);
+            utf8[len] = 0;
+        }
+        else {
+            sprintf(utf8, "<U+%X>", ucs[i]);
+        }
+        fputs(utf8, stdout);
+    }
+}
+
 void foil_rdrbox_dump(const foil_rdrbox *box,
         purc_document_t doc, unsigned level)
 {
@@ -2618,7 +2634,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         fputs(indent, stdout);
         fputs(" content: ", stdout);
-        fputs(box->marker_data->text, stdout);
+        dump_ucs(box->marker_data->ucs, box->marker_data->nr_ucs);
         fputs("\n", stdout);
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
@@ -2636,18 +2652,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
                 inline_data->nr_paras, (unsigned)nr_ucs, box->white_space);
 
         list_for_each_entry(p, &inline_data->paras, ln) {
-            for (size_t i = 0; i < p->nr_ucs; i++) {
-                char utf8[16];
-                if (g_unichar_isgraph(p->ucs[i])) {
-                    unsigned len = pcutils_unichar_to_utf8(p->ucs[i],
-                            (unsigned char *)utf8);
-                    utf8[len] = 0;
-                }
-                else {
-                    sprintf(utf8, "<U+%X>", p->ucs[i]);
-                }
-                fputs(utf8, stdout);
-            }
+            dump_ucs(p->ucs, p->nr_ucs);
             // strcat(utf8, "…");
         }
         fputs("\n", stdout);
@@ -2679,6 +2684,17 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
     }
 }
 
+static void render_ucs(const uint32_t *ucs, size_t nr_ucs)
+{
+    for (size_t i = 0; i < nr_ucs; i++) {
+        char utf8[16];
+        unsigned len = pcutils_unichar_to_utf8(ucs[i],
+                (unsigned char *)utf8);
+        utf8[len] = 0;
+        fputs(utf8, stdout);
+    }
+}
+
 void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
@@ -2688,21 +2704,14 @@ void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         if (box->list_item_data->marker_box) {
             foil_rdrbox *marker = box->list_item_data->marker_box;
-            fputs(marker->marker_data->text, stdout);
+            render_ucs(marker->marker_data->ucs, marker->marker_data->nr_ucs);
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         struct _inline_box_data *inline_data = box->inline_data;
         struct text_paragraph *p;
         list_for_each_entry(p, &inline_data->paras, ln) {
-            for (size_t i = 0; i < p->nr_ucs; i++) {
-                char utf8[10];
-                unsigned len = pcutils_unichar_to_utf8(p->ucs[i],
-                        (unsigned char *)utf8);
-                utf8[len] = 0;
-                fputs(utf8, stdout);
-            }
-
+            render_ucs(p->ucs, p->nr_ucs);
         }
     }
 }

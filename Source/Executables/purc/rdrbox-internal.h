@@ -70,7 +70,8 @@ struct _list_item_data {
 };
 
 struct _marker_box_data {
-    char *text;
+    uint32_t *ucs;
+    size_t    nr_ucs;
 };
 
 #ifdef __cplusplus

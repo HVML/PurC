@@ -470,8 +470,8 @@ char *foil_rdrbox_list_number(const int max,
 static void marker_data_cleaner(void *data)
 {
     struct _marker_box_data *marker_data = (struct _marker_box_data *)data;
-    if (marker_data && marker_data->text)
-        free(marker_data->text);
+    if (marker_data && marker_data->ucs)
+        free(marker_data->ucs);
 }
 
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
@@ -511,9 +511,12 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         break;
     }
 
-    data->text = foil_rdrbox_list_number(nr_items, index + 1,
+    char *text = foil_rdrbox_list_number(nr_items, index + 1,
             list_item->list_style_type, tail);
+    data->ucs = pcutils_string_decode_utf8_alloc(text, -1, &data->nr_ucs);
+    free(text);
+
     marker->cb_data_cleanup = marker_data_cleaner;
-    return (data->text != NULL);
+    return (data->ucs != NULL);
 }
 
