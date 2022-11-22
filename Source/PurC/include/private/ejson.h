@@ -74,6 +74,10 @@ int pcejson_parse_full (struct pcvcm_node** vcm_tree, struct pcejson** parser,
                    struct tkz_reader *reader, uint32_t depth,
                    pcejson_parse_is_finished_fn is_finished);
 
+int pcejson_set_state(struct pcejson *parser, int state);
+
+int pcejson_set_state_param_string(struct pcejson *parser);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

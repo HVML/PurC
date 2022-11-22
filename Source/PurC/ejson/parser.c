@@ -465,5 +465,16 @@ out:
     return ret;
 }
 
+int pcejson_set_state(struct pcejson *parser, int state)
+{
+    if (parser) {
+        parser->state = state;
+    }
+    return 0;
+}
 
+int pcejson_set_state_param_string(struct pcejson *parser)
+{
+    return pcejson_set_state(parser, EJSON_TKZ_STATE_PARAM_STRING);
+}
 

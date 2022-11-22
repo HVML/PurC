@@ -3247,5 +3247,81 @@ BEGIN_STATE(EJSON_TKZ_STATE_BACKQUOTE_CONTENT)
     ADVANCE_TO(EJSON_TKZ_STATE_BACKQUOTE_CONTENT);
 END_STATE()
 
+BEGIN_STATE(EJSON_TKZ_STATE_PARAM_STRING)
+    if (character == '"' || character == '\'') {
+        RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (character == '}' || character == '[' || character == ']'
+            || character == '(' || character == ')') {
+        RESET_TEMP_BUFFER();
+        tkz_stack_push(ETT_UNQUOTED_S);
+        tkz_stack_push(ETT_VALUE);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_RAW_STRING);
+    }
+    if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
+        if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+            if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(2);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+            }
+            else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(3);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
+            }
+            else if (!tkz_buffer_is_empty(parser->string_buffer)) {
+                size_t sz = 1 + tkz_buffer_get_size_in_chars(parser->string_buffer);
+                for (size_t i = 0; i < sz; i++) {
+                    tkz_reader_reconsume_last_char(parser->tkz_reader);
+                }
+                DELETE_FROM_RAW_BUFFER(sz);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, sz - 1);
+            }
+            else {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(1);
+            }
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+                top = tkz_stack_push(ETT_STRING);
+                top->node = pcvcm_node_new_string(
+                        tkz_buffer_get_bytes(parser->temp_buffer)
+                        );
+                update_tkz_stack(parser);
+                RESET_TEMP_BUFFER();
+            }
+        }
+        else {
+            tkz_reader_reconsume_last_char(parser->tkz_reader);
+        }
+        RESET_STRING_BUFFER();
+        RESET_TEMP_BUFFER();
+        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (character == '{') {
+        APPEND_TO_STRING_BUFFER(character);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_PARAM_STRING);
+    }
+    if (is_whitespace(character)
+            && !tkz_buffer_is_empty(parser->string_buffer)) {
+        APPEND_TO_STRING_BUFFER(character);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_PARAM_STRING);
+    }
+    RESET_STRING_BUFFER();
+    if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+        tkz_stack_push(ETT_UNQUOTED_S);
+        tkz_stack_push(ETT_VALUE);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_RAW_STRING);
+    }
+    RECONSUME_IN(EJSON_TKZ_STATE_UNQUOTED);
+END_STATE()
+
 PCEJSON_PARSER_END
 
