@@ -637,6 +637,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_CONTROL)
     }
     if (top && top->type == ETT_TRIPLE_DOUBLE_QUOTED) {
         tkz_stack_push(ETT_VALUE);
+        RESET_TEMP_BUFFER();
+        RESET_STRING_BUFFER();
         RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
     }
     if (is_whitespace(character)) {
@@ -1705,6 +1707,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_DOUBLE_QUOTED)
 
             tkz_stack_push(ETT_TRIPLE_DOUBLE_QUOTED);
             tkz_stack_push(ETT_VALUE);
+            RESET_STRING_BUFFER();
             RECONSUME_IN(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
         }
     }
@@ -1757,6 +1760,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
             pcejson_token_close(top);
             update_tkz_stack(parser);
 
+            RESET_STRING_BUFFER();
             RESET_TEMP_BUFFER();
             RESET_QUOTED_COUNTER();
             ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
@@ -1782,6 +1786,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
                 DELETE_FROM_RAW_BUFFER(3);
                 tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
             }
+            else if (!tkz_buffer_is_empty(parser->string_buffer)) {
+                size_t sz = 1 + tkz_buffer_get_size_in_chars(parser->string_buffer);
+                for (size_t i = 0; i < sz; i++) {
+                    tkz_reader_reconsume_last_char(parser->tkz_reader);
+                }
+                DELETE_FROM_RAW_BUFFER(sz);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, sz - 1);
+            }
             else {
                 tkz_reader_reconsume_last_char(parser->tkz_reader);
                 DELETE_FROM_RAW_BUFFER(1);
@@ -1796,8 +1808,21 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
             }
         }
         tkz_stack_push(ETT_VALUE);
+        RESET_STRING_BUFFER();
         ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
     }
+    if (character == '{') {
+        APPEND_TO_STRING_BUFFER(character);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+    }
+    if (is_whitespace(character)
+            && !tkz_buffer_is_empty(parser->string_buffer)) {
+        APPEND_TO_STRING_BUFFER(character);
+        APPEND_TO_TEMP_BUFFER(character);
+        ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
+    }
+    RESET_STRING_BUFFER();
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
 END_STATE()
