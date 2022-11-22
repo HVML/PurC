@@ -85,11 +85,9 @@ static int
 foil_handle_event(pcmcth_renderer *rdr, unsigned long long timeout_usec)
 {
     if (rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
-        printf("calling tty_got_winch (time: %lu)\n", time(NULL));
         if (tty_got_winch(timeout_usec)) {
             // TODO: handle change of terminal size
         }
-        printf("called tty_got_winch (time: %lu)\n", time(NULL));
     }
 
     return 0;
