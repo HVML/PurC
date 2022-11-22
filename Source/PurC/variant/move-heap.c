@@ -52,6 +52,7 @@ static void mvheap_cleanup_once(void)
     PC_DEBUG("refc of v_false in move heap: %u\n", move_heap.v_false.refc);
     PC_DEBUG("total values in move heap: %u\n", (unsigned int)stat->nr_total_values);
     PC_DEBUG("total memory used by move heap: %u\n", (unsigned int)stat->sz_total_mem);
+    PC_DEBUG("total values reserved in move heap: %u\n", (unsigned int)stat->nr_reserved);
 
     PC_ASSERT(move_heap.v_undefined.refc == 0);
     PC_ASSERT(move_heap.v_null.refc == 0);
