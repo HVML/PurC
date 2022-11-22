@@ -182,11 +182,8 @@ size_t pcutils_get_prev_fibonacci_number(size_t n)
     size_t fib_1 = 1;
     size_t fib_n = 0;
 
-    if (n == 0) {
+    if (n < 2) {
         return 0;
-    }
-    else if (n <= 2) {
-        return n - 1;
     }
 
     while (fib_n < n) {
