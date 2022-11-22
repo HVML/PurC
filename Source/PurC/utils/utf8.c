@@ -885,6 +885,33 @@ pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
     return ucs;
 }
 
+uint32_t *
+pcutils_string_decode_utf8_alloc_with_nulls(const char* str_utf8,
+        ssize_t len, size_t *nr_chars)
+{
+    size_t n;
+
+    n = pcutils_string_utf8_chars_with_nulls(str_utf8, len);
+    if (n == 0) {
+        return NULL;
+    }
+
+    uint32_t *ucs = malloc(sizeof(uint32_t) * n);
+    if (ucs == NULL)
+        return NULL;
+
+    if (nr_chars)
+        *nr_chars = n;
+
+    const char *p = str_utf8;
+    for (size_t i = 0; i < n; i++) {
+        ucs[i] = pcutils_utf8_to_unichar((const unsigned char *)p);
+        p = pcutils_utf8_next_char(p);
+    }
+
+    return ucs;
+}
+
 char *
 pcutils_string_encode_utf8(const uint32_t *ucs, size_t nr_chars,
         size_t *sz_space)

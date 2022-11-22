@@ -695,6 +695,10 @@ PCA_EXPORT uint32_t *
 pcutils_string_decode_utf8_alloc(const char* str_utf8, ssize_t max_len,
         size_t *nr_chars);
 
+PCA_EXPORT uint32_t *
+pcutils_string_decode_utf8_alloc_with_nulls(const char* str_utf8, ssize_t len,
+        size_t *nr_chars);
+
 PCA_EXPORT unsigned
 pcutils_unichar_to_utf8(uint32_t uc, unsigned char* buff);
 
