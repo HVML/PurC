@@ -193,6 +193,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
     (*conn)->prot = PURC_RDRCOMM_THREAD;
     (*conn)->type = CT_MOVE_BUFFER;
     (*conn)->fd = -1;
+    (*conn)->timeout_ms = 10;   /* 10 milliseconds */
     (*conn)->srv_host_name = NULL;
     (*conn)->own_host_name = strdup(PCRDR_LOCALHOST);
     (*conn)->app_name = app_name;
