@@ -65,10 +65,11 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
             }
         }
 
-        return 0;
+        if (purc_inst_holding_messages_count(&count))
+            return -1;
     }
 
-    return 1;
+    return (count > 0) ? 1 : 0;
 }
 
 static pcrdr_msg *my_read_message(pcrdr_conn* conn)
