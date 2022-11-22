@@ -27,12 +27,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "rect.h"
+#include "foil.h"
 
 /**************************** Rectangle support ******************************/
 bool foil_rect_is_empty (const foil_rect* prc)

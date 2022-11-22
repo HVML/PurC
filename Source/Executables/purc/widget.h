@@ -28,6 +28,7 @@
 
 #include "foil.h"
 #include "page.h"
+#include "region/rect.h"
 
 typedef enum {
     WSP_WIDGET_TYPE_NONE  = 0,       /* not-existing */

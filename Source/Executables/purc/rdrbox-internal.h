@@ -72,11 +72,15 @@ struct _list_item_data {
 struct _marker_box_data {
     uint32_t *ucs;
     size_t    nr_ucs;
+    int       width;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+foil_size
+foil_rdrbox_inline_shrink_to_fit(const struct _inline_box_data *inline_data);
 
 #ifdef __cplusplus
 }

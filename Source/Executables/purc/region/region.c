@@ -108,12 +108,8 @@ SOFTWARE.
  * the y-x-banding that's so nice to have...
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-
 #include "region.h"
-#include "rect.h"
+#include "foil.h"
 
 typedef void (*voidProcp1)(foil_region *region,
         const foil_rgnrc *r1, const foil_rgnrc *r1End,

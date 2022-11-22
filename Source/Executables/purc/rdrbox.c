@@ -2653,7 +2653,6 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
 
         list_for_each_entry(p, &inline_data->paras, ln) {
             dump_ucs(p->ucs, p->nr_ucs);
-            // strcat(utf8, "…");
         }
         fputs("\n", stdout);
     }

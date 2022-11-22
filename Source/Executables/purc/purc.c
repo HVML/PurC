@@ -1443,7 +1443,7 @@ int main(int argc, char** argv)
             opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
         }
 
-        if ((foil_atom = foil_init(opts->rdr_uri)) == 0) {
+        if ((foil_atom = foil_start(opts->rdr_uri)) == 0) {
             fprintf(stdout,
                     "Failed to initialize the built-in Foil renderer: %s\n",
                     opts->rdr_prot);

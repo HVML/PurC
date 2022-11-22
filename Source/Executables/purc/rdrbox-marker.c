@@ -516,6 +516,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     data->ucs = pcutils_string_decode_utf8_alloc(text, -1, &data->nr_ucs);
     free(text);
 
+    data->width = foil_ucs_calc_width_nowrap(data->ucs, data->nr_ucs);
     marker->cb_data_cleanup = marker_data_cleaner;
     return (data->ucs != NULL);
 }

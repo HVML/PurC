@@ -28,6 +28,7 @@
 #include "foil.h"
 
 #include <purc/purc-document.h>
+#include <glib.h>
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
         const char **lang, size_t *len)
@@ -45,5 +46,23 @@ int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
     }
 
     return -1;
+}
+
+int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs)
+{
+    int w = 0;
+
+    for (size_t i = 0; i < nr_ucs; i++) {
+        if (g_unichar_isprint(ucs[i])) {
+            if (g_unichar_iswide(ucs[i])) {
+                w += FOIL_PX_GRID_CELL_W * 2;
+            }
+            else {
+                w += FOIL_PX_GRID_CELL_W;
+            }
+        }
+    }
+
+    return w;
 }
 

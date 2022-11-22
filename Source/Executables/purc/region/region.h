@@ -30,7 +30,7 @@
 #ifndef purc_foil_region_h
 #define purc_foil_region_h
 
-#include "foil.h"
+#include "rect.h"
 
 typedef struct foil_block_heap {
     /** Size of one block element in bytes. */

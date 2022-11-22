@@ -30,7 +30,31 @@
 #ifndef purc_foil_rect_h
 #define purc_foil_rect_h
 
-#include "foil.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+typedef struct foil_rect {
+    int left, top;
+    int right, bottom;
+} foil_rect;
+typedef foil_rect *foil_rect_p;
+
+typedef struct foil_size {
+    int cx;
+    int cy;
+} foil_size;
+
+static inline int foil_rect_width(const foil_rect *rc)
+{
+    return rc->right - rc->left;
+}
+
+static inline int foil_rect_height(const foil_rect *rc)
+{
+    return rc->bottom - rc->top;
+}
 
 /**
  * \fn void foil_rect_set (foil_rect* prc, int left, int top, int right, int bottom)

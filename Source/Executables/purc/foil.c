@@ -238,7 +238,7 @@ static void* foil_thread_entry(void* arg)
 #define SEM_NAME_SYNC_START     "sync-foil-start"
 
 static pthread_t foil_th;
-purc_atom_t foil_init(const char *rdr_uri)
+purc_atom_t foil_start(const char *rdr_uri)
 {
     int ret;
     struct thread_arg arg;

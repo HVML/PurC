@@ -45,6 +45,9 @@
  */
 
 #include "region.h"
+#include "foil.h"
+
+#include <string.h>
 
 bool foil_block_heap_init (foil_block_heap_p heap, size_t sz_block, size_t sz_heap)
 {

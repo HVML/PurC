@@ -27,6 +27,7 @@
 #define purc_foil_rdrbox_h
 
 #include "foil.h"
+#include "region/rect.h"
 
 #include <glib.h>
 #include <csseng/csseng.h>
@@ -410,53 +411,53 @@ void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
 
-/* get the box name */
+/* Gets the box name; call free() to release the name after done. */
 char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box);
 
-/* create the principal box and the subsidiary box (e.g. marker) */
+/* Creates the principal box and the subsidiary box (e.g. marker) */
 foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt);
 
-/* create the box for :before pseudo element */
+/* Creates the box for :before pseudo element */
 foil_rdrbox *foil_rdrbox_create_before(foil_create_ctxt *ctxt,
         foil_rdrbox *principal);
 
-/* create the box for :after pseudo element */
+/* Creates the box for :after pseudo element */
 foil_rdrbox *foil_rdrbox_create_after(foil_create_ctxt *ctxt,
         foil_rdrbox *principal);
 
-/* create an anonymous block box */
+/* Creates an anonymous block box */
 foil_rdrbox *foil_rdrbox_create_anonymous_block(foil_create_ctxt *ctxt,
         foil_rdrbox *parent, foil_rdrbox *before, foil_rdrbox *after);
 
-/* create an anonymous inline box */
+/* Creates an anonymous inline box */
 foil_rdrbox *foil_rdrbox_create_anonymous_inline(foil_create_ctxt *ctxt,
         foil_rdrbox *parent);
 
-/* initialize type-specific data for a rendering box */
+/* Initializes type-specific data for a rendering box */
 bool foil_rdrbox_init_data(foil_create_ctxt *ctxt, foil_rdrbox *box);
 
-/* initialize the data of an inline box */
+/* Initializes the data of an inline box */
 bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt, foil_rdrbox *box,
         const char *text, size_t len);
 
-/* get the list number according to the list-item-type.
-   the caller will take the ownership of the returned string,
-   should free it after done. */
+/* Gets the list number according to the list-item-type.
+   The caller will take the ownership of the returned string,
+   should call free() to release it after done. */
 char *foil_rdrbox_list_number(const int max,
         const int number, uint8_t type, const char *tail);
 
-/* initialize the data of a marker box */
+/* Initializes the data of a marker box. */
 bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
         foil_rdrbox *marker, const foil_rdrbox *list_item);
 
-/* create a new quotes */
+/* Creates a new quotes */
 foil_quotes *foil_quotes_new(unsigned nr_strings, const char **strings);
 foil_quotes *foil_quotes_new_lwc(unsigned nr_strings, lwc_string **strings);
 
-/* delete a quotes object */
+/* Deletes a quotes object */
 void foil_quotes_delete(foil_quotes *quotes);
 
-/* reference a quotes object */
+/* References a quotes object */
 static inline foil_quotes *
 foil_quotes_ref(foil_quotes *quotes)
 {
@@ -464,7 +465,7 @@ foil_quotes_ref(foil_quotes *quotes)
     return quotes;
 }
 
-/* un-reference a quotes object */
+/* Un-references a quotes object */
 static inline void
 foil_quotes_unref(foil_quotes *quotes)
 {
@@ -474,10 +475,10 @@ foil_quotes_unref(foil_quotes *quotes)
         foil_quotes_delete(quotes);
 }
 
-/* get the initial quotes for specific language code */
+/* Gets the initial quotes for specific language code */
 foil_quotes *foil_quotes_get_initial(uint8_t lang_code);
 
-/* methods to operate foil_counter */
+/* Methods to operate foil_counter */
 foil_counters *foil_counters_new(const css_computed_counter *counters);
 void foil_counters_delete(foil_counters *counters);
 

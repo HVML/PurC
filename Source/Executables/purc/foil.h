@@ -95,17 +95,6 @@
 #   define SIZEOF_HPTR  2
 #endif
 
-typedef struct foil_rect {
-    int left, top;
-    int right, bottom;
-} foil_rect;
-typedef foil_rect *foil_rect_p;
-
-typedef struct foil_size {
-    int cx;
-    int cy;
-} foil_size;
-
 enum {
     FOIL_TERM_MODE_LINE = 0,
     FOIL_TERM_MODE_FULL_SCREEN,
@@ -116,25 +105,20 @@ struct pcmcth_rdr_data {
     int rows, cols;
 };
 
-static inline int foil_rect_width(const foil_rect *rc)
-{
-    return rc->right - rc->left;
-}
-
-static inline int foil_rect_height(const foil_rect *rc)
-{
-    return rc->bottom - rc->top;
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-purc_atom_t foil_init(const char *rdr_uri);
+/* Starts Foil renderer */
+purc_atom_t foil_start(const char *rdr_uri);
+
+/* Wait for Foil renderer to exit synchronously */
 void foil_sync_exit(void);
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
         const char **lang, size_t *len);
+
+int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs);
 
 #ifdef __cplusplus
 }
