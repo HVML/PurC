@@ -31,6 +31,7 @@ if (ENABLE_RDR_FOIL)
         "strutil/"
         "util/"
         "unicode/"
+        "region/"
     )
     PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
 endif ()

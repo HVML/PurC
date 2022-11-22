@@ -1813,6 +1813,44 @@ TEST(utils, build_query_object)
     purc_cleanup();
 }
 
+TEST(utils, fibonacci_number)
+{
+    size_t fib;
+
+    fib = pcutils_get_next_fibonacci_number(0);
+    ASSERT_EQ(fib, 1);
+
+    fib = pcutils_get_next_fibonacci_number(1);
+    ASSERT_EQ(fib, 2);
+
+    fib = pcutils_get_next_fibonacci_number(2);
+    ASSERT_EQ(fib, 3);
+
+    fib = pcutils_get_next_fibonacci_number(6);
+    ASSERT_EQ(fib, 8);
+
+    fib = pcutils_get_next_fibonacci_number(11);
+    ASSERT_EQ(fib, 13);
+
+    fib = pcutils_get_prev_fibonacci_number(23);
+    ASSERT_EQ(fib, 21);
+
+    fib = pcutils_get_prev_fibonacci_number(14);
+    ASSERT_EQ(fib, 13);
+
+    fib = pcutils_get_prev_fibonacci_number(13);
+    ASSERT_EQ(fib, 8);
+
+    fib = pcutils_get_prev_fibonacci_number(2);
+    ASSERT_EQ(fib, 1);
+
+    fib = pcutils_get_prev_fibonacci_number(1);
+    ASSERT_EQ(fib, 0);
+
+    fib = pcutils_get_prev_fibonacci_number(0);
+    ASSERT_EQ(fib, 0);
+}
+
 TEST(utils, build_query_array)
 {
     purc_variant_t v;
