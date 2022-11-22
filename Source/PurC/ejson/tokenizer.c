@@ -1765,16 +1765,34 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED)
     }
     if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
         if (!tkz_buffer_is_empty(parser->temp_buffer)) {
-            tkz_stack_drop_top();
-            top = tkz_stack_push(ETT_STRING);
-            top->node = pcvcm_node_new_string(
-                    tkz_buffer_get_bytes(parser->temp_buffer)
-                    );
-            update_tkz_stack(parser);
-            RESET_TEMP_BUFFER();
-            tkz_stack_push(ETT_VALUE);
+            if (tkz_buffer_end_with(parser->temp_buffer, "{", 1)) {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(2);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 1);
+            }
+            else if (tkz_buffer_end_with(parser->temp_buffer, "{{", 2)) {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(3);
+                tkz_buffer_delete_tail_chars(parser->temp_buffer, 2);
+            }
+            else {
+                tkz_reader_reconsume_last_char(parser->tkz_reader);
+                DELETE_FROM_RAW_BUFFER(1);
+            }
+            if (!tkz_buffer_is_empty(parser->temp_buffer)) {
+                top = tkz_stack_push(ETT_STRING);
+                top->node = pcvcm_node_new_string(
+                        tkz_buffer_get_bytes(parser->temp_buffer)
+                        );
+                update_tkz_stack(parser);
+                RESET_TEMP_BUFFER();
+            }
         }
-        RECONSUME_IN(EJSON_TKZ_STATE_DOLLAR);
+        tkz_stack_push(ETT_VALUE);
+        ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
     }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_TRIPLE_DOUBLE_QUOTED);
