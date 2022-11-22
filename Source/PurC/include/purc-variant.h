@@ -212,12 +212,14 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_longint(int64_t i64);
 
 /**
- * Creates a variant which represents a high precision float number.
+ * purc_variant_make_longdouble:
  *
- * @lf: A long double value which specifying
- *      the high precision float number.
+ * @lf: A long double value which specifying a high precision float number.
  *
- * Returns: A variant having the specified high precision float number,
+ * Creates a long double variant which represents a high precision float number
+ * by using @lf.
+ *
+ * Returns: A long double variant having the specified high precision float number,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
@@ -226,13 +228,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_longdouble(long double lf);
 
 /**
- * Creates a variant which represents a null-terminated string
- * in UTF-8 encoding. Note that the new variant will hold a copy of
- * the specified string if success.
+ * purc_variant_make_string:
  *
  * @str_utf8: The pointer to a null-terminated string
  *      which is encoded in UTF-8.
  * @check_encoding: Whether to check the encoding.
+ *
+ * Creates a variant which represents a null-terminated string
+ * in UTF-8 encoding. Note that the new variant will hold a copy of
+ * the specified string if success.
  *
  * Returns: A variant contains the specified text string in UTF-8 encoding,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -243,13 +247,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_string(const char* str_utf8, bool check_encoding);
 
 /**
- * Creates a variant which represents a null-terminted static string
- * in UTF-8 encoding. Note that the new variant will only hold the pointer
- * to the static string, not a copy of the string.
+ * purc_variant_make_string_static:
  *
  * @str_utf8: The pointer to a null-terminated string
  *      which is in UTF-8 encoding.
  * @check_encoding: Whether to check the encoding.
+ *
+ * Creates a variant which represents a null-terminted static string
+ * in UTF-8 encoding. Note that the new variant will only hold the pointer
+ * to the static string, not a copy of the string.
  *
  * Returns: A variant contains the pointer to the static string,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -260,15 +266,17 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_string_static(const char* str_utf8, bool check_encoding);
 
 /**
- * Creates a variant which represents a null-terminated static string in
- * UTF-8 encoding. Note that the new variant will take the ownership of
- * the buffer which containing the string. The buffer will be released by
- * calling free() when the variant is destroyed ultimately.
+ * purc_variant_make_string_reuse_buff:
  *
  * @str_utf8: The pointer to a null-terminated string which is encoded
  *      in UTF-8.
  * @sz_buff: The size of the buffer (not the length of the string).
  * @check_encoding: Whether to check the encoding.
+ *
+ * Creates a variant which represents a null-terminated static string in
+ * UTF-8 encoding. Note that the new variant will take the ownership of
+ * the buffer which containing the string. The buffer will be released by
+ * calling free() when the variant is destroyed ultimately.
  *
  * Returns: A variant which contains the specified string in UTF-8 encoding
  *      and takes the ownership of the string buffer,
@@ -281,15 +289,17 @@ purc_variant_make_string_reuse_buff(char* str_utf8, size_t sz_buff,
         bool check_encoding);
 
 /**
- * Creates a variant which represents a null-terminated string in UTF-8
- * encoding by copying a string, but at most the specified length copied.
+ * purc_variant_make_string_ex:
  *
  * @str_utf8: The pointer to a string which is encoded in UTF-8.
  * @len: The length of string (in bytes) to be copied at most.
  * @check_encoding: Whether to check the encoding.
  *
+ * Creates a variant which represents a null-terminated string in UTF-8
+ * encoding by copying a string, but at most the specified length copied.
+ *
  * Returns: A variant which copies the string of specified length in
- *  UTF-8 encoding, or %PURC_VARIANT_INVALID on failure.
+ *      UTF-8 encoding, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.5
  */
@@ -298,15 +308,17 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
         bool check_encoding);
 
 /**
+ * purc_variant_get_string_const_ex:
+ *
+ * @value: A string, an atom, or an exception variant.
+ * @length (nullable): The pointer to a size_t buffer to receive
+ *      the length of the string (not including the terminating null byte).
+ *
  * Gets the pointer of the string contained in the specified variant
  * if the variant represents a string, an atom, or an exception variant.
  *
  * Note that you should not change the contents in the buffer
  * pointed to by the return value.
- *
- * @value: A string, an atom, or an exception variant.
- * @length (nullable): The pointer to a size_t buffer to receive
- *      the length of the string (not including the terminating null byte).
  *
  * Returns: The pointer to the string in UTF-8 encoding, or %NULL if
  *      the variant does not respresent a string, an atom, or an exception.
@@ -316,15 +328,16 @@ purc_variant_make_string_ex(const char* str_utf8, size_t len,
 PCA_EXPORT const char*
 purc_variant_get_string_const_ex(purc_variant_t value, size_t *length);
 
-
 /**
+ * purc_variant_get_string_const:
+ *
+ * @value: A string, an atom, or an exception variant.
+ *
  * Gets the pointer of the string contained in the specified variant
  * if the variant represents a string, an atom, or an exception variant.
  *
  * Note that you should not change the contents in the buffer
  * pointed to by the return value.
- *
- * @value: A string, an atom, or an exception variant.
  *
  * Returns: The pointer to the string in UTF-8 encoding, or %NULL if
  *      the variant does not respresent a string, an atom, or an exception.
@@ -338,12 +351,14 @@ purc_variant_get_string_const(purc_variant_t value)
 }
 
 /**
- * Gets the length of the string contained in the specified variant
- * if the variant represents a string, an atom, or an exception variant.
+ * purc_variant_string_bytes:
  *
  * @value: A string, an atom, or an exception variant.
  * @length (nullable): The pointer to a size_t buffer to receive
  *      the length of the string (not including the terminating null byte).
+ *
+ * Gets the length of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -353,10 +368,12 @@ PCA_EXPORT bool
 purc_variant_string_bytes(purc_variant_t value, size_t *length);
 
 /**
- * Gets the length of the string contained in the specified variant
- * if the variant represents a string, an atom, or an exception variant.
+ * purc_variant_string_size:
  *
  * @value: A string, an atom, or an exception variant.
+ *
+ * Gets the length of the string contained in the specified variant
+ * if the variant represents a string, an atom, or an exception variant.
  *
  * Returns: The length in bytes (not including the terminating null byte)
  *  of the string on success; %PURC_VARIANT_BADSIZE (-1) if the value
@@ -374,16 +391,18 @@ purc_variant_string_size(purc_variant_t value)
 }
 
 /**
- * Gets the number of valid characters of the string contained in
- * the specified variant, if the variant represents a string, an atom,
- * or an exception variant.
+ * purc_variant_string_chars:
  *
  * @value: A string, an atom, or an exception variant.
  * @nr_chars: The pointer to a size_t buffer to receive the number of
  *  valid characters in the string.
  *
+ * Gets the number of valid characters of the string contained in
+ * the specified variant, if the variant represents a string, an atom,
+ * or an exception variant.
+ *
  * Returns: %true on success, and %false if the value is not a string,
- * an atom, or an exception variant.
+ *      an atom, or an exception variant.
  *
  * Since: 0.1.0
  */
@@ -391,10 +410,12 @@ PCA_EXPORT bool
 purc_variant_string_chars(purc_variant_t value, size_t *nr_chars);
 
 /**
- * Creates a variant which represents an atom.
+ * purc_variant_make_atom:
  *
  * @atom: An atom value returned by purc_atom_from_string_ex() or
  *      purc_atom_from_string_static_ex().
+ *
+ * Creates a variant which represents an atom.
  *
  * Returns: A variant contains the given atom,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -405,12 +426,14 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_atom(purc_atom_t atom);
 
 /**
- * Creates a variant which represents the atom corresponding to the given
- * string.
+ * purc_variant_make_atom_string:
  *
  * @str_utf8: The pointer to a null-terminated string
  *      which is encoded in UTF-8.
  * @check_encoding: Whether to check the encoding.
+ *
+ * Creates a variant which represents the atom corresponding to the given
+ * string @str_utf8.
  *
  * Returns: A variant contains the atom corresponding to the given string,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -422,12 +445,14 @@ purc_variant_make_atom_string(const char* str_utf8,
         bool check_encoding);
 
 /**
- * Creates a variant which represents the atom corresponding to the given
- * static string.
+ * purc_variant_make_atom_string_static:
  *
  * @str_utf8: The pointer to a null-terminated static string
  *      which is encoded in UTF-8.
  * @check_encoding: Whether to check the encoding.
+ *
+ * Creates a variant which represents the atom corresponding to the given
+ * static string.
  *
  * Returns: A variant contains the atom corresponding to the given string,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -439,10 +464,12 @@ purc_variant_make_atom_string_static(const char* str_utf8,
         bool check_encoding);
 
 /**
- * Gets the pointer to the string which is associated to the atom contained in
- * the given atom variant.
+ * purc_variant_get_atom_string_const:
  *
  * @value: An atom variant.
+ *
+ * Gets the pointer to the string which is associated to the atom contained in
+ * the given atom variant.
  *
  * Returns: The pointer to the string which is associated to the atom,
  *      or %NULL if the variant does not respresent an atom.
@@ -453,12 +480,14 @@ PCA_EXPORT const char*
 purc_variant_get_atom_string_const(purc_variant_t value);
 
 /**
- * Creates a variant which represents a byte sequence (`bsequence` for short).
- * Note that the new variant will hold a copy of the specified byte sequence
- * if success.
+ * purc_variant_make_byte_sequence:
  *
  * @bytes: The pointer to a byte sequence.
  * @nr_bytes: The number of bytes in the sequence.
+ *
+ * Creates a variant which represents a byte sequence (`bsequence` for short).
+ * Note that the new variant will hold a copy of the specified byte sequence
+ * if success.
  *
  * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -469,12 +498,14 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence(const void* bytes, size_t nr_bytes);
 
 /**
- * Creates a variant which represents a byte sequence (`bsequence` for short).
- * Note that the new variant will only hold the pointer to the byte sequence,
- * not a copy of the byte sequence.
+ * purc_variant_make_byte_sequence_static:
  *
  * @bytes: The pointer to a byte sequence.
  * @nr_bytes: The number of bytes in the sequence.
+ *
+ * Creates a variant which represents a byte sequence (`bsequence` for short).
+ * Note that the new variant will only hold the pointer to the byte sequence,
+ * not a copy of the byte sequence.
  *
  * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -485,13 +516,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_static(const void* bytes, size_t nr_bytes);
 
 /**
- * Creates a variant which represents a byte sequence (`bsequence` for short)
- * by reusing the buffer storing the bytes. Note that the buffer will be
- * released by calling free() when the variant is destroyed.
+ * purc_variant_make_byte_sequence_reuse_buff:
  *
  * @bytes: The pointer to a byte sequence.
  * @nr_bytes: The number of bytes in the sequence.
  * @sz_buff: The size of the buffer storing the bytes.
+ *
+ * Creates a variant which represents a byte sequence (`bsequence` for short)
+ * by reusing the buffer storing the bytes. Note that the buffer will be
+ * released by calling free() when the variant is destroyed.
  *
  * Returns: A bsequence variant if success,
  *      or %PURC_VARIANT_INVALID on failure.
@@ -503,6 +536,8 @@ purc_variant_make_byte_sequence_reuse_buff(void* bytes, size_t nr_bytes,
         size_t sz_buff);
 
 /**
+ * purc_variant_make_byte_sequence_empty:
+ *
  * Creates a variant which represents an empty byte sequence.
  *
  * Returns: An empty bsequence variant if success,
@@ -514,12 +549,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_byte_sequence_empty(void);
 
 /**
- * Gets the pointer of byte array which is encapsulated in byte sequence type.
+ * purc_variant_get_bytes_const:
  *
- * @value: the data of byte sequence type
- * @nr_bytes: the buffer to receive the size of byte sequence
+ * @value: The bsequence variant.
+ * @nr_bytes: The pointer to a size_t buffer to receive the length in bytes
+ *      of the byte sequence.
  *
- * Returns: the pointer of byte array on success, or NULL on failure.
+ * Gets the pointer to the bytes array contained in a bsequence variant.
+ *
+ * Returns: The pointer to the bytes array on success, or %NULL on failure.
  *
  * Since: 0.0.1
  */
@@ -527,34 +565,38 @@ PCA_EXPORT const unsigned char*
 purc_variant_get_bytes_const(purc_variant_t value, size_t* nr_bytes);
 
 /**
- * Get the number of bytes in a byte sequence variant value.
+ * purc_variant_bsequence_bytes:
  *
- * @sequence: the variant value of sequence type
- * @length: the buffer receiving the length in bytes of the byte
- *  sequence.
+ * @bsequence: The bsequence variant.
+ * @length: The pointer to a size_t buffer receiving the length in bytes of
+ *      the byte sequence.
  *
- * Returns: @true on success, otherwise @false.
+ * Gets the number of bytes contained in a bsequence variant.
+ *
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_bsequence_bytes(purc_variant_t sequence, size_t *length);
+purc_variant_bsequence_bytes(purc_variant_t bsequence, size_t *length);
 
 /**
- * Get the number of bytes in a byte sequence variant value.
+ * purc_variant_bsequence_length:
  *
- * @sequence: the variant value of sequence type
+ * @bseqence: The bsequence variant.
  *
- * Returns: The number of bytes in an sequence variant value;
- *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a byte sequence.
+ * Returns the number of bytes contained in a bsequence variant.
+ *
+ * Returns: The number of bytes in @bsequence variant;
+ *  %PURC_VARIANT_BADSIZE (-1) if the variant is not a bsequence.
  *
  * Since: 0.0.1
  */
 static inline ssize_t
-purc_variant_bsequence_length(purc_variant_t sequence)
+purc_variant_bsequence_length(purc_variant_t bsequence)
 {
     size_t len;
-    if (!purc_variant_bsequence_bytes(sequence, &len))
+    if (!purc_variant_bsequence_bytes(bsequence, &len))
         return PURC_VARIANT_BADSIZE;
     return len;
 }
@@ -568,13 +610,14 @@ typedef purc_variant_t (*purc_dvariant_method) (purc_variant_t root,
         size_t nr_args, purc_variant_t * argv, unsigned call_flags);
 
 /**
- * Creates dynamic value by setter and getter functions
+ * purc_variant_make_dynamic:
  *
- * @getter: the getter funciton pointer
- * @setter: the setter function pointer
+ * @getter: The pointer to the getter function.
+ * @setter: The pointer to the setter function.
  *
- * Returns: A purc_variant_t with dynamic value,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Creates a dynamic variant by using the given setter and getter functions.
+ *
+ * Returns: A dynamic variant, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -582,89 +625,99 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_dynamic(purc_dvariant_method getter,
         purc_dvariant_method setter);
 
-
 /**
- * Get the getter function from a dynamic value
+ * purc_variant_dynamic_get_getter:
  *
- * @dynamic: the variant value of dynamic type
+ * @dynamic: The dynamic variant.
  *
- * Returns: A purc_dvariant_method funciton pointer
+ * Gets the getter function of a dynamic variant.
+ *
+ * Returns: The pointer to the getter function of @dynamic.
+ *      Note that the getter function of a dynamic variant might be %NULL.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_dvariant_method
 purc_variant_dynamic_get_getter(purc_variant_t dynamic);
 
-
 /**
- * Get the setter function from a dynamic value
+ * purc_variant_dynamic_get_setter:
  *
- * @dynamic: the variant value of dynamic type
+ * @dynamic: The dynamic variant.
  *
- * Returns: A purc_dvariant_method funciton pointer
+ * Gets the setter function a dynamic variant.
+ *
+ * Returns: The pointer to the setter function of @dynamic.
+ *      Note that the setter function of a dynamic variant might be %NULL.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_dvariant_method
 purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 
-
 typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
-/** the operation set for native entity */
+/**
+ * struct purc_native_ops:
+ *
+ * The operation set for a native entity variant
+ */
 struct purc_native_ops {
-    /** query the getter for a specific property. */
+    /** Returns the getter for a specific property. */
     purc_nvariant_method (*property_getter)(void* native_entity,
             const char* propert_name);
 
-    /** query the setter for a specific property. */
+    /** Returns the setter for a specific property. */
     purc_nvariant_method (*property_setter)(void* native_entity,
             const char* property_name);
 
-    /** query the cleaner for a specific property. */
+    /** Returns the cleaner for a specific property. */
     purc_nvariant_method (*property_cleaner)(void* native_entity,
             const char* property_name);
 
-    /** query the eraser for a specific property. */
+    /** Returns the eraser for a specific property. */
     purc_nvariant_method (*property_eraser)(void* native_entity,
             const char* property_name);
 
-    /** the updater to update the content represented by
+    /** The updater to update the content represented by
       * the native entity (nullable). */
     purc_variant_t (*updater)(void* native_entity,
             purc_variant_t new_value, unsigned call_flags);
 
-    /** the cleaner to clear the content represented by
+    /** The cleaner to clear the content represented by
       * the native entity (nullable). */
     purc_variant_t (*cleaner)(void* native_entity, unsigned call_flags);
 
-    /** the eraser to erase the content represented by
+    /** The eraser to erase the content represented by
       * the native entity (nullable). */
     purc_variant_t (*eraser)(void* native_entity, unsigned call_flags);
 
-    /** verify if the val is match the observer */
+    /** Checks if the event specified by @val matches */
+    /* TODO: this operation should be renamed */
     bool (*match_observe)(void* native_entity, purc_variant_t val);
 
-    /** the callback when the variant was observed (nullable). */
+    /** The callback when the variant was observed (nullable). */
     bool (*on_observe)(void* native_entity,
             const char *event_name, const char *event_subname);
 
-    /** the callback when the variant was revoke observed (nullable). */
+    /** The callback when the observer on the variant was revoked (nullable). */
     bool (*on_forget)(void* native_entity,
             const char *event_name, const char *event_subname);
 
-    /** the callback when the variant was released (nullable). */
+    /** The callback when the variant was released (nullable). */
     void (*on_release)(void* native_entity);
 };
 
 /**
- * Creates a variant value of native type.
+ * purc_variant_make_native:
  *
- * @entity: the pointer to the native entity.
- * @ops: the pointer to the ops for the native entity.
+ * @entity: The pointer to a native entity.
+ * @ops: The pointer to the operation set for the native entity.
  *
- * Returns: A purc_variant_t with native value,
+ * Creates a variant which represents the native entity.
+ *
+ * Returns: A desired native entity variant,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.2
@@ -672,14 +725,14 @@ struct purc_native_ops {
 purc_variant_t purc_variant_make_native(void *native_entity,
     const struct purc_native_ops *ops);
 
-
-
 /**
- * Get the native pointer of native variant value
+ * purc_variant_native_get_entity:
  *
- * @native: the variant value of native type
+ * @native: A native entity variant.
  *
- * Returns: the native pointer
+ * Gets the pointer to the entity of the native entity variant @native.
+ *
+ * Returns: The pointer to the native pointer.
  *
  * Since: 0.0.1
  */
@@ -687,25 +740,28 @@ PCA_EXPORT void *
 purc_variant_native_get_entity(purc_variant_t native);
 
 /**
- * Get the ops pointer of native variant value
+ * purc_variant_native_get_ops:
  *
- * @native: the variant value of native type
+ * @native: A native entity variant.
  *
- * Returns: the ops pointer
+ * Gets the pointer to the operation set of the native entity variant @native.
+ *
+ * Returns: The pointer to the operation set of the native entity.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT struct purc_native_ops *
 purc_variant_native_get_ops(purc_variant_t native);
 
-
 /**
- * Creates a variant value of array type.
+ * purc_variant_make_array:
  *
- * @sz: the size of array
- * @value0 ..... valuen: enumerates every elements in array
+ * @sz: The size of the new array.
+ * @value0...: The initial members of the new array.
  *
- * Returns: A purc_variant_t with array type,
+ * Creates an array variant with the specified initial size and members.
+ *
+ * Returns: An array variant contains the specified initial members,
  *      or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
@@ -714,6 +770,8 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_array(size_t sz, purc_variant_t value0, ...);
 
 /**
+ * purc_variant_make_array_0:
+ *
  * Creates an empty array variant.
  *
  * Returns: An empty array variant or %PURC_VARIANT_INVALID on failure.
@@ -727,55 +785,61 @@ purc_variant_make_array_0(void)
 }
 
 /**
- * Appends a variant value to the tail of an array.
+ * purc_variant_array_append:
  *
- * @array: the variant value of array type
- * @value: the element to be appended
+ * @array: An array variant.
+ * @value: The variant to be appended to the array.
  *
- * Returns: @true on success, otherwise @false.
+ * Appends a variant at the tail of @array.
+ *
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
 purc_variant_array_append(purc_variant_t array, purc_variant_t value);
 
-
 /**
- * Insert a variant value to the head of an array.
+ * purc_variant_array_prepend:
  *
- * @array: the variant value of array type
- * @value: the element to be insert
+ * @array: An array variant.
+ * @value: The variant to be prepended to the array.
  *
- * Returns: @true on success, otherwise @false.
+ * Prepends a variant at the head of @array.
+ *
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
 purc_variant_array_prepend(purc_variant_t array, purc_variant_t value);
 
-
 /**
- * Gets an element from an array by index.
+ * purc_variant_array_get:
  *
- * @array: the variant value of array type
- * @idx: the index of wanted element
+ * @array: An array variant.
+ * @idx: The index of the member.
  *
- * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
+ * Gets the member from the array variant @array by index (@idx).
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
 purc_variant_array_get(purc_variant_t array, size_t idx);
 
-
 /**
- * Sets an element value in an array by index.
+ * purc_variant_array_set:
  *
- * @array: the variant value of array type
- * @idx: the index of replaced element
- * @value: the element to replace
+ * @array: An array variant.
+ * @idx: The index of the member to be set.
+ * @value: The variant.
  *
- * Returns: @true on success, otherwise @false.
+ * Sets the variant of the specified member in the array (@array)
+ * by index (@idx) with @value.
+ *
+ * Returns: %true on success, otherwise %false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -786,14 +850,13 @@ purc_variant_array_get(purc_variant_t array, size_t idx);
 PCA_EXPORT bool
 purc_variant_array_set(purc_variant_t array, size_t idx, purc_variant_t value);
 
-
 /**
  * Remove an element from an array by index.
  *
  * @array: the variant value of array type
  * @idx: the index of element to be removed
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -813,7 +876,7 @@ purc_variant_array_remove(purc_variant_t array, int idx);
  *
  * @value: the inserted element
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than max index of array, return -1.
@@ -832,7 +895,7 @@ purc_variant_array_insert_before(purc_variant_t array,
  * @idx: the index of element after which the new element will be placed
  * @value: the inserted element
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * FIXME: returns -1?
  * Note: If idx is greater than sum of one plus max index of array, return -1.
@@ -849,7 +912,7 @@ purc_variant_array_insert_after(purc_variant_t array,
  * @array: the variant value of array type
  * @sz: the buffer receiving the number of elements of the array.
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -942,7 +1005,7 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
  * @key: the key of key-value pair
  * @value: the value of key-value pair
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -957,7 +1020,7 @@ purc_variant_object_set(purc_variant_t obj,
  * @key: the key of key-value pair
  * @value: the value of key-value pair
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -979,10 +1042,10 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @obj: the variant value of obj type
  * @key: the key of key-value pair
- * @silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
+ * @silently: %true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -997,7 +1060,7 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
  * @sz: the buffer receiving the number of the key-value pairs
  *  in the object
  *
- * Returns: @true on success, otherwise @false if the variant is not an object.
+ * Returns: %true on success, otherwise %false if the variant is not an object.
  *
  * Since: 0.0.1
  */
@@ -1099,8 +1162,8 @@ purc_variant_object_release_iterator(struct purc_variant_object_iterator* it);
  *
  * @it: iterator of itself
  *
- * Returns: @true if iterator `it` has no following key-val-pair,
- *          @false otherwise
+ * Returns: %true if iterator `it` has no following key-val-pair,
+ *          %false otherwise
  *          dec original key-val-pair's ref
  *          inc current key-val-pair's ref
  *
@@ -1115,7 +1178,7 @@ purc_variant_object_iterator_next(struct purc_variant_object_iterator* it);
  *
  * @it: iterator of itself
  *
- * Returns: @true if iterator `it` has no leading key-val-pair, @false otherwise
+ * Returns: %true if iterator `it` has no leading key-val-pair, %false otherwise
  *          dec original key-val-pair's ref
  *          inc current key-val-pair's ref
  *
@@ -1245,7 +1308,7 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * @set: the variant value of the set type.
  * @value: the value to be added.
- * Returns: @true on success, @false if:
+ * Returns: %true on success, %false if:
  *      - there is already such a value in the set.
  *      - the value is not an object if the set is managed by unique keys.
  * @override: If the set is managed by unique keys and @overwrite is
@@ -1267,11 +1330,11 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  *
  * @set: the set to be operated
  * @value: the value to be removed
- * @silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
+ * @silently: %true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
  *
- * Returns: @true on success, @false if:
- *      - silently is @false And no any matching member in the set.
+ * Returns: %true on success, %false if:
+ *      - silently is %false And no any matching member in the set.
  *
  * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
@@ -1309,7 +1372,7 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
  *      for each unique key. The number of the matching values must match
  *      the number of the unique keys.
  *
- * Returns: @true on success, or @false if:
+ * Returns: %true on success, or %false if:
  *      - the set does not managed by unique keys, or
  *      - no any matching member.
  *
@@ -1325,7 +1388,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
  * @set: the variant value of set type
  * @sz: the variant value of set type
  *
- * Returns: @true on success, otherwise @false if the variant is not a set.
+ * Returns: %true on success, otherwise %false if the variant is not a set.
  *
  * Since: 0.0.1
  */
@@ -1465,7 +1528,7 @@ purc_variant_set_release_iterator(struct purc_variant_set_iterator* it);
  *
  * @it: iterator of itself
  *
- * Returns: @true if iterator `it` has no following element, @false otherwise
+ * Returns: %true if iterator `it` has no following element, %false otherwise
  *          dec original element's ref
  *          inc current element's ref
  *
@@ -1480,7 +1543,7 @@ purc_variant_set_iterator_next(struct purc_variant_set_iterator* it);
  *
  * @it: iterator of itself
  *
- * Returns: @true if iterator `it` has no leading element, @false otherwise
+ * Returns: %true if iterator `it` has no leading element, %false otherwise
  *          dec original element's ref
  *          inc current element's ref
  *
@@ -1542,7 +1605,7 @@ purc_variant_make_tuple_0(void)
  * @tuple: the tuple variant.
  * @sz: the buffer to receive the size of the tuple.
  *
- * Returns: @true when success, or @false on failure.
+ * Returns: %true when success, or %false on failure.
  *
  * Since: 0.1.0
  */
@@ -1588,7 +1651,7 @@ purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
  * @idx: the index of the member to replace.
  * @value: the new value of the member.
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -1639,7 +1702,7 @@ static inline ssize_t purc_variant_sorted_array_get_size(purc_variant_t array)
  *      set, or tuple.
  * @sz: the buffer receiving the number of members in the container.
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.1.0
  */
@@ -1691,7 +1754,7 @@ purc_variant_linear_container_get(purc_variant_t container, size_t idx);
  * @idx: the index of wanted member.
  * @value: the new value.
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.1.0
  */
@@ -1805,7 +1868,7 @@ purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force);
  *      be casted to an unsigned long integer).
  *
  * Note: A negative number, long integer, or long double will be casted
- *      to 0 when @force is @true.
+ *      to 0 when @force is %true.
  *
  * Since: 0.0.1
  */
@@ -2081,7 +2144,7 @@ purc_variant_load_dvobj_from_so (const char *so_name,
  *
  * @value: dynamic object
  *
- * Returns: @true for success, false on failure.
+ * Returns: %true for success, false on failure.
 .*
  * Since: 0.0.1
  */
@@ -2140,7 +2203,7 @@ typedef enum purc_variant_type
  * @value: the variant value
  * @type: wanted type
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -2305,10 +2368,10 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
  *
  * @obj: the variant value of obj type
  * @key: the key of key-value pair
- * @silently: @true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return @true)
+ * @silently: %true means ignoring the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
@@ -2529,11 +2592,11 @@ purc_variant_revoke_listener(purc_variant_t v,
  *
  * @dst: the dst variant (object, array, set)
  * @value: the variant to replace (object, array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2546,12 +2609,12 @@ purc_variant_container_displace(purc_variant_t dst,
  *
  * @dst: the dst variant (object, array, set)
  * @value: the variant to remove from container (object, array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2564,11 +2627,11 @@ purc_variant_container_remove(purc_variant_t dst,
  *
  * @array: the dst array variant
  * @value: the value to be appended (array)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2581,11 +2644,11 @@ purc_variant_array_append_another(purc_variant_t array,
  *
  * @array: the dst array variant
  * @value: the value to be insert (array)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2598,11 +2661,11 @@ purc_variant_array_prepend_another(purc_variant_t array,
  *
  * @object: the dst object variant
  * @value: the value to be merge (object)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2617,11 +2680,11 @@ purc_variant_object_merge_another(purc_variant_t object,
  * @array: the dst array variant
  * @idx: the index of element before which the new value will be placed
  * @value: the inserted value (array)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2636,11 +2699,11 @@ purc_variant_array_insert_another_before(purc_variant_t array,
  * @array: the dst array variant
  * @idx: the index of element after which the new value will be placed
  * @value: the inserted value (array)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2653,11 +2716,11 @@ purc_variant_array_insert_another_after(purc_variant_t array,
  *
  * @set: the dst set variant
  * @value: the value to be unite (array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2670,11 +2733,11 @@ purc_variant_set_unite(purc_variant_t set,
  *
  * @set: the dst set variant
  * @value: the value to intersect (array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2687,11 +2750,11 @@ purc_variant_set_intersect(purc_variant_t set,
  *
  * @set: the dst set variant
  * @value: the value to substract (array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2704,11 +2767,11 @@ purc_variant_set_subtract(purc_variant_t set,
  *
  * @set: the dst set variant
  * @value: the value to xor (array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2721,12 +2784,12 @@ purc_variant_set_xor(purc_variant_t set,
  *
  * @set: the dst set variant
  * @value: the value to overwrite (object, array, set)
- * @silently: @true means ignoring the following errors:
+ * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Returns: @true on success, otherwise @false.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.5
  */
@@ -2823,7 +2886,7 @@ typedef purc_variant_t (*purc_cb_get_var)(void* ctxt, const char* name);
  *      for a variable name.
  * @ctxt: the context will be passed to the callback when evaluting
  *      a variable.
- * @silently: @true means ignoring the errors.
+ * @silently: %true means ignoring the errors.
  *
  * Since: 0.1.1
  */
