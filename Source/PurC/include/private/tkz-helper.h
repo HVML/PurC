@@ -80,6 +80,15 @@ is_whitespace(uint32_t c)
     return false;
 }
 
+PCA_INLINE bool
+is_c0(uint32_t c)
+{
+    if (c < 0x20) {
+        return true;
+    }
+    return false;
+}
+
 PCA_INLINE uint32_t
 to_ascii_lower_unchecked(uint32_t c)
 {

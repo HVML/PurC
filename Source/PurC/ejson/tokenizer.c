@@ -1557,6 +1557,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED)
         SET_ERR(PCEJSON_ERROR_UNEXPECTED_EOF);
         RETURN_AND_STOP_PARSE();
     }
+    if (is_c0(character)) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
+    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_SINGLE_QUOTED);
 END_STATE()
@@ -1669,6 +1673,10 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED)
             ADVANCE_TO(EJSON_TKZ_STATE_CONTROL);
         }
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
+    }
+    if (is_c0(character)) {
+        SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
+        RETURN_AND_STOP_PARSE();
     }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
@@ -2490,12 +2498,23 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE)
     switch (character)
     {
         case 'b':
+            APPEND_TO_TEMP_BUFFER('\b');
+            ADVANCE_TO(parser->return_state);
+            break;
         case 'f':
+            APPEND_TO_TEMP_BUFFER('\f');
+            ADVANCE_TO(parser->return_state);
+            break;
         case 'n':
+            APPEND_TO_TEMP_BUFFER('\n');
+            ADVANCE_TO(parser->return_state);
+            break;
         case 'r':
+            APPEND_TO_TEMP_BUFFER('\r');
+            ADVANCE_TO(parser->return_state);
+            break;
         case 't':
-            APPEND_TO_TEMP_BUFFER('\\');
-            APPEND_TO_TEMP_BUFFER(character);
+            APPEND_TO_TEMP_BUFFER('\t');
             ADVANCE_TO(parser->return_state);
             break;
         case '$':
@@ -2506,6 +2525,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE)
         case '/':
         case '\\':
         case '"':
+        case '\'':
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(parser->return_state);
             break;
@@ -2526,9 +2546,30 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE_FOUR_HEXADECIMAL_DIGITS)
         size_t nr_chars = tkz_buffer_get_size_in_chars(
                 parser->string_buffer);
         if (nr_chars == 4) {
-            APPEND_BYTES_TO_TEMP_BUFFER("\\u", 2);
-            APPEND_BUFFER_TO_TEMP_BUFFER(parser->string_buffer);
+            uint64_t uc = 0;
+            const char *bytes = tkz_buffer_get_bytes(parser->string_buffer);
+            for (size_t i = 0; i < nr_chars; i++) {
+                if (is_ascii_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x30;
+                }
+                else if (is_ascii_upper_hex_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x37;
+                }
+                else if (is_ascii_lower_hex_digit(bytes[i])) {
+                    uc *= 16;
+                    uc += bytes[i] - 0x57;
+                }
+            }
+
             RESET_STRING_BUFFER();
+            if ((uc & 0xFFFFF800) == 0xD800) {
+                SET_ERR(PCEJSON_ERROR_BAD_JSON_STRING_ESCAPE_ENTITY);
+                RETURN_AND_STOP_PARSE();
+            }
+
+            APPEND_TO_TEMP_BUFFER(uc);
             ADVANCE_TO(parser->return_state);
         }
         ADVANCE_TO(
