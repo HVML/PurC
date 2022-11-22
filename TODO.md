@@ -50,8 +50,8 @@
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2] Implement some new APIs:
    - `purc_variant_make_atom()`
-1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
+1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 
 ### 2.2) eJSON and HVML Parsing and Evaluating
 
@@ -96,7 +96,14 @@
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
-1. [0.9.2] Full support for `request` element.
+1. [0.9.4] Full support for `request` element.
+1. [0.9.4] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
+1. [0.9.4] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. [0.9.9] The generation and handling mechanism of uncatchable errors:
+   - Support for the element `error`.
+   - The element `error`: support for `src`, `param`, and `method` attributes.
+1. [0.9.9] Review the implementation of all elements.
+1. [0.9.9] Review all uses of exception names.
 1. [0.9.0; Resolved] Improve the implementation of the element `bind`:
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
@@ -113,13 +120,6 @@
 1. [0.9.0; Resolved] Support for the equivalences and/or abbreviations of some adverb attributes.
 1. [0.9.0; Resolved] Support for the new preposition attribute: `idd-by`.
 1. [0.9.0; Pending] Improve the element `bind` to make the attribute `at` support `_runner`, so we can create a runner-level variable.
-1. [0.9.4] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
-1. [0.9.4] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
-1. [0.9.9] The generation and handling mechanism of uncatchable errors:
-   - Support for the element `error`.
-   - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.9.9] Review the implementation of all elements.
-1. [0.9.9] Review all uses of exception names.
 1. [0.8.2; Resolved] Enhance the evaluation of VCM to support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Enhance scheduler to support support `PURC_ERROR_AGAIN`.
 1. [0.8.2; Resolved] Raise an exception for a failed evaluation of an eJSON expression.
@@ -144,13 +144,13 @@
 
 ### 2.8) Others
 
-1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
-1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
 1. [1.0.0] Normalize the typedef names.
 1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
 1. [1.0.0] Tune API description.
+1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
+1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
 
 ### 2.9) Known Bugs and Test Cases
