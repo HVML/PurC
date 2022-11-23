@@ -158,8 +158,9 @@ pcinst_put_message(pcrdr_msg *msg)
         PC_DEBUG("Freeing message in %s: %p\n", __func__, msg);
 
         for (int i = 0; i < PCRDR_NR_MSG_VARIANTS; i++) {
-            if (msg->variants[i])
+            if (msg->variants[i]) {
                 purc_variant_unref(msg->variants[i]);
+            }
         }
 
 #if HAVE(GLIB)
