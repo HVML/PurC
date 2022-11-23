@@ -659,61 +659,69 @@ typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
 /**
- * struct purc_native_ops:
+ * purc_native_ops:
  *
- * The operation set for a native entity variant
+ * The operation set for a native entity variant.
  */
 struct purc_native_ops {
-    /** Returns the getter for a specific property. */
+    /** This operation returns the getter for a specific property. */
     purc_nvariant_method (*property_getter)(void* native_entity,
             const char* propert_name);
 
-    /** Returns the setter for a specific property. */
+    /** This operation returns the setter for a specific property. */
     purc_nvariant_method (*property_setter)(void* native_entity,
             const char* property_name);
 
-    /** Returns the cleaner for a specific property. */
+    /** This operations returns the cleaner for a specific property. */
     purc_nvariant_method (*property_cleaner)(void* native_entity,
             const char* property_name);
 
-    /** Returns the eraser for a specific property. */
+    /** This operation returns the eraser for a specific property. */
     purc_nvariant_method (*property_eraser)(void* native_entity,
             const char* property_name);
 
-    /** The updater to update the content represented by
+    /** This operation updates the content represented by
       * the native entity (nullable). */
     purc_variant_t (*updater)(void* native_entity,
             purc_variant_t new_value, unsigned call_flags);
 
-    /** The cleaner to clear the content represented by
+    /** This operation cleans the content represented by
       * the native entity (nullable). */
     purc_variant_t (*cleaner)(void* native_entity, unsigned call_flags);
 
-    /** The eraser to erase the content represented by
+    /** This operation erases to erase the content represented by
       * the native entity (nullable). */
     purc_variant_t (*eraser)(void* native_entity, unsigned call_flags);
 
-    /** Checks if the event specified by @val matches */
+    /** This operation checks if the event specified by @val matches */
     /* TODO: this operation should be renamed */
     bool (*match_observe)(void* native_entity, purc_variant_t val);
 
-    /** The callback when the variant was observed (nullable). */
+    /**
+     * This operation will be called when the variant was observed (nullable).
+     */
     bool (*on_observe)(void* native_entity,
             const char *event_name, const char *event_subname);
 
-    /** The callback when the observer on the variant was revoked (nullable). */
+    /**
+     * This operation will be called when the observer on this entity was
+     * revoked (nullable).
+     */
     bool (*on_forget)(void* native_entity,
             const char *event_name, const char *event_subname);
 
-    /** The callback when the variant was released (nullable). */
+    /**
+     * This operation will be called when the variant was released (nullable).
+     */
     void (*on_release)(void* native_entity);
 };
 
 /**
  * purc_variant_make_native:
  *
- * @entity: The pointer to a native entity.
- * @ops: The pointer to the operation set for the native entity.
+ * @entity (nullable): The pointer to a native entity.
+ * @ops (nullable): The pointer to the operation set structure
+ *      (#purc_native_ops) for the native entity.
  *
  * Creates a variant which represents the native entity.
  *
@@ -722,7 +730,8 @@ struct purc_native_ops {
  *
  * Since: 0.0.2
  */
-purc_variant_t purc_variant_make_native(void *native_entity,
+PCA_EXPORT purc_variant_t
+purc_variant_make_native(void *native_entity,
     const struct purc_native_ops *ops);
 
 /**
@@ -732,7 +741,10 @@ purc_variant_t purc_variant_make_native(void *native_entity,
  *
  * Gets the pointer to the entity of the native entity variant @native.
  *
- * Returns: The pointer to the native pointer.
+ * Returns: The pointer to the native pointer. On failure, it returns %NULL
+ *      and sets error code %PCVARIANT_ERROR_INVALID_TYPE.
+ *      Note that, the pointer to the entity can be %NULL for a valid native
+ *      entity variant.
  *
  * Since: 0.0.1
  */
@@ -746,7 +758,10 @@ purc_variant_native_get_entity(purc_variant_t native);
  *
  * Gets the pointer to the operation set of the native entity variant @native.
  *
- * Returns: The pointer to the operation set of the native entity.
+ * Returns: The pointer to the native pointer. On failure, it returns %NULL
+ *      and sets error code %PCVARIANT_ERROR_INVALID_TYPE.
+ *      Note that, the pointer to the entity can be %NULL for a valid native
+ *      entity variant.
  *
  * Since: 0.0.1
  */
@@ -836,14 +851,11 @@ purc_variant_array_get(purc_variant_t array, size_t idx);
  * @idx: The index of the member to be set.
  * @value: The variant.
  *
- * Sets the variant of the specified member in the array (@array)
- * by index (@idx) with @value.
+ * Sets the member in the array (@array) by index (@idx) with @value.
+ * Note that the reference count of @value will increment, and the reference
+ * count of the old member will decrement.
  *
  * Returns: %true on success, otherwise %false.
- *
- * FIXME: returns -1?
- * Note: If idx is greater than max index of array, return -1.
- *       Whether free the replaced element, depends on its ref.
  *
  * Since: 0.0.1
  */
@@ -851,42 +863,38 @@ PCA_EXPORT bool
 purc_variant_array_set(purc_variant_t array, size_t idx, purc_variant_t value);
 
 /**
- * Remove an element from an array by index.
+ * purc_variant_array_remove:
  *
  * @array: the variant value of array type
  * @idx: the index of element to be removed
  *
- * Returns: %true on success, otherwise %false.
+ * Removes the member in the array (@array) by index (@idx).
+ * Note that the size of the array will decrement, and the reference count
+ * of the old member will decrement.
  *
- * FIXME: returns -1?
- * Note: If idx is greater than max index of array, return -1.
- *       Whether free the removed element, depends on its ref.
+ * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
 purc_variant_array_remove(purc_variant_t array, int idx);
 
-
 /**
- * Inserts an element to an array, places it before an indicated element.
+ * purc_variant_array_insert_before:
  *
- * @array: the variant value of array type
- * @idx: the index of element before which the new element will be placed
+ * @array: An array variant.
+ * @idx: The index used to specify the insertion position.
+ * @value: The variant will be inserted to the array.
  *
- * @value: the inserted element
+ * Inserts a variant to @array, before the member indicated by the index (@idx).
  *
  * Returns: %true on success, otherwise %false.
- *
- * FIXME: returns -1?
- * Note: If idx is greater than max index of array, return -1.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
 purc_variant_array_insert_before(purc_variant_t array,
         int idx, purc_variant_t value);
-
 
 /**
  * Inserts an element to an array, places it after an indicated element.
