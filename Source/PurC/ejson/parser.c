@@ -315,6 +315,14 @@ pcejson_token_stack_push(struct pcejson_token_stack *stack, uint32_t type)
             goto failed;
         }
         break;
+
+    case ETT_TRIPLE_DOUBLE_QUOTED:
+        token->node = pcvcm_node_new_concat_string(0, NULL);
+        if (!token->node) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+        break;
     }
 
     pcutils_stack_push(stack->stack, (uintptr_t)token);
@@ -457,5 +465,16 @@ out:
     return ret;
 }
 
+int pcejson_set_state(struct pcejson *parser, int state)
+{
+    if (parser) {
+        parser->state = state;
+    }
+    return 0;
+}
 
+int pcejson_set_state_param_string(struct pcejson *parser)
+{
+    return pcejson_set_state(parser, EJSON_TKZ_STATE_PARAM_STRING);
+}
 

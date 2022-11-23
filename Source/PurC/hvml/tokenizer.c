@@ -2080,6 +2080,10 @@ BEGIN_STATE(TKZ_STATE_CONTENT_JSONEE)
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
     struct pcvcm_node *node = NULL;
+
+    if (!pchvml_parser_is_in_json_content_tag(parser)) {
+        pcejson_set_state_param_string(parser->ejson_parser);
+    }
     pcejson_parse_full(&node, &parser->ejson_parser, parser->reader,
             parser->ejson_parser_max_depth, is_content_text_finished);
     if (node) {

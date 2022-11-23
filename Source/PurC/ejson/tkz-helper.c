@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #endif
 
-#define NR_CONSUMED_LIST_LIMIT   10
+#define NR_CONSUMED_LIST_LIMIT   128
 #define MIN_BUFFER_CAPACITY      32
 
 #if HAVE(GLIB)

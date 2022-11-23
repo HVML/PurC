@@ -359,11 +359,11 @@ TEST(dvobjs, uname_ptr)
             "$SYS.uname_prt('  all ')",
             get_system_uname, NULL, 0 },
         { "uname -m -o",
-            "$SYS.uname_prt(' machine \tinvalid-part-name \toperating-system')",
+            "$SYS.uname_prt(' machine \\tinvalid-part-name \\toperating-system')",
             get_system_uname, NULL, 0 },
 #endif
         { "uname",
-            "$SYS.uname_prt('\ndefault\t ')",
+            "$SYS.uname_prt('\\ndefault\\t ')",
             get_system_uname, NULL, 0 },
         { "uname",
             "$SYS.uname_prt.default",
@@ -372,7 +372,7 @@ TEST(dvobjs, uname_ptr)
             "$SYS.uname_prt.all",
             get_system_uname, NULL, 0 },
         { "uname -s -r -v",
-            "$SYS.uname_prt(' kernel-name \t\nkernel-release \t\nkernel-version')",
+            "$SYS.uname_prt(' kernel-name \\t\\nkernel-release \\t\\nkernel-version')",
             get_system_uname, NULL, 0 },
     };
 

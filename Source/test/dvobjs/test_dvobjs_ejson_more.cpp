@@ -910,10 +910,10 @@ TEST(dvobjs, serialize)
             "$DATA.serialize(bx11223344, 'bseq-base64')",
             serialize, serialize_vrtcmp, 0 },
         { "[1,2,b64ESIzRA==]",
-            "$DATA.serialize([1.0FL, 2.0, bx11223344], '\nreal-json  bseq-base64 ')",
+            "$DATA.serialize([1.0FL, 2.0, bx11223344], '\\nreal-json  bseq-base64 ')",
             serialize, serialize_vrtcmp, 0 },
         { "[1FL,-2L,2UL,b64ESIzRA==]",
-            "$DATA.serialize([1.0FL, -2L, 2UL, bx11223344], '\nreal-ejson  bseq-base64 ')",
+            "$DATA.serialize([1.0FL, -2L, 2UL, bx11223344], '\\nreal-ejson  bseq-base64 ')",
             serialize, serialize_vrtcmp, 0 },
     };
 

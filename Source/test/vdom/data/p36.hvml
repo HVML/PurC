@@ -1,8 +1,8 @@
 <hvml lang="en">
     <head>
-        <set on="$TIMERS" to="subtract">
+        <update on="$TIMERS" to="subtract">
             { "id" : "foo" }
-        </set>
+        </update>
     </head>
 
     <body>
