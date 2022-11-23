@@ -351,8 +351,6 @@ enum {
 };
 
 typedef struct foil_create_ctxt {
-    purc_document_t doc;
-
     pcmcth_udom *udom;
 
     /* the initial containing block  */

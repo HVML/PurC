@@ -231,7 +231,7 @@ foil_update_plainwin(pcmcth_session *sess, pcmcth_workspace *workspace,
         pcmcth_page *plain_win, const char *property, purc_variant_t value)
 {
     void *data;
-    if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
+    if (sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data) < 0) {
 
         if (workspace->layouter) {
             /* TODO
@@ -296,7 +296,7 @@ foil_get_plainwin_page(pcmcth_session *sess,
         pcmcth_page *plain_win, int *retv)
 {
     void *data;
-    if (!sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data)) {
+    if (sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data) < 0) {
         *retv = PCRDR_SC_NOT_FOUND;
         return NULL;
     }
@@ -318,7 +318,7 @@ static pcmcth_page *
 validate_page(pcmcth_session *sess, pcmcth_page *page, int *retv)
 {
     void *data;
-    if (!sorted_array_find(sess->all_handles, PTR2U64(page), &data)) {
+    if (sorted_array_find(sess->all_handles, PTR2U64(page), &data) < 0) {
         *retv = PCRDR_SC_NOT_FOUND;
         return NULL;
     }
@@ -358,7 +358,7 @@ static pcmcth_udom *
 validate_udom(pcmcth_session *sess, pcmcth_udom *udom, int *retv)
 {
     void *data;
-    if (!sorted_array_find(sess->all_handles, PTR2U64(udom), &data)) {
+    if (sorted_array_find(sess->all_handles, PTR2U64(udom), &data) < 0) {
         *retv = PCRDR_SC_NOT_FOUND;
         return NULL;
     }

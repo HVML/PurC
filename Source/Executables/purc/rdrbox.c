@@ -1491,7 +1491,7 @@ get_intrinsic_width(foil_create_ctxt *ctxt)
     const char *value;
     size_t len;
 
-    if (pcdoc_element_get_attribute(ctxt->doc, ctxt->elem,
+    if (pcdoc_element_get_attribute(ctxt->udom->doc, ctxt->elem,
             "width", &value, &len) == 0) {
 
         char *v = strndup(value, len);
@@ -1509,7 +1509,7 @@ get_intrinsic_height(foil_create_ctxt *ctxt)
     const char *value;
     size_t len;
 
-    if (pcdoc_element_get_attribute(ctxt->doc, ctxt->elem,
+    if (pcdoc_element_get_attribute(ctxt->udom->doc, ctxt->elem,
             "height", &value, &len) == 0) {
 
         char *v = strndup(value, len);
@@ -1886,7 +1886,7 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
 
     /* determine the box type */
     uint8_t display = css_computed_display(ctxt->style,
-            pcdoc_node_get_parent(ctxt->doc, node) == NULL);
+            pcdoc_node_get_parent(ctxt->udom->doc, node) == NULL);
 
     // return INVALID_USED_VALUE_UINT8 for 'display:none;'
     uint8_t type = display_to_type(ctxt, display);
@@ -1974,7 +1974,7 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     /* TODO: determine the positioning schema */
 
     /* determine the containing block */
-    if (purc_document_root(ctxt->doc) == ctxt->elem) {
+    if (purc_document_root(ctxt->udom->doc) == ctxt->elem) {
         box->cblock_rect.left = 0;
         box->cblock_rect.top = 0;
         box->cblock_rect.right = ctxt->initial_cblock->width;
@@ -2254,7 +2254,7 @@ init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
 
                 if (l > 0) {
                     char *attr_name = strndup(v, l);
-                    pcdoc_element_get_attribute(ctxt->doc, ctxt->elem,
+                    pcdoc_element_get_attribute(ctxt->udom->doc, ctxt->elem,
                                 attr_name, &str, &len);
                     free(attr_name);
 

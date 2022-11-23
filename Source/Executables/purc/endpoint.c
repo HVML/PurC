@@ -214,8 +214,6 @@ static int send_simple_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         return PCRDR_SC_INSUFFICIENT_STORAGE;
     }
 
-    LOG_DEBUG("Moving a response message to %u (time: %lu)\n",
-            endpoint->rid, time(NULL));
     if (purc_inst_move_message(endpoint->rid, my_msg) == 0) {
         LOG_ERROR("Failed to move message to %u\n", endpoint->rid);
         return PCRDR_SC_INTERNAL_SERVER_ERROR;

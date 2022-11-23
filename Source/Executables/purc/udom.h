@@ -28,15 +28,23 @@
 
 #include "foil.h"
 #include "rdrbox.h"
+#include "util/sorted-array.h"
 
+#include <purc/purc-document.h>
 #include <glib.h>
 
 #define FOIL_DEF_FGC        0xFFFFFFFF
 #define FOIL_DEF_BGC        0xFF000000
 
 struct pcmcth_udom {
+    /* the sorted array of eDOM element and the corresponding CSS node data. */
+    struct sorted_array *elem2nodedata;
+
     /* the sorted array of eDOM element and the corresponding rendering box. */
     struct sorted_array *elem2rdrbox;
+
+    /* purc_document */
+    purc_document_t doc;
 
     struct purc_broken_down_url *base;
 

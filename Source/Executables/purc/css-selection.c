@@ -24,6 +24,7 @@
 */
 
 #include "foil.h"
+#include "udom.h"
 #include "csseng/csseng.h"
 #include "purc/purc-dom.h"
 
@@ -52,7 +53,7 @@
 static css_error
 node_name(void *pw, void *n, css_qname *qname)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     const char *name = NULL;
@@ -88,7 +89,7 @@ node_name(void *pw, void *n, css_qname *qname)
 static css_error
 node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     lwc_string **my_classes = NULL;
@@ -168,7 +169,7 @@ failed:
 static css_error
 node_id(void *pw, void *n, lwc_string **id)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     const char *value;
@@ -204,7 +205,7 @@ failed:
 static css_error
 named_parent_node(void *pw, void *n, const css_qname *qname, void **_parent)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
 
     *_parent = NULL;
 
@@ -244,7 +245,7 @@ done:
 static css_error
 named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
 
     *sibling = NULL;
 
@@ -290,7 +291,8 @@ static css_error
 named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
         void **sibling)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
+
     *sibling = NULL;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
@@ -332,7 +334,7 @@ named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
 static css_error
 parent_node(void *pw, void *n, void **_parent)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
     pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
@@ -359,7 +361,7 @@ parent_node(void *pw, void *n, void **_parent)
 static css_error
 sibling_node(void *pw, void *n, void **sibling)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     *sibling = NULL;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
@@ -390,7 +392,7 @@ sibling_node(void *pw, void *n, void **sibling)
 static css_error
 node_has_name(void *pw, void *n, const css_qname *qname, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     const char *name1 = NULL;
@@ -423,7 +425,7 @@ node_has_name(void *pw, void *n, const css_qname *qname, bool *match)
 static css_error
 node_has_class(void *pw, void *n, lwc_string *name, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
     *match = false;
 
@@ -472,7 +474,7 @@ node_has_class(void *pw, void *n, lwc_string *name, bool *match)
 static css_error
 node_has_id(void *pw, void *n, lwc_string *name, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     *match = false;
@@ -508,7 +510,7 @@ node_has_id(void *pw, void *n, lwc_string *name, bool *match)
 static css_error
 node_has_attribute(void *pw, void *n, const css_qname *qname, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     *match = false;
@@ -580,7 +582,7 @@ static css_error
 node_has_attribute_equal(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -644,7 +646,7 @@ static css_error
 node_has_attribute_dashmatch(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -716,7 +718,7 @@ static css_error
 node_has_attribute_includes(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -775,7 +777,7 @@ static css_error
 node_has_attribute_prefix(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -837,7 +839,7 @@ static css_error
 node_has_attribute_suffix(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -901,7 +903,7 @@ static css_error
 node_has_attribute_substring(void *pw, void *n, const css_qname *qname,
         lwc_string *value, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     struct attr_to_match to_match;
@@ -932,7 +934,7 @@ node_has_attribute_substring(void *pw, void *n, const css_qname *qname,
 static css_error
 node_is_root(void *pw, void *n, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
     if (pcdoc_node_get_parent(doc, node) == NULL) {
@@ -961,7 +963,7 @@ static css_error
 node_count_siblings(void *pw, void *n, bool same_name, bool after,
         int32_t *count)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
     int32_t my_count = 0;
@@ -1035,7 +1037,7 @@ node_count_siblings(void *pw, void *n, bool same_name, bool after,
 static css_error
 node_is_empty(void *pw, void *n, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     size_t nr_child_elements = 0;
@@ -1217,7 +1219,7 @@ node_is_target(void *pw, void *n, bool *match)
 static css_error node_is_lang(void *pw, void *n,
         lwc_string *lang, bool *match)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_element_t ele = n;
 
     const char *target_lang = lwc_string_data(lang);
@@ -1286,7 +1288,7 @@ static css_error
 named_ancestor_node(void *pw, void *n, const css_qname *qname,
         void **ancestor)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
 
     const char *to_match_name = lwc_string_data(qname->name);
     size_t to_match_len  = lwc_string_length(qname->name);
@@ -1360,17 +1362,22 @@ static css_error node_presentational_hint( void *pw, void *n,
 static css_error
 set_node_data(void *pw, void *n, void *node_data)
 {
-    purc_document_t doc = pw;
+    pcmcth_udom *udom = pw;
+    purc_document_t doc = udom->doc;
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
     pcdoc_node_set_user_data(doc, node, node_data);
+
+    /* we save the node data in udom->ele2nodedata in order to manage
+       the changes of documment and release the node data when we are done. */
+    sorted_array_add(udom->elem2nodedata, PTR2U64(n), node_data);
     return CSS_OK;
 }
 
 static css_error
 get_node_data(void *pw, void *n, void **node_data)
 {
-    purc_document_t doc = pw;
+    purc_document_t doc = ((pcmcth_udom *)pw)->doc;
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
     pcdoc_node_get_user_data(doc, node, node_data);
