@@ -1,7 +1,7 @@
 /*
  * sorted_array - simple sorted array
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2022 FMSoft <https://www.fmsoft.cn>
  *
  * Author: Vincent Wei <https://github.com/VincentWei>
  *
@@ -49,14 +49,20 @@ sorted_array_create(unsigned int flags, size_t sz_init,
 /* destroy a sorted array */
 void sorted_array_destroy(struct sorted_array *sa);
 
-/* add a new member with the sort value and the data. */
+/* adds a new member with the sort value and the data. */
 int sorted_array_add(struct sorted_array *sa, uint64_t sortv, void *data);
 
-/* remove one member which has the same sort value. */
+/* adds a new memeber with the sort value and the data; if the sort value
+   is existing already in the array, replaces the data with the new one. */
+int sorted_array_add_or_replace(struct sorted_array *sa,
+        uint64_t sortv, void *data);
+
+/* removes one member which has the same sort value. */
 bool sorted_array_remove(struct sorted_array *sa, uint64_t sortv);
 
-/* find the first member which has the same sort value. */
-bool sorted_array_find(struct sorted_array *sa, uint64_t sortv, void **data);
+/* finds the first member which has the same sort value and returns
+   the index of the member; -1 for not found. */
+ssize_t sorted_array_find(struct sorted_array *sa, uint64_t sortv, void **data);
 
 /* retrieve the number of the members of the sorted array */
 size_t sorted_array_count(struct sorted_array *sa);

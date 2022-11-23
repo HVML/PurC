@@ -109,7 +109,7 @@ int sorted_array_add(struct sorted_array *sa, uint64_t sortv, void *data)
     ssize_t low, high, mid;
 
     if (!(sa->flags & SAFLAG_DUPLCATE_SORTV)) {
-        if (sorted_array_find(sa, sortv, NULL)) {
+        if (sorted_array_find(sa, sortv, NULL) >= 0) {
             return -1;
         }
     }
@@ -179,6 +179,26 @@ int sorted_array_add(struct sorted_array *sa, uint64_t sortv, void *data)
     return 0;
 }
 
+int sorted_array_add_or_replace(struct sorted_array *sa,
+        uint64_t sortv, void *data)
+{
+    if ((sa->flags & SAFLAG_DUPLCATE_SORTV)) {
+        return -1;
+    }
+
+    void *old_data;
+    ssize_t idx = sorted_array_find(sa, sortv, &old_data);
+    if (idx >= 0) {
+        if (sa->free_fn)
+            sa->free_fn(sa->members[idx].sortv, sa->members[idx].data);
+
+        sa->members[idx].data = data;
+        return 0;
+    }
+
+    return sorted_array_add(sa, sortv, data);
+}
+
 bool sorted_array_remove(struct sorted_array *sa, uint64_t sortv)
 {
     ssize_t low, high, mid;
@@ -229,7 +249,7 @@ found:
     return true;
 }
 
-bool sorted_array_find(struct sorted_array *sa, uint64_t sortv, void **data)
+ssize_t sorted_array_find(struct sorted_array *sa, uint64_t sortv, void **data)
 {
     ssize_t low, high, mid;
 
@@ -261,14 +281,14 @@ bool sorted_array_find(struct sorted_array *sa, uint64_t sortv, void **data)
         }
     }
 
-    return false;
+    return -1;
 
 found:
     if (data) {
         *data = sa->members[mid].data;
     }
 
-    return true;
+    return mid;
 }
 
 size_t sorted_array_count(struct sorted_array *sa)
