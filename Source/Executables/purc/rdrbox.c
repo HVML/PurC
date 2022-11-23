@@ -2047,25 +2047,6 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     /* adjust position according to 'vertical-align' */
     adjust_position_vertically(ctxt, box);
 
-    if (type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
-        box->list_item_data->index = ctxt->parent_box->nr_child_list_items;
-        ctxt->parent_box->nr_child_list_items++;
-
-        if (box->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE) {
-            // allocate the marker box
-            foil_rdrbox *marker_box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
-            if (marker_box == NULL) {
-                LOG_ERROR("Failed to create marker box\n");
-                goto failed;
-            }
-
-            marker_box->owner = ctxt->elem;
-            marker_box->is_anonymous = 1;
-            box->list_item_data->marker_box = marker_box;
-            foil_rdrbox_insert_before(box, marker_box);
-        }
-    }
-
     return box;
 
 failed:
@@ -2190,6 +2171,24 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
             box->is_inline_box = 1;
 
         foil_rdrbox_append_child(ctxt->parent_box, box);
+
+        if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
+            box->list_item_data->index = ctxt->parent_box->nr_child_list_items;
+            ctxt->parent_box->nr_child_list_items++;
+
+            if (box->list_style_type != FOIL_RDRBOX_LIST_STYLE_TYPE_NONE) {
+                // allocate the marker box
+                foil_rdrbox *marker_box = foil_rdrbox_new(FOIL_RDRBOX_TYPE_MARKER);
+                if (marker_box == NULL) {
+                    LOG_WARN("Failed to create marker box\n");
+                }
+
+                marker_box->owner = ctxt->elem;
+                marker_box->is_anonymous = 1;
+                box->list_item_data->marker_box = marker_box;
+                foil_rdrbox_insert_before(box, marker_box);
+            }
+        }
 
         dtrm_counter_properties(ctxt, box);
 

@@ -188,11 +188,10 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr)
 
 static void udom_cleanup(pcmcth_udom *udom)
 {
-    LOG_INFO("called\n");
     if (udom->title_ucs)
         free(udom->title_ucs);
     if (udom->elem2rdrbox)
-        sorted_array_cleanup(udom->elem2rdrbox);
+        sorted_array_destroy(udom->elem2rdrbox);
     if (udom->base)
         pcutils_broken_down_url_delete(udom->base);
     if (udom->author_sheet)
