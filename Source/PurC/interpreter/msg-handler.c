@@ -320,6 +320,7 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
                 return pcinst_msg_queue_append(co->mq, msg_clone);
             }
         }
+        pcrdr_release_message(msg_clone);
     }
     else {
         crtns = &heap->crtns;

@@ -393,6 +393,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
                     return pcinst_msg_queue_append(co->mq, msg);
                 }
             }
+            pcrdr_release_message(msg);
         }
         else {
             crtns = &heap->crtns;
@@ -417,8 +418,9 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg)
     }
 
     int ret = 0;
-    if (purc_inst_move_message(inst_to, msg) == 0) {
-        pcrdr_release_message(msg);
+    size_t nr = purc_inst_move_message(inst_to, msg);
+    pcrdr_release_message(msg);
+    if (nr == 0) {
         ret = -1;
     }
     return ret;
