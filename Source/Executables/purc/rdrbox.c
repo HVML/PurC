@@ -520,18 +520,6 @@ static const char *literal_values_white_space[] = {
     "pre-line",
 };
 
-static const char *literal_values_text_align[] = {
-    "left",
-    "right",
-    "center",
-    "justify",
-};
-
-static const char *literal_values_text_overflow[] = {
-    "clip",
-    "ellipsis",
-};
-
 static const char *literal_values_word_break[] = {
     "normal",
     "keep-all",

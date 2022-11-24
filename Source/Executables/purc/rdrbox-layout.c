@@ -572,6 +572,18 @@ adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     (void)box;
 }
 
+static const char *literal_values_text_align[] = {
+    "left",
+    "right",
+    "center",
+    "justify",
+};
+
+static const char *literal_values_text_overflow[] = {
+    "clip",
+    "ellipsis",
+};
+
 void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     /* determine the containing block */
