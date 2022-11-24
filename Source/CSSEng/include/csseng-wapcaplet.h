@@ -132,7 +132,7 @@ extern lwc_error lwc_string_tolower(lwc_string *str, lwc_string **ret);
  * @note Use this if copying the string and intending both sides to retain
  * ownership.
  */
-#if defined(STMTEXPR)
+#if defined(_LWC_STMTEXPR)
 #define lwc_string_ref(str) ({lwc_string *__lwc_s = (str); assert(__lwc_s != NULL); __lwc_s->refcnt++; __lwc_s;})
 #else
 static inline lwc_string *
@@ -199,7 +199,7 @@ extern void lwc_string_destroy(lwc_string *str);
 extern lwc_error
 lwc__intern_caseless_string(lwc_string *str);
 
-#if defined(STMTEXPR)
+#if defined(_LWC_STMTEXPR)
 /**
  * Check if two interned strings are case-insensitively equal.
  *
@@ -252,12 +252,8 @@ lwc_string_caseless_isequal(lwc_string *str1, lwc_string *str2, bool *ret)
 }
 #endif
 
-#if defined(STMTEXPR)
 #define lwc__assert_and_expr(str, expr) ({assert(str != NULL); expr;})
-#else
-#define lwc__assert_and_expr(str, expr) (expr)
-#endif
-	
+
 /**
  * Retrieve the data pointer for an interned string.
  *
@@ -270,7 +266,15 @@ lwc_string_caseless_isequal(lwc_string *str1, lwc_string *str2, bool *ret)
  *	 in future.  Any code relying on it currently should be
  *	 modified to use ::lwc_string_length if possible.
  */
+#if defined(_LWC_STMTEXPR)
 #define lwc_string_data(str) lwc__assert_and_expr(str, (const char *)((str)+1))
+#else
+static inline const char *lwc_string_data(lwc_string *str)
+{
+	assert(str != NULL);
+	return (const char *)((str)+1);
+}
+#endif
 
 /**
  * Retrieve the data length for an interned string.
@@ -278,7 +282,15 @@ lwc_string_caseless_isequal(lwc_string *str1, lwc_string *str2, bool *ret)
  * @param str The string to retrieve the length of.
  * @return    The length of \a str.
  */
+#if defined(_LWC_STMTEXPR)
 #define lwc_string_length(str) lwc__assert_and_expr(str, (str)->len)
+#else
+static inline size_t lwc_string_length(lwc_string *str)
+{
+	assert(str != NULL);
+	return str->len;
+}
+#endif
 
 /**
  * Retrieve (or compute if unavailable) a hash value for the content of the string.
@@ -292,7 +304,15 @@ lwc_string_caseless_isequal(lwc_string *str1, lwc_string *str2, bool *ret)
  *	 to be stable between invocations of the program. Never use the hash
  *	 value as a way to directly identify the value of the string.
  */
+#if defined(_LWC_STMTEXPR)
 #define lwc_string_hash_value(str) lwc__assert_and_expr(str, (str)->hash)
+#else
+static inline lwc_hash lwc_string_hash_value(lwc_string *str)
+{
+	assert(str != NULL);
+	return str->hash;
+}
+#endif
 
 /**
  * Retrieve a hash value for the caseless content of the string.
