@@ -268,6 +268,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->owner = NULL;
 
     udom->initial_cblock->is_initial = 1;
+    udom->initial_cblock->is_block_level = 1;
+    udom->initial_cblock->is_block_container = 1;
 
     udom->initial_cblock->width = width;
     udom->initial_cblock->height = height;
@@ -1112,7 +1114,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        NULL, NULL, NULL, NULL, 0, 0 };
+        NULL, NULL, NULL, NULL };
     if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
         goto failed;
 
@@ -1122,11 +1124,11 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
 
     /* determine the pending properties (height) and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { edom_doc, udom };
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock, 0, 0 };
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
-    foil_render_ctxt render_ctxt = { edom_doc, udom, page, 0 };
+    foil_render_ctxt render_ctxt = { udom, page, 0 };
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");

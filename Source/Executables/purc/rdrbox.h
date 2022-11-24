@@ -368,18 +368,17 @@ typedef struct foil_create_ctxt {
 
     /* the tag name of the current element */
     const char *tag_name;
-
-    unsigned pos_schema:3;
-    unsigned in_normal_flow:1;
 } foil_create_ctxt;
 
 typedef struct foil_layout_ctxt {
-    purc_document_t doc;
     pcmcth_udom *udom;
+    const struct foil_rdrbox *initial_cblock;
+
+    unsigned pos_schema:3;
+    unsigned in_normal_flow:1;
 } foil_layout_ctxt;
 
 typedef struct foil_render_ctxt {
-    purc_document_t doc;
     pcmcth_udom *udom;
     pcmcth_page *page;
     unsigned level;
@@ -499,6 +498,8 @@ foil_counters_unref(foil_counters *counters)
         foil_counters_delete(counters);
 }
 
+void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc);
@@ -507,10 +508,10 @@ bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc);
 bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc);
 
 const foil_rdrbox *
-foil_rdrbox_find_container_for_relative(foil_create_ctxt *ctxt,
+foil_rdrbox_find_container_for_relative(foil_layout_ctxt *ctxt,
         const foil_rdrbox *box);
 const foil_rdrbox *
-foil_rdrbox_find_container_for_absolute(foil_create_ctxt *ctxt,
+foil_rdrbox_find_container_for_absolute(foil_layout_ctxt *ctxt,
         const foil_rdrbox *box);
 
 #ifdef __cplusplus

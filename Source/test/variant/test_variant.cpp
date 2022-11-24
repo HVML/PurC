@@ -828,8 +828,8 @@ TEST(variant, pcvariant_atom_string)
 
     ASSERT_EQ(dup->atom, value->atom);        // atoms are same
     ASSERT_STREQ(value_str, dup_str);                   // strings are same
-    purc_variant_unref(dup);
     purc_variant_unref(value);
+    purc_variant_unref(dup);
 
     // create two static atom string variants with same input string, check the atom
     //        and string pointer
