@@ -572,6 +572,7 @@ adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     (void)box;
 }
 
+#ifndef NDEBUG
 static const char *literal_values_text_align[] = {
     "left",
     "right",
@@ -583,6 +584,7 @@ static const char *literal_values_text_overflow[] = {
     "clip",
     "ellipsis",
 };
+#endif
 
 static foil_rdrbox *find_enclosing_container(foil_rdrbox *box)
 {
