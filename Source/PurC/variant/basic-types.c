@@ -426,6 +426,28 @@ void pcvariant_string_release (purc_variant_t string)
 }
 
 purc_variant_t
+purc_variant_make_atom(purc_atom_t atom)
+{
+    PCVARIANT_CHECK_FAIL_RET(atom, PURC_VARIANT_INVALID);
+
+    purc_variant_t value = NULL;
+    value = pcvariant_get(PURC_VARIANT_TYPE_ATOMSTRING);
+    if (value == NULL) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    /* VWNOTE: for atomstring, only store the atom value */
+    value->type = PURC_VARIANT_TYPE_ATOMSTRING;
+    value->size = 0;
+    value->flags = 0;
+    value->refc = 1;
+    value->atom = atom;
+
+    return value;
+}
+
+purc_variant_t
 purc_variant_make_atom_string (const char* str_utf8, bool check_encoding)
 {
     PCVARIANT_CHECK_FAIL_RET(str_utf8, PURC_VARIANT_INVALID);
