@@ -838,6 +838,14 @@ TEST(variant, pcvariant_atom_string)
     ASSERT_NE(value, PURC_VARIANT_INVALID);
     value_str = purc_variant_get_atom_string_const (value);
     ASSERT_EQ (string_test, value_str);           // string pointers are different
+
+    purc_variant_t atom_v = purc_variant_make_atom(value->atom);
+    ASSERT_NE(atom_v, PURC_VARIANT_INVALID);
+
+    const char *s = purc_variant_get_atom_string_const(atom_v);
+    ASSERT_EQ (string_test, s);
+
+    purc_variant_unref(atom_v);
     purc_variant_unref(value);
 
 
@@ -846,6 +854,9 @@ TEST(variant, pcvariant_atom_string)
     ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     value = purc_variant_make_atom_string_static (NULL, true);
+    ASSERT_EQ(value, PURC_VARIANT_INVALID);
+
+    value = purc_variant_make_atom(0);
     ASSERT_EQ(value, PURC_VARIANT_INVALID);
 
     purc_cleanup ();
