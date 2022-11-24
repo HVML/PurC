@@ -225,12 +225,7 @@ static int _init_instance(struct pcinst *curr_inst,
     stat->sz_total_mem = 4 * sizeof(purc_variant);
 
     stat->nr_reserved = 0;
-#ifndef NDEBUG
-    // VW (NOTE): use 0 for debug for easy finding memory leaks.
-    stat->nr_max_reserved = 0;
-#else
     stat->nr_max_reserved = MAX_RESERVED_VARIANTS;
-#endif
 
 #if !USE(LOOP_BUFFER_FOR_RESERVED)
     INIT_LIST_HEAD(&inst->variant_heap->v_reserved);

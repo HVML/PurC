@@ -47,7 +47,13 @@ PCA_EXTERN_C_BEGIN
                         t == PURC_VARIANT_TYPE_SET || \
                         t == PURC_VARIANT_TYPE_TUPLE)
 
+#ifndef NDEBUG
+// VW (NOTE): use 0 for debug for easy finding memory leaks.
+#define MAX_RESERVED_VARIANTS   0
+#else
 #define MAX_RESERVED_VARIANTS   32
+#endif
+
 #define DEF_EMBEDDED_LEVELS     64
 #define MAX_EMBEDDED_LEVELS     1024
 
@@ -185,7 +191,6 @@ struct purc_variant {
 
 };
 
-#define MAX_RESERVED_VARIANTS           32
 #define USE_LOOP_BUFFER_FOR_RESERVED    0
 
 struct pcvariant_heap {
