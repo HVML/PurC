@@ -823,11 +823,12 @@ TEST(variant, pcvariant_atom_string)
 
     dup = purc_variant_make_atom_string (string_ok, true);
     ASSERT_NE(dup, PURC_VARIANT_INVALID);
-    const char * dup_str = purc_variant_get_atom_string_const (value);
+    const char * dup_str = purc_variant_get_atom_string_const (dup);
     ASSERT_NE (string_ok, dup_str);             // string pointers are different
 
     ASSERT_EQ(dup->atom, value->atom);        // atoms are same
     ASSERT_STREQ(value_str, dup_str);                   // strings are same
+    purc_variant_unref(dup);
     purc_variant_unref(value);
     purc_variant_unref(dup);
 
