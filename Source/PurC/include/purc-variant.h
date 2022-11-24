@@ -865,12 +865,12 @@ purc_variant_array_set(purc_variant_t array, size_t idx, purc_variant_t value);
 /**
  * purc_variant_array_remove:
  *
- * @array: the variant value of array type
- * @idx: the index of element to be removed
+ * @array: An array variant.
+ * @idx: The index of the member to be removed.
  *
  * Removes the member in the array (@array) by index (@idx).
  * Note that the size of the array will decrement, and the reference count
- * of the old member will decrement.
+ * of the member removed will decrement as well.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -887,6 +887,8 @@ purc_variant_array_remove(purc_variant_t array, int idx);
  * @value: The variant will be inserted to the array.
  *
  * Inserts a variant to @array, before the member indicated by the index (@idx).
+ * Note that the size of the array will increment, and the reference count
+ * of @value will increment as well.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -897,16 +899,17 @@ purc_variant_array_insert_before(purc_variant_t array,
         int idx, purc_variant_t value);
 
 /**
- * Inserts an element to an array, places it after an indicated element.
+ * purc_variant_array_insert_after:
  *
- * @array: the variant value of array type
- * @idx: the index of element after which the new element will be placed
- * @value: the inserted element
+ * @array: An array variant.
+ * @idx: The index used to specify the insertion position.
+ * @value: The variant will be inserted to the array.
+ *
+ * Inserts a variant to @array, after the member indicated by the index (@idx).
+ * Note that the size of the array will increment, and the reference count
+ * of @value will increment as well.
  *
  * Returns: %true on success, otherwise %false.
- *
- * FIXME: returns -1?
- * Note: If idx is greater than sum of one plus max index of array, return -1.
  *
  * Since: 0.0.1
  */
@@ -915,10 +918,13 @@ purc_variant_array_insert_after(purc_variant_t array,
         int idx, purc_variant_t value);
 
 /**
- * Get the number of elements in an array variant value.
+ * purc_variant_array_size:
  *
- * @array: the variant value of array type
- * @sz: the buffer receiving the number of elements of the array.
+ * @array: An array variant.
+ * @sz: The pointer to a size_t buffer to receive the size of the array.
+ *
+ * Gets the size (the number of all members) in the array variant @array,
+ * and returns it through @sz.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -928,14 +934,14 @@ PCA_EXPORT bool
 purc_variant_array_size(purc_variant_t array, size_t *sz);
 
 /**
- * Get the number of elements in an array variant value.
+ * purc_variant_array_get_size:
  *
- * @array: the variant value of array type
+ * @array: An array variant.
+ *
+ * Gets the number of members in the array variant, i.e., the size of @array.
  *
  * Returns: The number of elements in the array;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an array.
- *
- * Note: This function is deprecated, use \purc_variant_array_size instead.
  *
  * Since: 0.0.1
  */
@@ -948,14 +954,16 @@ static inline ssize_t purc_variant_array_get_size(purc_variant_t array)
 }
 
 /**
- * Creates a variant value of object type with key as c string
+ * purc_variant_make_object_by_static_ckey:
  *
- * @nr_kv_pairs: the minimum of key-value pairs
- * @key0 ..... keyn: the keys of key-value pairs
- * @value0 ..... valuen: the values of key-value pairs
+ * @nr_kv_pairs: The number of the initial key/value pairs.
+ * @key0...: The keys of the key/value pairs given by null-terminated strings.
+ * @value0...: The values of key-value pairs.
  *
- * Returns: A purc_variant_t with object type,
- *      or %PURC_VARIANT_INVALID on failure.
+ * Creates an object variant with the given key/value pairs.
+ * The result object will have @nr_kv_pairs properties.
+ *
+ * Returns: An object variant, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -964,14 +972,16 @@ purc_variant_make_object_by_static_ckey(size_t nr_kv_pairs,
         const char* key0, purc_variant_t value0, ...);
 
 /**
- * Creates a variant value of object type with key as another variant
+ * purc_variant_make_object:
  *
- * @nr_kv_pairs: the minimum of key-value pairs
- * @key0 ..... keyn: the keys of key-value pairs
- * @value0 ..... valuen: the values of key-value pairs
+ * @nr_kv_pairs: The number of the initial key/value pairs.
+ * @key0...: The keys of the key/value pairs.
+ * @value0...: The values of the key-value pairs.
  *
- * Returns: A purc_variant_t with object type,
- *      or PURC_VARIANT_INVALID on failure.
+ * Creates an object variant with the given key/value pairs.
+ * The result object will have @nr_kv_pairs properties.
+ *
+ * Returns: An object variant, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -980,9 +990,11 @@ purc_variant_make_object(size_t nr_kv_pairs,
         purc_variant_t key0, purc_variant_t value0, ...);
 
 /**
- * Creates an empty object variant
+ * purc_variant_make_object_0:
  *
- * Returns: An empty object variant or PURC_VARIANT_INVALID on failure.
+ * Creates an empty object variant.
+ *
+ * Returns: An empty object variant or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.2.0
  */
@@ -994,12 +1006,15 @@ purc_variant_make_object_0(void)
 }
 
 /**
- * Gets the value by key from an object with key as c string
+ * purc_variant_object_get_by_ckey:
  *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
+ * @obj: An object variant.
+ * @key: The key of the property to find.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Gets the property value in @obj by the key value specified with
+ * a null-terminated string @key.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1007,11 +1022,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
 
 /**
- * Sets the value by key in an object with key as another variant
+ * purc_variant_object_set:
  *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
- * @value: the value of key-value pair
+ * Sets the value of the property given by @key to @value, in the object
+ * variant @obj.
+ * If there is no property in @obj specified by @key, this function will
+ * create a new property.
+ *
+ * Note that the reference count of @value will increment, and the reference
+ * count of the replaced value (if have) will decrement.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1022,11 +1041,16 @@ purc_variant_object_set(purc_variant_t obj,
         purc_variant_t key, purc_variant_t value);
 
 /**
- * Sets the value by key in an object with key as c string
+ * purc_variant_object_set_by_static_ckey:
  *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
- * @value: the value of key-value pair
+ * @obj: An object variant.
+ * @key: The key of the property to set.
+ * @value: The new property value.
+ *
+ * Sets the value of the property given by a static null-terminated
+ * string @key to @value, in the object variant @obj.
+ * If there is no property in @obj specified by @key, this function will
+ * create a new property.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1037,7 +1061,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
         purc_variant_t value)
 {
     purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k==PURC_VARIANT_INVALID) {
+    if (k == PURC_VARIANT_INVALID) {
         return false;
     }
     bool b = purc_variant_object_set(obj, k, value);
@@ -1046,12 +1070,17 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * Remove a key-value pair from an object by key with key as c string
+ * purc_variant_object_remove_by_static_ckey:
  *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
- * @silently: %true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
+ * @obj: An object variant.
+ * @key: The key of an property, specified by a static null-terminated string.
+ * @silently: Whether to ignore the following errors.
+ *      - PCVARIANT_ERROR_NOT_FOUND
+ *
+ * Removes the property given by a static null-terminated * string @key
+ * in the object variant @obj.
+ * If @silently is %true, this function will return %true even if the property
+ * specified by @key does not exist.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1062,11 +1091,13 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
         bool silently);
 
 /**
- * Get the number of key-value pairs in an object variant value.
+ * purc_variant_object_size:
  *
- * @obj: the variant value of object type
- * @sz: the buffer receiving the number of the key-value pairs
- *  in the object
+ * @obj: An object variant.
+ * @sz: The pointer to a size_t buffer to receive the size of the object.
+ *
+ * Get the size (the number of all properties) in the object variant @obj,
+ * and returns it through @sz.
  *
  * Returns: %true on success, otherwise %false if the variant is not an object.
  *
@@ -1076,14 +1107,14 @@ PCA_EXPORT bool
 purc_variant_object_size(purc_variant_t obj, size_t *sz);
 
 /**
- * Get the number of key-value pairs in an object variant value.
+ * purc_variant_object_get_size:
  *
  * @obj: the variant value of object type
  *
- * Returns: The number of the key-value pairs in the object;
- *  \PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
+ * Get the size (the number of all properties) in the object variant @obj.
  *
- * Note: This function is deprecated, use \purc_variant_object_size instead.
+ * Returns: The sizeo of @obj on success,
+ *      or %PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
  *
  * Since: 0.0.1
  */
