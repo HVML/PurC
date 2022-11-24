@@ -963,11 +963,20 @@ failed:
 }
 
 static void
-layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *ancestor)
+layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    // TODO
-    (void)ctxt;
-    (void)ancestor;
+    if (box != ctxt->initial_cblock)
+        foil_rdrbox_determine_geometry(ctxt, box);
+
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        if (child->first)
+            layout_rdrtree(ctxt, child);
+
+        child = child->next;
+    }
 }
 
 static void

@@ -275,8 +275,6 @@ struct foil_rdrbox {
     uint32_t lang_code:8;
 
     uint32_t background_color;
-    int32_t  max_height, min_height;    // < 0 for no limit (none)
-    int32_t  max_width,  min_width;     // < 0 for no limit (none)
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
@@ -287,6 +285,11 @@ struct foil_rdrbox {
 
     foil_counters *counter_reset;   // NULL when `counter-reset` is `none`
     foil_counters *counter_incrm;   // NULL when `counter-increment` is `none`
+
+    /* the following non-inherited properties have non-zero intial values */
+    int32_t min_height, max_height;    // initial value: -1 (none)
+    int32_t min_width,  max_width;     // initial value: -1 (none)
+
     /* End of non-inherited properties */
 
     /* Used values of inheritable properties */

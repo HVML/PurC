@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -584,69 +584,36 @@ static const char *literal_values_text_overflow[] = {
     "ellipsis",
 };
 
-void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+static foil_rdrbox *find_enclosing_container(foil_rdrbox *box)
 {
-    /* determine the containing block */
-    if (purc_document_root(ctxt->udom->doc) == box->owner) {
-        box->cblock_rect.left = 0;
-        box->cblock_rect.top = 0;
-        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
-        box->cblock_creator = ctxt->udom->initial_cblock;
-    }
-    else if (box->position == FOIL_RDRBOX_POSITION_STATIC ||
-            box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
-        /* the containing block is formed by the content edge of
-           the nearest ancestor box that is a block container or
-           which establishes a formatting context. */
+    foil_rdrbox *ancestor = box->parent;
 
-        const foil_rdrbox *container;
-        container = foil_rdrbox_find_container_for_relative(ctxt,
-                box->parent);
-        assert(container);
-        foil_rdrbox_content_box(container, &box->cblock_rect);
-        box->cblock_creator = container;
-    }
-    else if (box->position == FOIL_RDRBOX_POSITION_FIXED) {
-        box->cblock_rect.left = 0;
-        box->cblock_rect.top = 0;
-        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
-        box->cblock_creator = ctxt->udom->initial_cblock;
-    }
-    else if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
-        /* the containing block is established by the nearest ancestor
-           with a 'position' of 'absolute', 'relative' or 'fixed',
-           in the following way:
+    while (ancestor) {
 
-           In the case that the ancestor is an inline element,
-           the containing block is the bounding box around the padding boxes
-           of the first and the last inline boxes generated for that element.
+        if (ancestor->is_block_container && !ancestor->is_anonymous)
+            return ancestor;
 
-           Otherwise, the containing block is formed by the padding edge of
-           the ancestor.
-
-           If there is no such ancestor, the containing block is
-           the initial containing block. */
-
-        const foil_rdrbox *container;
-        container = foil_rdrbox_find_container_for_absolute(ctxt, box->parent);
-        if (container) {
-            if (container->type == FOIL_RDRBOX_TYPE_INLINE)
-                foil_rdrbox_form_containing_block(container,
-                        &box->cblock_rect);
-            else
-                foil_rdrbox_padding_box(container, &box->cblock_rect);
-        }
-        else {
-            box->cblock_rect.left = 0;
-            box->cblock_rect.top = 0;
-            box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-            box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
-        }
-        box->cblock_creator = ctxt->udom->initial_cblock;
+        ancestor = ancestor->parent;
     }
 
+    return NULL;
+}
+
+static void inherit_used_values(foil_rdrbox *box, const foil_rdrbox *from)
+{
+    const uint8_t *start  = (const uint8_t *)&from->__copy_start;
+    const uint8_t *finish = (const uint8_t *)&from->__copy_finish;
+
+    size_t nr_bytes = finish - start;
+    memcpy(&box->__copy_start, start, nr_bytes);
+
+    if (from->quotes) {
+        box->quotes = foil_quotes_ref(from->quotes);
+    }
+}
+
+static void dtmr_sizing_properties(foil_rdrbox *box)
+{
     css_fixed length;
     css_unit unit;
 
@@ -728,6 +695,101 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         LOG_DEBUG("\ttext-overflow: %s\n",
                 literal_values_text_overflow[box->text_overflow]);
+    }
+}
+
+void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s\n", name);
+    free(name);
+#endif
+
+    /* determine the containing block */
+    if (purc_document_root(ctxt->udom->doc) == box->owner) {
+        box->cblock_rect.left = 0;
+        box->cblock_rect.top = 0;
+        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
+        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
+        box->cblock_creator = ctxt->udom->initial_cblock;
+    }
+    else if (box->position == FOIL_RDRBOX_POSITION_STATIC ||
+            box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
+        /* the containing block is formed by the content edge of
+           the nearest ancestor box that is a block container or
+           which establishes a formatting context. */
+
+        const foil_rdrbox *container;
+        container = foil_rdrbox_find_container_for_relative(ctxt,
+                box->parent);
+        assert(container);
+        foil_rdrbox_content_box(container, &box->cblock_rect);
+        box->cblock_creator = container;
+    }
+    else if (box->position == FOIL_RDRBOX_POSITION_FIXED) {
+        box->cblock_rect.left = 0;
+        box->cblock_rect.top = 0;
+        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
+        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
+        box->cblock_creator = ctxt->udom->initial_cblock;
+    }
+    else if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
+        /* the containing block is established by the nearest ancestor
+           with a 'position' of 'absolute', 'relative' or 'fixed',
+           in the following way:
+
+           In the case that the ancestor is an inline element,
+           the containing block is the bounding box around the padding boxes
+           of the first and the last inline boxes generated for that element.
+
+           Otherwise, the containing block is formed by the padding edge of
+           the ancestor.
+
+           If there is no such ancestor, the containing block is
+           the initial containing block. */
+
+        const foil_rdrbox *container;
+        container = foil_rdrbox_find_container_for_absolute(ctxt, box->parent);
+        if (container) {
+            if (container->type == FOIL_RDRBOX_TYPE_INLINE)
+                foil_rdrbox_form_containing_block(container,
+                        &box->cblock_rect);
+            else
+                foil_rdrbox_padding_box(container, &box->cblock_rect);
+        }
+        else {
+            box->cblock_rect.left = 0;
+            box->cblock_rect.top = 0;
+            box->cblock_rect.right = ctxt->udom->initial_cblock->width;
+            box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
+        }
+        box->cblock_creator = ctxt->udom->initial_cblock;
+    }
+
+    /* inherit properties for anonymous and pseudo box */
+    /* FIXME: we might need to create a new css_computed_style object
+       for the pseudo and anonymous box and compose the values... */
+    if (box->is_pseudo) {
+        assert(box->principal);
+
+        inherit_used_values(box, box->principal);
+    }
+    else if (box->is_anonymous) {
+        foil_rdrbox *from = NULL;
+        if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
+            from = find_enclosing_container(box);
+        }
+        else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+            from = box->parent;
+        }
+
+        assert(from && from->type == FOIL_RDRBOX_TYPE_BLOCK);
+        inherit_used_values(box, from);
+    }
+    else {
+        assert(box->computed_style);
+        dtmr_sizing_properties(box);
     }
 
     /* calculate widths and margins */
