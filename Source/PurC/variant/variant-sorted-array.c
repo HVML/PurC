@@ -122,7 +122,7 @@ void on_release(void *native_entity)
 
 purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
-        pcvariant_compare_method cmp)
+        pcvrnt_compare_method cmp)
 {
     UNUSED_PARAM(flags);
     UNUSED_PARAM(sz_init);

@@ -880,12 +880,12 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
     return true;
 }
 
-struct purc_variant_object_iterator {
+struct pcvrnt_object_iterator {
     struct obj_iterator it;
 };
 
-struct purc_variant_object_iterator*
-purc_variant_object_make_iterator_begin (purc_variant_t object)
+struct pcvrnt_object_iterator*
+pcvrnt_object_iterator_create_begin (purc_variant_t object)
 {
     PCVARIANT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
         object->sz_ptr[1]),
@@ -897,8 +897,8 @@ purc_variant_object_make_iterator_begin (purc_variant_t object)
         return NULL;
     }
 
-    struct purc_variant_object_iterator *it;
-    it = (struct purc_variant_object_iterator*)malloc(sizeof(*it));
+    struct pcvrnt_object_iterator *it;
+    it = (struct pcvrnt_object_iterator*)malloc(sizeof(*it));
     if (!it) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -909,8 +909,8 @@ purc_variant_object_make_iterator_begin (purc_variant_t object)
     return it;
 }
 
-struct purc_variant_object_iterator*
-purc_variant_object_make_iterator_end (purc_variant_t object) {
+struct pcvrnt_object_iterator*
+pcvrnt_object_iterator_create_end (purc_variant_t object) {
     PCVARIANT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
         object->sz_ptr[1]),
         NULL);
@@ -921,8 +921,8 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
         return NULL;
     }
 
-    struct purc_variant_object_iterator *it;
-    it = (struct purc_variant_object_iterator*)malloc(sizeof(*it));
+    struct pcvrnt_object_iterator *it;
+    it = (struct pcvrnt_object_iterator*)malloc(sizeof(*it));
     if (!it) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -934,7 +934,7 @@ purc_variant_object_make_iterator_end (purc_variant_t object) {
 }
 
 void
-purc_variant_object_release_iterator (struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_release (struct pcvrnt_object_iterator* it)
 {
     if (!it)
         return;
@@ -948,7 +948,7 @@ purc_variant_object_release_iterator (struct purc_variant_object_iterator* it)
 }
 
 bool
-purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_next (struct pcvrnt_object_iterator* it)
 {
     PC_ASSERT(it);
 
@@ -961,7 +961,7 @@ purc_variant_object_iterator_next (struct purc_variant_object_iterator* it)
 }
 
 bool
-purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_prev (struct pcvrnt_object_iterator* it)
 {
     PC_ASSERT(it);
 
@@ -974,7 +974,7 @@ purc_variant_object_iterator_prev (struct purc_variant_object_iterator* it)
 }
 
 purc_variant_t
-purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_get_key (struct pcvrnt_object_iterator* it)
 {
     PC_ASSERT(it);
 
@@ -985,7 +985,7 @@ purc_variant_object_iterator_get_key (struct purc_variant_object_iterator* it)
 }
 
 purc_variant_t
-purc_variant_object_iterator_get_value(struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_get_value(struct pcvrnt_object_iterator* it)
 {
     PC_ASSERT(it);
 
