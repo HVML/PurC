@@ -48,14 +48,14 @@
 ### 2.1) Variants
 
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
-1. [0.9.2] Implement some new APIs:
+1. [0.9.2; Resolved] Implement some new APIs:
    - `purc_variant_make_atom()`
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 
 ### 2.2) eJSON and HVML Parsing and Evaluating
 
-1. [0.9.2] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
+1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
 1. [0.9.2; Resolved] Support line comments in CHEE.
 1. [0.9.2; Resolved] Support for tuples.
 1. [0.9.2; Resolved] Support for string constants.
@@ -156,8 +156,8 @@
 ### 2.9) Known Bugs and Test Cases
 
 1. [0.9.2] Add new test cases for new bugs.
-1. [0.9.2] Check eJSON parser for C0 control characters in strings.
-1. [0.9.2] Crash if the content of a foreign element contains a `(` character.
+1. [0.9.2; Resolved] Check eJSON parser for C0 control characters in strings.
+1. [0.9.2; Resolved] Crash if the content of a foreign element contains a `(` character.
 1. [0.9.2; Resolved] The exrepssions in `hvml` might be evaluated twice.
 1. [0.9.2; Resolved] Keep all whitespaces in text content of a foreign element, but the leading whitespaces are removed now.
 1. [0.9.2; Resolved] There is an odd call to writelines() in `Source/test/interpreter/comp/31-again-channel-reader-writer.hvml`.
