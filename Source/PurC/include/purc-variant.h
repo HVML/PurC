@@ -1026,8 +1026,9 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
  *
  * Sets the value of the property given by @key to @value, in the object
  * variant @obj.
+ *
  * If there is no property in @obj specified by @key, this function will
- * create a new property.
+ * create a new property with @key and @value.
  *
  * Note that the reference count of @value will increment, and the reference
  * count of the replaced value (if have) will decrement.
@@ -1049,8 +1050,9 @@ purc_variant_object_set(purc_variant_t obj,
  *
  * Sets the value of the property given by a static null-terminated
  * string @key to @value, in the object variant @obj.
+ *
  * If there is no property in @obj specified by @key, this function will
- * create a new property.
+ * create a new property with @key and @value.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1077,8 +1079,9 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * @silently: Whether to ignore the following errors.
  *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Removes the property given by a static null-terminated * string @key
+ * Removes the property given by a static null-terminated string @key
  * in the object variant @obj.
+ *
  * If @silently is %true, this function will return %true even if the property
  * specified by @key does not exist.
  *
@@ -1096,7 +1099,7 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
  * @obj: An object variant.
  * @sz: The pointer to a size_t buffer to receive the size of the object.
  *
- * Get the size (the number of all properties) in the object variant @obj,
+ * Gets the size (the number of all properties) in the object variant @obj,
  * and returns it through @sz.
  *
  * Returns: %true on success, otherwise %false if the variant is not an object.
@@ -1109,11 +1112,11 @@ purc_variant_object_size(purc_variant_t obj, size_t *sz);
 /**
  * purc_variant_object_get_size:
  *
- * @obj: the variant value of object type
+ * @obj: An object variant.
  *
- * Get the size (the number of all properties) in the object variant @obj.
+ * Gets the size (the number of all properties) in the object variant @obj.
  *
- * Returns: The sizeo of @obj on success,
+ * Returns: The size of @obj on success,
  *      or %PURC_VARIANT_BADSIZE (-1) if the variant is not an object.
  *
  * Since: 0.0.1
@@ -1127,17 +1130,17 @@ static inline ssize_t purc_variant_object_get_size(purc_variant_t obj)
 }
 
 /**
- * object iterator usage example:
+ * pcvrnt_object_iterator:
  *
  * purc_variant_t obj;
  * ...
- * purc_variant_object_iterator* it;
- * it = purc_variant_object_make_iterator_begin(obj);
+ * pcvrnt_object_iterator* it;
+ * it = pcvrnt_object_iterator_create_begin(obj);
  * while (it) {
- *     const char     *key = purc_variant_object_iterator_get_key(it);
- *     purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+ *     const char     *key = pcvrnt_object_iterator_get_key(it);
+ *     purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
  *     ...
- *     bool having = purc_variant_object_iterator_next(it);
+ *     bool having = pcvrnt_object_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
  *         // behavior of accessing `it` is un-defined
@@ -1145,128 +1148,147 @@ static inline ssize_t purc_variant_object_get_size(purc_variant_t obj)
  *     }
  * }
  * if (it)
- *     purc_variant_object_release_iterator(it);
+ *     pcvrnt_object_iterator_release(it);
  */
-
-struct purc_variant_object_iterator;
+struct pcvrnt_object_iterator;
 
 /**
- * Get the begin-iterator of the object,
- * which points to the head key-val-pair of the object
+ * pcvrnt_object_iterator_create_begin:
  *
- * @object: the variant value of object type
+ * @object: An object variant.
  *
- * Returns: the begin-iterator of the object.
- *          NULL if no key-val-pair in the object
- *          returned iterator will inc object's ref for iterator's lifetime
- *          returned iterator shall also inc the pointed key-val-pair's ref
+ * Creates a new beginning iterator for the object variant @object.
+ * The returned iterator will point to the first property in the object.
+ *
+ * Note that a new iterator will hold a reference of the object, until it is
+ * released by calling pcvrnt_object_iterator_release(). It will also
+ * hold a reference of the property it points to, until it was moved to
+ * another one.
+ *
+ * Returns: The iterator for the object; %NULL if there is no property
+ *      in the object.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT struct purc_variant_object_iterator*
-purc_variant_object_make_iterator_begin(purc_variant_t object);
+PCA_EXPORT struct pcvrnt_object_iterator*
+pcvrnt_object_iterator_create_begin(purc_variant_t object);
 
 /**
- * Get the end-iterator of the object,
- * which points to the tail key-val-pair of the object
+ * pcvrnt_object_iterator_create_end:
  *
- * @object: the variant value of object type
+ * @object: An object variant.
  *
- * Returns: the end-iterator of the object
- *          NULL if no key-val-pair in the object
- *          returned iterator will hold object's ref for iterator's lifetime
- *          returned iterator shall also hold the pointed key-val-pair's ref
+ * Creates a new end iterator for the object variant @object.
+ * The returned iterator will point to the last property in the object.
+ *
+ * Note that a new iterator will hold a reference of the object, until it is
+ * released by calling pcvrnt_object_iterator_release(). It will also
+ * hold a reference of the property it points to, until it was moved to
+ * another one.
+ *
+ * Returns: The iterator for the object; %NULL if there is no property
+ *      in the object.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT struct purc_variant_object_iterator*
-purc_variant_object_make_iterator_end(purc_variant_t object);
+PCA_EXPORT struct pcvrnt_object_iterator*
+pcvrnt_object_iterator_create_end(purc_variant_t object);
 
 /**
- * Release the object's iterator
+ * pcvrnt_object_iterator_release:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: void
- *          both object's ref and the pointed key-val-pair's ref shall be dec`d
+ * Releases the object iterator (@it). The reference count of the object
+ * and the property (if any) pointed to by @it will be decremented.
+ *
+ * Returns: None.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT void
-purc_variant_object_release_iterator(struct purc_variant_object_iterator* it);
+pcvrnt_object_iterator_release(struct pcvrnt_object_iterator* it);
 
 /**
- * Make the iterator point to it's successor,
- * or the next key-val-pair of the bounded object value
+ * pcvrnt_object_iterator_next:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: %true if iterator `it` has no following key-val-pair,
- *          %false otherwise
- *          dec original key-val-pair's ref
- *          inc current key-val-pair's ref
+ * Forwards the iterator to point to the next property in the object.
+ * Note that the iterator will release the reference of the former property,
+ * and hold a new reference to the next property (if any).
+ *
+ * Returns: %true if success, @false if there is no following property.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_iterator_next(struct purc_variant_object_iterator* it);
+pcvrnt_object_iterator_next(struct pcvrnt_object_iterator* it);
 
 /**
- * Make the iterator point to it's predecessor,
- * or the previous key-val-pair of the bounded object value
+ * pcvrnt_object_iterator_prev:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: %true if iterator `it` has no leading key-val-pair, %false otherwise
- *          dec original key-val-pair's ref
- *          inc current key-val-pair's ref
+ * Backwards the iterator to point to the previous property in the object.
+ * Note that the iterator will release the reference of the former property
+ * it pointed to, and hold a new reference to the next property (if any).
+ *
+ * Returns: %true if success, @false if there is no preceding property.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_iterator_prev(struct purc_variant_object_iterator* it);
+pcvrnt_object_iterator_prev(struct pcvrnt_object_iterator* it);
 
 /**
- * Get the key of key-val-pair that the iterator points to
+ * pcvrnt_object_iterator_get_key:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: the key of key-val-pair
+ * Gets the key of the property to which the iterator @it points.
+ *
+ * Returns: The variant of the current property key.
  *
  * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_iterator_get_key(struct purc_variant_object_iterator* it);
+pcvrnt_object_iterator_get_key(struct pcvrnt_object_iterator* it);
 
 /**
- * Get the key of key-val-pair that the iterator points to
+ * pcvrnt_object_iterator_get_ckey:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: the key of key-val-pair, not duplicated
+ * Gets the key as a read-only null-terminated string of the property to which
+ * the iterator @it points.
+ *
+ * Returns: The pointer to a read-only null-terminated string which is
+ *      holden by the current property's key.
  *
  * Since: 0.0.2
  */
 static inline const char*
-purc_variant_object_iterator_get_ckey(struct purc_variant_object_iterator* it)
+pcvrnt_object_iterator_get_ckey(struct pcvrnt_object_iterator* it)
 {
-    purc_variant_t k = purc_variant_object_iterator_get_key(it);
+    purc_variant_t k = pcvrnt_object_iterator_get_key(it);
     return purc_variant_get_string_const(k);
 }
 
 /**
- * Get the value of key-val-pair that the iterator points to
+ * pcvrnt_object_iterator_get_value:
  *
- * @it: iterator of itself
+ * @it: The iterator of an object variant.
  *
- * Returns: the value of key-val-pair, not duplicated
- *          the returned value's ref remains unchanged
+ * Gets the value of the property to which the iterator @it points.
  *
- * Since: 0.0.1
+ * Returns: The variant of the current property value.
+ *
+ * Since: 0.0.2
  */
 PCA_EXPORT purc_variant_t
-purc_variant_object_iterator_get_value(
-        struct purc_variant_object_iterator* it);
+pcvrnt_object_iterator_get_value(
+        struct pcvrnt_object_iterator* it);
 
 /**
  * Creates a variant value of set type.
@@ -1701,11 +1723,11 @@ purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 #define PCVARIANT_SAFLAG_DESC           0x0001
 #define PCVARIANT_SAFLAG_DEFAULT        0x0000
 
-typedef int  (*pcvariant_compare_method) (purc_variant_t v1, purc_variant_t v2);
+typedef int  (*pcvrnt_compare_method) (purc_variant_t v1, purc_variant_t v2);
 
 PCA_EXPORT purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
-        pcvariant_compare_method cmp);
+        pcvrnt_compare_method cmp);
 
 PCA_EXPORT int
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);

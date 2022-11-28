@@ -422,24 +422,24 @@ void dump_object (purc_variant_t object)
         return;
     }
     
-    purc_variant_object_iterator* it;
-    it = purc_variant_object_make_iterator_begin(object);
+    pcvrnt_object_iterator* it;
+    it = pcvrnt_object_iterator_create_begin(object);
     int j = 0;
 
     printf ("\n");
     while (it) {
         ++j;
-        const char     *key = purc_variant_object_iterator_get_ckey(it);
-        purc_variant_t  val = purc_variant_object_iterator_get_value(it);
+        const char     *key = pcvrnt_object_iterator_get_ckey(it);
+        purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
         printf ("key%d: %s\n", j, key);
         printf ("val%d: %s\n", j, pcvariant_to_string(val));
-        bool having = purc_variant_object_iterator_next(it);
+        bool having = pcvrnt_object_iterator_next(it);
         // behavior of accessing `val`/`key` is un-defined
         if (! having) {
             // behavior of accessing `it` is un-defined
             break;
         }
     }
-    purc_variant_object_release_iterator(it);
+    pcvrnt_object_iterator_release(it);
     printf ("\n");
 }
