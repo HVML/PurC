@@ -48,7 +48,7 @@
 ### 2.1) Variants
 
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
-1. [0.9.2] Implement some new APIs:
+1. [0.9.2; Resolved] Implement some new APIs:
    - `purc_variant_make_atom()`
 1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
@@ -86,19 +86,19 @@
 
 ### 2.4) eDOM
 
-1. [0.9.4] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
-1. [0.9.4] Optimize the implementation of the map from `id` and `class` to element(s).
+1. [0.9.6] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
+1. [0.9.6] Optimize the implementation of the map from `id` and `class` to element(s).
 1. [Pending] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 2.5) Interpreter
 
-1. [0.9.2] Improve the implementation of the element `update`:
+1. [0.9.4] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
 1. [0.9.4] Full support for `request` element.
-1. [0.9.4] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
-1. [0.9.4] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. [0.9.6] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
+1. [0.9.6] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
@@ -134,8 +134,8 @@
 
 ### 2.6) `purc`
 
-1. [0.9.2] Ehance `foil` to support more properties and layouts except for table.
-1. [0.9.4] Enhance `foil` to support full-screen and multiple-page rendering.
+1. [0.9.4] Ehance `foil` to support more properties and layouts except for table.
+1. [0.9.6] Enhance `foil` to support full-screen and multiple-page rendering.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
 
 ### 2.7) More Platforms
