@@ -33,6 +33,7 @@ You can use PurC to run an HVML program or an HVML app by using the command line
 
 We release PurC under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
+This is the version 0.9.2 of PurC.
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -232,7 +233,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```bash
 $ purc -v error.hvml
-purc 0.9.0
+purc 0.9.2
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -264,7 +265,7 @@ Run `purc` to execute this HVML program with `-b` option, it will report the exe
 
 ```
 $ purc -v exception.hvml
-purc 0.9.0
+purc 0.9.2
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -422,7 +423,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.0
+purc 0.9.2
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -430,76 +431,94 @@ There is NO WARRANTY, to the extent permitted by law.
 
 Executing HVML program from `file:///srv/devel/hvml/purc/build/hvml/fibonacci-html-temp.hvml`...
 
+The main coroutine exited.
 >> The document generated:
+
 <html>
   <head>
-    <title>
-      Fibonacci Numbers
+    <title>Fibonacci Numbers
     </title>
+
   </head>
   <body id="theBody">
-    <h1>
-      Fibonacci Numbers less than 2000
+    <h1>Fibonacci Numbers less than 2000
     </h1>
     <ol>
-      <li> 0 </li>
-      <li> 1 </li>
-      <li> 1 </li>
-      <li> 2 </li>
-      <li> 3 </li>
-      <li> 5 </li>
-      <li> 8 </li>
-      <li> 13 </li>
-      <li> 21 </li>
-      <li> 34 </li>
-      <li> 55 </li>
-      <li> 89 </li>
-      <li> 144 </li>
-      <li> 233 </li>
-      <li> 377 </li>
-      <li> 610 </li>
-      <li> 987 </li>
-      <li> 1597 </li>
+      <li>0
+      </li>
+      <li>1
+      </li>
+      <li>1
+      </li>
+      <li>2
+      </li>
+      <li>3
+      </li>
+      <li>5
+      </li>
+      <li>8
+      </li>
+      <li>13
+      </li>
+      <li>21
+      </li>
+      <li>34
+      </li>
+      <li>55
+      </li>
+      <li>89
+      </li>
+      <li>144
+      </li>
+      <li>233
+      </li>
+      <li>377
+      </li>
+      <li>610
+      </li>
+      <li>987
+      </li>
+      <li>1597
+      </li>
     </ol>
-    <p>
-      Totally 18 numbers
+    <p>Totally 18 numbers
     </p>
   </body>
+
 </html>
 
-
->> The executing result:
-[18, 1597L]
+>> The executed result:
+[ 18, 1597 ]
 ```
 
 `purc` now contains a built-in renderer called `Foil`.
 This renderer can show the contents of the target document in your terminal:
 
 ```bash
-$ bin/purc --rdr-channel=thread hvml/fibonacci-html-temp.hvml
-      Fibonacci Numbers less than 2000
-        1. 0
-        2. 1
-        3. 1
-        4. 2
-        5. 3
-        6. 5
-        7. 8
-        8. 13
-        9. 21
-        10. 34
-        11. 55
-        12. 89
-        13. 144
-        14. 233
-        15. 377
-        16. 610
-        17. 987
-        18. 1597
-      Totally 18 numbers
+$ purc --rdr-comm=thread hvml/fibonacci-html-temp.hvml
+Fibonacci Numbers less than 2000
+1. 0
+2. 1
+3. 1
+4. 2
+5. 3
+6. 5
+7. 8
+8. 13
+9. 21
+10. 34
+11. 55
+12. 89
+13. 144
+14. 233
+15. 377
+16. 610
+17. 987
+18. 1597
+Totally 18 numbers
 ```
 
-In version 0.9.0, Foil is not fully functional.
+Note that in current version (0.9.2), Foil is not fully functional.
 In the near future, Foil will provide support for most features of CSS 2.2 and some features of CSS Level 3,
    in order that you can get the similiar experience like a web browser.
 
@@ -513,7 +532,7 @@ Please refer to <https://github.com/HVML/xGUI-Pro> for detailed instructions to 
 Assume that you have started xGUI Pro from another terminal, then please run `purc` with the following options:
 
 ```bash
-$ purc --rdr-channel=socket hvml/fibonacci-html-temp-rdr.hvml
+$ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 ```
 
 Note that, in the above command line, we execute a modified version of Fibonacci Numbers: `hvml/fibonacci-html-temp-rdr.hvml`.
@@ -756,7 +775,7 @@ Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detaile
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.9.0 of PurC.
+This project was launched in June. 2021. This is the version 0.9.2 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
 After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
