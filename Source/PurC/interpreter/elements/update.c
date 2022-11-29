@@ -445,32 +445,72 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *op = get_op_str(to);
 
     int ret = -1;
-
-    purc_variant_t target = on;
+    size_t idx = -1;
     if (at != PURC_VARIANT_INVALID) {
-        double d = purc_variant_numerify(at);
-        size_t idx = d;
-        purc_variant_t v = purc_variant_array_get(on, idx);
-        if (v == PURC_VARIANT_INVALID) {
+        uint64_t u64;
+        bool r = purc_variant_cast_to_ulongint(at, &u64, false);
+        if (!r) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto out;
         }
-        target = v;
     }
 
 
     switch (ctxt->op) {
-    case UPDATE_OP_APPEND:
-        if (purc_variant_array_append(target, src)) {
+    case UPDATE_OP_DISPLACE:
+        if (at) {
+            if (purc_variant_array_set(on, idx, src)) {
+                ret = 0;
+            }
+        }
+        else if (purc_variant_container_displace(on, src, frame->silently)) {
             ret = 0;
         }
         break;
 
-    case UPDATE_OP_DISPLACE:
-    case UPDATE_OP_REMOVE:
-    case UPDATE_OP_MERGE:
+    case UPDATE_OP_APPEND:
+        if (purc_variant_array_append(on, src)) {
+            ret = 0;
+        }
+        break;
+
     case UPDATE_OP_PREPEND:
+        if (purc_variant_array_prepend(on, src)) {
+            ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_REMOVE:
+        if (!at) {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            break;
+        }
+        if (purc_variant_array_remove(on, idx)) {
+            ret = 0;
+        }
+        break;
+
     case UPDATE_OP_INSERTBEFORE:
+        if (!at) {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            break;
+        }
+        if (purc_variant_array_insert_before(on, idx, src)) {
+            ret = 0;
+        }
+        break;
+
     case UPDATE_OP_INSERTAFTER:
+        if (!at) {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+            break;
+        }
+        if (purc_variant_array_insert_after(on, idx, src)) {
+            ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_MERGE:
     case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
