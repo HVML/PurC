@@ -1291,18 +1291,33 @@ pcvrnt_object_iterator_get_value(
         struct pcvrnt_object_iterator* it);
 
 /**
- * Creates a variant value of set type.
+ * purc_variant_make_set_by_ckey_ex:
  *
- * @sz: the initial number of elements in a set.
- * @unique_key: the unique keys specified in a C string (nullable).
- *      If the unique keyis NULL, the set is a generic one.
- * @caseless: if compare caselessly or not
+ * @sz: The initial size (the number of members) of the new set.
+ * @unique_key (nullable): The unique keys specified in a null-terminated
+ *      string. If there are multiple keys, use whitespaces to separate them.
+ *      If it is %NULL, this function will create a generic set.
+ * @caseless: Compare values in case-insensitively or not.
+ * @value0...: The variants will be added to the set as the ininitial members.
  *
- * @value0 ..... valuen: the values.
+ * Creates a set variant having the space for @sz members by using the
+ * specified values @value0 as the initial members and the unique keys
+ * specified by @unique_key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * To determine whether a value will be added to the set is unique for the set,
+ * the value of an variant or the values specified by the unique keys
+ * in an object variant will be stringified and concatenated (if multiple
+ * unique keys specified) to a string first, then compare with members which
+ * are already existing in the set case-insensitively (@caseless is %true) or
+ * case-sensitively (@caseless is %false). If there is no such existing member
+ * matched, the value will become a new member of the set. Otherwise, this
+ * function will overwrite the existing member with the new value.
  *
- * Note: The key is legal, only when the value is object type.
+ * Note that if @unique_key is not %NULL, but the value to be added to the set
+ * is not an object, or it is an object but there is no property attached to
+ * the key in the object variant, the value will be treated as %undefined.
+ *
+ * Returns: A set variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1311,17 +1326,32 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
         bool caseless, purc_variant_t value0, ...);
 
 /**
- * Creates a variant value of set type.
+ * purc_variant_make_set_by_ckey:
  *
- * @sz: the initial number of elements in a set.
- * @unique_key: the unique keys specified in a C string (nullable).
- *      If the unique keyis NULL, the set is a generic one.
+ * @sz: The initial size (the number of members) of the new set.
+ * @unique_key (nullable): The unique keys specified in a null-terminated
+ *      string. If there are multiple keys, use whitespaces to separate them.
+ *      If it is %NULL, this function will create a generic set.
+ * @value0...: The variants will be added to the set as the ininitial members.
  *
- * @value0 ..... valuen: the values.
+ * Creates a set variant having the space for @sz members by using the
+ * specified values @value0 as the initial members and the unique keys
+ * specified by @unique_key.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * To determine whether a value will be added to the set is unique for the set,
+ * the value of an variant or the values specified by the unique keys
+ * in an object variant will be stringified and concatenated (if multiple
+ * unique keys specified) to a string first, then compare with members which
+ * are already existing in the set case-sensitively.
+ * If there is no such existing member matched, the value will become
+ * a new member of the set. Otherwise, this
+ * function will overwrite the existing member with the new value.
  *
- * Note: The key is legal, only when the value is object type.
+ * Note that if @unique_key is not %NULL, but the value to be added to the set
+ * is not an object, or it is an object but there is no property attached to
+ * the key in the object variant, the value will be treated as %undefined.
+ *
+ * Returns: A set variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1331,16 +1361,18 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
             v0, ##__VA_ARGS__)
 
 /**
- * Creates a variant value of set type.
+ * purc_variant_make_set:
  *
- * @sz: the initial number of elements in a set.
- * @unique_key: the unique keys specified in a variant. If the unique key
- *      is PURC_VARIANT_INVALID, the set is a generic one.
- * @value0 ... valuen: the values will be add to the set.
+ * @sz: The initial size (the number of members) of the new set.
+ * @unique_key: The unique keys specified by a variant.
+ *      Use %PURC_VARIANT_INVALID for a generic set.
+ * @value0...: The variants will be added to the set as the ininitial members.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Creates a set variant having the space for @sz members by using the
+ * specified values @value0 as the initial members and the unique keys
+ * specified by @unique_key variant.
  *
- * Note: The key is legal, only when the value is object type.
+ * Returns: A set variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1350,12 +1382,15 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
             v0, ##__VA_ARGS__)
 
 /**
- * Creates an empty set variant.
+ * purc_variant_make_set_0:
  *
- * @unique_key: the unique keys specified in a variant. If the unique key
- *      is PURC_VARIANT_INVALID, the set is a generic one.
+ * @unique_key: The unique keys specified by a variant.
+ *      Use %PURC_VARIANT_INVALID for a generic set.
  *
- * Returns: An empty set variant on success, or PURC_VARIANT_INVALID on failure.
+ * Creates a empty set variant by using the unique keys specified by
+ * @unique_key variant.
+ *
+ * Returns: A empty set variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.2.0
  */
@@ -1365,21 +1400,24 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
             PURC_VARIANT_INVALID)
 
 /**
- * Adds a variant value to a set.
+ * purc_variant_set_add:
  *
- * @set: the variant value of the set type.
- * @value: the value to be added.
- * Returns: %true on success, %false if:
- *      - there is already such a value in the set.
- *      - the value is not an object if the set is managed by unique keys.
- * @override: If the set is managed by unique keys and @overwrite is
- *  true, the function will override the old value which is equal to
- *  the new value under the unique keys, and return true. otherwise,
- *  it returns false.
+ * @set: An set variant.
+ * @value: the value to be added to the set variant.
+ * @override: Whether to overwrite the existing members if @value having
+ *      the same member under the unique keys of the set.
  *
- * @note If the new value has not a property (a key-value pair) under
- *  a specific unique key, the value of the key should be treated
- *  as `undefined`.
+ * Adds a new value to the set.
+ *
+ * If the set is managed by unique keys and @overwrite is
+ * %true, the function will override the existing member which is equal to
+ * the new value under the unique keys, and return %true. Otherwise,
+ * it returns %false.
+ *
+ * Note that if the new value has not a property under a specific unique key,
+ * the value of the key will be treated as `undefined`.
+ *
+ * Returns: %true on success, %false on failure.
  *
  * Since: 0.0.1
  */
@@ -1387,15 +1425,17 @@ PCA_EXPORT bool
 purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
 
 /**
- * Remove a variant value from a set.
+ * purc_variant_set_remove:
  *
- * @set: the set to be operated
- * @value: the value to be removed
- * @silently: %true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
+ * @set: An set variant.
+ * @value: The value to be removed.
+ * @silently: Whether to ignore the following errors:
+ *      - PCVARIANT_ERROR_NOT_FOUND
  *
- * Returns: %true on success, %false if:
- *      - silently is %false And no any matching member in the set.
+ * Removes a variant from a given set variant (@set).
+ *
+ * Returns: %true on success, %false if silently is %false and
+ *      no any matched member found in the set.
  *
  * @note This function works if the set is not managed by unique keys, or
  *  there is only one unique key. If there are multiple unique keys,
@@ -1453,7 +1493,8 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_set_size(purc_variant_t set, size_t *sz);
+PCA_EXPORT bool
+purc_variant_set_size(purc_variant_t set, size_t *sz);
 
 /**
  * Get the number of elements in a set variant value.
