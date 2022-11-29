@@ -398,6 +398,15 @@ update_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         break;
 
     case UPDATE_OP_REMOVE:
+        if (at == PURC_VARIANT_INVALID || !purc_variant_is_string(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            break;
+        }
+        if (purc_variant_object_remove(on, at, frame->silently)) {
+            ret = 0;
+        }
+        break;
+
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
@@ -928,7 +937,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
-        // const char *s = purc_variant_get_string_const(src);
         return update_elements(&co->stack, on, at, to, src, with_eval,
                 template_data_type, ctxt->op);
     }
