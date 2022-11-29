@@ -53,7 +53,6 @@ enum hvml_update_op {
     UPDATE_OP_SUBTRACT,
     UPDATE_OP_XOR,
     UPDATE_OP_OVERWRITE,
-    UPDATE_OP_CALL,
     UPDATE_OP_UNKNOWN
 };
 
@@ -546,7 +545,6 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     case UPDATE_OP_SUBTRACT:
     case UPDATE_OP_XOR:
     case UPDATE_OP_OVERWRITE:
-    case UPDATE_OP_CALL:
     case UPDATE_OP_UNKNOWN:
     default:
         purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
@@ -825,9 +823,6 @@ to_operator(const char *to)
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, OVERWRITE)) == op) {
         ret = UPDATE_OP_OVERWRITE;
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CALL)) == op) {
-        ret = UPDATE_OP_CALL;
     }
 
 out:
