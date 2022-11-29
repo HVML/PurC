@@ -82,6 +82,7 @@ struct ctxt_for_update {
     int                           err;
     purc_rwstream_t               resp;
     enum hvml_update_op           op;
+    bool                          individually;
 };
 
 static void
@@ -1255,6 +1256,12 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return process_attr_at(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
+        return 0;
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INDIVIDUALLY)) == name) {
+        struct ctxt_for_update *ctxt;
+        ctxt = (struct ctxt_for_update*)frame->ctxt;
+        ctxt->individually = true;
         return 0;
     }
 
