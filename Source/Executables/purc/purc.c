@@ -288,9 +288,6 @@ static void my_opts_delete(struct my_opts *opts, bool deep)
     if (opts->request)
         free(opts->request);
 
-    if (opts->rdr_uri)
-        free(opts->rdr_uri);
-
     if (opts->app_info)
         free(opts->app_info);
 
