@@ -3248,7 +3248,8 @@ BEGIN_STATE(EJSON_TKZ_STATE_BACKQUOTE_CONTENT)
 END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_PARAM_STRING)
-    if (character == '"' || character == '\'') {
+    if ((character == '"' || character == '\'')
+            && tkz_buffer_is_empty(parser->temp_buffer) ) {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     if (character == '}' || character == '[' || character == ']'
