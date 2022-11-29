@@ -1099,7 +1099,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
                             html_serialize_send_indent(deep, ctx);
                         }
 
-                        if ((opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
+                        if ((opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS)) {
                             html_serialize_send("\n", 1, ctx);
                             html_serialize_send_indent(deep, ctx);
                         }
@@ -1112,7 +1112,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
                         }
 
                         if ((opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES) == 0 &&
-                                (opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
+                                (opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS)) {
                             html_serialize_send("\n", 1, ctx);
                         }
                     }
@@ -1141,7 +1141,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
                         html_serialize_send_indent(deep, ctx);
                     }
 
-                    if ((opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
+                    if ((opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS)) {
                         html_serialize_send("\n", 1, ctx);
                         html_serialize_send_indent(deep, ctx);
                     }
@@ -1155,7 +1155,7 @@ html_serialize_pretty_node_cb(pcdom_node_t *node,
 
                     if (node->next == NULL &&
                             (opt & PCHTML_HTML_SERIALIZE_OPT_SKIP_WS_NODES) == 0 &&
-                            (opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
+                            (opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS)) {
                         html_serialize_send("\n", 1, ctx);
                     }
                 }
@@ -1539,17 +1539,22 @@ html_serialize_pretty_send_escaping_string(
             break;
 
         bool sent = false;
-        /* TODO: for any printable chars */
-        if ((opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE) && uc < 0x20) {
-            char buff[16];
-            sprintf(buff, "&#%d;", uc);
-            html_serialize_send(buff, strlen(buff), ctx);
-            sent = true;
-        }
-        else if (with_indent && (uc == 0x0A || uc == 0x0D)) {
-            html_serialize_send("\n", 1, ctx);
-            html_serialize_send_indent(indent, ctx);
-            sent = true;
+        if (uc < 0x20) {
+            int c0ctrls = opt & PCHTML_HTML_SERIALIZE_OPT_MASK_C0CTRLS;
+            if (c0ctrls == PCHTML_HTML_SERIALIZE_OPT_READABLE_C0CTRLS) {
+                char buff[16];
+                sprintf(buff, "&#%d;", uc);
+                html_serialize_send(buff, strlen(buff), ctx);
+                sent = true;
+            }
+            else if (c0ctrls == PCHTML_HTML_SERIALIZE_OPT_IGNORE_C0CTRLS) {
+                sent = true;
+            }
+            else if (with_indent && (uc == 0x0A || uc == 0x0D)) {
+                html_serialize_send("\n", 1, ctx);
+                html_serialize_send_indent(indent, ctx);
+                sent = true;
+            }
         }
         else {
             sent = html_escape_unichar_no_quotes(uc, cb, ctx) !=
@@ -1574,7 +1579,7 @@ html_serialize_pretty_send_string(const unsigned char *data,
     unsigned int status;
     bool with_indent = (opt & PCHTML_HTML_SERIALIZE_OPT_WITHOUT_TEXT_INDENT) == 0;
 
-    if ((opt & PCHTML_HTML_SERIALIZE_OPT_HUMAN_READABLE)) {
+    if ((opt & PCHTML_HTML_SERIALIZE_OPT_READABLE_C0CTRLS)) {
         if (with_indent) {
             html_serialize_send_indent(indent, ctx);
         }
