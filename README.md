@@ -438,7 +438,6 @@ The main coroutine exited.
   <head>
     <title>Fibonacci Numbers
     </title>
-
   </head>
   <body id="theBody">
     <h1>Fibonacci Numbers less than 2000
@@ -484,7 +483,6 @@ The main coroutine exited.
     <p>Totally 18 numbers
     </p>
   </body>
-
 </html>
 
 >> The executed result:
