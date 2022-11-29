@@ -492,7 +492,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     switch (list_item->list_style_type) {
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_DECIMAL_LEADING_ZERO:
-        tail = ".";
+        tail = ". ";
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_ROMAN:
@@ -503,7 +503,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_GREEK:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_LOWER_LATIN:
     case FOIL_RDRBOX_LIST_STYLE_TYPE_UPPER_LATIN:
-        tail = ")";
+        tail = ") ";
         break;
 
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL:

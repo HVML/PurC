@@ -1891,6 +1891,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
 void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
+#ifndef NDEBUG
     /* print title */
     if (level == 0) {
         if (ctxt->udom->title_ucs) {
@@ -1908,6 +1909,11 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
     if (box->is_block_level && box->first && box->first->is_inline_level) {
         fputs("\n", stdout);
     }
+#else
+    (void)ctxt;
+    (void)box;
+    (void)level;
+#endif
 }
 
 static void render_ucs(const uint32_t *ucs, size_t nr_ucs)

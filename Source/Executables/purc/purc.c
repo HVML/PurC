@@ -1169,7 +1169,11 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
-            opt |= PCDOC_SERIALIZE_OPT_HUMAN_READABLE;
+#ifndef NDEBUG
+            opt |= PCDOC_SERIALIZE_OPT_READABLE_C0CTRLS;
+#else
+            opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
+#endif
 
             fprintf(stdout, ">> The document generated:\n");
             purc_document_serialize_contents_to_stream(exit_info->doc,
@@ -1211,7 +1215,11 @@ static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             unsigned opt = 0;
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
-            opt |= PCDOC_SERIALIZE_OPT_HUMAN_READABLE;
+#ifndef NDEBUG
+            opt |= PCDOC_SERIALIZE_OPT_READABLE_C0CTRLS;
+#else
+            opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
+#endif
 
             fprintf(stdout, ">> The document generated:\n");
             purc_document_serialize_contents_to_stream(term_info->doc,
