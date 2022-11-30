@@ -306,68 +306,6 @@ get_source_by_from(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return 0;
 }
 
-static int
-merge_object(pcintr_stack_t stack,
-        purc_variant_t on, purc_variant_t at,
-        purc_variant_t src)
-{
-    UNUSED_PARAM(stack);
-
-    const char *s_at = "";
-    if (at != PURC_VARIANT_INVALID) {
-        s_at = purc_variant_get_string_const(at);
-    }
-
-    if (s_at[0] == '\0') {
-        bool ok;
-        ok = purc_variant_object_merge_another(on, src, true);
-        if (!ok) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-        return 0;
-    }
-
-    PC_DEBUGX("s_at: %s", s_at);
-    return -1;
-}
-
-static int
-displace_object(pcintr_stack_t stack,
-        purc_variant_t on, purc_variant_t at,
-        purc_variant_t src,
-        pcintr_attribute_op with_eval)
-{
-    UNUSED_PARAM(stack);
-
-    const char *s_at = "";
-    if (at != PURC_VARIANT_INVALID) {
-        s_at = purc_variant_get_string_const(at);
-    }
-
-    if (s_at[0] == '.') {
-        s_at += 1;
-        purc_variant_t k = purc_variant_make_string(s_at, true);
-        if (k == PURC_VARIANT_INVALID)
-            return -1;
-        purc_variant_t o = purc_variant_object_get(on, k);
-        purc_variant_t v = with_eval(o, src);
-
-        bool ok;
-        ok = purc_variant_object_set(on, k, v);
-        purc_variant_unref(v);
-        purc_variant_unref(k);
-        if (!ok) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-        return 0;
-    }
-
-    PC_DEBUGX("s_at: %s", s_at);
-    return -1;
-}
-
 static const char *
 get_op_str(purc_variant_t to)
 {
@@ -817,56 +755,124 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
     return ret;
 }
 
+static UNUSED_FUNCTION int
+update_variant(purc_variant_t dst, purc_variant_t src,
+        enum hvml_update_op op, enum pchvml_attr_operator with_op,
+        pcintr_attribute_op with_eval, bool silently)
+{
+    int ret = -1;
+    enum purc_variant_type type = purc_variant_get_type(dst);
+    switch (type) {
+    case PURC_VARIANT_TYPE_OBJECT:
+        ret = update_variant_object(dst, src, PURC_VARIANT_INVALID, op,
+                with_op, with_eval, silently);
+        break;
+
+    case PURC_VARIANT_TYPE_ARRAY:
+        ret = update_variant_array(dst, src, -1, op, with_op, with_eval, silently);
+        break;
+
+    case PURC_VARIANT_TYPE_SET:
+        ret = update_variant_set(dst, src, -1, op, with_op, with_eval, silently);
+        break;
+
+    case PURC_VARIANT_TYPE_TUPLE:
+        ret = update_variant_tuple(dst, src, -1, op, with_op, with_eval, silently);
+        break;
+
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
+    return ret;
+}
 
 static int
-update_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src, pcintr_attribute_op with_eval);
+
+static int
+update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t on, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval)
 {
+    UNUSED_PARAM(co);
+    purc_variant_t dest = on;
+    purc_variant_t ultimate = PURC_VARIANT_INVALID;
+
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     struct pcvdom_element *element = frame->pos;
     const char *op = get_op_str(to);
     int ret = -1;
 
-    switch (ctxt->op) {
-    case UPDATE_OP_DISPLACE:
-        ret = displace_object(stack, on, at, src, with_eval);
-        break;
-
-    case UPDATE_OP_MERGE:
-        ret = merge_object(stack, on, at, src);
-        break;
-
-    case UPDATE_OP_REMOVE:
-        if (at == PURC_VARIANT_INVALID || !purc_variant_is_string(at)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            break;
-        }
-        if (purc_variant_object_remove(on, at, frame->silently)) {
+    if (ctxt->individually) {
+        ssize_t sz = purc_variant_object_get_size(dest);
+        if (sz <= 0) {
             ret = 0;
+            goto out;
         }
-        break;
 
-    case UPDATE_OP_APPEND:
-    case UPDATE_OP_PREPEND:
-    case UPDATE_OP_INSERTBEFORE:
-    case UPDATE_OP_INSERTAFTER:
-    case UPDATE_OP_UNITE:
-    case UPDATE_OP_INTERSECT:
-    case UPDATE_OP_SUBTRACT:
-    case UPDATE_OP_XOR:
-    case UPDATE_OP_OVERWRITE:
-    case UPDATE_OP_UNKNOWN:
-    default:
-        purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
-                "vdom attribute '%s'='%s' for element <%s>",
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
-                op, element->tag_name);
-        break;
+        purc_variant_t k, v;
+        UNUSED_VARIABLE(k);
+        foreach_key_value_in_variant_object(dest, k, v)
+            ret = update_container(co, frame, v, at, to, src, with_eval);
+            if (ret != 0) {
+                goto out;
+            }
+        end_foreach;
+
+        goto out;
     }
 
+    if (at) {
+        if (!purc_variant_is_string(at)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+        purc_variant_t k = parse_object_key(at);
+        if (!k) {
+            goto out;
+        }
+        ultimate = purc_variant_object_get(on, k);
+        purc_variant_unref(k);
+    }
+    else {
+        ultimate = dest;
+    }
+
+    if (ultimate == dest) {
+        ret = update_variant_object(dest, src, at, ctxt->op, ctxt->with_op, with_eval,
+                frame->silently);
+    }
+    else {
+        switch (ctxt->op) {
+        case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
+            ret = update_variant_object(dest, src, at, ctxt->op, ctxt->with_op,
+                    with_eval, frame->silently);
+            break;
+        case UPDATE_OP_APPEND:
+        case UPDATE_OP_PREPEND:
+        case UPDATE_OP_MERGE:
+        case UPDATE_OP_INSERTBEFORE:
+        case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_UNITE:
+        case UPDATE_OP_INTERSECT:
+        case UPDATE_OP_SUBTRACT:
+        case UPDATE_OP_XOR:
+        case UPDATE_OP_OVERWRITE:
+        case UPDATE_OP_UNKNOWN:
+        default:
+            purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
+                    "vdom attribute '%s'='%s' for element <%s>",
+                    pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
+                    op, element->tag_name);
+        }
+    }
+
+out:
     return ret;
 }
 
@@ -1108,6 +1114,38 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
 out:
+    return ret;
+}
+
+int
+update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src, pcintr_attribute_op with_eval)
+{
+    int ret = -1;
+    struct ctxt_for_update *ctxt = (struct ctxt_for_update*)frame->ctxt;
+    enum purc_variant_type type = purc_variant_get_type(dest);
+    switch (type) {
+    case PURC_VARIANT_TYPE_OBJECT:
+        ret = update_object(co, frame, ctxt->on, at, to, src, with_eval);
+        break;
+
+    case PURC_VARIANT_TYPE_ARRAY:
+        ret = update_array(co, frame, src, with_eval);
+        break;
+
+    case PURC_VARIANT_TYPE_SET:
+        ret = update_set(co, frame, src, with_eval);
+        break;
+
+    case PURC_VARIANT_TYPE_TUPLE:
+        ret = update_tuple(co, frame, src, with_eval);
+        break;
+
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
     return ret;
 }
 
@@ -1411,19 +1449,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         return update_elements(&co->stack, on, at, to, src, with_eval,
                 template_data_type, ctxt->op);
     }
-    if (type == PURC_VARIANT_TYPE_OBJECT) {
-        return update_object(&co->stack, frame, on, at, to, src, with_eval);
-    }
-    if (type == PURC_VARIANT_TYPE_ARRAY) {
-        return update_array(co, frame, src, with_eval);
-    }
-    if (type == PURC_VARIANT_TYPE_SET) {
-        return update_set(co, frame, src, with_eval);
-    }
-    if (type == PURC_VARIANT_TYPE_TUPLE) {
-        return update_tuple(co, frame, src, with_eval);
-    }
-    if (type == PURC_VARIANT_TYPE_STRING) {
+    else if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
 
         purc_document_t doc = co->stack.doc;
@@ -1438,8 +1464,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_unref(elems);
         return r ? -1 : 0;
     }
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    return -1;
+    return update_container(co, frame, on, at, to, src, with_eval);
 }
 
 static int
