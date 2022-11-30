@@ -863,6 +863,8 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
+            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
+            break;
         case UPDATE_OP_UNKNOWN:
         default:
             purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
@@ -883,8 +885,12 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
+
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
+
+    purc_variant_t dest = ctxt->on;
+    purc_variant_t ultimate = PURC_VARIANT_INVALID;
 
     struct pcvdom_element *element = frame->pos;
     purc_variant_t on  = ctxt->on;
@@ -894,6 +900,27 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     int ret = -1;
     size_t idx = -1;
+
+    if (ctxt->individually) {
+        ssize_t sz = purc_variant_array_get_size(dest);
+        if (sz <= 0) {
+            ret = 0;
+            goto out;
+        }
+
+        purc_variant_t val;
+        size_t idx;
+        UNUSED_VARIABLE(idx);
+        foreach_value_in_variant_array(dest, val, idx)
+            ret = update_container(co, frame, val, at, to, src, with_eval);
+            if (ret != 0) {
+                goto out;
+            }
+        end_foreach;
+
+        goto out;
+    }
+
     if (at != PURC_VARIANT_INVALID) {
         uint64_t u64;
         bool r = purc_variant_cast_to_ulongint(at, &u64, false);
@@ -903,74 +930,48 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         }
     }
 
-
-    switch (ctxt->op) {
-    case UPDATE_OP_DISPLACE:
-        if (at) {
-            if (purc_variant_array_set(on, idx, src)) {
-                ret = 0;
-            }
-        }
-        else if (purc_variant_container_displace(on, src, frame->silently)) {
+    if (at) {
+        idx = (size_t) purc_variant_numerify(at);
+        ultimate = purc_variant_array_get(on, idx);
+        if (!ultimate) {
             ret = 0;
+            goto out;
         }
-        break;
+    }
+    else {
+        ultimate = dest;
+    }
 
-    case UPDATE_OP_APPEND:
-        if (purc_variant_array_append(on, src)) {
-            ret = 0;
-        }
-        break;
-
-    case UPDATE_OP_PREPEND:
-        if (purc_variant_array_prepend(on, src)) {
-            ret = 0;
-        }
-        break;
-
-    case UPDATE_OP_REMOVE:
-        if (!at) {
-            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+    if (ultimate == dest) {
+        ret = update_variant_array(dest, src, idx, ctxt->op, ctxt->with_op,
+                with_eval, frame->silently);
+    }
+    else {
+        switch (ctxt->op) {
+        case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
+        case UPDATE_OP_APPEND:
+        case UPDATE_OP_PREPEND:
+        case UPDATE_OP_INSERTBEFORE:
+        case UPDATE_OP_INSERTAFTER:
+            ret = update_variant_array(dest, src, idx, ctxt->op, ctxt->with_op,
+                    with_eval, frame->silently);
             break;
-        }
-        if (purc_variant_array_remove(on, idx)) {
-            ret = 0;
-        }
-        break;
-
-    case UPDATE_OP_INSERTBEFORE:
-        if (!at) {
-            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        case UPDATE_OP_MERGE:
+        case UPDATE_OP_UNITE:
+        case UPDATE_OP_INTERSECT:
+        case UPDATE_OP_SUBTRACT:
+        case UPDATE_OP_XOR:
+        case UPDATE_OP_OVERWRITE:
+            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
             break;
+        case UPDATE_OP_UNKNOWN:
+        default:
+            purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
+                    "vdom attribute '%s'='%s' for element <%s>",
+                    pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
+                    op, element->tag_name);
         }
-        if (purc_variant_array_insert_before(on, idx, src)) {
-            ret = 0;
-        }
-        break;
-
-    case UPDATE_OP_INSERTAFTER:
-        if (!at) {
-            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            break;
-        }
-        if (purc_variant_array_insert_after(on, idx, src)) {
-            ret = 0;
-        }
-        break;
-
-    case UPDATE_OP_MERGE:
-    case UPDATE_OP_UNITE:
-    case UPDATE_OP_INTERSECT:
-    case UPDATE_OP_SUBTRACT:
-    case UPDATE_OP_XOR:
-    case UPDATE_OP_OVERWRITE:
-    case UPDATE_OP_UNKNOWN:
-    default:
-        purc_set_error_with_info(PURC_ERROR_NOT_ALLOWED,
-                "vdom attribute '%s'='%s' for element <%s>",
-                pchvml_keyword_str(PCHVML_KEYWORD_ENUM(HVML, TO)),
-                op, element->tag_name);
-        break;
     }
 
 out:
