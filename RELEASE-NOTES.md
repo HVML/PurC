@@ -17,12 +17,25 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 In this version, we fixed some bugs and made som enhancements:
 
 * CHANGES:
+   - Rename some APIs.
 * ADJUSTMENTS:
+   - Tune the serialization format of eDOM.
 * ENHANCEMENTS:
-   * Support for using a URL query string (in RFC 3986) for the request data of `purc`.
+   - Support for triple-single-quote syntax.
+   - The HEEs which are embedded in a string enclosed by two triple-double-quotes will be evaluated.
+   - Support line comments in CHEE.
+   - Support for the tuple.
+   - Support for using string constants to define exception in `catch` and `except` tags.
+   - In the implementation of predefined variables, use the interfaces for linear container instead of array.
+   - Add a new API: `purc_variant_make_atom()`
+   - Support for using a URL query string (in RFC 3986) for the request data of `purc`.
+   - Foil now supports more CSS properties: `white-space`, `list-style-type`, and so on.
 * OPTIMIZATIONS:
 * IMPROVEMENTS:
+   - Tune some API descriptions.
 * BUGFIXES:
+   - eJSON parser now raises errors for C0 control characters.
+   - Some expressions in `hvml` and `iterate` were evaluated twice incorrectly.
 
 ## Version 0.9.0
 
