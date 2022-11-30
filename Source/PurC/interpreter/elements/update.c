@@ -377,6 +377,447 @@ get_op_str(purc_variant_t to)
     return OP_STR_UNKNOWN;
 }
 
+static bool
+is_support_with_op(purc_variant_t src, enum pchvml_attr_operator with_op)
+{
+    if (with_op == PCHVML_ATTRIBUTE_OPERATOR) {
+        return true;
+    }
+    enum purc_variant_type type = purc_variant_get_type(src);
+    switch (type) {
+    case PURC_VARIANT_TYPE_STRING:
+    case PURC_VARIANT_TYPE_NUMBER:
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static inline bool
+is_atrribute_operator(enum pchvml_attr_operator with_op)
+{
+    if (with_op == PCHVML_ATTRIBUTE_OPERATOR) {
+        return true;
+    }
+    return false;
+}
+
+static purc_variant_t
+parse_object_key(purc_variant_t key)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (!purc_variant_is_string(key)) {
+        goto out;
+    }
+
+    const char *s_key = purc_variant_get_string_const(key);
+    if (s_key[0] != '.') {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    s_key += 1;
+    ret = purc_variant_make_string(s_key, true);
+
+out:
+    return ret;
+}
+
+static UNUSED_FUNCTION int
+update_variant_object(purc_variant_t dst, purc_variant_t src,
+        purc_variant_t key, enum hvml_update_op op,
+        enum pchvml_attr_operator with_op,
+        pcintr_attribute_op with_eval, bool silently)
+{
+    int ret = -1;
+    switch (op) {
+    case UPDATE_OP_DISPLACE:
+        if (key) {
+            if (!is_support_with_op(src, with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            purc_variant_t k = parse_object_key(key);
+            if (k == PURC_VARIANT_INVALID) {
+                break;
+            }
+
+            purc_variant_t o = purc_variant_object_get(dst, k);
+            purc_variant_t v = with_eval(o, src);
+            if (!v) {
+                purc_variant_unref(k);
+                break;
+            }
+
+            bool ok = purc_variant_object_set(dst, k, v);
+            purc_variant_unref(v);
+            purc_variant_unref(k);
+
+            if (ok) {
+                ret = 0;
+            }
+        }
+        else {
+            if (!is_atrribute_operator(with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            ret = purc_variant_container_displace(dst, src, silently);
+        }
+        break;
+
+    case UPDATE_OP_REMOVE:
+        {
+            if (!is_atrribute_operator(with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (key) {
+                purc_variant_t k = parse_object_key(key);
+                if (!k) {
+                    break;
+                }
+                if (purc_variant_object_remove(dst, k, silently)) {
+                    ret = 0;
+                }
+                purc_variant_unref(k);
+            }
+            else if (purc_variant_container_remove(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_MERGE:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_object_merge_another(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_APPEND:
+    case UPDATE_OP_PREPEND:
+    case UPDATE_OP_INSERTBEFORE:
+    case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_UNITE:
+    case UPDATE_OP_INTERSECT:
+    case UPDATE_OP_SUBTRACT:
+    case UPDATE_OP_XOR:
+    case UPDATE_OP_OVERWRITE:
+    case UPDATE_OP_UNKNOWN:
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
+
+    return ret;
+}
+
+static UNUSED_FUNCTION int
+update_variant_array(purc_variant_t dst, purc_variant_t src,
+        int idx, enum hvml_update_op op,
+        enum pchvml_attr_operator with_op,
+        pcintr_attribute_op with_eval, bool silently)
+{
+    int ret = -1;
+    switch (op) {
+    case UPDATE_OP_DISPLACE:
+        if (idx >= 0) {
+            if (!is_support_with_op(src, with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            purc_variant_t o = purc_variant_array_get(dst, idx);
+            purc_variant_t v = with_eval(o, src);
+            if (!v) {
+                break;
+            }
+
+            bool ok = purc_variant_array_set(dst, idx, v);
+            purc_variant_unref(v);
+
+            if (ok) {
+                ret = 0;
+            }
+        }
+        else if (purc_variant_container_displace(dst, src, silently)) {
+            ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_APPEND:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_array_append(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_PREPEND:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_array_prepend(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_REMOVE:
+        {
+            if (!is_atrribute_operator(with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            bool r;
+            if (idx >= 0) {
+                r = purc_variant_array_remove(dst, idx);
+            }
+            else {
+                r = purc_variant_container_remove(dst, src, silently);
+            }
+            if (r) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_INSERTBEFORE:
+        {
+            if (!is_atrribute_operator(with_op) || idx < 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            if (purc_variant_array_insert_before(dst, idx, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_INSERTAFTER:
+        {
+            if (!is_atrribute_operator(with_op) || idx < 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            if (purc_variant_array_insert_after(dst, idx, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_MERGE:
+    case UPDATE_OP_UNITE:
+    case UPDATE_OP_INTERSECT:
+    case UPDATE_OP_SUBTRACT:
+    case UPDATE_OP_XOR:
+    case UPDATE_OP_OVERWRITE:
+    case UPDATE_OP_UNKNOWN:
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
+
+    return ret;
+}
+
+static UNUSED_FUNCTION int
+update_variant_set(purc_variant_t dst, purc_variant_t src,
+        int idx, enum hvml_update_op op,
+        enum pchvml_attr_operator with_op,
+        pcintr_attribute_op with_eval, bool silently)
+{
+    int ret = -1;
+    switch (op) {
+    case UPDATE_OP_DISPLACE:
+        if (idx >= 0) {
+            if (!is_support_with_op(src, with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            purc_variant_t o = purc_variant_set_get_by_index(dst, idx);
+            purc_variant_t v = with_eval(o, src);
+            if (!v) {
+                break;
+            }
+
+            bool ok = purc_variant_set_set_by_index(dst, idx, v);
+            purc_variant_unref(v);
+
+            if (ok) {
+                ret = 0;
+            }
+        }
+        else if (purc_variant_container_remove(dst, src, silently)){
+            ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_REMOVE:
+        {
+            if (!is_atrribute_operator(with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            bool r;
+            if (idx >= 0) {
+                r = purc_variant_set_remove_by_index(dst, idx);
+            }
+            else {
+                r = purc_variant_container_remove(dst, src, silently);
+            }
+            if (r) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_UNITE:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_set_unite(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_INTERSECT:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_set_intersect(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_SUBTRACT:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_set_subtract(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_XOR:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_set_xor(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_OVERWRITE:
+        {
+            if (!is_atrribute_operator(with_op) || idx >= 0) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (purc_variant_set_overwrite(dst, src, silently)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_MERGE:
+    case UPDATE_OP_APPEND:
+    case UPDATE_OP_PREPEND:
+    case UPDATE_OP_INSERTBEFORE:
+    case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_UNKNOWN:
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
+    return ret;
+}
+
+static UNUSED_FUNCTION int
+update_variant_tuple(purc_variant_t dst, purc_variant_t src,
+        int idx, enum hvml_update_op op,
+        enum pchvml_attr_operator with_op,
+        pcintr_attribute_op with_eval, bool silently)
+{
+    int ret = -1;
+    switch (op) {
+    case UPDATE_OP_DISPLACE:
+        if (idx >= 0) {
+            if (!is_support_with_op(src, with_op)) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            purc_variant_t o = purc_variant_tuple_get(dst, idx);
+            purc_variant_t v = with_eval(o, src);
+            if (!v) {
+                break;
+            }
+
+            bool ok = purc_variant_tuple_set(dst, idx, v);
+            purc_variant_unref(v);
+
+            if (ok) {
+                ret = 0;
+            }
+        }
+        else if (purc_variant_container_remove(dst, src, silently)){
+            ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_REMOVE:
+    case UPDATE_OP_MERGE:
+    case UPDATE_OP_APPEND:
+    case UPDATE_OP_PREPEND:
+    case UPDATE_OP_INSERTBEFORE:
+    case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_UNITE:
+    case UPDATE_OP_INTERSECT:
+    case UPDATE_OP_SUBTRACT:
+    case UPDATE_OP_XOR:
+    case UPDATE_OP_OVERWRITE:
+    case UPDATE_OP_UNKNOWN:
+    default:
+        purc_set_error(PURC_ERROR_NOT_ALLOWED);
+        break;
+    }
+
+    return ret;
+}
+
+
 static int
 update_object(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         purc_variant_t on, purc_variant_t at, purc_variant_t to,
