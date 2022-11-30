@@ -3008,12 +3008,4 @@ purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree);
 
 PCA_EXTERN_C_END
 
-#define PURC_VARIANT_SAFE_CLEAR(_v)             \
-do {                                            \
-    if (_v != PURC_VARIANT_INVALID) {           \
-        purc_variant_unref(_v);                 \
-        _v = PURC_VARIANT_INVALID;              \
-    }                                           \
-} while (0)
-
 #endif /* not defined PURC_PURC_VARIANT_H */
