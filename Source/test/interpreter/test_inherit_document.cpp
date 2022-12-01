@@ -66,13 +66,13 @@ get_dvobj(void* ctxt, const char* name)
 static bool
 generate_expected_document(const char *html, struct sample_ctxt *ud)
 {
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
 
     ptree = purc_variant_ejson_parse_string(html, strlen(html));
     if (ptree) {
-        ud->expected = purc_variant_ejson_parse_tree_evalute(ptree,
+        ud->expected = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj, ud, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
 #if 0
         if (purc_variant_is_string(ud->expected)) {

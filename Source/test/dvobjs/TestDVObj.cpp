@@ -133,16 +133,16 @@ purc_variant_t TestDVObj::get_dvobj(void* ctxt, const char* name)
 void TestDVObj::run_testcases(const struct dvobj_result *test_cases, size_t n)
 {
     for (size_t i = 0; i < n; i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("Evaluting: %s\n", test_cases[i].jsonee);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].jsonee,
                 strlen(test_cases[i].jsonee));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 TestDVObj::get_dvobj, this, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
         /* FIXME: purc_variant_string_parse_tree_evalute should not return NULL
            when evaluating silently */
@@ -224,7 +224,7 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
         *(line + read - 1) = 0;
         line_number++;
 
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
 
         if (line[0] == '#') {
             // ignore
@@ -244,9 +244,9 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_variant_t result;
             purc_log_info("Evaluating: `%s`\n", exp);
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
-            result = purc_variant_ejson_parse_tree_evalute(ptree,
+            result = purc_ejson_parsing_tree_evalute(ptree,
                     TestDVObj::get_dvobj, this, true);
-            purc_variant_ejson_parse_tree_destroy(ptree);
+            purc_ejson_parsing_tree_destroy(ptree);
 
             // read exception name
             read = getline(&line, &sz, fp);
@@ -275,9 +275,9 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
 
                 purc_variant_t expected;
                 ptree = purc_variant_ejson_parse_string(exp, exp_len);
-                expected = purc_variant_ejson_parse_tree_evalute(ptree,
+                expected = purc_ejson_parsing_tree_evalute(ptree,
                         NULL, NULL, true);
-                purc_variant_ejson_parse_tree_destroy(ptree);
+                purc_ejson_parsing_tree_destroy(ptree);
 
                 bool check = purc_variant_is_equal_to(result, expected);
                 if (!check) {
@@ -314,9 +314,9 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
 
             purc_log_info("Evaluting: `%s`\n", exp);
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
-            result = purc_variant_ejson_parse_tree_evalute(ptree,
+            result = purc_ejson_parsing_tree_evalute(ptree,
                     TestDVObj::get_dvobj, this, true);
-            purc_variant_ejson_parse_tree_destroy(ptree);
+            purc_ejson_parsing_tree_destroy(ptree);
 
             // read expected result
             read = getline(&line, &sz, fp);
@@ -329,9 +329,9 @@ void TestDVObj::run_testcases_in_file(const char *file_name)
             purc_log_info("Result `%s` expected\n", exp);
 
             ptree = purc_variant_ejson_parse_string(exp, exp_len);
-            expected = purc_variant_ejson_parse_tree_evalute(ptree,
+            expected = purc_ejson_parsing_tree_evalute(ptree,
                     NULL, NULL, true);
-            purc_variant_ejson_parse_tree_destroy(ptree);
+            purc_ejson_parsing_tree_destroy(ptree);
 
             bool check = purc_variant_is_equal_to(result, expected);
             if (!check) {

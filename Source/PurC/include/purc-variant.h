@@ -2947,7 +2947,7 @@ purc_variant_container_clone(purc_variant_t ctnr);
 PCA_EXPORT purc_variant_t
 purc_variant_container_clone_recursively(purc_variant_t ctnr);
 
-struct purc_ejson_parse_tree;
+struct purc_ejson_parsing_tree;
 
 /**
  * purc_variant_ejson_parse_string:
@@ -2961,7 +2961,7 @@ struct purc_ejson_parse_tree;
  *
  * Since: 0.1.1
  */
-PCA_EXPORT struct purc_ejson_parse_tree *
+PCA_EXPORT struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_string(const char *ejson, size_t sz);
 
 /**
@@ -2978,7 +2978,7 @@ purc_variant_ejson_parse_string(const char *ejson, size_t sz);
  *
  * Since: 0.1.1
  */
-PCA_EXPORT struct purc_ejson_parse_tree *
+PCA_EXPORT struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_file(const char *fname);
 
 /**
@@ -2992,13 +2992,13 @@ purc_variant_ejson_parse_file(const char *fname);
  *
  * Since: 0.1.1
  */
-PCA_EXPORT struct purc_ejson_parse_tree *
+PCA_EXPORT struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_stream(purc_rwstream_t rws);
 
 typedef purc_variant_t (*purc_cb_get_var)(void* ctxt, const char* name);
 
 /**
- * purc_variant_ejson_parse_tree_evalute:
+ * purc_ejson_parsing_tree_evalute:
  *
  * @parse_tree: An eJSON parsing tree which will be evaluated.
  * @fn_get_var: A callback function which returns a variant
@@ -3014,11 +3014,11 @@ typedef purc_variant_t (*purc_cb_get_var)(void* ctxt, const char* name);
  * Since: 0.1.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
+purc_ejson_parsing_tree_evalute(struct purc_ejson_parsing_tree *parse_tree,
         purc_cb_get_var fn_get_var, void *ctxt, bool silently);
 
 /**
- * purc_variant_ejson_parse_tree_destroy:
+ * purc_ejson_parsing_tree_destroy:
  *
  * @parse_tree: An eJSON parsing tree which will be destroyed.
  *
@@ -3029,7 +3029,7 @@ purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
  * Since: 0.1.1
  */
 PCA_EXPORT void
-purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree);
+purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree);
 
 PCA_EXTERN_C_END
 

@@ -313,11 +313,11 @@ eval(const char *ejson, purc_variant_t dvobj)
 {
     purc_variant_t result;
 
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
     ptree = purc_variant_ejson_parse_string(ejson, strlen(ejson));
-    result = purc_variant_ejson_parse_tree_evalute(ptree,
+    result = purc_ejson_parsing_tree_evalute(ptree,
             get_dvobj_datetime, dvobj, true);
-    purc_variant_ejson_parse_tree_destroy(ptree);
+    purc_ejson_parsing_tree_destroy(ptree);
 
     return result;
 }
@@ -417,7 +417,7 @@ TEST(dvobjs, time_prt)
 
         result = eval(test_cases[i].ejson, dvobj);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -624,7 +624,7 @@ TEST(dvobjs, fmttime)
 
         result = eval(test_cases[i].ejson, dvobj);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -776,7 +776,7 @@ TEST(dvobjs, broken_down_time)
 
         result = eval(test_cases[i].ejson, dvobj);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 

@@ -667,13 +667,13 @@ static purc_variant_t get_dvobj(void* ctxt, const char* name)
 
 static bool evalute_app_info(const char *app_info)
 {
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
 
     ptree = purc_variant_ejson_parse_string(app_info, strlen(app_info));
     if (ptree) {
-        run_info.app_info = purc_variant_ejson_parse_tree_evalute(ptree,
+        run_info.app_info = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj, &run_info, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
         return true;
     }
 

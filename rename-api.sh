@@ -15,5 +15,5 @@
 # sed -i 's/FFFF/TTTT/g' `grep FFFF * -rl`
 # sed -i 's/\<FFFF\>/TTTT/g' `grep '\<FFFF\>' * -rl`
 
-sed -i 's/purc_ejson_parse_tree/purc_ejson_parsing_tree/g' `grep purc_ejson_parse_tree * -rl`
 sed -i 's/purc_variant_ejson_parse_tree/purc_ejson_parsing_tree/g' `grep purc_variant_ejson_parse_tree * -rl`
+sed -i 's/purc_ejson_parse_tree/purc_ejson_parsing_tree/g' `grep purc_ejson_parse_tree * -rl`

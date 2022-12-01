@@ -2767,10 +2767,10 @@ pcvariant_diff(purc_variant_t l, purc_variant_t r)
     }
 }
 
-struct purc_ejson_parse_tree *
+struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_string(const char *ejson, size_t sz)
 {
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
     purc_rwstream_t rwstream = purc_rwstream_new_from_mem((void*)ejson, sz);
     if (rwstream == NULL)
         return NULL;
@@ -2781,10 +2781,10 @@ purc_variant_ejson_parse_string(const char *ejson, size_t sz)
     return ptree;
 }
 
-struct purc_ejson_parse_tree *
+struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_file(const char *fname)
 {
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
     purc_rwstream_t rwstream = purc_rwstream_new_from_file(fname, "r");
     if (rwstream == NULL)
         return NULL;
@@ -2795,7 +2795,7 @@ purc_variant_ejson_parse_file(const char *fname)
     return ptree;
 }
 
-struct purc_ejson_parse_tree *
+struct purc_ejson_parsing_tree *
 purc_variant_ejson_parse_stream(purc_rwstream_t rws)
 {
     struct pcvcm_node* root = NULL;
@@ -2804,7 +2804,7 @@ purc_variant_ejson_parse_stream(purc_rwstream_t rws)
     int ret = pcejson_parse(&root, &parser, rws, PCEJSON_DEFAULT_DEPTH);
     if (ret == PCEJSON_SUCCESS) {
         pcejson_destroy(parser);
-        return (struct purc_ejson_parse_tree *)root;
+        return (struct purc_ejson_parsing_tree *)root;
     }
 
     pcvcm_node_destroy(root);
@@ -2813,7 +2813,7 @@ purc_variant_ejson_parse_stream(purc_rwstream_t rws)
 }
 
 purc_variant_t
-purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
+purc_ejson_parsing_tree_evalute(struct purc_ejson_parsing_tree *parse_tree,
         purc_cb_get_var fn_get_var, void *ctxt, bool silently)
 {
     return pcvcm_eval_ex((struct pcvcm_node*)parse_tree, NULL, fn_get_var,
@@ -2821,7 +2821,7 @@ purc_variant_ejson_parse_tree_evalute(struct purc_ejson_parse_tree *parse_tree,
 }
 
 void
-purc_variant_ejson_parse_tree_destroy(struct purc_ejson_parse_tree *parse_tree)
+purc_ejson_parsing_tree_destroy(struct purc_ejson_parsing_tree *parse_tree)
 {
     pcvcm_node_destroy((struct pcvcm_node *)parse_tree);
 }
