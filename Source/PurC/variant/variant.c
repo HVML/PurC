@@ -2697,18 +2697,10 @@ pcvariant_object_shallow_copy(purc_variant_t obj)
     return o;
 }
 
-int
-purc_variant_is_mutable(purc_variant_t var, bool *is_mutable)
+bool
+purc_variant_is_container(purc_variant_t var)
 {
-    if (var == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
-    if (is_mutable)
-        *is_mutable = IS_CONTAINER(var->type);
-
-    return 0;
+    return IS_CONTAINER(var->type);
 }
 
 purc_variant_t

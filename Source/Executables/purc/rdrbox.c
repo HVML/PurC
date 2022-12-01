@@ -50,6 +50,13 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
         goto failed;
 
     box->type = type;
+
+    /* set the field here if its initial value it is not non-zero */
+    box->min_height = -1;
+    box->max_height = -1;
+    box->min_width = -1;
+    box->max_width = -1;
+
     switch (type) {
     case FOIL_RDRBOX_TYPE_BLOCK:
         box->block_data = calloc(1, sizeof(*box->block_data));
@@ -1481,7 +1488,8 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
                 }
 
                 marker_box->owner = ctxt->elem;
-                marker_box->is_anonymous = 1;
+                marker_box->is_pseudo = 1;
+                marker_box->principal = box;
                 box->list_item_data->marker_box = marker_box;
                 foil_rdrbox_insert_before(box, marker_box);
             }
@@ -1504,7 +1512,6 @@ create_pseudo_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
 
     if ((box = create_rdrbox_from_style(ctxt))) {
         box->principal = principal;
-        box->is_anonymous = 1;
         box->is_pseudo = 1;
     }
 
