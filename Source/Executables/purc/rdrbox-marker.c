@@ -509,6 +509,10 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     case FOIL_RDRBOX_LIST_STYLE_TYPE_CJK_DECIMAL:
         tail = "、";
         break;
+
+    default:
+        tail = " ";
+        break;
     }
 
     char *text = foil_rdrbox_list_number(nr_items, index + 1,
