@@ -137,9 +137,11 @@ eval_expected_result(const char *code)
     if (ejson) {
         result = purc_variant_make_from_json_string(ejson, ejson_len);
     }
+#if 0
     else {
         result = purc_variant_make_undefined();
     }
+#endif
 
     if (ejson)
         free(ejson);
@@ -250,6 +252,57 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     }
     else if (event == PURC_COND_COR_EXITED) {
         fprintf(stderr, "recv exited co=%d\n", cor->cid);
+        struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
+        struct buffer *buf =
+            (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (buf->expected_result &&
+                !purc_variant_is_equal_to(buf->expected_result, info->result)) {
+            char exe_result[1024];
+            char exp_result[1024];
+            purc_rwstream_t my_rws;
+
+            my_rws = purc_rwstream_new_from_mem(exp_result,
+                    sizeof(exp_result) - 1);
+            size_t len_expected = 0;
+            ssize_t n = purc_variant_serialize(buf->expected_result, my_rws,
+                    0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            exp_result[n] = 0;
+            purc_rwstream_destroy(my_rws);
+
+            my_rws = purc_rwstream_new_from_mem(exe_result,
+                    sizeof(exe_result) - 1);
+            if (info->result) {
+                size_t len_expected = 0;
+                ssize_t n = purc_variant_serialize(info->result, my_rws,
+                        0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+                exe_result[n] = 0;
+
+            }
+            else {
+                strcpy(exe_result, "INVALID VALUE");
+            }
+            purc_rwstream_destroy(my_rws);
+
+            ADD_FAILURE()
+                << "The execute result does not match to the expected result: "
+                << std::endl
+                << TCS_YELLOW
+                << exe_result
+                << TCS_NONE
+                << " vs. "
+                << TCS_YELLOW
+                << exp_result
+                << TCS_NONE
+                << std::endl;
+
+        }
+        else {
+            std::cout
+                << TCS_GREEN
+                << "Passed"
+                << TCS_NONE
+                << std::endl;
+        }
     }
 
     return 0;
