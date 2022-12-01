@@ -1,0 +1,32 @@
+#!/usr/bin/purc
+
+# update set : subtract
+
+# RESULT: [1UL,"zh_Hans"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_Hans" ]
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="subtract" with=["zh_CN", "en", "en_US"] />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+
+        <exit with [$DATA.count($locales), $locales[0]] />
+    </body>
+</hvml>
+
+
+

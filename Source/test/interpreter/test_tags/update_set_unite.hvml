@@ -1,0 +1,32 @@
+#!/usr/bin/purc
+
+# update set : unite
+
+# RESULT: 4UL
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_Hans" ]
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="unite" with=["en", "en_US"] />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+
+        <exit with $DATA.count($locales) />
+    </body>
+</hvml>
+
+
+

@@ -235,7 +235,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     }
 
     purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
-    PRINT_VARIANT(ret);
     if (ret == PURC_VARIANT_INVALID) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto out;
@@ -1424,6 +1423,9 @@ to_operator(const char *to)
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, MERGE)) == op) {
         ret = UPDATE_OP_MERGE;
     }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REMOVE)) == op) {
+        ret = UPDATE_OP_REMOVE;
+    }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTBEFORE)) == op) {
         ret = UPDATE_OP_INSERTBEFORE;
     }
@@ -1936,6 +1938,9 @@ on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
         return process(co, frame, ctxt->literal, with_eval);
+    }
+    if (ctxt->on && ctxt->op == UPDATE_OP_REMOVE) {
+        return process(co, frame, PURC_VARIANT_INVALID, ctxt->with_eval);
     }
 
     struct pcvdom_element *element = frame->pos;

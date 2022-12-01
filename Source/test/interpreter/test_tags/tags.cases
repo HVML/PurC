@@ -263,6 +263,18 @@ func_demo
 
 # update
 update_001
+update_set_displace
+update_set_append
+update_set_prepend
+update_set_merge
+update_set_remove
+update_set_insertBefore
+update_set_insertAfter
+update_set_unite
+update_set_intersect
+update_set_subtract
+update_set_xor
+update_set_overwrite
 
 # doctype
 doctype_001
