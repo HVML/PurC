@@ -247,7 +247,7 @@ TEST(vcm, again)
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)ejson, sz);
     ASSERT_NE(rws, nullptr);
 
-    struct purc_ejson_parse_tree *tree = purc_variant_ejson_parse_stream(rws);
+    struct purc_ejson_parsing_tree *tree = purc_variant_ejson_parse_stream(rws);
     ASSERT_NE(tree, nullptr);
 
     purc_variant_t nv = vcm_again_variant_create();
@@ -279,7 +279,7 @@ TEST(vcm, again)
 
     purc_variant_unref(v);
     purc_variant_unref(nv);
-    purc_variant_ejson_parse_tree_destroy(tree);
+    purc_ejson_parsing_tree_destroy(tree);
     purc_rwstream_destroy(rws);
 
     purc_cleanup();
@@ -299,7 +299,7 @@ TEST(vcm, again_ex)
     purc_rwstream_t rws = purc_rwstream_new_from_mem((void*)ejson, sz);
     ASSERT_NE(rws, nullptr);
 
-    struct purc_ejson_parse_tree *tree = purc_variant_ejson_parse_stream(rws);
+    struct purc_ejson_parsing_tree *tree = purc_variant_ejson_parse_stream(rws);
     ASSERT_NE(tree, nullptr);
 
     purc_variant_t nv = vcm_again_variant_create();
@@ -333,7 +333,7 @@ TEST(vcm, again_ex)
     pcvcm_eval_ctxt_destroy(ctxt);
     purc_variant_unref(v);
     purc_variant_unref(nv);
-    purc_variant_ejson_parse_tree_destroy(tree);
+    purc_ejson_parsing_tree_destroy(tree);
     purc_rwstream_destroy(rws);
 
     purc_cleanup();
