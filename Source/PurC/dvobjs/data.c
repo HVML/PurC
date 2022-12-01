@@ -607,16 +607,16 @@ parse_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
     ptree = purc_variant_ejson_parse_string(string, length);
     if (ptree == NULL) {
         goto failed;
     }
 
     purc_variant_t retv;
-    retv = purc_variant_ejson_parse_tree_evalute(ptree, NULL, NULL,
+    retv = purc_ejson_parsing_tree_evalute(ptree, NULL, NULL,
             (call_flags & PCVRT_CALL_FLAG_SILENTLY));
-    purc_variant_ejson_parse_tree_destroy(ptree);
+    purc_ejson_parsing_tree_destroy(ptree);
     return retv;
 
 failed:

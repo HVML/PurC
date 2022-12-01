@@ -1715,11 +1715,11 @@ TEST(utils, url)
 purc_variant_t
 ejson_to_variant(const char *ejson)
 {
-    struct purc_ejson_parse_tree *ptree = purc_variant_ejson_parse_string(
+    struct purc_ejson_parsing_tree *ptree = purc_variant_ejson_parse_string(
             ejson, strlen(ejson));
-    purc_variant_t result = purc_variant_ejson_parse_tree_evalute(ptree, NULL,
+    purc_variant_t result = purc_ejson_parsing_tree_evalute(ptree, NULL,
             PURC_VARIANT_INVALID, true);
-    purc_variant_ejson_parse_tree_destroy(ptree);
+    purc_ejson_parsing_tree_destroy(ptree);
     return result;
 }
 

@@ -83,18 +83,18 @@ static void run_testcases(const struct ejson_result *test_cases, size_t n)
     ASSERT_EQ(purc_variant_is_object(dvobj), true);
 
     for (size_t i = 0; i < n; i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_ejson, dvobj, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 

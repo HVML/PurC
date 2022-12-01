@@ -85,21 +85,21 @@ TEST_P(test_vcm_eval, eval_silently)
 {
     vcm_eval_test_data data = GetParam();
 
-    struct purc_ejson_parse_tree *ptree;
+    struct purc_ejson_parsing_tree *ptree;
     purc_variant_t result;
 
     size_t sz = data.object ? strlen(data.object) : 0;
     ptree = purc_variant_ejson_parse_string(data.object, sz);
-    purc_variant_t obj = purc_variant_ejson_parse_tree_evalute(ptree, NULL,
+    purc_variant_t obj = purc_ejson_parsing_tree_evalute(ptree, NULL,
             PURC_VARIANT_INVALID, data.silently);
-    purc_variant_ejson_parse_tree_destroy(ptree);
+    purc_ejson_parsing_tree_destroy(ptree);
     ASSERT_NE(obj, nullptr);
 
     sz = data.jsonee ? strlen(data.jsonee) : 0;
     ptree = purc_variant_ejson_parse_string(data.jsonee, sz);
-    result = purc_variant_ejson_parse_tree_evalute(ptree,
+    result = purc_ejson_parsing_tree_evalute(ptree,
             find_var, obj, data.silently);
-    purc_variant_ejson_parse_tree_destroy(ptree);
+    purc_ejson_parsing_tree_destroy(ptree);
 
     if (data.result) {
         ASSERT_NE(result, nullptr);

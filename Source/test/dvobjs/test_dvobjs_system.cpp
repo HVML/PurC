@@ -181,16 +181,16 @@ TEST(dvobjs, const)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
         ASSERT_NE(result, nullptr);
 
@@ -267,7 +267,7 @@ TEST(dvobjs, uname)
             get_system_uname, NULL, 0 },
 #endif
         /* FIXME: uncomment this testcase after fixed the bug of
-           purc_variant_ejson_parse_tree_evalute()
+           purc_ejson_parsing_tree_evalute()
         { "uname -z",
             "$SYS.uname()['bad-part-name']",
             get_system_uname, NULL, 0 },
@@ -283,18 +283,18 @@ TEST(dvobjs, uname)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -385,18 +385,18 @@ TEST(dvobjs, uname_ptr)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -505,18 +505,18 @@ TEST(dvobjs, time)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -680,18 +680,18 @@ TEST(dvobjs, time_us)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -819,18 +819,18 @@ TEST(dvobjs, locale)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -943,18 +943,18 @@ TEST(dvobjs, timezone)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -1100,18 +1100,18 @@ TEST(dvobjs, random)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -1240,18 +1240,18 @@ TEST(dvobjs, cwd)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
@@ -1397,18 +1397,18 @@ TEST(dvobjs, env)
     ASSERT_EQ(purc_variant_is_object(sys), true);
 
     for (size_t i = 0; i < PCA_TABLESIZE(test_cases); i++) {
-        struct purc_ejson_parse_tree *ptree;
+        struct purc_ejson_parsing_tree *ptree;
         purc_variant_t result, expected;
 
         purc_log_info("evalute: %s\n", test_cases[i].ejson);
 
         ptree = purc_variant_ejson_parse_string(test_cases[i].ejson,
                 strlen(test_cases[i].ejson));
-        result = purc_variant_ejson_parse_tree_evalute(ptree,
+        result = purc_ejson_parsing_tree_evalute(ptree,
                 get_dvobj_system, sys, true);
-        purc_variant_ejson_parse_tree_destroy(ptree);
+        purc_ejson_parsing_tree_destroy(ptree);
 
-        /* FIXME: purc_variant_ejson_parse_tree_evalute should not return NULL
+        /* FIXME: purc_ejson_parsing_tree_evalute should not return NULL
            when evaluating silently */
         ASSERT_NE(result, nullptr);
 
