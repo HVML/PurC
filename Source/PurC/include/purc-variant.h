@@ -772,7 +772,8 @@ purc_variant_native_get_ops(purc_variant_t native);
  * purc_variant_make_array:
  *
  * @sz: The size of the new array.
- * @value0...: The initial members of the new array.
+ * @value0: The first member of the new array.
+ * @...: The subsequent members of the new array.
  *
  * Creates an array variant with the specified initial size and members.
  *
@@ -957,8 +958,9 @@ static inline ssize_t purc_variant_array_get_size(purc_variant_t array)
  * purc_variant_make_object_by_static_ckey:
  *
  * @nr_kv_pairs: The number of the initial key/value pairs.
- * @key0...: The keys of the key/value pairs given by null-terminated strings.
- * @value0...: The values of key-value pairs.
+ * @key0: The key of the first property given by null-terminated strings.
+ * @value0: The value of the first property.
+ * @...: The subsequent key/value pairs of the new object.
  *
  * Creates an object variant with the given key/value pairs.
  * The result object will have @nr_kv_pairs properties.
@@ -975,8 +977,9 @@ purc_variant_make_object_by_static_ckey(size_t nr_kv_pairs,
  * purc_variant_make_object:
  *
  * @nr_kv_pairs: The number of the initial key/value pairs.
- * @key0...: The keys of the key/value pairs.
- * @value0...: The values of the key-value pairs.
+ * @key0: The key of the first property.
+ * @value0: The value of the first property.
+ * @...: The subsequent key/value pairs of the new object.
  *
  * Creates an object variant with the given key/value pairs.
  * The result object will have @nr_kv_pairs properties.
@@ -1298,7 +1301,8 @@ pcvrnt_object_iterator_get_value(
  *      string. If there are multiple keys, use whitespaces to separate them.
  *      If it is %NULL, this function will create a generic set.
  * @caseless: Compare values in case-insensitively or not.
- * @value0...: The variants will be added to the set as the ininitial members.
+ * @value0: The first variant will be added to the set as the ininitial member.
+ * @...: The subsequent variants as the ininitial members for the new set.
  *
  * Creates a set variant having the space for @sz members by using the
  * specified values @value0 as the initial members and the unique keys
@@ -1332,7 +1336,8 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * @unique_key (nullable): The unique keys specified in a null-terminated
  *      string. If there are multiple keys, use whitespaces to separate them.
  *      If it is %NULL, this function will create a generic set.
- * @value0...: The variants will be added to the set as the ininitial members.
+ * @value0: The first variant will be added to the set as the ininitial member.
+ * @...: The subsequent variants as the ininitial members for the new set.
  *
  * Creates a set variant having the space for @sz members by using the
  * specified values @value0 as the initial members and the unique keys
@@ -1366,7 +1371,8 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * @sz: The initial size (the number of members) of the new set.
  * @unique_key: The unique keys specified by a variant.
  *      Use %PURC_VARIANT_INVALID for a generic set.
- * @value0...: The variants will be added to the set as the ininitial members.
+ * @value0: The first variant will be added to the set as the ininitial member.
+ * @...: The subsequent variants as the ininitial members for the new set.
  *
  * Creates a set variant having the space for @sz members by using the
  * specified values @value0 as the initial members and the unique keys
@@ -2250,10 +2256,10 @@ purc_variant_load_dvobj_from_so (const char *so_name,
 .*
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_unload_dvobj (purc_variant_t dvobj);
+PCA_EXPORT bool
+purc_variant_unload_dvobj(purc_variant_t dvobj);
 
-typedef enum purc_variant_type
-{
+typedef enum purc_variant_type {
     PURC_VARIANT_TYPE_FIRST = 0,
 
     /* XXX: keep consistency with type names */
@@ -2300,24 +2306,28 @@ typedef enum purc_variant_type
     (PURC_VARIANT_TYPE_LAST - PURC_VARIANT_TYPE_FIRST + 1)
 
 /**
- * Whether the vairant is indicated type.
+ * purc_variant_is_type:
  *
- * @value: the variant value
- * @type: wanted type
+ * @value: A valid variant value.
+ * @type: Desired type
+ *
+ * Checks whether the given variant belongs to the specified type.
  *
  * Returns: %true on success, otherwise %false.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT bool purc_variant_is_type(purc_variant_t value,
-        enum purc_variant_type type);
+PCA_EXPORT bool
+purc_variant_is_type(purc_variant_t value, enum purc_variant_type type);
 
 /**
- * Get the type of a vairant value.
+ * purc_variant_get_type:
  *
- * @value: the variant value
+ * @value: A valid variant value.
  *
- * Returns: The type of input variant value
+ * Gets the type of a variant value.
+ *
+ * Returns: The type of the given variant.
  *
  * Since: 0.0.1
  */
@@ -2325,125 +2335,145 @@ PCA_EXPORT enum purc_variant_type
 purc_variant_get_type(purc_variant_t value);
 
 /**
- * Get the type name (static string) for a variant type.
+ * purc_variant_typename:
  *
- * @type: the variant type
+ * @type: A enumeration value which represents a variant type.
  *
- * Returns: The type name (a pointer to a static string).
+ * Gets the type name (a static null-terminated string) of
+ * the given variant type.
+ *
+ * Returns: The type name (a pointer to a static null-terminated string).
  *
  * Since: 0.1.0
  */
 PCA_EXPORT const char*
 purc_variant_typename(enum purc_variant_type type);
 
-/** Check whether the value is a undefined. */
+/** Checks whether the given variant is %undefined. */
 static inline bool purc_variant_is_undefined(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED);
 }
 
-/** Check whether the value is a null. */
+/** Checks whether the given variant is %null. */
 static inline bool purc_variant_is_null(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NULL);
 }
 
-/** Check whether the value is a boolean. */
+/** Checks whether the given variant is a boolean. */
 static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
 }
 
-/** Check whether the value is an exception. */
+/** Checks whether the given variant is an exception. */
 static inline bool purc_variant_is_exception(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_EXCEPTION);
 }
 
-/** Check whether the value is a number. */
+/** Checks whether the given variant is a number. */
 static inline bool purc_variant_is_number(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NUMBER);
 }
 
-/** Check whether the value is a longint. */
+/** Checks whether the given variant is a longint. */
 static inline bool purc_variant_is_longint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
-/** Check whether the value is a ulongint. */
+/** Checks whether the given variant is an ulongint. */
 static inline bool purc_variant_is_ulongint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ULONGINT);
 }
 
-/** Check whether the value is a longdouble. */
+/** Checks whether the given variant is a longdouble. */
 static inline bool purc_variant_is_longdouble(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
 }
 
-/** Check whether the value is an atomstring. */
+/** Checks whether the given variant is an atomstring. */
 static inline bool purc_variant_is_atomstring(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
 }
 
-/** Check whether the value is a string. */
+/** Checks whether the given variant is a string. */
 static inline bool purc_variant_is_string(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_STRING);
 }
 
-/** Check whether the value is a byte sequence. */
+/** Checks whether the given variant is a byte sequence. */
 static inline bool purc_variant_is_bsequence(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
-/** Check whether the value is a dynamic variant. */
+/** Checks whether the given variant is a dynamic property. */
 static inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
 
-/** Check whether the value is a native entity. */
+/** Checks whether the given variant is a native entity. */
 static inline bool purc_variant_is_native(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NATIVE);
 }
 
-/** Check whether the value is an object. */
+/** Checks whether the given variant is an object. */
 static inline bool purc_variant_is_object(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_OBJECT);
 }
 
-/** Check whether the value is an array. */
+/** Checks whether the given variant is an array. */
 static inline bool purc_variant_is_array(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ARRAY);
 }
 
-/** Check whether the value is a set. */
+/** Checks whether the given variant is a set. */
 static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
 
+/** Checks whether the given variant is a tuple. */
 static inline bool purc_variant_is_tuple(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
 }
 
-/** Check whether the value is a boolean and having value of true. */
+/** Checks whether the given variant is a boolean with the value of %true. */
 PCA_EXPORT bool
 purc_variant_is_true(purc_variant_t v);
 
-/** Check whether the value is a boolean and having value of false. */
+/** Checks whether the given variant is a boolean with the value of %false. */
 PCA_EXPORT bool
 purc_variant_is_false(purc_variant_t v);
+
+/**
+ * purc_variant_is_container:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a container, i.e.,
+ * an array, an object, a set, or a tuple.
+ *
+ * Returns: A boolean value indicating if the variant is a container;
+ *      %true for a container, %false for other.
+ *
+ * Since: 0.1.1
+ */
+PCA_EXPORT bool
+purc_variant_is_container(purc_variant_t v);
 
 /**
  * Gets the value by key from an object with key as another variant
@@ -2898,22 +2928,6 @@ purc_variant_set_xor(purc_variant_t set,
 PCA_EXPORT bool
 purc_variant_set_overwrite(purc_variant_t set,
         purc_variant_t src, bool silently);
-
-
-/**
- * Check if the variant is the mutable one, array/object/set
- *
- * @var: the variant to check
- * @is_mutable: the pointer where the result is to store
- *
- * Returns: denote if the function succeeds or not
- *         0:  Success
- *         -1: Failed
- *
- * Since: 0.1.1
- */
-PCA_EXPORT int
-purc_variant_is_mutable(purc_variant_t var, bool *is_mutable);
 
 /**
  * purc_variant_container_clone:
