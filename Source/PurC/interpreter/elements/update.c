@@ -40,7 +40,11 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define OP_STR_UNKNOWN "unknown"
+#define OP_STR_UNKNOWN              "unknown"
+
+#define AT_KEY_CONTENT              "content"
+#define AT_KEY_TEXT_CONTENT         "textContent"
+#define AT_KEY_ATTR                 "attr."
 
 enum hvml_update_op {
     UPDATE_OP_DISPLACE,
@@ -1357,14 +1361,14 @@ update_target(pcintr_stack_t stack, pcdoc_element_t target,
         s_at = purc_variant_get_string_const(at);
     }
 
-    if (!s_at) {
+    if (!s_at || strcmp(s_at, AT_KEY_CONTENT) == 0) {
         return update_target_child(stack, target, s_to, src, with_eval,
                 template_data_type, operator);
     }
-    if (strcmp(s_at, "textContent") == 0) {
+    if (strcmp(s_at, AT_KEY_TEXT_CONTENT) == 0) {
         return update_target_content(stack, target, s_to, src, with_eval, operator);
     }
-    if (strncmp(s_at, "attr.", 5) == 0) {
+    if (strncmp(s_at, AT_KEY_ATTR, 5) == 0) {
         s_at += 5;
         return update_target_attr(stack, target, s_at, s_to, src, with_eval);
     }
