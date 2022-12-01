@@ -2349,113 +2349,305 @@ purc_variant_get_type(purc_variant_t value);
 PCA_EXPORT const char*
 purc_variant_typename(enum purc_variant_type type);
 
-/** Checks whether the given variant is %undefined. */
+/**
+ * purc_variant_is_undefined:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is %undefined.
+ *
+ * Returns: %true if the given variant is %undefined, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_undefined(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_UNDEFINED);
 }
 
-/** Checks whether the given variant is %null. */
+/**
+ * purc_variant_is_null:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is %null.
+ *
+ * Returns: %true if the given variant is %null, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_null(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NULL);
 }
 
-/** Checks whether the given variant is a boolean. */
+/**
+ * purc_variant_is_boolean:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a boolean.
+ *
+ * Returns: %true if the given variant is a boolean, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_boolean(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BOOLEAN);
 }
 
-/** Checks whether the given variant is an exception. */
+/**
+ * purc_variant_is_exception:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is an exception.
+ *
+ * Returns: %true if the given variant is an exception, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_exception(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_EXCEPTION);
 }
 
-/** Checks whether the given variant is a number. */
+/**
+ * purc_variant_is_number:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a number.
+ *
+ * Returns: %true if the given variant is a number, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_number(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NUMBER);
 }
 
-/** Checks whether the given variant is a longint. */
+/**
+ * purc_variant_is_longint:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a longint.
+ *
+ * Returns: %true if the given variant is a longint, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_longint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGINT);
 }
 
-/** Checks whether the given variant is an ulongint. */
+/**
+ * purc_variant_is_ulongint:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a ulongint.
+ *
+ * Returns: %true if the given variant is a ulongint, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_ulongint(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ULONGINT);
 }
 
-/** Checks whether the given variant is a longdouble. */
+/**
+ * purc_variant_is_longdouble:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a longdouble.
+ *
+ * Returns: %true if the given variant is a longdouble otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_longdouble(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_LONGDOUBLE);
 }
 
-/** Checks whether the given variant is an atomstring. */
+/**
+ * purc_variant_is_atomstring:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is an atom.
+ *
+ * Returns: %true if the given variant is an atom, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_atomstring(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ATOMSTRING);
 }
 
-/** Checks whether the given variant is a string. */
+/**
+ * purc_variant_is_string:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a string.
+ *
+ * Returns: %true if the given variant is a string, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_string(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_STRING);
 }
 
-/** Checks whether the given variant is a byte sequence. */
+/**
+ * purc_variant_is_bsequence:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a byte sequence.
+ *
+ * Returns: %true if the given variant is a byte sequence, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_bsequence(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_BSEQUENCE);
 }
 
-/** Checks whether the given variant is a dynamic property. */
+/**
+ * purc_variant_is_dynamic:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a dynamic property.
+ *
+ * Returns: %true if the given variant is a dynamic property, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_dynamic(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_DYNAMIC);
 }
 
-/** Checks whether the given variant is a native entity. */
+/**
+ * purc_variant_is_native:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a native entity.
+ *
+ * Returns: %true if the given variant is a native entity, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_native(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_NATIVE);
 }
 
-/** Checks whether the given variant is an object. */
+/**
+ * purc_variant_is_object:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is an object.
+ *
+ * Returns: %true if the given variant is an object, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_object(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_OBJECT);
 }
 
-/** Checks whether the given variant is an array. */
+/**
+ * purc_variant_is_array:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is an array.
+ *
+ * Returns: %true if the given variant is an array, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_array(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_ARRAY);
 }
 
-/** Checks whether the given variant is a set. */
+/**
+ * purc_variant_is_set:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a set.
+ *
+ * Returns: %true if the given variant is a set, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_set(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_SET);
 }
 
-/** Checks whether the given variant is a tuple. */
+/**
+ * purc_variant_is_tuple:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a tuple.
+ *
+ * Returns: %true if the given variant is a tuple, otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 static inline bool purc_variant_is_tuple(purc_variant_t v)
 {
     return purc_variant_is_type(v, PURC_VARIANT_TYPE_TUPLE);
 }
 
-/** Checks whether the given variant is a boolean with the value of %true. */
+/**
+ * purc_variant_is_true:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a boolean with the value of %true.
+ *
+ * Returns: %true if the variant is a boolean with the value of %true,
+ *  otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT bool
 purc_variant_is_true(purc_variant_t v);
 
-/** Checks whether the given variant is a boolean with the value of %false. */
+/**
+ * purc_variant_is_false:
+ *
+ * @v: A valid variant.
+ *
+ * Checks whether the given variant is a boolean with the value of %false.
+ *
+ * Returns: %true if the variant is a boolean with the value of %false,
+ *  otherwise %false.
+ *
+ * Since: 0.1.0
+ */
 PCA_EXPORT bool
 purc_variant_is_false(purc_variant_t v);
 
