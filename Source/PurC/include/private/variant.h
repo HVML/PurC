@@ -453,8 +453,15 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
 bool
 pcvariant_is_sorted_array(purc_variant_t v);
 
-
 PCA_EXTERN_C_END
+
+#define PURC_VARIANT_SAFE_CLEAR(_v)             \
+do {                                            \
+    if (_v != PURC_VARIANT_INVALID) {           \
+        purc_variant_unref(_v);                 \
+        _v = PURC_VARIANT_INVALID;              \
+    }                                           \
+} while (0)
 
 /* VWNOTE (WARN)
  * 1. Make these macros as private interfaces. Please reimplement them

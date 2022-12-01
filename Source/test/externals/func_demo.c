@@ -128,6 +128,16 @@ statsUserRegion(purc_variant_t on_value, purc_variant_t with_value)
     return result;
 }
 
+#ifndef PURC_VARIANT_SAFE_CLEAR
+#define PURC_VARIANT_SAFE_CLEAR(_v)             \
+do {                                            \
+    if (_v != PURC_VARIANT_INVALID) {           \
+        purc_variant_unref(_v);                 \
+        _v = PURC_VARIANT_INVALID;              \
+    }                                           \
+} while (0)
+#endif
+
 extern purc_variant_t
 to_sort(purc_variant_t on_value, purc_variant_t with_value,
         purc_variant_t against_value, bool desc, bool caseless)
