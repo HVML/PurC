@@ -36,6 +36,8 @@
 #include <limits.h>
 #include <gtest/gtest.h>
 
+#include <vector>
+
 using namespace std;
 
 struct TestCase {
@@ -46,23 +48,125 @@ struct TestCase {
 };
 
 static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
+
+std::vector<TestCase*> g_test_cases;
+
+void destroy_test_case(struct TestCase *tc)
+{
+    if (tc->name) {
+        free(tc->name);
+    }
+    if (tc->hvml) {
+        free(tc->hvml);
+    }
+    if (tc->html) {
+        free(tc->html);
+    }
+    if (tc->html_path) {
+        free(tc->html_path);
+    }
+    free(tc);
+}
+
+std::vector<TestCase*>& read_test_cases();
+
+class TestCaseEnv : public ::testing::Environment {
+    public:
+        ~TestCaseEnv() override {}
+
+        void SetUp() override {
+        }
+
+        void TearDown() override {
+            size_t nr = g_test_cases.size();
+            for (size_t i = 0; i < nr; i++) {
+                TestCase *tc = g_test_cases[i];
+                destroy_test_case(tc);
+            }
+        }
+};
+
+testing::Environment* const _env = testing::AddGlobalTestEnvironment(new TestCaseEnv);
+
+static purc_variant_t
+eval_expected_result(const char *code)
+{
+    char *ejson = NULL;
+    size_t ejson_len = 0;
+    const char *line = code;
+
+    while (*line == '#') {
+
+        line++;
+
+        // skip blank character: space or tab
+        while (isblank(*line)) {
+            line++;
+        }
+
+        if (strncmp(line, "RESULT:", strlen("RESULT:")) == 0) {
+            line += strlen("RESULT:");
+
+            const char *eol = line;
+            while (*eol != '\n') {
+                eol++;
+            }
+
+            ejson_len = eol - line;
+            if (ejson_len > 0) {
+                ejson = strndup(line, ejson_len);
+            }
+
+            break;
+        }
+        else {
+            // skip left characters in the line
+            while (*line != '\n') {
+                line++;
+            }
+            line++;
+
+            // skip blank character: space or tab
+            while (isblank(*line) || *line == '\n') {
+                line++;
+            }
+        }
+    }
+
+    purc_variant_t result;
+    if (ejson) {
+        result = purc_variant_make_from_json_string(ejson, ejson_len);
+    }
+    else {
+        result = purc_variant_make_undefined();
+    }
+
+    if (ejson)
+        free(ejson);
+
+    /* purc_log_debug("result type: %s\n",
+            purc_variant_typename(purc_variant_get_type(result))); */
+
+    return result;
+}
+
+
 static inline void
-add_test_case(std::vector<TestCase> &test_cases,
+add_test_case(std::vector<struct TestCase*> &test_cases,
         const char *name, const char *hvml,
         const char *html, const char *html_path)
 {
-    TestCase data;
-    memset(&data, 0, sizeof(data));
-    data.name = MemCollector::strdup(name);
-    data.hvml = MemCollector::strdup(hvml);
+    struct TestCase *data = (struct TestCase*) calloc(sizeof(struct TestCase), 1);
+    data->name = strdup(name);
+    data->hvml = strdup(hvml);
 
     if (html) {
-        data.html = MemCollector::strdup(html);
-        data.html_path = NULL;
+        data->html = strdup(html);
+        data->html_path = NULL;
     }
     else {
-        data.html = NULL;
-        data.html_path = MemCollector::strdup(html_path);
+        data->html = NULL;
+        data->html_path = strdup(html_path);
     }
 
     test_cases.push_back(data);
@@ -92,7 +196,7 @@ char *trim(char *str)
     return str;
 }
 
-class TestHVMLTag : public testing::TestWithParam<TestCase>
+class TestHVMLTag : public testing::TestWithParam<struct TestCase*>
 {
 protected:
     void SetUp() {
@@ -107,10 +211,14 @@ protected:
 struct buffer {
     char                   *dump_buff;
 
+    purc_variant_t          expected_result;
     ~buffer() {
         if (dump_buff) {
             free(dump_buff);
             dump_buff = nullptr;
+        }
+        if (expected_result) {
+            purc_variant_unref(expected_result);
         }
     }
 };
@@ -149,18 +257,19 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
 
 TEST_P(TestHVMLTag, hvml_tags)
 {
-    TestCase test_case = GetParam();
-    PRINTF("test case : %s\n", test_case.name);
+    struct TestCase *test_case = GetParam();
+    PRINTF("test case : %s\n", test_case->name);
 
     setenv(PURC_ENVV_DVOBJS_PATH, SOPATH, 1);
     setenv(PURC_ENVV_EXECUTOR_PATH, SOPATH, 1);
 
     struct buffer buf;
     buf.dump_buff = nullptr;
+    buf.expected_result = eval_expected_result(test_case->hvml);
 
 //    purc_enable_log(true, false);
 
-    purc_vdom_t vdom = purc_load_hvml_from_string(test_case.hvml);
+    purc_vdom_t vdom = purc_load_hvml_from_string(test_case->hvml);
     ASSERT_NE(vdom, nullptr);
 
     purc_variant_t request =
@@ -185,21 +294,21 @@ TEST_P(TestHVMLTag, hvml_tags)
 
     ASSERT_NE(buf.dump_buff, nullptr);
 
-    if (test_case.html) {
+    if (test_case->html) {
         std::string left = buf.dump_buff;
         left.erase(remove(left.begin(), left.end(), ' '), left.end());
         left.erase(remove(left.begin(), left.end(), '\n'), left.end());
 
-        std::string right = test_case.html;
+        std::string right = test_case->html;
         right.erase(remove(right.begin(), right.end(), ' '), right.end());
         right.erase(remove(right.begin(), right.end(), '\n'), right.end());
         ASSERT_EQ(left, right);
     }
     else {
-        FILE* fp = fopen(test_case.html_path, "w");
+        FILE* fp = fopen(test_case->html_path, "w");
         fprintf(fp, "%s", buf.dump_buff);
         fclose(fp);
-        fprintf(stderr, "html written to `%s`\n", test_case.html_path);
+        fprintf(stderr, "html written to `%s`\n", test_case->html_path);
         fprintf(stderr, "html:\n%s\n", buf.dump_buff);
     }
 }
@@ -232,10 +341,8 @@ char *read_file(const char *file)
 #define OS_POSTFIX  "unknown"
 #endif
 
-std::vector<TestCase> read_test_cases()
+std::vector<TestCase*>& read_test_cases()
 {
-    std::vector<TestCase> test_cases;
-
     const char *env = "HVML_TAG_TEST_PATH";
     char data_path[PATH_MAX + 1] =  {0};
     char file_path[PATH_MAX + 1] = {0};
@@ -293,7 +400,7 @@ std::vector<TestCase> read_test_cases()
                 html = read_file(file);
             }
 
-            add_test_case(test_cases, name, hvml, html, file);
+            add_test_case(g_test_cases, name, hvml, html, file);
 
             free (hvml);
             free (html);
@@ -303,16 +410,17 @@ std::vector<TestCase> read_test_cases()
     fclose(fp);
 
 end:
-    if (test_cases.empty()) {
-        add_test_case(test_cases, "base",
+    if (g_test_cases.empty()) {
+        add_test_case(g_test_cases, "base",
                 "<hvml></hvml>",
                 "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>",
                 NULL
                 );
     }
-    return test_cases;
+    return g_test_cases;
 }
 
 INSTANTIATE_TEST_SUITE_P(hvml_tags, TestHVMLTag,
         testing::ValuesIn(read_test_cases()));
+
 
