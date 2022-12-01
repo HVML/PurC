@@ -278,7 +278,7 @@ struct foil_rdrbox {
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
-    int32_t left, top, right, bottom;   // position
+    int32_t left, top;                  // position
     int32_t mt, ml, mr, mb;             // margins
     int32_t bt, bl, br, bb;             // borders
     int32_t pt, pl, pr, pb;             // paddings
@@ -343,6 +343,15 @@ struct foil_rdrbox {
 
     /* the callback to cleanup the extra data */
     void (*cb_data_cleanup)(void *data);
+
+    union {
+        struct _block_fmt_context  *block_fmt_ctxt;
+        struct _inline_fmt_context *inline_fmt_ctxt;
+    };
+
+    /* the stacking context created by the box if it is a positioned box,
+       and z-index is not auto. */
+    struct _stacking_context *stacking_ctxt;
 };
 
 enum {

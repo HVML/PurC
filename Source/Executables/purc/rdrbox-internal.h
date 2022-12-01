@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 #include "unicode/unicode.h"
+#include "region/region.h"
 
 #define LEN_BUF_INTEGER 128
 
@@ -65,14 +66,34 @@ struct _inline_block_data {
 };
 
 struct _list_item_data {
-    unsigned index;           /* index in the parent box */
-    foil_rdrbox *marker_box;  /* NULL for no marker */
+    /* index in the parent box */
+    unsigned index;
+    /* NULL for no marker */
+    foil_rdrbox *marker_box;
 };
 
 struct _marker_box_data {
     uint32_t *ucs;
     size_t    nr_ucs;
     int       width;
+};
+
+struct _block_fmt_context {
+    /* < 0 for no limit */
+    int max_height;
+    int allocated_height;
+};
+
+struct _inline_fmt_context {
+    /* the available region to lay out floats and inline boxes. */
+    foil_region avl_region;
+};
+
+struct _stacking_context {
+    foil_rdrbox *creator;
+
+    /* the array of child stacking contexts sorted by z-index. */
+    struct sorted_array *zidx2children;
 };
 
 #ifdef __cplusplus
