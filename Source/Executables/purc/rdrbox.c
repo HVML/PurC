@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -1330,6 +1330,17 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
 
     LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
 
+    /* whether is a block level box */
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||
+            box->type == FOIL_RDRBOX_TYPE_TABLE)
+        box->is_block_level = 1;
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
+        box->is_inline_level = 1;
+    }
+
     /* determine the used values for common properties */
     dtrm_common_properties(ctxt, box);
 
@@ -1455,17 +1466,6 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
             box->is_inline_box = 1;
-
-        /* whether is a block level box */
-        if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
-                box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||
-                box->type == FOIL_RDRBOX_TYPE_TABLE)
-            box->is_block_level = 1;
-        else if (box->type == FOIL_RDRBOX_TYPE_INLINE ||
-                box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
-                box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
-            box->is_inline_level = 1;
-        }
 
         /* whether is a block contianer */
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||

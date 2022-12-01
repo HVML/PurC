@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -869,8 +869,7 @@ create_anonymous_blocks_for_inline_box(struct foil_create_ctxt *ctxt,
             foil_rdrbox_remove_from_tree(child);
             foil_rdrbox_append_child(block, child);
         }
-        else {
-            assert(child->is_block_level);
+        else if (child->is_block_level) {
 
             foil_rdrbox_remove_from_tree(child);
             foil_rdrbox_append_child(block->parent, child);
