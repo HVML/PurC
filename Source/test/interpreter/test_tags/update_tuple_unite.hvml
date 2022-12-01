@@ -1,0 +1,31 @@
+#!/usr/bin/purc
+
+# update tuple : unite
+
+# RESULT: NotAllowed
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales">
+            [! "zh_CN", "zh_Hans" ]
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="unite" with=["en", "en_US"] />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+
+    </body>
+</hvml>
+
+
+

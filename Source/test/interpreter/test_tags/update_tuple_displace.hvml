@@ -1,0 +1,24 @@
+#!/usr/bin/purc
+
+# update tuple : displace
+
+# RESULT: 'zh_HKS'
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales">
+            [! "zh_CN", "zh_HK" ]
+        </init>
+
+        <update on="$locales" at="[1]" with="zh_HKS" />
+
+        <exit with $locales[1] />
+    </body>
+</hvml>
+
+
+

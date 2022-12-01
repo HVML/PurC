@@ -1,0 +1,32 @@
+#!/usr/bin/purc
+
+# update tuple : insertBefore
+
+# RESULT: NotAllowed
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales">
+            [! "zh_CN", "zh_Hans" ]
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="insertBefore" at=[0] with="zh" />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+
+        <exit with $locales[0] />
+    </body>
+</hvml>
+
+
+

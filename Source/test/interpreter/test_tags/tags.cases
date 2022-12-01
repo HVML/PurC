@@ -289,6 +289,19 @@ update_array_subtract
 update_array_xor
 update_array_overwrite
 
+update_tuple_displace
+update_tuple_append
+update_tuple_prepend
+update_tuple_merge
+update_tuple_remove
+update_tuple_insertBefore
+update_tuple_insertAfter
+update_tuple_unite
+update_tuple_intersect
+update_tuple_subtract
+update_tuple_xor
+update_tuple_overwrite
+
 # doctype
 doctype_001
 
