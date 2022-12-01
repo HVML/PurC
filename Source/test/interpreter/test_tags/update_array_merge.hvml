@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# update set : merge
+# update array : merge
 
 # RESULT: 'NotAllowed'
 
@@ -10,7 +10,7 @@
     </head>
 
     <body>
-        <init as="locales" uniquely>
+        <init as="locales">
             [ "zh_CN" ]
         </init>
 

@@ -1,8 +1,8 @@
 #!/usr/bin/purc
 
-# update set : merge
+# update array : overwrite
 
-# RESULT: 'NotAllowed'
+# RESULT: NotAllowed
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -10,19 +10,24 @@
     </head>
 
     <body>
-        <init as="locales" uniquely>
-            [ "zh_CN" ]
+        <init as="locales">
+            [
+                {"id":1, "value":"zh_CN"},
+                {"id":2, "value":"zh_Hans"}
+            ]
         </init>
 
         <div id="msg">
         </div>
 
-        <update on="$locales" to="merge" with=["zh_HKS"] />
+        <update on="$locales" to="overwrite" with={"id":1, "value":"zh_Hans"} />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
+
+        <exit with [$DATA.count($locales), $locales[0]] />
     </body>
 </hvml>
 

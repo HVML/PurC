@@ -276,6 +276,19 @@ update_set_subtract
 update_set_xor
 update_set_overwrite
 
+update_array_displace
+update_array_append
+update_array_prepend
+update_array_merge
+update_array_remove
+update_array_insertBefore
+update_array_insertAfter
+update_array_unite
+update_array_intersect
+update_array_subtract
+update_array_xor
+update_array_overwrite
+
 # doctype
 doctype_001
 
