@@ -1,0 +1,54 @@
+#!/usr/bin/purc
+
+# update inner set : remove
+
+# RESULT: ["zh_HK", 1UL, 1UL, 1UL, "tuple NotAllowed"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_HK", "en", "en_US", "en_AU" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" to="remove" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_array">
+            ["array", $locales]
+        </init>
+
+        <update on="$wrap_array" at="[1]" to="remove" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_set" uniquely>
+            ["set", $locales]
+        </init>
+
+        <update on="$wrap_set" at="[1]" to="remove" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_tuple">
+            [!"tuple", $locales]
+        </init>
+
+        <update on="$wrap_tuple" at="[1]" to="remove" with="en" />
+        <catch for=`NotAllowed`>
+            <update on="$wrap_tuple" at="[0]" with="tuple NotAllowed" />
+        </catch>
+
+
+        <exit with [$locales[1], $DATA.count($wrap_object), $DATA.count($wrap_array), $DATA.count($wrap_set) , $wrap_tuple[0]] />
+    </body>
+</hvml>
+
+
+

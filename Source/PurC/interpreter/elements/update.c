@@ -865,7 +865,8 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
+            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+                    to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -939,20 +940,21 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
         case UPDATE_OP_REMOVE:
-        case UPDATE_OP_APPEND:
-        case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
             ret = update_variant_array(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
+        case UPDATE_OP_APPEND:
+        case UPDATE_OP_PREPEND:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
+            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+                    to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -1033,7 +1035,8 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
+            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+                    to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -1118,7 +1121,8 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, at, to, src, with_eval);
+            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+                    to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
         default:

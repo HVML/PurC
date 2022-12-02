@@ -1,8 +1,8 @@
 #!/usr/bin/purc
 
-# update inner set : append
+# update inner set : insertBefore
 
-# RESULT: {"wrap_array":"NotAllowed","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}
+# RESULT: ["en", {"wrap_array":"success","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -28,7 +28,7 @@
             {"type":"object", "locales":$locales}
         </init>
 
-        <update on="$wrap_object" at=".locales" to="append" with="en"/>
+        <update on="$wrap_object" at=".locales" to="insertBefore" with="en"/>
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_object" with="NotAllowed" />
@@ -39,7 +39,7 @@
             ["array", $locales]
         </init>
 
-        <update on="$wrap_array" at="[1]" to="append" with="en" />
+        <update on="$wrap_array" at="[1]" to="insertBefore" with="en" />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_array" with="NotAllowed" />
@@ -50,7 +50,7 @@
             ["set", $locales]
         </init>
 
-        <update on="$wrap_set" at="[1]" to="append" with="en" />
+        <update on="$wrap_set" at="[1]" to="insertBefore" with="en" />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_set" with="NotAllowed" />
@@ -61,13 +61,13 @@
             [!"tuple", $locales]
         </init>
 
-        <update on="$wrap_tuple" at="[1]" to="append" with="en" />
+        <update on="$wrap_tuple" at="[1]" to="insertBefore" with="en" />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_tuple" with="NotAllowed" />
         </catch>
 
-        <exit with $result />
+        <exit with [$wrap_array[1], $result] />
     </body>
 </hvml>
 

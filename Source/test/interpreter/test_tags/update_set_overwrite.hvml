@@ -2,7 +2,7 @@
 
 # update set : overwrite
 
-# RESULT: [3UL,{id"":1,"value":"zh_Hans"}]
+# RESULT: [2UL, {"id":1,"value":"zh_Hans"},{"id":2,"value":"zh_Hans"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -27,7 +27,7 @@
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with [$DATA.count($locales), $locales[0]] />
+        <exit with [$DATA.count($locales), $locales[0], $locales[1]] />
     </body>
 </hvml>
 

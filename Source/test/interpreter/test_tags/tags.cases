@@ -278,17 +278,17 @@ update_set_xor
 update_set_overwrite
 
 update_inner_set_displace
-#update_inner_set_append
-#update_inner_set_prepend
-#update_inner_set_merge
-#update_inner_set_remove
-#update_inner_set_insertBefore
-#update_inner_set_insertAfter
-#update_inner_set_unite
-#update_inner_set_intersect
-#update_inner_set_subtract
-#update_inner_set_xor
-#update_inner_set_overwrite
+update_inner_set_append
+update_inner_set_prepend
+update_inner_set_merge
+update_inner_set_remove
+update_inner_set_insertBefore
+update_inner_set_insertAfter
+update_inner_set_unite
+update_inner_set_intersect
+update_inner_set_subtract
+update_inner_set_xor
+update_inner_set_overwrite
 
 update_array_displace
 update_array_append

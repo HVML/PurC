@@ -1,8 +1,8 @@
 #!/usr/bin/purc
 
-# update inner set : append
+# update inner set : overwrite
 
-# RESULT: {"wrap_array":"NotAllowed","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}
+# RESULT: [2UL, {"id":1,"value":"zh_Hans"},{"id":2,"value":"zh_HK"},{"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"success"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -19,8 +19,11 @@
         }
         </init>
 
-        <init as="locales" uniquely>
-            [ "zh_CN", "zh_HK" ]
+        <init as="locales" uniquely against="id">
+            [
+                {"id":1, "value":"zh_CN"},
+                {"id":2, "value":"zh_HK"}
+            ]
         </init>
 
         <!-- wrap  -->
@@ -28,7 +31,7 @@
             {"type":"object", "locales":$locales}
         </init>
 
-        <update on="$wrap_object" at=".locales" to="append" with="en"/>
+        <update on="$wrap_object" at=".locales" to="overwrite" with={"id":1, "value":"zh_Hans"}/>
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_object" with="NotAllowed" />
@@ -39,7 +42,7 @@
             ["array", $locales]
         </init>
 
-        <update on="$wrap_array" at="[1]" to="append" with="en" />
+        <update on="$wrap_array" at="[1]" to="overwrite" with={"id":1, "value":"zh_Hans"} />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_array" with="NotAllowed" />
@@ -50,7 +53,7 @@
             ["set", $locales]
         </init>
 
-        <update on="$wrap_set" at="[1]" to="append" with="en" />
+        <update on="$wrap_set" at="[1]" to="overwrite" with={"id":1, "value":"zh_Hans"} />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_set" with="NotAllowed" />
@@ -61,13 +64,13 @@
             [!"tuple", $locales]
         </init>
 
-        <update on="$wrap_tuple" at="[1]" to="append" with="en" />
+        <update on="$wrap_tuple" at="[1]" to="overwrite" with={"id":1, "value":"zh_Hans"} />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_tuple" with="NotAllowed" />
         </catch>
 
-        <exit with $result />
+        <exit with [$DATA.count($locales), $locales[0], $locales[1], $result] />
     </body>
 </hvml>
 
