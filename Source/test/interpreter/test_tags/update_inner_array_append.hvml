@@ -1,0 +1,75 @@
+#!/usr/bin/purc
+
+# update inner array : append
+
+# RESULT: ["zh","zh_CN","zh_HK","zh_Hans",["en","en_US"],["en","en_US","en_GB"],["en","en_US","en_AU"],["en","en_US","en_CA"]]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="result">
+        {
+            "wrap_object":"success",
+            "wrap_array":"success",
+            "wrap_set":"success",
+            "wrap_tuple":"success"
+        }
+        </init>
+
+        <init as="locales">
+            [ "zh", "zh_CN", "zh_HK", "zh_Hans" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" to="append" with=["en", "en_US"] />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_object" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_array">
+            ["array", $locales]
+        </init>
+
+        <update on="$wrap_array" at="[1]" to="append" with=["en", "en_US", "en_GB"] />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_array" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_set" uniquely>
+            ["set", $locales]
+        </init>
+
+        <update on="$wrap_set" at="[1]" to="append" with=["en", "en_US", "en_AU"] />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_set" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_tuple">
+            [!"tuple", $locales]
+        </init>
+
+        <update on="$wrap_tuple" at="[1]" to="append" with=["en", "en_US", "en_CA"] />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_tuple" with="NotAllowed" />
+        </catch>
+
+        <exit with $locales />
+    </body>
+</hvml>
+
+
+

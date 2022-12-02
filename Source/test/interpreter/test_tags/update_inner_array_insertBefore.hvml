@@ -1,0 +1,103 @@
+#!/usr/bin/purc
+
+# update inner array : insertBefore
+
+# RESULT: {"wrap_array":"InvalidValue","wrap_object":"success","wrap_set":"InvalidValue","wrap_tuple":"InvalidValue"}
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="result">
+        {
+            "wrap_object":"success",
+            "wrap_array":"success",
+            "wrap_set":"success",
+            "wrap_tuple":"success"
+        }
+        </init>
+
+        <init as="locales">
+            [ "zh", "zh_CN", "zh_HK", "zh_Hans" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" to="insertBefore" with="en"/>
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_object" with="NotAllowed" />
+        </catch>
+
+        <catch for=`ArgumentMissed`>
+            <update on="$result" at=".wrap_object" with="ArgumentMissed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_array">
+            ["array", $locales]
+        </init>
+
+        <update on="$wrap_array" at="[1]" to="insertBefore" with="en" />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_array" with="NotAllowed" />
+        </catch>
+
+        <catch for=`ArgumentMissed`>
+            <update on="$result" at=".wrap_array" with="ArgumentMissed" />
+        </catch>
+
+        <catch for=`InvalidValue`>
+            <update on="$result" at=".wrap_array" with="InvalidValue" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_set" uniquely>
+            ["set", $locales]
+        </init>
+
+        <update on="$wrap_set" at="[1]" to="insertBefore" with="en"/>
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_set" with="NotAllowed" />
+        </catch>
+
+        <catch for=`ArgumentMissed`>
+            <update on="$result" at=".wrap_set" with="ArgumentMissed" />
+        </catch>
+
+        <catch for=`InvalidValue`>
+            <update on="$result" at=".wrap_set" with="InvalidValue" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_tuple">
+            [!"tuple", $locales]
+        </init>
+
+        <update on="$wrap_tuple" at="[1]" to="insertBefore" with="en"/>
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_tuple" with="NotAllowed" />
+        </catch>
+
+        <catch for=`ArgumentMissed`>
+            <update on="$result" at=".wrap_tuple" with="ArgumentMissed" />
+        </catch>
+
+        <catch for=`InvalidValue`>
+            <update on="$result" at=".wrap_tuple" with="InvalidValue" />
+        </catch>
+
+        <exit with $result />
+    </body>
+</hvml>
+
+
+

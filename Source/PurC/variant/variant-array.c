@@ -240,7 +240,7 @@ check_grow(purc_variant_t arr, size_t idx, purc_variant_t val)
         size_t i;
         purc_variant_t v;
         foreach_value_in_variant_array(arr, v, i) {
-            PC_ASSERT(i < idx);
+//            PC_ASSERT(i < idx);
             r = pcvar_arr_append(_new, v);
             if (r)
                 break;

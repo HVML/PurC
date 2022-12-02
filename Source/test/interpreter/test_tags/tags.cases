@@ -303,6 +303,19 @@ update_array_subtract
 update_array_xor
 update_array_overwrite
 
+update_inner_array_displace
+update_inner_array_append
+update_inner_array_prepend
+update_inner_array_merge
+update_inner_array_remove
+update_inner_array_insertBefore
+update_inner_array_insertAfter
+update_inner_array_unite
+update_inner_array_intersect
+update_inner_array_subtract
+update_inner_array_xor
+update_inner_array_overwrite
+
 update_tuple_displace
 update_tuple_append
 update_tuple_prepend
