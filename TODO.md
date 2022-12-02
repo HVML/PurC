@@ -134,7 +134,7 @@
 
 ### 2.6) `purc`
 
-1. [0.9.4] Ehance `foil` to support more properties and layouts except for table.
+1. [0.9.4] Enhance `foil` to support more properties and layouts except for table.
 1. [0.9.6] Enhance `foil` to support full-screen and multiple-page rendering.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
 
