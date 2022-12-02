@@ -1,0 +1,42 @@
+#!/usr/bin/purc
+
+# update inner set : append
+
+# RESULT: ["zh_HK","en","en","en","en"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="result">
+        {
+            "wrap_object":"success",
+            "wrap_array":"success",
+            "wrap_set":"success",
+            "wrap_tuple":"success"
+        }
+        </init>
+
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_HK" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" to="append" with="en"/>
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_object" with="NotAllowed" />
+        </catch>
+
+        <exit with $result />
+    </body>
+</hvml>
+
+
+

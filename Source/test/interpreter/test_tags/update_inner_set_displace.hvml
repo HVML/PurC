@@ -1,0 +1,51 @@
+#!/usr/bin/purc
+
+# update inner set : displace
+
+# RESULT: ["zh_HK","en","en","en","en"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_HK" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_array">
+            ["array", $locales]
+        </init>
+
+        <update on="$wrap_array" at="[1]" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_set" uniquely>
+            ["set", $locales]
+        </init>
+
+        <update on="$wrap_set" at="[1]" with="en" />
+
+        <!-- wrap -->
+        <init as="wrap_tuple">
+            [!"tuple", $locales]
+        </init>
+
+        <update on="$wrap_tuple" at="[1]" with="en" />
+
+
+        <exit with [$locales[1], $wrap_object.locales, $wrap_array[1], $wrap_set[1] , $wrap_tuple[1]] />
+    </body>
+</hvml>
+
+
+
