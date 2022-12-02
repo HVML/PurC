@@ -797,11 +797,10 @@ update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
 static int
 update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t on, purc_variant_t at, purc_variant_t to,
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
         purc_variant_t src, pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(co);
-    purc_variant_t dest = on;
     purc_variant_t ultimate = PURC_VARIANT_INVALID;
 
     struct ctxt_for_update *ctxt;
@@ -838,7 +837,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (!k) {
             goto out;
         }
-        ultimate = purc_variant_object_get(on, k);
+        ultimate = purc_variant_object_get(dest, k);
         purc_variant_unref(k);
     }
     else {
@@ -883,8 +882,8 @@ out:
 
 static int
 update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src, pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
@@ -892,13 +891,9 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
-    purc_variant_t dest = ctxt->on;
     purc_variant_t ultimate = PURC_VARIANT_INVALID;
 
     struct pcvdom_element *element = frame->pos;
-    purc_variant_t on  = ctxt->on;
-    purc_variant_t to  = ctxt->to;
-    purc_variant_t at  = ctxt->at;
     const char *op = get_op_str(to);
 
     int ret = -1;
@@ -926,7 +921,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     if (at) {
         idx = (size_t) purc_variant_numerify(at);
-        ultimate = purc_variant_array_get(on, idx);
+        ultimate = purc_variant_array_get(dest, idx);
         if (!ultimate) {
             ret = 0;
             goto out;
@@ -974,18 +969,14 @@ out:
 
 static int
 update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src, pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
     struct pcvdom_element *element = frame->pos;
-    purc_variant_t on  = ctxt->on;
-    purc_variant_t to  = ctxt->to;
-    purc_variant_t at  = ctxt->at;
-    purc_variant_t dest = ctxt->on;
     purc_variant_t ultimate = PURC_VARIANT_INVALID;
     const char *op = get_op_str(to);
 
@@ -1011,7 +1002,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     if (at) {
         idx = (size_t) purc_variant_numerify(at);
-        ultimate = purc_variant_set_get_by_index(on, idx);
+        ultimate = purc_variant_set_get_by_index(dest, idx);
         if (!ultimate) {
             ret = 0;
             goto out;
@@ -1059,8 +1050,8 @@ out:
 
 static int
 update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t src,
-        pcintr_attribute_op with_eval)
+        purc_variant_t dest, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src, pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
@@ -1068,10 +1059,6 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
     struct pcvdom_element *element = frame->pos;
-    purc_variant_t on  = ctxt->on;
-    purc_variant_t to  = ctxt->to;
-    purc_variant_t at  = ctxt->at;
-    purc_variant_t dest = ctxt->on;
     purc_variant_t ultimate = PURC_VARIANT_INVALID;
     const char *op = get_op_str(to);
     int ret = -1;
@@ -1100,7 +1087,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     if (at) {
         idx = (size_t) purc_variant_numerify(at);
-        ultimate = purc_variant_tuple_get(on, idx);
+        ultimate = purc_variant_tuple_get(dest, idx);
         if (!ultimate) {
             ret = 0;
             goto out;
@@ -1152,23 +1139,22 @@ update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src, pcintr_attribute_op with_eval)
 {
     int ret = -1;
-    struct ctxt_for_update *ctxt = (struct ctxt_for_update*)frame->ctxt;
     enum purc_variant_type type = purc_variant_get_type(dest);
     switch (type) {
     case PURC_VARIANT_TYPE_OBJECT:
-        ret = update_object(co, frame, ctxt->on, at, to, src, with_eval);
+        ret = update_object(co, frame, dest, at, to, src, with_eval);
         break;
 
     case PURC_VARIANT_TYPE_ARRAY:
-        ret = update_array(co, frame, src, with_eval);
+        ret = update_array(co, frame, dest, at, to, src, with_eval);
         break;
 
     case PURC_VARIANT_TYPE_SET:
-        ret = update_set(co, frame, src, with_eval);
+        ret = update_set(co, frame, dest, at, to, src, with_eval);
         break;
 
     case PURC_VARIANT_TYPE_TUPLE:
-        ret = update_tuple(co, frame, src, with_eval);
+        ret = update_tuple(co, frame, dest, at, to, src, with_eval);
         break;
 
     default:
