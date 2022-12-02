@@ -1117,10 +1117,10 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else {
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
             ret = update_variant_tuple(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
-        case UPDATE_OP_REMOVE:
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
@@ -1465,16 +1465,6 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t at  = ctxt->at;
     purc_variant_t template_data_type  = ctxt->template_data_type;
 
-    ctxt->op = UPDATE_OP_DISPLACE;
-    if (to != PURC_VARIANT_INVALID) {
-        const char *s_to = purc_variant_get_string_const(to);
-        ctxt->op = to_operator(s_to);
-        if (ctxt->op == UPDATE_OP_UNKNOWN) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-    }
-
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
@@ -1806,6 +1796,17 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_walk_attrs(frame, element, stack, attr_found_val);
     if (r)
         return ctxt;
+
+    ctxt->op = UPDATE_OP_DISPLACE;
+    if (ctxt->to != PURC_VARIANT_INVALID) {
+        const char *s_to = purc_variant_get_string_const(ctxt->to);
+        ctxt->op = to_operator(s_to);
+        if (ctxt->op == UPDATE_OP_UNKNOWN) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            return ctxt;
+        }
+    }
+
 
     if (ctxt->on == PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,

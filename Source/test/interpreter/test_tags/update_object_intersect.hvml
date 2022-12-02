@@ -1,8 +1,8 @@
 #!/usr/bin/purc
 
-# update tuple : remove
+# update object : intersect
 
-# RESULT: 'NotAllowed'
+# RESULT: NotAllowed
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -11,20 +11,19 @@
 
     <body>
         <init as="locales">
-            [! "zh_CN", "zh_Hans" ]
+            {"id":1, "value":"zh_CN"}
         </init>
 
         <div id="msg">
         </div>
 
-        <update on="$locales" to="remove" at=[0] />
+        <update on="$locales" to="intersect" with=["zh_CN", "en", "en_US"] />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with $locales[0] />
     </body>
 </hvml>
 

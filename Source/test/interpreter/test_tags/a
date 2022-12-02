@@ -1,0 +1,12 @@
+cp  update_tuple_append.hvml update_object_append.hvml
+cp  update_tuple_displace.hvml update_object_displace.hvml
+cp  update_tuple_insertAfter.hvml update_object_insertAfter.hvml
+cp  update_tuple_insertBefore.hvml update_object_insertBefore.hvml
+cp  update_tuple_intersect.hvml update_object_intersect.hvml
+cp  update_tuple_merge.hvml update_object_merge.hvml
+cp  update_tuple_overwrite.hvml update_object_overwrite.hvml
+cp  update_tuple_prepend.hvml update_object_prepend.hvml
+cp  update_tuple_remove.hvml update_object_remove.hvml
+cp  update_tuple_subtract.hvml update_object_subtract.hvml
+cp  update_tuple_unite.hvml update_object_unite.hvml
+cp  update_tuple_xor.hvml update_object_xor.hvml

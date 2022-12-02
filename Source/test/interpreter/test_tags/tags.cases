@@ -302,6 +302,19 @@ update_tuple_subtract
 update_tuple_xor
 update_tuple_overwrite
 
+update_object_displace
+update_object_append
+update_object_prepend
+update_object_merge
+update_object_remove
+update_object_insertBefore
+update_object_insertAfter
+update_object_unite
+update_object_intersect
+update_object_subtract
+update_object_xor
+update_object_overwrite
+
 # doctype
 doctype_001
 
