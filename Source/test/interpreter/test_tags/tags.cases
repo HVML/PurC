@@ -329,6 +329,19 @@ update_tuple_subtract
 update_tuple_xor
 update_tuple_overwrite
 
+update_inner_tuple_displace
+update_inner_tuple_append
+update_inner_tuple_prepend
+update_inner_tuple_merge
+update_inner_tuple_remove
+update_inner_tuple_insertBefore
+update_inner_tuple_insertAfter
+update_inner_tuple_unite
+update_inner_tuple_intersect
+update_inner_tuple_subtract
+update_inner_tuple_xor
+update_inner_tuple_overwrite
+
 update_object_displace
 update_object_append
 update_object_prepend
