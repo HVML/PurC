@@ -228,6 +228,7 @@ build_rev_update_chain(purc_variant_t arr, struct arr_node *node)
 static int
 check_grow(purc_variant_t arr, size_t idx, purc_variant_t val)
 {
+    UNUSED_PARAM(idx);
     if (!pcvar_container_belongs_to_set(arr))
         return 0;
 
@@ -239,6 +240,7 @@ check_grow(purc_variant_t arr, size_t idx, purc_variant_t val)
     do {
         size_t i;
         purc_variant_t v;
+        UNUSED_VARIABLE(i);
         foreach_value_in_variant_array(arr, v, i) {
 //            PC_ASSERT(i < idx);
             r = pcvar_arr_append(_new, v);
