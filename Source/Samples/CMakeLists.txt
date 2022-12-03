@@ -7,6 +7,16 @@ PURC_COPY_FILES(ScriptToRunSamples
     FILES run_all_samples.sh
 )
 
+set(sample_HTML_input_FILES
+        "DOMRuler/layout_html/window.html"
+        "DOMRuler/layout_html/window.css"
+)
+
+PURC_COPY_FILES(sampleHTMLinputFILES
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES ${sample_HTML_input_FILES}
+)
+
 set(sample_HVML_FILES
     "hvml/hello.hvml"
     "hvml/hello-except.hvml"
