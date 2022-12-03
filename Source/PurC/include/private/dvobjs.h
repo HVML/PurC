@@ -219,6 +219,9 @@ struct wildcard_list {
 
 int32_t pcdvobjs_get_random(void) WTF_INTERNAL;
 
+bool
+pcdvobjs_is_elements(purc_variant_t v);
+
 purc_variant_t
 pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element);
 

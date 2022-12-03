@@ -248,6 +248,19 @@ has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     return purc_variant_make_boolean(false);
 }
 
+#define IS_ELEMENTS         "is_elements"
+
+static purc_variant_t
+is_elements(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    return purc_variant_make_boolean(true);
+}
+
 static struct native_property_cfg configs[] = {
     {"count", count_getter, NULL, NULL, NULL},
     {"at", at_getter, NULL, NULL, NULL},
@@ -259,6 +272,7 @@ static struct native_property_cfg configs[] = {
     {"json_content", json_content_getter, NULL, NULL, NULL},
     // VW {"val", val_getter, NULL, NULL, NULL},
     {"has_class", has_class_getter, NULL, NULL, NULL},
+    {IS_ELEMENTS, is_elements, NULL, NULL, NULL},
 };
 
 static struct native_property_cfg*
@@ -586,6 +600,21 @@ pcdvobjs_query_elements(purc_document_t doc, pcdoc_element_t root,
     }
 
     return elements;
+}
+
+bool
+pcdvobjs_is_elements(purc_variant_t v)
+{
+    if (!purc_variant_is_native(v)) {
+        return false;
+    }
+    void *entity = purc_variant_native_get_entity(v);
+    struct purc_native_ops *ops = purc_variant_native_get_ops(v);
+    purc_nvariant_method m = ops->property_getter(entity, IS_ELEMENTS);
+    if (m) {
+        return true;
+    }
+    return false;
 }
 
 purc_variant_t

@@ -759,6 +759,14 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
 }
 
 static int
+update_elements(pcintr_stack_t stack,
+        purc_variant_t elems, purc_variant_t at, purc_variant_t to,
+        purc_variant_t src,
+        pcintr_attribute_op with_eval,
+        purc_variant_t template_data_type,
+        enum hvml_update_op operator);
+
+static int
 update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
         purc_variant_t src, pcintr_attribute_op with_eval);
@@ -1129,6 +1137,18 @@ update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         ret = update_tuple(co, frame, dest, at, to, src, with_eval);
         break;
 
+    case PURC_VARIANT_TYPE_NATIVE:
+    case PURC_VARIANT_TYPE_STRING:
+    case PURC_VARIANT_TYPE_NUMBER:
+    case PURC_VARIANT_TYPE_LONGINT:
+    case PURC_VARIANT_TYPE_ULONGINT:
+    case PURC_VARIANT_TYPE_LONGDOUBLE:
+    case PURC_VARIANT_TYPE_ATOMSTRING:
+    case PURC_VARIANT_TYPE_BSEQUENCE:
+    case PURC_VARIANT_TYPE_BOOLEAN:
+    case PURC_VARIANT_TYPE_DYNAMIC:
+    case PURC_VARIANT_TYPE_NULL:
+    case PURC_VARIANT_TYPE_EXCEPTION:
     default:
         purc_set_error(PURC_ERROR_NOT_ALLOWED);
         break;
@@ -1336,7 +1356,7 @@ update_target(pcintr_stack_t stack, pcdoc_element_t target,
     return -1;
 }
 
-static int
+int
 update_elements(pcintr_stack_t stack,
         purc_variant_t elems, purc_variant_t at, purc_variant_t to,
         purc_variant_t src,
@@ -1426,23 +1446,26 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
-        return update_elements(&co->stack, on, at, to, src, with_eval,
+        if (pcdvobjs_is_elements(on)) {
+            return update_elements(&co->stack, on, at, to, src, with_eval,
                 template_data_type, ctxt->op);
+        }
     }
     else if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
-
         purc_document_t doc = co->stack.doc;
         purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
-        pcdoc_element_t elem;
-        elem = pcdvobjs_get_element_from_elements(elems, 0);
-        int r = 0;
-        if (elem) {
-            r = update_elements(&co->stack, elems, at, to, src, with_eval,
-                    template_data_type, ctxt->op);
+        if (elems) {
+            pcdoc_element_t elem;
+            elem = pcdvobjs_get_element_from_elements(elems, 0);
+            int r = 0;
+            if (elem) {
+                r = update_elements(&co->stack, elems, at, to, src, with_eval,
+                        template_data_type, ctxt->op);
+            }
+            purc_variant_unref(elems);
+            return r ? -1 : 0;
         }
-        purc_variant_unref(elems);
-        return r ? -1 : 0;
     }
     return update_dest(co, frame, on, at, to, src, with_eval);
 }
