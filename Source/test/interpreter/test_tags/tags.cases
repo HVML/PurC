@@ -355,6 +355,19 @@ update_object_subtract
 update_object_xor
 update_object_overwrite
 
+update_inner_object_displace
+update_inner_object_append
+update_inner_object_prepend
+update_inner_object_merge
+update_inner_object_remove
+update_inner_object_insertBefore
+update_inner_object_insertAfter
+update_inner_object_unite
+update_inner_object_intersect
+update_inner_object_subtract
+update_inner_object_xor
+update_inner_object_overwrite
+
 # doctype
 doctype_001
 

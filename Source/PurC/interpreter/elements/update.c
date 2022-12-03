@@ -1107,10 +1107,10 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else {
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
-        case UPDATE_OP_REMOVE:
             ret = update_variant_tuple(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
+        case UPDATE_OP_REMOVE:
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
