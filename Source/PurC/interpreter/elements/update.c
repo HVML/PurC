@@ -758,40 +758,8 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
     return ret;
 }
 
-static UNUSED_FUNCTION int
-update_variant(purc_variant_t dst, purc_variant_t src,
-        enum hvml_update_op op, enum pchvml_attr_operator with_op,
-        pcintr_attribute_op with_eval, bool silently)
-{
-    int ret = -1;
-    enum purc_variant_type type = purc_variant_get_type(dst);
-    switch (type) {
-    case PURC_VARIANT_TYPE_OBJECT:
-        ret = update_variant_object(dst, src, PURC_VARIANT_INVALID, op,
-                with_op, with_eval, silently);
-        break;
-
-    case PURC_VARIANT_TYPE_ARRAY:
-        ret = update_variant_array(dst, src, -1, op, with_op, with_eval, silently);
-        break;
-
-    case PURC_VARIANT_TYPE_SET:
-        ret = update_variant_set(dst, src, -1, op, with_op, with_eval, silently);
-        break;
-
-    case PURC_VARIANT_TYPE_TUPLE:
-        ret = update_variant_tuple(dst, src, -1, op, with_op, with_eval, silently);
-        break;
-
-    default:
-        purc_set_error(PURC_ERROR_NOT_ALLOWED);
-        break;
-    }
-    return ret;
-}
-
 static int
-update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
         purc_variant_t src, pcintr_attribute_op with_eval);
 
@@ -819,7 +787,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t k, v;
         UNUSED_VARIABLE(k);
         foreach_key_value_in_variant_object(dest, k, v)
-            ret = update_container(co, frame, v, at, to, src, with_eval);
+            ret = update_dest(co, frame, v, at, to, src, with_eval);
             if (ret != 0) {
                 goto out;
             }
@@ -865,7 +833,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+            ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
                     to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
@@ -911,7 +879,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         size_t idx;
         UNUSED_VARIABLE(idx);
         foreach_value_in_variant_array(dest, val, idx)
-            ret = update_container(co, frame, val, at, to, src, with_eval);
+            ret = update_dest(co, frame, val, at, to, src, with_eval);
             if (ret != 0) {
                 goto out;
             }
@@ -953,7 +921,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+            ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
                     to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
@@ -993,7 +961,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
         purc_variant_t v;
         foreach_value_in_variant_set_order(dest, v)
-            ret = update_container(co, frame, v, at, to, src, with_eval);
+            ret = update_dest(co, frame, v, at, to, src, with_eval);
             if (ret != 0) {
                 goto out;
             }
@@ -1035,7 +1003,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+            ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
                     to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
@@ -1078,7 +1046,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         for (ssize_t i = 0; i < sz; i++) {
             val = purc_variant_tuple_get(dest, i);
             if (val) {
-                ret = update_container(co, frame, val, at, to, src, with_eval);
+                ret = update_dest(co, frame, val, at, to, src, with_eval);
                 if (ret != 0) {
                     goto out;
                 }
@@ -1121,7 +1089,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_SUBTRACT:
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
-            ret = update_container(co, frame, ultimate, PURC_VARIANT_INVALID,
+            ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
                     to, src, with_eval);
             break;
         case UPDATE_OP_UNKNOWN:
@@ -1138,7 +1106,7 @@ out:
 }
 
 int
-update_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
         purc_variant_t src, pcintr_attribute_op with_eval)
 {
@@ -1476,7 +1444,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_unref(elems);
         return r ? -1 : 0;
     }
-    return update_container(co, frame, on, at, to, src, with_eval);
+    return update_dest(co, frame, on, at, to, src, with_eval);
 }
 
 static int
