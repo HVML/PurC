@@ -1674,20 +1674,22 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
 
 /**
+ * purc_variant_make_tuple:
+ *
+ * @sz: The size of the tuple, i.e., the number of members in the tuple.
+ * @members: A C array of the members to put into the tuple.
+ *
  * Creates a tuple variant from variants.
  *
- * @sz: the size of the tuple, i.e., the number of members in the tuple.
- * @members: a C array of the members to put into the tuple.
- *
- * The function will setting the left members as null variants after
- * it encountered an invalud variant (%PURC_VARIANT_INVALID) in \members.
+ * The function will set the left members as %null variants after
+ * it encountered an invalud variant (%PURC_VARIANT_INVALID) in @members.
  * You can call purc_variant_tuple_set() to set the left members with other
  * variants.
  *
- * Note that if \members is %NULL, all members in the tuple will be
- * null variants initially.
+ * Note that if @members is %NULL, all members in the tuple will be
+ * %null variants initially.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A tuple variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.1.0
  */
@@ -1695,9 +1697,11 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_tuple(size_t sz, purc_variant_t *members);
 
 /**
+ * purc_variant_make_tuple_0:
+ *
  * Creates an empty tuple variant.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A tuple variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.2.0
  */
@@ -1708,12 +1712,15 @@ purc_variant_make_tuple_0(void)
 }
 
 /**
- * Gets the size of a tuple variant.
+ * purc_variant_tuple_size:
  *
- * @tuple: the tuple variant.
- * @sz: the buffer to receive the size of the tuple.
+ * @tuple: A tuple variant.
+ * @sz: The pointer to a size_t buffer to receive the size of the tuple.
  *
- * Returns: %true when success, or %false on failure.
+ * Gets the size (the number of the members) of a tuple variant.
+ *
+ * Returns: %true when success, or %false on failure. When it returns %false,
+ *  the value contained in the buffer pointed to by @sz is undefined.
  *
  * Since: 0.1.0
  */
@@ -1721,11 +1728,13 @@ PCA_EXPORT bool
 purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
 
 /**
- * Gets the size of a tuple variant.
+ * purc_variant_tuple_get_size:
  *
- * @tuple: the tuple variant.
+ * @tuple: A tuple variant.
  *
- * Returns: The number of elements in the tuple;
+ * Gets the size (the number of the members) of a tuple variant.
+ *
+ * Returns: The number of members in the tuple;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a tuple.
  *
  * Since: 0.1.0
@@ -1740,12 +1749,14 @@ purc_variant_tuple_get_size(purc_variant_t tuple)
 }
 
 /**
+ * purc_variant_tuple_get:
+ *
+ * @tuple: A tuple variant.
+ * @idx: The index of wanted member.
+ *
  * Gets a member from a tuple by index.
  *
- * @dobule: the tuple variant.
- * @idx: the index of wanted member.
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A variant on success, or % PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.1.0
  */
@@ -1753,11 +1764,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
 
 /**
- * Sets a member in a tuple by index.
+ * purc_variant_tuple_set:
  *
- * @double: the tuple variant.
- * @idx: the index of the member to replace.
- * @value: the new value of the member.
+ * @tuple: A tuple variant.
+ * @idx: The index of the member to replace.
+ * @value: The new variant of the member.
+ *
+ * Sets (replaces) a member in a tuple by index.
+ * This function will decrement the reference count of the old variant,
+ * and increment the reference count of the new variant.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1770,7 +1785,7 @@ purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 #define PCVARIANT_SAFLAG_DESC           0x0001
 #define PCVARIANT_SAFLAG_DEFAULT        0x0000
 
-typedef int  (*pcvrnt_compare_method) (purc_variant_t v1, purc_variant_t v2);
+typedef int (*pcvrnt_compare_method)(purc_variant_t v1, purc_variant_t v2);
 
 PCA_EXPORT purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
