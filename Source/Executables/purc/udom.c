@@ -214,8 +214,13 @@ static void udom_cleanup(pcmcth_udom *udom)
         css_stylesheet_destroy(udom->author_sheet);
     if (udom->select_ctx)
         css_select_ctx_destroy(udom->select_ctx);
+    if (udom->root_stk_ctxt) {
+        foil_stacking_context_delete(udom->root_stk_ctxt);
+    }
     if (udom->initial_cblock)
         foil_rdrbox_delete_deep(udom->initial_cblock);
+
+    foil_region_rect_heap_cleanup(&udom->rgnrc_heap);
 }
 
 pcmcth_udom *foil_udom_new(pcmcth_page *page)
@@ -1131,7 +1136,19 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     if (normalize_rdrtree(&ctxt, udom->initial_cblock))
         goto failed;
 
-    /* determine the pending properties (height) and lay out the boxes */
+    /* initialize the block heap for region rectangles */
+    LOG_DEBUG("Calling foil_region_rect_heap_init()...\n");
+    if (!foil_region_rect_heap_init(&udom->rgnrc_heap, FOIL_DEF_RGNRCHEAP_SZ))
+        goto failed;
+
+    /* create the stacking context for the root element */
+    LOG_DEBUG("Calling foil_stacking_context_new() for root element...\n");
+    udom->root_stk_ctxt = foil_stacking_context_new(NULL, 0,
+            udom->initial_cblock->first);
+    if (udom->root_stk_ctxt == NULL)
+        goto failed;
+
+    /* determine the geometries of boxes and lay out the boxes */
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock, 0, 0 };
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);

@@ -79,12 +79,13 @@ foil_stacking_context *foil_stacking_context_new(
 
     ctxt->zidx2child = sorted_array_create(SAFLAG_ORDER_ASC,
             0, free_head, cmp_zidx);
-    if (ctxt->zidx2child)
+    if (ctxt->zidx2child == NULL)
         goto failed;
 
     ctxt->parent = parent;
     ctxt->creator = creator;
     ctxt->zidx = zidx;
+    creator->stacking_ctxt = ctxt;
     return ctxt;
 
 failed:
@@ -134,6 +135,7 @@ int foil_stacking_context_delete(foil_stacking_context *ctxt)
     }
 
     sorted_array_destroy(ctxt->zidx2child);
+    ctxt->creator->stacking_ctxt = NULL;
     free(ctxt);
     return 0;
 }

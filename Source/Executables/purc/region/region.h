@@ -180,14 +180,22 @@ void foil_block_heap_free (foil_block_heap_p heap, void* data);
 
 /**
  * \fn void foil_block_heap_cleanup (foil_block_heap_p heap)
- * \brief Destroys a private block data heap.
+ * \brief Cleans up a private block data heap.
  *
- * \param heap The pointer to the heap to be destroied.
+ * \param heap The pointer to the heap to be cleaned up.
  *
- * \sa foil_block_heap_init, foil_block_heap
+ * \sa foil_block_heap_init, foil_block_heap_delete
  */
 void foil_block_heap_cleanup (foil_block_heap_p heap);
 
+/**
+ * \fn void foil_block_heap_delete (foil_block_heap_p heap)
+ * \brief Deletes a private block data heap.
+ *
+ * \param heap The pointer to the heap to be deleted.
+ *
+ * \sa foil_block_heap_init, foil_block_heap_cleanup
+ */
 void foil_block_heap_delete (foil_block_heap_p heap);
 
 /**
@@ -248,7 +256,7 @@ void foil_block_heap_delete (foil_block_heap_p heap);
  */
 #define foil_region_rect_heap_cleanup(heap)   foil_block_heap_cleanup (heap);
 
-#define foil_region_heap_rect_delete(heap)   foil_block_heap_delete (heap);
+#define foil_region_rect_heap_delete(heap)   foil_block_heap_delete (heap);
 
 /**
  * \fn void foil_region_init (foil_region_p region, foil_block_heap_p rgnrc_heap)

@@ -344,14 +344,13 @@ struct foil_rdrbox {
     /* the callback to cleanup the extra data */
     void (*cb_data_cleanup)(void *data);
 
-    union {
-        struct _block_fmt_context  *block_fmt_ctxt;
-        struct _inline_fmt_context *inline_fmt_ctxt;
-    };
+    /* formatting contexts */
+    struct _block_fmt_context  *block_fmt_ctxt;
+    struct _inline_fmt_context *inline_fmt_ctxt;
 
     /* the stacking context created by the box if it is a positioned box,
        and z-index is not auto. */
-    struct _stacking_context *stacking_ctxt;
+    struct foil_stacking_context *stacking_ctxt;
 };
 
 enum {
