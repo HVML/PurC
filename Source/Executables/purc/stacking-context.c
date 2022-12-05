@@ -68,7 +68,10 @@ foil_stacking_context *foil_stacking_context_new(
                 goto failed;
 
             INIT_LIST_HEAD(head);
-            sorted_array_add(parent->zidx2child, zidx, head);
+            if (sorted_array_add(parent->zidx2child, zidx, head) < 0) {
+                free(head);
+                goto failed;
+            }
         }
 
         list_add_tail(head, &ctxt->list);
@@ -117,7 +120,6 @@ int foil_stacking_context_delete(foil_stacking_context *ctxt)
     }
 
     size_t n = sorted_array_count(ctxt->zidx2child);
-
     for (size_t i = 0; i < n; i++) {
         struct list_head *head;
         sorted_array_get(ctxt->zidx2child, i, (void **)&head);
