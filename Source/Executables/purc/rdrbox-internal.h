@@ -31,6 +31,7 @@
 
 #include "unicode/unicode.h"
 #include "region/region.h"
+#include "util/list.h"
 
 #define LEN_BUF_INTEGER 128
 
@@ -87,13 +88,6 @@ struct _block_fmt_context {
 struct _inline_fmt_context {
     /* the available region to lay out floats and inline boxes. */
     foil_region avl_region;
-};
-
-struct _stacking_context {
-    foil_rdrbox *creator;
-
-    /* the array of child stacking contexts sorted by z-index. */
-    struct sorted_array *zidx2children;
 };
 
 #ifdef __cplusplus

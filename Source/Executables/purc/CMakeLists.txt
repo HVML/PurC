@@ -51,6 +51,7 @@ if (ENABLE_RDR_FOIL)
         css-selection.c
         udom.c
         page.c
+        stacking-context.c
         rdrbox.c
         rdrbox-marker.c
         rdrbox-inline.c

@@ -51,7 +51,7 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
 
     box->type = type;
 
-    /* set the field here if its initial value it is not non-zero */
+    /* set the field here if its initial value is not non-zero */
     box->min_height = -1;
     box->max_height = -1;
     box->min_width = -1;
