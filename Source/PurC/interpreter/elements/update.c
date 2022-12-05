@@ -1286,17 +1286,30 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
         v = purc_variant_ref(src);
     }
 
-    size_t sz;
-    const char *s = purc_variant_get_string_const_ex(v, &sz);
-    if (!s) {
-        purc_variant_unref(v);
-        return -1;
-    }
-
     int r;
-    r = pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, s, sz, true);
-    purc_variant_unref(v);
+    if (purc_variant_is_string(v)) {
+        size_t sz;
+        const char *s = purc_variant_get_string_const_ex(v, &sz);
+        if (!s) {
+            purc_variant_unref(v);
+            return -1;
+        }
+
+        r = pcintr_util_set_attribute(stack->doc, target,
+                PCDOC_OP_DISPLACE, at, s, sz, true);
+        purc_variant_unref(v);
+    }
+    else {
+        char *s = pcvariant_to_string(v);
+        if (!s) {
+            purc_variant_unref(v);
+            return -1;
+        }
+        r = pcintr_util_set_attribute(stack->doc, target,
+                PCDOC_OP_DISPLACE, at, s, strlen(s), true);
+        purc_variant_unref(v);
+        free(s);
+    }
     return r ? -1 : 0;
 }
 
@@ -1306,7 +1319,7 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
         pcintr_attribute_op with_eval)
 {
     UNUSED_PARAM(stack);
-    if (purc_variant_is_string(src)) {
+    if (purc_variant_is_string(src) || pcvariant_is_of_number(src)) {
         if (strcmp(to, "displace") == 0) {
             return displace_target_attr(stack, target, at, src, with_eval);
         }

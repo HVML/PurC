@@ -2150,7 +2150,7 @@ END_STATE()
 BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
     if (is_whitespace(character) || character == '}'
             || character == ']' || character == ',' || character == ')'
-            || is_eof(character)) {
+            || is_eof(character) || parser->is_finished(parser, character)) {
         RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
     }
 

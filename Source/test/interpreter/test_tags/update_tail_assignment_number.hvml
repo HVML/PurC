@@ -1,0 +1,24 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+        <div id="first" value=-9>
+        </div>
+
+        <div id="last" value=7>
+        </div>
+
+        <update on="#first" at="attr.value" with$=3/>
+
+        <update on="#last" at="attr.value" with$=0/>
+
+    </body>
+</hvml>
+
+
+

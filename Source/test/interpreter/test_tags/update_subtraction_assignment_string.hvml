@@ -1,0 +1,21 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+        <div id="dest" class="foo light-text">
+        </div>
+
+        <update on="#dest" at="attr.class" with-="text-warning"/>
+
+        <update on="#dest" at="attr.class" with-="foo"/>
+
+    </body>
+</hvml>
+
+
+

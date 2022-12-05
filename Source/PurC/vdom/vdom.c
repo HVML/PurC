@@ -1409,6 +1409,18 @@ pcvdom_element_is_must_yield(struct pcvdom_element *element)
         pcvdom_element_find_attr(element, MUST_YIELD_ATTR_FULL_NAME);
 }
 
+static double
+_round(double x, int p)
+{
+    if (x != 0.0) {
+        double c = pow((double)10.0, p);
+        double l = ((floor((fabs(x) * c) + 0.5)) / c);
+        double r = (x / fabs(x));
+        return l * r;
+    }
+    return 0.0;
+}
+
 static purc_variant_t
 tokenwised_eval_attr_num(enum pchvml_attr_operator op,
         purc_variant_t ll, purc_variant_t rr)
@@ -1449,82 +1461,39 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
             return purc_variant_make_number(ld / rd);
 
         case PCHVML_ATTRIBUTE_PRECISE_OPERATOR:
-            switch (rr->type) {
-                case PURC_VARIANT_TYPE_ULONGINT:
-                    if (rr->u64 == 0) {
-                        purc_set_error(PURC_ERROR_DIVBYZERO);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    // FIXME: signess???
-                    return purc_variant_make_ulongint(((uint64_t)ld) % rr->u64);
-
-                case PURC_VARIANT_TYPE_LONGINT:
-                    if (rr->i64 == 0) {
-                        purc_set_error(PURC_ERROR_DIVBYZERO);
-                        return PURC_VARIANT_INVALID;
-                    }
-                    if (rr->i64 < 0)
-                        return purc_variant_ref(rr);
-
-                default:
-                    break;
+            {
+                // FIXME:
+                uint64_t l = (uint64_t)fabs(ld);
+                uint64_t r = (uint64_t)fabs(rd);
+                if (r == 0) {
+                    return purc_variant_make_number(0);
+                }
+                return purc_variant_make_number(l % r);
             }
-            // FIXME:
-            PC_ASSERT(0);
             break;
 
         case PCHVML_ATTRIBUTE_REPLACE_OPERATOR:
-            switch (rr->type) {
-                case PURC_VARIANT_TYPE_ULONGINT:
-                case PURC_VARIANT_TYPE_LONGINT:
-                    return purc_variant_ref(rr);
-
-                case PURC_VARIANT_TYPE_NUMBER:
-                    return purc_variant_make_number(round(rr->d));
-
-                case PURC_VARIANT_TYPE_LONGDOUBLE:
-                    return purc_variant_make_longdouble(roundl(rr->ld));
-
-                default:
-                    PC_ASSERT(0);
-                    break;
+            {
+                if (rd <= 0) {
+                    return purc_variant_make_number(round(ld));
+                }
+                double e = _round(ld, rd);
+                char buf[64];
+                uint64_t f = (uint64_t)round(ld);
+                int n = sprintf(buf, "%ld", f);
+                gcvt(e, n + fabs(rd), buf);
+                return purc_variant_make_string(buf, false);
             }
             break;
 
         case PCHVML_ATTRIBUTE_HEAD_OPERATOR:
-            switch (rr->type) {
-                case PURC_VARIANT_TYPE_ULONGINT:
-                case PURC_VARIANT_TYPE_LONGINT:
-                    return purc_variant_ref(rr);
-
-                case PURC_VARIANT_TYPE_NUMBER:
-                    return purc_variant_make_number(floor(rr->d));
-
-                case PURC_VARIANT_TYPE_LONGDOUBLE:
-                    return purc_variant_make_longdouble(floorl(rr->ld));
-
-                default:
-                    PC_ASSERT(0);
-                    break;
-            }
-            break;
+            return purc_variant_make_number(pow(ld, rd));
 
         case PCHVML_ATTRIBUTE_TAIL_OPERATOR:
-            switch (rr->type) {
-                case PURC_VARIANT_TYPE_ULONGINT:
-                case PURC_VARIANT_TYPE_LONGINT:
-                    return purc_variant_ref(rr);
-
-                case PURC_VARIANT_TYPE_NUMBER:
-                    return purc_variant_make_number(ceil(rr->d));
-
-                case PURC_VARIANT_TYPE_LONGDOUBLE:
-                    return purc_variant_make_longdouble(ceill(rr->ld));
-
-                default:
-                    PC_ASSERT(0);
-                    break;
+            if (rd != 0.0) {
+                return purc_variant_make_number(ld / rd);
             }
+            return purc_variant_make_number(ld);
             break;
 
         default:
@@ -1613,6 +1582,7 @@ tokenwised_eval_attr_str_sub(purc_variant_t ll, purc_variant_t rr)
 
     struct pcutils_token_iterator it;
     it = pcutils_token_it_begin(tokens, tokens + strlen(tokens), NULL);
+    size_t i = 0;
     struct pcutils_token *token;
     for (token = pcutils_token_it_value(&it);
         token;
@@ -1624,6 +1594,12 @@ tokenwised_eval_attr_str_sub(purc_variant_t ll, purc_variant_t rr)
             continue;
         }
 
+        if (i && pcutils_string_append_chunk(&str, " ", 1)) {
+            pcutils_string_reset(&str);
+            return PURC_VARIANT_INVALID;
+        }
+
+        i++;
         if (pcutils_string_append_chunk(&str,
                     token->start, token->end - token->start))
         {
