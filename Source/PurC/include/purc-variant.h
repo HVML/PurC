@@ -853,8 +853,8 @@ purc_variant_array_get(purc_variant_t array, size_t idx);
  * @value: The variant.
  *
  * Sets the member in the array (@array) by index (@idx) with @value.
- * Note that the reference count of @value will increment, and the reference
- * count of the old member will decrement.
+ * Note that the reference count of @value will be incremented,
+ * and the reference count of the old value of the member will be decremented.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1033,8 +1033,8 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
  * If there is no property in @obj specified by @key, this function will
  * create a new property with @key and @value.
  *
- * Note that the reference count of @value will increment, and the reference
- * count of the replaced value (if have) will decrement.
+ * Note that the reference count of @value will be incremented,
+ * and the reference count of the replaced value (if have) will be decremented.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1460,7 +1460,7 @@ purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently)
  *      for each unique key. The number of the matching values must match
  *      the number of the unique keys.
  *
- * Returns: The memeber matched on success, or PURC_VARIANT_INVALID if:
+ * Returns: The memeber matched on success, or %PURC_VARIANT_INVALID if:
  *      - the set does not managed by the unique keys, or
  *      - no any matching member.
  *
@@ -1528,7 +1528,7 @@ static inline ssize_t purc_variant_set_get_size(purc_variant_t set)
  * @array: the variant value of set type
  * @idx: the index of wanted element
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1541,7 +1541,7 @@ purc_variant_set_get_by_index(purc_variant_t set, size_t idx);
  * @array: the variant value of set type
  * @idx: the index of the element to be removed
  *
- * Returns: the variant removed at the index or PURC_VARIANT_INVALID if failed
+ * Returns: the variant removed at the index or %PURC_VARIANT_INVALID if failed
  *
  * Since: 0.0.1
  */
@@ -1817,13 +1817,14 @@ static inline ssize_t purc_variant_sorted_array_get_size(purc_variant_t array)
     return sz;
 }
 
-
 /**
- * Gets the size of a linear container variant.
+ * purc_variant_linear_container_size:
  *
- * @container: the linear container variant, must be one of array,
- *      set, or tuple.
- * @sz: the buffer receiving the number of members in the container.
+ * @container: A valid linear container variant, must be an array,
+ *      a set, or a tuple variant.
+ * @sz: The pointer to a size_t buffer to receive the size of the container.
+ *
+ * Gets the size (the number of members) of a linear container variant.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1833,18 +1834,18 @@ PCA_EXPORT bool
 purc_variant_linear_container_size(purc_variant_t container, size_t *sz);
 
 /**
- * Get the number of elements in a linear container variant.
+ * purc_variant_linear_container_get_size:
  *
- * @container: the linear container variant, must be one of array,
- *      set, or tuple.
+ * @container: A valid linear container variant, must be an array,
+ *      a set, or a tuple variant.
  *
- * Returns: The number of elements in the container;
+ * Gets the size (the number of members) of a linear container variant,
+ * and returns the size directly.
+ *
+ * Returns: The size of the container on success;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a linear container.
  *
- * Note: This function is deprecated, use
- *  \purc_variant_linear_container_size() instead.
- *
- * Since: 0.0.1
+ * Since: 0.1.0
  */
 static inline ssize_t
 purc_variant_linear_container_get_size(purc_variant_t container)
@@ -1856,13 +1857,15 @@ purc_variant_linear_container_get_size(purc_variant_t container)
 }
 
 /**
+ * purc_variant_linear_container_get:
+ *
+ * @container: A valid linear container variant, must be an array,
+ *      a set, or a tuple variant.
+ * @idx: The index of wanted member.
+ *
  * Gets a member from a linear container by index.
  *
- * @container: the linear container variant, must be one of array,
- *      set, or tuple.
- * @idx: the index of wanted member.
- *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.1.0
  */
@@ -1870,12 +1873,17 @@ PCA_EXPORT purc_variant_t
 purc_variant_linear_container_get(purc_variant_t container, size_t idx);
 
 /**
- * Sets a member in a linear container by index.
+ * purc_variant_linear_container_set:
  *
- * @container: the linear container variant, must be one of array,
- *      set, or tuple.
- * @idx: the index of wanted member.
- * @value: the new value.
+ * @container: A valid linear container variant, must be an array,
+ *      a set, or a tuple variant.
+ * @idx: The index of the member to set.
+ * @value: The new variant.
+ *
+ * Sets the member in the linear container (@container) by index (@idx)
+ * with @value.
+ * Note that the reference count of @value will be incremented, and
+ * the reference count of the old value of the member will be decremented.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -1886,12 +1894,14 @@ purc_variant_linear_container_set(purc_variant_t container,
         size_t idx, purc_variant_t value);
 
 /**
- * Creates a variant value from a string which contains JSON data.
+ * purc_variant_make_from_json_string:
  *
- * @json: the pointer of string which contains JSON data.
- * @sz: the size of string.
+ * @json: The pointer to a string which contains valid JSON data.
+ * @sz: The size of string.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Creates a variant from a string which contains valid JSON data.
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1899,24 +1909,27 @@ PCA_EXPORT purc_variant_t
 purc_variant_make_from_json_string(const char* json, size_t sz);
 
 /**
- * Creates a variant value from a file which contains JSON data
+ * purc_variant_load_from_json_file:
  *
- * @file: the file name
+ * @file: The pointer to a null-terminated string which specify the file name.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Creates a variant from a file which contains valid JSON data.
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
 purc_variant_load_from_json_file(const char* file);
 
-
 /**
- * Creates a variant value from a stream which contains JSON data.
+ * purc_variant_load_from_json_stream:
  *
- * @stream: the stream of purc_rwstream_t type
+ * @stream: A purc_rwstream_t stream.
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Creates a variant from a stream which contains valid JSON data.
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1924,15 +1937,17 @@ PCA_EXPORT purc_variant_t
 purc_variant_load_from_json_stream(purc_rwstream_t stream);
 
 /**
- * Trys to cast a variant value to a 32-bit integer.
+ * purc_variant_cast_to_int32:
  *
- * @v: the variant value.
- * @i32: the buffer to receive the casted integer if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @i32: A pointer to an int32_t buffer to receive the casted integer.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning an integer value for a null variant
+ *      or a boolean variant.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ * Tries to cast a variant value to a signed 32-bit integer.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
  *      be casted to a 32-bit integer).
  *
  * Since: 0.0.1
@@ -1941,16 +1956,18 @@ PCA_EXPORT bool
 purc_variant_cast_to_int32(purc_variant_t v, int32_t *i32, bool force);
 
 /**
- * Trys to cast a variant value to a unsigned 32-bit integer.
+ * purc_variant_cast_to_uint32:
  *
- * @v: the variant value.
- * @u32: the buffer to receive the casted integer if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @u32: A pointer to a uint32_t buffer to receive the casted integer.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning a integer value for a null variant
+ *      or a boolean variant.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
- *      be casted to a unsigned 32-bit integer).
+ * Tries to cast a variant value to an unsigned 32-bit integer.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
+ *      be casted to an unsigned 32-bit integer).
  *
  * Since: 0.0.1
  */
@@ -1958,15 +1975,17 @@ PCA_EXPORT bool
 purc_variant_cast_to_uint32(purc_variant_t v, uint32_t *u32, bool force);
 
 /**
- * Trys to cast a variant value to a long integer.
+ * purc_variant_cast_to_longint:
  *
- * @v: the variant value.
- * @i64: the buffer to receive the casted long integer if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a long integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @i64: The pointer to an int64_t buffer to receive the casted long integer.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning a long integer value for a null variant
+ *      or a boolean variant.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ * Tries to cast a variant value to a long integer.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
  *      be casted to a long integer).
  *
  * Note: A number, a long integer, an unsigned long integer, or a long double
@@ -1978,16 +1997,18 @@ PCA_EXPORT bool
 purc_variant_cast_to_longint(purc_variant_t v, int64_t *i64, bool force);
 
 /**
- * Trys to cast a variant value to a unsigned long integer.
+ * purc_variant_cast_to_ulongint:
  *
- * @v: the variant value.
- * @u64: the buffer to receive the casted unsigned long integer
- *      if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a long integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @u64: The pointer to a uint64_t buffer to receive the casted unsigned
+ *      long integer.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning a long integer value for a null variant
+ *      or a boolean variant.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ * Tries to cast a variant value to an unsigned long integer.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
  *      be casted to an unsigned long integer).
  *
  * Note: A negative number, long integer, or long double will be casted
@@ -1999,16 +2020,18 @@ PCA_EXPORT bool
 purc_variant_cast_to_ulongint(purc_variant_t v, uint64_t *u64, bool force);
 
 /**
- * Trys to cast a variant value to a nubmer.
+ * purc_variant_cast_to_number:
  *
- * @v: the variant value.
- * @d: the buffer to receive the casted number if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a long integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @d: The pointer to a double buffer to receive the casted number.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning a double value for a null variant
+ *      or a boolean variant.
+ *
+ * Tries to cast a variant value to a nubmer.
  *
  * Note: A number, a long integer, an unsigned long integer, or a long double
- *      can always be casted to a number (double float number).
+ *      can always be casted to a number (a double value).
  *
  * Since: 0.0.1
  */
@@ -2016,16 +2039,19 @@ PCA_EXPORT bool
 purc_variant_cast_to_number(purc_variant_t v, double *d, bool force);
 
 /**
- * Trys to cast a variant value to a long double float number.
+ * purc_variant_cast_to_longdouble:
  *
- * @v: the variant value.
- * @ld: the buffer to receive the casted long double if success.
- * @force: a boolean indicates whether to force casting, e.g.,
- *  parsing a string or returning a long integer value for null
- *  and boolean type.
+ * @v: A variant value.
+ * @ld: The pointer to a long double buffer to receive the casted long double
+ *      value.
+ * @force: A boolean indicates whether to force casting, e.g.,
+ *      parsing a string or returning a long integer value for a null variant
+ *      or a boolean variant.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
- *      be casted to a long double).
+ * Tries to cast a variant value to a long double float number.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
+ *      be casted to a long double value).
  *
  * Note: A number, a long integer, an unsigned long integer, or a long double
  *      can always be casted to a long double float number.
@@ -2037,17 +2063,21 @@ purc_variant_cast_to_longdouble(purc_variant_t v, long double *ld,
         bool force);
 
 /**
- * Trys to cast a variant value to a byte sequence.
+ * purc_variant_cast_to_byte_sequence:
  *
- * @v: the variant value.
- * @bytes: the buffer to receive the pointer to the byte sequence.
- * @sz: the buffer to receive the size of the byte sequence in bytes.
+ * @v: A variant value.
+ * @bytes: A pointer to a pointer buffer to receive the pointer to
+ *      the byte sequence.
+ * @sz: A pointer to a size_t buffer to receive the size of the byte sequence
+ *      in bytes.
  *
- * Returns: @TRUE on success, or @FALSE on failure (the variant value can not
+ * Tries to cast a variant value to a byte sequence.
+ *
+ * Returns: %true on success, or %false on failure (the variant value can not
  *      be casted to a byte sequence).
  *
- * Note: Only a string, an atom string, or a byte sequence can be casted to
- *      a byte sequence.
+ * Note: Only a string, an atom string, an exception, or a byte sequence can
+ *      be casted to a byte sequence.
  *
  * Since: 0.0.1
  */
@@ -2056,13 +2086,15 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
         const void **bytes, size_t *sz);
 
 /**
- * Check one variant is equal to another exactly or not.
+ * purc_variant_is_equal_to:
  *
- * @v1: one variant value
- * @v2: another variant value
+ * @v1: one variant.
+ * @v2: another variant.
  *
- * Returns: The function returns a boolean indicating whether v1 is equal
- *  to v2 exactly.
+ * Checks one variant is equal to another one exactly or not.
+ *
+ * Returns: The function returns a boolean indicating whether @v1 is equal
+ *  to @v2 exactly.
  *
  * Since: 0.0.1
  */
@@ -2078,15 +2110,17 @@ typedef enum purc_variant_compare_opt
 } purc_vrtcmp_opt_t;
 
 /**
- * Compares two variant value
+ * purc_variant_compare_ex:
  *
- * @v1: one of compared variant value
- * @v2: the other variant value to be compared
- * @flags: comparison flags
+ * @v1: One variant.
+ * @v2: Another variant.
+ * @flags: The comparison flags.
+ *
+ * Compares two variant value.
  *
  * Returns: The function returns an integer less than, equal to, or greater
- *      than zero if v1 is found, respectively, to be less than, to match,
- *      or be greater than v2.
+ *      than zero if @v1 is found, respectively, to be less than, to match,
+ *      or be greater than @v2.
  *
  * Since: 0.0.1
  */
@@ -2254,7 +2288,7 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
  *
  * @ver_code: version number
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
 .*
  * Since: 0.0.1
  */
@@ -2688,7 +2722,7 @@ purc_variant_is_container(purc_variant_t v);
  * @obj: the variant value of obj type
  * @key: the key of key-value pair
  *
- * Returns: A purc_variant_t on success, or PURC_VARIANT_INVALID on failure.
+ * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
