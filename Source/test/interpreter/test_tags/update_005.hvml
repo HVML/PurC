@@ -1,0 +1,34 @@
+#!/usr/bin/purc
+
+# RESULT: ["1","2","3"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+
+        <init as="users" uniquely against="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN" }
+            ]
+        </init>
+
+        <init as="new_users">
+            [
+                { "id": "3", "avatar": "/img/avatars/3.png", "name": "David", "region": "zh_CN" }
+            ]
+        </init>
+
+        <update on="$users" to="unite" with="$new_users" />
+
+
+        <exit with [$users[0].id, $users[1].id, $users[2].id] />
+    </body>
+</hvml>
+
+
+

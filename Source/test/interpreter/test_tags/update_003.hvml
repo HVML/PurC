@@ -1,0 +1,27 @@
+#!/usr/bin/purc
+
+# RESULT: ["zh_CN","zh_CN"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+
+        <init as="users" uniquely against="id">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US" },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh" }
+            ]
+        </init>
+
+        <update on="$users" at=".region" with="zh_CN" individually />
+
+        <exit with [$users[0].region, $users[1].region] />
+    </body>
+</hvml>
+
+
+

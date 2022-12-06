@@ -1,0 +1,29 @@
+#!/usr/bin/purc
+
+# RESULT: {"locales":["zh_CN","zh_TW"],"nameEN":["Chines (mainland of China)","Chinese (Taiwan, China)"],"nameZH":["中文（中国大陆）","中文（中国台湾）"]}
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+
+       <init as="localeNames">
+            {
+                "locales": [ "zh_CN", "zh_TW", "en_US" ],
+                "nameEN": [ "Chines (mainland of China)", "Chinese (Taiwan, China)", "English (USA)"],
+                "nameZH": [ "中文（中国大陆）", "中文（中国台湾）", "英文（美国）"],
+            }
+        </init>
+
+        <update on="$localeNames" at="[2]" to="remove" individually />
+
+
+        <exit with $localeNames />
+    </body>
+</hvml>
+
+
+

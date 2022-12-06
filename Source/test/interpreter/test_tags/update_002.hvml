@@ -1,0 +1,41 @@
+#!/usr/bin/purc
+
+# RESULT: [{"age":2,"avatar":"\/img\/avatars\/0.png","id":"0","name":"Annoymous","region":"en_US"},{"age":3,"id":"1","name":"Tom","region":"en_US"},{"age":4,"id":"2","name":"Richard","region":"zh_CN"}]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+        <init as="users">
+            [
+                { "id": "1", "avatar": "/img/avatars/1.png", "name": "Tom", "region": "en_US", "age": 2 },
+                { "id": "2", "avatar": "/img/avatars/2.png", "name": "Jerry", "region": "zh_CN", "age": 3 }
+            ]
+        </init>
+
+        <init as="newUser">
+            { "id": "0", "avatar": "/img/avatars/0.png", "name": "Annoymous", "region": "en_US", "age": 2 }
+        </init>
+
+
+        <update on="$users[1]" at=".name" with="Richard" />
+
+        <update on $users[0] at '.age' with 3 >
+        </update>
+
+        <update on $users[1] at '.age' with $MATH.add($users[0].age, 1) />
+
+        <update on $users[0] at=".avatar" with undefined />
+        <update on $users[1] at=".avatar" to="remove" />
+
+        <update on="$users" to="prepend" with $newUser />
+
+        <exit with $users />
+    </body>
+</hvml>
+
+
+

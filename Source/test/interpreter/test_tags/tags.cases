@@ -263,6 +263,10 @@ func_demo
 
 # update
 update_001
+update_002
+update_003
+update_004
+update_005
 
 update_set_displace
 update_set_append

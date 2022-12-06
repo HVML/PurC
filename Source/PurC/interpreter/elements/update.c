@@ -769,12 +769,12 @@ update_elements(pcintr_stack_t stack,
 static int
 update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval);
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually);
 
 static int
 update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually)
 {
     UNUSED_PARAM(co);
     purc_variant_t ultimate = PURC_VARIANT_INVALID;
@@ -785,7 +785,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *op = get_op_str(to);
     int ret = -1;
 
-    if (ctxt->individually) {
+    if (individually) {
         ssize_t sz = purc_variant_object_get_size(dest);
         if (sz <= 0) {
             ret = 0;
@@ -795,7 +795,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t k, v;
         UNUSED_VARIABLE(k);
         foreach_key_value_in_variant_object(dest, k, v)
-            ret = update_dest(co, frame, v, at, to, src, with_eval);
+            ret = update_dest(co, frame, v, at, to, src, with_eval, false);
             if (ret != 0) {
                 goto out;
             }
@@ -842,7 +842,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
             ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
-                    to, src, with_eval);
+                    to, src, with_eval, false);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -860,7 +860,7 @@ out:
 static int
 update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
@@ -876,7 +876,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     int ret = -1;
     size_t idx = -1;
 
-    if (ctxt->individually) {
+    if (individually) {
         ssize_t sz = purc_variant_array_get_size(dest);
         if (sz <= 0) {
             ret = 0;
@@ -887,7 +887,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         size_t idx;
         UNUSED_VARIABLE(idx);
         foreach_value_in_variant_array(dest, val, idx)
-            ret = update_dest(co, frame, val, at, to, src, with_eval);
+            ret = update_dest(co, frame, val, at, to, src, with_eval, false);
             if (ret != 0) {
                 goto out;
             }
@@ -930,7 +930,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
             ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
-                    to, src, with_eval);
+                    to, src, with_eval, false);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -948,7 +948,7 @@ out:
 static int
 update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
@@ -960,7 +960,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     int ret = -1;
     size_t idx = -1;
-    if (ctxt->individually) {
+    if (individually) {
         ssize_t sz = purc_variant_set_get_size(dest);
         if (sz <= 0) {
             ret = 0;
@@ -969,7 +969,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
         purc_variant_t v;
         foreach_value_in_variant_set_order(dest, v)
-            ret = update_dest(co, frame, v, at, to, src, with_eval);
+            ret = update_dest(co, frame, v, at, to, src, with_eval, false);
             if (ret != 0) {
                 goto out;
             }
@@ -1012,7 +1012,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
             ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
-                    to, src, with_eval);
+                    to, src, with_eval, false);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -1030,7 +1030,7 @@ out:
 static int
 update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually)
 {
     UNUSED_PARAM(with_eval);
     UNUSED_PARAM(co);
@@ -1043,7 +1043,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     int ret = -1;
     size_t idx = -1;
 
-    if (ctxt->individually) {
+    if (individually) {
         ssize_t sz = purc_variant_tuple_get_size(dest);
         if (sz <= 0) {
             ret = 0;
@@ -1054,7 +1054,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         for (ssize_t i = 0; i < sz; i++) {
             val = purc_variant_tuple_get(dest, i);
             if (val) {
-                ret = update_dest(co, frame, val, at, to, src, with_eval);
+                ret = update_dest(co, frame, val, at, to, src, with_eval, false);
                 if (ret != 0) {
                     goto out;
                 }
@@ -1098,7 +1098,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_XOR:
         case UPDATE_OP_OVERWRITE:
             ret = update_dest(co, frame, ultimate, PURC_VARIANT_INVALID,
-                    to, src, with_eval);
+                    to, src, with_eval, false);
             break;
         case UPDATE_OP_UNKNOWN:
         default:
@@ -1116,25 +1116,25 @@ out:
 int
 update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dest, purc_variant_t at, purc_variant_t to,
-        purc_variant_t src, pcintr_attribute_op with_eval)
+        purc_variant_t src, pcintr_attribute_op with_eval, bool individually)
 {
     int ret = -1;
     enum purc_variant_type type = purc_variant_get_type(dest);
     switch (type) {
     case PURC_VARIANT_TYPE_OBJECT:
-        ret = update_object(co, frame, dest, at, to, src, with_eval);
+        ret = update_object(co, frame, dest, at, to, src, with_eval, individually);
         break;
 
     case PURC_VARIANT_TYPE_ARRAY:
-        ret = update_array(co, frame, dest, at, to, src, with_eval);
+        ret = update_array(co, frame, dest, at, to, src, with_eval, individually);
         break;
 
     case PURC_VARIANT_TYPE_SET:
-        ret = update_set(co, frame, dest, at, to, src, with_eval);
+        ret = update_set(co, frame, dest, at, to, src, with_eval, individually);
         break;
 
     case PURC_VARIANT_TYPE_TUPLE:
-        ret = update_tuple(co, frame, dest, at, to, src, with_eval);
+        ret = update_tuple(co, frame, dest, at, to, src, with_eval, individually);
         break;
 
     case PURC_VARIANT_TYPE_NATIVE:
@@ -1480,7 +1480,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             return r ? -1 : 0;
         }
     }
-    return update_dest(co, frame, on, at, to, src, with_eval);
+    return update_dest(co, frame, on, at, to, src, with_eval, ctxt->individually);
 }
 
 static int
@@ -1851,6 +1851,7 @@ static int
 on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         struct pcvdom_element *element)
 {
+    UNUSED_PARAM(frame);
     UNUSED_PARAM(element);
 
     pcintr_stack_t stack = &co->stack;
@@ -1858,6 +1859,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (stack->except)
         return 0;
 
+#if 0
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
@@ -1867,6 +1869,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 "since `from/with` attribute already set");
         return -1;
     }
+#endif
 
     return 0;
 }
