@@ -260,33 +260,36 @@ static struct my_opts *my_opts_new(void)
     return opts;
 }
 
-static void my_opts_delete(struct my_opts *opts, bool deep)
+static void my_opts_delete(struct my_opts *opts)
 {
-    if (deep) {
-        if (opts->app)
-            free(opts->app);
-        if (opts->run)
-            free(opts->run);
+    if (opts->app)
+        free(opts->app);
+    if (opts->run)
+        free(opts->run);
 
-        for (size_t i = 0; i < opts->urls->length; i++) {
+    for (size_t i = 0; i < opts->urls->length; i++) {
+        if (opts->urls->list[i])
             free(opts->urls->list[i]);
-        }
+    }
 
-        for (size_t i = 0; i < opts->body_ids->length; i++) {
-            if (opts->body_ids->list[i])
-                free(opts->body_ids->list[i]);
-        }
+    for (size_t i = 0; i < opts->body_ids->length; i++) {
+        if (opts->body_ids->list[i])
+            free(opts->body_ids->list[i]);
     }
 
     for (size_t i = 0; i < opts->contents->length; i++) {
-        free(opts->contents->list[i]);
+        if (opts->contents->list[i])
+            free(opts->contents->list[i]);
     }
 
-    if (opts->query)
-        free(opts->query);
+    if (opts->rdr_uri)
+        free(opts->rdr_uri);
 
     if (opts->request)
         free(opts->request);
+
+    if (opts->query)
+        free(opts->query);
 
     if (opts->app_info)
         free(opts->app_info);
@@ -538,6 +541,7 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
     if (opts->app) {
         tmp = purc_variant_make_string_reuse_buff(opts->app,
                 strlen(opts->app) + 1, false);
+        opts->app = NULL;
     }
     else {
         tmp = purc_variant_make_string_static(DEF_APP_NAME, false);
@@ -549,6 +553,7 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
     if (opts->run) {
         tmp = purc_variant_make_string_reuse_buff(opts->run,
                 strlen(opts->run) + 1, false);
+        opts->run = NULL;
     }
     else {
         tmp = purc_variant_make_string_static(DEF_RUN_NAME, false);
@@ -569,6 +574,7 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
 
     tmp = purc_variant_make_string_reuse_buff(opts->rdr_uri,
             strlen(opts->rdr_uri) + 1, false);
+    opts->rdr_uri = NULL;   // the ownership transfered
     purc_variant_object_set_by_static_ckey(run_info.opts,
             KEY_RDR_URI, tmp);
     purc_variant_unref(tmp);
@@ -578,6 +584,7 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
         char *url = opts->urls->list[i];
         purc_variant_t url_vrt = purc_variant_make_string_reuse_buff(url,
                 strlen(url) + 1, false);
+        opts->urls->list[i] = NULL;
         purc_variant_array_append(tmp, url_vrt);
         purc_variant_unref(url_vrt);
     }
@@ -591,6 +598,7 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
         if (body_id) {
             body_id_vrt = purc_variant_make_string_reuse_buff(body_id,
                     strlen(body_id) + 1, false);
+            opts->body_ids->list[i] = NULL;
         }
         else {
             body_id_vrt = purc_variant_make_null();
@@ -1399,7 +1407,7 @@ int main(int argc, char** argv)
 
     struct my_opts *opts = my_opts_new();
     if (read_option_args(opts, argc, argv)) {
-        my_opts_delete(opts, true);
+        my_opts_delete(opts);
         return EXIT_FAILURE;
     }
 
@@ -1410,7 +1418,7 @@ int main(int argc, char** argv)
             print_usage(stdout);
         }
 
-        my_opts_delete(opts, true);
+        my_opts_delete(opts);
         return EXIT_FAILURE;
     }
 
@@ -1471,7 +1479,7 @@ int main(int argc, char** argv)
                 print_usage(stdout);
             }
 
-            my_opts_delete(opts, true);
+            my_opts_delete(opts);
             return EXIT_FAILURE;
         }
 
@@ -1489,7 +1497,7 @@ int main(int argc, char** argv)
         if (opts->verbose)
             fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
                 purc_get_error_message(ret));
-        my_opts_delete(opts, true);
+        my_opts_delete(opts);
         return EXIT_FAILURE;
     }
 
@@ -1501,7 +1509,7 @@ int main(int argc, char** argv)
             if (opts->verbose)
                 fprintf(stderr, "Failed to get the request data from %s\n",
                     opts->request);
-            my_opts_delete(opts, true);
+            my_opts_delete(opts);
             goto failed;
         }
     }
@@ -1510,7 +1518,7 @@ int main(int argc, char** argv)
             if (opts->verbose)
                 fprintf(stderr, "Failed to parse the query string: %s\n",
                     opts->query);
-            my_opts_delete(opts, true);
+            my_opts_delete(opts);
             goto failed;
         }
     }
@@ -1519,7 +1527,7 @@ int main(int argc, char** argv)
 
     if (opts->app_info == NULL && opts->parallel) {
         if (!construct_app_info(opts)) {
-            my_opts_delete(opts, true);
+            my_opts_delete(opts);
             goto failed;
         }
     }
@@ -1530,7 +1538,7 @@ int main(int argc, char** argv)
             if (opts->verbose)
                 fprintf(stderr, "Failed to evalute the app info from %s\n",
                         opts->app_info);
-            my_opts_delete(opts, false);
+            my_opts_delete(opts);
             goto failed;
         }
 
@@ -1548,12 +1556,7 @@ int main(int argc, char** argv)
 
     }
 
-    if (opts->app_info) {
-        my_opts_delete(opts, false);
-    }
-    else {
-        my_opts_delete(opts, true);
-    }
+    my_opts_delete(opts);
 
 failed:
     if (request) {
