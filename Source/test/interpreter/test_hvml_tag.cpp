@@ -49,7 +49,10 @@ struct TestCase {
 
 static const char *request_json = "{ names: 'PurC', OS: ['Linux', 'macOS', 'HybridOS', 'Windows'] }";
 
+const char *dest_tag = NULL;
+
 std::vector<TestCase*> g_test_cases;
+std::vector<char*> g_test_cases_name;
 
 void destroy_test_case(struct TestCase *tc)
 {
@@ -155,6 +158,7 @@ eval_expected_result(const char *code)
 
 static inline void
 add_test_case(std::vector<struct TestCase*> &test_cases,
+        std::vector<char*> &test_cases_name,
         const char *name, const char *hvml,
         const char *html, const char *html_path)
 {
@@ -172,6 +176,7 @@ add_test_case(std::vector<struct TestCase*> &test_cases,
     }
 
     test_cases.push_back(data);
+    test_cases_name.push_back(data->name);
 }
 
 char *trim(char *str)
@@ -209,6 +214,24 @@ protected:
         purc_cleanup ();
     }
 };
+
+
+
+class TestHVMLTagName : public testing::TestWithParam<struct TestCase*>
+{
+public:
+    struct PrintToStringParamName
+    {
+        template <class ParamType>
+        std::string operator()( const testing::TestParamInfo<ParamType>& info ) const
+        {
+            auto tc = static_cast<struct TestCase*>(info.param);
+            return std::string(tc->name);
+        }
+    };
+};
+
+
 
 struct buffer {
     char                   *dump_buff;
@@ -453,7 +476,7 @@ std::vector<TestCase*>& read_test_cases()
                 html = read_file(file);
             }
 
-            add_test_case(g_test_cases, name, hvml, html, file);
+            add_test_case(g_test_cases, g_test_cases_name, name, hvml, html, file);
 
             free (hvml);
             free (html);
@@ -464,7 +487,7 @@ std::vector<TestCase*>& read_test_cases()
 
 end:
     if (g_test_cases.empty()) {
-        add_test_case(g_test_cases, "base",
+        add_test_case(g_test_cases, g_test_cases_name, "base",
                 "<hvml></hvml>",
                 "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>",
                 NULL
@@ -474,6 +497,15 @@ end:
 }
 
 INSTANTIATE_TEST_SUITE_P(hvml_tags, TestHVMLTag,
-        testing::ValuesIn(read_test_cases()));
+        testing::ValuesIn(read_test_cases()),
+        TestHVMLTagName::PrintToStringParamName());
 
+
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    if (argc > 1) {
+        dest_tag = argv[1];
+    }
+    return RUN_ALL_TESTS();
+}
 
