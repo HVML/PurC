@@ -16,6 +16,9 @@
         <update on="#first" at="attr.value" with$=3/>
 
         <update on="#last" at="attr.value" with$=0/>
+        <catch for `ZeroDivision`>
+            <update on="#last" at="attr.value" with=999/>
+        </catch>
 
     </body>
 </hvml>

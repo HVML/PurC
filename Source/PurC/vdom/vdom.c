@@ -1493,7 +1493,8 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
             if (rd != 0.0) {
                 return purc_variant_make_number(ld / rd);
             }
-            return purc_variant_make_number(ld);
+            purc_set_error(PURC_ERROR_DIVBYZERO);
+            return PURC_VARIANT_INVALID;
             break;
 
         default:
