@@ -1127,8 +1127,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        NULL, NULL, NULL, NULL };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+        purc_document_root(edom_doc), NULL, NULL, NULL, NULL };
+    if (make_rdrtree(&ctxt, ctxt.root))
         goto failed;
 
     /* check and create anonymous block box if need */
@@ -1139,13 +1139,6 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     /* initialize the block heap for region rectangles */
     LOG_DEBUG("Calling foil_region_rect_heap_init()...\n");
     if (!foil_region_rect_heap_init(&udom->rgnrc_heap, FOIL_DEF_RGNRCHEAP_SZ))
-        goto failed;
-
-    /* create the stacking context for the root element */
-    LOG_DEBUG("Calling foil_stacking_context_new() for root element...\n");
-    udom->root_stk_ctxt = foil_stacking_context_new(NULL, 0,
-            udom->initial_cblock->first);
-    if (udom->root_stk_ctxt == NULL)
         goto failed;
 
     /* determine the geometries of boxes and lay out the boxes */

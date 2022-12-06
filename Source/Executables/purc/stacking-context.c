@@ -60,6 +60,7 @@ foil_stacking_context *foil_stacking_context_new(
     if (ctxt == NULL)
         goto failed;
 
+    INIT_LIST_HEAD(&ctxt->list);
     if (parent != NULL) {
         struct list_head *head;
         if (sorted_array_find(parent->zidx2child, zidx, (void **)&head) < 0) {

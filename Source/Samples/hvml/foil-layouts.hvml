@@ -75,6 +75,28 @@
             </SECTION>
         </define>
 
+        <init as 'caseName' with 'layeredBoxes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+          <SECTION id="$caseName">
+            <P>
+              <IMG id="image" class="pile" src="butterfly.png" alt="A butterfly image" style="z-index: 1" />
+            </P>
+
+            <DIV id="text1" class="pile" style="z-index: 3">
+              This text will overlay the butterfly image.
+            </DIV>
+
+            <DIV id="text2">
+              This text will be beneath everything.
+            </DIV>
+
+            <DIV id="text3" class="pile" style="z-index: 2">
+              This text will underlay text1, but overlay the butterfly image.
+            </DIV>
+
+          </SECTION>
+        </define>
+
         <init as 'caseName' with 'unorderedListItems' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
             <SECTION id="$caseName">
