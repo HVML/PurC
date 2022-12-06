@@ -331,7 +331,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
     return 0;
 }
 
-TEST_P(TestHVMLTag, hvml_tags)
+TEST_P(TestHVMLTag, tags)
 {
     struct TestCase *test_case = GetParam();
     PRINTF("test case : %s\n", test_case->name);
@@ -427,6 +427,7 @@ std::vector<TestCase*>& read_test_cases()
     char *line = NULL;
     size_t sz = 0;
     ssize_t read = 0;
+    size_t nr_dest_tag = dest_tag ? strlen(dest_tag) : 0;
 
     test_getpath_from_env_or_rel(data_path, sizeof(data_path), env,
             "test_tags");
@@ -445,6 +446,12 @@ std::vector<TestCase*>& read_test_cases()
             char *name = strtok(trim(line), " ");
             if (!name) {
                 continue;
+            }
+
+            if (nr_dest_tag) {
+                if (strncmp(name, dest_tag, nr_dest_tag) != 0) {
+                    continue;
+                }
             }
 
             int n;
@@ -496,16 +503,16 @@ end:
     return g_test_cases;
 }
 
-INSTANTIATE_TEST_SUITE_P(hvml_tags, TestHVMLTag,
+INSTANTIATE_TEST_SUITE_P(tags, TestHVMLTag,
         testing::ValuesIn(read_test_cases()),
         TestHVMLTagName::PrintToStringParamName());
 
 
 int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    if (argc > 1) {
+    if (argc > 1 && strncmp(argv[1], "--gtest", 7) != 0) {
         dest_tag = argv[1];
     }
+    testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
 
