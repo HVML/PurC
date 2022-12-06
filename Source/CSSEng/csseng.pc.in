@@ -5,7 +5,7 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: CSSEng
 Description: A CSS parsing and selection engine
-URL: https://github.com/HVML/CSS-Engine
+URL: https://github.com/HVML/PurC
 Version: @PROJECT_VERSION@
 Requires.private: @CSSENG_PKGCONFIG_REQUIRES@
 Libs: -L${libdir} -lcsseng

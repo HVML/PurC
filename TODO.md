@@ -134,7 +134,7 @@
 
 ### 2.6) `purc`
 
-1. [0.9.4] Ehance `foil` to support more properties and layouts except for table.
+1. [0.9.4] Enhance `foil` to support more properties and layouts except for table.
 1. [0.9.6] Enhance `foil` to support full-screen and multiple-page rendering.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
 
@@ -155,6 +155,7 @@
 
 ### 2.9) Known Bugs and Test Cases
 
+1. [0.9.4] `Source/Sample/hvml/calculator-bc.hvml` will cause `purc` core dump if there is no `bc` installed in the system.
 1. [0.9.2; Resolved] Add new test cases for new bugs.
 1. [0.9.2; Resolved] Check eJSON parser for C0 control characters in strings.
 1. [0.9.2; Resolved] Crash if the content of a foreign element contains a `(` character.
