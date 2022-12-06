@@ -190,19 +190,33 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     pcintr_exception_move(&cache, &stack->exception);
     stack->except = 0;
 
+    // keep last vcm_ctxt
+    struct pcvcm_eval_ctxt *vcm_ctxt = stack->vcm_ctxt;
+    stack->vcm_ctxt = NULL;
+
+
     struct ctxt_for_catch *ctxt;
     ctxt = (struct ctxt_for_catch*)_after_pushed(stack, pos, &cache);
-    if (!ctxt || !ctxt->match) {
+    if (ctxt && ctxt->match) {
+        if (vcm_ctxt) {
+            pcvcm_eval_ctxt_destroy(vcm_ctxt);
+        }
+    }
+    else {
         pcintr_exception_move(&stack->exception, &cache);
         stack->except = 1;
+        // FIXME: eval failed on catch _after_pushed
+        if (stack->vcm_ctxt) {
+            if (vcm_ctxt) {
+                pcvcm_eval_ctxt_destroy(vcm_ctxt);
+            }
+        }
+        else {
+            stack->vcm_ctxt = vcm_ctxt;
+        }
     }
 
     pcintr_exception_clear(&cache);
-    if (stack->vcm_ctxt) {
-        pcvcm_eval_ctxt_destroy(stack->vcm_ctxt);
-        stack->vcm_ctxt = NULL;
-    }
-    ctxt->exception = NULL;
 
     return ctxt;
 }
