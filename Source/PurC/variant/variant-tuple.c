@@ -259,6 +259,12 @@ void pcvariant_tuple_release(purc_variant_t tuple)
     }
 
     variant_tuple_t data = (variant_tuple_t) tuple->sz_ptr[1];
+
+    if (data->rev_update_chain) {
+        pcvar_destroy_rev_update_chain(data->rev_update_chain);
+        data->rev_update_chain = NULL;
+    }
+
     free(data->members);
     free(data);
 }
