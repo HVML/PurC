@@ -36,10 +36,10 @@
 
 PCA_EXTERN_C_BEGIN
 
-#define PCVARIANT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
-#define PCVARIANT_FLAG_NOFREE          PCVARIANT_FLAG_CONSTANT
-#define PCVARIANT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
-#define PCVARIANT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
+#define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
+#define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT
+#define PCVRNT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
+#define PCVRNT_FLAG_STRING_STATIC   (0x01 << 2)  // make_string_static
 
 #define PVT(t)          (PURC_VARIANT_TYPE##t)
 #define IS_CONTAINER(t) (t == PURC_VARIANT_TYPE_OBJECT || \
@@ -308,9 +308,9 @@ struct variant_tuple {
 };
 
 
-#define PCVARIANT_SORT_DESC            0x10000000
-#define PCVARIANT_SORT_ASC             0x00000000
-#define PCVARIANT_CMPOPT_MASK          0x0000FFFF
+#define PCVRNT_SORT_DESC            0x10000000
+#define PCVRNT_SORT_ASC             0x00000000
+#define PCVRNT_CMPOPT_MASK          0x0000FFFF
 
 int pcvariant_array_sort(purc_variant_t value, void *ud,
         int (*cmp)(purc_variant_t l, purc_variant_t r, void *ud));

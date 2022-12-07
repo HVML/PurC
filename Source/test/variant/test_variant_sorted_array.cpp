@@ -45,7 +45,7 @@ TEST(variant, sorted_array)
 {
     PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant_sorted_array", false);
 
-    purc_variant_t v = purc_variant_make_sorted_array(PCVARIANT_SAFLAG_ASC, 2, nullptr);
+    purc_variant_t v = purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 2, nullptr);
     ASSERT_NE(v, nullptr);
 
     size_t sz = purc_variant_sorted_array_get_size(v);
@@ -59,7 +59,7 @@ TEST(variant, sorted_array_with_atom)
 {
     PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant_sorted_array", false);
 
-    purc_variant_t v = purc_variant_make_sorted_array(PCVARIANT_SAFLAG_ASC, 2, nullptr);
+    purc_variant_t v = purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 2, nullptr);
     ASSERT_NE(v, nullptr);
 
     purc_variant_t any = purc_variant_make_atom_string("ANY", false);
@@ -95,7 +95,7 @@ TEST(variant, sorted_array_with_multi_atom)
 {
     PurCInstance purc("cn.fmsoft.hybridos.test", "purc_variant_sorted_array", false);
 
-    purc_variant_t v = purc_variant_make_sorted_array(PCVARIANT_SAFLAG_ASC, 2, nullptr);
+    purc_variant_t v = purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 2, nullptr);
     ASSERT_NE(v, nullptr);
 
     purc_variant_t any = purc_variant_make_atom_string("ANY", false);

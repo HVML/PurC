@@ -68,7 +68,7 @@ static const char *hex_chars = "0123456789abcdefABCDEF";
         while (1) {                                                     \
             n = purc_rwstream_write((rws), _buff, nr_left);             \
             if (n <= 0) {                                               \
-                if (flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)      \
+                if (flags & PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS)      \
                     break;                                              \
                 else                                                    \
                     goto failed;                                        \
@@ -88,7 +88,7 @@ static const char *hex_chars = "0123456789abcdefABCDEF";
 #define MY_CHECK(n)                                                     \
     do {                                                                \
         if ((n) < 0 &&                                                  \
-                !(flags & PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
+                !(flags & PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS)) {     \
             goto failed;                                                \
         }                                                               \
         else {                                                          \
@@ -116,7 +116,7 @@ serialize_string(purc_rwstream_t rws, const char* str,
         case '"':
         case '\\':
         case '/':
-            if ((flags & PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE) && c == '/') {
+            if ((flags & PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE) && c == '/') {
                 pos++;
                 break;
             }
@@ -322,8 +322,8 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
     ssize_t nr_written = 0, n;
     size_t i;
 
-    switch (flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) {
-        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING:
+    switch (flags & PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+        case PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING:
             MY_WRITE(rws, "\"", 1);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
@@ -335,7 +335,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             MY_WRITE(rws, "\"", 1);
             break;
 
-        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX:
+        case PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX:
             MY_WRITE(rws, "bx", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
@@ -346,8 +346,8 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             }
             break;
 
-        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN:
-        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT:
+        case PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN:
+        case PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT:
             MY_WRITE(rws, "bb", 2);
             for (i = 0; i < sz_content; i++) {
                 unsigned char byte = (unsigned char)content[i];
@@ -360,8 +360,8 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
                         buff[k] = '0';
                     k++;
 
-                    if ((flags & PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) ==
-                            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
+                    if ((flags & PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK) ==
+                            PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT &&
                             (j == 3 || (j == 7 && i != sz_content - 1))) {
                         buff[k] = '.';
                         k++;
@@ -372,7 +372,7 @@ serialize_bsequence(purc_rwstream_t rws, const char* content,
             }
             break;
 
-        case PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64:
+        case PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64:
         default:
             MY_WRITE(rws, "b64", 3);
             n = serialize_bsequence_base64(rws, content, sz_content,
@@ -497,7 +497,7 @@ serialize_double(purc_rwstream_t rws, double d, int flags,
         size += 2;
     }
 
-    if (p && (flags & PCVARIANT_SERIALIZE_OPT_NOZERO)) {
+    if (p && (flags & PCVRNT_SERIALIZE_OPT_NOZERO)) {
         /* last useful digit, always keep 1 zero */
         p++;
         for (q = p; *q; q++) {
@@ -566,7 +566,7 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         else
             p = strchr(buf, '.');
 
-        if (p && (flags & PCVARIANT_SERIALIZE_OPT_NOZERO)) {
+        if (p && (flags & PCVRNT_SERIALIZE_OPT_NOZERO)) {
             /* last useful digit, always keep 1 zero */
             p++;
             for (q = p; *q; q++) {
@@ -580,7 +580,7 @@ serialize_long_double(purc_rwstream_t rws, long double ld, int flags,
         }
 
         // append FL postfix
-        if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON) {
+        if (flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON) {
             strcat(buf, "FL");
             size += 2;
         }
@@ -596,7 +596,7 @@ print_newline(purc_rwstream_t rws, unsigned int flags, size_t *len_expected)
 {
     ssize_t nr_written = 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
+    if (flags & PCVRNT_SERIALIZE_OPT_PRETTY) {
         if (len_expected)
             *len_expected += 1;
         nr_written = purc_rwstream_write(rws, "\n", 1);
@@ -615,8 +615,8 @@ print_indent(purc_rwstream_t rws, int level, unsigned int flags,
     if (level <= 0 || level > MAX_EMBEDDED_LEVELS)
         return 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY) {
-        if (flags & PCVARIANT_SERIALIZE_OPT_PRETTY_TAB) {
+    if (flags & PCVRNT_SERIALIZE_OPT_PRETTY) {
+        if (flags & PCVRNT_SERIALIZE_OPT_PRETTY_TAB) {
             n = level;
             memset(buff, '\t', n);
         }
@@ -638,7 +638,7 @@ print_space(purc_rwstream_t rws, unsigned int flags, size_t* len_expected)
 {
     ssize_t nr_written = 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_SPACED) {
+    if (flags & PCVRNT_SERIALIZE_OPT_SPACED) {
         if (len_expected)
             *len_expected += 1;
         nr_written = purc_rwstream_write(rws, " ", 1);
@@ -652,8 +652,8 @@ static inline ssize_t print_space_no_pretty(purc_rwstream_t rws,
 {
     ssize_t nr_written = 0;
 
-    if (flags & PCVARIANT_SERIALIZE_OPT_SPACED &&
-            !(flags & PCVARIANT_SERIALIZE_OPT_PRETTY)) {
+    if (flags & PCVRNT_SERIALIZE_OPT_SPACED &&
+            !(flags & PCVRNT_SERIALIZE_OPT_PRETTY)) {
         if (len_expected)
             *len_expected += 1;
         nr_written = purc_rwstream_write(rws, " ", 1);
@@ -685,7 +685,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
     switch (value->type) {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+            if (flags & PCVRNT_SERIALIZE_OPT_RUNTIME_STRING)
                 content = "\"<undefined>\"";
             else
                 content = "null";
@@ -735,7 +735,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_LONGINT:
         {
             const char *format;
-            if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON)
+            if (flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON)
                 format = "%lldL";
             else
                 format = "%lld";
@@ -751,7 +751,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
         case PURC_VARIANT_TYPE_ULONGINT:
         {
             const char *format;
-            if (flags & PCVARIANT_SERIALIZE_OPT_REAL_EJSON)
+            if (flags & PCVRNT_SERIALIZE_OPT_REAL_EJSON)
                 format = "%lluUL";
             else
                 format = "%llu";
@@ -786,11 +786,11 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
         case PURC_VARIANT_TYPE_STRING:
         case PURC_VARIANT_TYPE_BSEQUENCE:
-            if (value->flags & PCVARIANT_FLAG_STRING_STATIC) {
+            if (value->flags & PCVRNT_FLAG_STRING_STATIC) {
                 content = (const char*)value->sz_ptr[1];
                 sz_content = (size_t)value->sz_ptr[0];
             }
-            else if (value->flags & PCVARIANT_FLAG_EXTRA_SIZE) {
+            else if (value->flags & PCVRNT_FLAG_EXTRA_SIZE) {
                 content = (const char*)value->sz_ptr[1];
                 sz_content = (size_t)value->sz_ptr[0];
             }
@@ -813,14 +813,14 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             break;
 
         case PURC_VARIANT_TYPE_DYNAMIC:
-            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+            if (flags & PCVRNT_SERIALIZE_OPT_RUNTIME_STRING)
                 content = "\"<dynamic>\"";
             else
                 content = "null";
             break;
 
         case PURC_VARIANT_TYPE_NATIVE:
-            if (flags & PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING)
+            if (flags & PCVRNT_SERIALIZE_OPT_RUNTIME_STRING)
                 content = "\"<native>\"";
             else
                 content = "null";
@@ -938,7 +938,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_indent(rws, level, flags, len_expected);
             MY_CHECK(n);
 
-            if (flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS)
+            if (flags & PCVRNT_SERIALIZE_OPT_UNIQKEYS)
                 MY_WRITE(rws, "[!", 2);
             else
                 MY_WRITE(rws, "[", 1);
@@ -946,7 +946,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             n = print_newline(rws, flags, len_expected);
             MY_CHECK(n);
 
-            if (flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS) {
+            if (flags & PCVRNT_SERIALIZE_OPT_UNIQKEYS) {
                 data = pcvar_set_get_data(value);
                 if (data->keynames) {
                     for (size_t i=0; i<data->nr_keynames; ++i) {
@@ -960,7 +960,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
 
             i = 0;
             foreach_value_in_variant_set_order(value, member)
-                if (i > 0 || flags & PCVARIANT_SERIALIZE_OPT_UNIQKEYS) {
+                if (i > 0 || flags & PCVRNT_SERIALIZE_OPT_UNIQKEYS) {
                     MY_WRITE(rws, ",", 1);
                     n = print_newline(rws, flags, len_expected);
                     MY_CHECK(n);
@@ -1002,7 +1002,7 @@ ssize_t purc_variant_serialize(purc_variant_t value, purc_rwstream_t rws,
             MY_CHECK(n);
 
             /* TODO: might use '(' in the future. */
-            if (flags & PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON)
+            if (flags & PCVRNT_SERIALIZE_OPT_TUPLE_EJSON)
                 MY_WRITE(rws, "[!", 2);
             else
                 MY_WRITE(rws, "[", 1);

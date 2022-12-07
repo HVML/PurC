@@ -80,7 +80,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
                     sizeof(exp_result) - 1);
             size_t len_expected = 0;
             ssize_t n = purc_variant_serialize(sample->expected_result, my_rws,
-                    0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+                    0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
             exp_result[n] = 0;
             purc_rwstream_destroy(my_rws);
 
@@ -89,7 +89,7 @@ static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
             if (info->result) {
                 size_t len_expected = 0;
                 ssize_t n = purc_variant_serialize(info->result, my_rws,
-                        0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+                        0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
                 exe_result[n] = 0;
 
             }

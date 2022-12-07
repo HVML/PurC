@@ -72,23 +72,23 @@ static int mvheap_init_once(void)
 {
     move_heap.v_undefined.type = PURC_VARIANT_TYPE_UNDEFINED;
     move_heap.v_undefined.refc = 0;
-    move_heap.v_undefined.flags = PCVARIANT_FLAG_NOFREE;
+    move_heap.v_undefined.flags = PCVRNT_FLAG_NOFREE;
     INIT_LIST_HEAD(&move_heap.v_undefined.listeners);
 
     move_heap.v_null.type = PURC_VARIANT_TYPE_NULL;
     move_heap.v_null.refc = 0;
-    move_heap.v_null.flags = PCVARIANT_FLAG_NOFREE;
+    move_heap.v_null.flags = PCVRNT_FLAG_NOFREE;
     INIT_LIST_HEAD(&move_heap.v_null.listeners);
 
     move_heap.v_false.type = PURC_VARIANT_TYPE_BOOLEAN;
     move_heap.v_false.refc = 0;
-    move_heap.v_false.flags = PCVARIANT_FLAG_NOFREE;
+    move_heap.v_false.flags = PCVRNT_FLAG_NOFREE;
     move_heap.v_false.b = false;
     INIT_LIST_HEAD(&move_heap.v_false.listeners);
 
     move_heap.v_true.type = PURC_VARIANT_TYPE_BOOLEAN;
     move_heap.v_true.refc = 0;
-    move_heap.v_true.flags = PCVARIANT_FLAG_NOFREE;
+    move_heap.v_true.flags = PCVRNT_FLAG_NOFREE;
     move_heap.v_true.b = true;
 
     struct purc_variant_stat *stat = &move_heap.stat;
@@ -141,7 +141,7 @@ move_variant_in(struct pcinst *inst, purc_variant_t v)
     if (IS_CONTAINER(v->type) ||
             ((v->type == PURC_VARIANT_TYPE_STRING ||
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
-            (v->flags & PCVARIANT_FLAG_EXTRA_SIZE))) {
+            (v->flags & PCVRNT_FLAG_EXTRA_SIZE))) {
         inst->org_vrt_heap->stat.sz_mem[v->type] -= v->sz_ptr[0];
         inst->org_vrt_heap->stat.sz_total_mem -= v->sz_ptr[0];
 
@@ -211,7 +211,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         /* copy the extra space */
         if ((v->type == PURC_VARIANT_TYPE_STRING ||
                 v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
-                (v->flags & PCVARIANT_FLAG_EXTRA_SIZE)) {
+                (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
 
             retv->sz_ptr[1] = (uintptr_t)malloc(v->sz_ptr[0]);
             memcpy((void *)retv->sz_ptr[1], (void *)v->sz_ptr[1], v->sz_ptr[0]);
@@ -746,7 +746,7 @@ move_or_clone_immutable_descendants_in_array(struct travel_context *ctxt,
 
         if (retv != v) {
             _p->val = retv;
-            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+            if (!(v->flags & PCVRNT_FLAG_NOFREE))
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
         }
 
@@ -790,7 +790,7 @@ move_or_clone_immutable_descendants_in_object(struct travel_context *ctxt,
             retv = move_or_clone_immutable(ctxt->inst, v);
             if (retv != v) {
                 _node->val = retv;
-                if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+                if (!(v->flags & PCVRNT_FLAG_NOFREE))
                     pcutils_arrlist_append(ctxt->vrts_to_unref, v);
             }
             break;
@@ -841,7 +841,7 @@ move_or_clone_immutable_descendants_in_set(struct travel_context *ctxt,
 
         if (retv != v) {
             _sn->val = retv;
-            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+            if (!(v->flags & PCVRNT_FLAG_NOFREE))
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
         }
 
@@ -895,7 +895,7 @@ move_or_clone_immutable_descendants_in_tuple(struct travel_context *ctxt,
         }
 
         if (retv != v) {
-            if (!(v->flags & PCVARIANT_FLAG_NOFREE))
+            if (!(v->flags & PCVRNT_FLAG_NOFREE))
                 pcutils_arrlist_append(ctxt->vrts_to_unref, v);
         }
 
@@ -971,7 +971,7 @@ purc_variant_t pcvariant_move_heap_in(purc_variant_t v)
     pcvariant_use_norm_heap();
 
     if (retv != PURC_VARIANT_INVALID && retv != v &&
-            !(v->flags & PCVARIANT_FLAG_NOFREE)) {
+            !(v->flags & PCVRNT_FLAG_NOFREE)) {
         purc_variant_unref(v);
     }
 
@@ -1206,7 +1206,7 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     }
     else if ((v->type == PURC_VARIANT_TYPE_STRING ||
                   v->type == PURC_VARIANT_TYPE_BSEQUENCE) &&
-                 (v->flags & PCVARIANT_FLAG_EXTRA_SIZE)) {
+                 (v->flags & PCVRNT_FLAG_EXTRA_SIZE)) {
         inst->org_vrt_heap->stat.sz_mem[v->type] += v->sz_ptr[0];
         inst->org_vrt_heap->stat.sz_total_mem += v->sz_ptr[0];
 

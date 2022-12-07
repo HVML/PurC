@@ -137,7 +137,7 @@ build_const_key(struct pcintr_stack *stack, purc_variant_t args)
 
     pcutils_md5_begin(&md5_ctxt);
     if (purc_variant_stringify(stream, key,
-            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+            PCVRNT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto out;
     }
 

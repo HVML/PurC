@@ -613,7 +613,7 @@ pcintr_post_event(purc_atom_t cid,
 
 out:
     // clone messae set type error purc_variant_get_string_const
-    if (purc_get_last_error() == PCVARIANT_ERROR_INVALID_TYPE) {
+    if (purc_get_last_error() == PCVRNT_ERROR_INVALID_TYPE) {
         purc_clr_error();
     }
     return ret;

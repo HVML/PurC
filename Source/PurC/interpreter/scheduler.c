@@ -865,9 +865,9 @@ serial_symbol_vars(const char *symbol, int id,
     size_t len_expected = 0;
     purc_variant_serialize(frame->symbol_vars[id],
             stm, 0,
-            PCVARIANT_SERIALIZE_OPT_REAL_EJSON |
-            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
-            PCVARIANT_SERIALIZE_OPT_PLAIN,
+            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
+            PCVRNT_SERIALIZE_OPT_PLAIN,
             &len_expected);
     purc_rwstream_write(stm, "\n", 1);
     return 0;

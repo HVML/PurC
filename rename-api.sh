@@ -22,7 +22,8 @@
 #sed -i 's/\<purc_vrtcmp_opt_t\>/pcvrnt_compare_method_k/g' `grep '\<purc_vrtcmp_opt_t\>' * -rl`
 #sed -i 's/PCVARIANT_COMPARE_OPT_/PCVRNT_COMPARE_METHOD_/g' `grep PCVARIANT_COMPARE_OPT_ * -rl`
 
+# sed -i 's/PCVARIANT_/PCVRNT_/g' `grep PCVARIANT_ * -rl`
+
 # sed -i 's/FFFF/TTTT/g' `grep FFFF * -rl`
 # sed -i 's/\<FFFF\>/TTTT/g' `grep '\<FFFF\>' * -rl`
 
-sed -i 's/PCVARIANT_/PCVRNT_/g' `grep PCVARIANT_ * -rl`

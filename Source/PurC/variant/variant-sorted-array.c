@@ -138,8 +138,8 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
         goto out;
     }
 
-    if (flags & PCVARIANT_SAFLAG_DESC) {
-        sa_flags |= PCVARIANT_SAFLAG_DESC;
+    if (flags & PCVRNT_SAFLAG_DESC) {
+        sa_flags |= PCVRNT_SAFLAG_DESC;
     }
     sacb_compare cmp_fn = cmp ? (sacb_compare)cmp : sacb_compare_def;
 

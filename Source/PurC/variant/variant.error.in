@@ -1,6 +1,6 @@
 OUTPUT_FILE=variant_err_msgs.inc
 OUTPUT_VAR=variant_err_msgs
-PREFIX=PCVARIANT_ERROR
+PREFIX=PCVRNT_ERROR
 
 
 InvalidType

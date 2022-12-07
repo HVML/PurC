@@ -1035,7 +1035,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 }
 
 #define MY_VRT_OPTS \
-    (PCVARIANT_SERIALIZE_OPT_SPACED | PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE)
+    (PCVRNT_SERIALIZE_OPT_SPACED | PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE)
 
 static int app_cond_handler(purc_cond_t event, void *arg, void *data)
 {
