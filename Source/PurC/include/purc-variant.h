@@ -1785,11 +1785,11 @@ purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 #define PCVARIANT_SAFLAG_DESC           0x0001
 #define PCVARIANT_SAFLAG_DEFAULT        0x0000
 
-typedef int (*pcvrnt_compare_method)(purc_variant_t v1, purc_variant_t v2);
+typedef int (*pcvrnt_compare_cb)(purc_variant_t v1, purc_variant_t v2);
 
 PCA_EXPORT purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
-        pcvrnt_compare_method cmp);
+        pcvrnt_compare_cb cmp);
 
 PCA_EXPORT int
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
@@ -2101,22 +2101,37 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
 PCA_EXPORT bool
 purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2);
 
-typedef enum purc_variant_compare_opt
-{
-    PCVARIANT_COMPARE_OPT_AUTO,
-    PCVARIANT_COMPARE_OPT_NUMBER,
-    PCVARIANT_COMPARE_OPT_CASE,
-    PCVARIANT_COMPARE_OPT_CASELESS,
-} purc_vrtcmp_opt_t;
+typedef enum pcvrnt_compare_method {
+    PCVRNT_COMPARE_METHOD_AUTO,
+    PCVRNT_COMPARE_METHOD_NUMBER,
+    PCVRNT_COMPARE_METHOD_CASE,
+    PCVRNT_COMPARE_METHOD_CASELESS,
+} pcvrnt_compare_method_k;
 
 /**
  * purc_variant_compare_ex:
  *
  * @v1: One variant.
  * @v2: Another variant.
- * @flags: The comparison flags.
+ * @method: The comparison method. It can be one of the following values:
+ *      - PCVRNT_COMPARE_METHOD_NUMBER:
+ *          Compares two variants as they are numbers. The variants may be
+ *          numerified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_CASE:
+ *          Compares two variants as they are strings and case-sensitively.
+ *          The variants may be stringified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_CASELESS:
+ *          Compares two variants as they are strings and case-insensitively.
+ *          The variants may be stringified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_AUTO:
+ *          Compares two variants automatially. The exact method used to
+ *          compare them is determined by the type of the first variant.
+ *          If the first variant is a number, this function will numerify
+ *          the second variant and compare them as they are numbers.
+ *          Otherwise, this function compares them as they are strings
+ *          and case-sensitively.
  *
- * Compares two variant value.
+ * Compares two variants in the specified method.
  *
  * Returns: The function returns an integer less than, equal to, or greater
  *      than zero if @v1 is found, respectively, to be less than, to match,
@@ -2126,7 +2141,7 @@ typedef enum purc_variant_compare_opt
  */
 PCA_EXPORT int
 purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
-        purc_vrtcmp_opt_t opt);
+        pcvrnt_compare_method_k method);
 
 /**
  * A flag for the purc_variant_serialize() function which serializes

@@ -1549,7 +1549,7 @@ compare_stringify (purc_variant_t v, char *stackbuffer, size_t size)
 }
 
 static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
-        purc_vrtcmp_opt_t opt)
+        pcvrnt_compare_method_k opt)
 {
     int compare = 0.0L;
     char *buf1 = NULL;
@@ -1565,7 +1565,7 @@ static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
     if (buf2 == NULL)
         buf2 = stackbuf2;
 
-    if (opt == PCVARIANT_COMPARE_OPT_CASE || opt == PCVARIANT_COMPARE_OPT_AUTO)
+    if (opt == PCVRNT_COMPARE_METHOD_CASE || opt == PCVRNT_COMPARE_METHOD_AUTO)
         compare = (double)strcmp (buf1, buf2);
     else
         compare = (double)pcutils_strcasecmp (buf1, buf2);
@@ -1579,19 +1579,19 @@ static int compare_string_method (purc_variant_t v1, purc_variant_t v2,
 }
 
 int purc_variant_compare_ex (purc_variant_t v1,
-        purc_variant_t v2, purc_vrtcmp_opt_t opt)
+        purc_variant_t v2, pcvrnt_compare_method_k opt)
 {
     int compare = 0;
 
     PC_ASSERT(v1);
     PC_ASSERT(v2);
 
-    if ((opt == PCVARIANT_COMPARE_OPT_CASELESS) ||
-            (opt == PCVARIANT_COMPARE_OPT_CASE))
+    if ((opt == PCVRNT_COMPARE_METHOD_CASELESS) ||
+            (opt == PCVRNT_COMPARE_METHOD_CASE))
         compare = compare_string_method (v1, v2, opt);
-    else if (opt == PCVARIANT_COMPARE_OPT_NUMBER)
+    else if (opt == PCVRNT_COMPARE_METHOD_NUMBER)
         compare = compare_number_method (v1, v2);
-    else if (opt == PCVARIANT_COMPARE_OPT_AUTO) {
+    else if (opt == PCVRNT_COMPARE_METHOD_AUTO) {
         if (v1 && ((v1->type == PURC_VARIANT_TYPE_NUMBER) ||
                 (v1->type == PURC_VARIANT_TYPE_LONGINT) ||
                 (v1->type == PURC_VARIANT_TYPE_ULONGINT) ||
@@ -2752,8 +2752,8 @@ pcvariant_diff(purc_variant_t l, purc_variant_t r)
         return pcvar_compare_ex(l, r, caseless, unify_number);
     }
     else {
-        enum purc_variant_compare_opt opt;
-        opt = PCVARIANT_COMPARE_OPT_CASE;
+        enum pcvrnt_compare_method opt;
+        opt = PCVRNT_COMPARE_METHOD_CASE;
 
         return pcvariant_diff_ex(l, r, opt);
     }
@@ -2988,7 +2988,7 @@ cmp_by_tuple(purc_variant_t l, purc_variant_t r,
 }
 
 struct comp_ex_data {
-    enum purc_variant_compare_opt        opt;
+    enum pcvrnt_compare_method        opt;
 
     int  diff;
 };
@@ -3056,16 +3056,16 @@ str_diff(const char *l, const char *r, struct comp_ex_data *data)
     rs = r;
 
     switch (data->opt) {
-        case PCVARIANT_COMPARE_OPT_AUTO:
+        case PCVRNT_COMPARE_METHOD_AUTO:
             return strcmp(ls, rs);
 
-        case PCVARIANT_COMPARE_OPT_NUMBER:
+        case PCVRNT_COMPARE_METHOD_NUMBER:
             return str_numerify_diff(ls, rs);
 
-        case PCVARIANT_COMPARE_OPT_CASE:
+        case PCVRNT_COMPARE_METHOD_CASE:
             return strcmp(ls, rs);
 
-        case PCVARIANT_COMPARE_OPT_CASELESS:
+        case PCVRNT_COMPARE_METHOD_CASELESS:
             return pcutils_strcasecmp(ls, rs);
 
         default:
@@ -3082,21 +3082,21 @@ atom_diff(purc_variant_t l, purc_variant_t r, struct comp_ex_data *data)
     const char *ls, *rs;
 
     switch (data->opt) {
-        case PCVARIANT_COMPARE_OPT_AUTO:
+        case PCVRNT_COMPARE_METHOD_AUTO:
             // FIXME: what if same string in differen BUCKET???
             return l->atom - r->atom;
 
-        case PCVARIANT_COMPARE_OPT_NUMBER:
+        case PCVRNT_COMPARE_METHOD_NUMBER:
             ls = purc_atom_to_string(l->atom);
             rs = purc_atom_to_string(r->atom);
             return str_numerify_diff(ls, rs);
 
-        case PCVARIANT_COMPARE_OPT_CASE:
+        case PCVRNT_COMPARE_METHOD_CASE:
             ls = purc_atom_to_string(l->atom);
             rs = purc_atom_to_string(r->atom);
             return strcmp(ls, rs);
 
-        case PCVARIANT_COMPARE_OPT_CASELESS:
+        case PCVRNT_COMPARE_METHOD_CASELESS:
             ls = purc_atom_to_string(l->atom);
             rs = purc_atom_to_string(r->atom);
             return pcutils_strcasecmp(ls, rs);
@@ -3318,19 +3318,19 @@ scalar_diff(purc_variant_t l, purc_variant_t r, void *ctxt)
         }
 
         switch (data->opt) {
-            case PCVARIANT_COMPARE_OPT_AUTO:
+            case PCVRNT_COMPARE_METHOD_AUTO:
                 data->diff = l->type - r->type;
                 return data->diff;
 
-            case PCVARIANT_COMPARE_OPT_NUMBER:
+            case PCVRNT_COMPARE_METHOD_NUMBER:
                 data->diff = numerify_diff(l, r);
                 return data->diff;
 
-            case PCVARIANT_COMPARE_OPT_CASE:
+            case PCVRNT_COMPARE_METHOD_CASE:
                 data->diff = stringify_diff(l, r, false);
                 return data->diff;
 
-            case PCVARIANT_COMPARE_OPT_CASELESS:
+            case PCVRNT_COMPARE_METHOD_CASELESS:
                 data->diff = stringify_diff(l, r, true);
                 return data->diff;
 
@@ -3344,7 +3344,7 @@ scalar_diff(purc_variant_t l, purc_variant_t r, void *ctxt)
 }
 
 int pcvariant_diff_ex(purc_variant_t l, purc_variant_t r,
-        enum purc_variant_compare_opt opt)
+        enum pcvrnt_compare_method opt)
 {
     struct comp_ex_data data = {
         .opt           = opt,

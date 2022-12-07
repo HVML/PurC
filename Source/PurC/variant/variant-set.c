@@ -362,9 +362,9 @@ struct element_rb_node {
 static int
 _compare_generic(purc_variant_t _new, purc_variant_t _old, bool caseless)
 {
-    purc_vrtcmp_opt_t opt = PCVARIANT_COMPARE_OPT_CASE;
+    pcvrnt_compare_method_k opt = PCVRNT_COMPARE_METHOD_CASE;
     if (caseless)
-        opt = PCVARIANT_COMPARE_OPT_CASELESS;
+        opt = PCVRNT_COMPARE_METHOD_CASELESS;
 
     int diff;
     diff = purc_variant_compare_ex(_new, _old, opt);
@@ -1542,10 +1542,10 @@ struct set_user_data {
 static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
     uintptr_t sort_flags;
-    purc_vrtcmp_opt_t cmpopt;
+    pcvrnt_compare_method_k cmpopt;
 
     sort_flags = (uintptr_t)ud;
-    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+    cmpopt = (pcvrnt_compare_method_k)(sort_flags & PCVARIANT_CMPOPT_MASK);
 
     int retv = purc_variant_compare_ex(l, r, cmpopt);
     if (sort_flags & PCVARIANT_SORT_DESC)

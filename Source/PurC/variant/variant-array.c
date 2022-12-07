@@ -883,10 +883,10 @@ sort_cmp(struct pcutils_array_list_node *l, struct pcutils_array_list_node *r,
 static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
     uintptr_t sort_flags;
-    purc_vrtcmp_opt_t cmpopt;
+    pcvrnt_compare_method_k cmpopt;
 
     sort_flags = (uintptr_t)ud;
-    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+    cmpopt = (pcvrnt_compare_method_k)(sort_flags & PCVARIANT_CMPOPT_MASK);
 
     int retv = purc_variant_compare_ex(l, r, cmpopt);
     if (sort_flags & PCVARIANT_SORT_DESC)

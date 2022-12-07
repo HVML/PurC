@@ -656,7 +656,7 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *option = NULL;
     size_t option_len;
-    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
+    unsigned int flag = PCVRNT_COMPARE_METHOD_AUTO;
 
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -679,19 +679,19 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         int cmp_id = pcdvobjs_global_keyword_id(option, option_len);
         switch (cmp_id) {
         case PURC_K_KW_auto:
-            flag = PCVARIANT_COMPARE_OPT_AUTO;
+            flag = PCVRNT_COMPARE_METHOD_AUTO;
             break;
 
         case PURC_K_KW_number:
-            flag = PCVARIANT_COMPARE_OPT_NUMBER;
+            flag = PCVRNT_COMPARE_METHOD_NUMBER;
             break;
 
         case PURC_K_KW_caseless:
-            flag = PCVARIANT_COMPARE_OPT_CASELESS;
+            flag = PCVRNT_COMPARE_METHOD_CASELESS;
             break;
 
         case PURC_K_KW_case:
-            flag = PCVARIANT_COMPARE_OPT_CASE;
+            flag = PCVRNT_COMPARE_METHOD_CASE;
             break;
 
         default:
@@ -1993,7 +1993,7 @@ failed:
 
 #if 0
 struct sort_opt {
-    purc_vrtcmp_opt_t method;
+    pcvrnt_compare_method_k method;
     bool asc;
     pcutils_map *map;
 };
@@ -2147,18 +2147,18 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (option_id == PURC_K_KW_auto) {
             double number;
             if (purc_variant_cast_to_number(val, &number, false))
-                sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
+                sort_opt |= PCVRNT_COMPARE_METHOD_NUMBER;
             else
-                sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
+                sort_opt |= PCVRNT_COMPARE_METHOD_CASE;
         }
         else if (option_id == PURC_K_KW_number) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
+            sort_opt |= PCVRNT_COMPARE_METHOD_NUMBER;
         }
         else if (option_id == PURC_K_KW_case) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
+            sort_opt |= PCVRNT_COMPARE_METHOD_CASE;
         }
         else if (option_id == PURC_K_KW_caseless) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_CASELESS;
+            sort_opt |= PCVRNT_COMPARE_METHOD_CASELESS;
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);

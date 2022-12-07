@@ -319,7 +319,7 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 
 int pcvariant_diff(purc_variant_t l, purc_variant_t r);
 int pcvariant_diff_ex(purc_variant_t l, purc_variant_t r,
-        enum purc_variant_compare_opt opt);
+        enum pcvrnt_compare_method opt);
 
 static inline const char*
 pcvariant_typename(purc_variant_t v)

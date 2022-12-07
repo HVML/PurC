@@ -918,7 +918,7 @@ TEST(set, compare)
         return;
     }
 
-    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    diff = purc_variant_compare_ex(set1, set2, PCVRNT_COMPARE_METHOD_AUTO);
     if (diff) {
         PRINT_VARIANT(set1);
         PRINT_VARIANT(set2);
@@ -951,7 +951,7 @@ TEST(set, undefined)
         return;
     }
 
-    diff = purc_variant_compare_ex(set1, set2, PCVARIANT_COMPARE_OPT_AUTO);
+    diff = purc_variant_compare_ex(set1, set2, PCVRNT_COMPARE_METHOD_AUTO);
     if (diff) {
         PRINT_VARIANT(set1);
         PRINT_VARIANT(set2);

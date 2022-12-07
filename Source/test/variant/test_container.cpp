@@ -533,7 +533,7 @@ TEST(variant, clone)
             break;
         }
 
-        diff = purc_variant_compare_ex(set, cloned, PCVARIANT_COMPARE_OPT_AUTO);
+        diff = purc_variant_compare_ex(set, cloned, PCVRNT_COMPARE_METHOD_AUTO);
         if (diff) {
             PRINT_VARIANT(set);
             PRINT_VARIANT(cloned);
