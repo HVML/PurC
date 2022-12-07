@@ -432,7 +432,9 @@ void dump_object (purc_variant_t object)
         const char     *key = pcvrnt_object_iterator_get_ckey(it);
         purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
         printf ("key%d: %s\n", j, key);
-        printf ("val%d: %s\n", j, pcvariant_to_string(val));
+        char *s = pcvariant_to_string(val);
+        printf ("val%d: %s\n", j, s);
+        free(s);
         bool having = pcvrnt_object_iterator_next(it);
         // behavior of accessing `val`/`key` is un-defined
         if (! having) {

@@ -1875,6 +1875,7 @@ TEST(utils, build_query_array)
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
     ASSERT_STREQ("0=value_1&1=value_2", buf);
+    purc_variant_unref(ret);
 
     ret = pcutils_url_build_query(v, "arr",
                 '&', PCUTILS_URL_OPT_REAL_EJSON |  PCUTILS_URL_OPT_RFC1738);
