@@ -52,6 +52,7 @@ static const char *def_style_sheet = ""
     "section, address, aside { display: block; unicode-bidi: embed }"
     "abbr            { display: inline }"
     "li              { display: list-item }"
+    "datalist, template, slot, dialog,"  // HTML 5 tags
     "head, area      { display: none }"
     "table           { display: table }"
     "tr              { display: table-row }"

@@ -1274,13 +1274,48 @@ find_parent_statcking_context(foil_rdrbox *box)
     return NULL;
 }
 
+static const char *replaced_tags_html[] = {
+    "audio",
+    "canvas",
+    "embed",
+    "iframe",
+    "img",
+    "input",
+    "object",
+    "select",
+    "video",
+};
+
 /* TODO: check whether an element is replaced or non-replaced */
 static int
 is_replaced_element(pcdoc_element_t elem, const char *tag_name)
 {
     (void)elem;
-    (void)tag_name;
+    static ssize_t max = PCA_TABLESIZE(replaced_tags_html);
+
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        int cmp;
+
+        mid = (low + high) / 2;
+        cmp = strcasecmp(tag_name, replaced_tags_html[mid]);
+        if (cmp == 0) {
+            goto found;
+        }
+        else {
+            if (cmp < 0) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
     return 0;
+
+found:
+    return 1;
 }
 
 static foil_rdrbox *
