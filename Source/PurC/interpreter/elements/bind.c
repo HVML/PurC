@@ -409,6 +409,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     if (0 != pcintr_stack_frame_eval_attr_and_content_full(stack, frame,
                 before_eval_attr, true)) {
+        if (purc_get_last_error() == PURC_ERROR_AGAIN) {
+            ctxt_destroy(ctxt);
+        }
         return NULL;
     }
 
