@@ -1532,8 +1532,8 @@ TEST(dvobjs, dvobjs_fs_linkinfo)
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
     // String param
-    printf ("TEST chown: nr_args = 1, param[0] = '/usr/bin/vi':\n");
-    param[0] = purc_variant_make_string ("/usr/bin/vi", true);
+    printf ("TEST chown: nr_args = 1, param[0] = '/bin/ls':\n");
+    param[0] = purc_variant_make_string ("/bin/ls", true);
     ret_var = func (NULL, 1, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("return: %s\n", purc_variant_get_string_const (ret_var));
