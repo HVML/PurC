@@ -1455,13 +1455,15 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t to  = ctxt->to;
     purc_variant_t at  = ctxt->at;
     purc_variant_t template_data_type  = ctxt->template_data_type;
+    int ret = -1;
 
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         if (pcdvobjs_is_elements(on)) {
-            return update_elements(&co->stack, on, at, to, src, with_eval,
+            ret = update_elements(&co->stack, on, at, to, src, with_eval,
                 template_data_type, ctxt->op);
+            goto out;
         }
     }
     else if (type == PURC_VARIANT_TYPE_STRING) {
@@ -1471,16 +1473,21 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (elems) {
             pcdoc_element_t elem;
             elem = pcdvobjs_get_element_from_elements(elems, 0);
-            int r = 0;
             if (elem) {
-                r = update_elements(&co->stack, elems, at, to, src, with_eval,
+                ret = update_elements(&co->stack, elems, at, to, src, with_eval,
                         template_data_type, ctxt->op);
             }
             purc_variant_unref(elems);
-            return r ? -1 : 0;
+            goto out;
         }
     }
-    return update_dest(co, frame, on, at, to, src, with_eval, ctxt->individually);
+    ret = update_dest(co, frame, on, at, to, src, with_eval, ctxt->individually);
+
+out:
+    if (ret == 0) {
+        pcintr_set_question_var(frame, on);
+    }
+    return ret;
 }
 
 static int
