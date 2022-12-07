@@ -621,7 +621,14 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
             }
             bool r;
             if (idx >= 0) {
-                r = purc_variant_set_remove_by_index(dst, idx);
+                purc_variant_t v = purc_variant_set_remove_by_index(dst, idx);
+                if (v) {
+                    r = true;
+                    purc_variant_unref(v);
+                }
+                else {
+                    r = false;
+                }
             }
             else {
                 r = purc_variant_container_remove(dst, src, silently);
