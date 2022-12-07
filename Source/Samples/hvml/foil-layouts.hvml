@@ -24,7 +24,7 @@
                     This text is defined by the first <Q>P</Q>.
                     <BR />
                     There is a line-break before this text.
-                    <SPAN>This text is defined by <Q>SPAN</Q>.</SPAN>
+                    <SPAN>This text is defined by <Q>SPAN</Q>. </SPAN>
                     This text is after <Q>SPAN</Q>.
                 </P>
 
@@ -32,7 +32,7 @@
                     This text is defined by the second <Q>P</Q>.
                     <BR />
                     There is a line-break before this text.
-                    <STRONG>This text is defined by <Q>STRONG</Q>.</STRONG>
+                    <STRONG>This text is defined by <Q>STRONG</Q>. </STRONG>
                     This text is after <Q>STRONG</Q>.
                 </P>
             </SECTION>
@@ -73,6 +73,28 @@
                 </P>
 
             </SECTION>
+        </define>
+
+        <init as 'caseName' with 'layeredBoxes' temp />
+        <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
+          <SECTION id="$caseName">
+            <P>
+              <IMG id="image" class="pile" src="butterfly.png" alt="A butterfly image" style="z-index: 1" />
+            </P>
+
+            <DIV id="text1" class="pile" style="z-index: 3">
+              This text will overlay the butterfly image.
+            </DIV>
+
+            <DIV id="text2">
+              This text will be beneath everything.
+            </DIV>
+
+            <DIV id="text3" class="pile" style="z-index: 2">
+              This text will underlay text1, but overlay the butterfly image.
+            </DIV>
+
+          </SECTION>
         </define>
 
         <init as 'caseName' with 'unorderedListItems' temp />

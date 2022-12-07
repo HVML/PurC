@@ -152,7 +152,7 @@ TEST_P(variant_load_from_json, load_and_serialize)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0) << "Test Case : "<< get_name();
 
     buf[n] = 0;

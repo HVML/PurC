@@ -611,7 +611,10 @@ uint8_t css_computed_background_color(const css_computed_style *style,
 uint8_t css_computed_z_index(const css_computed_style *style,
 		int32_t *z_index)
 {
-	return get_z_index(style, z_index);
+	css_fixed tmp;
+	uint8_t v = get_z_index(style, &tmp);
+	*z_index = FIXTOINT(tmp);
+	return v;
 }
 
 uint8_t css_computed_margin_top(const css_computed_style *style,
@@ -839,7 +842,10 @@ uint8_t css_computed_break_inside(const css_computed_style *style)
 uint8_t css_computed_column_count(const css_computed_style *style,
 		int32_t *column_count)
 {
-	return get_column_count(style, column_count);
+	css_fixed tmp;
+	uint8_t v = get_column_count(style, &tmp);
+	*column_count = FIXTOINT(tmp);
+	return v;
 }
 
 uint8_t css_computed_column_fill(const css_computed_style *style)
@@ -1032,13 +1038,19 @@ uint8_t css_computed_page_break_inside(const css_computed_style *style)
 uint8_t css_computed_orphans(const css_computed_style *style,
 		int32_t *orphans)
 {
-	return get_orphans(style, orphans);
+	css_fixed tmp;
+	uint8_t v = get_orphans(style, &tmp);
+	*orphans = FIXTOINT(tmp);
+	return v;
 }
 
 uint8_t css_computed_widows(const css_computed_style *style,
 		int32_t *widows)
 {
-	return get_widows(style, widows);
+	css_fixed tmp;
+	uint8_t v = get_widows(style, &tmp);
+	*widows = FIXTOINT(tmp);
+	return v;
 }
 
 uint8_t css_computed_align_content(const css_computed_style *style)
@@ -1092,7 +1104,10 @@ uint8_t css_computed_justify_content(const css_computed_style *style)
 uint8_t css_computed_order(const css_computed_style *style,
 		int32_t *order)
 {
-	return get_order(style, order);
+	css_fixed tmp;
+	uint8_t v = get_order(style, &tmp);
+	*order = FIXTOINT(tmp);
+	return v;
 }
 
 /******************************************************************************

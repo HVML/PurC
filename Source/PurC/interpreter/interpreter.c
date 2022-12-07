@@ -2839,7 +2839,7 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
             call_flags);
     int cmp = purc_variant_compare_ex(new_val, last_value,
-            PCVARIANT_COMPARE_OPT_AUTO);
+            PCVRNT_COMPARE_METHOD_AUTO);
     if (cmp == 0) {
         purc_variant_unref(new_val);
         goto out;

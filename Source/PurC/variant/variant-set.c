@@ -277,7 +277,7 @@ pcv_set_new(void)
     }
 
     set->type          = PVT(_SET);
-    set->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
+    set->flags         = PCVRNT_FLAG_EXTRA_SIZE;
 
     variant_set_t data  = (variant_set_t)calloc(1, sizeof(*data));
     pcv_set_set_data(set, data);
@@ -362,9 +362,9 @@ struct element_rb_node {
 static int
 _compare_generic(purc_variant_t _new, purc_variant_t _old, bool caseless)
 {
-    purc_vrtcmp_opt_t opt = PCVARIANT_COMPARE_OPT_CASE;
+    pcvrnt_compare_method_k opt = PCVRNT_COMPARE_METHOD_CASE;
     if (caseless)
-        opt = PCVARIANT_COMPARE_OPT_CASELESS;
+        opt = PCVRNT_COMPARE_METHOD_CASELESS;
 
     int diff;
     diff = purc_variant_compare_ex(_new, _old, opt);
@@ -1109,7 +1109,7 @@ purc_variant_t
 purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
     bool caseless, purc_variant_t value0, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
+    PCVRNT_CHECK_FAIL_RET((sz==0 && value0==NULL) || (sz>0 && value0),
         PURC_VARIANT_INVALID);
 
     bool check = true;
@@ -1125,7 +1125,7 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
 bool
 purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
 
     // FIXME: shall clear error here???
@@ -1147,7 +1147,7 @@ bool
 purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
         bool silently)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
             PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1171,7 +1171,7 @@ purc_variant_t
 purc_variant_set_get_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && v1,
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && v1,
         PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1198,7 +1198,7 @@ purc_variant_t
 purc_variant_set_remove_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && v1,
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && v1,
         PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1219,7 +1219,7 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
     purc_variant_unref(kvs);
 
     if (!p) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVRNT_ERROR_NOT_FOUND);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1244,7 +1244,7 @@ purc_variant_set_size(purc_variant_t set, size_t *sz)
 {
     PC_ASSERT(set && sz);
 
-    PCVARIANT_CHECK_FAIL_RET(set->type == PVT(_SET), false);
+    PCVRNT_CHECK_FAIL_RET(set->type == PVT(_SET), false);
 
     variant_set_t data = pcvar_set_get_data(set);
 
@@ -1286,7 +1286,7 @@ purc_variant_set_remove_by_index(purc_variant_t set, size_t idx)
     size_t count = pcutils_array_list_length(&data->al);
 
     if (idx >= count) {
-        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
+        pcinst_set_error(PCVRNT_ERROR_OUT_OF_BOUNDS);
         return PURC_VARIANT_INVALID;
     }
 
@@ -1324,7 +1324,7 @@ purc_variant_set_set_by_index(purc_variant_t set,
     size_t count = pcutils_array_list_length(&data->al);
 
     if (idx >= count) {
-        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_BOUNDS);
+        pcinst_set_error(PCVRNT_ERROR_OUT_OF_BOUNDS);
         return false;
     }
 
@@ -1383,7 +1383,7 @@ iterator_refresh(struct purc_variant_set_iterator *it)
 struct purc_variant_set_iterator*
 purc_variant_set_make_iterator_begin(purc_variant_t set)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1391,7 +1391,7 @@ purc_variant_set_make_iterator_begin(purc_variant_t set)
 
     size_t count = pcutils_array_list_length(&data->al);
     if (count == 0) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVRNT_ERROR_NOT_FOUND);
         return NULL;
     }
 
@@ -1416,7 +1416,7 @@ purc_variant_set_make_iterator_begin(purc_variant_t set)
 struct purc_variant_set_iterator*
 purc_variant_set_make_iterator_end(purc_variant_t set)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1424,7 +1424,7 @@ purc_variant_set_make_iterator_end(purc_variant_t set)
 
     size_t count = pcutils_array_list_length(&data->al);
     if (count == 0) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_FOUND);
+        pcinst_set_error(PCVRNT_ERROR_NOT_FOUND);
         return NULL;
     }
 
@@ -1457,7 +1457,7 @@ purc_variant_set_release_iterator(struct purc_variant_set_iterator* it)
 bool
 purc_variant_set_iterator_next(struct purc_variant_set_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it && it->set &&
+    PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,
         false);
 
@@ -1473,7 +1473,7 @@ purc_variant_set_iterator_next(struct purc_variant_set_iterator* it)
 bool
 purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it && it->set &&
+    PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,
         false);
 
@@ -1489,7 +1489,7 @@ purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it)
 purc_variant_t
 purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it)
 {
-    PCVARIANT_CHECK_FAIL_RET(it && it->set &&
+    PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,
         PURC_VARIANT_INVALID);
 
@@ -1542,13 +1542,13 @@ struct set_user_data {
 static int vrtcmp(purc_variant_t l, purc_variant_t r, void *ud)
 {
     uintptr_t sort_flags;
-    purc_vrtcmp_opt_t cmpopt;
+    pcvrnt_compare_method_k cmpopt;
 
     sort_flags = (uintptr_t)ud;
-    cmpopt = (purc_vrtcmp_opt_t)(sort_flags & PCVARIANT_CMPOPT_MASK);
+    cmpopt = (pcvrnt_compare_method_k)(sort_flags & PCVRNT_CMPOPT_MASK);
 
     int retv = purc_variant_compare_ex(l, r, cmpopt);
-    if (sort_flags & PCVARIANT_SORT_DESC)
+    if (sort_flags & PCVRNT_SORT_DESC)
         retv = -retv;
     return retv;
 }
@@ -1589,7 +1589,7 @@ int pcvariant_set_sort(purc_variant_t value, void *ud,
 purc_variant_t
 pcvariant_set_find(purc_variant_t set, purc_variant_t value)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
             PURC_VARIANT_INVALID);
 
     variant_set_t data = pcvar_set_get_data(set);
@@ -1605,7 +1605,7 @@ pcvariant_set_find(purc_variant_t set, purc_variant_t value)
 int pcvariant_set_get_uniqkeys(purc_variant_t set, size_t *nr_keynames,
         const char ***keynames)
 {
-    PCVARIANT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
+    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) &&
             nr_keynames && keynames, -1);
 
     variant_set_t data = pcvar_set_get_data(set);

@@ -64,7 +64,7 @@ char *variant_to_string(purc_variant_t v)
     purc_rwstream_t my_rws = purc_rwstream_new_buffer(MIN_BUFFER, MAX_BUFFER);
     size_t len_expected = 0;
     ssize_t ret = purc_variant_serialize(v, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     if (ret == -1) {
         return NULL;
     }

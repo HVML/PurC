@@ -811,7 +811,7 @@ serialize_message_data(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
 
         /* always serialize as a standard JSON */
         if (purc_variant_serialize(msg->data, buffer, 0,
-                PCVARIANT_SERIALIZE_OPT_PLAIN, NULL) < 0) {
+                PCVRNT_SERIALIZE_OPT_PLAIN, NULL) < 0) {
             errcode = purc_get_last_error();
             goto done;
         }

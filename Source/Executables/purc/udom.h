@@ -29,12 +29,15 @@
 #include "foil.h"
 #include "rdrbox.h"
 #include "util/sorted-array.h"
+#include "util/list.h"
+#include "region/region.h"
 
 #include <purc/purc-document.h>
 #include <glib.h>
 
-#define FOIL_DEF_FGC        0xFFFFFFFF
-#define FOIL_DEF_BGC        0xFF000000
+#define FOIL_DEF_FGC            0xFFFFFFFF
+#define FOIL_DEF_BGC            0xFF000000
+#define FOIL_DEF_RGNRCHEAP_SZ   16
 
 struct pcmcth_udom {
     /* the sorted array of eDOM element and the corresponding CSS node data. */
@@ -74,7 +77,31 @@ struct pcmcth_udom {
     /* quoting depth */
     int nr_open_quotes;
     int nr_close_quotes;
+
+    /* the block heap for region rectangles */
+    foil_block_heap rgnrc_heap;
+
+    /* the pointer to the stacking context created by the root element */
+    struct foil_stacking_context *root_stk_ctxt;
 };
+
+typedef struct foil_stacking_context {
+    /* the parent stacking context; NULL for root stacking context. */
+    struct foil_stacking_context   *parent;
+
+    /* the creator of this stacking context */
+    foil_rdrbox                    *creator;
+
+    /* the z-index of this stacking context */
+    int                             zidx;
+
+    /* the array of child stacking contexts sorted by z-index. */
+    struct sorted_array            *zidx2child;
+
+    /* the list node used to link sibling stacking contexts
+       which have the same z-index. */
+    struct list_head                list;
+} foil_stacking_context;
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,6 +118,13 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
 
 pcmcth_udom *foil_udom_load_edom(pcmcth_page *page,
         purc_variant_t edom, int *retv);
+
+foil_stacking_context *foil_stacking_context_new(
+        foil_stacking_context *parent, int zidx, foil_rdrbox *creator);
+
+int foil_stacking_context_detach(foil_stacking_context *parent,
+        foil_stacking_context *ctxt);
+int foil_stacking_context_delete(foil_stacking_context *ctxt);
 
 uint8_t foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem);
 

@@ -145,9 +145,9 @@ write_variant_to_rwstream(purc_rwstream_t rws, purc_variant_t v)
 {
     size_t len_expected = 0;
     purc_variant_serialize(v, rws, 0,
-            PCVARIANT_SERIALIZE_OPT_REAL_EJSON |
-            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
-            PCVARIANT_SERIALIZE_OPT_PLAIN,
+            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64 |
+            PCVRNT_SERIALIZE_OPT_PLAIN,
             &len_expected);
 }
 

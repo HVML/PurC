@@ -180,9 +180,9 @@ TEST_P(ejson_parser_vcm_eval, parse_and_serialize)
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
             0,
-            PCVARIANT_SERIALIZE_OPT_REAL_EJSON |
-            PCVARIANT_SERIALIZE_OPT_PLAIN |
-            PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64,
+            PCVRNT_SERIALIZE_OPT_REAL_EJSON |
+            PCVRNT_SERIALIZE_OPT_PLAIN |
+            PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64,
             &len_expected);
     ASSERT_GT(n, 0) << "Test Case : "<< get_name();
 

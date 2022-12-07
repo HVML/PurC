@@ -270,7 +270,7 @@ is_in_array(purc_variant_t array, purc_variant_t v, int* idx)
     size_t curr;
     UNUSED_VARIABLE(val);
     foreach_value_in_variant_array_safe(array, val, curr)
-        if (purc_variant_compare_ex(val, v, PCVARIANT_COMPARE_OPT_AUTO) == 0) {
+        if (purc_variant_compare_ex(val, v, PCVRNT_COMPARE_METHOD_AUTO) == 0) {
             if (idx) {
                 *idx = curr;
             }

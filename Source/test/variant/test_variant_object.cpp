@@ -456,7 +456,7 @@ TEST(object, compare)
         return;
     }
 
-    diff = purc_variant_compare_ex(obj1, obj2, PCVARIANT_COMPARE_OPT_AUTO);
+    diff = purc_variant_compare_ex(obj1, obj2, PCVRNT_COMPARE_METHOD_AUTO);
     if (diff) {
         PRINT_VARIANT(obj1);
         PRINT_VARIANT(obj2);

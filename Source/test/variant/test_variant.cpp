@@ -447,7 +447,7 @@ TEST(variant, pcvariant_number)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_NOZERO, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_NOZERO, &len_expected);
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
@@ -484,7 +484,7 @@ TEST(variant, pcvariant_ulongint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            0, PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
             &len_expected);
     ASSERT_GT(n, 0);
 
@@ -504,7 +504,7 @@ TEST(variant, pcvariant_ulongint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     len_expected = 0;
     n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            0, PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
             &len_expected);
     ASSERT_GT(n, 0);
 
@@ -542,7 +542,7 @@ TEST(variant, pcvariant_longint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            0, PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
             &len_expected);
     ASSERT_GT(n, 0);
 
@@ -563,7 +563,7 @@ TEST(variant, pcvariant_longint)
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
     len_expected = 0;
     n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            0, PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
             &len_expected);
     ASSERT_GT(n, 0);
 
@@ -601,7 +601,7 @@ TEST(variant, pcvariant_longdouble)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(value, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_REAL_EJSON | PCVARIANT_SERIALIZE_OPT_NOZERO,
+            0, PCVRNT_SERIALIZE_OPT_REAL_EJSON | PCVRNT_SERIALIZE_OPT_NOZERO,
             &len_expected);
     ASSERT_GT(n, 0);
 
@@ -1525,16 +1525,16 @@ TEST(variant, variant_compare)
     purc_variant_t val2 = purc_variant_make_string ("guangzhou", false);
     purc_variant_object_set (value2, key2, val2);
 
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASELESS);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_CASELESS);
     ASSERT_EQ(compare, 0);
 
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_CASE);
     ASSERT_EQ(compare, 0);
 
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_NUMBER);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_NUMBER);
     ASSERT_EQ(compare, 0);
 
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_AUTO);
     ASSERT_EQ(compare, 0);
 
     purc_variant_unref (key1);
@@ -1547,9 +1547,9 @@ TEST(variant, variant_compare)
 
     value1 = purc_variant_make_number (1.0);
     value2 = purc_variant_make_number (2.0);
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_AUTO);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_AUTO);
     ASSERT_LT(compare, 0);
-    compare = purc_variant_compare_ex (value1, value2, PCVARIANT_COMPARE_OPT_CASE);
+    compare = purc_variant_compare_ex (value1, value2, PCVRNT_COMPARE_METHOD_CASE);
     ASSERT_LT(compare, 0);
     purc_variant_unref (value1);
     purc_variant_unref (value2);

@@ -742,7 +742,7 @@ purc_variant_make_native(void *native_entity,
  * Gets the pointer to the entity of the native entity variant @native.
  *
  * Returns: The pointer to the native pointer. On failure, it returns %NULL
- *      and sets error code %PCVARIANT_ERROR_INVALID_TYPE.
+ *      and sets error code %PCVRNT_ERROR_INVALID_TYPE.
  *      Note that, the pointer to the entity can be %NULL for a valid native
  *      entity variant.
  *
@@ -759,7 +759,7 @@ purc_variant_native_get_entity(purc_variant_t native);
  * Gets the pointer to the operation set of the native entity variant @native.
  *
  * Returns: The pointer to the native pointer. On failure, it returns %NULL
- *      and sets error code %PCVARIANT_ERROR_INVALID_TYPE.
+ *      and sets error code %PCVRNT_ERROR_INVALID_TYPE.
  *      Note that, the pointer to the entity can be %NULL for a valid native
  *      entity variant.
  *
@@ -1080,7 +1080,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * @obj: An object variant.
  * @key: The key of an property, specified by a static null-terminated string.
  * @silently: Whether to ignore the following errors.
- *      - PCVARIANT_ERROR_NOT_FOUND
+ *      - PCVRNT_ERROR_NOT_FOUND
  *
  * Removes the property given by a static null-terminated string @key
  * in the object variant @obj.
@@ -1436,7 +1436,7 @@ purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
  * @set: An set variant.
  * @value: The value to be removed.
  * @silently: Whether to ignore the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND
+ *      - PCVRNT_ERROR_NOT_FOUND
  *
  * Removes a variant from a given set variant (@set).
  *
@@ -1781,15 +1781,15 @@ purc_variant_tuple_get(purc_variant_t tuple, size_t idx);
 PCA_EXPORT bool
 purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 
-#define PCVARIANT_SAFLAG_ASC            0x0000
-#define PCVARIANT_SAFLAG_DESC           0x0001
-#define PCVARIANT_SAFLAG_DEFAULT        0x0000
+#define PCVRNT_SAFLAG_ASC            0x0000
+#define PCVRNT_SAFLAG_DESC           0x0001
+#define PCVRNT_SAFLAG_DEFAULT        0x0000
 
-typedef int (*pcvrnt_compare_method)(purc_variant_t v1, purc_variant_t v2);
+typedef int (*pcvrnt_compare_cb)(purc_variant_t v1, purc_variant_t v2);
 
 PCA_EXPORT purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
-        pcvrnt_compare_method cmp);
+        pcvrnt_compare_cb cmp);
 
 PCA_EXPORT int
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
@@ -2101,22 +2101,37 @@ purc_variant_cast_to_byte_sequence(purc_variant_t v,
 PCA_EXPORT bool
 purc_variant_is_equal_to(purc_variant_t v1, purc_variant_t v2);
 
-typedef enum purc_variant_compare_opt
-{
-    PCVARIANT_COMPARE_OPT_AUTO,
-    PCVARIANT_COMPARE_OPT_NUMBER,
-    PCVARIANT_COMPARE_OPT_CASE,
-    PCVARIANT_COMPARE_OPT_CASELESS,
-} purc_vrtcmp_opt_t;
+typedef enum pcvrnt_compare_method {
+    PCVRNT_COMPARE_METHOD_AUTO,
+    PCVRNT_COMPARE_METHOD_NUMBER,
+    PCVRNT_COMPARE_METHOD_CASE,
+    PCVRNT_COMPARE_METHOD_CASELESS,
+} pcvrnt_compare_method_k;
 
 /**
  * purc_variant_compare_ex:
  *
  * @v1: One variant.
  * @v2: Another variant.
- * @flags: The comparison flags.
+ * @method: The comparison method. It can be one of the following values:
+ *      - PCVRNT_COMPARE_METHOD_NUMBER:
+ *          Compares two variants as they are numbers. The variants may be
+ *          numerified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_CASE:
+ *          Compares two variants as they are strings and case-sensitively.
+ *          The variants may be stringified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_CASELESS:
+ *          Compares two variants as they are strings and case-insensitively.
+ *          The variants may be stringified first before comparing.
+ *      - PCVRNT_COMPARE_METHOD_AUTO:
+ *          Compares two variants automatially. The exact method used to
+ *          compare them is determined by the type of the first variant.
+ *          If the first variant is a number, this function will numerify
+ *          the second variant and compare them as they are numbers.
+ *          Otherwise, this function compares them as they are strings
+ *          and case-sensitively.
  *
- * Compares two variant value.
+ * Compares two variants in the specified method.
  *
  * Returns: The function returns an integer less than, equal to, or greater
  *      than zero if @v1 is found, respectively, to be less than, to match,
@@ -2126,57 +2141,57 @@ typedef enum purc_variant_compare_opt
  */
 PCA_EXPORT int
 purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
-        purc_vrtcmp_opt_t opt);
+        pcvrnt_compare_method_k method);
 
 /**
  * A flag for the purc_variant_serialize() function which serializes
  * all real numbers as JSON numbers.
  */
-#define PCVARIANT_SERIALIZE_OPT_REAL_JSON               0x00000000
+#define PCVRNT_SERIALIZE_OPT_REAL_JSON               0x00000000
 
 /**
  * A flag for the purc_variant_serialize() function which serializes
  * a real numbers by using eJSON notation.
  */
-#define PCVARIANT_SERIALIZE_OPT_REAL_EJSON              0x00000001
+#define PCVRNT_SERIALIZE_OPT_REAL_EJSON              0x00000001
 
 /**
  * A flag for the purc_variant_serialize() function which serializes
  * all runtime types (undefined, dynamic, and native) as JSON null.
  */
-#define PCVARIANT_SERIALIZE_OPT_RUNTIME_NULL            0x00000000
+#define PCVRNT_SERIALIZE_OPT_RUNTIME_NULL            0x00000000
 
 /**
  * A flag for the purc_variant_serialize() function which serializes
  * all runtime types (undefined, dynamic, and native) as placeholders
  * in JSON strings.
  */
-#define PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING          0x00000002
+#define PCVRNT_SERIALIZE_OPT_RUNTIME_STRING          0x00000002
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to drop trailing zero for float values.
  */
-#define PCVARIANT_SERIALIZE_OPT_NOZERO                  0x00000004
+#define PCVRNT_SERIALIZE_OPT_NOZERO                  0x00000004
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to not escape the forward slashes ('/').
  */
-#define PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE           0x00000008
+#define PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE           0x00000008
 
 /**
  * A flag for the purc_variant_serialize() function which
  * causes the output to have no extra whitespace or formatting applied.
  */
-#define PCVARIANT_SERIALIZE_OPT_PLAIN                   0x00000000
+#define PCVRNT_SERIALIZE_OPT_PLAIN                   0x00000000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to have minimal whitespace inserted to make things slightly
  * more readable.
  */
-#define PCVARIANT_SERIALIZE_OPT_SPACED                  0x00000010
+#define PCVRNT_SERIALIZE_OPT_SPACED                  0x00000010
 
 /**
  * A flag for the purc_variant_serialize() function which causes
@@ -2185,64 +2200,64 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
  * See the "Two Space Tab" option at <http://jsonformatter.curiousconcept.com>
  * for an example of the format.
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY                  0x00000020
+#define PCVRNT_SERIALIZE_OPT_PRETTY                  0x00000020
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to be formatted by using a single tab character instead of
  * "Two Space Tab".
  */
-#define PCVARIANT_SERIALIZE_OPT_PRETTY_TAB              0x00000040
+#define PCVRNT_SERIALIZE_OPT_PRETTY_TAB              0x00000040
 
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK          0x00000F00
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK          0x00000F00
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the function serializes byte sequences as a hexadecimal string.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING    0x00000000
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING    0x00000000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use hexadecimal characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX           0x00000100
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX           0x00000100
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use binary characters for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN           0x00000200
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN           0x00000200
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to use BASE64 encoding for byte sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64        0x00000300
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64        0x00000300
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to have dot for binary sequence.
  */
-#define PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x00000400
+#define PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT       0x00000400
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the output to print unique keys of a set.
  */
-#define PCVARIANT_SERIALIZE_OPT_UNIQKEYS                0x00001000
+#define PCVRNT_SERIALIZE_OPT_UNIQKEYS                0x00001000
 
 /**
  * A flag for the purc_variant_serialize() function which serializes
  * a tuple by using eJSON notation.
  */
-#define PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON             0x00002000
+#define PCVRNT_SERIALIZE_OPT_TUPLE_EJSON             0x00002000
 
 /**
  * A flag for the purc_variant_serialize() function which causes
  * the function ignores the output errors.
  */
-#define PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS           0x10000000
+#define PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS           0x10000000
 
 /**
  * Serialize a variant value
@@ -2261,13 +2276,13 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
  * the cause of the error.
  *
  * If the function is called with the flag
- * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
+ * PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
  * returned the number of bytes written to the stream actually.
  * Meanwhile, if @len_expected is not null, the expected length of
  * the serialized data will be returned through this buffer.
  *
  * Therefore, you can prepare a small memory stream with the flag
- * PCVARIANT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
+ * PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
  * expected length of the serialized data.
  *
  * Since: 0.0.1
@@ -2742,7 +2757,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
  * @obj: the variant value of obj type
  * @key: the key of key-value pair
  * @silently: %true means ignoring the following errors:
- *      - PCVARIANT_ERROR_NOT_FOUND (return %true)
+ *      - PCVRNT_ERROR_NOT_FOUND (return %true)
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -2842,19 +2857,19 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value);
  * A flag for the purc_variant_stringify() function which causes
  * the function ignores the output errors.
  */
-#define PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS           0x10000000
+#define PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS           0x10000000
 
 /**
  * A flag for the purc_variant_stringify() function which causes
  * the function stringifies byte sequences as bare bytes.
  */
-#define PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES     0x00000100
+#define PCVRNT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES     0x00000100
 
 /**
  * A flag for the purc_variant_stringify() function which causes
  * the function stringifies real numers as bare bytes.
  */
-#define PCVARIANT_STRINGIFY_OPT_REAL_BAREBYTES          0x00000200
+#define PCVRNT_STRINGIFY_OPT_REAL_BAREBYTES          0x00000200
 
 /**
  * Stringify a variant value to a writable stream.
@@ -2872,13 +2887,13 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value);
  * the cause of the error.
  *
  * If the function is called with the flag
- * PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS set, this function always
+ * PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set, this function always
  * returned the number of bytes written to the stream actually.
  * Meanwhile, if @len_expected is not null, the expected length of
  * the stringified data will be returned through this buffer.
  *
  * Therefore, you can prepare a small memory stream with the flag
- * PCVARIANT_STRINGIFY_OPT_IGNORE_ERRORS set to count the
+ * PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set to count the
  * expected length of the stringified data.
  *
  * Since: 0.1.1
@@ -2985,7 +3000,7 @@ purc_variant_container_displace(purc_variant_t dst,
  * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
- *      - PCVARIANT_ERROR_NOT_FOUND
+ *      - PCVRNT_ERROR_NOT_FOUND
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -3160,7 +3175,7 @@ purc_variant_set_xor(purc_variant_t set,
  * @silently: %true means ignoring the following errors:
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
- *      - PCVARIANT_ERROR_NOT_FOUND
+ *      - PCVRNT_ERROR_NOT_FOUND
  *
  * Returns: %true on success, otherwise %false.
  *

@@ -222,7 +222,7 @@ TEST(variant, tuple_serialize)
     purc_rwstream_t my_rws = purc_rwstream_new_from_mem(buf, sizeof(buf) - 1);
     size_t len_expected = 0;
     purc_variant_serialize(tuple, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     buf[len_expected] = 0;
     ASSERT_STREQ("[\"abc\"]", buf);
 
@@ -249,7 +249,7 @@ TEST(variant, tuple_serialize_ejson)
     size_t len_expected = 0;
     purc_variant_serialize(tuple, my_rws,
             0,
-            PCVARIANT_SERIALIZE_OPT_PLAIN | PCVARIANT_SERIALIZE_OPT_TUPLE_EJSON,
+            PCVRNT_SERIALIZE_OPT_PLAIN | PCVRNT_SERIALIZE_OPT_TUPLE_EJSON,
             &len_expected);
     buf[len_expected] = 0;
     ASSERT_STREQ("[!\"abc\"]", buf);

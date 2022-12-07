@@ -150,7 +150,7 @@ purc_variant_t purc_variant_make_tuple(size_t argc, purc_variant_t *argv)
     }
 
     vrt->type = PURC_VARIANT_TYPE_TUPLE;
-    vrt->flags = PCVARIANT_FLAG_EXTRA_SIZE;
+    vrt->flags = PCVRNT_FLAG_EXTRA_SIZE;
     vrt->refc = 1;
     return vrt;
 }

@@ -889,6 +889,7 @@ cleanup:
 		for (uint32_t i = 0; i < share_candidate_n_classes; i++) {
 			lwc_string_unref(share_candidate_classes[i]);
 		}
+		free(share_candidate_classes);
 	}
 
 	return CSS_OK;
@@ -1031,6 +1032,7 @@ static void css_select__finalise_selection_state(
 		for (uint32_t i = 0; i < state->n_classes; i++) {
 			lwc_string_unref(state->classes[i]);
 		}
+		free(state->classes);
 	}
 
 	if (state->id != NULL) {

@@ -1774,7 +1774,7 @@ TEST(ejson_token, pcejson_parse)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"key\":[{\"a\":\"b\"},{\"key2\":\"v2\"}]}");
@@ -1814,7 +1814,7 @@ TEST(ejson_token, string_variant)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(object, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"name\":\"tom\"}");
@@ -1848,7 +1848,7 @@ TEST(ejson_token, pcejson_parse_longstring)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"key\":[{\"a\":\"b\"},{\"key2\":\"abcdefghijklmnopq\"}]}");
@@ -1905,7 +1905,7 @@ TEST(ejson_token, string_func_variant)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(object, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"keyX\":[{\"elementKey1\":\"elementV1\"},{\"elementKey2\":\"elementV2\"}]}");
@@ -1948,7 +1948,7 @@ TEST(ejson_token, pcejson_parse_segment)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{\"key\":[{\"a\":\"b\"},{\"key2\":\"v2\"}]}");
@@ -2115,7 +2115,7 @@ TEST(ejson_token, pcejson_parse_infinity_nan)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf,
@@ -2154,7 +2154,7 @@ TEST(ejson_token, pcejson_parse_array)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "[0]");
@@ -2219,7 +2219,7 @@ TEST(ejson_token, pcejson_parse_serial_empty_object)
 
     size_t len_expected = 0;
     ssize_t n = purc_variant_serialize(vt, my_rws,
-            0, PCVARIANT_SERIALIZE_OPT_PLAIN, &len_expected);
+            0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
     buf[n] = 0;
     ASSERT_STREQ(buf, "{}");

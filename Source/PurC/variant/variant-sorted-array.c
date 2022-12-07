@@ -51,7 +51,7 @@ int sacb_compare_def(const void *sortv1, const void *sortv2)
 {
     purc_variant_t v1 = (purc_variant_t) sortv1;
     purc_variant_t v2 = (purc_variant_t) sortv2;
-    return purc_variant_compare_ex(v1, v2, PCVARIANT_COMPARE_OPT_AUTO);
+    return purc_variant_compare_ex(v1, v2, PCVRNT_COMPARE_METHOD_AUTO);
 }
 
 static purc_variant_t
@@ -122,7 +122,7 @@ void on_release(void *native_entity)
 
 purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
-        pcvrnt_compare_method cmp)
+        pcvrnt_compare_cb cmp)
 {
     UNUSED_PARAM(flags);
     UNUSED_PARAM(sz_init);
@@ -138,8 +138,8 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
         goto out;
     }
 
-    if (flags & PCVARIANT_SAFLAG_DESC) {
-        sa_flags |= PCVARIANT_SAFLAG_DESC;
+    if (flags & PCVRNT_SAFLAG_DESC) {
+        sa_flags |= PCVRNT_SAFLAG_DESC;
     }
     sacb_compare cmp_fn = cmp ? (sacb_compare)cmp : sacb_compare_def;
 

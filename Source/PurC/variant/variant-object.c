@@ -136,7 +136,7 @@ static purc_variant_t v_object_new_with_capacity(void)
     }
 
     var->type          = PVT(_OBJECT);
-    var->flags         = PCVARIANT_FLAG_EXTRA_SIZE;
+    var->flags         = PCVRNT_FLAG_EXTRA_SIZE;
 
     variant_obj_t data;
     data = (variant_obj_t)calloc(1, sizeof(*data));
@@ -321,7 +321,7 @@ v_object_remove(purc_variant_t obj, const char *key, bool silently,
         if (silently)
             return 0;
 
-        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
+        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
         return -1;
     }
 
@@ -639,7 +639,7 @@ static purc_variant_t
 pv_make_object_by_static_ckey_n (bool check, size_t nr_kv_pairs,
     const char* key0, purc_variant_t value0, va_list ap)
 {
-    PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
+    PCVRNT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
@@ -697,7 +697,7 @@ static purc_variant_t
 pv_make_object_n(bool check, size_t nr_kv_pairs,
     purc_variant_t key0, purc_variant_t value0, va_list ap)
 {
-    PCVARIANT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
+    PCVRNT_CHECK_FAIL_RET((nr_kv_pairs==0 && key0==NULL && value0==NULL) ||
                          (nr_kv_pairs>0 && key0 && value0),
         PURC_VARIANT_INVALID);
 
@@ -799,7 +799,7 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 purc_variant_t
 purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
 {
-    PCVARIANT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
+    PCVRNT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
         PURC_VARIANT_INVALID);
 
@@ -829,7 +829,7 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
     }
 
     if (!entry) {
-        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
+        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
 
         return PURC_VARIANT_INVALID;
     }
@@ -842,7 +842,7 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
 bool purc_variant_object_set (purc_variant_t obj,
     purc_variant_t key, purc_variant_t value)
 {
-    PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
+    PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key && value,
         false);
 
@@ -856,7 +856,7 @@ bool
 purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
         bool silently)
 {
-    PCVARIANT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
+    PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key,
         false);
 
@@ -871,7 +871,7 @@ bool purc_variant_object_size (purc_variant_t obj, size_t *sz)
 {
     PC_ASSERT(obj && sz);
 
-    PCVARIANT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
+    PCVRNT_CHECK_FAIL_RET(obj->type == PVT(_OBJECT) && obj->sz_ptr[1],
         false);
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -887,13 +887,13 @@ struct pcvrnt_object_iterator {
 struct pcvrnt_object_iterator*
 pcvrnt_object_iterator_create_begin (purc_variant_t object)
 {
-    PCVARIANT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
+    PCVRNT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
         object->sz_ptr[1]),
         NULL);
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
+        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 
@@ -911,13 +911,13 @@ pcvrnt_object_iterator_create_begin (purc_variant_t object)
 
 struct pcvrnt_object_iterator*
 pcvrnt_object_iterator_create_end (purc_variant_t object) {
-    PCVARIANT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
+    PCVRNT_CHECK_FAIL_RET((object && object->type==PVT(_OBJECT) &&
         object->sz_ptr[1]),
         NULL);
 
     variant_obj_t data = pcvar_obj_get_data(object);
     if (data->size==0) {
-        pcinst_set_error(PCVARIANT_ERROR_NO_SUCH_KEY);
+        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
         return NULL;
     }
 

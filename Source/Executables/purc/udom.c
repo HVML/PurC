@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -214,8 +214,13 @@ static void udom_cleanup(pcmcth_udom *udom)
         css_stylesheet_destroy(udom->author_sheet);
     if (udom->select_ctx)
         css_select_ctx_destroy(udom->select_ctx);
+    if (udom->root_stk_ctxt) {
+        foil_stacking_context_delete(udom->root_stk_ctxt);
+    }
     if (udom->initial_cblock)
         foil_rdrbox_delete_deep(udom->initial_cblock);
+
+    foil_region_rect_heap_cleanup(&udom->rgnrc_heap);
 }
 
 pcmcth_udom *foil_udom_new(pcmcth_page *page)
@@ -869,8 +874,7 @@ create_anonymous_blocks_for_inline_box(struct foil_create_ctxt *ctxt,
             foil_rdrbox_remove_from_tree(child);
             foil_rdrbox_append_child(block, child);
         }
-        else {
-            assert(child->is_block_level);
+        else if (child->is_block_level) {
 
             foil_rdrbox_remove_from_tree(child);
             foil_rdrbox_append_child(block->parent, child);
@@ -1123,8 +1127,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        NULL, NULL, NULL, NULL };
-    if (make_rdrtree(&ctxt, purc_document_root(edom_doc)))
+        purc_document_root(edom_doc), NULL, NULL, NULL, NULL };
+    if (make_rdrtree(&ctxt, ctxt.root))
         goto failed;
 
     /* check and create anonymous block box if need */
@@ -1132,7 +1136,12 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     if (normalize_rdrtree(&ctxt, udom->initial_cblock))
         goto failed;
 
-    /* determine the pending properties (height) and lay out the boxes */
+    /* initialize the block heap for region rectangles */
+    LOG_DEBUG("Calling foil_region_rect_heap_init()...\n");
+    if (!foil_region_rect_heap_init(&udom->rgnrc_heap, FOIL_DEF_RGNRCHEAP_SZ))
+        goto failed;
+
+    /* determine the geometries of boxes and lay out the boxes */
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock, 0, 0 };
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);

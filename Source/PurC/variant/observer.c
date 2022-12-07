@@ -39,7 +39,7 @@ register_listener(purc_variant_t v, unsigned int flags,
     struct pcvar_listener *listener;
     listener = (struct pcvar_listener*)calloc(1, sizeof(*listener));
     if (!listener) {
-        pcinst_set_error(PCVARIANT_ERROR_OUT_OF_MEMORY);
+        pcinst_set_error(PCVRNT_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
 
@@ -62,17 +62,17 @@ purc_variant_register_pre_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt)
 {
     if ((op & PCVAR_OPERATION_ALL) != op) {
-        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        pcinst_set_error(PCVRNT_ERROR_WRONG_ARGS);
         return NULL;
     }
 
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
-        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        pcinst_set_error(PCVRNT_ERROR_WRONG_ARGS);
         return NULL;
     }
 
     if (!IS_CONTAINER(v->type)) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        pcinst_set_error(PCVRNT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
@@ -84,17 +84,17 @@ purc_variant_register_post_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt)
 {
     if ((op & PCVAR_OPERATION_ALL) != op) {
-        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        pcinst_set_error(PCVRNT_ERROR_WRONG_ARGS);
         return NULL;
     }
 
     if (v == PURC_VARIANT_INVALID || !op || !handler) {
-        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        pcinst_set_error(PCVRNT_ERROR_WRONG_ARGS);
         return NULL;
     }
 
     if (!IS_CONTAINER(v->type)) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        pcinst_set_error(PCVRNT_ERROR_NOT_SUPPORTED);
         return NULL;
     }
 
@@ -106,12 +106,12 @@ purc_variant_revoke_listener(purc_variant_t v,
         struct pcvar_listener *listener)
 {
     if (v == PURC_VARIANT_INVALID || !listener) {
-        pcinst_set_error(PCVARIANT_ERROR_WRONG_ARGS);
+        pcinst_set_error(PCVRNT_ERROR_WRONG_ARGS);
         return false;
     }
 
     if (!IS_CONTAINER(v->type)) {
-        pcinst_set_error(PCVARIANT_ERROR_NOT_SUPPORTED);
+        pcinst_set_error(PCVRNT_ERROR_NOT_SUPPORTED);
         return false;
     }
 

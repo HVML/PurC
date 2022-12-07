@@ -58,7 +58,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
 
     purc_variant_t array =
-        purc_variant_make_sorted_array(PCVARIANT_SAFLAG_ASC, 4, NULL);
+        purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 4, NULL);
     if (array == PURC_VARIANT_INVALID) {
         goto out;
     }

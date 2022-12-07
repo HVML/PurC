@@ -59,6 +59,7 @@ set(sample_HVML_FILES
     "hvml/assets/foil-layouts-displayBlock.css"
     "hvml/assets/foil-layouts-quotes.css"
     "hvml/assets/foil-layouts-counters.css"
+    "hvml/assets/foil-layouts-layeredBoxes.css"
     "hvml/assets/messages-foil-layouts-zh.json"
 )
 

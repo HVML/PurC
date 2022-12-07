@@ -464,21 +464,21 @@ static struct keyword_to_atom {
     unsigned int    flag;
     purc_atom_t     atom;
 } keywords2atoms [] = {
-    { _KW_real_json,        PCVARIANT_SERIALIZE_OPT_REAL_JSON, 0 },
-    { _KW_real_ejson,       PCVARIANT_SERIALIZE_OPT_REAL_EJSON, 0 },
-    { _KW_runtime_null,     PCVARIANT_SERIALIZE_OPT_RUNTIME_NULL, 0 },
-    { _KW_runtime_string,   PCVARIANT_SERIALIZE_OPT_RUNTIME_STRING, 0 },
-    { _KW_plain,            PCVARIANT_SERIALIZE_OPT_PLAIN, 0 },
-    { _KW_spaced,           PCVARIANT_SERIALIZE_OPT_SPACED, 0 },
-    { _KW_pretty,           PCVARIANT_SERIALIZE_OPT_PRETTY, 0 },
-    { _KW_pretty_tab,       PCVARIANT_SERIALIZE_OPT_PRETTY_TAB, 0 },
-    { _KW_bseq_hex_string,  PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING, 0 },
-    { _KW_bseq_hex,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_HEX, 0 },
-    { _KW_bseq_bin,         PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN, 0 },
-    { _KW_bseq_bin_dots,    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, 0 },
-    { _KW_bseq_base64,      PCVARIANT_SERIALIZE_OPT_BSEQUENCE_BASE64, 0 },
-    { _KW_no_trailing_zero, PCVARIANT_SERIALIZE_OPT_NOZERO, 0 },
-    { _KW_no_slash_escape,  PCVARIANT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
+    { _KW_real_json,        PCVRNT_SERIALIZE_OPT_REAL_JSON, 0 },
+    { _KW_real_ejson,       PCVRNT_SERIALIZE_OPT_REAL_EJSON, 0 },
+    { _KW_runtime_null,     PCVRNT_SERIALIZE_OPT_RUNTIME_NULL, 0 },
+    { _KW_runtime_string,   PCVRNT_SERIALIZE_OPT_RUNTIME_STRING, 0 },
+    { _KW_plain,            PCVRNT_SERIALIZE_OPT_PLAIN, 0 },
+    { _KW_spaced,           PCVRNT_SERIALIZE_OPT_SPACED, 0 },
+    { _KW_pretty,           PCVRNT_SERIALIZE_OPT_PRETTY, 0 },
+    { _KW_pretty_tab,       PCVRNT_SERIALIZE_OPT_PRETTY_TAB, 0 },
+    { _KW_bseq_hex_string,  PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX_STRING, 0 },
+    { _KW_bseq_hex,         PCVRNT_SERIALIZE_OPT_BSEQUENCE_HEX, 0 },
+    { _KW_bseq_bin,         PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN, 0 },
+    { _KW_bseq_bin_dots,    PCVRNT_SERIALIZE_OPT_BSEQUENCE_BIN_DOT, 0 },
+    { _KW_bseq_base64,      PCVRNT_SERIALIZE_OPT_BSEQUENCE_BASE64, 0 },
+    { _KW_no_trailing_zero, PCVRNT_SERIALIZE_OPT_NOZERO, 0 },
+    { _KW_no_slash_escape,  PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE, 0 },
 };
 
 static purc_variant_t
@@ -490,7 +490,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *options = NULL;
     size_t options_len;
-    unsigned int flags = PCVARIANT_SERIALIZE_OPT_PLAIN;
+    unsigned int flags = PCVRNT_SERIALIZE_OPT_PLAIN;
 
     purc_variant_t vrt;
 
@@ -541,9 +541,9 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     for (i = 0; i < PCA_TABLESIZE(keywords2atoms); i++) {
                         if (atom == keywords2atoms[i].atom) {
                             if (keywords2atoms[i].flag &
-                                    PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK) {
+                                    PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK) {
                                 // clear the byte sequence mask
-                                flags &= ~PCVARIANT_SERIALIZE_OPT_BSEQUENCE_MASK;
+                                flags &= ~PCVRNT_SERIALIZE_OPT_BSEQUENCE_MASK;
                             }
 
                             flags |= keywords2atoms[i].flag;
@@ -656,7 +656,7 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *option = NULL;
     size_t option_len;
-    unsigned int flag = PCVARIANT_COMPARE_OPT_AUTO;
+    unsigned int flag = PCVRNT_COMPARE_METHOD_AUTO;
 
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -679,19 +679,19 @@ compare_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         int cmp_id = pcdvobjs_global_keyword_id(option, option_len);
         switch (cmp_id) {
         case PURC_K_KW_auto:
-            flag = PCVARIANT_COMPARE_OPT_AUTO;
+            flag = PCVRNT_COMPARE_METHOD_AUTO;
             break;
 
         case PURC_K_KW_number:
-            flag = PCVARIANT_COMPARE_OPT_NUMBER;
+            flag = PCVRNT_COMPARE_METHOD_NUMBER;
             break;
 
         case PURC_K_KW_caseless:
-            flag = PCVARIANT_COMPARE_OPT_CASELESS;
+            flag = PCVRNT_COMPARE_METHOD_CASELESS;
             break;
 
         case PURC_K_KW_case:
-            flag = PCVARIANT_COMPARE_OPT_CASE;
+            flag = PCVRNT_COMPARE_METHOD_CASE;
             break;
 
         default:
@@ -1993,7 +1993,7 @@ failed:
 
 #if 0
 struct sort_opt {
-    purc_vrtcmp_opt_t method;
+    pcvrnt_compare_method_k method;
     bool asc;
     pcutils_map *map;
 };
@@ -2069,7 +2069,7 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t val = PURC_VARIANT_INVALID;
     size_t totalsize = 0;
 
-    uintptr_t sort_opt = PCVARIANT_SORT_ASC;
+    uintptr_t sort_opt = PCVRNT_SORT_ASC;
 
     if (nr_args == 0) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -2116,10 +2116,10 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         int order_id = pcdvobjs_global_keyword_id(order, order_len);
         if (order_id == PURC_K_KW_asc) {
-            sort_opt = PCVARIANT_SORT_ASC;
+            sort_opt = PCVRNT_SORT_ASC;
         }
         else if (order_id == PURC_K_KW_desc) {
-            sort_opt = PCVARIANT_SORT_DESC;
+            sort_opt = PCVRNT_SORT_DESC;
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -2147,18 +2147,18 @@ sort_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (option_id == PURC_K_KW_auto) {
             double number;
             if (purc_variant_cast_to_number(val, &number, false))
-                sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
+                sort_opt |= PCVRNT_COMPARE_METHOD_NUMBER;
             else
-                sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
+                sort_opt |= PCVRNT_COMPARE_METHOD_CASE;
         }
         else if (option_id == PURC_K_KW_number) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_NUMBER;
+            sort_opt |= PCVRNT_COMPARE_METHOD_NUMBER;
         }
         else if (option_id == PURC_K_KW_case) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_CASE;
+            sort_opt |= PCVRNT_COMPARE_METHOD_CASE;
         }
         else if (option_id == PURC_K_KW_caseless) {
-            sort_opt |= PCVARIANT_COMPARE_OPT_CASELESS;
+            sort_opt |= PCVRNT_COMPARE_METHOD_CASELESS;
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -2288,7 +2288,7 @@ crc32_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     pcutils_crc32_begin(&ctxt, algo);
 
     if (purc_variant_stringify(stream, argv[0],
-            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+            PCVRNT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
     }
 
@@ -2372,7 +2372,7 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     pcutils_md5_begin(&md5_ctxt);
     if (purc_variant_stringify(stream, argv[0],
-            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+            PCVRNT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
     }
 
@@ -2453,7 +2453,7 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     pcutils_sha1_begin(&sha1_ctxt);
     if (purc_variant_stringify(stream, argv[0],
-            PCVARIANT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
+            PCVRNT_STRINGIFY_OPT_BSEQUENCE_BAREBYTES, NULL) < 0) {
         goto fatal;
     }
 

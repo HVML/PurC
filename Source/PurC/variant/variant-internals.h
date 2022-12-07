@@ -30,7 +30,7 @@
 #include "private/debug.h"
 #include "private/variant.h"
 
-#define PCVARIANT_CHECK_FAIL_RET(cond, ret)                     \
+#define PCVRNT_CHECK_FAIL_RET(cond, ret)                     \
     if (!(cond)) {                                              \
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);             \
         return (ret);                                           \
@@ -43,7 +43,7 @@ extern "C" {
 /*
  * Set the extra size sz_ptr[0] of one variant, and update the statistics data.
  * This function should be called only for variant with
- * the flag PCVARIANT_FLAG_EXTRA_SIZE
+ * the flag PCVRNT_FLAG_EXTRA_SIZE
  *
  * Note that the caller should not set the sz_ptr[0] directly.
  */

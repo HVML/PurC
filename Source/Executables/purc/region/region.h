@@ -57,20 +57,15 @@ typedef struct foil_block_heap {
 typedef foil_block_heap* foil_block_heap_p;
 
 /**
- * Clipping rectangle structure.
+ * Region rectangle structure.
  */
 typedef struct _foil_rgnrc {
-    /**
-     * The clipping rectangle itself.
-     */
+    /** The region rectangle itself.  */
     foil_rect rc;
-    /**
-     * The next clipping rectangle.
-     */
+
+    /** The pointer to the next region rectangle. */
     struct _foil_rgnrc* next;
-    /**
-     * The previous clipping rectangle.
-     */
+    /** The pointer to the previous region rectangle. */
     struct _foil_rgnrc* prev;
 } foil_rgnrc;
 typedef foil_rgnrc* foil_rgnrc_p;
@@ -81,7 +76,7 @@ typedef foil_rgnrc* foil_rgnrc_p;
 #define COMPLEXREGION   0x02
 
 /**
- * Clipping region structure, alos used for general regions.
+ * Region structure, alos used for general regions.
  */
 typedef struct foil_region {
    /**
@@ -103,15 +98,15 @@ typedef struct foil_region {
     */
     foil_rect           rcBound;
    /**
-    * Head of the clipping rectangle list.
+    * Head of the region rectangle list.
     */
     foil_rgnrc_p        head;
    /**
-    * Tail of the clipping rectangle list.
+    * Tail of the region rectangle list.
     */
     foil_rgnrc_p        tail;
    /**
-    * The private block data heap used to allocate clipping rectangles.
+    * The private block data heap used to allocate region rectangles.
     * \sa foil_block_heap
     */
     foil_block_heap_p   heap;
@@ -185,20 +180,28 @@ void foil_block_heap_free (foil_block_heap_p heap, void* data);
 
 /**
  * \fn void foil_block_heap_cleanup (foil_block_heap_p heap)
- * \brief Destroys a private block data heap.
+ * \brief Cleans up a private block data heap.
  *
- * \param heap The pointer to the heap to be destroied.
+ * \param heap The pointer to the heap to be cleaned up.
  *
- * \sa foil_block_heap_init, foil_block_heap
+ * \sa foil_block_heap_init, foil_block_heap_delete
  */
 void foil_block_heap_cleanup (foil_block_heap_p heap);
 
+/**
+ * \fn void foil_block_heap_delete (foil_block_heap_p heap)
+ * \brief Deletes a private block data heap.
+ *
+ * \param heap The pointer to the heap to be deleted.
+ *
+ * \sa foil_block_heap_init, foil_block_heap_cleanup
+ */
 void foil_block_heap_delete (foil_block_heap_p heap);
 
 /**
  * \def foil_region_rect_heap_init(heap, size)
  * \brief Initializes the private block data heap used to allocate
- * clipping rectangles.
+ * region rectangles.
  *
  * \param heap The pointer to a foil_block_heap structure.
  * \param size The size of the heap.
@@ -216,7 +219,7 @@ void foil_block_heap_delete (foil_block_heap_p heap);
 
 /**
  * \def foil_region_rect_alloc(heap)
- * \brief Allocates a clipping rectangles from the private block data heap.
+ * \brief Allocates a region rectangles from the private block data heap.
  *
  * \param heap The pointer to the initialized foil_block_heap structure.
  *
@@ -228,11 +231,11 @@ void foil_block_heap_delete (foil_block_heap_p heap);
 
 /**
  * \def foil_region_rect_free(heap, cr)
- * \brief Frees a clipping rectangle which is allocated from the private
+ * \brief Frees a region rectangle which is allocated from the private
  *        block data heap.
  *
  * \param heap The pointer to the initialized foil_block_heap structure.
- * \param cr The pointer to the clipping rectangle to be freed.
+ * \param cr The pointer to the region rectangle to be freed.
  *
  * \note This macro is defined to call \a foil_block_heap_free function.
  *
@@ -242,7 +245,7 @@ void foil_block_heap_delete (foil_block_heap_p heap);
 
 /**
  * \def foil_region_rect_heap_cleanup(heap)
- * \brief Destroys the private block data heap used to allocate clipping
+ * \brief Destroys the private block data heap used to allocate region
  *        rectangles.
  *
  * \param heap The pointer to the foil_block_heap structure.
@@ -253,15 +256,15 @@ void foil_block_heap_delete (foil_block_heap_p heap);
  */
 #define foil_region_rect_heap_cleanup(heap)   foil_block_heap_cleanup (heap);
 
-#define foil_region_heap_rect_delete(heap)   foil_block_heap_delete (heap);
+#define foil_region_rect_heap_delete(heap)   foil_block_heap_delete (heap);
 
 /**
  * \fn void foil_region_init (foil_region_p region, foil_block_heap_p rgnrc_heap)
- * \brief Initializes a clipping region.
+ * \brief Initializes a region region.
  *
- * Before intializing a clipping region, you should initialize a private
+ * Before intializing a region region, you should initialize a private
  * block data heap first. The region operations, such as \a foil_region_union
- * function, will allocate/free the clipping rectangles from/to the heap.
+ * function, will allocate/free the region rectangles from/to the heap.
  * This function will set the \a heap field of \a region to be \a rgnrc_heap,
  * and empty the region.
  *
@@ -279,9 +282,9 @@ void foil_region_init (foil_region_p region, foil_block_heap_p rgnrc_heap);
 
 /**
  * \fn void foil_region_empty (foil_region_p region)
- * \brief Empties a clipping region.
+ * \brief Empties a region region.
  *
- * This function empties a clipping region pointed to by \a region.
+ * This function empties a region region pointed to by \a region.
  *
  * \param region The pointer to the region.
  *
@@ -291,7 +294,7 @@ void foil_region_empty (foil_region_p region);
 
 /**
  * \fn foil_region_p foil_region_new (void)
- * \brief Creates a clipping region.
+ * \brief Creates a region region.
  *
  * \return The pointer to the clip region.
  *
@@ -302,9 +305,9 @@ foil_region_p foil_region_new (foil_block_heap_p rgnrc_heap);
 
 /**
  * \fn void foil_region_delete (foil_region_p region)
- * \brief Empties and destroys a clipping region.
+ * \brief Empties and destroys a region region.
  *
- * This function empties and destroys a clipping region pointed to by \a region.
+ * This function empties and destroys a region region pointed to by \a region.
  *
  * \param region The pointer to the region.
  *

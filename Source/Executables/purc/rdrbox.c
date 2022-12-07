@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -51,7 +51,7 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
 
     box->type = type;
 
-    /* set the field here if its initial value it is not non-zero */
+    /* set the field here if its initial value is not non-zero */
     box->min_height = -1;
     box->max_height = -1;
     box->min_width = -1;
@@ -1246,6 +1246,34 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
 
 }
 
+static void
+determine_z_index(foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t v = css_computed_z_index(ctxt->style, &box->z_index);
+    assert(v != CSS_Z_INDEX_INHERIT);
+
+    if (v == CSS_Z_INDEX_AUTO) {
+        box->z_index = 0;
+    }
+
+    LOG_DEBUG("\tz-index: %d\n", box->z_index);
+}
+
+static foil_stacking_context *
+find_parent_statcking_context(foil_rdrbox *box)
+{
+    foil_rdrbox *parent = box->parent;
+
+    while (parent) {
+        if (parent->stacking_ctxt)
+            return parent->stacking_ctxt;
+
+        parent = parent->parent;
+    }
+
+    return NULL;
+}
+
 /* TODO: check whether an element is replaced or non-replaced */
 static int
 is_replaced_element(pcdoc_element_t elem, const char *tag_name)
@@ -1329,6 +1357,17 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     }
 
     LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
+
+    /* whether is a block level box */
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||
+            box->type == FOIL_RDRBOX_TYPE_TABLE)
+        box->is_block_level = 1;
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
+            box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
+        box->is_inline_level = 1;
+    }
 
     /* determine the used values for common properties */
     dtrm_common_properties(ctxt, box);
@@ -1456,17 +1495,6 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
             box->is_inline_box = 1;
 
-        /* whether is a block level box */
-        if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
-                box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||
-                box->type == FOIL_RDRBOX_TYPE_TABLE)
-            box->is_block_level = 1;
-        else if (box->type == FOIL_RDRBOX_TYPE_INLINE ||
-                box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
-                box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
-            box->is_inline_level = 1;
-        }
-
         /* whether is a block contianer */
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
                 box->type == FOIL_RDRBOX_TYPE_LIST_ITEM)
@@ -1500,6 +1528,31 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         /* reserved computed style */
         box->computed_style = ctxt->style;
         ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
+
+        /* create the stacking context for the root element */
+        if (box->owner == ctxt->root) {
+            determine_z_index(ctxt, box);
+            LOG_DEBUG("Calling foil_stacking_context_new() for root element...\n");
+            ctxt->udom->root_stk_ctxt = box->stacking_ctxt =
+                foil_stacking_context_new(NULL, box->z_index, box);
+            if (box->stacking_ctxt == NULL) {
+                LOG_WARN("Failed to create root stacking context.\n");
+            }
+        }
+        else if (box->position) {   /* positioned element */
+            determine_z_index(ctxt, box);
+            LOG_DEBUG("Calling foil_stacking_context_new() for %s: %d\n",
+                    ctxt->tag_name, box->z_index);
+            if (box->z_index != 0) {
+                foil_stacking_context *p = find_parent_statcking_context(box);
+                assert(p);
+                box->stacking_ctxt =
+                    foil_stacking_context_new(p, box->z_index, box);
+                if (box->stacking_ctxt == NULL) {
+                    LOG_WARN("Failed to create the stacking context.\n");
+                }
+            }
+        }
     }
 
     return box;
@@ -1855,15 +1908,15 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     fputs(indent, stdout);
     fprintf(stdout, "box for %s: "
             "(type: %s; position: %s; float: %s; block container: %s; "
-            "block level: %s; inline level: %s; replaced: %s)\n",
+            "level: %s; replaced: %s; z-index: %d)\n",
             name,
             literal_values_boxtype[box->type],
             literal_values_position[box->position],
             literal_values_float[box->floating],
             box->is_block_container ? "yes" : "no",
-            box->is_block_level ? "yes" : "no",
-            box->is_inline_level ? "yes" : "no",
-            box->is_replaced ? "yes" : "no");
+            box->is_block_level ? "block" : "inline",
+            box->is_replaced ? "yes" : "no",
+            box->z_index);
 
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         fputs(indent, stdout);

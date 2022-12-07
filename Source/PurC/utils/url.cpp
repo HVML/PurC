@@ -635,10 +635,10 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
     size_t len_expected = 0;
     unsigned int serialize_flags;
     if (flags & PCUTILS_URL_OPT_REAL_EJSON) {
-        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_EJSON;
+        serialize_flags = PCVRNT_SERIALIZE_OPT_REAL_EJSON;
     }
     else {
-        serialize_flags = PCVARIANT_SERIALIZE_OPT_REAL_JSON;
+        serialize_flags = PCVRNT_SERIALIZE_OPT_REAL_JSON;
     }
 
     type = purc_variant_get_type(v);
