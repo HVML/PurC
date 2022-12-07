@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: [ 0L, 1L, 2L, 3L, 4L ]
+# RESULT: [ 0L, 1L, 2L, 3L, 4L, 5L ]
 
 <!-- The expected output of this HVML program will be like:
 
@@ -10,7 +10,8 @@ COROUTINE-4: 2022-09-01T14:50:41+0800
 COROUTINE-4: 2022-09-01T14:50:42+0800
 COROUTINE-4: 2022-09-01T14:50:43+0800
 COROUTINE-4: 2022-09-01T14:50:44+0800
-COROUTINE-3: 2022-09-01T14:50:45+0800: I am awake.
+COROUTINE-4: 2022-09-01T14:50:45+0800
+COROUTINE-3: 2022-09-01T14:50:46+0800: I am awake.
 
 -->
 
@@ -32,7 +33,7 @@ COROUTINE-3: 2022-09-01T14:50:45+0800: I am awake.
 
     <body id="repeater">
 
-        <iterate on 0L onlyif $L.lt($0<, 5L) with $DATA.arith('+', $0<, 1L) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, 6L) with $DATA.arith('+', $0<, 1L) nosetotail >
             $STREAM.stdout.writelines("COROUTINE-$CRTN.cid: $DATETIME.time_prt");
 
             <update on $RUNNER.user.times to 'append' with $? />
