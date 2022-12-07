@@ -136,7 +136,7 @@ eval_expected_result(const char *code)
         }
     }
 
-    purc_variant_t result;
+    purc_variant_t result = PURC_VARIANT_INVALID;
     if (ejson) {
         result = purc_variant_make_from_json_string(ejson, ejson_len);
     }
