@@ -1481,8 +1481,12 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
                 char buf[64];
                 uint64_t f = (uint64_t)round(ld);
                 int n = sprintf(buf, "%ld", f);
-                gcvt(e, n + fabs(rd), buf);
-                return purc_variant_make_string(buf, false);
+                char *ret = gcvt(e, n + fabs(rd), buf);
+                if (ret) {
+                    return purc_variant_make_string(ret, false);
+                }
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
             }
             break;
 
@@ -1495,7 +1499,6 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
             }
             purc_set_error(PURC_ERROR_DIVBYZERO);
             return PURC_VARIANT_INVALID;
-            break;
 
         default:
             purc_set_error(PURC_ERROR_INVALID_VALUE);
