@@ -155,6 +155,7 @@
 
 ### 2.9) Known Bugs and Test Cases
 
+1. [0.9.4] `Source/test/interpreter/03-again-sleep.hvml`: the child coroutine only writes 5 lines, but 6 lines expected.
 1. [0.9.4; Resolved] `Source/Sample/hvml/calculator-bc.hvml` will cause `purc` core dump if there is no `bc` installed in the system.
 1. [0.9.2; Resolved] Add new test cases for new bugs.
 1. [0.9.2; Resolved] Check eJSON parser for C0 control characters in strings.
