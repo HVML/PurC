@@ -2928,7 +2928,9 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     printf ("TEST dir_rewind:\n");
     ret_var = func_dir_rewind (native, 0, param, false);
     ASSERT_NE(ret_var, nullptr);
-    printf ("dir_rewind return: %s\n", pcvariant_to_string(ret_var));
+    char *s = pcvariant_to_string(ret_var);
+    printf ("dir_rewind return: %s\n", s);
+    free(s);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
     purc_variant_unref(ret_var);
 

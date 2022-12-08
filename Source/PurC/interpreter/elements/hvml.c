@@ -174,6 +174,9 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     frame->pos = pos; // ATTENTION!!
 
     if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, true)) {
+        if (purc_get_last_error() == PURC_ERROR_AGAIN) {
+            ctxt_destroy(ctxt);
+        }
         return NULL;
     }
 
