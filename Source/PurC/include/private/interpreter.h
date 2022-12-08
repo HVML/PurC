@@ -824,6 +824,11 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
             ignore_content);
 }
 
+const char *
+pcintr_coroutine_get_token(pcintr_coroutine_t cor);
+
+int
+pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token);
 
 PCA_EXTERN_C_END
 

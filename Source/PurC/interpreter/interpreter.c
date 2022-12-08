@@ -590,7 +590,8 @@ static int _init_instance(struct pcinst* inst,
                 (free_val_fn)pcchan_destroy, comp_key_string, false);
 
     heap->token_crtn_map =
-        pcutils_map_create(NULL, NULL, NULL, NULL, comp_key_string, false);
+        pcutils_map_create(copy_key_string, free_key_string, NULL, NULL,
+                comp_key_string, false);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {

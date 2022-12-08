@@ -472,19 +472,10 @@ token_setter(purc_variant_t root,
         goto failed;
     }
 
-    size_t nr = strlen(token);
-    if (nr > CRTN_TOKEN_LEN) {
-        purc_set_error(PURC_ERROR_TOO_LONG);
-        goto failed;
-    }
-
-    if (!pcregex_is_match("^[A-Za-z0-9_]+$", token)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
-    strcpy(cor->token, token);
+    if (0 != pcintr_coroutine_set_token(cor, token)) {
+        goto failed;
+    }
 
     return purc_variant_make_boolean(true);
 

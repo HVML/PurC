@@ -31,6 +31,7 @@
 #include "private/interpreter.h"
 #include "private/vdom.h"
 #include "private/instance.h"
+#include "private/regex.h"
 
 static int
 cmp_f(struct rb_node *node, void *ud)
@@ -254,3 +255,41 @@ pcintr_coroutine_get_by_id(purc_atom_t id)
     return get_coroutine_by_id(inst, id);
 }
 
+const char *
+pcintr_coroutine_get_token(pcintr_coroutine_t cor)
+{
+    return cor->token;
+}
+
+int
+pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token)
+{
+    int ret = -1;
+    if (!token) {
+        goto out;
+    }
+
+    size_t nr = strlen(token);
+    if (nr > CRTN_TOKEN_LEN) {
+        purc_set_error(PURC_ERROR_TOO_LONG);
+        goto out;
+    }
+
+    if (!pcregex_is_match("^[A-Za-z0-9_]+$", token)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcintr_heap_t heap = pcintr_get_heap();
+    if (pcutils_map_insert(heap->token_crtn_map, token, cor)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    pcutils_map_erase(heap->token_crtn_map, cor->token);
+    strcpy(cor->token, token);
+    ret = 0;
+
+out:
+    return ret;
+}
