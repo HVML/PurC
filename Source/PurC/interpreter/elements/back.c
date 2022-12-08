@@ -315,22 +315,21 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    struct ctxt_for_back *ctxt;
-    ctxt = (struct ctxt_for_back*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_back *ctxt = frame->ctxt;
     if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        ctxt = (struct ctxt_for_back*)calloc(1, sizeof(*ctxt));
+        if (!ctxt) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+
+        frame->ctxt = ctxt;
+        frame->ctxt_destroy = ctxt_destroy;
+
+        frame->pos = pos; // ATTENTION!!
     }
 
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
-
-    frame->pos = pos; // ATTENTION!!
-
     if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
-        if (purc_get_last_error() == PURC_ERROR_AGAIN) {
-            ctxt_destroy(ctxt);
-        }
         return NULL;
     }
 
