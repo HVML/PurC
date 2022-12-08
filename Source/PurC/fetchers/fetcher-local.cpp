@@ -200,7 +200,12 @@ purc_variant_t pcfetcher_local_request_async(
 
     RunLoop *runloop = &RunLoop::current();
     if (info->tracker) {
+#ifdef NDEBUG
         runloop->dispatch([info] {
+#else
+        double tm = 1.0;
+        runloop->dispatchAfter(Seconds(tm), [info] {
+#endif
                 info->tracker(info->req_id, info->tracker_ctxt,
                         PCFETCHER_INITIAL_PROGRESS);
             }
@@ -211,7 +216,7 @@ purc_variant_t pcfetcher_local_request_async(
     runloop->dispatch([info] {
 #else
     // random
-    double tm = randomNumber() * 5;
+    double tm = 3.0;
     runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
                 if (info->tracker) {
