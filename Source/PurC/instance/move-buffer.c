@@ -392,9 +392,6 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
                 if (i == count - 1) {
                     my_msg = msg;
                     do_move_message(inst, msg);
-                    // FIXME: if count > 1 and flags without PCINST_MOVE_BUFFER_BROADCAST
-                    // not reatch here
-                    msg = NULL;
                 }
                 else {
                     my_msg = pcrdr_clone_message(msg);
@@ -416,11 +413,6 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
                 purc_rwlock_writer_unlock(&mb->lock);
                 nr++;
             }
-        }
-
-        // FIXME:
-        if (msg) {
-            pcrdr_release_message(msg);
         }
     }
 

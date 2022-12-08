@@ -510,6 +510,9 @@ HLLayoutNode *hl_layout_node_from_origin_node(struct DOMRulerCtxt *ctxt,
         layout->nr_inner_classes = nr_classes;
         free(classes);
     }
+    else if (classes) {
+        free(classes);
+    }
 
 
     layout->origin = origin;

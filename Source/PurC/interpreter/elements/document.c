@@ -86,17 +86,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    struct ctxt_for_document *ctxt;
-    ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_document *ctxt = frame->ctxt;
     if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return NULL;
+        ctxt = (struct ctxt_for_document*)calloc(1, sizeof(*ctxt));
+        if (!ctxt) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return NULL;
+        }
+
+        frame->ctxt = ctxt;
+        frame->ctxt_destroy = ctxt_destroy;
+
+        frame->pos = pos; // ATTENTION!!
     }
 
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
-
-    frame->pos = pos; // ATTENTION!!
     frame->edom_element = NULL;
 
     struct pcvdom_document *document;

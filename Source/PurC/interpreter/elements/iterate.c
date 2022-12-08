@@ -896,15 +896,17 @@ prepare(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
     UNUSED_PARAM(frame);
-    struct ctxt_for_iterate *ctxt;
-    ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
+    struct ctxt_for_iterate *ctxt = frame->ctxt;
     if (!ctxt) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return PURC_ERROR_OUT_OF_MEMORY;
-    }
+        ctxt = (struct ctxt_for_iterate*)calloc(1, sizeof(*ctxt));
+        if (!ctxt) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            return PURC_ERROR_OUT_OF_MEMORY;
+        }
 
-    frame->ctxt = ctxt;
-    frame->ctxt_destroy = ctxt_destroy;
+        frame->ctxt = ctxt;
+        frame->ctxt_destroy = ctxt_destroy;
+    }
     return 0;
 }
 

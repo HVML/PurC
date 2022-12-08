@@ -142,6 +142,14 @@ int main(void)
     domruler_destroy(ctxt);
 #endif
 
+    domruler_element_node_destroy(title);
+    domruler_element_node_destroy(description);
+    domruler_element_node_destroy(page);
+    domruler_element_node_destroy(indicator);
+
+    domruler_element_node_destroy(hiweb);
+    domruler_element_node_destroy(hijs);
+    domruler_element_node_destroy(root);
     return 0;
 }
 
