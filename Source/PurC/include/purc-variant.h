@@ -1025,6 +1025,30 @@ PCA_EXPORT purc_variant_t
 purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
 
 /**
+ * purc_variant_object_get:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ *
+ * Gets the property value in @obj by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
+{
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_get_by_ckey(obj, sk);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+/**
  * purc_variant_object_set:
  *
  * Sets the value of the property given by @key to @value, in the object
@@ -1097,6 +1121,33 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
         bool silently);
 
 /**
+ * purc_variant_object_remove:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: %true means ignoring the following errors:
+ *      - PCVRNT_ERROR_NOT_FOUND (return %true)
+ *
+ * Removes a property from the object by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE bool
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
+        bool silently)
+{
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
+    }
+
+    return false;
+}
+
+/**
  * purc_variant_object_size:
  *
  * @obj: An object variant.
@@ -1131,6 +1182,23 @@ static inline ssize_t purc_variant_object_get_size(purc_variant_t obj)
         return PURC_VARIANT_BADSIZE;
     return sz;
 }
+
+/**
+ * Merge value to the object
+ *
+ * @object: the dst object variant
+ * @value: the value to be merge (object)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_object_merge_another(purc_variant_t object,
+        purc_variant_t another, bool silently);
 
 /**
  * pcvrnt_object_iterator:
@@ -2260,30 +2328,31 @@ purc_variant_compare_ex(purc_variant_t v1, purc_variant_t v2,
 #define PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS           0x10000000
 
 /**
- * Serialize a variant value
+ * purc_variant_serialize:
  *
- * @value: the variant value to be serialized.
- * @stream: the stream to which the serialized data write.
- * @indent_level: the initial indent level. 0 for most cases.
- * @flags: the serialization flags.
- * @len_expected: The buffer to receive the expected length of
- *      the serialized data (nullable). The value in the buffer should be
- *      set to 0 initially.
+ * @value: A variant value to be serialized.
+ * @stream: A stream to which the serialized data write.
+ * @indent_level: The initial indent level. 0 for most cases.
+ * @flags: The serialization flags.
+ * @len_expected: The pointer to a size_t buffer to receive the expected
+ *      length of the whole serialized data (nullable). The value in the buffer
+ *      should be set to 0 initially.
  *
- * Returns:
- * The size of the serialized data written to the stream;
+ * Serializes a variant value to a purc_rwstream_t object in the given flags.
+ *
+ * Returns: The size of the serialized data written to the stream;
  * On error, -1 is returned, and error code is set to indicate
  * the cause of the error.
  *
  * If the function is called with the flag
- * PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
+ * %PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set, this function always
  * returned the number of bytes written to the stream actually.
  * Meanwhile, if @len_expected is not null, the expected length of
  * the serialized data will be returned through this buffer.
  *
  * Therefore, you can prepare a small memory stream with the flag
- * PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
- * expected length of the serialized data.
+ * %PCVRNT_SERIALIZE_OPT_IGNORE_ERRORS set to count the
+ * expected length of the whole serialized data.
  *
  * Since: 0.0.1
  */
@@ -2295,28 +2364,28 @@ purc_variant_serialize(purc_variant_t value, purc_rwstream_t stream,
 #define PURC_ENVV_DVOBJS_PATH   "PURC_DVOBJS_PATH"
 
 /**
- * Loads a variant value from an indicated library
+ * purc_variant_load_dvobj_from_so:
  *
- * @so_name: the library name
+ * @so_name: The name of the shared library.
+ * @var_name: The name of the dynamic variant to load.
  *
- * @var_name: the variant value name
+ * Loads a dynamic variant from the given shared library.
  *
- * @ver_code: version number
- *
- * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
+ * Returns: A dynamic variant on success, or %PURC_VARIANT_INVALID on failure.
 .*
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_load_dvobj_from_so (const char *so_name,
-        const char *dvobj_name);
+purc_variant_load_dvobj_from_so(const char *so_name, const char *dvobj_name);
 
 /**
- * Unloads a dynamic library
+ * purc_variant_unload_dvobj:
  *
- * @value: dynamic object
+ * @value: A dynamic variant returned by purc_variant_load_dvobj_from_so().
  *
- * Returns: %true for success, false on failure.
+ * Unloads a dynamic variant.
+ *
+ * Returns: %true for success, %false on failure.
 .*
  * Since: 0.0.1
  */
@@ -2731,50 +2800,6 @@ purc_variant_is_false(purc_variant_t v);
 PCA_EXPORT bool
 purc_variant_is_container(purc_variant_t v);
 
-/**
- * Gets the value by key from an object with key as another variant
- *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
- *
- * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-PCA_INLINE purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
-{
-    const char *sk = NULL;
-    if (key && purc_variant_is_string(key))
-        sk = purc_variant_get_string_const(key);
-
-    return purc_variant_object_get_by_ckey(obj, sk);
-}
-
-/**
- * Remove a key-value pair from an object by key with key as another variant
- *
- * @obj: the variant value of obj type
- * @key: the key of key-value pair
- * @silently: %true means ignoring the following errors:
- *      - PCVRNT_ERROR_NOT_FOUND (return %true)
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.1
- */
-PCA_INLINE bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
-        bool silently)
-{
-    const char *sk = NULL;
-    if (key && purc_variant_is_string(key))
-        sk = purc_variant_get_string_const(key);
-
-    return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
-}
-
-
 struct purc_variant_stat {
     size_t nr_values[PURC_VARIANT_TYPE_NR];
     size_t sz_mem[PURC_VARIANT_TYPE_NR];
@@ -3042,23 +3067,6 @@ purc_variant_array_append_another(purc_variant_t array,
  */
 PCA_EXPORT bool
 purc_variant_array_prepend_another(purc_variant_t array,
-        purc_variant_t another, bool silently);
-
-/**
- * Merge value to the object
- *
- * @object: the dst object variant
- * @value: the value to be merge (object)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_object_merge_another(purc_variant_t object,
         purc_variant_t another, bool silently);
 
 /**
