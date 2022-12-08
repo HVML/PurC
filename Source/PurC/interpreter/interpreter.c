@@ -1788,6 +1788,9 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
 
     sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
     coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
+    if (pcutils_map_get_size(heap->token_crtn_map) == 0) {
+        coroutine->is_main = 1;
+    }
     sprintf(coroutine->token, "%d", coroutine->cid);
     free(p);
 

@@ -78,6 +78,10 @@
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
 
+#define CRTN_TOKEN_MAIN               "_main"
+#define CRTN_TOKEN_FIRST              "_first"
+#define CRTN_TOKEN_LAST               "_last"
+
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
 typedef struct pcintr_heap *pcintr_heap_t;
@@ -345,6 +349,8 @@ struct pcintr_coroutine {
     void                       *user_data;
     unsigned long               run_idx;
     time_t                      stopped_timeout;
+
+    uint32_t                    is_main:1;
 };
 
 enum purc_symbol_var {
