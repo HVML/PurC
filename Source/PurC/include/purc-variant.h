@@ -585,7 +585,7 @@ purc_variant_bsequence_bytes(purc_variant_t bsequence, size_t *length);
  *
  * @bseqence: The bsequence variant.
  *
- * Returnss the number of bytes contained in a bsequence variant.
+ * Gets the number of bytes contained in a bsequence variant.
  *
  * Returns: The number of bytes in @bsequence variant;
  *  %PURC_VARIANT_BADSIZE (-1) if the variant is not a bsequence.
@@ -1189,6 +1189,11 @@ typedef enum pcvrnt_conflict_resolution_method {
     PCVRNT_CR_METHOD_COMPLAIN,
 } pcvrnt_cr_method_k;
 
+typedef enum pcvrnt_notfound_resolution_method {
+    PCVRNT_NR_METHOD_IGNORE,
+    PCVRNT_NR_METHOD_COMPLAIN,
+} pcvrnt_nr_method_k;
+
 /**
  * purc_variant_object_merge:
  *
@@ -1210,8 +1215,8 @@ typedef enum pcvrnt_conflict_resolution_method {
  *
  * TODO: redefine the prototype as:
  *
-     bool purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
-            pcvrnt_cr_method cr_method);
+     int purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
+            pcvrnt_cr_method_k cr_method);
  *
  * Since: 0.0.5
  */
@@ -1516,13 +1521,13 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * Note that if the new value has not a property under a specific unique key,
  * the value of the key will be treated as `undefined`.
  *
- * Returns: The number of new members or changed members in the destination set,
+ * Returns: The number of new members or changed members (1 or 0) in the set,
  * -1 for error.
  *
  * TODO: redefine the prototype as:
  *
     int purc_variant_set_add(purc_variant_t set, purc_variant_t value,
-            pcvrnt_cr_method cr_method);
+            pcvrnt_cr_method_k cr_method);
  *
  * Since: 0.0.1
  */
@@ -1534,11 +1539,11 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
  *
  * @set: An set variant.
  * @value: The value to be removed.
- * @cr_method: The method to resolve the conflict if there is no member
+ * @nr_method: The method to resolve the not-found error if there is no member
  *  matched the value in the set.
- *      - PCVRNT_CR_METHOD_IGNORE:
+ *      - PCVRNT_NR_METHOD_IGNORE:
  *        Ignore the conflict and keep the destination set not changed.
- *      - PCVRNT_CR_METHOD_COMPLAIN:
+ *      - PCVRNT_NR_METHOD_COMPLAIN:
  *        Report %PCVRNT_ERROR_NOT_FOUND error.
  *
  * Removes a variant from a given set variant (@set).
@@ -1553,7 +1558,7 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
  * TODO: redefine the prototype as:
  *
     int purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
-            pcvrnt_cr_method cr_method);
+            pcvrnt_nr_method_k nr_method);
  *
  * Since: 0.0.1
  */
@@ -1684,6 +1689,136 @@ purc_variant_set_remove_by_index(purc_variant_t set, size_t idx);
 PCA_EXPORT bool
 purc_variant_set_set_by_index(purc_variant_t set,
         size_t idx, purc_variant_t val);
+
+/**
+ * purc_variant_set_unite:
+ *
+ * @set: The destination set variant.
+ * @value: The value to be united.
+ * @cr_method: The method to resolve the conflict, can be one of the following
+ *  values:
+ *      - PCVRNT_CR_METHOD_IGNORE:
+ *        Ignore the conflict and continue.
+ *      - PCVRNT_CR_METHOD_OVERWRITE:
+ *        Overwrite the member in the destination set.
+ *      - PCVRNT_CR_METHOD_COMPLAIN:
+ *        Report %PURC_ERROR_DUPLICATED error.
+ *
+ * Unites a variant or members in a linear container to the destination set.
+ *
+ * Returns: The number of members in the destination set after uniting,
+ *  -1 for error.
+ *
+ * TODO: Change the prototype as follow:
+ *
+    ssize_t
+    purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
+                pcvrnt_cr_method_k cr_method);
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_unite(purc_variant_t set,
+        purc_variant_t src, bool silently);
+
+/**
+ * purc_variant_set_intersect:
+ *
+ * @set: The destination set variant.
+ * @value: The variant to intersect.
+ *
+ * Intersect @value with the given set, that is, keep the members which
+ * match @value or any member in @value if @value is a linear container.
+ *
+ * Returns: The number of members of the set after intersecting,
+ *  -1 on error.
+ *
+ * TODO: Change the prototype as follow:
+ *
+    ssize_t
+    purc_variant_set_intersect(purc_variant_t set, purc_variant_t value);
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_intersect(purc_variant_t set,
+        purc_variant_t v, bool silently);
+
+/**
+ * purc_variant_set_subtract:
+ *
+ * @set: The destination set variant.
+ * @value: The variant to substract.
+ *
+ * Subtracts @value from the given set.
+ * If @value is a linear container, it will try to find each member of
+ * @value in the set. If there is any member in the set matched
+ * the variant to find, the member will be removed from the set.
+ *
+ * Returns: The number of members of the set after subtracting,
+ *  -1 on error.
+ *
+ * TODO: Change the prototype as follow:
+ *
+    ssize_t
+    purc_variant_set_subtract(purc_variant_t set, purc_variant_t value);
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_subtract(purc_variant_t set,
+        purc_variant_t value, bool silently);
+
+/**
+ * purc_variant_set_xor:
+ *
+ * @set: The destination set variant.
+ * @value: The value to XOR.
+ *
+ * Does XOR operation on the set.
+ *
+ * Returns: The number of members of the set after the operation,
+ *  -1 on error.
+ *
+ * TODO: Change the prototype as follow:
+ *
+    ssize_t
+    purc_variant_set_xor(purc_variant_t set, purc_variant_t value);
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_xor(purc_variant_t set,
+        purc_variant_t value, bool silently);
+
+/**
+ * purc_variant_set_overwrite:
+ *
+ * @set: The destination set variant.
+ * @value: The value to overwrite.
+ * @nr_method: The method to resolve the not-found error if there is no member
+ *  matched the value in the set.
+ *      - PCVRNT_NR_METHOD_IGNORE:
+ *        Ignore the conflict and go on.
+ *      - PCVRNT_NR_METHOD_COMPLAIN:
+ *        Report %PCVRNT_ERROR_NOT_FOUND error.
+ *
+ * Overwrites the members in the given set with @value or members in
+ * @value if @value is a linear container.
+ *
+ * Returns: The number of changed members of the set, -1 on error.
+ *
+ * TODO: Change the prototype to:
+ *
+    ssize_t
+    purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
+            pcvrnt_nr_method_k nr_method);
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_set_overwrite(purc_variant_t set,
+        purc_variant_t src, bool silently);
 
 /**
  * struct pcvrnt_set_iterator:
@@ -1869,7 +2004,7 @@ purc_variant_tuple_size(purc_variant_t tuple, size_t *sz);
  *
  * Gets the size (the number of the members) of a tuple variant.
  *
- * Returns: The number of members in the tuple;
+ * Returns: The size (the number of members) of the tuple;
  *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a tuple.
  *
  * Since: 0.1.0
@@ -1922,28 +2057,138 @@ purc_variant_tuple_set(purc_variant_t tuple, size_t idx, purc_variant_t value);
 
 typedef int (*pcvrnt_compare_cb)(purc_variant_t v1, purc_variant_t v2);
 
+/**
+ * purc_variant_make_sorted_array:
+ *
+ * @flags: The flags indicating the order and other options.
+ *      Use %PCVRNT_SAFLAG_ASC for ascending order and %PCVRNT_SAFLAG_DESC
+ *      for descending order.
+ * @sz_init: The initial size allocated for the sorted array.
+ * @cmp: The callback function to compare two variants.
+ *
+ * Creates an empty sorted array variant.
+ * Note that, currently, the sorted array variant is implementd as a native
+ * entity, not an inherent variant type.
+ *
+ * Returns: A sorted array variant on success,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT purc_variant_t
 purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
         pcvrnt_compare_cb cmp);
 
+/**
+ * purc_variant_sorted_array_add:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @value: The variant will be added to the array.
+ *
+ * Adds a new variant to the given sorted array. Note that, currently,
+ * duplicate values are not allowed.
+ *
+ * Returns: A ssize_t indicating the index of the new member, -1 for failure.
+ *
+ * TODO: Change the prototype according to this description.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT int
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
 
+/**
+ * purc_variant_sorted_array_remove:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @value: The variant will be used to match a member in the sorted array.
+ *
+ * Removes a member which is equal to the given variant in value from
+ * the specified sorted array.
+ *
+ * Returns: %true on success, %false on failure.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT bool
 purc_variant_sorted_array_remove(purc_variant_t array, purc_variant_t value);
 
+/**
+ * purc_variant_sorted_array_delete:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @idx: The index of the member will be deleted.
+ *
+ * Deletes a member by index from the specified sorted array.
+ *
+ * Returns: %true on success, %false on failure.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT bool
 purc_variant_sorted_array_delete(purc_variant_t array, size_t idx);
 
+/**
+ * purc_variant_sorted_array_find:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @value: The variant will be used to match a member in the sorted array.
+ *
+ * Checks whether there is a member which is equal to the given variant
+ * in value in the specified sorted array and returns the index the member.
+ *
+ * Returns: A ssize_t indicating the index of the found member, -1 for not found.
+ *
+ * TODO: Change the prototype according to this description.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT bool
 purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
 
+/**
+ * purc_variant_sorted_array_get:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @idx: The index of the desired member.
+ *
+ * Gets the member in the given sorted array by index.
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT purc_variant_t
 purc_variant_sorted_array_get(purc_variant_t array, size_t idx);
 
+/**
+ * purc_variant_sorted_array_size:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ * @sz: The pointer to a size_t buffer to receive the size of the sorted array.
+ *
+ * Gets the size (the number of members) of the given sorted array.
+ *
+ * Returns: %true when success, or %false on failure. When it returns %false,
+ *  the value contained in the buffer pointed to by @sz is undefined.
+ *
+ * Since: 0.9.2
+ */
 PCA_EXPORT bool
 purc_variant_sorted_array_size(purc_variant_t array, size_t *sz);
 
+/**
+ * purc_variant_sorted_array_get_size:
+ *
+ * @array: A sorted array variant returned by purc_variant_make_sorted_array().
+ *
+ * Gets the size (the number of members) of the given sorted array.
+ *
+ * Returns: The size (the number of members) of the sorted array;
+ *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a softed array.
+ *
+ * Since: 0.9.2
+ */
 static inline ssize_t purc_variant_sorted_array_get_size(purc_variant_t array)
 {
     size_t sz;
@@ -2877,9 +3122,12 @@ struct purc_variant_stat {
 };
 
 /**
- * Statistic of variant status.
+ * purc_variant_usage_stat:
  *
- * Returns: The pointer to struct purc_variant_stat on success, otherwise NULL.
+ * Gets statistic of the memory usage of variants.
+ *
+ * Returns: The read-only pointer to struct purc_variant_stat on success,
+ *      otherwise %NULL.
  *
  * Since: 0.0.1
  */
@@ -2887,11 +3135,13 @@ PCA_EXPORT const struct purc_variant_stat *
 purc_variant_usage_stat(void);
 
 /**
- * Numberify a variant value to double
+ * purc_variant_numerify:
  *
- * @value: variant value to be operated
+ * @value: A variant.
  *
- * Returns: a double number that is numberified from the variant value
+ * Numerifies a variant to double.
+ *
+ * Returns: A double number that is numerified from the given variant.
  *
  * Since: 0.0.3
  */
@@ -2899,11 +3149,13 @@ PCA_EXPORT double
 purc_variant_numerify(purc_variant_t value);
 
 /**
- * Booleanize a variant value to boolean
+ * purc_variant_booleanize:
  *
  * @value: variant value to be operated
  *
- * Returns: a boolean value that is booleanized from the variant value
+ * Booleanizes a variant to boolean.
+ *
+ * Returns: A boolean value that is booleanized from the given variant.
  *
  * Since: 0.0.3
  */
@@ -2911,17 +3163,18 @@ PCA_EXPORT bool
 purc_variant_booleanize(purc_variant_t value);
 
 /**
- * Stringify a variant value to a pre-allocated buffer.
+ * purc_variant_stringify_buff:
  *
- * @buff: the pointer to the buffer to store result content.
- * @sz_buff: the size of the pre-allocated buffer.
- * @value: the variant value to be stringified.
+ * @buff: The pointer to a string buffer to store the result.
+ * @sz_buff: The size of the pre-allocated buffer.
+ * @value: The variant value to be stringified.
  *
- * Returns: totol # of result content that has been succesfully written
- *          or shall be written if buffer is large enough
- *          or -1 in case of other failure
+ * Stringifies a variant value to a pre-allocated buffer.
+ * This function is similar to snprintf().
  *
- * Note: API is similar to `snprintf`
+ * Returns: Totol number of result content in bytes that has been succesfully
+ *      written or shall be written if the buffer is large enough,
+ *      or -1 in case of other failure.
  *
  * Since: 0.0.3
  */
@@ -2929,16 +3182,17 @@ PCA_EXPORT ssize_t
 purc_variant_stringify_buff(char *buff, size_t sz_buff, purc_variant_t value);
 
 /**
- * Stringify a variant value in the similar way as `asprintf` does.
+ * purc_variant_stringify_alloc:
  *
- * @strp: the buffer to receive the pointer to the allocated space.
- * @value: variant value to be operated.
+ * @strp: The pointer to a char * buffer to receive the pointer to
+ *      the allocated space.
+ * @value: The variant value to be stringified.
  *
- * Returns: totol # of result content that has been succesfully written
- *          or shall be written if buffer is large enough
- *          or -1 in case of other failure, such of OOM
+ * Stringifies a variant value in the similar way as `asprintf` does.
  *
- * Note: API is similar to `asprintf`
+ * Returns: Totol number of result content in bytes that has been succesfully
+ *      written or shall be written if the buffer is large enough,
+ *      or -1 in case of other failure.
  *
  * Since: 0.0.3
  */
@@ -2964,29 +3218,30 @@ purc_variant_stringify_alloc(char **strp, purc_variant_t value);
 #define PCVRNT_STRINGIFY_OPT_REAL_BAREBYTES          0x00000200
 
 /**
- * Stringify a variant value to a writable stream.
+ * purc_variant_stringify:
  *
- * @stream: the stream to which the stringified data write.
- * @value: the variant value to be stringified.
- * @flags: the stringifing flags.
+ * @stream: The stream to which the stringified data write.
+ * @value: The variant value to be stringified.
+ * @flags: The stringifing flags.
  * @len_expected: The buffer to receive the expected length of
  *      the stringified data (nullable). The value in the buffer should be
  *      set to 0 initially.
  *
- * Returns:
- * The size of the stringified data written to the stream;
- * On error, -1 is returned, and error code is set to indicate
- * the cause of the error.
+ * Stringifies a variant value to a writable stream.
  *
  * If the function is called with the flag
- * PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set, this function always
+ * %PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set, this function always
  * returned the number of bytes written to the stream actually.
  * Meanwhile, if @len_expected is not null, the expected length of
  * the stringified data will be returned through this buffer.
  *
  * Therefore, you can prepare a small memory stream with the flag
- * PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set to count the
+ * %PCVRNT_STRINGIFY_OPT_IGNORE_ERRORS set to count the
  * expected length of the stringified data.
+ *
+ * Returns: The size of the stringified data written to the stream;
+ * On error, -1 is returned, and error code is set to indicate
+ * the cause of the error.
  *
  * Since: 0.1.1
  */
@@ -3015,17 +3270,24 @@ typedef bool (*pcvar_op_handler) (
         );
 
 /**
- * Register a pre-operation listener
+ * purc_variant_register_pre_listener:
  *
- * @v: the variant that is to be observed
+ * @v: The variant that is to be listened.
+ * @op: The operations to be listened, can OR'd by the following values:
+ *      - PCVAR_OPERATION_GROW:
+ *        A new member will be added to the container.
+ *      - PCVAR_OPERATION_SHRINK:
+ *        A member will be removed from the container.
+ *      - PCVAR_OPERATION_CHANGE:
+ *        The contents of the container will change.
+ *      - PCVAR_OPERATION_REFASCHILD:
+ *        The variant will be referenced as a child of another container.
+ * @handler: The callback that will be called upon the listened event is fired.
+ * @ctxt: The context will be passed to the callback.
  *
- * @op: the atom of the operation, such as `grow`,  `shrink`, or `change`
+ * Registers a pre-operation listener to a container.
  *
- * @handler: the callback that is to be called upon when the observed
- *                 event is fired
- * @ctxt: the context belongs to the callback
- *
- * Returns: the registered-listener
+ * Returns: the registered listener; %NULL on error.
  *
  * Since: 0.0.5
  */
@@ -3034,17 +3296,24 @@ purc_variant_register_pre_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
- * Register a post-operation listener
+ * purc_variant_register_post_listener:
  *
- * @v: the variant that is to be observed
+ * @v: The variant that is to be listened, it must be a container.
+ * @op: The operations to be listened, can OR'd by the following values:
+ *      - PCVAR_OPERATION_GROW:
+ *        A new member has been added to the container.
+ *      - PCVAR_OPERATION_SHRINK:
+ *        A member has be removed from the container.
+ *      - PCVAR_OPERATION_CHANGE:
+ *        The contents of the container have changed.
+ *      - PCVAR_OPERATION_REFASCHILD:
+ *        The variant was referenced as a child of another container.
+ * @handler: The callback that will be called upon the listened event is fired.
+ * @ctxt: The context will be passed to the callback.
  *
- * @op: the atom of the operation, such as `grow`,  `shrink`, or `change`
+ * Registers a post-operation listener to a container.
  *
- * @handler: the callback that is to be called upon when the observed
- *                 event is fired
- * @ctxt: the context belongs to the callback
- *
- * Returns: the registered-listener
+ * Returns: the registered listener; %NULL on error.
  *
  * Since: 0.0.5
  */
@@ -3053,212 +3322,20 @@ purc_variant_register_post_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
 /**
- * Revoke a variant listener
+ * purc_variant_revoke_listener:
  *
- * @v: the variant whose listener is to be revoked
+ * @v: The variant whose listener is to be revoked.
+ * @listener: The listener that is to be revoked.
  *
- * @listener: the listener that is to be revoked
+ * Revokes a registered listener on the given container.
  *
- * Returns: boolean that designates if the operation succeeds or not
+ * Returns: a boolean that indicates if the operation succeeds or not.
  *
  * Since: 0.0.4
  */
 PCA_EXPORT bool
 purc_variant_revoke_listener(purc_variant_t v,
         struct pcvar_listener *listener);
-
-/**
- * Displace the values of the container.
- *
- * @dst: the dst variant (object, array, set)
- * @value: the variant to replace (object, array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_container_displace(purc_variant_t dst,
-        purc_variant_t src, bool silently);
-
-/**
- * Remove the values from the container.
- *
- * @dst: the dst variant (object, array, set)
- * @value: the variant to remove from container (object, array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *      - PCVRNT_ERROR_NOT_FOUND
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_container_remove(purc_variant_t dst,
-        purc_variant_t src, bool silently);
-
-/**
- * Appends all the members of the array to the tail of the target array.
- *
- * @array: the dst array variant
- * @value: the value to be appended (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_append_another(purc_variant_t array,
-        purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array to the head of the target array.
- *
- * @array: the dst array variant
- * @value: the value to be insert (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_prepend_another(purc_variant_t array,
-        purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array into the target array and place it
- * after the indicated element.
- *
- * @array: the dst array variant
- * @idx: the index of element before which the new value will be placed
- * @value: the inserted value (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_insert_another_before(purc_variant_t array,
-        int idx, purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array into the target array and place it
- * after the specified element
- *
- * @array: the dst array variant
- * @idx: the index of element after which the new value will be placed
- * @value: the inserted value (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_insert_another_after(purc_variant_t array,
-        int idx, purc_variant_t another, bool silently);
-
-/**
- * Unite operation on the set
- *
- * @set: the dst set variant
- * @value: the value to be unite (array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_set_unite(purc_variant_t set,
-        purc_variant_t src, bool silently);
-
-/**
- * Intersection operation on the set
- *
- * @set: the dst set variant
- * @value: the value to intersect (array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_set_intersect(purc_variant_t set,
-        purc_variant_t src, bool silently);
-
-/**
- * Subtraction operation on the set
- *
- * @set: the dst set variant
- * @value: the value to substract (array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_set_subtract(purc_variant_t set,
-        purc_variant_t src, bool silently);
-
-/**
- * Xor operation on the set
- *
- * @set: the dst set variant
- * @value: the value to xor (array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_set_xor(purc_variant_t set,
-        purc_variant_t src, bool silently);
-
-/**
- * Overwrite operation on the set
- *
- * @set: the dst set variant
- * @value: the value to overwrite (object, array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *      - PCVRNT_ERROR_NOT_FOUND
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_set_overwrite(purc_variant_t set,
-        purc_variant_t src, bool silently);
 
 /**
  * purc_variant_container_clone:
@@ -3291,6 +3368,125 @@ purc_variant_container_clone(purc_variant_t ctnr);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_container_clone_recursively(purc_variant_t ctnr);
+
+/**
+ * Displace the values of the container.
+ *
+ * @dst: the dst variant (object, array, set)
+ * @value: the variant to replace (object, array, set)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * TODO: need more exact synposis of this function.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_container_displace(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+/**
+ * Remove the values from the container.
+ *
+ * @dst: the dst variant (object, array, set)
+ * @value: the variant to remove from container (object, array, set)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *      - PCVRNT_ERROR_NOT_FOUND
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * TODO: need more exact synposis of this function.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_container_remove(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+/**
+ * Appends all the members of the array to the tail of the target array.
+ *
+ * @array: the dst array variant
+ * @value: the value to be appended (array)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * TODO: Should be defined as an internal helper.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_append_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array to the head of the target array.
+ *
+ * @array: the dst array variant
+ * @value: the value to be insert (array)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * TODO: Should be defined as an internal helper.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_prepend_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array into the target array and place it
+ * after the indicated element.
+ *
+ * @array: the dst array variant
+ * @idx: the index of element before which the new value will be placed
+ * @value: the inserted value (array)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * TODO: Should be defined as an internal helper.
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_insert_another_before(purc_variant_t array,
+        int idx, purc_variant_t another, bool silently);
+
+/**
+ * Insert all the members of the array into the target array and place it
+ * after the specified element
+ *
+ * @array: the dst array variant
+ * @idx: the index of element after which the new value will be placed
+ * @value: the inserted value (array)
+ * @silently: %true means ignoring the following errors:
+ *      - PURC_ERROR_INVALID_VALUE
+ *      - PURC_ERROR_WRONG_DATA_TYPE
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * TODO: Should be defined as an internal helper.
+ *
+ * Since: 0.0.5
+ */
+PCA_EXPORT bool
+purc_variant_array_insert_another_after(purc_variant_t array,
+        int idx, purc_variant_t another, bool silently);
 
 struct purc_ejson_parsing_tree;
 
