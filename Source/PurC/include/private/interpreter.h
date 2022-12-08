@@ -42,6 +42,7 @@
 #include "private/sorted-array.h"
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
+#define CRTN_TOKEN_LEN          15
 
 #define MSG_EVENT_SEPARATOR          ':'
 
@@ -121,6 +122,7 @@ struct pcintr_heap {
     struct sorted_array *wait_timeout_crtns;
 
     pcutils_map        *name_chan_map;  // name to channel map.
+    pcutils_map        *token_crtn_map; // token to crtn map.
 
     purc_atom_t         move_buff;
     pcintr_timer_t     *event_timer;    // 10ms
@@ -284,6 +286,7 @@ struct pcintr_coroutine {
     purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
+    char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
     pcrdr_page_type             target_page_type;

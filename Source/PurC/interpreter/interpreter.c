@@ -536,6 +536,11 @@ static void _cleanup_instance(struct pcinst* inst)
         heap->name_chan_map = NULL;
     }
 
+    if (heap->token_crtn_map) {
+        pcutils_map_destroy(heap->token_crtn_map);
+        heap->token_crtn_map = NULL;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -583,6 +588,9 @@ static int _init_instance(struct pcinst* inst,
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
                 (free_val_fn)pcchan_destroy, comp_key_string, false);
+
+    heap->token_crtn_map =
+        pcutils_map_create(NULL, NULL, NULL, NULL, comp_key_string, false);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
@@ -1606,6 +1614,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     }
 
     list_del(&co->ln);
+    pcutils_map_erase(heap->token_crtn_map, co->token);
     coroutine_destroy(co);
 
     if (heap->keep_alive == 0 && list_empty(&heap->crtns)
@@ -1778,6 +1787,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
 
     sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
     coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
+    sprintf(coroutine->token, "%d", coroutine->cid);
     free(p);
 
     return 0;
@@ -1800,6 +1810,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     if (set_coroutine_id(co)) {
+        goto fail_co;
+    }
+
+    if (pcutils_map_insert(heap->token_crtn_map, co->token, co)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fail_co;
     }
 

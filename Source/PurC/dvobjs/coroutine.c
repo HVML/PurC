@@ -27,6 +27,7 @@
 #include "private/vdom.h"
 #include "private/dvobjs.h"
 #include "private/url.h"
+#include "private/regex.h"
 #include "purc-variant.h"
 #include "helper.h"
 
@@ -448,12 +449,49 @@ token_getter(purc_variant_t root,
     UNUSED_PARAM(call_flags);
 
     pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
-    const char *uri = pcintr_coroutine_get_uri(cor);
-    const char *token = pcutils_basename(uri);
-    if (token) {
-        return purc_variant_make_string(token, false);
+    return purc_variant_make_string(cor->token, false);
+}
+
+static purc_variant_t
+token_setter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    const char *token;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
     }
-    return purc_variant_make_string(uri, false);
+
+    if ((token = purc_variant_get_string_const(argv[0])) == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    size_t nr = strlen(token);
+    if (nr > CRTN_TOKEN_LEN) {
+        purc_set_error(PURC_ERROR_TOO_LONG);
+        goto failed;
+    }
+
+    if (!pcregex_is_match("^[A-Za-z0-9_]+$", token)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    strcpy(cor->token, token);
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -487,7 +525,7 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
         { "timeout", timeout_getter, timeout_setter },
         { "cid",     cid_getter,     NULL },
         { "uri",     uri_getter,     NULL },
-        { "token",   token_getter,   NULL },
+        { "token",   token_getter,   token_setter },
         { "curator", curator_getter, NULL },
     };
 
