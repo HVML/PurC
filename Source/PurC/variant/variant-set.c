@@ -1344,14 +1344,14 @@ purc_variant_set_set_by_index(purc_variant_t set,
     return ok;
 }
 
-struct purc_variant_set_iterator {
+struct pcvrnt_set_iterator {
     purc_variant_t      set;
     struct rb_node     *curr;
     struct rb_node     *prev, *next;
 };
 
 static void
-iterator_refresh(struct purc_variant_set_iterator *it)
+iterator_refresh(struct pcvrnt_set_iterator *it)
 {
     if (it->curr == NULL) {
         it->next = NULL;
@@ -1380,8 +1380,8 @@ iterator_refresh(struct purc_variant_set_iterator *it)
     }
 }
 
-struct purc_variant_set_iterator*
-purc_variant_set_make_iterator_begin(purc_variant_t set)
+struct pcvrnt_set_iterator*
+pcvrnt_set_iterator_create_begin(purc_variant_t set)
 {
     PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
@@ -1395,8 +1395,8 @@ purc_variant_set_make_iterator_begin(purc_variant_t set)
         return NULL;
     }
 
-    struct purc_variant_set_iterator *it;
-    it = (struct purc_variant_set_iterator*)calloc(1, sizeof(*it));
+    struct pcvrnt_set_iterator *it;
+    it = (struct pcvrnt_set_iterator*)calloc(1, sizeof(*it));
     if (!it) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -1413,8 +1413,8 @@ purc_variant_set_make_iterator_begin(purc_variant_t set)
     return it;
 }
 
-struct purc_variant_set_iterator*
-purc_variant_set_make_iterator_end(purc_variant_t set)
+struct pcvrnt_set_iterator*
+pcvrnt_set_iterator_create_end(purc_variant_t set)
 {
     PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET),
         NULL);
@@ -1428,8 +1428,8 @@ purc_variant_set_make_iterator_end(purc_variant_t set)
         return NULL;
     }
 
-    struct purc_variant_set_iterator *it;
-    it = (struct purc_variant_set_iterator*)calloc(1, sizeof(*it));
+    struct pcvrnt_set_iterator *it;
+    it = (struct pcvrnt_set_iterator*)calloc(1, sizeof(*it));
     if (!it) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
@@ -1447,7 +1447,7 @@ purc_variant_set_make_iterator_end(purc_variant_t set)
 }
 
 void
-purc_variant_set_release_iterator(struct purc_variant_set_iterator* it)
+pcvrnt_set_iterator_release(struct pcvrnt_set_iterator* it)
 {
     if (!it)
         return;
@@ -1455,7 +1455,7 @@ purc_variant_set_release_iterator(struct purc_variant_set_iterator* it)
 }
 
 bool
-purc_variant_set_iterator_next(struct purc_variant_set_iterator* it)
+pcvrnt_set_iterator_next(struct pcvrnt_set_iterator* it)
 {
     PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,
@@ -1471,7 +1471,7 @@ purc_variant_set_iterator_next(struct purc_variant_set_iterator* it)
 }
 
 bool
-purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it)
+pcvrnt_set_iterator_prev(struct pcvrnt_set_iterator* it)
 {
     PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,
@@ -1487,7 +1487,7 @@ purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it)
 }
 
 purc_variant_t
-purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it)
+pcvrnt_set_iterator_get_value(struct pcvrnt_set_iterator* it)
 {
     PCVRNT_CHECK_FAIL_RET(it && it->set &&
         it->set->type==PVT(_SET) && it->curr,

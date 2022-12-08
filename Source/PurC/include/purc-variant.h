@@ -1125,8 +1125,8 @@ purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
  *
  * @obj: An object variant.
  * @key: The key of the property to find.
- * @silently: %true means ignoring the following errors:
- *      - PCVRNT_ERROR_NOT_FOUND (return %true)
+ * @silently: Whether to ignore the following errors:
+ *      - PCVRNT_ERROR_NOT_FOUND
  *
  * Removes a property from the object by the key value specified by
  * a string, an atom, or an exception variant.
@@ -1183,16 +1183,35 @@ static inline ssize_t purc_variant_object_get_size(purc_variant_t obj)
     return sz;
 }
 
+typedef enum pcvrnt_conflict_resolution_method {
+    PCVRNT_CR_METHOD_IGNORE,
+    PCVRNT_CR_METHOD_OVERWRITE,
+    PCVRNT_CR_METHOD_COMPLAIN,
+} pcvrnt_cr_method_k;
+
 /**
- * Merge value to the object
+ * purc_variant_object_merge:
  *
- * @object: the dst object variant
- * @value: the value to be merge (object)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
+ * @dst: The destination object variant.
+ * @src: The source object variant.
+ * @cr_method: The method to resolve the conflict, can be one of the following
+ *  values:
+ *      - PCVRNT_CR_METHOD_IGNORE:
+ *        Ignore the source value and keep the destination property not changed.
+ *      - PCVRNT_CR_METHOD_OVERWRITE:
+ *        Overwrite the value of the property in the destination object.
+ *      - PCVRNT_CR_METHOD_COMPLAIN:
+ *        Report %PURC_ERROR_DUPLICATED error.
  *
- * Returns: %true on success, otherwise %false.
+ * Merges properties in an object (@src) to the destination object (@dst).
+ *
+ * Returns: The number of properties in the destination object changed,
+ *      -1 for error.
+ *
+ * TODO: redefine the prototype as:
+ *
+     bool purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
+            pcvrnt_cr_method cr_method);
  *
  * Since: 0.0.5
  */
@@ -1289,7 +1308,7 @@ pcvrnt_object_iterator_release(struct pcvrnt_object_iterator* it);
  * Note that the iterator will release the reference of the former property,
  * and hold a new reference to the next property (if any).
  *
- * Returns: %true if success, @false if there is no following property.
+ * Returns: %true if success, @false if there is no subsequent property.
  *
  * Since: 0.0.1
  */
@@ -1303,7 +1322,7 @@ pcvrnt_object_iterator_next(struct pcvrnt_object_iterator* it);
  *
  * Backwards the iterator to point to the previous property in the object.
  * Note that the iterator will release the reference of the former property
- * it pointed to, and hold a new reference to the next property (if any).
+ * it pointed to, and hold a new reference to the previous property (if any).
  *
  * Returns: %true if success, @false if there is no preceding property.
  *
@@ -1477,43 +1496,64 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * purc_variant_set_add:
  *
  * @set: An set variant.
- * @value: the value to be added to the set variant.
- * @override: Whether to overwrite the existing members if @value having
- *      the same member under the unique keys of the set.
+ * @value: The value to be added to the set variant.
+ * @cr_method: The method to resolve the conflict if @value having
+ *  the same value under the unique keys of the set. It can be one of
+ *  the following values:
+ *      - PCVRNT_CR_METHOD_IGNORE:
+ *        Ignore the source value and keep the destination set not changed.
+ *      - PCVRNT_CR_METHOD_OVERWRITE:
+ *        Overwrite the member in the destination set.
+ *      - PCVRNT_CR_METHOD_COMPLAIN:
+ *        Report %PURC_ERROR_DUPLICATED error.
  *
  * Adds a new value to the set.
  *
- * If the set is managed by unique keys and @overwrite is
- * %true, the function will override the existing member which is equal to
- * the new value under the unique keys, and return %true. Otherwise,
- * it returns %false.
+ * If the set is managed by unique keys and @cr_method is
+ * %PCVRNT_CR_METHOD_OVERWRITE, the function will overwrite the existing member
+ * which is equal to the new value under the unique keys.
  *
  * Note that if the new value has not a property under a specific unique key,
  * the value of the key will be treated as `undefined`.
  *
- * Returns: %true on success, %false on failure.
+ * Returns: The number of new members or changed members in the destination set,
+ * -1 for error.
+ *
+ * TODO: redefine the prototype as:
+ *
+    int purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method cr_method);
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_add(purc_variant_t obj, purc_variant_t value, bool overwrite);
+purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
 
 /**
  * purc_variant_set_remove:
  *
  * @set: An set variant.
  * @value: The value to be removed.
- * @silently: Whether to ignore the following errors:
- *      - PCVRNT_ERROR_NOT_FOUND
+ * @cr_method: The method to resolve the conflict if there is no member
+ *  matched the value in the set.
+ *      - PCVRNT_CR_METHOD_IGNORE:
+ *        Ignore the conflict and keep the destination set not changed.
+ *      - PCVRNT_CR_METHOD_COMPLAIN:
+ *        Report %PCVRNT_ERROR_NOT_FOUND error.
  *
  * Removes a variant from a given set variant (@set).
  *
- * Returns: %true on success, %false if silently is %false and
- *      no any matched member found in the set.
+ * Note that this function works if the set is not managed by unique keys,
+ * or there is only one unique key. If there are multiple unique keys,
+ * use @purc_variant_set_remove_member_by_key_values() instead.
  *
- * @note This function works if the set is not managed by unique keys, or
- *  there is only one unique key. If there are multiple unique keys,
- *  use @purc_variant_set_remove_member_by_key_values() instead.
+ * Returns: The number of members removed (1 or 0) in the destination set,
+ *  -1 for error.
+ *
+ * TODO: redefine the prototype as:
+ *
+    int purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method cr_method);
  *
  * Since: 0.0.1
  */
@@ -1521,16 +1561,19 @@ PCA_EXPORT bool
 purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently);
 
 /**
+ * purc_variant_set_get_member_by_key_values:
+ *
+ * @set: An set variant. The set should be managed by unique keys.
+ * @v1: The first value for the first unique key.
+ * @...: The values for the other unique keys.
+ *
  * Gets the member by the values of unique keys from a set.
+ * The caller should pass one value for each unique key.
+ * The number of the matching values must match the number of the unique keys.
  *
- * @set: the variant value of the set type.
- * @v1...vN: the values for matching. The caller should pass one value
- *      for each unique key. The number of the matching values must match
- *      the number of the unique keys.
- *
- * Returns: The memeber matched on success, or %PURC_VARIANT_INVALID if:
- *      - the set does not managed by the unique keys, or
- *      - no any matching member.
+ * Returns: The memeber matched on success, or %PURC_VARIANT_INVALID
+ * if the set does not managed by the unique keys, or there is no any matched
+ * member.
  *
  * Since: 0.0.1
  */
@@ -1539,17 +1582,18 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...);
 
 /**
+ * purc_variant_set_remove_member_by_key_values:
+ *
+ * @set: A set variant. The set should be managed by unique keys.
+ * @v1: The first value for the first unique key.
+ * @...: The values for the other unique keys.
+ *
  * Removes the member by the values of unique keys from a set.
+ * The caller should pass one value for each unique key.
+ * The number of the matching values must match the number of the unique keys.
  *
- * @set: the variant value of the set type. The set should be managed
- *      by unique keys.
- * @v1...vN: the values for matching. The caller should pass one value
- *      for each unique key. The number of the matching values must match
- *      the number of the unique keys.
- *
- * Returns: %true on success, or %false if:
- *      - the set does not managed by unique keys, or
- *      - no any matching member.
+ * Returns: %true on success, or %false if the set does not managed by
+ * unique keys, or there is no any matched member.
  *
  * Since: 0.0.1
  */
@@ -1558,12 +1602,14 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...);
 
 /**
- * Get the number of elements in a set variant value.
+ * purc_variant_set_size:
  *
- * @set: the variant value of set type
- * @sz: the variant value of set type
+ * @set: A set variant.
+ * @sz: The pointer to a size_t buffer to receive the size of the set variant.
  *
- * Returns: %true on success, otherwise %false if the variant is not a set.
+ * Gets the size (the number of members) of a set variant.
+ *
+ * Returns: %true on success, otherwise %false (if the variant is not a set).
  *
  * Since: 0.0.1
  */
@@ -1571,14 +1617,14 @@ PCA_EXPORT bool
 purc_variant_set_size(purc_variant_t set, size_t *sz);
 
 /**
- * Get the number of elements in a set variant value.
+ * purc_variant_set_get_size:
  *
- * @set: the variant value of set type
+ * @set: An set variant.
  *
- * Returns: The number of elements in a set variant value;
- *  \PURC_VARIANT_BADSIZE (-1) if the variant is not a set.
+ * Gets the size (the number of members) of a set variant.
  *
- * Note: This function is deprecated, use \purc_variant_set_size instead.
+ * Returns: The size (the number of members) of the set variant.
+ *  %PURC_VARIANT_BADSIZE (-1) if the variant is not a set.
  *
  * Since: 0.0.1
  */
@@ -1591,12 +1637,14 @@ static inline ssize_t purc_variant_set_get_size(purc_variant_t set)
 }
 
 /**
- * Get an element from set by index.
+ * purc_variant_set_get_by_index:
  *
- * @array: the variant value of set type
- * @idx: the index of wanted element
+ * @set: A set variant.
+ * @idx: The index of the desired member.
  *
- * Returns: A purc_variant_t on success, or %PURC_VARIANT_INVALID on failure.
+ * Gets a member of a set by index.
+ *
+ * Returns: A variant on success, or %PURC_VARIANT_INVALID on failure.
  *
  * Since: 0.0.1
  */
@@ -1604,12 +1652,16 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_get_by_index(purc_variant_t set, size_t idx);
 
 /**
- * Remove the element in set by index and return
+ * purc_variant_set_remove_by_index:
  *
- * @array: the variant value of set type
- * @idx: the index of the element to be removed
+ * @set: A set variant.
+ * @idx: The index of the member to be removed.
  *
- * Returns: the variant removed at the index or %PURC_VARIANT_INVALID if failed
+ * Removes a member of the given set by index.
+ *
+ * Returns: The variant removed at the index or %PURC_VARIANT_INVALID
+ *  if failed. Note that you need to un-reference the returned variant
+ *  in order to avoid memory leak.
  *
  * Since: 0.0.1
  */
@@ -1617,13 +1669,15 @@ PCA_EXPORT purc_variant_t
 purc_variant_set_remove_by_index(purc_variant_t set, size_t idx);
 
 /**
- * Set an element in set by index.
+ * purc_variant_set_set_by_index:
  *
- * @array: the variant value of set type
- * @idx: the index of the element to be replaced
- * @val: the val that's to be set in the set
+ * @set: A set variant.
+ * @idx: The index of the member to be replaced.
+ * @val: The new variant which will replace the old one.
  *
- * Returns: A boolean that indicates if it succeeds or not
+ * Sets a member of the given set by index.
+ *
+ * Returns: A boolean that indicates if it succeeds or not.
  *
  * Since: 0.0.1
  */
@@ -1632,15 +1686,17 @@ purc_variant_set_set_by_index(purc_variant_t set,
         size_t idx, purc_variant_t val);
 
 /**
- * set iterator usage example:
+ * struct pcvrnt_set_iterator:
+ *
+ * The iterator for set variant; Usage example:
  *
  * purc_variant_t obj;
  * ...
- * purc_variant_set_iterator* it = purc_variant_set_make_iterator_begin(obj);
+ * pcvrnt_set_iterator* it = pcvrnt_set_iterator_create_begin(obj);
  * while (it) {
- *     purc_variant_t  val = purc_variant_set_iterator_get_value(it);
+ *     purc_variant_t  val = pcvrnt_set_iterator_get_value(it);
  *     ...
- *     bool having = purc_variant_set_iterator_next(it);
+ *     bool having = pcvrnt_set_iterator_next(it);
  *     // behavior of accessing `val`/`key` is un-defined
  *     if (!having) {
  *         // behavior of accessing `it` is un-defined
@@ -1648,98 +1704,109 @@ purc_variant_set_set_by_index(purc_variant_t set,
  *     }
  * }
  * if (it)
- *     purc_variant_set_release_iterator(it);
+ *     pcvrnt_set_iterator_release(it);
  */
 
-struct purc_variant_set_iterator;
+struct pcvrnt_set_iterator;
 
 /**
- * Get the begin-iterator of the set,
- * which points to the head element of the set
+ * pcvrnt_set_iterator_create_begin:
  *
- * @set: the variant value of set type
- * 
- * Returns: the begin-iterator of the set.
- *          NULL if no element in the set
- *          returned iterator will inc set's ref for iterator's lifetime
- *          returned iterator shall also inc the pointed element's ref
+ * @set: A set variant.
+ *
+ * Creates a new beginning iterator for the set variant @set.
+ * The returned iterator will point to the first member in the set.
+ *
+ * Note that a new iterator will hold a reference of the set, until it is
+ * released by calling pcvrnt_set_iterator_release(). It will also
+ * hold a reference of the member it points to, until it was moved to
+ * another one.
+ *
+ * Returns: The iterator for the set; %NULL if there is no member in the set.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT struct purc_variant_set_iterator*
-purc_variant_set_make_iterator_begin(purc_variant_t set);
+PCA_EXPORT struct pcvrnt_set_iterator *
+pcvrnt_set_iterator_create_begin(purc_variant_t set);
 
 /**
- * Get the end-iterator of the set,
- * which points to the head element of the set
+ * pcvrnt_set_iterator_create_end:
  *
- * @set: the variant value of set type
+ * Creates a new end iterator for the set variant @set.
+ * The returned iterator will point to the last member in the set.
  *
- * Returns: the end-iterator of the set.
- *          NULL if no element in the set
- *          returned iterator will inc set's ref for iterator's lifetime
- *          returned iterator shall also inc the pointed element's ref
+ * Note that a new iterator will hold a reference of the set, until it is
+ * released by calling pcvrnt_set_iterator_release(). It will also
+ * hold a reference of the member it points to, until it was moved to
+ * another one.
+ *
+ * Returns: The iterator for the set; %NULL if there is no member in the set.
  *
  * Since: 0.0.1
  */
-PCA_EXPORT struct purc_variant_set_iterator*
-purc_variant_set_make_iterator_end(purc_variant_t set);
+PCA_EXPORT struct pcvrnt_set_iterator *
+pcvrnt_set_iterator_create_end(purc_variant_t set);
 
 /**
- * Release the set's iterator
+ * pcvrnt_set_iterator_release:
  *
- * @it: iterator of itself
+ * @it: The iterator of a set variant.
  *
- * Returns: void
- *          both set's ref and the pointed element's ref shall be dec`d
+ * Releases the set iterator (@it). The reference count of the set
+ * and the member (if any) pointed to by @it will be decremented.
+ *
+ * Returns: None.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT void
-purc_variant_set_release_iterator(struct purc_variant_set_iterator* it);
+pcvrnt_set_iterator_release(struct pcvrnt_set_iterator* it);
 
 /**
- * Make the set's iterator point to it's successor,
- * or the next element of the bounded set
+ * pcvrnt_set_iterator_next:
  *
- * @it: iterator of itself
+ * @it: The iterator of a set variant.
  *
- * Returns: %true if iterator `it` has no following element, %false otherwise
- *          dec original element's ref
- *          inc current element's ref
+ * Forwards the iterator to point to the next member in the set.
+ * Note that the iterator will release the reference of the former member,
+ * and hold a new reference to the next member (if any).
+ *
+ * Returns: %true if success, @false if there is no subsequent member.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_iterator_next(struct purc_variant_set_iterator* it);
+pcvrnt_set_iterator_next(struct pcvrnt_set_iterator* it);
 
 /**
- * Make the set's iterator point to it's predecessor,
- * or the prev element of the bounded set
+ * pcvrnt_set_iterator_prev:
  *
- * @it: iterator of itself
+ * @it: The iterator of a set variant.
  *
- * Returns: %true if iterator `it` has no leading element, %false otherwise
- *          dec original element's ref
- *          inc current element's ref
+ * Backwards the iterator to point to the previous member in the set.
+ * Note that the iterator will release the reference of the former member
+ * it pointed to, and hold a new reference to the prevoius member (if any).
+ *
+ * Returns: %true if success, @false if there is no preceding member.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_set_iterator_prev(struct purc_variant_set_iterator* it);
+pcvrnt_set_iterator_prev(struct pcvrnt_set_iterator* it);
 
 /**
- * Get the value of the element that the iterator points to
+ * pcvrnt_set_iterator_get_value:
  *
- * @it: iterator of itself
+ * @it: The iterator of a set variant.
  *
- * Returns: the value of the element
- *          the returned value's ref remains unchanged
+ * Gets the value of the member to which the iterator points.
+ *
+ * Returns: The variant of the current member.
  *
  * Since: 0.0.1
  */
 PCA_EXPORT purc_variant_t
-purc_variant_set_iterator_get_value(struct purc_variant_set_iterator* it);
+pcvrnt_set_iterator_get_value(struct pcvrnt_set_iterator* it);
 
 /**
  * purc_variant_make_tuple:
