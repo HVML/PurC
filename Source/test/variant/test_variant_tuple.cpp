@@ -461,7 +461,8 @@ TEST(variant, tuple_as_set_member)
             dump_handle, st);
 
     purc_variant_set_add(st, tuple, true);
-    purc_variant_set_remove_by_index(st, 0);
+    purc_variant_t v = purc_variant_set_remove_by_index(st, 0);
+    purc_variant_unref(v);
 
     purc_variant_revoke_listener(st, listener);
 

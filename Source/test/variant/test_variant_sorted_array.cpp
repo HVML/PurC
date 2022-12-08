@@ -149,6 +149,7 @@ TEST(variant, sorted_array_with_multi_atom)
     rb = purc_variant_sorted_array_find(v, nosuchkey);
     ASSERT_EQ(rb, false);
 
+    unref(nosuchkey);
     unref(any);
     unref(v);
 }

@@ -107,7 +107,7 @@ int pcdvobj_url_encode(struct pcutils_mystring *mystr,
 {
     for (size_t i = 0; i < nr_bytes; i++) {
         unsigned char encoded[4];
-        size_t len;
+        size_t len = 0;
 
         if (rfc == PURC_K_KW_rfc1738 && bytes[i] == ' ') {
             encoded[0] = '+';
@@ -383,7 +383,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 1) {
-        size_t len;
+        size_t len = 0;
 
         if (purc_variant_is_null(argv[1])) {
             numeric_prefix = NULL;
@@ -402,7 +402,7 @@ build_query_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         if (nr_args > 2) {
             const char *separator;
-            size_t len;
+            size_t len = 0;
 
             separator = purc_variant_get_string_const_ex(argv[2], &len);
             if (separator == NULL || len > 1) {
