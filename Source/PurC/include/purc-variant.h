@@ -33,6 +33,12 @@
 #include "purc-rwstream.h"
 #include "purc-utils.h"
 
+/**
+ * SECTION: variant
+ * @title: Variant
+ * @short_description: Variant is an abstract representation of data for HVML.
+ */
+
 struct purc_variant;
 typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
