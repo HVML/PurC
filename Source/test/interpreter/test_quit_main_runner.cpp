@@ -61,7 +61,7 @@ static const char *cond_names[] = {
     "PURC_COND_SHUTDOWN_ASKED",
 };
 
-static int work_cond_handler(purc_cond_t event, void *arg, void *data)
+static int work_cond_handler(purc_cond_k event, void *arg, void *data)
 {
     purc_log_info("condition: %s\n", cond_names[event]);
 
@@ -150,7 +150,7 @@ static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
     return worker_cor;
 }
 
-static int my_cond_handler(purc_cond_t event, void *arg, void *data)
+static int my_cond_handler(purc_cond_k event, void *arg, void *data)
 {
     (void)data;
 

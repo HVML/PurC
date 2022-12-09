@@ -154,7 +154,7 @@ purc_variant_make_null(void);
 /**
  * purc_variant_make_boolean:
  *
- * @b: A C %bool value.
+ * @b: A C bool value.
  *
  * Creates a variant which represents the boolean value @b.
  *
@@ -169,7 +169,7 @@ purc_variant_make_boolean(bool b);
 /**
  * purc_variant_make_number:
  *
- * @d: A C %double value.
+ * @d: A C double value.
  *
  * Creates a variant which represents the number value @d.
  *
@@ -184,7 +184,7 @@ purc_variant_make_number(double d);
 /**
  * purc_variant_make_ulongint:
  *
- * @u64: A C %uint64_t value which specifying an unsigned long integer.
+ * @u64: A C uint64_t value which specifying an unsigned long integer.
  *
  * Creates a variant which represents an unsigned long integer value @u64.
  *
@@ -199,7 +199,7 @@ purc_variant_make_ulongint(uint64_t u64);
 /**
  * purc_variant_make_longint:
  *
- * @i64: A C %int64_t value which specifying an long integer.
+ * @i64: A C int64_t value which specifying an long integer.
  *
  * Creates a variant which represents a long integer value @i64.
  *

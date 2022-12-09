@@ -286,7 +286,7 @@ struct pcintr_coroutine {
     purc_vdom_t                 vdom;
 
     /* fields for renderer */
-    pcrdr_page_type             target_page_type;
+    pcrdr_page_type_k             target_page_type;
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
@@ -756,7 +756,7 @@ pcintr_init_loader_once(void);
 
 bool
 pcintr_attach_to_renderer(pcintr_coroutine_t cor,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
 

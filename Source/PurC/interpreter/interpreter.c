@@ -1785,7 +1785,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, void *user_data)
+        pcrdr_page_type_k page_type, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1885,7 +1885,7 @@ set_body_entry(pcintr_stack_t stack, const char *body_id)
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data)
