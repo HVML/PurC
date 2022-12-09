@@ -1768,6 +1768,28 @@ static void init_frame_for_co(pcintr_coroutine_t co)
     co->stage = CO_STAGE_FIRST_RUN;
 }
 
+#if HAVE(STDATOMIC_H)
+
+#include <stdatomic.h>
+
+static unsigned long
+pcintr_gen_crtn_id()
+{
+    static atomic_ulong atomic_accumulator;
+    return atomic_fetch_add(&atomic_accumulator, 1);
+}
+
+#else /* HAVE(STDATOMIC_H) */
+
+static unsigned long
+pcintr_gen_crtn_id()
+{
+    static unsigned long accumulator;
+    return accumulator++;
+}
+
+#endif  /* !HAVE(STDATOMIC_H) */
+
 static int set_coroutine_id(pcintr_coroutine_t coroutine)
 {
     pcintr_heap_t heap = pcintr_get_heap();
@@ -1783,15 +1805,14 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
         return -1;
     }
 
-    char id_buf[PURC_LEN_UNIQUE_ID + 1];
-    purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
+    unsigned long id = pcintr_gen_crtn_id();
 
-    sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
+    sprintf(p, "%s/%ld", inst->endpoint_name, id);
     coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
     if (pcutils_map_get_size(heap->token_crtn_map) == 0) {
         coroutine->is_main = 1;
     }
-    sprintf(coroutine->token, "%d", coroutine->cid);
+    sprintf(coroutine->token, "%ld", id);
     free(p);
 
     return 0;
