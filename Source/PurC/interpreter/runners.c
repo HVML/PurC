@@ -67,12 +67,12 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
         curator = (purc_atom_t)u64;
     }
 
-    pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+    pcrdr_page_type_k page_type = PCRDR_PAGE_TYPE_NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageType");
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
-        page_type = (pcrdr_page_type)u64;
+        page_type = (pcrdr_page_type_k)u64;
     }
 
     purc_variant_t request;
@@ -892,7 +892,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 purc_atom_t
 purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info,
         const char *body_id)

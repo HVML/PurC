@@ -72,7 +72,7 @@ sample_destroy(struct sample_ctxt *ud)
     free(ud);
 }
 
-static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
     (void)data;

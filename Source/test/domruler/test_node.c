@@ -51,15 +51,19 @@ int main(void)
     HL_LOGW("test|get attribute|attr=style|value=%s\n", value);
 
     // test append as last child
+    HLDomElement *div[10];
     int index = 0;
     for (index = 0; index < 10; index++)
     {
         HL_LOGW("\n");
         HL_LOGW("test|add node|index=%d\n", index);
-        HLDomElement* div = domruler_element_node_create("div");
-        domruler_element_node_append_as_last_child(div, root);
+        div[index] = domruler_element_node_create("div");
+        domruler_element_node_append_as_last_child(div[index], root);
     }
 
+    for (int i = 0; i < 10; i++) {
+        domruler_element_node_destroy(div[i]);
+    }
 
     domruler_element_node_destroy(root);
 	return 0;

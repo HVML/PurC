@@ -87,7 +87,7 @@ out:
 }
 
 void
-fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type *page_type,
+fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type_k *page_type,
         char **workspace, char **group, char **page_name)
 {
     char *type = NULL;
@@ -161,7 +161,7 @@ pcintr_schedule_child_co(purc_vdom_t vdom, purc_atom_t curator,
     purc_atom_t cid = 0;
     char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
 
-    pcrdr_page_type page_type= PCRDR_PAGE_TYPE_NULL;
+    pcrdr_page_type_k page_type= PCRDR_PAGE_TYPE_NULL;
     char *target_workspace = NULL;
     char *target_group = NULL;
     char *page_name = NULL;

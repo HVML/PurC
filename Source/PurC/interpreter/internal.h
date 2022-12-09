@@ -219,16 +219,16 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
         const char *property, const char *value);
 
 uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, const char *target_group,
+        pcrdr_page_type_k page_type, const char *target_group,
         const char *pag_name, const char *title, const char *classes,
         const char *layout_style, purc_variant_t toolkit_style);
 
 bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t page_handle);
+        pcrdr_page_type_k page_type, uint64_t page_handle);
 
 bool
 pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t page_handle,
+        pcrdr_page_type_k page_type, uint64_t page_handle,
         const char *property, purc_variant_t value);
 
 static inline uint64_t
