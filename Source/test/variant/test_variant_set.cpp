@@ -276,24 +276,24 @@ TEST(variant_set, add_n_str)
     ASSERT_EQ(stat->nr_values[PVT(_SET)], 1);
 
     int j = 0;
-    purc_variant_set_iterator *it;
+    pcvrnt_set_iterator *it;
     bool having = true;
-    for (it = purc_variant_set_make_iterator_begin(var);
+    for (it = pcvrnt_set_iterator_create_begin(var);
          it && having;
-         having = purc_variant_set_iterator_next(it))
+         having = pcvrnt_set_iterator_next(it))
     {
         ++j;
     }
     ASSERT_EQ(j, count);
     if (it)
-        purc_variant_set_release_iterator(it);
+        pcvrnt_set_iterator_release(it);
 
     having = true;
-    for (it = purc_variant_set_make_iterator_begin(var);
+    for (it = pcvrnt_set_iterator_create_begin(var);
          it && having;
-         having = purc_variant_set_iterator_next(it))
+         having = pcvrnt_set_iterator_next(it))
     {
-        purc_variant_t v = purc_variant_set_iterator_get_value(it);
+        purc_variant_t v = pcvrnt_set_iterator_get_value(it);
         ASSERT_NE(v, nullptr);
         ASSERT_EQ(v->type, PVT(_OBJECT));
         ASSERT_EQ(v->refc, 1);
@@ -306,7 +306,7 @@ TEST(variant_set, add_n_str)
         break;
     }
     if (it)
-        purc_variant_set_release_iterator(it);
+        pcvrnt_set_iterator_release(it);
 
     if (1) {
         purc_variant_t v;

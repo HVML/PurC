@@ -46,7 +46,11 @@
 #include "purc-executor.h"
 #include "purc-runloop.h"
 
-/** The structure defining the extra information for a new PurC instance. */
+/**
+ * purc_instance_extra_info:
+ *
+ * The structure defines the extra information for a new PurC instance.
+ */
 typedef struct purc_instance_extra_info {
     /**
      * The renderer protocol, one of the following values:
@@ -142,32 +146,35 @@ PCA_EXTERN_C_BEGIN
 /**
  * purc_init_ex:
  *
- * @modules: The modules will be initialized, can be OR'd with one or more
+ * @modules: The modules will be initialized, can be OR'd with one or more of
  *      the following values:
- *  - @PURC_MODULE_UTILS: Helpers and utilities.
- *  - @PURC_MODULE_DOM: DOM construction.
- *  - @PURC_MODULE_HTML: HTML Parser.
- *  - @PURC_MODULE_XML: XML Parser.
- *  - @PURC_MODULE_VARIANT: Variant.
- *  - @PURC_MODULE_EJSON: eJSON parser.
- *  - @PURC_MODULE_XGML: XGML Parser (not implemented).
- *  - @PURC_MODULE_PCRDR: Communication with renderer.
- *  - @PURC_MODULE_ALL: All modules including HVML parser and interpreter.
- * @app_name: a pointer to the string contains the app name.
- *      If this argument is null, the executable program name of the command
- *      line will be used for the app name.
- * @runner_name: a pointer to the string contains the runner name.
- *      If this argument is null, `unknown` will be used for the runner name.
- * @extra_info: a pointer (nullable) to the extra information for the new
- *      PurC instance, e.g., the URI of the renderer.
+ *  - %PURC_MODULE_UTILS: Helpers and utilities.
+ *  - %PURC_MODULE_DOM: DOM construction.
+ *  - %PURC_MODULE_HTML: HTML Parser.
+ *  - %PURC_MODULE_XML: XML Parser (not implemented so far).
+ *  - %PURC_MODULE_VARIANT: Variant.
+ *  - %PURC_MODULE_EJSON: eJSON parser.
+ *  - %PURC_MODULE_XGML: XGML Parser (not implemented so far).
+ *  - %PURC_MODULE_PCRDR: Communication with renderer.
+ *  - %PURC_MODULE_ALL: All modules including HVML parser and interpreter.
+ * @app_name (nullable): A pointer to a null-terminated string contains
+ *      the app name. If this argument is null, the executable program name of
+ *      the command  line will be used for the app name.
+ * @runner_name (nullable): A pointer to a null-terminated string contains
+ *      the runner name. If this argument is null, `unknown` will be used for
+ *      the runner name.
+ * @extra_info (nullable): A pointer to #purc_instance_extra_info structure
+ *      which defines the extra information for the new PurC instance, e.g.,
+ *      the URI of the renderer.
  *
- * Initializes individual PurC modules and/or a new PurC instance for
- * the current thread, and creates a new renderer session for this PurC instance.
+ * Initializes individual PurC modules or a new complete PurC instance for
+ * the current system thread, and creates a new renderer session for this
+ * PurC instance if %PURC_MODULE_PCRDR is specified.
  *
  * Returns: the error code:
- *  - @PURC_ERROR_OK: success
- *  - @PURC_ERROR_DUPLICATED: duplicated call of this function.
- *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory.
+ *  - %PURC_ERROR_OK: success
+ *  - %PURC_ERROR_DUPLICATED: duplicated call of this function.
+ *  - %PURC_ERROR_OUT_OF_MEMORY: Out of memory.
  *
  * Note that this function is the only one which returns the error code
  * directly. Because if it fails, there is no any space to store
@@ -183,21 +190,23 @@ purc_init_ex(unsigned int modules,
 /**
  * purc_init:
  *
- * @app_name: a pointer to the string contains the app name.
- *      If this argument is null, the executable program name of the command
- *      line will be used for the app name.
- * @runner_name: a pointer to the string contains the runner name.
- *      If this argument is null, `unknown` will be used for the runner name.
- * @extra_info: a pointer (nullable) to the extra information for the new
- *      PurC instance, e.g., the URI of the renderer.
+ * @app_name (nullable): A pointer to a null-terminated string contains
+ *      the app name. If this argument is null, the executable program name
+ *      of the command line will be used for the app name.
+ * @runner_name (nullable): A pointer to a null-terminated string contains
+ *      the runner name. If this argument is null, `unknown` will be used for
+ *      the runner name.
+ * @extra_info (nullable): A pointer to #purc_instance_extra_info structure
+ *      which defines the extra information for the new PurC instance, e.g.,
+ *      the URI of the renderer.
  *
  * Initializes a new PurC instance for the current thread, and creates a new
  * renderer session for this PurC instance.
  *
  * Returns: the error code:
- *  - @PURC_ERROR_OK: success
- *  - @PURC_ERROR_DUPLICATED: duplicated call of this function.
- *  - @PURC_ERROR_OUT_OF_MEMORY: Out of memory.
+ *  - %PURC_ERROR_OK: success
+ *  - %PURC_ERROR_DUPLICATED: duplicated call of this function.
+ *  - %PURC_ERROR_OUT_OF_MEMORY: Out of memory.
  *
  * Note that this function is the only one which returns the error code
  * directly. Because if it fails, there is no any space to store
@@ -216,7 +225,7 @@ static inline int purc_init(const char* app_name, const char* runner_name,
  *
  * Cleans up the PurC instance attached to the current thread.
  *
- * Returns: @true for success; @false for no PurC instance for
+ * Returns: %true for success; %false for no PurC instance for
  *      the current thread.
  *
  * Since 0.0.1
@@ -227,12 +236,12 @@ purc_cleanup(void);
 /**
  * purc_get_endpoint:
  *
- * @atom: a buffer (nullable) to receive the endpoint atom of the current
- *      PurC instance.
+ * @atom (nullable): A pointer to a purc_atom_t buffer to receive the endpoint
+ *      atom of the current PurC instance.
 
  * Gets the endpoint name and its atom value of the current PurC instance.
  *
- * Returns: The endpoint name for success; @NULL for no PurC instance for
+ * Returns: The endpoint name for success; %NULL for no PurC instance for
  *      the current thread.
  *
  * Since 0.2.0
@@ -254,7 +263,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  * @param local_data: The value of the local data.
  * @param cb_free: A callback function which will be called automatically
  *  by PurC to free the local data when the PurC instance is being destroyed
- *  or the local data is being removed or overwritten. If it is @NULL,
+ *  or the local data is being removed or overwritten. If it is %NULL,
  *  the system does nothing to the local data.
  *
  * This function sets the local data as @local_data which is bound with the
@@ -274,7 +283,7 @@ typedef void (*cb_free_local_data) (void *key, void *local_data);
  *     variant of long double type. If not defined, use the default format
  *     (%.17Lg).
  *
- * Returns: @true for success; @false on error.
+ * Returns: %true for success; %false on error.
  *
  * Since 0.0.1
  */
@@ -290,7 +299,7 @@ purc_set_local_data(const char* data_name, uintptr_t local_data,
  * \param data_name The name for the local data.
  *
  * This function removes the local data which is bound with the
- * name \a data_name for the current PurC instance. When you pass @NULL
+ * name \a data_name for the current PurC instance. When you pass %NULL
  * for \a data_name, this function will remove all local data of it.
  * Note that this function will call the callback procedure for releasing
  * the local data, if you had set it, when removing the local data.
@@ -332,7 +341,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  *
  * Binds a variant value as the runner-level variable.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: %true for success; %false for failure.
  *
  * Since 0.0.1
  */
@@ -363,7 +372,7 @@ typedef struct pcvdom_document* purc_vdom_t;
  *
  * Loads a HVML program from a string.
  *
- * Returns: A valid pointer to the vDOM tree for success; @NULL for failure.
+ * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
  * Since 0.0.1
  */
@@ -377,7 +386,7 @@ purc_load_hvml_from_string(const char* string);
  *
  * Loads a HVML program from a file.
  *
- * Returns: A valid pointer to the vDOM tree for success; @NULL for failure.
+ * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
  * Since 0.0.1
  */
@@ -391,7 +400,7 @@ purc_load_hvml_from_file(const char* file);
  *
  * Loads a HVML program from the speicifed URL.
  *
- * Returns: A valid pointer to the vDOM tree for success; @NULL for failure.
+ * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
  * Since 0.0.1
  */
@@ -405,7 +414,7 @@ purc_load_hvml_from_url(const char* url);
  *
  * Loads a HVML program from the specified purc_rwstream object.
  *
- * Returns: A valid pointer to the vDOM tree for success; @NULL for failure.
+ * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
  * Since 0.0.1
  */
@@ -488,9 +497,9 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * @page_type: the target renderer page type.
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
- *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  HTML contents. When %NULL given, the renderer will create an ungrouped
  *  plain window for this coroutine.
- * @page_name: The page name (nullable). When @NULL given, the page will be
+ * @page_name: The page name (nullable). When %NULL given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
  * @extra_info: The extra renderer information.
  * @body_id: The identifier of the `body` element as the entry in @vdom.
@@ -574,7 +583,7 @@ purc_coroutine_identifier(purc_coroutine_t cor);
  * Binds a variant as the coroutine-level variable of the specified
  * coroutine.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: %true for success; %false for failure.
  *
  * Since 0.2.0
  */
@@ -590,7 +599,7 @@ purc_coroutine_bind_variable(purc_coroutine_t cor, const char* name,
  *
  * Unbinds a coroutine-level variable from the specified coroutine.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: %true for success; %false for failure.
  *
  * Since 0.2.0
  */
@@ -747,7 +756,7 @@ typedef int (*purc_cond_handler)(purc_cond_t event, void *arg, void *data);
 /**
  * purc_get_cond_handler:
  *
- * Returns: The pointer to the current condition handler; @PURC_INVPTR for error.
+ * Returns: The pointer to the current condition handler; %PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
@@ -763,7 +772,7 @@ purc_get_cond_handler(void);
  * Sets the condition handler of the current PurC instance, and returns
  * the old condition handler.
  *
- * Returns: The pointer to the old condition handler; @PURC_INVPTR for error.
+ * Returns: The pointer to the old condition handler; %PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
@@ -779,7 +788,7 @@ purc_set_cond_handler(purc_cond_handler handler);
  * Enter event loop and runs all HVML coroutines which are ready in
  * the current PurC instance.
  *
- * Returns: @true for success; @false for failure.
+ * Returns: %true for success; %false for failure.
  *
  * Since 0.0.1
  */
@@ -864,13 +873,13 @@ purc_inst_ask_to_shutdown(purc_atom_t inst);
  * @page_type: the target renderer page type.
  * @target_workspace: The name of the target renderer workspace.
  * @target_group: The identifier of the target group (nullable) in the layout
- *  HTML contents. When @NULL given, the renderer will create an ungrouped
+ *  HTML contents. When %NULL given, the renderer will create an ungrouped
  *  plainw window for this coroutine.
- * @page_name: The page name (nullable). When @NULL is given, the page will be
+ * @page_name: The page name (nullable). When %NULL is given, the page will be
  *  assigned with an auto-generated page name like `page-10`.
  * @extra_rdr_info: The extra renderer information.
  * @entry: The identifier of the `body` element as the entry in @vdom.
- *         When @NULL is given, use the first `body` element as the entry.
+ *         When %NULL is given, use the first `body` element as the entry.
  * @request: The variant which will be used as the request data.
  *
  * Creates a new coroutine to run the specified vDOM in the specific instances.
@@ -923,7 +932,7 @@ typedef enum {
  * Emit a signal to the specified PurC instance.
  *
  * Returns: the error code:
- *  - @PURC_ERROR_OK: success
+ *  - %PURC_ERROR_OK: success
  *
  * Proposal; not implemented.
  */
