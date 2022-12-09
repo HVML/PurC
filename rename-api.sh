@@ -37,5 +37,5 @@
 # sed -i 's/\<FFFF\>/TTTT/g' `grep '\<FFFF\>' * -rl`
 
 # sed -i 's/\<pcrdr_page_type\>/pcrdr_page_type_k/g' `grep '\<pcrdr_page_type\>' * -rl`
-sed -i 's/\<purc_cond_t\>/purc_cond_k/g' `grep '\<purc_cond_t\>' * -rl`
+# sed -i 's/\<purc_cond_t\>/purc_cond_k/g' `grep '\<purc_cond_t\>' * -rl`
 
