@@ -1210,12 +1210,12 @@ typedef enum pcvrnt_notfound_resolution_method {
  *
  * Merges properties in an object (@src) to the destination object (@dst).
  *
- * Returns: The number of properties in the destination object changed,
+ * Returns: The number of properties in the destination object changed or added,
  *      -1 for error.
  *
  * TODO: redefine the prototype as:
  *
-     int purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
+     ssize_t purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
             pcvrnt_cr_method_k cr_method);
  *
  * Since: 0.0.5
@@ -1526,7 +1526,7 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * TODO: redefine the prototype as:
  *
-    int purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+    ssize_t purc_variant_set_add(purc_variant_t set, purc_variant_t value,
             pcvrnt_cr_method_k cr_method);
  *
  * Since: 0.0.1
@@ -1557,7 +1557,7 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
  *
  * TODO: redefine the prototype as:
  *
-    int purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
+    ssize_t purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
             pcvrnt_nr_method_k nr_method);
  *
  * Since: 0.0.1
@@ -2090,7 +2090,10 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
  *
  * Returns: A ssize_t indicating the index of the new member, -1 for failure.
  *
- * TODO: Change the prototype according to this description.
+ * TODO: Change the prototype as follow:
+
+    ssize_t
+    purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
  *
  * Since: 0.9.2
  */
@@ -2139,7 +2142,10 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx);
  *
  * Returns: A ssize_t indicating the index of the found member, -1 for not found.
  *
- * TODO: Change the prototype according to this description.
+ * TODO: Change the prototype as follow:
+ *
+    ssize_t
+    purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
  *
  * Since: 0.9.2
  */
@@ -3380,7 +3386,7 @@ purc_variant_container_clone_recursively(purc_variant_t ctnr);
  *
  * Returns: %true on success, otherwise %false.
  *
- * TODO: need more exact synposis of this function.
+ * TODO: Bad definition. Maybe define as an internal helper, not a public API.
  *
  * Since: 0.0.5
  */
@@ -3400,7 +3406,7 @@ purc_variant_container_displace(purc_variant_t dst,
  *
  * Returns: %true on success, otherwise %false.
  *
- * TODO: need more exact synposis of this function.
+ * TODO: Bad definition. Maybe define as an internal helper, not a public API.
  *
  * Since: 0.0.5
  */
@@ -3419,7 +3425,7 @@ purc_variant_container_remove(purc_variant_t dst,
  *
  * Returns: %true on success, otherwise %false.
  *
- * TODO: Should be defined as an internal helper.
+ * TODO: Should be defined as an internal helper, not a public API.
  *
  * Since: 0.0.5
  */
@@ -3438,7 +3444,7 @@ purc_variant_array_append_another(purc_variant_t array,
  *
  * Returns: %true on success, otherwise %false.
  *
- * TODO: Should be defined as an internal helper.
+ * TODO: Should be defined as an internal helper, not a public API.
  *
  * Since: 0.0.5
  */
@@ -3457,7 +3463,7 @@ purc_variant_array_prepend_another(purc_variant_t array,
  *      - PURC_ERROR_INVALID_VALUE
  *      - PURC_ERROR_WRONG_DATA_TYPE
  *
- * TODO: Should be defined as an internal helper.
+ * TODO: Should be defined as an internal helper, not a public API.
  *
  * Returns: %true on success, otherwise %false.
  *
@@ -3480,7 +3486,7 @@ purc_variant_array_insert_another_before(purc_variant_t array,
  *
  * Returns: %true on success, otherwise %false.
  *
- * TODO: Should be defined as an internal helper.
+ * TODO: Should be defined as an internal helper, not a public API.
  *
  * Since: 0.0.5
  */
