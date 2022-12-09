@@ -1163,9 +1163,9 @@ update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return ret;
 }
 
-static pcdoc_operation convert_operation(enum hvml_update_op operator)
+static pcdoc_operation_k convert_operation(enum hvml_update_op operator)
 {
-    pcdoc_operation op;
+    pcdoc_operation_k op;
 
     switch (operator) {
     case UPDATE_OP_APPEND:
@@ -1216,7 +1216,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
                 template_data_type, true);
@@ -1242,7 +1242,7 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(to);
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op == PCDOC_OP_UNKNOWN) {
         return -1;
     }

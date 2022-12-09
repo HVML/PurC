@@ -3335,7 +3335,7 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 {
     // insert catched text node
     pcintr_stack_t stack = pcintr_get_stack();
-    pcdoc_operation op = PCDOC_OP_APPEND;
+    pcdoc_operation_k op = PCDOC_OP_APPEND;
     pcdoc_element_t elem = stack->curr_edom_elem;
     pcutils_str_t *str = stack->curr_edom_elem_text_content;
 
@@ -3362,7 +3362,7 @@ out:
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
 
@@ -3378,7 +3378,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr)
 {
     UNUSED_PARAM(op);
     UNUSED_PARAM(sync_to_rdr);
@@ -3414,7 +3414,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr)
 {
@@ -3467,7 +3467,7 @@ out:
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len,
         bool sync_to_rdr)
 {

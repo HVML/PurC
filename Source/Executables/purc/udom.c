@@ -1046,7 +1046,7 @@ pcmcth_udom *
 foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     purc_document_t edom_doc;
-    purc_document_type doc_type;
+    purc_document_type_k doc_type;
     pcmcth_udom *udom = NULL;
 
     edom_doc = purc_variant_native_get_entity(edom);

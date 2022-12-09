@@ -34,7 +34,7 @@
 #include "purc-utils.h"
 
 /**
- * SECTION: variant
+ * SECTION: purc_variant
  * @title: Variant
  * @short_description: Variant is an abstract representation of data for HVML.
  */
