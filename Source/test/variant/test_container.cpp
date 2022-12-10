@@ -370,7 +370,8 @@ TEST_P(TestCaseData, container_ops)
             break;
 
         case CONTAINER_OPS_TYPE_MERGE:
-            result = purc_variant_object_merge_another(dst, src, true);
+            result = purc_variant_object_unite(dst, src,
+                    PCVRNT_CR_METHOD_OVERWRITE);
             break;
 
         case CONTAINER_OPS_TYPE_REMOVE:

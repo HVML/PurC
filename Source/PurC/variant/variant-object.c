@@ -1231,3 +1231,77 @@ pcvar_obj_it_prev(struct obj_iterator *it)
     }
 }
 
+ssize_t
+purc_variant_object_unite(purc_variant_t dst,
+        purc_variant_t src, pcvrnt_cr_method_k cr_method)
+{
+    UNUSED_PARAM(dst);
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(cr_method);
+    ssize_t ret = -1;
+
+    if (dst == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (dst == src) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_object(dst) || !purc_variant_is_object(src)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_object_get_size(src);
+    if (sz <= 0) {
+        ret = 0;
+        goto out;
+    }
+
+    ret = 0;
+    purc_variant_t k, v;
+    foreach_key_value_in_variant_object(src, k, v)
+        purc_variant_t o = purc_variant_object_get(dst, k);
+        if (!o) {
+            /* clr PCVRNT_ERROR_NO_SUCH_KEY */
+            purc_clr_error();
+            if (!purc_variant_object_set(dst, k, v)) {
+                ret = -1;
+                goto out;
+            }
+            ret++;
+        }
+        else {
+            switch (cr_method) {
+            case PCVRNT_CR_METHOD_IGNORE:
+                break;
+
+            case PCVRNT_CR_METHOD_OVERWRITE:
+                if (!purc_variant_object_set(dst, k, v)) {
+                    ret = -1;
+                    goto out;
+                }
+                ret++;
+                break;
+
+            case PCVRNT_CR_METHOD_COMPLAIN:
+                ret = -1;
+                purc_set_error(PURC_ERROR_DUPLICATED);
+                break;
+
+            default:
+                ret = -1;
+                purc_set_error(PURC_ERROR_NOT_ALLOWED);
+                goto out;
+            }
+        }
+    end_foreach;
+
+out:
+    return ret;
+}
+
+

@@ -1201,7 +1201,7 @@ typedef enum pcvrnt_notfound_resolution_method {
 } pcvrnt_nr_method_k;
 
 /**
- * purc_variant_object_merge:
+ * purc_variant_object_unite:
  *
  * @dst: The destination object variant.
  * @src: The source object variant.
@@ -1214,21 +1214,16 @@ typedef enum pcvrnt_notfound_resolution_method {
  *      - PCVRNT_CR_METHOD_COMPLAIN:
  *        Report %PURC_ERROR_DUPLICATED error.
  *
- * Merges properties in an object (@src) to the destination object (@dst).
+ * Unites properties in an object (@src) to the destination object (@dst).
  *
  * Returns: The number of properties in the destination object changed or added,
  *      -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-     ssize_t purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
-            pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_object_merge_another(purc_variant_t object,
-        purc_variant_t another, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_object_unite(purc_variant_t dst,
+        purc_variant_t src, pcvrnt_cr_method_k cr_method);
 
 /**
  * pcvrnt_object_iterator:

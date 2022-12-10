@@ -434,13 +434,21 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
         break;
 
     case UPDATE_OP_MERGE:
+    case UPDATE_OP_UNITE:
         {
             if (!is_atrribute_operator(with_op) || key) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_object_merge_another(dst, src, silently)) {
+            ssize_t sz = purc_variant_object_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE);
+            if (sz >= 0) {
                 ret = 0;
+            }
+            else {
+                // int err = purc_get_last_error();
+                // TODO: clr exceptions which can be ignored
+                ret = -1;
             }
         }
         break;
@@ -449,7 +457,6 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
-    case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
     case UPDATE_OP_XOR:

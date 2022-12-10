@@ -833,34 +833,6 @@ end:
 }
 
 bool
-purc_variant_object_merge_another(purc_variant_t object,
-        purc_variant_t another, bool silently)
-{
-    bool ret = false;
-
-    if (object == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (object == another) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_object(object) || !purc_variant_is_object(another)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    //TODO : id conflict
-    ret = object_foreach(another, add_object_member, object, silently);
-
-end:
-    return ret;
-}
-
-bool
 purc_variant_array_insert_another_before(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
