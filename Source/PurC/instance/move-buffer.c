@@ -205,7 +205,7 @@ purc_inst_create_move_buffer(unsigned int flags, size_t max_msgs)
     }
 
     if (pcutils_sorted_array_add(mb_atom2buff_map,
-                (void *)(uintptr_t)atom, mb) < 0) {
+                (void *)(uintptr_t)atom, mb, NULL) < 0) {
         errcode = PURC_ERROR_OUT_OF_MEMORY;
         goto done;
     }

@@ -68,7 +68,7 @@ TEST(variant, sorted_array_with_atom)
     size_t sz = purc_variant_sorted_array_get_size(v);
     ASSERT_EQ(sz, 0);
 
-    int r = purc_variant_sorted_array_add(v, any);
+    ssize_t r = purc_variant_sorted_array_add(v, any);
     ASSERT_EQ(r, 0);
 
     sz = purc_variant_sorted_array_get_size(v);
@@ -107,14 +107,14 @@ TEST(variant, sorted_array_with_multi_atom)
     size_t sz = purc_variant_sorted_array_get_size(v);
     ASSERT_EQ(sz, 0);
 
-    int r = purc_variant_sorted_array_add(v, any);
+    ssize_t r = purc_variant_sorted_array_add(v, any);
     ASSERT_EQ(r, 0);
 
     sz = purc_variant_sorted_array_get_size(v);
     ASSERT_EQ(sz, 1);
 
     r = purc_variant_sorted_array_add(v, nosuchkey);
-    ASSERT_EQ(r, 0);
+    ASSERT_EQ(r, 1);
 
     sz = purc_variant_sorted_array_get_size(v);
     ASSERT_EQ(sz, 2);

@@ -1019,7 +1019,7 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
     }
     if (crtn->stopped_timeout != -1) {
         if (pcutils_sorted_array_add(heap->wait_timeout_crtns,
-                    (void *)(uintptr_t)crtn->stopped_timeout, crtn) < 0) {
+                    (void *)(uintptr_t)crtn->stopped_timeout, crtn, NULL) < 0) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         }
     }

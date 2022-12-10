@@ -379,7 +379,7 @@ TEST(utils, pcutils_sorted_array_asc)
 
     for (int i = 0; i < 10; i++) {
         int ret = pcutils_sorted_array_add (sa, (void *)(intptr_t)sortv[i],
-                (void *)(intptr_t)(sortv[i] + 100));
+                (void *)(intptr_t)(sortv[i] + 100), NULL);
         ASSERT_EQ(ret, 0);
     }
 
@@ -425,7 +425,7 @@ TEST(utils, pcutils_sorted_array_desc)
 
     for (int i = 0; i < 10; i++) {
         int ret = pcutils_sorted_array_add (sa, (void *)(intptr_t)sortv[i],
-                (void *)(intptr_t)(sortv[i] + 100));
+                (void *)(intptr_t)(sortv[i] + 100), NULL);
         ASSERT_EQ(ret, 0);
     }
 

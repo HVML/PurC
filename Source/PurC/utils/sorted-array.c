@@ -111,7 +111,8 @@ void pcutils_sorted_array_destroy(struct sorted_array *sa)
     free(sa);
 }
 
-int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
+int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data,
+        ssize_t *index)
 {
     ssize_t i, idx;
     ssize_t low, high, mid;
@@ -184,6 +185,9 @@ int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data)
     sa->members[idx].data = data;
 
     sa->nr_members++;
+    if (index) {
+        *index = idx;
+    }
     return 0;
 }
 

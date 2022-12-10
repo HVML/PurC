@@ -456,7 +456,7 @@ static void create_instance(struct instmgr_info *mgr_info,
             &info, &th);
     if (atom) {
         pcutils_sorted_array_add(mgr_info->sa_insts,
-                (void *)(uintptr_t)atom, th);
+                (void *)(uintptr_t)atom, th, NULL);
         mgr_info->nr_insts++;
     }
 

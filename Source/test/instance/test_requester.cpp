@@ -198,7 +198,7 @@ static void create_coroutine(struct inst_info *info,
     cort_info->method_handler = handlers[cort_atom % NR_HANDLERS];
 
     pcutils_sorted_array_add(info->sa_cors, (void *)(uintptr_t)cort_atom,
-            (void *)cort_info);
+            (void *)cort_info, NULL);
     info->nr_cors++;
 
     response->type = PCRDR_MSG_TYPE_RESPONSE;
@@ -530,7 +530,7 @@ static void get_instance(struct instmgr_info *info,
         atom = start_instance(th, TEST_APP_NAME, runner_name);
         if (atom) {
             pcutils_sorted_array_add(info->sa_insts,
-                    (void *)(uintptr_t)atom, (void *)th);
+                    (void *)(uintptr_t)atom, (void *)th, NULL);
             info->nr_insts++;
         }
     }

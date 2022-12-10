@@ -2091,14 +2091,9 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
  *
  * Returns: A ssize_t indicating the index of the new member, -1 for failure.
  *
- * TODO: Change the prototype as follow:
-
-    ssize_t
-    purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
- *
  * Since: 0.9.2
  */
-PCA_EXPORT int
+PCA_EXPORT ssize_t
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
 
 /**
