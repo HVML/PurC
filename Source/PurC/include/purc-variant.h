@@ -2138,14 +2138,9 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx);
  *
  * Returns: A ssize_t indicating the index of the found member, -1 for not found.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
- *
  * Since: 0.9.2
  */
-PCA_EXPORT bool
+PCA_EXPORT ssize_t
 purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
 
 /**

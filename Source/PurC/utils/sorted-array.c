@@ -118,7 +118,7 @@ int pcutils_sorted_array_add(struct sorted_array *sa, void *sortv, void *data,
     ssize_t low, high, mid;
 
     if (!(sa->flags & SAFLAG_DUPLCATE_SORTV)) {
-        if (pcutils_sorted_array_find(sa, sortv, NULL)) {
+        if (pcutils_sorted_array_find(sa, sortv, NULL, NULL)) {
             return -1;
         }
     }
@@ -241,7 +241,8 @@ found:
     return true;
 }
 
-bool pcutils_sorted_array_find(struct sorted_array *sa, const void *sortv, void **data)
+bool pcutils_sorted_array_find(struct sorted_array *sa, const void *sortv,
+        void **data, ssize_t *index)
 {
     ssize_t low, high, mid;
 
@@ -278,6 +279,10 @@ bool pcutils_sorted_array_find(struct sorted_array *sa, const void *sortv, void 
 found:
     if (data) {
         *data = sa->members[mid].data;
+    }
+
+    if (index) {
+        *index = mid;
     }
 
     return true;

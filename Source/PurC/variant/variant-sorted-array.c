@@ -231,15 +231,18 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx)
     return true;
 }
 
-bool
+ssize_t
 purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value)
 {
+    ssize_t r = -1;
     struct sorted_array *sa = get_sorted_array(array);
     if (sa == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
+        goto out;
     }
-    return pcutils_sorted_array_find(sa, value, NULL);
+    pcutils_sorted_array_find(sa, value, NULL, &r);
+out:
+    return r;
 }
 
 purc_variant_t

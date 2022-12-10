@@ -457,14 +457,14 @@ TEST(utils, pcutils_sorted_array_desc)
     }
 
     bool found;
-    found = pcutils_sorted_array_find (sa, (void *)(intptr_t)0, NULL);
+    found = pcutils_sorted_array_find (sa, (void *)(intptr_t)0, NULL, NULL);
     ASSERT_EQ(found, false);
-    found = pcutils_sorted_array_find (sa, (void *)(intptr_t)9, NULL);
+    found = pcutils_sorted_array_find (sa, (void *)(intptr_t)9, NULL, NULL);
     ASSERT_EQ(found, false);
 
     for (int i = 1; i < 9; i++) {
         void *data;
-        found = pcutils_sorted_array_find (sa, (void *)(intptr_t)i, &data);
+        found = pcutils_sorted_array_find (sa, (void *)(intptr_t)i, &data, NULL);
 
         ASSERT_EQ(found, true);
         ASSERT_EQ((int)(intptr_t)data, i + 100);

@@ -77,8 +77,8 @@ TEST(variant, sorted_array_with_atom)
     r = purc_variant_sorted_array_add(v, any);
     ASSERT_EQ(r, -1);
 
-    bool rb = purc_variant_sorted_array_find(v, any);
-    ASSERT_EQ(rb, true);
+    ssize_t rb = purc_variant_sorted_array_find(v, any);
+    ASSERT_NE(rb, -1);
 
     rb = purc_variant_sorted_array_remove(v, any);
     ASSERT_EQ(rb, true);
@@ -125,29 +125,29 @@ TEST(variant, sorted_array_with_multi_atom)
     r = purc_variant_sorted_array_add(v, nosuchkey);
     ASSERT_EQ(r, -1);
 
-    bool rb = purc_variant_sorted_array_find(v, any);
+    r = purc_variant_sorted_array_find(v, any);
+    ASSERT_NE(r, -1);
+
+    r = purc_variant_sorted_array_find(v, nosuchkey);
+    ASSERT_NE(r, -1);
+
+    bool rb = purc_variant_sorted_array_remove(v, any);
     ASSERT_EQ(rb, true);
 
-    rb = purc_variant_sorted_array_find(v, nosuchkey);
+    r = purc_variant_sorted_array_find(v, any);
+    ASSERT_EQ(r, -1);
+
+    r = purc_variant_sorted_array_find(v, nosuchkey);
+    ASSERT_NE(r, -1);
+
+    rb = purc_variant_sorted_array_delete(v, r);
     ASSERT_EQ(rb, true);
 
-    rb = purc_variant_sorted_array_remove(v, any);
-    ASSERT_EQ(rb, true);
+    r = purc_variant_sorted_array_find(v, any);
+    ASSERT_EQ(r, -1);
 
-    rb = purc_variant_sorted_array_find(v, any);
-    ASSERT_EQ(rb, false);
-
-    rb = purc_variant_sorted_array_find(v, nosuchkey);
-    ASSERT_EQ(rb, true);
-
-    rb = purc_variant_sorted_array_delete(v, 0);
-    ASSERT_EQ(rb, true);
-
-    rb = purc_variant_sorted_array_find(v, any);
-    ASSERT_EQ(rb, false);
-
-    rb = purc_variant_sorted_array_find(v, nosuchkey);
-    ASSERT_EQ(rb, false);
+    r = purc_variant_sorted_array_find(v, nosuchkey);
+    ASSERT_EQ(r, -1);
 
     unref(nosuchkey);
     unref(any);

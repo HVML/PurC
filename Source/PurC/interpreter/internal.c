@@ -629,9 +629,10 @@ pcintr_match_exception(purc_atom_t except, purc_variant_t constant)
         goto out;
     }
 
-    ret = purc_variant_sorted_array_find(constant, v);
+    ssize_t r = purc_variant_sorted_array_find(constant, v);
     purc_variant_unref(v);
-    if (ret) {
+    if (r >= 0) {
+        ret = true;
         goto out;
     }
 
@@ -641,7 +642,10 @@ pcintr_match_exception(purc_atom_t except, purc_variant_t constant)
         goto out;
     }
 
-    ret = purc_variant_sorted_array_find(constant, v);
+    r = purc_variant_sorted_array_find(constant, v);
+    if (r >= 0) {
+        ret = true;
+    }
     purc_variant_unref(v);
 out:
     return ret;

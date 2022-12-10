@@ -149,7 +149,7 @@ static void call_method(struct inst_info *info,
     struct cort_info *cort_info;
 
     if (!pcutils_sorted_array_find(info->sa_cors, (void *)(uintptr_t)cort_atom,
-            (void **)&cort_info)) {
+            (void **)&cort_info, NULL)) {
         response->sourceURI = purc_variant_make_string(endpoint_name, false);
         response->retCode = PCRDR_SC_NOT_FOUND;
         response->resultValue = (uint64_t)cort_atom;
@@ -237,7 +237,7 @@ static void kill_coroutine(struct inst_info *info,
 
     struct cort_info *cort_info;
     if (!pcutils_sorted_array_find(info->sa_cors, (void *)(uintptr_t)atom,
-            (void **)&cort_info)) {
+            (void **)&cort_info, NULL)) {
         response->retCode = PCRDR_SC_NOT_FOUND;
         response->resultValue = atom;
     }
@@ -587,7 +587,7 @@ static void cancel_instance(struct instmgr_info *info,
 
     pthread_t *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
@@ -636,7 +636,7 @@ static void kill_instance(struct instmgr_info *info,
 
     pthread_t *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }

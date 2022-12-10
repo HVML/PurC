@@ -58,7 +58,7 @@ bool pcutils_sorted_array_remove(struct sorted_array *sa, const void* sortv);
 
 /* find the first member which has the same sort value. */
 bool pcutils_sorted_array_find(struct sorted_array *sa,
-        const void *sortv, void **data);
+        const void *sortv, void **data, ssize_t *index);
 
 /* retrieve the number of the members of the sorted array */
 size_t pcutils_sorted_array_count(struct sorted_array *sa);
