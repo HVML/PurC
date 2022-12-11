@@ -407,7 +407,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            ret = purc_variant_container_displace(dst, src, silently);
+            ret = pcvariant_container_displace(dst, src, silently);
         }
         break;
 
@@ -427,8 +427,8 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 }
                 purc_variant_unref(k);
             }
-            else if (purc_variant_container_remove(dst, src, silently)) {
-                ret = 0;
+            else {
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
         }
         break;
@@ -498,7 +498,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)) {
+        else if (pcvariant_container_displace(dst, src, silently)) {
             ret = 0;
         }
         break;
@@ -538,7 +538,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 r = purc_variant_array_remove(dst, idx);
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -615,7 +615,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)){
+        else if (pcvariant_container_displace(dst, src, silently)){
             ret = 0;
         }
         break;
@@ -626,7 +626,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 purc_variant_t v = purc_variant_set_remove_by_index(dst, idx);
                 if (v) {
@@ -638,7 +638,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 }
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -725,6 +725,7 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
         enum pchvml_attr_operator with_op,
         pcintr_attribute_op with_eval, bool silently)
 {
+    UNUSED_PARAM(silently);
     int ret = -1;
     switch (op) {
     case UPDATE_OP_DISPLACE:
@@ -747,8 +748,8 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_remove(dst, src, silently)){
-            ret = 0;
+        else {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         }
         break;
 
@@ -1097,10 +1098,10 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else {
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
             ret = update_variant_tuple(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
-        case UPDATE_OP_REMOVE:
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:

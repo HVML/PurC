@@ -302,7 +302,7 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
             // XXX: observe on=$name
-            ret = purc_variant_container_displace(v, variant, false);
+            ret = pcvariant_container_displace(v, variant, false);
             break;
 
         default:

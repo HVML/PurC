@@ -695,7 +695,7 @@ end:
 }
 
 bool
-purc_variant_container_displace(purc_variant_t dst,
+pcvariant_container_displace(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -734,7 +734,7 @@ end:
 }
 
 bool
-purc_variant_container_remove(purc_variant_t dst,
+pcvariant_container_remove(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -773,7 +773,7 @@ end:
 }
 
 bool
-purc_variant_array_append_another(purc_variant_t array,
+pcvariant_array_append_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -803,7 +803,7 @@ end:
 }
 
 bool
-purc_variant_array_prepend_another(purc_variant_t array,
+pcvariant_array_prepend_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -833,7 +833,7 @@ end:
 }
 
 bool
-purc_variant_array_insert_another_before(purc_variant_t array, int idx,
+pcvariant_array_insert_another_before(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -864,7 +864,7 @@ end:
 }
 
 bool
-purc_variant_array_insert_another_after(purc_variant_t array, int idx,
+pcvariant_array_insert_another_after(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
     bool ret = false;

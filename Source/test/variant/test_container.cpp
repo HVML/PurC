@@ -358,15 +358,15 @@ TEST_P(TestCaseData, container_ops)
     bool result = false;
     switch (ops_type) {
         case CONTAINER_OPS_TYPE_DISPLACE:
-            result = purc_variant_container_displace(dst, src, true);
+            result = pcvariant_container_displace(dst, src, true);
             break;
 
         case CONTAINER_OPS_TYPE_APPEND:
-            result = purc_variant_array_append_another(dst, src, true);
+            result = pcvariant_array_append_another(dst, src, true);
             break;
 
         case CONTAINER_OPS_TYPE_PREPEND:
-            result = purc_variant_array_prepend_another(dst, src, true);
+            result = pcvariant_array_prepend_another(dst, src, true);
             break;
 
         case CONTAINER_OPS_TYPE_MERGE:
@@ -375,7 +375,7 @@ TEST_P(TestCaseData, container_ops)
             break;
 
         case CONTAINER_OPS_TYPE_REMOVE:
-            result = purc_variant_container_remove(dst, src, true);
+            result = pcvariant_container_remove(dst, src, true);
             break;
 
         case CONTAINER_OPS_TYPE_INSERT_BEFORE:
@@ -385,7 +385,7 @@ TEST_P(TestCaseData, container_ops)
                 ASSERT_NE(idx_var, PURC_VARIANT_INVALID);
                 int64_t idx = 0;
                 purc_variant_cast_to_longint(idx_var, &idx, false);
-                result = purc_variant_array_insert_another_before(
+                result = pcvariant_array_insert_another_before(
                         dst, idx, src, true);
             }
             break;
@@ -397,7 +397,7 @@ TEST_P(TestCaseData, container_ops)
                 ASSERT_NE(idx_var, PURC_VARIANT_INVALID);
                 int64_t idx = 0;
                 purc_variant_cast_to_longint(idx_var, &idx, false);
-                result = purc_variant_array_insert_another_after(
+                result = pcvariant_array_insert_another_after(
                         dst, idx, src, true);
             }
             break;
