@@ -418,8 +418,10 @@ TEST_P(TestCaseData, container_ops)
             break;
 
         case CONTAINER_OPS_TYPE_INTERSECT:
-            result = purc_variant_set_intersect(dst, src, true);
-            ASSERT_EQ(result, true);
+            {
+                ssize_t r = purc_variant_set_intersect(dst, src);
+                ASSERT_NE(r, -1);
+            }
             break;
 
         case CONTAINER_OPS_TYPE_SUBTRACT:

@@ -2166,3 +2166,87 @@ out:
     return ret;
 }
 
+static bool
+is_in_array(purc_variant_t array, purc_variant_t v, int* idx)
+{
+    bool ret = false;
+    purc_variant_t val;
+    size_t curr;
+    UNUSED_VARIABLE(val);
+    foreach_value_in_variant_array_safe(array, val, curr)
+        if (val == v) {
+            if (idx) {
+                *idx = curr;
+            }
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
+}
+
+
+ssize_t
+purc_variant_set_intersect(purc_variant_t set, purc_variant_t value)
+{
+    ssize_t ret = -1;
+    purc_variant_t tmp = PURC_VARIANT_INVALID;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+   tmp = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (tmp == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+
+        purc_variant_t vf = pcvariant_set_find(set, v);
+        if (vf == PURC_VARIANT_INVALID) {
+            continue;
+        }
+
+        if (!purc_variant_array_append(tmp, vf)) {
+            ret = -1;
+            goto out;
+        }
+    }
+
+    purc_variant_t v;
+    foreach_value_in_variant_set_safe(set, v)
+        if (is_in_array(tmp, v, NULL)) {
+            continue;
+        }
+
+        if (-1 == purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_COMPLAIN)) {
+            goto out;
+        }
+    end_foreach;
+
+
+    ret = purc_variant_set_get_size(set);
+out:
+    if (tmp) {
+        purc_variant_unref(tmp);
+    }
+    return ret;
+}
