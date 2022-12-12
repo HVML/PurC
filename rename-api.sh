@@ -39,3 +39,9 @@
 # sed -i 's/\<pcrdr_page_type\>/pcrdr_page_type_k/g' `grep '\<pcrdr_page_type\>' * -rl`
 # sed -i 's/\<purc_cond_t\>/purc_cond_k/g' `grep '\<purc_cond_t\>' * -rl`
 
+#sed -i 's/\<purc_document_type\>/purc_document_type_k/g' `grep '\<purc_document_type\>' * -rl`
+#sed -i 's/\<purc_namespace_type\>/purc_namespace_type_k/g' `grep '\<purc_namespace_type\>' * -rl`
+#sed -i 's/\<pcdoc_node_type\>/pcdoc_node_type_k/g' `grep '\<pcdoc_node_type\>' * -rl`
+#sed -i 's/\<pcdoc_special_elem\>/pcdoc_special_elem_k/g' `grep '\<pcdoc_special_elem\>' * -rl`
+#sed -i 's/\<pcdoc_operation\>/pcdoc_operation_k/g' `grep '\<pcdoc_operation\>' * -rl`
+#sed -i 's/\<pcdoc_special_attr\>/pcdoc_special_attr_k/g' `grep '\<pcdoc_special_attr\>' * -rl`

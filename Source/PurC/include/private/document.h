@@ -38,7 +38,7 @@
 #include "private/map.h"
 
 struct pcdoc_travel_info {
-    pcdoc_node_type type;
+    pcdoc_node_type_k type;
     bool all;
     size_t nr;
     void *ctxt;
@@ -56,27 +56,27 @@ struct purc_document_ops {
     void (*destroy)(purc_document_t doc);
 
     pcdoc_element_t (*operate_element)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *tag, bool self_close);
 
     pcdoc_text_node_t (*new_text_content)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *text, size_t length);
 
     pcdoc_data_node_t (*new_data_content)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             purc_variant_t data);
 
     pcdoc_node (*new_content)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *content, size_t length);
 
     int (*set_attribute)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *name, const char *val, size_t len);
 
     pcdoc_element_t (*special_elem)(purc_document_t doc,
-            pcdoc_special_elem elem);
+            pcdoc_special_elem_k elem);
 
     int (*get_tag_name)(purc_document_t doc, pcdoc_element_t elem,
             const char **local_name, size_t *local_len,
@@ -95,12 +95,12 @@ struct purc_document_ops {
             size_t *nrs);
     // null if `children_count` is null
     pcdoc_node (*get_child)(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_node_type type, size_t idx);
+            pcdoc_element_t elem, pcdoc_node_type_k type, size_t idx);
 
     int (*get_attribute)(purc_document_t doc, pcdoc_element_t elem,
             const char *name, const char **val, size_t *len);
     int (*get_special_attr)(purc_document_t doc, pcdoc_element_t elem,
-            pcdoc_special_attr which, const char **val, size_t *len);
+            pcdoc_special_attr_k which, const char **val, size_t *len);
 
     int (*travel_attrs)(purc_document_t doc,
         pcdoc_element_t element, pcdoc_attribute_cb cb,
@@ -150,7 +150,7 @@ struct pcdoc_elem_content {
 };
 
 struct purc_document {
-    purc_document_type type;
+    purc_document_type_k type;
     pcrdr_msg_data_type def_text_type;
 
     unsigned need_rdr:1;

@@ -1055,7 +1055,7 @@ static const char *rdr_ops[] = {
 };
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1139,7 +1139,7 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
@@ -1202,7 +1202,7 @@ failed:
 }
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1217,7 +1217,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        pcdoc_operation op, pcdoc_element_t element,
+        pcdoc_operation_k op, pcdoc_element_t element,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
