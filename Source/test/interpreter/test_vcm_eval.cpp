@@ -343,8 +343,8 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     purc_variant_t set_value_0 = purc_variant_make_string("value 0", false);
     purc_variant_t set_value_1 = purc_variant_make_string("value 1", false);
     purc_variant_t set_var = purc_variant_make_set_by_ckey(0, NULL, NULL);
-    purc_variant_set_add(set_var, set_value_0, false);
-    purc_variant_set_add(set_var, set_value_1, false);
+    purc_variant_set_add(set_var, set_value_0, PCVRNT_CR_METHOD_COMPLAIN);
+    purc_variant_set_add(set_var, set_value_1, PCVRNT_CR_METHOD_COMPLAIN);
 
 
     purc_variant_t obj_set_val_0_k = purc_variant_make_string("kk0", false);

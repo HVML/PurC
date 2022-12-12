@@ -171,13 +171,13 @@ purc_variant_t to_variant_set(const char* unique_key, purc_variant_t var)
     }
 
     if (purc_variant_is_object(var)) {
-        purc_variant_set_add(set, var, false);
+        purc_variant_set_add(set, var, PCVRNT_CR_METHOD_COMPLAIN);
     }
     else if (purc_variant_is_array(var)) {
         size_t sz = purc_variant_array_get_size(var);
         for (size_t i = 0; i < sz; i++) {
             purc_variant_t v = purc_variant_array_get(var, i);
-            purc_variant_set_add(set, v, false);
+            purc_variant_set_add(set, v, PCVRNT_CR_METHOD_COMPLAIN);
         }
     }
 

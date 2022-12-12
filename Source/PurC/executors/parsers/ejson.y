@@ -570,10 +570,11 @@
         bool ok = true;                                                   \
         purc_variant_t _v;                                                \
         size_t _idx;                                                      \
+        size_t  t;                                                        \
         foreach_value_in_variant_array(_a, _v, _idx)                      \
             (void)_idx;                                                   \
-            ok = purc_variant_set_add(_r, _v, true);                      \
-            if (!ok)                                                      \
+            t = purc_variant_set_add(_r, _v, PCVRNT_CR_METHOD_OVERWRITE); \
+            if (t == -1)                                                  \
                 break;                                                    \
         end_foreach;                                                      \
         purc_variant_unref(_a);                                           \

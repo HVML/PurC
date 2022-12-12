@@ -1524,15 +1524,11 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * Returns: The number of new members or changed members (1 or 0) in the set,
  * -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-    ssize_t purc_variant_set_add(purc_variant_t set, purc_variant_t value,
-            pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
+PCA_EXPORT ssize_t
+purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+        pcvrnt_cr_method_k cr_method);
 
 /**
  * purc_variant_set_remove:

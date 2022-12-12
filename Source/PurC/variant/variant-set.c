@@ -954,9 +954,11 @@ check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
     return -1;
 }
 
+ /* returns: The number of new members or changed members (1 or 0),
+  -1 for error. */
 static int
 insert_or_replace(purc_variant_t set,
-        variant_set_t data, purc_variant_t val, bool overwrite,
+        variant_set_t data, purc_variant_t val, pcvrnt_cr_method_k cr_method,
         bool check)
 {
     struct element_rb_node rbn;
@@ -965,21 +967,27 @@ insert_or_replace(purc_variant_t set,
     if (!rbn.entry) {
         int r = insert(set, data, val, rbn.parent, rbn.pnode, check);
 
-        return r ? -1 : 0;
-    }
-
-    if (!overwrite) {
-        PRINT_VARIANT(set);
-        PRINT_VARIANT(val);
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return -1;
+        return (r == 0) ? 1 : 0;
     }
 
     struct set_node *curr;
     curr = container_of(rbn.entry, struct set_node, rbnode);
 
-    if (curr->val == val)
+    if (curr->val == val) {
         return 0;
+    }
+
+    switch (cr_method) {
+    case PCVRNT_CR_METHOD_IGNORE:
+        return 0;
+
+    case PCVRNT_CR_METHOD_OVERWRITE:
+        break;
+
+    case PCVRNT_CR_METHOD_COMPLAIN:
+        purc_set_error(PURC_ERROR_DUPLICATED);
+        break;
+    }
 
     purc_variant_t _old = purc_variant_ref(curr->val);
 
@@ -1003,7 +1011,7 @@ insert_or_replace(purc_variant_t set,
 
         PURC_VARIANT_SAFE_CLEAR(_old);
 
-        return 0;
+        return 1;
     } while (0);
 
     PURC_VARIANT_SAFE_CLEAR(_old);
@@ -1011,9 +1019,11 @@ insert_or_replace(purc_variant_t set,
     return -1;
 }
 
+ /* returns: The number of new members or changed members (1 or 0),
+  -1 for error. */
 static int
 variant_set_add_val(purc_variant_t set,
-        variant_set_t data, purc_variant_t val, bool overwrite,
+        variant_set_t data, purc_variant_t val, pcvrnt_cr_method_k cr_method,
         bool check)
 {
     if (!val) {
@@ -1021,15 +1031,12 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
-    if (insert_or_replace(set, data, val, overwrite, check))
-        return -1;
-
-    return 0;
+    return insert_or_replace(set, data, val, cr_method, check);
 }
 
 static int
-variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
-    bool check, size_t sz, va_list ap)
+variant_set_add_valsn(purc_variant_t set, variant_set_t data,
+        pcvrnt_cr_method_k cr_method, bool check, size_t sz, va_list ap)
 {
     size_t i = 0;
     while (i<sz) {
@@ -1039,7 +1046,7 @@ variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
             break;
         }
 
-        if (variant_set_add_val(set, data, v, overwrite, check)) {
+        if (-1 == variant_set_add_val(set, data, v, cr_method, check)) {
             break;
         }
 
@@ -1086,10 +1093,12 @@ make_set_c(bool check, size_t sz, const char *unique_key,
 
         if (sz>0) {
             purc_variant_t  v = value0;
-            if (variant_set_add_val(set, data, v, true, check))
+            if (-1 == variant_set_add_val(set, data, v,
+                        PCVRNT_CR_METHOD_OVERWRITE, check))
                 break;
 
-            int r = variant_set_add_valsn(set, data, true, check, sz-1, ap);
+            int r = variant_set_add_valsn(set, data,
+                    PCVRNT_CR_METHOD_OVERWRITE, check, sz-1, ap);
             if (r)
                 break;
         }
@@ -1122,8 +1131,9 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
     return v;
 }
 
-bool
-purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
+ssize_t
+purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+        pcvrnt_cr_method_k cr_method)
 {
     PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
         PURC_VARIANT_INVALID);
@@ -1134,13 +1144,14 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
 
-    bool check = true;
-    if (variant_set_add_val(set, data, value, overwrite, check))
-        return false;
+    ssize_t r = variant_set_add_val(set, data, value, cr_method, true);
 
-    size_t extra = variant_set_get_extra_size(data);
-    pcvariant_stat_set_extra_size(set, extra);
-    return true;
+    if (r > 0) {
+        size_t extra = variant_set_get_extra_size(data);
+        pcvariant_stat_set_extra_size(set, extra);
+    }
+
+    return r;
 }
 
 bool
