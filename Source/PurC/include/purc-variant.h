@@ -1738,16 +1738,10 @@ purc_variant_set_intersect(purc_variant_t set, purc_variant_t value);
  * Returns: The number of members of the set after subtracting,
  *  -1 on error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_subtract(purc_variant_t set, purc_variant_t value);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_subtract(purc_variant_t set,
-        purc_variant_t value, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_subtract(purc_variant_t set, purc_variant_t value);
 
 /**
  * purc_variant_set_xor:
