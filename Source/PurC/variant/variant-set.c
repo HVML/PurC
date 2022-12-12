@@ -1154,9 +1154,9 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value,
     return r;
 }
 
-bool
+ssize_t
 purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
-        bool silently)
+        pcvrnt_nr_method_k nr_method)
 {
     PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
             PURC_VARIANT_INVALID);
@@ -1169,13 +1169,20 @@ purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
     int r = 0;
     struct set_node *p;
     p = find_element(set, value);
-    if (p)
+    if (p) {
         r = set_remove(set, p, check);
+        if (r == 0) {
+            return 1;
+        }
+        return -1;
+    }
 
-    if (r)
-        return false;
+    if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+        purc_set_error(PURC_ERROR_NOT_FOUND);
+        return -1;
+    }
 
-    return p ? true : (silently ? true : false);
+    return 0;
 }
 
 purc_variant_t

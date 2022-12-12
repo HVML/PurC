@@ -252,7 +252,7 @@ pcvariant_set_clear(purc_variant_t set, bool silently)
 
     purc_variant_t v;
     foreach_value_in_variant_set_safe(set, v)
-        if (!purc_variant_set_remove(set, v, silently)) {
+        if (-1 == purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE)) {
             goto end;
         }
     end_foreach;

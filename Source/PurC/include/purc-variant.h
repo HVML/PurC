@@ -1551,15 +1551,11 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value,
  * Returns: The number of members removed (1 or 0) in the destination set,
  *  -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-    ssize_t purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
-            pcvrnt_nr_method_k nr_method);
- *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_remove(purc_variant_t obj, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method);
 
 /**
  * purc_variant_set_get_member_by_key_values:

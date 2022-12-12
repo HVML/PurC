@@ -567,7 +567,6 @@ TEST(constraint, basic)
 
     const char *s;
     purc_variant_t set, v, one, a;
-    bool ok;
 
     if (1) {
         s = "[!, [a],[]]";
@@ -649,7 +648,6 @@ TEST(constraint, change_order)
 
     const char *s;
     purc_variant_t set, v;
-    bool overwrite, silently;
 
     s = "[!, 2, 1, 3]";
     if (1) {
@@ -657,8 +655,7 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 0);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
         purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
@@ -673,8 +670,7 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 1);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
         purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
@@ -690,8 +686,7 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 2);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
         purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
