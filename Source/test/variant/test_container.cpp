@@ -432,8 +432,10 @@ TEST_P(TestCaseData, container_ops)
             break;
 
         case CONTAINER_OPS_TYPE_XOR:
-            result = purc_variant_set_xor(dst, src, true);
-            ASSERT_EQ(result, true);
+            {
+                ssize_t r = purc_variant_set_xor(dst, src);
+                ASSERT_NE(r, -1);
+            }
             break;
 
         case CONTAINER_OPS_TYPE_OVERWRITE:

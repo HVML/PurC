@@ -427,25 +427,6 @@ set_member_overwrite(void* ctxt, purc_variant_t value,
 }
 
 static bool
-xor_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-
-    purc_variant_t set = (purc_variant_t) ctxt;
-
-    if (pcvariant_is_in_set(set, value)) {
-        return purc_variant_set_remove(set, value, silently);
-    }
-    purc_variant_t cloned = clone_if_necessary(value);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = purc_variant_set_add(set, cloned, silently);
-    purc_variant_unref(cloned);
-    return ok;
-}
-
-static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -843,45 +824,6 @@ pcvariant_array_insert_another_after(purc_variant_t array, int idx,
     c_ctxt.extra = idx;
     ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt,
             silently);
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_xor(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, xor_set, set, silently);
-    }
-    else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, xor_set, set, silently);
-    }
-    else if (purc_variant_is_tuple(src)) {
-        ret = tuple_foreach(src, xor_set, set, silently);
-    }
-    else {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        ret = false;
-    }
 
 end:
     return ret;
