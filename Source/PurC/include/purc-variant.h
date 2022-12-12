@@ -1776,17 +1776,11 @@ purc_variant_set_xor(purc_variant_t set, purc_variant_t value);
  *
  * Returns: The number of changed members of the set, -1 on error.
  *
- * TODO: Change the prototype to:
- *
-    ssize_t
-    purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
-            pcvrnt_nr_method_k nr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_overwrite(purc_variant_t set,
-        purc_variant_t src, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method);
 
 /**
  * struct pcvrnt_set_iterator:

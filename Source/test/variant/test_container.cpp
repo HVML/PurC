@@ -439,8 +439,11 @@ TEST_P(TestCaseData, container_ops)
             break;
 
         case CONTAINER_OPS_TYPE_OVERWRITE:
-            result = purc_variant_set_overwrite(dst, src, true);
-            ASSERT_EQ(result, true);
+            {
+                ssize_t r = purc_variant_set_overwrite(dst, src,
+                        PCVRNT_NR_METHOD_IGNORE);
+                ASSERT_NE(r, -1);
+            }
             break;
     }
 

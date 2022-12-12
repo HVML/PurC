@@ -2329,3 +2329,66 @@ out:
     return ret;
 }
 
+ssize_t
+purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method)
+{
+    ssize_t ret = -1;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    if (purc_variant_is_object(value)) {
+        purc_variant_t vf = pcvariant_set_find(set, value);
+        if (vf != PURC_VARIANT_INVALID) {
+            if (-1 == purc_variant_set_add(set, value,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+                goto out;
+            }
+        }
+        else if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+            purc_set_error(PCVRNT_ERROR_NOT_FOUND);
+            goto out;
+        }
+    }
+    else if (pcvariant_is_linear_container(value)) {
+        ssize_t sz = purc_variant_linear_container_get_size(value);
+        for (ssize_t i = 0; i < sz; i++) {
+            purc_variant_t v = purc_variant_linear_container_get(value, i);
+            if (!v) {
+                continue;
+            }
+
+            purc_variant_t vf = pcvariant_set_find(set, v);
+            if (vf != PURC_VARIANT_INVALID) {
+                if (-1 == purc_variant_set_add(set, v,
+                            PCVRNT_CR_METHOD_OVERWRITE)) {
+                    goto out;
+                }
+            }
+            else if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+                purc_set_error(PCVRNT_ERROR_NOT_FOUND);
+                goto out;
+            }
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ret = purc_variant_set_get_size(set);
+out:
+    return ret;
+}

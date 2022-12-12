@@ -412,21 +412,6 @@ remove_set_member(void* ctxt, purc_variant_t member,
 }
 
 static bool
-set_member_overwrite(void* ctxt, purc_variant_t value,
-        purc_variant_t value_extra, bool silently)
-{
-    UNUSED_PARAM(value_extra);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t cloned = clone_if_necessary(value);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
-    purc_variant_unref(cloned);
-    return ok;
-}
-
-static bool
 object_displace(purc_variant_t dst, purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -824,62 +809,6 @@ pcvariant_array_insert_another_after(purc_variant_t array, int idx,
     c_ctxt.extra = idx;
     ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt,
             silently);
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_overwrite(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    const char** keys = NULL;
-    size_t nr_keys = 0;
-    pcvariant_set_get_uniqkeys(set, &nr_keys, &keys);
-    if (nr_keys > 1) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    enum purc_variant_type type = purc_variant_get_type(src);
-    switch (type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-            ret = set_member_overwrite(set, src, PURC_VARIANT_INVALID, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_ARRAY:
-            ret = array_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            ret = set_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_TUPLE:
-            ret = tuple_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        default:
-            SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-            break;
-    }
 
 end:
     return ret;

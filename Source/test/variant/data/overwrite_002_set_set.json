@@ -45,19 +45,10 @@
             "id":1,"name":"1_name"
         },
         {
-            "id":4,"name":"4_name"
-        },
-        {
-            "id":5,"name":"5_name"
-        },
-        {
             "id":2,"name":"2_name_update"
         },
         {
             "id":3,"name":"3_name_update"
-        },
-        {
-            "id":6,"name":"6_name"
         }
     ]
 }
