@@ -1135,8 +1135,10 @@ ssize_t
 purc_variant_set_add(purc_variant_t set, purc_variant_t value,
         pcvrnt_cr_method_k cr_method)
 {
-    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
-        PURC_VARIANT_INVALID);
+    if (!(set && set->type==PVT(_SET) && value)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
     // FIXME: shall clear error here???
     purc_clr_error();
@@ -1158,8 +1160,10 @@ ssize_t
 purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
         pcvrnt_nr_method_k nr_method)
 {
-    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
-            PURC_VARIANT_INVALID);
+    if (!(set && set->type==PVT(_SET) && value)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);

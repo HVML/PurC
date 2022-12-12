@@ -454,6 +454,9 @@ bool
 pcvariant_is_sorted_array(purc_variant_t v);
 
 bool
+pcvariant_is_linear_container(purc_variant_t v);
+
+bool
 pcvariant_container_displace(purc_variant_t dst,
         purc_variant_t src, bool silently);
 

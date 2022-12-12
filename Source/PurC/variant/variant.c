@@ -3799,3 +3799,14 @@ bool pcvariant_is_of_string(purc_variant_t v)
     return false;
 }
 
+bool
+pcvariant_is_linear_container(purc_variant_t v)
+{
+    if (!v) {
+        return false;
+    }
+
+    enum purc_variant_type vt = purc_variant_get_type(v);
+    return ((vt == PURC_VARIANT_TYPE_ARRAY) ||
+              (vt == PURC_VARIANT_TYPE_SET) || (vt == PURC_VARIANT_TYPE_TUPLE));
+}
