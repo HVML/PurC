@@ -2392,3 +2392,4 @@ purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
 out:
     return ret;
 }
+

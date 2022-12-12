@@ -1225,6 +1225,81 @@ purc_variant_object_unite(purc_variant_t dst,
         purc_variant_t src, pcvrnt_cr_method_k cr_method);
 
 /**
+ * purc_variant_object_intersect:
+ *
+ * @object: The destination object variant.
+ * @value: The source object variant to intersect.
+ *
+ * Intersect @value with the given object, that is, keep the members which
+ * match @value
+ *
+ * Returns: The number of members of the object after intersecting,
+ *  -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_intersect(purc_variant_t object, purc_variant_t value);
+
+/**
+ * purc_variant_object_subtract:
+ *
+ * @object: The destination object variant.
+ * @value: The source object variant to subtract.
+ *
+ * Subtracts @value from the given object.
+ * It will try to find each member of @value in the object.
+ * If there is any member in the object matched the variant to find, the
+ * member will be removed from the object.
+ *
+ * Returns: The number of members of the object after subtracting,
+ *  -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_subtract(purc_variant_t object, purc_variant_t value);
+
+/**
+ * purc_variant_object_xor:
+ *
+ * @object: The destination object variant.
+ * @value: The source object variant to XOR.
+ *
+ * Does XOR operation on the object.
+ *
+ * Returns: The number of members of the object after the operation,
+ *  -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_xor(purc_variant_t object, purc_variant_t value);
+
+/**
+ * purc_variant_object_overwrite:
+ *
+ * @object: The destination object variant.
+ * @value: The source object variant to overwrite.
+ * @nr_method: The method to resolve the not-found error if there is no member
+ *  matched the value in the object.
+ *      - PCVRNT_NR_METHOD_IGNORE:
+ *        Ignore and go on.
+ *      - PCVRNT_NR_METHOD_COMPLAIN:
+ *        Report %PCVRNT_ERROR_NOT_FOUND error.
+ *
+ * Overwrites the members in the given object with @value or members in
+ * @value.
+ *
+ * Returns: The number of changed members of the object, -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_overwrite(purc_variant_t object, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method);
+
+/**
  * pcvrnt_object_iterator:
  *
  * purc_variant_t obj;
