@@ -22,7 +22,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
+
+#include <sys/types.h>
 
 /**
  * The foil_unistr struct contains the public fields of a foil_unistr.
