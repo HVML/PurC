@@ -359,23 +359,28 @@ TEST_P(TestCaseData, container_ops)
     switch (ops_type) {
         case CONTAINER_OPS_TYPE_DISPLACE:
             result = pcvariant_container_displace(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_APPEND:
             result = pcvariant_array_append_another(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_PREPEND:
             result = pcvariant_array_prepend_another(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_MERGE:
             result = purc_variant_object_unite(dst, src,
                     PCVRNT_CR_METHOD_OVERWRITE);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_REMOVE:
             result = pcvariant_container_remove(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_INSERT_BEFORE:
@@ -387,6 +392,7 @@ TEST_P(TestCaseData, container_ops)
                 purc_variant_cast_to_longint(idx_var, &idx, false);
                 result = pcvariant_array_insert_another_before(
                         dst, idx, src, true);
+                ASSERT_EQ(result, true);
             }
             break;
 
@@ -399,30 +405,38 @@ TEST_P(TestCaseData, container_ops)
                 purc_variant_cast_to_longint(idx_var, &idx, false);
                 result = pcvariant_array_insert_another_after(
                         dst, idx, src, true);
+                ASSERT_EQ(result, true);
             }
             break;
 
         case CONTAINER_OPS_TYPE_UNITE:
-            result = purc_variant_set_unite(dst, src, true);
+            {
+                ssize_t r = purc_variant_set_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE);
+                ASSERT_NE(r, -1);
+            }
             break;
 
         case CONTAINER_OPS_TYPE_INTERSECT:
             result = purc_variant_set_intersect(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_SUBTRACT:
             result = purc_variant_set_subtract(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_XOR:
             result = purc_variant_set_xor(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
 
         case CONTAINER_OPS_TYPE_OVERWRITE:
             result = purc_variant_set_overwrite(dst, src, true);
+            ASSERT_EQ(result, true);
             break;
     }
-    ASSERT_EQ(result, true);
 
     compare_result(dst, cmp);
 

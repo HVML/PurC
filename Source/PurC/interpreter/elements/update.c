@@ -652,7 +652,8 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_unite(dst, src, silently)) {
+            if (-1 != purc_variant_set_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
                 ret = 0;
             }
         }

@@ -2126,3 +2126,43 @@ pcvar_readjust_set(purc_variant_t set, struct set_node *node)
     return 0;
 }
 
+ssize_t
+purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method_k cr_method)
+{
+    ssize_t ret = -1;
+    ssize_t r;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    ret = 0;
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+        r = purc_variant_set_add(set, v, cr_method);
+        if (r == -1) {
+            ret = -1;
+            goto out;
+        }
+        ret += r;
+    }
+
+out:
+    return ret;
+}
+

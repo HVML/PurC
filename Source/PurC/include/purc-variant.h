@@ -1701,17 +1701,11 @@ purc_variant_set_set_by_index(purc_variant_t set,
  * Returns: The number of members in the destination set after uniting,
  *  -1 for error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
-                pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_unite(purc_variant_t set,
-        purc_variant_t src, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method_k cr_method);
 
 /**
  * purc_variant_set_intersect:
