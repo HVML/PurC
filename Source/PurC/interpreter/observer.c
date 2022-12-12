@@ -99,10 +99,10 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
     }
     if (purc_variant_is_native(observed)) {
         struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
-        if (ops == NULL || ops->match_observe == NULL) {
+        if (ops == NULL || ops->did_matched == NULL) {
             return false;
         }
-        return ops->match_observe(purc_variant_native_get_entity(observed),
+        return ops->did_matched(purc_variant_native_get_entity(observed),
                 val);
     }
     return false;

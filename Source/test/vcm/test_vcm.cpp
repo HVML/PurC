@@ -208,7 +208,7 @@ vcm_again_variant_create()
         .cleaner                = NULL,
         .eraser                 = NULL,
 
-        .match_observe          = NULL,
+        .did_matched            = NULL,
         .on_observe             = NULL,
         .on_forget              = NULL,
         .on_release             = on_release,

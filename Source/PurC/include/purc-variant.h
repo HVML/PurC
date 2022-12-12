@@ -699,9 +699,8 @@ struct purc_native_ops {
       * the native entity (nullable). */
     purc_variant_t (*eraser)(void* native_entity, unsigned call_flags);
 
-    /** This operation checks if the event specified by @val matches */
-    /* TODO: this operation should be renamed */
-    bool (*match_observe)(void* native_entity, purc_variant_t val);
+    /** This operation checks if the destination specified by @val matches */
+    bool (*did_matched)(void* native_entity, purc_variant_t val);
 
     /**
      * This operation will be called when the variant was observed (nullable).

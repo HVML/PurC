@@ -265,7 +265,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (purc_variant_is_string(ctxt->on)) {
             // XXX: optimization
             // CSS selector used string
-            // handle by elements.c match_observe
+            // handle by elements.c did_matched
             pcintr_revoke_observer_ex(stack, on,
                 ctxt->msg_type_atom, ctxt->sub_type);
         }
