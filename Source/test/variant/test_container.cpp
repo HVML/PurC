@@ -372,12 +372,6 @@ TEST_P(TestCaseData, container_ops)
             ASSERT_EQ(result, true);
             break;
 
-        case CONTAINER_OPS_TYPE_MERGE:
-            result = purc_variant_object_unite(dst, src,
-                    PCVRNT_CR_METHOD_OVERWRITE);
-            ASSERT_EQ(result, true);
-            break;
-
         case CONTAINER_OPS_TYPE_REMOVE:
             result = pcvariant_container_remove(dst, src, true);
             ASSERT_EQ(result, true);
@@ -409,39 +403,72 @@ TEST_P(TestCaseData, container_ops)
             }
             break;
 
+        case CONTAINER_OPS_TYPE_MERGE:
         case CONTAINER_OPS_TYPE_UNITE:
             {
-                ssize_t r = purc_variant_set_unite(dst, src,
-                        PCVRNT_CR_METHOD_OVERWRITE);
+                ssize_t r;
+                if (purc_variant_is_object(dst)) {
+                    r = purc_variant_object_unite(dst, src,
+                            PCVRNT_CR_METHOD_OVERWRITE);
+                }
+                else {
+                    r = purc_variant_set_unite(dst, src,
+                            PCVRNT_CR_METHOD_OVERWRITE);
+                }
                 ASSERT_NE(r, -1);
             }
             break;
 
         case CONTAINER_OPS_TYPE_INTERSECT:
             {
-                ssize_t r = purc_variant_set_intersect(dst, src);
+                ssize_t r;
+                if (purc_variant_is_object(dst)) {
+                    r = purc_variant_object_intersect(dst, src);
+                }
+                else {
+                    r = purc_variant_set_intersect(dst, src);
+                }
                 ASSERT_NE(r, -1);
             }
             break;
 
         case CONTAINER_OPS_TYPE_SUBTRACT:
             {
-                ssize_t r = purc_variant_set_subtract(dst, src);
+                ssize_t r;
+                if (purc_variant_is_object(dst)) {
+                    r = purc_variant_object_subtract(dst, src);
+                }
+                else {
+                    r = purc_variant_set_subtract(dst, src);
+                }
                 ASSERT_NE(r, -1);
             }
             break;
 
         case CONTAINER_OPS_TYPE_XOR:
             {
-                ssize_t r = purc_variant_set_xor(dst, src);
+                ssize_t r;
+                if (purc_variant_is_object(dst)) {
+                    r = purc_variant_object_xor(dst, src);
+                }
+                else {
+                    r = purc_variant_set_xor(dst, src);
+                }
                 ASSERT_NE(r, -1);
             }
             break;
 
         case CONTAINER_OPS_TYPE_OVERWRITE:
             {
-                ssize_t r = purc_variant_set_overwrite(dst, src,
-                        PCVRNT_NR_METHOD_IGNORE);
+                ssize_t r;
+                if (purc_variant_is_object(dst)) {
+                    r = purc_variant_object_overwrite(dst, src,
+                            PCVRNT_NR_METHOD_IGNORE);
+                }
+                else {
+                    r = purc_variant_set_overwrite(dst, src,
+                            PCVRNT_NR_METHOD_IGNORE);
+                }
                 ASSERT_NE(r, -1);
             }
             break;

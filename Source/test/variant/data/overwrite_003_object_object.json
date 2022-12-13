@@ -1,0 +1,34 @@
+{
+    "name" : "overwrite_002_object_object",
+    "ignore" : false,
+    "error" : 0,
+    "ops" : "overwrite",
+    "dst_type" : "object",
+    "dst_unique_key" : null,
+    "dst" :
+    {
+        "id":1,
+        "name":"test_overwrite_dst",
+        "pos":"dst",
+        "type":1
+    },
+    "src_type" : "object",
+    "src_unique_key" : null,
+    "src" :
+    {
+        "id":2,
+        "name":"test_overwrite_src",
+        "pos":"src",
+        "create":"221213"
+    },
+    "cmp_type" : "object",
+    "cmp_unique_key" : null,
+    "cmp" :
+    {
+        "id":2,
+        "name":"test_overwrite_src",
+        "pos":"src",
+        "type":1
+    }
+}
+
