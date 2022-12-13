@@ -235,9 +235,13 @@ static bool construct_app_info(struct my_opts *opts)
 
     for (size_t i = 0; i < opts->urls->length; i++) {
         char buff[256];
-        sprintf(buff, archedata_coroutine, (unsigned)i, (unsigned)i);
-        strcat(app_info, buff);
+        int n = snprintf(buff, sizeof(buff), archedata_coroutine,
+                (unsigned)i, (unsigned)i);
+        if (n < 0 || (size_t)n > sizeof(buff)) {
+            return false;
+        }
 
+        strcat(app_info, buff);
     }
 
     strcat(app_info, archedata_footer);
