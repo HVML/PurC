@@ -273,11 +273,11 @@ static bool tuple_change_handler (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    uint64_t pos;
-    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    int64_t pos;
+    purc_variant_cast_to_longint(argv[0], &pos, false);
     fprintf(stderr, "change listener\n");
     fprintf(stderr, "nr_args=%ld\n", nr_args);
-    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "pos=%lld\n", (long long)pos);
     fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
     fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
     fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));
@@ -298,11 +298,11 @@ static bool tuple_changed_handler (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    uint64_t pos;
-    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    int64_t pos;
+    purc_variant_cast_to_longint(argv[0], &pos, false);
     fprintf(stderr, "changed listener\n");
     fprintf(stderr, "nr_args=%ld\n", nr_args);
-    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "pos=%lld\n", (long long)pos);
     fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
     fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
     fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));

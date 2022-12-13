@@ -98,7 +98,9 @@ pcmcth_workspace *foil_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
     purc_extract_app_name(edpt_uri, app);
 
     char app_key[PURC_LEN_ENDPOINT_NAME + 1];
-    sprintf(app_key, "%s-%s", host, app);
+    strcpy(app_key, host);
+    strcat(app_key, "-");
+    strcat(app_key, app);
 
     void *data;
     pcmcth_workspace *workspace;

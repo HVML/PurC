@@ -258,7 +258,7 @@ process_file(const char *file)
 
     char path[PATH_MAX];
     char comp[1024*1024];
-    sprintf(path, "%s.html", file);
+    snprintf(path, sizeof(path), "%s.html", file);
     n = read_file(comp, sizeof(comp), path, true);
 
     struct sample_data sample = {

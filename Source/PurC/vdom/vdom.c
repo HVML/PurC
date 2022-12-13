@@ -1479,8 +1479,8 @@ tokenwised_eval_attr_num(enum pchvml_attr_operator op,
                 }
                 double e = _round(ld, rd);
                 char buf[64];
-                uint64_t f = (uint64_t)round(ld);
-                int n = sprintf(buf, "%ld", f);
+                long long f = (long long)round(ld);
+                int n = snprintf(buf, sizeof(buf), "%lld", f);
                 char *ret = gcvt(e, n + fabs(rd), buf);
                 if (ret) {
                     return purc_variant_make_string(ret, false);

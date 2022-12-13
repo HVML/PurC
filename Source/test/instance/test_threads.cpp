@@ -58,7 +58,7 @@ static void* general_thread_entry(void* arg)
     struct thread_arg *my_arg = (struct thread_arg *)arg;
     char runner_name[32];
 
-    sprintf(runner_name, "thread%d", my_arg->nr);
+    snprintf(runner_name, sizeof(runner_name), "thread%d", my_arg->nr);
     int th_no = my_arg->nr;
 
     // initial purc instance

@@ -42,12 +42,14 @@ void test_html_file(char * data_path, char * file_name)
     FILE * fp = NULL;
 
     // it is the buffer for compare result
-    char test_file[8192] = {0};
-    char result_file[8192] = {0};
+    char test_file[4096] = {0};
+    char result_file[4096] = {0};
 
     // get the file name
-    sprintf(test_file, "%s/%s.html", data_path, file_name);
-    sprintf(result_file, "%s/%s.file", data_path, file_name);
+    snprintf(test_file, sizeof(test_file),
+            "%s/%s.html", data_path, file_name);
+    snprintf(result_file, sizeof(result_file),
+            "%s/%s.file", data_path, file_name);
 
     printf("HTML FILE TEST: %s.html :", file_name);
 
@@ -132,12 +134,13 @@ void test_html_chunk(char * data_path, char * file_name)
     size_t read_length = 0;
 
     // it is the buffer for compare result
-    char test_file[8192] = {0};
-    char result_file[8192] = {0};
+    char test_file[4096] = {0};
+    char result_file[4096] = {0};
 
     // get the file name
-    sprintf(test_file, "%s/%s.html", data_path, file_name);
-    sprintf(result_file, "%s/%s.chunk", data_path, file_name);
+    snprintf(test_file, sizeof(test_file), "%s/%s.html", data_path, file_name);
+    snprintf(result_file, sizeof(result_file), "%s/%s.chunk",
+            data_path, file_name);
 
     printf("HTML CHUNK TEST: %s.html :", file_name);
 
@@ -240,14 +243,15 @@ void test_parser_fragment(char * data_path, char * file_name)
     pchtml_html_parser_t * parser = NULL;
 
     // it is the buffer for compare result
-    char test_file[8192] = {0};
-    char test_frag[8192] = {0};
-    char result_file[8192] = {0};
+    char test_file[4096] = {0};
+    char test_frag[4096] = {0};
+    char result_file[4096] = {0};
 
     // get the file name
-    sprintf(test_file, "%s/%s.html", data_path, file_name);
-    sprintf(test_frag, "%s/%s.frag", data_path, file_name);
-    sprintf(result_file, "%s/%s.file", data_path, file_name);
+    snprintf(test_file, sizeof(test_file), "%s/%s.html", data_path, file_name);
+    snprintf(test_frag, sizeof(test_frag), "%s/%s.frag", data_path, file_name);
+    snprintf(result_file, sizeof(result_file),
+            "%s/%s.file", data_path, file_name);
 
     printf("HTML FRAGMNET TEST: %s.html :", file_name);
 
@@ -366,14 +370,17 @@ void test_parser_attribution(char * data_path, char * file_name)
     const unsigned char name[] = "my-name";
     size_t name_size = sizeof(name) - 1;
 
-    char test_file[8192] = {0};
-    char result_file[8192] = {0};
-    char remove_file[8192] = {0};
+    char test_file[4096] = {0};
+    char result_file[4096] = {0};
+    char remove_file[4096] = {0};
 
     // get the file name
-    sprintf(test_file, "%s/%s.html", data_path, file_name);
-    sprintf(result_file, "%s/%s1.file", data_path, file_name);
-    sprintf(remove_file, "%s/%s2.file", data_path, file_name);
+    snprintf(test_file, sizeof(test_file),
+            "%s/%s.html", data_path, file_name);
+    snprintf(result_file, sizeof(result_file),
+            "%s/%s1.file", data_path, file_name);
+    snprintf(remove_file, sizeof(remove_file),
+            "%s/%s2.file", data_path, file_name);
 
     printf("HTML ATTRIBUTION TEST: %s.html :", file_name);
 
