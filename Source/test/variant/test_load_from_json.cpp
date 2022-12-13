@@ -235,13 +235,27 @@ std::vector<ejson_test_data> read_ejson_test_data()
                         error = to_error (err);
                     }
 
+#if 0
                     sprintf(file, "%s/%s.json", data_path, name);
+#else
+                    strcpy(file, data_path);
+                    strcat(file, "/");
+                    strcat(file, name);
+                    strcat(file, ".json");
+#endif
                     char* json_buf = read_file (file);
                     if (!json_buf) {
                         continue;
                     }
 
+#if 0
                     sprintf(file, "%s/%s.serial", data_path, name);
+#else
+                    strcpy(file, data_path);
+                    strcat(file, "/");
+                    strcat(file, name);
+                    strcat(file, ".serial");
+#endif
                     char* comp_buf = read_file (file);
                     if (!comp_buf) {
                         free (json_buf);

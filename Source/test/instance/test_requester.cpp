@@ -68,8 +68,8 @@ static purc_variant_t request_handler0(struct inst_info *info,
         }
     }
 
-    char buff[64];
-    sprintf(buff, "From handler0 for the Call #%u", arg);
+    char buff[128];
+    snprintf(buff, sizeof(buff), "From handler0 for the Call #%u", arg);
 
     return purc_variant_make_string(buff, false);
 }
@@ -86,8 +86,8 @@ static purc_variant_t request_handler1(struct inst_info *info,
         }
     }
 
-    char buff[64];
-    sprintf(buff, "From handler1 for the Call #%u", arg);
+    char buff[128];
+    snprintf(buff, sizeof(buff), "From handler1 for the Call #%u", arg);
 
     return purc_variant_make_string(buff, false);
 }
@@ -104,8 +104,8 @@ static purc_variant_t request_handler2(struct inst_info *info,
         }
     }
 
-    char buff[64];
-    sprintf(buff, "From handler2 for the Call #%u", arg);
+    char buff[128];
+    snprintf(buff, sizeof(buff), "From handler2 for the Call #%u", arg);
 
     return purc_variant_make_string(buff, false);
 }
@@ -122,8 +122,8 @@ static purc_variant_t request_handler3(struct inst_info *info,
         }
     }
 
-    char buff[64];
-    sprintf(buff, "From handler3 for the Call #%u", arg);
+    char buff[128];
+    snprintf(buff, sizeof(buff), "From handler3 for the Call #%u", arg);
 
     return purc_variant_make_string(buff, false);
 }
@@ -156,7 +156,8 @@ static void call_method(struct inst_info *info,
     }
     else {
         char full_cor_id[PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4];
-        sprintf(full_cor_id, "%s/%s", endpoint_name, cort_info->id);
+        snprintf(full_cor_id, sizeof(full_cor_id), "%s/%s",
+                endpoint_name, cort_info->id);
 
         purc_atom_t atom = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
                 full_cor_id);
@@ -185,7 +186,7 @@ static void create_coroutine(struct inst_info *info,
     assert(endpoint_name);  /* must be valid */
 
     char full_cor_id[PURC_LEN_ENDPOINT_NAME + PURC_LEN_UNIQUE_ID + 4];
-    sprintf(full_cor_id, "%s/%s", endpoint_name, id_buf);
+    snprintf(full_cor_id, sizeof(full_cor_id), "%s/%s", endpoint_name, id_buf);
 
     bool newly_created;
     purc_atom_t cort_atom = purc_atom_from_string_ex2(PURC_ATOM_BUCKET_DEF,
@@ -1207,8 +1208,9 @@ static int on_instance_ready(pcrdr_conn* conn,
     (void)request_id;
 
     if (state == PCRDR_RESPONSE_RESULT) {
-        char coroutine_name[32];
-        sprintf(coroutine_name, "coroutine%u", info->nr_coroutines++);
+        char coroutine_name[64];
+        snprintf(coroutine_name, sizeof(coroutine_name), "coroutine%u",
+                info->nr_coroutines++);
 
         const char *source_uri;
         source_uri = purc_variant_get_string_const(response->sourceURI);
@@ -1252,8 +1254,8 @@ static void fire(struct main_inst_info *info)
 {
     const char *endpoint_name = purc_get_endpoint(NULL);
     assert(endpoint_name);
-    char runner_name[16];
-    sprintf(runner_name, "worker%u", info->nr_runners++);
+    char runner_name[32];
+    snprintf(runner_name, sizeof(runner_name), "worker%u", info->nr_runners++);
 
     pcrdr_msg *request = pcrdr_make_request_message(
         PCRDR_MSG_TARGET_INSTANCE, info->atom_instmgr,
