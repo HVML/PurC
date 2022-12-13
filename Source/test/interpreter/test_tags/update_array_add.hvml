@@ -1,0 +1,31 @@
+#!/usr/bin/purc
+
+# update array : add
+
+# RESULT: [ "zh_CN", "zh_HKS" ]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales">
+            [ "zh_CN" ]
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="add" with="zh_HKS" />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+        <exit with $locales />
+    </body>
+</hvml>
+
+
+

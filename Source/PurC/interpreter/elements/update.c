@@ -46,6 +46,9 @@
 #define AT_KEY_TEXT_CONTENT         "textContent"
 #define AT_KEY_ATTR                 "attr."
 
+#define KEYWORD_ADD                 "add"
+#define KEYWORD_UPPERCASE_ADD       "ADD"
+
 enum hvml_update_op {
     UPDATE_OP_DISPLACE,
     UPDATE_OP_APPEND,
@@ -54,6 +57,7 @@ enum hvml_update_op {
     UPDATE_OP_REMOVE,
     UPDATE_OP_INSERTBEFORE,
     UPDATE_OP_INSERTAFTER,
+    UPDATE_OP_ADD,
     UPDATE_OP_UNITE,
     UPDATE_OP_INTERSECT,
     UPDATE_OP_SUBTRACT,
@@ -457,6 +461,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_ADD:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
     case UPDATE_OP_XOR:
@@ -504,6 +509,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
         break;
 
     case UPDATE_OP_APPEND:
+    case UPDATE_OP_ADD:
         {
             if (!is_atrribute_operator(with_op) || idx >= 0) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -617,6 +623,15 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
         }
         else if (pcvariant_container_displace(dst, src, silently)){
             ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_ADD:
+        {
+            if (-1 != purc_variant_set_add(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+                ret = 0;
+            }
         }
         break;
 
@@ -761,6 +776,7 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_ADD:
     case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
@@ -853,6 +869,7 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_MERGE:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
         case UPDATE_OP_SUBTRACT:
@@ -939,6 +956,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                     with_eval, frame->silently);
             break;
         case UPDATE_OP_APPEND:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
@@ -1022,6 +1040,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
@@ -1108,6 +1127,7 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
@@ -1179,6 +1199,7 @@ static pcdoc_operation_k convert_operation(enum hvml_update_op operator)
 
     switch (operator) {
     case UPDATE_OP_APPEND:
+    case UPDATE_OP_ADD:
         op = PCDOC_OP_APPEND;
         break;
     case UPDATE_OP_PREPEND:
@@ -1414,6 +1435,10 @@ to_operator(const char *to)
 {
     enum hvml_update_op ret = UPDATE_OP_UNKNOWN;
     purc_atom_t op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, to);
+    if (!op && strcmp(to, KEYWORD_ADD) == 0) {
+        op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, KEYWORD_UPPERCASE_ADD);
+    }
+
     if (!op) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
@@ -1439,6 +1464,9 @@ to_operator(const char *to)
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTAFTER)) == op) {
         ret = UPDATE_OP_INSERTAFTER;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADD)) == op) {
+        ret = UPDATE_OP_ADD;
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNITE)) == op) {
         ret = UPDATE_OP_UNITE;
