@@ -533,7 +533,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 r = purc_variant_array_remove(dst, idx);
             }
