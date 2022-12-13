@@ -878,3 +878,15 @@ pcinst_dump_err_info(void)
         pcinst_dump_err_except_info(err_except_info);
     }
 }
+
+bool
+pcinst_is_ignorable_error(int err)
+{
+    switch (err) {
+    case PURC_ERROR_OUT_OF_MEMORY:
+        return false;
+
+    default:
+        return true;
+    }
+}

@@ -449,11 +449,6 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
             if (sz >= 0) {
                 ret = 0;
             }
-            else {
-                // int err = purc_get_last_error();
-                // TODO: clr exceptions which can be ignored
-                ret = -1;
-            }
         }
         break;
 
@@ -1576,6 +1571,17 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 out:
     if (ret == 0) {
         pcintr_set_question_var(frame, on);
+    }
+    else {
+        int err = purc_get_last_error();
+        if (frame->silently && pcinst_is_ignorable_error(err)) {
+            purc_variant_t v = purc_variant_make_undefined();
+            pcintr_set_question_var(frame, v);
+            purc_variant_unref(v);
+
+            purc_clr_error();
+            ret = 0;
+        }
     }
     return ret;
 }

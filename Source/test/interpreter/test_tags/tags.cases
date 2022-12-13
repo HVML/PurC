@@ -398,6 +398,8 @@ update_replace_assignment_number
 update_head_assignment_number
 update_tail_assignment_number
 
+update_with_silently
+
 # doctype
 doctype_001
 
