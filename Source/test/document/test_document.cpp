@@ -87,7 +87,7 @@ TEST(document, basic)
             html_contents, strlen(html_contents));
     ASSERT_NE(doc, nullptr);
 
-    purc_document_type type;
+    purc_document_type_k type;
     void *impl_entity;
     impl_entity = purc_document_impl_entity(doc, &type);
     ASSERT_NE(impl_entity, nullptr);

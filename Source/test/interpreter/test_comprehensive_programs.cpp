@@ -59,7 +59,7 @@ sample_destroy(struct sample_data *sample)
     free(sample);
 }
 
-static int my_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
     if (event == PURC_COND_COR_EXITED) {

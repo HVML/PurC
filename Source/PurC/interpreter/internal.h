@@ -219,16 +219,16 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
         const char *property, const char *value);
 
 uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, const char *target_group,
+        pcrdr_page_type_k page_type, const char *target_group,
         const char *pag_name, const char *title, const char *classes,
         const char *layout_style, purc_variant_t toolkit_style);
 
 bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t page_handle);
+        pcrdr_page_type_k page_type, uint64_t page_handle);
 
 bool
 pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t page_handle,
+        pcrdr_page_type_k page_type, uint64_t page_handle,
         const char *property, purc_variant_t value);
 
 static inline uint64_t
@@ -298,22 +298,22 @@ bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
 bool
-pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
@@ -364,7 +364,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, pcdoc_operation op,
 
 bool
 pcintr_rdr_dom_operate_element(pcintr_stack_t stack, pcdoc_element_t element,
-        pcdoc_operation op, const char *contents, size_t len);
+        pcdoc_operation_k op, const char *contents, size_t len);
 
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom);

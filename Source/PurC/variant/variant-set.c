@@ -954,9 +954,11 @@ check_change(purc_variant_t set, struct set_node *node, purc_variant_t val)
     return -1;
 }
 
+ /* returns: The number of new members or changed members (1 or 0),
+  -1 for error. */
 static int
 insert_or_replace(purc_variant_t set,
-        variant_set_t data, purc_variant_t val, bool overwrite,
+        variant_set_t data, purc_variant_t val, pcvrnt_cr_method_k cr_method,
         bool check)
 {
     struct element_rb_node rbn;
@@ -965,21 +967,27 @@ insert_or_replace(purc_variant_t set,
     if (!rbn.entry) {
         int r = insert(set, data, val, rbn.parent, rbn.pnode, check);
 
-        return r ? -1 : 0;
-    }
-
-    if (!overwrite) {
-        PRINT_VARIANT(set);
-        PRINT_VARIANT(val);
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return -1;
+        return (r == 0) ? 1 : 0;
     }
 
     struct set_node *curr;
     curr = container_of(rbn.entry, struct set_node, rbnode);
 
-    if (curr->val == val)
+    if (curr->val == val) {
         return 0;
+    }
+
+    switch (cr_method) {
+    case PCVRNT_CR_METHOD_IGNORE:
+        return 0;
+
+    case PCVRNT_CR_METHOD_OVERWRITE:
+        break;
+
+    case PCVRNT_CR_METHOD_COMPLAIN:
+        purc_set_error(PURC_ERROR_DUPLICATED);
+        break;
+    }
 
     purc_variant_t _old = purc_variant_ref(curr->val);
 
@@ -1003,7 +1011,7 @@ insert_or_replace(purc_variant_t set,
 
         PURC_VARIANT_SAFE_CLEAR(_old);
 
-        return 0;
+        return 1;
     } while (0);
 
     PURC_VARIANT_SAFE_CLEAR(_old);
@@ -1011,9 +1019,11 @@ insert_or_replace(purc_variant_t set,
     return -1;
 }
 
+ /* returns: The number of new members or changed members (1 or 0),
+  -1 for error. */
 static int
 variant_set_add_val(purc_variant_t set,
-        variant_set_t data, purc_variant_t val, bool overwrite,
+        variant_set_t data, purc_variant_t val, pcvrnt_cr_method_k cr_method,
         bool check)
 {
     if (!val) {
@@ -1021,15 +1031,12 @@ variant_set_add_val(purc_variant_t set,
         return -1;
     }
 
-    if (insert_or_replace(set, data, val, overwrite, check))
-        return -1;
-
-    return 0;
+    return insert_or_replace(set, data, val, cr_method, check);
 }
 
 static int
-variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
-    bool check, size_t sz, va_list ap)
+variant_set_add_valsn(purc_variant_t set, variant_set_t data,
+        pcvrnt_cr_method_k cr_method, bool check, size_t sz, va_list ap)
 {
     size_t i = 0;
     while (i<sz) {
@@ -1039,7 +1046,7 @@ variant_set_add_valsn(purc_variant_t set, variant_set_t data, bool overwrite,
             break;
         }
 
-        if (variant_set_add_val(set, data, v, overwrite, check)) {
+        if (-1 == variant_set_add_val(set, data, v, cr_method, check)) {
             break;
         }
 
@@ -1086,10 +1093,12 @@ make_set_c(bool check, size_t sz, const char *unique_key,
 
         if (sz>0) {
             purc_variant_t  v = value0;
-            if (variant_set_add_val(set, data, v, true, check))
+            if (-1 == variant_set_add_val(set, data, v,
+                        PCVRNT_CR_METHOD_OVERWRITE, check))
                 break;
 
-            int r = variant_set_add_valsn(set, data, true, check, sz-1, ap);
+            int r = variant_set_add_valsn(set, data,
+                    PCVRNT_CR_METHOD_OVERWRITE, check, sz-1, ap);
             if (r)
                 break;
         }
@@ -1122,11 +1131,14 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
     return v;
 }
 
-bool
-purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
+ssize_t
+purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+        pcvrnt_cr_method_k cr_method)
 {
-    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
-        PURC_VARIANT_INVALID);
+    if (!(set && set->type==PVT(_SET) && value)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
     // FIXME: shall clear error here???
     purc_clr_error();
@@ -1134,21 +1146,24 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite)
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
 
-    bool check = true;
-    if (variant_set_add_val(set, data, value, overwrite, check))
-        return false;
+    ssize_t r = variant_set_add_val(set, data, value, cr_method, true);
 
-    size_t extra = variant_set_get_extra_size(data);
-    pcvariant_stat_set_extra_size(set, extra);
-    return true;
+    if (r > 0) {
+        size_t extra = variant_set_get_extra_size(data);
+        pcvariant_stat_set_extra_size(set, extra);
+    }
+
+    return r;
 }
 
-bool
+ssize_t
 purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
-        bool silently)
+        pcvrnt_nr_method_k nr_method)
 {
-    PCVRNT_CHECK_FAIL_RET(set && set->type==PVT(_SET) && value,
-            PURC_VARIANT_INVALID);
+    if (!(set && set->type==PVT(_SET) && value)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
 
     variant_set_t data = pcvar_set_get_data(set);
     PC_ASSERT(data);
@@ -1158,13 +1173,20 @@ purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
     int r = 0;
     struct set_node *p;
     p = find_element(set, value);
-    if (p)
+    if (p) {
         r = set_remove(set, p, check);
+        if (r == 0) {
+            return 1;
+        }
+        return -1;
+    }
 
-    if (r)
-        return false;
+    if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+        purc_set_error(PURC_ERROR_NOT_FOUND);
+        return -1;
+    }
 
-    return p ? true : (silently ? true : false);
+    return 0;
 }
 
 purc_variant_t
@@ -2102,5 +2124,272 @@ pcvar_readjust_set(purc_variant_t set, struct set_node *node)
     pcutils_rbtree_insert_color(entry, &data->elems);
 
     return 0;
+}
+
+ssize_t
+purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method_k cr_method)
+{
+    ssize_t ret = -1;
+    ssize_t r;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    ret = 0;
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+        r = purc_variant_set_add(set, v, cr_method);
+        if (r == -1) {
+            ret = -1;
+            goto out;
+        }
+        ret += r;
+    }
+
+out:
+    return ret;
+}
+
+static bool
+is_in_array(purc_variant_t array, purc_variant_t v, int* idx)
+{
+    bool ret = false;
+    purc_variant_t val;
+    size_t curr;
+    UNUSED_VARIABLE(val);
+    foreach_value_in_variant_array_safe(array, val, curr)
+        if (val == v) {
+            if (idx) {
+                *idx = curr;
+            }
+            ret = true;
+            goto end;
+        }
+    end_foreach;
+
+end:
+    return ret;
+}
+
+
+ssize_t
+purc_variant_set_intersect(purc_variant_t set, purc_variant_t value)
+{
+    ssize_t ret = -1;
+    purc_variant_t tmp = PURC_VARIANT_INVALID;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    tmp = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (tmp == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+
+        purc_variant_t vf = pcvariant_set_find(set, v);
+        if (vf == PURC_VARIANT_INVALID) {
+            continue;
+        }
+
+        if (!purc_variant_array_append(tmp, vf)) {
+            ret = -1;
+            goto out;
+        }
+    }
+
+    purc_variant_t v;
+    foreach_value_in_variant_set_safe(set, v)
+        if (is_in_array(tmp, v, NULL)) {
+            continue;
+        }
+
+        if (-1 == purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_COMPLAIN)) {
+            goto out;
+        }
+    end_foreach;
+
+
+    ret = purc_variant_set_get_size(set);
+out:
+    if (tmp) {
+        purc_variant_unref(tmp);
+    }
+    return ret;
+}
+
+ssize_t
+purc_variant_set_subtract(purc_variant_t set, purc_variant_t value)
+{
+    ssize_t ret = -1;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+
+        if (-1 == purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE)) {
+            goto out;
+        }
+    }
+
+    ret = purc_variant_set_get_size(set);
+out:
+    return ret;
+}
+
+ssize_t
+purc_variant_set_xor(purc_variant_t set, purc_variant_t value)
+{
+    ssize_t ret = -1;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set) || !pcvariant_is_linear_container(value)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ssize_t sz = purc_variant_linear_container_get_size(value);
+    for (ssize_t i = 0; i < sz; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(value, i);
+        if (!v) {
+            continue;
+        }
+
+        ssize_t r = purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
+        if (r == 0) {
+            if (-1 == purc_variant_set_add(set, v, PCVRNT_CR_METHOD_COMPLAIN)) {
+                goto out;
+            }
+        }
+        else if (r == -1) {
+            goto out;
+        }
+    }
+
+    ret = purc_variant_set_get_size(set);
+out:
+    return ret;
+}
+
+ssize_t
+purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method)
+{
+    ssize_t ret = -1;
+    if (set == PURC_VARIANT_INVALID || value == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (set == value) {
+        purc_set_error(PURC_ERROR_INVALID_OPERAND);
+        goto out;
+    }
+
+    if (!purc_variant_is_set(set)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    if (purc_variant_is_object(value)) {
+        purc_variant_t vf = pcvariant_set_find(set, value);
+        if (vf != PURC_VARIANT_INVALID) {
+            if (-1 == purc_variant_set_add(set, value,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+                goto out;
+            }
+        }
+        else if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+            purc_set_error(PCVRNT_ERROR_NOT_FOUND);
+            goto out;
+        }
+    }
+    else if (pcvariant_is_linear_container(value)) {
+        ssize_t sz = purc_variant_linear_container_get_size(value);
+        for (ssize_t i = 0; i < sz; i++) {
+            purc_variant_t v = purc_variant_linear_container_get(value, i);
+            if (!v) {
+                continue;
+            }
+
+            purc_variant_t vf = pcvariant_set_find(set, v);
+            if (vf != PURC_VARIANT_INVALID) {
+                if (-1 == purc_variant_set_add(set, v,
+                            PCVRNT_CR_METHOD_OVERWRITE)) {
+                    goto out;
+                }
+            }
+            else if (nr_method == PCVRNT_NR_METHOD_COMPLAIN) {
+                purc_set_error(PCVRNT_ERROR_NOT_FOUND);
+                goto out;
+            }
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto out;
+    }
+
+    ret = purc_variant_set_get_size(set);
+out:
+    return ret;
 }
 

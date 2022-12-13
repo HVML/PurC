@@ -157,7 +157,7 @@ static const char *cond_names[] = {
 };
 
 static int
-my_cond_handler(purc_cond_t event, void *arg, void *data)
+my_cond_handler(purc_cond_k event, void *arg, void *data)
 {
     (void)arg;
     (void)data;

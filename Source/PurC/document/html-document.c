@@ -156,7 +156,7 @@ dom_clear_element(pcdom_element_t *element)
 }
 
 static pcdoc_element_t operate_element(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *tag, bool self_close)
 {
     UNUSED_PARAM(self_close);
@@ -191,7 +191,7 @@ static pcdoc_element_t operate_element(purc_document_t doc,
 }
 
 static pcdoc_text_node_t new_text_content(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *text, size_t length)
 {
     if (UNLIKELY(op >= PCA_TABLESIZE(dom_node_ops))) {
@@ -371,7 +371,7 @@ static const dom_subtree_op dom_subtree_ops[] = {
 };
 
 static pcdoc_node new_content(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *content, size_t length)
 {
     pcdoc_node node;
@@ -428,7 +428,7 @@ dom_remove_element_attr(pcdom_element_t *element, const char* name)
 }
 
 static int set_attribute(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *name, const char *val, size_t len)
 {
     UNUSED_PARAM(doc);
@@ -458,7 +458,7 @@ static int set_attribute(purc_document_t doc,
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
-            pcdoc_special_elem which)
+            pcdoc_special_elem_k which)
 {
     pchtml_html_document_t *html_doc = (pchtml_html_document_t *)doc->impl;
 
@@ -682,7 +682,7 @@ static int children_count(purc_document_t doc, pcdoc_element_t elem,
     return 0;
 }
 
-static inline pcdoc_node_type
+static inline pcdoc_node_type_k
 node_type(pcdom_node_type_t type)
 {
     switch (type) {
@@ -702,7 +702,7 @@ node_type(pcdom_node_type_t type)
 
 static pcdoc_node
 get_child(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_node_type type, size_t idx)
+            pcdoc_element_t elem, pcdoc_node_type_k type, size_t idx)
 {
     UNUSED_PARAM(doc);
 
@@ -757,7 +757,7 @@ static int get_attribute(purc_document_t doc, pcdoc_element_t elem,
 }
 
 static int get_special_attr(purc_document_t doc, pcdoc_element_t elem,
-            pcdoc_special_attr which, const char **val, size_t *len)
+            pcdoc_special_attr_k which, const char **val, size_t *len)
 {
     UNUSED_PARAM(doc);
     pcdom_element_t *dom_elem = pcdom_interface_element(elem);

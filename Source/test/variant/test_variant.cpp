@@ -985,7 +985,7 @@ static struct purc_native_ops _rws_ops = {
     .updater               = NULL,
     .cleaner               = NULL,
     .eraser                = NULL,
-    .match_observe         = NULL,
+    .did_matched           = NULL,
 
     .on_observe           = NULL,
     .on_forget            = NULL,
@@ -1192,7 +1192,7 @@ static struct purc_native_ops _nr_ops = {
     .updater               = NULL,
     .cleaner               = NULL,
     .eraser                = NULL,
-    .match_observe         = NULL,
+    .did_matched         = NULL,
 
     .on_observe           = NULL,
     .on_forget            = NULL,

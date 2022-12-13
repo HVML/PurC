@@ -85,16 +85,16 @@ TEST(set, unique_key_find)
         // ASSERT_EQ(obj_2, v);
         ASSERT_EQ(0, pcvariant_diff(obj_2, v));
 
-        bool overwrite = purc_variant_set_overwrite(set, obj_3, true);
-        ASSERT_EQ(overwrite, true);
+        ssize_t r = purc_variant_set_overwrite(set, obj_3, PCVRNT_NR_METHOD_IGNORE);
+        ASSERT_NE(r, -1);
 
         v = pcvariant_set_find(set, obj_3);
         ASSERT_NE(v, PURC_VARIANT_INVALID);
     }
 
     if (1) {
-        bool ok = purc_variant_set_add(set, obj_3, true);
-        ASSERT_TRUE(ok);
+        int r = purc_variant_set_add(set, obj_3, PCVRNT_CR_METHOD_OVERWRITE);
+        ASSERT_NE(r, -1);
         purc_variant_t v;
         v = pcvariant_set_find(set, obj_3);
         ASSERT_NE(v, PURC_VARIANT_INVALID);

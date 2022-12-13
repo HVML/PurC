@@ -2,7 +2,7 @@
 
 # update inner tuple : unite
 
-# RESULT: {"wrap_array":"NotAllowed","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}
+# RESULT: {"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"success"}
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">

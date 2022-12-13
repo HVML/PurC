@@ -407,7 +407,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            ret = purc_variant_container_displace(dst, src, silently);
+            ret = pcvariant_container_displace(dst, src, silently);
         }
         break;
 
@@ -427,20 +427,28 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 }
                 purc_variant_unref(k);
             }
-            else if (purc_variant_container_remove(dst, src, silently)) {
-                ret = 0;
+            else {
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
         }
         break;
 
     case UPDATE_OP_MERGE:
+    case UPDATE_OP_UNITE:
         {
             if (!is_atrribute_operator(with_op) || key) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_object_merge_another(dst, src, silently)) {
+            ssize_t sz = purc_variant_object_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE);
+            if (sz >= 0) {
                 ret = 0;
+            }
+            else {
+                // int err = purc_get_last_error();
+                // TODO: clr exceptions which can be ignored
+                ret = -1;
             }
         }
         break;
@@ -449,7 +457,6 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
-    case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
     case UPDATE_OP_XOR:
@@ -491,7 +498,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)) {
+        else if (pcvariant_container_displace(dst, src, silently)) {
             ret = 0;
         }
         break;
@@ -531,7 +538,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 r = purc_variant_array_remove(dst, idx);
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -608,7 +615,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)){
+        else if (pcvariant_container_displace(dst, src, silently)){
             ret = 0;
         }
         break;
@@ -619,7 +626,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 purc_variant_t v = purc_variant_set_remove_by_index(dst, idx);
                 if (v) {
@@ -631,7 +638,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 }
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -645,7 +652,8 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_unite(dst, src, silently)) {
+            if (-1 != purc_variant_set_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
                 ret = 0;
             }
         }
@@ -657,7 +665,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_intersect(dst, src, silently)) {
+            if (-1 != purc_variant_set_intersect(dst, src)) {
                 ret = 0;
             }
         }
@@ -669,7 +677,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_subtract(dst, src, silently)) {
+            if (-1 == purc_variant_set_subtract(dst, src)) {
                 ret = 0;
             }
         }
@@ -681,7 +689,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_xor(dst, src, silently)) {
+            if (-1 != purc_variant_set_xor(dst, src)) {
                 ret = 0;
             }
         }
@@ -693,7 +701,8 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_overwrite(dst, src, silently)) {
+            if (-1 == purc_variant_set_overwrite(dst, src,
+                        PCVRNT_NR_METHOD_IGNORE)) {
                 ret = 0;
             }
         }
@@ -718,6 +727,7 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
         enum pchvml_attr_operator with_op,
         pcintr_attribute_op with_eval, bool silently)
 {
+    UNUSED_PARAM(silently);
     int ret = -1;
     switch (op) {
     case UPDATE_OP_DISPLACE:
@@ -740,8 +750,8 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_remove(dst, src, silently)){
-            ret = 0;
+        else {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         }
         break;
 
@@ -1090,10 +1100,10 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else {
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
             ret = update_variant_tuple(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
-        case UPDATE_OP_REMOVE:
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
@@ -1163,9 +1173,9 @@ update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return ret;
 }
 
-static pcdoc_operation convert_operation(enum hvml_update_op operator)
+static pcdoc_operation_k convert_operation(enum hvml_update_op operator)
 {
-    pcdoc_operation op;
+    pcdoc_operation_k op;
 
     switch (operator) {
     case UPDATE_OP_APPEND:
@@ -1216,7 +1226,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
                 template_data_type, true);
@@ -1242,7 +1252,7 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(to);
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op == PCDOC_OP_UNKNOWN) {
         return -1;
     }

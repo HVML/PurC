@@ -166,19 +166,39 @@ out:
 }
 
 
-int
+ssize_t
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value)
 {
+    ssize_t ret = -1;
     struct sorted_array *sa = get_sorted_array(array);
     if (sa == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
+        goto out;
     }
 
-    int ret = pcutils_sorted_array_add(sa, value, value);
-    if (ret == 0) {
+    int r = pcutils_sorted_array_add(sa, value, value, &ret);
+    switch (r) {
+    case 0:
         purc_variant_ref(value);
+        break;
+
+    case -1:
+        ret = -1;
+        purc_set_error(PURC_ERROR_DUPLICATED);
+        break;
+
+    case -2:
+        ret = -1;
+        purc_set_error(PURC_ERROR_TOO_MANY);
+        break;
+
+    case -3:
+        ret = -1;
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        break;
     }
+
+out:
     return ret;
 }
 
@@ -211,15 +231,18 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx)
     return true;
 }
 
-bool
+ssize_t
 purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value)
 {
+    ssize_t r = -1;
     struct sorted_array *sa = get_sorted_array(array);
     if (sa == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
+        goto out;
     }
-    return pcutils_sorted_array_find(sa, value, NULL);
+    pcutils_sorted_array_find(sa, value, NULL, &r);
+out:
+    return r;
 }
 
 purc_variant_t

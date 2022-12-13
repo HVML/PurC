@@ -2,7 +2,7 @@
 
 # update inner tuple : remove
 
-# RESULT: {"id":1,"id2":2,"id3":3,"id4":4,"value":"zh_CN"}
+# RESULT: [{"id":1,"id2":2,"id3":3,"id4":4,"id5":5,"value":"zh_CN"},{"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"NotAllowed"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -95,7 +95,7 @@
             <update on="$result" at=".wrap_tuple" with="InvalidValue" />
         </catch>
 
-        <exit with $locales/>
+        <exit with [$locales, $result]/>
     </body>
 </hvml>
 

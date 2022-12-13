@@ -453,6 +453,31 @@ pcvariant_diff_by_set(const char *md5l, purc_variant_t l,
 bool
 pcvariant_is_sorted_array(purc_variant_t v);
 
+bool
+pcvariant_is_linear_container(purc_variant_t v);
+
+bool
+pcvariant_container_displace(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+bool
+pcvariant_container_remove(purc_variant_t dst,
+        purc_variant_t src, bool silently);
+
+bool
+pcvariant_array_append_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+bool
+pcvariant_array_prepend_another(purc_variant_t array,
+        purc_variant_t another, bool silently);
+
+bool
+pcvariant_array_insert_another_before(purc_variant_t array,
+        int idx, purc_variant_t another, bool silently);
+bool
+pcvariant_array_insert_another_after(purc_variant_t array, int idx,
+        purc_variant_t another, bool silently);
+
 PCA_EXTERN_C_END
 
 #define PURC_VARIANT_SAFE_CLEAR(_v)             \

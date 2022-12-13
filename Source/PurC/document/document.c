@@ -48,7 +48,7 @@ _COMPILE_TIME_ASSERT(types,
 
 #undef _COMPILE_TIME_ASSERT
 
-purc_document_type
+purc_document_type_k
 purc_document_retrieve_type(const char *target_name)
 {
     if (UNLIKELY(target_name == NULL))
@@ -67,7 +67,7 @@ fallback:
 }
 
 purc_document_t
-purc_document_new(purc_document_type type)
+purc_document_new(purc_document_type_k type)
 {
     struct purc_document_ops *ops = doc_types[type].ops;
     if (ops == NULL) {
@@ -80,7 +80,7 @@ purc_document_new(purc_document_type type)
 
 
 purc_document_t
-purc_document_load(purc_document_type type, const char *content, size_t len)
+purc_document_load(purc_document_type_k type, const char *content, size_t len)
 {
     struct purc_document_ops *ops = doc_types[type].ops;
     if (ops == NULL) {
@@ -119,7 +119,7 @@ purc_document_unref(purc_document_t doc)
 }
 
 void *
-purc_document_impl_entity(purc_document_t doc, purc_document_type *type)
+purc_document_impl_entity(purc_document_t doc, purc_document_type_k *type)
 {
     if (type)
         *type = doc->type;
@@ -135,14 +135,14 @@ purc_document_delete(purc_document_t doc)
 }
 
 pcdoc_element_t
-purc_document_special_elem(purc_document_t doc, pcdoc_special_elem elem)
+purc_document_special_elem(purc_document_t doc, pcdoc_special_elem_k elem)
 {
     return doc->ops->special_elem(doc, elem);
 }
 
 pcdoc_element_t
 pcdoc_element_new_element(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *tag, bool self_close)
 {
     return doc->ops->operate_element(doc, elem, op, tag, self_close);
@@ -162,7 +162,7 @@ pcdoc_element_erase(purc_document_t doc, pcdoc_element_t elem)
 
 pcdoc_text_node_t
 pcdoc_element_new_text_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *text, size_t len)
 {
     return doc->ops->new_text_content(doc, elem, op, text, len);
@@ -170,7 +170,7 @@ pcdoc_element_new_text_content(purc_document_t doc,
 
 pcdoc_data_node_t
 pcdoc_element_set_data_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         purc_variant_t data)
 {
     if (doc->ops->new_data_content)
@@ -182,7 +182,7 @@ pcdoc_element_set_data_content(purc_document_t doc,
 
 pcdoc_node
 pcdoc_element_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len)
 {
     return doc->ops->new_content(doc, elem, op, content, len);
@@ -202,7 +202,7 @@ pcdoc_element_get_tag_name(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcdoc_element_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len)
 {
     if (doc->ops->set_attribute) {
@@ -231,7 +231,7 @@ pcdoc_element_get_attribute(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcdoc_element_get_special_attr(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_special_attr which, const char **val, size_t *len)
+        pcdoc_special_attr_k which, const char **val, size_t *len)
 {
     if (doc->ops->get_special_attr) {
         return doc->ops->get_special_attr(doc, elem, which, val, len);

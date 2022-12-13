@@ -391,7 +391,7 @@ eraser(void* native_entity, unsigned call_flags)
 }
 
 static bool
-match_observe(void* native_entity, purc_variant_t val)
+did_matched(void* native_entity, purc_variant_t val)
 {
     if (!purc_variant_is_native(val) && !purc_variant_is_string(val)) {
         return false;
@@ -458,7 +458,7 @@ make_elements(void)
         .updater                    = NULL,
         .cleaner                    = cleaner,
         .eraser                     = eraser,
-        .match_observe              = match_observe,
+        .did_matched                = did_matched,
 
         .on_observe                = on_observe,
         .on_release                = on_release,

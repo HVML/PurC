@@ -67,7 +67,7 @@ typedef struct purc_instance_extra_info {
     purc_rdrcomm_t  renderer_comm;
 
     /**
-     * When using a HEADLESS renderer, you should specify a file
+     * When using an HEADLESS renderer, you should specify a file
      * or a named pipe (FIFO), like `file:///var/tmp/purc-foo-bar-msgs.log`.
      *
      * When using a THREAD renderer, you should specify the endpoint name
@@ -249,26 +249,26 @@ purc_cleanup(void);
 PCA_EXPORT const char *
 purc_get_endpoint(purc_atom_t *atom);
 
-#define PURC_LDNAME_RANDOM_DATA     "random_data"
+#define PURC_LDNAME_RANDOM_DATA     "random-data"
 #define PURC_LDNAME_FORMAT_DOUBLE   "format-double"
 #define PURC_LDNAME_FORMAT_LDOUBLE  "format-long-double"
-#define PURC_LDNAME_PARSE_ERROR     "parse_error"
+#define PURC_LDNAME_PARSE_ERROR     "parse-error"
 
 typedef void (*cb_free_local_data) (void *key, void *local_data);
 
 /**
  * purc_set_local_data:
  *
- * @param data_name: The name of the local data.
- * @param local_data: The value of the local data.
- * @param cb_free: A callback function which will be called automatically
+ * @data_name: The name of the local data.
+ * @local_data: The value of the local data.
+ * @cb_free: A callback function which will be called automatically
  *  by PurC to free the local data when the PurC instance is being destroyed
  *  or the local data is being removed or overwritten. If it is %NULL,
  *  the system does nothing to the local data.
  *
  * This function sets the local data as @local_data which is bound with the
  * name @data_name for the current PurC instance. If you passed a non-NULL
- * function pointer for \a cb_free, the system will call this function to free
+ * function pointer for @cb_free, the system will call this function to free
  * the local data when you clean up the instance, remove the local data, or
  * when you call this function to overwrite the old local data for the name.
  *
@@ -294,13 +294,15 @@ purc_set_local_data(const char* data_name, uintptr_t local_data,
 /**
  * purc_remove_local_data:
  *
- * Remove the local data bound with a name.
+ * @data_name The name for the local data.
  *
- * \param data_name The name for the local data.
+ * Removes the local data bound with the given name.
  *
  * This function removes the local data which is bound with the
- * name \a data_name for the current PurC instance. When you pass %NULL
- * for \a data_name, this function will remove all local data of it.
+ * name given by @data_name for the current PurC instance. When you pass %NULL
+ * for @data_name, this function will remove all local data bound with the
+ * current PurC instance.
+ *
  * Note that this function will call the callback procedure for releasing
  * the local data, if you had set it, when removing the local data.
  *
@@ -314,16 +316,16 @@ purc_remove_local_data(const char* data_name);
 /**
  * purc_get_local_data:
  *
- * Retrieve the local data bound with a name.
+ * @data_name: The name for the local data.
+ * @local_data: The pointer to a uinptr_t variable to return
+ *  the local data.
+ * @cb_free: The pointer to a cb_free_local_data variable to return
+ *  the pointer to the callback function which is used to free the local data.
+ *
+ * Retrieves the local data bound with a name.
  *
  * This function retrieves the local data which is bound with the
- * name \a data_name for the current PurC instance.
- *
- * @param data_name: The name for the local data.
- * @param local_data: The pointer to a uinptr_t variable to return
- *  the local data.
- * @param cb_free: The pointer to a cb_free_local_data variable to return
- *  the pointer to the callback function which is used to free the local data.
+ * name given by @data_name for the current PurC instance.
  *
  * Returns: 1 for success; 0 for no entry found; -1 on error.
  *
@@ -339,7 +341,8 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  * @name: The pointer to the string contains the name for the variable.
  * @variant: The variant.
  *
- * Binds a variant value as the runner-level variable.
+ * Binds a variant value as the runner-level variable for the current PurC
+ * instance.
  *
  * Returns: %true for success; %false for failure.
  *
@@ -353,9 +356,9 @@ purc_bind_runner_variable(const char* name, purc_variant_t variant);
  *
  * @name: The pointer to the string contains the name for the variable.
  *
- * Retrieve a runner-level variable of current PurC instance.
+ * Retrieves a runner-level variable of the current PurC instance.
  *
- * Returns: the variant or PURC_VARIANT_INVALID for failure.
+ * Returns: The variant on success or %PURC_VARIANT_INVALID for failure.
  *
  * Since 0.2.0
  */
@@ -368,9 +371,10 @@ typedef struct pcvdom_document* purc_vdom_t;
 /**
  * purc_load_hvml_from_string:
  *
- * @string: The pointer to the string contains the HVML docment.
+ * @string: The pointer to a null-terminated string which contains
+ *      an HVML program.
  *
- * Loads a HVML program from a string.
+ * Loads an HVML program from a string.
  *
  * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
@@ -382,9 +386,9 @@ purc_load_hvml_from_string(const char* string);
 /**
  * purc_load_hvml_from_file:
  *
- * @file: The pointer to the string contains the file name.
+ * @file: The pointer to a null-terminated string which contains the file name.
  *
- * Loads a HVML program from a file.
+ * Loads an HVML program from a file.
  *
  * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
@@ -396,9 +400,9 @@ purc_load_hvml_from_file(const char* file);
 /**
  * purc_load_hvml_from_url:
  *
- * @url: The pointer to the string contains the URL.
+ * @url: The pointer to a null-terminated string which contains the URL.
  *
- * Loads a HVML program from the speicifed URL.
+ * Loads an HVML program from the speicifed URL.
  *
  * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
@@ -410,9 +414,9 @@ purc_load_hvml_from_url(const char* url);
 /**
  * purc_load_hvml_from_rwstream:
  *
- * @stream: The purc_rwstream object.
+ * @stream: A purc_rwstream object.
  *
- * Loads a HVML program from the specified purc_rwstream object.
+ * Loads an HVML program from the specified #purc_rwstream object.
  *
  * Returns: A valid pointer to the vDOM tree for success; %NULL for failure.
  *
@@ -424,31 +428,39 @@ purc_load_hvml_from_rwstream(purc_rwstream_t stream);
 /**
  * purc_get_conn_to_renderer:
  *
- * Retrieve the connection to the renderer of the current PurC instance.
+ * Retrieves the connection to the renderer of the current PurC instance.
  *
- * Returns: the pointer to the connection structure.
+ * Returns: the pointer to the connection structure; %NULL for failure.
  *
  * Since 0.1.0
  */
 PCA_EXPORT struct pcrdr_conn *
 purc_get_conn_to_renderer(void);
 
-/** The extra renderer information */
+/**
+ * purc_renderer_extra_info:
+ *
+ * The extra renderer information.
+ */
 typedef struct purc_renderer_extra_info {
-    /** the class for layout of the widget */
+    /** The class for layout of the widget */
     const char *klass;
-    /** the title of the widget */
+    /** The title of the widget */
     const char *title;
-    /** the layout style of the page (like `width:100px`) */
+    /** The layout style of the page (like `width:100px`) */
     const char *layout_style;
-    /** the toolkit style of the page (an object variant) */
+    /** The toolkit style of the page (an object variant) */
     purc_variant_t toolkit_style;
 
     /** The page groups to add to the layout DOM */
     const char *page_groups;
 } purc_renderer_extra_info;
 
-/** The rendere page type */
+/**
+ * pcrdr_page_type_k:
+ *
+ * The rendere page type.
+ */
 typedef enum pcrdr_page_type {
 #define PCRDR_PAGE_TYPE_NAME_NULL       "_null"
     /** Do not create or use any page for the HVML coroutine. */
@@ -481,7 +493,7 @@ typedef enum pcrdr_page_type {
 #define PCRDR_PAGE_TYPE_NAME_WIDGET     "widget"
     /** Create a new widget in the specified page group. */
     PCRDR_PAGE_TYPE_WIDGET,
-} pcrdr_page_type;
+} pcrdr_page_type_k;
 
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine *purc_coroutine_t;
@@ -508,14 +520,14 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * Creates a new coroutine to run the specified vDOM.
  * If success, the new coroutine will be in READY state.
  *
- * Returns: The pointer to the new coroutine, 0 for error.
+ * Returns: The pointer to the new coroutine, %NULL for error.
  *
  * Since 0.2.0
  */
 PCA_EXPORT purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data);
@@ -547,6 +559,7 @@ purc_coroutine_set_user_data(purc_coroutine_t cor, void *user_data);
  *
  * @cor: The pointer to a coroutine structure which representing a coroutine.
  *
+ * Gets the user data of the specific coroutine and returns the old one.
  * Binds a variant as the coroutine-level variable of the specified
  * coroutine.
  *
@@ -614,7 +627,7 @@ purc_coroutine_unbind_variable(purc_coroutine_t cor, const char *name);
  *
  * Retrieves a coroutine-level variable from the specified coroutine.
  *
- * Returns: The variant value on success; PURC_VARIANT_INVALID for failure.
+ * Returns: The variant value on success; %PURC_VARIANT_INVALID for failure.
  *
  * Since 0.2.0
  */
@@ -747,16 +760,17 @@ typedef enum purc_cond {
      */
     PURC_COND_SHUTDOWN_ASKED,
 
-} purc_cond_t;
+} purc_cond_k;
 
-typedef int (*purc_cond_handler)(purc_cond_t event, void *arg, void *data);
+typedef int (*purc_cond_handler)(purc_cond_k event, void *arg, void *data);
 
 #define PURC_INVPTR         ((void *)-1)
 
 /**
  * purc_get_cond_handler:
  *
- * Returns: The pointer to the current condition handler; %PURC_INVPTR for error.
+ * Returns: The pointer to the current condition handler;
+ *      %PURC_INVPTR for error.
  *
  * Since 0.2.0
  */
@@ -785,10 +799,10 @@ purc_set_cond_handler(purc_cond_handler handler);
  * @handler: The pointer to a callback function which handles
  *      the runner events.
  *
- * Enter event loop and runs all HVML coroutines which are ready in
+ * Enters the event loop and runs all HVML coroutines which are ready in
  * the current PurC instance.
  *
- * Returns: %true for success; %false for failure.
+ * Returns: 0 for success; -1 for failure.
  *
  * Since 0.0.1
  */
@@ -824,13 +838,13 @@ purc_get_instmgr_rid(void);
 /**
  * purc_inst_create_or_get:
  *
- * @app_name: a pointer to the string contains the app name.
+ * @app_name (nullable): A pointer to the string contains the app name.
  *      If this argument is null, the executable program name of the command
  *      line will be used for the app name.
- * @runner_name: a pointer to the string contains the runner name.
+ * @runner_name (nullable): A pointer to the string contains the runner name.
  *      If this argument is null, `unknown` will be used for the runner name.
- * @cond_handler: a pointer to the condition handler for the new instance.
- * @extra_info: a pointer (nullable) to the extra information for the new
+ * @cond_handler (nullable): A pointer to the condition handler for the new instance.
+ * @extra_info (nullable): A pointer to the extra information for the new
  *      PurC instance, e.g., the type and the URI of the renderer.
  *
  * Creates a new PurC instance or gets the atom value of the existing
@@ -852,7 +866,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
  *  from the current instance.
  *
  * Asks the specified instance to shutdown. This function send a
- * `shutdownIntance` request to the target instance.
+ * `shutdownInstance` request to the target instance.
  *
  * Returns: The return code of the request; -1 on failure to send the request.
  *
@@ -893,7 +907,7 @@ purc_inst_ask_to_shutdown(purc_atom_t inst);
 PCA_EXPORT purc_atom_t
 purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info,
         const char *entry);
@@ -902,10 +916,13 @@ purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
 #define PURC_EVENT_TARGET_BROADCAST     ((purc_atom_t)-1)
 
 /**
- * Post an event message to the instance.
+ * purc_inst_post_event:
  *
- * @param inst: the instance.
- * @param msg: the message structure.
+ * @inst: An atom representing the target PurC instance differs
+ *      from the current instance.
+ * @msg: A pointer to a pcrdr_msg structure which represents the event.
+ *
+ * Posts an event message to a target instance.
  *
  * Returns: -1 for error; zero means everything is ok.
  *
@@ -922,7 +939,7 @@ typedef enum {
 /**
  * purc_inst_emit_signal:
  *
- * @inst: The atom representing the target PurC instance differs
+ * @inst: An atom representing the target PurC instance differs
  *      from the current instance.
  * @signal: The signal will be emitted to the instance.
  *      - PURC_INST_SIGNAL_CANCEL

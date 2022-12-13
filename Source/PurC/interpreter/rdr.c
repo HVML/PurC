@@ -381,7 +381,7 @@ done:
 
 uint64_t
 pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, const char *target_group,
+        pcrdr_page_type_k page_type, const char *target_group,
         const char *page_name, const char *title, const char *classes,
         const char *layout_style, purc_variant_t toolkit_style)
 {
@@ -473,7 +473,7 @@ failed:
 }
 
 bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t plain_window)
+        pcrdr_page_type_k page_type, uint64_t plain_window)
 {
     pcrdr_msg *response_msg = NULL;
 
@@ -536,7 +536,7 @@ failed:
 // property: title, class, style
 bool
 pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
-        pcrdr_page_type page_type, uint64_t plain_window,
+        pcrdr_page_type_k page_type, uint64_t plain_window,
         const char *property, purc_variant_t value)
 {
     pcrdr_msg *response_msg = NULL;
@@ -748,7 +748,7 @@ failed:
 
 bool
 pcintr_attach_to_renderer(pcintr_coroutine_t cor,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info)
 {
@@ -1055,7 +1055,7 @@ static const char *rdr_ops[] = {
 };
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1139,7 +1139,7 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
@@ -1202,7 +1202,7 @@ failed:
 }
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1217,7 +1217,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation op,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        pcdoc_operation op, pcdoc_element_t element,
+        pcdoc_operation_k op, pcdoc_element_t element,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {

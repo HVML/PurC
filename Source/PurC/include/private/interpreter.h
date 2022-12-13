@@ -293,7 +293,7 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
-    pcrdr_page_type             target_page_type;
+    pcrdr_page_type_k             target_page_type;
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
@@ -723,21 +723,21 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr);
+        pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr);
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr);
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr);
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len, bool sync_to_rdr);
 
 static inline int pcintr_util_remove_attribute(purc_document_t doc,
@@ -765,7 +765,7 @@ pcintr_init_loader_once(void);
 
 bool
 pcintr_attach_to_renderer(pcintr_coroutine_t cor,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info);
 

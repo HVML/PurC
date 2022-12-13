@@ -709,9 +709,9 @@ static purc_vdom_t load_hvml(const char *url)
     return vdom;
 }
 
-static pcrdr_page_type get_page_type(purc_variant_t rdr)
+static pcrdr_page_type_k get_page_type(purc_variant_t rdr)
 {
-    pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+    pcrdr_page_type_k page_type = PCRDR_PAGE_TYPE_NULL;
 
     const char *str = NULL;
 
@@ -989,7 +989,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             body_id = purc_variant_get_string_const(tmp);
         }
 
-        pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+        pcrdr_page_type_k page_type = PCRDR_PAGE_TYPE_NULL;
         const char *target_workspace = NULL;
         const char *target_group = NULL;
         const char *page_name = NULL;
@@ -1037,7 +1037,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
 #define MY_VRT_OPTS \
     (PCVRNT_SERIALIZE_OPT_SPACED | PCVRNT_SERIALIZE_OPT_NOSLASHESCAPE)
 
-static int app_cond_handler(purc_cond_t event, void *arg, void *data)
+static int app_cond_handler(purc_cond_k event, void *arg, void *data)
 {
     (void)arg;
     (void)data;
@@ -1150,7 +1150,7 @@ struct crtn_info {
     const char *url;
 };
 
-static int prog_cond_handler(purc_cond_t event, purc_coroutine_t cor,
+static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         void *data)
 {
     if (event == PURC_COND_COR_EXITED) {

@@ -187,7 +187,7 @@ purc_inst_create_move_buffer(unsigned int flags, size_t max_msgs)
     purc_rwlock_writer_lock(&mb_lock);
 
     if (pcutils_sorted_array_find(mb_atom2buff_map,
-                (void *)(uintptr_t)atom, (void **)&mb)) {
+                (void *)(uintptr_t)atom, (void **)&mb, NULL)) {
         mb = NULL;
         errcode = PURC_ERROR_DUPLICATED;
         goto done;
@@ -205,7 +205,7 @@ purc_inst_create_move_buffer(unsigned int flags, size_t max_msgs)
     }
 
     if (pcutils_sorted_array_add(mb_atom2buff_map,
-                (void *)(uintptr_t)atom, mb) < 0) {
+                (void *)(uintptr_t)atom, mb, NULL) < 0) {
         errcode = PURC_ERROR_OUT_OF_MEMORY;
         goto done;
     }
@@ -275,7 +275,7 @@ purc_inst_destroy_move_buffer(void)
     purc_rwlock_writer_lock(&mb_lock);
 
     if (!pcutils_sorted_array_find(mb_atom2buff_map,
-                (void *)(uintptr_t)atom, (void **)&mb)) {
+                (void *)(uintptr_t)atom, (void **)&mb, NULL)) {
         mb = NULL;
         errcode = PURC_ERROR_NOT_EXISTS;
         goto done;
@@ -359,7 +359,7 @@ purc_inst_move_message(purc_atom_t inst_to, pcrdr_msg *msg)
 
     if (inst_to != (purc_atom_t)PURC_EVENT_TARGET_BROADCAST) {
         if (!pcutils_sorted_array_find(mb_atom2buff_map,
-                    (void *)(uintptr_t)inst_to, (void **)&mb)) {
+                    (void *)(uintptr_t)inst_to, (void **)&mb, NULL)) {
             errcode = PURC_ERROR_NOT_EXISTS;
             goto done;
         }
@@ -441,7 +441,7 @@ purc_inst_holding_messages_count(size_t *nr)
     purc_rwlock_reader_lock(&mb_lock);
 
     if (!pcutils_sorted_array_find(mb_atom2buff_map,
-                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb)) {
+                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb, NULL)) {
         errcode = PURC_ERROR_NOT_EXISTS;
         goto done;
     }
@@ -473,7 +473,7 @@ purc_inst_retrieve_message(size_t index)
     purc_rwlock_reader_lock(&mb_lock);
 
     if (!pcutils_sorted_array_find(mb_atom2buff_map,
-                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb)) {
+                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb, NULL)) {
         errcode = PURC_ERROR_NOT_EXISTS;
         goto done;
     }
@@ -522,7 +522,7 @@ purc_inst_take_away_message(size_t index)
     purc_rwlock_reader_lock(&mb_lock);
 
     if (!pcutils_sorted_array_find(mb_atom2buff_map,
-                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb)) {
+                (void *)(uintptr_t)inst->endpoint_atom, (void **)&mb, NULL)) {
         errcode = PURC_ERROR_NOT_EXISTS;
         goto done;
     }

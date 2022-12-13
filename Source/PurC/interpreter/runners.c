@@ -67,12 +67,12 @@ static void create_coroutine(const pcrdr_msg *msg, pcrdr_msg *response)
         curator = (purc_atom_t)u64;
     }
 
-    pcrdr_page_type page_type = PCRDR_PAGE_TYPE_NULL;
+    pcrdr_page_type_k page_type = PCRDR_PAGE_TYPE_NULL;
     tmp = purc_variant_object_get_by_ckey(msg->data, "pageType");
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
-        page_type = (pcrdr_page_type)u64;
+        page_type = (pcrdr_page_type_k)u64;
     }
 
     purc_variant_t request;
@@ -456,7 +456,7 @@ static void create_instance(struct instmgr_info *mgr_info,
             &info, &th);
     if (atom) {
         pcutils_sorted_array_add(mgr_info->sa_insts,
-                (void *)(uintptr_t)atom, th);
+                (void *)(uintptr_t)atom, th, NULL);
         mgr_info->nr_insts++;
     }
 
@@ -530,7 +530,7 @@ static void cancel_instance(struct instmgr_info *info,
 
     void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
@@ -599,7 +599,7 @@ static void kill_instance(struct instmgr_info *info,
 
     void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
@@ -704,7 +704,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
             purc_variant_cast_to_ulongint(msg->elementValue, &sid, false);
 
             if (pcutils_sorted_array_find(info->sa_insts,
-                        (void *)(uintptr_t)sid, NULL)) {
+                        (void *)(uintptr_t)sid, NULL, NULL)) {
                 pcutils_sorted_array_remove(info->sa_insts,
                         (void *)(uintptr_t)sid);
                 info->nr_insts--;
@@ -892,7 +892,7 @@ purc_inst_create_or_get(const char *app_name, const char *runner_name,
 purc_atom_t
 purc_inst_schedule_vdom(purc_atom_t inst, purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_rdr_info,
         const char *body_id)

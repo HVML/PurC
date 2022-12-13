@@ -1820,7 +1820,7 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
 
 static pcintr_coroutine_t
 coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
-        pcrdr_page_type page_type, void *user_data)
+        pcrdr_page_type_k page_type, void *user_data)
 {
     struct pcinst *inst = pcinst_current();
     struct pcintr_heap *heap = inst->intr_heap;
@@ -1925,7 +1925,7 @@ set_body_entry(pcintr_stack_t stack, const char *body_id)
 purc_coroutine_t
 purc_schedule_vdom(purc_vdom_t vdom,
         purc_atom_t curator, purc_variant_t request,
-        pcrdr_page_type page_type, const char *target_workspace,
+        pcrdr_page_type_k page_type, const char *target_workspace,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info, const char *body_id,
         void *user_data)
@@ -3375,7 +3375,7 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 {
     // insert catched text node
     pcintr_stack_t stack = pcintr_get_stack();
-    pcdoc_operation op = PCDOC_OP_APPEND;
+    pcdoc_operation_k op = PCDOC_OP_APPEND;
     pcdoc_element_t elem = stack->curr_edom_elem;
     pcutils_str_t *str = stack->curr_edom_elem_text_content;
 
@@ -3402,7 +3402,7 @@ out:
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
 
@@ -3418,7 +3418,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr)
 {
     UNUSED_PARAM(op);
     UNUSED_PARAM(sync_to_rdr);
@@ -3454,7 +3454,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr)
 {
@@ -3507,7 +3507,7 @@ out:
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len,
         bool sync_to_rdr)
 {

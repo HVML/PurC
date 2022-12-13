@@ -29,10 +29,19 @@
 #sed -i 's/purc_variant_set_iterator_prev/pcvrnt_set_iterator_prev/g' `grep purc_variant_set_iterator_prev * -rl`
 #sed -i 's/purc_variant_set_iterator_get_value/pcvrnt_set_iterator_get_value/g' `grep purc_variant_set_iterator_get_value * -rl`
 
-sed -i 's/purc_variant_set_make_iterator_begin/pcvrnt_set_iterator_create_begin/g' `grep purc_variant_set_make_iterator_begin * -rl`
-sed -i 's/purc_variant_set_make_iterator_end/pcvrnt_set_iterator_create_end/g' `grep purc_variant_set_make_iterator_end * -rl`
-sed -i 's/purc_variant_set_release_iterator/pcvrnt_set_iterator_release/g' `grep purc_variant_set_release_iterator * -rl`
+#sed -i 's/purc_variant_set_make_iterator_begin/pcvrnt_set_iterator_create_begin/g' `grep purc_variant_set_make_iterator_begin * -rl`
+#sed -i 's/purc_variant_set_make_iterator_end/pcvrnt_set_iterator_create_end/g' `grep purc_variant_set_make_iterator_end * -rl`
+#sed -i 's/purc_variant_set_release_iterator/pcvrnt_set_iterator_release/g' `grep purc_variant_set_release_iterator * -rl`
 
 # sed -i 's/FFFF/TTTT/g' `grep FFFF * -rl`
 # sed -i 's/\<FFFF\>/TTTT/g' `grep '\<FFFF\>' * -rl`
 
+# sed -i 's/\<pcrdr_page_type\>/pcrdr_page_type_k/g' `grep '\<pcrdr_page_type\>' * -rl`
+# sed -i 's/\<purc_cond_t\>/purc_cond_k/g' `grep '\<purc_cond_t\>' * -rl`
+
+#sed -i 's/\<purc_document_type\>/purc_document_type_k/g' `grep '\<purc_document_type\>' * -rl`
+#sed -i 's/\<purc_namespace_type\>/purc_namespace_type_k/g' `grep '\<purc_namespace_type\>' * -rl`
+#sed -i 's/\<pcdoc_node_type\>/pcdoc_node_type_k/g' `grep '\<pcdoc_node_type\>' * -rl`
+#sed -i 's/\<pcdoc_special_elem\>/pcdoc_special_elem_k/g' `grep '\<pcdoc_special_elem\>' * -rl`
+#sed -i 's/\<pcdoc_operation\>/pcdoc_operation_k/g' `grep '\<pcdoc_operation\>' * -rl`
+#sed -i 's/\<pcdoc_special_attr\>/pcdoc_special_attr_k/g' `grep '\<pcdoc_special_attr\>' * -rl`

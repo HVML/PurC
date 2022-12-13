@@ -567,7 +567,6 @@ TEST(constraint, basic)
 
     const char *s;
     purc_variant_t set, v, one, a;
-    bool ok;
 
     if (1) {
         s = "[!, [a],[]]";
@@ -611,9 +610,8 @@ TEST(constraint, basic)
 
         PRINT_VARIANT(set);
         PRINT_VARIANT(v);
-        bool overwrite = true;
-        ok = purc_variant_set_add(v, a, overwrite);
-        PC_DEBUGX("ok: %s", ok ? "true" : "false");
+        ssize_t r = purc_variant_set_add(v, a, PCVRNT_CR_METHOD_OVERWRITE);
+        PC_DEBUGX("ok: %s", (r != -1) ? "true" : "false");
         PRINT_VARIANT(v);
         PRINT_VARIANT(set);
 
@@ -650,7 +648,6 @@ TEST(constraint, change_order)
 
     const char *s;
     purc_variant_t set, v;
-    bool overwrite, silently;
 
     s = "[!, 2, 1, 3]";
     if (1) {
@@ -658,10 +655,8 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 0);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
-        overwrite = true;
-        purc_variant_set_add(set, v, overwrite);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
+        purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
         PRINT_VARIANT(set);
@@ -675,10 +670,8 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 1);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
-        overwrite = true;
-        purc_variant_set_add(set, v, overwrite);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
+        purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
         PRINT_VARIANT(set);
@@ -693,10 +686,8 @@ TEST(constraint, change_order)
         v = purc_variant_set_get_by_index(set, 2);
 
         purc_variant_ref(v);
-        silently = true;
-        purc_variant_set_remove(set, v, silently);
-        overwrite = true;
-        purc_variant_set_add(set, v, overwrite);
+        purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE);
+        purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         PURC_VARIANT_SAFE_CLEAR(v);
 
         PRINT_VARIANT(set);
@@ -1061,10 +1052,11 @@ TEST(constraint, set_change)
 {
     PurCInstance purc;
 
-    bool overwrite = true;
+    pcvrnt_cr_method_k cr_method = PCVRNT_CR_METHOD_OVERWRITE;
     bool ok;
     const char *s;
     purc_variant_t set, obj;
+    ssize_t r;
 
     // s = "[!id,{id:foo,val:yes},{id:bar,val:no}]";
     s = "[!id]";
@@ -1086,8 +1078,8 @@ TEST(constraint, set_change)
     obj = pcejson_parser_parse_string(s, 0, 0);
     EXPECT_NE(obj, nullptr);
 
-    ok = purc_variant_set_add(set, obj, overwrite);
-    EXPECT_TRUE(ok);
+    r = purc_variant_set_add(set, obj, cr_method);
+    EXPECT_NE(r, -1);
     PURC_VARIANT_SAFE_CLEAR(obj);
     PRINT_VARIANT(set);
 
@@ -1096,8 +1088,8 @@ TEST(constraint, set_change)
     obj = pcejson_parser_parse_string(s, 0, 0);
     EXPECT_NE(obj, nullptr);
 
-    ok = purc_variant_set_add(set, obj, overwrite);
-    EXPECT_TRUE(ok);
+    r = purc_variant_set_add(set, obj, cr_method);
+    EXPECT_NE(r, -1);
     PRINT_VARIANT(set);
     PURC_VARIANT_SAFE_CLEAR(obj);
 
@@ -1106,8 +1098,8 @@ TEST(constraint, set_change)
     obj = pcejson_parser_parse_string(s, 0, 0);
     EXPECT_NE(obj, nullptr);
 
-    ok = purc_variant_set_add(set, obj, overwrite);
-    EXPECT_TRUE(ok);
+    r = purc_variant_set_add(set, obj, cr_method);
+    EXPECT_NE(r, -1);
     PRINT_VARIANT(set);
 
     PC_DEBUGX("");

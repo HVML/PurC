@@ -252,7 +252,7 @@ pcvariant_set_clear(purc_variant_t set, bool silently)
 
     purc_variant_t v;
     foreach_value_in_variant_set_safe(set, v)
-        if (!purc_variant_set_remove(set, v, silently)) {
+        if (-1 == purc_variant_set_remove(set, v, PCVRNT_NR_METHOD_IGNORE)) {
             goto end;
         }
     end_foreach;
@@ -409,87 +409,6 @@ remove_set_member(void* ctxt, purc_variant_t member,
 {
     UNUSED_PARAM(member_extra);
     return purc_variant_set_remove((purc_variant_t)ctxt, member, silently);
-}
-
-static bool
-add_set_member_override(void* ctxt, purc_variant_t member,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    purc_variant_t cloned = clone_if_necessary(member);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
-    purc_variant_unref(cloned);
-    return ok;
-}
-
-static bool
-set_member_overwrite(void* ctxt, purc_variant_t value,
-        purc_variant_t value_extra, bool silently)
-{
-    UNUSED_PARAM(value_extra);
-    UNUSED_PARAM(silently);
-
-    purc_variant_t cloned = clone_if_necessary(value);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = purc_variant_set_add((purc_variant_t)ctxt, cloned, true);
-    purc_variant_unref(cloned);
-    return ok;
-}
-
-static bool
-subtract_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-
-    purc_variant_t set = (purc_variant_t) ctxt;
-
-    if (pcvariant_is_in_set(set, value)) {
-        return purc_variant_set_remove(set, value, silently);
-    }
-    return true;
-}
-
-static bool
-intersect_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-    UNUSED_PARAM(silently);
-    struct complex_ctxt* c_ctxt = (struct complex_ctxt*) ctxt;
-    purc_variant_t set = (purc_variant_t) c_ctxt->ctxt;
-    purc_variant_t result = (purc_variant_t) c_ctxt->extra;
-
-    purc_variant_t cloned = clone_if_necessary(value);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = pcvariant_is_in_set(set, value) ?
-        purc_variant_array_append(result, cloned) : true;
-    purc_variant_unref(cloned);
-    return ok;
-}
-
-static bool
-xor_set(void* ctxt, purc_variant_t value,
-        purc_variant_t member_extra, bool silently)
-{
-    UNUSED_PARAM(member_extra);
-
-    purc_variant_t set = (purc_variant_t) ctxt;
-
-    if (pcvariant_is_in_set(set, value)) {
-        return purc_variant_set_remove(set, value, silently);
-    }
-    purc_variant_t cloned = clone_if_necessary(value);
-    if (cloned == PURC_VARIANT_INVALID)
-        return false;
-    bool ok = purc_variant_set_add(set, cloned, silently);
-    purc_variant_unref(cloned);
-    return ok;
 }
 
 static bool
@@ -695,7 +614,7 @@ end:
 }
 
 bool
-purc_variant_container_displace(purc_variant_t dst,
+pcvariant_container_displace(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -734,7 +653,7 @@ end:
 }
 
 bool
-purc_variant_container_remove(purc_variant_t dst,
+pcvariant_container_remove(purc_variant_t dst,
         purc_variant_t src, bool silently)
 {
     bool ret = false;
@@ -773,7 +692,7 @@ end:
 }
 
 bool
-purc_variant_array_append_another(purc_variant_t array,
+pcvariant_array_append_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -803,7 +722,7 @@ end:
 }
 
 bool
-purc_variant_array_prepend_another(purc_variant_t array,
+pcvariant_array_prepend_another(purc_variant_t array,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -833,35 +752,7 @@ end:
 }
 
 bool
-purc_variant_object_merge_another(purc_variant_t object,
-        purc_variant_t another, bool silently)
-{
-    bool ret = false;
-
-    if (object == PURC_VARIANT_INVALID || another == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (object == another) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_object(object) || !purc_variant_is_object(another)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    //TODO : id conflict
-    ret = object_foreach(another, add_object_member, object, silently);
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_array_insert_another_before(purc_variant_t array, int idx,
+pcvariant_array_insert_another_before(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -892,7 +783,7 @@ end:
 }
 
 bool
-purc_variant_array_insert_another_after(purc_variant_t array, int idx,
+pcvariant_array_insert_another_after(purc_variant_t array, int idx,
         purc_variant_t another, bool silently)
 {
     bool ret = false;
@@ -918,234 +809,6 @@ purc_variant_array_insert_another_after(purc_variant_t array, int idx,
     c_ctxt.extra = idx;
     ret = array_reverse_foreach(another, insert_after_array_member, &c_ctxt,
             silently);
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_unite(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, add_set_member_override, set, silently);
-    }
-    else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, add_set_member_override, set, silently);
-    }
-    else if (purc_variant_is_tuple(src)) {
-        ret = tuple_foreach(src, add_set_member_override, set, silently);
-    }
-    else {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        ret = false;
-    }
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_intersect(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    purc_variant_t result = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-    if (result == PURC_VARIANT_INVALID) {
-        goto end;
-    }
-
-    struct complex_ctxt c_ctxt;
-    c_ctxt.ctxt = (uintptr_t) set;
-    c_ctxt.extra = (uintptr_t) result;
-
-    if (purc_variant_is_set(src)) {
-        if(set_foreach(src, intersect_set, &c_ctxt, silently)) {
-            ret = set_displace(set, result, silently);
-        }
-    }
-    else if (purc_variant_is_array(src)) {
-        if(array_foreach(src, intersect_set, &c_ctxt, silently)) {
-            ret = set_displace(set, result, silently);
-        }
-    }
-    else if (purc_variant_is_tuple(src)) {
-        if(tuple_foreach(src, intersect_set, &c_ctxt, silently)) {
-            ret = set_displace(set, result, silently);
-        }
-    }
-    else {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        ret = false;
-    }
-
-    purc_variant_unref(result);
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_subtract(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, subtract_set, set, silently);
-    }
-    else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, subtract_set, set, silently);
-    }
-    else if (purc_variant_is_tuple(src)) {
-        ret = tuple_foreach(src, subtract_set, set, silently);
-    }
-    else {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        ret = false;
-    }
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_xor(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    if (purc_variant_is_set(src)) {
-        ret = set_foreach(src, xor_set, set, silently);
-    }
-    else if (purc_variant_is_array(src)) {
-        ret = array_foreach(src, xor_set, set, silently);
-    }
-    else if (purc_variant_is_tuple(src)) {
-        ret = tuple_foreach(src, xor_set, set, silently);
-    }
-    else {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        ret = false;
-    }
-
-end:
-    return ret;
-}
-
-bool
-purc_variant_set_overwrite(purc_variant_t set,
-        purc_variant_t src, bool silently)
-{
-    bool ret = false;
-
-    if (set == PURC_VARIANT_INVALID || src == PURC_VARIANT_INVALID) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_VALUE);
-        goto end;
-    }
-
-    if (set == src) {
-        SET_SILENT_ERROR(PURC_ERROR_INVALID_OPERAND);
-        goto end;
-    }
-
-    if (!purc_variant_is_set(set)) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    const char** keys = NULL;
-    size_t nr_keys = 0;
-    pcvariant_set_get_uniqkeys(set, &nr_keys, &keys);
-    if (nr_keys > 1) {
-        SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-        goto end;
-    }
-
-    enum purc_variant_type type = purc_variant_get_type(src);
-    switch (type) {
-        case PURC_VARIANT_TYPE_OBJECT:
-            ret = set_member_overwrite(set, src, PURC_VARIANT_INVALID, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_ARRAY:
-            ret = array_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_SET:
-            ret = set_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        case PURC_VARIANT_TYPE_TUPLE:
-            ret = tuple_foreach(src, set_member_overwrite, set, silently);
-            break;
-
-        default:
-            SET_SILENT_ERROR(PURC_ERROR_WRONG_DATA_TYPE);
-            break;
-    }
 
 end:
     return ret;

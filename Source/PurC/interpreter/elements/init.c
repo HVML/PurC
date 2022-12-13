@@ -139,10 +139,9 @@ _init_set_with(purc_variant_t set, purc_variant_t arr)
     foreach_value_in_variant_array(arr, v, idx) {
         UNUSED_PARAM(idx);
 
-        bool overwrite = true;
-        bool ok;
-        ok = purc_variant_set_add(set, v, overwrite);
-        if (!ok) {
+        ssize_t r;
+        r = purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
+        if (r == -1) {
             return -1;
         }
     }
