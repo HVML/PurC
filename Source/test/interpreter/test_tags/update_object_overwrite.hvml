@@ -2,7 +2,7 @@
 
 # update object : overwrite
 
-# RESULT: NotAllowed
+# RESULT: {"id":3,"value":"zh_Hans"}
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -17,14 +17,14 @@
         <div id="msg">
         </div>
 
-        <update on="$locales" to="overwrite" with={"id":1, "value":"zh_Hans"} />
+        <update on="$locales" to="overwrite" with={"id":3, "value":"zh_Hans"} />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with [$DATA.count($locales), $locales[0]] />
+        <exit with $locales />
     </body>
 </hvml>
 

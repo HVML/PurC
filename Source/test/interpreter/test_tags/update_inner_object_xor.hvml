@@ -2,7 +2,7 @@
 
 # update inner tuple : xor
 
-# RESULT: {"wrap_array":"NotAllowed","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}
+# RESULT: [{"id":1,"value":"zh_CN"},{"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"success"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -95,7 +95,7 @@
             <update on="$result" at=".wrap_tuple" with="InvalidValue" />
         </catch>
 
-        <exit with $result/>
+        <exit with [$locales, $result]/>
     </body>
 </hvml>
 

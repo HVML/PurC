@@ -457,15 +457,60 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
         }
         break;
 
+    case UPDATE_OP_INTERSECT:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 != purc_variant_object_intersect(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_SUBTRACT:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 == purc_variant_object_subtract(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_XOR:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 != purc_variant_object_xor(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_OVERWRITE:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 == purc_variant_object_overwrite(dst, src,
+                        PCVRNT_NR_METHOD_IGNORE)) {
+                ret = 0;
+            }
+        }
+        break;
+
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
     case UPDATE_OP_ADD:
-    case UPDATE_OP_INTERSECT:
-    case UPDATE_OP_SUBTRACT:
-    case UPDATE_OP_XOR:
-    case UPDATE_OP_OVERWRITE:
     case UPDATE_OP_UNKNOWN:
     default:
         purc_set_error(PURC_ERROR_NOT_ALLOWED);
@@ -539,7 +584,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 r = purc_variant_array_remove(dst, idx);
             }
@@ -661,6 +706,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
         }
         break;
 
+    case UPDATE_OP_MERGE:
     case UPDATE_OP_UNITE:
         {
             if (!is_atrribute_operator(with_op) || idx >= 0) {
@@ -723,7 +769,6 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
         }
         break;
 
-    case UPDATE_OP_MERGE:
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
@@ -771,12 +816,12 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
         break;
 
     case UPDATE_OP_REMOVE:
-    case UPDATE_OP_MERGE:
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
     case UPDATE_OP_ADD:
+    case UPDATE_OP_MERGE:
     case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
@@ -866,10 +911,10 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             break;
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
-        case UPDATE_OP_MERGE:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
         case UPDATE_OP_ADD:
+        case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
         case UPDATE_OP_SUBTRACT:

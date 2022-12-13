@@ -2,7 +2,7 @@
 
 # update inner tuple : overwrite
 
-# RESULT: {"wrap_array":"NotAllowed","wrap_object":"NotAllowed","wrap_set":"NotAllowed","wrap_tuple":"NotAllowed"}
+# RESULT: [{"id":1,"id2":12,"id3":13,"id4":14,"id5":15,"value":"zh_CN"},{"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"success"}]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -28,7 +28,7 @@
             {"type":"object", "locales":$locales}
         </init>
 
-        <update on="$wrap_object" at=".locales" to="overwrite" with={"id2":2}/>
+        <update on="$wrap_object" at=".locales" to="overwrite" with={"id2":12}/>
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_object" with="NotAllowed" />
@@ -43,7 +43,7 @@
             ["array", $locales]
         </init>
 
-        <update on="$wrap_array" at="[1]" to="overwrite" with={"id3":3} />
+        <update on="$wrap_array" at="[1]" to="overwrite" with={"id3":13} />
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_array" with="NotAllowed" />
@@ -62,7 +62,7 @@
             ["set", $locales]
         </init>
 
-        <update on="$wrap_set" at="[1]" to="overwrite" with={"id4":4}/>
+        <update on="$wrap_set" at="[1]" to="overwrite" with={"id4":14}/>
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_set" with="NotAllowed" />
@@ -81,7 +81,7 @@
             [!"tuple", $locales]
         </init>
 
-        <update on="$wrap_tuple" at="[1]" to="overwrite" with={"id5":5}/>
+        <update on="$wrap_tuple" at="[1]" to="overwrite" with={"id5":15}/>
 
         <catch for=`NotAllowed`>
             <update on="$result" at=".wrap_tuple" with="NotAllowed" />
@@ -95,7 +95,7 @@
             <update on="$result" at=".wrap_tuple" with="InvalidValue" />
         </catch>
 
-        <exit with $result/>
+        <exit with [$locales, $result]/>
     </body>
 </hvml>
 
