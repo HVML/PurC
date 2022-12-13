@@ -24,9 +24,8 @@
         <update on="$users[1]" at=".name" with="Richard" />
 
         <update on $users[0] at '.age' with 3 >
+            <update on $users[1] at '.age' with $MATH.add($?.age, 1) />
         </update>
-
-        <update on $users[1] at '.age' with $MATH.add($users[0].age, 1) />
 
         <update on $users[0] at=".avatar" with undefined />
         <update on $users[1] at=".avatar" to="remove" />
