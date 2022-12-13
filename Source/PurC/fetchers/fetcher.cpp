@@ -198,6 +198,8 @@ static int _remote_init_instance(struct pcinst* curr_inst,
         if (!s_remote_fetcher)
             return PURC_ERROR_OUT_OF_MEMORY;
     }
+#else
+    UNUSED_PARAM(curr_inst);
 #endif                                    /* } */
 
     return 0;
