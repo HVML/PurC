@@ -1923,8 +1923,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     // load from network
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
-        if (ctxt->with != PURC_VARIANT_INVALID) {
-        }
         get_source_by_from(stack->co, frame, ctxt);
     }
 
@@ -2000,7 +1998,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
-on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+logic_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     pcintr_stack_t stack = &co->stack;
 
@@ -2076,6 +2074,7 @@ select_child(pcintr_stack_t stack, void* ud)
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
+    bool is_first = false;
     struct pcvdom_node *curr;
 
 again:
@@ -2086,6 +2085,7 @@ again:
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
+        is_first = true;
         purc_clr_error();
     }
     else {
@@ -2095,8 +2095,11 @@ again:
 
     ctxt->curr = curr;
 
+    if (is_first) {
+        logic_process(co, frame);
+    }
+
     if (curr == NULL) {
-        on_child_finished(co, frame);
         return NULL;
     }
 
