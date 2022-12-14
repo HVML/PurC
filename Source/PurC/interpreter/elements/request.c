@@ -44,6 +44,8 @@ struct ctxt_for_request {
 
     purc_variant_t                on;
     purc_variant_t                to;
+    purc_variant_t                as;
+    purc_variant_t                at;
     purc_variant_t                with;
 
     unsigned int                  synchronously:1;
@@ -57,6 +59,7 @@ ctxt_for_request_destroy(struct ctxt_for_request *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->to);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
         PURC_VARIANT_SAFE_CLEAR(ctxt->request_id);
         free(ctxt);
@@ -116,47 +119,42 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     return 0;
 }
 
+static bool
+is_css_selector(const char *s)
+{
+    if (s && (s[0] == '.' || s[0] == '#')) {
+        return true;
+    }
+    return false;
+}
+
+static bool
+is_crtn_uri(const char *s)
+{
+    UNUSED_PARAM(s);
+    return false;
+}
+
+static bool
+is_rdr(purc_variant_t v)
+{
+    UNUSED_PARAM(v);
+    return false;
+}
+
 static int
-post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_atom_t cid)
 {
     UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
 
     int ret = 0;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    purc_variant_t on = ctxt->on;
+    ctxt->request_id = purc_variant_ref(ctxt->on);
     purc_variant_t to = ctxt->to;
-    if (!on || !to || !purc_variant_is_string(to)) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        ret = -1;
-        goto out;
-    }
-
-    purc_atom_t dest_cid = 0;
-    if (purc_variant_is_ulongint(on)) {
-        uint64_t u64;
-        purc_variant_cast_to_ulongint(on, &u64, true);
-        dest_cid = (purc_atom_t) u64;
-        ctxt->request_id = purc_variant_ref(on);
-    }
-    else if (purc_variant_is_string(on)) {
-        // TODO
-        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-        ret = -1;
-        PC_WARN("not implemented on '%s' for request.\n",
-                purc_variant_get_string_const(on));
-        goto out;
-    }
-    else {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        ret = -1;
-        PC_WARN("not supported on with type '%s' for request.\n",
-                pcvariant_typename(on));
-        goto out;
-    }
 
     const char *sub_type = purc_variant_get_string_const(to);
-    pcintr_coroutine_post_event(dest_cid,
+    pcintr_coroutine_post_event(cid,
             PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
             ctxt->request_id,
             MSG_TYPE_REQUEST, sub_type,
@@ -177,6 +175,95 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             frame,
             true
         );
+
+out:
+    return ret;
+}
+
+static int
+request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        const char *uri)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(uri);
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    PC_WARN("not implemented on '%s' for request.\n", uri);
+    return -1;
+}
+
+static int
+request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        const char *selector)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(selector);
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    PC_WARN("not implemented on '%s' for request.\n", selector);
+    return -1;
+}
+
+static int
+request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t rdr)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(rdr);
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    PC_WARN("not implemented on '$RDR' for request.\n");
+    return -1;
+}
+
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+
+    int ret = 0;
+    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    purc_variant_t on = ctxt->on;
+    purc_variant_t to = ctxt->to;
+    if (!on || !to || !purc_variant_is_string(to)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        ret = -1;
+        goto out;
+    }
+
+    if (purc_variant_is_ulongint(on)) {
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(on, &u64, true);
+        purc_atom_t dest_cid = (purc_atom_t) u64;
+        ctxt->request_id = purc_variant_ref(on);
+        ret = request_crtn_by_cid(co, frame, dest_cid);
+    }
+    else if (purc_variant_is_string(on)) {
+        const char *s_to = purc_variant_get_string_const(on);
+        if (is_css_selector(s_to)) {
+            ret = request_elements(co, frame, s_to);
+        }
+        else if (is_crtn_uri(s_to)) {
+            ret = request_crtn_by_uri(co, frame, s_to);
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = -1;
+            PC_WARN("not implemented on '%s' for request.\n",
+                    purc_variant_get_string_const(on));
+        }
+    }
+    else if (is_rdr(on)) {
+        ret = request_rdr(co, frame, on);
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        ret = -1;
+        PC_WARN("not supported on with type '%s' for request.\n",
+                pcvariant_typename(on));
+        goto out;
+    }
 
 out:
     return ret;
@@ -221,6 +308,45 @@ process_attr_to(struct pcintr_stack_frame *frame,
 }
 
 static int
+process_attr_as(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_request *ctxt;
+    ctxt = (struct ctxt_for_request*)frame->ctxt;
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    PURC_VARIANT_SAFE_CLEAR(ctxt->as);
+    ctxt->as = purc_variant_ref(val);
+
+    return 0;
+}
+
+static int
+process_attr_at(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_request *ctxt;
+    ctxt = (struct ctxt_for_request*)frame->ctxt;
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    PURC_VARIANT_SAFE_CLEAR(ctxt->at);
+    ctxt->at = purc_variant_ref(val);
+
+    return 0;
+}
+
+
+static int
 process_attr_with(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
@@ -257,6 +383,12 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TO)) == name) {
         return process_attr_to(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AS)) == name) {
+        return process_attr_as(frame, element, name, val);
+    }
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, AT)) == name) {
+        return process_attr_at(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WITH)) == name) {
         return process_attr_with(frame, element, name, val);
