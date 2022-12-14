@@ -46,6 +46,9 @@
 #define AT_KEY_TEXT_CONTENT         "textContent"
 #define AT_KEY_ATTR                 "attr."
 
+#define KEYWORD_ADD                 "add"
+#define KEYWORD_UPPERCASE_ADD       "ADD"
+
 enum hvml_update_op {
     UPDATE_OP_DISPLACE,
     UPDATE_OP_APPEND,
@@ -54,6 +57,7 @@ enum hvml_update_op {
     UPDATE_OP_REMOVE,
     UPDATE_OP_INSERTBEFORE,
     UPDATE_OP_INSERTAFTER,
+    UPDATE_OP_ADD,
     UPDATE_OP_UNITE,
     UPDATE_OP_INTERSECT,
     UPDATE_OP_SUBTRACT,
@@ -407,7 +411,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            ret = purc_variant_container_displace(dst, src, silently);
+            ret = pcvariant_container_displace(dst, src, silently);
         }
         break;
 
@@ -427,19 +431,71 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 }
                 purc_variant_unref(k);
             }
-            else if (purc_variant_container_remove(dst, src, silently)) {
-                ret = 0;
+            else {
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
         }
         break;
 
     case UPDATE_OP_MERGE:
+    case UPDATE_OP_UNITE:
         {
             if (!is_atrribute_operator(with_op) || key) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_object_merge_another(dst, src, silently)) {
+            ssize_t sz = purc_variant_object_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE);
+            if (sz >= 0) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_INTERSECT:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 != purc_variant_object_intersect(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_SUBTRACT:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 == purc_variant_object_subtract(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_XOR:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 != purc_variant_object_xor(dst, src)) {
+                ret = 0;
+            }
+        }
+        break;
+
+    case UPDATE_OP_OVERWRITE:
+        {
+            if (!is_atrribute_operator(with_op) || key) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+            if (-1 == purc_variant_object_overwrite(dst, src,
+                        PCVRNT_NR_METHOD_IGNORE)) {
                 ret = 0;
             }
         }
@@ -449,11 +505,7 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
-    case UPDATE_OP_UNITE:
-    case UPDATE_OP_INTERSECT:
-    case UPDATE_OP_SUBTRACT:
-    case UPDATE_OP_XOR:
-    case UPDATE_OP_OVERWRITE:
+    case UPDATE_OP_ADD:
     case UPDATE_OP_UNKNOWN:
     default:
         purc_set_error(PURC_ERROR_NOT_ALLOWED);
@@ -491,12 +543,13 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)) {
+        else if (pcvariant_container_displace(dst, src, silently)) {
             ret = 0;
         }
         break;
 
     case UPDATE_OP_APPEND:
+    case UPDATE_OP_ADD:
         {
             if (!is_atrribute_operator(with_op) || idx >= 0) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -526,12 +579,12 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 r = purc_variant_array_remove(dst, idx);
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -608,8 +661,17 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_displace(dst, src, silently)){
+        else if (pcvariant_container_displace(dst, src, silently)){
             ret = 0;
+        }
+        break;
+
+    case UPDATE_OP_ADD:
+        {
+            if (-1 != purc_variant_set_add(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+                ret = 0;
+            }
         }
         break;
 
@@ -619,7 +681,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            bool r;
+            bool r = false;
             if (idx >= 0) {
                 purc_variant_t v = purc_variant_set_remove_by_index(dst, idx);
                 if (v) {
@@ -631,7 +693,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 }
             }
             else {
-                r = purc_variant_container_remove(dst, src, silently);
+                purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             }
             if (r) {
                 ret = 0;
@@ -639,13 +701,15 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
         }
         break;
 
+    case UPDATE_OP_MERGE:
     case UPDATE_OP_UNITE:
         {
             if (!is_atrribute_operator(with_op) || idx >= 0) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_unite(dst, src, silently)) {
+            if (-1 != purc_variant_set_unite(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
                 ret = 0;
             }
         }
@@ -657,7 +721,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_intersect(dst, src, silently)) {
+            if (-1 != purc_variant_set_intersect(dst, src)) {
                 ret = 0;
             }
         }
@@ -669,7 +733,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_subtract(dst, src, silently)) {
+            if (-1 == purc_variant_set_subtract(dst, src)) {
                 ret = 0;
             }
         }
@@ -681,7 +745,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_xor(dst, src, silently)) {
+            if (-1 != purc_variant_set_xor(dst, src)) {
                 ret = 0;
             }
         }
@@ -693,13 +757,13 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_set_overwrite(dst, src, silently)) {
+            if (-1 == purc_variant_set_overwrite(dst, src,
+                        PCVRNT_NR_METHOD_IGNORE)) {
                 ret = 0;
             }
         }
         break;
 
-    case UPDATE_OP_MERGE:
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
@@ -718,6 +782,7 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
         enum pchvml_attr_operator with_op,
         pcintr_attribute_op with_eval, bool silently)
 {
+    UNUSED_PARAM(silently);
     int ret = -1;
     switch (op) {
     case UPDATE_OP_DISPLACE:
@@ -740,17 +805,18 @@ update_variant_tuple(purc_variant_t dst, purc_variant_t src,
                 ret = 0;
             }
         }
-        else if (purc_variant_container_remove(dst, src, silently)){
-            ret = 0;
+        else {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         }
         break;
 
     case UPDATE_OP_REMOVE:
-    case UPDATE_OP_MERGE:
     case UPDATE_OP_APPEND:
     case UPDATE_OP_PREPEND:
     case UPDATE_OP_INSERTBEFORE:
     case UPDATE_OP_INSERTAFTER:
+    case UPDATE_OP_ADD:
+    case UPDATE_OP_MERGE:
     case UPDATE_OP_UNITE:
     case UPDATE_OP_INTERSECT:
     case UPDATE_OP_SUBTRACT:
@@ -840,9 +906,10 @@ update_object(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             break;
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
-        case UPDATE_OP_MERGE:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
+        case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
         case UPDATE_OP_SUBTRACT:
@@ -929,6 +996,7 @@ update_array(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                     with_eval, frame->silently);
             break;
         case UPDATE_OP_APPEND:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
@@ -1012,6 +1080,7 @@ update_set(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
@@ -1090,14 +1159,15 @@ update_tuple(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else {
         switch (ctxt->op) {
         case UPDATE_OP_DISPLACE:
+        case UPDATE_OP_REMOVE:
             ret = update_variant_tuple(dest, src, idx, ctxt->op, ctxt->with_op,
                     with_eval, frame->silently);
             break;
-        case UPDATE_OP_REMOVE:
         case UPDATE_OP_APPEND:
         case UPDATE_OP_PREPEND:
         case UPDATE_OP_INSERTBEFORE:
         case UPDATE_OP_INSERTAFTER:
+        case UPDATE_OP_ADD:
         case UPDATE_OP_MERGE:
         case UPDATE_OP_UNITE:
         case UPDATE_OP_INTERSECT:
@@ -1163,12 +1233,13 @@ update_dest(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     return ret;
 }
 
-static pcdoc_operation convert_operation(enum hvml_update_op operator)
+static pcdoc_operation_k convert_operation(enum hvml_update_op operator)
 {
-    pcdoc_operation op;
+    pcdoc_operation_k op;
 
     switch (operator) {
     case UPDATE_OP_APPEND:
+    case UPDATE_OP_ADD:
         op = PCDOC_OP_APPEND;
         break;
     case UPDATE_OP_PREPEND:
@@ -1216,7 +1287,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
 
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
                 template_data_type, true);
@@ -1242,7 +1313,7 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(to);
     UNUSED_PARAM(with_eval);
 
-    pcdoc_operation op = convert_operation(operator);
+    pcdoc_operation_k op = convert_operation(operator);
     if (op == PCDOC_OP_UNKNOWN) {
         return -1;
     }
@@ -1404,6 +1475,10 @@ to_operator(const char *to)
 {
     enum hvml_update_op ret = UPDATE_OP_UNKNOWN;
     purc_atom_t op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, to);
+    if (!op && strcmp(to, KEYWORD_ADD) == 0) {
+        op = purc_atom_try_string_ex(ATOM_BUCKET_HVML, KEYWORD_UPPERCASE_ADD);
+    }
+
     if (!op) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
@@ -1429,6 +1504,9 @@ to_operator(const char *to)
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INSERTAFTER)) == op) {
         ret = UPDATE_OP_INSERTAFTER;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADD)) == op) {
+        ret = UPDATE_OP_ADD;
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UNITE)) == op) {
         ret = UPDATE_OP_UNITE;
@@ -1493,6 +1571,17 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 out:
     if (ret == 0) {
         pcintr_set_question_var(frame, on);
+    }
+    else {
+        int err = purc_get_last_error();
+        if (frame->silently && pcinst_is_ignorable_error(err)) {
+            purc_variant_t v = purc_variant_make_undefined();
+            pcintr_set_question_var(frame, v);
+            purc_variant_unref(v);
+
+            purc_clr_error();
+            ret = 0;
+        }
     }
     return ret;
 }
@@ -1834,8 +1923,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     // load from network
     purc_variant_t from = ctxt->from;
     if (from != PURC_VARIANT_INVALID && purc_variant_is_string(from)) {
-        if (ctxt->with != PURC_VARIANT_INVALID) {
-        }
         get_source_by_from(stack->co, frame, ctxt);
     }
 
@@ -1911,7 +1998,7 @@ on_comment(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
-on_child_finished(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+logic_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     pcintr_stack_t stack = &co->stack;
 
@@ -1987,6 +2074,7 @@ select_child(pcintr_stack_t stack, void* ud)
     struct ctxt_for_update *ctxt;
     ctxt = (struct ctxt_for_update*)frame->ctxt;
 
+    bool is_first = false;
     struct pcvdom_node *curr;
 
 again:
@@ -1997,6 +2085,7 @@ again:
         struct pcvdom_node *node = &element->node;
         node = pcvdom_node_first_child(node);
         curr = node;
+        is_first = true;
         purc_clr_error();
     }
     else {
@@ -2006,8 +2095,11 @@ again:
 
     ctxt->curr = curr;
 
+    if (is_first) {
+        logic_process(co, frame);
+    }
+
     if (curr == NULL) {
-        on_child_finished(co, frame);
         return NULL;
     }
 

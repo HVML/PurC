@@ -315,7 +315,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         if (purc_variant_is_string(ctxt->on)) {
             // XXX: optimization
             // CSS selector used string
-            // handle by elements.c match_observe
+            // handle by elements.c did_matched
             int ret = pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                     on, ctxt->msg_type, ctxt->sub_type,

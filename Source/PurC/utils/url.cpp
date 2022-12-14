@@ -472,7 +472,14 @@ encode_object(purc_rwstream_t rws, const char *k, purc_variant_t v,
         size_t nr_sk = strlen(sk);
         if (k) {
             key = (char*)malloc(nr_k + nr_sk + 3);
+#if 0
             sprintf(key, "%s[%s]", k, sk);
+#else
+            strcpy(key, k);
+            strcat(key, "[");
+            strcat(key, sk);
+            strcat(key, "]");
+#endif
         }
         else {
             key = strdup(sk);
@@ -634,6 +641,8 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
     char *key = NULL;
     size_t len_expected = 0;
     unsigned int serialize_flags;
+    char buff[2];
+
     if (flags & PCUTILS_URL_OPT_REAL_EJSON) {
         serialize_flags = PCVRNT_SERIALIZE_OPT_REAL_EJSON;
     }
@@ -659,10 +668,19 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
+#if 0
                 sprintf(key, "%s0", numeric_prefix);
+#else
+                strcpy(key, numeric_prefix);
+                strcat(key, "0");
+#endif
             }
             else {
+#if 0
                 key = (char*)malloc(2);
+#else
+                key = buff;
+#endif
                 key[0] = '0';
                 key[1] = 0;
             }
@@ -687,11 +705,21 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
+#if 0
                 sprintf(key, "%s0", numeric_prefix);
+#else
+                strcpy(key, numeric_prefix);
+                strcat(key, "0");
+#endif
             }
             else {
+#if 0
                 key = (char*)malloc(2);
+#else
+                key = buff;
+#endif
                 key[0] = '0';
+                key[1] = 0;
             }
 
             if (!key) {
@@ -713,10 +741,19 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
+#if 0
                 sprintf(key, "%s0", numeric_prefix);
+#else
+                strcpy(key, numeric_prefix);
+                strcat(key, "0");
+#endif
             }
             else {
+#if 0
                 key = (char*)malloc(2);
+#else
+                key = buff;
+#endif
                 key[0] = '0';
                 key[1] = 0;
             }
@@ -740,10 +777,19 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
             }
             else if (numeric_prefix) {
                 key = (char*)malloc(strlen(numeric_prefix) + 2);
+#if 0
                 sprintf(key, "%s0", numeric_prefix);
+#else
+                strcpy(key, numeric_prefix);
+                strcat(key, "0");
+#endif
             }
             else {
+#if 0
                 key = (char*)malloc(2);
+#else
+                key = buff;
+#endif
                 key[0] = '0';
                 key[1] = 0;
             }
@@ -782,7 +828,7 @@ build_query(purc_rwstream_t rws, const char *k, purc_variant_t v,
     }
 
 out:
-    if (key) {
+    if (key && key != buff) {
         free(key);
     }
     return ret;

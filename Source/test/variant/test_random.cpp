@@ -227,7 +227,7 @@ static struct purc_native_ops _dummy_ops = {
     .updater               = NULL,
     .cleaner               = NULL,
     .eraser                = NULL,
-    .match_observe         = NULL,
+    .did_matched         = NULL,
 
     .on_observe           = NULL,
     .on_forget            = NULL,
@@ -402,7 +402,7 @@ static purc_variant_t _make_set(int lvl)
         }
 
         if (ok) {
-            ok = purc_variant_set_add(v, obj, true);
+            ok = purc_variant_set_add(v, obj, PCVRNT_CR_METHOD_OVERWRITE);
         }
         purc_variant_unref(obj);
         if (!ok) {

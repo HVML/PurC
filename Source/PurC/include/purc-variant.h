@@ -33,6 +33,12 @@
 #include "purc-rwstream.h"
 #include "purc-utils.h"
 
+/**
+ * SECTION: purc_variant
+ * @title: Variant
+ * @short_description: Variant is an abstract representation of data for HVML.
+ */
+
 struct purc_variant;
 typedef struct purc_variant purc_variant;
 typedef struct purc_variant* purc_variant_t;
@@ -693,9 +699,8 @@ struct purc_native_ops {
       * the native entity (nullable). */
     purc_variant_t (*eraser)(void* native_entity, unsigned call_flags);
 
-    /** This operation checks if the event specified by @val matches */
-    /* TODO: this operation should be renamed */
-    bool (*match_observe)(void* native_entity, purc_variant_t val);
+    /** This operation checks if the destination specified by @val matches */
+    bool (*did_matched)(void* native_entity, purc_variant_t val);
 
     /**
      * This operation will be called when the variant was observed (nullable).
@@ -1195,7 +1200,7 @@ typedef enum pcvrnt_notfound_resolution_method {
 } pcvrnt_nr_method_k;
 
 /**
- * purc_variant_object_merge:
+ * purc_variant_object_unite:
  *
  * @dst: The destination object variant.
  * @src: The source object variant.
@@ -1208,21 +1213,90 @@ typedef enum pcvrnt_notfound_resolution_method {
  *      - PCVRNT_CR_METHOD_COMPLAIN:
  *        Report %PURC_ERROR_DUPLICATED error.
  *
- * Merges properties in an object (@src) to the destination object (@dst).
+ * Unites properties in an object (@src) to the destination object (@dst).
  *
  * Returns: The number of properties in the destination object changed or added,
  *      -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-     ssize_t purc_variant_object_merge(purc_variant_t dst, purc_variant_t src,
-            pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_object_merge_another(purc_variant_t object,
-        purc_variant_t another, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_object_unite(purc_variant_t dst,
+        purc_variant_t src, pcvrnt_cr_method_k cr_method);
+
+/**
+ * purc_variant_object_intersect:
+ *
+ * @dst: The destination object variant.
+ * @src: The source object variant to intersect.
+ *
+ * Intersect @src with the given destination object, that is, only keeps the
+ * properties which are also existing in @src,
+ * whatever the property values are.
+ *
+ * Returns: The number of properties of the destination object
+ * after intersecting, -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_intersect(purc_variant_t dst, purc_variant_t src);
+
+/**
+ * purc_variant_object_subtract:
+ *
+ * @dst: The destination object variant.
+ * @src: The source object variant to subtract.
+ *
+ * Subtracts @src from the destination object @dst.
+ * It will remove any properties in @dst which is also existing in @src,
+ * whatever the property values are.
+ *
+ * Returns: The number of properties of the destination object
+ * after subtracting, -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_subtract(purc_variant_t dst, purc_variant_t src);
+
+/**
+ * purc_variant_object_xor:
+ *
+ * @dst: The destination object variant.
+ * @src: The source object variant to XOR.
+ *
+ * Does XOR operation on the destination object.
+ *
+ * Returns: The number of properties of the object after the operation,
+ *  -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_xor(purc_variant_t dst, purc_variant_t src);
+
+/**
+ * purc_variant_object_overwrite:
+ *
+ * @dst: The destination object variant to overwrite.
+ * @src: The source object variant.
+ * @nr_method: The method to resolve the not-found error if there is no member
+ *  matched the value in the object.
+ *      - PCVRNT_NR_METHOD_IGNORE:
+ *        Ignore and go on.
+ *      - PCVRNT_NR_METHOD_COMPLAIN:
+ *        Report %PCVRNT_ERROR_NOT_FOUND error.
+ *
+ * Overwrites the properties in the given object with properties in @src.
+ *
+ * Returns: The number of changed properties of the object, -1 on error.
+ *
+ * Since: 0.9.4
+ */
+PCA_EXPORT ssize_t
+purc_variant_object_overwrite(purc_variant_t dst, purc_variant_t src,
+        pcvrnt_nr_method_k nr_method);
 
 /**
  * pcvrnt_object_iterator:
@@ -1524,15 +1598,11 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  * Returns: The number of new members or changed members (1 or 0) in the set,
  * -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-    ssize_t purc_variant_set_add(purc_variant_t set, purc_variant_t value,
-            pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
+PCA_EXPORT ssize_t
+purc_variant_set_add(purc_variant_t set, purc_variant_t value,
+        pcvrnt_cr_method_k cr_method);
 
 /**
  * purc_variant_set_remove:
@@ -1555,15 +1625,11 @@ purc_variant_set_add(purc_variant_t set, purc_variant_t value, bool overwrite);
  * Returns: The number of members removed (1 or 0) in the destination set,
  *  -1 for error.
  *
- * TODO: redefine the prototype as:
- *
-    ssize_t purc_variant_set_remove(purc_variant_t set, purc_variant_t value,
-            pcvrnt_nr_method_k nr_method);
- *
  * Since: 0.0.1
  */
-PCA_EXPORT bool
-purc_variant_set_remove(purc_variant_t obj, purc_variant_t value, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_remove(purc_variant_t obj, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method);
 
 /**
  * purc_variant_set_get_member_by_key_values:
@@ -1709,17 +1775,11 @@ purc_variant_set_set_by_index(purc_variant_t set,
  * Returns: The number of members in the destination set after uniting,
  *  -1 for error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
-                pcvrnt_cr_method_k cr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_unite(purc_variant_t set,
-        purc_variant_t src, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_unite(purc_variant_t set, purc_variant_t value,
+            pcvrnt_cr_method_k cr_method);
 
 /**
  * purc_variant_set_intersect:
@@ -1727,22 +1787,16 @@ purc_variant_set_unite(purc_variant_t set,
  * @set: The destination set variant.
  * @value: The variant to intersect.
  *
- * Intersect @value with the given set, that is, keep the members which
+ * Intersects @value with the given set, that is, only keeps the members which
  * match @value or any member in @value if @value is a linear container.
  *
  * Returns: The number of members of the set after intersecting,
  *  -1 on error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_intersect(purc_variant_t set, purc_variant_t value);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_intersect(purc_variant_t set,
-        purc_variant_t v, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_intersect(purc_variant_t set, purc_variant_t value);
 
 /**
  * purc_variant_set_subtract:
@@ -1758,16 +1812,10 @@ purc_variant_set_intersect(purc_variant_t set,
  * Returns: The number of members of the set after subtracting,
  *  -1 on error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_subtract(purc_variant_t set, purc_variant_t value);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_subtract(purc_variant_t set,
-        purc_variant_t value, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_subtract(purc_variant_t set, purc_variant_t value);
 
 /**
  * purc_variant_set_xor:
@@ -1780,22 +1828,16 @@ purc_variant_set_subtract(purc_variant_t set,
  * Returns: The number of members of the set after the operation,
  *  -1 on error.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_set_xor(purc_variant_t set, purc_variant_t value);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_xor(purc_variant_t set,
-        purc_variant_t value, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_xor(purc_variant_t set, purc_variant_t value);
 
 /**
  * purc_variant_set_overwrite:
  *
- * @set: The destination set variant.
- * @value: The value to overwrite.
+ * @set: The destination set variant to overwrite.
+ * @value: The source variant.
  * @nr_method: The method to resolve the not-found error if there is no member
  *  matched the value in the set.
  *      - PCVRNT_NR_METHOD_IGNORE:
@@ -1808,17 +1850,11 @@ purc_variant_set_xor(purc_variant_t set,
  *
  * Returns: The number of changed members of the set, -1 on error.
  *
- * TODO: Change the prototype to:
- *
-    ssize_t
-    purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
-            pcvrnt_nr_method_k nr_method);
- *
  * Since: 0.0.5
  */
-PCA_EXPORT bool
-purc_variant_set_overwrite(purc_variant_t set,
-        purc_variant_t src, bool silently);
+PCA_EXPORT ssize_t
+purc_variant_set_overwrite(purc_variant_t set, purc_variant_t value,
+        pcvrnt_nr_method_k nr_method);
 
 /**
  * struct pcvrnt_set_iterator:
@@ -2090,14 +2126,9 @@ purc_variant_make_sorted_array(unsigned int flags, size_t sz_init,
  *
  * Returns: A ssize_t indicating the index of the new member, -1 for failure.
  *
- * TODO: Change the prototype as follow:
-
-    ssize_t
-    purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
- *
  * Since: 0.9.2
  */
-PCA_EXPORT int
+PCA_EXPORT ssize_t
 purc_variant_sorted_array_add(purc_variant_t array, purc_variant_t value);
 
 /**
@@ -2142,14 +2173,9 @@ purc_variant_sorted_array_delete(purc_variant_t array, size_t idx);
  *
  * Returns: A ssize_t indicating the index of the found member, -1 for not found.
  *
- * TODO: Change the prototype as follow:
- *
-    ssize_t
-    purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
- *
  * Since: 0.9.2
  */
-PCA_EXPORT bool
+PCA_EXPORT ssize_t
 purc_variant_sorted_array_find(purc_variant_t array, purc_variant_t value);
 
 /**
@@ -3374,125 +3400,6 @@ purc_variant_container_clone(purc_variant_t ctnr);
  */
 PCA_EXPORT purc_variant_t
 purc_variant_container_clone_recursively(purc_variant_t ctnr);
-
-/**
- * Displace the values of the container.
- *
- * @dst: the dst variant (object, array, set)
- * @value: the variant to replace (object, array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * TODO: Bad definition. Maybe define as an internal helper, not a public API.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_container_displace(purc_variant_t dst,
-        purc_variant_t src, bool silently);
-
-/**
- * Remove the values from the container.
- *
- * @dst: the dst variant (object, array, set)
- * @value: the variant to remove from container (object, array, set)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *      - PCVRNT_ERROR_NOT_FOUND
- *
- * Returns: %true on success, otherwise %false.
- *
- * TODO: Bad definition. Maybe define as an internal helper, not a public API.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_container_remove(purc_variant_t dst,
-        purc_variant_t src, bool silently);
-
-/**
- * Appends all the members of the array to the tail of the target array.
- *
- * @array: the dst array variant
- * @value: the value to be appended (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * TODO: Should be defined as an internal helper, not a public API.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_append_another(purc_variant_t array,
-        purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array to the head of the target array.
- *
- * @array: the dst array variant
- * @value: the value to be insert (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * TODO: Should be defined as an internal helper, not a public API.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_prepend_another(purc_variant_t array,
-        purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array into the target array and place it
- * after the indicated element.
- *
- * @array: the dst array variant
- * @idx: the index of element before which the new value will be placed
- * @value: the inserted value (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * TODO: Should be defined as an internal helper, not a public API.
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_insert_another_before(purc_variant_t array,
-        int idx, purc_variant_t another, bool silently);
-
-/**
- * Insert all the members of the array into the target array and place it
- * after the specified element
- *
- * @array: the dst array variant
- * @idx: the index of element after which the new value will be placed
- * @value: the inserted value (array)
- * @silently: %true means ignoring the following errors:
- *      - PURC_ERROR_INVALID_VALUE
- *      - PURC_ERROR_WRONG_DATA_TYPE
- *
- * Returns: %true on success, otherwise %false.
- *
- * TODO: Should be defined as an internal helper, not a public API.
- *
- * Since: 0.0.5
- */
-PCA_EXPORT bool
-purc_variant_array_insert_another_after(purc_variant_t array,
-        int idx, purc_variant_t another, bool silently);
 
 struct purc_ejson_parsing_tree;
 

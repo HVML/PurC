@@ -49,7 +49,7 @@ static void* general_thread_entry(void* arg)
 
     char runner_name[32];
 
-    sprintf(runner_name, "requester%d", nr);
+    snprintf(runner_name, sizeof(runner_name), "requester%d", nr);
 
     // initial purc instance
     int ret = purc_init_ex(PURC_MODULE_VARIANT, APP_NAME,

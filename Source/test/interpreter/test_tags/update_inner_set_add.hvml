@@ -1,0 +1,75 @@
+#!/usr/bin/purc
+
+# update inner set : add
+
+# RESULT: [6UL, {"wrap_array":"success","wrap_object":"success","wrap_set":"success","wrap_tuple":"success"}]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="result">
+        {
+            "wrap_object":"success",
+            "wrap_array":"success",
+            "wrap_set":"success",
+            "wrap_tuple":"success"
+        }
+        </init>
+
+        <init as="locales" uniquely>
+            [ "zh_CN", "zh_HK" ]
+        </init>
+
+        <!-- wrap  -->
+        <init as="wrap_object">
+            {"type":"object", "locales":$locales}
+        </init>
+
+        <update on="$wrap_object" at=".locales" to="add" with="en"/>
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_object" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_array">
+            ["array", $locales]
+        </init>
+
+        <update on="$wrap_array" at="[1]" to="add" with="en_AU" />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_array" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_set" uniquely>
+            ["set", $locales]
+        </init>
+
+        <update on="$wrap_set" at="[1]" to="add" with="en_US" />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_set" with="NotAllowed" />
+        </catch>
+
+        <!-- wrap -->
+        <init as="wrap_tuple">
+            [!"tuple", $locales]
+        </init>
+
+        <update on="$wrap_tuple" at="[1]" to="add" with="en_UK" />
+
+        <catch for=`NotAllowed`>
+            <update on="$result" at=".wrap_tuple" with="NotAllowed" />
+        </catch>
+
+        <exit with [$DATA.count($locales), $result] />
+    </body>
+</hvml>
+
+
+

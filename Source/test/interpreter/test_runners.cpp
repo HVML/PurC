@@ -124,7 +124,7 @@ static purc_atom_t start_worker(purc_atom_t curator, purc_vdom_t vdom, int idx,
         purc_variant_t request, purc_variant_t toolkit_style)
 {
     char worker_name[sizeof("worker") + 10];
-    sprintf(worker_name, "worker%d", idx);
+    snprintf(worker_name, sizeof(worker_name), "worker%d", idx);
 
     purc_atom_t work_inst = purc_inst_create_or_get(APP_NAME,
             worker_name, work_cond_handler, &worker_info);

@@ -2,7 +2,7 @@
 
 # update object : xor
 
-# RESULT: NotAllowed
+# RESULT: {"id":1, "pos":1}
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -17,14 +17,14 @@
         <div id="msg">
         </div>
 
-        <update on="$locales" to="xor" with=["zh_CN", "en", "en_US"] />
+        <update on="$locales" to="xor" with={"value":"en_US", "pos":1} />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with [$DATA.count($locales), $locales[0], $locales[1], $locales[2]] />
+        <exit with $locales />
     </body>
 </hvml>
 

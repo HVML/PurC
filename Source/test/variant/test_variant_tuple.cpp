@@ -171,8 +171,8 @@ TEST(variant, tuple_as_member)
 
     purc_variant_t st = purc_variant_make_set(0, NULL, PURC_VARIANT_INVALID);
     ASSERT_NE(st, nullptr);
-    r = purc_variant_set_add(st, tuple, true);
-    ASSERT_EQ(r, true);
+    ssize_t t = purc_variant_set_add(st, tuple, PCVRNT_CR_METHOD_OVERWRITE);
+    ASSERT_NE(t, -1);
     v = purc_variant_set_get_by_index(st, 0);
     ASSERT_EQ(v, tuple);
 
@@ -273,11 +273,11 @@ static bool tuple_change_handler (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    uint64_t pos;
-    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    int64_t pos;
+    purc_variant_cast_to_longint(argv[0], &pos, false);
     fprintf(stderr, "change listener\n");
     fprintf(stderr, "nr_args=%ld\n", nr_args);
-    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "pos=%lld\n", (long long)pos);
     fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
     fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
     fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));
@@ -298,11 +298,11 @@ static bool tuple_changed_handler (
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
-    uint64_t pos;
-    purc_variant_cast_to_ulongint(argv[0], &pos, false);
+    int64_t pos;
+    purc_variant_cast_to_longint(argv[0], &pos, false);
     fprintf(stderr, "changed listener\n");
     fprintf(stderr, "nr_args=%ld\n", nr_args);
-    fprintf(stderr, "pos=%ld\n", pos);
+    fprintf(stderr, "pos=%lld\n", (long long)pos);
     fprintf(stderr, "o=%s\n", pcvariant_typename(argv[1]));
     fprintf(stderr, "n=%s\n", pcvariant_typename(argv[2]));
     fprintf(stderr, "n=%s\n", purc_variant_get_string_const(argv[2]));
@@ -460,7 +460,7 @@ TEST(variant, tuple_as_set_member)
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);
 
-    purc_variant_set_add(st, tuple, true);
+    purc_variant_set_add(st, tuple, PCVRNT_CR_METHOD_OVERWRITE);
     purc_variant_t v = purc_variant_set_remove_by_index(st, 0);
     purc_variant_unref(v);
 
@@ -496,11 +496,11 @@ TEST(variant, tuple_as_set_member_constraint)
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);
 
-    bool ret = purc_variant_set_add(st, tuple, true);
-    ASSERT_EQ(ret, true);
+    ssize_t r = purc_variant_set_add(st, tuple, PCVRNT_CR_METHOD_OVERWRITE);
+    ASSERT_NE(r, -1);
 
-    ret = purc_variant_set_add(tp, tuple, true);
-    ASSERT_EQ(ret, false);
+    r = purc_variant_set_add(st, tuple, PCVRNT_CR_METHOD_OVERWRITE);
+    ASSERT_EQ(r, 0);
 
     purc_variant_revoke_listener(st, listener);
 
@@ -542,11 +542,11 @@ TEST(variant, tuple_as_set_member_constraint_with_key)
     listener = purc_variant_register_pre_listener(st, (pcvar_op_t)op,
             dump_handle, st);
 
-    bool ret = purc_variant_set_add(st, ob_1, true);
-    ASSERT_EQ(ret, true);
+    ssize_t ret = purc_variant_set_add(st, ob_1, PCVRNT_CR_METHOD_OVERWRITE);
+    ASSERT_EQ(ret, 1);
 
-    ret = purc_variant_set_add(tp, ob_2, true);
-    ASSERT_EQ(ret, false);
+    ret = purc_variant_set_add(st, ob_2, PCVRNT_CR_METHOD_OVERWRITE);
+    ASSERT_EQ(ret, 1);
 
     purc_variant_revoke_listener(st, listener);
 

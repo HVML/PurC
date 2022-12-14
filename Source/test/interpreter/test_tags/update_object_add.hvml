@@ -1,0 +1,32 @@
+#!/usr/bin/purc
+
+# update object : add
+
+# RESULT: NotAllowed
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="locales">
+            {"id":1, "value":"zh_CN"}
+        </init>
+
+        <div id="msg">
+        </div>
+
+        <update on="$locales" to="add" with="zh" />
+
+        <catch for=`NotAllowed`>
+            <update on="#msg" at="textContent" with="NotAllowed" />
+            <exit with "NotAllowed" />
+        </catch>
+
+        <exit with $locales[0] />
+    </body>
+</hvml>
+
+
+

@@ -1919,7 +1919,7 @@ static void dump_ucs(const uint32_t *ucs, size_t nr_ucs)
             utf8[len] = 0;
         }
         else {
-            sprintf(utf8, "<U+%X>", ucs[i]);
+            snprintf(utf8, sizeof(utf8), "<U+%X>", ucs[i]);
         }
         fputs(utf8, stdout);
     }

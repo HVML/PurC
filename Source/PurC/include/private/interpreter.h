@@ -42,6 +42,7 @@
 #include "private/sorted-array.h"
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
+#define CRTN_TOKEN_LEN          15
 
 #define MSG_EVENT_SEPARATOR          ':'
 
@@ -76,6 +77,10 @@
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
+
+#define CRTN_TOKEN_MAIN               "_main"
+#define CRTN_TOKEN_FIRST              "_first"
+#define CRTN_TOKEN_LAST               "_last"
 
 struct pcintr_heap;
 typedef struct pcintr_heap pcintr_heap;
@@ -121,6 +126,7 @@ struct pcintr_heap {
     struct sorted_array *wait_timeout_crtns;
 
     pcutils_map        *name_chan_map;  // name to channel map.
+    pcutils_map        *token_crtn_map; // token to crtn map.
 
     purc_atom_t         move_buff;
     pcintr_timer_t     *event_timer;    // 10ms
@@ -284,6 +290,7 @@ struct pcintr_coroutine {
     purc_atom_t                 curator;
 
     purc_vdom_t                 vdom;
+    char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
     pcrdr_page_type_k             target_page_type;
@@ -342,6 +349,8 @@ struct pcintr_coroutine {
     void                       *user_data;
     unsigned long               run_idx;
     time_t                      stopped_timeout;
+
+    uint32_t                    is_main:1;
 };
 
 enum purc_symbol_var {
@@ -714,21 +723,21 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr);
+        pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr);
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr);
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr);
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len, bool sync_to_rdr);
 
 static inline int pcintr_util_remove_attribute(purc_document_t doc,
@@ -821,6 +830,11 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
             ignore_content);
 }
 
+const char *
+pcintr_coroutine_get_token(pcintr_coroutine_t cor);
+
+int
+pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token);
 
 PCA_EXTERN_C_END
 

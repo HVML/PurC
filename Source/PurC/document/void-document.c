@@ -55,7 +55,7 @@ static void destroy(purc_document_t doc)
 }
 
 static pcdoc_element_t operate_element(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *tag, bool self_close)
 {
     UNUSED_PARAM(doc);
@@ -68,7 +68,7 @@ static pcdoc_element_t operate_element(purc_document_t doc,
 }
 
 static pcdoc_text_node_t new_text_content(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *content, size_t length)
 {
     UNUSED_PARAM(elem);
@@ -80,7 +80,7 @@ static pcdoc_text_node_t new_text_content(purc_document_t doc,
 }
 
 static pcdoc_node new_content(purc_document_t doc,
-            pcdoc_element_t elem, pcdoc_operation op,
+            pcdoc_element_t elem, pcdoc_operation_k op,
             const char *content, size_t length)
 {
     UNUSED_PARAM(elem);
@@ -95,7 +95,7 @@ static pcdoc_node new_content(purc_document_t doc,
 }
 
 static pcdoc_element_t special_elem(purc_document_t doc,
-            pcdoc_special_elem elem)
+            pcdoc_special_elem_k elem)
 {
     UNUSED_PARAM(elem);
 

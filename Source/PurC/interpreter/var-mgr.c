@@ -302,7 +302,7 @@ bool pcvarmgr_add(pcvarmgr_t mgr, const char* name,
         case PURC_VARIANT_TYPE_ARRAY:
         case PURC_VARIANT_TYPE_SET:
             // XXX: observe on=$name
-            ret = purc_variant_container_displace(v, variant, false);
+            ret = pcvariant_container_displace(v, variant, false);
             break;
 
         default:
@@ -750,7 +750,7 @@ pcintr_unbind_named_var(pcintr_stack_t stack, const char *name)
 }
 
 static bool
-match_observe(void *native_entity, purc_variant_t val)
+did_matched(void *native_entity, purc_variant_t val)
 {
     UNUSED_PARAM(native_entity);
     UNUSED_PARAM(val);
@@ -850,7 +850,7 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
         .updater                    = NULL,
         .cleaner                    = NULL,
         .eraser                     = NULL,
-        .match_observe              = match_observe,
+        .did_matched               = did_matched,
 
         .on_observe                = on_observe,
         .on_release                = on_release,

@@ -1,0 +1,28 @@
+{
+    "name" : "unite_003_object_object",
+    "ignore" : false,
+    "error" : 0,
+    "ops" : "unite",
+    "dst_type" : "object",
+    "dst_unique_key" : null,
+    "dst" :
+    {
+        "id":1,
+        "name":"C Language"
+    },
+    "src_type" : "object",
+    "src_unique_key" : null,
+    "src" :
+    {
+        "page":325,
+        "size":1024
+    },
+    "cmp" :
+    {
+        "id":1,
+        "name":"C Language",
+        "page":325,
+        "size":1024
+    }
+}
+

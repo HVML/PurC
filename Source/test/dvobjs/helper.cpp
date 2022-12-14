@@ -82,7 +82,7 @@ static struct purc_native_ops rws_ops = {
     .updater               = NULL,
     .cleaner               = NULL,
     .eraser                = NULL,
-    .match_observe         = NULL,
+    .did_matched           = NULL,
 
     .on_observe           = NULL,
     .on_forget            = NULL,
@@ -334,7 +334,8 @@ purc_variant_t get_variant (char *buf, size_t *length)
                     for (i = 0; i < number; i++) {
                         val = get_variant (temp, &length_sub);
                         PC_ASSERT(purc_variant_is_object(val));
-                        purc_variant_set_add (ret_var, val, true);
+                        purc_variant_set_add (ret_var, val,
+                                PCVRNT_CR_METHOD_OVERWRITE);
                         purc_variant_unref (val);
                         if (i < number - 1)
                             temp += (length_sub + 1);

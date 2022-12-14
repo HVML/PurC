@@ -438,11 +438,11 @@ pcexe_cache_set(purc_variant_t input, bool asc_desc)
         return PURC_VARIANT_INVALID;
     }
 
-    bool ok = true;
+    ssize_t r;
     purc_variant_t v;
     foreach_value_in_variant_set(input, v)
-        ok = purc_variant_set_add(cache, v, false);
-        if (!ok)
+        r = purc_variant_set_add(cache, v, PCVRNT_CR_METHOD_COMPLAIN);
+        if (r == -1)
             break;
     end_foreach;
 
@@ -451,7 +451,7 @@ pcexe_cache_set(purc_variant_t input, bool asc_desc)
         unique_key = NULL;
     }
 
-    if (!ok) {
+    if (r == -1) {
         purc_variant_unref(cache);
         return PURC_VARIANT_INVALID;
     }

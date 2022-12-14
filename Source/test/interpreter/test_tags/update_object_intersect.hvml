@@ -2,7 +2,7 @@
 
 # update object : intersect
 
-# RESULT: NotAllowed
+# RESULT: {"value":"zh_CN"}
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -17,13 +17,14 @@
         <div id="msg">
         </div>
 
-        <update on="$locales" to="intersect" with=["zh_CN", "en", "en_US"] />
+        <update on="$locales" to="intersect" with={"value" : "en_US"} />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
+        <exit with $locales />
     </body>
 </hvml>
 

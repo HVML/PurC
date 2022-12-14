@@ -133,8 +133,8 @@ TEST(variant_set, non_object)
             purc_variant_t s;
             s = purc_variant_make_string_static(elem, false);
             ASSERT_NE(s, PURC_VARIANT_INVALID);
-            bool ok = purc_variant_set_add(set, s, false);
-            ASSERT_FALSE(ok);
+            ssize_t r = purc_variant_set_add(set, s, PCVRNT_CR_METHOD_COMPLAIN);
+            ASSERT_EQ(r, -1);
             purc_variant_unref(s);
         }
 
@@ -213,8 +213,8 @@ TEST(variant_set, add_1_str)
     size_t sz;
     purc_variant_set_size(var, &sz);
     ASSERT_EQ(sz, 0);
-    bool t = purc_variant_set_add(var, obj, false);
-    ASSERT_EQ(t, true);
+    ssize_t r = purc_variant_set_add(var, obj, PCVRNT_CR_METHOD_COMPLAIN);
+    ASSERT_NE(r, -1);
     purc_variant_set_size(var, &sz);
     ASSERT_EQ(sz, 1);
 
@@ -265,8 +265,8 @@ TEST(variant_set, add_n_str)
         purc_variant_t obj;
         obj = purc_variant_make_object_by_static_ckey(1, "hello", s);
         ASSERT_NE(obj, nullptr);
-        bool t = purc_variant_set_add(var, obj, false);
-        ASSERT_EQ(t, true);
+        int r = purc_variant_set_add(var, obj, PCVRNT_CR_METHOD_COMPLAIN);
+        ASSERT_NE(r, -1);
 
         ASSERT_TRUE(sanity_check(var));
 
@@ -298,8 +298,8 @@ TEST(variant_set, add_n_str)
         ASSERT_EQ(v->type, PVT(_OBJECT));
         ASSERT_EQ(v->refc, 1);
         if (1) {
-            bool ok = purc_variant_set_remove(var, v, false);
-            ASSERT_EQ(ok, true);
+            ssize_t r = purc_variant_set_remove(var, v, PCVRNT_NR_METHOD_COMPLAIN);
+            ASSERT_EQ(r, 1);
 
             ASSERT_TRUE(sanity_check(var));
         }
@@ -375,20 +375,18 @@ TEST(variant_set, dup)
         v = purc_variant_make_object_by_static_ckey(0,
                 NULL, PURC_VARIANT_INVALID);
         ASSERT_NE(v, nullptr);
-        bool ok;
-        ok = purc_variant_set_add(set, v, true);
+        ssize_t r = purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         purc_variant_unref(v);
-        ASSERT_TRUE(ok);
+        ASSERT_NE(r, -1);
     }
     if (1) {
         purc_variant_t v;
         v = purc_variant_make_object_by_static_ckey(0,
                 NULL, PURC_VARIANT_INVALID);
         ASSERT_NE(v, nullptr);
-        bool ok;
-        ok = purc_variant_set_add(set, v, true);
+        ssize_t r = purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         purc_variant_unref(v);
-        ASSERT_TRUE(ok);
+        ASSERT_NE(r, -1);
     }
     if (1) {
         purc_variant_t foo = purc_variant_make_string_static("foo", false);
@@ -398,12 +396,12 @@ TEST(variant_set, dup)
                 "hello", foo);
         purc_variant_unref(foo);
         ASSERT_NE(v, nullptr);
-        bool ok;
-        ok = purc_variant_set_add(set, v, true);
-        ASSERT_TRUE(ok);
-        ok = purc_variant_set_add(set, v, true);
+        ssize_t r;
+        r = purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
+        ASSERT_NE(r, -1);
+        r = purc_variant_set_add(set, v, PCVRNT_CR_METHOD_OVERWRITE);
         purc_variant_unref(v);
-        ASSERT_TRUE(ok);
+        ASSERT_NE(r, -1);
     }
 
     purc_variant_unref(set);
@@ -436,9 +434,9 @@ make_set(const int *vals, size_t nr)
             ok = false;
             break;
         }
-        ok = purc_variant_set_add(set, o, true);
+        ssize_t r = purc_variant_set_add(set, o, PCVRNT_CR_METHOD_OVERWRITE);
         purc_variant_unref(o);
-        if (!ok)
+        if (r == -1)
             break;
     }
 
@@ -560,9 +558,9 @@ make_generic_set(size_t nr, ...)
         return PURC_VARIANT_INVALID;
     }
 
-    ok = purc_variant_set_add(set, obj, false);
+    ssize_t r = purc_variant_set_add(set, obj, PCVRNT_CR_METHOD_COMPLAIN);
     purc_variant_unref(obj);
-    if (!ok) {
+    if (r == -1) {
         purc_variant_unref(set);
         return PURC_VARIANT_INVALID;
     }
@@ -1093,8 +1091,7 @@ TEST(variant, set)
         size_t idx;
         foreach_value_in_variant_array(arr, v, idx) {
             (void)idx;
-            bool overwrite = true;
-            purc_variant_set_add(tmp, v, overwrite);
+            purc_variant_set_add(tmp, v, PCVRNT_CR_METHOD_OVERWRITE);
         }
         end_foreach;
 

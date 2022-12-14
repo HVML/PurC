@@ -536,6 +536,11 @@ static void _cleanup_instance(struct pcinst* inst)
         heap->name_chan_map = NULL;
     }
 
+    if (heap->token_crtn_map) {
+        pcutils_map_destroy(heap->token_crtn_map);
+        heap->token_crtn_map = NULL;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -583,6 +588,10 @@ static int _init_instance(struct pcinst* inst,
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
                 (free_val_fn)pcchan_destroy, comp_key_string, false);
+
+    heap->token_crtn_map =
+        pcutils_map_create(copy_key_string, free_key_string, NULL, NULL,
+                comp_key_string, false);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
@@ -1606,6 +1615,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
     }
 
     list_del(&co->ln);
+    pcutils_map_erase(heap->token_crtn_map, co->token);
     coroutine_destroy(co);
 
     if (heap->keep_alive == 0 && list_empty(&heap->crtns)
@@ -1758,6 +1768,28 @@ static void init_frame_for_co(pcintr_coroutine_t co)
     co->stage = CO_STAGE_FIRST_RUN;
 }
 
+#if HAVE(STDATOMIC_H)
+
+#include <stdatomic.h>
+
+static unsigned long
+pcintr_gen_crtn_id()
+{
+    static atomic_ulong atomic_accumulator;
+    return atomic_fetch_add(&atomic_accumulator, 1);
+}
+
+#else /* HAVE(STDATOMIC_H) */
+
+static unsigned long
+pcintr_gen_crtn_id()
+{
+    static unsigned long accumulator;
+    return accumulator++;
+}
+
+#endif  /* !HAVE(STDATOMIC_H) */
+
 static int set_coroutine_id(pcintr_coroutine_t coroutine)
 {
     pcintr_heap_t heap = pcintr_get_heap();
@@ -1773,11 +1805,14 @@ static int set_coroutine_id(pcintr_coroutine_t coroutine)
         return -1;
     }
 
-    char id_buf[PURC_LEN_UNIQUE_ID + 1];
-    purc_generate_unique_id(id_buf, COROUTINE_PREFIX);
+    unsigned long id = pcintr_gen_crtn_id();
 
-    sprintf(p, "%s/%s", inst->endpoint_name, id_buf);
+    sprintf(p, "%s/%ld", inst->endpoint_name, id);
     coroutine->cid = purc_atom_from_string_ex(PURC_ATOM_BUCKET_DEF, p);
+    if (pcutils_map_get_size(heap->token_crtn_map) == 0) {
+        coroutine->is_main = 1;
+    }
+    sprintf(coroutine->token, "%ld", id);
     free(p);
 
     return 0;
@@ -1800,6 +1835,11 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     if (set_coroutine_id(co)) {
+        goto fail_co;
+    }
+
+    if (pcutils_map_insert(heap->token_crtn_map, co->token, co)) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto fail_co;
     }
 
@@ -3335,7 +3375,7 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 {
     // insert catched text node
     pcintr_stack_t stack = pcintr_get_stack();
-    pcdoc_operation op = PCDOC_OP_APPEND;
+    pcdoc_operation_k op = PCDOC_OP_APPEND;
     pcdoc_element_t elem = stack->curr_edom_elem;
     pcutils_str_t *str = stack->curr_edom_elem_text_content;
 
@@ -3362,7 +3402,7 @@ out:
 
 pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *tag, bool self_close, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr)
 {
     pcdoc_element_t new_elem;
 
@@ -3378,7 +3418,7 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation op, const char *txt, size_t len, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr)
 {
     UNUSED_PARAM(op);
     UNUSED_PARAM(sync_to_rdr);
@@ -3414,7 +3454,7 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr)
 {
@@ -3467,7 +3507,7 @@ out:
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
-        pcdoc_element_t elem, pcdoc_operation op,
+        pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len,
         bool sync_to_rdr)
 {

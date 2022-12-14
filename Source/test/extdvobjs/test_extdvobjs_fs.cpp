@@ -2718,7 +2718,7 @@ TEST(dvobjs, dvobjs_fs_touch)
     memset(&file_stat, 0, sizeof(file_stat));
     stat(file_path, &file_stat);
     char old[128];
-    sprintf (old, "%s", ctime(&file_stat.st_atime));
+    strcpy(old, ctime(&file_stat.st_atime));
     printf ("TEST list: nr_args = 1, param[0] = path:\n");
     param[0] = purc_variant_make_string (file_path, true);
     ret_var = func (NULL, 1, param, false);

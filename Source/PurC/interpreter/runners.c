@@ -456,7 +456,7 @@ static void create_instance(struct instmgr_info *mgr_info,
             &info, &th);
     if (atom) {
         pcutils_sorted_array_add(mgr_info->sa_insts,
-                (void *)(uintptr_t)atom, th);
+                (void *)(uintptr_t)atom, th, NULL);
         mgr_info->nr_insts++;
     }
 
@@ -530,7 +530,7 @@ static void cancel_instance(struct instmgr_info *info,
 
     void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
@@ -599,7 +599,7 @@ static void kill_instance(struct instmgr_info *info,
 
     void *th;
     if (!pcutils_sorted_array_find(info->sa_insts, (void *)(uintptr_t)atom,
-            (void **)&th)) {
+            (void **)&th, NULL)) {
         response->retCode = PCRDR_SC_GONE;
         response->resultValue = (uint64_t)atom;
     }
@@ -704,7 +704,7 @@ void pcrun_instmgr_handle_message(void *ctxt)
             purc_variant_cast_to_ulongint(msg->elementValue, &sid, false);
 
             if (pcutils_sorted_array_find(info->sa_insts,
-                        (void *)(uintptr_t)sid, NULL)) {
+                        (void *)(uintptr_t)sid, NULL, NULL)) {
                 pcutils_sorted_array_remove(info->sa_insts,
                         (void *)(uintptr_t)sid);
                 info->nr_insts--;

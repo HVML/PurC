@@ -65,8 +65,8 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     for (size_t i = 0; i < frame->nr_params; i++) {
         purc_variant_t v = pcutils_array_get(frame->params_result, i);
-        int r = purc_variant_sorted_array_add(array, v);
-        if(r != 0 && r != -1) {
+        ssize_t r = purc_variant_sorted_array_add(array, v);
+        if(r < 0) {
             goto out;
         }
     }
