@@ -50,6 +50,7 @@ struct ctxt_for_request {
 
     unsigned int                  synchronously:1;
     unsigned int                  noreturn:1;
+    unsigned int                  bound:1;
     purc_variant_t                request_id;
 };
 
@@ -266,6 +267,15 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
 
 out:
+    if (ret == 0 && ctxt->request_id && ctxt->as
+            && !ctxt->synchronously && !ctxt->noreturn) {
+        const char *name = purc_variant_get_string_const(ctxt->as);
+        ret = pcintr_bind_named_variable(&co->stack,
+                frame, name, ctxt->at, false, true, ctxt->request_id);
+        if (ret == 0) {
+            ctxt->bound = 1;
+        }
+    }
     return ret;
 }
 
@@ -314,7 +324,7 @@ process_attr_as(struct pcintr_stack_frame *frame,
 {
     struct ctxt_for_request *ctxt;
     ctxt = (struct ctxt_for_request*)frame->ctxt;
-    if (val == PURC_VARIANT_INVALID) {
+    if (val == PURC_VARIANT_INVALID || !purc_variant_is_string(val)) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute '%s' for element <%s> undefined",
                 purc_atom_to_string(name), element->tag_name);
