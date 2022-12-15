@@ -830,6 +830,9 @@ pcintr_stack_frame_eval_attr_and_content(pcintr_stack_t stack,
             ignore_content);
 }
 
+bool
+pcintr_is_valid_crtn_token(const char *token);
+
 const char *
 pcintr_coroutine_get_token(pcintr_coroutine_t cor);
 

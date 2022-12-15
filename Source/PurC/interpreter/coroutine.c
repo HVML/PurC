@@ -33,6 +33,8 @@
 #include "private/instance.h"
 #include "private/regex.h"
 
+#define HVML_CRTN_TOKEN_REGEX "^[A-Za-z0-9_]+$"
+
 static int
 cmp_f(struct rb_node *node, void *ud)
 {
@@ -255,6 +257,12 @@ pcintr_coroutine_get_by_id(purc_atom_t id)
     return get_coroutine_by_id(inst, id);
 }
 
+bool
+pcintr_is_valid_crtn_token(const char *token)
+{
+    return pcregex_is_match(HVML_CRTN_TOKEN_REGEX, token);
+}
+
 const char *
 pcintr_coroutine_get_token(pcintr_coroutine_t cor)
 {
@@ -275,7 +283,7 @@ pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token)
         goto out;
     }
 
-    if (!pcregex_is_match("^[A-Za-z0-9_]+$", token)) {
+    if (!pcintr_is_valid_crtn_token(token)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }

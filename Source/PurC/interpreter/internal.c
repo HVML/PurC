@@ -43,6 +43,8 @@
 #define ATTR_NAME_AS       "as"
 #define MIN_BUFFER         512
 
+#define HVML_RUN_CURR_ID   "-"
+
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
 static const char callTemplateHead[] =
@@ -668,5 +670,387 @@ pcintr_is_hvml_attr(const char *name)
 
 out:
     return ret;
+}
+
+static bool
+check_hvml_run_resource(const char *uri)
+{
+    if (strstr(uri, PCINTR_HVML_RUN_RES_CRTN) == 0
+            || strstr(uri, PCINTR_HVML_RUN_RES_CHAN) == 0) {
+        return true;
+    }
+    return false;
+}
+
+/*
+ * hvml+run://<host_name>/<app_name>/<runner_name>
+ * //<host_name>/<app_name>/<runner_name>
+ * /<app_name>/<runner_name>
+ */
+static inline const char *
+check_hvml_run_schema(const char *uri, enum HVML_RUN_URI_TYPE *type)
+{
+    const char *ret = NULL;
+    if (strncasecmp(uri, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0) {
+        ret = uri + PURC_LEN_EDPT_SCHEMA;
+        if (!check_hvml_run_resource(ret)) {
+            ret = NULL;
+            goto out;
+        }
+
+        if (type) {
+            *type = HVML_RUN_URI_FULL;
+        }
+    }
+    else if (strncmp(uri, "//", 2) == 0) {
+        ret = uri + 2;
+        if (!check_hvml_run_resource(ret)) {
+            ret = NULL;
+            goto out;
+        }
+
+        if (type) {
+            *type = HVML_RUN_URI_OMIT_SCHEMA;
+        }
+    }
+    else if (strncmp(uri, "/", 1) == 0) {
+        ret = uri + 1;
+        if (!check_hvml_run_resource(ret)) {
+            ret = NULL;
+            goto out;
+        }
+
+        if (type) {
+            *type = HVML_RUN_URI_OMIT_SCHEMA_AND_HOST;
+        }
+    }
+
+out:
+    return ret;
+}
+
+/*
+ * hvml+run://<host_name>/<app_name>/<runner_name>
+ * //<host_name>/<app_name>/<runner_name>
+ * /<app_name>/<runner_name>
+ */
+int
+pcintr_hvml_run_extract_host_name(const char *uri, char *host_name)
+{
+    int len = 0;
+    char *slash;
+    enum HVML_RUN_URI_TYPE type = HVML_RUN_URI_INVALID;
+
+    if ((uri = check_hvml_run_schema(uri, &type)) == NULL) {
+        goto out;
+    }
+
+    switch (type) {
+    case HVML_RUN_URI_FULL:
+    case HVML_RUN_URI_OMIT_SCHEMA:
+    {
+        if ((slash = strchr(uri, '/')) == NULL) {
+            goto out;
+        }
+
+        len = (uintptr_t)slash - (uintptr_t)uri;
+        if (len <= 0 || len > PURC_LEN_HOST_NAME) {
+            goto out;
+        }
+
+        strncpy(host_name, uri, len);
+        host_name[len] = '\0';
+        break;
+    }
+
+    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    {
+        host_name[0] = '-';
+        host_name[1] = '\0';
+        len = 1;
+        break;
+    }
+
+    default:
+        break;
+    }
+
+
+out:
+    return len;
+}
+
+/*
+ * hvml+run://<host_name>/<app_name>/<runner_name>
+ * //<host_name>/<app_name>/<runner_name>
+ * /<app_name>/<runner_name>
+ */
+int
+pcintr_hvml_run_extract_app_name(const char *uri, char *app_name)
+{
+    int len = 0;
+    enum HVML_RUN_URI_TYPE type = HVML_RUN_URI_INVALID;
+    char *first_slash, *second_slash;
+
+    if ((uri = check_hvml_run_schema(uri, &type)) == NULL) {
+        goto out;
+    }
+
+    switch (type) {
+    case HVML_RUN_URI_FULL:
+    case HVML_RUN_URI_OMIT_SCHEMA:
+    {
+        if ((first_slash = strchr(uri, '/')) == 0 ||
+                (second_slash = strchr(first_slash + 1, '/')) == 0) {
+            goto out;
+        }
+
+        first_slash++;
+        len = (uintptr_t)second_slash - (uintptr_t)first_slash;
+        if (len <= 0 || len > PURC_LEN_APP_NAME) {
+            goto out;
+        }
+
+        strncpy(app_name, first_slash, len);
+        app_name[len] = '\0';
+        break;
+    }
+
+    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    {
+        if ((first_slash = strchr(uri, '/')) == NULL) {
+            goto out;
+        }
+
+        len = (uintptr_t)first_slash - (uintptr_t)uri;
+        if (len <= 0 || len > PURC_LEN_APP_NAME) {
+            goto out;
+        }
+
+        strncpy(app_name, uri, len);
+        app_name[len] = '\0';
+        break;
+    }
+
+    default:
+        break;
+    }
+
+
+out:
+    return len;
+}
+
+/*
+ * hvml+run://<host_name>/<app_name>/<runner_name>/
+ * //<host_name>/<app_name>/<runner_name>/
+ * /<app_name>/<runner_name>/
+ */
+int
+pcintr_hvml_run_extract_runner_name(const char *uri, char *runner_name)
+{
+    int len = 0;
+    enum HVML_RUN_URI_TYPE type = HVML_RUN_URI_INVALID;
+    char *first_slash, *second_slash, *third_slash;
+
+    if ((uri = check_hvml_run_schema(uri, &type)) == NULL) {
+        goto out;
+    }
+
+    switch (type) {
+    case HVML_RUN_URI_FULL:
+    case HVML_RUN_URI_OMIT_SCHEMA:
+    {
+        if ((first_slash = strchr(uri, '/')) == 0 ||
+                (second_slash = strchr(first_slash + 1, '/')) == 0 ||
+                (third_slash = strchr(second_slash + 1, '/')) == 0
+                ) {
+            goto out;
+        }
+
+        second_slash++;
+        len = (uintptr_t)third_slash - (uintptr_t)second_slash;
+        if (len <= 0 || len > PURC_LEN_RUNNER_NAME) {
+            goto out;
+        }
+
+        strncpy(runner_name, second_slash, len);
+        runner_name[len] = '\0';
+        break;
+    }
+
+    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    {
+        if ((first_slash = strchr(uri, '/')) == 0 ||
+                (second_slash = strchr(first_slash + 1, '/')) == 0) {
+            goto out;
+        }
+
+        first_slash++;
+        len = (uintptr_t)second_slash - (uintptr_t)first_slash;
+        if (len <= 0 || len > PURC_LEN_APP_NAME) {
+            goto out;
+        }
+
+        strncpy(runner_name, first_slash, len);
+        runner_name[len] = '\0';
+        break;
+    }
+
+    default:
+        break;
+    }
+
+out:
+    return len;
+}
+
+/*
+ * hvml+run://<host_name>/<app_name>/<runner_name>/CRTN/1
+ * //<host_name>/<app_name>/<runner_name>/CRTN/1
+ * /<app_name>/<runner_name>/CRTN/1
+ */
+int
+pcintr_hvml_run_extract_res_name(const char *uri,
+        enum HVML_RUN_RES_TYPE *res_type, char *res_name)
+{
+    int len = 0;
+    enum HVML_RUN_URI_TYPE type = HVML_RUN_URI_INVALID;
+    char *first_slash, *second_slash, *third_slash, *fourth_slash;
+
+    if ((uri = check_hvml_run_schema(uri, &type)) == NULL) {
+        goto out;
+    }
+
+    switch (type) {
+    case HVML_RUN_URI_FULL:
+    case HVML_RUN_URI_OMIT_SCHEMA:
+    {
+        if ((first_slash = strchr(uri, '/')) == 0 ||
+                (second_slash = strchr(first_slash + 1, '/')) == 0 ||
+                (third_slash = strchr(second_slash + 1, '/')) == 0 ||
+                (fourth_slash = strchr(third_slash + 1, '/')) == 0
+                ) {
+            goto out;
+        }
+
+        third_slash++;
+        len = (uintptr_t)fourth_slash - (uintptr_t)third_slash;
+        if (len <= 0 || len > PCINTR_LEN_HVML_RUN_RES) {
+            goto out;
+        }
+
+        if (strcmp(third_slash, HVML_RUN_RES_TYPE_NAME_CRTN) == 0) {
+            if (*res_type) {
+                *res_type = HVML_RUN_RES_TYPE_CRTN;
+            }
+        }
+        else if (strcmp(third_slash, HVML_RUN_RES_TYPE_NAME_CHAN) == 0) {
+            if (*res_type) {
+                *res_type = HVML_RUN_RES_TYPE_CHAN;
+            }
+        }
+        else {
+            len = 0;
+            goto out;
+        }
+
+        strcpy(res_name, fourth_slash + 1);
+        len = strlen(res_name);
+        break;
+    }
+
+    case HVML_RUN_URI_OMIT_SCHEMA_AND_HOST:
+    {
+        if ((first_slash = strchr(uri, '/')) == 0 ||
+                (second_slash = strchr(first_slash + 1, '/')) == 0 ||
+                (third_slash = strchr(second_slash + 1, '/')) == 0
+                ) {
+            goto out;
+        }
+
+        second_slash++;
+        len = (uintptr_t)third_slash - (uintptr_t)second_slash;
+        if (len <= 0 || len > PCINTR_LEN_HVML_RUN_RES) {
+            goto out;
+        }
+
+        if (strcmp(second_slash, HVML_RUN_RES_TYPE_NAME_CRTN) == 0) {
+            if (*res_type) {
+                *res_type = HVML_RUN_RES_TYPE_CRTN;
+            }
+        }
+        else if (strcmp(second_slash, HVML_RUN_RES_TYPE_NAME_CHAN) == 0) {
+            if (*res_type) {
+                *res_type = HVML_RUN_RES_TYPE_CHAN;
+            }
+        }
+        else {
+            len = 0;
+            goto out;
+        }
+
+        strcpy(res_name, third_slash + 1);
+        len = strlen(res_name);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+out:
+    return len;
+}
+
+bool
+pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
+        char *runner_name, enum HVML_RUN_RES_TYPE *res_type, char *res_name)
+{
+    if (pcintr_hvml_run_extract_host_name(uri, host_name) <= 0) {
+        return false;
+    }
+
+    if (pcintr_hvml_run_extract_app_name(uri, app_name) <= 0) {
+        return false;
+    }
+
+    if (pcintr_hvml_run_extract_runner_name(uri, runner_name) <= 0) {
+        return false;
+    }
+
+    if (pcintr_hvml_run_extract_res_name(uri, res_type, res_name) <= 0) {
+        return false;
+    }
+
+    if(!((purc_is_valid_host_name(host_name) ||
+                    strcmp(host_name, HVML_RUN_CURR_ID) == 0) &&
+                (purc_is_valid_app_name(app_name) ||
+                 strcmp(app_name, HVML_RUN_CURR_ID) == 0) &&
+                (purc_is_valid_runner_name(runner_name) ||
+                 strcmp(runner_name, HVML_RUN_CURR_ID) == 0))) {
+        return false;
+    }
+
+    if ((*res_type == HVML_RUN_RES_TYPE_CHAN &&
+                pcintr_is_variable_token(res_name)) ||
+            (*res_type == HVML_RUN_RES_TYPE_CRTN &&
+             pcintr_is_valid_crtn_token(res_name))) {
+        return true;
+    }
+
+    return true;
+}
+
+bool
+pcintr_is_valid_hvml_run_uri(const char *uri)
+{
+    char host_name[PURC_LEN_HOST_NAME + 1];
+    char app_name[PURC_LEN_APP_NAME + 1];
+    char runner_name[PURC_LEN_RUNNER_NAME + 1];
+    char res_name[PURC_LEN_IDENTIFIER + 1];
+    enum HVML_RUN_RES_TYPE res_type = HVML_RUN_RES_TYPE_INVALID;
+    return pcintr_parse_hvml_run_uri(uri, host_name, app_name, runner_name,
+            &res_type, res_name);
 }
 

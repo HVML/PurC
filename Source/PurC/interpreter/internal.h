@@ -48,6 +48,14 @@
 
 #define PLINE()   PLOG(">%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
+#define PCINTR_HVML_RUN_SCHEMA                "hvml+run://"
+#define PCINTR_LEN_HVML_RUN_SCHEMA            11
+
+#define PCINTR_HVML_RUN_RES_CRTN              "/CRTN/"
+#define PCINTR_HVML_RUN_RES_CHAN              "/CHAN/"
+
+#define PCINTR_LEN_HVML_RUN_RES               4
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -73,6 +81,22 @@ enum VIA {
     VIA_GET,
     VIA_POST,
     VIA_DELETE,
+};
+
+enum HVML_RUN_URI_TYPE {
+    HVML_RUN_URI_INVALID,
+    HVML_RUN_URI_FULL,
+    HVML_RUN_URI_OMIT_SCHEMA,
+    HVML_RUN_URI_OMIT_SCHEMA_AND_HOST,
+};
+
+enum HVML_RUN_RES_TYPE {
+#define HVML_RUN_RES_TYPE_NAME_INVALID          "INVALID"
+    HVML_RUN_RES_TYPE_INVALID,
+#define HVML_RUN_RES_TYPE_NAME_CRTN             "CRTN"
+    HVML_RUN_RES_TYPE_CRTN,
+#define HVML_RUN_RES_TYPE_NAME_CHAN             "CHAN"
+    HVML_RUN_RES_TYPE_CHAN
 };
 
 PCA_EXTERN_C_BEGIN
@@ -493,6 +517,26 @@ pcintr_match_exception(purc_atom_t except, purc_variant_t constant);
 
 bool
 pcintr_is_hvml_attr(const char *name);
+
+int
+pcintr_hvml_run_extract_host_name(const char *uri, char *host_name);
+
+int
+pcintr_hvml_run_extract_app_name(const char *uri, char *app_name);
+
+int
+pcintr_hvml_run_extract_runner_name(const char *uri, char *runner_name);
+
+int
+pcintr_hvml_run_extract_res_name(const char *uri,
+        enum HVML_RUN_RES_TYPE *res_type, char *res_name);
+
+bool
+pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
+        char *runner_name, enum HVML_RUN_RES_TYPE *res_type, char *res_name);
+
+bool
+pcintr_is_valid_hvml_run_uri(const char *uri);
 
 PCA_EXTERN_C_END
 
