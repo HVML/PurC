@@ -1,0 +1,63 @@
+#!/usr/bin/purc
+
+# RESULT: 'subPage exit success'
+
+<!-- The expected output of this HVML program will be like:
+
+# Receive corState:observing
+# Receive response:echo1
+# subPage receive request:exit
+# Receive response:exit with subPage exit success
+
+-->
+
+<hvml target="hvml">
+    <body>
+
+        <load from "#subPage" onto "_null" as "subPage" async />
+
+        <observe on $subPage for "response:echo1" >
+            <inherit>
+                $STREAM.stdout.writelines('# Receive response:echo1')
+            </inherit>
+            <request on="$subPage" to="exit" async>
+            </request>
+        </observe>
+
+        <observe on $subPage for "response:exit" >
+            <inherit>
+                $STREAM.stdout.writelines("# Receive response:exit with $?")
+            </inherit>
+            <exit with $? />
+        </observe>
+
+        <observe on $subPage for "corState:observing" >
+            <inherit>
+                $STREAM.stdout.writelines('# Receive corState:observing')
+            </inherit>
+            <request on="$subPage" to="echo1" async>
+                "How are you?"
+            </request>
+        </observe>
+
+    </body>
+
+    <body id="subPage">
+        <define as="echo">
+            <return with="$STR.join($name,': ',$?)" />
+        </define>
+
+        <div>
+            <init as="name" with="foo" />
+            <observe on="$CRTN.cid" for="request:exit">
+                <inherit>
+                    $STREAM.stdout.writelines('# subPage receive request:exit')
+                </inherit>
+                <exit with 'subPage exit success' />
+            </observe>
+
+            <observe on="$CRTN.cid" for="request:echo1" with="$echo" />
+        </div>
+
+    </body>
+</hvml>

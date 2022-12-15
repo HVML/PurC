@@ -132,8 +132,7 @@ is_css_selector(const char *s)
 static bool
 is_crtn_uri(const char *s)
 {
-    UNUSED_PARAM(s);
-    return false;
+    return pcintr_is_valid_hvml_run_uri(s);
 }
 
 static bool

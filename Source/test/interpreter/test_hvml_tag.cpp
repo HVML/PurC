@@ -258,6 +258,10 @@ static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 
         struct buffer *buf =
             (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (!buf) {
+            goto out;
+        }
+
         if (buf->dump_buff) {
             free(buf->dump_buff);
             buf->dump_buff = nullptr;
@@ -278,6 +282,9 @@ static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         struct purc_cor_exit_info *info = (struct purc_cor_exit_info *)data;
         struct buffer *buf =
             (struct buffer *)purc_coroutine_get_user_data(cor);
+        if (!buf) {
+            goto out;
+        }
         if (buf->expected_result &&
                 !purc_variant_is_equal_to(buf->expected_result, info->result)) {
             char exe_result[1024];
@@ -328,6 +335,7 @@ static int my_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         }
     }
 
+out:
     return 0;
 }
 
