@@ -691,8 +691,9 @@ static inline const char *
 check_hvml_run_schema(const char *uri, enum HVML_RUN_URI_TYPE *type)
 {
     const char *ret = NULL;
-    if (strncasecmp(uri, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0) {
-        ret = uri + PURC_LEN_EDPT_SCHEMA;
+    if (strncasecmp(uri, PCINTR_HVML_RUN_SCHEMA,
+                PCINTR_LEN_HVML_RUN_SCHEMA) == 0) {
+        ret = uri + PCINTR_LEN_HVML_RUN_SCHEMA;
         if (!check_hvml_run_resource(ret)) {
             ret = NULL;
             goto out;
@@ -940,13 +941,13 @@ pcintr_hvml_run_extract_res_name(const char *uri,
             goto out;
         }
 
-        if (strcmp(third_slash, HVML_RUN_RES_TYPE_NAME_CRTN) == 0) {
-            if (*res_type) {
+        if (strncmp(third_slash, HVML_RUN_RES_TYPE_NAME_CRTN, len) == 0) {
+            if (res_type) {
                 *res_type = HVML_RUN_RES_TYPE_CRTN;
             }
         }
-        else if (strcmp(third_slash, HVML_RUN_RES_TYPE_NAME_CHAN) == 0) {
-            if (*res_type) {
+        else if (strncmp(third_slash, HVML_RUN_RES_TYPE_NAME_CHAN, len) == 0) {
+            if (res_type) {
                 *res_type = HVML_RUN_RES_TYPE_CHAN;
             }
         }
@@ -975,13 +976,13 @@ pcintr_hvml_run_extract_res_name(const char *uri,
             goto out;
         }
 
-        if (strcmp(second_slash, HVML_RUN_RES_TYPE_NAME_CRTN) == 0) {
-            if (*res_type) {
+        if (strncmp(second_slash, HVML_RUN_RES_TYPE_NAME_CRTN, len) == 0) {
+            if (res_type) {
                 *res_type = HVML_RUN_RES_TYPE_CRTN;
             }
         }
-        else if (strcmp(second_slash, HVML_RUN_RES_TYPE_NAME_CHAN) == 0) {
-            if (*res_type) {
+        else if (strncmp(second_slash, HVML_RUN_RES_TYPE_NAME_CHAN, len) == 0) {
+            if (res_type) {
                 *res_type = HVML_RUN_RES_TYPE_CHAN;
             }
         }
@@ -1003,25 +1004,44 @@ out:
     return len;
 }
 
+static inline const char *
+get_hvml_res_type_name(enum HVML_RUN_RES_TYPE res_type)
+{
+    switch (res_type) {
+    case HVML_RUN_RES_TYPE_CRTN:
+        return HVML_RUN_RES_TYPE_NAME_CRTN;
+
+    case HVML_RUN_RES_TYPE_CHAN:
+        return HVML_RUN_RES_TYPE_NAME_CHAN;
+
+    case HVML_RUN_RES_TYPE_INVALID:
+    default:
+        return HVML_RUN_RES_TYPE_NAME_INVALID;
+    }
+}
+
+
 bool
 pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
         char *runner_name, enum HVML_RUN_RES_TYPE *res_type, char *res_name)
 {
+    bool ret = false;
     if (pcintr_hvml_run_extract_host_name(uri, host_name) <= 0) {
-        return false;
+        goto out;
     }
 
     if (pcintr_hvml_run_extract_app_name(uri, app_name) <= 0) {
-        return false;
+        goto out;
     }
 
     if (pcintr_hvml_run_extract_runner_name(uri, runner_name) <= 0) {
-        return false;
+        goto out;
     }
 
     if (pcintr_hvml_run_extract_res_name(uri, res_type, res_name) <= 0) {
-        return false;
+        goto out;
     }
+
 
     if(!((purc_is_valid_host_name(host_name) ||
                     strcmp(host_name, HVML_RUN_CURR_ID) == 0) &&
@@ -1029,17 +1049,22 @@ pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
                  strcmp(app_name, HVML_RUN_CURR_ID) == 0) &&
                 (purc_is_valid_runner_name(runner_name) ||
                  strcmp(runner_name, HVML_RUN_CURR_ID) == 0))) {
-        return false;
+        goto out;
     }
 
     if ((*res_type == HVML_RUN_RES_TYPE_CHAN &&
                 pcintr_is_variable_token(res_name)) ||
             (*res_type == HVML_RUN_RES_TYPE_CRTN &&
              pcintr_is_valid_crtn_token(res_name))) {
-        return true;
+        ret = true;
     }
 
-    return true;
+out:
+    PC_DEBUG("parse hvml+run %s !|uri=%s|host_name=%s|app_name=%s|runner_name=%s"
+            "|res_type=%s|res_name=%s\n", ret ? "success" : "failed", uri,
+            host_name, app_name, runner_name,
+            get_hvml_res_type_name(*res_type), res_name);
+    return ret;
 }
 
 bool
