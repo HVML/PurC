@@ -301,3 +301,34 @@ pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token)
 out:
     return ret;
 }
+
+pcintr_coroutine_t
+pcintr_get_first_crtn(struct pcinst *inst)
+{
+    pcintr_coroutine_t crtn = NULL;
+    pcintr_heap_t heap = inst->intr_heap;
+    struct pcutils_map_iterator it;
+    it = pcutils_map_it_begin_first(heap->token_crtn_map);
+    pcutils_map_entry *entry = pcutils_map_it_value(&it);
+    if (entry) {
+        crtn = (pcintr_coroutine_t) entry->val;
+    }
+    pcutils_map_it_end(&it);
+    return crtn;
+}
+
+pcintr_coroutine_t
+pcintr_get_last_crtn(struct pcinst *inst)
+{
+    pcintr_coroutine_t crtn = NULL;
+    pcintr_heap_t heap = inst->intr_heap;
+    struct pcutils_map_iterator it;
+    it = pcutils_map_it_begin_last(heap->token_crtn_map);
+    pcutils_map_entry *entry = pcutils_map_it_value(&it);
+    if (entry) {
+        crtn = (pcintr_coroutine_t) entry->val;
+    }
+    pcutils_map_it_end(&it);
+    return crtn;
+}
+

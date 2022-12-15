@@ -55,6 +55,7 @@
 #define PCINTR_HVML_RUN_RES_CHAN              "/CHAN/"
 
 #define PCINTR_LEN_HVML_RUN_RES               4
+#define PCINTR_HVML_RUN_CURR_ID               "-"
 
 struct pcvdom_template {
     struct pcvcm_node            *vcm;

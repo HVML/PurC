@@ -839,6 +839,12 @@ pcintr_coroutine_get_token(pcintr_coroutine_t cor);
 int
 pcintr_coroutine_set_token(pcintr_coroutine_t cor, const char *token);
 
+pcintr_coroutine_t
+pcintr_get_first_crtn(struct pcinst *inst);
+
+pcintr_coroutine_t
+pcintr_get_last_crtn(struct pcinst *inst);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */

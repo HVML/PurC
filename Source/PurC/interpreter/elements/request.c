@@ -130,12 +130,6 @@ is_css_selector(const char *s)
 }
 
 static bool
-is_crtn_uri(const char *s)
-{
-    return pcintr_is_valid_hvml_run_uri(s);
-}
-
-static bool
 is_rdr(purc_variant_t v)
 {
     UNUSED_PARAM(v);
@@ -182,13 +176,73 @@ out:
 
 static int
 request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        const char *uri)
+        const char *uri, char *host_name, char *app_name,
+        char *runner_name, enum HVML_RUN_RES_TYPE res_type, char *res_name)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(uri);
+    UNUSED_PARAM(host_name);
+    UNUSED_PARAM(app_name);
+    UNUSED_PARAM(runner_name);
+    UNUSED_PARAM(res_type);
+    UNUSED_PARAM(res_name);
+
+    bool is_same_runner = false;
+    struct pcinst *curr_inst = pcinst_current();
+
+    if (strcmp(host_name, PCINTR_HVML_RUN_CURR_ID) != 0 &&
+            strcmp(host_name, PCRDR_LOCALHOST) != 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid host_name '%s' vs '%s'", host_name, PCRDR_LOCALHOST);
+        goto out;
+    }
+
+    if (strcmp(app_name, PCINTR_HVML_RUN_CURR_ID) != 0 &&
+            strcmp(app_name, curr_inst->app_name) != 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid app_name '%s' vs '%s'", app_name, curr_inst->app_name);
+        goto out;
+    }
+
+    if (strcmp(runner_name, PCINTR_HVML_RUN_CURR_ID) == 0 ||
+            strcmp(runner_name, curr_inst->runner_name) == 0) {
+        is_same_runner = true;
+    }
+
+    if (res_type == HVML_RUN_RES_TYPE_CHAN) {
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        PC_WARN("not implemented on '%s' for request.\n", uri);
+        goto out;
+    }
+    else if (res_type == HVML_RUN_RES_TYPE_CRTN) {
+        if (strcmp(co->token, res_name) == 0 ||
+                (co->is_main && strcmp(res_name, CRTN_TOKEN_MAIN) == 0)) {
+            purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                    "Can not send request to current coroutine '%s'", co->token);
+            goto out;
+        }
+        else if (strcmp(res_name, CRTN_TOKEN_FIRST) == 0) {
+            pcintr_coroutine_t first = pcintr_get_first_crtn(curr_inst);
+            if (co == first) {
+                purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                        "Can not send request to first coroutine '%s'", co->token);
+                goto out;
+            }
+        }
+        else if (strcmp(res_name, CRTN_TOKEN_LAST) == 0) {
+            pcintr_coroutine_t last = pcintr_get_last_crtn(curr_inst);
+            if (co == last) {
+                purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                        "Can not send request to last coroutine '%s'", co->token);
+                goto out;
+            }
+        }
+    }
+
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     PC_WARN("not implemented on '%s' for request.\n", uri);
+out:
     return -1;
 }
 
@@ -241,11 +295,19 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     }
     else if (purc_variant_is_string(on)) {
         const char *s_to = purc_variant_get_string_const(on);
+        char host_name[PURC_LEN_HOST_NAME + 1];
+        char app_name[PURC_LEN_APP_NAME + 1];
+        char runner_name[PURC_LEN_RUNNER_NAME + 1];
+        char res_name[PURC_LEN_IDENTIFIER + 1];
+        enum HVML_RUN_RES_TYPE res_type = HVML_RUN_RES_TYPE_INVALID;
+
         if (is_css_selector(s_to)) {
             ret = request_elements(co, frame, s_to);
         }
-        else if (is_crtn_uri(s_to)) {
-            ret = request_crtn_by_uri(co, frame, s_to);
+        else if (pcintr_parse_hvml_run_uri(s_to, host_name, app_name,
+                    runner_name, &res_type, res_name)) {
+            ret = request_crtn_by_uri(co, frame, s_to, host_name, app_name,
+                    runner_name, res_type, res_name);
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);

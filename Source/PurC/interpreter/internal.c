@@ -43,7 +43,6 @@
 #define ATTR_NAME_AS       "as"
 #define MIN_BUFFER         512
 
-#define HVML_RUN_CURR_ID   "-"
 
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
@@ -1044,11 +1043,11 @@ pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
 
 
     if(!((purc_is_valid_host_name(host_name) ||
-                    strcmp(host_name, HVML_RUN_CURR_ID) == 0) &&
+                    strcmp(host_name, PCINTR_HVML_RUN_CURR_ID) == 0) &&
                 (purc_is_valid_app_name(app_name) ||
-                 strcmp(app_name, HVML_RUN_CURR_ID) == 0) &&
+                 strcmp(app_name, PCINTR_HVML_RUN_CURR_ID) == 0) &&
                 (purc_is_valid_runner_name(runner_name) ||
-                 strcmp(runner_name, HVML_RUN_CURR_ID) == 0))) {
+                 strcmp(runner_name, PCINTR_HVML_RUN_CURR_ID) == 0))) {
         goto out;
     }
 
