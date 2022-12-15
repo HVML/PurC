@@ -144,7 +144,7 @@ request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     int ret = 0;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    ctxt->request_id = purc_variant_ref(ctxt->on);
+    ctxt->request_id = purc_variant_make_ulongint(cid);
     purc_variant_t to = ctxt->to;
 
     const char *sub_type = purc_variant_get_string_const(to);
@@ -188,6 +188,7 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(res_type);
     UNUSED_PARAM(res_name);
 
+    int ret = -1;
     bool is_same_runner = false;
     struct pcinst *curr_inst = pcinst_current();
 
@@ -216,6 +217,7 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
     else if (res_type == HVML_RUN_RES_TYPE_CRTN) {
+        pcintr_coroutine_t dest_co = NULL;
         if (strcmp(co->token, res_name) == 0 ||
                 (co->is_main && strcmp(res_name, CRTN_TOKEN_MAIN) == 0)) {
             purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
@@ -229,6 +231,7 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                         "Can not send request to first coroutine '%s'", co->token);
                 goto out;
             }
+            dest_co = first;
         }
         else if (strcmp(res_name, CRTN_TOKEN_LAST) == 0) {
             pcintr_coroutine_t last = pcintr_get_last_crtn(curr_inst);
@@ -237,13 +240,18 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                         "Can not send request to last coroutine '%s'", co->token);
                 goto out;
             }
+            dest_co = last;
+        }
+        if (dest_co) {
+            ret = request_crtn_by_cid(co, frame, dest_co->cid);
+            goto out;
         }
     }
 
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     PC_WARN("not implemented on '%s' for request.\n", uri);
 out:
-    return -1;
+    return ret;
 }
 
 static int

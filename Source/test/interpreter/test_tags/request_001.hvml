@@ -20,7 +20,7 @@
             <inherit>
                 $STREAM.stdout.writelines('# Receive response:echo1')
             </inherit>
-            <request on="$subPage" to="exit" async>
+            <request on="/-/-/CRTN/_last" to="exit" async>
             </request>
         </observe>
 
@@ -35,7 +35,7 @@
             <inherit>
                 $STREAM.stdout.writelines('# Receive corState:observing')
             </inherit>
-            <request on="$subPage" to="echo1" async>
+            <request on="hvml+run://-/-/-/CRTN/_last" to="echo1" async>
                 "How are you?"
             </request>
         </observe>
