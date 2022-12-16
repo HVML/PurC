@@ -298,7 +298,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         uint64_t u64;
         purc_variant_cast_to_ulongint(on, &u64, true);
         purc_atom_t dest_cid = (purc_atom_t) u64;
-        ctxt->request_id = purc_variant_ref(on);
         ret = request_crtn_by_cid(co, frame, dest_cid);
     }
     else if (purc_variant_is_string(on)) {
