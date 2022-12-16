@@ -350,7 +350,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         stack->co->stage = CO_STAGE_OBSERVING;
         // POST corState:observing
         if (co->curator) {
-            purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
+            purc_variant_t crtn = pcintr_get_coroutine_variable(co,
+                    PURC_PREDEF_VARNAME_CRTN);
+            purc_variant_t request_id =  purc_variant_ref(crtn);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     request_id,
@@ -439,7 +441,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
 #endif                          /* } */
 
     if (co->curator) {
-        purc_variant_t request_id =  purc_variant_make_ulongint(co->cid);
+        purc_variant_t crtn = pcintr_get_coroutine_variable(co,
+                PURC_PREDEF_VARNAME_CRTN);
+        purc_variant_t request_id =  purc_variant_ref(crtn);
         purc_variant_t result = pcintr_coroutine_get_result(co);
         if (co->error_except) {
             // TODO: which is error, which is except?

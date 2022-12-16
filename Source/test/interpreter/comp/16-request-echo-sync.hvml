@@ -47,14 +47,14 @@
 
         <div>
             <init as="name" with="foo" />
-            <observe on="$CRTN.cid" for="request:exit">
+            <observe on="$CRTN" for="request:exit">
                 <inherit>
                     $STREAM.stdout.writelines('# subPage receive request:exit')
                 </inherit>
                 <exit with 'subPage exit success' />
             </observe>
 
-            <observe on="$CRTN.cid" for="request:echo1" with="$echo" />
+            <observe on="$CRTN" for="request:echo1" with="$echo" />
         </div>
 
     </body>

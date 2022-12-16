@@ -83,6 +83,7 @@ is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
+
     if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
         goto out;
     }
@@ -136,6 +137,36 @@ is_rdr(purc_variant_t v)
     return false;
 }
 
+static bool
+is_crtn_object(purc_variant_t v, purc_atom_t *cid)
+{
+    if (!purc_variant_is_object(v)) {
+        return false;
+    }
+
+    purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid");
+    if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
+        return false;
+    }
+
+    purc_dvariant_method getter = purc_variant_dynamic_get_getter(v_cid);
+    if (!getter) {
+        return false;
+    }
+
+    purc_variant_t r_cid = getter(v, 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
+    if (!r_cid || !purc_variant_is_ulongint(r_cid)) {
+        return false;
+    }
+
+    if (cid) {
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(r_cid, &u64, true);
+        *cid = (purc_atom_t) u64;
+    }
+    return true;
+}
+
 static int
 request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_atom_t cid)
@@ -144,7 +175,17 @@ request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     int ret = 0;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    ctxt->request_id = purc_variant_make_ulongint(cid);
+    pcintr_coroutine_t dest_co = pcintr_coroutine_get_by_id(cid);
+    if (!dest_co) {
+        purc_set_error_with_info(PURC_ERROR_NOT_FOUND,
+                "Can not found dest coroutine");
+        ret = -1;
+        goto out;
+    }
+
+    purc_variant_t crtn = pcintr_get_coroutine_variable(dest_co,
+            PURC_PREDEF_VARNAME_CRTN);
+    ctxt->request_id = purc_variant_ref(crtn);
     purc_variant_t to = ctxt->to;
 
     const char *sub_type = purc_variant_get_string_const(to);
@@ -288,6 +329,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     purc_variant_t on = ctxt->on;
     purc_variant_t to = ctxt->to;
+    purc_atom_t dest_cid = 0;
     if (!on || !to || !purc_variant_is_string(to)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         ret = -1;
@@ -297,7 +339,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (purc_variant_is_ulongint(on)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(on, &u64, true);
-        purc_atom_t dest_cid = (purc_atom_t) u64;
+        dest_cid = (purc_atom_t) u64;
         ret = request_crtn_by_cid(co, frame, dest_cid);
     }
     else if (purc_variant_is_string(on)) {
@@ -322,6 +364,9 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_WARN("not implemented on '%s' for request.\n",
                     purc_variant_get_string_const(on));
         }
+    }
+    else if (is_crtn_object(on, &dest_cid)) {
+        ret = request_crtn_by_cid(co, frame, dest_cid);
     }
     else if (is_rdr(on)) {
         ret = request_rdr(co, frame, on);

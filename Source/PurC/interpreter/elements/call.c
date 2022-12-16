@@ -226,7 +226,11 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             runner_name, NULL, request, NULL, true);
     purc_variant_unref(request);
 
-    ctxt->call_id = purc_variant_make_ulongint(child_cid);
+    pcintr_coroutine_t dest_co = pcintr_coroutine_get_by_id(child_cid);
+    purc_variant_t crtn = pcintr_get_coroutine_variable(dest_co,
+            PURC_PREDEF_VARNAME_CRTN);
+    ctxt->call_id = purc_variant_ref(crtn);
+
     if (as) {
         pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at, false,
                 false, ctxt->call_id);
