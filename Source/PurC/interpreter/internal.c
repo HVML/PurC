@@ -1078,3 +1078,133 @@ pcintr_is_valid_hvml_run_uri(const char *uri)
             &res_type, res_name);
 }
 
+#define REQUEST_ID_KEY_HANDLE   "__pcintr_request_id_handle"
+#define REQUEST_ID_KEY_TYPE     "type"
+#define REQUEST_ID_KEY_RID      "rid"
+#define REQUEST_ID_KEY_RES      "res"
+
+bool
+pcintr_is_request_id(purc_variant_t v)
+{
+    if (purc_variant_is_object(v) &&
+            purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_HANDLE)) {
+        return true;
+    }
+    return false;
+}
+
+purc_variant_t
+pcintr_request_id_create(enum pcintr_request_id_type type, purc_atom_t rid,
+        const char *res)
+{
+    purc_variant_t v_type = PURC_VARIANT_INVALID;
+    purc_variant_t v_rid = PURC_VARIANT_INVALID;
+    purc_variant_t v_res = PURC_VARIANT_INVALID;
+    purc_variant_t handle = PURC_VARIANT_INVALID;
+    bool success = false;
+
+    purc_variant_t ret = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!ret) {
+        goto out;
+    }
+
+    v_type = purc_variant_make_ulongint((uint64_t)type);
+    if (!v_type) {
+        goto out_clear_object;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(ret,
+                REQUEST_ID_KEY_TYPE, v_type)) {
+        goto out_clear_type;
+    }
+
+    v_rid = purc_variant_make_ulongint((uint64_t)rid);
+    if (!v_rid) {
+        goto out_clear_type;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(ret,
+                REQUEST_ID_KEY_RID, v_rid)) {
+        goto out_clear_rid;
+    }
+
+    v_res = purc_variant_make_string(res, true);
+    if (!v_res) {
+        goto out_clear_rid;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(ret,
+                REQUEST_ID_KEY_RES, v_res)) {
+        goto out_clear_res;
+    }
+
+    handle = purc_variant_make_boolean(true);
+    if (!handle) {
+        goto out_clear_res;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(ret,
+                REQUEST_ID_KEY_HANDLE, handle)) {
+        goto out_clear_handle;
+    }
+
+    success = true;
+
+out_clear_handle:
+    purc_variant_unref(handle);
+
+out_clear_res:
+    purc_variant_unref(v_res);
+
+out_clear_rid:
+    purc_variant_unref(v_rid);
+
+out_clear_type:
+    purc_variant_unref(v_type);
+
+out_clear_object:
+    if (!success) {
+        purc_variant_unref(ret);
+        ret = PURC_VARIANT_INVALID;
+    }
+
+out:
+    return ret;
+}
+
+purc_atom_t
+pcintr_request_id_get_rid(purc_variant_t v)
+{
+    if (!pcintr_is_request_id(v)) {
+        return 0;
+    }
+    uint64_t u64;
+    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RID);
+    purc_variant_cast_to_ulongint(val, &u64, true);
+    return (purc_atom_t) u64;
+}
+
+enum pcintr_request_id_type
+pcintr_request_id_get_type(purc_variant_t v)
+{
+    if (!pcintr_is_request_id(v)) {
+        return 0;
+    }
+    uint64_t u64;
+    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_TYPE);
+    purc_variant_cast_to_ulongint(val, &u64, true);
+    return (enum pcintr_request_id_type) u64;
+}
+
+const char *
+pcintr_request_id_get_res(purc_variant_t v)
+{
+    if (!pcintr_is_request_id(v)) {
+        return 0;
+    }
+    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RES);
+    return purc_variant_get_string_const(val);
+}
+
+

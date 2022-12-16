@@ -100,6 +100,19 @@ enum HVML_RUN_RES_TYPE {
     HVML_RUN_RES_TYPE_CHAN
 };
 
+enum pcintr_request_id_type {
+#define PCINTR_REQUEST_ID_TYPE_NAME_INVALID        "INVALID"
+    PCINTR_REQUEST_ID_TYPE_INVALID,
+#define PCINTR_REQUEST_ID_TYPE_NAME_ELEMENTS       "ELEMENTS"
+    PCINTR_REQUEST_ID_TYPE_ELEMENTS,
+#define PCINTR_REQUEST_ID_TYPE_NAME_CRTN           "crtn"
+    PCINTR_REQUEST_ID_TYPE_CRTN,
+#define PCINTR_REQUEST_ID_TYPE_NAME_CHAN           "CHAN"
+    PCINTR_REQUEST_ID_TYPE_CHAN,
+#define PCINTR_REQUEST_ID_TYPE_NAME_RDR            "RDR"
+    PCINTR_REQUEST_ID_TYPE_RDR
+};
+
 PCA_EXTERN_C_BEGIN
 
 void
@@ -538,6 +551,46 @@ pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
 
 bool
 pcintr_is_valid_hvml_run_uri(const char *uri);
+
+/* used for request tag */
+static inline const char *
+pcintr_request_get_type_name(enum pcintr_request_id_type type) {
+    switch (type) {
+    case PCINTR_REQUEST_ID_TYPE_ELEMENTS:
+        return PCINTR_REQUEST_ID_TYPE_NAME_ELEMENTS;
+
+    case PCINTR_REQUEST_ID_TYPE_CRTN:
+        return PCINTR_REQUEST_ID_TYPE_NAME_CRTN;
+
+    case PCINTR_REQUEST_ID_TYPE_CHAN:
+        return PCINTR_REQUEST_ID_TYPE_NAME_CHAN;
+
+    case PCINTR_REQUEST_ID_TYPE_RDR:
+        return PCINTR_REQUEST_ID_TYPE_NAME_RDR;
+
+    case PCINTR_REQUEST_ID_TYPE_INVALID:
+    default:
+        return PCINTR_REQUEST_ID_TYPE_NAME_INVALID;
+    }
+}
+
+
+bool
+pcintr_is_request_id(purc_variant_t v);
+
+purc_variant_t
+pcintr_request_id_create(enum pcintr_request_id_type type, purc_atom_t rid,
+        const char *res);
+
+purc_atom_t
+pcintr_request_id_get_rid(purc_variant_t v);
+
+enum pcintr_request_id_type
+pcintr_request_id_get_type(purc_variant_t v);
+
+const char *
+pcintr_request_id_get_res(purc_variant_t v);
+
 
 PCA_EXTERN_C_END
 
