@@ -294,9 +294,9 @@ typedef enum {
  *
  * @doc: The pointer to a document.
  * @elem: The identifier of the special element, one of the following values:
- *  - PCDOC_SPECIAL_ELEM_ROOT: The root element.
- *  - PCDOC_SPECIAL_ELEM_HEAD: The head element.
- *  - PCDOC_SPECIAL_ELEM_BODY: the body element.
+ *  - %PCDOC_SPECIAL_ELEM_ROOT: The root element.
+ *  - %PCDOC_SPECIAL_ELEM_HEAD: The head element.
+ *  - %PCDOC_SPECIAL_ELEM_BODY: The body element.
  *
  * This function retrieves the special element of a document. If the document
  * does not contain the specified element, it returns %NULL.
@@ -607,8 +607,8 @@ typedef enum {
  * @elem: The pointer to the element.
  * @which: An enum value to distinguish the special attribute, which can be
  *  one of the following values:
- *      - PCDOC_ATTR_ID
- *      - PCDOC_ATTR_CLASS
+ *      - %PCDOC_ATTR_ID
+ *      - %PCDOC_ATTR_CLASS
  * @val: The pointer to a const char* buffer to return the value
  *  of the attribute.
  * @len (nullable): The pointer to a size_t buffer to return the length
