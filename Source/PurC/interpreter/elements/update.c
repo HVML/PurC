@@ -2036,6 +2036,7 @@ logic_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             return -1;
         }
+        PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
         frame->ctnt_var = ctxt->literal;
         purc_variant_ref(ctxt->literal);
         return process(co, frame, ctxt->literal, with_eval);

@@ -1086,23 +1086,25 @@ pcintr_is_valid_hvml_run_uri(const char *uri)
 bool
 pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid)
 {
+    purc_variant_t r_cid = PURC_VARIANT_INVALID;
+    bool ret = false;
     if (!purc_variant_is_object(v)) {
-        return false;
+        goto out;
     }
 
     purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid");
     if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
-        return false;
+        goto out;
     }
 
     purc_dvariant_method getter = purc_variant_dynamic_get_getter(v_cid);
     if (!getter) {
-        return false;
+        goto out;
     }
 
-    purc_variant_t r_cid = getter(v, 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
+    r_cid = getter(v, 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
     if (!r_cid || !purc_variant_is_ulongint(r_cid)) {
-        return false;
+        goto out;
     }
 
     if (cid) {
@@ -1110,7 +1112,13 @@ pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid)
         purc_variant_cast_to_ulongint(r_cid, &u64, true);
         *cid = (purc_atom_t) u64;
     }
-    return true;
+    ret = true;
+
+out:
+    if (r_cid) {
+        purc_variant_unref(r_cid);
+    }
+    return ret;
 }
 
 bool
