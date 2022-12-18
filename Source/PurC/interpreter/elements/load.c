@@ -102,10 +102,15 @@ is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto match_observed;
+    }
+    else {
         goto out;
     }
 
+
+match_observed:
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)) == type) {
         match = true;
         goto out;
@@ -198,10 +203,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     if (!child_cid)
         return -1;
 
-    pcintr_coroutine_t dest_co = pcintr_coroutine_get_by_id(child_cid);
-    purc_variant_t crtn = pcintr_get_coroutine_variable(dest_co,
-            PURC_PREDEF_VARNAME_CRTN);
-    ctxt->request_id = purc_variant_ref(crtn);
+    ctxt->request_id = purc_variant_make_ulongint(child_cid);
 
     if (as) {
         pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at, false,

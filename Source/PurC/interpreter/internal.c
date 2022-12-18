@@ -43,6 +43,11 @@
 #define ATTR_NAME_AS       "as"
 #define MIN_BUFFER         512
 
+#define REQUEST_ID_KEY_HANDLE   "__pcintr_request_id_handle"
+#define REQUEST_ID_KEY_TYPE     "type"
+#define REQUEST_ID_KEY_RID      "rid"
+#define REQUEST_ID_KEY_RES      "res"
+
 
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
@@ -1078,10 +1083,35 @@ pcintr_is_valid_hvml_run_uri(const char *uri)
             &res_type, res_name);
 }
 
-#define REQUEST_ID_KEY_HANDLE   "__pcintr_request_id_handle"
-#define REQUEST_ID_KEY_TYPE     "type"
-#define REQUEST_ID_KEY_RID      "rid"
-#define REQUEST_ID_KEY_RES      "res"
+bool
+pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid)
+{
+    if (!purc_variant_is_object(v)) {
+        return false;
+    }
+
+    purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid");
+    if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
+        return false;
+    }
+
+    purc_dvariant_method getter = purc_variant_dynamic_get_getter(v_cid);
+    if (!getter) {
+        return false;
+    }
+
+    purc_variant_t r_cid = getter(v, 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
+    if (!r_cid || !purc_variant_is_ulongint(r_cid)) {
+        return false;
+    }
+
+    if (cid) {
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(r_cid, &u64, true);
+        *cid = (purc_atom_t) u64;
+    }
+    return true;
+}
 
 bool
 pcintr_is_request_id(purc_variant_t v)

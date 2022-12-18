@@ -832,14 +832,14 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (stack->co->stage != CO_STAGE_FIRST_RUN) {
         if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
                 ctxt->msg_type_atom) && stack->co->curator) {
-            purc_variant_t var = pcintr_get_coroutine_variable(stack->co,
-                    PURC_PREDEF_VARNAME_CRTN);
+            purc_variant_t var =  purc_variant_make_ulongint(stack->co->cid);
             purc_variant_t result = pcintr_coroutine_get_result(stack->co);
             pcintr_coroutine_post_event(stack->co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
                     var,
                     MSG_TYPE_RESPONSE, ctxt->sub_type,
                     result, var);
+            purc_variant_unref(var);
         }
     }
 

@@ -94,16 +94,25 @@ add_observer_into_list(pcintr_stack_t stack, struct list_head *list,
 static
 bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
 {
+    purc_atom_t cid = 0;
     if (observed == val || purc_variant_is_equal_to(observed, val)) {
         return true;
     }
-    if (purc_variant_is_native(observed)) {
+    else if (purc_variant_is_native(observed)) {
         struct purc_native_ops *ops = purc_variant_native_get_ops(observed);
         if (ops == NULL || ops->did_matched == NULL) {
             return false;
         }
         return ops->did_matched(purc_variant_native_get_entity(observed),
                 val);
+    }
+    else if (pcintr_is_crtn_object(observed, &cid)
+            && purc_variant_is_ulongint(val)) {
+        uint64_t u64;
+        purc_variant_cast_to_ulongint(val, &u64, true);
+        if (cid == u64) {
+            return true;
+        }
     }
     return false;
 }

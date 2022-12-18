@@ -552,6 +552,9 @@ pcintr_parse_hvml_run_uri(const char *uri, char *host_name, char *app_name,
 bool
 pcintr_is_valid_hvml_run_uri(const char *uri);
 
+bool
+pcintr_is_crtn_object(purc_variant_t v, purc_atom_t *cid);
+
 /* used for request tag */
 static inline const char *
 pcintr_request_get_type_name(enum pcintr_request_id_type type) {

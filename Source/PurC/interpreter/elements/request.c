@@ -137,36 +137,6 @@ is_rdr(purc_variant_t v)
     return false;
 }
 
-static bool
-is_crtn_object(purc_variant_t v, purc_atom_t *cid)
-{
-    if (!purc_variant_is_object(v)) {
-        return false;
-    }
-
-    purc_variant_t v_cid = purc_variant_object_get_by_ckey(v, "cid");
-    if (!v_cid || !purc_variant_is_dynamic(v_cid)) {
-        return false;
-    }
-
-    purc_dvariant_method getter = purc_variant_dynamic_get_getter(v_cid);
-    if (!getter) {
-        return false;
-    }
-
-    purc_variant_t r_cid = getter(v, 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
-    if (!r_cid || !purc_variant_is_ulongint(r_cid)) {
-        return false;
-    }
-
-    if (cid) {
-        uint64_t u64;
-        purc_variant_cast_to_ulongint(r_cid, &u64, true);
-        *cid = (purc_atom_t) u64;
-    }
-    return true;
-}
-
 static int
 request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_atom_t cid)
@@ -199,10 +169,11 @@ request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
+    purc_variant_t observed = purc_variant_make_ulongint(cid);
     pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
-            ctxt->request_id,
+            observed,
             MSG_TYPE_RESPONSE,
             MSG_SUB_TYPE_ASTERISK,
             is_observer_match,
@@ -210,6 +181,7 @@ request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             frame,
             true
         );
+    purc_variant_unref(observed);
 
 out:
     return ret;
@@ -365,7 +337,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                     purc_variant_get_string_const(on));
         }
     }
-    else if (is_crtn_object(on, &dest_cid)) {
+    else if (pcintr_is_crtn_object(on, &dest_cid)) {
         ret = request_crtn_by_cid(co, frame, dest_cid);
     }
     else if (is_rdr(on)) {
