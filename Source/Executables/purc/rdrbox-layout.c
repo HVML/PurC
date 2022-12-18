@@ -47,7 +47,7 @@ static int round_height(float h)
     return (int)(h / FOIL_PX_GRID_CELL_H - 0.5) * FOIL_PX_GRID_CELL_H;
 }
 
-static int calc_used_value_widths(foil_rdrbox *box,
+static int calc_used_value_widths(foil_layout_ctxt *ctxt, foil_rdrbox *box,
         css_unit unit, css_fixed length)
 {
     int v = 0;
@@ -62,12 +62,58 @@ static int calc_used_value_widths(foil_rdrbox *box,
         v = round_width(FIXTOFLT(length));
         break;
 
+    /* font-relative lengths */
     case CSS_UNIT_EX:
+        // The x-height is so called because it is often
+        // equal to the height of the lowercase "x".
         v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
         break;
 
     case CSS_UNIT_EM:
+    case CSS_UNIT_CH:
+    case CSS_UNIT_REM:
+        // Equal to the used advance measure of the "0" glyph
         v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
+        break;
+
+    /* absolute lengths */
+    case CSS_UNIT_CM:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54);
+        break;
+    case CSS_UNIT_IN:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI);
+        break;
+    case CSS_UNIT_MM:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10);
+        break;
+    case CSS_UNIT_PC:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/6.0);
+        break;
+    case CSS_UNIT_PT:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/72.0);
+        break;
+    case CSS_UNIT_Q:
+        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40);
+        break;
+
+    /* viewport-relative lengths */
+    case CSS_UNIT_VW:
+        v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        break;
+    case CSS_UNIT_VH:
+        v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
+        break;
+    case CSS_UNIT_VMAX:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
+        else
+            v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        break;
+    case CSS_UNIT_VMIN:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        else
+            v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
         break;
 
     default:
@@ -79,7 +125,7 @@ static int calc_used_value_widths(foil_rdrbox *box,
     return v;
 }
 
-static int calc_used_value_heights(foil_rdrbox *box,
+static int calc_used_value_heights(foil_layout_ctxt *ctxt, foil_rdrbox *box,
         css_unit unit, css_fixed length)
 {
     int v = 0;
@@ -94,12 +140,58 @@ static int calc_used_value_heights(foil_rdrbox *box,
         v = round_height(FIXTOFLT(length));
         break;
 
+    /* font-relative lengths */
     case CSS_UNIT_EX:
+        // The x-height is so called because it is often
+        // equal to the height of the lowercase "x".
         v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
         break;
 
     case CSS_UNIT_EM:
+    case CSS_UNIT_CH:
+    case CSS_UNIT_REM:
+        // Equal to the used advance measure of the "0" glyph
         v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
+        break;
+
+    /* absolute lengths */
+    case CSS_UNIT_CM:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54);
+        break;
+    case CSS_UNIT_IN:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI);
+        break;
+    case CSS_UNIT_MM:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10);
+        break;
+    case CSS_UNIT_PC:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/6.0);
+        break;
+    case CSS_UNIT_PT:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/72.0);
+        break;
+    case CSS_UNIT_Q:
+        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40);
+        break;
+
+    /* viewport-relative lengths */
+    case CSS_UNIT_VW:
+        v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        break;
+    case CSS_UNIT_VH:
+        v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
+        break;
+    case CSS_UNIT_VMAX:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
+        else
+            v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        break;
+    case CSS_UNIT_VMIN:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
+        else
+            v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
         break;
 
     default:
@@ -125,7 +217,7 @@ dtrm_margin_left_right(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->ml = 0;
             break;
         case CSS_MARGIN_SET:
-            box->ml = calc_used_value_widths(box, unit, length);
+            box->ml = calc_used_value_widths(ctxt, box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -139,7 +231,7 @@ dtrm_margin_left_right(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mr = 0;
             break;
         case CSS_MARGIN_SET:
-            box->mr = calc_used_value_widths(box, unit, length);
+            box->mr = calc_used_value_widths(ctxt, box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -162,7 +254,7 @@ dtrm_margin_top_bottom(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mt = 0;
             break;
         case CSS_MARGIN_SET:
-            box->mr = calc_used_value_heights(box, unit, length);
+            box->mr = calc_used_value_heights(ctxt, box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -176,7 +268,7 @@ dtrm_margin_top_bottom(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mb = 0;
             break;
         case CSS_MARGIN_SET:
-            box->mb = calc_used_value_heights(box, unit, length);
+            box->mb = calc_used_value_heights(ctxt, box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -242,7 +334,7 @@ dtrm_width_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     assert(width_v != CSS_WIDTH_INHERIT);
 
     if (width_v != CSS_WIDTH_AUTO) {
-        box->width = calc_used_value_widths(box, width_u, width_l);
+        box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
 
         return width_v;
     }
@@ -264,7 +356,7 @@ dtrm_width_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v != CSS_HEIGHT_AUTO) {
         int height = 0;
-        height = calc_used_value_heights(box, height_u, height_l);
+        height = calc_used_value_heights(ctxt, box, height_u, height_l);
         box->width = round_width(height * intrinsic_ratio);
     }
     else if (width_v == CSS_WIDTH_AUTO && height_v == CSS_HEIGHT_AUTO
@@ -293,7 +385,7 @@ dtrm_height_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     height_v = css_computed_height(box->computed_style, &height_l, &height_u);
     assert(height_v != CSS_HEIGHT_INHERIT);
     if (height_v != CSS_WIDTH_AUTO) {
-        box->height = calc_used_value_heights(box, height_u, height_l);
+        box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
 
         return height_v;
     }
@@ -332,7 +424,7 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     assert(width_v != CSS_WIDTH_INHERIT);
 
     if (width_v != CSS_WIDTH_AUTO) {
-        box->width = calc_used_value_widths(box, width_u, width_l);
+        box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
 
         return width_v;
     }
@@ -360,14 +452,14 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
     v = css_computed_padding_left(box->computed_style,
             &padding_left_l, &padding_left_u);
     assert(v != CSS_PADDING_INHERIT);
-    box->pl = calc_used_value_widths(box, padding_left_u, padding_left_l);
+    box->pl = calc_used_value_widths(ctxt, box, padding_left_u, padding_left_l);
 
     css_fixed padding_right_l;
     css_unit padding_right_u;
     v = css_computed_padding_right(box->computed_style,
             &padding_right_l, &padding_right_u);
     assert(v != CSS_PADDING_INHERIT);
-    box->pr = calc_used_value_widths(box, padding_right_u, padding_right_l);
+    box->pr = calc_used_value_widths(ctxt, box, padding_right_u, padding_right_l);
     (void)v;
 
     uint8_t margin_left_v;
@@ -381,7 +473,7 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
         nr_autos++;
     }
     else {
-        box->ml = calc_used_value_widths(box, margin_left_u, margin_left_l);
+        box->ml = calc_used_value_widths(ctxt, box, margin_left_u, margin_left_l);
     }
 
     uint8_t margin_right_v;
@@ -394,7 +486,7 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
         nr_autos++;
     }
     else {
-        box->mr = calc_used_value_widths(box, margin_right_u, margin_right_l);
+        box->mr = calc_used_value_widths(ctxt, box, margin_right_u, margin_right_l);
     }
 
     if (width_v != CSS_WIDTH_AUTO) {
@@ -491,7 +583,7 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 box->width = 0;
             }
             else {
-                box->width = calc_used_value_widths(box, width_u, width_l);
+                box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
             }
         }
 
@@ -553,7 +645,7 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(height_v != CSS_HEIGHT_INHERIT);
 
         if (height_v != CSS_WIDTH_AUTO) {
-            box->height = calc_used_value_heights(box, height_u, height_l);
+            box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
         }
         else if (box->overflow_y == CSS_OVERFLOW_VISIBLE) {
             dtrm_margin_top_bottom(ctxt, box);
@@ -614,18 +706,17 @@ static void inherit_used_values(foil_rdrbox *box, const foil_rdrbox *from)
     }
 }
 
-static void dtmr_sizing_properties(foil_rdrbox *box)
+static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     css_fixed length;
     css_unit unit;
 
     /* determine letter-spacing */
-    uint8_t v = css_computed_letter_spacing(
-            box->computed_style,
+    uint8_t v = css_computed_letter_spacing(box->computed_style,
             &length, &unit);
     assert(v != CSS_LETTER_SPACING_INHERIT);
     if (v == CSS_LETTER_SPACING_SET) {
-        box->letter_spacing = calc_used_value_widths(box, unit, length);
+        box->letter_spacing = calc_used_value_widths(ctxt, box, unit, length);
     }
     /* CSS_LETTER_SPACING_NORMAL */
 
@@ -642,7 +733,7 @@ static void dtmr_sizing_properties(foil_rdrbox *box)
             &length, &unit);
     assert(v != CSS_WORD_SPACING_INHERIT);
     if (v == CSS_WORD_SPACING_SET) {
-        box->word_spacing = calc_used_value_widths(box, unit, length);
+        box->word_spacing = calc_used_value_widths(ctxt, box, unit, length);
     }
     /* CSS_WORD_SPACING_NORMAL */
 
@@ -656,7 +747,7 @@ static void dtmr_sizing_properties(foil_rdrbox *box)
         /* determine text-indent */
         v = css_computed_text_indent(box->computed_style, &length, &unit);
         assert(v != CSS_TEXT_INDENT_INHERIT);
-        box->text_indent = calc_used_value_widths(box, unit, length);
+        box->text_indent = calc_used_value_widths(ctxt, box, unit, length);
 
         if (box->text_indent < 0)
             box->text_indent = 0;
@@ -791,7 +882,7 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else {
         assert(box->computed_style);
-        dtmr_sizing_properties(box);
+        dtmr_sizing_properties(ctxt, box);
     }
 
     /* calculate widths and margins */

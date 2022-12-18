@@ -225,9 +225,6 @@ struct foil_rdrbox {
     struct foil_rdrbox* prev;
     struct foil_rdrbox* next;
 
-    /* number of child boxes
-    unsigned nr_children; */
-
     /* the element creating this box;
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
     pcdoc_element_t owner;
@@ -388,7 +385,7 @@ typedef struct foil_layout_ctxt {
     pcmcth_udom *udom;
     const struct foil_rdrbox *initial_cblock;
 
-    unsigned pos_schema:3;
+    unsigned pos_schema:2;
     unsigned in_normal_flow:1;
 } foil_layout_ctxt;
 

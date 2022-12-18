@@ -257,12 +257,15 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
-    /* create the initial containing block */
     int cols = foil_page_cols(page);
     int rows = foil_page_rows(page);
     int width = cols * FOIL_PX_PER_EX;
     int height = rows * FOIL_PX_PER_EM;
 
+    udom->vw = width;
+    udom->vh = height;
+
+    /* create the initial containing block */
     udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
         LOG_ERROR("Failed to allocate initial containing block\n");

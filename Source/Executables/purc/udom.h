@@ -64,11 +64,14 @@ struct pcmcth_udom {
     /* the CSS media */
     css_media media;
 
+    /* size of viewport in pixels */
+    int vw, vh;
+
     /* size of whole page in pixels */
-    unsigned width, height;
+    int width, height;
 
     /* size of page in rows and columns */
-    unsigned cols, rows;
+    int cols, rows;
 
     /* title */
     uint32_t *title_ucs;
