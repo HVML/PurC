@@ -32,12 +32,96 @@
 #include <stdio.h>
 #include <assert.h>
 
+static float normalize_used_length(foil_layout_ctxt *ctxt, foil_rdrbox *box,
+        css_unit unit, css_fixed length)
+{
+    float v = 0;
+
+    switch (unit) {
+    case CSS_UNIT_PCT:
+        v = foil_rect_width(&box->cblock_rect);
+        v = v * FIXTOFLT(length);
+        break;
+
+    case CSS_UNIT_PX:
+        v = FIXTOFLT(length);
+        break;
+
+    /* font-relative lengths */
+    case CSS_UNIT_EX:
+        // The x-height is so called because it is often
+        // equal to the height of the lowercase "x".
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_W;
+        break;
+
+    case CSS_UNIT_EM:
+    case CSS_UNIT_CH:
+    case CSS_UNIT_REM:
+        // Equal to the used advance measure of the "0" glyph
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_H;
+        break;
+
+    /* absolute lengths */
+    case CSS_UNIT_CM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54;
+        break;
+    case CSS_UNIT_IN:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI;
+        break;
+    case CSS_UNIT_MM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10;
+        break;
+    case CSS_UNIT_PC:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/6.0;
+        break;
+    case CSS_UNIT_PT:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/72.0;
+        break;
+    case CSS_UNIT_Q:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40;
+        break;
+
+    /* viewport-relative lengths */
+    case CSS_UNIT_VW:
+        v = FIXTOFLT(length) * ctxt->udom->vw / 100;
+        break;
+    case CSS_UNIT_VH:
+        v = FIXTOFLT(length) * ctxt->udom->vh / 100;
+        break;
+    case CSS_UNIT_VMAX:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = FIXTOFLT(length) * ctxt->udom->vh / 100;
+        else
+            v = FIXTOFLT(length) * ctxt->udom->vw / 100;
+        break;
+    case CSS_UNIT_VMIN:
+        if (ctxt->udom->vh > ctxt->udom->vw)
+            v = FIXTOFLT(length) * ctxt->udom->vw / 100;
+        else
+            v = FIXTOFLT(length) * ctxt->udom->vh / 100;
+        break;
+
+    default:
+        // TODO: support more unit
+        LOG_WARN("TODO: not supported unit: %d\n", unit);
+        break;
+    }
+
+    return v;
+}
+
 static int round_width(float w)
 {
     if (w > 0)
         return (int)(w / FOIL_PX_GRID_CELL_W + 0.5) * FOIL_PX_GRID_CELL_W;
 
     return (int)(w / FOIL_PX_GRID_CELL_W - 0.5) * FOIL_PX_GRID_CELL_W;
+}
+
+static int calc_used_value_widths(foil_layout_ctxt *ctxt, foil_rdrbox *box,
+        css_unit unit, css_fixed length)
+{
+    return round_width(normalize_used_length(ctxt, box, unit, length));
 }
 
 static int round_height(float h)
@@ -47,160 +131,10 @@ static int round_height(float h)
     return (int)(h / FOIL_PX_GRID_CELL_H - 0.5) * FOIL_PX_GRID_CELL_H;
 }
 
-static int calc_used_value_widths(foil_layout_ctxt *ctxt, foil_rdrbox *box,
-        css_unit unit, css_fixed length)
-{
-    int v = 0;
-
-    switch (unit) {
-    case CSS_UNIT_PCT:
-        v = foil_rect_width(&box->cblock_rect);
-        v = round_width(v * FIXTOFLT(length));
-        break;
-
-    case CSS_UNIT_PX:
-        v = round_width(FIXTOFLT(length));
-        break;
-
-    /* font-relative lengths */
-    case CSS_UNIT_EX:
-        // The x-height is so called because it is often
-        // equal to the height of the lowercase "x".
-        v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
-        break;
-
-    case CSS_UNIT_EM:
-    case CSS_UNIT_CH:
-    case CSS_UNIT_REM:
-        // Equal to the used advance measure of the "0" glyph
-        v = round_width(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
-        break;
-
-    /* absolute lengths */
-    case CSS_UNIT_CM:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54);
-        break;
-    case CSS_UNIT_IN:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI);
-        break;
-    case CSS_UNIT_MM:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10);
-        break;
-    case CSS_UNIT_PC:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/6.0);
-        break;
-    case CSS_UNIT_PT:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/72.0);
-        break;
-    case CSS_UNIT_Q:
-        v = round_width(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40);
-        break;
-
-    /* viewport-relative lengths */
-    case CSS_UNIT_VW:
-        v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        break;
-    case CSS_UNIT_VH:
-        v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        break;
-    case CSS_UNIT_VMAX:
-        if (ctxt->udom->vh > ctxt->udom->vw)
-            v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        else
-            v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        break;
-    case CSS_UNIT_VMIN:
-        if (ctxt->udom->vh > ctxt->udom->vw)
-            v = round_width(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        else
-            v = round_width(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        break;
-
-    default:
-        // TODO: support more unit
-        LOG_WARN("TODO: support unit: %d\n", unit);
-        break;
-    }
-
-    return v;
-}
-
 static int calc_used_value_heights(foil_layout_ctxt *ctxt, foil_rdrbox *box,
         css_unit unit, css_fixed length)
 {
-    int v = 0;
-
-    switch (unit) {
-    case CSS_UNIT_PCT:
-        v = foil_rect_height(&box->cblock_rect);
-        v = round_height(v * FIXTOFLT(length));
-        break;
-
-    case CSS_UNIT_PX:
-        v = round_height(FIXTOFLT(length));
-        break;
-
-    /* font-relative lengths */
-    case CSS_UNIT_EX:
-        // The x-height is so called because it is often
-        // equal to the height of the lowercase "x".
-        v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_W);
-        break;
-
-    case CSS_UNIT_EM:
-    case CSS_UNIT_CH:
-    case CSS_UNIT_REM:
-        // Equal to the used advance measure of the "0" glyph
-        v = round_height(FIXTOFLT(length) * FOIL_PX_GRID_CELL_H);
-        break;
-
-    /* absolute lengths */
-    case CSS_UNIT_CM:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54);
-        break;
-    case CSS_UNIT_IN:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI);
-        break;
-    case CSS_UNIT_MM:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10);
-        break;
-    case CSS_UNIT_PC:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/6.0);
-        break;
-    case CSS_UNIT_PT:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/72.0);
-        break;
-    case CSS_UNIT_Q:
-        v = round_height(FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40);
-        break;
-
-    /* viewport-relative lengths */
-    case CSS_UNIT_VW:
-        v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        break;
-    case CSS_UNIT_VH:
-        v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        break;
-    case CSS_UNIT_VMAX:
-        if (ctxt->udom->vh > ctxt->udom->vw)
-            v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        else
-            v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        break;
-    case CSS_UNIT_VMIN:
-        if (ctxt->udom->vh > ctxt->udom->vw)
-            v = round_height(FIXTOFLT(length) * ctxt->udom->vw / 100);
-        else
-            v = round_height(FIXTOFLT(length) * ctxt->udom->vh / 100);
-        break;
-
-    default:
-        // TODO: support more unit
-        LOG_WARN("TODO: support unit: %d\n", unit);
-        break;
-    }
-
-    return v;
+    return round_height(normalize_used_length(ctxt, box, unit, length));
 }
 
 static void
