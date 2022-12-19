@@ -770,13 +770,13 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         purc_renderer_extra_info *extra_info);
 
 int
-pcintr_post_event(purc_atom_t cid,
+pcintr_post_event(purc_atom_t rid, purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t element_value, purc_variant_t event_name,
         purc_variant_t data, purc_variant_t request_id);
 
 int
-pcintr_post_event_by_ctype(purc_atom_t cid,
+pcintr_post_event_by_ctype(purc_atom_t rid, purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t element_value, const char *event_type,
         const char *event_sub_type, purc_variant_t data,

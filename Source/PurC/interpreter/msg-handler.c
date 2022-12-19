@@ -537,7 +537,7 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         goto out;
     }
 
-    pcintr_post_event(stack->co->cid, msg->reduceOpt, source_uri, source,
+    pcintr_post_event(0, stack->co->cid, msg->reduceOpt, source_uri, source,
             msg->eventName, msg->data, PURC_VARIANT_INVALID);
     purc_variant_unref(source_uri);
 
@@ -548,7 +548,7 @@ out:
 }
 
 int
-pcintr_post_event(purc_atom_t cid,
+pcintr_post_event(purc_atom_t rid, purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t element_value, purc_variant_t event_name,
         purc_variant_t data, purc_variant_t request_id)
@@ -557,8 +557,12 @@ pcintr_post_event(purc_atom_t cid,
     UNUSED_PARAM(event_name);
     UNUSED_PARAM(data);
 
-    if (!event_name) {
+    if (!event_name || ((rid == 0) && (cid == 0))) {
         return -1;
+    }
+
+    if (!rid) {
+        rid = purc_get_rid_by_cid(cid);
     }
 
     pcrdr_msg *msg = pcinst_get_message();
@@ -567,8 +571,14 @@ pcintr_post_event(purc_atom_t cid,
     }
 
     msg->type = PCRDR_MSG_TYPE_EVENT;
-    msg->target = PCRDR_MSG_TARGET_COROUTINE;
-    msg->targetValue = cid;
+    if (cid) {
+        msg->target = PCRDR_MSG_TARGET_COROUTINE;
+        msg->targetValue = cid;
+    }
+    else {
+        msg->target = PCRDR_MSG_TARGET_INSTANCE;
+        msg->targetValue = rid;
+    }
     msg->reduceOpt = reduce_op;
 
     if (source_uri) {
@@ -604,7 +614,6 @@ pcintr_post_event(purc_atom_t cid,
     }
 
     struct pcinst *inst = pcinst_current();
-    purc_atom_t rid = purc_get_rid_by_cid(cid);
     if (inst->endpoint_atom == rid) {
         ret = purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
         goto out;
@@ -620,7 +629,7 @@ out:
 }
 
 int
-pcintr_post_event_by_ctype(purc_atom_t cid,
+pcintr_post_event_by_ctype(purc_atom_t rid, purc_atom_t cid,
         pcrdr_msg_event_reduce_opt reduce_op, purc_variant_t source_uri,
         purc_variant_t element_value, const char *event_type,
         const char *event_sub_type, purc_variant_t data,
@@ -655,7 +664,7 @@ pcintr_post_event_by_ctype(purc_atom_t cid,
         return -1;
     }
 
-    int ret = pcintr_post_event(cid, reduce_op, source_uri, element_value,
+    int ret = pcintr_post_event(rid, cid, reduce_op, source_uri, element_value,
             event_name, data, request_id);
     purc_variant_unref(event_name);
 
@@ -681,7 +690,7 @@ pcintr_coroutine_post_event(purc_atom_t cid,
         return -1;
     }
 
-    int ret = pcintr_post_event_by_ctype(cid, reduce_op, source_uri,
+    int ret = pcintr_post_event_by_ctype(0, cid, reduce_op, source_uri,
             element_value, event_type, event_sub_type, data, request_id);
 
     purc_variant_unref(source_uri);
