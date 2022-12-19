@@ -699,6 +699,9 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
             goto done;
         }
 
+        if (ctxt->elem == ctxt->root)
+            box->is_root = 1;
+
         /* handle :before pseudo element */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
             if (foil_rdrbox_create_before(ctxt, box) == NULL) {
@@ -712,9 +715,16 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         goto failed;
     }
 
-    /* continue for the children */
     pcdoc_node node;
-    node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    if (box->is_replaced) {
+        /* skip contents if the element is a replaced one */
+        node.type = PCDOC_NODE_VOID;
+        node.elem = NULL;
+    }
+    else {
+        /* continue for the children */
+        node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    }
 
     while (node.type != PCDOC_NODE_VOID) {
 
@@ -1146,7 +1156,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
 
     /* determine the geometries of boxes and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock, 0, 0 };
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 

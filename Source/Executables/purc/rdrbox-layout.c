@@ -502,7 +502,7 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         dtrm_margin_left_right(ctxt, box);
     }
-    else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && ctxt->in_normal_flow) {
+    else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && box->is_in_normal_flow) {
         uint8_t width_v;
 
         if (box->is_replaced) {
@@ -511,19 +511,21 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         else {
             css_fixed width_l;
             css_unit width_u;
-            width_v = css_computed_width(box->computed_style, &width_l, &width_u);
+            width_v = css_computed_width(box->computed_style,
+                    &width_l, &width_u);
             assert(width_v != CSS_WIDTH_INHERIT);
             if (width_v == CSS_WIDTH_AUTO) {
                 box->width = 0;
             }
             else {
-                box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
+                box->width = calc_used_value_widths(ctxt, box,
+                        width_u, width_l);
             }
         }
 
         dtrm_margin_left_right_block_normal(ctxt, box, width_v);
     }
-    else if (ctxt->pos_schema == FOIL_RDRBOX_POSSCHEMA_FLOATS) {
+    else if (box->floating != FOIL_RDRBOX_FLOAT_NONE) {
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
         }
@@ -533,11 +535,11 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         dtrm_margin_left_right(ctxt, box);
     }
-    else if (ctxt->pos_schema == FOIL_RDRBOX_POSSCHEMA_ABSOLUTE) {
+    else if (box->is_abs_positioned) {
         LOG_WARN("Not implemented for absolutely positioned\n");
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
-            ctxt->in_normal_flow) {
+            box->is_in_normal_flow) {
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
         }
@@ -561,16 +563,16 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (box->is_replaced && (box->type == FOIL_RDRBOX_TYPE_INLINE ||
                 (box->type == FOIL_RDRBOX_TYPE_BLOCK &&
-                    ctxt->in_normal_flow) ||
+                    box->is_in_normal_flow) ||
                 (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
-                    ctxt->in_normal_flow) ||
-                ctxt->pos_schema == FOIL_RDRBOX_POSSCHEMA_FLOATS)) {
+                    box->is_in_normal_flow) ||
+                box->floating != FOIL_RDRBOX_FLOAT_NONE)) {
 
         dtrm_margin_top_bottom(ctxt, box);
         dtrm_height_replaced(ctxt, box);
     }
     else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && !box->is_replaced &&
-            ctxt->in_normal_flow) {
+            box->is_in_normal_flow) {
 
         css_fixed height_l;
         css_unit height_u;
@@ -956,6 +958,9 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->cblock_rect.right = ctxt->udom->initial_cblock->width;
         box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
         box->cblock_creator = ctxt->udom->initial_cblock;
+
+        // absolutely positioned
+        box->is_abs_positioned = 1;
     }
     else if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
         /* the containing block is established by the nearest ancestor
@@ -988,6 +993,9 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
         }
         box->cblock_creator = ctxt->udom->initial_cblock;
+
+        // absolutely positioned
+        box->is_abs_positioned = 1;
     }
 
     /* inherit properties for anonymous and pseudo box */
@@ -997,6 +1005,7 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(box->principal);
 
         inherit_used_values(box, box->principal);
+        dtmr_border_properties(ctxt, box);
     }
     else if (box->is_anonymous) {
         foil_rdrbox *from = NULL;
@@ -1013,9 +1022,14 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     else {
         assert(box->computed_style);
         dtmr_sizing_properties(ctxt, box);
+        dtmr_border_properties(ctxt, box);
     }
 
-    dtmr_border_properties(ctxt, box);
+    if (!box->is_abs_positioned && !box->floating) {
+        box->is_in_normal_flow = 1;
+        if (!box->is_root)
+            box->is_in_flow = 1;
+    }
 
     /* calculate widths and margins */
     calc_widths_margins(ctxt, box);
