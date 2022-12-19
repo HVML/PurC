@@ -269,8 +269,9 @@ pcintr_coroutine_clear_tasks(pcintr_coroutine_t co)
     return 0;
 }
 
-int
-dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
+static int
+dispatch_coroutine_event_from_move_buffer(struct pcinst *inst,
+        const pcrdr_msg *msg)
 {
     UNUSED_PARAM(inst);
     struct pcintr_heap *heap = inst->intr_heap;
@@ -342,6 +343,65 @@ dispatch_move_buffer_event(struct pcinst *inst, const pcrdr_msg *msg)
     }
     return 0;
 }
+
+static int
+dispatch_inst_event_from_move_buffer(struct pcinst *inst,
+        const pcrdr_msg *msg)
+{
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(inst);
+
+    int ret = -1;
+    struct pcintr_heap *heap = inst->intr_heap;
+    if (!heap || inst->endpoint_atom != msg->targetValue) {
+        goto out;
+    }
+
+    purc_variant_t request_id = msg->requestId;
+    if (!pcintr_is_request_id(request_id)) {
+        goto out;
+    }
+
+    const char *res = pcintr_request_id_get_res(request_id);
+    enum pcintr_request_id_type type = pcintr_request_id_get_type(request_id);
+    switch (type) {
+    case PCINTR_REQUEST_ID_TYPE_ELEMENTS:
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        break;
+
+    case PCINTR_REQUEST_ID_TYPE_CRTN:
+    {
+        pcintr_coroutine_t crtn = pcintr_get_crtn_by_token(inst, res);
+        if (!crtn) {
+            goto out;
+        }
+        purc_variant_t v = purc_variant_make_ulongint(crtn->cid);
+        pcintr_post_event(0, crtn->cid, msg->reduceOpt, msg->sourceURI, v,
+            msg->eventName, msg->data, v);
+        purc_variant_unref(v);
+        break;
+    }
+
+    case PCINTR_REQUEST_ID_TYPE_CHAN:
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        break;
+
+    case PCINTR_REQUEST_ID_TYPE_RDR:
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        break;
+
+    case PCINTR_REQUEST_ID_TYPE_INVALID:
+    default:
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        break;
+    }
+
+
+out:
+    return ret;
+}
+
 
 static
 purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
@@ -422,7 +482,11 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     struct pcinst *inst = pcinst_current();
 
     if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
-        dispatch_move_buffer_event(inst, msg);
+        dispatch_coroutine_event_from_move_buffer(inst, msg);
+        return;
+    }
+    else if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
+        dispatch_inst_event_from_move_buffer(inst, msg);
         return;
     }
 
@@ -499,7 +563,6 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
             }
             else if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
                 find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
-                //xsm
                 size_t nr = strlen(element) + 1;
                 char *buf = (char*)malloc(nr + 1);
                 if (!buf) {
