@@ -1393,6 +1393,30 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
 
     LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
 
+    /* determine clear */
+    v = css_computed_float(ctxt->style);
+    assert(v != CSS_CLEAR_INHERIT);
+    switch (v) {
+    case CSS_CLEAR_LEFT:
+        box->clear = FOIL_RDRBOX_CLEAR_LEFT;
+        break;
+
+    case CSS_CLEAR_RIGHT:
+        box->clear = FOIL_RDRBOX_CLEAR_RIGHT;
+        break;
+
+    case CSS_CLEAR_BOTH:
+        box->clear = FOIL_RDRBOX_CLEAR_BOTH;
+        break;
+
+    case CSS_CLEAR_NONE:
+    default:
+        box->clear = FOIL_RDRBOX_CLEAR_NONE;
+        break;
+    }
+
+    LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
+
     /* whether is a block level box */
     if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
             box->type == FOIL_RDRBOX_TYPE_LIST_ITEM ||

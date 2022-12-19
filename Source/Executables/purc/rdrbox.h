@@ -184,6 +184,14 @@ enum {
     FOIL_RDRBOX_BORDER_STYLE_DOUBLE,
 };
 
+/* the clear property. */
+enum {
+    FOIL_RDRBOX_CLEAR_NONE = 0,
+    FOIL_RDRBOX_CLEAR_LEFT,
+    FOIL_RDRBOX_CLEAR_RIGHT,
+    FOIL_RDRBOX_CLEAR_BOTH,
+};
+
 enum {
     FOIL_RDRBOX_TYPE_INLINE = 0,
     FOIL_RDRBOX_TYPE_BLOCK,
@@ -284,6 +292,7 @@ struct foil_rdrbox {
     uint32_t type:4;
     uint32_t position:3;
     uint32_t floating:2;
+    uint32_t clear:2;
     uint32_t overflow_x:2;
     uint32_t overflow_y:2;
     uint32_t unicode_bidi:3;
