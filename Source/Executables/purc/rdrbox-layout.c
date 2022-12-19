@@ -725,6 +725,196 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
+static uint8_t normalize_border_style(uint8_t v)
+{
+    switch (v) {
+    case CSS_BORDER_STYLE_NONE:
+        v = FOIL_RDRBOX_BORDER_STYLE_NONE;
+        break;
+    case CSS_BORDER_STYLE_HIDDEN:
+        v = FOIL_RDRBOX_BORDER_STYLE_HIDDEN;
+        break;
+    case CSS_BORDER_STYLE_DOTTED:
+        v = FOIL_RDRBOX_BORDER_STYLE_DOTTED;
+        break;
+    case CSS_BORDER_STYLE_DASHED:
+        v = FOIL_RDRBOX_BORDER_STYLE_DASHED;
+        break;
+    case CSS_BORDER_STYLE_SOLID:
+        v = FOIL_RDRBOX_BORDER_STYLE_SOLID;
+        break;
+    case CSS_BORDER_STYLE_DOUBLE:
+        v = FOIL_RDRBOX_BORDER_STYLE_DOUBLE;
+        break;
+    case CSS_BORDER_STYLE_GROOVE:
+    case CSS_BORDER_STYLE_RIDGE:
+    case CSS_BORDER_STYLE_INSET:
+    case CSS_BORDER_STYLE_OUTSET:
+    default:
+        v = FOIL_RDRBOX_BORDER_STYLE_SOLID;
+        break;
+    }
+
+    return v;
+}
+
+static uint8_t normalize_border_width_v(int w)
+{
+    uint8_t v;
+    if (w <= 0) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else if (w < FOIL_PX_GRID_CELL_H / 2) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_LIGHT;
+    }
+    else {
+        v = FOIL_RDRBOX_BORDER_WIDTH_HEAVY;
+    }
+
+    return v;
+}
+
+static uint8_t normalize_border_width_h(int w)
+{
+    uint8_t v;
+    if (w <= 0) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else if (w < FOIL_PX_GRID_CELL_W / 2) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_LIGHT;
+    }
+    else {
+        v = FOIL_RDRBOX_BORDER_WIDTH_HEAVY;
+    }
+
+    return v;
+}
+
+static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t v;
+    css_fixed length;
+    css_unit unit;
+    css_color color;
+    int w;
+
+    v = css_computed_border_top_style(box->computed_style);
+    assert(v != CSS_BORDER_STYLE_INHERIT);
+    box->border_top_style = normalize_border_style(v);
+    if (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_NONE ||
+            box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_HIDDEN) {
+        box->border_top_width = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else {
+        v = css_computed_border_top_width(box->computed_style,
+                &length, &unit);
+        assert(v != CSS_BORDER_WIDTH_INHERIT);
+        if (v == CSS_BORDER_WIDTH_WIDTH) {
+            w = round_height(normalize_used_length(ctxt, box, unit, length));
+            box->border_top_width = normalize_border_width_v(w);
+        }
+        else {
+            box->border_top_width = v;
+        }
+    }
+
+    if (box->border_top_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
+        box->bt = 0;
+    else {
+        box->bt = FOIL_PX_GRID_CELL_H;
+        v = css_computed_border_top_color(box->computed_style, &color);
+        assert(v != CSS_COLOR_INHERIT);
+        box->border_top_color = foil_map_xrgb_to_16c(color);
+    }
+
+    v = css_computed_border_right_style(box->computed_style);
+    assert(v != CSS_BORDER_STYLE_INHERIT);
+    box->border_right_style = normalize_border_style(v);
+    if (box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_NONE ||
+            box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_HIDDEN) {
+        box->border_right_width = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else {
+        v = css_computed_border_right_width(box->computed_style,
+                &length, &unit);
+        assert(v != CSS_BORDER_WIDTH_INHERIT);
+        if (v == CSS_BORDER_WIDTH_WIDTH) {
+            w = round_height(normalize_used_length(ctxt, box, unit, length));
+            box->border_right_width = normalize_border_width_h(w);
+        }
+        else {
+            box->border_right_width = v;
+        }
+    }
+
+    if (box->border_right_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
+        box->br = 0;
+    else {
+        box->br = FOIL_PX_GRID_CELL_W;
+        v = css_computed_border_right_color(box->computed_style, &color);
+        assert(v != CSS_COLOR_INHERIT);
+        box->border_right_color = foil_map_xrgb_to_16c(color);
+    }
+
+    v = css_computed_border_bottom_style(box->computed_style);
+    assert(v != CSS_BORDER_STYLE_INHERIT);
+    box->border_bottom_style = normalize_border_style(v);
+    if (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_NONE ||
+            box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_HIDDEN) {
+        box->border_bottom_width = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else {
+        v = css_computed_border_bottom_width(box->computed_style,
+                &length, &unit);
+        assert(v != CSS_BORDER_WIDTH_INHERIT);
+        if (v == CSS_BORDER_WIDTH_WIDTH) {
+            w = round_height(normalize_used_length(ctxt, box, unit, length));
+            box->border_bottom_width = normalize_border_width_v(w);
+        }
+        else {
+            box->border_bottom_width = v;
+        }
+    }
+
+    if (box->border_bottom_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
+        box->br = 0;
+    else {
+        box->br = FOIL_PX_GRID_CELL_H;
+        v = css_computed_border_bottom_color(box->computed_style, &color);
+        assert(v != CSS_COLOR_INHERIT);
+        box->border_bottom_color = foil_map_xrgb_to_16c(color);
+    }
+
+    v = css_computed_border_left_style(box->computed_style);
+    assert(v != CSS_BORDER_STYLE_INHERIT);
+    box->border_left_style = normalize_border_style(v);
+    if (box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_NONE ||
+            box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_HIDDEN) {
+        box->border_left_width = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
+    }
+    else {
+        v = css_computed_border_left_width(box->computed_style,
+                &length, &unit);
+        assert(v != CSS_BORDER_WIDTH_INHERIT);
+        if (v == CSS_BORDER_WIDTH_WIDTH) {
+            w = round_height(normalize_used_length(ctxt, box, unit, length));
+            box->border_left_width = normalize_border_width_h(w);
+        }
+        else {
+            box->border_left_width = v;
+        }
+    }
+
+    if (box->border_left_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
+        box->br = 0;
+    else {
+        box->br = FOIL_PX_GRID_CELL_W;
+        v = css_computed_border_left_color(box->computed_style, &color);
+        assert(v != CSS_COLOR_INHERIT);
+        box->border_left_color = foil_map_xrgb_to_16c(color);
+    }
+}
+
 void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
 #ifndef NDEBUG
@@ -818,6 +1008,8 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(box->computed_style);
         dtmr_sizing_properties(ctxt, box);
     }
+
+    dtmr_border_properties(ctxt, box);
 
     /* calculate widths and margins */
     calc_widths_margins(ctxt, box);

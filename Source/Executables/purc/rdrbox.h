@@ -166,6 +166,23 @@ enum {
     FOIL_RDRBOX_LIST_STYLE_POSITION_INSIDE,
 };
 
+/* the border width (light lines or heavy lines). */
+enum {
+    FOIL_RDRBOX_BORDER_WIDTH_ZERO = 0,
+    FOIL_RDRBOX_BORDER_WIDTH_LIGHT,
+    FOIL_RDRBOX_BORDER_WIDTH_HEAVY,
+};
+
+/* the border styles (dotted, dashed, solid, and double). */
+enum {
+    FOIL_RDRBOX_BORDER_STYLE_NONE = 0,
+    FOIL_RDRBOX_BORDER_STYLE_HIDDEN,
+    FOIL_RDRBOX_BORDER_STYLE_DOTTED,
+    FOIL_RDRBOX_BORDER_STYLE_DASHED,
+    FOIL_RDRBOX_BORDER_STYLE_SOLID,
+    FOIL_RDRBOX_BORDER_STYLE_DOUBLE,
+};
+
 enum {
     FOIL_RDRBOX_TYPE_INLINE = 0,
     FOIL_RDRBOX_TYPE_BLOCK,
@@ -270,14 +287,27 @@ struct foil_rdrbox {
     uint32_t line_break:3;
     uint32_t word_wrap:2;
     uint32_t lang_code:8;
+    uint32_t border_top_width:2;
+    uint32_t border_right_width:2;
+    uint32_t border_bottom_width:2;
+    uint32_t border_left_width:2;
+    uint32_t border_top_style:4;
+    uint32_t border_right_style:4;
+    uint32_t border_bottom_style:4;
+    uint32_t border_left_style:4;
 
-    uint32_t background_color;
+    uint32_t border_top_color:4;
+    uint32_t border_right_color:4;
+    uint32_t border_bottom_color:4;
+    uint32_t border_left_color:4;
+
+    uint32_t background_color:4;
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
     int32_t left, top;                  // position
     int32_t mt, ml, mr, mb;             // margins
-    int32_t bt, bl, br, bb;             // borders
+    int32_t bt, bl, br, bb;             // borders (actual values)
     int32_t pt, pl, pr, pb;             // paddings
 
     foil_counters *counter_reset;   // NULL when `counter-reset` is `none`
@@ -301,6 +331,7 @@ struct foil_rdrbox {
     uint32_t text_transform:2;
     uint32_t visibility:2;
     uint32_t white_space:3;
+    uint32_t color:4;
 
     uint32_t border_spacing_x;
     uint32_t border_spacing_y;
@@ -308,7 +339,6 @@ struct foil_rdrbox {
     int32_t  letter_spacing;
     int32_t  text_indent;
     int32_t  word_spacing;
-    uint32_t color;
     uint32_t __copy_finish;
 
     foil_quotes *quotes;    // NULL when `quotes` is `none`

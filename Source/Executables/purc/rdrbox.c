@@ -1203,14 +1203,14 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
     css_color color_argb;
     v = css_computed_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->color = color_argb;
+    box->color = foil_map_xrgb_to_16c(color_argb);
 
     LOG_DEBUG("\tcolor: 0x%08x\n", box->color);
 
     /* determine background color */
     v = css_computed_background_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->background_color = color_argb;
+    box->background_color = foil_map_xrgb_to_16c(color_argb);
 
     LOG_DEBUG("\tbackground-color: 0x%08x\n", box->background_color);
 

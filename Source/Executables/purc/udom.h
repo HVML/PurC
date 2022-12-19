@@ -35,8 +35,6 @@
 #include <purc/purc-document.h>
 #include <glib.h>
 
-#define FOIL_DEF_FGC            0xFFFFFFFF
-#define FOIL_DEF_BGC            0xFF000000
 #define FOIL_DEF_RGNRCHEAP_SZ   16
 
 struct pcmcth_udom {
