@@ -1005,7 +1005,6 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(box->principal);
 
         inherit_used_values(box, box->principal);
-        dtmr_border_properties(ctxt, box);
     }
     else if (box->is_anonymous) {
         foil_rdrbox *from = NULL;
@@ -1031,14 +1030,16 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->is_in_flow = 1;
     }
 
-    /* calculate widths and margins */
-    calc_widths_margins(ctxt, box);
+    if (box->computed_style) {
+        /* calculate widths and margins */
+        calc_widths_margins(ctxt, box);
 
-    /* calculate heights and margins */
-    calc_heights_margins(ctxt, box);
+        /* calculate heights and margins */
+        calc_heights_margins(ctxt, box);
 
-    /* adjust position according to 'vertical-align' */
-    adjust_position_vertically(ctxt, box);
+        /* adjust position according to 'vertical-align' */
+        adjust_position_vertically(ctxt, box);
+    }
 }
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
