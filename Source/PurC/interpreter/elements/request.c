@@ -138,38 +138,50 @@ is_rdr(purc_variant_t v)
 }
 
 static int
-request_crtn_by_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_atom_t cid)
+request_crtn_by_rid_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_atom_t dest_rid, purc_atom_t dest_cid, const char *token)
 {
-    UNUSED_PARAM(co);
-
     int ret = 0;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    pcintr_coroutine_t dest_co = pcintr_coroutine_get_by_id(cid);
-    if (!dest_co) {
-        purc_set_error_with_info(PURC_ERROR_NOT_FOUND,
-                "Can not found dest coroutine");
-        ret = -1;
-        goto out;
+
+    const char *uri = purc_atom_to_string(co->cid);
+    purc_variant_t source_uri = purc_variant_make_string(uri, false);
+    const char *sub_type = purc_variant_get_string_const(ctxt->to);
+
+    struct pcinst *inst = pcinst_current();
+    if (dest_cid && (inst->endpoint_atom == dest_rid || dest_rid == 0)) {
+        ctxt->request_id = purc_variant_make_ulongint(dest_cid);
+        pcintr_post_event_by_ctype(0, dest_cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                source_uri,
+                ctxt->request_id,
+                MSG_TYPE_REQUEST,
+                sub_type,
+                ctxt->with,
+                ctxt->request_id
+                );
+    }
+    else {
+        ctxt->request_id = pcintr_request_id_create(PCINTR_REQUEST_ID_TYPE_CRTN,
+                dest_rid, dest_cid, token);
+        pcintr_post_event_by_ctype(dest_rid, dest_cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                source_uri,
+                ctxt->request_id,
+                MSG_TYPE_REQUEST,
+                sub_type,
+                ctxt->with,
+                ctxt->request_id
+                );
     }
 
-    purc_variant_t crtn = pcintr_get_coroutine_variable(dest_co,
-            PURC_PREDEF_VARNAME_CRTN);
-    ctxt->request_id = purc_variant_ref(crtn);
-    purc_variant_t to = ctxt->to;
-
-    const char *sub_type = purc_variant_get_string_const(to);
-    pcintr_coroutine_post_event(cid,
-            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-            ctxt->request_id,
-            MSG_TYPE_REQUEST, sub_type,
-            ctxt->with, ctxt->request_id);
+    purc_variant_unref(source_uri);
 
     if (!ctxt->synchronously) {
         goto out;
     }
 
-    purc_variant_t observed = purc_variant_make_ulongint(cid);
+    purc_variant_t observed = purc_variant_make_ulongint(dest_cid);
     pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
@@ -230,35 +242,20 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
     else if (res_type == HVML_RUN_RES_TYPE_CRTN) {
-        pcintr_coroutine_t dest_co = NULL;
-        if (strcmp(co->token, res_name) == 0 ||
-                (co->is_main && strcmp(res_name, CRTN_TOKEN_MAIN) == 0)) {
-            purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                    "Can not send request to current coroutine '%s'", co->token);
-            goto out;
+        purc_atom_t dest_rid;
+        if (is_same_runner) {
+            dest_rid = curr_inst->endpoint_atom;
         }
-        else if (strcmp(res_name, CRTN_TOKEN_FIRST) == 0) {
-            pcintr_coroutine_t first = pcintr_get_first_crtn(curr_inst);
-            if (co == first) {
-                purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                        "Can not send request to first coroutine '%s'", co->token);
-                goto out;
-            }
-            dest_co = first;
+        else {
+            char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
+            purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+                    curr_inst->app_name, runner_name,
+                    endpoint_name, sizeof(endpoint_name) - 1);
+            dest_rid = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
+                    endpoint_name);
         }
-        else if (strcmp(res_name, CRTN_TOKEN_LAST) == 0) {
-            pcintr_coroutine_t last = pcintr_get_last_crtn(curr_inst);
-            if (co == last) {
-                purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
-                        "Can not send request to last coroutine '%s'", co->token);
-                goto out;
-            }
-            dest_co = last;
-        }
-        if (dest_co) {
-            ret = request_crtn_by_cid(co, frame, dest_co->cid);
-            goto out;
-        }
+        ret = request_crtn_by_rid_cid(co, frame, dest_rid, 0, res_name);
+        goto out;
     }
 
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
@@ -312,7 +309,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         uint64_t u64;
         purc_variant_cast_to_ulongint(on, &u64, true);
         dest_cid = (purc_atom_t) u64;
-        ret = request_crtn_by_cid(co, frame, dest_cid);
+        ret = request_crtn_by_rid_cid(co, frame, 0, dest_cid, NULL);
     }
     else if (purc_variant_is_string(on)) {
         const char *s_to = purc_variant_get_string_const(on);
@@ -336,9 +333,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             PC_WARN("not implemented on '%s' for request.\n",
                     purc_variant_get_string_const(on));
         }
-    }
-    else if (pcintr_is_crtn_object(on, &dest_cid)) {
-        ret = request_crtn_by_cid(co, frame, dest_cid);
     }
     else if (is_rdr(on)) {
         ret = request_rdr(co, frame, on);

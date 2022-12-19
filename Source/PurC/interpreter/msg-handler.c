@@ -363,6 +363,7 @@ dispatch_inst_event_from_move_buffer(struct pcinst *inst,
         goto out;
     }
 
+    purc_atom_t cid = pcintr_request_id_get_cid(request_id);
     const char *res = pcintr_request_id_get_res(request_id);
     enum pcintr_request_id_type type = pcintr_request_id_get_type(request_id);
     switch (type) {
@@ -372,8 +373,16 @@ dispatch_inst_event_from_move_buffer(struct pcinst *inst,
 
     case PCINTR_REQUEST_ID_TYPE_CRTN:
     {
-        pcintr_coroutine_t crtn = pcintr_get_crtn_by_token(inst, res);
+        pcintr_coroutine_t crtn;
+        if (cid) {
+            crtn = pcintr_coroutine_get_by_id(cid);
+        }
+        else {
+            crtn = pcintr_get_crtn_by_token(inst, res);
+        }
         if (!crtn) {
+            purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                    "Can not send request to coroutine '%s'", res);
             goto out;
         }
         purc_variant_t v = purc_variant_make_ulongint(crtn->cid);
@@ -677,7 +686,8 @@ pcintr_post_event(purc_atom_t rid, purc_atom_t cid,
     }
 
     struct pcinst *inst = pcinst_current();
-    if (inst->endpoint_atom == rid) {
+    if ((inst->endpoint_atom == rid) &&
+            (msg->target == PCRDR_MSG_TARGET_COROUTINE)) {
         ret = purc_inst_post_event(PURC_EVENT_TARGET_SELF, msg);
         goto out;
     }

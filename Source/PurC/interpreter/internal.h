@@ -583,10 +583,13 @@ pcintr_is_request_id(purc_variant_t v);
 
 purc_variant_t
 pcintr_request_id_create(enum pcintr_request_id_type type, purc_atom_t rid,
-        const char *res);
+        purc_atom_t cid, const char *res);
 
 purc_atom_t
 pcintr_request_id_get_rid(purc_variant_t v);
+
+purc_atom_t
+pcintr_request_id_get_cid(purc_variant_t v);
 
 enum pcintr_request_id_type
 pcintr_request_id_get_type(purc_variant_t v);

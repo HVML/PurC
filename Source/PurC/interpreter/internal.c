@@ -46,6 +46,7 @@
 #define REQUEST_ID_KEY_HANDLE   "__pcintr_request_id_handle"
 #define REQUEST_ID_KEY_TYPE     "type"
 #define REQUEST_ID_KEY_RID      "rid"
+#define REQUEST_ID_KEY_CID      "cid"
 #define REQUEST_ID_KEY_RES      "res"
 
 
@@ -1133,10 +1134,11 @@ pcintr_is_request_id(purc_variant_t v)
 
 purc_variant_t
 pcintr_request_id_create(enum pcintr_request_id_type type, purc_atom_t rid,
-        const char *res)
+        purc_atom_t cid, const char *res)
 {
     purc_variant_t v_type = PURC_VARIANT_INVALID;
     purc_variant_t v_rid = PURC_VARIANT_INVALID;
+    purc_variant_t v_cid = PURC_VARIANT_INVALID;
     purc_variant_t v_res = PURC_VARIANT_INVALID;
     purc_variant_t handle = PURC_VARIANT_INVALID;
     bool success = false;
@@ -1167,14 +1169,26 @@ pcintr_request_id_create(enum pcintr_request_id_type type, purc_atom_t rid,
         goto out_clear_rid;
     }
 
-    v_res = purc_variant_make_string(res, true);
-    if (!v_res) {
+    v_cid = purc_variant_make_ulongint((uint64_t)cid);
+    if (!v_cid) {
         goto out_clear_rid;
     }
 
     if (!purc_variant_object_set_by_static_ckey(ret,
-                REQUEST_ID_KEY_RES, v_res)) {
-        goto out_clear_res;
+                REQUEST_ID_KEY_CID, v_cid)) {
+        goto out_clear_cid;
+    }
+
+    if (res) {
+        v_res = purc_variant_make_string(res, true);
+        if (!v_res) {
+            goto out_clear_cid;
+        }
+
+        if (!purc_variant_object_set_by_static_ckey(ret,
+                    REQUEST_ID_KEY_RES, v_res)) {
+            goto out_clear_res;
+        }
     }
 
     handle = purc_variant_make_boolean(true);
@@ -1193,7 +1207,12 @@ out_clear_handle:
     purc_variant_unref(handle);
 
 out_clear_res:
-    purc_variant_unref(v_res);
+    if (v_res) {
+        purc_variant_unref(v_res);
+    }
+
+out_clear_cid:
+    purc_variant_unref(v_cid);
 
 out_clear_rid:
     purc_variant_unref(v_rid);
@@ -1219,6 +1238,18 @@ pcintr_request_id_get_rid(purc_variant_t v)
     }
     uint64_t u64;
     purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RID);
+    purc_variant_cast_to_ulongint(val, &u64, true);
+    return (purc_atom_t) u64;
+}
+
+purc_atom_t
+pcintr_request_id_get_cid(purc_variant_t v)
+{
+    if (!pcintr_is_request_id(v)) {
+        return 0;
+    }
+    uint64_t u64;
+    purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_CID);
     purc_variant_cast_to_ulongint(val, &u64, true);
     return (purc_atom_t) u64;
 }

@@ -359,6 +359,9 @@ pcintr_get_crtn_by_token(struct pcinst *inst, const char *token)
 {
     UNUSED_PARAM(inst);
     UNUSED_PARAM(token);
+    if (!token) {
+        return NULL;
+    }
     if (strcmp(token, CRTN_TOKEN_MAIN) == 0) {
         return pcintr_get_main_crtn(inst);
     }
