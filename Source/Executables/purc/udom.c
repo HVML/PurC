@@ -259,8 +259,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     int cols = foil_page_cols(page);
     int rows = foil_page_rows(page);
-    int width = cols * FOIL_PX_PER_EX;
-    int height = rows * FOIL_PX_PER_EM;
+    int width = cols * FOIL_PX_GRID_CELL_W;
+    int height = rows * FOIL_PX_GRID_CELL_H;
 
     udom->vw = width;
     udom->vh = height;
@@ -289,7 +289,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->cblock_rect.left = 0;
     udom->initial_cblock->cblock_rect.top = 0;
     udom->initial_cblock->cblock_rect.right = width;
-    udom->initial_cblock->cblock_rect.right = height;
+    udom->initial_cblock->cblock_rect.bottom = height;
     udom->initial_cblock->cblock_creator = NULL;
 
     udom->media.type = CSS_MEDIA_TTY;
