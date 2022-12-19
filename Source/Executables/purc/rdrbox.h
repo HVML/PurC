@@ -169,8 +169,9 @@ enum {
 /* the border width (light lines or heavy lines). */
 enum {
     FOIL_RDRBOX_BORDER_WIDTH_ZERO = 0,
-    FOIL_RDRBOX_BORDER_WIDTH_LIGHT,
-    FOIL_RDRBOX_BORDER_WIDTH_HEAVY,
+    FOIL_RDRBOX_BORDER_WIDTH_THIN = CSS_BORDER_WIDTH_THIN,
+    FOIL_RDRBOX_BORDER_WIDTH_MEDIUM = CSS_BORDER_WIDTH_MEDIUM,
+    FOIL_RDRBOX_BORDER_WIDTH_THICK = CSS_BORDER_WIDTH_THICK,
 };
 
 /* the border styles (dotted, dashed, solid, and double). */

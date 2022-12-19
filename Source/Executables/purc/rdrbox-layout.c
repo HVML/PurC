@@ -764,11 +764,14 @@ static uint8_t normalize_border_width_v(int w)
     if (w <= 0) {
         v = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
     }
-    else if (w < FOIL_PX_GRID_CELL_H / 2) {
-        v = FOIL_RDRBOX_BORDER_WIDTH_LIGHT;
+    else if (w < FOIL_PX_GRID_CELL_H / 3) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_THIN;
+    }
+    else if (w < FOIL_PX_GRID_CELL_H * 2 / 3) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_MEDIUM;
     }
     else {
-        v = FOIL_RDRBOX_BORDER_WIDTH_HEAVY;
+        v = FOIL_RDRBOX_BORDER_WIDTH_THICK;
     }
 
     return v;
@@ -780,11 +783,14 @@ static uint8_t normalize_border_width_h(int w)
     if (w <= 0) {
         v = FOIL_RDRBOX_BORDER_WIDTH_ZERO;
     }
-    else if (w < FOIL_PX_GRID_CELL_W / 2) {
-        v = FOIL_RDRBOX_BORDER_WIDTH_LIGHT;
+    else if (w < FOIL_PX_GRID_CELL_W / 3) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_THIN;
+    }
+    else if (w < FOIL_PX_GRID_CELL_W * 2 / 3) {
+        v = FOIL_RDRBOX_BORDER_WIDTH_MEDIUM;
     }
     else {
-        v = FOIL_RDRBOX_BORDER_WIDTH_HEAVY;
+        v = FOIL_RDRBOX_BORDER_WIDTH_THICK;
     }
 
     return v;
