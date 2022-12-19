@@ -200,6 +200,23 @@ out:
 }
 
 static int
+request_chan_by_rid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        const char *uri, purc_atom_t dest_rid, const char *chan)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(frame);
+    UNUSED_PARAM(uri);
+    UNUSED_PARAM(dest_rid);
+    UNUSED_PARAM(chan);
+
+    int ret = 0;
+
+    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    PC_WARN("not implemented on '%s' for request.\n", uri);
+    return ret;
+}
+
+static int
 request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         const char *uri, char *host_name, char *app_name,
         char *runner_name, enum HVML_RUN_RES_TYPE res_type, char *res_name)
@@ -214,7 +231,7 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(res_name);
 
     int ret = -1;
-    bool is_same_runner = false;
+    purc_atom_t dest_rid;
     struct pcinst *curr_inst = pcinst_current();
 
     if (strcmp(host_name, PCINTR_HVML_RUN_CURR_ID) != 0 &&
@@ -233,27 +250,22 @@ request_crtn_by_uri(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     if (strcmp(runner_name, PCINTR_HVML_RUN_CURR_ID) == 0 ||
             strcmp(runner_name, curr_inst->runner_name) == 0) {
-        is_same_runner = true;
+        dest_rid = curr_inst->endpoint_atom;
+    }
+    else {
+        char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
+        purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
+                curr_inst->app_name, runner_name,
+                endpoint_name, sizeof(endpoint_name) - 1);
+        dest_rid = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
+                endpoint_name);
     }
 
     if (res_type == HVML_RUN_RES_TYPE_CHAN) {
-        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-        PC_WARN("not implemented on '%s' for request.\n", uri);
+        ret = request_chan_by_rid(co, frame, uri, dest_rid, res_name);
         goto out;
     }
     else if (res_type == HVML_RUN_RES_TYPE_CRTN) {
-        purc_atom_t dest_rid;
-        if (is_same_runner) {
-            dest_rid = curr_inst->endpoint_atom;
-        }
-        else {
-            char endpoint_name[PURC_LEN_ENDPOINT_NAME + 1];
-            purc_assemble_endpoint_name_ex(PCRDR_LOCALHOST,
-                    curr_inst->app_name, runner_name,
-                    endpoint_name, sizeof(endpoint_name) - 1);
-            dest_rid = purc_atom_try_string_ex(PURC_ATOM_BUCKET_DEF,
-                    endpoint_name);
-        }
         ret = request_crtn_by_rid_cid(co, frame, dest_rid, 0, res_name);
         goto out;
     }
