@@ -845,6 +845,12 @@ pcintr_get_first_crtn(struct pcinst *inst);
 pcintr_coroutine_t
 pcintr_get_last_crtn(struct pcinst *inst);
 
+pcintr_coroutine_t
+pcintr_get_main_crtn(struct pcinst *inst);
+
+pcintr_coroutine_t
+pcintr_get_crtn_by_token(struct pcinst *inst, const char *token);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_PRIVATE_INTERPRETER_H */

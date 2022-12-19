@@ -332,3 +332,48 @@ pcintr_get_last_crtn(struct pcinst *inst)
     return crtn;
 }
 
+pcintr_coroutine_t
+pcintr_get_main_crtn(struct pcinst *inst)
+{
+    pcintr_coroutine_t ret = NULL;
+    struct pcutils_map_iterator it;
+    pcutils_map_entry *entry;
+
+    pcintr_heap_t heap = inst->intr_heap;
+    it = pcutils_map_it_begin_first(heap->token_crtn_map);
+    while ((entry = pcutils_map_it_value(&it))) {
+        pcintr_coroutine_t crtn = (pcintr_coroutine_t) entry->val;
+        if (crtn->is_main) {
+            ret = crtn;
+            break;
+        }
+        pcutils_map_it_next(&it);
+    }
+    pcutils_map_it_end(&it);
+
+    return ret;
+}
+
+pcintr_coroutine_t
+pcintr_get_crtn_by_token(struct pcinst *inst, const char *token)
+{
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(token);
+    if (strcmp(token, CRTN_TOKEN_MAIN) == 0) {
+        return pcintr_get_main_crtn(inst);
+    }
+    else if (strcmp(token, CRTN_TOKEN_FIRST) == 0) {
+        return pcintr_get_first_crtn(inst);
+    }
+    else if (strcmp(token, CRTN_TOKEN_LAST) == 0) {
+        return pcintr_get_last_crtn(inst);
+    }
+    pcintr_heap_t heap = inst->intr_heap;
+    struct pcutils_map_entry *entry;
+    entry = pcutils_map_find(heap->token_crtn_map, token);
+    if (entry) {
+        return (pcintr_coroutine_t) entry->val;
+    }
+    return NULL;
+}
+
