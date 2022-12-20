@@ -1354,10 +1354,14 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
 
     case CSS_POSITION_ABSOLUTE:
         box->position = FOIL_RDRBOX_POSITION_ABSOLUTE;
+        // absolutely positioned
+        box->is_abs_positioned = 1;
         break;
 
     case CSS_POSITION_FIXED:
         box->position = FOIL_RDRBOX_POSITION_FIXED;
+        // absolutely positioned
+        box->is_abs_positioned = 1;
         break;
 
     /* CSSEng does not support position: sticky so far
@@ -1392,6 +1396,33 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     }
 
     LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
+
+    /* Override display for absolutely positioned box and root element */
+    if (box->is_abs_positioned || box->is_root) {
+        switch (box->type) {
+        case FOIL_RDRBOX_TYPE_INLINE_TABLE:
+            box->type = FOIL_RDRBOX_TYPE_TABLE;
+            break;
+        case FOIL_RDRBOX_TYPE_INLINE:
+        case FOIL_RDRBOX_TYPE_INLINE_BLOCK:
+        case FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_ROW:
+        case FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_COLUMN:
+        case FOIL_RDRBOX_TYPE_TABLE_CELL:
+        case FOIL_RDRBOX_TYPE_TABLE_CAPTION:
+            box->type = FOIL_RDRBOX_TYPE_BLOCK;
+            break;
+        case FOIL_RDRBOX_TYPE_LIST_ITEM:
+            if (box->is_root)
+                box->type = FOIL_RDRBOX_TYPE_BLOCK;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tNormalized type: %s\n", literal_values_boxtype[type]);
 
     /* determine clear */
     v = css_computed_float(ctxt->style);

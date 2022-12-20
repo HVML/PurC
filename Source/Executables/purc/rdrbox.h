@@ -287,6 +287,10 @@ struct foil_rdrbox {
     uint32_t is_in_flow:1;
     // Indicates that this box is in normal flow.
     uint32_t is_in_normal_flow:1;
+    // Indicates that the widths and margins of the box is determined.
+    uint32_t is_widths_valid:1;
+    // Indicates that the heights and margsin of the box is determined.
+    uint32_t is_heights_valid:1;
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
@@ -323,7 +327,7 @@ struct foil_rdrbox {
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
-    int32_t left, top;                  // position
+    int32_t left, right, top, bottom;   // position
     int32_t mt, ml, mr, mb;             // margins
     int32_t bt, bl, br, bb;             // borders (actual values)
     int32_t pt, pl, pr, pb;             // paddings
