@@ -1129,6 +1129,7 @@ pcintr_is_request_id(purc_variant_t v)
             purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_HANDLE)) {
         return true;
     }
+    purc_clr_error();
     return false;
 }
 
