@@ -1276,4 +1276,34 @@ pcintr_request_id_get_res(purc_variant_t v)
     return purc_variant_get_string_const(val);
 }
 
+bool
+pcintr_request_is_equal_to(purc_variant_t v1, purc_variant_t v2)
+{
+    bool ret = false;
+    if (!pcintr_is_request_id(v1) || !pcintr_is_request_id(v2)) {
+        goto out;
+    }
+
+    if ((pcintr_request_id_get_type(v1) != pcintr_request_id_get_type(v2))
+            || (pcintr_request_id_get_rid(v1) != pcintr_request_id_get_rid(v2))
+            ) {
+        goto out;
+    }
+
+    purc_atom_t v1_cid = pcintr_request_id_get_cid(v1);
+    purc_atom_t v2_cid = pcintr_request_id_get_cid(v2);
+    if (v1_cid == v2_cid && v1_cid != 0) {
+        ret = true;
+        goto out;
+    }
+
+    if (strcmp(pcintr_request_id_get_res(v1),
+                pcintr_request_id_get_res(v2)) == 0) {
+        ret = true;
+        goto out;
+    }
+
+out:
+    return ret;
+}
 
