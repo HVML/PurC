@@ -603,6 +603,9 @@ pcintr_request_id_is_equal_to(purc_variant_t v1, purc_variant_t v2);
 bool
 pcintr_request_id_is_match(purc_variant_t v1, purc_variant_t v2);
 
+int
+pcintr_chan_post(const char *chan_name, purc_variant_t data);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

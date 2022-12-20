@@ -1337,3 +1337,73 @@ out:
     return ret;
 }
 
+int
+pcintr_chan_post(const char *chan_name, purc_variant_t data)
+{
+    int ret = -1;
+    purc_variant_t  runner = PURC_VARIANT_INVALID;
+    purc_variant_t  chan = PURC_VARIANT_INVALID;
+    purc_variant_t  send_ret = PURC_VARIANT_INVALID;
+    purc_variant_t  name = PURC_VARIANT_INVALID;
+
+    void *entity = NULL;
+    struct purc_native_ops *ops = NULL;
+
+    if (!chan_name || !data) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    runner = purc_get_runner_variable(PURC_PREDEF_VARNAME_RUNNER);
+    if (!runner) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto out;
+    }
+
+    purc_variant_t v_chan = purc_variant_object_get_by_ckey(runner, "chan");
+    if (!v_chan || !purc_variant_is_dynamic(v_chan)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    purc_dvariant_method chan_getter = purc_variant_dynamic_get_getter(v_chan);
+    if (!chan_getter) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    name = purc_variant_make_string(chan_name, false);
+    if (!name) {
+        goto out;
+    }
+
+    chan = chan_getter(runner, 1, &name, PCVRT_CALL_FLAG_SILENTLY);
+    if (!chan) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    entity = purc_variant_native_get_entity(chan);
+    ops = purc_variant_native_get_ops(chan);
+    purc_nvariant_method sender = ops->property_getter(entity, "send");
+    if (!sender) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    send_ret = sender(entity, 1, &data, PCVRT_CALL_FLAG_SILENTLY);
+    if (send_ret && purc_variant_booleanize(send_ret)) {
+        ret = 0;
+    }
+
+out:
+    if (send_ret) {
+        purc_variant_unref(send_ret);
+    }
+
+    if (name) {
+        purc_variant_unref(name);
+    }
+    return ret;
+}
+

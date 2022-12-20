@@ -393,8 +393,10 @@ dispatch_inst_event_from_move_buffer(struct pcinst *inst,
     }
 
     case PCINTR_REQUEST_ID_TYPE_CHAN:
-        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+    {
+        ret = pcintr_chan_post(res, msg->data);
         break;
+    }
 
     case PCINTR_REQUEST_ID_TYPE_RDR:
         purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
