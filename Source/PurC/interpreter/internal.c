@@ -1401,6 +1401,10 @@ out:
         purc_variant_unref(send_ret);
     }
 
+    if (chan) {
+        purc_variant_unref(chan);
+    }
+
     if (name) {
         purc_variant_unref(name);
     }

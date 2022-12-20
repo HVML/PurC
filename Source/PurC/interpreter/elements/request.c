@@ -217,6 +217,7 @@ request_chan_by_rid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(chan);
 
     int ret = -1;
+    purc_variant_t source_uri = PURC_VARIANT_INVALID;
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *s_to = purc_variant_get_string_const(ctxt->to);
     if (strcasecmp(s_to, CHAN_METHOD_POST) != 0) {
@@ -225,9 +226,23 @@ request_chan_by_rid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-    PC_WARN("not implemented on '%s' for request.\n", uri);
+    source_uri = purc_variant_make_string(uri, false);
+    ctxt->request_id = pcintr_request_id_create(PCINTR_REQUEST_ID_TYPE_CHAN,
+            dest_rid, 0, chan);
+    pcintr_post_event_by_ctype(dest_rid, 0,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+            source_uri,
+            ctxt->request_id,
+            MSG_TYPE_REQUEST_CHAN,
+            s_to,
+            ctxt->with,
+            ctxt->request_id
+            );
+
 out:
+    if (source_uri) {
+        purc_variant_unref(source_uri);
+    }
     return ret;
 }
 
