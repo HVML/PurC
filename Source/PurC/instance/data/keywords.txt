@@ -112,4 +112,5 @@ msg sleep
 msg subExit
 msg async
 msg fetcherState
+msg requestChan
 

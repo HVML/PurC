@@ -29,6 +29,7 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/instance.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -832,14 +833,18 @@ on_popping(pcintr_stack_t stack, void* ud)
     if (stack->co->stage != CO_STAGE_FIRST_RUN) {
         if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
                 ctxt->msg_type_atom) && stack->co->curator) {
-            purc_variant_t var =  purc_variant_make_ulongint(stack->co->cid);
+            struct pcinst *inst = pcinst_current();
+            purc_variant_t observed = pcintr_request_id_create(
+                    PCINTR_REQUEST_ID_TYPE_CRTN,
+                    inst->endpoint_atom,
+                    stack->co->cid, stack->co->token);
             purc_variant_t result = pcintr_coroutine_get_result(stack->co);
             pcintr_coroutine_post_event(stack->co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    var,
+                    observed,
                     MSG_TYPE_RESPONSE, ctxt->sub_type,
-                    result, var);
-            purc_variant_unref(var);
+                    result, observed);
+            purc_variant_unref(observed);
         }
     }
 

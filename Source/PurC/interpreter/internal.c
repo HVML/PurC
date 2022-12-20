@@ -1277,7 +1277,7 @@ pcintr_request_id_get_res(purc_variant_t v)
 }
 
 bool
-pcintr_request_is_equal_to(purc_variant_t v1, purc_variant_t v2)
+pcintr_request_id_is_equal_to(purc_variant_t v1, purc_variant_t v2)
 {
     bool ret = false;
     if (!pcintr_is_request_id(v1) || !pcintr_is_request_id(v2)) {
@@ -1303,6 +1303,35 @@ pcintr_request_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         goto out;
     }
 
+out:
+    return ret;
+}
+
+bool
+pcintr_request_id_is_match(purc_variant_t v1, purc_variant_t v2)
+{
+    bool ret = false;
+    if (pcintr_request_id_is_equal_to(v1, v2)) {
+        ret = true;
+        goto out;
+    }
+
+    if (!purc_variant_is_ulongint(v2)) {
+        goto out;
+    }
+
+    uint64_t u64;
+    purc_variant_cast_to_ulongint(v2, &u64, true);
+    purc_atom_t rid = purc_get_rid_by_cid(u64);
+    if (!rid) {
+        goto out;
+    }
+
+    purc_variant_t v = pcintr_request_id_create(
+                PCINTR_REQUEST_ID_TYPE_CRTN,
+                rid, u64, NULL);
+    ret = pcintr_request_id_is_equal_to(v1, v);
+    purc_variant_unref(v);
 out:
     return ret;
 }

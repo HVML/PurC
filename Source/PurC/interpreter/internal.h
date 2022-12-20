@@ -598,7 +598,10 @@ const char *
 pcintr_request_id_get_res(purc_variant_t v);
 
 bool
-pcintr_request_is_equal_to(purc_variant_t v1, purc_variant_t v2);
+pcintr_request_id_is_equal_to(purc_variant_t v1, purc_variant_t v2);
+
+bool
+pcintr_request_id_is_match(purc_variant_t v1, purc_variant_t v2);
 
 PCA_EXTERN_C_END
 

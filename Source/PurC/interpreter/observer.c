@@ -114,6 +114,11 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
             return true;
         }
     }
+    else if (purc_variant_is_ulongint(observed)) {
+        if (pcintr_request_id_is_match(val, observed)) {
+            return true;
+        }
+    }
     return false;
 }
 

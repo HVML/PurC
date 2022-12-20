@@ -84,10 +84,15 @@ is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
     UNUSED_PARAM(sub_type);
     bool match = false;
 
-    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (pcintr_request_id_is_match(observer->observed, msg->elementValue) ||
+            purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto match_observed;
+    }
+    else {
         goto out;
     }
 
+match_observed:
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, RESPONSE)) == type) {
         match = true;
         goto out;
@@ -149,7 +154,8 @@ request_crtn_by_rid_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     const char *sub_type = purc_variant_get_string_const(ctxt->to);
 
     struct pcinst *inst = pcinst_current();
-    if (dest_cid && (inst->endpoint_atom == dest_rid || dest_rid == 0)) {
+    dest_rid = (dest_rid == 0) ? inst->endpoint_atom : dest_rid;
+    if (dest_cid && (inst->endpoint_atom == dest_rid)) {
         ctxt->request_id = purc_variant_make_ulongint(dest_cid);
         pcintr_post_event_by_ctype(0, dest_cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
@@ -181,7 +187,8 @@ request_crtn_by_rid_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t observed = purc_variant_make_ulongint(dest_cid);
+    purc_variant_t observed = pcintr_request_id_create(
+            PCINTR_REQUEST_ID_TYPE_CRTN, dest_rid, dest_cid, token);
     pcintr_yield(
             CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
             CO_STATE_STOPPED,
@@ -209,10 +216,18 @@ request_chan_by_rid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(dest_rid);
     UNUSED_PARAM(chan);
 
-    int ret = 0;
+    int ret = -1;
+    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    const char *s_to = purc_variant_get_string_const(ctxt->to);
+    if (strcasecmp(s_to, CHAN_METHOD_POST) != 0) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "invalid channel operation '%s'", s_to);
+        goto out;
+    }
 
     purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
     PC_WARN("not implemented on '%s' for request.\n", uri);
+out:
     return ret;
 }
 
@@ -324,19 +339,19 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         ret = request_crtn_by_rid_cid(co, frame, 0, dest_cid, NULL);
     }
     else if (purc_variant_is_string(on)) {
-        const char *s_to = purc_variant_get_string_const(on);
+        const char *s_on = purc_variant_get_string_const(on);
         char host_name[PURC_LEN_HOST_NAME + 1];
         char app_name[PURC_LEN_APP_NAME + 1];
         char runner_name[PURC_LEN_RUNNER_NAME + 1];
         char res_name[PURC_LEN_IDENTIFIER + 1];
         enum HVML_RUN_RES_TYPE res_type = HVML_RUN_RES_TYPE_INVALID;
 
-        if (is_css_selector(s_to)) {
-            ret = request_elements(co, frame, s_to);
+        if (is_css_selector(s_on)) {
+            ret = request_elements(co, frame, s_on);
         }
-        else if (pcintr_parse_hvml_run_uri(s_to, host_name, app_name,
+        else if (pcintr_parse_hvml_run_uri(s_on, host_name, app_name,
                     runner_name, &res_type, res_name)) {
-            ret = request_crtn_by_uri(co, frame, s_to, host_name, app_name,
+            ret = request_crtn_by_uri(co, frame, s_on, host_name, app_name,
                     runner_name, res_type, res_name);
         }
         else {
