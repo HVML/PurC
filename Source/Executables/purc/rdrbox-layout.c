@@ -446,12 +446,12 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
         }
 
         if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
-            box->mr = cblock_width -
-                box->width - box->pl - box->bl - box->pr - box->br - box->ml;
+            box->mr = cblock_width - box->width - box->ml -
+                box->pl - box->bl - box->pr - box->br;
         }
         else {
-            box->ml = cblock_width -
-                box->width - box->pl - box->bl - box->pr - box->br - box->mr;
+            box->ml = cblock_width - box->width -
+                box->pl - box->bl - box->pr - box->br - box->mr;
         }
     }
     else if (nr_autos == 1) {
@@ -459,11 +459,11 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
             box->width = cblock_width -
                 box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
         else if (margin_left_v == CSS_MARGIN_AUTO)
-            box->ml = cblock_width -
-                box->width - box->bl - box->pl - box->pr - box->br - box->mr;
+            box->ml = cblock_width - box->width -
+                box->bl - box->pl - box->pr - box->br - box->mr;
         else if (margin_right_v == CSS_MARGIN_AUTO)
-            box->mr = cblock_width -
-                box->width - box->bl - box->pl - box->pr - box->br - box->ml;
+            box->mr = cblock_width - box->width -
+                box->bl - box->pl - box->pr - box->br - box->ml;
     }
 
     if (width_v == CSS_WIDTH_AUTO) {
@@ -488,7 +488,7 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
 }
 
 static void
-dtrm_margins_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+dtrm_widths_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t left_v, right_v, margin_left_v, margin_right_v;
     css_fixed left_l, right_l, margin_left_l, margin_right_l;
@@ -500,30 +500,23 @@ dtrm_margins_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     right_v = css_computed_right(box->computed_style, &right_l, &right_u);
     assert(right_v != CSS_RIGHT_INHERIT);
 
-    bool left_resolved = false;
-    bool right_resolved = false;
     if (left_v == CSS_LEFT_AUTO && right_v == CSS_RIGHT_AUTO) {
-        if (box->cblock_creator->direction ==
-                FOIL_RDRBOX_DIRECTION_LTR) {
+        if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
             box->left = 0;      // TODO: the static position.
-            left_resolved = true;
         }
         else {
             box->right = 0;     // TODO: the static position.
-            right_resolved = true;
         }
     }
     else {
         if (left_v == CSS_LEFT_SET) {
             box->left = round_width(normalize_used_length(ctxt, box,
                         left_u, left_l));
-            left_resolved = true;
         }
 
         if (right_v == CSS_RIGHT_SET) {
             box->right = round_width(normalize_used_length(ctxt, box,
                         right_u, right_l));
-            right_resolved = true;
         }
     }
 
@@ -535,79 +528,71 @@ dtrm_margins_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             &margin_right_l, &margin_right_u);
     assert(margin_right_v != CSS_MARGIN_INHERIT);
 
-    bool ml_resolved = false;
-    bool mr_resolved = false;
     if (margin_left_v != CSS_MARGIN_AUTO) {
         box->ml = round_width(normalize_used_length(ctxt, box,
                     margin_left_u, margin_left_l));
-        ml_resolved = true;
     }
     if (margin_right_v != CSS_MARGIN_AUTO) {
         box->mr = round_width(normalize_used_length(ctxt, box,
                     margin_right_u, margin_right_l));
-        mr_resolved = true;
     }
 
     int cblock_width = foil_rect_width(&box->cblock_rect);
-    if (margin_left_v == CSS_MARGIN_AUTO ||
-            margin_right_v == CSS_MARGIN_AUTO) {
-
-        if (left_v == CSS_LEFT_AUTO || right_v == CSS_RIGHT_AUTO) {
-            if (margin_left_v == CSS_MARGIN_AUTO) {
-                box->ml = 0;
-                ml_resolved = true;
-            }
-            if (margin_right_v == CSS_MARGIN_AUTO) {
-                box->mr = 0;
-                mr_resolved = true;
-            }
+    if (left_v == CSS_LEFT_AUTO || right_v == CSS_RIGHT_AUTO) {
+        if (margin_left_v == CSS_MARGIN_AUTO) {
+            box->ml = 0;
+            margin_left_v = CSS_MARGIN_SET;
         }
-
-        if (!ml_resolved && !mr_resolved) {
-            assert(left_resolved && right_resolved);
-
-            int margin = (cblock_width - box->left - box->bl - box->pl -
-                box->pr - box->br - box->right) / 2;
-
-            if (margin >= 0)
-                box->ml = box->mr = margin;
-            else {
-                if (box->cblock_creator->direction ==
-                        FOIL_RDRBOX_DIRECTION_LTR) {
-                    box->ml = 0;
-                    box->mr = cblock_width - box->left - box->bl - box->pl -
-                        box->pr - box->br - box->right;
-                }
-                else {
-                    box->mr = 0;
-                    box->ml = cblock_width - box->left - box->bl - box->pl -
-                        box->pr - box->br - box->right;
-                }
-            }
-            ml_resolved = true;
-            mr_resolved = true;
-        }
-
-        if (!ml_resolved) {
-            assert(mr_resolved);
-            box->ml = cblock_width - box->left - box->bl - box->pl -
-                box->pr - box->br - box->mr - box->right;
-        }
-        else if (!mr_resolved) {
-            assert(ml_resolved);
-            box->mr = cblock_width - box->left - box->ml - box->bl - box->pl -
-                box->pr - box->br - box->right;
+        if (margin_right_v == CSS_MARGIN_AUTO) {
+            box->mr = 0;
+            margin_right_v = CSS_MARGIN_SET;
         }
     }
-    else {
+
+    if (margin_left_v == CSS_MARGIN_AUTO &&
+            margin_right_v == CSS_MARGIN_AUTO) {
+
+        int margin = (cblock_width - box->left - box->bl - box->pl -
+                box->width - box->pr - box->br - box->right) / 2;
+
+        if (margin >= 0)
+            box->ml = box->mr = round_width(margin);
+        else {
+            if (box->cblock_creator->direction ==
+                    FOIL_RDRBOX_DIRECTION_LTR) {
+                box->ml = 0;
+                box->mr = cblock_width - box->left - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->right;
+            }
+            else {
+                box->mr = 0;
+                box->ml = cblock_width - box->left - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->right;
+            }
+        }
+
+        margin_left_v = CSS_MARGIN_SET;
+        margin_right_v = CSS_MARGIN_SET;
+    }
+
+    if (margin_left_v == CSS_MARGIN_AUTO) {
+        box->ml = cblock_width - box->left - box->bl - box->pl -
+            box->width - box->pr - box->br - box->mr - box->right;
+    }
+    else if (margin_right_v == CSS_MARGIN_AUTO) {
+        box->mr = cblock_width - box->left - box->ml - box->bl - box->pl -
+            box->width - box->pr - box->br - box->right;
+    }
+    else if (left_v == CSS_LEFT_SET && right_v == CSS_RIGHT_SET) {
         if (box->cblock_creator->direction ==
                 FOIL_RDRBOX_DIRECTION_LTR) {
             box->left = cblock_width - box->ml - box->bl - box->pl -
-                box->pr - box->br - box->mr - box->right;
+                box->width - box->pr - box->br - box->mr - box->right;
         }
         else {
             box->right = cblock_width - box->left -
-                box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
+                box->ml - box->bl - box->pl - box->width -
+                box->pr - box->br - box->mr;
         }
     }
 
@@ -679,20 +664,20 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (margin_left_v == CSS_MARGIN_AUTO &&
                 margin_right_v == CSS_MARGIN_AUTO) {
             int margin = (cblock_width - box->left - box->bl - box->pl -
-                box->pr - box->br - box->right) / 2;
+                box->width - box->pr - box->br - box->right) / 2;
             if (margin >= 0)
-                box->ml = box->mr = margin;
+                box->ml = box->mr = round_width(margin);
             else {
                 if (box->cblock_creator->direction ==
                         FOIL_RDRBOX_DIRECTION_LTR) {
                     box->ml = 0;
                     box->mr = cblock_width - box->left - box->bl - box->pl -
-                        box->pr - box->br - box->right;
+                        box->width - box->pr - box->br - box->right;
                 }
                 else {
                     box->mr = 0;
                     box->ml = cblock_width - box->left - box->bl - box->pl -
-                        box->pr - box->br - box->right;
+                        box->width - box->pr - box->br - box->right;
                 }
             }
         }
@@ -700,13 +685,13 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mr = round_width(normalize_used_length(ctxt, box,
                         margin_right_u, margin_right_l));
             box->ml = cblock_width - box->left - box->bl - box->pl -
-                box->pr - box->br - box->right - box->mr;
+                box->width - box->pr - box->br - box->right - box->mr;
         }
         else if (margin_right_v == CSS_MARGIN_AUTO) {
             box->ml = round_width(normalize_used_length(ctxt, box,
                         margin_left_u, margin_left_l));
             box->mr = cblock_width - box->left - box->bl - box->pl -
-                box->pr - box->br - box->right - box->ml;
+                box->width - box->pr - box->br - box->right - box->ml;
         }
         else {
             box->ml = round_width(normalize_used_length(ctxt, box,
@@ -716,11 +701,12 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             if (box->cblock_creator->direction ==
                     FOIL_RDRBOX_DIRECTION_LTR) {
                 box->left = cblock_width - box->ml - box->bl - box->pl -
-                    box->pr - box->br - box->mr - box->right;
+                    box->width - box->pr - box->br - box->mr - box->right;
             }
             else {
                 box->right = cblock_width - box->left -
-                    box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
+                    box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr;
             }
         }
     }
@@ -750,12 +736,12 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                         width_u, width_l));
             if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
                 box->left = 0;      // TODO: the static postion.
-                box->right = cblock_width -
+                box->right = cblock_width - box->width -
                     box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
             }
             else {
                 box->right = 0;      // TODO: the static postion.
-                box->left = cblock_width -
+                box->left = cblock_width - box->width -
                     box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
             }
         }
@@ -773,7 +759,7 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                         width_u, width_l));
             box->right = round_width(normalize_used_length(ctxt, box,
                         right_u, right_l));
-            box->left = cblock_width - box->right -
+            box->left = cblock_width - box->right - box->width -
                 box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
         }
         else if (left_v != CSS_MARGIN_AUTO && width_v == CSS_WIDTH_AUTO &&
@@ -791,7 +777,7 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                         left_u, left_l));
             box->width = round_width(normalize_used_length(ctxt, box,
                         width_u, width_l));
-            box->right = cblock_width - box->left -
+            box->right = cblock_width - box->width - box->left -
                 box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
         }
         else {
@@ -800,6 +786,45 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     return valid;
+}
+
+static void
+dtrm_left_right_relpos(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t left_v, right_v;
+    css_fixed left_l, right_l;
+    css_unit left_u, right_u;
+
+    left_v = css_computed_left(box->computed_style, &left_l, &left_u);
+    assert(left_v != CSS_LEFT_INHERIT);
+
+    right_v = css_computed_right(box->computed_style, &right_l, &right_u);
+    assert(right_v != CSS_RIGHT_INHERIT);
+    if (left_v == CSS_LEFT_AUTO && right_v == CSS_RIGHT_AUTO) {
+        box->left = box->right = 0;
+    }
+    else if (left_v == CSS_LEFT_AUTO) {
+        box->right = round_width(normalize_used_length(ctxt, box,
+                    right_u, right_l));
+        box->left = -box->right;
+    }
+    else if (right_v == CSS_RIGHT_AUTO) {
+        box->left = round_width(normalize_used_length(ctxt, box,
+                    left_u, left_l));
+        box->right = -box->left;
+    }
+    else {
+        if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
+            box->left = round_width(normalize_used_length(ctxt, box,
+                        left_u, left_l));
+            box->right = -box->left;
+        }
+        else {
+            box->right = round_width(normalize_used_length(ctxt, box,
+                        right_u, right_l));
+            box->left = -box->right;
+        }
+    }
 }
 
 /* calculate widths and margins according to CSS 2.2 Section 10.3 */
@@ -815,9 +840,9 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
 
         dtrm_margin_left_right(ctxt, box);
-        box->is_widths_valid = 1;
+        box->is_width_resolved = 1;
     }
-    else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && box->is_in_normal_flow) {
+    else if (box->is_block_level && box->is_in_normal_flow) {
         uint8_t width_v;
 
         if (box->is_replaced) {
@@ -839,7 +864,7 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
 
         dtrm_margin_left_right_block_normal(ctxt, box, width_v);
-        box->is_widths_valid = 1;
+        box->is_width_resolved = 1;
     }
     else if (box->floating != FOIL_RDRBOX_FLOAT_NONE) {
         bool width_ok = false;
@@ -854,18 +879,18 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (width_ok) {
             dtrm_margin_left_right(ctxt, box);
-            box->is_widths_valid = 1;
+            box->is_width_resolved = 1;
         }
     }
     else if (box->is_abs_positioned) {
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
-            dtrm_margins_abspos_replaced(ctxt, box);
-            box->is_widths_valid = 1;
+            dtrm_widths_abspos_replaced(ctxt, box);
+            box->is_width_resolved = 1;
         }
         else {
             if (dtrm_widths_abspos_non_replaced(ctxt, box))
-                box->is_widths_valid = 1;
+                box->is_width_resolved = 1;
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
@@ -881,12 +906,299 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (width_ok) {
             dtrm_margin_left_right(ctxt, box);
-            box->is_widths_valid = 1;
+            box->is_width_resolved = 1;
         }
     }
     else {
         LOG_ERROR("Should not be here\n");
+        assert(0);
     }
+
+    /* determine left and right according to CSS 2.2 Section 9.4.3 */
+    if (box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
+        dtrm_left_right_relpos(ctxt, box);
+    }
+}
+
+static void
+dtrm_top_bottom_relpos(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t top_v, bottom_v;
+    css_fixed top_l, bottom_l;
+    css_unit top_u, bottom_u;
+
+    top_v = css_computed_top(box->computed_style, &top_l, &top_u);
+    assert(top_v != CSS_LEFT_INHERIT);
+
+    bottom_v = css_computed_bottom(box->computed_style, &bottom_l, &bottom_u);
+    assert(bottom_v != CSS_RIGHT_INHERIT);
+    if (top_v == CSS_LEFT_AUTO && bottom_v == CSS_RIGHT_AUTO) {
+        box->top = box->bottom = 0;
+    }
+    else if (top_v == CSS_LEFT_AUTO) {
+        box->bottom = round_width(normalize_used_length(ctxt, box,
+                    bottom_u, bottom_l));
+        box->top = -box->bottom;
+    }
+    else if (bottom_v == CSS_RIGHT_AUTO) {
+        box->top = round_width(normalize_used_length(ctxt, box,
+                    top_u, top_l));
+        box->bottom = -box->top;
+    }
+    else {
+        box->top = round_width(normalize_used_length(ctxt, box,
+                    top_u, top_l));
+        box->bottom = -box->top;
+    }
+}
+
+static void
+dtrm_heights_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    uint8_t top_v, bottom_v, margin_top_v, margin_bottom_v;
+    css_fixed top_l, bottom_l, margin_top_l, margin_bottom_l;
+    css_unit top_u, bottom_u, margin_top_u, margin_bottom_u;
+
+    top_v = css_computed_top(box->computed_style, &top_l, &top_u);
+    assert(top_v != CSS_TOP_INHERIT);
+
+    bottom_v = css_computed_bottom(box->computed_style, &bottom_l, &bottom_u);
+    assert(bottom_v != CSS_BOTTOM_INHERIT);
+
+    if (top_v == CSS_TOP_AUTO && bottom_v == CSS_BOTTOM_AUTO) {
+        box->top = 0;      // TODO: the static position.
+    }
+    else if (top_v == CSS_TOP_SET) {
+        box->top = round_height(normalize_used_length(ctxt, box,
+                    top_u, top_l));
+    }
+    else if (bottom_v == CSS_BOTTOM_SET) {
+        box->bottom = round_height(normalize_used_length(ctxt, box,
+                    bottom_u, bottom_l));
+    }
+
+    margin_top_v = css_computed_margin_top(box->computed_style,
+            &margin_top_l, &margin_top_u);
+    assert(margin_top_v != CSS_MARGIN_INHERIT);
+
+    margin_bottom_v = css_computed_margin_bottom(box->computed_style,
+            &margin_bottom_l, &margin_bottom_u);
+    assert(margin_bottom_v != CSS_MARGIN_INHERIT);
+
+    if (margin_top_v != CSS_MARGIN_AUTO) {
+        box->mt = round_height(normalize_used_length(ctxt, box,
+                    margin_top_u, margin_top_l));
+    }
+    if (margin_bottom_v != CSS_MARGIN_AUTO) {
+        box->mb = round_height(normalize_used_length(ctxt, box,
+                    margin_bottom_u, margin_bottom_l));
+    }
+
+    int cblock_height = foil_rect_height(&box->cblock_rect);
+    if (bottom_v == CSS_BOTTOM_AUTO) {
+        if (margin_top_v == CSS_MARGIN_AUTO) {
+            box->mt = 0;
+            margin_top_v = CSS_MARGIN_SET;
+        }
+        if (margin_bottom_v != CSS_MARGIN_AUTO) {
+            box->mb = 0;
+            margin_bottom_v = CSS_MARGIN_SET;
+        }
+    }
+
+    if (margin_top_v == CSS_MARGIN_AUTO &&
+            margin_bottom_v == CSS_MARGIN_AUTO) {
+        int margin = (cblock_height - box->top - box->bt - box->pt -
+            box->height - box->pb - box->bb - box->bottom) / 2;
+        box->mt = box->mb = round_height(margin);
+        margin_top_v = CSS_MARGIN_SET;
+        margin_bottom_v = CSS_MARGIN_SET;
+    }
+
+    if (margin_top_v == CSS_MARGIN_AUTO) {
+        assert(margin_bottom_v == CSS_MARGIN_SET);
+        box->mt = cblock_height - box->top - box->bt - box->pt -
+            box->height - box->pb - box->bb - box->mb - box->bottom;
+        margin_top_v = CSS_MARGIN_SET;
+    }
+    else if (margin_bottom_v == CSS_MARGIN_AUTO) {
+        assert(margin_top_v == CSS_MARGIN_SET);
+        box->mb = cblock_height - box->top - box->mt - box->bt - box->pt -
+            box->height - box->pb - box->bb - box->bottom;
+        margin_bottom_v = CSS_MARGIN_SET;
+    }
+    else if (top_v == CSS_TOP_SET && bottom_v == CSS_BOTTOM_SET) {
+        box->bottom = cblock_height - box->top - box->height -
+            box->mt - box->bt - box->pt - box->pb - box->bb - box->mb;
+    }
+}
+
+static int
+calc_height_based_on_descendants(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    // TODO:
+    return 0;
+}
+
+static bool
+dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    bool valid = true;
+
+    uint8_t top_v, height_v, bottom_v, margin_top_v, margin_bottom_v;
+    css_fixed top_l, height_l, bottom_l, margin_top_l, margin_bottom_l;
+    css_unit top_u, height_u, bottom_u, margin_top_u, margin_bottom_u;
+
+    top_v = css_computed_top(box->computed_style, &top_l, &top_u);
+    assert(top_v != CSS_TOP_INHERIT);
+
+    height_v = css_computed_height(box->computed_style, &height_l, &height_u);
+    assert(height_v != CSS_HEIGHT_INHERIT);
+
+    bottom_v = css_computed_bottom(box->computed_style, &bottom_l, &bottom_u);
+    assert(bottom_v != CSS_BOTTOM_INHERIT);
+
+    margin_top_v = css_computed_margin_top(box->computed_style,
+            &margin_top_l, &margin_top_u);
+    assert(margin_top_v != CSS_MARGIN_INHERIT);
+
+    margin_bottom_v = css_computed_margin_bottom(box->computed_style,
+            &margin_bottom_l, &margin_bottom_u);
+    assert(margin_bottom_v != CSS_MARGIN_INHERIT);
+
+    int cblock_height = foil_rect_height(&box->cblock_rect);
+
+    if (top_v == CSS_TOP_AUTO && height_v == CSS_HEIGHT_AUTO &&
+            bottom_v == CSS_BOTTOM_AUTO) {
+        if (margin_top_v == CSS_MARGIN_AUTO)
+            box->mt = 0;
+        else
+            box->mt = round_height(normalize_used_length(ctxt, box,
+                    margin_top_u, margin_top_l));
+        if (margin_bottom_v == CSS_MARGIN_AUTO)
+            box->mb = 0;
+        else
+            box->mb = round_height(normalize_used_length(ctxt, box,
+                    margin_bottom_u, margin_bottom_l));
+
+        box->top = 0;      // TODO: the static postion.
+        box->height = calc_height_based_on_descendants(ctxt, box);
+        box->bottom = cblock_height - box->top - box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb;
+    }
+    else if (top_v == CSS_TOP_SET && height_v == CSS_HEIGHT_SET &&
+            bottom_v == CSS_BOTTOM_SET) {
+        box->top = round_height(normalize_used_length(ctxt, box,
+                    top_u, top_l));
+        box->height = round_height(normalize_used_length(ctxt, box,
+                    height_u, height_l));
+        box->bottom = round_height(normalize_used_length(ctxt, box,
+                    bottom_u, bottom_l));
+
+        if (margin_top_v == CSS_MARGIN_AUTO &&
+                margin_bottom_v == CSS_MARGIN_AUTO) {
+            int margin = (cblock_height - box->top - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->bottom) / 2;
+            box->mt = box->mb = margin;
+        }
+        else if (margin_top_v == CSS_MARGIN_AUTO) {
+            box->mb = round_height(normalize_used_length(ctxt, box,
+                        margin_bottom_u, margin_bottom_l));
+            box->mt = cblock_height - box->top - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb - box->bottom;
+        }
+        else if (margin_bottom_v == CSS_MARGIN_AUTO) {
+            box->mt = round_height(normalize_used_length(ctxt, box,
+                        margin_top_u, margin_top_l));
+            box->mb = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->bottom;
+        }
+        else {
+            box->mt = round_height(normalize_used_length(ctxt, box,
+                        margin_top_u, margin_top_l));
+            box->mb = round_height(normalize_used_length(ctxt, box,
+                        margin_bottom_u, margin_bottom_l));
+            box->bottom = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb;
+        }
+    }
+    else {
+        if (margin_top_v == CSS_MARGIN_AUTO)
+            box->mt = 0;
+        else
+            box->mt = round_height(normalize_used_length(ctxt, box,
+                    margin_top_u, margin_top_l));
+        if (margin_bottom_v == CSS_MARGIN_AUTO)
+            box->mb = 0;
+        else
+            box->mb = round_height(normalize_used_length(ctxt, box,
+                    margin_bottom_u, margin_bottom_l));
+
+        if (top_v == CSS_MARGIN_AUTO && height_v == CSS_HEIGHT_AUTO &&
+                bottom_v != CSS_MARGIN_AUTO) {
+            box->bottom = round_height(normalize_used_length(ctxt, box,
+                        bottom_u, bottom_l));
+            box->height = calc_height_based_on_descendants(ctxt, box);
+            box->top = cblock_height - box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb - box->bottom;
+        }
+        else if (top_v == CSS_MARGIN_AUTO && height_v != CSS_HEIGHT_AUTO &&
+                bottom_v == CSS_MARGIN_AUTO) {
+            box->height = round_height(normalize_used_length(ctxt, box,
+                        height_u, height_l));
+            box->top = 0;      // TODO: the static postion.
+            box->bottom = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb;
+        }
+        else if (top_v != CSS_MARGIN_AUTO && height_v == CSS_HEIGHT_AUTO &&
+                bottom_v == CSS_MARGIN_AUTO) {
+            box->top = round_height(normalize_used_length(ctxt, box,
+                        top_u, top_l));
+            box->height = calc_height_based_on_descendants(ctxt, box);
+            box->bottom = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb;
+        }
+        else if (top_v == CSS_MARGIN_AUTO && height_v != CSS_HEIGHT_AUTO &&
+                bottom_v != CSS_MARGIN_AUTO) {
+            box->height = round_height(normalize_used_length(ctxt, box,
+                        height_u, height_l));
+            box->bottom = round_height(normalize_used_length(ctxt, box,
+                        bottom_u, bottom_l));
+            box->top = cblock_height - box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb - box->bottom;
+        }
+        else if (top_v != CSS_MARGIN_AUTO && height_v == CSS_HEIGHT_AUTO &&
+                bottom_v != CSS_MARGIN_AUTO) {
+            box->top = round_height(normalize_used_length(ctxt, box,
+                        top_u, top_l));
+            box->bottom = round_height(normalize_used_length(ctxt, box,
+                        bottom_u, bottom_l));
+            box->height = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->pb - box->bb - box->mb- box->bottom;
+        }
+        else if (top_v != CSS_MARGIN_AUTO && height_v != CSS_HEIGHT_AUTO &&
+                bottom_v == CSS_MARGIN_AUTO) {
+            box->top = round_height(normalize_used_length(ctxt, box,
+                        top_u, top_l));
+            box->height = round_height(normalize_used_length(ctxt, box,
+                        height_u, height_l));
+            box->bottom = cblock_height - box->top -
+                box->mt - box->bt - box->pt -
+                box->height - box->pb - box->bb - box->mb;
+        }
+        else {
+            assert(0); // never reach here
+        }
+    }
+
+    return valid;
 }
 
 /* calculate heights and margins according to CSS 2.2 Section 10.4 */
@@ -895,19 +1207,21 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced) {
         box->height = -1; // not apply
+        box->is_height_resolved = 1;
     }
     else if (box->is_replaced && (box->type == FOIL_RDRBOX_TYPE_INLINE ||
-                (box->type == FOIL_RDRBOX_TYPE_BLOCK &&
-                    box->is_in_normal_flow) ||
+                (box->is_block_level && box->is_in_normal_flow) ||
                 (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
                     box->is_in_normal_flow) ||
                 box->floating != FOIL_RDRBOX_FLOAT_NONE)) {
 
         dtrm_margin_top_bottom(ctxt, box);
         dtrm_height_replaced(ctxt, box);
+        box->is_height_resolved = 1;
     }
-    else if (box->type == FOIL_RDRBOX_TYPE_BLOCK && !box->is_replaced &&
-            box->is_in_normal_flow) {
+    else if (box->is_block_level && !box->is_replaced &&
+            box->is_in_normal_flow &&
+            box->overflow_y == CSS_OVERFLOW_VISIBLE) {
 
         css_fixed height_l;
         css_unit height_u;
@@ -917,13 +1231,52 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (height_v != CSS_WIDTH_AUTO) {
             box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
+            box->is_height_resolved = 1;
         }
-        else if (box->overflow_y == CSS_OVERFLOW_VISIBLE) {
+        else {
+            // TODO: calculate height if only inline boxes in it
             dtrm_margin_top_bottom(ctxt, box);
-
-            // set height is pending.
-            box->height_pending = 1;
         }
+    }
+    else if (box->is_abs_positioned) {
+        if (box->is_replaced) {
+            dtrm_height_replaced(ctxt, box);
+            dtrm_heights_abspos_replaced(ctxt, box);
+            box->is_height_resolved = 1;
+        }
+        else {
+            if (dtrm_heights_abspos_non_replaced(ctxt, box))
+                box->is_height_resolved = 1;
+        }
+    }
+    else if (!box->is_replaced && ((box->is_block_level &&
+                box->is_in_normal_flow &&
+                box->overflow_y != CSS_OVERFLOW_VISIBLE) ||
+            (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) ||
+            (box->floating != FOIL_RDRBOX_FLOAT_NONE))) {
+
+        dtrm_margin_top_bottom(ctxt, box);
+
+        css_fixed l;
+        css_unit u;
+        uint8_t v = css_computed_height(box->computed_style, &l, &u);
+        assert(v != CSS_HEIGHT_INHERIT);
+        if (v != CSS_HEIGHT_AUTO) {
+            box->height = calc_used_value_heights(ctxt, box, u, l);
+            box->is_height_resolved = 1;
+        }
+        else {
+            box->height = calc_height_based_on_descendants(ctxt, box);
+        }
+    }
+    else {
+        LOG_ERROR("Should not be here\n");
+        assert(0);
+    }
+
+    /* determine top and bottom according to CSS 2.2 Section 9.4.3 */
+    if (box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
+        dtrm_top_bottom_relpos(ctxt, box);
     }
 }
 

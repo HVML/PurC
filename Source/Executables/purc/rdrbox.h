@@ -288,9 +288,9 @@ struct foil_rdrbox {
     // Indicates that this box is in normal flow.
     uint32_t is_in_normal_flow:1;
     // Indicates that the widths and margins of the box is determined.
-    uint32_t is_widths_valid:1;
+    uint32_t is_width_resolved:1;
     // Indicates that the heights and margsin of the box is determined.
-    uint32_t is_heights_valid:1;
+    uint32_t is_height_resolved:1;
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
@@ -367,7 +367,6 @@ struct foil_rdrbox {
     /* End of inheritable properties */
 
     /* Layout fields */
-    uint8_t height_pending:1;
 
     const foil_rdrbox *cblock_creator;  // the containing block of this box
     foil_rect cblock_rect;              // the bounding rectangle of
