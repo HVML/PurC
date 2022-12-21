@@ -1056,6 +1056,7 @@ static const char *rdr_ops[] = {
 
 pcrdr_msg *
 pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
+        pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1099,11 +1100,20 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
 
     pcrdr_msg_target target = PCRDR_MSG_TARGET_DOM;
     uint64_t target_value = stack->co->target_dom_handle;
-    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
 
     char elem[LEN_BUFF_LONGLONGINT];
-    int n = snprintf(elem, sizeof(elem),
-            "%llx", (unsigned long long int)(uint64_t)element);
+    int n;
+    if (element_type == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+        n = snprintf(elem, sizeof(elem),
+                "%llx", (unsigned long long int)(uint64_t)element);
+    }
+    else if (element_type == PCRDR_MSG_ELEMENT_TYPE_CSS){
+        n = snprintf(elem, sizeof(elem), "%s", css_selector);
+    }
+    else {
+        n = -1;
+    }
+
     if (n < 0) {
         purc_set_error(PURC_ERROR_BAD_STDC_CALL);
         goto failed;
@@ -1190,8 +1200,8 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(stack, op, element,
-            property, data_type, req_data);
+    ret = pcintr_rdr_send_dom_req(stack, op, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+            element, property, data_type, req_data);
     return ret;
 
 failed:
@@ -1207,6 +1217,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, op,
+            PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, property, data_type, data);
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);

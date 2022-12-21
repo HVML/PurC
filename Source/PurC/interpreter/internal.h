@@ -337,6 +337,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
 pcrdr_msg *
 pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
+        pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
