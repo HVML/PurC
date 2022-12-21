@@ -307,15 +307,10 @@ struct foil_rdrbox {
     uint32_t prop_for_width:2;
     // Indicates which property to use when calculating height and margins.
     uint32_t prop_for_height:2;
-    // Indicates that the box has been laid out
-    uint32_t is_laid_out:1;
-
-#if 0
     // Indicates that the widths and margins of the box is resolved.
     uint32_t is_width_resolved:1;
     // Indicates that the heights and margsin of the box is resolved.
     uint32_t is_height_resolved:1;
-#endif
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
@@ -577,6 +572,8 @@ foil_counters_unref(foil_counters *counters)
 }
 
 void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);

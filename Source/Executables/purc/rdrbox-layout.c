@@ -1816,7 +1816,7 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
-void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->computed_style) {
         /* calculate widths and margins */
@@ -1830,7 +1830,16 @@ void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->prop_for_width = FOIL_RDRBOX_USE_MIN_WIDTH;
             calc_widths_margins(ctxt, box);
         }
+        box->is_width_resolved = 1;
+    }
+    else if (box->is_anonymous && box->is_block_level) {
+        // TODO: calculate width and height for anonymous block level box
+    }
+}
 
+void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    if (box->computed_style) {
         /* calculate heights and margins */
         box->prop_for_height = FOIL_RDRBOX_USE_HEIGHT;
         calc_heights_margins(ctxt, box);
@@ -1842,15 +1851,18 @@ void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->prop_for_height = FOIL_RDRBOX_USE_MIN_HEIGHT;
             calc_heights_margins(ctxt, box);
         }
+        box->is_height_resolved = 1;
 
-        /* adjust position according to 'vertical-align' */
-        adjust_position_vertically(ctxt, box);
     }
     else if (box->is_anonymous && box->is_block_level) {
         // TODO: calculate width and height for anonymous block level box
     }
+}
 
-    box->is_laid_out = 1;
+void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    /* adjust position according to 'vertical-align' */
+    adjust_position_vertically(ctxt, box);
 }
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)

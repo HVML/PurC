@@ -74,3 +74,28 @@ void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt)
     free(ctxt);
 }
 
+int foil_rdrbox_calc_shrink_to_fit_width(foil_layout_ctxt *ctxt,
+        foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    return 0;
+}
+
+bool foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
+        foil_rdrbox *block, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)block;
+    (void)box;
+    return true;
+}
+
+int foil_rdrbox_calc_height_only_inlines(foil_layout_ctxt *ctxt,
+        foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    return 0;
+}
+

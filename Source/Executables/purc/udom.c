@@ -1000,8 +1000,17 @@ pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (box != ctxt->initial_cblock && !box->is_laid_out)
+    if (box != ctxt->initial_cblock) {
+        if (!box->is_width_resolved) {
+            foil_rdrbox_resolve_width(ctxt, box);
+        }
+
+        if (!box->is_height_resolved) {
+            foil_rdrbox_resolve_height(ctxt, box);
+        }
+
         foil_rdrbox_layout(ctxt, box);
+    }
 
     /* continue for the children */
     foil_rdrbox *child = box->first;
