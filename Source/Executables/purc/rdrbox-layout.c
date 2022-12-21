@@ -407,25 +407,7 @@ dtrm_height_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     return width_v;
 }
 
-static bool
-dtrm_width_if_not_auto(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    uint8_t width_v;
-    css_fixed width_l;
-    css_unit width_u;
-
-    width_v = real_computed_width(box, &width_l, &width_u);
-    assert(width_v != CSS_WIDTH_INHERIT);
-    if (width_v != CSS_WIDTH_AUTO) {
-        box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
-        return true;
-    }
-
-    return false;
-}
-
-static uint8_t
+static int
 dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
@@ -435,17 +417,13 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     width_v = real_computed_width(box, &width_l, &width_u);
     assert(width_v != CSS_WIDTH_INHERIT);
-
     if (width_v != CSS_WIDTH_AUTO) {
-        box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
-
-        return width_v;
+        return calc_used_value_widths(ctxt, box, width_u, width_l);
     }
 
     /* TODO */
     LOG_WARN("Not implemented\n");
-    box->width = FOIL_PX_GRID_CELL_W * 10;
-    return CSS_WIDTH_SET;
+    return FOIL_PX_GRID_CELL_W * 10;
 }
 
 static void
@@ -563,10 +541,10 @@ dtrm_widths_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     if (left_v == CSS_LEFT_AUTO && right_v == CSS_RIGHT_AUTO) {
         if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
-            box->left = 0;      // TODO: the static position.
+            box->left = 0;      // TODO: use the static position.
         }
         else {
-            box->right = 0;     // TODO: the static position.
+            box->right = 0;     // TODO: use the static position.
         }
     }
     else {
@@ -659,11 +637,9 @@ dtrm_widths_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 }
 
-static bool
+static void
 dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
-    bool valid = true;
-
     uint8_t left_v, width_v, right_v, margin_left_v, margin_right_v;
     css_fixed left_l, width_l, right_l, margin_left_l, margin_right_l;
     css_unit left_u, width_u, right_u, margin_left_u, margin_right_u;
@@ -702,16 +678,19 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (box->cblock_creator->direction ==
                 FOIL_RDRBOX_DIRECTION_LTR) {
-            box->left = 0;      // TODO: the static postion.
-            box->width = -1;    // shrink-to-fit, delayed.
-            box->right = -1;    // delayed;
+            box->left = 0;      // TODO: use the static position.
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
+            box->right = cblock_width - box->left -
+                    box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr;
         }
         else {
-            box->right = 0;     // TODO: the static postion.
-            box->width = -1;    // shrink-to-fit, delayed.
-            box->left = -1;     // delayed;
+            box->right = 0;     // TODO: use the static position.
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
+            box->left = cblock_width - box->right -
+                    box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr;
         }
-        valid = false;
     }
     else if (left_v == CSS_LEFT_SET && width_v == CSS_WIDTH_SET &&
             right_v == CSS_RIGHT_SET) {
@@ -787,21 +766,22 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 right_v != CSS_MARGIN_AUTO) {
             box->right = round_width(normalize_used_length(ctxt, box,
                         right_u, right_l));
-            box->width = -1;    // shrink-to-fit, delayed.
-            box->left = -1;     // delayed;
-            valid = false;
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
+            box->left = cblock_width - box->right -
+                    box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr;
         }
         else if (left_v == CSS_MARGIN_AUTO && width_v != CSS_WIDTH_AUTO &&
                 right_v == CSS_MARGIN_AUTO) {
             box->width = round_width(normalize_used_length(ctxt, box,
                         width_u, width_l));
             if (box->cblock_creator->direction == FOIL_RDRBOX_DIRECTION_LTR) {
-                box->left = 0;      // TODO: the static postion.
+                box->left = 0;      // TODO: the static position.
                 box->right = cblock_width - box->width -
                     box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
             }
             else {
-                box->right = 0;      // TODO: the static postion.
+                box->right = 0;      // TODO: the static position.
                 box->left = cblock_width - box->width -
                     box->ml - box->bl - box->pl - box->pr - box->br - box->mr;
             }
@@ -810,9 +790,10 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 right_v == CSS_MARGIN_AUTO) {
             box->left = round_width(normalize_used_length(ctxt, box,
                         left_u, left_l));
-            box->width = -1;    // shrink-to-fit, delayed.
-            box->right = -1;     // delayed;
-            valid = false;
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
+            box->right = cblock_width - box->left -
+                    box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr;
         }
         else if (left_v == CSS_MARGIN_AUTO && width_v != CSS_WIDTH_AUTO &&
                 right_v != CSS_MARGIN_AUTO) {
@@ -845,8 +826,6 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             assert(0); // never reach here
         }
     }
-
-    return valid;
 }
 
 static void
@@ -901,7 +880,6 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
 
         dtrm_margin_left_right(ctxt, box);
-        box->is_width_resolved = 1;
     }
     else if (box->is_block_level && box->is_in_normal_flow) {
         uint8_t width_v;
@@ -924,50 +902,36 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
 
         dtrm_margin_left_right_block_normal(ctxt, box, width_v);
-        box->is_width_resolved = 1;
     }
     else if (box->floating != FOIL_RDRBOX_FLOAT_NONE) {
-        bool width_ok = false;
-
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
-            width_ok = true;
         }
         else {
-            width_ok = dtrm_width_if_not_auto(ctxt, box);
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
         }
 
-        if (width_ok) {
-            dtrm_margin_left_right(ctxt, box);
-            box->is_width_resolved = 1;
-        }
+        dtrm_margin_left_right(ctxt, box);
     }
     else if (box->is_abs_positioned) {
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
             dtrm_widths_abspos_replaced(ctxt, box);
-            box->is_width_resolved = 1;
         }
         else {
-            if (dtrm_widths_abspos_non_replaced(ctxt, box))
-                box->is_width_resolved = 1;
+            dtrm_widths_abspos_non_replaced(ctxt, box);
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
             box->is_in_normal_flow) {
-        bool width_ok = false;
         if (box->is_replaced) {
             dtrm_width_replaced(ctxt, box);
-            width_ok = true;
         }
         else {
-            width_ok = dtrm_width_if_not_auto(ctxt, box);
+            box->width = dtrm_width_shrink_to_fit(ctxt, box);
         }
 
-        if (width_ok) {
-            dtrm_margin_left_right(ctxt, box);
-            box->is_width_resolved = 1;
-        }
+        dtrm_margin_left_right(ctxt, box);
     }
     else {
         LOG_ERROR("Should not be here\n");
@@ -1094,6 +1058,15 @@ dtrm_heights_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static int
+calc_height_based_on_children(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    // TODO:
+    return 0;
+}
+
+static int
 calc_height_based_on_descendants(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
@@ -1102,11 +1075,9 @@ calc_height_based_on_descendants(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     return 0;
 }
 
-static bool
+static void
 dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
-    bool valid = true;
-
     uint8_t top_v, height_v, bottom_v, margin_top_v, margin_bottom_v;
     css_fixed top_l, height_l, bottom_l, margin_top_l, margin_bottom_l;
     css_unit top_u, height_u, bottom_u, margin_top_u, margin_bottom_u;
@@ -1143,7 +1114,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mb = round_height(normalize_used_length(ctxt, box,
                     margin_bottom_u, margin_bottom_l));
 
-        box->top = 0;      // TODO: the static postion.
+        box->top = 0;      // TODO: the static position.
         box->height = calc_height_based_on_descendants(ctxt, box);
         box->bottom = cblock_height - box->top - box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
@@ -1210,7 +1181,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 bottom_v == CSS_MARGIN_AUTO) {
             box->height = round_height(normalize_used_length(ctxt, box,
                         height_u, height_l));
-            box->top = 0;      // TODO: the static postion.
+            box->top = 0;      // TODO: the static position.
             box->bottom = cblock_height - box->top -
                 box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
@@ -1257,8 +1228,6 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             assert(0); // never reach here
         }
     }
-
-    return valid;
 }
 
 /* calculate heights and margins according to CSS 2.2 Section 10.4 */
@@ -1267,7 +1236,6 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced) {
         box->height = -1; // not apply
-        box->is_height_resolved = 1;
     }
     else if (box->is_replaced && (box->type == FOIL_RDRBOX_TYPE_INLINE ||
                 (box->is_block_level && box->is_in_normal_flow) ||
@@ -1277,7 +1245,6 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         dtrm_margin_top_bottom(ctxt, box);
         dtrm_height_replaced(ctxt, box);
-        box->is_height_resolved = 1;
     }
     else if (box->is_block_level && !box->is_replaced &&
             box->is_in_normal_flow &&
@@ -1290,10 +1257,9 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (height_v != CSS_WIDTH_AUTO) {
             box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
-            box->is_height_resolved = 1;
         }
         else {
-            // TODO: calculate height if only inline boxes in it
+            box->height = calc_height_based_on_children(ctxt, box);
             dtrm_margin_top_bottom(ctxt, box);
         }
     }
@@ -1301,11 +1267,9 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (box->is_replaced) {
             dtrm_height_replaced(ctxt, box);
             dtrm_heights_abspos_replaced(ctxt, box);
-            box->is_height_resolved = 1;
         }
         else {
-            if (dtrm_heights_abspos_non_replaced(ctxt, box))
-                box->is_height_resolved = 1;
+            dtrm_heights_abspos_non_replaced(ctxt, box);
         }
     }
     else if (!box->is_replaced && ((box->is_block_level &&
@@ -1322,7 +1286,6 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(v != CSS_HEIGHT_INHERIT);
         if (v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_heights(ctxt, box, u, l);
-            box->is_height_resolved = 1;
         }
         else {
             box->height = calc_height_based_on_descendants(ctxt, box);
@@ -1499,8 +1462,17 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->pb = calc_used_value_widths(ctxt, box, u, l);
     }
 
-    /* min-width and max-width */
-    if (box->type != FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP &&
+    /* min-width and max-width:
+     *
+     * In CSS 2, the effect of min-width and max-width on tables, inline
+     * tables, table cells, table columns, and column groups is undefined.
+     */
+    if (box->type != FOIL_RDRBOX_TYPE_TABLE &&
+            box->type != FOIL_RDRBOX_TYPE_INLINE_TABLE &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_CELL &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP &&
             box->type != FOIL_RDRBOX_TYPE_TABLE_ROW &&
             !(box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced)) {
         uint8_t v;
@@ -1524,8 +1496,17 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         /* else keep initial -1 */
     }
 
-    /* min-height and max-height */
-    if (box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP &&
+    /* min-height and max-height:
+     *
+     * In CSS 2, the effect of min-height and max-height on tables, inline
+     * tables, table cells, table rows, and row groups is undefined.
+     */
+    if (box->type != FOIL_RDRBOX_TYPE_TABLE &&
+            box->type != FOIL_RDRBOX_TYPE_INLINE_TABLE &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_CELL &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_ROW &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP &&
             box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN &&
             !(box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced)) {
         uint8_t v;

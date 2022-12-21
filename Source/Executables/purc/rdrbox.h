@@ -310,10 +310,12 @@ struct foil_rdrbox {
     // Indicates that the box has been laid out
     uint32_t is_laid_out:1;
 
+#if 0
     // Indicates that the widths and margins of the box is resolved.
     uint32_t is_width_resolved:1;
     // Indicates that the heights and margsin of the box is resolved.
     uint32_t is_height_resolved:1;
+#endif
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
