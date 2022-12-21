@@ -1799,6 +1799,15 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (!box->is_root)
             box->is_in_flow = 1;
     }
+    else {
+        if (box->floating) {
+            box->parent->nr_floating_children++;
+        }
+
+        if (box->is_abs_positioned) {
+            box->parent->nr_abspos_children++;
+        }
+    }
 
     if (box->is_in_normal_flow) {
         if (box->is_inline_level) {
@@ -1809,11 +1818,6 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
     }
 
-    if (box->floating || box->is_abs_positioned ||
-            (box->is_block_container && !box->is_block_level) ||
-            (box->is_block_level && box->overflow_y != CSS_OVERFLOW_VISIBLE)) {
-        box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(-1);
-    }
 }
 
 void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
@@ -1831,9 +1835,17 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             calc_widths_margins(ctxt, box);
         }
         box->is_width_resolved = 1;
+
     }
     else if (box->is_anonymous && box->is_block_level) {
         // TODO: calculate width and height for anonymous block level box
+    }
+
+    if (box->floating || box->is_abs_positioned ||
+            (box->is_block_container && !box->is_block_level) ||
+            (box->is_block_level && box->overflow_y != CSS_OVERFLOW_VISIBLE)) {
+        box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(
+                &ctxt->udom->rgnrc_heap, box->width, -1);
     }
 }
 

@@ -389,6 +389,8 @@ struct foil_rdrbox {
     /* Layout fields */
     unsigned nr_block_level_children;
     unsigned nr_inline_level_children;
+    unsigned nr_floating_children;
+    unsigned nr_abspos_children;
 
     const foil_rdrbox *cblock_creator;  // the containing block of this box
     foil_rect cblock_rect;              // the bounding rectangle of

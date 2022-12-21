@@ -32,14 +32,18 @@
 #include <stdio.h>
 #include <assert.h>
 
-struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(int height)
+struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(foil_block_heap *heap,
+        int width, int height)
 {
     struct _block_fmt_ctxt *ctxt = calloc(1, sizeof(*ctxt));
     if (ctxt) {
+        foil_region_init(&ctxt->region, heap);
+        foil_rect rc = { 0, 0, width, height };
         if (height < 0)
-            ctxt->max_height = INT_MAX;
-        else
-            ctxt->max_height = height;
+            rc.bottom = INT_MAX;
+        foil_region_set(&ctxt->region, &rc);
+
+        ctxt->max_height = rc.bottom;
     }
 
     return ctxt;
@@ -47,22 +51,19 @@ struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(int height)
 
 void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt)
 {
+    foil_region_empty(&ctxt->region);
     free(ctxt);
 }
 
 struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(
         foil_block_heap *heap, int width, int height)
 {
-    assert(width > 0);
+    (void)width;
+    (void)height;
 
     struct _inline_fmt_ctxt *ctxt = calloc(1, sizeof(*ctxt));
     if (ctxt) {
         foil_region_init(&ctxt->region, heap);
-        foil_rect rc = { 0, 0, width, height };
-        if (height < 0)
-            rc.bottom = INT_MAX;
-
-        foil_region_set(&ctxt->region, &rc);
     }
 
     return ctxt;

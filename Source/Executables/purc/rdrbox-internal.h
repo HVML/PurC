@@ -83,10 +83,13 @@ struct _block_fmt_ctxt {
     /* < 0 for no limit */
     int max_height;
     int allocated_height;
+
+    /* the available region to lay out floats and inline boxes. */
+    foil_region region;
 };
 
 struct _inline_fmt_ctxt {
-    /* the available region to lay out floats and inline boxes. */
+    /* the region formed by inline fragments. */
     foil_region region;
 };
 
@@ -94,7 +97,8 @@ struct _inline_fmt_ctxt {
 extern "C" {
 #endif
 
-struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(int height);
+struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(foil_block_heap *heap,
+        int width, int height);
 void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
 
 struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(
