@@ -184,12 +184,26 @@ enum {
     FOIL_RDRBOX_BORDER_STYLE_DOUBLE,
 };
 
-/* the clear property. */
+/* the values for clear property. */
 enum {
     FOIL_RDRBOX_CLEAR_NONE = 0,
     FOIL_RDRBOX_CLEAR_LEFT,
     FOIL_RDRBOX_CLEAR_RIGHT,
     FOIL_RDRBOX_CLEAR_BOTH,
+};
+
+/* use which property when calculating width */
+enum {
+    FOIL_RDRBOX_USE_WIDTH = 0,
+    FOIL_RDRBOX_USE_MAX_WIDTH,
+    FOIL_RDRBOX_USE_MIN_WIDTH,
+};
+
+/* use which property when calculating height */
+enum {
+    FOIL_RDRBOX_USE_HEIGHT = 0,
+    FOIL_RDRBOX_USE_MAX_HEIGHT,
+    FOIL_RDRBOX_USE_MIN_HEIGHT,
 };
 
 enum {
@@ -261,14 +275,16 @@ struct foil_rdrbox {
     /* the computed CSS style */
     css_computed_style *computed_style;
 
-    // Indicates that this box is anonymous box.
+    // Indicates that this box is an anonymous box.
     uint32_t is_anonymous:1;
-    // Indicates that this box is principal box.
+    // Indicates that this box is a principal box.
     uint32_t is_principal:1;
     // Indicates that this box is created for an pseudo element.
     uint32_t is_pseudo:1;
     // Indicates that the element generating this box is a replaced one.
     uint32_t is_replaced:1;
+    // Indicates that the element generating this box is a control.
+    uint32_t is_control:1;
     // Indicates that this box is the initial containing block.
     uint32_t is_initial:1;
     // Indicates that this box is created by root element.
@@ -287,9 +303,13 @@ struct foil_rdrbox {
     uint32_t is_in_flow:1;
     // Indicates that this box is in normal flow.
     uint32_t is_in_normal_flow:1;
-    // Indicates that the widths and margins of the box is determined.
+    // Indicates which property to use when calculating width and margins.
+    uint32_t prop_for_width:2;
+    // Indicates which property to use when calculating height and margins.
+    uint32_t prop_for_height:2;
+    // Indicates that the widths and margins of the box is resolved.
     uint32_t is_width_resolved:1;
-    // Indicates that the heights and margsin of the box is determined.
+    // Indicates that the heights and margsin of the box is resolved.
     uint32_t is_height_resolved:1;
 
     /* Used values of non-inherited properties */
@@ -336,8 +356,8 @@ struct foil_rdrbox {
     foil_counters *counter_incrm;   // NULL when `counter-increment` is `none`
 
     /* the following non-inherited properties have non-zero intial values */
-    int32_t min_height, max_height;    // initial value: -1 (none)
-    int32_t min_width,  max_width;     // initial value: -1 (none)
+    int32_t min_height, max_height;    // initial value: 0, -1 (none)
+    int32_t min_width,  max_width;     // initial value: 0, -1 (none)
 
     /* End of non-inherited properties */
 

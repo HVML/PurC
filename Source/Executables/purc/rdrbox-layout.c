@@ -256,6 +256,70 @@ get_intrinsic_ratio(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static uint8_t
+real_computed_width(foil_rdrbox *box, css_fixed *l, css_unit *u)
+{
+    uint8_t v = CSS_WIDTH_AUTO;
+    switch (box->prop_for_width) {
+    case FOIL_RDRBOX_USE_WIDTH:
+        v = css_computed_width(box->computed_style, l, u);
+        assert(v != CSS_WIDTH_INHERIT);
+        break;
+
+    case FOIL_RDRBOX_USE_MAX_WIDTH:
+        assert(box->max_width > 0);
+        v = CSS_WIDTH_SET;
+        *l = INTTOFIX(box->max_width);
+        *u = CSS_UNIT_PX;
+        break;
+
+    case FOIL_RDRBOX_USE_MIN_WIDTH:
+        assert(box->min_width >= 0);
+        v = CSS_WIDTH_SET;
+        *l = INTTOFIX(box->min_width);
+        *u = CSS_UNIT_PX;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    return v;
+}
+
+static uint8_t
+real_computed_height(foil_rdrbox *box, css_fixed *l, css_unit *u)
+{
+    uint8_t v = CSS_HEIGHT_AUTO;
+    switch (box->prop_for_height) {
+    case FOIL_RDRBOX_USE_HEIGHT:
+        v = css_computed_height(box->computed_style, l, u);
+        assert(v != CSS_HEIGHT_INHERIT);
+        break;
+
+    case FOIL_RDRBOX_USE_MAX_HEIGHT:
+        assert(box->max_height > 0);
+        v = CSS_HEIGHT_SET;
+        *l = INTTOFIX(box->max_height);
+        *u = CSS_UNIT_PX;
+        break;
+
+    case FOIL_RDRBOX_USE_MIN_HEIGHT:
+        assert(box->min_height >= 0);
+        v = CSS_HEIGHT_SET;
+        *l = INTTOFIX(box->min_height);
+        *u = CSS_UNIT_PX;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    return v;
+}
+
+static uint8_t
 dtrm_width_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t width_v, height_v;
@@ -264,16 +328,13 @@ dtrm_width_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     assert(box->is_replaced);
 
-    width_v = css_computed_width(box->computed_style, &width_l, &width_u);
-    assert(width_v != CSS_WIDTH_INHERIT);
-
+    width_v = real_computed_width(box, &width_l, &width_u);
     if (width_v != CSS_WIDTH_AUTO) {
         box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
-
         return width_v;
     }
 
-    height_v = css_computed_height(box->computed_style, &height_l, &height_u);
+    height_v = real_computed_height(box, &height_l, &height_u);
     assert(height_v != CSS_HEIGHT_INHERIT);
 
     int intrinsic_width = get_intrinsic_width(ctxt, box);
@@ -316,7 +377,7 @@ dtrm_height_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     assert(box->is_replaced);
 
-    height_v = css_computed_height(box->computed_style, &height_l, &height_u);
+    height_v = real_computed_height(box, &height_l, &height_u);
     assert(height_v != CSS_HEIGHT_INHERIT);
     if (height_v != CSS_WIDTH_AUTO) {
         box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
@@ -324,7 +385,7 @@ dtrm_height_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         return height_v;
     }
 
-    width_v = css_computed_width(box->computed_style, &width_l, &width_u);
+    width_v = real_computed_width(box, &width_l, &width_u);
 
     int intrinsic_height = get_intrinsic_height(ctxt, box);
     float intrinsic_ratio = get_intrinsic_ratio(ctxt, box);
@@ -354,7 +415,7 @@ dtrm_width_if_not_auto(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     css_fixed width_l;
     css_unit width_u;
 
-    width_v = css_computed_width(box->computed_style, &width_l, &width_u);
+    width_v = real_computed_width(box, &width_l, &width_u);
     assert(width_v != CSS_WIDTH_INHERIT);
     if (width_v != CSS_WIDTH_AUTO) {
         box->width = calc_used_value_widths(ctxt, box, width_u, width_l);
@@ -372,7 +433,7 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     css_fixed width_l;
     css_unit width_u;
 
-    width_v = css_computed_width(box->computed_style, &width_l, &width_u);
+    width_v = real_computed_width(box, &width_l, &width_u);
     assert(width_v != CSS_WIDTH_INHERIT);
 
     if (width_v != CSS_WIDTH_AUTO) {
@@ -610,7 +671,7 @@ dtrm_widths_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     left_v = css_computed_left(box->computed_style, &left_l, &left_u);
     assert(left_v != CSS_LEFT_INHERIT);
 
-    width_v = css_computed_width(box->computed_style, &width_l, &width_u);
+    width_v = real_computed_width(box, &width_l, &width_u);
     assert(width_v != CSS_WIDTH_INHERIT);
 
     right_v = css_computed_right(box->computed_style, &right_l, &right_u);
@@ -851,8 +912,7 @@ calc_widths_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         else {
             css_fixed width_l;
             css_unit width_u;
-            width_v = css_computed_width(box->computed_style,
-                    &width_l, &width_u);
+            width_v = real_computed_width(box, &width_l, &width_u);
             assert(width_v != CSS_WIDTH_INHERIT);
             if (width_v == CSS_WIDTH_AUTO) {
                 box->width = 0;
@@ -1054,7 +1114,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     top_v = css_computed_top(box->computed_style, &top_l, &top_u);
     assert(top_v != CSS_TOP_INHERIT);
 
-    height_v = css_computed_height(box->computed_style, &height_l, &height_u);
+    height_v = real_computed_height(box, &height_l, &height_u);
     assert(height_v != CSS_HEIGHT_INHERIT);
 
     bottom_v = css_computed_bottom(box->computed_style, &bottom_l, &bottom_u);
@@ -1225,8 +1285,7 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         css_fixed height_l;
         css_unit height_u;
-        uint8_t height_v = css_computed_height(box->computed_style,
-                &height_l, &height_u);
+        uint8_t height_v = real_computed_height(box, &height_l, &height_u);
         assert(height_v != CSS_HEIGHT_INHERIT);
 
         if (height_v != CSS_WIDTH_AUTO) {
@@ -1259,7 +1318,7 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         css_fixed l;
         css_unit u;
-        uint8_t v = css_computed_height(box->computed_style, &l, &u);
+        uint8_t v = real_computed_height(box, &l, &u);
         assert(v != CSS_HEIGHT_INHERIT);
         if (v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_heights(ctxt, box, u, l);
@@ -1438,6 +1497,56 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         v = css_computed_padding_bottom(box->computed_style, &l, &u);
         assert(v != CSS_PADDING_INHERIT);
         box->pb = calc_used_value_widths(ctxt, box, u, l);
+    }
+
+    /* min-width and max-width */
+    if (box->type != FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_ROW &&
+            !(box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced)) {
+        uint8_t v;
+        css_fixed l;
+        css_unit u;
+
+        v = css_computed_min_width(box->computed_style, &l, &u);
+        assert(v != CSS_MIN_WIDTH_INHERIT);
+        if (v == CSS_MIN_WIDTH_SET) {
+            box->min_width = calc_used_value_widths(ctxt, box, u, l);
+            if (box->min_width < 0)
+                box->min_width = 0;
+        }
+        /* else keep initial 0 */
+
+        v = css_computed_max_width(box->computed_style, &l, &u);
+        assert(v != CSS_MAX_WIDTH_INHERIT);
+        if (v == CSS_MAX_WIDTH_SET) {
+            box->max_width = calc_used_value_widths(ctxt, box, u, l);
+        }
+        /* else keep initial -1 */
+    }
+
+    /* min-height and max-height */
+    if (box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP &&
+            box->type != FOIL_RDRBOX_TYPE_TABLE_COLUMN &&
+            !(box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced)) {
+        uint8_t v;
+        css_fixed l;
+        css_unit u;
+
+        v = css_computed_min_height(box->computed_style, &l, &u);
+        assert(v != CSS_MIN_HEIGHT_INHERIT);
+        if (v == CSS_MIN_HEIGHT_SET) {
+            box->min_height = calc_used_value_heights(ctxt, box, u, l);
+            if (box->min_height < 0)
+                box->min_height = 0;
+        }
+        /* else keep initial 0 */
+
+        v = css_computed_max_height(box->computed_style, &l, &u);
+        assert(v != CSS_MAX_HEIGHT_INHERIT);
+        if (v == CSS_MAX_HEIGHT_SET) {
+            box->max_height = calc_used_value_heights(ctxt, box, u, l);
+        }
+        /* else keep initial -1 */
     }
 }
 
