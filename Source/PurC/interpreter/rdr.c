@@ -47,6 +47,9 @@
 
 #define DEF_LEN_ONE_WRITE       1024 * 10
 
+#define RDR_KEY_METHOD     "method"
+#define RDR_KEY_ARG        "arg"
+
 static struct pcintr_rdr_data_type {
     const char *type_name;
     pcrdr_msg_data_type type;
@@ -1043,19 +1046,81 @@ failed:
 }
 
 static const char *rdr_ops[] = {
-    PCRDR_OPERATION_APPEND,
-    PCRDR_OPERATION_PREPEND,
-    PCRDR_OPERATION_INSERTBEFORE,
-    PCRDR_OPERATION_INSERTAFTER,
-    PCRDR_OPERATION_DISPLACE,
-    PCRDR_OPERATION_UPDATE,
-    PCRDR_OPERATION_ERASE,
-    PCRDR_OPERATION_CLEAR,
-    "",     // unknown
+    PCRDR_OPERATION_STARTSESSION,              // "startSession"
+    PCRDR_OPERATION_ENDSESSION,                // "endSession"
+    PCRDR_OPERATION_CREATEWORKSPACE,           // "createWorkspace"
+    PCRDR_OPERATION_UPDATEWORKSPACE,           // "updateWorkspace"
+    PCRDR_OPERATION_DESTROYWORKSPACE,          // "destroyWorkspace"
+    PCRDR_OPERATION_CREATEPLAINWINDOW,         // "createPlainWindow"
+    PCRDR_OPERATION_UPDATEPLAINWINDOW,         // "updatePlainWindow"
+    PCRDR_OPERATION_DESTROYPLAINWINDOW,        // "destroyPlainWindow"
+    PCRDR_OPERATION_SETPAGEGROUPS,             // "setPageGroups"
+    PCRDR_OPERATION_ADDPAGEGROUPS,             // "addPageGroups"
+    PCRDR_OPERATION_REMOVEPAGEGROUP,           // "removePageGroup"
+    PCRDR_OPERATION_CREATEWIDGET,              // "createWidget"
+    PCRDR_OPERATION_UPDATEWIDGET,              // "updateWidget"
+    PCRDR_OPERATION_DESTROYWIDGET,             // "destroyWidget"
+    PCRDR_OPERATION_LOAD,                      // "load"
+    PCRDR_OPERATION_WRITEBEGIN,                // "writeBegin"
+    PCRDR_OPERATION_WRITEMORE,                 // "writeMore"
+    PCRDR_OPERATION_WRITEEND,                  // "writeEnd"
+    PCRDR_OPERATION_APPEND,                    // "append"
+    PCRDR_OPERATION_PREPEND,                   // "prepend"
+    PCRDR_OPERATION_INSERTBEFORE,              // "insertBefore"
+    PCRDR_OPERATION_INSERTAFTER,               // "insertAfter"
+    PCRDR_OPERATION_DISPLACE,                  // "displace"
+    PCRDR_OPERATION_UPDATE,                    // "update"
+    PCRDR_OPERATION_ERASE,                     // "erase"
+    PCRDR_OPERATION_CLEAR,                     // "clear"
+    PCRDR_OPERATION_CALLMETHOD,                // "callMethod"
+    PCRDR_OPERATION_GETPROPERTY,               // "getProperty"
+    PCRDR_OPERATION_SETPROPERTY,               // "setProperty"
 };
 
+/* make sure the number of operations matches the enumulators */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+_COMPILE_TIME_ASSERT(ops,
+        PCA_TABLESIZE(rdr_ops) == PCRDR_NR_OPERATIONS);
+#undef _COMPILE_TIME_ASSERT
+
+int
+pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
+{
+    switch (op) {
+    case PCDOC_OP_APPEND:
+        return PCRDR_K_OPERATION_APPEND;
+
+    case PCDOC_OP_PREPEND:
+        return PCRDR_K_OPERATION_PREPEND;
+
+    case PCDOC_OP_INSERTBEFORE:
+        return PCRDR_K_OPERATION_INSERTBEFORE;
+
+    case PCDOC_OP_INSERTAFTER:
+        return PCRDR_K_OPERATION_INSERTAFTER;
+
+    case PCDOC_OP_DISPLACE:
+        return PCRDR_K_OPERATION_DISPLACE;
+
+    case PCDOC_OP_UPDATE:
+        return PCRDR_K_OPERATION_UPDATE;
+
+    case PCDOC_OP_ERASE:
+        return PCRDR_K_OPERATION_ERASE;
+
+    case PCDOC_OP_CLEAR:
+        return PCRDR_K_OPERATION_CLEAR;
+
+    case PCDOC_OP_UNKNOWN:
+    default:
+        break;
+    }
+    return 0;
+}
+
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, pcdoc_operation_k op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
@@ -1149,7 +1214,8 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op,
+        pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
@@ -1200,7 +1266,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, pcdoc_operation_k op,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(stack, op, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+    ret = pcintr_rdr_send_dom_req(stack, op, element_type, css_selector,
             element, property, data_type, req_data);
     return ret;
 
@@ -1212,7 +1278,7 @@ failed:
 }
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
+pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
@@ -1228,7 +1294,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, pcdoc_operation_k op,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        pcdoc_operation_k op, pcdoc_element_t element,
+        int op, pcdoc_element_t element,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
@@ -1241,6 +1307,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         len = 1;
     }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, op,
+            PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, property, data_type, data, len);
 
     if (response_msg != NULL) {
@@ -1248,5 +1315,47 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         return true;
     }
     return false;
+}
+
+int
+pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
+        const char *method, purc_variant_t arg)
+{
+    int ret = -1;
+    purc_variant_t m = PURC_VARIANT_INVALID;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
+    purc_variant_t data = purc_variant_make_object(0,
+            PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+    if (!data) {
+        goto out;
+    }
+
+    m = purc_variant_make_string(method, false);
+    if (!m) {
+        goto out;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(data, RDR_KEY_METHOD, m)) {
+        goto out;
+    }
+
+    if (arg &&
+            !purc_variant_object_set_by_static_ckey(data, RDR_KEY_ARG, arg)) {
+        goto out;
+    }
+
+    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack,
+            PCRDR_K_OPERATION_CALLMETHOD, PCRDR_MSG_ELEMENT_TYPE_CSS,
+            css_selector, NULL, NULL, data_type, data);
+    if (response_msg != NULL) {
+        pcrdr_release_message(response_msg);
+        ret = 0;
+    }
+
+out:
+    if (m) {
+        purc_variant_unref(m);
+    }
+    return ret;
 }
 
