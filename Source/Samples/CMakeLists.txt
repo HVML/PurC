@@ -14,6 +14,7 @@ set(sample_HVML_FILES
     "hvml/hello-10.hvml"
     "hvml/hello-html.hvml"
     "hvml/hello-html-timer.hvml"
+    "hvml/hello-html-timer-1.hvml"
     "hvml/hello-world-0.hvml"
     "hvml/hello-world-1.hvml"
     "hvml/hello-world-2.hvml"

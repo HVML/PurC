@@ -1,0 +1,32 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>My First HVML Program</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <h1>My First HVML Program</h1>
+        <p>Current Time: <span id="clock">$DATETIME.time_prt()</span></p>
+
+        <ul>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+
+        <observe on $TIMERS for "expired:clock">
+            <request on="#clock" to="call:ELEM.textContent=ARG; return true" with "$DATETIME.time_prt()" />
+        </observe>
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
+    </body>
+</hvml>

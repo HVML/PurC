@@ -1172,7 +1172,8 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op,
         n = snprintf(elem, sizeof(elem),
                 "%llx", (unsigned long long int)(uint64_t)element);
     }
-    else if (element_type == PCRDR_MSG_ELEMENT_TYPE_CSS){
+    else if (element_type == PCRDR_MSG_ELEMENT_TYPE_ID
+            || element_type == PCRDR_MSG_ELEMENT_TYPE_ID){
         n = snprintf(elem, sizeof(elem), "%s", css_selector);
     }
     else {
@@ -1345,7 +1346,7 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
     }
 
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack,
-            PCRDR_K_OPERATION_CALLMETHOD, PCRDR_MSG_ELEMENT_TYPE_CSS,
+            PCRDR_K_OPERATION_CALLMETHOD, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector, NULL, NULL, data_type, data);
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
