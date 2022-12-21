@@ -981,10 +981,27 @@ failed:
 }
 
 static void
-layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
     if (box != ctxt->initial_cblock)
-        foil_rdrbox_determine_geometry(ctxt, box);
+        foil_rdrbox_pre_layout(ctxt, box);
+
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        if (child->first)
+            pre_layout_rdrtree(ctxt, child);
+
+        child = child->next;
+    }
+}
+
+static void
+layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    if (box != ctxt->initial_cblock && !box->is_laid_out)
+        foil_rdrbox_layout(ctxt, box);
 
     /* continue for the children */
     foil_rdrbox *child = box->first;
@@ -1157,6 +1174,9 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* determine the geometries of boxes and lay out the boxes */
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+    LOG_DEBUG("Calling pre_layout_rdrtree...\n");
+    pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
+
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 

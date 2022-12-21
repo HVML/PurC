@@ -1746,7 +1746,7 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
-void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
 #ifndef NDEBUG
     char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
@@ -1846,17 +1846,43 @@ void foil_rdrbox_determine_geometry(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (!box->is_root)
             box->is_in_flow = 1;
     }
+}
 
+void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
     if (box->computed_style) {
         /* calculate widths and margins */
+        box->prop_for_width = FOIL_RDRBOX_USE_WIDTH;
         calc_widths_margins(ctxt, box);
+        if (box->max_width > 0 && box->width > box->max_width) {
+            box->prop_for_width = FOIL_RDRBOX_USE_MAX_WIDTH;
+            calc_widths_margins(ctxt, box);
+        }
+        if (box->min_width > 0 && box->width < box->min_width) {
+            box->prop_for_width = FOIL_RDRBOX_USE_MIN_WIDTH;
+            calc_widths_margins(ctxt, box);
+        }
 
         /* calculate heights and margins */
+        box->prop_for_height = FOIL_RDRBOX_USE_HEIGHT;
         calc_heights_margins(ctxt, box);
+        if (box->max_height > 0 && box->height > box->max_height) {
+            box->prop_for_height = FOIL_RDRBOX_USE_MAX_HEIGHT;
+            calc_heights_margins(ctxt, box);
+        }
+        if (box->min_height > 0 && box->height > box->min_height) {
+            box->prop_for_height = FOIL_RDRBOX_USE_MIN_HEIGHT;
+            calc_heights_margins(ctxt, box);
+        }
 
         /* adjust position according to 'vertical-align' */
         adjust_position_vertically(ctxt, box);
     }
+    else if (box->is_anonymous && box->is_block_level) {
+        // TODO: calculate width and height for anonymous block level box
+    }
+
+    box->is_laid_out = 1;
 }
 
 bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
