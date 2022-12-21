@@ -392,6 +392,8 @@ struct foil_rdrbox {
     /* End of inheritable properties */
 
     /* Layout fields */
+    unsigned nr_block_level_children;
+    unsigned nr_inline_level_children;
 
     const foil_rdrbox *cblock_creator;  // the containing block of this box
     foil_rect cblock_rect;              // the bounding rectangle of
@@ -418,8 +420,8 @@ struct foil_rdrbox {
     void (*cb_data_cleanup)(void *data);
 
     /* formatting contexts */
-    struct _block_fmt_context  *block_fmt_ctxt;
-    struct _inline_fmt_context *inline_fmt_ctxt;
+    struct _block_fmt_ctxt  *block_fmt_ctxt;
+    struct _inline_fmt_ctxt *inline_fmt_ctxt;
 
     /* the stacking context created by the box if it is a positioned box,
        and z-index is not auto. */

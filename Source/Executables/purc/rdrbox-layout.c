@@ -408,23 +408,7 @@ dtrm_height_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static int
-dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    uint8_t width_v;
-    css_fixed width_l;
-    css_unit width_u;
-
-    width_v = real_computed_width(box, &width_l, &width_u);
-    assert(width_v != CSS_WIDTH_INHERIT);
-    if (width_v != CSS_WIDTH_AUTO) {
-        return calc_used_value_widths(ctxt, box, width_u, width_l);
-    }
-
-    /* TODO */
-    LOG_WARN("Not implemented\n");
-    return FOIL_PX_GRID_CELL_W * 10;
-}
+dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 static void
 dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
@@ -1058,22 +1042,10 @@ dtrm_heights_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static int
-calc_height_based_on_children(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    (void)box;
-    // TODO:
-    return 0;
-}
+calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 static int
-calc_height_based_on_descendants(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    (void)box;
-    // TODO:
-    return 0;
-}
+calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 static void
 dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
@@ -1115,7 +1087,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                     margin_bottom_u, margin_bottom_l));
 
         box->top = 0;      // TODO: the static position.
-        box->height = calc_height_based_on_descendants(ctxt, box);
+        box->height = calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         box->bottom = cblock_height - box->top - box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
     }
@@ -1173,7 +1145,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 bottom_v != CSS_MARGIN_AUTO) {
             box->bottom = round_height(normalize_used_length(ctxt, box,
                         bottom_u, bottom_l));
-            box->height = calc_height_based_on_descendants(ctxt, box);
+            box->height = calc_height_for_block_fmt_ctxt_maker(ctxt, box);
             box->top = cblock_height - box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb - box->bottom;
         }
@@ -1190,7 +1162,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 bottom_v == CSS_MARGIN_AUTO) {
             box->top = round_height(normalize_used_length(ctxt, box,
                         top_u, top_l));
-            box->height = calc_height_based_on_descendants(ctxt, box);
+            box->height = calc_height_for_block_fmt_ctxt_maker(ctxt, box);
             box->bottom = cblock_height - box->top -
                 box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
@@ -1259,7 +1231,7 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->height = calc_used_value_heights(ctxt, box, height_u, height_l);
         }
         else {
-            box->height = calc_height_based_on_children(ctxt, box);
+            box->height = calc_height_for_visible_non_replaced(ctxt, box);
             dtrm_margin_top_bottom(ctxt, box);
         }
     }
@@ -1288,7 +1260,7 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->height = calc_used_value_heights(ctxt, box, u, l);
         }
         else {
-            box->height = calc_height_based_on_descendants(ctxt, box);
+            box->height = calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         }
     }
     else {
@@ -1827,6 +1799,21 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (!box->is_root)
             box->is_in_flow = 1;
     }
+
+    if (box->is_in_normal_flow) {
+        if (box->is_inline_level) {
+            box->parent->nr_inline_level_children++;
+        }
+        else if (box->is_block_level) {
+            box->parent->nr_block_level_children++;
+        }
+    }
+
+    if (box->floating || box->is_abs_positioned ||
+            (box->is_block_container && !box->is_block_level) ||
+            (box->is_block_level && box->overflow_y != CSS_OVERFLOW_VISIBLE)) {
+        box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(-1);
+    }
 }
 
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
@@ -1947,5 +1934,42 @@ foil_rdrbox_find_container_for_absolute(foil_layout_ctxt *ctxt,
     (void)box;
 
     return NULL;
+}
+
+static int
+dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    uint8_t width_v;
+    css_fixed width_l;
+    css_unit width_u;
+
+    width_v = real_computed_width(box, &width_l, &width_u);
+    assert(width_v != CSS_WIDTH_INHERIT);
+    if (width_v != CSS_WIDTH_AUTO) {
+        return calc_used_value_widths(ctxt, box, width_u, width_l);
+    }
+
+    /* TODO */
+    LOG_WARN("Not implemented\n");
+    return FOIL_PX_GRID_CELL_W * 10;
+}
+
+static int
+calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    // TODO:
+    return 0;
+}
+
+static int
+calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    // TODO:
+    return 0;
 }
 

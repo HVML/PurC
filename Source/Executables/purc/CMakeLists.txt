@@ -56,6 +56,7 @@ if (ENABLE_RDR_FOIL)
         rdrbox-marker.c
         rdrbox-inline.c
         rdrbox-layout.c
+        rdrbox-layout-helpers.c
         widget.c
     )
 endif ()

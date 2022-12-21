@@ -329,6 +329,14 @@ void foil_rdrbox_delete(foil_rdrbox *box)
         free(box->data);
     }
 
+    if (box->block_fmt_ctxt) {
+        foil_rdrbox_block_fmt_ctxt_delete(box->block_fmt_ctxt);
+    }
+
+    if (box->inline_fmt_ctxt) {
+        foil_rdrbox_inline_fmt_ctxt_delete(box->inline_fmt_ctxt);
+    }
+
     free(box);
 }
 

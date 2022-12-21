@@ -79,23 +79,36 @@ struct _marker_box_data {
     int       width;
 };
 
-struct _block_fmt_context {
+struct _block_fmt_ctxt {
     /* < 0 for no limit */
     int max_height;
     int allocated_height;
 };
 
-struct _inline_fmt_context {
+struct _inline_fmt_ctxt {
     /* the available region to lay out floats and inline boxes. */
-    foil_region avl_region;
+    foil_region region;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-foil_size
-foil_rdrbox_inline_shrink_to_fit(const struct _inline_box_data *inline_data);
+struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(int height);
+void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
+
+struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(
+        foil_block_heap *heap, int width, int height);
+void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
+
+int foil_rdrbox_width_shrink_to_fit(
+        foil_layout_ctxt *ctxt, foil_rdrbox *box);
+
+int foil_rdrbox_height_for_visible_non_replaced(
+        foil_layout_ctxt *ctxt, foil_rdrbox *box);
+
+int foil_rdrbox_height_for_block_fmt_ctxt_maker(
+        foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 #ifdef __cplusplus
 }
