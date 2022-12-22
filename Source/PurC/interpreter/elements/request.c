@@ -183,7 +183,7 @@ request_crtn_by_rid_cid(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     purc_variant_unref(source_uri);
 
-    if (!ctxt->synchronously) {
+    if (ctxt->is_noreturn || !ctxt->synchronously) {
         goto out;
     }
 
