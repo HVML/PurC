@@ -890,14 +890,6 @@ typedef struct _foil_glyph_pos {
      */
     int y;
     /**
-     * The x offset of the glyph position.
-     */
-    int x_off;
-    /**
-     * The y offset of the glyph position.
-     */
-    int y_off;
-    /**
      * The line advance of the glyph.
      */
     int advance;
@@ -1049,11 +1041,11 @@ size_t foil_ustr_from_utf8_until_paragraph_boundary(
  *        break opportunity before the first uchar, and the others store
  *        the break opportunities after other gyphs.
  *        The break opportunity can be one of the following values:
- *          - BOV_LB_MANDATORY\n
+ *          - FOIL_BOV_LB_MANDATORY\n
  *            The mandatory breaking.
- *          - BOV_LB_NOTALLOWED\n
+ *          - FOIL_BOV_LB_NOTALLOWED\n
  *            No breaking allowed after the uchar definitely.
- *          - BOV_LB_ALLOWED\n
+ *          - FOIL_BOV_LB_ALLOWED\n
  *            Breaking allowed after the uchar.
  *
  * \return The length of break oppoortunities array; zero on error.
@@ -1085,8 +1077,6 @@ size_t foil_ustr_get_breaks(foil_langcode_t langcode,
  * \param tab_size The tab size used to render preserved tab characters.
  * \param max_extent The maximal output extent value. No limit when it is < 0.
  * \param line_size The buffer to store the line extent info; can be NULL.
- * \param glyphs The buffer to store the glyphs, which can fit in
- *      the max extent; cannot be NULL.
  * \param glyph_ext_info The buffer to store the extent info of all glyphs
  *      which can fit in the max extent; can be NULL.
  * \param glyph_pos The buffer to store the positions and orientations of
@@ -1120,7 +1110,7 @@ size_t foil_ustr_get_breaks(foil_langcode_t langcode,
 size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         const foil_break_oppo_t* break_oppos, uint32_t render_flags,
         int x, int y, int letter_spacing, int word_spacing, int tab_size,
-        int max_extent, foil_size* line_size, uint32_t* glyphs,
+        int max_extent, foil_size* line_size,
         foil_glyph_extinfo* glyph_ext_info, foil_glyph_pos* glyph_pos);
 
 #ifdef __cplusplus

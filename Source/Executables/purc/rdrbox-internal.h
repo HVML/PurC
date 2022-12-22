@@ -93,6 +93,10 @@ struct _inline_fmt_ctxt {
     foil_region region;
 };
 
+struct _preferred_width_ctxt {
+    int x, y;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -107,6 +111,11 @@ void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
 
 int foil_rdrbox_calc_shrink_to_fit_width(foil_layout_ctxt *ctxt,
         foil_rdrbox *box);
+
+int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
+        foil_rdrbox *box);
+
+int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box);
 
 bool foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box);
