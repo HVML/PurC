@@ -47,8 +47,8 @@
 
 #define DEF_LEN_ONE_WRITE       1024 * 10
 
-#define RDR_KEY_METHOD     "method"
-#define RDR_KEY_ARG        "arg"
+#define RDR_KEY_METHOD          "method"
+#define RDR_KEY_ARG             "arg"
 
 static struct pcintr_rdr_data_type {
     const char *type_name;
@@ -114,16 +114,16 @@ object_set(purc_variant_t object, const char *key, const char *value)
 
 pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
-        pcrdr_msg_element_type element_type, const char *element,
-        const char *property, pcrdr_msg_data_type data_type,
-        purc_variant_t data, size_t data_len)
+        const char *request_id, pcrdr_msg_element_type element_type,
+        const char *element, const char *property,
+        pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len)
 {
     pcrdr_msg *response_msg = NULL;
     pcrdr_msg *msg = pcrdr_make_request_message(
             target,                             /* target */
             target_value,                       /* target_value */
             operation,                          /* operation */
-            NULL,                               /* request_id */
+            request_id,                         /* request_id */
             NULL,                               /* source_uri */
             element_type,                       /* element_type */
             element,                            /* element */
@@ -143,9 +143,12 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         msg->textLen = data_len;
     }
 
-    if (pcrdr_send_request_and_wait_response(conn,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
-        goto failed;
+    if (request_id && strcmp(request_id, PCINTR_RDR_NORETURN_REQUEST_ID) == 0) {
+        pcrdr_send_request(conn, msg, PCRDR_TIME_DEF_EXPECTED, NULL, NULL);
+    }
+    else {
+        pcrdr_send_request_and_wait_response(conn,
+                msg, PCRDR_TIME_DEF_EXPECTED, &response_msg);
     }
     pcrdr_release_message(msg);
     msg = NULL;
@@ -188,7 +191,7 @@ uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, NULL, NULL, data_type,
+            target_value, operation, NULL, element_type, NULL, NULL, data_type,
             data, 0);
 
     if (response_msg == NULL) {
@@ -243,7 +246,7 @@ bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, element, NULL,
+            target_value, operation, NULL, element_type, element, NULL,
             data_type, data, 0);
 
     if (response_msg == NULL) {
@@ -304,7 +307,7 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, element, property,
+            target_value, operation, NULL, element_type, element, property,
             data_type, data, 0);
 
     if (response_msg == NULL) {
@@ -340,7 +343,7 @@ uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn,
             PCRDR_MSG_TARGET_SESSION, session, PCRDR_OPERATION_GETPROPERTY,
-            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
+            NULL, PCRDR_MSG_ELEMENT_TYPE_VOID, NULL,
             "workspaceList",
             PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
     if (response_msg == NULL) {
@@ -448,7 +451,7 @@ pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, element, NULL, data_type,
+            target_value, operation, NULL, element_type, element, NULL, data_type,
             data, 0);
     if (response_msg == NULL) {
         // pcintr_rdr_send_request_and_wait_response unref data
@@ -508,7 +511,7 @@ bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, element, NULL,
+            target_value, operation, NULL, element_type, element, NULL,
             data_type, data, 0);
 
     if (response_msg == NULL) {
@@ -579,7 +582,7 @@ pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, element, property,
+            target_value, operation, NULL, element_type, element, property,
             data_type, value, 0);
     if (response_msg == NULL) {
         goto failed;
@@ -628,7 +631,7 @@ bool pcintr_rdr_set_page_groups(struct pcrdr_conn *conn,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, NULL, NULL,
+            target_value, operation, NULL, element_type, NULL, NULL,
             data_type, data, 0);
 
     if (response_msg == NULL) {
@@ -678,7 +681,7 @@ bool pcintr_rdr_add_page_groups(struct pcrdr_conn *conn,
     target_value = workspace;
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, NULL, NULL, data_type,
+            target_value, operation, NULL, element_type, NULL, NULL, data_type,
             data, 0);
     if (response_msg == NULL) {
         goto failed;
@@ -722,7 +725,7 @@ bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
     target_value = workspace;
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, element_type, page_group_id, NULL,
+            target_value, operation, NULL, element_type, page_group_id, NULL,
             data_type, data, 0);
     if (response_msg == NULL) {
         goto failed;
@@ -842,7 +845,7 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(
-            conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN,
+            conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN, NULL,
             element_type, NULL, NULL, data_type, data, len_to_write);
     if (response_msg == NULL) {
         goto failed;
@@ -864,7 +867,7 @@ writting:
         data = purc_variant_make_string_static(doc_content + len_wrotten,
                 false);
         response_msg = pcintr_rdr_send_request_and_wait_response(
-                conn, target, target_value, PCRDR_OPERATION_WRITEEND,
+                conn, target, target_value, PCRDR_OPERATION_WRITEEND, NULL,
                 element_type, NULL, NULL, data_type, data, 0);
         if (response_msg == NULL) {
             goto failed;
@@ -891,7 +894,7 @@ writting:
         }
 
         response_msg = pcintr_rdr_send_request_and_wait_response(
-                conn, target, target_value, PCRDR_OPERATION_WRITEMORE,
+                conn, target, target_value, PCRDR_OPERATION_WRITEMORE, NULL,
                 element_type, NULL, NULL, data_type, data, len_to_write);
         if (response_msg == NULL) {
             goto failed;
@@ -964,7 +967,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
            when the connection type is move buffer. */
         req_data = purc_variant_make_native(doc, NULL);
         response_msg = pcintr_rdr_send_request_and_wait_response(
-                inst->conn_to_rdr, target, target_value, operation,
+                inst->conn_to_rdr, target, target_value, operation, NULL,
                 element_type, NULL, NULL,
                 PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
     }
@@ -1004,7 +1007,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         }
         else {
             response_msg = pcintr_rdr_send_request_and_wait_response(
-                    inst->conn_to_rdr, target, target_value, operation,
+                    inst->conn_to_rdr, target, target_value, operation, NULL,
                     element_type, NULL, NULL, data_type, req_data, 0);
         }
 
@@ -1120,7 +1123,7 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
@@ -1192,7 +1195,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op,
 
     struct pcinst *inst = pcinst_current();
     response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
-        target, target_value, operation, element_type, elem,
+        target, target_value, operation, request_id, element_type, elem,
         property, data_type, data, 0);
 
     if (response_msg == NULL) {
@@ -1267,7 +1270,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(stack, op, element_type, css_selector,
+    ret = pcintr_rdr_send_dom_req(stack, op, NULL, element_type, css_selector,
             element, property, data_type, req_data);
     return ret;
 
@@ -1284,7 +1287,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, op,
-            PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+            NULL, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, property, data_type, data);
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -1319,8 +1322,8 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
 }
 
 purc_variant_t
-pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
-        const char *method, purc_variant_t arg)
+pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
+        const char *css_selector, const char *method, purc_variant_t arg)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
     purc_variant_t m = PURC_VARIANT_INVALID;
@@ -1346,7 +1349,7 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
     }
 
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack,
-            PCRDR_K_OPERATION_CALLMETHOD, PCRDR_MSG_ELEMENT_TYPE_ID,
+            PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector, NULL, NULL, data_type, data);
     if (response_msg != NULL) {
         ret = purc_variant_ref(response_msg->data);

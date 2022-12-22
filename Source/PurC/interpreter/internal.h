@@ -56,6 +56,7 @@
 
 #define PCINTR_LEN_HVML_RUN_RES               4
 #define PCINTR_HVML_RUN_CURR_ID               "-"
+#define PCINTR_RDR_NORETURN_REQUEST_ID        "-"
 
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
@@ -237,9 +238,9 @@ pcintr_attribute_get_op(enum pchvml_attr_operator op);
 
 pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         pcrdr_msg_target target, uint64_t target_value, const char *operation,
-        pcrdr_msg_element_type element_type, const char *element,
-        const char *property, pcrdr_msg_data_type data_type,
-        purc_variant_t data, size_t data_len);
+        const char *request_id, pcrdr_msg_element_type element_type,
+        const char *element, const char *property,
+        pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len);
 
 /* retrieve handle of workspace according to the name */
 uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
@@ -339,7 +340,7 @@ int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op,
+pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
@@ -361,8 +362,8 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, int op,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
 purc_variant_t
-pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
-        const char *method, purc_variant_t arg);
+pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
+        const char *css_selector, const char *method, purc_variant_t arg);
 
 #define pcintr_rdr_dom_append_content(stack, element, content)                \
     pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_APPEND,       \

@@ -49,7 +49,7 @@ struct ctxt_for_request {
     purc_variant_t                with;
 
     unsigned int                  synchronously:1;
-    unsigned int                  noreturn:1;
+    unsigned int                  is_noreturn:1;
     unsigned int                  bound:1;
     purc_variant_t                request_id;
 };
@@ -316,8 +316,14 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *s_on = purc_variant_get_string_const(ctxt->on);
     const char *s_to = purc_variant_get_string_const(ctxt->to);
-    purc_variant_t v = pcintr_rdr_call_method(&co->stack, s_on + 1, s_to,
-            ctxt->with);
+    const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
+        : NULL;
+    purc_variant_t v = pcintr_rdr_call_method(&co->stack, request_id,
+            s_on + 1, s_to, ctxt->with);
+    if (!v && ctxt->is_noreturn) {
+        v = purc_variant_make_null();
+    }
+
     if (v) {
         pcintr_set_question_var(frame, v);
         purc_variant_unref(v);
@@ -397,7 +403,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
 out:
     if (ret == 0 && ctxt->request_id && ctxt->as
-            && !ctxt->synchronously && !ctxt->noreturn) {
+            && !ctxt->synchronously && !ctxt->is_noreturn) {
         const char *name = purc_variant_get_string_const(ctxt->as);
         ret = pcintr_bind_named_variable(&co->stack,
                 frame, name, ctxt->at, false, true, ctxt->request_id);
@@ -550,7 +556,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NORETURN)) == name
             || pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, NO_RETURN)) == name) {
-        ctxt->noreturn = 1;
+        ctxt->is_noreturn = 1;
         return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
