@@ -1163,8 +1163,12 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     /* create the box tree */
-    foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        NULL, purc_document_root(edom_doc), purc_document_body(edom_doc),
+    foil_create_ctxt ctxt = { udom,
+        udom->initial_cblock,           /* initial box */
+        NULL,                           /* root box */
+        udom->initial_cblock,           /* parent box */
+        purc_document_root(edom_doc),   /* root element */
+        purc_document_body(edom_doc),   /* body element */
         NULL, NULL, NULL, NULL };
     if (make_rdrtree(&ctxt, ctxt.root))
         goto failed;
