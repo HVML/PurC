@@ -34,8 +34,6 @@
 
 #include <sys/time.h>
 
-#define EXCLAMATION_EVENT_NAME     "_eventName"
-#define EXCLAMATION_EVENT_SOURCE   "_eventSource"
 #define OBSERVER_EVENT_HANDER      "_observer_event_handler"
 #define SUB_EXIT_EVENT_HANDER      "_sub_exit_event_handler"
 #define LAST_MSG_EVENT_HANDER      "_last_msg_event_handler"
@@ -57,6 +55,10 @@ destroy_task(struct pcintr_observer_task *task)
 
     if (task->source) {
         purc_variant_unref(task->source);
+    }
+
+    if (task->request_id) {
+        purc_variant_unref(task->request_id);
     }
 
     free(task);
@@ -98,13 +100,19 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     // set $! _eventName
     if (task->event_name) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
-                EXCLAMATION_EVENT_NAME, task->event_name);
+                PCINTR_EXCLAMATION_EVENT_NAME, task->event_name);
     }
 
     // set $! _eventSource
     if (task->source) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
-                EXCLAMATION_EVENT_SOURCE, task->source);
+                PCINTR_EXCLAMATION_EVENT_SOURCE, task->source);
+    }
+
+    // set $! _eventRequestId
+    if (task->request_id) {
+        purc_variant_object_set_by_static_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_EVENT_REQUEST_ID, task->request_id);
     }
 
     // scheduler by pcintr_schedule
@@ -385,9 +393,12 @@ dispatch_inst_event_from_move_buffer(struct pcinst *inst,
                     "Can not send request to coroutine '%s'", res);
             goto out;
         }
+        if (!cid) {
+            pcintr_request_id_set_cid(request_id, crtn->cid);
+        }
         purc_variant_t v = purc_variant_make_ulongint(crtn->cid);
-        pcintr_post_event(0, crtn->cid, msg->reduceOpt, msg->sourceURI, v,
-            msg->eventName, msg->data, v);
+        pcintr_post_event(0, crtn->cid, msg->reduceOpt, msg->sourceURI, request_id,
+            msg->eventName, msg->data, request_id);
         purc_variant_unref(v);
         break;
     }

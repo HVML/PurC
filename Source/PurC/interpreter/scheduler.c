@@ -74,12 +74,15 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
-            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                    BUILTIN_VAR_CRTN);
+            purc_variant_t hvml = pcintr_request_id_create(
+                PCINTR_REQUEST_ID_TYPE_CRTN,
+                inst->endpoint_atom,
+                stack->co->cid, stack->co->token);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            purc_variant_unref(hvml);
         }
     }
 
@@ -88,12 +91,15 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
-            purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                    BUILTIN_VAR_CRTN);
+            purc_variant_t hvml = pcintr_request_id_create(
+                PCINTR_REQUEST_ID_TYPE_CRTN,
+                inst->endpoint_atom,
+                stack->co->cid, stack->co->token);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            purc_variant_unref(hvml);
         }
     }
 }
@@ -618,7 +624,6 @@ handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
 bool
 handle_coroutine_event(pcintr_coroutine_t co)
 {
-    int handle_ret = PURC_ERROR_INCOMPLETED;
     bool busy = false;
     bool msg_observed = false;
     char *type = NULL;
@@ -657,23 +662,17 @@ handle_coroutine_event(pcintr_coroutine_t co)
 
     // observer
     if (msg) {
-        handle_ret = handle_event_by_observer_list(co,
+        int handle_by_inner = handle_event_by_observer_list(co,
                 &co->stack.intr_observers, msg, event_type, event_sub_type,
                 &msg_observed, &busy);
 
-        if (handle_ret == PURC_ERROR_OK) {
-            pcrdr_release_message(msg);
-            msg = NULL;
-        }
-        else {
-            handle_ret = handle_event_by_observer_list(co,
+        int handle_by_hvml = handle_event_by_observer_list(co,
                     &co->stack.hvml_observers, msg, event_type, event_sub_type,
                     &msg_observed, &busy);
 
-            if (handle_ret == PURC_ERROR_OK) {
-                pcrdr_release_message(msg);
-                msg = NULL;
-            }
+        if (handle_by_inner == 0 || handle_by_hvml == 0) {
+            pcrdr_release_message(msg);
+            msg = NULL;
         }
     }
 

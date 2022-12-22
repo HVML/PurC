@@ -605,13 +605,27 @@ register_default_observer(pcintr_stack_t stack,
     pcdoc_element_t edom_element;
     edom_element = pcdvobjs_get_element_from_elements(at, 0);
 
-    return pcintr_register_observer(stack,
+    if (pcintr_is_crtn_object(observed, NULL)) {
+        struct pcinst *inst = pcinst_current();
+        observed = pcintr_request_id_create(
+                PCINTR_REQUEST_ID_TYPE_CRTN,
+                inst->endpoint_atom,
+                stack->co->cid, stack->co->token);
+    }
+    else {
+        purc_variant_ref(observed);
+    }
+
+    struct pcintr_observer * ret = pcintr_register_observer(stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             observed,
             ctxt->msg_type_atom, ctxt->sub_type,
             frame->pos, edom_element, frame->pos,
             NULL, NULL, NULL, NULL, NULL, false);
+
+    purc_variant_unref(observed);
+    return ret;
 }
 
 static struct pcintr_observer *
@@ -834,17 +848,29 @@ on_popping(pcintr_stack_t stack, void* ud)
         if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
                 ctxt->msg_type_atom) && stack->co->curator) {
             struct pcinst *inst = pcinst_current();
-            purc_variant_t observed = pcintr_request_id_create(
+            purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
+            purc_variant_t request_id = PURC_VARIANT_INVALID;
+            if (exclamation_var) {
+                request_id = purc_variant_object_get_by_ckey(exclamation_var,
+                        PCINTR_EXCLAMATION_EVENT_REQUEST_ID);
+            }
+            if (request_id) {
+                purc_variant_ref(request_id);
+            }
+            else {
+                request_id = pcintr_request_id_create(
                     PCINTR_REQUEST_ID_TYPE_CRTN,
                     inst->endpoint_atom,
                     stack->co->cid, stack->co->token);
+            }
+
             purc_variant_t result = pcintr_coroutine_get_result(stack->co);
             pcintr_coroutine_post_event(stack->co->curator,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
-                    observed,
+                    request_id,
                     MSG_TYPE_RESPONSE, ctxt->sub_type,
-                    result, observed);
-            purc_variant_unref(observed);
+                    result, request_id);
+            purc_variant_unref(request_id);
         }
     }
 

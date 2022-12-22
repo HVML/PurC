@@ -58,6 +58,10 @@
 #define PCINTR_HVML_RUN_CURR_ID               "-"
 #define PCINTR_RDR_NORETURN_REQUEST_ID        "-"
 
+#define PCINTR_EXCLAMATION_EVENT_NAME         "_eventName"
+#define PCINTR_EXCLAMATION_EVENT_SOURCE       "_eventSource"
+#define PCINTR_EXCLAMATION_EVENT_REQUEST_ID   "_eventRequestId"
+
 struct pcvdom_template {
     struct pcvcm_node            *vcm;
     bool                          to_free;
@@ -75,6 +79,7 @@ struct pcintr_observer_task {
     purc_variant_t                payload;
     purc_variant_t                event_name;
     purc_variant_t                source;
+    purc_variant_t                request_id;
 };
 
 enum VIA {
@@ -599,6 +604,9 @@ pcintr_request_id_get_rid(purc_variant_t v);
 
 purc_atom_t
 pcintr_request_id_get_cid(purc_variant_t v);
+
+bool
+pcintr_request_id_set_cid(purc_variant_t v, purc_atom_t cid);
 
 enum pcintr_request_id_type
 pcintr_request_id_get_type(purc_variant_t v);

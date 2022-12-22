@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/instance.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -271,8 +272,20 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
         else
         {
-            pcintr_revoke_observer_ex(stack, on,
+            purc_variant_t observed = PURC_VARIANT_INVALID;
+            if (pcintr_is_crtn_object(on, NULL)) {
+                struct pcinst *inst = pcinst_current();
+                observed = pcintr_request_id_create(
+                        PCINTR_REQUEST_ID_TYPE_CRTN,
+                        inst->endpoint_atom,
+                        stack->co->cid, stack->co->token);
+            }
+            else {
+                observed = purc_variant_ref(on);
+            }
+            pcintr_revoke_observer_ex(stack, observed,
                 ctxt->msg_type_atom, ctxt->sub_type);
+            purc_variant_unref(observed);
         }
     }
 

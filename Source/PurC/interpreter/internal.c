@@ -1255,6 +1255,28 @@ pcintr_request_id_get_cid(purc_variant_t v)
     return (purc_atom_t) u64;
 }
 
+bool
+pcintr_request_id_set_cid(purc_variant_t v, purc_atom_t cid)
+{
+    bool ret = false;
+    purc_variant_t v_cid = PURC_VARIANT_INVALID;
+    if (!pcintr_is_request_id(v)) {
+        goto out;
+    }
+    v_cid = purc_variant_make_ulongint((uint64_t)cid);
+    if (!v_cid) {
+        goto out;
+    }
+
+    ret = purc_variant_object_set_by_static_ckey(v,
+                REQUEST_ID_KEY_CID, v_cid);
+out:
+    if (v_cid) {
+        purc_variant_unref(v_cid);
+    }
+    return ret;
+}
+
 enum pcintr_request_id_type
 pcintr_request_id_get_type(purc_variant_t v)
 {
@@ -1298,8 +1320,9 @@ pcintr_request_id_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         goto out;
     }
 
-    if (strcmp(pcintr_request_id_get_res(v1),
-                pcintr_request_id_get_res(v2)) == 0) {
+    const char *s1 = pcintr_request_id_get_res(v1);
+    const char *s2 = pcintr_request_id_get_res(v2);
+    if (s1 && s2 && strcmp(s1, s2) == 0) {
         ret = true;
         goto out;
     }

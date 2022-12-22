@@ -119,6 +119,11 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
             return true;
         }
     }
+    else if (pcintr_is_request_id(observed)) {
+        if (pcintr_request_id_is_match(observed, val)) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -165,6 +170,10 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
     task->scope = p->scope;
     task->edom_element = p->edom_element;
     task->stack = &co->stack;
+
+    if (msg->requestId) {
+        task->request_id = purc_variant_ref(msg->requestId);
+    }
 
     if (msg->eventName) {
         task->event_name = msg->eventName;
@@ -249,9 +258,10 @@ pcintr_register_observer(pcintr_stack_t  stack,
     add_observer_into_list(stack, list, observer);
 
     // observe idle
-    purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-            BUILTIN_VAR_CRTN);
-    if (observed == hvml) {
+    purc_atom_t idle_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            MSG_TYPE_IDLE);
+    if (pcintr_is_request_id(observed) && msg_type_atom == idle_atom &&
+            sub_type == NULL) {
         stack->observe_idle = 1;
     }
 
