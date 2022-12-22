@@ -1318,11 +1318,11 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
     return false;
 }
 
-int
+purc_variant_t
 pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
         const char *method, purc_variant_t arg)
 {
-    int ret = -1;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
     purc_variant_t m = PURC_VARIANT_INVALID;
     pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
     purc_variant_t data = purc_variant_make_object(0,
@@ -1349,8 +1349,8 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
             PCRDR_K_OPERATION_CALLMETHOD, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector, NULL, NULL, data_type, data);
     if (response_msg != NULL) {
+        ret = purc_variant_ref(response_msg->data);
         pcrdr_release_message(response_msg);
-        ret = 0;
     }
 
 out:

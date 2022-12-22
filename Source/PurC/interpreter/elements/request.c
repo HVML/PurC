@@ -316,9 +316,14 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *s_on = purc_variant_get_string_const(ctxt->on);
     const char *s_to = purc_variant_get_string_const(ctxt->to);
-    int ret = pcintr_rdr_call_method(&co->stack, s_on + 1, s_to, ctxt->with);
+    purc_variant_t v = pcintr_rdr_call_method(&co->stack, s_on + 1, s_to,
+            ctxt->with);
+    if (v) {
+        pcintr_set_question_var(frame, v);
+        purc_variant_unref(v);
+    }
 
-    return ret;
+    return 0;
 }
 
 static int

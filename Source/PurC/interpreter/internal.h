@@ -360,7 +360,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, int op,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
-int
+purc_variant_t
 pcintr_rdr_call_method(pcintr_stack_t stack, const char *css_selector,
         const char *method, purc_variant_t arg);
 
