@@ -1002,9 +1002,38 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
 
     LOG_DEBUG("\toverflow-y: %s\n", literal_values_overflow[box->overflow_y]);
 
+    if (box->is_root) {
+        ctxt->initial_cblock->direction = box->direction;
+        if (ctxt->body == NULL) {
+            /* propagate `overflow` to viewport */
+            if (ctxt->root_box->overflow_x == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+                ctxt->initial_cblock->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+            }
+
+            if (ctxt->root_box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+                ctxt->initial_cblock->overflow_y = FOIL_RDRBOX_OVERFLOW_AUTO;
+                box->overflow_y = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+            }
+        }
+    }
+    else if (box->is_body) {
+        assert(ctxt->root_box);
+
+        /* propagate `overflow` to viewport */
+        if (ctxt->root_box->overflow_x == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+            ctxt->initial_cblock->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+        }
+
+        if (ctxt->root_box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+            ctxt->initial_cblock->overflow_y = FOIL_RDRBOX_OVERFLOW_AUTO;
+            box->overflow_y = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+        }
+    }
+
     /* determine unicode_bidi */
-    v = css_computed_unicode_bidi(
-            ctxt->style);
+    v = css_computed_unicode_bidi(ctxt->style);
     assert(v != CSS_UNICODE_BIDI_INHERIT);
     switch (v) {
     case CSS_UNICODE_BIDI_EMBED:
@@ -1032,8 +1061,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_unicode_bidi[box->unicode_bidi]);
 
     /* determine text_transform */
-    v = css_computed_text_transform(
-            ctxt->style);
+    v = css_computed_text_transform(ctxt->style);
     assert(v != CSS_TEXT_TRANSFORM_INHERIT);
     switch (v) {
     case CSS_TEXT_TRANSFORM_CAPITALIZE:
@@ -1055,8 +1083,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_text_transform[box->text_transform]);
 
     /* determine white-space */
-    v = css_computed_white_space(
-            ctxt->style);
+    v = css_computed_white_space(ctxt->style);
     assert(v != CSS_WHITE_SPACE_INHERIT);
     switch (v) {
     case CSS_WHITE_SPACE_PRE:
@@ -1084,8 +1111,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_white_space[box->white_space]);
 
     /* determine text-decoration */
-    v = css_computed_text_decoration(
-            ctxt->style);
+    v = css_computed_text_decoration(ctxt->style);
     assert(v != CSS_TEXT_DECORATION_INHERIT);
     if (v != CSS_TEXT_DECORATION_NONE) {
         if (v & CSS_TEXT_DECORATION_BLINK)
@@ -1283,14 +1309,11 @@ find_parent_statcking_context(foil_rdrbox *box)
 }
 
 static const char *replaced_tags_html[] = {
-    "audio",
     "canvas",
     "embed",
     "iframe",
     "img",
-    "input",
     "object",
-    "select",
     "video",
 };
 
@@ -1300,6 +1323,44 @@ is_replaced_element(pcdoc_element_t elem, const char *tag_name)
 {
     (void)elem;
     static ssize_t max = PCA_TABLESIZE(replaced_tags_html);
+
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        int cmp;
+
+        mid = (low + high) / 2;
+        cmp = strcasecmp(tag_name, replaced_tags_html[mid]);
+        if (cmp == 0) {
+            goto found;
+        }
+        else {
+            if (cmp < 0) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    return 0;
+
+found:
+    return 1;
+}
+
+static const char *control_tags_html[] = {
+    "audio",
+    "input",
+    "select",
+};
+
+/* TODO: check whether an element is a control */
+static int
+is_control_element(pcdoc_element_t elem, const char *tag_name)
+{
+    (void)elem;
+    static ssize_t max = PCA_TABLESIZE(control_tags_html);
 
     ssize_t low = 0, high = max, mid;
     while (low <= high) {
@@ -1351,6 +1412,12 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
         goto failed;
 
     box->owner = ctxt->elem;
+    if (ctxt->elem == ctxt->root) {
+        box->is_root = 1;
+        ctxt->root_box = box;
+    }
+    else if (ctxt->elem == ctxt->body)
+        box->is_body = 1;
 
     uint8_t v;
     v = css_computed_position(ctxt->style);
@@ -1592,6 +1659,9 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
             box->is_inline_box = 1;
+
+        box->is_control = is_control_element(ctxt->elem, ctxt->tag_name);
+        // TODO: create control
 
         /* whether is a block contianer */
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||

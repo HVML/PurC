@@ -699,9 +699,6 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
             goto done;
         }
 
-        if (ctxt->elem == ctxt->root)
-            box->is_root = 1;
-
         /* handle :before pseudo element */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
             if (foil_rdrbox_create_before(ctxt, box) == NULL) {
@@ -716,8 +713,8 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
     }
 
     pcdoc_node node;
-    if (box->is_replaced) {
-        /* skip contents if the element is a replaced one */
+    if (box->is_replaced || box->is_control) {
+        /* skip contents if the element is a replaced one or a control */
         node.type = PCDOC_NODE_VOID;
         node.elem = NULL;
     }
@@ -1167,7 +1164,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 
     /* create the box tree */
     foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        purc_document_root(edom_doc), NULL, NULL, NULL, NULL };
+        NULL, purc_document_root(edom_doc), purc_document_body(edom_doc),
+        NULL, NULL, NULL, NULL };
     if (make_rdrtree(&ctxt, ctxt.root))
         goto failed;
 
