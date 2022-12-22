@@ -193,6 +193,13 @@ enum {
     FOIL_RDRBOX_CLEAR_BOTH,
 };
 
+/* the values for vertical-align property. */
+enum {
+    FOIL_RDRBOX_VALIGN_BOTTOM = 0,
+    FOIL_RDRBOX_VALIGN_TOP,
+    FOIL_RDRBOX_VALIGN_MIDDLE,
+};
+
 /* use which property when calculating width */
 enum {
     FOIL_RDRBOX_USE_WIDTH = 0,
@@ -332,6 +339,7 @@ struct foil_rdrbox {
     uint32_t line_break:3;
     uint32_t word_wrap:2;
     uint32_t lang_code:8;
+    uint32_t vertical_align:2;
     uint32_t border_top_width:2;
     uint32_t border_right_width:2;
     uint32_t border_bottom_width:2;

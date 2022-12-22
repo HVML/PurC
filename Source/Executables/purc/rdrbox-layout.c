@@ -1274,14 +1274,6 @@ calc_heights_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
-/* adjust position according to 'vertical-align' */
-static void
-adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    (void)box;
-}
-
 #ifndef NDEBUG
 static const char *literal_values_text_align[] = {
     "left",
@@ -1346,9 +1338,7 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     assert(box->letter_spacing >= 0);
 
     /* determine word-spacing */
-    v = css_computed_word_spacing(
-            box->computed_style,
-            &length, &unit);
+    v = css_computed_word_spacing(box->computed_style, &length, &unit);
     assert(v != CSS_WORD_SPACING_INHERIT);
     if (v == CSS_WORD_SPACING_SET) {
         box->word_spacing = calc_used_value_widths(ctxt, box, unit, length);
@@ -1500,6 +1490,75 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->max_height = calc_used_value_heights(ctxt, box, u, l);
         }
         /* else keep initial -1 */
+    }
+
+    /* determine line-height */
+    v = css_computed_line_height(box->computed_style, &length, &unit);
+    assert(v != CSS_LINE_HEIGHT_INHERIT);
+    switch (v) {
+    case CSS_LINE_HEIGHT_NORMAL:
+        box->line_height = FOIL_PX_GRID_CELL_H;
+        break;
+
+    case CSS_LINE_HEIGHT_NUMBER: {
+        float pct = FIXTOFLT(length);
+        box->line_height = round_height(FOIL_PX_GRID_CELL_H * pct);
+        break;
+        }
+
+    case CSS_LINE_HEIGHT_DIMENSION:
+        if (unit == CSS_UNIT_PCT) {
+            float pct = FIXTOFLT(length);
+            box->line_height = round_height(FOIL_PX_GRID_CELL_H * pct);
+        }
+        else
+            box->line_height = calc_used_value_heights(ctxt, box, unit, length);
+        break;
+    }
+
+    /* determine vertical-align */
+    if (box->is_inline_level || box->type != FOIL_RDRBOX_TYPE_TABLE_CELL) {
+        v = css_computed_vertical_align(box->computed_style, &length, &unit);
+        assert(v != CSS_VERTICAL_ALIGN_INHERIT);
+        switch (v) {
+            case CSS_VERTICAL_ALIGN_BASELINE:
+            case CSS_VERTICAL_ALIGN_SUB:
+            case CSS_VERTICAL_ALIGN_BOTTOM:
+            case CSS_VERTICAL_ALIGN_TEXT_BOTTOM:
+                box->vertical_align = FOIL_RDRBOX_VALIGN_BOTTOM;
+                break;
+            case CSS_VERTICAL_ALIGN_SUPER:
+            case CSS_VERTICAL_ALIGN_TOP:
+            case CSS_VERTICAL_ALIGN_TEXT_TOP:
+                box->vertical_align = FOIL_RDRBOX_VALIGN_TOP;
+                break;
+
+            case CSS_VERTICAL_ALIGN_MIDDLE:
+                box->vertical_align = FOIL_RDRBOX_VALIGN_MIDDLE;
+                break;
+
+            case CSS_VERTICAL_ALIGN_SET:
+                if (unit == CSS_UNIT_PCT) {
+                    float pct = FIXTOFLT(length);
+                    if (pct < 0.25f)
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_BOTTOM;
+                    else if (pct > 0.75f)
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_TOP;
+                    else
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_MIDDLE;
+                }
+                else {
+                    int distance = calc_used_value_heights(ctxt, box,
+                            unit, length);
+                    if (distance < (int)box->line_height / 4)
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_BOTTOM;
+                    else if (distance > (int)box->line_height * 3 / 4)
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_TOP;
+                    else
+                        box->vertical_align = FOIL_RDRBOX_VALIGN_MIDDLE;
+                }
+                break;
+        }
     }
 }
 
@@ -1869,6 +1928,14 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     else if (box->is_anonymous && box->is_block_level) {
         // TODO: calculate width and height for anonymous block level box
     }
+}
+
+/* adjust position according to 'vertical-align' */
+static void
+adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
 }
 
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)

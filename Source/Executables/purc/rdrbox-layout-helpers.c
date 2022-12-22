@@ -95,6 +95,8 @@ bool foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
 int foil_rdrbox_calc_height_only_inlines(foil_layout_ctxt *ctxt,
         foil_rdrbox *box)
 {
+    assert(box->nr_inline_level_children > 0 && box->is_width_resolved);
+
     (void)ctxt;
     (void)box;
     return 0;
