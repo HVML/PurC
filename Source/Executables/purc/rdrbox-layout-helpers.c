@@ -57,23 +57,22 @@ void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt)
     free(ctxt);
 }
 
-struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(
-        foil_block_heap *heap, int width, int height)
+struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void)
 {
-    (void)width;
-    (void)height;
-
     struct _inline_fmt_ctxt *ctxt = calloc(1, sizeof(*ctxt));
-    if (ctxt) {
-        foil_region_init(&ctxt->region, heap);
-    }
 
     return ctxt;
 }
 
 void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt)
 {
-    foil_region_empty(&ctxt->region);
+    for (int i = 0; i < ctxt->nr_lines; i++) {
+        if (ctxt->lines[i].segs)
+            free(ctxt->lines[i].segs);
+    }
+
+    if (ctxt->lines)
+        free(ctxt->lines);
     free(ctxt);
 }
 

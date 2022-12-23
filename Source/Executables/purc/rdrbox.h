@@ -427,14 +427,15 @@ struct foil_rdrbox {
     /* the callback to cleanup the extra data */
     void (*cb_data_cleanup)(void *data);
 
-    /* formatting contexts */
+    /* box formatting context */
     struct _block_fmt_ctxt  *block_fmt_ctxt;
-    struct _inline_fmt_ctxt *inline_fmt_ctxt;
 
     /* the stacking context created by the box if it is a positioned box,
        and z-index is not auto. */
     struct foil_stacking_context *stacking_ctxt;
 };
+
+typedef void (*foil_data_cleanup_cb)(void *data);
 
 typedef struct foil_create_ctxt {
     pcmcth_udom *udom;

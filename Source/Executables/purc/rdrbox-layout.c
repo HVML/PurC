@@ -1940,6 +1940,25 @@ adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    if (box->nr_inline_level_children > 0) {
+
+        if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
+            box->block_data->lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
+            box->cb_data_cleanup =
+                (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
+        }
+        else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
+            box->inline_block_data->lfmt_ctxt =
+                foil_rdrbox_inline_fmt_ctxt_new();
+            box->cb_data_cleanup =
+                (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
+        }
+        else {
+            // never reach here
+            assert(0);
+        }
+    }
+
     /* adjust position according to 'vertical-align' */
     adjust_position_vertically(ctxt, box);
 }

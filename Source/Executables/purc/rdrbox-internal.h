@@ -44,6 +44,9 @@ struct text_paragraph {
 
     /* the break opportunities of the characters */
     foil_break_oppo_t *break_oppos;
+
+    /* the glyph positions */
+    foil_glyph_pos *pos;
 };
 
 struct _inline_box_data {
@@ -54,16 +57,54 @@ struct _inline_box_data {
     struct list_head paras;
 };
 
-struct _block_box_data {
-    int text_indent;
+struct _inline_segment {
+    /* the box generating this inline segment */
+    foil_rdrbox *box;
 
-    uint8_t text_align:3;
+    /* the rectangle of this inline segment */
+    foil_rect rc;
+
+    /* the text span if the box is an inline box */
+    const struct text_paragraph *text;
+    /* the index of the first character of this segment in the text span */
+    size_t first_uc;
+    /* the number of characters fits in this segment */
+    size_t nr_ucs;
+};
+
+struct _line_info {
+    /* the bouding rectangle of this line */
+    foil_rect rc;
+
+    /* the actual height of this line */
+    int height;
+
+    /* the number of inline segments in this line */
+    int nr_segments;
+
+    /* the array of inline segments fit in this line */
+    struct _inline_segment *segs;
+};
+
+struct _inline_fmt_ctxt {
+    /* the start position */
+    int start_x, start_y;
+
+    /* the next position to lay the inline segments */
+    int x, y;
+
+    int nr_lines;
+    struct _line_info *lines;
+};
+
+struct _block_box_data {
+    /* not NULL if the block contains inline level boxes */
+    struct _inline_fmt_ctxt *lfmt_ctxt;
 };
 
 struct _inline_block_data {
-    int foo, bar;
-
-    uint8_t text_align:3;
+    /* not NULL if the block contains inline level boxes */
+    struct _inline_fmt_ctxt *lfmt_ctxt;
 };
 
 struct _list_item_data {
@@ -88,11 +129,6 @@ struct _block_fmt_ctxt {
     foil_region region;
 };
 
-struct _inline_fmt_ctxt {
-    /* the region formed by inline fragments. */
-    foil_region region;
-};
-
 struct _preferred_width_ctxt {
     int x, y;
 };
@@ -105,8 +141,7 @@ struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(foil_block_heap *heap,
         int width, int height);
 void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
 
-struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(
-        foil_block_heap *heap, int width, int height);
+struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void);
 void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
 
 int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
