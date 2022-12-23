@@ -106,14 +106,6 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
         return ops->did_matched(purc_variant_native_get_entity(observed),
                 val);
     }
-    else if (pcintr_is_crtn_object(observed, &cid)
-            && purc_variant_is_ulongint(val)) {
-        uint64_t u64;
-        purc_variant_cast_to_ulongint(val, &u64, true);
-        if (cid == u64) {
-            return true;
-        }
-    }
     else if (purc_variant_is_ulongint(observed)) {
         if (pcintr_request_id_is_match(val, observed)) {
             return true;
