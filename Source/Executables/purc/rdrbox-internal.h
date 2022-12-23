@@ -46,7 +46,7 @@ struct text_paragraph {
     foil_break_oppo_t *break_oppos;
 
     /* the glyph positions */
-    foil_glyph_pos *pos;
+    foil_glyph_pos *glyph_poses;
 };
 
 struct _inline_box_data {
@@ -65,7 +65,7 @@ struct _inline_segment {
     foil_rect rc;
 
     /* the text span if the box is an inline box */
-    const struct text_paragraph *text;
+    const struct text_paragraph *span;
     /* the index of the first character of this segment in the text span */
     size_t first_uc;
     /* the number of characters fits in this segment */
@@ -93,7 +93,13 @@ struct _inline_fmt_ctxt {
     /* the next position to lay the inline segments */
     int x, y;
 
+    /* the left extent of the last line */
+    int left_extent;
+
+    /* number of total lines */
     int nr_lines;
+
+    /* pointer to the array of lines */
     struct _line_info *lines;
 };
 
