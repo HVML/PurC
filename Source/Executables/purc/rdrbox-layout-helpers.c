@@ -91,22 +91,17 @@ int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
         FOIL_GRF_OVERFLOW_WRAP_NORMAL;
     const int max_extent = -1;
 
-    foil_glyph_extinfo  gei_in_stack[SZ_IN_STACK_BUFF];
-    foil_glyph_pos      gps_in_stack[SZ_IN_STACK_BUFF];
+    foil_glyph_pos  gps_in_stack[SZ_IN_STACK_BUFF];
 
     struct _inline_box_data *inline_data = box->inline_data;
     struct text_paragraph *p;
     list_for_each_entry(p, &inline_data->paras, ln) {
         assert(p->nr_ucs > 0);
 
-        foil_glyph_extinfo *gei = gei_in_stack;
-        foil_glyph_pos     *gps = gps_in_stack;
+        foil_glyph_pos *gps = gps_in_stack;
         if (p->nr_ucs > SZ_IN_STACK_BUFF) {
-            gei = malloc(sizeof(*gei) * p->nr_ucs);
             gps = malloc(sizeof(*gps) * p->nr_ucs);
-            if (gei == NULL || gps == NULL) {
-                if (gei) free(gei);
-                if (gps) free(gps);
+            if (gps == NULL) {
                 goto failed;
             }
         }
@@ -114,7 +109,7 @@ int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
         foil_ustr_get_glyphs_extent_simple(p->ucs, p->nr_ucs,
                 p->break_oppos, render_flags,
                 ctxt->x, ctxt->y, box->letter_spacing, box->word_spacing, 0,
-                max_extent, NULL, gei, gps);
+                max_extent, NULL, NULL, gps);
 
         ctxt->x = gps[p->nr_ucs - 1].x;
         ctxt->y = gps[p->nr_ucs - 1].y;
@@ -126,8 +121,6 @@ int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
             ctxt->x += gps[p->nr_ucs - 1].advance;
         }
 
-        if (gei != gei_in_stack)
-            free(gei);
         if (gps != gps_in_stack)
             free(gps);
     }
@@ -151,34 +144,27 @@ int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box)
 
     int width = 0;
     foil_size line_size;
-    foil_glyph_extinfo  gei_in_stack[SZ_IN_STACK_BUFF];
     foil_glyph_pos      gps_in_stack[SZ_IN_STACK_BUFF];
 
     struct _inline_box_data *inline_data = box->inline_data;
     struct text_paragraph *p;
     list_for_each_entry(p, &inline_data->paras, ln) {
-        foil_glyph_extinfo *gei = gei_in_stack;
         foil_glyph_pos     *gps = gps_in_stack;
         if (p->nr_ucs > SZ_IN_STACK_BUFF) {
-            gei = malloc(sizeof(*gei) * p->nr_ucs);
             gps = malloc(sizeof(*gps) * p->nr_ucs);
-            if (gei == NULL || gps == NULL) {
-                if (gei) free(gei);
+            if (gps == NULL) {
                 if (gps) free(gps);
                 goto failed;
             }
         }
 
         foil_ustr_get_glyphs_extent_simple(p->ucs, p->nr_ucs,
-                p->break_oppos, render_flags,
-                0, 0, box->letter_spacing, box->word_spacing, 0,
-                max_extent, &line_size, gei, gps);
+                p->break_oppos, render_flags, 0, 0, 0, 0, 0,
+                max_extent, &line_size, NULL, gps);
 
         if (line_size.cx > width)
             width = line_size.cx;
 
-        if (gei != gei_in_stack)
-            free(gei);
         if (gps != gps_in_stack)
             free(gps);
     }
