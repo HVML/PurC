@@ -623,7 +623,18 @@ pcintr_request_id_is_match(purc_variant_t v1, purc_variant_t v2);
 int
 pcintr_chan_post(const char *chan_name, purc_variant_t data);
 
-//pcdoc_operation_k
+bool
+pcintr_is_crtn_observed(purc_variant_t v);
+
+purc_variant_t
+pcintr_crtn_observed_create(purc_atom_t cid);
+
+purc_atom_t
+pcintr_crtn_observed_get_cid(purc_variant_t v);
+
+bool
+pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v);
+
 
 PCA_EXTERN_C_END
 

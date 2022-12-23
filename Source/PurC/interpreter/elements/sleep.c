@@ -240,9 +240,11 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 }
 
 static bool
-is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+is_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(observed);

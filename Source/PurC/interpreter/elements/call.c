@@ -96,16 +96,19 @@ ctxt_destroy(void *ctxt)
 }
 
 static bool
-is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+is_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(observed);
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+    if (purc_variant_is_equal_to(observer->observed, msg->elementValue) ||
+            pcintr_crtn_observed_is_match(observer->observed, msg->elementValue)) {
         goto match_observed;
     }
     else {
@@ -230,7 +233,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             runner_name, NULL, request, NULL, true);
     purc_variant_unref(request);
 
-    ctxt->call_id =  purc_variant_make_ulongint(child_cid);
+    ctxt->call_id =  pcintr_crtn_observed_create(child_cid);
 
     if (as) {
         pcintr_bind_named_variable(&co->stack, frame, as, ctxt->at, false,

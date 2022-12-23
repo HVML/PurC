@@ -122,9 +122,11 @@ pcintr_handle_task(struct pcintr_observer_task *task)
 }
 
 static bool
-is_sub_exit_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+is_sub_exit_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(observed);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(observer);
@@ -205,9 +207,11 @@ pcintr_coroutine_add_sub_exit_observer(pcintr_coroutine_t co)
 }
 
 static bool
-is_last_msg_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+is_last_msg_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(observed);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(observer);

@@ -74,10 +74,7 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
-            purc_variant_t hvml = pcintr_request_id_create(
-                PCINTR_REQUEST_ID_TYPE_CRTN,
-                inst->endpoint_atom,
-                stack->co->cid, stack->co->token);
+            purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL,
@@ -91,10 +88,7 @@ broadcast_idle_event(struct pcinst *inst)
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
         if (stack->observe_idle) {
-            purc_variant_t hvml = pcintr_request_id_create(
-                PCINTR_REQUEST_ID_TYPE_CRTN,
-                inst->endpoint_atom,
-                stack->co->cid, stack->co->token);
+            purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
             pcintr_coroutine_post_event(stack->co->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                     hvml, MSG_TYPE_IDLE, NULL,
@@ -603,7 +597,7 @@ handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
     purc_variant_t observed = msg->elementValue;
     struct pcintr_observer *observer, *next;
     list_for_each_entry_safe(observer, next, list, node) {
-        bool match = observer->is_match(observer, msg, observed, event_type,
+        bool match = observer->is_match(co, observer, msg, observed, event_type,
                 event_sub_type);
         if ((co->stage & observer->cor_stage) &&
                 (co->state & observer->cor_state) && match) {

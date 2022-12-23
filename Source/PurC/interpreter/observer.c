@@ -92,9 +92,10 @@ add_observer_into_list(pcintr_stack_t stack, struct list_head *list,
 }
 
 static
-bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
+bool is_variant_match_observe(pcintr_coroutine_t co, purc_variant_t observed,
+        purc_variant_t val)
 {
-    purc_atom_t cid = 0;
+    UNUSED_PARAM(co);
     if (observed == val || purc_variant_is_equal_to(observed, val)) {
         return true;
     }
@@ -106,8 +107,8 @@ bool is_variant_match_observe(purc_variant_t observed, purc_variant_t val)
         return ops->did_matched(purc_variant_native_get_entity(observed),
                 val);
     }
-    else if (purc_variant_is_ulongint(observed)) {
-        if (pcintr_request_id_is_match(val, observed)) {
+    else if (pcintr_is_crtn_observed(observed)) {
+        if (pcintr_crtn_observed_is_match(observed, val)) {
             return true;
         }
     }
@@ -131,11 +132,13 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
 }
 
 static bool
-is_match_default(struct pcintr_observer *observer, pcrdr_msg *msg,
-        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+is_match_default(pcintr_coroutine_t co, struct pcintr_observer *observer,
+        pcrdr_msg *msg, purc_variant_t observed, purc_atom_t type,
+        const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
-    if ((is_variant_match_observe(observer->observed, observed)) &&
+    if ((is_variant_match_observe(co, observer->observed, observed)) &&
                 (observer->msg_type_atom == type)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
@@ -252,8 +255,8 @@ pcintr_register_observer(pcintr_stack_t  stack,
     // observe idle
     purc_atom_t idle_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
             MSG_TYPE_IDLE);
-    if (pcintr_is_request_id(observed) && msg_type_atom == idle_atom &&
-            sub_type == NULL) {
+    if (pcintr_is_crtn_observed(observed) &&
+            msg_type_atom == idle_atom && sub_type == NULL) {
         stack->observe_idle = 1;
     }
 
@@ -328,12 +331,12 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 }
 
 static void
-revoke_observer_from_list(struct list_head *list, purc_variant_t observed,
-        purc_atom_t msg_type_atom, const char *sub_type)
+revoke_observer_from_list(pcintr_coroutine_t co, struct list_head *list,
+        purc_variant_t observed, purc_atom_t msg_type_atom, const char *sub_type)
 {
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (p->is_match(p, NULL, observed, msg_type_atom, sub_type)) {
+        if (p->is_match(co, p, NULL, observed, msg_type_atom, sub_type)) {
             pcintr_revoke_observer(p);
             break;
         }
@@ -344,9 +347,9 @@ void
 pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type)
 {
-    revoke_observer_from_list(&stack->hvml_observers, observed,
+    revoke_observer_from_list(stack->co, &stack->hvml_observers, observed,
             msg_type_atom, sub_type);
-    revoke_observer_from_list(&stack->intr_observers, observed,
+    revoke_observer_from_list(stack->co, &stack->intr_observers, observed,
             msg_type_atom, sub_type);
 }
 

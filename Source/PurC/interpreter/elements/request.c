@@ -74,9 +74,11 @@ ctxt_destroy(void *ctxt)
 }
 
 static bool
-is_observer_match(struct pcintr_observer *observer, pcrdr_msg *msg,
+is_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
         purc_variant_t observed, purc_atom_t type, const char *sub_type)
 {
+    UNUSED_PARAM(co);
     UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(observed);
@@ -365,6 +367,10 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         uint64_t u64;
         purc_variant_cast_to_ulongint(on, &u64, true);
         dest_cid = (purc_atom_t) u64;
+        ret = request_crtn_by_rid_cid(co, frame, 0, dest_cid, NULL);
+    }
+    else if (pcintr_is_crtn_observed(on)) {
+        dest_cid = pcintr_crtn_observed_get_cid(on);
         ret = request_crtn_by_rid_cid(co, frame, 0, dest_cid, NULL);
     }
     else if (purc_variant_is_string(on)) {

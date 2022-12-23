@@ -274,11 +274,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         {
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (pcintr_is_crtn_object(on, NULL)) {
-                struct pcinst *inst = pcinst_current();
-                observed = pcintr_request_id_create(
-                        PCINTR_REQUEST_ID_TYPE_CRTN,
-                        inst->endpoint_atom,
-                        stack->co->cid, stack->co->token);
+                observed = pcintr_crtn_observed_create(stack->co->cid);
             }
             else {
                 observed = purc_variant_ref(on);

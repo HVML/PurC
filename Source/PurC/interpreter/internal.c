@@ -49,6 +49,8 @@
 #define REQUEST_ID_KEY_CID      "cid"
 #define REQUEST_ID_KEY_RES      "res"
 
+#define USE_REQUEST_ID_AS_CRTN_OBSERVED     1
+
 
 static const char doctypeTemplate[] = "<!DOCTYPE hvml SYSTEM \"%s\">\n";
 
@@ -554,7 +556,9 @@ pcintr_coroutine_dump(pcintr_coroutine_t co)
     purc_coroutine_dump_stack(co, rws);
     size_t nr_hvml = 0;
     const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
+#ifndef NDEBUG
     fprintf(stderr, "%s\n", hvml);
+#endif
     purc_rwstream_destroy(rws);
     return 0;
 }
@@ -1307,9 +1311,7 @@ pcintr_request_id_is_equal_to(purc_variant_t v1, purc_variant_t v2)
         goto out;
     }
 
-    if ((pcintr_request_id_get_type(v1) != pcintr_request_id_get_type(v2))
-            || (pcintr_request_id_get_rid(v1) != pcintr_request_id_get_rid(v2))
-            ) {
+    if (pcintr_request_id_get_type(v1) != pcintr_request_id_get_type(v2)) {
         goto out;
     }
 
@@ -1346,14 +1348,12 @@ pcintr_request_id_is_match(purc_variant_t v1, purc_variant_t v2)
 
     uint64_t u64;
     purc_variant_cast_to_ulongint(v2, &u64, true);
-    purc_atom_t rid = purc_get_rid_by_cid(u64);
-    if (!rid) {
-        goto out;
-    }
+    purc_atom_t rid = 0; /* only for compare */
 
     purc_variant_t v = pcintr_request_id_create(
                 PCINTR_REQUEST_ID_TYPE_CRTN,
                 rid, u64, NULL);
+
     ret = pcintr_request_id_is_equal_to(v1, v);
     purc_variant_unref(v);
 out:
@@ -1432,5 +1432,54 @@ out:
         purc_variant_unref(name);
     }
     return ret;
+}
+
+bool
+pcintr_is_crtn_observed(purc_variant_t v)
+{
+#if USE(REQUEST_ID_AS_CRTN_OBSERVED)
+    return pcintr_is_request_id(v);
+#else
+    if (!purc_variant_is_ulongint(v)) {
+        return false;
+    }
+    uint64_t u64;
+    purc_variant_cast_to_ulongint(v, &u64, true);
+    return (u64 > 0);
+#endif
+}
+
+purc_variant_t
+pcintr_crtn_observed_create(purc_atom_t cid)
+{
+#if USE(REQUEST_ID_AS_CRTN_OBSERVED)
+    purc_atom_t rid = purc_get_rid_by_cid(cid);
+    return  pcintr_request_id_create(PCINTR_REQUEST_ID_TYPE_CRTN,
+            rid, cid, NULL);
+#else
+    return purc_variant_make_ulongint(cid);
+#endif
+}
+
+purc_atom_t
+pcintr_crtn_observed_get_cid(purc_variant_t v)
+{
+#if USE(REQUEST_ID_AS_CRTN_OBSERVED)
+    return  pcintr_request_id_get_cid(v);
+#else
+    uint64_t u64;
+    purc_variant_cast_to_ulongint(v, &u64, true);
+    return u64;
+#endif
+}
+
+bool
+pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v)
+{
+#if USE(REQUEST_ID_AS_CRTN_OBSERVED)
+    return pcintr_request_id_is_match(observed, v);
+#else
+    return pcintr_request_id_is_match(v, observed);
+#endif
 }
 
