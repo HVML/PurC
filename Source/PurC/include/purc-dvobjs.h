@@ -152,6 +152,10 @@ purc_dvobj_url_new(void);
 PCA_EXPORT purc_variant_t
 purc_dvobj_stream_new(void);
 
+/** Make a dynamic variant object for built-in `$RDR` variable. */
+PCA_EXPORT purc_variant_t
+purc_dvobj_rdr_new(void);
+
 /** Parse format string and return the format identifier and quantity.
   * Return -1 on error. Quantity will be 0 if not specified. */
 PCA_EXPORT int
