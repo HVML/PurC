@@ -29,6 +29,8 @@
 
 #include "private/debug.h"
 #include "private/instance.h"
+#include "private/pcrdr.h"
+#include "pcrdr/connect.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -416,9 +418,31 @@ request_rdr_addPageGroups(pcintr_coroutine_t co, struct pcintr_stack_frame *fram
     UNUSED_PARAM(co);
     UNUSED_PARAM(frame);
     UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
+    int ret = -1;
+    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    const char *s_to = purc_variant_get_string_const(ctxt->to);
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *conn = inst->conn_to_rdr;
+
+    if (!conn) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+            "No connection for $RDR");
+        goto out;
+    }
+
+    if (!purc_variant_is_string(ctxt->with)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+            "Invalid param type for request $RDR '%s'", s_to);
+        goto out;
+    }
+
+    const char *param = purc_variant_get_string_const(ctxt->with);
+    if (pcintr_rdr_add_page_groups(conn, co->target_workspace_handle, param)) {
+        ret = 0;
+    }
+
+out:
+    return ret;
 }
 
 static int
