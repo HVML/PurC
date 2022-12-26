@@ -1,6 +1,4 @@
-# PurC
-
-PurC 是以 C 语言为主的 HVML 解释器。
+# HVML 解释器 `PurC` 说明书中文版
 
 **目录**
 
@@ -11,22 +9,22 @@ PurC 是以 C 语言为主的 HVML 解释器。
 - [使用 purc](#使用-purc)
 - [Hacking PurC](#hacking-purc)
 - [作者和贡献者](#作者和贡献者)
-- [复制](#复制)
+- [版权信息](#版权信息)
 - [商标](#商标)
 
 [//]:# (END OF TOC)
 
 ## 介绍
 
-HVML 是由中国首款开源基础软件 MiniGUI 的作者魏永明设计的描述式编程语言，也是世界首款可编程标记语言。
+HVML 是由中国首款开源基础软件 [MiniGUI](https://github.com/VincentWei/minigui) 的作者[魏永明](https://github.com/VincentWei)设计的描述式编程语言，也是世界首款可编程标记语言。
 
-PurC 是 `the Prime HVML inteRpreter for C language` 的首字母缩写。它也是 `Purring Cat` 的缩写，而 `Purring Cat` 是 HVML 的昵称和吉祥物。
+PurC 是 `the Prime HVML inteRpreter for C language` 的首字母缩写。同时它也可以理解为 `Purring Cat` 的缩写，而 `Purring Cat` 是 HVML 的昵称和吉祥物。
 
-PurC 的目标是使用 C 语言实现 HVML 规范 V1.0 中定义的所有功能以及实现 HVML 预定义变量 V1.0 中定义的所有预定义动态对象。
+PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0](https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md) 中定义的所有功能以及实现 [HVML 预定义变量 V1.0](https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md) 中定义的所有预定义动态对象。
 
-您可以使用命令行工具 `purc` 运行 HVML 程序或 HVML 应用程序，或使用 PurC 作为库来构建自己的 HVML 解释器。
+本项目编译后会产生PurC函数库，命令行工具purc，和相关的示例测试等工具。您可以使用命令行工具 `purc` 运行 HVML 程序或 HVML 应用程序，或使用 PurC 作为函数库来构建自己的 HVML 解释器。
 
-我们在 LGPLv3 下发布 PurC，因此如果您遵循 LGPLv3 的条件和条款，它可以免费用于商业用途。
+我们在 LGPLv3 下发布 PurC，因此，如果您遵循 LGPLv3 的条件和条款，它可以免费用于商业用途。
 
 这是 PurC 的 0.9.2 版本。到目前为止，PurC 为 Linux 和 macOS 提供支持。对 Windows 的支持即将到来。我们欢迎任何人将 PurC 移植到其他平台。
 
@@ -38,27 +36,27 @@ PurC 的目标是使用 C 语言实现 HVML 规范 V1.0 中定义的所有功能
 
 [HVML，一种可编程标记语言](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
 
-有关与 HVML 相关的文档、规格和开源软件，请参考以下存储库：
+有关与 HVML 相关的文档、规格和开源软件，请参考以下代码仓库：
 
 - HVML文档：<https://github.com/HVML/hvml-docs>。
 - PurC（HVML 解释器）：<https://github.com/HVML/PurC>。
 - xGUI Pro（基于 WebKit 的高级的 HVML 渲染器）：<https://github.com/HVML/xGUI-Pro>。
 - PurC Midnight Commander（HVML 字符渲染器）：<https://github.com/HVML/PurC-Midnight-Commander>。
 
-请注意，自 PurC 0.9.0 以来，我们将 DOM Ruler 和 PurC Fetcher 的存储库合并到此存储库中。因此，以下存储库被标记为不建议使用：
+请注意，自 PurC 0.9.0 以来，我们将 DOM Ruler 和 PurC Fetcher 的代码仓库合并到此仓库中。因此，以下仓库被标记为不建议使用：
 
 - PurC Fetcher（PurC 的远程数据获取器）。
-- DOM Ruler（使用 CSS 维护 DOM 树、布局和风格化 DOM 元素的库）。
+- DOM Ruler（使用 CSS 维护 DOM 树、布局和风格化 DOM 元素的函数库）。
 
 ## 构建 PurC
 
-请注意，如果您正在为 Ubuntu、Deepin、Homebrew 和 MSYS2 等平台寻找预建软件包，您可以参考以下页面：
+请注意，如果您正在为 Ubuntu、Deepin、Homebrew 和 MSYS2 等平台寻找预建软件包，可以参考以下页面：
 
 <https://hvml.fmsoft.cn/software>
 
 ### 准备
 
-要从源代码构建 PurC，请确保您的 Linux 或 macOS 系统上提供以下工具或库：
+要从源代码构建 PurC，请确保您的 Linux 或 macOS 系统上提供以下工具或函数库：
 
 1. cmake
 2. 兼容 C11 和 CXX17 的编译器:GCC 8+ 或 Clang 6+
@@ -68,7 +66,7 @@ PurC 的目标是使用 C 语言实现 HVML 规范 V1.0 中定义的所有功能
 6. BISON 3.0 或更高版本
 7. FLEX 2.6.4 或更高版本
 
-虽然 Windows 的端口仍在进行中，但可以在 Windows 10 2004 或更高版本上构建 PurC：您可以在 Windows 系统上安装 WSL（适用于 Linux 的 Windows 子系统）和 Linux 发行版，例如 Ubuntu，然后在 Ubuntu 环境中构建 PurC。
+虽然针对 Windows 的移植仍在进行中，但可以在 Windows 10 2004 或更高版本上构建 PurC：您可以在 Windows 系统上安装 WSL（适用于 Linux 的 Windows 子系统）和 Linux 发行版，例如 Ubuntu，然后在 Ubuntu 环境中构建 PurC。
 
 ### 构建步骤
 
@@ -84,7 +82,7 @@ $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build
 
 1. `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build`：更改 `build/` 子目录，并运行 `cmake` 生成构建文件以构建 PurC。请注意，此命令使用以下选项：
    - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`：指定构建类型为`RelWithDebInfo`。您还可以使用 `Debug`、`Release` 和 `cmake` 支持的其他选项。
-   - `-DPORT=Linux`：告诉 `cmake` 您正在为基于 Linux 内核的操作系统构建 PurC。如果您使用的是 macOS，请使用 `-DPORT=Mac`。
+   - `-DPORT=Linux`：告诉 `cmake` 您正在为基于 Linux 内核的操作系统构建 PurC。如果您使用 macOS，请使用 `-DPORT=Mac`。
    - `-B build`：在 `build/` 子目录中生成构建文件。
 
 2. `cmake --build build`：在 `build/` 子目录中构建 PurC。
@@ -102,7 +100,7 @@ $ make -j4
 $ sudo make install
 ```
 
-如果您想使用 `ninja` 而不是 `make` 来构建 PurC，您可以使用以下命令：
+如果您想使用 `ninja` 而不是 `make` 来构建 PurC，可以使用以下命令：
 
 ```bash
 $ cd <path/to/the/root/of/the/source/tree/of/PurC>
@@ -138,7 +136,7 @@ PurC 将以下环境变量用于不同的目的：
 
 ## 使用 PurC
 
-以下部分假设您已将 PurC 安装到您的系统，并且命令行工具 `purc` 已安装到 `/usr/local/bin/`。确保您已将 `/usr/local/lib` 添加到 `/etc/ld.so.conf` 并运行 `sudo ldconfig` 命令，以便系统可以找到您刚刚安装到 `/usr/local/lib` 中的 PurC 共享库。
+以下部分假设您已将 PurC 安装到您的系统，并且命令行工具 `purc` 已安装到 `/usr/local/bin/`。确保您已将 `/usr/local/lib` 添加到 `/etc/ld.so.conf` 并运行 `sudo ldconfig` 命令，以便系统可以找到您刚刚安装到 `/usr/local/lib` 中的 PurC 函数库。
 
 ### 运行单个 HVML 程序
 
@@ -159,15 +157,13 @@ PurC 将以下环境变量用于不同的目的：
 $ purc hello.hvml
 ```
 
-您会看到您的第一个 HVML 程序在您的终端上打印 `Hello, world!` 并退出：
+您会看到第一个 HVML 程序在终端上打印 `Hello, world!` 并退出：
 
 ```
 Hello, world!
 ```
 
-如果您将以下行作为 HVML 程序的第一行作为脚本，您也可以直接以脚本运行此HVML程序：
-
-如果您在您的 HVML 程序的第一行预先添加下面这行命令，您也可以直接以脚本运行此 HVML 程序：
+如果您在 HVML 程序的第一行预先添加下面这行命令，也可以直接以脚本运行此 HVML 程序：
 
 ```
 #!/usr/local/bin/purc
@@ -198,7 +194,7 @@ $ ./hello.hvml
 </hvml>
 ```
 
-显然，我们忘记了 `Hello, world!` 的第二个单引号。如果您在没有任何选项的情况下运行 `purc`，解释器将以一个非零返回值退出：
+显然，我们忘记了 `Hello, world!` 的第二个单引号。如果在没有任何选项的情况下运行 `purc`，解释器将以一个非零返回值退出：
 
 ```bash
 $ purc error.hvml
@@ -235,7 +231,7 @@ Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, ch
 </hvml>
 ```
 
-这个 HVML 程序引用一个不存在的 `$CRTN` 属性(`foo`)。
+这段 HVML 程序引用了默认变量 `$CRTN` 中一个并不存在的属性 `foo`。
 
 使用 `-b` 选项运行 `purc` 来执行这个 HVML 程序，它将报告正在执行的栈：
 
@@ -305,13 +301,13 @@ PurC 可以并行运行多个 HVML 程序作为协程。
 </hvml>
 ```
 
-假设您将增强版本命名为 `hello-10.hvml`，我们可以通过指定命令行标志 `-l` 并行运行该程序作为两个协程：
+假设将增强版本命名为 `hello-10.hvml`，我们可以通过指定命令行标志 `-l` 并行运行该程序作为两个协程：
 
 ```bash
 $ purc -l hello-10.hvml hello-10.hvml
 ```
 
-您将在您的终端上看到以下输出：
+您将在终端上看到以下输出：
 
 ```
 0) Hello, world! -- from COROUTINE-3
@@ -367,11 +363,11 @@ $ purc hello-10.hvml hello-10.hvml
 
 ### 连接到 HVML 渲染器
 
-HVML 与其他编程语言之间的一个重要区别是，HVML 可以生成 HTML 等标记语言描述的文档，而不仅仅是将数据输出到文件或终端。
+HVML 程序除了像其他通常的程序一样将运行时的一些结果输出到文件或者终端上以外，还能同时输出 HTML 或者 XML 等标记文档，这些文档可以被渲染器进行渲染从而得到图形化的显示。
 
 
 *为了方便起见，我们在此存储库的 `Source/Samples/hvml`
-目录中准备了一些 HVML 示例。在构建 PurC 之后，示例将被复制到构建根目录，在 `hvml/` 子目录下，这样您就可以更改到构建根目录并使用 `purc` 运行示例。例如:*
+目录中准备了一些 HVML 示例。在构建 PurC 之后，示例将被复制到构建根目录，在 `hvml/` 子目录下，这样就可以更改到构建根目录并使用 `purc` 运行示例。例如:*
 
 ```bash
 $ cd <path/to/the/building/directory/>
@@ -380,7 +376,7 @@ $ purc hvml/fibonacci-void-temp.hvml
 
 这个 HVML 程序将输出 18 个小于 2000 的斐波那契数字。这个程序还有另一个版本：`hvml/fibonacci-html-temp.hvml`。它将生成一个列出斐波那契数字的 HTML 文档。
 
-如果您使用 `purc` 运行 `hvml/fibonacci-html-temp.hvml` 程序，没有任何选项，`purc` 将使用名为 `HEADLESS` 的渲染器。此渲染器将记录 PurC 发送给渲染器到本地文件的消息，在 Linux 上默认为 `/dev/null`。由于此 HVML 程序不再使用 `$STREM.stdout`，因此您将在终端上看不到任何东西。但您可以使用选项 `--verbose`（或短选项 `-b`）在终端中显示 HVML 程序生成的 HTML 内容：
+如果您使用 `purc` 运行 `hvml/fibonacci-html-temp.hvml` 程序，没有任何选项，`purc` 将使用名为 `HEADLESS` 的渲染器。此渲染器将记录 PurC 发送给渲染器到本地文件的消息，在 Linux 上默认为 `/dev/null`。由于此 HVML 程序不再使用 `$STREM.stdout`，因此在终端上看不到任何东西。但您可以使用选项 `--verbose`（或短选项 `-b`）在终端中显示 HVML 程序生成的 HTML 内容：
 
 ```bash
 $ purc -v hvml/fibonacci-html-temp.hvml
@@ -483,9 +479,9 @@ Totally 18 numbers
 
 请注意，在当前版本（0.9.2）中，Foil 功能不完全。在不久的将来，Foil 将支持 CSS 2.2 大多数功能和 CSS Level 3 的某些功能，以便您可以获得像网页浏览器一样的类似体验。
 
-您还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。它是一种基于 WebKit 的高级 HVML 渲染器。
+您还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。`xGUI Pro` 是一种基于 WebKit 的高级 HVML 渲染器。
 
-假设您在系统上安装了 xGUI Pro，您可以运行 `purc` 在 xGUI Pro 的窗口中显示最终的 HTML 内容。有关安装 xGUI Pro 的详细说明，请参阅 <https://github.com/HVML/xGUI-Pro>。
+假设您在系统上安装了 xGUI Pro，可以运行 `purc` 在 xGUI Pro 的窗口中显示最终的 HTML 内容。有关安装 xGUI Pro 的详细说明，请参阅 <https://github.com/HVML/xGUI-Pro>。
 
 假设您已从另一个终端启动 xGUI Pro，那么请使用以下选项运行 `purc`：
 
@@ -493,7 +489,7 @@ Totally 18 numbers
 $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 ```
 
-请注意，在上述命令行中，我们执行 Fibonacci Numbers 的修改版本：`hvml/fibonacci-html-temp-rdr.hvml`。如果您比较这两个版本，您会发现修改后的版本中有一个 `observe` 元素：
+请注意，在上述命令行中，我们执行 Fibonacci Numbers 的修改版本：`hvml/fibonacci-html-temp-rdr.hvml`。如果您比较这两个版本，会发现修改后的版本中有一个 `observe` 元素：
 
 ```hvml
         <observe on $CRTN for "rdrState:pageClosed">
@@ -519,7 +515,7 @@ $ purc -p purcmc hvml/calculator-bc.hvml
 
 ![the Arbitrary Precision Calculator](https://files.fmsoft.cn/hvml/screenshots/calculator-bc.png)
 
-或者运行 `hvml/planetary-resonance-lines.hvml`，它展示了行星共振：
+或者运行 `hvml/planetary-resonance-lines.hvml`，该程序展示了行星共振：
 
 ```bash
 $ purc -p purcmc hvml/planetary-resonance-lines.hvml
@@ -698,9 +694,9 @@ $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
 
 ### 更多 HVML 示例
 
-您可以在存储库 [HVML Documents](https://github.com/HVML/hvml-docs) 的目录 `samples/` 下找到更多 HVML 示例程序。
+您可以在代码仓库 [HVML Documents](https://github.com/HVML/hvml-docs) 的目录 `samples/` 下找到更多 HVML 示例程序。
 
-您可以使用 `purc` 直接运行远程 HVML Documents 存储库中的示例：
+可以使用 `purc` 直接运行远程 HVML Documents 仓库中的示例：
 
 ```bash
 $ purc --data-fetcher=remote https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
@@ -712,17 +708,17 @@ $ purc --data-fetcher=remote https://github.com/HVML/hvml-docs/raw/master/sample
 $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
-请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。因此，您必须提前安装 PurC Fetcher。有关构建和安装 PurC Fetcher 到您的系统的详细说明，请参阅 [PurC Fetcher](https://github.com/HVML/purc-fetcher)。
+请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。因此，您必须提前安装 PurC Fetcher。有关构建和安装 PurC Fetcher 的详细说明，请参阅 [PurC Fetcher](https://github.com/HVML/purc-fetcher)。
 
 ## Hacking PurC
 
 ### 当前状态
 
-该项目于 2021 年 6 月启动。2021年。目前是 PurC 0.9.2 版本。
+该项目于 2021 年 6 月创建。2021年。当前版本是 PurC 0.9.2。
 
-*PurC 的主要目的是为您提供一个库来编写自己的 HVML 解释器。经过一年的开发，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。*
+*PurC 的主要目的是为您提供一个函数库来编写自己的 HVML 解释器。经过一年的开发，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。*
 
-除了 HVML 解释器外，Purc 还为一般C程序提供了许多基本功能：
+除了 HVML 解释器外，Purc 还为一般 C 程序提供了许多基本功能：
 
 1. PurC 为变量管理提供了 API，这里的变量是 HVML 管理数据的方式。
 2. PurC 提供了解析 JSON 和扩展 JSON 的 API。
@@ -759,13 +755,13 @@ PurC 的源代码树包含以下模块：
 - `Source/PurC/executors/`：内部执行程序的实现。
 - `Source/PurC/interpreter/`：vDOM 解释器。
 - `Source/PurC/pcrdr/`：连接到渲染器的管理。
-- `Source/PurC/ports/`：不同操作系统（如 POSIX 兼容系统或 Windows）的端口。
+- `Source/PurC/ports/`：不同操作系统（如 POSIX 兼容系统或 Windows）的移植。
 - `Source/PurC/bindings/`：Python、Lua 和其他编程语言的绑定。
 - `Source/ExtDVObjs/math/`：外部动态变量对象 `$MATH` 的实现。
 - `Source/ExtDVObjs/fs/`：外部动态变量对象 `$FS` 和 `$FILE` 的实现。
 - `Source/CSSEng/`：CSS 解析和选择引擎，源自 NetSurf 项目的 libcss。
-- `Source/DOMRuler/`：使用 CSSEng 布局和风格化 DOM 树的库。
-- `Source/RemoteFetcher/`：PurC Remote Fetcher 使用的库。
+- `Source/DOMRuler/`：使用 CSSEng 布局和风格化 DOM 树的函数库。
+- `Source/RemoteFetcher/`：PurC Remote Fetcher 使用的函数库。
 - `Source/WTF/`：来自 WebKit 的简化 WTF（Web 模板框架）。
 - `Source/cmake/`：cmake 模块。
 - `Source/ThirdParty/`：第三方库，如 `gtest`。
@@ -810,86 +806,131 @@ PurC 的源代码树包含以下模块：
 - 刘新：开发者，外部动态变量对象 `FILE` 的维护者。
 - 耿越：提交者，实现了一些内置动态变量对象。
 
-## 复制
+## 版权信息
 
 ### PurC
 
-版权所有（C）2021，2022 [北京飞漫软件技术有限公司](https://www.fmsoft.cn/)（以下简称“飞漫软件”）
+Copyright (C) 2021, 2022 [FMSoft Technologies]
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 宽通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 宽通用公共许可证。
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-您应该已经随本程序收到一份 GNU 宽通用公共许可证的副本。如果没有，请参阅 <https://www.gnu.org/licenses/>。
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### CSSEng
 
-CSSEng 由 NetSurf 项目的 LibCSS、LibParserUtils 和 LibWapcaplet 派生而来。
+CSSEng is derived from LibCSS, LibParserUtils, and LibWapcaplet of [NetSurf project](https://www.netsurf-browser.org/).
 
-这些库都是根据 MIT 许可证授权的。
+These libraries are all licensed under MIT License.
 
-版权所有 2007 ~ 2020 年 NetSurf 项目开发者。
+Copyright 2007 ~ 2020 developers of NetSurf project.
 
-特此免费授予获得本软件副本和相关文档文件(“软件”)的任何人不受限制地处理本软件，包括不受限制地使用、复制、修改、合并、发布、分发、再许可和/或出售本软件副本的权利，并允许软件提供给的人这样做，但须符合以下条件:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+           to deal in the Software without restriction, including without limitation the rights to use,
+           copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+           and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-上述版权声明和本许可声明应包含在软件的所有副本或主要部分中。
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The new source files developed by FMSoft are licensed under LGPLv3:
 
-本软件按“现状”提供，不作任何形式的明示或默示保证，包括但不限于适销性、适用于特定用途和不侵权的保证。在任何情况下，作者或版权所有者都不对任何索赔、损害赔偿或其他责任负责，无论是在合同、侵权或其他行为中，都是由软件或软件的使用或其他交易引起的，由软件引起的或与之有关的。
+Copyright (C) 2021, 2022 [FMSoft Technologies]
 
-飞漫软件开发的新源文件根据 LGPLv3 许可证发布：
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-版权所有（C）2021，2022 [飞漫软件](https://www.fmsoft.cn/)
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 宽通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
-
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 宽通用公共许可证。
-
-您应该已经随本程序收到一份 GNU 宽通用公共许可证的副本。如果没有，请参阅 <https://www.gnu.org/licenses/>。
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### DOMRuler
 
-版权所有（C）2021，2022 [飞漫软件](https://www.fmsoft.cn/)
+Copyright (C) 2021, 2022 FMSoft <https://www.fmsoft.cn>
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 宽通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 宽通用公共许可证。
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General License for more details.
 
-您应该已经随本程序收到一份 GNU 宽通用公共许可证的副本。如果没有，请参阅 <https://www.gnu.org/licenses/>。
+You should have received a copy of the GNU Lesser General License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### ExtDVObjs/fs
 
-版权所有（C）2022 刘新 版权所有（C）2022 [飞漫软件](https://www.fmsoft.cn/)
+Copyright (C) 2022 LIU Xin
+Copyright (C) 2022 [FMSoft Technologies]
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 宽通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 宽通用公共许可证。
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-您应该已经随本程序收到一份 GNU 宽通用公共许可证的副本。如果没有，请参阅 <https://www.gnu.org/licenses/>。
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc
 
-版权所有（C）2022 [飞漫软件](https://www.fmsoft.cn/)
+Copyright (C) 2022 [FMSoft Technologies]
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 通用公共许可证。
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-您应该已经随本程序收到一份 GNU 通用公共许可证的副本。如果没有，请参阅 <https://www.gnu.org/licenses/>。
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### purc-fetcher
 
-版权所有（C）2022 [飞漫软件](https://www.fmsoft.cn/)
+Copyright (C) 2022 [FMSoft Technologies]
 
-此程序是自由软件：您可以根据自由软件基金会发布的 GNU 通用公共许可证第 3 版或（根据您的选择）任何更高版本的条款重新分发和/或修改它。
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-分发此程序是希望它有用，但没有任何保证；甚至没有对适销性或特定用途的适用性的默示保证。有关更多详细信息，请参阅 GNU 通用公共许可证。
-
-您应该已经随本程序收到一份 GNU 通用公共许可证的副本。如果没有，请参阅 https://www.gnu.org/licenses/。
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## 商标
 
@@ -912,3 +953,4 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 5) `xGUI` 是[飞漫软件]在中国和其他国家或地区的注册商标。
 
 ![xGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/7fbcb150d7d0747e702fd2d63f20017e.jpg)
+
