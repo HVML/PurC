@@ -89,6 +89,9 @@ static const char *
 rdr_uri(struct pcrdr_conn *rdr)
 {
     UNUSED_PARAM(rdr);
+    if (rdr && rdr->uri) {
+        return rdr->uri;
+    }
     return "";
 }
 
@@ -102,7 +105,9 @@ status_getter(purc_variant_t root,
     UNUSED_PARAM(call_flags);
 
     purc_variant_t vs[10] = { NULL };
-    struct pcrdr_conn *rdr = rdr_conn();
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *rdr = inst->conn_to_rdr;
+    struct renderer_capabilities *rdr_caps = inst->rdr_caps;
     const char *comm = rdr_comm(rdr);
     const char *uri = rdr_uri(rdr);
 
@@ -113,12 +118,23 @@ status_getter(purc_variant_t root,
     }
 
     vs[0] = purc_variant_make_string_static(KEY_PROT, false);
-    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
     vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
-    vs[3] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_VERSION_STRING,
-            false);
     vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
-    vs[5] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+
+    if (rdr_caps) {
+        char buf[21];
+        snprintf(buf, 20, "%ld", rdr_caps->prot_version);
+        vs[1] = purc_variant_make_string_static(rdr_caps->prot_name, false);
+        vs[3] = purc_variant_make_string(buf, false);
+        vs[5] = purc_variant_make_ulongint(rdr_caps->prot_version);
+    }
+    else {
+        vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
+        vs[3] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_VERSION_STRING,
+                false);
+        vs[5] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    }
+
     vs[6] = purc_variant_make_string_static(KEY_COMM, false);
     vs[7] = purc_variant_make_string_static(comm, false);
 

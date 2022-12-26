@@ -179,6 +179,13 @@ static int _init_instance(struct pcinst *curr_inst,
         goto failed;
     }
 
+    if (extra_info && extra_info->renderer_uri){
+        inst->conn_to_rdr->uri = strdup(extra_info->renderer_uri);
+    }
+    else {
+        inst->conn_to_rdr->uri = NULL;
+    }
+
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
         inst->rdr_caps =
             pcrdr_parse_renderer_capabilities(

@@ -168,6 +168,10 @@ int pcrdr_free_connection(pcrdr_conn* conn)
         free(conn->srv_host_name);
     free(conn->own_host_name);
 
+    if (conn->uri) {
+        free(conn->uri);
+    }
+
     struct pending_request *pr, *n;
     list_for_each_entry_safe(pr, n, &conn->pending_requests, list) {
         if (pr->response_handler) {

@@ -55,6 +55,8 @@ struct pcrdr_conn {
     const char* app_name;
     const char* runner_name;
 
+    char* uri;
+
     void *user_data;
     struct pcrdr_prot_data *prot_data;
 
