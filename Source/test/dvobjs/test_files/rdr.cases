@@ -1,0 +1,45 @@
+# test cases for channel
+negative:
+    $RDR.uri
+    NoSuchKey
+
+negative:
+    $RDR.state.notfound
+    NoSuchKey
+
+positive:
+    $RDR.state.uri
+    ""
+
+positive:
+    $RDR.state.comm
+    "HEADLESS"
+
+positive:
+    $RDR.state.prot
+    "HEADLESS"
+
+positive:
+    $RDR.connect("socket", "unix:///var/tmp/purcmc.sock")
+    true
+
+positive:
+    $RDR.state.uri
+    "unix:///var/tmp/purcmc.sock"
+
+positive:
+    $RDR.state.comm
+    "SOCKET"
+
+positive:
+    $RDR.state.prot
+    "PURCMC"
+
+positive:
+    $RDR.disconnect()
+    true
+
+positive:
+    $RDR.state
+    {"comm":"none"}
+

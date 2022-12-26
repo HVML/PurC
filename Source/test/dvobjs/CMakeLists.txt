@@ -405,3 +405,31 @@ PURC_COMPUTE_SOURCES(test_string_substitution)
 PURC_FRAMEWORK(test_string_substitution)
 GTEST_DISCOVER_TESTS(test_string_substitution DISCOVERY_TIMEOUT 10)
 
+# test_dvobjs_rdr
+PURC_EXECUTABLE_DECLARE(test_dvobjs_rdr)
+
+list(APPEND test_dvobjs_rdr_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_dvobjs_rdr)
+
+set(test_dvobjs_rdr_SOURCES
+    test_dvobjs_rdr.cpp
+    helper.cpp
+    TestDVObj.cpp
+)
+
+set(test_dvobjs_rdr_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_dvobjs_rdr)
+PURC_FRAMEWORK(test_dvobjs_rdr)
+GTEST_DISCOVER_TESTS(test_dvobjs_rdr DISCOVERY_TIMEOUT 10)

@@ -48,13 +48,6 @@
 #define KEY_PROT_VER_CODE       "prot-ver-code"
 #define KEY_URI                 "uri"
 
-static struct pcrdr_conn *
-rdr_conn()
-{
-    struct pcinst* inst = pcinst_current();
-    return inst->conn_to_rdr;
-}
-
 static const char *
 rdr_comm(struct pcrdr_conn *rdr)
 {
@@ -96,7 +89,7 @@ rdr_uri(struct pcrdr_conn *rdr)
 }
 
 static purc_variant_t
-status_getter(purc_variant_t root,
+state_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -115,6 +108,18 @@ status_getter(purc_variant_t root,
     if (data == PURC_VARIANT_INVALID) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_clear_data;
+    }
+
+    if (!rdr) {
+        vs[0] = purc_variant_make_string_static(KEY_COMM, false);
+        vs[1] = purc_variant_make_string_static(comm, false);
+        if (!vs[1]) {
+            goto out_clear_vs;
+        }
+        purc_variant_object_set(data, vs[0], vs[1]);
+        purc_variant_unref(vs[0]);
+        purc_variant_unref(vs[1]);
+        goto out;
     }
 
     vs[0] = purc_variant_make_string_static(KEY_PROT, false);
@@ -146,9 +151,11 @@ status_getter(purc_variant_t root,
     }
 
     for (int i = 0; i < 5; i++) {
-        purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
-        purc_variant_unref(vs[i * 2]);
-        purc_variant_unref(vs[i * 2 + 1]);
+        if (vs[i * 2]) {
+            purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
+            purc_variant_unref(vs[i * 2]);
+            purc_variant_unref(vs[i * 2 + 1]);
+        }
     }
     goto out;
 
@@ -161,35 +168,18 @@ out_clear_vs:
 
 out_clear_data:
     purc_variant_unref(data);
+    data = PURC_VARIANT_INVALID;
 
 out:
+    if (data && nr_args > 0) {
+        purc_variant_t v = purc_variant_object_get(data, argv[0]);
+        if (v) {
+            purc_variant_ref(v);
+        }
+        purc_variant_unref(data);
+        return v;
+    }
     return data;
-}
-
-static purc_variant_t
-comm_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    struct pcrdr_conn *rdr = rdr_conn();
-    const char *comm = rdr_comm(rdr);
-    return purc_variant_make_string_static(comm, false);
-}
-
-static purc_variant_t
-uri_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    struct pcrdr_conn *rdr = rdr_conn();
-    const char *uri = rdr_uri(rdr);
-    return purc_variant_make_string_static(uri, false);
 }
 
 static purc_variant_t
@@ -202,7 +192,7 @@ connect_getter(purc_variant_t root,
     UNUSED_PARAM(call_flags);
     pcrdr_msg *msg = NULL;
     bool ret = false;
-    const char *s_type;
+    const char *s_comm;
     const char *s_uri;
 
     struct pcinst* inst = pcinst_current();
@@ -214,7 +204,7 @@ connect_getter(purc_variant_t root,
         goto out;
     }
 
-    s_type = purc_variant_get_string_const(argv[0]);
+    s_comm = purc_variant_get_string_const(argv[0]);
     s_uri = purc_variant_get_string_const(argv[1]);
 
     if (rdr) {
@@ -227,16 +217,16 @@ connect_getter(purc_variant_t root,
         }
     }
 
-    if (strcmp(s_type, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
+    if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_HEADLESS) == 0) {
         msg = pcrdr_headless_connect(
             s_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
-    else if (strcmp(s_type, PURC_RDRCOMM_NAME_SOCKET) == 0) {
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
         msg = pcrdr_socket_connect(s_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
-    else if (strcmp(s_type, PURC_RDRCOMM_NAME_THREAD) == 0) {
+    else if (strcasecmp(s_comm, PURC_RDRCOMM_NAME_THREAD) == 0) {
         msg = pcrdr_thread_connect(s_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
@@ -249,6 +239,13 @@ connect_getter(purc_variant_t root,
     if (msg == NULL) {
         inst->conn_to_rdr = NULL;
         goto out;
+    }
+
+    if (s_uri){
+        inst->conn_to_rdr->uri = strdup(s_uri);
+    }
+    else {
+        inst->conn_to_rdr->uri = NULL;
     }
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
@@ -298,9 +295,7 @@ purc_dvobj_rdr_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        { "status",             status_getter,            NULL },
-        { "comm",               comm_getter,            NULL },
-        { "uri",                uri_getter,            NULL },
+        { "state",              state_getter,            NULL },
         { "connect",            connect_getter,         NULL },
         { "disconnect",         disconnect_getter,      NULL },
     };

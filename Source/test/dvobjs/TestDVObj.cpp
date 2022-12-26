@@ -18,6 +18,7 @@
 */
 
 #include "purc/purc.h"
+#include "private/variant.h"
 
 #include "TestDVObj.h"
 
@@ -106,6 +107,9 @@ purc_variant_t TestDVObj::dvobj_new(const char *name)
         dvobj = purc_dvobj_runner_new();
     }
 #endif
+    else if (strcmp(name, "RDR") == 0) {
+        dvobj = purc_dvobj_rdr_new();
+    }
 
     if (dvobj != PURC_VARIANT_INVALID) {
         m_dvobjs[name] = dvobj;
