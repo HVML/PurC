@@ -78,8 +78,7 @@ void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt)
 
 #define SZ_IN_STACK_BUFF    128
 
-int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
-        foil_rdrbox *box)
+int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box)
 {
     assert(box->is_inline_box);
 
@@ -94,6 +93,7 @@ int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
 
     struct _inline_box_data *inline_data = box->inline_data;
     struct text_paragraph *p;
+    int x = 0, y = 0;
     list_for_each_entry(p, &inline_data->paras, ln) {
         assert(p->nr_ucs > 0);
 
@@ -107,24 +107,24 @@ int foil_rdrbox_inline_calc_preferred_width(struct _preferred_width_ctxt *ctxt,
 
         foil_ustr_get_glyphs_extent_simple(p->ucs, p->nr_ucs,
                 p->break_oppos, render_flags,
-                ctxt->x, ctxt->y, box->letter_spacing, box->word_spacing, 0,
+                x, y, box->letter_spacing, box->word_spacing, 0,
                 max_extent, NULL, NULL, gps);
 
-        ctxt->x = gps[p->nr_ucs - 1].x;
-        ctxt->y = gps[p->nr_ucs - 1].y;
+        x = gps[p->nr_ucs - 1].x;
+        y = gps[p->nr_ucs - 1].y;
         if (p->break_oppos[p->nr_ucs] == FOIL_BOV_LB_MANDATORY) {
-            ctxt->x = 0;
-            ctxt->y += box->line_height;
+            x = 0;
+            y += box->line_height;
         }
         else {
-            ctxt->x += gps[p->nr_ucs - 1].advance;
+            x += gps[p->nr_ucs - 1].advance;
         }
 
         if (gps != gps_in_stack)
             free(gps);
     }
 
-    return 0;
+    return x;
 
 failed:
     return -1;
