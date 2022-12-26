@@ -40,6 +40,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define COMM_NONE               "none"
+
+#define KEY_COMM                "comm"
+#define KEY_PROT                "prot"
+#define KEY_PROT_VERSION        "prot-version"
+#define KEY_PROT_VER_CODE       "prot-ver-code"
+#define KEY_URI                 "uri"
+
 static struct pcrdr_conn *
 rdr_conn()
 {
@@ -47,8 +55,103 @@ rdr_conn()
     return inst->conn_to_rdr;
 }
 
+static const char *
+rdr_comm(struct pcrdr_conn *rdr)
+{
+    const char *comm = COMM_NONE;
+    if (!rdr) {
+        goto out;
+    }
+
+    switch (rdr->prot) {
+    case PURC_RDRCOMM_HEADLESS:
+        comm = PURC_RDRCOMM_NAME_HEADLESS;
+        break;
+
+    case PURC_RDRCOMM_THREAD:
+        comm = PURC_RDRCOMM_NAME_THREAD;
+        break;
+
+    case PURC_RDRCOMM_SOCKET:
+        comm = PURC_RDRCOMM_NAME_SOCKET;
+        break;
+
+    case PURC_RDRCOMM_HIBUS:
+        comm = PURC_RDRCOMM_NAME_HIBUS;
+        break;
+    }
+
+out:
+    return comm;
+}
+
+static const char *
+rdr_uri(struct pcrdr_conn *rdr)
+{
+    UNUSED_PARAM(rdr);
+    return "";
+}
+
 static purc_variant_t
-type_getter(purc_variant_t root,
+status_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    purc_variant_t vs[10] = { NULL };
+    struct pcrdr_conn *rdr = rdr_conn();
+    const char *comm = rdr_comm(rdr);
+    const char *uri = rdr_uri(rdr);
+
+    purc_variant_t data = purc_variant_make_object(0, NULL, NULL);
+    if (data == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_clear_data;
+    }
+
+    vs[0] = purc_variant_make_string_static(KEY_PROT, false);
+    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
+    vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
+    vs[3] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_VERSION_STRING,
+            false);
+    vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
+    vs[5] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    vs[6] = purc_variant_make_string_static(KEY_COMM, false);
+    vs[7] = purc_variant_make_string_static(comm, false);
+
+    vs[8] = purc_variant_make_string_static(KEY_URI, false);
+    vs[9] = purc_variant_make_string_static(uri, false);
+
+    if (!vs[9]) {
+        goto out_clear_vs;
+    }
+
+    for (int i = 0; i < 5; i++) {
+        purc_variant_object_set(data, vs[i * 2], vs[i * 2 + 1]);
+        purc_variant_unref(vs[i * 2]);
+        purc_variant_unref(vs[i * 2 + 1]);
+    }
+    goto out;
+
+out_clear_vs:
+    for (int i = 0; i < 10; i++) {
+        if (vs[i]) {
+            purc_variant_unref(vs[i]);
+        }
+    }
+
+out_clear_data:
+    purc_variant_unref(data);
+
+out:
+    return data;
+}
+
+static purc_variant_t
+comm_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -56,10 +159,21 @@ type_getter(purc_variant_t root,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
     struct pcrdr_conn *rdr = rdr_conn();
-    if (rdr) {
-        return purc_variant_make_ulongint(rdr->type);
-    }
-    return purc_variant_make_undefined();
+    const char *comm = rdr_comm(rdr);
+    return purc_variant_make_string_static(comm, false);
+}
+
+static purc_variant_t
+uri_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct pcrdr_conn *rdr = rdr_conn();
+    const char *uri = rdr_uri(rdr);
+    return purc_variant_make_string_static(uri, false);
 }
 
 static purc_variant_t
@@ -168,7 +282,9 @@ purc_dvobj_rdr_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        { "type",               type_getter,            NULL },
+        { "status",             status_getter,            NULL },
+        { "comm",               comm_getter,            NULL },
+        { "uri",                uri_getter,            NULL },
         { "connect",            connect_getter,         NULL },
         { "disconnect",         disconnect_getter,      NULL },
     };
