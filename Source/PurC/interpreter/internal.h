@@ -247,6 +247,10 @@ pcrdr_msg *pcintr_rdr_send_request_and_wait_response(struct pcrdr_conn *conn,
         const char *element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data, size_t data_len);
 
+uint64_t pcintr_rdr_start_session(struct pcrdr_conn *conn, const char *protocol,
+        uint64_t protocol_version, const char *host_name, const char *app_name,
+        const char *runner_name);
+
 /* retrieve handle of workspace according to the name */
 uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
         uint64_t session, const char *workspace_name);
