@@ -239,6 +239,13 @@ pcintr_bind_builtin_runner_variables(void)
     }
     purc_variant_unref(dt);
 
+    // $RDR
+    purc_variant_t rdr = purc_dvobj_datetime_new();
+    if (!purc_bind_runner_variable(PURC_PREDEF_VARNAME_RDR, rdr)) {
+        goto out;
+    }
+    purc_variant_unref(rdr);
+
     ret = add_runner_myobj_listener(runner);
 
 out:
