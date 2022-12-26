@@ -860,7 +860,7 @@ calc_width_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             dtrm_width_replaced(ctxt, box);
         }
         else {
-            box->width = -1; // not apply
+            box->width = 0; // not apply
         }
 
         dtrm_margin_left_right(ctxt, box);
@@ -1202,12 +1202,12 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
-/* calculate heights and margins according to CSS 2.2 Section 10.4 */
+/* calculate height and margins according to CSS 2.2 Section 10.4 */
 static void
 calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && !box->is_replaced) {
-        box->height = -1; // not apply
+        box->height = 0; // not apply
     }
     else if (box->is_replaced && (box->type == FOIL_RDRBOX_TYPE_INLINE ||
                 (box->is_block_level && box->is_in_normal_flow) ||
@@ -1863,6 +1863,8 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    assert(box->is_width_resolved == 0);
+
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         box->width = box->marker_data->width;
         box->is_width_resolved = 1;
@@ -1882,7 +1884,7 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->is_width_resolved = 1;
     }
     else if (box->is_anonymous && box->is_block_level) {
-        // TODO: calculate width for anonymous block level box
+        /* calculate width for anonymous block level box */
         int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
         box->width = cblock_width - box->ml - box->bl - box->pl -
             box->pr - box->br - box->mr;
@@ -1899,40 +1901,8 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
-    if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
-        box->height = FOIL_PX_GRID_CELL_H;
-        box->is_height_resolved = 1;
-    }
-    else if (box->computed_style) {
-        /* calculate heights and margins */
-        box->prop_for_height = FOIL_RDRBOX_USE_HEIGHT;
-        calc_height_margins(ctxt, box);
-        if (box->max_height > 0 && box->height > box->max_height) {
-            box->prop_for_height = FOIL_RDRBOX_USE_MAX_HEIGHT;
-            calc_height_margins(ctxt, box);
-        }
-        if (box->min_height > 0 && box->height > box->min_height) {
-            box->prop_for_height = FOIL_RDRBOX_USE_MIN_HEIGHT;
-            calc_height_margins(ctxt, box);
-        }
-        box->is_height_resolved = 1;
+    assert(box->is_height_resolved == 0);
 
-    }
-    else if (box->is_anonymous && box->is_block_level) {
-        // TODO: calculate height for anonymous block level box
-    }
-}
-
-/* adjust position according to 'vertical-align' */
-static void
-adjust_position_vertically(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    (void)box;
-}
-
-void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
     if (box->nr_inline_level_children > 0) {
 
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
@@ -1952,8 +1922,48 @@ void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
     }
 
-    /* adjust position according to 'vertical-align' */
-    adjust_position_vertically(ctxt, box);
+    if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        box->height = FOIL_PX_GRID_CELL_H;
+        box->is_height_resolved = 1;
+    }
+    else if (box->computed_style) {
+        /* calculate height and margins */
+        box->prop_for_height = FOIL_RDRBOX_USE_HEIGHT;
+        calc_height_margins(ctxt, box);
+        if (box->max_height > 0 && box->height > box->max_height) {
+            box->prop_for_height = FOIL_RDRBOX_USE_MAX_HEIGHT;
+            calc_height_margins(ctxt, box);
+        }
+        if (box->min_height > 0 && box->height > box->min_height) {
+            box->prop_for_height = FOIL_RDRBOX_USE_MIN_HEIGHT;
+            calc_height_margins(ctxt, box);
+        }
+        box->is_height_resolved = 1;
+
+    }
+    else if (box->is_anonymous && box->is_block_level) {
+        if (box->nr_inline_level_children > 0) {
+        }
+        else {
+            box->height = 0;
+            box->is_height_resolved = 1;
+        }
+    }
+}
+
+/* adjust position */
+static void
+adjust_position(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    // TODO
+}
+
+void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    /* adjust position of the box */
+    adjust_position(ctxt, box);
 }
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc)
@@ -2101,27 +2111,27 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         while (child) {
             assert(child->is_width_resolved == 0);
 
-            int shtf_width;
+            int shrink_width;
             if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
                 int pref_width, min_width;
                 pref_width = foil_rdrbox_inline_calc_preferred_width(child);
                 min_width = foil_rdrbox_inline_calc_preferred_minimum_width(
                         child);
 
-                shtf_width = MIN(MAX(min_width, avl_width), pref_width);
+                shrink_width = MIN(MAX(min_width, avl_width), pref_width);
             }
             else if (child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
-                shtf_width = dtrm_width_shrink_to_fit(ctxt, child);
+                shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
             }
             else if (child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
                 // TODO: inline-table
-                shtf_width = FOIL_PX_GRID_CELL_W * 10;
+                shrink_width = FOIL_PX_GRID_CELL_W * 10;
             }
 
-            if (shtf_width > width)
-                width = shtf_width;
+            if (shrink_width > width)
+                width = shrink_width;
 
-            child->width = shtf_width;
+            child->width = shrink_width;
             dtrm_margin_left_right(ctxt, child);
             child->is_width_resolved = 1;
 
@@ -2133,11 +2143,11 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         while (child) {
             assert(child->is_width_resolved == 0);
 
-            int shtf_width = dtrm_width_shrink_to_fit(ctxt, child);
-            if (shtf_width > width)
-                width = shtf_width;
+            int shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
+            if (shrink_width > width)
+                width = shrink_width;
 
-            child->width = shtf_width;
+            child->width = shrink_width;
             dtrm_margin_left_right(ctxt, child);
             child->is_width_resolved = 1;
 
