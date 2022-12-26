@@ -403,9 +403,9 @@ struct foil_rdrbox {
     unsigned nr_floating_children;
     unsigned nr_abspos_children;
 
-    const foil_rdrbox *cblock_creator;  // the containing block of this box
-    foil_rect cblock_rect;              // the bounding rectangle of
-                                        // the containing block
+    const foil_rdrbox *cblock_creator;  // the container of this box
+    foil_rect ctnt_rect;                // the content rectangle of the box
+                                        // in the page coordinate system
 
     /* Internal fields */
     GHashTable *counters_table; // The counters table for the current element
@@ -596,12 +596,13 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
-bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
-bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);
-bool foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc);
-bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc);
-
-bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc);
+void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc);
+void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,
+        foil_rect *rc);
+void foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc);
+void foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc);
+void foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc);
+void foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc);
 
 const foil_rdrbox *
 foil_rdrbox_find_container_for_relative(foil_layout_ctxt *ctxt,

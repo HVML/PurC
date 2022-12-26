@@ -39,7 +39,7 @@ static float normalize_used_length(foil_layout_ctxt *ctxt, foil_rdrbox *box,
 
     switch (unit) {
     case CSS_UNIT_PCT:
-        v = foil_rect_width(&box->cblock_rect);
+        v = foil_rect_width(&box->cblock_creator->ctnt_rect);
         v = v * FIXTOFLT(length);
         break;
 
@@ -416,7 +416,7 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
 {
     (void)ctxt;
     int nr_autos = 0;
-    int cblock_width = foil_rect_width(&box->cblock_rect);
+    int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
 
     if (width_v == CSS_WIDTH_AUTO)
         nr_autos++;
@@ -560,7 +560,7 @@ dtrm_width_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                     margin_right_u, margin_right_l));
     }
 
-    int cblock_width = foil_rect_width(&box->cblock_rect);
+    int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
     if (left_v == CSS_LEFT_AUTO || right_v == CSS_RIGHT_AUTO) {
         if (margin_left_v == CSS_MARGIN_AUTO) {
             box->ml = 0;
@@ -645,7 +645,7 @@ dtrm_width_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             &margin_right_l, &margin_right_u);
     assert(margin_right_v != CSS_MARGIN_INHERIT);
 
-    int cblock_width = foil_rect_width(&box->cblock_rect);
+    int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
 
     if (left_v == CSS_LEFT_AUTO && width_v == CSS_WIDTH_AUTO &&
             right_v == CSS_RIGHT_AUTO) {
@@ -1002,7 +1002,7 @@ dtrm_heights_abspos_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                     margin_bottom_u, margin_bottom_l));
     }
 
-    int cblock_height = foil_rect_height(&box->cblock_rect);
+    int cblock_height = foil_rect_height(&box->cblock_creator->ctnt_rect);
     if (bottom_v == CSS_BOTTOM_AUTO) {
         if (margin_top_v == CSS_MARGIN_AUTO) {
             box->mt = 0;
@@ -1071,7 +1071,7 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             &margin_bottom_l, &margin_bottom_u);
     assert(margin_bottom_v != CSS_MARGIN_INHERIT);
 
-    int cblock_height = foil_rect_height(&box->cblock_rect);
+    int cblock_height = foil_rect_height(&box->cblock_creator->ctnt_rect);
 
     if (top_v == CSS_TOP_AUTO && height_v == CSS_HEIGHT_AUTO &&
             bottom_v == CSS_BOTTOM_AUTO) {
@@ -1766,32 +1766,22 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     free(name);
 #endif
 
-    /* determine the containing block */
+    /* determine the container */
     if (purc_document_root(ctxt->udom->doc) == box->owner) {
-        box->cblock_rect.left = 0;
-        box->cblock_rect.top = 0;
-        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
         box->cblock_creator = ctxt->udom->initial_cblock;
     }
     else if (box->position == FOIL_RDRBOX_POSITION_STATIC ||
             box->position == FOIL_RDRBOX_POSITION_RELATIVE) {
-        /* the containing block is formed by the content edge of
-           the nearest ancestor box that is a block container or
-           which establishes a formatting context. */
+        /* For other elements, if the element’s position is relative or static,
+           the containing block is formed by the content edge of the nearest
+           block container ancestor box. */
 
         const foil_rdrbox *container;
-        container = foil_rdrbox_find_container_for_relative(ctxt,
-                box->parent);
+        container = foil_rdrbox_find_container_for_relative(ctxt, box->parent);
         assert(container);
-        foil_rdrbox_content_box(container, &box->cblock_rect);
         box->cblock_creator = container;
     }
     else if (box->position == FOIL_RDRBOX_POSITION_FIXED) {
-        box->cblock_rect.left = 0;
-        box->cblock_rect.top = 0;
-        box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-        box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
         box->cblock_creator = ctxt->udom->initial_cblock;
     }
     else if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
@@ -1810,21 +1800,13 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
            the initial containing block. */
 
         const foil_rdrbox *container;
-        container = foil_rdrbox_find_container_for_absolute(ctxt, box->parent);
+        container = foil_rdrbox_find_container_for_absolute(ctxt, box);
         if (container) {
-            if (container->type == FOIL_RDRBOX_TYPE_INLINE)
-                foil_rdrbox_form_containing_block(container,
-                        &box->cblock_rect);
-            else
-                foil_rdrbox_padding_box(container, &box->cblock_rect);
+            box->cblock_creator = container;
         }
         else {
-            box->cblock_rect.left = 0;
-            box->cblock_rect.top = 0;
-            box->cblock_rect.right = ctxt->udom->initial_cblock->width;
-            box->cblock_rect.bottom = ctxt->udom->initial_cblock->height;
+            box->cblock_creator = ctxt->udom->initial_cblock;
         }
-        box->cblock_creator = ctxt->udom->initial_cblock;
     }
 
     /* inherit properties for anonymous and pseudo box */
@@ -1881,7 +1863,11 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
-    if (box->computed_style) {
+    if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        box->width = box->marker_data->width;
+        box->is_width_resolved = 1;
+    }
+    else if (box->computed_style) {
         /* calculate widths and margins */
         box->prop_for_width = FOIL_RDRBOX_USE_WIDTH;
         calc_width_margins(ctxt, box);
@@ -1894,10 +1880,13 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             calc_width_margins(ctxt, box);
         }
         box->is_width_resolved = 1;
-
     }
     else if (box->is_anonymous && box->is_block_level) {
-        // TODO: calculate width and height for anonymous block level box
+        // TODO: calculate width for anonymous block level box
+        int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
+        box->width = cblock_width - box->ml - box->bl - box->pl -
+            box->pr - box->br - box->mr;
+        box->is_width_resolved = 1;
     }
 
     if (box->floating || box->is_abs_positioned ||
@@ -1910,7 +1899,11 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
-    if (box->computed_style) {
+    if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
+        box->height = FOIL_PX_GRID_CELL_H;
+        box->is_height_resolved = 1;
+    }
+    else if (box->computed_style) {
         /* calculate heights and margins */
         box->prop_for_height = FOIL_RDRBOX_USE_HEIGHT;
         calc_height_margins(ctxt, box);
@@ -1926,7 +1919,7 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     }
     else if (box->is_anonymous && box->is_block_level) {
-        // TODO: calculate width and height for anonymous block level box
+        // TODO: calculate height for anonymous block level box
     }
 }
 
@@ -1963,75 +1956,102 @@ void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     adjust_position_vertically(ctxt, box);
 }
 
-bool foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
+void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc)
 {
-    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
-        return false;
+    assert(box->cblock_creator);
 
-    rc->left   = box->cblock_rect.left   + box->left +
-        box->ml + box->bl + box->pl;
-    rc->top    = box->cblock_rect.top    + box->top  +
-        box->mt + box->bt + box->pt;
-    rc->right  = box->cblock_rect.right  + box->left +
-        box->mr + box->br + box->pr;
-    rc->bottom = box->cblock_rect.bottom + box->top  +
-        box->mb + box->bb + box->pb;
-    return true;
+    if (box->position == FOIL_RDRBOX_POSITION_ABSOLUTE) {
+        /* the containing block is established by the nearest ancestor
+           with a 'position' of 'absolute', 'relative' or 'fixed',
+           in the following way:
+
+           In the case that the ancestor is an inline element,
+           the containing block is the bounding box around the padding boxes
+           of the first and the last inline boxes generated for that element.
+
+           Otherwise, the containing block is formed by the padding edge of
+           the ancestor.
+
+           If there is no such ancestor, the containing block is
+           the initial containing block. */
+
+        if (box->cblock_creator->nr_inline_level_children) {
+            foil_rdrbox_containing_block_from_inlines(box->cblock_creator, rc);
+        }
+        else {
+            foil_rdrbox_padding_box(box->cblock_creator, rc);
+        }
+    }
+    else {
+        foil_rdrbox_content_box(box->cblock_creator, rc);
+    }
 }
 
-bool foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc)
+void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,
+        foil_rect *rc)
 {
-    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
-        return false;
-
-    rc->left   = box->cblock_rect.left   + box->left + box->ml + box->bl;
-    rc->top    = box->cblock_rect.top    + box->top  + box->mt + box->bt;
-    rc->right  = box->cblock_rect.right  + box->left + box->mr + box->br;
-    rc->bottom = box->cblock_rect.bottom + box->top  + box->mb + box->bb;
-
-    return true;
+    if (box->first) {
+        rc->left   = box->first->ctnt_rect.left  - box->first->pl;
+        rc->top    = box->first->ctnt_rect.top   - box->first->pt;
+        rc->right  = box->last->ctnt_rect.right  + box->last->pr;
+        rc->bottom = box->last->ctnt_rect.bottom + box->last->pb;
+    }
+    else {
+        *rc = box->ctnt_rect;
+    }
 }
 
-bool foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc)
+void foil_rdrbox_content_box(const foil_rdrbox *box, foil_rect *rc)
 {
-    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
-        return false;
-
-    rc->left   = box->cblock_rect.left   + box->left + box->ml;
-    rc->top    = box->cblock_rect.top    + box->top  + box->mt;
-    rc->right  = box->cblock_rect.right  + box->left + box->mr;
-    rc->bottom = box->cblock_rect.bottom + box->top  + box->mb;
-
-    return true;
+    *rc = box->ctnt_rect;
 }
 
-bool foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc)
+void foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc)
 {
-    if (box->type == FOIL_RDRBOX_TYPE_INLINE)
-        return false;
+    assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
 
-    rc->left   = box->cblock_rect.left   + box->left;
-    rc->top    = box->cblock_rect.top    + box->top;
-    rc->right  = box->cblock_rect.right  + box->left;
-    rc->bottom = box->cblock_rect.bottom + box->top;
-
-    return true;
+    rc->left   = box->ctnt_rect.left   - box->pl;
+    rc->top    = box->ctnt_rect.top    - box->pt;
+    rc->right  = box->ctnt_rect.right  + box->pr;
+    rc->bottom = box->ctnt_rect.bottom + box->pb;
 }
 
-bool foil_rdrbox_form_containing_block(const foil_rdrbox *box, foil_rect *rc)
+void foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc)
 {
-    (void)box;
-    (void)rc;
+    assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
 
-    return false;
+    rc->left   = box->ctnt_rect.left   - box->pl - box->bl;
+    rc->top    = box->ctnt_rect.top    - box->pt - box->bt;
+    rc->right  = box->ctnt_rect.right  + box->pr + box->br;
+    rc->bottom = box->ctnt_rect.bottom + box->pb + box->bb;
+}
+
+void foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc)
+{
+    assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
+
+    rc->left   = box->ctnt_rect.left   - box->pl - box->bl - box->ml;
+    rc->top    = box->ctnt_rect.top    - box->pt - box->bt - box->mt;
+    rc->right  = box->ctnt_rect.right  + box->pr + box->br + box->mr;
+    rc->bottom = box->ctnt_rect.bottom + box->pb + box->bb + box->mb;
 }
 
 const foil_rdrbox *
 foil_rdrbox_find_container_for_relative(foil_layout_ctxt *ctxt,
         const foil_rdrbox *box)
 {
-    (void)ctxt;
-    (void)box;
+    assert(box->position == FOIL_RDRBOX_POSITION_RELATIVE ||
+            box->position == FOIL_RDRBOX_POSITION_STATIC);
+
+    /* the containing block is formed by the content edge of the nearest
+       block container ancestor box. */
+    const foil_rdrbox *parent = box->parent;
+    while (parent) {
+        if (parent->is_block_container)
+            return parent;
+
+        parent = box->parent;
+    }
 
     return ctxt->initial_cblock;
 }
@@ -2041,7 +2061,20 @@ foil_rdrbox_find_container_for_absolute(foil_layout_ctxt *ctxt,
         const foil_rdrbox *box)
 {
     (void)ctxt;
-    (void)box;
+
+    assert(box->position == FOIL_RDRBOX_POSITION_ABSOLUTE);
+
+    /* the containing block is established by the nearest ancestor
+       with a 'position' of 'absolute', 'relative' or 'fixed'. */
+    const foil_rdrbox *parent = box->parent;
+    while (parent) {
+        if (parent->position == FOIL_RDRBOX_POSITION_ABSOLUTE ||
+                parent->position == FOIL_RDRBOX_POSITION_RELATIVE ||
+                parent->position == FOIL_RDRBOX_POSITION_FIXED)
+            return parent;
+
+        parent = box->parent;
+    }
 
     return NULL;
 }
@@ -2060,7 +2093,7 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         width = calc_used_value_width(ctxt, box, width_u, width_l);
     }
     else if (box->nr_inline_level_children > 0) {
-        int cblock_width = foil_rect_width(&box->cblock_rect);
+        int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
         int avl_width = cblock_width - box->ml - box->bl - box->pl -
             box->pr - box->br - box->mr;
 

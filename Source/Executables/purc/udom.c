@@ -286,10 +286,10 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->color = FOIL_DEF_FGC;
     udom->initial_cblock->background_color = FOIL_DEF_BGC;
 
-    udom->initial_cblock->cblock_rect.left = 0;
-    udom->initial_cblock->cblock_rect.top = 0;
-    udom->initial_cblock->cblock_rect.right = width;
-    udom->initial_cblock->cblock_rect.bottom = height;
+    udom->initial_cblock->ctnt_rect.left = 0;
+    udom->initial_cblock->ctnt_rect.top = 0;
+    udom->initial_cblock->ctnt_rect.right = width;
+    udom->initial_cblock->ctnt_rect.bottom = height;
     udom->initial_cblock->cblock_creator = NULL;
 
     udom->media.type = CSS_MEDIA_TTY;
