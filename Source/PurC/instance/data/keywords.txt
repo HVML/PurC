@@ -89,6 +89,29 @@ hvml xor
 hvml overwrite
 hvml call
 
+# request
+hvml startSession
+hvml createWorkspace
+hvml destroyWorkspace
+hvml updateWorkspace
+hvml endSession
+hvml setPageGroups
+hvml addPageGroups
+hvml removePageGroup
+hvml createPlainWindow
+hvml destroyPlainWindow
+hvml updatePlainWindow
+hvml createWidget
+hvml destroyWidget
+hvml updateWidget
+hvml load
+hvml writeBegin
+hvml writeMore
+hvml writeEnd
+hvml erase
+hvml clear
+hvml callMethod
+
 # msg
 msg event
 msg change
