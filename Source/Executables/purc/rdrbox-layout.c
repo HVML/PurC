@@ -1956,19 +1956,12 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 }
 
-/* adjust position */
-static void
-adjust_position(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
     (void)box;
-    // TODO
-}
 
-void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    /* adjust position of the box */
-    adjust_position(ctxt, box);
+    /* now we just adjust the position of the box */
 }
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc)
