@@ -1,9 +1,38 @@
 # Release Notes
 
+- [Version 0.9.4](#version-094)
 - [Version 0.9.2](#version-092)
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.4
+
+On Dec. 30, 2022, HVML Community announces the availability of PurC 0.9.4,
+   which is also the fifth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.4
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - Rename some APIs.
+   - Tune almost all API description.
+* ADJUSTMENTS:
+   - (N/A).
+* ENHANCEMENTS:
+   - Improve the implementation of the element `update`.
+   - Full support for `request` element.
+   - Add new test cases or enhance test cases.
+   - Enhance Foil to support more properties and layouts except for table.
+* OPTIMIZATIONS:
+   - (N/A).
+* IMPROVEMENTS:
+   - Tune some API descriptions.
+* BUGFIXES:
+   - The bug reported in Issue #42.
 
 ## Version 0.9.2
 
