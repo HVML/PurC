@@ -357,8 +357,10 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct pcinst* inst = pcinst_current();
     struct pcrdr_conn *conn = inst->conn_to_rdr;
     const char *operation = NULL;
-
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
+    const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
+        : NULL;
+
     if (!ctxt->with) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request $RDR");
@@ -390,7 +392,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    if (!ctxt->synchronously || ctxt->is_noreturn) {
+    if (!ctxt->synchronously) {
         purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
                 "Not implement asynchronously request for $RDR");
         goto out;
@@ -424,22 +426,38 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     purc_variant_t data = purc_variant_ref(ctxt->with);
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, NULL, element_type, NULL, NULL,
+            target_value, operation, request_id, element_type, NULL, NULL,
             data_type, data, 0);
 
-    if (response_msg == NULL) {
+    purc_variant_t v = PURC_VARIANT_INVALID;
+    if (ctxt->is_noreturn) {
+        v = purc_variant_make_null();
+        ret = 0;
+    }
+    else if (response_msg == NULL) {
         goto out;
     }
-
-    int ret_code = response_msg->retCode;
-    pcrdr_release_message(response_msg);
-
-    if (ret_code != PCRDR_SC_OK) {
-        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto out;
+    else {
+        int ret_code = response_msg->retCode;
+        if (ret_code == PCRDR_SC_OK) {
+            if (response_msg->data) {
+                v = purc_variant_ref(response_msg->data);
+            }
+            else {
+                v = purc_variant_make_null();
+            }
+            ret = 0;
+        }
+        else {
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        }
+        pcrdr_release_message(response_msg);
     }
 
-    ret = 0;
+    if (v) {
+        pcintr_set_question_var(frame, v);
+        purc_variant_unref(v);
+    }
 
 out:
     return ret;
