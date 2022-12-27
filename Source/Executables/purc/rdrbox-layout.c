@@ -1220,14 +1220,15 @@ calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (box->is_block_level && !box->is_replaced &&
             box->is_in_normal_flow &&
-            box->overflow_y == CSS_OVERFLOW_VISIBLE) {
+            (box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE ||
+             box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED)) {
 
         css_fixed height_l;
         css_unit height_u;
         uint8_t height_v = real_computed_height(box, &height_l, &height_u);
         assert(height_v != CSS_HEIGHT_INHERIT);
 
-        if (height_v != CSS_WIDTH_AUTO) {
+        if (height_v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_height(ctxt, box, height_u, height_l);
         }
         else {
@@ -1246,7 +1247,7 @@ calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else if (!box->is_replaced && ((box->is_block_level &&
                 box->is_in_normal_flow &&
-                box->overflow_y != CSS_OVERFLOW_VISIBLE) ||
+                box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE) ||
             (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) ||
             (box->floating != FOIL_RDRBOX_FLOAT_NONE))) {
 
@@ -1893,7 +1894,8 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     if (box->floating || box->is_abs_positioned ||
             (box->is_block_container && !box->is_block_level) ||
-            (box->is_block_level && box->overflow_y != CSS_OVERFLOW_VISIBLE)) {
+            (box->is_block_level &&
+             box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE)) {
         box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(
                 &ctxt->udom->rgnrc_heap, box->width, -1);
     }
@@ -1904,21 +1906,28 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     assert(box->is_height_resolved == 0);
 
     if (box->nr_inline_level_children > 0) {
+        struct _inline_fmt_ctxt *lfmt_ctxt = NULL;
 
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
-            box->block_data->lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
+            lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
+            box->block_data->lfmt_ctxt = lfmt_ctxt;
             box->cb_data_cleanup =
                 (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
         }
         else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
-            box->inline_block_data->lfmt_ctxt =
-                foil_rdrbox_inline_fmt_ctxt_new();
+            lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
+            box->inline_block_data->lfmt_ctxt = lfmt_ctxt;
             box->cb_data_cleanup =
                 (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
         }
         else {
             // never reach here
             assert(0);
+        }
+
+        if (lfmt_ctxt) {
+            assert(box->is_width_resolved);
+            lfmt_ctxt->poss_extent = box->width;
         }
     }
 
@@ -1942,12 +1951,8 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     }
     else if (box->is_anonymous && box->is_block_level) {
-        if (box->nr_inline_level_children > 0) {
-        }
-        else {
-            box->height = 0;
-            box->is_height_resolved = 1;
-        }
+        box->height = calc_height_for_visible_non_replaced(ctxt, box);
+        box->is_height_resolved = 1;
     }
 }
 
@@ -2158,21 +2163,212 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     return width;
 }
 
+struct _line_info *
+foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    assert(box->is_block_level && box->nr_inline_level_children > 0);
+
+    struct _inline_fmt_ctxt *lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
+    assert(lfmt_ctxt);
+
+    lfmt_ctxt->lines = realloc(lfmt_ctxt->lines,
+            sizeof(struct _line_info) * (lfmt_ctxt->nr_lines + 1));
+    if (lfmt_ctxt->lines == NULL)
+        goto failed;
+
+    struct _line_info *line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
+    memset(line, 0, sizeof(struct _line_info));
+
+    struct _line_info *last_line = NULL;
+    if (lfmt_ctxt->nr_lines > 0)
+        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
+
+    // TODO: determine the fields of the line according to
+    // the floats and text-indent
+    line->rc.left = lfmt_ctxt->rc.left;
+    if (last_line)
+        line->rc.top = last_line->rc.top + last_line->height;
+    else
+        line->rc.top = lfmt_ctxt->rc.top;
+
+    line->x = line->rc.left;
+    line->y = line->rc.top;
+    line->width = 0;
+    line->height = box->line_height;
+    line->left_extent = lfmt_ctxt->poss_extent;
+    lfmt_ctxt->nr_lines++;
+    return line;
+
+failed:
+    return NULL;
+}
+
+/* this function also applies to anonymous block box */
 static int
 calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    int height = 0;
+
     (void)ctxt;
-    (void)box;
-    // TODO:
-    return 0;
+
+    assert(box->is_block_level);
+    if (box->nr_inline_level_children > 0) {
+        struct _inline_fmt_ctxt *fmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
+        assert(fmt_ctxt);
+
+        struct _line_info *line;
+        line = foil_rdrbox_block_allocate_new_line(ctxt, box);
+
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow) {
+                child = child->next;
+                continue;
+            }
+
+            if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
+                line = foil_rdrbox_layout_inline(ctxt, box, child);
+                if (line == NULL)
+                    goto failed;
+            }
+            else {
+                assert(child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
+                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE);
+                assert(child->is_width_resolved);
+
+                int margin_width = child->ml + child->bl + child->pl +
+                    child->width + child->mr + child->br + child->pr;
+                if (margin_width < line->left_extent) {
+                    line = foil_rdrbox_block_allocate_new_line(ctxt, box);
+                    if (line == NULL)
+                        goto failed;
+                }
+
+                assert(child->is_height_resolved == 0);
+                foil_rdrbox_resolve_height(ctxt, child);
+
+                struct _inline_segment *seg;
+                seg = foil_rdrbox_line_allocate_new_segment(fmt_ctxt);
+                seg->box = child;
+                foil_rdrbox_margin_box(child, &seg->rc);
+
+                foil_rdrbox_line_set_size(line,
+                        foil_rect_width(&seg->rc),
+                        foil_rect_height(&seg->rc));
+                line->x += margin_width;
+                line->left_extent -= margin_width;
+            }
+
+            child = child->next;
+        }
+
+        height = line->rc.bottom - fmt_ctxt->lines->rc.top;
+    }
+    else if (box->nr_block_level_children > 0) {
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow) {
+                child = child->next;
+                continue;
+            }
+
+            assert(child->is_height_resolved == 0);
+            foil_rdrbox_resolve_height(ctxt, child);
+
+            /* TODO: collapse margins here */
+            height += child->mt + child->bt + child->pt
+                + child->height + child->pb + child->bb + child->mb;
+
+            child = child->next;
+        }
+    }
+
+failed:
+    return height;
 }
 
 static int
 calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    int height = 0;
+
     (void)ctxt;
-    (void)box;
-    // TODO:
-    return 0;
+
+    assert(box->is_block_level);
+    if (box->nr_inline_level_children > 0) {
+        struct _inline_fmt_ctxt *fmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
+        assert(fmt_ctxt);
+
+        struct _line_info *line;
+        line = foil_rdrbox_block_allocate_new_line(ctxt, box);
+
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_abs_positioned) {
+                child = child->next;
+                continue;
+            }
+
+            if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
+                line = foil_rdrbox_layout_inline(ctxt, box, child);
+                if (line == NULL)
+                    goto failed;
+            }
+            else {
+                assert(child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
+                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE);
+                assert(child->is_width_resolved);
+
+                int margin_width = child->ml + child->bl + child->pl +
+                    child->width + child->mr + child->br + child->pr;
+                if (margin_width < line->left_extent) {
+                    line = foil_rdrbox_block_allocate_new_line(ctxt, box);
+                    if (line == NULL)
+                        goto failed;
+                }
+
+                assert(child->is_height_resolved == 0);
+                foil_rdrbox_resolve_height(ctxt, child);
+
+                struct _inline_segment *seg;
+                seg = foil_rdrbox_line_allocate_new_segment(fmt_ctxt);
+                seg->box = child;
+                foil_rdrbox_margin_box(child, &seg->rc);
+
+                foil_rdrbox_line_set_size(line,
+                        foil_rect_width(&seg->rc),
+                        foil_rect_height(&seg->rc));
+                line->x += margin_width;
+                line->left_extent -= margin_width;
+            }
+
+            child = child->next;
+        }
+
+        height = line->rc.bottom - fmt_ctxt->lines->rc.top;
+    }
+    else if (box->nr_block_level_children > 0) {
+        /* TODO: consider floats here */
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_abs_positioned) {
+                child = child->next;
+                continue;
+            }
+
+            assert(child->is_height_resolved == 0);
+            foil_rdrbox_resolve_height(ctxt, child);
+
+            /* TODO: collapse margins here */
+            height += child->mt + child->bt + child->pt
+                + child->height + child->pb + child->bb + child->mb;
+
+            child = child->next;
+        }
+    }
+
+failed:
+    return height;
 }
 

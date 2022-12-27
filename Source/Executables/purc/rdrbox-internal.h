@@ -73,31 +73,34 @@ struct _inline_segment {
 };
 
 struct _line_info {
-    /* the bouding rectangle of this line */
+    /* the bounding rectangle of this line */
     foil_rect rc;
 
-    /* the actual height of this line */
-    int height;
+    /* the actual width and height of this line */
+    int width, height;
+
+    /* the position to lay the new segment */
+    int x, y;
+
+    /* the left extent of the current line */
+    int left_extent;
 
     /* the number of inline segments in this line */
-    int nr_segments;
+    size_t nr_segments;
 
     /* the array of inline segments fit in this line */
     struct _inline_segment *segs;
 };
 
 struct _inline_fmt_ctxt {
-    /* the start position */
-    int start_x, start_y;
+    /* the bounding rectangle of all inlines */
+    foil_rect rc;
 
-    /* the next position to lay the inline segments */
-    int x, y;
-
-    /* the left extent of the last line */
-    int left_extent;
+    /* the possible/maximum extent of a line */
+    int poss_extent;
 
     /* number of total lines */
-    int nr_lines;
+    size_t nr_lines;
 
     /* pointer to the array of lines */
     struct _line_info *lines;
@@ -151,11 +154,39 @@ void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
 struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void);
 void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
 
-int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box);
+static inline struct _inline_fmt_ctxt *
+foil_rdrbox_inline_fmt_ctxt(foil_rdrbox *box)
+{
+    assert(box->is_block_level);
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK)
+        return box->block_data->lfmt_ctxt;
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK)
+        return box->inline_block_data->lfmt_ctxt;
+    return NULL;
+}
 
+static inline void
+foil_rdrbox_line_set_size(struct _line_info *line,
+        int width, int height)
+{
+    line->width += width;
+    line->rc.right += width;
+    if (height > line->height) {
+        line->height = height;
+        line->rc.bottom = line->rc.top + line->height;
+    }
+}
+
+struct _inline_segment *
+foil_rdrbox_line_allocate_new_segment(struct _inline_fmt_ctxt *fmt_ctxt);
+
+struct _line_info *foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt,
+        foil_rdrbox *block);
+
+int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box);
 int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box);
 
-bool foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
+struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box);
 
 #ifdef __cplusplus
