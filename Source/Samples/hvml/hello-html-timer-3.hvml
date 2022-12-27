@@ -12,14 +12,14 @@
 
     <body>
         <h1>My First HVML Program</h1>
-        <p>Current Time: <input id="clock"></input><p>
+        <p>Current Time: <span id="clock"></span><p>
 
-        <request on="$RDR" to="setPageGroups" >
+        <request on="$RDR" to="setPageGroups">
             '<section id="newGroup1"></section><section id="newGroup2"><article id="newGroupBody2" class="tabbedwindow"></article></section>'
         </request>
 
-        <request on="$RDR" to="addPageGroups" >
-            '<section id="newGroup4"></section>>'
+        <request on="$RDR" to="addPageGroups">
+            '<section id="newGroup4"></section>'
         </request>
 
         <ul>
