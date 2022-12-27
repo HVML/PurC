@@ -75,11 +75,12 @@ node_classes(void *pw, void *n, lwc_string ***classes, uint32_t *n_classes)
     HLLayoutNode *node = n;
 
     if (node->nr_inner_classes > 0) {
-        *classes = node->inner_classes;
+        *classes = (lwc_string**)calloc(node->nr_inner_classes,
+                sizeof(lwc_string*));
         *n_classes = node->nr_inner_classes;
 
         for (int i = 0; i < node->nr_inner_classes; i++) {
-            (void) lwc_string_ref((*classes)[i]);
+            *classes[i] = lwc_string_ref(node->inner_classes[i]);
         }
     } else {
         *n_classes = 0;
