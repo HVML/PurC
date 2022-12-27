@@ -31,9 +31,9 @@ and all predefined dynamic objects defined by [HVML Predefined Variables V1.0] i
 You can use PurC to run an HVML program or an HVML app by using the command line tool `purc`,
     or use PurC as a library to build your own HVML interpreter.
 
-We release PurC under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
+We release PurC library under LGPLv3, so it is free for commercial use if you follow the conditions and terms of LGPLv3.
 
-This is the version 0.9.2 of PurC.
+This is the version 0.9.4 of PurC.
 By now, PurC provides support for Linux and macOS.
 The support for Windows is on the way.
 We welcome anyone to port PurC to other platforms.
@@ -233,7 +233,7 @@ You can run `purc` with the option `-v` for a verbose message:
 
 ```bash
 $ purc -v error.hvml
-purc 0.9.2
+purc 0.9.4
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -265,7 +265,7 @@ Run `purc` to execute this HVML program with `-b` option, it will report the exe
 
 ```
 $ purc -v exception.hvml
-purc 0.9.2
+purc 0.9.4
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -423,7 +423,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 The command will give you the following output:
 
 ```
-purc 0.9.2
+purc 0.9.4
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -516,7 +516,7 @@ Fibonacci Numbers less than 2000
 Totally 18 numbers
 ```
 
-Note that in current version (0.9.2), Foil is not fully functional.
+Note that in current version (0.9.4), Foil is not fully functional.
 In the near future, Foil will provide support for most features of CSS 2.2 and some features of CSS Level 3,
    in order that you can get the similiar experience like a web browser.
 
@@ -591,7 +591,7 @@ You can see the all options supported by `purc` when you run `purc` with `-h` op
 
 ```bash
 $ purc -h
-purc (0.9.2) - a standalone HVML interpreter/debugger based-on PurC.
+purc (0.9.4) - a standalone HVML interpreter/debugger based-on PurC.
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -773,7 +773,7 @@ Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detaile
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.9.2 of PurC.
+This project was launched in June. 2021. This is the version 0.9.4 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
 After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
