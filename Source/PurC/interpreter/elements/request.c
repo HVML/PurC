@@ -340,302 +340,6 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 }
 
 static int
-request_rdr_startSession(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_createWorkspace(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_destroyWorkspace(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_updateWorkspace(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_endSession(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_setPageGroups(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    int ret = -1;
-    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    const char *s_to = purc_variant_get_string_const(ctxt->to);
-    struct pcinst* inst = pcinst_current();
-    struct pcrdr_conn *conn = inst->conn_to_rdr;
-
-    if (!conn) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-            "No connection for $RDR");
-        goto out;
-    }
-
-    if (!purc_variant_is_string(ctxt->with)) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-            "Invalid param type for request $RDR '%s'", s_to);
-        goto out;
-    }
-
-    const char *param = purc_variant_get_string_const(ctxt->with);
-    if (pcintr_rdr_set_page_groups(conn, co->target_workspace_handle, param)) {
-        ret = 0;
-    }
-
-out:
-    return ret;
-}
-
-static int
-request_rdr_addPageGroups(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    int ret = -1;
-    struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    const char *s_to = purc_variant_get_string_const(ctxt->to);
-    struct pcinst* inst = pcinst_current();
-    struct pcrdr_conn *conn = inst->conn_to_rdr;
-
-    if (!conn) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-            "No connection for $RDR");
-        goto out;
-    }
-
-    if (!purc_variant_is_string(ctxt->with)) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-            "Invalid param type for request $RDR '%s'", s_to);
-        goto out;
-    }
-
-    const char *param = purc_variant_get_string_const(ctxt->with);
-    if (pcintr_rdr_add_page_groups(conn, co->target_workspace_handle, param)) {
-        ret = 0;
-    }
-
-out:
-    return ret;
-}
-
-static int
-request_rdr_removePageGroup(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_createPlainWindow(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_destroyPlainWindow(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_updatePlainWindow(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_createWidget(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_destroyWidget(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_updateWidget(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_load(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_writeBegin(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_writeMore(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_writeEnd(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_erase(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_clear(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
-request_rdr_callMethod(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
-        purc_variant_t rdr)
-{
-    UNUSED_PARAM(co);
-    UNUSED_PARAM(frame);
-    UNUSED_PARAM(rdr);
-    purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
-            "Not implement asynchronously request for $RDR");
-    return -1;
-}
-
-static int
 request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t rdr)
 {
@@ -643,16 +347,46 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     UNUSED_PARAM(frame);
     UNUSED_PARAM(rdr);
     int ret = 0;
+
+    pcrdr_msg *response_msg = NULL;
+    pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
+    uint64_t target_value = co->target_workspace_handle;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_data_type data_type;
+
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *conn = inst->conn_to_rdr;
+    const char *operation = NULL;
+
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
-    const char *s_method = purc_variant_get_string_const(ctxt->to);
-    if (!s_method[0]) {
+    if (!ctxt->with) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request $RDR");
+        goto out;
+    }
+    else if (purc_variant_is_object(ctxt->with)) {
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
+    }
+    else if (purc_variant_is_string(ctxt->with)) {
+        data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+    }
+    else {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "Invalid param type '%s' for $RDR", pcvariant_typename(ctxt->with));
         goto out;
     }
 
-    purc_atom_t method = purc_atom_try_string_ex(ATOM_BUCKET_HVML, s_method);
+    operation = purc_variant_get_string_const(ctxt->to);
+    if (!operation[0]) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "Invalid method '%s' for $RDR", operation);
+        goto out;
+    }
+
+    purc_atom_t method = purc_atom_try_string_ex(ATOM_BUCKET_HVML, operation);
     if (!method) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "Invalid method '%s' for $RDR", s_method);
+                "Invalid method '%s' for $RDR", operation);
         goto out;
     }
 
@@ -662,94 +396,50 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, STARTSESSION)) == method) {
-        ret = request_rdr_startSession(co, frame, rdr);
+    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, STARTSESSION)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWORKSPACE)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWORKSPACE)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWORKSPACE)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ENDSESSION)) == method)
+            ) {
+        target = PCRDR_MSG_TARGET_SESSION;
     }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWORKSPACE)) ==
-            method) {
-        ret = request_rdr_createWorkspace(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWORKSPACE)) ==
-            method) {
-        ret = request_rdr_destroyWorkspace(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWORKSPACE)) ==
-            method) {
-        ret = request_rdr_updateWorkspace(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ENDSESSION)) ==
-            method) {
-        ret = request_rdr_endSession(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) ==
-            method) {
-        ret = request_rdr_setPageGroups(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) ==
-            method) {
-        ret = request_rdr_addPageGroups(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REMOVEPAGEGROUP)) ==
-            method) {
-        ret = request_rdr_removePageGroup(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) ==
-            method) {
-        ret = request_rdr_createPlainWindow(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYPLAINWINDOW)) ==
-            method) {
-        ret = request_rdr_destroyPlainWindow(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) ==
-            method) {
-        ret = request_rdr_updatePlainWindow(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) ==
-            method) {
-        ret = request_rdr_createWidget(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWIDGET)) ==
-            method) {
-        ret = request_rdr_destroyWidget(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWIDGET)) ==
-            method) {
-        ret = request_rdr_updateWidget(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, LOAD)) ==
-            method) {
-        ret = request_rdr_load(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WRITEBEGIN)) ==
-            method) {
-        ret = request_rdr_writeBegin(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WRITEMORE)) ==
-            method) {
-        ret = request_rdr_writeMore(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, WRITEEND)) ==
-            method) {
-        ret = request_rdr_writeEnd(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ERASE)) ==
-            method) {
-        ret = request_rdr_erase(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CLEAR)) ==
-            method) {
-        ret = request_rdr_clear(co, frame, rdr);
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CALLMETHOD)) ==
-            method) {
-        ret = request_rdr_callMethod(co, frame, rdr);
+    else if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REMOVEPAGEGROUP)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYPLAINWINDOW)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWIDGET)) == method)
+            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWIDGET)) == method)
+        ) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "Invalid method '%s' for $RDR", s_method);
+                "Invalid operation '%s' for $RDR", operation);
         goto out;
     }
+
+    purc_variant_t data = purc_variant_ref(ctxt->with);
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
+            target_value, operation, NULL, element_type, NULL, NULL,
+            data_type, data, 0);
+
+    if (response_msg == NULL) {
+        goto out;
+    }
+
+    int ret_code = response_msg->retCode;
+    pcrdr_release_message(response_msg);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto out;
+    }
+
+    ret = 0;
 
 out:
     return ret;
