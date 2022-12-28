@@ -65,8 +65,6 @@ void foil_page_init(pcmcth_page *page, int rows, int cols)
     page->rows = rows;
     page->cols = cols;
     page->udom = NULL;
-
-    return page;
 }
 
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)

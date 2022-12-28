@@ -1524,6 +1524,9 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         break;
     }
 
+    if (box->line_height < FOIL_PX_GRID_CELL_H)
+        box->line_height = FOIL_PX_GRID_CELL_H;
+
     /* determine vertical-align */
     if (box->is_inline_level || box->type != FOIL_RDRBOX_TYPE_TABLE_CELL) {
         v = css_computed_vertical_align(box->computed_style, &length, &unit);
@@ -2182,47 +2185,6 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     return width;
-}
-
-struct _line_info *
-foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    assert(box->is_block_level && box->nr_inline_level_children > 0);
-
-    struct _inline_fmt_ctxt *lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
-    assert(lfmt_ctxt);
-
-    lfmt_ctxt->lines = realloc(lfmt_ctxt->lines,
-            sizeof(struct _line_info) * (lfmt_ctxt->nr_lines + 1));
-    if (lfmt_ctxt->lines == NULL)
-        goto failed;
-
-    struct _line_info *line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
-    memset(line, 0, sizeof(struct _line_info));
-
-    struct _line_info *last_line = NULL;
-    if (lfmt_ctxt->nr_lines > 0)
-        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
-
-    // TODO: determine the fields of the line according to
-    // the floats and text-indent
-    line->rc.left = lfmt_ctxt->rc.left;
-    if (last_line)
-        line->rc.top = last_line->rc.top + last_line->height;
-    else
-        line->rc.top = lfmt_ctxt->rc.top;
-
-    line->x = line->rc.left;
-    line->y = line->rc.top;
-    line->width = 0;
-    line->height = box->line_height;
-    line->left_extent = lfmt_ctxt->poss_extent;
-    lfmt_ctxt->nr_lines++;
-    return line;
-
-failed:
-    return NULL;
 }
 
 /* this function also applies to anonymous block box */
