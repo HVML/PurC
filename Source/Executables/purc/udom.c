@@ -988,10 +988,37 @@ pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
     /* continue for the children */
     foil_rdrbox *child = box->first;
     while (child) {
+        pre_layout_rdrtree(ctxt, child);
+        child = child->next;
+    }
+}
 
-        if (child->first)
-            pre_layout_rdrtree(ctxt, child);
+static void
+resolve_widths(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    if (!box->is_width_resolved) {
+        foil_rdrbox_resolve_width(ctxt, box);
+    }
 
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+        resolve_widths(ctxt, child);
+        child = child->next;
+    }
+}
+
+static void
+resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    if (!box->is_height_resolved) {
+        foil_rdrbox_resolve_height(ctxt, box);
+    }
+
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+        resolve_heights(ctxt, child);
         child = child->next;
     }
 }
@@ -999,23 +1026,12 @@ pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (!box->is_width_resolved) {
-        foil_rdrbox_resolve_width(ctxt, box);
-    }
-
-    if (!box->is_height_resolved) {
-        foil_rdrbox_resolve_height(ctxt, box);
-    }
-
     foil_rdrbox_layout(ctxt, box);
 
     /* continue for the children */
     foil_rdrbox *child = box->first;
     while (child) {
-
-        if (child->first)
-            layout_rdrtree(ctxt, child);
-
+        layout_rdrtree(ctxt, child);
         child = child->next;
     }
 }
@@ -1187,6 +1203,12 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     LOG_DEBUG("Calling pre_layout_rdrtree...\n");
     pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
+
+    LOG_DEBUG("Calling resolve_widths...\n");
+    resolve_widths(&layout_ctxt, udom->initial_cblock);
+
+    LOG_DEBUG("Calling resolve_heights...\n");
+    resolve_heights(&layout_ctxt, udom->initial_cblock);
 
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);

@@ -64,7 +64,7 @@ struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void)
     return ctxt;
 }
 
-void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt)
+static void free_inline_formatting_context(struct _inline_fmt_ctxt *ctxt)
 {
     for (size_t i = 0; i < ctxt->nr_lines; i++) {
         if (ctxt->lines[i].segs)
@@ -74,6 +74,16 @@ void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt)
     if (ctxt->lines)
         free(ctxt->lines);
     free(ctxt);
+}
+
+void foil_rdrbox_block_box_cleanup(struct _block_box_data *data)
+{
+    free_inline_formatting_context(data->lfmt_ctxt);
+}
+
+void foil_rdrbox_inline_block_box_cleanup(struct _inline_block_data *data)
+{
+    free_inline_formatting_context(data->lfmt_ctxt);
 }
 
 #define SZ_IN_STACK_BUFF    128
@@ -203,7 +213,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
     assert(block->is_block_level && box->is_inline_box);
 
     struct _inline_fmt_ctxt *fmt_ctxt = block->block_data->lfmt_ctxt;
-    assert(fmt_ctxt->lines && fmt_ctxt->nr_lines > 1);
+    assert(fmt_ctxt->lines && fmt_ctxt->nr_lines > 0);
     struct _line_info *line = fmt_ctxt->lines + (fmt_ctxt->nr_lines - 1);
 
     struct _inline_box_data *inline_data = box->inline_data;
@@ -275,6 +285,11 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             line = foil_rdrbox_block_allocate_new_line(ctxt, block);
         }
     }
+
+    LOG_DEBUG("inline formatting context: rc (%d, %d, %d, %d), possible extent: %d, nr_lines: %u\n",
+            fmt_ctxt->rc.left, fmt_ctxt->rc.top,
+            fmt_ctxt->rc.right, fmt_ctxt->rc.bottom,
+            fmt_ctxt->poss_extent, (unsigned)fmt_ctxt->nr_lines);
 
     return line;
 

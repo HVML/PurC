@@ -418,6 +418,13 @@ dtrm_margin_left_right_block_normal(foil_layout_ctxt *ctxt,
     int nr_autos = 0;
     int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
 
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box->cblock_creator);
+    LOG_DEBUG("called container (%s), containing block width: %d\n",
+            name, cblock_width);
+    free(name);
+#endif
+
     if (width_v == CSS_WIDTH_AUTO)
         nr_autos++;
 
@@ -1768,7 +1775,7 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 #endif
 
     /* determine the container */
-    if (purc_document_root(ctxt->udom->doc) == box->owner) {
+    if (box->is_root) {
         box->cblock_creator = ctxt->udom->initial_cblock;
     }
     else if (box->position == FOIL_RDRBOX_POSITION_STATIC ||
@@ -1778,7 +1785,7 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
            block container ancestor box. */
 
         const foil_rdrbox *container;
-        container = foil_rdrbox_find_container_for_relative(ctxt, box->parent);
+        container = foil_rdrbox_find_container_for_relative(ctxt, box);
         assert(container);
         box->cblock_creator = container;
     }
@@ -1851,6 +1858,15 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
     }
 
+#ifndef NDEBUG
+    {
+        char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+        LOG_DEBUG("called for box %s, in_normal_flow: %d, is_inline_level: %d\n",
+                name, box->is_in_normal_flow, box->is_inline_level);
+        free(name);
+    }
+#endif
+
     if (box->is_in_normal_flow) {
         if (box->is_inline_level) {
             box->parent->nr_inline_level_children++;
@@ -1868,7 +1884,6 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         box->width = box->marker_data->width;
-        box->is_width_resolved = 1;
     }
     else if (box->computed_style) {
         /* calculate widths and margins */
@@ -1882,19 +1897,20 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->prop_for_width = FOIL_RDRBOX_USE_MIN_WIDTH;
             calc_width_margins(ctxt, box);
         }
-        box->is_width_resolved = 1;
     }
     else if (box->is_anonymous && box->is_block_level) {
         /* calculate width for anonymous block level box */
         int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
         box->width = cblock_width - box->ml - box->bl - box->pl -
             box->pr - box->br - box->mr;
-        box->is_width_resolved = 1;
     }
+
+    box->ctnt_rect.right = box->width;
+    box->is_width_resolved = 1;
 
 #ifndef NDEBUG
     char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
-    LOG_DEBUG("called for box %s: %d\n", name, box->width);
+    LOG_DEBUG("called for box %s, width: %d\n", name, box->width);
     free(name);
 #endif
 
@@ -1910,11 +1926,6 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     assert(box->is_height_resolved == 0);
-#ifndef NDEBUG
-    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
-    LOG_DEBUG("called for box %s\n", name);
-    free(name);
-#endif
 
     if (box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *lfmt_ctxt = NULL;
@@ -1923,13 +1934,13 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->block_data->lfmt_ctxt = lfmt_ctxt;
             box->cb_data_cleanup =
-                (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
+                (foil_data_cleanup_cb)foil_rdrbox_block_box_cleanup;
         }
         else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->inline_block_data->lfmt_ctxt = lfmt_ctxt;
             box->cb_data_cleanup =
-                (foil_data_cleanup_cb)foil_rdrbox_inline_fmt_ctxt_delete;
+                (foil_data_cleanup_cb)foil_rdrbox_inline_block_box_cleanup;
         }
         else {
             // never reach here
@@ -1944,7 +1955,6 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         box->height = FOIL_PX_GRID_CELL_H;
-        box->is_height_resolved = 1;
     }
     else if (box->computed_style) {
         /* calculate height and margins */
@@ -1958,13 +1968,20 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->prop_for_height = FOIL_RDRBOX_USE_MIN_HEIGHT;
             calc_height_margins(ctxt, box);
         }
-        box->is_height_resolved = 1;
-
     }
     else if (box->is_anonymous && box->is_block_level) {
         box->height = calc_height_for_visible_non_replaced(ctxt, box);
-        box->is_height_resolved = 1;
     }
+
+    box->ctnt_rect.bottom = box->height;
+    box->is_height_resolved = 1;
+
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s, height: %d\n", name, box->height);
+    free(name);
+#endif
+
 }
 
 void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
@@ -2215,6 +2232,12 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     int height = 0;
 
     (void)ctxt;
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s, in_normal_flow: %d, nr_inlines: %d, nr_blocks: %d\n",
+            name, box->is_in_normal_flow,
+            box->nr_inline_level_children, box->nr_block_level_children);
+#endif
 
     assert(box->is_block_level);
     if (box->nr_inline_level_children > 0) {
@@ -2226,7 +2249,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         foil_rdrbox *child = box->first;
         while (child) {
-            if (child->is_in_normal_flow) {
+            if (child->is_in_normal_flow == 0) {
                 child = child->next;
                 continue;
             }
@@ -2272,7 +2295,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     else if (box->nr_block_level_children > 0) {
         foil_rdrbox *child = box->first;
         while (child) {
-            if (child->is_in_normal_flow) {
+            if (child->is_in_normal_flow == 0) {
                 child = child->next;
                 continue;
             }
@@ -2287,6 +2310,11 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             child = child->next;
         }
     }
+
+#ifndef NDEBUG
+    LOG_DEBUG("called for box %s, height: %d\n", name, height);
+    free(name);
+#endif
 
 failed:
     return height;
@@ -2371,6 +2399,12 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             child = child->next;
         }
     }
+
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s, height: %d\n", name, height);
+    free(name);
+#endif
 
 failed:
     return height;

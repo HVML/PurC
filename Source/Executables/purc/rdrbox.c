@@ -1730,6 +1730,10 @@ create_pseudo_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
     if ((box = create_rdrbox_from_style(ctxt))) {
         box->principal = principal;
         box->is_pseudo = 1;
+        if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+            box->is_inline_box = 1;
+            box->is_inline_level = 1;
+        }
     }
 
     return box;

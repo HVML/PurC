@@ -152,7 +152,8 @@ struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(foil_block_heap *heap,
 void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
 
 struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void);
-void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
+void foil_rdrbox_block_box_cleanup(struct _block_box_data *data);
+void foil_rdrbox_inline_block_box_cleanup(struct _inline_block_data *data);
 
 static inline struct _inline_fmt_ctxt *
 foil_rdrbox_inline_fmt_ctxt(foil_rdrbox *box)
