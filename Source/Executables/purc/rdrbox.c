@@ -2072,7 +2072,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
     fputs(indent, stdout);
     fprintf(stdout, "box for %s: "
             "(type: %s; position: %s; float: %s; block container: %s; "
-            "level: %s; replaced: %s; z-index: %d)\n",
+            "level: %s; replaced: %s; z-index: %d, width: %d, height: %d)\n",
             name,
             literal_values_boxtype[box->type],
             literal_values_position[box->position],
@@ -2080,7 +2080,7 @@ void foil_rdrbox_dump(const foil_rdrbox *box,
             box->is_block_container ? "yes" : "no",
             box->is_block_level ? "block" : "inline",
             box->is_replaced ? "yes" : "no",
-            box->z_index);
+            box->z_index, box->width, box->height);
 
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         fputs(indent, stdout);

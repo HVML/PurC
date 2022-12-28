@@ -1866,6 +1866,12 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     assert(box->is_width_resolved == 0);
 
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s\n", name);
+    free(name);
+#endif
+
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         box->width = box->marker_data->width;
         box->is_width_resolved = 1;
@@ -1904,6 +1910,11 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     assert(box->is_height_resolved == 0);
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s\n", name);
+    free(name);
+#endif
 
     if (box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *lfmt_ctxt = NULL;

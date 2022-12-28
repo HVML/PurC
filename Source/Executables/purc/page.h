@@ -76,9 +76,10 @@ int foil_page_module_init(pcmcth_renderer *rdr);
 void foil_page_module_cleanup(pcmcth_renderer *rdr);
 
 pcmcth_page *foil_page_new(int rows, int cols);
-
 /* return the uDOM set for this page */
 pcmcth_udom *foil_page_delete(pcmcth_page *page);
+
+void foil_page_init(pcmcth_page *page, int rows, int cols);
 
 /* set uDOM and return the old one */
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);

@@ -279,9 +279,11 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->is_initial = 1;
     udom->initial_cblock->is_block_level = 1;
     udom->initial_cblock->is_block_container = 1;
+    udom->initial_cblock->is_width_resolved = 1;
 
     udom->initial_cblock->width = width;
     udom->initial_cblock->height = height;
+    LOG_INFO("width of initial containing block: %d\n", width);
 
     udom->initial_cblock->color = FOIL_DEF_FGC;
     udom->initial_cblock->background_color = FOIL_DEF_BGC;
@@ -997,17 +999,15 @@ pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (box != ctxt->initial_cblock) {
-        if (!box->is_width_resolved) {
-            foil_rdrbox_resolve_width(ctxt, box);
-        }
-
-        if (!box->is_height_resolved) {
-            foil_rdrbox_resolve_height(ctxt, box);
-        }
-
-        foil_rdrbox_layout(ctxt, box);
+    if (!box->is_width_resolved) {
+        foil_rdrbox_resolve_width(ctxt, box);
     }
+
+    if (!box->is_height_resolved) {
+        foil_rdrbox_resolve_height(ctxt, box);
+    }
+
+    foil_rdrbox_layout(ctxt, box);
 
     /* continue for the children */
     foil_rdrbox *child = box->first;

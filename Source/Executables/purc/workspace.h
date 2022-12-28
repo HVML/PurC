@@ -30,6 +30,8 @@
 #include "widget.h"
 
 struct pcmcth_workspace {
+    int cols, rows;
+
     /* the root window in the workspace */
     struct foil_widget *root;
 

@@ -44,6 +44,8 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
 {
     pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
+        workspace->cols = rdr->impl->cols;
+        workspace->rows = rdr->impl->rows;
         workspace->layouter = NULL;
         workspace->root = foil_widget_new(WSP_WIDGET_TYPE_ROOT, "root", NULL);
         if (workspace->root == NULL) {
@@ -165,7 +167,7 @@ create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
     if (plainwin) {
 
         /* TODO: initialize page here */
-
+        foil_page_init(&plainwin->page, workspace->rows, workspace->cols);
         foil_widget_append_child(workspace->root, plainwin);
         return &plainwin->page;
     }
