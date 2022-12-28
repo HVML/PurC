@@ -42,6 +42,8 @@ static void inline_data_cleaner(void *data)
         free(p->ucs);
         if (p->break_oppos)
             free(p->break_oppos);
+        if (p->glyph_poses)
+            free(p->glyph_poses);
         free(p);
     }
 }

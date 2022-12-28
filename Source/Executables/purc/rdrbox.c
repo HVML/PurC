@@ -52,9 +52,9 @@ foil_rdrbox *foil_rdrbox_new(uint8_t type)
     box->type = type;
 
     /* set the field here if its initial value is not non-zero */
-    box->min_height = -1;
+    box->min_height = 0;
     box->max_height = -1;
-    box->min_width = -1;
+    box->min_width = 0;
     box->max_width = -1;
 
     switch (type) {
@@ -327,6 +327,10 @@ void foil_rdrbox_delete(foil_rdrbox *box)
         }
 
         free(box->data);
+    }
+
+    if (box->block_fmt_ctxt) {
+        foil_rdrbox_block_fmt_ctxt_delete(box->block_fmt_ctxt);
     }
 
     free(box);
@@ -994,9 +998,38 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
 
     LOG_DEBUG("\toverflow-y: %s\n", literal_values_overflow[box->overflow_y]);
 
+    if (box->is_root) {
+        ctxt->initial_cblock->direction = box->direction;
+        if (ctxt->body == NULL) {
+            /* propagate `overflow` to viewport */
+            if (ctxt->root_box->overflow_x == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+                ctxt->initial_cblock->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+                box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+            }
+
+            if (ctxt->root_box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+                ctxt->initial_cblock->overflow_y = FOIL_RDRBOX_OVERFLOW_AUTO;
+                box->overflow_y = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+            }
+        }
+    }
+    else if (box->is_body) {
+        assert(ctxt->root_box);
+
+        /* propagate `overflow` to viewport */
+        if (ctxt->root_box->overflow_x == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+            ctxt->initial_cblock->overflow_x = FOIL_RDRBOX_OVERFLOW_AUTO;
+            box->overflow_x = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+        }
+
+        if (ctxt->root_box->overflow_y == FOIL_RDRBOX_OVERFLOW_VISIBLE) {
+            ctxt->initial_cblock->overflow_y = FOIL_RDRBOX_OVERFLOW_AUTO;
+            box->overflow_y = FOIL_RDRBOX_OVERFLOW_VISIBLE_PROPAGATED;
+        }
+    }
+
     /* determine unicode_bidi */
-    v = css_computed_unicode_bidi(
-            ctxt->style);
+    v = css_computed_unicode_bidi(ctxt->style);
     assert(v != CSS_UNICODE_BIDI_INHERIT);
     switch (v) {
     case CSS_UNICODE_BIDI_EMBED:
@@ -1024,8 +1057,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_unicode_bidi[box->unicode_bidi]);
 
     /* determine text_transform */
-    v = css_computed_text_transform(
-            ctxt->style);
+    v = css_computed_text_transform(ctxt->style);
     assert(v != CSS_TEXT_TRANSFORM_INHERIT);
     switch (v) {
     case CSS_TEXT_TRANSFORM_CAPITALIZE:
@@ -1047,8 +1079,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_text_transform[box->text_transform]);
 
     /* determine white-space */
-    v = css_computed_white_space(
-            ctxt->style);
+    v = css_computed_white_space(ctxt->style);
     assert(v != CSS_WHITE_SPACE_INHERIT);
     switch (v) {
     case CSS_WHITE_SPACE_PRE:
@@ -1076,8 +1107,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
             literal_values_white_space[box->white_space]);
 
     /* determine text-decoration */
-    v = css_computed_text_decoration(
-            ctxt->style);
+    v = css_computed_text_decoration(ctxt->style);
     assert(v != CSS_TEXT_DECORATION_INHERIT);
     if (v != CSS_TEXT_DECORATION_NONE) {
         if (v & CSS_TEXT_DECORATION_BLINK)
@@ -1203,14 +1233,14 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
     css_color color_argb;
     v = css_computed_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->color = color_argb;
+    box->color = foil_map_xrgb_to_16c(color_argb);
 
     LOG_DEBUG("\tcolor: 0x%08x\n", box->color);
 
     /* determine background color */
     v = css_computed_background_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->background_color = color_argb;
+    box->background_color = foil_map_xrgb_to_16c(color_argb);
 
     LOG_DEBUG("\tbackground-color: 0x%08x\n", box->background_color);
 
@@ -1274,13 +1304,83 @@ find_parent_statcking_context(foil_rdrbox *box)
     return NULL;
 }
 
+static const char *replaced_tags_html[] = {
+    "canvas",
+    "embed",
+    "iframe",
+    "img",
+    "object",
+    "video",
+};
+
 /* TODO: check whether an element is replaced or non-replaced */
 static int
 is_replaced_element(pcdoc_element_t elem, const char *tag_name)
 {
     (void)elem;
-    (void)tag_name;
+    static ssize_t max = PCA_TABLESIZE(replaced_tags_html);
+
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        int cmp;
+
+        mid = (low + high) / 2;
+        cmp = strcasecmp(tag_name, replaced_tags_html[mid]);
+        if (cmp == 0) {
+            goto found;
+        }
+        else {
+            if (cmp < 0) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
     return 0;
+
+found:
+    return 1;
+}
+
+static const char *control_tags_html[] = {
+    "audio",
+    "input",
+    "select",
+};
+
+/* TODO: check whether an element is a control */
+static int
+is_control_element(pcdoc_element_t elem, const char *tag_name)
+{
+    (void)elem;
+    static ssize_t max = PCA_TABLESIZE(control_tags_html);
+
+    ssize_t low = 0, high = max, mid;
+    while (low <= high) {
+        int cmp;
+
+        mid = (low + high) / 2;
+        cmp = strcasecmp(tag_name, replaced_tags_html[mid]);
+        if (cmp == 0) {
+            goto found;
+        }
+        else {
+            if (cmp < 0) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    return 0;
+
+found:
+    return 1;
 }
 
 static foil_rdrbox *
@@ -1308,6 +1408,12 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
         goto failed;
 
     box->owner = ctxt->elem;
+    if (ctxt->elem == ctxt->root) {
+        box->is_root = 1;
+        ctxt->root_box = box;
+    }
+    else if (ctxt->elem == ctxt->body)
+        box->is_body = 1;
 
     uint8_t v;
     v = css_computed_position(ctxt->style);
@@ -1319,10 +1425,14 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
 
     case CSS_POSITION_ABSOLUTE:
         box->position = FOIL_RDRBOX_POSITION_ABSOLUTE;
+        // absolutely positioned
+        box->is_abs_positioned = 1;
         break;
 
     case CSS_POSITION_FIXED:
         box->position = FOIL_RDRBOX_POSITION_FIXED;
+        // absolutely positioned
+        box->is_abs_positioned = 1;
         break;
 
     /* CSSEng does not support position: sticky so far
@@ -1353,6 +1463,57 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     case CSS_FLOAT_NONE:
     default:
         box->floating = FOIL_RDRBOX_FLOAT_NONE;
+        break;
+    }
+
+    LOG_DEBUG("\tfloat: %s\n", literal_values_float[box->floating]);
+
+    /* Override display for absolutely positioned box and root element */
+    if (box->is_abs_positioned || box->is_root) {
+        switch (box->type) {
+        case FOIL_RDRBOX_TYPE_INLINE_TABLE:
+            box->type = FOIL_RDRBOX_TYPE_TABLE;
+            break;
+        case FOIL_RDRBOX_TYPE_INLINE:
+        case FOIL_RDRBOX_TYPE_INLINE_BLOCK:
+        case FOIL_RDRBOX_TYPE_TABLE_ROW_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_HEADER_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_FOOTER_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_ROW:
+        case FOIL_RDRBOX_TYPE_TABLE_COLUMN_GROUP:
+        case FOIL_RDRBOX_TYPE_TABLE_COLUMN:
+        case FOIL_RDRBOX_TYPE_TABLE_CELL:
+        case FOIL_RDRBOX_TYPE_TABLE_CAPTION:
+            box->type = FOIL_RDRBOX_TYPE_BLOCK;
+            break;
+        case FOIL_RDRBOX_TYPE_LIST_ITEM:
+            if (box->is_root)
+                box->type = FOIL_RDRBOX_TYPE_BLOCK;
+            break;
+        }
+    }
+
+    LOG_DEBUG("\tNormalized type: %s\n", literal_values_boxtype[type]);
+
+    /* determine clear */
+    v = css_computed_float(ctxt->style);
+    assert(v != CSS_CLEAR_INHERIT);
+    switch (v) {
+    case CSS_CLEAR_LEFT:
+        box->clear = FOIL_RDRBOX_CLEAR_LEFT;
+        break;
+
+    case CSS_CLEAR_RIGHT:
+        box->clear = FOIL_RDRBOX_CLEAR_RIGHT;
+        break;
+
+    case CSS_CLEAR_BOTH:
+        box->clear = FOIL_RDRBOX_CLEAR_BOTH;
+        break;
+
+    case CSS_CLEAR_NONE:
+    default:
+        box->clear = FOIL_RDRBOX_CLEAR_NONE;
         break;
     }
 
@@ -1494,6 +1655,9 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
             box->is_inline_box = 1;
+
+        box->is_control = is_control_element(ctxt->elem, ctxt->tag_name);
+        // TODO: create control
 
         /* whether is a block contianer */
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||

@@ -48,7 +48,6 @@ typedef struct my_glyph_info {
 typedef struct my_glyph_args {
     const uint32_t* ucs;
     const uint16_t* bos;
-    uint32_t* gvs;
     uint32_t rf;
     size_t nr_ucs;
 
@@ -755,8 +754,6 @@ static inline bool is_stop_or_common(const my_glyph_info* gi)
 static void init_glyph_info(my_glyph_args* args, int i,
         my_glyph_info* gi)
 {
-    args->gvs[i] = args->ucs[i];
-
     gi->uc = args->ucs[i];
     gi->gc = g_unichar_type(gi->uc);
     gi->whitespace = 0;
@@ -827,7 +824,7 @@ static int get_last_normal_glyph(const my_glyph_args* args,
 size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         const foil_break_oppo_t* break_oppos, uint32_t render_flags,
         int x, int y, int letter_spacing, int word_spacing, int tab_size,
-        int max_extent, foil_size* line_size, uint32_t* glyphs,
+        int max_extent, foil_size* line_size,
         foil_glyph_extinfo* glyph_ext_info,
         foil_glyph_pos* glyph_pos)
 {
@@ -856,7 +853,6 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         goto error;
 
     args.ucs = ucs;
-    args.gvs = glyphs;
     args.bos = break_oppos;
     args.nr_ucs = nr_ucs;
     args.rf = render_flags;
@@ -922,7 +918,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
             ges[n].line_adv = 0;
         }
         else {
-            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+            ges[n].line_adv = get_glyph_extent_info(&args, ucs[n], gis + n,
                     ges + n);
         }
 
@@ -1051,7 +1047,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         else if (n < nr_ucs && is_closing_punctation(gis + n)) {
             gis[n].hanged = FOIL_GLYPH_HANGED_END;
             if (n < args.hanged_end) args.hanged_end = n;
-            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+            ges[n].line_adv = get_glyph_extent_info(&args, ucs[n], gis + n,
                     ges + n);
             total_extent += ges[n].line_adv;
             n++;
@@ -1070,7 +1066,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         else if (n < nr_ucs && is_stop_or_common(gis + n)) {
             gis[n].hanged = FOIL_GLYPH_HANGED_END;
             if (n < args.hanged_end) args.hanged_end = n;
-            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+            ges[n].line_adv = get_glyph_extent_info(&args, ucs[n], gis + n,
                     ges + n);
             total_extent += ges[n].line_adv;
             n++;
@@ -1083,7 +1079,7 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
         if (n < nr_ucs && is_stop_or_common(gis + n)) {
             gis[n].hanged = FOIL_GLYPH_HANGED_END;
             if (n < (size_t)args.hanged_end) args.hanged_end = n;
-            ges[n].line_adv = get_glyph_extent_info(&args, glyphs[n], gis + n,
+            ges[n].line_adv = get_glyph_extent_info(&args, ucs[n], gis + n,
                     ges + n);
             total_extent += ges[n].line_adv;
             n++;

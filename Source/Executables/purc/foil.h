@@ -38,6 +38,7 @@
 #define FOIL_RDR_NAME           "Foil"
 
 #define FOIL_DEF_CHARSET        "UTF-8"
+#define FOIL_DEF_DPI            96.0
 #define FOIL_PX_PER_EM          8
 #define FOIL_PX_PER_EX          4
 
@@ -100,6 +101,29 @@ enum {
     FOIL_TERM_MODE_FULL_SCREEN,
 };
 
+/* the standard 16 colors. */
+enum {
+    FOIL_STD_COLOR_BLACK = 0,
+    FOIL_STD_COLOR_DARK_RED,
+    FOIL_STD_COLOR_DARK_GREEN,
+    FOIL_STD_COLOR_DARK_YELLOW,
+    FOIL_STD_COLOR_DARK_BLUE,
+    FOIL_STD_COLOR_DARK_MAGENTA,
+    FOIL_STD_COLOR_DARK_CYAN,
+    FOIL_STD_COLOR_GRAY,
+    FOIL_STD_COLOR_DARK_GRAY,
+    FOIL_STD_COLOR_RED,
+    FOIL_STD_COLOR_GREEN,
+    FOIL_STD_COLOR_YELLOW,
+    FOIL_STD_COLOR_BLUE,
+    FOIL_STD_COLOR_MAGENTA,
+    FOIL_STD_COLOR_CYAN,
+    FOIL_STD_COLOR_WHITE,
+};
+
+#define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
+#define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
+
 struct pcmcth_rdr_data {
     int term_mode;
     int rows, cols;
@@ -119,6 +143,9 @@ int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
         const char **lang, size_t *len);
 
 int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs);
+
+uint8_t foil_map_xrgb_to_256c(uint32_t xrgb);
+uint8_t foil_map_xrgb_to_16c(uint32_t xrgb);
 
 #ifdef __cplusplus
 }

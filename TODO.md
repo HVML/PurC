@@ -72,10 +72,9 @@
 
 1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.6] Complete the implementation of the following predefined variables:
-   - `$RDR`
-   - `$DOC`
    - `$URL`
    - `$STR`
+   - `$DOC`
 1. [0.9.8] Support for the following URI schemas for `$STREAM`:
    - `fifo`
 1. [0.9.9] Support for the following filters for `$STREAM`:
@@ -97,8 +96,8 @@
    - The value of the attribute `at` can be `content`.
    - The support for the adverb attribute `individually`.
 1. [0.9.4] Full support for `request` element.
-1. [0.9.6] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.6] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. [0.9.8] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
@@ -135,7 +134,9 @@
 ### 2.6) `purc`
 
 1. [0.9.4] Enhance `foil` to support more properties and layouts except for table.
-1. [0.9.6] Enhance `foil` to support full-screen and multiple-page rendering.
+1. [0.9.6] Enhance `foil` to support table layout.
+1. [0.9.6] Enhance `foil` to support `meter` and `progress` elements.
+1. [0.9.8] Enhance `foil` to support full-screen and multiple-page rendering.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
 
 ### 2.7) More Platforms

@@ -52,6 +52,7 @@ static const char *def_style_sheet = ""
     "section, address, aside { display: block; unicode-bidi: embed }"
     "abbr            { display: inline }"
     "li              { display: list-item }"
+    "datalist, template, slot, dialog,"  // HTML 5 tags
     "head, area      { display: none }"
     "table           { display: table }"
     "tr              { display: table-row }"
@@ -256,12 +257,15 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
-    /* create the initial containing block */
     int cols = foil_page_cols(page);
     int rows = foil_page_rows(page);
-    int width = cols * FOIL_PX_PER_EX;
-    int height = rows * FOIL_PX_PER_EM;
+    int width = cols * FOIL_PX_GRID_CELL_W;
+    int height = rows * FOIL_PX_GRID_CELL_H;
 
+    udom->vw = width;
+    udom->vh = height;
+
+    /* create the initial containing block */
     udom->initial_cblock = foil_rdrbox_new(FOIL_RDRBOX_TYPE_BLOCK);
     if (udom->initial_cblock == NULL) {
         LOG_ERROR("Failed to allocate initial containing block\n");
@@ -282,10 +286,10 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->color = FOIL_DEF_FGC;
     udom->initial_cblock->background_color = FOIL_DEF_BGC;
 
-    udom->initial_cblock->cblock_rect.left = 0;
-    udom->initial_cblock->cblock_rect.top = 0;
-    udom->initial_cblock->cblock_rect.right = width;
-    udom->initial_cblock->cblock_rect.right = height;
+    udom->initial_cblock->ctnt_rect.left = 0;
+    udom->initial_cblock->ctnt_rect.top = 0;
+    udom->initial_cblock->ctnt_rect.right = width;
+    udom->initial_cblock->ctnt_rect.bottom = height;
     udom->initial_cblock->cblock_creator = NULL;
 
     udom->media.type = CSS_MEDIA_TTY;
@@ -708,9 +712,16 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
         goto failed;
     }
 
-    /* continue for the children */
     pcdoc_node node;
-    node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    if (box->is_replaced || box->is_control) {
+        /* skip contents if the element is a replaced one or a control */
+        node.type = PCDOC_NODE_VOID;
+        node.elem = NULL;
+    }
+    else {
+        /* continue for the children */
+        node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    }
 
     while (node.type != PCDOC_NODE_VOID) {
 
@@ -967,10 +978,36 @@ failed:
 }
 
 static void
-layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+pre_layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
     if (box != ctxt->initial_cblock)
-        foil_rdrbox_determine_geometry(ctxt, box);
+        foil_rdrbox_pre_layout(ctxt, box);
+
+    /* continue for the children */
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        if (child->first)
+            pre_layout_rdrtree(ctxt, child);
+
+        child = child->next;
+    }
+}
+
+static void
+layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    if (box != ctxt->initial_cblock) {
+        if (!box->is_width_resolved) {
+            foil_rdrbox_resolve_width(ctxt, box);
+        }
+
+        if (!box->is_height_resolved) {
+            foil_rdrbox_resolve_height(ctxt, box);
+        }
+
+        foil_rdrbox_layout(ctxt, box);
+    }
 
     /* continue for the children */
     foil_rdrbox *child = box->first;
@@ -1126,8 +1163,13 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     /* create the box tree */
-    foil_create_ctxt ctxt = { udom, udom->initial_cblock, udom->initial_cblock,
-        purc_document_root(edom_doc), NULL, NULL, NULL, NULL };
+    foil_create_ctxt ctxt = { udom,
+        udom->initial_cblock,           /* initial box */
+        NULL,                           /* root box */
+        udom->initial_cblock,           /* parent box */
+        purc_document_root(edom_doc),   /* root element */
+        purc_document_body(edom_doc),   /* body element */
+        NULL, NULL, NULL, NULL };
     if (make_rdrtree(&ctxt, ctxt.root))
         goto failed;
 
@@ -1142,7 +1184,10 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
 
     /* determine the geometries of boxes and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock, 0, 0 };
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+    LOG_DEBUG("Calling pre_layout_rdrtree...\n");
+    pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
+
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 

@@ -44,6 +44,9 @@ struct text_paragraph {
 
     /* the break opportunities of the characters */
     foil_break_oppo_t *break_oppos;
+
+    /* the glyph positions */
+    foil_glyph_pos *glyph_poses;
 };
 
 struct _inline_box_data {
@@ -54,16 +57,63 @@ struct _inline_box_data {
     struct list_head paras;
 };
 
-struct _block_box_data {
-    int text_indent;
+struct _inline_segment {
+    /* the box generating this inline segment */
+    foil_rdrbox *box;
 
-    uint8_t text_align:3;
+    /* the rectangle of this inline segment */
+    foil_rect rc;
+
+    /* the text span if the box is an inline box */
+    const struct text_paragraph *span;
+    /* the index of the first character of this segment in the text span */
+    size_t first_uc;
+    /* the number of characters fits in this segment */
+    size_t nr_ucs;
+};
+
+struct _line_info {
+    /* the bounding rectangle of this line */
+    foil_rect rc;
+
+    /* the actual width and height of this line */
+    int width, height;
+
+    /* the position to lay the new segment */
+    int x, y;
+
+    /* the left extent of the current line */
+    int left_extent;
+
+    /* the number of inline segments in this line */
+    size_t nr_segments;
+
+    /* the array of inline segments fit in this line */
+    struct _inline_segment *segs;
+};
+
+struct _inline_fmt_ctxt {
+    /* the bounding rectangle of all inlines */
+    foil_rect rc;
+
+    /* the possible/maximum extent of a line */
+    int poss_extent;
+
+    /* number of total lines */
+    size_t nr_lines;
+
+    /* pointer to the array of lines */
+    struct _line_info *lines;
+};
+
+struct _block_box_data {
+    /* not NULL if the block contains inline level boxes */
+    struct _inline_fmt_ctxt *lfmt_ctxt;
 };
 
 struct _inline_block_data {
-    int foo, bar;
-
-    uint8_t text_align:3;
+    /* not NULL if the block contains inline level boxes */
+    struct _inline_fmt_ctxt *lfmt_ctxt;
 };
 
 struct _list_item_data {
@@ -79,23 +129,65 @@ struct _marker_box_data {
     int       width;
 };
 
-struct _block_fmt_context {
+struct _block_fmt_ctxt {
     /* < 0 for no limit */
     int max_height;
     int allocated_height;
+
+    /* the available region to lay out floats and inline boxes. */
+    foil_region region;
 };
 
-struct _inline_fmt_context {
-    /* the available region to lay out floats and inline boxes. */
-    foil_region avl_region;
+/* not used so far */
+struct _preferred_width_ctxt {
+    int x, y;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-foil_size
-foil_rdrbox_inline_shrink_to_fit(const struct _inline_box_data *inline_data);
+struct _block_fmt_ctxt *foil_rdrbox_block_fmt_ctxt_new(foil_block_heap *heap,
+        int width, int height);
+void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
+
+struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void);
+void foil_rdrbox_inline_fmt_ctxt_delete(struct _inline_fmt_ctxt *ctxt);
+
+static inline struct _inline_fmt_ctxt *
+foil_rdrbox_inline_fmt_ctxt(foil_rdrbox *box)
+{
+    assert(box->is_block_level);
+    if (box->type == FOIL_RDRBOX_TYPE_BLOCK)
+        return box->block_data->lfmt_ctxt;
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK)
+        return box->inline_block_data->lfmt_ctxt;
+    return NULL;
+}
+
+static inline void
+foil_rdrbox_line_set_size(struct _line_info *line,
+        int width, int height)
+{
+    line->width += width;
+    line->rc.right += width;
+    if (height > line->height) {
+        line->height = height;
+        line->rc.bottom = line->rc.top + line->height;
+    }
+}
+
+struct _inline_segment *
+foil_rdrbox_line_allocate_new_segment(struct _inline_fmt_ctxt *fmt_ctxt);
+
+struct _line_info *foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt,
+        foil_rdrbox *block);
+
+int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box);
+int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box);
+
+struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
+        foil_rdrbox *block, foil_rdrbox *box);
 
 #ifdef __cplusplus
 }
