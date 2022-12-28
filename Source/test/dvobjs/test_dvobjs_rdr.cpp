@@ -41,3 +41,13 @@ TEST(dvobjs, rdr)
     tester.run_testcases_in_file("rdr");
 }
 
+TEST(dvobjs, rdr_socket)
+{
+#if OS(LINUX)
+    if(0 == system("pidof -x xguipro > /dev/null")) {
+        TestDVObj tester(true);
+        tester.run_testcases_in_file("rdr_socket");
+    }
+#endif
+}
+
