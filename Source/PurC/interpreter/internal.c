@@ -554,9 +554,9 @@ pcintr_coroutine_dump(pcintr_coroutine_t co)
 {
     purc_rwstream_t rws = purc_rwstream_new_buffer(1024, 0);
     purc_coroutine_dump_stack(co, rws);
+#ifndef NDEBUG
     size_t nr_hvml = 0;
     const char *hvml = purc_rwstream_get_mem_buffer(rws, &nr_hvml);
-#ifndef NDEBUG
     fprintf(stderr, "%s\n", hvml);
 #endif
     purc_rwstream_destroy(rws);
