@@ -19,27 +19,3 @@ positive:
     $RDR.state.prot
     "HEADLESS"
 
-positive:
-    $RDR.connect("socket", "unix:///var/tmp/purcmc.sock")
-    true
-
-positive:
-    $RDR.state.uri
-    "unix:///var/tmp/purcmc.sock"
-
-positive:
-    $RDR.state.comm
-    "SOCKET"
-
-positive:
-    $RDR.state.prot
-    "PURCMC"
-
-positive:
-    $RDR.disconnect()
-    true
-
-positive:
-    $RDR.state
-    {"comm":"none"}
-
