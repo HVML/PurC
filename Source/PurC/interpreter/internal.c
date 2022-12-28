@@ -1300,6 +1300,10 @@ pcintr_request_id_get_res(purc_variant_t v)
         return 0;
     }
     purc_variant_t val = purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_RES);
+    if (!val) {
+        purc_clr_error();
+        return NULL;
+    }
     return purc_variant_get_string_const(val);
 }
 
