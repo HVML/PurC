@@ -184,6 +184,21 @@ int pcrdr_free_connection(pcrdr_conn* conn)
         free(pr);
     }
 
+    struct pcrdr_page_handle *ph, *nh;
+    list_for_each_entry_safe(ph, nh, &conn->page_handles, list) {
+        if (ph->workspace_name) {
+            free(ph->workspace_name);
+        }
+        if (ph->group_name) {
+            free(ph->group_name);
+        }
+        if (ph->page_name) {
+            free(ph->page_name);
+        }
+        list_del(&ph->list);
+        free(ph);
+    }
+
     free(conn);
 
     return 0;

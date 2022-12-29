@@ -1491,6 +1491,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
+    list_head_init (&(*conn)->page_handles);
     return msg;
 
 failed:
