@@ -615,3 +615,66 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
             request_msg->requestId, seconds_expected, response_msg);
 }
 
+int
+pcrdr_save_page_handle(struct pcrdr_conn *conn, const char *workspace_name,
+        const char *group_name, const char *page_name, pcrdr_page_type_k page_type,
+        uint64_t page_handle, uint64_t workspace_handle, uint64_t dom_handle)
+{
+    int ret = -1;
+    if (!conn || !page_handle) {
+        goto out;
+    }
+
+    struct pcrdr_page_handle *p = calloc(1, sizeof(*p));
+    if (!p) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    if (workspace_name) {
+        p->workspace_name = strdup(workspace_name);
+        if (!p->workspace_name) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out_free_p;
+        }
+    }
+
+    if (group_name) {
+        p->group_name = strdup(group_name);
+        if (!p->group_name) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out_free_workspace_name;
+        }
+    }
+
+    if (page_name) {
+        p->page_name = strdup(page_name);
+        if (!p->page_name) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out_free_group_name;
+        }
+    }
+
+    p->page_type = page_type;
+    p->page_handle = page_handle;
+    p->workspace_handle = workspace_handle;
+    p->dom_handle = dom_handle;
+
+    list_add(&p->list, &conn->page_handles);
+
+    ret = 0;
+    goto out;
+
+out_free_group_name:
+    free(p->group_name);
+
+out_free_workspace_name:
+    free(p->workspace_name);
+
+out_free_p:
+    free(p);
+
+out:
+    return ret;
+}
+

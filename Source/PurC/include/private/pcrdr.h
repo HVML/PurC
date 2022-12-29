@@ -87,6 +87,8 @@ struct renderer_capabilities {
     uint64_t    workspace_handle;
 };
 
+struct pcrdr_conn;
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -102,6 +104,11 @@ pcrdr_check_operation(const char *op)
 {
     return purc_atom_try_string_ex(ATOM_BUCKET_RDROP, op);
 }
+
+int
+pcrdr_save_page_handle(struct pcrdr_conn *conn, const char *workspace_name,
+        const char *group_name, const char *page_name, pcrdr_page_type_k page_type,
+        uint64_t page_handle, uint64_t workspace_handle, uint64_t dom_handle);
 
 #ifdef __cplusplus
 }

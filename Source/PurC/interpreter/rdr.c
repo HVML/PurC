@@ -866,6 +866,10 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         return false;
     }
 
+    pcrdr_save_page_handle(conn_to_rdr, target_workspace,
+        target_group, page_name, page_type,
+        page, workspace, 0);
+
     cor->target_workspace_handle = workspace;
     cor->target_page_type = page_type;
     cor->target_page_handle = page;
