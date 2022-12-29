@@ -39,7 +39,9 @@
 #include <unistd.h>
 
 #define EVENT_SEPARATOR          ':'
-#define REQUEST_EVENT_HANDER  "_request_event_handler"
+#define REQUEST_EVENT_HANDER     "_request_event_handler"
+
+#define ARG_KEY_DATA             "data"
 
 struct ctxt_for_request {
     struct pcvdom_node           *curr;
@@ -370,21 +372,35 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
         : NULL;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    purc_variant_t arg = ctxt->with;
 
-    if (!ctxt->with) {
+    if (!arg) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request $RDR");
         goto out;
     }
-    else if (purc_variant_is_object(ctxt->with)) {
+    else if (!purc_variant_is_object(arg)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "Invalid param type '%s' for $RDR", pcvariant_typename(ctxt->with));
+        goto out;
+    }
+
+    data = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA);
+    if (!data) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request $RDR");
+        goto out;
+    }
+    else if (purc_variant_is_object(data)) {
         data_type = PCRDR_MSG_DATA_TYPE_JSON;
     }
-    else if (purc_variant_is_string(ctxt->with)) {
+    else if (purc_variant_is_string(data)) {
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "Invalid param type '%s' for $RDR", pcvariant_typename(ctxt->with));
+                "Invalid param type '%s' for $RDR", pcvariant_typename(data));
         goto out;
     }
 
@@ -421,10 +437,10 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t data = purc_variant_ref(ctxt->with);
+    purc_variant_t d = purc_variant_ref(data);
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, request_id, element_type, NULL, NULL,
-            data_type, data, 0);
+            data_type, d, 0);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
     if (ctxt->is_noreturn) {
