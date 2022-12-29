@@ -1987,14 +1987,6 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 }
 
-void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
-{
-    (void)ctxt;
-    (void)box;
-
-    /* now we just adjust the position of the box */
-}
-
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc)
 {
     assert(box->cblock_creator);
@@ -2370,5 +2362,13 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
 failed:
     return height;
+}
+
+void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+
+    /* now we just adjust the positions of the boxes */
 }
 
