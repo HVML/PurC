@@ -1972,7 +1972,7 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             calc_height_margins(ctxt, box);
         }
     }
-    else if (box->is_anonymous && box->is_block_level) {
+    else if ((box->is_anonymous && box->is_block_level) || box->is_initial) {
         box->height = calc_height_for_visible_non_replaced(ctxt, box);
     }
 
