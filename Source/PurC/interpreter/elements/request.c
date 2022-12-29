@@ -408,23 +408,10 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, STARTSESSION)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ENDSESSION)) == method)
-            ) {
-        target = PCRDR_MSG_TARGET_SESSION;
-    }
-    else if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
+    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REMOVEPAGEGROUP)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWIDGET)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWIDGET)) == method)
         ) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
     }
@@ -449,6 +436,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     else {
         int ret_code = response_msg->retCode;
+        PC_DEBUG("request $RDR ret_code=%d\n", ret_code);
         if (ret_code == PCRDR_SC_OK) {
             if (response_msg->data) {
                 v = purc_variant_ref(response_msg->data);
