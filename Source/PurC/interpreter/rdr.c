@@ -31,6 +31,7 @@
 #include "private/utils.h"
 #include "private/variant.h"
 #include "private/pcrdr.h"
+#include "pcrdr/connect.h"
 
 #include <string.h>
 
@@ -814,10 +815,11 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info)
 {
+    bool ret = false;
     struct pcinst *inst = pcinst_current();
     if (inst == NULL || inst->rdr_caps == NULL) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
-        return false;
+        goto out;
     }
 
     struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
@@ -832,7 +834,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
             purc_log_error("Failed to retrieve workspace: %s.\n",
                     target_workspace);
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            return false;
+            goto out;
         }
     }
 
@@ -841,7 +843,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
                 extra_info->page_groups)) {
             purc_log_error("Failed to add page groups to renderer.\n");
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            return false;
+            goto out;
         }
     }
 
@@ -853,28 +855,100 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         page_name = buff;
     }
 
-    uint64_t page;
-    page = pcintr_rdr_create_page(conn_to_rdr, workspace,
-            page_type, target_group, page_name,
-            extra_info ? extra_info->title : NULL,
-            extra_info ? extra_info->klass : NULL,
-            extra_info ? extra_info->layout_style : NULL,
-            extra_info ? extra_info->toolkit_style : NULL);
-    if (!page) {
-        purc_log_error("Failed to create page: %s.\n", page_name);
-        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        return false;
+    uint64_t page = 0;
+    switch (page_type) {
+    case PCRDR_PAGE_TYPE_NULL:
+    {
+        if (!page_name) {
+            /* never reached here!!! */
+            purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+            goto out;
+        }
+        struct pcrdr_page_handle *ph, *nh;
+        list_for_each_entry_safe(ph, nh, &conn_to_rdr->page_handles, list) {
+            if (ph->page_name && (strcmp(ph->page_name, page_name) == 0)) {
+                cor->target_workspace_handle = workspace;
+                cor->target_page_type = ph->page_type;
+                cor->target_page_handle = ph->page_handle;
+                ret = true;
+                goto out;
+            }
+        }
+        break;
     }
 
-    pcrdr_save_page_handle(conn_to_rdr, target_workspace,
-        target_group, page_name, page_type,
-        page, workspace, 0);
+    case PCRDR_PAGE_TYPE_INHERIT:
+        /* never reached here!!! */
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto out;
 
-    cor->target_workspace_handle = workspace;
-    cor->target_page_type = page_type;
-    cor->target_page_handle = page;
+    case PCRDR_PAGE_TYPE_SELF:
+        ret = true;
+        goto out;
 
-    return true;
+    case PCRDR_PAGE_TYPE_FIRST:
+    {
+        struct pcrdr_page_handle *ph = list_first_entry(
+                &conn_to_rdr->page_handles, struct pcrdr_page_handle, list);
+        if (ph) {
+            cor->target_workspace_handle = workspace;
+            cor->target_page_type = ph->page_type;
+            cor->target_page_handle = ph->page_handle;
+            ret = true;
+        }
+        break;
+    }
+
+    case PCRDR_PAGE_TYPE_LAST:
+    {
+        struct pcrdr_page_handle *ph = list_last_entry(
+                &conn_to_rdr->page_handles, struct pcrdr_page_handle, list);
+        if (ph) {
+            cor->target_workspace_handle = workspace;
+            cor->target_page_type = ph->page_type;
+            cor->target_page_handle = ph->page_handle;
+            ret = true;
+        }
+        break;
+    }
+
+    case PCRDR_PAGE_TYPE_ACTIVE:
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        goto out;
+
+    case PCRDR_PAGE_TYPE_PLAINWIN:
+    case PCRDR_PAGE_TYPE_WIDGET:
+    {
+        page = pcintr_rdr_create_page(conn_to_rdr, workspace,
+                page_type, target_group, page_name,
+                extra_info ? extra_info->title : NULL,
+                extra_info ? extra_info->klass : NULL,
+                extra_info ? extra_info->layout_style : NULL,
+                extra_info ? extra_info->toolkit_style : NULL);
+        if (!page) {
+            purc_log_error("Failed to create page: %s.\n", page_name);
+            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+            goto out;
+        }
+
+        pcrdr_save_page_handle(conn_to_rdr, target_workspace,
+                target_group, page_name, page_type,
+                page, workspace, 0);
+
+        cor->target_workspace_handle = workspace;
+        cor->target_page_type = page_type;
+        cor->target_page_handle = page;
+        ret = true;
+        break;
+    }
+
+    default:
+        break;
+    }
+
+
+out:
+    return ret;
 }
 
 static pcrdr_msg *
