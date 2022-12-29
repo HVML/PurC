@@ -39,13 +39,18 @@
 
 #define FOIL_DEF_CHARSET        "UTF-8"
 #define FOIL_DEF_DPI            96.0
-#define FOIL_PX_PER_EM          8
-#define FOIL_PX_PER_EX          4
+
+/* maximum size of the buffer for cells in a page: 512 * 256 * 8 (1 MiB) */
+#define FOIL_MAX_COLS           512
+#define FOIL_MAX_ROWS           256
 
 #define FOIL_PX_GRID_CELL_H     8
 #define FOIL_PX_GRID_CELL_W     4
-#define FOIL_PX_REPLACED_W      320
-#define FOIL_PX_REPLACED_H      160
+#define FOIL_PX_REPLACED_W      (FOIL_PX_GRID_CELL_W * 20)
+#define FOIL_PX_REPLACED_H      (FOIL_PX_GRID_CELL_H * 5)
+
+#define FOIL_PX_PER_EM          FOIL_PX_GRID_CELL_H
+#define FOIL_PX_PER_EX          FOIL_PX_GRID_CELL_W
 
 #define FOIL_RDR_FEATURES \
     PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \
@@ -123,6 +128,15 @@ enum {
 
 #define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
 #define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
+
+enum {
+    FOIL_CHAR_ATTR_NULL         = 0x00,
+    FOIL_CHAR_ATTR_BOLD         = 0x01,
+    FOIL_CHAR_ATTR_UNDERLINE    = 0x02,
+    FOIL_CHAR_ATTR_STRIKEOUT    = 0x04,
+    FOIL_CHAR_ATTR_BLINK        = 0x08,
+    FOIL_CHAR_ATTR_REVERSE      = 0x10,
+};
 
 struct pcmcth_rdr_data {
     int term_mode;

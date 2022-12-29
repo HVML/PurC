@@ -136,7 +136,7 @@ void foil_widget_remove_from_tree(foil_widget *widget)
 void foil_widget_delete(foil_widget *widget)
 {
     foil_widget_remove_from_tree(widget);
-
+    foil_page_cleanup(&widget->page);
     if (widget->name)
         free(widget->name);
     if (widget->title)

@@ -27,6 +27,23 @@
 #define purc_foil_page_h
 
 #include "foil.h"
+#include "region/rect.h"
+
+struct foil_tty_cell {
+    /* the Unicode code point of the character */
+    uint32_t uc;
+
+    /* the character attributes */
+    uint8_t attrs;
+    /* the index of the foreground color */
+    uint8_t fgc;
+    /* the index of the background color */
+    uint8_t bgc;
+
+    /* Indicate whether the cell is the latter half of a wide character. */
+    uint8_t latter_half:1;
+    uint8_t _reversed:7;
+};
 
 /* a span is a group of continuous characters which are all with
    same foreground color and background color and decorations in a row */
@@ -65,7 +82,20 @@ struct foil_contents_line_mode {
 struct pcmcth_page {
     int left, top;
     int rows, cols;
+
+    /* the current character attributes */
+    uint8_t attrs;
+    /* the index of the current foreground color */
+    uint8_t fgc;
+    /* the index of the current background color */
+    uint8_t bgc;
+    uint8_t _padding;
+
+    /* the dirty rectangle */
+    foil_rect dirty_rect;
+
     pcmcth_udom *udom;
+    struct foil_tty_cell *cells;
 };
 
 #ifdef __cplusplus
@@ -76,16 +106,29 @@ int foil_page_module_init(pcmcth_renderer *rdr);
 void foil_page_module_cleanup(pcmcth_renderer *rdr);
 
 pcmcth_page *foil_page_new(int rows, int cols);
+
 /* return the uDOM set for this page */
 pcmcth_udom *foil_page_delete(pcmcth_page *page);
 
-void foil_page_init(pcmcth_page *page, int rows, int cols);
+bool foil_page_init(pcmcth_page *page, int rows, int cols);
+void foil_page_cleanup(pcmcth_page *page);
 
 /* set uDOM and return the old one */
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 
 int foil_page_rows(const pcmcth_page *page);
 int foil_page_cols(const pcmcth_page *page);
+
+uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color);
+uint8_t foil_page_set_bgc(pcmcth_page *page, uint8_t color);
+uint8_t foil_page_set_attrs(pcmcth_page *page, uint8_t attrs);
+
+int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
+        uint32_t uc, size_t count);
+int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
+        uint32_t *ucs, size_t nr_ucs);
+
+bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc);
 
 #ifdef __cplusplus
 }
