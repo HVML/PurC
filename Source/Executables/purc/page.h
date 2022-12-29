@@ -80,7 +80,11 @@ struct foil_contents_line_mode {
 /* a page is the client area of a window or widget,
    which is used to render the content. */
 struct pcmcth_page {
-    int left, top;
+    /* the geometry of viewport */
+    int vx, vy;
+    int vw, vh;
+
+    /* rows and columns of the whole page */
     int rows, cols;
 
     /* the current character attributes */
@@ -95,7 +99,7 @@ struct pcmcth_page {
     foil_rect dirty_rect;
 
     pcmcth_udom *udom;
-    struct foil_tty_cell *cells;
+    struct foil_tty_cell **cells;
 };
 
 #ifdef __cplusplus
@@ -105,19 +109,33 @@ extern "C" {
 int foil_page_module_init(pcmcth_renderer *rdr);
 void foil_page_module_cleanup(pcmcth_renderer *rdr);
 
-pcmcth_page *foil_page_new(int rows, int cols);
-
+pcmcth_page *foil_page_new(void);
 /* return the uDOM set for this page */
 pcmcth_udom *foil_page_delete(pcmcth_page *page);
 
-bool foil_page_init(pcmcth_page *page, int rows, int cols);
-void foil_page_cleanup(pcmcth_page *page);
+void foil_page_set_viewport(pcmcth_page *page,
+        int vx, int vy, int vw, int vh);
+bool foil_page_content_init(pcmcth_page *page, int rows, int cols);
+void foil_page_content_cleanup(pcmcth_page *page);
 
 /* set uDOM and return the old one */
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 
-int foil_page_rows(const pcmcth_page *page);
-int foil_page_cols(const pcmcth_page *page);
+static inline int foil_page_viewport_width(const pcmcth_page *page) {
+    return page->vw;
+}
+
+static inline int foil_page_viewport_height(const pcmcth_page *page) {
+    return page->vh;
+}
+
+static inline int foil_page_rows(const pcmcth_page *page) {
+    return page->rows;
+}
+
+static inline int foil_page_cols(const pcmcth_page *page) {
+    return page->cols;
+}
 
 uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color);
 uint8_t foil_page_set_bgc(pcmcth_page *page, uint8_t color);

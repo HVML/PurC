@@ -257,8 +257,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
-    int cols = foil_page_cols(page);
-    int rows = foil_page_rows(page);
+    int cols = foil_page_viewport_width(page);
+    int rows = foil_page_viewport_height(page);
     int width = cols * FOIL_PX_GRID_CELL_W;
     int height = rows * FOIL_PX_GRID_CELL_H;
 
@@ -1214,13 +1214,20 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
+    if (!foil_page_content_init(page,
+            udom->initial_cblock->width / FOIL_PX_GRID_CELL_W,
+            udom->initial_cblock->height / FOIL_PX_GRID_CELL_H)) {
+        LOG_ERROR("Failed to initialize page content\n");
+        goto failed;
+    }
+
+    /* render the whole tree */
     foil_render_ctxt render_ctxt = { udom, page, 0 };
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");
     dump_rdrtree(&render_ctxt, udom->initial_cblock);
 
-    /* render the whole tree */
     LOG_DEBUG("Calling render_rdrtree...\n");
     render_ctxt.level = 0;
     render_rdrtree(&render_ctxt, udom->initial_cblock);

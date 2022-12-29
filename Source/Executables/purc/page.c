@@ -41,18 +41,25 @@ void foil_page_module_cleanup(pcmcth_renderer *rdr)
     foil_udom_module_cleanup(rdr);
 }
 
-bool foil_page_init(pcmcth_page *page, int rows, int cols)
+bool foil_page_content_init(pcmcth_page *page, int rows, int cols)
 {
+    if (page->cells)
+        foil_page_content_cleanup(page);
+
+    page->cells = calloc(rows, sizeof(struct foil_tty_cell *));
+    if (page->cells == NULL)
+        return false;
+
+    for (int i = 0; i < rows; i++) {
+        page->cells[i] = calloc(cols, sizeof(struct foil_tty_cell));
+        if (page->cells[i] == NULL) {
+            foil_page_content_cleanup(page);
+        }
+    }
+
     page->rows = rows;
     page->cols = cols;
     page->udom = NULL;
-
-    if (rows > FOIL_MAX_ROWS || cols > FOIL_MAX_COLS)
-        return false;
-
-    page->cells = calloc(rows * cols, sizeof(struct foil_tty_cell));
-    if (page->cells == NULL)
-        return false;
 
     page->attrs = FOIL_CHAR_ATTR_NULL;
     page->fgc   = FOIL_DEF_FGC;
@@ -62,27 +69,24 @@ bool foil_page_init(pcmcth_page *page, int rows, int cols)
     return true;
 }
 
-void foil_page_cleanup(pcmcth_page *page)
+void foil_page_content_cleanup(pcmcth_page *page)
 {
-    if (page->cells)
+    if (page->cells) {
+        for (int i = 0; i < page->rows; i++) {
+            if (page->cells[i])
+                free(page->cells[i]);
+        }
         free(page->cells);
+    }
 
+    page->rows = 0;
+    page->cols = 0;
     page->cells = NULL;
 }
 
-pcmcth_page *foil_page_new(int rows, int cols)
+pcmcth_page *foil_page_new(void)
 {
     pcmcth_page *page = calloc(1, sizeof(*page));
-
-    if (page) {
-        page->rows = rows;
-        page->cols = cols;
-        if (!foil_page_init(page, rows, cols)) {
-            free(page);
-            page = NULL;
-        }
-    }
-
     return page;
 }
 
@@ -90,10 +94,21 @@ pcmcth_udom *foil_page_delete(pcmcth_page *page)
 {
     pcmcth_udom *udom = page->udom;
 
-    foil_page_cleanup(page);
+    foil_page_content_cleanup(page);
     free(page);
 
     return udom;
+}
+
+void foil_page_set_viewport(pcmcth_page *page,
+        int vx, int vy, int vw, int vh)
+{
+    assert(vw > 0 && vh > 0);
+
+    page->vx = vx;
+    page->vy = vy;
+    page->vw = vw;
+    page->vh = vh;
 }
 
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
@@ -102,16 +117,6 @@ pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
     page->udom = udom;
 
     return old_udom;
-}
-
-int foil_page_rows(const pcmcth_page *page)
-{
-    return page->rows;
-}
-
-int foil_page_cols(const pcmcth_page *page)
-{
-    return page->cols;
 }
 
 uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color)
@@ -138,10 +143,10 @@ uint8_t foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)
 int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
         uint32_t uc, size_t count)
 {
-    if (x >= page->cols || y >= page->rows || count == 0)
+    if (x < 0 || y < 0 || x >= page->cols || y >= page->rows || count == 0)
         return 0;
 
-    struct foil_tty_cell *dst_cell = page->cells + page->cols * y;
+    struct foil_tty_cell *dst_cell = page->cells[y];
     dst_cell += x;
 
     int nr_cells = 0;
@@ -208,10 +213,10 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
 int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
         uint32_t *ucs, size_t nr_ucs)
 {
-    if (x >= page->cols || y >= page->rows || nr_ucs == 0)
+    if (x < 0 || y < 0 || x >= page->cols || y >= page->rows || nr_ucs == 0)
         return 0;
 
-    struct foil_tty_cell *dst_cell = page->cells + page->cols * y;
+    struct foil_tty_cell *dst_cell = page->cells[y];
     dst_cell += x;
 
     int nr_cells = 0;
@@ -292,8 +297,8 @@ bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc)
         cell.latter_half = 0;
 
         if (g_unichar_iswide(uc)) {
-            struct foil_tty_cell *line = page->cells;
             for (int y = 0; y < page->rows; y++) {
+                struct foil_tty_cell *line = page->cells[y];
                 cell.latter_half = 0;
                 for (int x = 0; x < page->cols; x += 2) {
                     memcpy(line + x, &cell, sizeof(cell));
@@ -303,18 +308,14 @@ bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc)
                 for (int x = 1; x < page->cols; x += 2) {
                     memcpy(line + x, &cell, sizeof(cell));
                 }
-
-                line += page->cols;
             }
         }
         else {
-            struct foil_tty_cell *line = page->cells;
             for (int y = 0; y < page->rows; y++) {
+                struct foil_tty_cell *line = page->cells[y];
                 for (int x = 0; x < page->cols; x++) {
                     memcpy(line + x, &cell, sizeof(cell));
                 }
-
-                line += page->cols;
             }
         }
 

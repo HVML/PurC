@@ -165,9 +165,8 @@ create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
     plainwin = foil_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
             style->name, style->title);
     if (plainwin) {
-
-        /* TODO: initialize page here */
-        foil_page_init(&plainwin->page, workspace->rows, workspace->cols);
+        foil_page_set_viewport(&plainwin->page, 0, 0,
+                workspace->cols, workspace->rows);
         foil_widget_append_child(workspace->root, plainwin);
         return &plainwin->page;
     }
