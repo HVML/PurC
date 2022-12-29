@@ -660,7 +660,7 @@ pcrdr_save_page_handle(struct pcrdr_conn *conn, const char *workspace_name,
     p->workspace_handle = workspace_handle;
     p->dom_handle = dom_handle;
 
-    list_add(&p->list, &conn->page_handles);
+    list_add_tail(&p->list, &conn->page_handles);
 
     ret = 0;
     goto out;
