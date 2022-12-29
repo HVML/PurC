@@ -16,13 +16,26 @@
 
         <request on="$RDR" to="setPageGroups">
             {
-                "data":'<section id="newGroup1"></section><section id="newGroup2"><article id="newGroupBody2" class="tabbedwindow"></article></section>'
+                "data":'<section id="sec1"><article id="viewerWindow1" class="viewer"><ol id="viewerBodyPanels1"></ol></article></section>'
             }
         </request>
 
         <request on="$RDR" to="addPageGroups">
             {
-                "data":'<section id="newGroup4"></section>'
+                "data":'<section id="sec2"><article id="viewerWindow2" class="viewer"><ol id="viewerBodyPanels2"></ol></article></section>'
+            }
+        </request>
+
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"viewerBodyPanels1",
+                "data": {
+                    "name": "foobar",
+                    "title": "Tab One",
+                    "class": "normal",
+                    "layoutStyle": "with:200px;height:100px;",
+                    "widgetStyle": { "backgroundColor": "red" }
+                }
             }
         </request>
 

@@ -42,6 +42,7 @@
 #define REQUEST_EVENT_HANDER     "_request_event_handler"
 
 #define ARG_KEY_DATA             "data"
+#define ARG_KEY_ELEMENT          "element"
 
 struct ctxt_for_request {
     struct pcvdom_node           *curr;
@@ -364,6 +365,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = co->target_workspace_handle;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    const char *element = NULL;
     pcrdr_msg_data_type data_type;
 
     struct pcinst* inst = pcinst_current();
@@ -427,9 +429,19 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method)
         ) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        purc_variant_t elem = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
+        if (!elem || !purc_variant_is_string(elem)) {
+            purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request $RDR '%s'", operation);
+            goto out;
+        }
+        element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
+        element = purc_variant_get_string_const(elem);
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -438,7 +450,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, request_id, element_type, NULL, NULL,
+            target_value, operation, request_id, element_type, element, NULL,
             data_type, data, 0);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
