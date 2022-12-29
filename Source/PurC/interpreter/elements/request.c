@@ -437,10 +437,9 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t d = purc_variant_ref(data);
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
             target_value, operation, request_id, element_type, NULL, NULL,
-            data_type, d, 0);
+            data_type, data, 0);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
     if (ctxt->is_noreturn) {
