@@ -26,6 +26,19 @@
             }
         </request>
 
+        <request on="$RDR" to="createPlainWindow">
+            {
+                "element":"viewerBodyPanels1",
+                "data": {
+                    "name": "hello",
+                    "title": "Hello, world!",
+                    "class": "normal",
+                    "layoutStyle": "with:200px;height:100px;",
+                    "widgetStyle": { "backgroundColor": "darkgray", "darkMode": true }
+                }
+            }
+        </request>
+
         <request on="$RDR" to="createWidget">
             {
                 "element":"viewerBodyPanels1",
