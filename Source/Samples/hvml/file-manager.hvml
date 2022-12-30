@@ -14,7 +14,8 @@
         <init as 'state'>
             {
                 "activeId":null,
-                "currDir":"/etc"
+                "currDir":"/etc",
+                "currItem":null
             }
         </init>
 
@@ -64,6 +65,12 @@
             </test>
 
             <update on="#$state.activeId" at="attr.class" with="list-group-item active" />
+
+            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
+                {
+                    "path" : $state.currDir
+                }
+            </request>
         </define>
 
         <include with "$refreshList" />
@@ -72,6 +79,11 @@
             <update on="#$state.activeId" at="attr.class" with="list-group-item"/>
             <update on="#$?.targetId" at="attr.class" with="list-group-item active" />
             <update on="$state" at=".activeId" with="$?.targetId"/>
+            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
+                {
+                    "path" : "$state.currDir/$?.name"
+                }
+            </request>
         </observe>
 
         <observe on $CRTN for "rdrState:closed">
@@ -81,19 +93,34 @@
     </body>
 
     <body id="sub">
-        <h1 id="subTitle" class="display-6 fw-bold">Sub Page</h1>
-
-        <archetype name="fileItem">
-            <li class="file-item" id="file-$?.inode">
-                <span>$?.name</span>
-            </li>
+        <archetype name="subItem">
+            <li class="list-group-item" hvml-events="click" id="li-$?.inode">$?.name</li>
         </archetype>
 
-        <ul class="file-list">
-            <iterate on "$FS.list('/etc')">
-                <update on $@ to "append" with $fileItem />
+        <div class="container">
+             <div class="row">
+                 <div class="col-4">
+                    <h1 class="display-6 fw-bold" id="subTitle"></h1>
+                    <ul class="list-group" id="subList">
+                    </ul>
+                 </div>
+             </div>
+        </div>
+
+        <define as="refreshList">
+            <clear on="#subList" />
+
+            <init as 'dataList' with  "$FS.list($?.path)" temp />
+            <update on '#subTitle' at="textContent" with "$?.path 的索引" />
+
+            <iterate on $dataList>
+                <update on "#subList" to "append" with $subItem />
             </iterate>
-        </ul>
+        </define>
+
+        <observe on="$CRTN" for="request:showDetail">
+            <include with "$refreshList" on $? />
+        </observe>
 
     </body>
 </hvml>
