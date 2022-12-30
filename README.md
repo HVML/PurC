@@ -1,8 +1,9 @@
 # PurC
 
-`PurC` is the prime HVML interpreter for C language.
+`PurC` is the prime HVML interpreter in C language.  
+`PurC` 是一款使用 C 语言开发的 HVML 解释器。
 
-**Table of Contents**
+**Table of Contents【目录】**
 
 [//]:# (START OF TOC)
 
@@ -16,10 +17,11 @@
 
 [//]:# (END OF TOC)
 
-## Introduction
+## Introduction【介绍】
 
 `HVML` is a descriptive programming language proposed and designed by [Vincent Wei],
-    who is the author of the China-first open source project - [MiniGUI].
+    who is the author of the China-first open source project - [MiniGUI].  
+`HVML` 是由 [魏永明] 提出并设计的一种描述式编程语言。魏永明是中国首个开源项目 [MiniGUI] 的作者。
 
 `PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
 It is also the abbreviation of `Purring Cat`,
@@ -56,8 +58,10 @@ For documents, specifications, and open source software related to HVML, please 
 Note that, since PurC 0.9.0, we merged the repositories of DOM Ruler and PurC Fetcher to this repository.
 Therefore, the following repositories were marked deprecated:
 
-- PurC Fetcher (the remote data fetcher for PurC).
-- DOM Ruler (A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS).
+- PurC Fetcher (the remote data fetcher for PurC).  
+PurC Fetcher：PurC 的远程数据获取器。
+- DOM Ruler (A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS).  
+DOM Ruler：一个用于维护 DOM 树并使用 CSS 对其进行布局和样式化处理的函数库。
 
 ## Building PurC
 
@@ -69,8 +73,10 @@ Note that, if you are seeking the pre-built packages for platforms such as Ubunt
 
 To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
-1. cmake
-1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
+1. CMake build system generator  
+CMake 构建系统生成器。
+1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+  
+兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
 1. Zlib 1.2.0 or later
 1. Glib 2.44.0 or later
 1. Python 3
