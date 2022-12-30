@@ -1,3 +1,5 @@
+[中文版](README-zh.md)
+
 # PurC
 
 `PurC` is the prime HVML interpreter for C language.
