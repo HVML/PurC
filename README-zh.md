@@ -9,7 +9,7 @@
 - [介绍](#介绍)
 - [构建 PurC](#构建-purc)
 - [使用 purc](#使用-purc)
-- [Hacking PurC](#hacking-purc)
+- [参与 PurC 开发](#参与-purc-开发)
 - [作者和贡献者](#作者和贡献者)
 - [版权信息](#版权信息)
 - [商标](#商标)
@@ -28,31 +28,31 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 
 我们在 LGPLv3 许可证下发布 PurC 函数，而可执行程序使用 GPLv3 发布。因此，如果你遵循 LGPLv3/GPLv3 的条件和条款，你可以将 PurC 以及 `purc` 工具免费用于商业用途。
 
-这是 PurC 的 0.9.4 版本。到目前为止，PurC 为 Linux 和 macOS 提供支持。对 Windows 的支持即将到来。我们欢迎任何人将 PurC 移植到其他平台。
+这是 PurC 的 0.9.4 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
 
 要了解有关 HVML 编程的基本概念，请参考以下教程：
 
-[在 30 分钟内学习 HVML 编程](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
+[30 分钟学会 HVML 编程](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
 
 有关 HVML 的更多信息，请参考文章（10% 完成）：
 
 [HVML，一种可编程标记语言](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
 
-有关与 HVML 相关的文档、规格和开源软件，请参考以下代码仓库：
+有关 HVML 的规范文档、解释器和渲染器的开源实现，可通过如下代码仓库获得：
 
-- HVML文档：<https://github.com/HVML/hvml-docs>。
+- HVML 文档：<https://github.com/HVML/hvml-docs>。
 - PurC（HVML 解释器）：<https://github.com/HVML/PurC>。
-- xGUI Pro（基于 WebKit 的高级的 HVML 渲染器）：<https://github.com/HVML/xGUI-Pro>。
+- xGUI Pro（基于 WebKit 的高级 HVML 渲染器）：<https://github.com/HVML/xGUI-Pro>。
 - PurC Midnight Commander（HVML 字符渲染器）：<https://github.com/HVML/PurC-Midnight-Commander>。
 
-请注意，自 PurC 0.9.0 以来，我们将 DOM Ruler 和 PurC Fetcher 的代码仓库合并到此仓库中。因此，以下仓库被标记为不建议使用：
+请注意，自 PurC 0.9.0 以来，我们将 DOM Ruler 和 PurC Fetcher 的代码仓库合并到了 PurC 仓库中。因此，以下仓库不再使用：
 
 - PurC Fetcher（PurC 的远程数据获取器）
 - DOM Ruler（一个用于维护 DOM 树并使用 CSS 对其进行布局和样式化处理的函数库）
 
 ## 构建 PurC
 
-请注意，如果你正在为 Ubuntu、Deepin、Homebrew 和 MSYS2 等平台寻找预建软件包，可以参考以下页面：
+请注意，如果你正在为 Ubuntu、Deepin、Homebrew 和 MSYS2 等平台寻找构建好的软件包，可以参考以下页面：
 
 <https://hvml.fmsoft.cn/software>
 
@@ -60,7 +60,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 
 要从源代码构建 PurC，请确保你的 Linux 或 macOS 系统上提供以下工具或函数库：
 
-1. 跨平台构建系统生成器：CMake
+1. 跨平台构建系统生成器：CMake 3.15 或更高版本
 2. 兼容 C11 和 CXX17 的编译器:GCC 8+ 或 Clang 6+
 3. Zlib 1.2.0 或更高版本
 4. Glib 2.44.0 或更高版本
@@ -712,7 +712,7 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。因此，你必须提前安装 PurC Fetcher。有关构建和安装 PurC Fetcher 的详细说明，请参阅 [PurC Fetcher](https://github.com/HVML/purc-fetcher)。
 
-## Hacking PurC
+## 参与 PurC 开发
 
 ### 当前状态
 
@@ -720,18 +720,16 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 PurC 的主要目的是为你提供一个函数库来编写自己的 HVML 解释器。经过一年的开发，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。
 
-除了 HVML 解释器外，Purc 还为一般 C 程序提供了许多基本功能：
+除了 HVML 解释器外，Purc 还为一般 C 程序的提供了许多基本功能：
 
-1. PurC 为变量管理提供了 API，这里的变量是 HVML 管理数据的方式。
-2. PurC 提供了解析 JSON 和扩展 JSON 的 API。
-3. PurC 提供了解析和评估参数化 eJSON 表达式的 API。
+1. PurC 为变体管理提供了 API，这里的变体（variant）是 HVML 管理数据的方式。
+2. PurC 提供了解析 JSON 和 eJSON 的 API。
+3. PurC 提供了解析并对参数化表达式求值的 API。
 4. PurC 提供了用于解析 HTML 文档的 API。
 5. PurC 提供了创建多个 HVML 行者的 API。
-6. PurC 提供了用于解析 HVML 程序和调度运行它的 API。
+6. PurC 提供了用于解析 HVML 程序和调度执行 HVML 协程的 API。
 
-你可以根据需要独立使用这些 API 组。
-
-我们欢迎任何人参与开发和贡献!
+我们欢迎任何人参与 PurC 的开发并贡献自己的力量!
 
 ### PurC 的源代码树
 

@@ -71,7 +71,7 @@ Note that, if you are seeking the pre-built packages for platforms such as Ubunt
 
 To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
-1. cmake
+1. The cross-platform buildsystem generator: CMake 3.15 or later
 1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
 1. Zlib 1.2.0 or later
 1. Glib 2.44.0 or later
