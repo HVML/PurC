@@ -867,9 +867,9 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 
 - Vincent Wei: The architect.
 - XUE Shuming: A key developer, the maintainer of most modules and PurC Fetcher.
-- XU Xiaohong: A key developer, who implemented the most features of variant and most features of HVML interperter.
 - LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
-- GENG Yue: A commiter, who implemented some built-in dynamic variant objects.
+- XU Xiaohong: An early developer, who implemented the most features of variant and most features of HVML interperter.
+- GENG Yue: An early developer, who implemented some built-in dynamic variant objects.
 
 ## Copying
 
