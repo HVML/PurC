@@ -15,7 +15,7 @@
             {
                 "activeId":null,
                 "currDir":"/etc",
-                "currItem":null
+                "dataList" : []
             }
         </init>
 
@@ -32,7 +32,7 @@
         <load from "#sub" onto 'subWindow' as 'subFileList' async />
 
         <archetype name="mainItem">
-            <li class="list-group-item" hvml-events="click" id="li-$?.inode">$?.name</li>
+            <li class="list-group-item" hvml-events="click" id="li-$%" value="$?.name">$?.name</li>
         </archetype>
 
         <div class="container">
@@ -46,21 +46,23 @@
         </div>
 
         <define as="refreshList">
-            <clear on="#mainList" />
+            <update on "#mainList" at "content" with ' ' />
+            <clear on="$state.dataList" />
 
-            <init as 'dataList' with  "$FS.list($state.currDir)" temp />
             <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
-            <update on $dataList to 'prepend' with {"inode":"0", "name":".."} />
+            <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
+            <update on $state.dataList to 'prepend' with {"inode":"0", "name":".."} />
+            <init as "dataCount" with $DATA.count($state.dataList) />
 
-            <iterate on $dataList>
+            <iterate on $state.dataList>
                 <update on "#mainList" to "append" with $mainItem />
             </iterate>
-            <test on=$DATA.count($dataList)>
+            <test on=$dataCount>
                 <match for "GT 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$dataList[1].inode"/>
+                    <update on="$state" at=".activeId" with="li-$state.dataList[1].inode"/>
                 </match>
                 <match for "LE 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$dataList[0].inode"/>
+                    <update on="$state" at=".activeId" with="li-$state.dataList[0].inode"/>
                 </match>
             </test>
 
@@ -81,7 +83,7 @@
             <update on="$state" at=".activeId" with="$?.targetId"/>
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
-                    "path" : "$state.currDir/$?.name"
+                    "path" : "$state.currDir/$state.dataList[$DATA.numerify($STR.substr($1?.targetId, 3))].name"
                 }
             </request>
         </observe>
@@ -108,9 +110,9 @@
         </div>
 
         <define as="refreshList">
-            <clear on="#subList" />
-
+            <update on "#subList" at "content" with ' ' />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
+
             <update on '#subTitle' at="textContent" with "$?.path 的索引" />
 
             <iterate on $dataList>
@@ -119,7 +121,9 @@
         </define>
 
         <observe on="$CRTN" for="request:showDetail">
-            <include with "$refreshList" on $? />
+            <test with "$FS.file_is($?.path, 'dir')">
+                <include with "$refreshList" on $2? />
+            </test>
         </observe>
 
     </body>
