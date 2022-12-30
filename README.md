@@ -1,33 +1,29 @@
 # PurC
 
-`PurC` is the prime HVML interpreter in C language.  
-`PurC` 是最早使用 C 语言开发的 HVML 解释器。
+`PurC` is the prime HVML interpreter for C language.
 
-**Table of Contents/目录**
+**Table of Contents**
 
 [//]:# (START OF TOC)
 
-- [Introduction/介绍](#introduction介绍)
-- [Building PurC/构建 PurC](#building-purc构建-purc)
-- [Environment Variables/环境变量](#environment-variables环境变量)
-- [Using `purc`/使用 `purc`](#using-purc使用-purc)
-- [Hacking PurC/参与 PurC 开发](#hacking-purc参与-purc-开发)
-- [Authors and Contributors/作者和贡献者](#authors-and-contributors作者和贡献者)
-- [Copying/版权声明](#copying版权声明)
-- [Tradmarks/商标](#tradmarks商标)
+- [Introduction](#introduction)
+- [Building PurC](#building-purc)
+- [Using `purc`](#using-purc)
+- [Hacking PurC](#hacking-purc)
+- [Authors and Contributors](#authors-and-contributors)
+- [Copying](#copying)
+- [Tradmarks](#tradmarks)
 
 [//]:# (END OF TOC)
 
-## Introduction/介绍
+## Introduction
 
 `HVML` is a descriptive programming language proposed and designed by [Vincent Wei],
-    who is the author of the China-first open source project - [MiniGUI].  
-`HVML` 是由 [魏永明] 提出并设计的一种描述式编程语言。魏永明是中国首个开源项目 [MiniGUI] 的作者。
+    who is the author of the China-first open source project - [MiniGUI].
 
 `PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
 It is also the abbreviation of `Purring Cat`,
-   while `Purring Cat` is the nickname and the mascot of HVML.  
-`PurC` 是 `the Prime HVML inteRpreter in C language` 的缩写，意指最早使用 C 语言开发的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
+   while `Purring Cat` is the nickname and the mascot of HVML.
 
 The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
 and all predefined dynamic objects defined by [HVML Predefined Variables V1.0] in C language.
@@ -60,25 +56,21 @@ For documents, specifications, and open source software related to HVML, please 
 Note that, since PurC 0.9.0, we merged the repositories of DOM Ruler and PurC Fetcher to this repository.
 Therefore, the following repositories were marked deprecated:
 
-- PurC Fetcher (the remote data fetcher for PurC).  
-PurC Fetcher：PurC 的远程数据获取器。
-- DOM Ruler (A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS).  
-DOM Ruler：一个用于维护 DOM 树并使用 CSS 对其进行布局和样式化处理的函数库。
+- PurC Fetcher (the remote data fetcher for PurC).
+- DOM Ruler (A library to maintain a DOM tree, lay out and stylize the DOM elements by using CSS).
 
-## Building PurC/构建 PurC
+## Building PurC
 
 Note that, if you are seeking the pre-built packages for platforms such as Ubuntu, Deepin, Homebrew, and MSYS2, you can refer to the following page:
 
 <https://hvml.fmsoft.cn/software>
 
-### Prerequistes/先决条件
+### Prerequistes
 
 To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
-1. The cross-platform buildsystem generator: CMake  
-跨平台的构建系统生成器：CMake
-1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+  
-兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
+1. cmake
+1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
 1. Zlib 1.2.0 or later
 1. Glib 2.44.0 or later
 1. Python 3
@@ -89,7 +81,7 @@ Although the port for Windows is still on the way, it is possible to build PurC 
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
     then build PurC in Ubuntu environment.
 
-### Building steps/构建步骤
+### Building steps
 
 We assume that you are using Linux.
 
@@ -150,7 +142,7 @@ When using `ninja`, you can also use `DESTDIR` to specify an alternative install
 $ DESTDIR="/package/stage" ninja -Cbuild install
 ```
 
-## Environment Variables/环境变量
+## Environment Variables
 
 PurC uses the following environment variables for different purposes:
 
@@ -161,14 +153,14 @@ PurC uses the following environment variables for different purposes:
 - `PURC_LOG_ENABLE`: `true` if enable the global log facility.
 - `PURC_LOG_SYSLOG`: `true` if enable to use syslog as the log facility.
 
-## Using `purc`/使用 `purc`
+## Using `purc`
 
 The following sections assume that you have installed PurC to your system,
     and the command line tool `purc` has been installed into `/usr/local/bin/`.
 Make sure that you have added `/usr/local/lib` to `/etc/ld.so.conf` and run `sudo ldconfig` command,
      in order that the system can find the shared library of PurC you just installed into `/usr/local/lib`.
 
-### Run a single HVML program/运行单个 HVML 程序
+### Run a single HVML program
 
 Please save the following contents in a file named `hello.hvml` as your
 first HVML program in your working directory:
@@ -215,7 +207,7 @@ then run `hello.hvml` directly from the command line:
 $ ./hello.hvml
 ```
 
-### Run a HVML program with errors or exceptions/运行含有错误或异常的 HVML 程序
+### Run a HVML program with errors or exceptions
 
 Please save the following contents in a file named `error.hvml` in your working directory:
 
@@ -321,7 +313,7 @@ The main coroutine terminated due to an uncaught exception: NoSuchKey.
     ^ null
 ```
 
-### Run multiple HVML programs in parallel/并行运行多个 HVML 程序
+### Run multiple HVML programs in parallel
 
 PurC can run multiple HVML programs as coroutines in parallel.
 
@@ -347,26 +339,26 @@ $ purc -l hello-10.hvml hello-10.hvml
 You will see the following output on your terminal:
 
 ```
+0) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
 1) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-3
 2) Hello, world! -- from COROUTINE-4
 3) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-3
 4) Hello, world! -- from COROUTINE-4
 5) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-3
 6) Hello, world! -- from COROUTINE-4
 7) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-3
 8) Hello, world! -- from COROUTINE-4
 9) Hello, world! -- from COROUTINE-3
-10) Hello, world! -- from COROUTINE-4
-11) Hello, world! -- from COROUTINE-3
-12) Hello, world! -- from COROUTINE-4
-13) Hello, world! -- from COROUTINE-3
-14) Hello, world! -- from COROUTINE-4
-15) Hello, world! -- from COROUTINE-3
-16) Hello, world! -- from COROUTINE-4
-17) Hello, world! -- from COROUTINE-3
-18) Hello, world! -- from COROUTINE-4
-19) Hello, world! -- from COROUTINE-3
-20) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-4
 ```
 
 In the above output, `COROUTINE-3` and `COROUTINE-4` contain the coroutine identifier assigned by PurC for two running instances of the program.
@@ -376,29 +368,29 @@ If you do not use the flag `-l` in the command line, `purc` will run the program
 
 ```
 $ purc hello-10.hvml hello-10.hvml
-21) Hello, world! -- from COROUTINE-3
-22) Hello, world! -- from COROUTINE-3
-23) Hello, world! -- from COROUTINE-3
-24) Hello, world! -- from COROUTINE-3
-25) Hello, world! -- from COROUTINE-3
-26) Hello, world! -- from COROUTINE-3
-27) Hello, world! -- from COROUTINE-3
-28) Hello, world! -- from COROUTINE-3
-29) Hello, world! -- from COROUTINE-3
-30) Hello, world! -- from COROUTINE-3
-31) Hello, world! -- from COROUTINE-4
-32) Hello, world! -- from COROUTINE-4
-33) Hello, world! -- from COROUTINE-4
-34) Hello, world! -- from COROUTINE-4
-35) Hello, world! -- from COROUTINE-4
-36) Hello, world! -- from COROUTINE-4
-37) Hello, world! -- from COROUTINE-4
-38) Hello, world! -- from COROUTINE-4
-39) Hello, world! -- from COROUTINE-4
-40) Hello, world! -- from COROUTINE-4
+0) Hello, world! -- from COROUTINE-3
+1) Hello, world! -- from COROUTINE-3
+2) Hello, world! -- from COROUTINE-3
+3) Hello, world! -- from COROUTINE-3
+4) Hello, world! -- from COROUTINE-3
+5) Hello, world! -- from COROUTINE-3
+6) Hello, world! -- from COROUTINE-3
+7) Hello, world! -- from COROUTINE-3
+8) Hello, world! -- from COROUTINE-3
+9) Hello, world! -- from COROUTINE-3
+0) Hello, world! -- from COROUTINE-4
+1) Hello, world! -- from COROUTINE-4
+2) Hello, world! -- from COROUTINE-4
+3) Hello, world! -- from COROUTINE-4
+4) Hello, world! -- from COROUTINE-4
+5) Hello, world! -- from COROUTINE-4
+6) Hello, world! -- from COROUTINE-4
+7) Hello, world! -- from COROUTINE-4
+8) Hello, world! -- from COROUTINE-4
+9) Hello, world! -- from COROUTINE-4
 ```
 
-### Connecting to HVML renderer/连接到 HVML 渲染器
+### Connecting to HVML renderer
 
 One of important differences between HVML and other programming languages is that HVML can generate documents described in markup languages like HTML,
     not just output data to a file or your terminal.
@@ -593,7 +585,7 @@ Here is the screenshot of `hvml/prime-number-sieve.hvml`:
 ![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
 
 
-### Options for `purc`/`purc` 的选项
+### Options for `purc`
 
 You can see the all options supported by `purc` when you run `purc` with `-h` option:
 
@@ -662,7 +654,7 @@ The following options can be supplied to the command:
         This help.
 ```
 
-### Run an HVML app in mutiple runners/运行多行者的 HVML 应用
+### Run an HVML app in mutiple runners
 
 PurC supports to run an app in multiple runners.
 Here one `runner` is one thread in the `purc` process.
@@ -755,7 +747,7 @@ Then use the option specified by `--app` in `my_app.ejson`:
 
 All occurrences of `$OPTS.app` in `my_app.ejson` will be subsituted by `cn.fmsoft.hvml.sample`.
 
-### More HVML samples/更多 HVML 示例
+### More HVML samples
 
 You can find more HVML sample programs in respository [HVML Documents](https://github.com/HVML/hvml-docs),
     under the directory `samples/`.
@@ -777,9 +769,9 @@ Note that when `purc` try to load an HVML program from a remote URL,
 Therefore, you must install PurC Fetcher in advance.
 Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions to build and install PurC Fetcher to your system.
 
-## Hacking PurC/参与 PurC 开发
+## Hacking PurC
 
-### Current Status/当前状态
+### Current Status
 
 This project was launched in June. 2021. This is the version 0.9.4 of PurC.
 
@@ -800,7 +792,7 @@ You can use these groups of APIs independently according to your needs.
 
 We welcome anybody to take part in the development and contribute your effort!
 
-### Source Tree of PurC/PurC 的源代码树
+### Source Tree of PurC
 
 PurC implements the parser, the interpreter, and some built-in dynamic variant
 objects for HVML. It is mainly written in C/C++ language and will provide bindings
@@ -851,7 +843,7 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 
  - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under the Apache License, Version 2.0.
 
-### TODO list/TODO 清单
+### TODO List
 
 1. HVML 1.0 Features not implemented yet.
 1. HVML 1.0 Predefined Variables not implemented yet.
@@ -861,7 +853,7 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 
 For detailed TODO list, please see [TODO List](TODO.md).
 
-### Other documents/其他文档
+### Other documents
 
 For the release notes, please refer to [Release Notes](RELEASE-NOTES.md).
 
@@ -869,7 +861,7 @@ For the community conduct, please refer to [Code of Conduct](Documents/CODE_OF_C
 
 For the coding convention, please refer to [Coding Convention](Documents/CODING_CONVENTION.md).
 
-## Authors and Contributors/作者和贡献者
+## Authors and Contributors
 
 - Vincent Wei: The architect.
 - XUE Shuming: A key developer, the maintainer of most modules and PurC Fetcher.
@@ -877,7 +869,7 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 - LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
 - GENG Yue: A commiter, who implemented some built-in dynamic variant objects.
 
-## Copying/版权声明
+## Copying
 
 ### PurC
 
@@ -1003,7 +995,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-## Tradmarks/商标
+## Tradmarks
 
 1) `HVML` is a registered tradmark of [FMSoft Technologies] in China and other contries or regions.
 
@@ -1033,7 +1025,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 [HVML]: https://github.com/HVML
 [Vincent Wei]: https://github.com/VincentWei
-[魏永明]: https://github.com/VincentWei
 [MiniGUI]: https://github.com/VincentWei/minigui
 [WebKit]: https://webkit.org
 [HTML 5.3]: https://www.w3.org/TR/html53/
