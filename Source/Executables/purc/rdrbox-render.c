@@ -49,10 +49,7 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
             fputs("\n", stdout);
         }
     }
-
-    if (box->is_block_level && box->first && box->first->is_inline_level) {
-        fputs("\n", stdout);
-    }
+    (void)box;
 #else
     (void)ctxt;
     (void)box;

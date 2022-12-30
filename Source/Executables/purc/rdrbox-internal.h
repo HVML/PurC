@@ -117,6 +117,8 @@ struct _inline_block_data {
 };
 
 struct _list_item_data {
+    /* not NULL if the block contains inline level boxes */
+    struct _inline_fmt_ctxt *lfmt_ctxt;
     /* index in the parent box */
     unsigned index;
     /* NULL for no marker */
@@ -153,6 +155,7 @@ void foil_rdrbox_block_fmt_ctxt_delete(struct _block_fmt_ctxt *ctxt);
 
 struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void);
 void foil_rdrbox_block_box_cleanup(struct _block_box_data *data);
+void foil_rdrbox_list_item_cleanup(struct _list_item_data *data);
 void foil_rdrbox_inline_block_box_cleanup(struct _inline_block_data *data);
 
 static inline struct _inline_fmt_ctxt *
@@ -161,6 +164,8 @@ foil_rdrbox_inline_fmt_ctxt(foil_rdrbox *box)
     assert(box->is_block_level);
     if (box->type == FOIL_RDRBOX_TYPE_BLOCK)
         return box->block_data->lfmt_ctxt;
+    else if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM)
+        return box->list_item_data->lfmt_ctxt;
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK)
         return box->inline_block_data->lfmt_ctxt;
     return NULL;

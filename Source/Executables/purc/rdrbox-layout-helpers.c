@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -77,6 +77,11 @@ static void free_inline_formatting_context(struct _inline_fmt_ctxt *ctxt)
 }
 
 void foil_rdrbox_block_box_cleanup(struct _block_box_data *data)
+{
+    free_inline_formatting_context(data->lfmt_ctxt);
+}
+
+void foil_rdrbox_list_item_cleanup(struct _list_item_data *data)
 {
     free_inline_formatting_context(data->lfmt_ctxt);
 }

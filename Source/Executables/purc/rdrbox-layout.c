@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -1311,18 +1311,24 @@ static foil_rdrbox *find_enclosing_container(foil_rdrbox *box)
     return NULL;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overread"
 static void inherit_used_values(foil_rdrbox *box, const foil_rdrbox *from)
 {
     const uint8_t *start  = (const uint8_t *)&from->__copy_start;
     const uint8_t *finish = (const uint8_t *)&from->__copy_finish;
+    uint8_t *dst = (uint8_t *)&box->__copy_start;
 
     size_t nr_bytes = finish - start;
-    memcpy(&box->__copy_start, start, nr_bytes);
+    assert(nr_bytes > 0);
+    memcpy(dst, start, nr_bytes);
 
     if (from->quotes) {
         box->quotes = foil_quotes_ref(from->quotes);
     }
 }
+#pragma GCC diagnostic pop
 
 static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
@@ -1430,6 +1436,7 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         v = css_computed_padding_bottom(box->computed_style, &l, &u);
         assert(v != CSS_PADDING_INHERIT);
         box->pb = calc_used_value_width(ctxt, box, u, l);
+        (void)v;
     }
 
     /* min-width and max-width:
@@ -1837,7 +1844,8 @@ void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             from = box->parent;
         }
 
-        assert(from && from->type == FOIL_RDRBOX_TYPE_BLOCK);
+        assert(from);
+        //assert(from->is_block_container);
         inherit_used_values(box, from);
     }
     else {
@@ -1930,7 +1938,12 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     assert(box->is_height_resolved == 0);
 
-    if (box->nr_inline_level_children > 0) {
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for box %s (type: %d)\n", name, box->type);
+#endif
+
+    if (box->is_block_level && box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *lfmt_ctxt = NULL;
 
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
@@ -1939,12 +1952,19 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->cb_data_cleanup =
                 (foil_data_cleanup_cb)foil_rdrbox_block_box_cleanup;
         }
+        else if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
+            lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
+            box->list_item_data->lfmt_ctxt = lfmt_ctxt;
+            box->cb_data_cleanup =
+                (foil_data_cleanup_cb)foil_rdrbox_list_item_cleanup;
+        }
         else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->inline_block_data->lfmt_ctxt = lfmt_ctxt;
             box->cb_data_cleanup =
                 (foil_data_cleanup_cb)foil_rdrbox_inline_block_box_cleanup;
         }
+        // TODO: other block level boxes
         else {
             // never reach here
             assert(0);
@@ -1980,8 +2000,7 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     box->is_height_resolved = 1;
 
 #ifndef NDEBUG
-    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
-    LOG_DEBUG("called for box %s, height: %d\n", name, box->height);
+    LOG_DEBUG("   height: %d\n", box->height);
     free(name);
 #endif
 
@@ -2081,7 +2100,7 @@ foil_rdrbox_find_container_for_relative(foil_layout_ctxt *ctxt,
         if (parent->is_block_container)
             return parent;
 
-        parent = box->parent;
+        parent = parent->parent;
     }
 
     return ctxt->initial_cblock;
@@ -2104,7 +2123,7 @@ foil_rdrbox_find_container_for_absolute(foil_layout_ctxt *ctxt,
                 parent->position == FOIL_RDRBOX_POSITION_FIXED)
             return parent;
 
-        parent = box->parent;
+        parent = parent->parent;
     }
 
     return NULL;
@@ -2188,7 +2207,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     (void)ctxt;
 #ifndef NDEBUG
     char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
-    LOG_DEBUG("called for box %s, in_normal_flow: %d, nr_inlines: %d, nr_blocks: %d\n",
+    LOG_DEBUG("called for box %s/normal_flow:%d/nr_inlines:%d/nr_blocks:%d\n",
             name, box->is_in_normal_flow,
             box->nr_inline_level_children, box->nr_block_level_children);
 #endif
