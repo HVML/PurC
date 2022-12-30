@@ -393,21 +393,33 @@ eraser(void* native_entity, unsigned call_flags)
 static bool
 did_matched(void* native_entity, purc_variant_t val)
 {
-    if (!purc_variant_is_native(val) && !purc_variant_is_string(val)) {
-        return false;
-    }
+    bool ret = false;
+    void *comp = NULL;
+    struct pcdvobjs_elements *elements = (struct pcdvobjs_elements*)native_entity;
 
-    struct pcdvobjs_elements *elements;
-    elements = (struct pcdvobjs_elements*)native_entity;
+    if (!purc_variant_is_native(val) && !purc_variant_is_string(val)) {
+        goto out;
+    }
 
     if (purc_variant_is_string(val)) {
         const char *s = purc_variant_get_string_const(val);
         if (elements->css && strcmp(elements->css, s) == 0) {
-            return true;
+            ret = true;
+            goto out;
+        }
+        else if (s[0] == '#'){
+            purc_variant_t v = pcdvobjs_elements_by_css(elements->doc, s);
+            if (v) {
+                comp =  pcdvobjs_get_element_from_elements(v, 0);
+                purc_variant_unref(v);
+            }
         }
     }
     else if (purc_variant_is_native(val)) {
-        void *comp = purc_variant_native_get_entity(val);
+        comp = purc_variant_native_get_entity(val);
+    }
+
+    if (comp) {
         pcutils_array_t *arr = elements->elements;
         PC_ASSERT(arr);
 
@@ -416,11 +428,14 @@ did_matched(void* native_entity, purc_variant_t val)
         for (size_t i = 0; i < len; i++) {
             elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
             if (elem == comp) {
-                return true;
+                ret = true;
+                goto out;
             }
         }
     }
-    return false;
+
+out:
+    return ret;
 }
 
 static bool
