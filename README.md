@@ -1,7 +1,7 @@
 # PurC
 
 `PurC` is the prime HVML interpreter in C language.  
-`PurC` 是一款使用 C 语言开发的 HVML 解释器。
+`PurC` 是一款使用 C 语言开发的典型 HVML 解释器。
 
 **Table of Contents/目录**
 
@@ -27,6 +27,7 @@
 `PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
 It is also the abbreviation of `Purring Cat`,
    while `Purring Cat` is the nickname and the mascot of HVML.
+【`PurC 是`the Prime HVML inteRpreter in C language` 的缩写，意指使用 C 语言开发的典型 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。】
 
 The goal of PurC is to implement all features defined by [HVML Specifiction V1.0]
 and all predefined dynamic objects defined by [HVML Predefined Variables V1.0] in C language.
