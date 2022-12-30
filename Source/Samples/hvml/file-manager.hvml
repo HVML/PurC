@@ -11,7 +11,6 @@
     </head>
     <body>
 
-        <h1 class="display-6 fw-bold">Main Page</h1>
         <init as 'state'>
             {
                 "activeId":null,
@@ -19,7 +18,6 @@
             }
         </init>
 
-        <!--
         <request on="$RDR" to="createPlainWindow">
             {
                 "data": {
@@ -31,7 +29,6 @@
         </request>
 
         <load from "#sub" onto 'subWindow' as 'subFileList' async />
-        -->
 
         <archetype name="mainItem">
             <li class="list-group-item" hvml-events="click" id="li-$?.inode">$?.name</li>
@@ -40,6 +37,7 @@
         <div class="container">
              <div class="row">
                  <div class="col-4">
+                    <h1 class="display-6 fw-bold" id="mainTitle">Main Page</h1>
                     <ul class="list-group" id="mainList">
                     </ul>
                  </div>
@@ -50,6 +48,7 @@
             <clear on="#mainList" />
 
             <init as 'dataList' with  "$FS.list($state.currDir)" temp />
+            <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
             <update on $dataList to 'prepend' with {"inode":"0", "name":".."} />
 
             <iterate on $dataList>
