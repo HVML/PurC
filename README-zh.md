@@ -1,4 +1,6 @@
-# HVML 解释器 `PurC` 说明书中文版
+# PurC
+
+PurC：
 
 **目录**
 
@@ -16,7 +18,7 @@
 
 ## 介绍
 
-HVML 是由中国首款开源基础软件 [MiniGUI](https://github.com/VincentWei/minigui) 的作者[魏永明](https://github.com/VincentWei)设计的描述式编程语言，也是世界首款可编程标记语言。
+HVML 是由中国首款开源基础软件 [MiniGUI] 的作者[魏永明]设计的描述式编程语言，也是世界首款可编程标记语言。
 
 PurC 是 `the Prime HVML inteRpreter for C language` 的首字母缩写。同时它也可以理解为 `Purring Cat` 的缩写，而 `Purring Cat` 是 HVML 的昵称和吉祥物。
 
