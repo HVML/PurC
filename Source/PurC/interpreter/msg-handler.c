@@ -521,11 +521,11 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
         //TODO
-        break;
+        goto out;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
         //TODO
-        break;
+        goto out;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
         {

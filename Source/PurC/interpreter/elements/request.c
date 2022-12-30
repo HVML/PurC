@@ -39,7 +39,11 @@
 #include <unistd.h>
 
 #define EVENT_SEPARATOR          ':'
-#define REQUEST_EVENT_HANDER  "_request_event_handler"
+#define REQUEST_EVENT_HANDER     "_request_event_handler"
+
+#define ARG_KEY_DATA             "data"
+#define ARG_KEY_ELEMENT          "element"
+#define ARG_KEY_NAME             "name"
 
 struct ctxt_for_request {
     struct pcvdom_node           *curr;
@@ -362,6 +366,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = co->target_workspace_handle;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    const char *element = NULL;
     pcrdr_msg_data_type data_type;
 
     struct pcinst* inst = pcinst_current();
@@ -370,21 +375,36 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     struct ctxt_for_request *ctxt = (struct ctxt_for_request*)frame->ctxt;
     const char *request_id = ctxt->is_noreturn ? PCINTR_RDR_NORETURN_REQUEST_ID
         : NULL;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    purc_variant_t arg = ctxt->with;
+    const char *page_name = NULL;
 
-    if (!ctxt->with) {
+    if (!arg) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request $RDR");
         goto out;
     }
-    else if (purc_variant_is_object(ctxt->with)) {
+    else if (!purc_variant_is_object(arg)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "Invalid param type '%s' for $RDR", pcvariant_typename(ctxt->with));
+        goto out;
+    }
+
+    data = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA);
+    if (!data) {
+        purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request $RDR");
+        goto out;
+    }
+    else if (purc_variant_is_object(data)) {
         data_type = PCRDR_MSG_DATA_TYPE_JSON;
     }
-    else if (purc_variant_is_string(ctxt->with)) {
+    else if (purc_variant_is_string(data)) {
         data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "Invalid param type '%s' for $RDR", pcvariant_typename(ctxt->with));
+                "Invalid param type '%s' for $RDR", pcvariant_typename(data));
         goto out;
     }
 
@@ -408,25 +428,38 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, STARTSESSION)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWORKSPACE)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ENDSESSION)) == method)
-            ) {
-        target = PCRDR_MSG_TARGET_SESSION;
-    }
-    else if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
+    if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method)
             || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, REMOVEPAGEGROUP)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEPLAINWINDOW)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, DESTROYWIDGET)) == method)
-            || (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, UPDATEWIDGET)) == method)
         ) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        purc_variant_t n = purc_variant_object_get_by_ckey(data, ARG_KEY_NAME);
+        if (n && purc_variant_is_string(n)) {
+            page_name = purc_variant_get_string_const(n);
+        }
+        else {
+            purc_clr_error();
+        }
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method) {
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        purc_variant_t elem = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
+        if (!elem || !purc_variant_is_string(elem)) {
+            purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request $RDR '%s'", operation);
+            goto out;
+        }
+        element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
+        element = purc_variant_get_string_const(elem);
+        purc_variant_t n = purc_variant_object_get_by_ckey(data, ARG_KEY_NAME);
+        if (n && purc_variant_is_string(n)) {
+            page_name = purc_variant_get_string_const(n);
+        }
+        else {
+            purc_clr_error();
+        }
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
@@ -434,9 +467,8 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t data = purc_variant_ref(ctxt->with);
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, request_id, element_type, NULL, NULL,
+            target_value, operation, request_id, element_type, element, NULL,
             data_type, data, 0);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
@@ -449,7 +481,22 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     else {
         int ret_code = response_msg->retCode;
+        PC_DEBUG("request $RDR ret_code=%d\n", ret_code);
         if (ret_code == PCRDR_SC_OK) {
+            uint64_t page_handle = response_msg->resultValue;
+            if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW))
+                    == method) {
+                pcrdr_save_page_handle(inst->conn_to_rdr, NULL,
+                        NULL, page_name, PCRDR_PAGE_TYPE_PLAINWIN,
+                        page_handle, co->target_workspace_handle, 0);
+            }
+            else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET))
+                    == method) {
+                pcrdr_save_page_handle(inst->conn_to_rdr, NULL,
+                        NULL, page_name, PCRDR_PAGE_TYPE_WIDGET,
+                        page_handle, co->target_workspace_handle, 0);
+            }
+
             if (response_msg->data) {
                 v = purc_variant_ref(response_msg->data);
             }

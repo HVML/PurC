@@ -208,6 +208,7 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
     (*conn)->prot_data->rdr_atom = rdr_atom;
 
     list_head_init (&(*conn)->pending_requests);
+    list_head_init (&(*conn)->page_handles);
 
     /* say hello to the renderer thread */
     pcrdr_msg *hello_msg = pcrdr_make_request_message(

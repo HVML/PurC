@@ -1955,8 +1955,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
     /* Attach to rdr only if the document needs rdr,
        the document is newly created, and the page type is not null. */
     if (co->stack.doc->need_rdr &&
-            purc_document_get_refc(co->stack.doc) == 1 &&
-            page_type != PCRDR_PAGE_TYPE_NULL) {
+            purc_document_get_refc(co->stack.doc) == 1
+            ) {
 
         if (!pcintr_attach_to_renderer(co,
                 page_type, target_workspace,

@@ -32,6 +32,8 @@
 #include "purc-pcrdr.h"
 #include "private/list.h"
 
+#include "purc.h"
+
 struct pending_request {
     struct list_head        list;
 
@@ -40,6 +42,19 @@ struct pending_request {
     void   *context;
 
     time_t  time_expected;
+};
+
+struct pcrdr_page_handle {
+    struct list_head        list;
+
+    char                   *workspace_name;
+    char                   *group_name;
+    char                   *page_name;
+
+    pcrdr_page_type_k       page_type;
+    uint64_t                page_handle;
+    uint64_t                workspace_handle;
+    uint64_t                dom_handle;
 };
 
 struct pcrdr_prot_data;
@@ -68,6 +83,9 @@ struct pcrdr_conn {
 
     /* the pending requests queue */
     struct list_head pending_requests;
+
+    /* the rdr page handles */
+    struct list_head page_handles;
 
     /* operations */
     int (*wait_message) (pcrdr_conn* conn, int timeout_ms);

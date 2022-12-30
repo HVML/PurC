@@ -301,6 +301,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
+    list_head_init (&(*conn)->page_handles);
 
     return fd;
 

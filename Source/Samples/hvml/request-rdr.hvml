@@ -1,0 +1,70 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <title>My First HVML Program</title>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+    </head>
+
+    <body>
+        <h1>My First HVML Program</h1>
+        <p>Current Time: <span id="clock"></span><p>
+
+        <request on="$RDR" to="setPageGroups">
+            {
+                "data":'<section id="sec1"><article id="viewerWindow1" class="viewer"><ol id="viewerBodyPanels1"></ol></article></section>'
+            }
+        </request>
+
+        <request on="$RDR" to="addPageGroups">
+            {
+                "data":'<section id="sec2"><article id="viewerWindow2" class="viewer"><ol id="viewerBodyPanels2"></ol></article></section>'
+            }
+        </request>
+
+        <request on="$RDR" to="createPlainWindow">
+            {
+                "element":"viewerBodyPanels1",
+                "data": {
+                    "name": "hello",
+                    "title": "Hello, world!",
+                    "class": "normal",
+                    "layoutStyle": "with:200px;height:100px;",
+                    "widgetStyle": { "backgroundColor": "darkgray", "darkMode": true }
+                }
+            }
+        </request>
+
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"viewerBodyPanels1",
+                "data": {
+                    "name": "foobar",
+                    "title": "Tab One",
+                    "class": "normal",
+                    "layoutStyle": "with:200px;height:100px;",
+                    "widgetStyle": { "backgroundColor": "red" }
+                }
+            }
+        </request>
+
+        <ul>
+            <iterate on 0 onlyif $L.lt($0<, 10) with $DATA.arith('+', $0<, 1L) nosetotail >
+                <li>$<) Hello, world! --from COROUTINE-$CRTN.cid</li>
+            </iterate>
+        </ul>
+
+        <observe on $TIMERS for "expired:clock">
+            <update on "#clock" at "textContent" to "displace" with "$DATETIME.time_prt()" />
+        </observe>
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
+    </body>
+</hvml>
