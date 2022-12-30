@@ -510,7 +510,7 @@ $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 对于提供更好体验的完整 HVML 程序，你可以尝试运行另一个名为 `hvml/calculator-bc.hvml` 的示例，该示例实现了任意精度计算器：
 
 ```bash
-$ purc -p purcmc hvml/calculator-bc.hvml
+$ purc -c socket hvml/calculator-bc.hvml
 ```
 
 这是 `hvml/calculator-bc.hvml` 的截图：
@@ -520,7 +520,7 @@ $ purc -p purcmc hvml/calculator-bc.hvml
 或者运行 `hvml/planetary-resonance-lines.hvml`，该程序展示了行星共振：
 
 ```bash
-$ purc -p purcmc hvml/planetary-resonance-lines.hvml
+$ purc -c socket hvml/planetary-resonance-lines.hvml
 ```
 
 以下是 `hvml/planetary-resonance-lines.hvml` 的截图：
@@ -530,7 +530,7 @@ $ purc -p purcmc hvml/planetary-resonance-lines.hvml
 下面的示例展示了一个使用多个协程筛选素数的 HVML 程序，你可以运行 `hvml/prime-number-sieve.hvml`，这直观地展示了素数筛算法：
 
 ```
-$ purc -p purcmc hvml/prime-number-sieve.hvml
+$ purc -c socket hvml/prime-number-sieve.hvml
 ```
 
 这是 `hvml/prime-number-sieve.hvml` 的截图：
@@ -620,7 +620,7 @@ PurC 支持在多个行者中运行应用程序。在这里，一个 `runner` �
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
@@ -633,7 +633,7 @@ PurC 支持在多个行者中运行应用程序。在这里，一个 `runner` �
         },
         {
             "runner": "Customers",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
@@ -677,7 +677,7 @@ $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},

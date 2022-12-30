@@ -558,7 +558,7 @@ For a complete HVML program which gives a better experience,
     you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
 
 ```bash
-$ purc -p purcmc hvml/calculator-bc.hvml
+$ purc -c socket hvml/calculator-bc.hvml
 ```
 
 Here is the screenshot of `hvml/calculator-bc.hvml`:
@@ -568,7 +568,7 @@ Here is the screenshot of `hvml/calculator-bc.hvml`:
 Or run `hvml/planetary-resonance-lines.hvml`, which shows the Planetary Resonance:
 
 ```bash
-$ purc -p purcmc hvml/planetary-resonance-lines.hvml
+$ purc -c socket hvml/planetary-resonance-lines.hvml
 ```
 
 Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
@@ -579,7 +579,7 @@ For an amazing HVML program which uses the multiple coroutines to sieve the prim
     you can run `hvml/prime-number-sieve.hvml`, which visually illustrates the prime number sieve algorithm:
 
 ```bash
-$ purc -p purcmc hvml/prime-number-sieve.hvml
+$ purc -c socket hvml/prime-number-sieve.hvml
 ```
 
 Here is the screenshot of `hvml/prime-number-sieve.hvml`:
@@ -672,7 +672,7 @@ Here is an example:
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
@@ -685,7 +685,7 @@ Here is an example:
         },
         {
             "runner": "Customers",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
@@ -732,7 +732,7 @@ Then use the option specified by `--app` in `my_app.ejson`:
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "purcmc", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
