@@ -784,11 +784,13 @@ There are many ways to contribute to PurC:
 
 ### Current Status
 
-This project was launched in June. 2021. This is the version 0.9.4 of PurC.
+This project was launched in June. 2021, and we opened this repo in July, 2022.
+This is the version 0.9.4 of PurC.
 
 The main purpose of PurC is providing a library for you to write your own HVML interpreter.
-After one year development, the current version implements almost all features defined by [HVML Specifiction V1.0],
+The current version implements almost all features defined by [HVML Specifiction V1.0],
       and also implements almost all predefined dynamic variables defined by [HVML Predefined Variables V1.0].
+We plan to release PurC version 1.0 in June 2023.
 
 Except for the HVML interpreter, PurC also provides many fundamental features for general C programs:
 
