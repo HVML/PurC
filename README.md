@@ -11,7 +11,7 @@
 - [Introduction](#introduction)
 - [Building PurC](#building-purc)
 - [Using `purc`](#using-purc)
-- [Hacking PurC](#hacking-purc)
+- [Contributing](#contributing)
 - [Authors and Contributors](#authors-and-contributors)
 - [Copying](#copying)
 - [Tradmarks](#tradmarks)
@@ -770,7 +770,17 @@ Note that when `purc` try to load an HVML program from a remote URL,
      it will use the remote data fetcher by default.
 Since 0.9.0, PurC Fetcher had been included in this respository, and it will be built along with PurC.
 
-## Hacking PurC
+## Contributing
+
+We welcome anybody to take part in the development and contribute your effort!
+There are many ways to contribute to PurC:
+
+- Participate in Q&A in our [GitHub Discussions](https://github.com/HVML/PurC/discussions).
+- [Submit bugs](https://github.com/HVML/PurC/issues) and help us verify fixes as they are checked in.
+- Review the [source code changes](https://github.com/HVML/PurC/pulls).
+- Contribute bug fixes.
+- Contribute test programs and/or test cases.
+- Contribute samples (HVML samples or C/C++ sample programs to use PurC API).
 
 ### Current Status
 
@@ -790,21 +800,6 @@ Except for the HVML interpreter, PurC also provides many fundamental features fo
 1. PurC provides the APIs for parsing an HVML program and schedule to run it.
 
 You can use these groups of APIs independently according to your needs.
-
-We welcome anybody to take part in the development and contribute your effort!
-
-### Contributing
-
-There are many ways to contribute to PurC:
-
-- Participate in Q&A in our [GitHub Discussions](/HVML/PurC/discussions).
-- [Submit bugs](/HVML/PurC/issues) and help us verify fixes as they are checked in.
-- Review the [source code changes](/HVML/PurC/pulls).
-- Contribute bug fixes.
-- Contribute test programs and/or test cases.
-- Contribute samples (HVML samples or C/C++ sample programs to use PurC API).
-
-Detailed instructions for working in the repo can be found in the [Wiki](/HVML/PurC/wiki).
 
 ### Source Tree of PurC
 

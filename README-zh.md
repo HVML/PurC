@@ -9,7 +9,7 @@
 - [介绍](#介绍)
 - [构建 PurC](#构建-purc)
 - [使用 purc](#使用-purc)
-- [参与 PurC 开发](#参与-purc-开发)
+- [参与 PurC 项目](#参与-purc-项目)
 - [作者和贡献者](#作者和贡献者)
 - [版权信息](#版权信息)
 - [商标](#商标)
@@ -708,7 +708,16 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。你必须确保正确构建和安装 PurC Fetcher。PurC Fetcher 现已合并到当前的代码仓库中。
 
-## 参与 PurC 开发
+## 参与 PurC 项目
+
+我们欢迎任何人参与 PurC 项目（以及其他 HVML 相关项目）并贡献自己的力量! 有很多途径参与并贡献自己的知识和力量：
+
+- 在我们的 [GitHub Discussions](https://github.com/HVML/PurC/discussions) 上参与 Q&A 的撰写。
+- [提交缺陷](https://github.com/HVML/PurC/issues) 并帮助我们验证缺陷的修复。
+- 审阅 [源代码的修改](https://github.com/HVML/PurC/pulls)。
+- 贡献缺陷修复。
+- 贡献测试程序或者测试用例。
+- 贡献示例程序（HVML 示例程序或者使用 PurC API 的示例程序）。
 
 ### 当前状态
 
@@ -724,8 +733,6 @@ PurC 的主要目的是为你提供一个函数库来编写自己的 HVML 解释
 4. PurC 提供了用于解析 HTML 文档的 API。
 5. PurC 提供了创建多个 HVML 行者的 API。
 6. PurC 提供了用于解析 HVML 程序和调度执行 HVML 协程的 API。
-
-我们欢迎任何人参与 PurC 的开发并贡献自己的力量!
 
 ### PurC 的源代码树
 
@@ -953,6 +960,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [Beijing FMSoft Technologies Co., Ltd.]: https://www.fmsoft.cn
 [FMSoft Technologies]: https://www.fmsoft.cn
 [FMSoft]: https://www.fmsoft.cn
+[飞漫软件]: https://www.fmsoft.cn
 [HybridOS Official Site]: https://hybridos.fmsoft.cn
 [HybridOS]: https://hybridos.fmsoft.cn
 
