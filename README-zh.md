@@ -1,6 +1,6 @@
 # PurC
 
-`PurC` 是最早使用 C 语言开发的 HVML 解释器。
+`PurC` 是首个针对 C/C++ 语言开发的 HVML 解释器。
 
 **目录**
 
@@ -20,7 +20,7 @@
 
 `HVML` 是由 [魏永明] 提出并设计的一种描述式编程语言。魏永明是中国首个开源项目 [MiniGUI] 的作者。
 
-`PurC` 是 `the Prime HVML inteRpreter in C language` 的缩写，意指最早使用 C 语言开发的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
+`PurC` 是 `the Prime HVML inteRpreter for C/C++ language` 的缩写，意指首个针对 C/C++ 语言开发的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
 
 PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功能以及实现 [HVML 预定义变量 V1.0] 中定义的所有预定义动态对象。
 
@@ -61,7 +61,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 要从源代码构建 PurC，请确保你的 Linux 或 macOS 系统上提供以下工具或函数库：
 
 1. 跨平台构建系统生成器：CMake 3.15 或更高版本
-2. 兼容 C11 和 CXX17 的编译器:GCC 8+ 或 Clang 6+
+2. 兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
 3. Zlib 1.2.0 或更高版本
 4. Glib 2.44.0 或更高版本
 5. Python 3
@@ -82,13 +82,12 @@ $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build && cmake --build
 
 上述命令行由以下命令组成：
 
-1. `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build`：更改 `build/` 子目录，并运行 `cmake` 生成构建文件以构建 PurC。请注意，此命令使用以下选项：
-   - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`：指定构建类型为`RelWithDebInfo`。你还可以使用 `Debug`、`Release` 和 `cmake` 支持的其他选项。
+1. `cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -B build`：更改到 `build/` 子目录，并运行 `cmake` 生成构建文件以构建 PurC。请注意，此命令使用以下选项：
+   - `-DCMAKE_BUILD_TYPE=RelWithDebInfo`：指定构建类型为`RelWithDebInfo`。你还可以使用 `Debug`、`Release` 以及 `cmake` 支持的其他选项。
    - `-DPORT=Linux`：告诉 `cmake` 你正在为基于 Linux 内核的操作系统构建 PurC。如果你使用 macOS，请使用 `-DPORT=Mac`。
    - `-B build`：在 `build/` 子目录中生成构建文件。
-
-2. `cmake --build build`：在 `build/` 子目录中构建 PurC。
-3. `sudo cmake --install build`：从 `build/` 子目录安装 PurC。
+1. `cmake --build build`：在 `build/` 子目录中构建 PurC。
+1. `sudo cmake --install build`：在 `build/` 子目录安装 PurC。
 
 你还可以使用以下命令逐步构建和安装 PurC：
 
@@ -113,13 +112,13 @@ $ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -Bbuild -GNinja &&  ninja
 
 默认情况下，上述命令将构建 PurC，并将头文件、库、可执行文件和一些文档安装到你的系统（如果你使用的是 Linux 系统，则在 `/usr/local/` 目录下）。
 
-使用 `make` 时，你可以使用 `DESTDIR` 指定替代安装目录：
+使用 `make` 时，你可以使用 `DESTDIR` 指定另一个非默认安装目录：
 
 ```bash
 $ make DESTDIR=/package/stage install
 ```
 
-使用 `ninja` 时，你也可以使用 `DESTDIR` 指定替代安装目录：
+使用 `ninja` 时，你也可以使用 `DESTDIR` 指定另一个非默认安装目录：
 
 ```bash
 $ DESTDIR="/package/stage" ninja -Cbuild install
@@ -127,18 +126,18 @@ $ DESTDIR="/package/stage" ninja -Cbuild install
 
 ## 环境变量
 
-PurC 将以下环境变量用于不同的目的：
+PurC 使用以下环境变量用于不同的目的：
 
-- `PURC_DVOBJS_PATH`：为外部动态对象保存共享模块的路径。
-- `PURC_EXECUTOR_PATH`：为外部执行者保存共享模块的路径。
-- `PURC_FETCHER_EXEC_PATH`：保存 PurC Fetcher 可执行程序的路径。
+- `PURC_DVOBJS_PATH`：用于保存外部动态对象共享库的路径。
+- `PURC_EXECUTOR_PATH`：用于保存外部执行器共享库的路径。
+- `PURC_FETCHER_EXEC_PATH`：用于保存 PurC Fetcher 可执行程序（`purc-fetcher`）的路径。
 - `PURC_USER_DIR_SUFFIX`：用户的目录后缀。
-- `PURC_LOG_ENABLE`：如果启用全局日志工具，则为 `true`。
-- `PURC_LOG_SYSLOG`：如果启用使用 syslog 作为日志工具，则为 `true` 。
+- `PURC_LOG_ENABLE`：如果启用全局日志工具，则可设置为 `true`。
+- `PURC_LOG_SYSLOG`：如果启用使用 syslog 作为日志工具，则可设置为 `true` 。
 
-## 使用 PurC
+## 使用 `purc`
 
-以下部分假设你已将 PurC 安装到你的系统，并且命令行工具 `purc` 已安装到 `/usr/local/bin/`。确保你已将 `/usr/local/lib` 添加到 `/etc/ld.so.conf` 并运行 `sudo ldconfig` 命令，以便系统可以找到你刚刚安装到 `/usr/local/lib` 中的 PurC 函数库。
+以下部分假设你已将 PurC 安装到你的系统，并且命令行工具 `purc` 已安装到 `/usr/local/bin/`。请确保你已将 `/usr/local/lib` 添加到 `/etc/ld.so.conf` 文件，并运行 `sudo ldconfig` 命令，以便系统可以找到你刚刚安装到 `/usr/local/lib` 中的 PurC 函数库。
 
 ### 运行单个 HVML 程序
 
@@ -165,7 +164,7 @@ $ purc hello.hvml
 Hello, world!
 ```
 
-如果你在 HVML 程序的第一行预先添加下面这行命令，也可以直接以脚本运行此 HVML 程序：
+如果你在 HVML 程序的第一行预先添加下面这行命令，也可以直接运行此 HVML 程序，就像一个普通的脚本程序一样：
 
 ```
 #!/usr/local/bin/purc
@@ -181,9 +180,10 @@ $ chmod +x hello.hvml
 
 ```bash
 $ ./hello.hvml
+Hello, world!
 ```
 
-### 运行错误或异常的 HVML 程序
+### 运行带有错误或异常的 HVML 程序
 
 请将以下内容保存在工作目录中名为 `error.hvml` 的文件中：
 
@@ -196,14 +196,15 @@ $ ./hello.hvml
 </hvml>
 ```
 
-显然，我们忘记了 `Hello, world!` 的第二个单引号。如果在没有任何选项的情况下运行 `purc`，解释器将以一个非零返回值退出：
+显然，我们忘记了 `Hello, world!` 的第二个单引号。如果在没有任何选项的情况下运行 `purc`，解释器将退出，且具有非零退出值：
 
 ```bash
 $ purc error.hvml
 $ echo $?
 1
 ```
-你想获得详细信息，可以使用 `-v` 选项运行 `purc`：
+
+你想获得详细的输出信息，可以使用 `-v` 选项运行 `purc`：
 
 ```bash
 $ purc -v error.hvml
@@ -216,13 +217,11 @@ Failed to load HVML from file:///srv/devel/hvml/purc/build/error.hvml: pcejson u
 Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, character=0x0
 ```
 
-这时，`purc` 报告了它在解析 HVML 程序时遇到的错误：错误的行和列。
+这时，`purc` 报告了它在解析 HVML 程序时遇到的错误：错误所在的行和列。
 
-如果你更改程序以添加缺失的单引号，`purc` 将很乐意执行 HVML 程序。
+如果你更改程序以添加缺失的单引号，`purc` 将正常执行修改后的 HVML 程序。
 
-对于未捕获的运行时异常，`purc` 将转储正在执行的栈。。
-
-例如，你可以将以下程序保存为 `exception.hvml`：
+对于未捕获的运行时异常，`purc` 将在标准错误上输出异常和异常发生时的执行栈信息。例如，你可以将以下程序保存为 `exception.hvml`：
 
 ```hvml
 <!DOCTYPE hvml>
@@ -233,9 +232,9 @@ Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, ch
 </hvml>
 ```
 
-这段 HVML 程序引用了默认变量 `$CRTN` 中一个并不存在的属性 `foo`。
+这段 HVML 程序引用了默认变量 `$CRTN` 中一个并不存在的属性 `foo`。因此，执行该程序将抛出异常。
 
-使用 `-b` 选项运行 `purc` 来执行这个 HVML 程序，它将报告正在执行的栈：
+使用 `-v` 选项运行 `purc` 来执行这个 HVML 程序，它将输出异常信息以及执行栈：
 
 ```
 $ purc -v exception.hvml
@@ -289,7 +288,7 @@ The main coroutine terminated due to an uncaught exception: NoSuchKey.
 
 ### 并行运行多个 HVML 程序
 
-PurC 可以并行运行多个 HVML 程序作为协程。
+`purc` 可以并行运行多个 HVML 程序作为协程。
 
 例如，我们增强第一个 HVML 程序来打印 `Hello, world!` 10 次:
 
@@ -334,8 +333,7 @@ $ purc -l hello-10.hvml hello-10.hvml
 9) Hello, world! -- from COROUTINE-4
 ```
 
-在上面的输出中，`COROUTINE-3` 和 `COROUTINE-4` 表示 PurC 为该程序的两个运行实例分配的协程标识符。你可以看到，PurC 安排运行实例交替执行，即以协程的方式执行。
-
+在上面的输出中，`COROUTINE-3` 和 `COROUTINE-4` 表示 `purc` 为该程序的两个运行实例分配的协程标识符。你可以看到，`purc` 安排两个运行实例交替执行，即以协程的方式执行。
 
 如果你不使用命令行中的 `-l` 标志，`purc` 将逐个运行这些程序：
 
@@ -367,9 +365,7 @@ $ purc hello-10.hvml hello-10.hvml
 
 HVML 程序除了像其他通常的程序一样将运行时的一些结果输出到文件或者终端上以外，还能同时输出 HTML 或者 XML 等标记文档，这些文档可以被渲染器进行渲染从而得到图形化的显示。
 
-
-*为了方便起见，我们在此存储库的 `Source/Samples/hvml`
-目录中准备了一些 HVML 示例。在构建 PurC 之后，示例将被复制到构建根目录，在 `hvml/` 子目录下，这样就可以更改到构建根目录并使用 `purc` 运行示例。例如:*
+为了方便起见，我们在本代码仓库的 `Source/Samples/hvml` 目录中准备了一些 HVML 示例程序。在成功构建 PurC 之后，这些示例将被复制到构建目录的 `hvml/` 子目录下，这样就可以更改到构建目录并使用 `purc` 运行这些示例程序。例如：
 
 ```bash
 $ cd <path/to/the/building/directory/>
@@ -378,13 +374,13 @@ $ purc hvml/fibonacci-void-temp.hvml
 
 这个 HVML 程序将输出 18 个小于 2000 的斐波那契数字。这个程序还有另一个版本：`hvml/fibonacci-html-temp.hvml`。它将生成一个列出斐波那契数字的 HTML 文档。
 
-如果你使用 `purc` 运行 `hvml/fibonacci-html-temp.hvml` 程序，没有任何选项，`purc` 将使用名为 `HEADLESS` 的渲染器。此渲染器将记录 PurC 发送给渲染器到本地文件的消息，在 Linux 上默认为 `/dev/null`。由于此 HVML 程序不再使用 `$STREM.stdout`，因此在终端上看不到任何东西。但你可以使用选项 `--verbose`（或短选项 `-b`）在终端中显示 HVML 程序生成的 HTML 内容：
+如果你使用 `purc` 运行 `hvml/fibonacci-html-temp.hvml` 程序，且不指定任何选项，`purc` 将使用名为 `HEADLESS` 的渲染器。此渲染器将把解释器发送给渲染器的消息记录到一个本地文件中；这个文件在 Linux 上默认为 `/dev/null`。由于此 HVML 程序不再使用 `$STREM.stdout`，因此在终端上看不到任何东西。但你可以使用选项 `--verbose`（或短选项 `-v`）在终端中显示 HVML 程序生成的 HTML 内容：
 
 ```bash
 $ purc -v hvml/fibonacci-html-temp.hvml
 ```
 
-该命令将为你提供以下输出：
+以上命令行的输出内容如下：
 
 ```
 purc 0.9.4
@@ -479,11 +475,11 @@ Fibonacci Numbers less than 2000
 Totally 18 numbers
 ```
 
-请注意，在当前版本（0.9.4）中，Foil 功能不完全。在不久的将来，Foil 将支持 CSS 2.2 大多数功能和 CSS Level 3 的某些功能，以便你可以获得像网页浏览器一样的类似体验。
+请注意，在当前版本（0.9.4）中，Foil 功能还无完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器，在字符终端上获得类似网页浏览器一样的体验。
 
 你还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。`xGUI Pro` 是一种基于 WebKit 的高级 HVML 渲染器。
 
-假设你在系统上安装了 xGUI Pro，可以运行 `purc` 在 xGUI Pro 的窗口中显示最终的 HTML 内容。有关安装 xGUI Pro 的详细说明，请参阅 <https://github.com/HVML/xGUI-Pro>。
+假设你在系统上安装了 xGUI Pro，可以运行 `purc` 并在 xGUI Pro 的窗口中显示最终的 HTML 内容。有关安装 xGUI Pro 的详细说明，请参阅 <https://github.com/HVML/xGUI-Pro>。
 
 假设你已从另一个终端启动 xGUI Pro，那么请使用以下选项运行 `purc`：
 
@@ -499,7 +495,7 @@ $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
         </observe>
 ```
 
-如果没有这样的 `observe` 元素，HVML 程序将在生成 HTML 文档后立即退出。通过使用 `observe` 元素，HVML 程序将等待渲染器创建的页面被用户（即你）关闭。
+如果没有这样的 `observe` 元素，HVML 程序将在生成 HTML 文档后立即退出。通过使用 `observe` 元素，HVML 程序将等待渲染器创建的页面被用户（即你）关闭之后才会退出。
 
 你将看到由 `hvml/fibonacci-html-temp-rdr.hvml` 创建的 xGUI Pro 窗口中的内容：
 
@@ -507,7 +503,7 @@ $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 
 如果你通过单击标题栏上的关闭框关闭窗口，HTML 程序将正常退出。
 
-对于提供更好体验的完整 HVML 程序，你可以尝试运行另一个名为 `hvml/calculator-bc.hvml` 的示例，该示例实现了任意精度计算器：
+为体验更加完整的 HVML 程序，你可以尝试运行另一个名为 `hvml/calculator-bc.hvml` 的示例，该示例实现了一个任意精度计算器：
 
 ```bash
 $ purc -c socket hvml/calculator-bc.hvml
@@ -517,7 +513,7 @@ $ purc -c socket hvml/calculator-bc.hvml
 
 ![the Arbitrary Precision Calculator](https://files.fmsoft.cn/hvml/screenshots/calculator-bc.png)
 
-或者运行 `hvml/planetary-resonance-lines.hvml`，该程序展示了行星共振：
+或者运行 `hvml/planetary-resonance-lines.hvml`，该程序展示了行星共振。
 
 ```bash
 $ purc -c socket hvml/planetary-resonance-lines.hvml
@@ -537,7 +533,7 @@ $ purc -c socket hvml/prime-number-sieve.hvml
 
 ![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
 
-### 选项 purc
+### `purc` 的选项
 
 当你使用 `-h` 选项运行 `purc` 时，你可以看到 `purc` 支持的所有选项：
 
@@ -661,7 +657,7 @@ PurC 支持在多个行者中运行应用程序。在这里，一个 `runner` �
 $ purc cn.fmsoft.hvml.sample.json
 ```
 
-*请注意，当以这种方式运行应用程序时，你可以在解析 eJSON 文件时通过 `purc` 准备的变量 `$OPTS` 使用 eJSON 文件中的命令行选项。这给出了 PurC 引入的参数化 eJSON 的典型应用。*
+请注意，当以这种方式运行应用程序时，你可以在解析 eJSON 文件时通过 `purc` 准备的变量 `$OPTS`，在 eJSON 文件中引用传入 `purc` 的命令行选项。这给出了 PurC 的参数化 eJSON 的典型应用场景。
 
 例如，我们可以指定命令行选项：
 
@@ -669,7 +665,7 @@ $ purc cn.fmsoft.hvml.sample.json
 $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
 ```
 
-然后使用 `my_app.ejson` 中 `--app` 指定的选项：
+然后在 `my_app.ejson` 中引用 `--app` 指定的选项（`$OPTS.app`）：
 
 ```json
 {
@@ -692,7 +688,7 @@ $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
 }
 ```
 
-`my_app.ejson` 中出现的所有 `$OPTS.app` 都将替换为 `cn.fmsoft.hvml.sample`。
+在 `my_app.ejson` 文件中出现的所有 `$OPTS.app` 都将替换为 `cn.fmsoft.hvml.sample`。
 
 ### 更多 HVML 示例
 
@@ -704,13 +700,13 @@ $ purc --app=cn.fmsoft.hvml.sample my_app.ejson
 $ purc --data-fetcher=remote https://github.com/HVML/hvml-docs/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
-如果防火墙拒绝连接到 URL，请使用以下 URL：
+如果防火墙拒绝连接到上述 URL，可使用以下 URL：
 
 ```bash
 $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/master/samples/fibonacci/fibonacci-6.hvml
 ```
 
-请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。因此，你必须提前安装 PurC Fetcher。有关构建和安装 PurC Fetcher 的详细说明，请参阅 [PurC Fetcher](https://github.com/HVML/purc-fetcher)。
+请注意，当 `purc` 尝试从远程 URL 加载 HVML 程序时，默认情况下，它将使用远程数据获取器。你必须确保正确构建和安装 PurC Fetcher。PurC Fetcher 现已合并到当前的代码仓库中。
 
 ## 参与 PurC 开发
 
@@ -720,7 +716,7 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 PurC 的主要目的是为你提供一个函数库来编写自己的 HVML 解释器。经过一年的开发，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。
 
-除了 HVML 解释器外，Purc 还为一般 C 程序的提供了许多基本功能：
+除了 HVML 解释器外，Purc 还为一般的 C/C++ 程序提供了许多基本功能：
 
 1. PurC 为变体管理提供了 API，这里的变体（variant）是 HVML 管理数据的方式。
 2. PurC 提供了解析 JSON 和 eJSON 的 API。

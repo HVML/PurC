@@ -2,7 +2,7 @@
 
 # PurC
 
-`PurC` is the prime HVML interpreter for C language.
+`PurC` is the prime HVML interpreter for C/C++ language.
 
 **Table of Contents**
 
@@ -23,7 +23,7 @@
 `HVML` is a descriptive programming language proposed and designed by [Vincent Wei],
     who is the author of the China-first open source project - [MiniGUI].
 
-`PurC` is the acronym of `the Prime HVML inteRpreter for C language`.
+`PurC` is the acronym of `the Prime HVML inteRpreter for C/C++ language`.
 It is also the abbreviation of `Purring Cat`,
    while `Purring Cat` is the nickname and the mascot of HVML.
 
@@ -768,8 +768,7 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 Note that when `purc` try to load an HVML program from a remote URL,
      it will use the remote data fetcher by default.
-Therefore, you must install PurC Fetcher in advance.
-Please refer to [PurC Fetcher](https://github.com/HVML/purc-fetcher) for detailed instructions to build and install PurC Fetcher to your system.
+Since 0.9.0, PurC Fetcher had been included in this respository, and it will be built along with PurC.
 
 ## Hacking PurC
 
