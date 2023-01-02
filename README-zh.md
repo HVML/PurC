@@ -1,6 +1,6 @@
 # PurC
 
-`PurC` 是首个针对 C/C++ 语言开发的 HVML 解释器。
+`PurC` 是首个针对 C/C++ 语言的 HVML 解释器。
 
 **目录**
 
@@ -20,7 +20,7 @@
 
 `HVML` 是由 [魏永明] 提出并设计的一种描述式编程语言。魏永明是中国首个开源项目 [MiniGUI] 的作者。
 
-`PurC` 是 `the Prime HVML inteRpreter for C/C++ language` 的缩写，意指首个针对 C/C++ 语言开发的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
+`PurC` 是 `the Prime HVML inteRpreter for C/C++ language` 的缩写，意指首个针对 C/C++ 语言的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
 
 PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功能以及实现 [HVML 预定义变量 V1.0] 中定义的所有预定义动态对象。
 
