@@ -784,7 +784,7 @@ PurC 的源代码树包含以下模块：
 4. 更多示例。
 5. 将 PurC 移植到 Windows。
 
-有关详细的待办事项列表，请参阅[TODO 清单](TODO.md)。
+有关详细的待办事项列表，请参阅[TODO 清单](Documents/TODO.md)。
 
 ### 其他文件
 

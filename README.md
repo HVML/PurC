@@ -793,6 +793,19 @@ You can use these groups of APIs independently according to your needs.
 
 We welcome anybody to take part in the development and contribute your effort!
 
+### Contributing
+
+There are many ways to contribute to PurC:
+
+- Participate in Q&A in our [GitHub Discussions](/HVML/PurC/discussions).
+- [Submit bugs](/HVML/PurC/issues) and help us verify fixes as they are checked in.
+- Review the [source code changes](/HVML/PurC/pulls).
+- Contribute bug fixes.
+- Contribute test programs and/or test cases.
+- Contribute samples (HVML samples or C/C++ sample programs to use PurC API).
+
+Detailed instructions for working in the repo can be found in the [Wiki](/HVML/PurC/wiki).
+
 ### Source Tree of PurC
 
 PurC implements the parser, the interpreter, and some built-in dynamic variant
@@ -852,7 +865,7 @@ Note that the HTML parser and DOM operations of PurC are derived from:
 1. More samples.
 1. Port PurC to Windows.
 
-For detailed TODO list, please see [TODO List](TODO.md).
+For detailed TODO list, please see [TODO List](Documents/TODO.md).
 
 ### Other documents
 
