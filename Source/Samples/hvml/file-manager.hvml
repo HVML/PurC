@@ -14,7 +14,7 @@
         <init as 'state'>
             {
                 "activeId":null,
-                "currDir":"/etc",
+                "currDir":"/tmp",
                 "dataList" : [],
             }
         </init>
@@ -32,7 +32,10 @@
         <load from "#sub" onto 'subWindow' as 'subFileList' async />
 
         <archetype name="mainItem">
-            <li class="list-group-item" hvml-events="click" id="li-$2%" value="$2?.name">$2?.name</li>
+            <li class="list-group-item" hvml-events="click" id="li-$2%" value="$2?.name">
+                <i class="bi bi-folder"></i>
+                $2?.name
+            </li>
         </archetype>
 
         <div class="container">
@@ -107,7 +110,52 @@
 
     <body id="sub">
         <archetype name="subItem">
-            <li class="list-group-item sub" hvml-events="click" id="li-$2?.inode">$2?.name</li>
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-file-earmark"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemPdf">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-pdf"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemJpg">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-jpg"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemPng">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-png"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemGif">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-gif"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemMp3">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-mp3"></i>
+                $4?.name
+            </li>
+        </archetype>
+
+        <archetype name="subItemTxt">
+            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
+                <i class="bi bi-filetype-txt"></i>
+                $4?.name
+            </li>
         </archetype>
 
         <div class="container">
@@ -134,7 +182,32 @@
 
             <iterate on $dataList>
                 <test with "$L.not($FS.file_is($STR.join($currDir, '/', $?.name), 'dir'))">
-                    <update on "$subUpList" to "append" with $subItem />
+                    <test on="$STR.substr($2?.name, -4)">
+                        <match for="AS '.pdf'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemPdf />
+                        </match>
+                        <match for="AS '.jpg'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemJpg />
+                        </match>
+                        <match for="AS '.jpeg'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemJpg />
+                        </match>
+                        <match for="AS '.png'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemPng />
+                        </match>
+                        <match for="AS '.gif'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemGif />
+                        </match>
+                        <match for="AS '.mp3'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemMp3 />
+                        </match>
+                        <match for="AS '.txt'" exclusively>
+                            <update on "$subUpList" to "append" with $subItemTxt />
+                        </match>
+                        <match for="ANY">
+                            <update on "$subUpList" to "append" with $subItem />
+                        </match>
+                    </test>
                 </test>
             </iterate>
             <update on "$subUpList" to "append" with '</ul>' />
