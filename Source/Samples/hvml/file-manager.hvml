@@ -92,11 +92,6 @@
                 </match>
             </test>
             <include with "$refreshList" />
-            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
-                {
-                    "path" : $state.currDir
-                }
-            </request>
         </observe>
 
 
