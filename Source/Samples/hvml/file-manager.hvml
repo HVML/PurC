@@ -32,7 +32,7 @@
         <load from "#sub" onto 'subWindow' as 'subFileList' async />
 
         <archetype name="mainItem">
-            <li class="list-group-item" hvml-events="click" id="li-$%" value="$?.name">$?.name</li>
+            <li class="list-group-item" hvml-events="click" id="li-$2%" value="$2?.name">$2?.name</li>
         </archetype>
 
         <div class="container">
@@ -50,7 +50,7 @@
             <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
             -->
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
-            <update on $state.dataList to 'prepend' with {"inode":"0", "name":".."} />
+            <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":".."} />
             <init as "dataCount" with $DATA.count($state.dataList) />
             <init as "upList" temp >
                 [
@@ -59,7 +59,9 @@
             </init>
 
             <iterate on $state.dataList>
-                <update on "$upList" to "append" with $mainItem />
+                <test with "$FS.file_is($STR.join($state.currDir, '/', $?.name), 'dir')">
+                    <update on "$upList" to "append" with $mainItem />
+                </test>
             </iterate>
             <update on "$upList" to "append" with '</ul>' />
 
@@ -105,7 +107,7 @@
 
     <body id="sub">
         <archetype name="subItem">
-            <li class="list-group-item sub" hvml-events="click" id="li-$?.inode">$?.name</li>
+            <li class="list-group-item sub" hvml-events="click" id="li-$2?.inode">$2?.name</li>
         </archetype>
 
         <div class="container">
@@ -121,6 +123,7 @@
             <update on '#subTitle' at="textContent" with "$?.path 的索引" />
         -->
             <update on "#subList" at "content" with ' ' />
+            <init as 'currDir' with $?.path />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
             <init as "subUpList" temp >
                 [
@@ -130,7 +133,9 @@
 
 
             <iterate on $dataList>
-                <update on "$subUpList" to "append" with $subItem />
+                <test with "$L.not($FS.file_is($STR.join($currDir, '/', $?.name), 'dir'))">
+                    <update on "$subUpList" to "append" with $subItem />
+                </test>
             </iterate>
             <update on "$subUpList" to "append" with '</ul>' />
             <update on "#subListContainer" at "content" with $DATA.stringify($subUpList) />
