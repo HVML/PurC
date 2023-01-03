@@ -27,15 +27,42 @@
 
 #include <assert.h>
 
-foil_widget *foil_widget_new(foil_widget_type_t type, const char *name,
-        const char *title)
+foil_widget *foil_widget_new(foil_widget_type_k type,
+        foil_widget_border_k border,
+        const char *name, const char *title, const foil_rect *rect)
 {
+    assert(rect->right > rect->left && rect->bottom > rect->top);
+
     foil_widget *widget = calloc(1, sizeof(*widget));
 
     if (widget) {
         widget->type = type;
+        widget->border = border;
         widget->name = name ? strdup(name) : NULL;
         widget->title = title ? strdup(title) : NULL;
+        widget->rect = *rect;
+
+        if (border == WSP_WIDGET_BORDER_NONE) {
+            widget->ctnt_rc.left = 0;
+            widget->ctnt_rc.right = 0;
+            widget->ctnt_rc.right = foil_rect_width(rect);
+            widget->ctnt_rc.bottom = foil_rect_height(rect);
+        }
+        else if (border == WSP_WIDGET_BORDER_SHADOW) {
+            widget->ctnt_rc.left = 0;
+            widget->ctnt_rc.right = 0;
+            widget->ctnt_rc.right = foil_rect_width(rect) - 1;
+            widget->ctnt_rc.bottom = foil_rect_height(rect) - 1;
+        }
+        else {
+            widget->ctnt_rc.left = 1;
+            widget->ctnt_rc.right = 1;
+            widget->ctnt_rc.right = foil_rect_width(rect) - 1;
+            widget->ctnt_rc.bottom = foil_rect_height(rect) - 1;
+        }
+
+        widget->vx = 0;
+        widget->vy = 0;
     }
 
     return widget;

@@ -31,16 +31,25 @@
 #include "region/rect.h"
 
 typedef enum {
-    WSP_WIDGET_TYPE_NONE  = 0,       /* not-existing */
-    WSP_WIDGET_TYPE_ROOT,            /* a virtual root window */
-    WSP_WIDGET_TYPE_PLAINWINDOW,     /* a plain main window */
-    WSP_WIDGET_TYPE_TABBEDWINDOW,    /* a tabbed main window */
-    WSP_WIDGET_TYPE_CONTAINER,       /* A layout container widget */
-    WSP_WIDGET_TYPE_PANEHOST,        /* the container of paned pages */
-    WSP_WIDGET_TYPE_TABHOST,         /* the container of tabbed pages */
-    WSP_WIDGET_TYPE_PANEDPAGE,       /* a paned page */
-    WSP_WIDGET_TYPE_TABBEDPAGE,      /* a tabbed page */
-} foil_widget_type_t;
+    WSP_WIDGET_TYPE_NONE = 0,       /* not-existing */
+    WSP_WIDGET_TYPE_ROOT,           /* a virtual root window */
+    WSP_WIDGET_TYPE_PLAINWINDOW,    /* a plain main window */
+    WSP_WIDGET_TYPE_TABBEDWINDOW,   /* a tabbed main window */
+    WSP_WIDGET_TYPE_CONTAINER,      /* A layout container widget */
+    WSP_WIDGET_TYPE_PANEHOST,       /* the container of paned pages */
+    WSP_WIDGET_TYPE_TABHOST,        /* the container of tabbed pages */
+    WSP_WIDGET_TYPE_PANEDPAGE,      /* a paned page */
+    WSP_WIDGET_TYPE_TABBEDPAGE,     /* a tabbed page */
+} foil_widget_type_k;
+
+typedef enum {
+    WSP_WIDGET_BORDER_NONE = 0,                 /* no border */
+    WSP_WIDGET_BORDER_LIGHT_LINES,              /* light lines */
+    WSP_WIDGET_BORDER_HEAVY_LINES,              /* heavy lines */
+    WSP_WIDGET_BORDER_DOUBLE_LINES,             /* double lines */
+    WSP_WIDGET_BORDER_LIGHT_LINES_WITH_ARCS,    /* light lines with arcs */
+    WSP_WIDGET_BORDER_SHADOW,                   /* shadows */
+} foil_widget_border_k;
 
 struct foil_widget;
 typedef struct foil_widget foil_widget;
@@ -60,8 +69,17 @@ struct foil_widget {
     struct foil_widget *prev;
     struct foil_widget *next;
 
-    foil_widget_type_t  type;
+    foil_widget_type_k  type;
+    foil_widget_border_k border;
+
+    /* the rectangle of this widget in parent */
     foil_rect           rect;
+
+    /* the content/client rectangle in this widget */
+    foil_rect           ctnt_rc;
+
+    /* the origin of page viewport */
+    int                 vx, vy;
 
     char               *name;
     char               *title;
@@ -88,7 +106,7 @@ struct foil_widget_info {
 
     /* geometry */
     int         x, y;
-    unsigned    w, h;
+    int         w, h;
 
     /* other styles */
     const char *backgroundColor;
@@ -121,8 +139,9 @@ struct foil_widget_info {
 extern "C" {
 #endif
 
-foil_widget *foil_widget_new(foil_widget_type_t type,
-        const char *name, const char *title);
+foil_widget *foil_widget_new(foil_widget_type_k type,
+        foil_widget_border_k border,
+        const char *name, const char *title, const foil_rect *rc);
 
 void foil_widget_append_child(foil_widget *to, foil_widget *widget);
 void foil_widget_prepend_child(foil_widget *to, foil_widget *widget);
@@ -133,10 +152,38 @@ void foil_widget_remove_from_tree(foil_widget *widget);
 void foil_widget_delete(foil_widget *widget);
 void foil_widget_delete_deep(foil_widget *widget);
 
-
 #ifdef __cplusplus
 }
 #endif
+
+static inline foil_widget *foil_widget_from_page(pcmcth_page *page) {
+    return container_of(page, foil_widget, page);
+}
+
+static inline int foil_widget_width(const foil_widget *widget) {
+    return foil_rect_width(&widget->rect);
+}
+
+static inline int foil_widget_height(const foil_widget *widget) {
+    return foil_rect_width(&widget->rect);
+}
+
+static inline int foil_widget_content_width(const foil_widget *widget) {
+    return foil_rect_width(&widget->ctnt_rc);
+}
+
+static inline int foil_widget_content_height(const foil_widget *widget)
+{
+    return foil_rect_height(&widget->ctnt_rc);
+}
+
+static inline int foil_widget_viewport_x(const foil_widget *widget) {
+    return widget->vx;
+}
+
+static inline int foil_widget_viewport_y(const foil_widget *widget) {
+    return widget->vy;
+}
 
 #endif  /* purc_foil_widget_h */
 

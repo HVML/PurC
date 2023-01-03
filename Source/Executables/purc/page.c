@@ -100,17 +100,6 @@ pcmcth_udom *foil_page_delete(pcmcth_page *page)
     return udom;
 }
 
-void foil_page_set_viewport(pcmcth_page *page,
-        int vx, int vy, int vw, int vh)
-{
-    assert(vw > 0 && vh > 0);
-
-    page->vx = vx;
-    page->vy = vy;
-    page->vw = vw;
-    page->vh = vh;
-}
-
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
 {
     pcmcth_udom *old_udom = page->udom;

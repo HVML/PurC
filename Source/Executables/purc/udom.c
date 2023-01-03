@@ -23,10 +23,11 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
+#include "widget.h"
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "util/sorted-array.h"
@@ -257,8 +258,9 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
-    int cols = foil_page_viewport_width(page);
-    int rows = foil_page_viewport_height(page);
+    foil_widget *widget = foil_widget_from_page(page);
+    int cols = foil_widget_content_width(widget);
+    int rows = foil_widget_content_height(widget);
     int width = cols * FOIL_PX_GRID_CELL_W;
     int height = rows * FOIL_PX_GRID_CELL_H;
 

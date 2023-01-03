@@ -23,14 +23,14 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-
+#include "workspace.h"
 #include "purcmc-thread.h"
 #include "endpoint.h"
-#include "workspace.h"
 #include "udom.h"
 #include "page.h"
 #include "util/sorted-array.h"
+
+#include <assert.h>
 
 int foil_wsp_module_init(pcmcth_renderer *rdr)
 {
@@ -47,7 +47,11 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
         workspace->cols = rdr->impl->cols;
         workspace->rows = rdr->impl->rows;
         workspace->layouter = NULL;
-        workspace->root = foil_widget_new(WSP_WIDGET_TYPE_ROOT, "root", NULL);
+        foil_rect rc;
+        foil_rect_set(&rc, 0, 0, workspace->cols, workspace->rows);
+        workspace->root = foil_widget_new(
+                WSP_WIDGET_TYPE_ROOT, WSP_WIDGET_BORDER_NONE,
+                "root", NULL, &rc);
         if (workspace->root == NULL) {
             free(workspace);
             workspace = NULL;
@@ -162,11 +166,12 @@ create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
     (void)init_arg;
 
     struct foil_widget *plainwin;
-    plainwin = foil_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
-            style->name, style->title);
+    foil_rect rc;
+    foil_rect_set(&rc, 0, 0, workspace->cols, workspace->rows);
+    plainwin = foil_widget_new(
+            WSP_WIDGET_TYPE_PLAINWINDOW, WSP_WIDGET_BORDER_NONE,
+            style->name, style->title, &rc);
     if (plainwin) {
-        foil_page_set_viewport(&plainwin->page, 0, 0,
-                workspace->cols, workspace->rows);
         foil_widget_append_child(workspace->root, plainwin);
         return &plainwin->page;
     }
@@ -175,7 +180,7 @@ create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
 }
 
 void *foil_wsp_create_widget(void *workspace, void *session,
-        foil_widget_type_t type, void *window,
+        foil_widget_type_k type, void *window,
         void *parent, void *init_arg, const struct foil_widget_info *style)
 {
     (void)window;
@@ -205,7 +210,7 @@ destroy_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
 }
 
 int foil_wsp_destroy_widget(void *workspace, void *session,
-        void *window, void *widget, foil_widget_type_t type)
+        void *window, void *widget, foil_widget_type_k type)
 {
     (void)window;
     switch (type) {
@@ -221,7 +226,7 @@ int foil_wsp_destroy_widget(void *workspace, void *session,
 }
 
 void foil_wsp_update_widget(void *workspace, void *session,
-        void *widget, foil_widget_type_t type,
+        void *widget, foil_widget_type_k type,
         const struct foil_widget_info *style)
 {
     (void)workspace;

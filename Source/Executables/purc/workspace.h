@@ -56,14 +56,14 @@ void foil_wsp_convert_style(void *workspace, void *session,
         struct foil_widget_info *style, purc_variant_t toolkit_style);
 
 void *foil_wsp_create_widget(void *workspace, void *session,
-        foil_widget_type_t type, void *window,
+        foil_widget_type_k type, void *window,
         void *parent, void *init_arg, const struct foil_widget_info *style);
 
 int foil_wsp_destroy_widget(void *workspace, void *session,
-        void *window, void *widget, foil_widget_type_t type);
+        void *window, void *widget, foil_widget_type_k type);
 
 void foil_wsp_update_widget(void *workspace, void *session,
-        void *widget, foil_widget_type_t type,
+        void *widget, foil_widget_type_k type,
         const struct foil_widget_info *style);
 
 pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
