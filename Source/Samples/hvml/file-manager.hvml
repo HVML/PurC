@@ -13,8 +13,7 @@
 
         <init as 'state'>
             {
-                "activeId":null,
-                "currDir":"/tmp",
+                "currDir":"/etc",
                 "dataList" : [],
             }
         </init>
@@ -49,11 +48,11 @@
         <define as="refreshList">
             <clear on="$state.dataList" />
 
-            <!--
-            <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
-            -->
+            <update on '#mainTitle' at="textContent" with "$state.currDir" />
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
-            <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":".."} />
+            <test with "$DATA.compare($state.currDir, '/')">
+                <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":".."} />
+            </test>
             <init as "dataCount" with $DATA.count($state.dataList) />
             <init as "upList" temp >
                 [
@@ -70,17 +69,6 @@
 
             <update on "#mainListContainer" at "content" with $DATA.stringify($upList) />
 
-            <test on=$dataCount>
-                <match for "GT 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$state.dataList[1].inode"/>
-                </match>
-                <match for "LE 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$state.dataList[0].inode"/>
-                </match>
-            </test>
-
-            <update on="#$state.activeId" at="attr.class" with="list-group-item active" />
-
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
                     "path" : $state.currDir
@@ -91,12 +79,22 @@
         <include with "$refreshList" />
 
         <observe on ".list-group-item" for "click">
-            <update on="#$state.activeId" at="attr.class" with="list-group-item"/>
+            <inherit>
+                $STREAM.stdout.writelines("########################################### click")
+            </inherit>
             <update on="#$?.targetId" at="attr.class" with="list-group-item active" />
-            <update on="$state" at=".activeId" with="$?.targetId"/>
+            <test on="$?.targetId">
+                <match for="AS 'li-0'" exclusively>
+                    <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
+                </match>
+                <match for="ANY">
+                    <update on="$state" at=".currDir" with="$state.currDir/$state.dataList[$DATA.numerify($STR.substr($3?.targetId, 3))].name"/>
+                </match>
+            </test>
+            <include with "$refreshList" />
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
-                    "path" : "$state.currDir/$state.dataList[$DATA.numerify($STR.substr($1?.targetId, 3))].name"
+                    "path" : $state.currDir
                 }
             </request>
         </observe>
@@ -215,6 +213,9 @@
         </define>
 
         <observe on="$CRTN" for="request:showDetail">
+            <inherit>
+                $STREAM.stdout.writelines("################################# $?.path")
+            </inherit>
             <test with "$FS.file_is($?.path, 'dir')">
                 <include with "$refreshList" on $2? />
             </test>
