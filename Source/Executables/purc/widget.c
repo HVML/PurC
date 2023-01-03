@@ -43,22 +43,22 @@ foil_widget *foil_widget_new(foil_widget_type_k type,
         widget->rect = *rect;
 
         if (border == WSP_WIDGET_BORDER_NONE) {
-            widget->ctnt_rc.left = 0;
-            widget->ctnt_rc.right = 0;
-            widget->ctnt_rc.right = foil_rect_width(rect);
-            widget->ctnt_rc.bottom = foil_rect_height(rect);
+            widget->client_rc.left = 0;
+            widget->client_rc.right = 0;
+            widget->client_rc.right = foil_rect_width(rect);
+            widget->client_rc.bottom = foil_rect_height(rect);
         }
         else if (border == WSP_WIDGET_BORDER_SHADOW) {
-            widget->ctnt_rc.left = 0;
-            widget->ctnt_rc.right = 0;
-            widget->ctnt_rc.right = foil_rect_width(rect) - 1;
-            widget->ctnt_rc.bottom = foil_rect_height(rect) - 1;
+            widget->client_rc.left = 0;
+            widget->client_rc.right = 0;
+            widget->client_rc.right = foil_rect_width(rect) - 1;
+            widget->client_rc.bottom = foil_rect_height(rect) - 1;
         }
         else {
-            widget->ctnt_rc.left = 1;
-            widget->ctnt_rc.right = 1;
-            widget->ctnt_rc.right = foil_rect_width(rect) - 1;
-            widget->ctnt_rc.bottom = foil_rect_height(rect) - 1;
+            widget->client_rc.left = 1;
+            widget->client_rc.right = 1;
+            widget->client_rc.right = foil_rect_width(rect) - 1;
+            widget->client_rc.bottom = foil_rect_height(rect) - 1;
         }
 
         widget->vx = 0;

@@ -75,8 +75,8 @@ struct foil_widget {
     /* the rectangle of this widget in parent */
     foil_rect           rect;
 
-    /* the content/client rectangle in this widget */
-    foil_rect           ctnt_rc;
+    /* the client rectangle in this widget */
+    foil_rect           client_rc;
 
     /* the origin of page viewport */
     int                 vx, vy;
@@ -168,13 +168,13 @@ static inline int foil_widget_height(const foil_widget *widget) {
     return foil_rect_width(&widget->rect);
 }
 
-static inline int foil_widget_content_width(const foil_widget *widget) {
-    return foil_rect_width(&widget->ctnt_rc);
+static inline int foil_widget_client_width(const foil_widget *widget) {
+    return foil_rect_width(&widget->client_rc);
 }
 
-static inline int foil_widget_content_height(const foil_widget *widget)
+static inline int foil_widget_client_height(const foil_widget *widget)
 {
-    return foil_rect_height(&widget->ctnt_rc);
+    return foil_rect_height(&widget->client_rc);
 }
 
 static inline int foil_widget_viewport_x(const foil_widget *widget) {
