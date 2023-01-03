@@ -338,7 +338,8 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         }
     }
 
-    LOG_DEBUG("inline formatting context: rc (%d, %d, %d, %d), possible extent: %d, nr_lines: %u\n",
+    LOG_DEBUG("inline formatting context: rc (%d, %d, %d, %d), "
+            "possible extent: %d, nr_lines: %u\n",
             fmt_ctxt->rc.left, fmt_ctxt->rc.top,
             fmt_ctxt->rc.right, fmt_ctxt->rc.bottom,
             fmt_ctxt->poss_extent, (unsigned)fmt_ctxt->nr_lines);

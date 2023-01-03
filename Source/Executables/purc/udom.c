@@ -1028,8 +1028,8 @@ resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (box != ctxt->initial_cblock)
-        foil_rdrbox_layout(ctxt, box);
+    if (box->is_block_level && box->nr_inline_level_children > 0)
+        foil_rdrbox_lay_block_inlines(ctxt, box);
 
     /* continue for the children */
     foil_rdrbox *child = box->first;

@@ -405,7 +405,7 @@ struct foil_rdrbox {
 
     const foil_rdrbox *cblock_creator;  // the container of this box
     foil_rect ctnt_rect;                // the content rectangle of the box
-                                        // in the page coordinate system
+                                        // in the container of this box
 
     /* Internal fields */
     GHashTable *counters_table; // The counters table for the current element
@@ -594,7 +594,7 @@ foil_counters_unref(foil_counters *counters)
 void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box);
-void foil_rdrbox_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc);
 void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,
