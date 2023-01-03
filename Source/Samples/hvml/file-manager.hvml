@@ -15,7 +15,7 @@
             {
                 "activeId":null,
                 "currDir":"/etc",
-                "dataList" : []
+                "dataList" : [],
             }
         </init>
 
@@ -53,10 +53,12 @@
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
             <update on $state.dataList to 'prepend' with {"inode":"0", "name":".."} />
             <init as "dataCount" with $DATA.count($state.dataList) />
+            <init as "upList" with [] temp />
 
             <iterate on $state.dataList>
-                <update on "#mainList" to "append" with $mainItem />
+                <update on "$upList" to "append" with $mainItem />
             </iterate>
+            <update on "#mainList" at "content" with $DATA.stringify($upList) />
             <test on=$dataCount>
                 <match for "GT 1" exclusively>
                     <update on="$state" at=".activeId" with="li-$state.dataList[1].inode"/>
@@ -88,6 +90,7 @@
             </request>
         </observe>
 
+
         <observe on $CRTN for "rdrState:closed">
             <exit with "closed" />
         </observe>
@@ -112,12 +115,14 @@
         <define as="refreshList">
             <update on "#subList" at "content" with ' ' />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
+            <init as "subUpList" with []  temp />
 
             <update on '#subTitle' at="textContent" with "$?.path 的索引" />
 
             <iterate on $dataList>
-                <update on "#subList" to "append" with $subItem />
+                <update on "$subUpList" to "append" with $subItem />
             </iterate>
+            <update on "#subList" at "content" with $DATA.stringify($subUpList) />
         </define>
 
         <observe on="$CRTN" for="request:showDetail">
