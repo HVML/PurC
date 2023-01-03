@@ -37,28 +37,34 @@
 
         <div class="container">
              <div class="row">
-                 <div class="col-4">
-                    <h1 class="display-6 fw-bold" id="mainTitle">Main Page</h1>
-                    <ul class="list-group" id="mainList">
-                    </ul>
+                 <h1 class="display-6 fw-bold" id="mainTitle"></h1>
+                 <div class="col-4" id="mainListContainer">
                  </div>
              </div>
         </div>
 
         <define as="refreshList">
-            <update on "#mainList" at "content" with ' ' />
             <clear on="$state.dataList" />
 
+            <!--
             <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
+            -->
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
             <update on $state.dataList to 'prepend' with {"inode":"0", "name":".."} />
             <init as "dataCount" with $DATA.count($state.dataList) />
-            <init as "upList" with [] temp />
+            <init as "upList" temp >
+                [
+                    '<ul class="list-group" id="mainList">'
+                ]
+            </init>
 
             <iterate on $state.dataList>
                 <update on "$upList" to "append" with $mainItem />
             </iterate>
-            <update on "#mainList" at "content" with $DATA.stringify($upList) />
+            <update on "$upList" to "append" with '</ul>' />
+
+            <update on "#mainListContainer" at "content" with $DATA.stringify($upList) />
+
             <test on=$dataCount>
                 <match for "GT 1" exclusively>
                     <update on="$state" at=".activeId" with="li-$state.dataList[1].inode"/>
@@ -99,30 +105,35 @@
 
     <body id="sub">
         <archetype name="subItem">
-            <li class="list-group-item" hvml-events="click" id="li-$?.inode">$?.name</li>
+            <li class="list-group-item sub" hvml-events="click" id="li-$?.inode">$?.name</li>
         </archetype>
 
         <div class="container">
              <div class="row">
-                 <div class="col-4">
-                    <h1 class="display-6 fw-bold" id="subTitle"></h1>
-                    <ul class="list-group" id="subList">
-                    </ul>
+                <h1 class="display-6 fw-bold" id="subTitle"></h1>
+                 <div class="col-4" id="subListContainer">
                  </div>
              </div>
         </div>
 
         <define as="refreshList">
+        <!--
+            <update on '#subTitle' at="textContent" with "$?.path 的索引" />
+        -->
             <update on "#subList" at "content" with ' ' />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
-            <init as "subUpList" with []  temp />
+            <init as "subUpList" temp >
+                [
+                    '<ul class="list-group" id="subList">'
+                ]
+            </init>
 
-            <update on '#subTitle' at="textContent" with "$?.path 的索引" />
 
             <iterate on $dataList>
                 <update on "$subUpList" to "append" with $subItem />
             </iterate>
-            <update on "#subList" at "content" with $DATA.stringify($subUpList) />
+            <update on "$subUpList" to "append" with '</ul>' />
+            <update on "#subListContainer" at "content" with $DATA.stringify($subUpList) />
         </define>
 
         <observe on="$CRTN" for="request:showDetail">
