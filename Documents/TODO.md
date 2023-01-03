@@ -70,16 +70,18 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.9.6] Complete the implementation of the following predefined variables:
+   - `$DOC` (including the document entity and the element collection entity).
    - `$URL`
-   - `$STR`
-   - `$DOC`
+1. [0.9.8] Basic support for `$SOCKET`.
 1. [0.9.8] Support for the following URI schemas for `$STREAM`:
    - `fifo`
-1. [0.9.9] Support for the following filters for `$STREAM`:
-   - `hibus`
-   - `gzip`
+1. [0.9.9] Support for the following filters for `$STREAM` and `$SOCKET`:
+   - `http`
+1. [1.0.0] Complete the implementation of the following predefined variables:
+   - `$STR`
+   - `$DATA`
+1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
 
@@ -87,22 +89,24 @@
 
 1. [0.9.6] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
 1. [0.9.6] Optimize the implementation of the map from `id` and `class` to element(s).
+1. [0.9.6] Enhance `purc_document` to fast validate an `hvml-handle`.
 1. [Pending] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 2.5) Interpreter
 
-1. [0.9.4; Resolved] Improve the implementation of the element `update`:
-   - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
-   - The value of the attribute `at` can be `content`.
-   - The support for the adverb attribute `individually`.
-1. [0.9.4] Full support for `request` element.
 1. [0.9.6] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. [0.9.6] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.8] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
 1. [0.9.9] Review the implementation of all elements.
 1. [0.9.9] Review all uses of exception names.
+1. [0.9.4; Resolved] Improve the implementation of the element `update`:
+   - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
+   - The value of the attribute `at` can be `content`.
+   - The support for the adverb attribute `individually`.
+1. [0.9.4; Resolved] Full support for `request` element.
 1. [0.9.0; Resolved] Improve the implementation of the element `bind`:
    - The support for the adverb attribute `constantly`.
    - The support for the substituting expression.
@@ -133,10 +137,10 @@
 
 ### 2.6) `purc`
 
-1. [0.9.4] Enhance `foil` to support more properties and layouts except for table.
-1. [0.9.6] Enhance `foil` to support table layout.
 1. [0.9.6] Enhance `foil` to support `meter` and `progress` elements.
+1. [0.9.6] Enhance `foil` to support table layout.
 1. [0.9.8] Enhance `foil` to support full-screen and multiple-page rendering.
+1. [0.9.4; Resolved] Enhance `foil` to support more properties and layouts except for table.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
 
 ### 2.7) More Platforms
@@ -156,8 +160,8 @@
 
 ### 2.9) Known Bugs and Test Cases
 
-1. [0.9.4] Add new test cases or enhance test cases for newly found bugs.
-1. [0.9.4] `Source/test/interpreter/03-again-sleep.hvml`: the child coroutine only writes 5 lines, but 6 lines expected.
+1. [0.9.4; Resolved] Add new test cases or enhance test cases for newly found bugs.
+1. [0.9.4; Resolved] `Source/test/interpreter/03-again-sleep.hvml`: the child coroutine only writes 5 lines, but 6 lines expected.
 1. [0.9.4; Resolved] `Source/Sample/hvml/calculator-bc.hvml` will cause `purc` core dump if there is no `bc` installed in the system.
 1. [0.9.2; Resolved] Add new test cases for following new bugs.
 1. [0.9.2; Resolved] Check eJSON parser for C0 control characters in strings.
