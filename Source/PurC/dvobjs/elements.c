@@ -420,18 +420,23 @@ did_matched(void* native_entity, purc_variant_t val)
     }
 
     if (comp) {
-        pcutils_array_t *arr = elements->elements;
+        purc_variant_t v = pcdvobjs_elements_by_css(elements->doc, elements->css);
+        void *entity = purc_variant_native_get_entity(v);
+        struct pcdvobjs_elements *elems = (struct pcdvobjs_elements*)entity;
+
+        pcutils_array_t *arr = elems->elements;
         PC_ASSERT(arr);
 
         pcdoc_element_t elem = NULL;
         size_t len = pcutils_array_length(arr);
         for (size_t i = 0; i < len; i++) {
-            elem = (pcdoc_element_t)pcutils_array_get(elements->elements, i);
+            elem = (pcdoc_element_t)pcutils_array_get(elems->elements, i);
             if (elem == comp) {
                 ret = true;
-                goto out;
+                break;
             }
         }
+        purc_variant_unref(v);
     }
 
 out:
