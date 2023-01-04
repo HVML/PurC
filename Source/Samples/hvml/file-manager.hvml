@@ -8,6 +8,11 @@
         <!-- import the Bootstrap assets built in the renderer -->
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
+        <style hvml:raw>
+            .scrollarea {
+                overflow-y: scroll;
+            }
+        </style>
     </head>
     <body>
 
@@ -31,24 +36,21 @@
         <load from "#sub" onto 'subWindow' as 'subFileList' async />
 
         <archetype name="mainItem">
-            <li class="nav-item">
-                <div class="nav-link link-dark" hvml-events="click" id="li-$2%" value="$2?.name">
-                    <i class="bi bi-folder pe-none me-2" width="16" height="16"></i>
-                    $2?.nameShow
-                </div>
-            </li>
+            <div class="nav-link link-dark w-100" hvml-events="click" id="li-$2%" value="$2?.name">
+                <i class="bi bi-folder pe-none me-2" width="16" height="16"></i>
+                $2?.nameShow
+            </div>
         </archetype>
 
 
         <main class="d-flex flex-nowrap h-100">
             <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
-                <a lass="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
-                    <span class="fs-4">文件管理器</span>
+                <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+                    <div class="fs-4 text-center w-100">文件管理器</div>
+                    <hr/>
                 </a>
-                <hr/>
-                <ul class="nav nav-pills flex-column" id="mainList">
-                </ul>
-                <hr/>
+                <div class="list-group flex-column scrollarea" id="mainList">
+                </div>
             </div>
             <div class="d-flex flex-column flex-shrink-0 p-3">
                 <span class="fs-6 pe-none me-2" id="mainTitle"></span>
