@@ -41,6 +41,8 @@
              <div class="row">
                  <h1 class="display-6 fw-bold" id="mainTitle"></h1>
                  <div class="col-4" id="mainListContainer">
+                    <ul class="list-group" id="mainList">
+                    </ul>
                  </div>
              </div>
         </div>
@@ -54,28 +56,23 @@
                     <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":"..", "type":"d"} />
                 </differ>
             </test>
-            <init as "upList" temp >
-                [
-                    '<ul class="list-group" id="mainList">'
-                ]
-            </init>
-
-            <iterate on $state.dataList>
-                <test with "$DATA.isequal($?.type, 'd')">
-                    <update on "$upList" to "append" with $mainItem />
-                </test>
-            </iterate>
-            <update on "$upList" to "append" with '</ul>' />
-
-            <update on "#mainListContainer" at "content" with $DATA.stringify($upList) />
 
             <update on '#mainTitle' at="textContent" with "$state.currDir" />
+            <update on "#mainList" at "content" with ' ' />
 
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
                     "path" : $state.currDir
                 }
             </request>
+
+            <iterate on $state.dataList>
+                <test with "$DATA.isequal($?.type, 'd')">
+                    <update on "#mainList" at "content" to "append" with $mainItem />
+                </test>
+            </iterate>
+
+
         </define>
 
         <include with "$refreshList" />
@@ -158,7 +155,9 @@
         <div class="container">
              <div class="row">
                 <h1 class="display-6 fw-bold" id="subTitle"></h1>
-                 <div class="col-4" id="subListContainer">
+                 <div id="subListContainer">
+                    <ul class="list-group" id="subList">
+                    </ul>
                  </div>
              </div>
         </div>
@@ -170,45 +169,39 @@
             <update on "#subList" at "content" with ' ' />
             <init as 'currDir' with $?.path />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
-            <init as "subUpList" temp >
-                [
-                    '<ul class="list-group" id="subList">'
-                ]
-            </init>
 
+            <update on "#subList" with ' ' />
 
             <iterate on $dataList>
                 <test with "$L.not($DATA.isequal($?.type, 'd'))">
                     <test on="$STR.substr($2?.name, -4)">
                         <match for="AS '.pdf'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemPdf />
+                            <update on "#subList" to "append" with $subItemPdf />
                         </match>
                         <match for="AS '.jpg'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemJpg />
+                            <update on "#subList" to "append" with $subItemJpg />
                         </match>
                         <match for="AS '.jpeg'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemJpg />
+                            <update on "#subList" to "append" with $subItemJpg />
                         </match>
                         <match for="AS '.png'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemPng />
+                            <update on "#subList" to "append" with $subItemPng />
                         </match>
                         <match for="AS '.gif'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemGif />
+                            <update on "#subList" to "append" with $subItemGif />
                         </match>
                         <match for="AS '.mp3'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemMp3 />
+                            <update on "#subList" to "append" with $subItemMp3 />
                         </match>
                         <match for="AS '.txt'" exclusively>
-                            <update on "$subUpList" to "append" with $subItemTxt />
+                            <update on "#subList" to "append" with $subItemTxt />
                         </match>
                         <match for="ANY">
-                            <update on "$subUpList" to "append" with $subItem />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                     </test>
                 </test>
             </iterate>
-            <update on "$subUpList" to "append" with '</ul>' />
-            <update on "#subListContainer" at "content" with $DATA.stringify($subUpList) />
         </define>
 
         <observe on="$CRTN" for="request:showDetail">
