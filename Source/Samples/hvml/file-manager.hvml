@@ -12,6 +12,20 @@
             .scrollarea {
                 overflow-y: scroll;
             }
+
+          .b-divider {
+                height: 3rem;
+                background-color: rgba(0, 0, 0, .1);
+                border: solid rgba(0, 0, 0, .15);
+                border-width: 1px 0;
+                box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+          }
+
+          .b-vr {
+                flex-shrink: 0;
+                width: 0.2rem;
+                height: 100vh;
+          }
         </style>
     </head>
 
@@ -52,7 +66,7 @@
                     "name": "rightWindow",
                     "title": "SubList",
                     "class": "col-8",
-                    "layoutStyle": "left:20vw;width:100vw;height:100vh;"
+                    "layoutStyle": "left:20.2vw;width:100vw;height:100vh;"
                 }
             }
         </request>
@@ -93,9 +107,7 @@
                 <div class="list-group flex-column scrollarea" id="mainList">
                 </div>
             </div>
-            <div class="d-flex flex-column flex-shrink-0 p-3">
-                <span class="fs-6 pe-none me-2" id="mainTitle"></span>
-            </div>
+            <div class="b-divider b-vr"></div>
         </main>
 
 
@@ -109,7 +121,6 @@
                 </differ>
             </test>
 
-            <update on '#mainTitle' at="textContent" with "$state.currDir" />
             <update on "#mainList" at "content" with ' ' />
 
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
@@ -131,8 +142,6 @@
                     <update on "#mainList" at "content" to "append" with $mainItem />
                 </test>
             </iterate>
-
-
         </define>
 
         <observe on ".nav-link" for "click">
@@ -169,7 +178,7 @@
 
     <body id="rightBody">
         <archetype name="subItem">
-            <div class="row p-2 justify-content-start align-items-center $2?.bgClass">
+            <div class="row ps-4 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass">
                 <div class="col-sm-4" hvml-events="click" id="li-$2?.inode">
                     <i class="bi $2?.typeClass pe-none me-2" width="16" height="16"></i>
                     $2?.nameShow
@@ -183,11 +192,11 @@
             </div>
         </archetype>
 
-        <div class="container">
-             <div class="row">
-                <h1 class="display-6 fw-bold" id="subTitle"></h1>
-             </div>
-            <div class="row p-2 justify-content-start align-items-center border-bottom">
+        <main class="d-flex flex-column flex-nowrap h-100">
+            <div class="d-flex flex-column flex-shrink-0 ps-4 p-3 bg-light border-bottom">
+                <span class="fs-6 pe-none me-2" id="subTitle">/<span>
+            </div>
+            <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom">
                 <div class="col-sm-4">
                     名称
                 </div>
@@ -198,13 +207,12 @@
                     大小
                 </div>
             </div>
-        </div>
 
-        <div class="container" id="subList">
-        </div>
+            <div class="row p-2 jscrollarea" id="subList">
+            </div>
+        </main>
 
         <define as="refreshList">
-            <update on "#subList" at "content" with ' ' />
             <init as 'currDir' with $?.path />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
             <init as 'subCenter' temp>
@@ -213,6 +221,7 @@
                 }
             </init>
 
+            <update on '#subTitle' at="textContent" with "$currDir" />
             <update on "#subList" with ' ' />
 
             <iterate on $dataList>
