@@ -34,7 +34,7 @@
             <li class="nav-item">
                 <div class="nav-link link-dark" hvml-events="click" id="li-$2%" value="$2?.name">
                     <i class="bi bi-folder pe-none me-2" width="16" height="16"></i>
-                    $2?.name
+                    $2?.nameShow
                 </div>
             </li>
         </archetype>
@@ -77,6 +77,14 @@
 
             <iterate on $state.dataList>
                 <test with "$DATA.isequal($?.type, 'd')">
+                    <test on $STR.nr_chars($2?.name)>
+                        <match for="GT 20" exclusively>
+                            <update on "$4?" at ".nameShow" with "$STR.join($STR.substr($4?.name, 0, 10), '...', $STR.substr($4?.name, -7))" />
+                        </match>
+                        <match for="ANY" exclusively>
+                            <update on "$4?" at ".nameShow" with "$4?.name" />
+                        </match>
+                    </test>
                     <update on "#mainList" at "content" to "append" with $mainItem />
                 </test>
             </iterate>
@@ -124,8 +132,8 @@
         <archetype name="subItem">
             <div class="row p-2 justify-content-start align-items-center $2?.bgClass">
                 <div class="col-sm-4" hvml-events="click" id="li-$2?.inode">
-                    <i class="bi $2?.typeClass"></i>
-                    $2?.name
+                    <i class="bi $2?.typeClass pe-none me-2" width="16" height="16"></i>
+                    $2?.nameShow
                 </div>
                 <div class="col-sm-4">
                     $2?.mtime
@@ -216,6 +224,14 @@
                         </match>
                         <match for="ANY" exclusively>
                             <update on "$4?" at ".sz" with "$4?.size 字节" />
+                        </match>
+                    </test>
+                    <test on $STR.nr_chars($2?.name)>
+                        <match for="GT 20" exclusively>
+                            <update on "$4?" at ".nameShow" with "$STR.join($STR.substr($4?.name, 0, 10), '...', $STR.substr($4?.name, -7))" />
+                        </match>
+                        <match for="ANY" exclusively>
+                            <update on "$4?" at ".nameShow" with "$4?.name" />
                         </match>
                     </test>
                     <update on "$subCenter" at ".idx" with $DATA.arith('+', $subCenter.idx, 1)  />
