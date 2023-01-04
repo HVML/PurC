@@ -32,10 +32,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
+static void rdrbox_render_before_file(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
-#ifndef NDEBUG
     /* print title */
     if (level == 0) {
         if (ctxt->udom->title_ucs) {
@@ -44,31 +43,26 @@ void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
                 unsigned len = pcutils_unichar_to_utf8(ctxt->udom->title_ucs[i],
                         (unsigned char *)utf8);
                 utf8[len] = 0;
-                fputs(utf8, stdout);
+                fputs(utf8, ctxt->fp);
             }
-            fputs("\n", stdout);
+            fputs("\n", ctxt->fp);
         }
     }
     (void)box;
-#else
-    (void)ctxt;
-    (void)box;
-    (void)level;
-#endif
 }
 
-static void render_ucs(const uint32_t *ucs, size_t nr_ucs)
+static void render_ucs(FILE *fp, const uint32_t *ucs, size_t nr_ucs)
 {
     for (size_t i = 0; i < nr_ucs; i++) {
         char utf8[16];
         unsigned len = pcutils_unichar_to_utf8(ucs[i],
                 (unsigned char *)utf8);
         utf8[len] = 0;
-        fputs(utf8, stdout);
+        fputs(utf8, fp);
     }
 }
 
-void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
+static void rdrbox_render_content_file(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
     (void)ctxt;
@@ -77,26 +71,64 @@ void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
         if (box->list_item_data->marker_box) {
             foil_rdrbox *marker = box->list_item_data->marker_box;
-            render_ucs(marker->marker_data->ucs, marker->marker_data->nr_ucs);
+            render_ucs(ctxt->fp,
+                    marker->marker_data->ucs, marker->marker_data->nr_ucs);
         }
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         struct _inline_box_data *inline_data = box->inline_data;
         struct text_paragraph *p;
         list_for_each_entry(p, &inline_data->paras, ln) {
-            render_ucs(p->ucs, p->nr_ucs);
+            render_ucs(ctxt->fp, p->ucs, p->nr_ucs);
         }
     }
 }
 
-void foil_rdrbox_render_after(foil_render_ctxt *ctxt,
+static void rdrbox_render_after_file(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
     (void)ctxt;
     (void)level;
 
     if (box->is_block_level && box->first && box->first->is_inline_level) {
-        fputs("\n", stdout);
+        fputs("\n", ctxt->fp);
     }
+}
+
+static void
+render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+{
+    rdrbox_render_before_file(ctxt, ancestor, ctxt->level);
+    rdrbox_render_content_file(ctxt, ancestor, ctxt->level);
+
+    /* travel children */
+    foil_rdrbox *child = ancestor->first;
+    while (child) {
+
+        ctxt->level++;
+        render_rdrtree(ctxt, child);
+        ctxt->level--;
+
+        child = child->next;
+    }
+
+    rdrbox_render_after_file(ctxt, ancestor, ctxt->level);
+}
+
+void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
+{
+    /* render the whole tree */
+    foil_render_ctxt render_ctxt = { udom, { fp }, 0 };
+
+    LOG_DEBUG("Calling render_rdrtree...\n");
+    render_rdrtree(&render_ctxt, udom->initial_cblock);
+}
+
+void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
+{
+    // TODO
+    (void)udom;
+    (void)page;
+    LOG_DEBUG("called\n");
 }
 

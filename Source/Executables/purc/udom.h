@@ -141,6 +141,10 @@ purc_variant_t foil_udom_get_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
 purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property, purc_variant_t value);
 
+void foil_udom_dump(pcmcth_udom *udom);
+void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp);
+void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page);
+
 #ifdef __cplusplus
 }
 #endif

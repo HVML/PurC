@@ -1039,48 +1039,6 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
     }
 }
 
-static void
-dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
-{
-#ifndef NDEBUG
-    foil_rdrbox_dump(ancestor, ctxt->udom->doc, ctxt->level);
-
-    /* travel children */
-    foil_rdrbox *child = ancestor->first;
-    while (child) {
-
-        ctxt->level++;
-        dump_rdrtree(ctxt, child);
-        ctxt->level--;
-
-        child = child->next;
-    }
-#else
-    (void)ctxt;
-    (void)ancestor;
-#endif
-}
-
-static void
-render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
-{
-    foil_rdrbox_render_before(ctxt, ancestor, ctxt->level);
-    foil_rdrbox_render_content(ctxt, ancestor, ctxt->level);
-
-    /* travel children */
-    foil_rdrbox *child = ancestor->first;
-    while (child) {
-
-        ctxt->level++;
-        render_rdrtree(ctxt, child);
-        ctxt->level--;
-
-        child = child->next;
-    }
-
-    foil_rdrbox_render_after(ctxt, ancestor, ctxt->level);
-}
-
 uint8_t
 foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
 {
@@ -1096,6 +1054,33 @@ foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
     }
 
     return (uint8_t)FOIL_LANGCODE_unknown;
+}
+
+static void
+dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+{
+    foil_rdrbox_dump(ancestor, ctxt->udom->doc, ctxt->level);
+
+    /* travel children */
+    foil_rdrbox *child = ancestor->first;
+    while (child) {
+
+        ctxt->level++;
+        dump_rdrtree(ctxt, child);
+        ctxt->level--;
+
+        child = child->next;
+    }
+}
+
+static void dump_udom(pcmcth_udom *udom)
+{
+    /* render the whole tree */
+    foil_render_ctxt render_ctxt = { udom, { NULL }, 0 };
+
+    /* dump the whole tree */
+    LOG_DEBUG("Calling dump_rdrtree...\n");
+    dump_rdrtree(&render_ctxt, udom->initial_cblock);
 }
 
 pcmcth_udom *
@@ -1223,16 +1208,12 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, page, 0 };
+#ifndef NDEBUG
+    dump_udom(udom);
+    foil_udom_render_to_file(udom, stdout);
+#endif
 
-    /* dump the whole tree */
-    LOG_DEBUG("Calling dump_rdrtree...\n");
-    dump_rdrtree(&render_ctxt, udom->initial_cblock);
-
-    LOG_DEBUG("Calling render_rdrtree...\n");
-    render_ctxt.level = 0;
-    render_rdrtree(&render_ctxt, udom->initial_cblock);
+    foil_udom_render_to_page(udom, page);
     return udom;
 
 failed:

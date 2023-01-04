@@ -473,7 +473,10 @@ typedef struct foil_layout_ctxt {
 
 typedef struct foil_render_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
+    union {
+        FILE *fp;
+        pcmcth_page *page;
+    };
     unsigned level;
 } foil_render_ctxt;
 
@@ -487,16 +490,6 @@ void foil_rdrbox_module_cleanup(pcmcth_renderer *rdr);
 foil_rdrbox *foil_rdrbox_new(uint8_t type);
 void foil_rdrbox_delete(foil_rdrbox *box);
 void foil_rdrbox_delete_deep(foil_rdrbox *root);
-
-void foil_rdrbox_dump(const foil_rdrbox *box,
-        purc_document_t doc, unsigned level);
-
-void foil_rdrbox_render_before(foil_render_ctxt *ctxt,
-        const foil_rdrbox *box, unsigned level);
-void foil_rdrbox_render_content(foil_render_ctxt *ctxt,
-        const foil_rdrbox *box, unsigned level);
-void foil_rdrbox_render_after(foil_render_ctxt *ctxt,
-        const foil_rdrbox *box, unsigned level);
 
 void foil_rdrbox_append_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
@@ -590,6 +583,9 @@ foil_counters_unref(foil_counters *counters)
     if (counters->refc == 0)
         foil_counters_delete(counters);
 }
+
+void foil_rdrbox_dump(const foil_rdrbox *box,
+        purc_document_t doc, unsigned level);
 
 void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box);
