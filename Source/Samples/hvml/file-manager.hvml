@@ -113,26 +113,41 @@
 
     <body id="sub">
         <archetype name="subItem">
-            <li class="list-group-item sub $2?.bgClass" hvml-events="click" id="li-$2?.inode">
-                <i class="bi $2?.typeClass"></i>
-                $2?.name
-            </li>
+            <div class="row p-2 justify-content-start align-items-center $2?.bgClass">
+                <div class="col-sm-4" hvml-events="click" id="li-$2?.inode">
+                    <i class="bi $2?.typeClass"></i>
+                    $2?.name
+                </div>
+                <div class="col-sm-4">
+                    $2?.mtime
+                </div>
+                <div class="col-sm-4">
+                    $2?.sz
+                </div>
+            </div>
         </archetype>
 
         <div class="container">
              <div class="row">
                 <h1 class="display-6 fw-bold" id="subTitle"></h1>
-                 <div id="subListContainer">
-                    <ul class="list-group" id="subList">
-                    </ul>
-                 </div>
              </div>
+            <div class="row p-2 justify-content-start align-items-center border-bottom">
+                <div class="col-sm-4">
+                    名称
+                </div>
+                <div class="col-sm-4">
+                    修改日期
+                </div>
+                <div class="col-sm-4">
+                    大小
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id="subList">
         </div>
 
         <define as="refreshList">
-        <!--
-            <update on '#subTitle' at="textContent" with "$?.path 的索引" />
-        -->
             <update on "#subList" at "content" with ' ' />
             <init as 'currDir' with $?.path />
             <init as 'dataList' with  "$FS.list($?.path)" temp />
@@ -177,8 +192,22 @@
                             <update on "$4?" at ".bgClass" with ' ' />
                         </inherit>
                         <differ>
-                            <update on "$4?" at ".bgClass" with "list-group-item-secondary" />
+                            <update on "$4?" at ".bgClass" with "bg-light" />
                         </differ>
+                    </test>
+                    <test on $2?.size>
+                        <match for="GE 1073741824" exclusively>
+                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1073741824L), 100)), 100) GB" />
+                        </match>
+                        <match for="GE 1048576" exclusively>
+                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1048576L), 100)), 100) MB" />
+                        </match>
+                        <match for="GE 1024" exclusively>
+                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1024L), 100)), 100) KB" />
+                        </match>
+                        <match for="ANY" exclusively>
+                            <update on "$4?" at ".sz" with "$4?.size 字节" />
+                        </match>
                     </test>
                     <update on "$subCenter" at ".idx" with $DATA.arith('+', $subCenter.idx, 1)  />
                     <update on "#subList" to "append" with $subItem />
