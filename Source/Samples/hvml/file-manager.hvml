@@ -13,7 +13,7 @@
 
         <init as 'state'>
             {
-                "currDir":"/etc",
+                "currDir":"/",
                 "dataList" : [],
             }
         </init>
@@ -75,19 +75,18 @@
 
         </define>
 
-        <include with "$refreshList" />
-
         <observe on ".list-group-item" for "click">
+            <init as 'currName' with "$state.dataList[$DATA.numerify($STR.substr($?.targetId, 3))].name" temp />
             <update on="#$?.targetId" at="attr.class" with="list-group-item active" />
-            <test on="$?.targetId">
-                <match for="AS 'li-0'" exclusively>
+            <test on="$currName">
+                <match for="AS '..'" exclusively>
                     <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
                 </match>
                 <match for="ANY">
                     <test with "$STR.ends_with($state.currDir, '/')">
-                        <update on="$state" at=".currDir" with="$STR.join($state.currDir, $state.dataList[$DATA.numerify($STR.substr($4?.targetId, 3))].name)"/>
+                        <update on="$state" at=".currDir" with="$STR.join($state.currDir, $currName)"/>
                         <differ>
-                            <update on="$state" at=".currDir" with="$STR.join($state.currDir, '/', $state.dataList[$DATA.numerify($STR.substr($5?.targetId, 3))].name)"/>
+                            <update on="$state" at=".currDir" with="$STR.join($state.currDir, '/', $currName)"/>
                         </differ>
                     </test>
                 </match>
@@ -95,6 +94,16 @@
             <include with "$refreshList" />
         </observe>
 
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <include with "$refreshList" />
+        </observe>
 
         <observe on $CRTN for "rdrState:closed">
             <exit with "closed" />
@@ -105,49 +114,7 @@
     <body id="sub">
         <archetype name="subItem">
             <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-file-earmark"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemPdf">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-pdf"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemJpg">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-jpg"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemPng">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-png"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemGif">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-gif"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemMp3">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-mp3"></i>
-                $4?.name
-            </li>
-        </archetype>
-
-        <archetype name="subItemTxt">
-            <li class="list-group-item sub" hvml-events="click" id="li-$4?.inode">
-                <i class="bi bi-filetype-txt"></i>
+                <i class="bi $4?.typeClass"></i>
                 $4?.name
             </li>
         </archetype>
@@ -176,27 +143,35 @@
                 <test with "$L.not($DATA.isequal($?.type, 'd'))">
                     <test on="$STR.substr($2?.name, -4)">
                         <match for="AS '.pdf'" exclusively>
-                            <update on "#subList" to "append" with $subItemPdf />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-pdf" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.jpg'" exclusively>
-                            <update on "#subList" to "append" with $subItemJpg />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-jpg" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.jpeg'" exclusively>
-                            <update on "#subList" to "append" with $subItemJpg />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-jpg" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.png'" exclusively>
-                            <update on "#subList" to "append" with $subItemPng />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-png" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.gif'" exclusively>
-                            <update on "#subList" to "append" with $subItemGif />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-gif" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.mp3'" exclusively>
-                            <update on "#subList" to "append" with $subItemMp3 />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-mp3" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="AS '.txt'" exclusively>
-                            <update on "#subList" to "append" with $subItemTxt />
+                            <update on "$4?" at ".typeClass" with "bi-filetype-txt" />
+                            <update on "#subList" to "append" with $subItem />
                         </match>
                         <match for="ANY">
+                            <update on "$4?" at ".typeClass" with "bi-filetype-earmark" />
                             <update on "#subList" to "append" with $subItem />
                         </match>
                     </test>

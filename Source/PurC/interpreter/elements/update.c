@@ -394,6 +394,9 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
             }
 
             purc_variant_t o = purc_variant_object_get(dst, k);
+            if (!o) {
+                purc_clr_error(); /* clear no such key */
+            }
             purc_variant_t v = with_eval(o, src);
             if (!v) {
                 purc_variant_unref(k);
