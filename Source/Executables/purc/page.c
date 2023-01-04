@@ -129,6 +129,7 @@ uint8_t foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)
     return old;
 }
 
+/* use the foreground color of the page but reserve the background color */
 int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
         uint32_t uc, size_t count)
 {
@@ -143,7 +144,6 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     cell.uc = uc;
     cell.attrs = page->attrs;
     cell.fgc = page->fgc;
-    cell.bgc = page->bgc;
     cell.latter_half = 0;
 
     foil_rect dirty = { x, y, x, y + 1 };
@@ -164,6 +164,7 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     if (g_unichar_iswide(uc)) {
         while (x < page->cols - 1 && my_count < count) {
             cell.latter_half = 0;
+            cell.bgc = dst_cell->bgc;
             memcpy(dst_cell, &cell, sizeof(cell));
             cell.latter_half = 1;
             memcpy(dst_cell, &cell, sizeof(cell));
@@ -213,7 +214,6 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
     cell.uc = FOIL_UCHAR_SPACE;
     cell.attrs = page->attrs;
     cell.fgc = page->fgc;
-    cell.bgc = page->bgc;
     cell.latter_half = 0;
 
     foil_rect dirty = { x, y, x, y + 1 };
@@ -239,6 +239,8 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
             if (x == page->cols - 1)
                 break;
 
+            cell.bgc = dst_cell->bgc;
+
             cell.latter_half = 0;
             memcpy(dst_cell, &cell, sizeof(cell));
             cell.latter_half = 1;
@@ -250,6 +252,8 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
             my_count++;
         }
         else {
+            cell.bgc = dst_cell->bgc;
+
             cell.latter_half = 0;
             memcpy(dst_cell, &cell, sizeof(cell));
 

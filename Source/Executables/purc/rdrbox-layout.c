@@ -2453,6 +2453,18 @@ void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             off_x = block->width - block->text_indent;
         }
 
+        if (line->left_extent > 0) {
+            if (block->text_align == FOIL_RDRBOX_TEXT_ALIGN_RIGHT) {
+                off_x += line->left_extent;
+            }
+            else if (block->text_align == FOIL_RDRBOX_TEXT_ALIGN_CENTER) {
+                off_x += (line->left_extent >> 1);
+            }
+            else if (block->text_align == FOIL_RDRBOX_TEXT_ALIGN_JUSTIFY) {
+                // TODO:
+            }
+        }
+
         for (size_t j = 0; j < line->nr_segments; j++) {
             int off_y;
 
