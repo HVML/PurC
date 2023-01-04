@@ -14,7 +14,60 @@
             }
         </style>
     </head>
+
     <body>
+        <init as="pageGroups">
+        """
+            <section id="sec1">
+                <article id="viewerWindow1">
+                    <ol id="leftPanel" class="col-4"></ol>
+                    <ol id="rightPanel" class="col-8"></ol>
+                </article>
+            </section>
+        """
+        </init>
+
+        <request on="$RDR" to="setPageGroups">
+            {
+                "data": $pageGroups
+            }
+        </request>
+
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"leftPanel",
+                "data": {
+                    "name": "leftWindow",
+                    "title": "leftList",
+                    "class": "col-4",
+                    "layoutStyle": "width:20vw;height:100vh;"
+                }
+            }
+        </request>
+
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"rightPanel",
+                "data": {
+                    "name": "rightWindow",
+                    "title": "SubList",
+                    "class": "col-8",
+                    "layoutStyle": "left:20vw;width:100vw;height:100vh;"
+                }
+            }
+        </request>
+
+        <load from "#leftBody" onto 'leftWindow' as 'leftFileList' async />
+
+        <load from "#rightBody" onto 'rightWindow' as 'subFileList' async />
+
+        <observe on $CRTN for "rdrState:closed">
+            <exit with "closed" />
+        </observe>
+
+    </body>
+
+    <body id="leftBody">
 
         <init as 'state'>
             {
@@ -22,18 +75,6 @@
                 "dataList" : [],
             }
         </init>
-
-        <request on="$RDR" to="createPlainWindow">
-            {
-                "data": {
-                    "name": "subWindow",
-                    "class": "normal",
-                    "title": "This is sub window"
-                }
-            }
-        </request>
-
-        <load from "#sub" onto 'subWindow' as 'subFileList' async />
 
         <archetype name="mainItem">
             <div class="nav-link link-dark w-100" hvml-events="click" id="li-$2%" value="$2?.name">
@@ -124,13 +165,9 @@
             <include with "$refreshList" />
         </observe>
 
-        <observe on $CRTN for "rdrState:closed">
-            <exit with "closed" />
-        </observe>
-
     </body>
 
-    <body id="sub">
+    <body id="rightBody">
         <archetype name="subItem">
             <div class="row p-2 justify-content-start align-items-center $2?.bgClass">
                 <div class="col-sm-4" hvml-events="click" id="li-$2?.inode">
