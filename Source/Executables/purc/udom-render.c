@@ -96,39 +96,51 @@ static void rdrbox_render_after_file(foil_render_ctxt *ctxt,
 }
 
 static void
-render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
+        unsigned level)
 {
-    rdrbox_render_before_file(ctxt, ancestor, ctxt->level);
-    rdrbox_render_content_file(ctxt, ancestor, ctxt->level);
+    rdrbox_render_before_file(ctxt, ancestor, level);
+    rdrbox_render_content_file(ctxt, ancestor, level);
 
     /* travel children */
     foil_rdrbox *child = ancestor->first;
     while (child) {
 
-        ctxt->level++;
-        render_rdrtree(ctxt, child);
-        ctxt->level--;
+        render_rdrtree(ctxt, child, level + 1);
 
         child = child->next;
     }
 
-    rdrbox_render_after_file(ctxt, ancestor, ctxt->level);
+    rdrbox_render_after_file(ctxt, ancestor, level);
 }
 
 void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
 {
     /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, { fp }, 0 };
+    foil_render_ctxt render_ctxt = { udom, { fp } };
 
     LOG_DEBUG("Calling render_rdrtree...\n");
-    render_rdrtree(&render_ctxt, udom->initial_cblock);
+    render_rdrtree(&render_ctxt, udom->initial_cblock, 0);
+}
+
+static inline int width_to_cols(int width)
+{
+    assert(width % FOIL_PX_GRID_CELL_W == 0);
+    return width / FOIL_PX_GRID_CELL_W;
+}
+
+static inline int height_to_rows(int height)
+{
+    assert(height % FOIL_PX_GRID_CELL_H == 0);
+    return height / FOIL_PX_GRID_CELL_H;
 }
 
 void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
 {
-    // TODO
     (void)udom;
     (void)page;
-    LOG_DEBUG("called\n");
+
+    foil_render_ctxt render_ctxt = { udom, { page } };
+
 }
 

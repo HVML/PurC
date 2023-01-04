@@ -110,7 +110,8 @@ pcmcth_page *foil_page_new(void);
 /* return the uDOM set for this page */
 pcmcth_udom *foil_page_delete(pcmcth_page *page);
 
-bool foil_page_content_init(pcmcth_page *page, int rows, int cols);
+bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
+        uint8_t fgc, uint8_t bgc);
 void foil_page_content_cleanup(pcmcth_page *page);
 
 /* set uDOM and return the old one */

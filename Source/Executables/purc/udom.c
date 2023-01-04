@@ -1057,17 +1057,16 @@ foil_udom_get_langcode(purc_document_t doc, pcdoc_element_t elem)
 }
 
 static void
-dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
+dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
+        unsigned level)
 {
-    foil_rdrbox_dump(ancestor, ctxt->udom->doc, ctxt->level);
+    foil_rdrbox_dump(ancestor, ctxt->udom->doc, level);
 
     /* travel children */
     foil_rdrbox *child = ancestor->first;
     while (child) {
 
-        ctxt->level++;
-        dump_rdrtree(ctxt, child);
-        ctxt->level--;
+        dump_rdrtree(ctxt, child, level + 1);
 
         child = child->next;
     }
@@ -1076,11 +1075,11 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor)
 static void dump_udom(pcmcth_udom *udom)
 {
     /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, { NULL }, 0 };
+    foil_render_ctxt render_ctxt = { udom, { NULL }};
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");
-    dump_rdrtree(&render_ctxt, udom->initial_cblock);
+    dump_rdrtree(&render_ctxt, udom->initial_cblock, 0);
 }
 
 pcmcth_udom *
@@ -1201,17 +1200,22 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     LOG_DEBUG("Calling layout_rdrtree...\n");
     layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
-    if (!foil_page_content_init(page,
-            udom->initial_cblock->width / FOIL_PX_GRID_CELL_W,
-            udom->initial_cblock->height / FOIL_PX_GRID_CELL_H)) {
-        LOG_ERROR("Failed to initialize page content\n");
-        goto failed;
-    }
-
 #ifndef NDEBUG
     dump_udom(udom);
     foil_udom_render_to_file(udom, stdout);
 #endif
+
+    assert(udom->initial_cblock->width % FOIL_PX_GRID_CELL_W == 0);
+    assert(udom->initial_cblock->height % FOIL_PX_GRID_CELL_H == 0);
+
+    int cols = udom->initial_cblock->width / FOIL_PX_GRID_CELL_W;
+    int rows = udom->initial_cblock->height / FOIL_PX_GRID_CELL_H;
+    if (!foil_page_content_init(page, cols, rows,
+                udom->initial_cblock->color,
+                udom->initial_cblock->background_color)) {
+        LOG_ERROR("Failed to initialize page content\n");
+        goto failed;
+    }
 
     foil_udom_render_to_page(udom, page);
     return udom;

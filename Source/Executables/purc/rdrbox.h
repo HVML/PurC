@@ -477,7 +477,6 @@ typedef struct foil_render_ctxt {
         FILE *fp;
         pcmcth_page *page;
     };
-    unsigned level;
 } foil_render_ctxt;
 
 #ifdef __cplusplus

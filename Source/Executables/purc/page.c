@@ -41,7 +41,8 @@ void foil_page_module_cleanup(pcmcth_renderer *rdr)
     foil_udom_module_cleanup(rdr);
 }
 
-bool foil_page_content_init(pcmcth_page *page, int rows, int cols)
+bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
+        uint8_t fgc, uint8_t bgc)
 {
     if (page->cells)
         foil_page_content_cleanup(page);
@@ -62,8 +63,8 @@ bool foil_page_content_init(pcmcth_page *page, int rows, int cols)
     page->udom = NULL;
 
     page->attrs = FOIL_CHAR_ATTR_NULL;
-    page->fgc   = FOIL_DEF_FGC;
-    page->bgc   = FOIL_DEF_BGC;
+    page->fgc   = fgc;
+    page->bgc   = bgc;
 
     foil_page_fill_rect(page, NULL, FOIL_UCHAR_SPACE);
     return true;
