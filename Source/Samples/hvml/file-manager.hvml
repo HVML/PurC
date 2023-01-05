@@ -53,6 +53,10 @@
                 white-space: nowrap;
           }
 
+          .f-main-head {
+              cursor:pointer;
+          }
+
           .f-main-item {
               cursor:pointer;
           }
@@ -146,9 +150,9 @@
         <main class="d-flex flex-nowrap h-100">
             <div class="d-flex flex-column flex-shrink-0 ps-3 pe-3 f-bg-left" style="width: 280px;">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="fs-2 ps-3 pt-4 pb-2 w-100 text-secondary-emphasis" id="mainHeadTitleContainer" hvml-events="click">
-                        <i class="bi bi-arrow-left"></i>
-                        <span class="ps-1" id="mainHeadTitle"></span>
+                    <div class="f-main-head fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer" hvml-events="click">
+                        <i class="bi bi-chevron-up"></i>
+                        <span class="ps-3" id="mainHeadTitle"></span>
                     </div>
                     <hr/>
                 </a>
