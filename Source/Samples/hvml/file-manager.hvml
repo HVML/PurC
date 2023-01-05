@@ -54,6 +54,7 @@
           }
 
           .f-main-item {
+              cursor:pointer;
           }
 
           .f-main-item-active {
@@ -61,6 +62,7 @@
           }
 
           .f-sub-item {
+              cursor:pointer;
           }
 
           .f-sub-item-active {
@@ -135,7 +137,7 @@
 
         <archetype name="mainItem">
             <div class="f-main-item nav-link link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
-                <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
+                <i class="bi $2?.icon pe-none me-2 $2?.iconColor" width="16" height="16"></i>
                 $2?.name
             </div>
         </archetype>
@@ -170,13 +172,24 @@
 
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
             <test with "$DATA.isequal($state.currDir, '/')">
+                <update on $state.dataList to 'prepend' with {"inode":"0", "name":"/", "path":"/", "type":"d"} />
                 <differ>
-                    <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":"..", "type":"d"} />
+                    <update on $state.dataList to 'prepend' with {"inode":"0", "name":$FS.basename($state.currDir), "path":$state.currDir,"type":"d"} />
                 </differ>
             </test>
 
             <iterate on $state.dataList>
                 <test with "$DATA.isequal($?.type, 'd')">
+                    <test on="$2%">
+                        <match for="EQ 0" exclusively>
+                            <update on="$4?" at=".icon" with="bi-arrow-left"/>
+                            <update on="$4?" at=".iconColor" with="text-dark"/>
+                        </match>
+                        <match for="ANY">
+                            <update on="$4?" at=".icon" with="bi-folder"/>
+                            <update on="$4?" at=".iconColor" with="text-primary"/>
+                        </match>
+                    </test>
                     <update on "#mainList" at "content" to "append" with $mainItem />
                 </test>
             </iterate>
@@ -184,9 +197,10 @@
 
         <observe on ".nav-link" for "click">
             <update on="#$?.targetId" at="attr.class" with="$state.activeClass" />
+            <sleep for='50ms' />
             <init as 'currName' with "$state.dataList[$DATA.numerify($STR.substr($?.targetId, 3))].name" temp />
-            <test on="$currName">
-                <match for="AS '..'" exclusively>
+            <test on="$?.targetId">
+                <match for="AS 'li-0'" exclusively>
                     <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
                 </match>
                 <match for="ANY">
