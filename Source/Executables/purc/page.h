@@ -28,6 +28,7 @@
 
 #include "foil.h"
 #include "region/rect.h"
+#include "unicode/unicode.h"
 #include "util/list.h"
 
 struct foil_tty_cell {
@@ -139,6 +140,14 @@ static inline int foil_page_rows(const pcmcth_page *page) {
 static inline int foil_page_cols(const pcmcth_page *page) {
     return page->cols;
 }
+
+static inline bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc,
+        uint8_t bgc)
+{
+    foil_page_set_bgc(page, bgc);
+    return foil_page_fill_rect(page, rc, FOIL_UCHAR_SPACE);
+}
+
 
 #endif  /* purc_foil_page_h */
 

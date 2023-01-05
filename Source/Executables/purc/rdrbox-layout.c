@@ -1950,19 +1950,19 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->block_data->lfmt_ctxt = lfmt_ctxt;
-            box->cb_data_cleanup =
+            box->extra_data_cleaner =
                 (foil_data_cleanup_cb)foil_rdrbox_block_box_cleanup;
         }
         else if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM) {
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->list_item_data->lfmt_ctxt = lfmt_ctxt;
-            box->cb_data_cleanup =
+            box->extra_data_cleaner =
                 (foil_data_cleanup_cb)foil_rdrbox_list_item_cleanup;
         }
         else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
             lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt_new();
             box->inline_block_data->lfmt_ctxt = lfmt_ctxt;
-            box->cb_data_cleanup =
+            box->extra_data_cleaner =
                 (foil_data_cleanup_cb)foil_rdrbox_inline_block_box_cleanup;
         }
         // TODO: other block level boxes

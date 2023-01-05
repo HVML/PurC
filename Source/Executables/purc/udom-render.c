@@ -28,6 +28,7 @@
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "udom.h"
+#include "page.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -139,9 +140,37 @@ static void
 render_rdrbox_part(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box, foil_box_part_k part)
 {
-    (void)ctxt;
-    (void)box;
-    (void)part;
+    switch (part) {
+    case FOIL_BOX_PART_BACKGROUND:
+        if (box->bgnd_painter) {
+            box->bgnd_painter(ctxt, box);
+            break;
+        }
+        else {
+            const foil_rect *rc;
+            if (box->is_root) {
+                rc = NULL;
+            }
+            else {
+                rc = &box->ctnt_rect;
+            }
+            foil_page_erase_rect(ctxt->page, rc, box->background_color);
+        }
+        break;
+
+    case FOIL_BOX_PART_BORDER:
+        // TODO: draw border
+        break;
+
+    case FOIL_BOX_PART_CONTENT:
+        if (box->ctnt_painter) {
+            box->ctnt_painter(ctxt, box);
+            break;
+        }
+        break;
+    }
+
+    // default handler.
 }
 
 static void

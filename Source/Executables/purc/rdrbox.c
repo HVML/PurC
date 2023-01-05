@@ -321,12 +321,20 @@ void foil_rdrbox_delete(foil_rdrbox *box)
     if (box->counters_table)
         g_hash_table_destroy(box->counters_table);
 
-    if (box->data) {
-        if (box->cb_data_cleanup) {
-            box->cb_data_cleanup(box->data);
+    if (box->extra_data) {
+        if (box->extra_data_cleaner) {
+            box->extra_data_cleaner(box->extra_data);
         }
 
-        free(box->data);
+        free(box->extra_data);
+    }
+
+    if (box->priv_data) {
+        if (box->priv_data_cleaner) {
+            box->priv_data_cleaner(box->priv_data);
+        }
+
+        free(box->priv_data);
     }
 
     if (box->block_fmt_ctxt) {

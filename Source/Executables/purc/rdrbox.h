@@ -271,6 +271,14 @@ typedef struct foil_counters {
     foil_named_counter *counters;
 } foil_counters;
 
+typedef void (*foil_data_cleanup_cb)(void *data);
+
+struct foil_render_ctxt;
+struct foil_rdrbox;
+
+typedef void (*foil_paint_rdrbox_cb)(struct foil_render_ctxt *rdr_ctxt,
+        struct foil_rdrbox *box);
+
 struct foil_rdrbox {
     struct foil_rdrbox* parent;
     struct foil_rdrbox* first;
@@ -423,27 +431,38 @@ struct foil_rdrbox {
 
     union {
         /* the extra data for different box types */
-        void *data;                                 // aliases
-        struct _inline_box_data     *inline_data;
-        struct _block_box_data      *block_data;
-        struct _inline_block_data   *inline_block_data;
-        struct _list_item_data      *list_item_data;
-        struct _marker_box_data     *marker_data;
+        void                       *extra_data;         // aliases
+        struct _inline_box_data    *inline_data;
+        struct _block_box_data     *block_data;
+        struct _inline_block_data  *inline_block_data;
+        struct _list_item_data     *list_item_data;
+        struct _marker_box_data    *marker_data;
         /* TODO: for other box types */
     };
 
     /* the callback to cleanup the extra data */
-    void (*cb_data_cleanup)(void *data);
+    foil_data_cleanup_cb            extra_data_cleaner;
 
     /* box formatting context */
-    struct _block_fmt_ctxt  *block_fmt_ctxt;
+    struct _block_fmt_ctxt         *block_fmt_ctxt;
 
     /* the stacking context created by the box if it is a positioned box,
        and z-index is not auto. */
-    struct foil_stacking_context *stacking_ctxt;
-};
+    struct foil_stacking_context   *stacking_ctxt;
 
-typedef void (*foil_data_cleanup_cb)(void *data);
+    /* the private data for a special box, e.g., a control box */
+    struct _private_data           *priv_data;
+
+    /* the callback to cleanup the private data */
+    foil_data_cleanup_cb            priv_data_cleaner;
+
+    /* the tailored callback for drawing background of a special box, e.g.,
+       `progress` and `meter` */
+    foil_paint_rdrbox_cb            bgnd_painter;
+
+    /* the tailored callback for drawing content of a control or replaced box */
+    foil_paint_rdrbox_cb            ctnt_painter;
+};
 
 typedef struct foil_create_ctxt {
     pcmcth_udom *udom;

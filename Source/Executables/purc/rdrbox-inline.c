@@ -101,7 +101,7 @@ bool foil_rdrbox_init_inline_data(foil_create_ctxt *ctxt,
     }
 
     if (inline_data->nr_paras > 0)
-        box->cb_data_cleanup = inline_data_cleaner;
+        box->extra_data_cleaner = inline_data_cleaner;
 
     return true;
 

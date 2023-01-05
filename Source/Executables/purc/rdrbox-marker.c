@@ -521,7 +521,7 @@ bool foil_rdrbox_init_marker_data(foil_create_ctxt *ctxt,
     free(text);
 
     data->width = foil_ucs_calc_width_nowrap(data->ucs, data->nr_ucs);
-    marker->cb_data_cleanup = marker_data_cleaner;
+    marker->extra_data_cleaner = marker_data_cleaner;
     return (data->ucs != NULL);
 }
 
