@@ -21,7 +21,7 @@
 ## Introduction
 
 `HVML` is a descriptive programming language proposed and designed by [Vincent Wei],
-    who is the author of the China-first open source project - [MiniGUI].
+    who is the author of [MiniGUI], one of the earliest open source software projects in China.
 
 `PurC` is the acronym of `the Prime HVML inteRpreter for C/C++ language`.
 It is also the abbreviation of `Purring Cat`,
@@ -850,9 +850,12 @@ The source tree of PurC contains the following modules:
 - `Source/Tools/debian`: DEB package packaging scripts.
 - `Documents/`: Some documents for developers.
 
-Note that the HTML parser and DOM operations of PurC are derived from:
+Note that
 
- - [Lexbor](https://github.com/lexbor/lexbor), which is licensed under the Apache License, Version 2.0.
+1. The source code in `Source/WTF` is derived from [WebKit](https://www.webkit.org/), which is licensed under BSD and LGPLv2.1.
+1. The source code in `Source/CSSEng` is derived from LibCSS, LibParserUtils, and LibWapcaplet of [NetSurf project](https://www.netsurf-browser.org/). These three libraries are licensed under MIT.
+1. The source code in `Source/RemoteFetcher` is derived from [WebKit](https://www.webkit.org/), which is licensed under BSD and LGPLv2.1.
+1. The HTML parser and DOM operations of PurC are derived from [Lexbor](https://github.com/lexbor/lexbor), which is licensed under the Apache License, Version 2.0.
 
 ### TODO List
 
