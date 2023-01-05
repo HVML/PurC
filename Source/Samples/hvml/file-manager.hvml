@@ -59,6 +59,14 @@
           .f-main-item-active {
               background-color: #a7a7a7;
           }
+
+          .f-sub-item {
+          }
+
+          .f-sub-item-active {
+              color: #ffffff;
+              background-color: #0a58ca;
+          }
         </style>
     </head>
 
@@ -125,9 +133,6 @@
             }
         </init>
 
-        <!--
-            <div class="nav-link d-flex align-items-center f-txt-overflow ps-3 w-100 mb-1 bg-success" hvml-events="click" id="li-$2%" value="$2?.name">
-        -->
         <archetype name="mainItem">
             <div class="f-main-item nav-link link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
                 <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
@@ -210,16 +215,24 @@
     </body>
 
     <body id="rightBody">
+        <init as="subState">
+        {
+            "activeId" : "",
+            "normalClass" : "f-sub-item row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+            "activeClass" : "f-sub-item f-sub-item-active row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+        }
+        </init>
+
         <archetype name="subItem">
-            <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass">
-                <div class="col-sm-6 f-txt-overflow" hvml-events="click" id="li-$2?.inode">
+            <div class="f-sub-item row ps-5 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass"  hvml-events="click" id="l0-$2?.idx">
+                <div class="col-sm-6 f-txt-overflow" id="l1-$2?.idx">
                     <i class="bi $2?.typeClass pe-none me-2 text-primary" width="16" height="16"></i>
                     $2?.name
                 </div>
-                <div class="col-sm-3 text-end">
+                <div class="col-sm-3 text-end" id="l2-$2?.idx">
                     $2?.mtime
                 </div>
-                <div class="col-sm-3 text-end">
+                <div class="col-sm-3 text-end" id="l3-$2?.idx">
                     $2?.sz
                 </div>
             </div>
@@ -258,6 +271,7 @@
 
             <update on '#subTitle' at="textContent" with "$currDir" />
             <update on "#subList" with ' ' />
+            <update on="$subState" at=".activeId" with='' />
 
             <iterate on $dataList>
                 <test with "$L.not($DATA.isequal($?.type, 'd'))">
@@ -309,6 +323,7 @@
                             <update on "$4?" at ".sz" with "$4?.size 字节" />
                         </match>
                     </test>
+                    <update on "$2?" at ".idx" with "$subCenter.idx" />
                     <update on "$subCenter" at ".idx" with $DATA.arith('+', $subCenter.idx, 1)  />
                     <update on "#subList" to "append" with $subItem />
                 </test>
@@ -317,6 +332,24 @@
 
         <observe on="$CRTN" for="request:showDetail">
             <include with "$refreshList" on $? />
+        </observe>
+
+        <observe on ".f-sub-item" for "click">
+            <test on "$STR.nr_chars($subState.activeId)">
+                <match for="GT 0" exclusively>
+                    <test with $L.eq($MATH.fmod($DATA.numerify($STR.substr($subState.activeId, 3)), 2), 0)>
+                        <inherit>
+                            <update on="#$subState.activeId" at="attr.class" with="$subState.normalClass" />
+                        </inherit>
+                        <differ>
+                            <update on="#$subState.activeId" at="attr.class" with="$subState.normalClass f-bg-item-dark" />
+                        </differ>
+                    </test>
+                </match>
+            </test>
+
+            <update on="$subState" at=".activeId" with="$STR.join('l0', $STR.substr($?.targetId, 2))" />
+            <update on="#$subState.activeId" at="attr.class" with="$subState.activeClass" />
         </observe>
 
     </body>
