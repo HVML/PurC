@@ -2431,7 +2431,7 @@ failed:
 }
 
 /* We just adjust the positions of the inline segments in a block */
-void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *block)
+void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 {
     (void)ctxt;
     assert(block->is_block_level && block->nr_inline_level_children > 0);
@@ -2483,5 +2483,19 @@ void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             foil_rect_offset(&run->rc, off_x, off_y);
         }
     }
+}
+
+void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *block)
+{
+    int real_mt, real_mb;
+    collapse_margins(ctxt, block, &real_mt, &real_mb);
+
+    foil_rect_offset(&block->ctnt_rect,
+            container->ctnt_rect.left,
+            container->ctnt_rect.top);
+    foil_rect_offset(&block->ctnt_rect,
+            real_mt + block->bt + block->pt,
+            block->ml + block->bl + block->pl);
 }
 
