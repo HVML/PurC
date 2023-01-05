@@ -18,15 +18,15 @@
 
 ## 介绍
 
-`HVML` 是由 [魏永明] 提出并设计的一种描述式编程语言。魏永明是中国首个开源项目 [MiniGUI] 的作者。
+`HVML` 是由 [魏永明] 设计的一种描述式编程语言。魏永明是知名开源项目 [MiniGUI] 的作者。
 
 `PurC` 是 `the Prime HVML inteRpreter for C/C++ language` 的缩写，意指首个针对 C/C++ 语言的 HVML 解释器。`PurC` 同时也是 `Purring Cat` 的简写，而 `Purring Cat（呼噜猫）` 是 HVML 的昵称和吉祥物。
 
-PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功能以及实现 [HVML 预定义变量 V1.0] 中定义的所有预定义动态对象。
+PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功能以及实现 [HVML 预定义变量规范 V1.0] 中定义的所有预定义动态对象。
 
 本代码仓库中包含若干函数库（主要的函数库名为 `PurC`），以及若干可执行程序。你可以使用命令行工具 `purc` 运行 HVML 程序或 HVML 应用，或使用 PurC 函数库来构建自己的 HVML 解释器。
 
-我们在 LGPLv3 许可证下发布 PurC 函数，而可执行程序使用 GPLv3 发布。因此，如果你遵循 LGPLv3/GPLv3 的条件和条款，你可以将 PurC 以及 `purc` 工具免费用于商业用途。
+我们在 LGPLv3 许可证下发布 PurC 函数库，而可执行程序使用 GPLv3 发布。因此，如果你遵循 LGPLv3/GPLv3 的条件和条款，你可以将 PurC 以及 `purc` 工具免费用于商业用途。
 
 这是 PurC 的 0.9.4 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
 
@@ -734,7 +734,7 @@ PurC 的主要目的是为开发者提供一个函数库来编写自己的 HVML 
 5. PurC 提供了创建多个 HVML 行者的 API。
 6. PurC 提供了用于解析 HVML 程序和调度执行 HVML 协程的 API。
 
-### PurC 的源代码树
+### 代码结构
 
 PurC 为 HVML 实现了解析器、解释器和一些内置的动态对象。它主要用 C/C++ 语言编写，将来还会提供 Python 和其他脚本语言的绑定。
 
@@ -779,9 +779,12 @@ PurC 的源代码树包含以下模块：
 - `Source/Tools/debian`：DEB 包打包脚本。
 - `Documents/`：一些面向开发人员的文档。
 
-请注意，PurC 的 HTML 解析器和 DOM 处理模块来自如下开源项目：
+请注意，
 
-- [Lexbor](https://github.com/lexbor/lexbor)，它是根据 Apache 2.0 许可证授权的。
+1. 本仓库包含的 WTF 函数库，派生自 [WebKit](https://www.webkit.org/) ，相关代码遵循 BSD 和 LGPLv2.1 许可证发布。
+1. 本仓库包含的 CSSEng 函数库，派生自 [NetSurf 项目](https://www.netsurf-browser.org/) 的 LibCSS、LibParserUtils 和 LibWapcaplet 三个函数库；这三个函数库均遵循 MIT 许可证发布。
+1. PurC 函数库中的 HTML 解析器和 DOM 处理模块来自 [Lexbor](https://github.com/lexbor/lexbor) 项目，该项目遵循 Apache 2.0 许可证发布。
+1. 本仓库包含的 RemoteFetcher 函数库，派生自 [WebKit](https://www.webkit.org/) ，相关代码遵循 BSD 和 LGPLv2.1 许可证发布。
 
 ### TODO 清单
 
@@ -979,5 +982,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [Vue.js]: https://vuejs.org
 
 [HVML 规范 V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md
-[HVML 预定义变量 V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md
+[HVML 预定义变量规范 V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md
 
