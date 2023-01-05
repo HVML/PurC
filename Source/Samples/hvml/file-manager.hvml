@@ -137,7 +137,7 @@
 
         <archetype name="mainItem">
             <div class="f-main-item nav-link link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
-                <i class="bi $2?.icon pe-none me-2 $2?.iconColor" width="16" height="16"></i>
+                <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
                 $2?.name
             </div>
         </archetype>
@@ -146,9 +146,9 @@
         <main class="d-flex flex-nowrap h-100">
             <div class="d-flex flex-column flex-shrink-0 ps-3 pe-3 f-bg-left" style="width: 280px;">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="fs-2 ps-3 pt-4 pb-2 w-100 text-secondary-emphasis">
-                        <i class="bi bi-folder-fill"></i>
-                        文件夹
+                    <div class="fs-2 ps-3 pt-4 pb-2 w-100 text-secondary-emphasis" id="mainHeadTitleContainer" hvml-events="click">
+                        <i class="bi bi-arrow-left"></i>
+                        <span class="ps-1" id="mainHeadTitle"></span>
                     </div>
                     <hr/>
                 </a>
@@ -163,6 +163,12 @@
             <clear on="$state.dataList" />
 
             <update on "#mainList" at "content" with ' ' />
+            <test with "$DATA.isequal($state.currDir, '/')">
+                <update on "#mainHeadTitle" at "content" with "/" />
+                <differ>
+                    <update on "#mainHeadTitle" at "content" with $FS.basename($state.currDir) />
+                </differ>
+            </test>
 
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
@@ -171,15 +177,18 @@
             </request>
 
             <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
+            <!--
             <test with "$DATA.isequal($state.currDir, '/')">
                 <update on $state.dataList to 'prepend' with {"inode":"0", "name":"/", "path":"/", "type":"d"} />
                 <differ>
                     <update on $state.dataList to 'prepend' with {"inode":"0", "name":$FS.basename($state.currDir), "path":$state.currDir,"type":"d"} />
                 </differ>
             </test>
+            -->
 
             <iterate on $state.dataList>
                 <test with "$DATA.isequal($?.type, 'd')">
+                    <!--
                     <test on="$2%">
                         <match for="EQ 0" exclusively>
                             <update on="$4?" at=".icon" with="bi-arrow-left"/>
@@ -190,6 +199,7 @@
                             <update on="$4?" at=".iconColor" with="text-primary"/>
                         </match>
                     </test>
+                    -->
                     <update on "#mainList" at "content" to "append" with $mainItem />
                 </test>
             </iterate>
@@ -199,6 +209,7 @@
             <update on="#$?.targetId" at="attr.class" with="$state.activeClass" />
             <sleep for='50ms' />
             <init as 'currName' with "$state.dataList[$DATA.numerify($STR.substr($?.targetId, 3))].name" temp />
+            <!--
             <test on="$?.targetId">
                 <match for="AS 'li-0'" exclusively>
                     <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
@@ -212,7 +223,23 @@
                     </test>
                 </match>
             </test>
+            -->
+            <test with "$STR.ends_with($state.currDir, '/')">
+                <update on="$state" at=".currDir" with="$STR.join($state.currDir, $currName)"/>
+                <differ>
+                    <update on="$state" at=".currDir" with="$STR.join($state.currDir, '/', $currName)"/>
+                </differ>
+            </test>
             <include with "$refreshList" />
+        </observe>
+
+        <observe on "#mainHeadTitleContainer" for "click">
+            <test with "$DATA.isequal($state.currDir, '/')">
+                <differ>
+                    <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
+                    <include with "$refreshList" />
+                </differ>
+            </test>
         </observe>
 
         <update on="$TIMERS" to="unite">
