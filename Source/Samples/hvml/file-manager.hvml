@@ -244,7 +244,7 @@
                     $2?.name
                 </div>
                 <div class="col-sm-3 text-end" id="l2-$2?.idx">
-                    $2?.mtime
+                    $DATETIME.fmttime("%Y年%m月%d日 %H:%M", $2?.mtime_sec)
                 </div>
                 <div class="col-sm-3 text-end" id="l3-$2?.idx">
                     $2?.sz
