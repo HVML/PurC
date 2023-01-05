@@ -57,11 +57,11 @@ struct _inline_box_data {
     struct list_head paras;
 };
 
-struct _inline_segment {
-    /* the box generating this inline segment */
+struct _inline_run {
+    /* the box generating this inline run */
     foil_rdrbox *box;
 
-    /* the rectangle of this inline segment */
+    /* the rectangle of this inline run */
     foil_rect rc;
 
     /* the text span if the box is an inline box */
@@ -85,11 +85,11 @@ struct _line_info {
     /* the left extent of the current line */
     int left_extent;
 
-    /* the number of inline segments in this line */
-    size_t nr_segments;
+    /* the number of inline runs in this line */
+    size_t nr_runs;
 
     /* the array of inline segments fit in this line */
-    struct _inline_segment *segs;
+    struct _inline_run *runs;
 };
 
 struct _inline_fmt_ctxt {
@@ -183,8 +183,8 @@ foil_rdrbox_line_set_size(struct _line_info *line,
     }
 }
 
-struct _inline_segment *
-foil_rdrbox_line_allocate_new_segment(struct _inline_fmt_ctxt *fmt_ctxt);
+struct _inline_run *
+foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt);
 
 struct _line_info *foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt,
         foil_rdrbox *block);

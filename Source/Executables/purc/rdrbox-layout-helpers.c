@@ -67,8 +67,8 @@ struct _inline_fmt_ctxt *foil_rdrbox_inline_fmt_ctxt_new(void)
 static void free_inline_formatting_context(struct _inline_fmt_ctxt *ctxt)
 {
     for (size_t i = 0; i < ctxt->nr_lines; i++) {
-        if (ctxt->lines[i].segs)
-            free(ctxt->lines[i].segs);
+        if (ctxt->lines[i].runs)
+            free(ctxt->lines[i].runs);
     }
 
     if (ctxt->lines)
@@ -238,21 +238,21 @@ failed:
     return NULL;
 }
 
-struct _inline_segment *
-foil_rdrbox_line_allocate_new_segment(struct _inline_fmt_ctxt *fmt_ctxt)
+struct _inline_run *
+foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt)
 {
     struct _line_info *line = fmt_ctxt->lines + (fmt_ctxt->nr_lines - 1);
-    line->segs = realloc(line->segs,
-            sizeof(struct _inline_segment) * (line->nr_segments + 1));
+    line->runs = realloc(line->runs,
+            sizeof(struct _inline_run) * (line->nr_runs + 1));
 
-    if (line->segs == NULL)
+    if (line->runs == NULL)
         return NULL;
 
-    struct _inline_segment *seg = line->segs + line->nr_segments;
-    memset(seg, 0, sizeof(struct _inline_segment));
+    struct _inline_run *run = line->runs + line->nr_runs;
+    memset(run, 0, sizeof(struct _inline_run));
 
-    line->nr_segments++;
-    return seg;
+    line->nr_runs++;
+    return run;
 }
 
 struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
@@ -304,16 +304,16 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
                 continue;
             }
 
-            struct _inline_segment *seg;
-            seg = foil_rdrbox_line_allocate_new_segment(fmt_ctxt);
-            if (seg == NULL)
+            struct _inline_run *run;
+            run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
+            if (run == NULL)
                 goto failed;
 
-            seg->box = box;
-            seg->span = p;
-            seg->first_uc = nr_laid;
-            seg->nr_ucs = n;
-            foil_rect_set(&seg->rc, line->x, line->y,
+            run->box = box;
+            run->span = p;
+            run->first_uc = nr_laid;
+            run->nr_ucs = n;
+            foil_rect_set(&run->rc, line->x, line->y,
                     line->x + seg_size.cx, line->y + seg_size.cy);
             foil_rdrbox_line_set_size(line, seg_size.cx, seg_size.cy);
             LOG_DEBUG("line rectangle: (%d, %d, %d, %d)\n",

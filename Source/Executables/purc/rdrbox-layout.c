@@ -2271,14 +2271,14 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 assert(child->is_height_resolved == 0);
                 foil_rdrbox_resolve_height(ctxt, child);
 
-                struct _inline_segment *seg;
-                seg = foil_rdrbox_line_allocate_new_segment(fmt_ctxt);
-                seg->box = child;
-                foil_rdrbox_margin_box(child, &seg->rc);
+                struct _inline_run *run;
+                run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
+                run->box = child;
+                foil_rdrbox_margin_box(child, &run->rc);
 
                 foil_rdrbox_line_set_size(line,
-                        foil_rect_width(&seg->rc),
-                        foil_rect_height(&seg->rc));
+                        foil_rect_width(&run->rc),
+                        foil_rect_height(&run->rc));
                 line->x += margin_width;
                 line->left_extent -= margin_width;
             }
@@ -2373,14 +2373,14 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 assert(child->is_height_resolved == 0);
                 foil_rdrbox_resolve_height(ctxt, child);
 
-                struct _inline_segment *seg;
-                seg = foil_rdrbox_line_allocate_new_segment(fmt_ctxt);
-                seg->box = child;
-                foil_rdrbox_margin_box(child, &seg->rc);
+                struct _inline_run *run;
+                run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
+                run->box = child;
+                foil_rdrbox_margin_box(child, &run->rc);
 
                 foil_rdrbox_line_set_size(line,
-                        foil_rect_width(&seg->rc),
-                        foil_rect_height(&seg->rc));
+                        foil_rect_width(&run->rc),
+                        foil_rect_height(&run->rc));
                 line->x += margin_width;
                 line->left_extent -= margin_width;
             }
@@ -2465,22 +2465,22 @@ void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             }
         }
 
-        for (size_t j = 0; j < line->nr_segments; j++) {
+        for (size_t j = 0; j < line->nr_runs; j++) {
             int off_y;
 
-            struct _inline_segment *seg = line->segs + j;
-            if (seg->box->vertical_align == FOIL_RDRBOX_VALIGN_BOTTOM) {
-                off_y = line->height - foil_rect_height(&seg->rc);
+            struct _inline_run *run = line->runs + j;
+            if (run->box->vertical_align == FOIL_RDRBOX_VALIGN_BOTTOM) {
+                off_y = line->height - foil_rect_height(&run->rc);
             }
-            else if (seg->box->vertical_align == FOIL_RDRBOX_VALIGN_MIDDLE) {
-                float off = line->height - foil_rect_height(&seg->rc) / 2.0;
+            else if (run->box->vertical_align == FOIL_RDRBOX_VALIGN_MIDDLE) {
+                float off = line->height - foil_rect_height(&run->rc) / 2.0;
                 off_y = round_height(off);
             }
             else {
                 off_y = 0;
             }
 
-            foil_rect_offset(&seg->rc, off_x, off_y);
+            foil_rect_offset(&run->rc, off_x, off_y);
         }
     }
 }

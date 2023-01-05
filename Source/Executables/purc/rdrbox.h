@@ -232,6 +232,12 @@ enum {
     FOIL_RDRBOX_TYPE_TABLE_CAPTION,
 };
 
+typedef enum {
+    FOIL_RDRBOX_PART_BACKGROUND = 0,
+    FOIL_RDRBOX_PART_BORDER,
+    FOIL_RDRBOX_PART_CONTENT,
+} foil_rdrbox_part_k;
+
 struct _inline_box_data;
 struct _block_box_data;
 struct _inline_block_data;
