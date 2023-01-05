@@ -13,7 +13,7 @@
                 overflow-y: scroll;
             }
 
-          .b-divider {
+          .f-divider {
                 height: 3rem;
                 background-color: rgba(0, 0, 0, .1);
                 border: solid rgba(0, 0, 0, .15);
@@ -21,10 +21,36 @@
                 box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
           }
 
-          .b-vr {
+          .f-vr {
                 flex-shrink: 0;
                 width: 0.2rem;
                 height: 100vh;
+          }
+
+          .f-bg-left {
+                background-color: #eaeaea;
+          }
+
+          .f-bg-path {
+                background-color: #fcfcfc;
+          }
+
+          .f-bg-type {
+                background-color: #fdfdfd;
+          }
+
+          .f-type-txt-color {
+              color: #b1b1b1;
+          }
+
+          .f-bg-item-dark {
+                background-color: #f4f5f5;
+          }
+
+          .f-txt-overflow {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
           }
         </style>
     </head>
@@ -66,7 +92,7 @@
                     "name": "rightWindow",
                     "title": "SubList",
                     "class": "col-8",
-                    "layoutStyle": "left:20.2vw;width:100vw;height:100vh;"
+                    "layoutStyle": "left:20.2vw;width:82vw;height:100vh;"
                 }
             }
         </request>
@@ -91,35 +117,31 @@
         </init>
 
         <archetype name="mainItem">
-            <div class="nav-link link-dark w-100" hvml-events="click" id="li-$2%" value="$2?.name">
-                <i class="bi bi-folder pe-none me-2" width="16" height="16"></i>
-                $2?.nameShow
+            <div class="nav-link link-dark w-100 f-txt-overflow" hvml-events="click" id="li-$2%" value="$2?.name">
+                <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
+                $2?.name
             </div>
         </archetype>
 
 
         <main class="d-flex flex-nowrap h-100">
-            <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
+            <div class="d-flex flex-column flex-shrink-0 p-3 f-bg-left" style="width: 280px;">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="fs-4 text-center w-100">文件管理器</div>
+                    <div class="fs-4 w-100 text-secondary-emphasis">
+                        <i class="bi bi-folder-fill"></i>
+                        文件夹
+                    </div>
                     <hr/>
                 </a>
                 <div class="list-group flex-column scrollarea" id="mainList">
                 </div>
             </div>
-            <div class="b-divider b-vr"></div>
+            <div class="f-divider f-vr"></div>
         </main>
 
 
         <define as="refreshList">
             <clear on="$state.dataList" />
-
-            <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
-            <test with "$DATA.isequal($state.currDir, '/')">
-                <differ>
-                    <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":"..", "type":"d"} />
-                </differ>
-            </test>
 
             <update on "#mainList" at "content" with ' ' />
 
@@ -129,16 +151,15 @@
                 }
             </request>
 
+            <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
+            <test with "$DATA.isequal($state.currDir, '/')">
+                <differ>
+                    <update on $state.dataList to 'prepend' with {"inode":"0", "name":"..", "path":"..", "type":"d"} />
+                </differ>
+            </test>
+
             <iterate on $state.dataList>
                 <test with "$DATA.isequal($?.type, 'd')">
-                    <test on $STR.nr_chars($2?.name)>
-                        <match for="GT 20" exclusively>
-                            <update on "$4?" at ".nameShow" with "$STR.join($STR.substr($4?.name, 0, 10), '...', $STR.substr($4?.name, -7))" />
-                        </match>
-                        <match for="ANY" exclusively>
-                            <update on "$4?" at ".nameShow" with "$4?.name" />
-                        </match>
-                    </test>
                     <update on "#mainList" at "content" to "append" with $mainItem />
                 </test>
             </iterate>
@@ -178,37 +199,37 @@
 
     <body id="rightBody">
         <archetype name="subItem">
-            <div class="row ps-4 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass">
-                <div class="col-sm-4" hvml-events="click" id="li-$2?.inode">
-                    <i class="bi $2?.typeClass pe-none me-2" width="16" height="16"></i>
-                    $2?.nameShow
+            <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass">
+                <div class="col-sm-6 f-txt-overflow " hvml-events="click" id="li-$2?.inode">
+                    <i class="bi $2?.typeClass pe-none me-2 text-primary" width="16" height="16"></i>
+                    $2?.name
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-3 text-end">
                     $2?.mtime
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-3 text-end">
                     $2?.sz
                 </div>
             </div>
         </archetype>
 
         <main class="d-flex flex-column flex-nowrap h-100">
-            <div class="d-flex flex-column flex-shrink-0 ps-4 p-3 bg-light border-bottom">
+            <div class="d-flex flex-column flex-shrink-0 ps-4 p-3 f-bg-path border-bottom">
                 <span class="fs-6 pe-none me-2" id="subTitle">/<span>
             </div>
-            <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom">
-                <div class="col-sm-4">
+            <div class="row ps-4 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-type f-type-txt-color">
+                <div class="col-sm-6 ps-5">
                     名称
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-3 border-start">
                     修改日期
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-3 border-start">
                     大小
                 </div>
             </div>
 
-            <div class="row p-2 jscrollarea" id="subList">
+            <div class="row scrollarea" id="subList">
             </div>
         </main>
 
@@ -228,25 +249,25 @@
                 <test with "$L.not($DATA.isequal($?.type, 'd'))">
                     <test on="$STR.substr($2?.name, -4)">
                         <match for="AS '.pdf'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-pdf" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-pdf" />
                         </match>
                         <match for="AS '.jpg'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-jpg" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
                         </match>
                         <match for="AS '.jpeg'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-jpg" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
                         </match>
                         <match for="AS '.png'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-png" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
                         </match>
                         <match for="AS '.gif'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-gif" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
                         </match>
                         <match for="AS '.mp3'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-mp3" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-music" />
                         </match>
                         <match for="AS '.txt'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-filetype-txt" />
+                            <update on "$4?" at ".typeClass" with "bi-file-earmark-text" />
                         </match>
                         <match for="ANY">
                             <update on "$4?" at ".typeClass" with "bi-file-earmark" />
@@ -257,7 +278,7 @@
                             <update on "$4?" at ".bgClass" with ' ' />
                         </inherit>
                         <differ>
-                            <update on "$4?" at ".bgClass" with "bg-light" />
+                            <update on "$4?" at ".bgClass" with "f-bg-item-dark" />
                         </differ>
                     </test>
                     <test on $2?.size>
@@ -272,14 +293,6 @@
                         </match>
                         <match for="ANY" exclusively>
                             <update on "$4?" at ".sz" with "$4?.size 字节" />
-                        </match>
-                    </test>
-                    <test on $STR.nr_chars($2?.name)>
-                        <match for="GT 20" exclusively>
-                            <update on "$4?" at ".nameShow" with "$STR.join($STR.substr($4?.name, 0, 10), '...', $STR.substr($4?.name, -7))" />
-                        </match>
-                        <match for="ANY" exclusively>
-                            <update on "$4?" at ".nameShow" with "$4?.name" />
                         </match>
                     </test>
                     <update on "$subCenter" at ".idx" with $DATA.arith('+', $subCenter.idx, 1)  />
