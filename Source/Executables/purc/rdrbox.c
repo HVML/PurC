@@ -1276,7 +1276,7 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
 
 }
 
-static void
+static bool
 determine_z_index(foil_create_ctxt *ctxt, foil_rdrbox *box)
 {
     uint8_t v = css_computed_z_index(ctxt->style, &box->z_index);
@@ -1287,10 +1287,11 @@ determine_z_index(foil_create_ctxt *ctxt, foil_rdrbox *box)
     }
 
     LOG_DEBUG("\tz-index: %d\n", box->z_index);
+    return v != CSS_Z_INDEX_AUTO;
 }
 
 static foil_stacking_context *
-find_parent_statcking_context(foil_rdrbox *box)
+find_parent_stacking_context(foil_rdrbox *box)
 {
     foil_rdrbox *parent = box->parent;
 
@@ -1704,11 +1705,11 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
             }
         }
         else if (box->position) {   /* positioned element */
-            determine_z_index(ctxt, box);
+            bool is_not_auto = determine_z_index(ctxt, box);
             LOG_DEBUG("Calling foil_stacking_context_new() for %s: %d\n",
                     ctxt->tag_name, box->z_index);
-            if (box->z_index != 0) {
-                foil_stacking_context *p = find_parent_statcking_context(box);
+            if (is_not_auto) {
+                foil_stacking_context *p = find_parent_stacking_context(box);
                 assert(p);
                 box->stacking_ctxt =
                     foil_stacking_context_new(p, box->z_index, box);

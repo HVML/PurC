@@ -96,7 +96,7 @@ static void rdrbox_render_after_file(foil_render_ctxt *ctxt,
 }
 
 static void
-render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
+render_rdrtree_file(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
         unsigned level)
 {
     rdrbox_render_before_file(ctxt, ancestor, level);
@@ -106,7 +106,7 @@ render_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
     foil_rdrbox *child = ancestor->first;
     while (child) {
 
-        render_rdrtree(ctxt, child, level + 1);
+        render_rdrtree_file(ctxt, child, level + 1);
 
         child = child->next;
     }
@@ -120,7 +120,7 @@ void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
     foil_render_ctxt render_ctxt = { udom, { fp } };
 
     LOG_DEBUG("Calling render_rdrtree...\n");
-    render_rdrtree(&render_ctxt, udom->initial_cblock, 0);
+    render_rdrtree_file(&render_ctxt, udom->initial_cblock, 0);
 }
 
 static inline int width_to_cols(int width)
@@ -135,6 +135,91 @@ static inline int height_to_rows(int height)
     return height / FOIL_PX_GRID_CELL_H;
 }
 
+static void
+rdrbox_draw_background(struct foil_render_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+}
+
+static void
+rdrbox_draw_border(struct foil_render_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+}
+
+static void
+render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    assert(box->stacking_ctxt);
+
+    if (box->is_root) {
+        // background color of element over the entire canvas.
+    }
+
+    if (box->is_block_level) {
+        if (box->type == FOIL_RDRBOX_TYPE_TABLE) {
+            // TODO: table
+        }
+        else {
+            // background color of element unless it is the root element.
+            if (!box->is_root)
+                rdrbox_draw_background(ctxt, box);
+
+            // border of element.
+            rdrbox_draw_border(ctxt, box);
+        }
+    }
+
+    // Stacking contexts formed by positioned descendants
+    // with negative z-indices (excluding 0) in z-index order
+    // (most negative first) then tree order.
+    size_t n = sorted_array_count(box->stacking_ctxt->zidx2child);
+    for (size_t i = 0; i < n; i++) {
+        int zidx;
+        struct list_head *head;
+        zidx = (int)(int64_t)sorted_array_get(box->stacking_ctxt->zidx2child,
+                i, (void **)&head);
+
+        if (zidx >= 0)
+            break;
+
+        foil_stacking_context *p;
+        list_for_each_entry(p, head, list) {
+            render_rdrbox_with_stacking_ctxt(ctxt, p->creator);
+        }
+    }
+
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        // For all its in-flow, non-positioned, block-level descendants
+        // in tree order
+        if (child->is_in_flow && !child->position && child->is_block_level) {
+            if (child->type == FOIL_RDRBOX_TYPE_TABLE) {
+                // TODO: table
+            }
+            else {
+                rdrbox_draw_background(ctxt, child);
+                rdrbox_draw_border(ctxt, child);
+            }
+        }
+
+        // All non-positioned floating descendants, in tree order.
+        if (!child->position && child->floating) {
+        }
+
+        child = child->next;
+    }
+
+    if (box->is_inline_level) {
+    }
+}
+
 void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
 {
     (void)udom;
@@ -142,5 +227,10 @@ void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
 
     foil_render_ctxt render_ctxt = { udom, { page } };
 
+    /* continue for the children */
+    foil_rdrbox *root = udom->initial_cblock->first;
+    assert(root->is_root && root->stacking_ctxt);
+
+    render_rdrbox_with_stacking_ctxt(&render_ctxt, root);
 }
 
