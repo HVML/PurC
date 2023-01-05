@@ -1138,14 +1138,38 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_object_set_by_static_ckey (obj_var, "atime", val);
         purc_variant_unref (val);
 
+        val = purc_variant_make_ulongint(file_stat.st_atime);
+        purc_variant_object_set_by_static_ckey (obj_var, "atime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_atim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "atime_nsec", val);
+        purc_variant_unref (val);
+
         // mtime
         val = purc_variant_make_string (ctime(&file_stat.st_mtime), false);
         purc_variant_object_set_by_static_ckey (obj_var, "mtime", val);
         purc_variant_unref (val);
 
+        val = purc_variant_make_ulongint(file_stat.st_mtime);
+        purc_variant_object_set_by_static_ckey (obj_var, "mtime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_mtim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "mtime_nsec", val);
+        purc_variant_unref (val);
+
         // ctime
         val = purc_variant_make_string (ctime(&file_stat.st_ctime), false);
         purc_variant_object_set_by_static_ckey (obj_var, "ctime", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_ctime);
+        purc_variant_object_set_by_static_ckey (obj_var, "ctime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_ctim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "ctime_nsec", val);
         purc_variant_unref (val);
 
         purc_variant_array_append (ret_var, obj_var);
