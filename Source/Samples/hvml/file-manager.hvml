@@ -28,7 +28,7 @@
           }
 
           .f-bg-left {
-                background-color: #eaeaea;
+                background-color: #d1d1d1;
           }
 
           .f-bg-path {
@@ -51,6 +51,13 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+          }
+
+          .f-main-item {
+          }
+
+          .f-main-item-active {
+              background-color: #a7a7a7;
           }
         </style>
     </head>
@@ -113,11 +120,16 @@
             {
                 "currDir":"/",
                 "dataList" : [],
+                "normalClass" : "f-main-item w-100 f-txt-overflow ps-3 nav-link link-dark",
+                "activeClass" : "f-main-item f-main-item-active rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
             }
         </init>
 
+        <!--
+            <div class="nav-link d-flex align-items-center f-txt-overflow ps-3 w-100 mb-1 bg-success" hvml-events="click" id="li-$2%" value="$2?.name">
+        -->
         <archetype name="mainItem">
-            <div class="nav-link link-dark w-100 f-txt-overflow" hvml-events="click" id="li-$2%" value="$2?.name">
+            <div class="f-main-item nav-link link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
                 <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
                 $2?.name
             </div>
@@ -125,9 +137,9 @@
 
 
         <main class="d-flex flex-nowrap h-100">
-            <div class="d-flex flex-column flex-shrink-0 p-3 f-bg-left" style="width: 280px;">
+            <div class="d-flex flex-column flex-shrink-0 ps-3 pe-3 f-bg-left" style="width: 280px;">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="fs-4 w-100 text-secondary-emphasis">
+                    <div class="fs-2 ps-3 pt-4 pb-2 w-100 text-secondary-emphasis">
                         <i class="bi bi-folder-fill"></i>
                         文件夹
                     </div>
@@ -166,8 +178,8 @@
         </define>
 
         <observe on ".nav-link" for "click">
+            <update on="#$?.targetId" at="attr.class" with="$state.activeClass" />
             <init as 'currName' with "$state.dataList[$DATA.numerify($STR.substr($?.targetId, 3))].name" temp />
-            <update on="#$?.targetId" at="attr.class" with="nav-link active" />
             <test on="$currName">
                 <match for="AS '..'" exclusively>
                     <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
@@ -200,7 +212,7 @@
     <body id="rightBody">
         <archetype name="subItem">
             <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass">
-                <div class="col-sm-6 f-txt-overflow " hvml-events="click" id="li-$2?.inode">
+                <div class="col-sm-6 f-txt-overflow" hvml-events="click" id="li-$2?.inode">
                     <i class="bi $2?.typeClass pe-none me-2 text-primary" width="16" height="16"></i>
                     $2?.name
                 </div>
@@ -214,18 +226,20 @@
         </archetype>
 
         <main class="d-flex flex-column flex-nowrap h-100">
-            <div class="d-flex flex-column flex-shrink-0 ps-4 p-3 f-bg-path border-bottom">
-                <span class="fs-6 pe-none me-2" id="subTitle">/<span>
-            </div>
-            <div class="row ps-4 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-type f-type-txt-color">
-                <div class="col-sm-6 ps-5">
-                    名称
+            <div class="row">
+                <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-path">
+                    <span class="fs-6 pe-none me-2" id="subTitle">/<span>
                 </div>
-                <div class="col-sm-3 border-start">
-                    修改日期
-                </div>
-                <div class="col-sm-3 border-start">
-                    大小
+                <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-type f-type-txt-color">
+                    <div class="col-sm-6" >
+                        名称
+                    </div>
+                    <div class="col-sm-3 border-start text-end">
+                        修改日期
+                    </div>
+                    <div class="col-sm-3 border-start text-end">
+                        大小
+                    </div>
                 </div>
             </div>
 
