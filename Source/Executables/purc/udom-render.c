@@ -137,7 +137,7 @@ static inline int height_to_rows(int height)
 
 static void
 render_rdrbox_part(struct foil_render_ctxt *ctxt,
-        struct foil_rdrbox *box, foil_rdrbox_part_k part)
+        struct foil_rdrbox *box, foil_box_part_k part)
 {
     (void)ctxt;
     (void)box;
@@ -145,17 +145,82 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
 }
 
 static void
-render_line_boxes(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
+render_runbox_part(struct foil_render_ctxt *ctxt,
+        struct _inline_runbox *run, foil_box_part_k part)
 {
     (void)ctxt;
-    (void)box;
+    (void)run;
+    (void)part;
+}
+
+static void
+render_rdrbox_in_line(struct foil_render_ctxt *ctxt, struct _line_info *line,
+        struct foil_rdrbox *box);
+
+static void
+render_runbox(struct foil_render_ctxt *ctxt, struct _line_info *line,
+        struct _inline_runbox *run)
+{
+    struct foil_rdrbox *box = run->box;
+
+    if (run->span) {
+        render_runbox_part(ctxt, run, FOIL_BOX_PART_BACKGROUND);
+        render_runbox_part(ctxt, run, FOIL_BOX_PART_BORDER);
+    }
+    else {
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BACKGROUND);
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BORDER);
+    }
+
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+        if (run->span) {
+            render_runbox_part(ctxt, run, FOIL_BOX_PART_CONTENT);
+        }
+        else if (box->is_in_flow && !box->position && box->is_inline_level) {
+            render_rdrbox_in_line(ctxt, line, box);
+        }
+
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
+    }
+    else if (box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
+        // TODO: table
+    }
+    else if (box->is_inline_level && box->is_replaced) {
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_CONTENT);
+    }
+}
+
+static void
+render_rdrbox_in_line(struct foil_render_ctxt *ctxt, struct _line_info *line,
+        struct foil_rdrbox *box)
+{
+    for (size_t i = 0; i < line->nr_runs; i++) {
+        struct _inline_runbox *run = line->runs + i;
+
+        if (run->box == box) {
+            render_runbox(ctxt, line, run);
+        }
+    }
 }
 
 static void
 render_lines(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    (void)ctxt;
-    (void)box;
+    struct _inline_fmt_ctxt *lfmt_ctxt;
+    lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
+    if (lfmt_ctxt) {
+        for (size_t i = 0; i < lfmt_ctxt->nr_lines; i++) {
+            struct _line_info *line = lfmt_ctxt->lines + i;
+            for (size_t j = 0; j < line->nr_runs; j++) {
+                struct _inline_runbox *run = line->runs + j;
+
+                if (run->box->parent == box) {
+                    render_runbox(ctxt, line, run);
+                }
+            }
+        }
+    }
 }
 
 static void
@@ -163,11 +228,11 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box)
 {
     if (box->is_block_level && box->is_replaced) {
-        render_rdrbox_part(ctxt, box, FOIL_RDRBOX_PART_CONTENT);
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_CONTENT);
     }
     else {
-        render_rdrbox_part(ctxt, box, FOIL_RDRBOX_PART_BACKGROUND);
-        render_rdrbox_part(ctxt, box, FOIL_RDRBOX_PART_BORDER);
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BACKGROUND);
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BORDER);
 
         render_lines(ctxt, box);
     }
@@ -201,10 +266,10 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         else {
             // background color of element unless it is the root element.
             if (!box->is_root)
-                render_rdrbox_part(rdr_ctxt, box, FOIL_RDRBOX_PART_BACKGROUND);
+                render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BACKGROUND);
 
             // border of element.
-            render_rdrbox_part(rdr_ctxt, box, FOIL_RDRBOX_PART_BORDER);
+            render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BORDER);
         }
     }
 
@@ -239,8 +304,8 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
                 // TODO: table
             }
             else {
-                render_rdrbox_part(rdr_ctxt, child, FOIL_RDRBOX_PART_BACKGROUND);
-                render_rdrbox_part(rdr_ctxt, child, FOIL_RDRBOX_PART_BORDER);
+                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BACKGROUND);
+                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BORDER);
             }
         }
 
@@ -256,11 +321,63 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         child = child->next;
     }
 
+    // If the element is an inline element that generates a stacking context
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && box->stacking_ctxt) {
-        render_line_boxes(rdr_ctxt, box);
+        assert(box->parent);
+
+        struct _inline_fmt_ctxt *lfmt_ctxt;
+        lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box->parent);
+        if (lfmt_ctxt) {
+            for (size_t i = 0; i < lfmt_ctxt->nr_lines; i++) {
+                struct _line_info *line = lfmt_ctxt->lines + i;
+                render_rdrbox_in_line(rdr_ctxt, line, box);
+            }
+        }
     }
     else {
+        // Otherwise: first for the element, then for all its in-flow,
+        // non-positioned, block-level descendants in tree order:
         render_normal_boxes_in_tree_order(rdr_ctxt, box);
+    }
+
+    // All positioned descendants with 'z-index: auto' or 'z-index: 0',
+    // in tree order.
+    child = box->first;
+    while (child) {
+
+        if (child->position && child->z_index == 0) {
+            if (child->is_zidx_auto) {
+                render_rdrbox_with_stacking_ctxt(rdr_ctxt, NULL, child);
+            }
+            else {
+                assert(child->stacking_ctxt);
+                render_rdrbox_with_stacking_ctxt(rdr_ctxt,
+                        child->stacking_ctxt, child);
+            }
+        }
+
+        child = child->next;
+    }
+
+    // Stacking contexts formed by positioned descendants with z-indices
+    // greater than or equal to 1 in z-index order (smallest first)
+    // then tree order.
+    if (stk_ctxt) {
+        size_t n = sorted_array_count(stk_ctxt->zidx2child);
+        for (size_t i = 0; i < n; i++) {
+            int zidx;
+            struct list_head *head;
+            zidx = (int)(int64_t)sorted_array_get(stk_ctxt->zidx2child,
+                    i, (void **)&head);
+
+            if (zidx <= 0)
+                continue;
+
+            foil_stacking_context *p;
+            list_for_each_entry(p, head, list) {
+                render_rdrbox_with_stacking_ctxt(rdr_ctxt, p, p->creator);
+            }
+        }
     }
 }
 

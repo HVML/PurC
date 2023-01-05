@@ -1717,6 +1717,9 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
                     LOG_WARN("Failed to create the stacking context.\n");
                 }
             }
+            else {
+                box->is_zidx_auto = 1;
+            }
         }
     }
 

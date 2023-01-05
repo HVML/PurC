@@ -2271,7 +2271,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 assert(child->is_height_resolved == 0);
                 foil_rdrbox_resolve_height(ctxt, child);
 
-                struct _inline_run *run;
+                struct _inline_runbox *run;
                 run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
                 run->box = child;
                 foil_rdrbox_margin_box(child, &run->rc);
@@ -2373,7 +2373,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 assert(child->is_height_resolved == 0);
                 foil_rdrbox_resolve_height(ctxt, child);
 
-                struct _inline_run *run;
+                struct _inline_runbox *run;
                 run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
                 run->box = child;
                 foil_rdrbox_margin_box(child, &run->rc);
@@ -2468,7 +2468,7 @@ void foil_rdrbox_lay_block_inlines(foil_layout_ctxt *ctxt, foil_rdrbox *block)
         for (size_t j = 0; j < line->nr_runs; j++) {
             int off_y;
 
-            struct _inline_run *run = line->runs + j;
+            struct _inline_runbox *run = line->runs + j;
             if (run->box->vertical_align == FOIL_RDRBOX_VALIGN_BOTTOM) {
                 off_y = line->height - foil_rect_height(&run->rc);
             }

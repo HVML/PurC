@@ -57,7 +57,7 @@ struct _inline_box_data {
     struct list_head paras;
 };
 
-struct _inline_run {
+struct _inline_runbox {
     /* the box generating this inline run */
     foil_rdrbox *box;
 
@@ -89,7 +89,7 @@ struct _line_info {
     size_t nr_runs;
 
     /* the array of inline segments fit in this line */
-    struct _inline_run *runs;
+    struct _inline_runbox *runs;
 };
 
 struct _inline_fmt_ctxt {
@@ -161,7 +161,6 @@ void foil_rdrbox_inline_block_box_cleanup(struct _inline_block_data *data);
 static inline struct _inline_fmt_ctxt *
 foil_rdrbox_inline_fmt_ctxt(foil_rdrbox *box)
 {
-    assert(box->is_block_level);
     if (box->type == FOIL_RDRBOX_TYPE_BLOCK)
         return box->block_data->lfmt_ctxt;
     else if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM)
@@ -183,7 +182,7 @@ foil_rdrbox_line_set_size(struct _line_info *line,
     }
 }
 
-struct _inline_run *
+struct _inline_runbox *
 foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt);
 
 struct _line_info *foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt,

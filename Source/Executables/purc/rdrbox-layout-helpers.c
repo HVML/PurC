@@ -238,18 +238,18 @@ failed:
     return NULL;
 }
 
-struct _inline_run *
+struct _inline_runbox *
 foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt)
 {
     struct _line_info *line = fmt_ctxt->lines + (fmt_ctxt->nr_lines - 1);
     line->runs = realloc(line->runs,
-            sizeof(struct _inline_run) * (line->nr_runs + 1));
+            sizeof(struct _inline_runbox) * (line->nr_runs + 1));
 
     if (line->runs == NULL)
         return NULL;
 
-    struct _inline_run *run = line->runs + line->nr_runs;
-    memset(run, 0, sizeof(struct _inline_run));
+    struct _inline_runbox *run = line->runs + line->nr_runs;
+    memset(run, 0, sizeof(struct _inline_runbox));
 
     line->nr_runs++;
     return run;
@@ -304,7 +304,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
                 continue;
             }
 
-            struct _inline_run *run;
+            struct _inline_runbox *run;
             run = foil_rdrbox_line_allocate_new_run(fmt_ctxt);
             if (run == NULL)
                 goto failed;

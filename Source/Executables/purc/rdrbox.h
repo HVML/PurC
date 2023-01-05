@@ -233,10 +233,10 @@ enum {
 };
 
 typedef enum {
-    FOIL_RDRBOX_PART_BACKGROUND = 0,
-    FOIL_RDRBOX_PART_BORDER,
-    FOIL_RDRBOX_PART_CONTENT,
-} foil_rdrbox_part_k;
+    FOIL_BOX_PART_BACKGROUND = 0,
+    FOIL_BOX_PART_BORDER,
+    FOIL_BOX_PART_CONTENT,
+} foil_box_part_k;
 
 struct _inline_box_data;
 struct _block_box_data;
@@ -327,6 +327,8 @@ struct foil_rdrbox {
     uint32_t is_width_resolved:1;
     // Indicates that the heights and margsin of the box is resolved.
     uint32_t is_height_resolved:1;
+    // Indicates that the computed z-index value is `auto`.
+    uint32_t is_zidx_auto:1;
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
