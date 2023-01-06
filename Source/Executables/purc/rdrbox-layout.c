@@ -2482,6 +2482,9 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 
             foil_rect_offset(&run->rc, off_x, off_y);
         }
+
+        foil_rect_offset(&line->rc,
+                block->ctnt_rect.left, block->ctnt_rect.top);
     }
 }
 

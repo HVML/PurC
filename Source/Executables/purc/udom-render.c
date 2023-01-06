@@ -193,7 +193,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
 }
 
 static void
-render_runbox_part(struct foil_render_ctxt *ctxt,
+render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
         struct _inline_runbox *run, foil_box_part_k part)
 {
     switch (part) {
@@ -211,19 +211,22 @@ render_runbox_part(struct foil_render_ctxt *ctxt,
 
     case FOIL_BOX_PART_CONTENT:
         if (!foil_rect_is_empty(&run->rc) && run->nr_ucs > 0) {
-            foil_rect page_rc;
-            map_rdrbox_rect_to_page(&run->rc, &page_rc);
+            foil_rect rc = run->rc, page_rc;
+            foil_rect_offset(&rc, line->rc.left, line->rc.top);
+            map_rdrbox_rect_to_page(&rc, &page_rc);
 
             uint32_t *ucs = run->span->ucs + run->first_uc;
             foil_glyph_pos *poses = run->span->glyph_poses + run->first_uc;
             for (size_t i = 0; i < run->nr_ucs; i++) {
-                if (poses[i].suppressed || poses[i].whitespace) {
+                if (poses[i].suppressed) {
                     continue;
                 }
 
-                foil_page_draw_uchar(ctxt->page,
-                        page_rc.left + width_to_cols(poses[i].x),
-                        page_rc.top, ucs[i], 1);
+                int x = page_rc.left + width_to_cols(poses[i].x);
+                int y = page_rc.top;
+                LOG_DEBUG("Draw char 0x%04x at (%d, %d), line (%d, %d)\n",
+                        ucs[i], x, y, line->rc.left, line->rc.top);
+                foil_page_draw_uchar(ctxt->page, x, y, ucs[i], 1);
             }
         }
         break;
@@ -247,8 +250,8 @@ render_runbox(struct foil_render_ctxt *ctxt, struct _line_info *line,
     struct foil_rdrbox *box = run->box;
 
     if (run->span) {
-        render_runbox_part(ctxt, run, FOIL_BOX_PART_BACKGROUND);
-        render_runbox_part(ctxt, run, FOIL_BOX_PART_BORDER);
+        render_runbox_part(ctxt, line, run, FOIL_BOX_PART_BACKGROUND);
+        render_runbox_part(ctxt, line, run, FOIL_BOX_PART_BORDER);
     }
     else {
         render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BACKGROUND);
@@ -257,7 +260,7 @@ render_runbox(struct foil_render_ctxt *ctxt, struct _line_info *line,
 
     if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
         if (run->span) {
-            render_runbox_part(ctxt, run, FOIL_BOX_PART_CONTENT);
+            render_runbox_part(ctxt, line, run, FOIL_BOX_PART_CONTENT);
         }
         else if (box->is_in_flow && !box->position && box->is_inline_level) {
             render_rdrbox_in_line(ctxt, line, box);
