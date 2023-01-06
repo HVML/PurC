@@ -134,32 +134,31 @@
             {
                 "currDir":"/",
                 "dataList" : [],
-                "normalClass" : "f-main-item w-100 f-txt-overflow ps-3 nav-link link-dark",
-                "activeClass" : "f-main-item f-main-item-active rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
+                "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
+                "activeClass" : "f-main-item f-main-item-active fs-3 rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
             }
         </init>
 
         <archetype name="mainItem">
-            <div class="f-main-item nav-link link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
-                <i class="bi bi-folder pe-none me-2 text-primary" width="16" height="16"></i>
+            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
+                <i class="bi bi-folder pe-none me-2 text-primary" width="30" height="30"></i>
                 $2?.name
             </div>
         </archetype>
 
-
-        <main class="d-flex flex-nowrap h-100">
-            <div class="d-flex flex-column flex-shrink-0 ps-3 pe-3 f-bg-left" style="width: 280px;">
+        <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
+            <div class="row ps-3 pe-3">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
                     <div class="f-main-head fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer" hvml-events="click">
                         <i class="bi bi-chevron-up"></i>
-                        <span class="ps-3" id="mainHeadTitle"></span>
+                        <span class="ps-3 f-txt-overflow" id="mainHeadTitle"></span>
                     </div>
                     <hr/>
                 </a>
-                <div class="list-group flex-column scrollarea" id="mainList">
-                </div>
             </div>
-            <div class="f-divider f-vr"></div>
+
+            <div class="row ps-3 scrollarea" id="mainList">
+            </div>
         </main>
 
 
@@ -285,7 +284,7 @@
 
         <main class="d-flex flex-column flex-nowrap h-100">
             <div class="row">
-                <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-path">
+                <div class="row ps-5 pt-2 pb-3 justify-content-start align-items-center border-bottom f-bg-path">
                     <span class="fs-6 pe-none me-2" id="subTitle">/<span>
                 </div>
                 <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-type f-type-txt-color">
