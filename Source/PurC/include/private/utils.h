@@ -231,24 +231,7 @@ int pcutils_parse_uint64(const char *buf, size_t len, uint64_t *retval);
 int pcutils_parse_double(const char *buf, size_t len, double *retval);
 int pcutils_parse_long_double(const char *buf, size_t len, long double *retval);
 
-struct pcutils_mystring {
-    char *buff;
-    size_t nr_bytes;
-    size_t sz_space;
-};
-
 #define DECL_MYSTRING(name) struct pcutils_mystring name = { NULL, 0, 0 }
-
-static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
-    mystr->buff = NULL;
-    mystr->nr_bytes = 0;
-    mystr->sz_space = 0;
-}
-
-int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
-        const unsigned char *mchar, size_t mchar_len);
-int pcutils_mystring_done(struct pcutils_mystring *mystr);
-void pcutils_mystring_free(struct pcutils_mystring *mystr);
 
 #ifdef __cplusplus
 }

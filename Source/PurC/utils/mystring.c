@@ -32,6 +32,13 @@
 int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
         const unsigned char *mchar, size_t mchar_len)
 {
+    if (mchar_len == 0) {
+        mchar_len = strlen((const char*)mchar);
+    }
+
+    if (mchar_len == 0)
+        return 0;
+
     if (mystr->nr_bytes + mchar_len > mystr->sz_space) {
         size_t new_sz;
         new_sz = pcutils_get_next_fibonacci_number(mystr->nr_bytes + mchar_len);
@@ -45,6 +52,35 @@ int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
 
     memcpy(mystr->buff + mystr->nr_bytes, mchar, mchar_len);
     mystr->nr_bytes += mchar_len;
+    return 0;
+}
+
+int pcutils_mystring_append_uchar(struct pcutils_mystring *mystr,
+        uint32_t uchar, size_t n)
+{
+    unsigned char utf8[8];
+    unsigned utf8_len = pcutils_unichar_to_utf8(uchar, utf8);
+    size_t mchar_len = utf8_len * n;
+
+    if (mchar_len == 0)
+        return 0;
+
+    if (mystr->nr_bytes + mchar_len > mystr->sz_space) {
+        size_t new_sz;
+        new_sz = pcutils_get_next_fibonacci_number(mystr->nr_bytes + mchar_len);
+
+        mystr->buff = realloc(mystr->buff, new_sz);
+        if (mystr->buff == NULL)
+            return -1;
+
+        mystr->sz_space = new_sz;
+    }
+
+    for (size_t i = 0; i < n; i++) {
+        memcpy(mystr->buff + mystr->nr_bytes, utf8, utf8_len);
+        mystr->nr_bytes += utf8_len;
+    }
+
     return 0;
 }
 

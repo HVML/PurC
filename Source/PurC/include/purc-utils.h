@@ -1105,6 +1105,25 @@ char *pcutils_strcasestr(const char *haystack, const char *needle);
 /** the UTF-8 compliant version of strreverse */
 char *pcutils_strreverse(const char *str, ssize_t len, size_t nr_chars);
 
+struct pcutils_mystring {
+    char *buff;
+    size_t nr_bytes;
+    size_t sz_space;
+};
+
+static inline void pcutils_mystring_init(struct pcutils_mystring *mystr) {
+    mystr->buff = NULL;
+    mystr->nr_bytes = 0;
+    mystr->sz_space = 0;
+}
+
+int pcutils_mystring_append_mchar(struct pcutils_mystring *mystr,
+        const unsigned char *mchar, size_t mchar_len);
+int pcutils_mystring_append_uchar(struct pcutils_mystring *mystr,
+        uint32_t uchar, size_t n);
+int pcutils_mystring_done(struct pcutils_mystring *mystr);
+void pcutils_mystring_free(struct pcutils_mystring *mystr);
+
 PCA_EXTERN_C_END
 
 static inline int
