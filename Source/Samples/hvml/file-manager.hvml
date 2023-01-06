@@ -263,7 +263,20 @@
                 }
             </request>
 
-            <iterate on $FS.list($dataCenter.currDir)>
+
+            <!--
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+            <init as dlist with  $FS.list($dataCenter.currDir) temp />
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### fs.list $dataCenter.currDir $DATA.count($dlist) $MATH.sub($timeee, $timebb)")
+            </inherit>
+
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+            <iterate on $dlist>
                 <test with "$DATA.isequal($?.type, 'd')">
                     <include with "$handlDirInfo" on $2? />
                     <differ>
@@ -271,6 +284,12 @@
                     </differ>
                 </test>
             </iterate>
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### handle $dataCenter.currDir list: $MATH.sub($timeee, $timebb)")
+            </inherit>
+            -->
 
             <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
                 {
@@ -278,9 +297,20 @@
                 }
             </request>
 
+            <!--
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+
             <iterate on $dataCenter.dirList>
                 <update on "#mainList" at "content" to "append" with $mainItem />
             </iterate>
+
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### update ui: $MATH.sub($timeee, $timebb)")
+            </inherit>
+            -->
         </define>
 
         <observe on ".nav-link" for "click">
