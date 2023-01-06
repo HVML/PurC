@@ -208,13 +208,17 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
         return 0;
 
     /* skip characters beyond the left bound */
-    while (x < 0) {
+    while (x < 0 && nr_ucs > 0) {
         if (g_unichar_iswide(*ucs))
             x += 2;
         else
             x += 1;
         ucs++;
+        nr_ucs--;
     }
+
+    if (nr_ucs == 0)
+        return 0;
 
     assert(x >= 0);
 
