@@ -136,6 +136,22 @@ static inline int height_to_rows(int height)
     return height / FOIL_PX_GRID_CELL_H;
 }
 
+static inline void
+map_rdrbox_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
+{
+    assert(rdrbox_rc->left % FOIL_PX_GRID_CELL_W == 0);
+    page_rc->left = rdrbox_rc->left / FOIL_PX_GRID_CELL_W;
+
+    assert(rdrbox_rc->right % FOIL_PX_GRID_CELL_W == 0);
+    page_rc->right = rdrbox_rc->right / FOIL_PX_GRID_CELL_W;
+
+    assert(rdrbox_rc->top % FOIL_PX_GRID_CELL_H == 0);
+    page_rc->top = rdrbox_rc->top / FOIL_PX_GRID_CELL_H;
+
+    assert(rdrbox_rc->bottom % FOIL_PX_GRID_CELL_H == 0);
+    page_rc->bottom = rdrbox_rc->bottom / FOIL_PX_GRID_CELL_H;
+}
+
 static void
 render_rdrbox_part(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box, foil_box_part_k part)
@@ -147,14 +163,17 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             break;
         }
         else {
+            foil_rect page_rc;
             const foil_rect *rc;
             if (box->is_root) {
                 rc = NULL;
             }
             else {
-                rc = &box->ctnt_rect;
+                map_rdrbox_rect_to_page(&box->ctnt_rect, &page_rc);
+                rc = &page_rc;
             }
-            foil_page_erase_rect(ctxt->page, rc, box->background_color);
+            foil_page_set_bgc(ctxt->page, box->background_color);
+            foil_page_erase_rect(ctxt->page, rc);
         }
         break;
 

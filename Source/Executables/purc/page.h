@@ -44,7 +44,6 @@ struct foil_tty_cell {
 
     /* Indicate whether the cell is the latter half of a wide character. */
     uint8_t latter_half:1;
-    uint8_t _reversed:7;
 };
 
 /* a span is a group of continuous characters which are all with
@@ -141,13 +140,7 @@ static inline int foil_page_cols(const pcmcth_page *page) {
     return page->cols;
 }
 
-static inline bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc,
-        uint8_t bgc)
-{
-    foil_page_set_bgc(page, bgc);
-    return foil_page_fill_rect(page, rc, FOIL_UCHAR_SPACE);
-}
-
+bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc);
 
 #endif  /* purc_foil_page_h */
 

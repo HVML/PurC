@@ -141,12 +141,6 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     dst_cell += x;
 
     int nr_cells = 0;
-    struct foil_tty_cell cell;
-    cell.uc = uc;
-    cell.attrs = page->attrs;
-    cell.fgc = page->fgc;
-    cell.latter_half = 0;
-
     foil_rect dirty = { x, y, x, y + 1 };
     if (dst_cell->latter_half) {
         assert( x > 0);
@@ -164,13 +158,15 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     size_t my_count = 0;
     if (g_unichar_iswide(uc)) {
         while (x < page->cols - 1 && my_count < count) {
-            cell.latter_half = 0;
-            cell.bgc = dst_cell->bgc;
-            memcpy(dst_cell, &cell, sizeof(cell));
-            cell.latter_half = 1;
-            memcpy(dst_cell, &cell, sizeof(cell));
+            dst_cell->uc = uc;
+            dst_cell->attrs = page->attrs;
+            dst_cell->fgc = page->fgc;
+            dst_cell->latter_half = 0;
+            dst_cell++;
 
-            dst_cell += 2;
+            dst_cell->latter_half = 1;
+            dst_cell++;
+
             x += 2;
             nr_cells += 2;
             my_count++;
@@ -178,8 +174,12 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     }
     else {
         while (x < page->cols && my_count < count) {
-            cell.latter_half = 0;
+            dst_cell->uc = uc;
+            dst_cell->latter_half = 0;
+            dst_cell->attrs = page->attrs;
+            dst_cell->fgc = page->fgc;
             dst_cell++;
+
             x++;
             nr_cells++;
             my_count++;
@@ -204,22 +204,27 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
 int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
         uint32_t *ucs, size_t nr_ucs)
 {
-    if (x < 0 || y < 0 || x >= page->cols || y >= page->rows || nr_ucs == 0)
+    if (y < 0 || x >= page->cols || y >= page->rows || nr_ucs == 0)
         return 0;
+
+    /* skip characters beyond the left bound */
+    while (x < 0) {
+        if (g_unichar_iswide(*ucs))
+            x += 2;
+        else
+            x += 1;
+        ucs++;
+    }
+
+    assert(x >= 0);
 
     struct foil_tty_cell *dst_cell = page->cells[y];
     dst_cell += x;
 
     int nr_cells = 0;
-    struct foil_tty_cell cell;
-    cell.uc = FOIL_UCHAR_SPACE;
-    cell.attrs = page->attrs;
-    cell.fgc = page->fgc;
-    cell.latter_half = 0;
-
     foil_rect dirty = { x, y, x, y + 1 };
     if (dst_cell->latter_half) {
-        assert( x > 0);
+        assert(x > 0);
 
         /* reset this cell and the previous cell to space */
         dst_cell[0].uc = FOIL_UCHAR_SPACE;
@@ -235,30 +240,30 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
     while (x < page->cols && my_count < nr_ucs) {
         uint32_t uc = ucs[my_count];
 
-        cell.uc = uc;
         if (g_unichar_iswide(uc)) {
             if (x == page->cols - 1)
                 break;
 
-            cell.bgc = dst_cell->bgc;
+            dst_cell->uc = uc;
+            dst_cell->attrs = page->attrs;
+            dst_cell->fgc = page->fgc;
+            dst_cell->latter_half = 0;
+            dst_cell++;
 
-            cell.latter_half = 0;
-            memcpy(dst_cell, &cell, sizeof(cell));
-            cell.latter_half = 1;
-            memcpy(dst_cell, &cell, sizeof(cell));
+            dst_cell->latter_half = 1;
+            dst_cell++;
 
-            dst_cell += 2;
             x += 2;
             nr_cells += 2;
             my_count++;
         }
         else {
-            cell.bgc = dst_cell->bgc;
-
-            cell.latter_half = 0;
-            memcpy(dst_cell, &cell, sizeof(cell));
-
+            dst_cell->uc = uc;
+            dst_cell->attrs = page->attrs;
+            dst_cell->fgc = page->fgc;
+            dst_cell->latter_half = 0;
             dst_cell++;
+
             x++;
             nr_cells++;
             my_count++;
@@ -319,7 +324,7 @@ bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc)
         foil_rect my_rc;
         foil_rect_set(&my_rc, 0, 0, page->cols, page->rows);
         if (!foil_rect_intersect(&my_rc, &my_rc, rc))
-            goto failed;
+            goto done;
 
         size_t count = my_rc.right - my_rc.left;
         for (int y = my_rc.top; y < my_rc.bottom; y++) {
@@ -329,7 +334,55 @@ bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc)
 
     return true;
 
-failed:
+done:
+    return false;
+}
+
+bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc)
+{
+    struct foil_tty_cell cell;
+    cell.uc = FOIL_UCHAR_SPACE;
+    cell.attrs = page->attrs;
+    cell.fgc = page->fgc;
+    cell.bgc = page->bgc;
+    cell.latter_half = 0;
+
+    foil_rect my_rc;
+    if (rc == NULL) {
+        foil_rect_set(&my_rc, 0, 0, page->cols, page->rows);
+    }
+    else {
+        foil_rect_set(&my_rc, 0, 0, page->cols, page->rows);
+        if (!foil_rect_intersect(&my_rc, &my_rc, rc))
+            goto done;
+    }
+
+    foil_rect dirty = my_rc;
+    for (int y = my_rc.top; y < my_rc.bottom; y++) {
+        struct foil_tty_cell *line = page->cells[y];
+
+        for (int x = my_rc.left; x < my_rc.right; x++) {
+            memcpy(line + x, &cell, sizeof(cell));
+        }
+
+        if (line[my_rc.left].latter_half) {
+            assert(my_rc.left > 0);
+            line[my_rc.left - 1].uc = FOIL_UCHAR_SPACE;
+            line[my_rc.left - 1].latter_half = 0;
+            dirty.left = my_rc.left - 1;
+        }
+
+        if (my_rc.right < page->cols && line[my_rc.right].latter_half) {
+            line[my_rc.right].uc = FOIL_UCHAR_SPACE;
+            line[my_rc.left].latter_half = 0;
+            dirty.right = my_rc.right + 1;
+        }
+    }
+
+    foil_rect_get_bound(&page->dirty_rect, &page->dirty_rect, &dirty);
+    return true;
+
+done:
     return false;
 }
 
