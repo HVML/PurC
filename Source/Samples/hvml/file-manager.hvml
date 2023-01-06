@@ -149,9 +149,9 @@
         <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
             <div class="row ps-3 pe-3">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="f-main-head fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
+                    <div class="f-main-head d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
                         <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
-                        <span class="ps-3 f-txt-overflow" id="mainHeadTitle"></span>
+                        <div class="ps-3 f-txt-overflow text-center" id="mainHeadTitle"></div>
                     </div>
                     <hr/>
                 </a>
