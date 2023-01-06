@@ -1232,6 +1232,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     foil_udom_render_to_page(udom, page);
+    foil_page_expose(page);
     return udom;
 
 failed:

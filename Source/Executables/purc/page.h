@@ -134,12 +134,12 @@ bool foil_page_expose(pcmcth_page *page);
 }
 #endif
 
-static inline int foil_page_rows(const pcmcth_page *page) {
-    return page->rows;
-}
-
 static inline int foil_page_cols(const pcmcth_page *page) {
     return page->cols;
+}
+
+static inline int foil_page_cell(const pcmcth_page *page) {
+    return page->rows;
 }
 
 #endif  /* purc_foil_page_h */

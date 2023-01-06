@@ -78,8 +78,10 @@ struct foil_widget {
     /* the client rectangle in this widget */
     foil_rect           client_rc;
 
-    /* the origin of page viewport */
+    /* the coordinate of the page origin in viewport */
     int                 vx, vy;
+    /* the columns and rows of the viewport */
+    int                 vw, vh;
 
     char               *name;
     char               *title;

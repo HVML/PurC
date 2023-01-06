@@ -23,9 +23,12 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#undef NDEBUG
+
 #include "widget.h"
 #include "workspace.h"
 
+#include "purc/purc-utils.h"
 #include <assert.h>
 
 foil_widget *foil_widget_new(foil_widget_type_k type,
@@ -62,8 +65,10 @@ foil_widget *foil_widget_new(foil_widget_type_k type,
             widget->client_rc.bottom = foil_rect_height(rect) - 1;
         }
 
-        widget->vx = 0;
+        widget->vx = widget->client_rc.left;
         widget->vy = 0;
+        widget->vw = foil_rect_width(&widget->client_rc);
+        widget->vh = 0;
     }
 
     return widget;
@@ -210,11 +215,145 @@ foil_widget *foil_widget_get_root(foil_widget *widget)
     return parent;
 }
 
+static void adjust_viewport_line_mode(foil_widget *widget)
+{
+    int widget_rows = foil_rect_height(&widget->client_rc);
+    int rows = widget->vh;
+    while (rows < widget->page.rows && rows < widget_rows) {
+        fputs("\n", stdout);
+        rows++;
+    }
+
+    widget->vh = rows;
+    widget->vy = foil_rect_height(&widget->client_rc) - widget->page.rows;
+}
+
+static const char *escaped_bgc[] = {
+    "\x1b[40m",  // FOIL_STD_COLOR_BLACK
+    "\x1b[41m",  // FOIL_STD_COLOR_DARK_RED
+    "\x1b[42m",  // FOIL_STD_COLOR_DARK_GREEN
+    "\x1b[43m",  // FOIL_STD_COLOR_DARK_YELLOW
+    "\x1b[44m",  // FOIL_STD_COLOR_DARK_BLUE
+    "\x1b[45m",  // FOIL_STD_COLOR_DARK_MAGENTA
+    "\x1b[46m",  // FOIL_STD_COLOR_DARK_CYAN
+    "\x1b[47m",  // FOIL_STD_COLOR_GRAY
+    "\x1b[100m", // FOIL_STD_COLOR_DARK_GRAY
+    "\x1b[101m", // FOIL_STD_COLOR_RED
+    "\x1b[102m", // FOIL_STD_COLOR_GREEN
+    "\x1b[103m", // FOIL_STD_COLOR_YELLOW
+    "\x1b[104m", // FOIL_STD_COLOR_BLUE
+    "\x1b[105m", // FOIL_STD_COLOR_MAGENTA
+    "\x1b[106m", // FOIL_STD_COLOR_CYAN
+    "\x1b[107m", // FOIL_STD_COLOR_WHITE
+};
+
+static const char *escaped_fgc[] = {
+    "\x1b[30m",  // FOIL_STD_COLOR_BLACK
+    "\x1b[31m",  // FOIL_STD_COLOR_DARK_RED
+    "\x1b[32m",  // FOIL_STD_COLOR_DARK_GREEN
+    "\x1b[33m",  // FOIL_STD_COLOR_DARK_YELLOW
+    "\x1b[34m",  // FOIL_STD_COLOR_DARK_BLUE
+    "\x1b[35m",  // FOIL_STD_COLOR_DARK_MAGENTA
+    "\x1b[36m",  // FOIL_STD_COLOR_DARK_CYAN
+    "\x1b[37m",  // FOIL_STD_COLOR_GRAY
+    "\x1b[90m",  // FOIL_STD_COLOR_DARK_GRAY
+    "\x1b[91m",  // FOIL_STD_COLOR_RED
+    "\x1b[92m",  // FOIL_STD_COLOR_GREEN
+    "\x1b[93m",  // FOIL_STD_COLOR_YELLOW
+    "\x1b[94m",  // FOIL_STD_COLOR_BLUE
+    "\x1b[95m",  // FOIL_STD_COLOR_MAGENTA
+    "\x1b[96m",  // FOIL_STD_COLOR_CYAN
+    "\x1b[97m",  // FOIL_STD_COLOR_WHITE
+};
+
+static char *
+make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
+{
+    struct pcutils_mystring mystr = { NULL, 0, 0 };
+
+    uint8_t old_bgc = 255;
+    uint8_t old_fgc = 255;
+
+    unsigned count = 0;
+    for (int i = 0; i < n; i++) {
+        if (cell->latter_half) {
+            cell++;
+            continue;
+        }
+
+        if (i == 0) {
+            pcutils_mystring_append_mchar(&mystr,
+                    (const unsigned char *)escaped_bgc[cell->bgc], 0);
+            pcutils_mystring_append_mchar(&mystr,
+                    (const unsigned char *)escaped_fgc[cell->fgc], 0);
+
+            old_bgc = cell->bgc;
+            old_fgc = cell->fgc;
+        }
+        else {
+            if (old_bgc != cell->bgc) {
+                pcutils_mystring_append_mchar(&mystr,
+                        (const unsigned char*)escaped_bgc[cell->bgc], 0);
+                old_bgc = cell->bgc;
+            }
+
+            if (old_fgc != cell->fgc) {
+                pcutils_mystring_append_mchar(&mystr,
+                        (const unsigned char*)escaped_fgc[cell->fgc], 0);
+                old_fgc = cell->fgc;
+            }
+        }
+
+        pcutils_mystring_append_uchar(&mystr, cell->uc, 1);
+        cell++;
+        count++;
+    }
+
+    pcutils_mystring_done(&mystr);
+    return mystr.buff;
+}
+
+static void print_dirty_page_area_line_mode(foil_widget *widget)
+{
+    pcmcth_page *page = &widget->page;
+
+    if (foil_rect_is_empty(&page->dirty_rect)) {
+        return;
+    }
+
+    int w = foil_rect_width(&page->dirty_rect);
+    LOG_DEBUG("dirty rect: %d, %d, %d, %d\n",
+            page->dirty_rect.left, page->dirty_rect.top,
+            page->dirty_rect.right, page->dirty_rect.bottom);
+
+    for (int y = page->dirty_rect.top; y < page->dirty_rect.bottom; y++) {
+        int x = page->dirty_rect.left;
+
+        struct foil_tty_cell *cell = page->cells[y] + x;
+        char *escaped_str = make_escape_string_line_mode(cell, w);
+
+        int screen_col = x + widget->vx;
+        int screen_row = y + widget->vy;
+        assert(screen_col >= 0 &&
+                screen_col < foil_rect_width(&widget->client_rc));
+        assert(screen_row >= 0 &&
+                screen_row < foil_rect_height(&widget->client_rc));
+
+        char buf[64];
+        snprintf(buf, sizeof(buf), "\x1b[%d;%dH", screen_row, screen_col);
+        fputs(buf, stdout);
+        fputs(escaped_str, stdout);
+        free(escaped_str);
+    }
+}
+
 void foil_widget_expose(foil_widget *widget)
 {
     foil_widget *root = foil_widget_get_root(widget);
     pcmcth_workspace *workspace = (pcmcth_workspace *)root->user_data;
     if (workspace->rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
+        adjust_viewport_line_mode(widget);
+        print_dirty_page_area_line_mode(widget);
     }
     else {
         // TODO
