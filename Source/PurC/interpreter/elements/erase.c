@@ -191,7 +191,7 @@ element_erase(pcintr_stack_t stack, purc_variant_t on, purc_variant_t at,
                 break;
             }
 
-            if (pcintr_util_remove_attribute(doc, target, s_at, true) == 0) {
+            if (pcintr_util_remove_attribute(doc, target, s_at, true, false) == 0) {
                 nr_remove++;
             }
         }

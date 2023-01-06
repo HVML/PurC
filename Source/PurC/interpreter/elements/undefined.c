@@ -113,7 +113,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
     pcintr_stack_t stack = pcintr_get_stack();
     pcintr_util_set_attribute(frame->owner->doc,
             frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0,
-            !stack->inherit);
+            !stack->inherit, false);
 
     if (name) {
         if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, HREF)) == name) {
@@ -309,14 +309,14 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         const char *text = purc_variant_get_string_const_ex(v, &sz);
         pcintr_util_new_text_content(frame->owner->doc,
                 frame->edom_element, PCDOC_OP_APPEND, text, sz,
-                !stack->inherit);
+                !stack->inherit, false);
         purc_variant_unref(v);
     }
     else {
         char *sv = pcvariant_to_string(v);
         pcintr_util_new_content(frame->owner->doc,
                 frame->edom_element, PCDOC_OP_APPEND, sv, 0,
-                PURC_VARIANT_INVALID, !stack->inherit);
+                PURC_VARIANT_INVALID, !stack->inherit, false);
         free(sv);
         purc_variant_unref(v);
     }

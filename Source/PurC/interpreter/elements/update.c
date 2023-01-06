@@ -29,6 +29,8 @@
 
 #include "private/debug.h"
 #include "private/dvobjs.h"
+#include "private/instance.h"
+#include "pcrdr/connect.h"
 #include "purc-runloop.h"
 #include "private/stringbuilder.h"
 #include "private/atom-buckets.h"
@@ -1267,6 +1269,14 @@ static pcdoc_operation_k convert_operation(enum hvml_update_op operator)
     return op;
 }
 
+static bool
+is_no_return()
+{
+    struct pcinst* inst = pcinst_current();
+    struct pcrdr_conn *conn = inst->conn_to_rdr;
+    return conn && (conn->prot != PURC_RDRCOMM_THREAD);
+}
+
 static int
 update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
         const char *to, purc_variant_t src,
@@ -1295,7 +1305,7 @@ update_target_child(pcintr_stack_t stack, pcdoc_element_t target,
     pcdoc_operation_k op = convert_operation(operator);
     if (op != PCDOC_OP_UNKNOWN) {
         pcintr_util_new_content(stack->doc, target, op, s, 0,
-                template_data_type, true);
+                template_data_type, true, is_no_return());
         if (t)
             free(t);
 
@@ -1327,14 +1337,16 @@ update_target_content(pcintr_stack_t stack, pcdoc_element_t target,
         size_t len;
         const char *s = purc_variant_get_string_const_ex(src, &len);
 
-        pcintr_util_new_text_content(stack->doc, target, op, s, len, true);
+        pcintr_util_new_text_content(stack->doc, target, op, s, len, true,
+                is_no_return());
         return 0;
     }
     else {
         char *buf = NULL;
         int total = purc_variant_stringify_alloc(&buf, src);
         if (buf) {
-            pcintr_util_new_text_content(stack->doc, target, op, buf, total, true);
+            pcintr_util_new_text_content(stack->doc, target, op, buf, total, true,
+                    is_no_return());
             free(buf);
             return 0;
         }
@@ -1379,7 +1391,7 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
         }
 
         r = pcintr_util_set_attribute(stack->doc, target,
-                PCDOC_OP_DISPLACE, at, s, sz, true);
+                PCDOC_OP_DISPLACE, at, s, sz, true, is_no_return());
         purc_variant_unref(v);
     }
     else {
@@ -1389,7 +1401,7 @@ displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
             return -1;
         }
         r = pcintr_util_set_attribute(stack->doc, target,
-                PCDOC_OP_DISPLACE, at, s, strlen(s), true);
+                PCDOC_OP_DISPLACE, at, s, strlen(s), true, is_no_return());
         purc_variant_unref(v);
         free(s);
     }
@@ -1412,7 +1424,7 @@ update_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
     char *sv = pcvariant_to_string(src);
 
     pcintr_util_set_attribute(stack->doc, target,
-            PCDOC_OP_DISPLACE, at, sv, 0, true);
+            PCDOC_OP_DISPLACE, at, sv, 0, true, is_no_return());
     free(sv);
 
     return 0;
