@@ -127,6 +127,8 @@ int foil_page_draw_ustring(pcmcth_page *page, int x, int y,
         uint32_t *ucs, size_t nr_ucs);
 
 bool foil_page_fill_rect(pcmcth_page *page, const foil_rect *rc, uint32_t uc);
+bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc);
+bool foil_page_expose(pcmcth_page *page);
 
 #ifdef __cplusplus
 }
@@ -139,8 +141,6 @@ static inline int foil_page_rows(const pcmcth_page *page) {
 static inline int foil_page_cols(const pcmcth_page *page) {
     return page->cols;
 }
-
-bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc);
 
 #endif  /* purc_foil_page_h */
 

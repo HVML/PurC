@@ -132,9 +132,6 @@ struct foil_widget_info {
     })
 #endif
 
-#define foil_page_to_widget(page_ptr)   \
-    container_of(page_ptr, foil_widget, page)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -151,6 +148,10 @@ void foil_widget_remove_from_tree(foil_widget *widget);
 
 void foil_widget_delete(foil_widget *widget);
 void foil_widget_delete_deep(foil_widget *widget);
+
+foil_widget *foil_widget_get_root(foil_widget *widget);
+
+void foil_widget_expose(foil_widget *widget);
 
 #ifdef __cplusplus
 }

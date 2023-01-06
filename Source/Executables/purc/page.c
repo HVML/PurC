@@ -25,7 +25,7 @@
 
 #include "page.h"
 #include "udom.h"
-#include "workspace.h"
+#include "widget.h"
 
 #include "unicode/unicode.h"
 
@@ -384,5 +384,17 @@ bool foil_page_erase_rect(pcmcth_page *page, const foil_rect *rc)
 
 done:
     return false;
+}
+
+bool foil_page_expose(pcmcth_page *page)
+{
+    foil_widget *widget = foil_widget_from_page(page);
+    if (foil_rect_is_empty(&page->dirty_rect)) {
+        return false;
+    }
+
+    foil_widget_expose(widget);
+    foil_rect_empty(&page->dirty_rect);
+    return true;
 }
 

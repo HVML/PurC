@@ -24,6 +24,7 @@
 */
 
 #include "widget.h"
+#include "workspace.h"
 
 #include <assert.h>
 
@@ -196,6 +197,27 @@ void foil_widget_delete_deep(foil_widget *root)
             foil_widget_delete(widget);
             widget = tmp;
         }
+    }
+}
+
+foil_widget *foil_widget_get_root(foil_widget *widget)
+{
+    foil_widget *parent = widget->parent;
+    while (parent->parent) {
+        parent = parent->parent;
+    }
+
+    return parent;
+}
+
+void foil_widget_expose(foil_widget *widget)
+{
+    foil_widget *root = foil_widget_get_root(widget);
+    pcmcth_workspace *workspace = (pcmcth_workspace *)root->user_data;
+    if (workspace->rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
+    }
+    else {
+        // TODO
     }
 }
 

@@ -30,7 +30,7 @@
 #include "widget.h"
 
 struct pcmcth_workspace {
-    int cols, rows;
+    const pcmcth_renderer *rdr;
 
     /* the root window in the workspace */
     struct foil_widget *root;

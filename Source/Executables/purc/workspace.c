@@ -44,11 +44,10 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
 {
     pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
-        workspace->cols = rdr->impl->cols;
-        workspace->rows = rdr->impl->rows;
+        workspace->rdr = rdr;
         workspace->layouter = NULL;
         foil_rect rc;
-        foil_rect_set(&rc, 0, 0, workspace->cols, workspace->rows);
+        foil_rect_set(&rc, 0, 0, rdr->impl->cols, rdr->impl->rows);
         workspace->root = foil_widget_new(
                 WSP_WIDGET_TYPE_ROOT, WSP_WIDGET_BORDER_NONE,
                 "root", NULL, &rc);
@@ -58,6 +57,8 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
             goto done;
         }
 
+        /* we use user_data of root to store the pointer to the workspace */
+        workspace->root->user_data = workspace;
         kvlist_set(&rdr->workspace_list, app_key, &workspace);
     }
 
@@ -167,7 +168,8 @@ create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
 
     struct foil_widget *plainwin;
     foil_rect rc;
-    foil_rect_set(&rc, 0, 0, workspace->cols, workspace->rows);
+    foil_rect_set(&rc, 0, 0,
+            workspace->rdr->impl->cols, workspace->rdr->impl->rows);
     plainwin = foil_widget_new(
             WSP_WIDGET_TYPE_PLAINWINDOW, WSP_WIDGET_BORDER_NONE,
             style->name, style->title, &rc);
