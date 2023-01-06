@@ -196,13 +196,48 @@ static void
 render_runbox_part(struct foil_render_ctxt *ctxt,
         struct _inline_runbox *run, foil_box_part_k part)
 {
-    (void)ctxt;
-    (void)run;
-    (void)part;
+    switch (part) {
+    case FOIL_BOX_PART_BACKGROUND:
+        if (!foil_rect_is_empty(&run->rc)) {
+            foil_rect page_rc;
+            map_rdrbox_rect_to_page(&run->rc, &page_rc);
+            foil_page_erase_rect(ctxt->page, &page_rc);
+        }
+        break;
+
+    case FOIL_BOX_PART_BORDER:
+        // TODO: draw border
+        break;
+
+    case FOIL_BOX_PART_CONTENT:
+        if (!foil_rect_is_empty(&run->rc) && run->nr_ucs > 0) {
+            foil_rect page_rc;
+            map_rdrbox_rect_to_page(&run->rc, &page_rc);
+
+            uint32_t *ucs = run->span->ucs + run->first_uc;
+            foil_glyph_pos *poses = run->span->glyph_poses + run->first_uc;
+            for (size_t i = 0; i < run->nr_ucs; i++) {
+                if (poses[i].suppressed || poses[i].whitespace) {
+                    continue;
+                }
+
+                foil_page_draw_uchar(ctxt->page,
+                        page_rc.left + width_to_cols(poses[i].x),
+                        page_rc.top, ucs[i], 1);
+            }
+        }
+        break;
+    }
+
+    // default handler.
 }
 
 static void
 render_rdrbox_in_line(struct foil_render_ctxt *ctxt, struct _line_info *line,
+        struct foil_rdrbox *box);
+static void
+render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
+        struct foil_stacking_context *stk_ctxt,
         struct foil_rdrbox *box);
 
 static void
@@ -230,6 +265,7 @@ render_runbox(struct foil_render_ctxt *ctxt, struct _line_info *line,
 
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
+        render_rdrbox_with_stacking_ctxt(ctxt, NULL, box);
     }
     else if (box->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
         // TODO: table
