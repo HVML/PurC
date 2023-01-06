@@ -53,12 +53,15 @@
                 white-space: nowrap;
           }
 
-          .f-main-head {
+          .f-cursor-pointer {
               cursor:pointer;
           }
 
+          .f-cursor-default {
+              cursor:default;
+          }
+
           .f-main-item {
-              cursor:pointer;
           }
 
           .f-main-item-active {
@@ -66,7 +69,6 @@
           }
 
           .f-sub-item {
-              cursor:pointer;
           }
 
           .f-sub-item-active {
@@ -130,28 +132,33 @@
 
     <body id="leftBody">
 
-        <init as 'state'>
+        <init as 'dataCenter'>
             {
                 "currDir":"/",
                 "dataList" : [],
+                "dirList" : [],
+                "fileList" : [],
+                "fileIdx" : 0,
                 "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
                 "activeClass" : "f-main-item f-main-item-active fs-3 rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
             }
         </init>
 
         <archetype name="mainItem">
-            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$2%" value="$2?.name">
-                <i class="bi bi-folder pe-none me-2 $2?.iconColor" width="30" height="30"></i>
-                $2?.name
+            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3 $?.cursorClass"  hvml-events="click" id="li-$%" value="$?.name">
+                <i class="bi bi-folder pe-none me-2 $?.iconColor"></i>
+                $?.name
             </div>
         </archetype>
 
         <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
             <div class="row ps-3 pe-3">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="f-main-head d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
-                        <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
-                        <div class="ps-3 f-txt-overflow text-center" id="mainHeadTitle"></div>
+                    <div class="d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
+                        <div class="f-cursor-pointer">
+                            <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
+                        </div>
+                        <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle"></div>
                     </div>
                     <hr/>
                 </a>
@@ -161,63 +168,135 @@
             </div>
         </main>
 
+        <define as "handlDirInfo">
+            <test with "$STR.ends_with($dataCenter.currDir, '/')">
+                <update on="$2?" at=".full_path" with="$STR.join($dataCenter.currDir, $2?.name)"/>
+                <differ>
+                    <update on="$3?" at=".full_path" with="$STR.join($dataCenter.currDir, '/', $3?.name)"/>
+                </differ>
+            </test>
+            <test with "$L.and($FS.file_is($?.full_path, 'read'), $FS.file_is($?.full_path, 'exe'))">
+                <update on="$2?" at=".access" with=true />
+                <update on="$2?" at=".iconColor" with="text-primary" />
+                <update on="$2?" at=".cursorClass" with="f-cursor-pointer" />
+                <differ>
+                    <update on="$3?" at=".access" with=false />
+                    <update on="$3?" at=".iconColor" with="text-secondary" />
+                    <update on="$3?" at=".cursorClass" with="f-cursor-default" />
+                </differ>
+            </test>
+            <update on "$dataCenter.dirList" to "append" with $? />
+        </define>
+
+        <define as "handlFileInfo">
+            <test on="$STR.substr($?.name, -4)">
+                <match for="AS '.pdf'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-pdf" />
+                </match>
+                <match for="AS '.jpg'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.jpeg'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.png'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.gif'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.mp3'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-music" />
+                </match>
+                <match for="AS '.txt'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-text" />
+                </match>
+                <match for="ANY">
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark" />
+                </match>
+            </test>
+            <test with $L.eq($MATH.fmod($dataCenter.fileIdx, 2), 0)>
+                <inherit>
+                    <update on "$3?" at ".bgClass" with ' ' />
+                </inherit>
+                <differ>
+                    <update on "$3?" at ".bgClass" with "f-bg-item-dark" />
+                </differ>
+            </test>
+            <test on $?.size>
+                <match for="GE 1073741824" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1073741824L), 100)), 100) GB" />
+                </match>
+                <match for="GE 1048576" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1048576L), 100)), 100) MB" />
+                </match>
+                <match for="GE 1024" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1024L), 100)), 100) KB" />
+                </match>
+                <match for="ANY" exclusively>
+                    <update on "$3?" at ".sz" with "$3?.size 字节" />
+                </match>
+            </test>
+            <update on "$?" at ".idx" with "$dataCenter.fileIdx" />
+            <update on "$dataCenter" at ".fileIdx" with $DATA.arith('+', $dataCenter.fileIdx, 1)  />
+            <update on "$dataCenter.fileList" to "append" with $? />
+        </define>
 
         <define as="refreshList">
-            <clear on="$state.dataList" />
+            <clear on="$dataCenter.dirList" />
+            <clear on="$dataCenter.fileList" />
+            <update on "$dataCenter" at ".fileIdx" with 0L />
 
             <update on "#mainList" at "content" with ' ' />
-            <test with "$DATA.isequal($state.currDir, '/')">
+            <test with "$DATA.isequal($dataCenter.currDir, '/')">
                 <update on "#mainHeadTitle" at "content" with "/" />
                 <update on "#backButton" at "attr.class" with "bi bi-chevron-up text-secondary" />
                 <differ>
-                    <update on "#mainHeadTitle" at "content" with $FS.basename($state.currDir) />
+                    <update on "#mainHeadTitle" at "content" with $FS.basename($dataCenter.currDir) />
                     <update on "#backButton" at "attr.class" with "bi bi-chevron-up" />
                 </differ>
             </test>
 
-            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
+            <request on="hvml+run://-/-/-/CRTN/_last" to="updateInfo" async>
                 {
-                    "path" : $state.currDir
+                    "path" : $dataCenter.currDir
                 }
             </request>
 
-            <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
-
-            <iterate on $state.dataList>
+            <iterate on $FS.list($dataCenter.currDir)>
                 <test with "$DATA.isequal($?.type, 'd')">
-                    <test with "$STR.ends_with($state.currDir, '/')">
-                        <update on="$3?" at=".full_path" with="$STR.join($state.currDir, $3?.name)"/>
-                        <differ>
-                            <update on="$4?" at=".full_path" with="$STR.join($state.currDir, '/', $4?.name)"/>
-                        </differ>
-                    </test>
-                    <test with "$L.and($FS.file_is($2?.full_path, 'read'), $FS.file_is($2?.full_path, 'exe'))">
-                        <update on="$3?" at=".access" with=true />
-                        <update on="$3?" at=".iconColor" with="text-primary" />
-                        <differ>
-                            <update on="$4?" at=".access" with=false />
-                            <update on="$4?" at=".iconColor" with="text-secondary" />
-                        </differ>
-                    </test>
-                    <update on "#mainList" at "content" to "append" with $mainItem />
+                    <include with "$handlDirInfo" on $2? />
+                    <differ>
+                        <include with "$handlFileInfo" on $3? />
+                    </differ>
                 </test>
+            </iterate>
+
+            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
+                {
+                    "fileList" : $dataCenter.fileList
+                }
+            </request>
+
+            <iterate on $dataCenter.dirList>
+                <update on "#mainList" at "content" to "append" with $mainItem />
             </iterate>
         </define>
 
         <observe on ".nav-link" for "click">
-            <init as 'currData' with "$state.dataList[$DATA.numerify($STR.substr($?.targetId, 3))]" temp />
+            <init as 'currData' with "$dataCenter.dirList[$DATA.numerify($STR.substr($?.targetId, 3))]" temp />
             <test with $currData.access>
-                <update on="#$2?.targetId" at="attr.class" with="$state.activeClass" />
+                <update on="#$2?.targetId" at="attr.class" with="$dataCenter.activeClass" />
                 <sleep for='50ms' />
-                <update on="$state" at=".currDir" with="$currData.full_path"/>
+                <update on="$dataCenter" at=".currDir" with="$currData.full_path"/>
                 <include with "$refreshList" />
             </test>
         </observe>
 
         <observe on "#backButton" for "click">
-            <test with "$DATA.isequal($state.currDir, '/')">
+            <test with "$DATA.isequal($dataCenter.currDir, '/')">
                 <differ>
-                    <update on="$state" at=".currDir" with="$FS.dirname($state.currDir)"/>
+                    <update on="$dataCenter" at=".currDir" with="$FS.dirname($dataCenter.currDir)"/>
                     <include with "$refreshList" />
                 </differ>
             </test>
@@ -240,22 +319,22 @@
         <init as="subState">
         {
             "activeId" : "",
-            "normalClass" : "f-sub-item row ps-5 pt-2 pb-2 justify-content-start align-items-center",
-            "activeClass" : "f-sub-item f-sub-item-active row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+            "normalClass" : "f-sub-item f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+            "activeClass" : "f-sub-item f-sub-item-active f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center",
         }
         </init>
 
         <archetype name="subItem">
-            <div class="f-sub-item row ps-5 pt-2 pb-2 justify-content-start align-items-center $2?.bgClass"  hvml-events="click" id="l0-$2?.idx">
-                <div class="col-sm-6 f-txt-overflow" id="l1-$2?.idx">
-                    <i class="bi $2?.typeClass pe-none me-2 text-primary" width="16" height="16"></i>
-                    $2?.name
+            <div class="f-sub-item f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center $?.bgClass"  hvml-events="click" id="l0-$?.idx">
+                <div class="col-sm-6 f-txt-overflow" id="l1-$?.idx">
+                    <i class="bi $?.typeClass pe-none me-2 text-primary"></i>
+                    $?.name
                 </div>
-                <div class="col-sm-3 text-end" id="l2-$2?.idx">
-                    $DATETIME.fmttime("%Y年%m月%d日 %H:%M", $2?.mtime_sec)
+                <div class="col-sm-3 text-end" id="l2-$?.idx">
+                    $DATETIME.fmttime("%Y年%m月%d日 %H:%M", $?.mtime_sec)
                 </div>
-                <div class="col-sm-3 text-end" id="l3-$2?.idx">
-                    $2?.sz
+                <div class="col-sm-3 text-end" id="l3-$?.idx">
+                    $?.sz
                 </div>
             </div>
         </archetype>
@@ -282,78 +361,20 @@
             </div>
         </main>
 
-        <define as="refreshList">
-            <init as 'currDir' with $?.path />
-            <init as 'dataList' with  "$FS.list($?.path)" temp />
-            <init as 'subCenter' temp>
-                {
-                    "idx" : 0L
-                }
-            </init>
-
-            <update on '#subTitle' at="textContent" with "$currDir" />
-            <update on "#subList" with ' ' />
-            <update on="$subState" at=".activeId" with='' />
-
-            <iterate on $dataList>
-                <test with "$L.not($DATA.isequal($?.type, 'd'))">
-                    <test on="$STR.substr($2?.name, -4)">
-                        <match for="AS '.pdf'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-pdf" />
-                        </match>
-                        <match for="AS '.jpg'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
-                        </match>
-                        <match for="AS '.jpeg'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
-                        </match>
-                        <match for="AS '.png'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
-                        </match>
-                        <match for="AS '.gif'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-image" />
-                        </match>
-                        <match for="AS '.mp3'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-music" />
-                        </match>
-                        <match for="AS '.txt'" exclusively>
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark-text" />
-                        </match>
-                        <match for="ANY">
-                            <update on "$4?" at ".typeClass" with "bi-file-earmark" />
-                        </match>
-                    </test>
-                    <test with $L.eq($MATH.fmod($subCenter.idx, 2), 0)>
-                        <inherit>
-                            <update on "$4?" at ".bgClass" with ' ' />
-                        </inherit>
-                        <differ>
-                            <update on "$4?" at ".bgClass" with "f-bg-item-dark" />
-                        </differ>
-                    </test>
-                    <test on $2?.size>
-                        <match for="GE 1073741824" exclusively>
-                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1073741824L), 100)), 100) GB" />
-                        </match>
-                        <match for="GE 1048576" exclusively>
-                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1048576L), 100)), 100) MB" />
-                        </match>
-                        <match for="GE 1024" exclusively>
-                            <update on "$4?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($4?.size, 1024L), 100)), 100) KB" />
-                        </match>
-                        <match for="ANY" exclusively>
-                            <update on "$4?" at ".sz" with "$4?.size 字节" />
-                        </match>
-                    </test>
-                    <update on "$2?" at ".idx" with "$subCenter.idx" />
-                    <update on "$subCenter" at ".idx" with $DATA.arith('+', $subCenter.idx, 1)  />
-                    <update on "#subList" to "append" with $subItem />
-                </test>
+        <define as="refreshFileList">
+            <iterate on $?.fileList>
+                <update on "#subList" to "append" with $subItem />
             </iterate>
         </define>
 
+        <observe on="$CRTN" for="request:updateInfo">
+            <update on '#subTitle' at="textContent" with "$?.path" />
+            <update on "#subList" with ' ' />
+            <update on="$subState" at=".activeId" with='' />
+        </observe>
+
         <observe on="$CRTN" for="request:showDetail">
-            <include with "$refreshList" on $? />
+            <include with "$refreshFileList" on $? />
         </observe>
 
         <observe on ".f-sub-item" for "click">
