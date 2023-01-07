@@ -188,7 +188,7 @@ dtrm_margin_top_bottom(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->mt = 0;
             break;
         case CSS_MARGIN_SET:
-            box->mr = calc_used_value_height(ctxt, box, unit, length);
+            box->mt = calc_used_value_height(ctxt, box, unit, length);
             break;
         default:
             assert(0);  // must be a bug
@@ -2296,6 +2296,10 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            assert(child->is_height_resolved == 0);
+            foil_rdrbox_resolve_height(ctxt, child);
+            /* bottom of the content rectangle will be set in above function */
+
             int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
 
@@ -2305,10 +2309,6 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             else
                 child->ctnt_rect.top = real_mt;
             child->ctnt_rect.top += child->bt + child->pt;
-
-            assert(child->is_height_resolved == 0);
-            foil_rdrbox_resolve_height(ctxt, child);
-            /* bottom of the content rectangle will be set in above function */
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;
@@ -2399,6 +2399,10 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            assert(child->is_height_resolved == 0);
+            foil_rdrbox_resolve_height(ctxt, child);
+            /* bottom of the content rectangle will be set in above function */
+
             int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             /* adjust top of the content rectangle of this child */
@@ -2407,10 +2411,6 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             else
                 child->ctnt_rect.top = real_mt;
             child->ctnt_rect.top += child->bt + child->pt;
-
-            assert(child->is_height_resolved == 0);
-            foil_rdrbox_resolve_height(ctxt, child);
-            /* bottom of the content rectangle will be set in above function */
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;

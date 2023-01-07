@@ -290,7 +290,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
                 foil_ustr_get_glyphs_extent_simple(p->ucs + nr_laid,
                         p->nr_ucs + nr_laid,
                         p->break_oppos + nr_laid, render_flags,
-                        line->x, line->y,
+                        0, 0, /* line->x, line->y, */
                         box->letter_spacing, box->word_spacing, 0,
                         line->left_extent, &seg_size, NULL,
                         p->glyph_poses + nr_laid);
