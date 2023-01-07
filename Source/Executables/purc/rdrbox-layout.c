@@ -2296,19 +2296,19 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            /* adjust top of the content rectangle */
+            if (child->prev)
+                child->ctnt_rect.top = child->prev->ctnt_rect.bottom;
+            else
+                child->ctnt_rect.top = 0;
+
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             /* bottom of the content rectangle will be set in above function */
 
             int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
-
-            /* adjust top of the content rectangle */
-            if (child->prev)
-                child->ctnt_rect.top = child->prev->ctnt_rect.bottom + real_mt;
-            else
-                child->ctnt_rect.top = real_mt;
-            child->ctnt_rect.top += child->bt + child->pt;
+            child->ctnt_rect.top += real_mt + child->bt + child->pt;
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;
@@ -2399,18 +2399,19 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            /* adjust top of the content rectangle of this child */
+            if (child->prev)
+                child->ctnt_rect.top = child->prev->ctnt_rect.bottom;
+            else
+                child->ctnt_rect.top = 0;
+
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             /* bottom of the content rectangle will be set in above function */
 
             int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
-            /* adjust top of the content rectangle of this child */
-            if (child->prev)
-                child->ctnt_rect.top = child->prev->ctnt_rect.bottom + real_mt;
-            else
-                child->ctnt_rect.top = real_mt;
-            child->ctnt_rect.top += child->bt + child->pt;
+            child->ctnt_rect.top += real_mt + child->bt + child->pt;
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;
