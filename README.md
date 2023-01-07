@@ -72,12 +72,13 @@ Note that, if you are seeking the pre-built packages for platforms such as Ubunt
 To build PurC from source code, please make sure that the following tools or libraries are available on your Linux or macOS system:
 
 1. The cross-platform buildsystem generator: CMake 3.15 or later
-1. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
-1. Zlib 1.2.0 or later
-1. Glib 2.44.0 or later
-1. Python 3
-1. BISON 3.0 or later
-1. FLEX 2.6.4 or later
+2. A C11 and CXX17 compliant complier: GCC 8+ or Clang 6+
+3. Zlib 1.2.0 or later
+4. Glib 2.44.0 or later
+5. Python 3
+6. BISON 3.0 or later
+7. FLEX 2.6.4 or later
+8. Ncurses 6.4 or later
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,
