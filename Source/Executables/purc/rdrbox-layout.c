@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -2496,10 +2496,6 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
     collapse_margins(ctxt, block, &real_mt, &real_mb);
 
     foil_rect_offset(&block->ctnt_rect,
-            container->ctnt_rect.left,
-            container->ctnt_rect.top);
-    foil_rect_offset(&block->ctnt_rect,
-            real_mt + block->bt + block->pt,
-            block->ml + block->bl + block->pl);
+            container->ctnt_rect.left, container->ctnt_rect.top);
 }
 
