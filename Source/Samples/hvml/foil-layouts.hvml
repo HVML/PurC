@@ -68,7 +68,7 @@
 
                 <P style="display:inline;">
                     This is anonymous text before the <Q>SPAN</Q>.
-                    <SPAN style="display:block;">This is the content of <Q>SPAN</Q>.</SPAN>
+                    <SPAN style="display:block;text-align:center">This is the content of <Q>SPAN</Q>.</SPAN>
                     This is anonymous text after the <Q>SPAN</Q>.
                 </P>
 
@@ -309,7 +309,7 @@
         </choose>
 
         <HEADER>
-            <H1>Used Layout: $styleCase</H1>
+            <H1 style="color:red;text-align:center">Used Layout: $styleCase</H1>
         </HEADER>
 
         <include with ${$styleCase} />

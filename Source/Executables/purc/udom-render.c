@@ -120,7 +120,6 @@ void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
     /* render the whole tree */
     foil_render_ctxt rdr_ctxt = { udom, { fp } };
 
-    LOG_DEBUG("Calling render_rdrtree...\n");
     render_rdrtree_file(&rdr_ctxt, udom->initial_cblock, 0);
 }
 
@@ -286,6 +285,7 @@ render_rdrbox_in_line(struct foil_render_ctxt *ctxt, struct _line_info *line,
         struct _inline_runbox *run = line->runs + i;
 
         if (run->box == box) {
+            foil_page_set_fgc(ctxt->page, run->box->color);
             render_runbox(ctxt, line, run);
         }
     }
@@ -303,6 +303,7 @@ render_lines(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
                 struct _inline_runbox *run = line->runs + j;
 
                 if (run->box->parent == box) {
+                    foil_page_set_fgc(ctxt->page, run->box->color);
                     render_runbox(ctxt, line, run);
                 }
             }

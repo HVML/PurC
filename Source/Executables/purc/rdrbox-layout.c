@@ -2459,7 +2459,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 off_x += line->left_extent;
             }
             else if (block->text_align == FOIL_RDRBOX_TEXT_ALIGN_CENTER) {
-                off_x += (line->left_extent >> 1);
+                off_x += round_width(line->left_extent * 0.5);
             }
             else if (block->text_align == FOIL_RDRBOX_TEXT_ALIGN_JUSTIFY) {
                 // TODO:
