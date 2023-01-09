@@ -388,10 +388,15 @@ end:
 
 TEST(dvobjs, dvobjs_logical_bc)
 {
+#if OS(LINUX) || OS(DARWIN)
     int r = 0;
     DIR *d = NULL;
     struct dirent *dir = NULL;
     char path[1024] = {0};
+
+    if (access("/usr/bin/bc", F_OK)) {
+        return;
+    }
 
     purc_instance_extra_info info = {};
     r = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test", "dvobjs", &info);
@@ -448,4 +453,5 @@ TEST(dvobjs, dvobjs_logical_bc)
         purc_variant_unref(logical);
 
     purc_cleanup ();
+#endif
 }
