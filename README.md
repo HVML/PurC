@@ -492,35 +492,20 @@ The main coroutine exited.
 [ 18, 1597 ]
 ```
 
-`purc` now contains a built-in renderer called `Foil`.
-This renderer can show the contents of the target document in your terminal:
+`purc` now contains a built-in renderer called `Foil`,
+    which can show the contents of the target document in your terminal according to CSS properties.
+We can use the option `--rdr-comm=thread` (`-c thread` for short) when running `purc` to use the renderer:
 
 ```bash
-$ purc --rdr-comm=thread hvml/fibonacci-html-temp.hvml
-Fibonacci Numbers less than 2000
-1. 0
-2. 1
-3. 1
-4. 2
-5. 3
-6. 5
-7. 8
-8. 13
-9. 21
-10. 34
-11. 55
-12. 89
-13. 144
-14. 233
-15. 377
-16. 610
-17. 987
-18. 1597
-Totally 18 numbers
+$ purc -c thread hvml/fibonacci-html-temp.hvml
 ```
 
+Here is the screenshot on macOS:
+
+![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
+
 Note that in current version (0.9.5), Foil is not fully functional.
-In the near future, Foil will provide support for most features of CSS 2.2 and some features of CSS Level 3,
+In the near future, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    in order that you can get the similiar experience like a web browser.
 
 You can also direct `purc` to connect to a graphics renderer, for example, `xGUI Pro`.
@@ -550,7 +535,7 @@ By using the `observe` element, the HVML program will wait for the time when the
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp-rdr.hvml`:
 
-![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
 If you close the window by clicking the close box on the caption bar,
    the HTML program will exit as normally.
@@ -587,6 +572,16 @@ Here is the screenshot of `hvml/prime-number-sieve.hvml`:
 
 ![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
 
+For an example using an external dynamic object define in shared library in HVML program,
+    you can run `hvml/file-manager.hvml`, which illustrates the usage of the external dynamic object `$FS`:
+
+```
+$ purc -c socket hvml/file-manager.hvml
+```
+
+Below is the screenshot of `hvml/file-manager.hvml`:
+
+![the File Manager](https://files.fmsoft.cn/hvml/screenshots/file-manager.png)
 
 ### Options for `purc`
 

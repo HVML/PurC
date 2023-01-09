@@ -152,6 +152,19 @@ map_rdrbox_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
 }
 
 static void
+render_marker_box(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    assert(box->type == FOIL_RDRBOX_TYPE_MARKER);
+
+    foil_rect page_rc;
+    map_rdrbox_rect_to_page(&box->ctnt_rect, &page_rc);
+
+    foil_page_set_fgc(ctxt->page, box->color);
+    foil_page_draw_ustring(ctxt->page, page_rc.left, page_rc.top,
+            box->marker_data->ucs, box->marker_data->nr_ucs);
+}
+
+static void
 render_rdrbox_part(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box, foil_box_part_k part)
 {
@@ -325,6 +338,12 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         render_lines(ctxt, box);
     }
 
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
+            box->list_item_data->marker_box) {
+        // render marker
+        render_marker_box(ctxt, box->list_item_data->marker_box);
+    }
+
     foil_rdrbox *child = box->first;
     while (child) {
 
@@ -395,6 +414,7 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
                 render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BACKGROUND);
                 render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BORDER);
             }
+
         }
 
         // All non-positioned floating descendants, in tree order.
