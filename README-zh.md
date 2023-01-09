@@ -450,7 +450,15 @@ The main coroutine exited.
 [ 18, 1597 ]
 ```
 
-`purc` 现在包含一个名为 `Foil` 的内置渲染器。此渲染器可以在字符终端中根据 CSS 样式属性展示目标文档的内容：
+`purc` 现在包含一个名为 `Foil` 的内置渲染器，此渲染器可以在字符终端中根据 CSS 样式属性展示目标文档的内容：
+
+在运行 `purc` 时，可通过 `--rdr-comm=thread` 选项（或其简短形式 `-c thread`）来使用这个渲染器：
+
+```bash
+$ purc -c thread hvml/fibonacci-html-temp.hvml
+```
+
+这是上述命令在 macOS 上运行的截图：
 
 ![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
@@ -478,7 +486,7 @@ $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 
 你将看到由 `hvml/fibonacci-html-temp-rdr.hvml` 创建的 xGUI Pro 窗口中的内容：
 
-![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
 如果你通过单击标题栏上的关闭框关闭窗口，HTML 程序将正常退出。
 

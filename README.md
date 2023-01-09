@@ -492,8 +492,15 @@ The main coroutine exited.
 [ 18, 1597 ]
 ```
 
-`purc` now contains a built-in renderer called `Foil`.
-This renderer can show the contents of the target document in your terminal according to CSS properties:
+`purc` now contains a built-in renderer called `Foil`,
+    which can show the contents of the target document in your terminal according to CSS properties.
+We can use the option `--rdr-comm=thread` (`-c thread` for short) when running `purc` to use the renderer:
+
+```bash
+$ purc -c thread hvml/fibonacci-html-temp.hvml
+```
+
+Here is the screenshot on macOS:
 
 ![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
@@ -528,7 +535,7 @@ By using the `observe` element, the HVML program will wait for the time when the
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp-rdr.hvml`:
 
-![fibonacci-html-temp](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
 If you close the window by clicking the close box on the caption bar,
    the HTML program will exit as normally.
