@@ -1138,7 +1138,11 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_object_set_by_static_ckey (obj_var, "atime_sec", val);
         purc_variant_unref (val);
 
-        val = purc_variant_make_ulongint(file_stat.st_atim.tv_nsec);
+#if OS(LINUX)
+        val = purc_variant_make_ulongint (file_stat.st_atim.tv_nsec);
+#elif OS(DARWIN)
+        val = purc_variant_make_ulongint (file_stat.st_atimespec.tv_nsec);
+#endif
         purc_variant_object_set_by_static_ckey (obj_var, "atime_nsec", val);
         purc_variant_unref (val);
 
@@ -1147,7 +1151,11 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_object_set_by_static_ckey (obj_var, "mtime_sec", val);
         purc_variant_unref (val);
 
-        val = purc_variant_make_ulongint(file_stat.st_mtim.tv_nsec);
+#if OS(LINUX)
+        val = purc_variant_make_ulongint (file_stat.st_mtim.tv_nsec);
+#elif OS(DARWIN)
+        val = purc_variant_make_ulongint (file_stat.st_mtimespec.tv_nsec);
+#endif
         purc_variant_object_set_by_static_ckey (obj_var, "mtime_nsec", val);
         purc_variant_unref (val);
 
@@ -1156,7 +1164,11 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_object_set_by_static_ckey (obj_var, "ctime_sec", val);
         purc_variant_unref (val);
 
-        val = purc_variant_make_ulongint(file_stat.st_ctim.tv_nsec);
+#if OS(LINUX)
+        val = purc_variant_make_ulongint (file_stat.st_ctim.tv_nsec);
+#elif OS(DARWIN)
+        val = purc_variant_make_ulongint (file_stat.st_ctimespec.tv_nsec);
+#endif
         purc_variant_object_set_by_static_ckey (obj_var, "ctime_nsec", val);
         purc_variant_unref (val);
 
