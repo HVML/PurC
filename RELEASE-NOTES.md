@@ -1,10 +1,34 @@
 # Release Notes
 
+- [Version 0.9.5](#version-095)
 - [Version 0.9.4](#version-094)
 - [Version 0.9.2](#version-092)
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.5
+
+On Jan. 10, 2023, HVML Community announces the availability of PurC 0.9.5,
+   which is also the fifth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.5
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - (N/A).
+* ADJUSTMENTS:
+   - (N/A).
+* ENHANCEMENTS:
+   - Add a new HVML sample: `Source/Sample/hvml/file-manager.hvml` to browse files in local system.
+   - Improve the built-in Foil renderer to support basic layouts and CSS properties about text style.
+* OPTIMIZATIONS:
+   - Optimize the socket communication with a remote HVML renderer.
+* BUGFIXES:
+   - (N/A).
 
 ## Version 0.9.4
 
