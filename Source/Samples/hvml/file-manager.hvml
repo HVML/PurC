@@ -82,7 +82,7 @@
         <init as="pageGroups">
         """
             <section id="sec1" >
-                <article id="viewerWindow1" title="文件管理器">
+                <article id="viewerWindow1" title="文件浏览器">
                     <ol id="leftPanel" class="col-4"></ol>
                     <ol id="rightPanel" class="col-8"></ol>
                 </article>
