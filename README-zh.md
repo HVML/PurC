@@ -488,7 +488,7 @@ $ purc --rdr-comm=socket hvml/fibonacci-html-temp-rdr.hvml
 
 ![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
-如果你通过单击标题栏上的关闭框关闭窗口，HTML 程序将正常退出。
+如果你通过单击标题栏上的关闭框关闭窗口，HVML 程序将正常退出。
 
 为体验更加完整的 HVML 程序，你可以尝试运行另一个名为 `hvml/calculator-bc.hvml` 的示例，该示例实现了一个任意精度计算器：
 
