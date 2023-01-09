@@ -450,33 +450,11 @@ The main coroutine exited.
 [ 18, 1597 ]
 ```
 
-`purc` 现在包含一个名为 `Foil` 的内置渲染器。此渲染器可以在终端中显示目标文档的内容：
+`purc` 现在包含一个名为 `Foil` 的内置渲染器。此渲染器可以在字符终端中根据 CSS 样式属性展示目标文档的内容：
 
-```bash
-$ purc --rdr-comm=thread hvml/fibonacci-html-temp.hvml
-Fibonacci Numbers less than 2000
-1. 0
-2. 1
-3. 1
-4. 2
-5. 3
-6. 5
-7. 8
-8. 13
-9. 21
-10. 34
-11. 55
-12. 89
-13. 144
-14. 233
-15. 377
-16. 610
-17. 987
-18. 1597
-Totally 18 numbers
-```
+![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
-请注意，在当前版本（0.9.5）中，Foil 功能还无完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器，在字符终端上获得类似网页浏览器一样的体验。
+请注意，在当前版本（0.9.5）中，Foil 功能还不完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器在字符终端上获得类似网页浏览器一样的体验。
 
 你还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。`xGUI Pro` 是一种基于 WebKit 的高级 HVML 渲染器。
 
@@ -524,7 +502,7 @@ $ purc -c socket hvml/planetary-resonance-lines.hvml
 
 ![the Planetary Resonance](https://files.fmsoft.cn/hvml/screenshots/planetary-resonance.png)
 
-下面的示例展示了一个使用多个协程筛选素数的 HVML 程序，你可以运行 `hvml/prime-number-sieve.hvml`，这直观地展示了素数筛算法：
+下面的示例展示了一个使用多个协程筛选素数的 HVML 程序。你可以运行 `hvml/prime-number-sieve.hvml`，这直观地展示了素数筛算法：
 
 ```
 $ purc -c socket hvml/prime-number-sieve.hvml
@@ -533,6 +511,16 @@ $ purc -c socket hvml/prime-number-sieve.hvml
 这是 `hvml/prime-number-sieve.hvml` 的截图：
 
 ![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
+
+下面的示例展示了如何在 HVML 程序中使用定义在共享库中的外部动态对象。你可以运行 `hvml/file-manager.hvml`，该程序使用外部动态对象 `$FS` 实现了一个简单的文件浏览器：
+
+```
+$ purc -c socket hvml/file-manager.hvml
+```
+
+这是 `hvml/file-manager.hvml` 的截图：
+
+![the File Manager](https://files.fmsoft.cn/hvml/screenshots/file-manager.png)
 
 ### `purc` 的选项
 
