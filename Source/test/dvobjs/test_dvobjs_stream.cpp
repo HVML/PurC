@@ -36,7 +36,7 @@ TEST(dvobjs, stream)
 
 TEST(dvobjs, stream_pipe)
 {
-#if OS(LINUX)
+#if OS(LINUX) || OS(DARWIN)
     if (access("/usr/bin/bc", F_OK)) {
         return;
     }

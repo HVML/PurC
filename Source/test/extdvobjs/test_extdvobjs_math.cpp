@@ -1106,10 +1106,15 @@ long_double_eq(long double l, long double r)
 
 TEST(dvobjs, dvobjs_math_bc)
 {
+#if OS(LINUX) || OS(DARWIN)
     int r = 0;
     DIR *d = NULL;
     struct dirent *dir = NULL;
     char path[1024] = {0};
+
+    if (access("/usr/bin/bc", F_OK)) {
+        return;
+    }
 
     purc_instance_extra_info info = {};
     r = purc_init_ex(PURC_MODULE_EJSON, "cn.fmsoft.hvml.test",
@@ -1182,4 +1187,5 @@ TEST(dvobjs, dvobjs_math_bc)
         purc_variant_unload_dvobj (math);
 
     purc_cleanup ();
+#endif
 }
