@@ -9,7 +9,7 @@
     </head>
 
     <body id="theBody">
-        <h1>Fibonacci Numbers less than 2000</h1>
+        <h1 style="color:red">Fibonacci Numbers less than 2000</h1>
 
         <init as "count" at "_topmost" with 2 temp />
         <init as "last_one" with 0L temp />
