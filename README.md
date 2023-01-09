@@ -538,7 +538,7 @@ You will see that the contents in a window of xGUI Pro created by `hvml/fibonacc
 ![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
 
 If you close the window by clicking the close box on the caption bar,
-   the HTML program will exit as normally.
+   the HVML program will exit as normally.
 
 For a complete HVML program which gives a better experience,
     you can try to run another sample called `hvml/calculator-bc.hvml`, which implements an arbitrary precision calculator:
