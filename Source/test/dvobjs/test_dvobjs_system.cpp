@@ -242,6 +242,10 @@ purc_variant_t get_system_uname(purc_variant_t dvobj, const char* name)
 
 TEST(dvobjs, uname)
 {
+    if (access("/usr/bin/uname", F_OK)) {
+        return;
+    }
+
     static const struct ejson_result test_cases[] = {
         { "uname -s",
             "$SYS.uname()['kernel-name']",
