@@ -1044,12 +1044,16 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                 else {
                     foil_rdrbox_lay_block_in_container(ctxt, box, child);
                 }
-
-                layout_rdrtree(ctxt, child);
             }
 
+            layout_rdrtree(ctxt, child);
             child = child->next;
         }
+    }
+
+    if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
+            box->list_item_data->marker_box) {
+        foil_rdrbox_lay_marker_box(ctxt, box);
     }
 }
 

@@ -326,14 +326,23 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
             page->dirty_rect.left, page->dirty_rect.top,
             page->dirty_rect.right, page->dirty_rect.bottom);
 
+    LOG_DEBUG("client rect: %d, %d, %d, %d\n",
+            widget->client_rc.left, widget->client_rc.top,
+            widget->client_rc.right, widget->client_rc.bottom);
+
     for (int y = page->dirty_rect.top; y < page->dirty_rect.bottom; y++) {
         int x = page->dirty_rect.left;
+
+        int screen_col = x + widget->vx;
+        int screen_row = y + widget->vy;
+        if (screen_row < 0)
+            continue;
 
         struct foil_tty_cell *cell = page->cells[y] + x;
         char *escaped_str = make_escape_string_line_mode(cell, w);
 
-        int screen_col = x + widget->vx;
-        int screen_row = y + widget->vy;
+        LOG_DEBUG("screen col, row: %d, %d\n",
+                screen_col, screen_row);
         assert(screen_col >= 0 &&
                 screen_col < foil_rect_width(&widget->client_rc));
         assert(screen_row >= 0 &&
