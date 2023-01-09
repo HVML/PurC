@@ -21,7 +21,7 @@ In this version, we fixed some bugs and made som enhancements:
 * CHANGES:
    - (N/A).
 * ADJUSTMENTS:
-   - (N/A).
+   - Tune to skip some test cases if there are no commands needed installed.
 * ENHANCEMENTS:
    - Add a new HVML sample: `Source/Sample/hvml/file-manager.hvml` to browse files in local system.
    - Improve the built-in Foil renderer to support basic layouts and CSS properties about text style.
