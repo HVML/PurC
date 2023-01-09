@@ -34,3 +34,14 @@ TEST(dvobjs, stream)
     tester.run_testcases_in_file("stream");
 }
 
+TEST(dvobjs, stream_pipe)
+{
+#if OS(LINUX)
+    if (access("/usr/bin/bc", F_OK)) {
+        return;
+    }
+    TestDVObj tester;
+    tester.run_testcases_in_file("stream_pipe");
+#endif
+}
+
