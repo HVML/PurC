@@ -1357,7 +1357,7 @@ failed:
 }
 
 pcrdr_msg *
-pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op,
+pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
         pcdoc_element_t element, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
@@ -1409,7 +1409,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op,
         }
     }
 
-    ret = pcintr_rdr_send_dom_req(stack, op, NULL, element_type, css_selector,
+    ret = pcintr_rdr_send_dom_req(stack, op, request_id, element_type, css_selector,
             element, property, data_type, req_data);
     purc_variant_unref(req_data);
 
@@ -1419,11 +1419,12 @@ out:
 
 bool
 pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
+        const char *request_id,
         pcdoc_element_t element, const char *property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, op,
-            NULL, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+            request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, property, data_type, data);
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -1434,7 +1435,7 @@ pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
 
 bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        int op, pcdoc_element_t element,
+        int op, const char *request_id, pcdoc_element_t element,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
@@ -1447,7 +1448,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
         len = 1;
     }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, op,
-            PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
+            request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
             element, property, data_type, data, len);
 
     if (response_msg != NULL) {

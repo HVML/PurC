@@ -203,7 +203,7 @@ on_content(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         if (sz > 0) {
             pcintr_util_new_text_content(frame->owner->doc,
                     frame->edom_element, PCDOC_OP_APPEND, text, sz,
-                    !stack->inherit);
+                    !stack->inherit, false);
         }
     }
     purc_variant_unref(v);

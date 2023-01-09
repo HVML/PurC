@@ -125,6 +125,7 @@ msg writable
 msg callState
 msg corState
 msg click
+msg dblclick
 msg close
 msg idle
 msg rdrState

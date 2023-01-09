@@ -731,24 +731,27 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr);
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr,
+        bool no_return);
 
 pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
-        bool sync_to_rdr);
+        bool sync_to_rdr, bool no_return);
 
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
-        const char *name, const char *val, size_t len, bool sync_to_rdr);
+        const char *name, const char *val, size_t len, bool sync_to_rdr,
+        bool no_return);
 
 static inline int pcintr_util_remove_attribute(purc_document_t doc,
-        pcdoc_element_t elem, const char *name, bool sync_to_rdr)
+        pcdoc_element_t elem, const char *name, bool sync_to_rdr,
+        bool no_return)
 {
     return pcintr_util_set_attribute(doc, elem, PCDOC_OP_ERASE,
-        name, NULL, 0, sync_to_rdr);
+        name, NULL, 0, sync_to_rdr, no_return);
 }
 
 int

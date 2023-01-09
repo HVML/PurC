@@ -1134,18 +1134,30 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         purc_variant_unref (val);
 
         // atime
-        val = purc_variant_make_string (ctime(&file_stat.st_atime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "atime", val);
+        val = purc_variant_make_ulongint(file_stat.st_atime);
+        purc_variant_object_set_by_static_ckey (obj_var, "atime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_atim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "atime_nsec", val);
         purc_variant_unref (val);
 
         // mtime
-        val = purc_variant_make_string (ctime(&file_stat.st_mtime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "mtime", val);
+        val = purc_variant_make_ulongint(file_stat.st_mtime);
+        purc_variant_object_set_by_static_ckey (obj_var, "mtime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_mtim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "mtime_nsec", val);
         purc_variant_unref (val);
 
         // ctime
-        val = purc_variant_make_string (ctime(&file_stat.st_ctime), false);
-        purc_variant_object_set_by_static_ckey (obj_var, "ctime", val);
+        val = purc_variant_make_ulongint(file_stat.st_ctime);
+        purc_variant_object_set_by_static_ckey (obj_var, "ctime_sec", val);
+        purc_variant_unref (val);
+
+        val = purc_variant_make_ulongint(file_stat.st_ctim.tv_nsec);
+        purc_variant_object_set_by_static_ckey (obj_var, "ctime_nsec", val);
         purc_variant_unref (val);
 
         purc_variant_array_append (ret_var, obj_var);
@@ -2057,7 +2069,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'e':
             if (strcmp(string_which, "exe") == 0 ||
                 strcmp(string_which, "executable") == 0) {
-                if (st.st_mode & S_IEXEC) {
+                if (0 == access(string_filename, X_OK)) {
                     goto success;
                 }
             }
@@ -2066,7 +2078,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'r':
             if (strcmp(string_which, "read") == 0 ||
                 strcmp(string_which, "readable") == 0) {
-                if (st.st_mode & S_IREAD) {
+                if (0 == access(string_filename, R_OK)) {
                     goto success;
                 }
             }
@@ -2075,7 +2087,7 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         case 'w':
             if (strcmp(string_which, "write") == 0 ||
                 strcmp(string_which, "writable") == 0) {
-                if (st.st_mode & S_IWRITE) {
+                if (0 == access(string_filename, W_OK)) {
                     goto success;
                 }
             }

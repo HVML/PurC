@@ -8,85 +8,121 @@
         <!-- import the Bootstrap assets built in the renderer -->
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
-    </head>
-    <body>
-
-        <init as 'state'>
-            {
-                "activeId":null,
-                "currDir":"/etc",
-                "dataList" : []
+        <style hvml:raw>
+            .scrollarea {
+                overflow-y: scroll;
             }
+
+          .f-divider {
+                height: 3rem;
+                background-color: rgba(0, 0, 0, .1);
+                border: solid rgba(0, 0, 0, .15);
+                border-width: 1px 0;
+                box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+          }
+
+          .f-vr {
+                flex-shrink: 0;
+                width: 0.2rem;
+                height: 100vh;
+          }
+
+          .f-bg-left {
+                background-color: #d1d1d1;
+          }
+
+          .f-bg-path {
+                background-color: #fcfcfc;
+          }
+
+          .f-bg-type {
+                background-color: #fdfdfd;
+          }
+
+          .f-type-txt-color {
+              color: #b1b1b1;
+          }
+
+          .f-bg-item-dark {
+                background-color: #f4f5f5;
+          }
+
+          .f-txt-overflow {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+          }
+
+          .f-cursor-pointer {
+              cursor:pointer;
+          }
+
+          .f-cursor-default {
+              cursor:default;
+          }
+
+          .f-main-item {
+          }
+
+          .f-main-item-active {
+              background-color: #a7a7a7;
+          }
+
+          .f-sub-item {
+          }
+
+          .f-sub-item-active {
+              color: #ffffff;
+              background-color: #0a58ca;
+          }
+        </style>
+    </head>
+
+    <body>
+        <init as="pageGroups">
+        """
+            <section id="sec1" >
+                <article id="viewerWindow1" title="文件管理器">
+                    <ol id="leftPanel" class="col-4"></ol>
+                    <ol id="rightPanel" class="col-8"></ol>
+                </article>
+            </section>
+        """
         </init>
 
-        <request on="$RDR" to="createPlainWindow">
+        <request on="$RDR" to="setPageGroups">
             {
+                "data": $pageGroups
+            }
+        </request>
+
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"leftPanel",
                 "data": {
-                    "name": "subWindow",
-                    "class": "normal",
-                    "title": "This is sub window"
+                    "name": "leftWindow",
+                    "title": "leftList",
+                    "class": "col-4",
+                    "layoutStyle": "width:20vw;height:100vh;"
                 }
             }
         </request>
 
-        <load from "#sub" onto 'subWindow' as 'subFileList' async />
-
-        <archetype name="mainItem">
-            <li class="list-group-item" hvml-events="click" id="li-$%" value="$?.name">$?.name</li>
-        </archetype>
-
-        <div class="container">
-             <div class="row">
-                 <div class="col-4">
-                    <h1 class="display-6 fw-bold" id="mainTitle">Main Page</h1>
-                    <ul class="list-group" id="mainList">
-                    </ul>
-                 </div>
-             </div>
-        </div>
-
-        <define as="refreshList">
-            <update on "#mainList" at "content" with ' ' />
-            <clear on="$state.dataList" />
-
-            <update on '#mainTitle' at="textContent" with "$state.currDir 的索引" />
-            <update on "$state" at=".dataList" with "$FS.list($state.currDir)" />
-            <update on $state.dataList to 'prepend' with {"inode":"0", "name":".."} />
-            <init as "dataCount" with $DATA.count($state.dataList) />
-
-            <iterate on $state.dataList>
-                <update on "#mainList" to "append" with $mainItem />
-            </iterate>
-            <test on=$dataCount>
-                <match for "GT 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$state.dataList[1].inode"/>
-                </match>
-                <match for "LE 1" exclusively>
-                    <update on="$state" at=".activeId" with="li-$state.dataList[0].inode"/>
-                </match>
-            </test>
-
-            <update on="#$state.activeId" at="attr.class" with="list-group-item active" />
-
-            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
-                {
-                    "path" : $state.currDir
+        <request on="$RDR" to="createWidget">
+            {
+                "element":"rightPanel",
+                "data": {
+                    "name": "rightWindow",
+                    "title": "SubList",
+                    "class": "col-8",
+                    "layoutStyle": "left:20.2vw;width:82vw;height:100vh;"
                 }
-            </request>
-        </define>
+            }
+        </request>
 
-        <include with "$refreshList" />
+        <load from "#leftBody" onto 'leftWindow' as 'leftFileList' async />
 
-        <observe on ".list-group-item" for "click">
-            <update on="#$state.activeId" at="attr.class" with="list-group-item"/>
-            <update on="#$?.targetId" at="attr.class" with="list-group-item active" />
-            <update on="$state" at=".activeId" with="$?.targetId"/>
-            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
-                {
-                    "path" : "$state.currDir/$state.dataList[$DATA.numerify($STR.substr($1?.targetId, 3))].name"
-                }
-            </request>
-        </observe>
+        <load from "#rightBody" onto 'rightWindow' as 'subFileList' async />
 
         <observe on $CRTN for "rdrState:closed">
             <exit with "closed" />
@@ -94,36 +130,299 @@
 
     </body>
 
-    <body id="sub">
-        <archetype name="subItem">
-            <li class="list-group-item" hvml-events="click" id="li-$?.inode">$?.name</li>
+    <body id="leftBody">
+
+        <init as 'dataCenter'>
+            {
+                "currDir":"/",
+                "dataList" : [],
+                "dirList" : [],
+                "fileList" : [],
+                "fileIdx" : 0,
+                "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
+                "activeClass" : "f-main-item f-main-item-active fs-3 rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
+            }
+        </init>
+
+        <archetype name="mainItem">
+            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3 $?.cursorClass"  hvml-events="click" id="li-$%" value="$?.name">
+                <i class="bi bi-folder pe-none me-2 $?.iconColor"></i>
+                $?.name
+            </div>
         </archetype>
 
-        <div class="container">
-             <div class="row">
-                 <div class="col-4">
-                    <h1 class="display-6 fw-bold" id="subTitle"></h1>
-                    <ul class="list-group" id="subList">
-                    </ul>
-                 </div>
-             </div>
-        </div>
+        <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
+            <div class="row ps-3 pe-3">
+                <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+                    <div class="d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
+                        <div class="f-cursor-pointer">
+                            <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
+                        </div>
+                        <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle"></div>
+                    </div>
+                    <hr/>
+                </a>
+            </div>
+
+            <div class="row ps-3 scrollarea" id="mainList">
+            </div>
+        </main>
+
+        <define as "handlDirInfo">
+            <test with "$STR.ends_with($dataCenter.currDir, '/')">
+                <update on="$2?" at=".full_path" with="$STR.join($dataCenter.currDir, $2?.name)"/>
+                <differ>
+                    <update on="$3?" at=".full_path" with="$STR.join($dataCenter.currDir, '/', $3?.name)"/>
+                </differ>
+            </test>
+            <test with "$L.and($FS.file_is($?.full_path, 'read'), $FS.file_is($?.full_path, 'exe'))">
+                <update on="$2?" at=".access" with=true />
+                <update on="$2?" at=".iconColor" with="text-primary" />
+                <update on="$2?" at=".cursorClass" with="f-cursor-pointer" />
+                <differ>
+                    <update on="$3?" at=".access" with=false />
+                    <update on="$3?" at=".iconColor" with="text-secondary" />
+                    <update on="$3?" at=".cursorClass" with="f-cursor-default" />
+                </differ>
+            </test>
+            <update on "$dataCenter.dirList" to "append" with $? />
+        </define>
+
+        <define as "handlFileInfo">
+            <test on="$STR.substr($?.name, -4)">
+                <match for="AS '.pdf'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-pdf" />
+                </match>
+                <match for="AS '.jpg'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.jpeg'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.png'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.gif'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.mp3'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-music" />
+                </match>
+                <match for="AS '.txt'" exclusively>
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark-text" />
+                </match>
+                <match for="ANY">
+                    <update on "$3?" at ".typeClass" with "bi-file-earmark" />
+                </match>
+            </test>
+            <test with $L.eq($MATH.fmod($dataCenter.fileIdx, 2), 0)>
+                <inherit>
+                    <update on "$3?" at ".bgClass" with ' ' />
+                </inherit>
+                <differ>
+                    <update on "$3?" at ".bgClass" with "f-bg-item-dark" />
+                </differ>
+            </test>
+            <test on $?.size>
+                <match for="GE 1073741824" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1073741824L), 100)), 100) GB" />
+                </match>
+                <match for="GE 1048576" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1048576L), 100)), 100) MB" />
+                </match>
+                <match for="GE 1024" exclusively>
+                    <update on "$3?" at ".sz" with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?.size, 1024L), 100)), 100) KB" />
+                </match>
+                <match for="ANY" exclusively>
+                    <update on "$3?" at ".sz" with "$3?.size 字节" />
+                </match>
+            </test>
+            <update on "$?" at ".idx" with "$dataCenter.fileIdx" />
+            <update on "$dataCenter" at ".fileIdx" with $DATA.arith('+', $dataCenter.fileIdx, 1)  />
+            <update on "$dataCenter.fileList" to "append" with $? />
+        </define>
 
         <define as="refreshList">
-            <update on "#subList" at "content" with ' ' />
-            <init as 'dataList' with  "$FS.list($?.path)" temp />
+            <clear on="$dataCenter.dirList" />
+            <clear on="$dataCenter.fileList" />
+            <update on "$dataCenter" at ".fileIdx" with 0L />
 
-            <update on '#subTitle' at="textContent" with "$?.path 的索引" />
+            <update on "#mainList" at "content" with ' ' />
+            <test with "$DATA.isequal($dataCenter.currDir, '/')">
+                <update on "#mainHeadTitle" at "content" with "/" />
+                <update on "#backButton" at "attr.class" with "bi bi-chevron-up text-secondary" />
+                <differ>
+                    <update on "#mainHeadTitle" at "content" with $FS.basename($dataCenter.currDir) />
+                    <update on "#backButton" at "attr.class" with "bi bi-chevron-up" />
+                </differ>
+            </test>
 
-            <iterate on $dataList>
+            <request on="hvml+run://-/-/-/CRTN/_last" to="updateInfo" async>
+                {
+                    "path" : $dataCenter.currDir
+                }
+            </request>
+
+
+            <!--
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+            <init as dlist with  $FS.list($dataCenter.currDir) temp />
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### fs.list $dataCenter.currDir $DATA.count($dlist) $MATH.sub($timeee, $timebb)")
+            </inherit>
+
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+            <iterate on $dlist>
+                <test with "$DATA.isequal($?.type, 'd')">
+                    <include with "$handlDirInfo" on $2? />
+                    <differ>
+                        <include with "$handlFileInfo" on $3? />
+                    </differ>
+                </test>
+            </iterate>
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### handle $dataCenter.currDir list: $MATH.sub($timeee, $timebb)")
+            </inherit>
+            -->
+
+            <request on="hvml+run://-/-/-/CRTN/_last" to="showDetail" async>
+                {
+                    "fileList" : $dataCenter.fileList
+                }
+            </request>
+
+            <!--
+            <init as "timebb" with "$SYS.time_us()" temp />
+            -->
+
+            <iterate on $dataCenter.dirList>
+                <update on "#mainList" at "content" to "append" with $mainItem />
+            </iterate>
+
+            <!--
+            <init as "timeee" with "$SYS.time_us()" temp />
+            <inherit>
+                $STREAM.stdout.writelines("###################################### update ui: $MATH.sub($timeee, $timebb)")
+            </inherit>
+            -->
+        </define>
+
+        <observe on ".nav-link" for "click">
+            <init as 'currData' with "$dataCenter.dirList[$DATA.numerify($STR.substr($?.targetId, 3))]" temp />
+            <test with $currData.access>
+                <update on="#$2?.targetId" at="attr.class" with="$dataCenter.activeClass" />
+                <sleep for='50ms' />
+                <update on="$dataCenter" at=".currDir" with="$currData.full_path"/>
+                <include with "$refreshList" />
+            </test>
+        </observe>
+
+        <observe on "#backButton" for "click">
+            <test with "$DATA.isequal($dataCenter.currDir, '/')">
+                <differ>
+                    <update on="$dataCenter" at=".currDir" with="$FS.dirname($dataCenter.currDir)"/>
+                    <include with "$refreshList" />
+                </differ>
+            </test>
+        </observe>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 500, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <include with "$refreshList" />
+        </observe>
+
+    </body>
+
+    <body id="rightBody">
+        <init as="subState">
+        {
+            "activeId" : "",
+            "normalClass" : "f-sub-item f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+            "activeClass" : "f-sub-item f-sub-item-active f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center",
+        }
+        </init>
+
+        <archetype name="subItem">
+            <div class="f-sub-item f-cursor-pointer row ps-5 pt-2 pb-2 justify-content-start align-items-center $?.bgClass"  hvml-events="click" id="l0-$?.idx">
+                <div class="col-sm-6 f-txt-overflow" id="l1-$?.idx">
+                    <i class="bi $?.typeClass pe-none me-2 text-primary"></i>
+                    $?.name
+                </div>
+                <div class="col-sm-3 text-end" id="l2-$?.idx">
+                    $DATETIME.fmttime("%Y年%m月%d日 %H:%M", $?.mtime_sec)
+                </div>
+                <div class="col-sm-3 text-end" id="l3-$?.idx">
+                    $?.sz
+                </div>
+            </div>
+        </archetype>
+
+        <main class="d-flex flex-column flex-nowrap h-100">
+            <div class="row">
+                <div class="row ps-5 pt-2 pb-3 justify-content-start align-items-center border-bottom f-bg-path">
+                    <span class="fs-6 pe-none me-2" id="subTitle">/<span>
+                </div>
+                <div class="row ps-5 pt-2 pb-2 justify-content-start align-items-center border-bottom f-bg-type f-type-txt-color">
+                    <div class="col-sm-6" >
+                        名称
+                    </div>
+                    <div class="col-sm-3 border-start text-end">
+                        修改日期
+                    </div>
+                    <div class="col-sm-3 border-start text-end">
+                        大小
+                    </div>
+                </div>
+            </div>
+
+            <div class="row scrollarea" id="subList">
+            </div>
+        </main>
+
+        <define as="refreshFileList">
+            <iterate on $?.fileList>
                 <update on "#subList" to "append" with $subItem />
             </iterate>
         </define>
 
+        <observe on="$CRTN" for="request:updateInfo">
+            <update on '#subTitle' at="textContent" with "$?.path" />
+            <update on "#subList" with ' ' />
+            <update on="$subState" at=".activeId" with='' />
+        </observe>
+
         <observe on="$CRTN" for="request:showDetail">
-            <test with "$FS.file_is($?.path, 'dir')">
-                <include with "$refreshList" on $2? />
+            <include with "$refreshFileList" on $? />
+        </observe>
+
+        <observe on ".f-sub-item" for "click">
+            <test on "$STR.nr_chars($subState.activeId)">
+                <match for="GT 0" exclusively>
+                    <test with $L.eq($MATH.fmod($DATA.numerify($STR.substr($subState.activeId, 3)), 2), 0)>
+                        <inherit>
+                            <update on="#$subState.activeId" at="attr.class" with="$subState.normalClass" />
+                        </inherit>
+                        <differ>
+                            <update on="#$subState.activeId" at="attr.class" with="$subState.normalClass f-bg-item-dark" />
+                        </differ>
+                    </test>
+                </match>
             </test>
+
+            <update on="$subState" at=".activeId" with="$STR.join('l0', $STR.substr($?.targetId, 2))" />
+            <update on="#$subState.activeId" at="attr.class" with="$subState.activeClass" />
         </observe>
 
     </body>

@@ -3392,7 +3392,7 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
     // TODO: append/prepend textContent?
     if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                NULL, elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
 
@@ -3418,7 +3418,8 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
-        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr)
+        pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr,
+        bool no_return)
 {
     UNUSED_PARAM(op);
     UNUSED_PARAM(sync_to_rdr);
@@ -3444,8 +3445,10 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         // TODO: append/prepend textContent?
         pcintr_stack_t stack = pcintr_get_stack();
         if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+            const char *request_id = no_return ?
+                PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
             pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                    elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                    request_id, elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                     txt, len);
         }
     }
@@ -3456,7 +3459,7 @@ pcdoc_node
 pcintr_util_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len, purc_variant_t data_type,
-        bool sync_to_rdr)
+        bool sync_to_rdr, bool no_return)
 {
     pcdoc_node node;
     insert_cached_text_node(doc, sync_to_rdr);
@@ -3496,8 +3499,9 @@ pcintr_util_new_content(purc_document_t doc,
         size_t sz_content = 0;
         char *p = (char*)purc_rwstream_get_mem_buffer(out, &sz_content);
 
+        const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                elem, NULL, type, p, sz_content);
+                request_id, elem, NULL, type, p, sz_content);
         purc_rwstream_destroy(out);
     }
 
@@ -3509,7 +3513,7 @@ int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len,
-        bool sync_to_rdr)
+        bool sync_to_rdr, bool no_return)
 {
     if (pcdoc_element_set_attribute(doc, elem, op, name, val, len))
         return -1;
@@ -3520,8 +3524,9 @@ pcintr_util_set_attribute(purc_document_t doc,
         strcpy(property, "attr.");
         strcat(property, name);
 
+        const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                elem, property, PCRDR_MSG_DATA_TYPE_PLAIN, val, len);
+                request_id, elem, property, PCRDR_MSG_DATA_TYPE_PLAIN, val, len);
     }
 
     return 0;

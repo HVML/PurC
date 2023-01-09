@@ -91,7 +91,7 @@ attr_found_val(struct pcintr_stack_frame *frame,
         /* inherit doc do not send */
         pcintr_util_set_attribute(frame->owner->doc,
                 frame->edom_element, PCDOC_OP_DISPLACE, attr->key, sv, 0,
-                !stack->inherit);
+                !stack->inherit, false);
     }
 
     return 0;

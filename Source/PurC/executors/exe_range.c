@@ -207,6 +207,10 @@ check_curr(struct pcexec_exe_range_inst *exe_range_inst)
         return false;
     }
 
+    if (nr == 0) {
+        return false;
+    }
+
     if ((size_t)curr >= nr) {
         pcinst_set_error(PCEXECUTOR_ERROR_NOT_EXISTS);
         return false;
