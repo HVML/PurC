@@ -78,7 +78,7 @@ To build PurC from source code, please make sure that the following tools or lib
 5. Python 3
 6. BISON 3.0 or later
 7. FLEX 2.6.4 or later
-8. Ncurses 6.4 or later
+8. Ncurses 6.4 or later (needed by Foil renderer in `purc`)
 
 Although the port for Windows is still on the way, it is possible to build PurC on Windows 10 version 2004 or later:
 You can install WSL (Windows Subsystem for Linux) and a Linux distribution, e.g., Ubuntu, on your Windows system,

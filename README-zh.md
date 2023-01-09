@@ -61,12 +61,13 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 要从源代码构建 PurC，请确保你的 Linux 或 macOS 系统上提供以下工具或函数库：
 
 1. 跨平台构建系统生成器：CMake 3.15 或更高版本
-2. 兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
-3. Zlib 1.2.0 或更高版本
-4. Glib 2.44.0 或更高版本
-5. Python 3
-6. BISON 3.0 或更高版本
-7. FLEX 2.6.4 或更高版本
+1. 兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
+1. Zlib 1.2.0 或更高版本
+1. Glib 2.44.0 或更高版本
+1. Python 3
+1. BISON 3.0 或更高版本
+1. FLEX 2.6.4 或更高版本
+1. Ncurses 6.4 或更高版本（`purc` 中的 Foil 渲染器需要此函数库）
 
 虽然针对 Windows 的移植仍在进行中，但可以在 Windows 10 2004 或更高版本上构建 PurC：你可以在 Windows 系统上安装 WSL（适用于 Linux 的 Windows 子系统）和 Linux 发行版，例如 Ubuntu，然后在 Ubuntu 环境中构建 PurC。
 
