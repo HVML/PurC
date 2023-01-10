@@ -14,6 +14,10 @@
         <init as "count" at "_topmost" with 2 temp />
         <init as "last_one" with 0L temp />
         <init as "last_two" with 1L temp />
+        
+        <!-- Han decimal numbers.
+        <ol style="list-style-type:cjk-decimal;">
+        -->
 
         <ol>
             <li>$last_one</li>
