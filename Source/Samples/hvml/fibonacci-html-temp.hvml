@@ -3,11 +3,11 @@
 # RESULT: [ 18, 1597L ]
 
 <!DOCTYPE hvml>
-<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)" silently >
+<hvml target="html" lang="{{ $RUNNER.user(! 'lang', {{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }} ); $RUNNER.myObj.lang }}" silently >
     <head>
         <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
-        <link rel="stylesheet" type="text/css" href="hvml/assets/fibonacci-html-temp-{$STR.substr($SYS.locale, 0, 2)}.css" />
-        <!-- update on $T.map to 'merge' from "file://$SYS.cwd/hvml/assets/fibonacci-html-temp-{$STR.substr($SYS.locale, 0, 2)}.json" silently /-->
+        <link rel="stylesheet" type="text/css" href="hvml/assets/fibonacci-html-temp-{$RUNNER.myObj.lang}.css" />
+        <update on $T.map to 'merge' from "file://$SYS.cwd/hvml/assets/fibonacci-html-temp-{$RUNNER.myObj.lang}.json" silently />
         <title>$T.get('Fibonacci Numbers')</title>
     </head>
 
