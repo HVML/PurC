@@ -3,8 +3,10 @@
 # RESULT: [ 18, 1597L ]
 
 <!DOCTYPE hvml>
-<hvml target="html">
+<hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)" silently >
     <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />            
+        <link rel="stylesheet" type="text/css" href="hvml/assets/fibonacci-html-temp-{$STR.substr($SYS.locale, 0, 2)}.css" />
         <title>Fibonacci Numbers</title>
     </head>
 
@@ -14,6 +16,10 @@
         <init as "count" at "_topmost" with 2 temp />
         <init as "last_one" with 0L temp />
         <init as "last_two" with 1L temp />
+        
+        <!-- Han decimal numbers.
+        <ol style="list-style-type:cjk-decimal;">
+        -->
 
         <ol>
             <li>$last_one</li>
