@@ -5,18 +5,19 @@
 <!DOCTYPE hvml>
 <hvml target="html" lang="$STR.substr($SYS.locale, 0, 2)" silently >
     <head>
-        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />            
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
         <link rel="stylesheet" type="text/css" href="hvml/assets/fibonacci-html-temp-{$STR.substr($SYS.locale, 0, 2)}.css" />
-        <title>Fibonacci Numbers</title>
+        <update on $T.map to 'merge' from "file://$SYS.cwd/hvml/assets/fibonacci-html-temp-{$STR.substr($SYS.locale, 0, 2)}.json" silently />
+        <title>$T.get('Fibonacci Numbers')</title>
     </head>
 
     <body id="theBody">
-        <h1 style="color:red">Fibonacci Numbers less than 2000</h1>
+        <h1 style="color:red">$T.get('Fibonacci Numbers less than 2000')</h1>
 
         <init as "count" at "_topmost" with 2 temp />
         <init as "last_one" with 0L temp />
         <init as "last_two" with 1L temp />
-        
+
         <!-- Han decimal numbers.
         <ol style="list-style-type:cjk-decimal;">
         -->
@@ -36,7 +37,7 @@
             </iterate>
         </ol>
 
-        <p>Totally $count numbers</p>
+        <p>$STR.format_c($T.get('Totally %d numbers'), $count)</p>
 
         <exit with [$count, $last_two] />
 

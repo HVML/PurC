@@ -66,6 +66,7 @@ set(sample_HVML_FILES
     "hvml/assets/foil-layouts-layeredBoxes.css"
     "hvml/assets/messages-foil-layouts-zh.json"
     "hvml/assets/fibonacci-html-temp-zh.css"
+    "hvml/assets/fibonacci-html-temp-zh.json"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
