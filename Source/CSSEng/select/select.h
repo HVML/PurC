@@ -89,6 +89,11 @@ typedef struct css_select_state {
 	prop_state props[CSS_N_PROPERTIES][CSS_PSEUDO_ELEMENT_COUNT];
 } css_select_state;
 
+struct css_element_selector {
+	css_select_ctx *ctx;
+	css_stylesheet *sheet;
+};
+
 static inline void advance_bytecode(css_style *style, uint32_t n_bytes)
 {
 	style->used -= (n_bytes / sizeof(css_code_t));

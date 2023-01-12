@@ -280,6 +280,8 @@ typedef struct css_font_face css_font_face;
 
 typedef struct css_font_face_src css_font_face_src;
 
+typedef struct css_element_selector css_element_selector;
+
 #ifdef __cplusplus
 }
 #endif

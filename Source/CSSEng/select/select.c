@@ -3050,5 +3050,111 @@ void dump_chain(const css_selector *selector)
 			detail = NULL;
 	} while (detail);
 }
+
+static css_error resolve_url(void *pw, const char *base,
+        lwc_string *rel, lwc_string **abs)
+{
+    (void)pw;
+    (void)base;
+
+    /* About as useless as possible */
+    *abs = lwc_string_ref(rel);
+
+    return CSS_OK;
+}
+
+
+css_error css_element_selector_create(const char *selector,
+        css_element_selector **result)
+{
+    css_error err = CSS_OK;
+    if (!selector && !result) {
+        err = CSS_BADPARM;
+        goto out;
+    }
+    css_element_selector *sel = (css_element_selector*)calloc(1, sizeof(*sel));
+    if (!sel) {
+        err = CSS_NOMEM;
+        goto out;
+    }
+    err = css_select_ctx_create(&sel->ctx);
+    if (err != CSS_OK) {
+        goto out_clear_sel;
+    }
+
+    css_stylesheet_params params;
+    memset(&params, 0, sizeof(params));
+    params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
+    params.level = CSS_LEVEL_DEFAULT;
+    params.charset = FOIL_DEF_CHARSET;
+    params.url = "css_element_selector";
+    params.title = "css_element_selector";
+    params.resolve = resolve_url;
+
+    err = css_stylesheet_create(&params, &sel->sheet);
+    if (err != CSS_OK) {
+        goto out_clear_ctx;
+    }
+
+    err = css_stylesheet_append_data(sel->sheet, selector, strlen(selector));
+    if (err != CSS_OK) {
+        goto out_clear_sheet;
+    }
+
+    err = css_stylesheet_append_data(sel->sheet, "{}", 2);
+    if (err != CSS_OK) {
+        goto out_clear_sheet;
+    }
+
+    err = css_stylesheet_data_done(sel->sheet);
+    if (err != CSS_OK) {
+        goto out_clear_sheet;
+    }
+
+    err = css_select_ctx_append_sheet(sel->ctx,
+            sel->sheet, CSS_ORIGIN_AUTHOR, NULL);
+    if (err != CSS_OK) {
+        goto out_clear_sheet;
+    }
+
+
+    *result = sel;
+    goto out;
+
+out_clear_sheet:
+    css_stylesheet_destroy(sel->sheet);
+
+out_clear_ctx:
+    css_select_ctx_destroy(sel->ctx);
+
+out_clear_sel:
+    free(sel);
+
+out:
+    return err;
+}
+
+css_error css_element_selector_destroy(css_element_selector *selector)
+{
+    css_error err = CSS_OK;
+    if (!selector) {
+        err = CSS_BADPARM;
+        goto out;
+    }
+
+    if (selector->sheet) {
+        css_stylesheet_destroy(selector->sheet);
+    }
+
+    if (selector->ctx) {
+        css_select_ctx_destroy(selector->ctx);
+    }
+
+    free(selector);
+
+out:
+    return err;
+}
+
 #endif
 

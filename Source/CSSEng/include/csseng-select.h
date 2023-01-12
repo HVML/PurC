@@ -231,6 +231,15 @@ css_error css_select_font_faces(css_select_ctx *ctx,
 css_error css_select_font_faces_results_destroy(
 		css_select_font_faces_results *results);
 
+css_error css_element_selector_create(const char *selector,
+		css_element_selector **result);
+
+css_error css_element_selector_match(css_element_selector *selector,
+		void *node, css_select_handler *handler, void *pw, bool *match);
+
+css_error css_element_selector_destroy(css_element_selector *selector);
+
+
 #ifdef __cplusplus
 }
 #endif
