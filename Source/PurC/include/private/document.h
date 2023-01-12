@@ -173,6 +173,12 @@ struct pcdoc_elem_coll {
     struct pcutils_arrlist *elems;
 };
 
+struct css_element_selector;
+struct pcdoc_selector {
+    struct css_element_selector *selector;
+};
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */

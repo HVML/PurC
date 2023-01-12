@@ -137,9 +137,14 @@ typedef struct {
     };
 } pcdoc_node;
 
+struct pcdoc_selector;
+typedef struct pcdoc_selector pcdoc_selector;
+typedef struct pcdoc_selector *pcdoc_selector_t;
+
 struct pcdoc_elem_coll;
 typedef struct pcdoc_elem_coll pcdoc_elem_coll;
 typedef struct pcdoc_elem_coll *pcdoc_elem_coll_t;
+
 
 PCA_EXTERN_C_BEGIN
 
@@ -1245,6 +1250,33 @@ pcdoc_serialize_descendants_to_stream(purc_document_t doc,
 PCA_EXPORT int
 purc_document_serialize_contents_to_stream(purc_document_t doc,
         unsigned opts, purc_rwstream_t out);
+
+/**
+ * pcdoc_selector_new:
+ *
+ * Creates a new selector.
+ *
+ * @char: the css selector.
+ *
+ * Returns: the pointer to the selector or %NULL on failure.
+ *
+ */
+PCA_EXPORT pcdoc_selector_t
+pcdoc_selector_new(const char *selector);
+
+/**
+ * pcdoc_selector_delete:
+ *
+ * Deletes a selector.
+ *
+ * @selector: The pointer to a selector.
+ *
+ * This function deletes a selector.
+ *
+ * Returns: 0 for success, -1 for failure.
+ */
+PCA_EXPORT int
+pcdoc_selector_delete(pcdoc_selector_t selector);
 
 /**
  * pcdoc_find_element_in_descendants:

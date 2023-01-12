@@ -27,6 +27,7 @@
 
 #include "private/document.h"
 #include "private/stringbuilder.h"
+#include "csseng/csseng.h"
 
 static struct doc_type {
     const char                 *target_name;
@@ -648,6 +649,52 @@ purc_document_serialize_contents_to_stream(purc_document_t doc,
     }
 
     return 0;
+}
+
+pcdoc_selector_t
+pcdoc_selector_new(const char *selector)
+{
+    pcdoc_selector_t ret = NULL;
+    if (!selector) {
+        goto out;
+    }
+
+    ret = (pcdoc_selector_t) calloc(1, sizeof(*ret));
+    if (!ret) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    css_error err = css_element_selector_create(selector, &ret->selector);
+    if (err != CSS_OK) {
+        goto out_clear_ret;
+    }
+
+    goto out;
+
+out_clear_ret:
+    free(ret);
+    ret = NULL;
+
+out:
+    return ret;
+}
+
+int
+pcdoc_selector_delete(pcdoc_selector_t selector)
+{
+    int ret = -1;
+    if (!selector) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    css_element_selector_destroy(selector->selector);
+    free(selector);
+    ret = 0;
+
+out:
+    return ret;
 }
 
 pcdoc_element_t
