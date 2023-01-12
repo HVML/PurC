@@ -699,10 +699,14 @@ out:
 
 pcdoc_element_t
 pcdoc_find_element_in_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *selector)
+        pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    pcdoc_element_t found;
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(ancestor);
+    UNUSED_PARAM(selector);
+    pcdoc_element_t found = NULL;
 
+#if 0
     if (doc->ops->find_elem) {
         if (ancestor == NULL)
             ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
@@ -712,6 +716,7 @@ pcdoc_find_element_in_descendants(purc_document_t doc,
     else {
         found = NULL;
     }
+#endif
 
     return found;
 }
@@ -729,8 +734,12 @@ element_collection_new(const char *selector)
 
 pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *selector)
+        pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(ancestor);
+    UNUSED_PARAM(selector);
+#if 0
     pcdoc_elem_coll_t coll = element_collection_new(selector);
 
     if (doc->ops->elem_coll_select) {
@@ -746,6 +755,8 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
     }
 
     return coll;
+#endif
+    return NULL;
 }
 
 pcdoc_elem_coll_t

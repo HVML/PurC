@@ -1254,9 +1254,9 @@ purc_document_serialize_contents_to_stream(purc_document_t doc,
 /**
  * pcdoc_selector_new:
  *
- * Creates a new selector.
- *
  * @char: the css selector.
+ *
+ * Creates a new selector.
  *
  * Returns: the pointer to the selector or %NULL on failure.
  *
@@ -1267,8 +1267,6 @@ pcdoc_selector_new(const char *selector);
 /**
  * pcdoc_selector_delete:
  *
- * Deletes a selector.
- *
  * @selector: The pointer to a selector.
  *
  * This function deletes a selector.
@@ -1278,8 +1276,44 @@ pcdoc_selector_new(const char *selector);
 PCA_EXPORT int
 pcdoc_selector_delete(pcdoc_selector_t selector);
 
+
+/**
+ * pcdoc_get_element_by_id_in_descendants:
+ *
+ * @doc: The pointer to a document.
+ * @ancestor: The pointer to the ancestor element.
+ * @id: The target id.
+ *
+ * Gets the element matching the id from the descendants.
+ *
+ * Returns: the pointer to the matching element or %NULL if no such one.
+ *
+ */
+PCA_EXPORT pcdoc_element_t
+pcdoc_get_element_by_id_in_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *id);
+
+/**
+ * pcdoc_get_element_by_id_in_document:
+ *
+ * @doc: The pointer to a document.
+ * @id: The target id.
+ *
+ * Gets the element matching the id from the document.
+ *
+ * Returns: the pointer to the matching element or %NULL if no such one.
+ *
+ */
+PCA_EXPORT pcdoc_element_t
+pcdoc_get_element_by_id_in_document(purc_document_t doc, const char *id);
+
+
 /**
  * pcdoc_find_element_in_descendants:
+ *
+ * @doc: The pointer to a document.
+ * @ancestor: The pointer to the ancestor element.
+ * @selector: The pointer to the selector.
  *
  * Finds the first element matching the CSS selector from the descendants.
  *
@@ -1289,10 +1323,13 @@ pcdoc_selector_delete(pcdoc_selector_t selector);
  */
 PCA_EXPORT pcdoc_element_t
 pcdoc_find_element_in_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *selector);
+        pcdoc_element_t ancestor, pcdoc_selector_t selector);
 
 /**
  * pcdoc_find_element_in_document:
+ *
+ * @doc: The pointer to a document.
+ * @selector: The pointer to the selector.
  *
  * Finds the first element matching the CSS selector in the document.
  *
@@ -1301,13 +1338,17 @@ pcdoc_find_element_in_descendants(purc_document_t doc,
  * Note: Unimplemented.
  */
 static inline pcdoc_element_t
-pcdoc_find_element_in_document(purc_document_t doc, const char *selector)
+pcdoc_find_element_in_document(purc_document_t doc, pcdoc_selector_t selector)
 {
     return pcdoc_find_element_in_descendants(doc, NULL, selector);
 }
 
 /**
  * pcdoc_elem_coll_new_from_descendants:
+ *
+ * @doc: The pointer to a document.
+ * @ancestor: The pointer to the ancestor element.
+ * @selector: The pointer to the selector.
  *
  * Creates an element collection by selecting the elements from the descendants
  * of the specified element according to the CSS selector.
@@ -1318,10 +1359,13 @@ pcdoc_find_element_in_document(purc_document_t doc, const char *selector)
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *selector);
+        pcdoc_element_t ancestor, pcdoc_selector_t selector);
 
 /**
  * pcdoc_elem_coll_new_from_document:
+ *
+ * @doc: The pointer to a document.
+ * @selector: The pointer to the selector.
  *
  * Creates an element collection by selecting the elements from
  * the whole document according to the CSS selector.
@@ -1332,13 +1376,17 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
  */
 static inline pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_document(purc_document_t doc,
-        const char *selector)
+        pcdoc_selector_t selector)
 {
     return pcdoc_elem_coll_new_from_descendants(doc, NULL, selector);
 }
 
 /**
  * pcdoc_elem_coll_select:
+ *
+ * @doc: The pointer to a document.
+ * @elem_coll: The pointer to the element collection.
+ * @selector: The pointer to the selector.
  *
  * Creates a new element collection by selecting a part of elements
  * in the specific element collection.
@@ -1349,10 +1397,13 @@ pcdoc_elem_coll_new_from_document(purc_document_t doc,
  */
 PCA_EXPORT pcdoc_elem_coll_t
 pcdoc_elem_coll_select(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll, const char *selector);
+        pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector);
 
 /**
  * pcdoc_elem_coll_delete:
+ *
+ * @doc: The pointer to a document.
+ * @elem_coll: The pointer to the element collection.
  *
  * Deletes the specified element collection.
  *
@@ -1361,6 +1412,77 @@ pcdoc_elem_coll_select(purc_document_t doc,
 PCA_EXPORT void
 pcdoc_elem_coll_delete(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll);
+
+/**
+ * pcdoc_elem_coll_count:
+ *
+ * @doc: The pointer to a document.
+ * @elem_coll: The pointer to the element collection.
+ *
+ * Gets the element count of element collection.
+ *
+ * Returns: The element count of the element collection.
+ *
+ */
+PCA_EXPORT ssize_t
+pcdoc_elem_coll_count(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll);
+
+/**
+ * pcdoc_elem_coll_get:
+ *
+ * Gets the member from the element collection by index (@idx).
+ *
+ * @doc: The pointer to a document.
+ * @elem_coll: The pointer to the element collection.
+ * @idx: The index of the member.
+ *
+ * Returns: The element pointer on success, or %NULL on failure.
+ *
+ */
+PCA_EXPORT pcdoc_element_t
+pcdoc_elem_coll_get(purc_document_t doc,
+    pcdoc_elem_coll_t elem_coll, size_t idx);
+
+
+/**
+ * pcdoc_elem_coll_sub:
+ *
+ * @doc: The pointer to a document.
+ * @elem_coll: The pointer to the element collection.
+ * @offset: The offset of the index.
+ * @length: The size to be sub.
+ *
+ * Creates an element collection by sub the elements from
+ * the element collection.
+ *
+ * Returns: A pointer to the element collection; %NULL on failure.
+ *
+ */
+PCA_EXPORT pcdoc_elem_coll_t
+pcdoc_elem_coll_sub(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll, int offset, size_t length);
+
+/**
+ * pcdoc_elem_coll_travel:
+ *
+ * @doc: The pointer to the document.
+ * @elem_coll : The pointer to the element collection.
+ * @cb: The callback for the element travelled.
+ * @ctxt: The pointer to the context data which will be passed to the callback.
+ * @n: The pointer to a size_t buffer to return the number of elements
+ *  travelled, i.e., the number of times the callback function was called.
+ *
+ * Travels all descendant elements in the element collection.
+ *
+ * Returns: 0 for all descendants travelled, otherwise the traverse was broken
+ * by the callback.
+ *
+ */
+PCA_EXPORT int
+pcdoc_elem_coll_travel(purc_document_t doc, pcdoc_elem_coll_t elem_coll,
+        pcdoc_element_cb cb, void *ctxt, size_t *n);
+
 
 PCA_EXTERN_C_END
 
