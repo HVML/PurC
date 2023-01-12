@@ -127,7 +127,7 @@ static void destroy_strings(css_select_ctx *ctx);
 
 static css_error select_from_sheet(css_select_ctx *ctx,
 		const css_stylesheet *sheet, css_origin origin,
-		css_select_state *state);
+		css_select_state *state, size_t *nr_matched_selectors);
 static css_error match_selectors_in_sheet(css_select_ctx *ctx,
 		const css_stylesheet *sheet, css_select_state *state,
 		size_t *nr_matched);
@@ -1275,7 +1275,7 @@ css_error css_select_style(css_select_ctx *ctx, void *node,
 		if (mq__list_match(s.media, media) &&
 				s.sheet->disabled == false) {
 			error = select_from_sheet(ctx, s.sheet,
-					s.origin, &state);
+					s.origin, &state, NULL);
 			if (error != CSS_OK)
 				goto cleanup;
 		}
@@ -1828,13 +1828,12 @@ css_error set_initial(css_select_state *state,
 #define IMPORT_STACK_SIZE 256
 
 css_error select_from_sheet(css_select_ctx *ctx, const css_stylesheet *sheet,
-		css_origin origin, css_select_state *state)
+		css_origin origin, css_select_state *state, size_t *nr_matched_selectors)
 {
 	const css_stylesheet *s = sheet;
 	const css_rule *rule = s->rule_list;
 	uint32_t sp = 0;
 	const css_rule *import_stack[IMPORT_STACK_SIZE];
-	size_t nr_matched = 0;
 
 	do {
 		/* Find first non-charset rule, if we're at the list head */
@@ -1871,7 +1870,7 @@ css_error select_from_sheet(css_select_ctx *ctx, const css_stylesheet *sheet,
 			state->sheet = s;
 			state->current_origin = origin;
 
-			error = match_selectors_in_sheet(ctx, s, state, &nr_matched);
+			error = match_selectors_in_sheet(ctx, s, state, nr_matched_selectors);
 			if (error != CSS_OK)
 				return error;
 
@@ -3174,10 +3173,64 @@ css_error css_element_selector_match(css_element_selector *selector,
 		void *node, css_select_handler *handler, void *pw, bool *match)
 {
     css_error err = CSS_OK;
-    if (!selector || !node || !handler || !pw || !match) {
+    css_select_state state;
+    void *parent = NULL;
+    css_select_ctx *ctx;
+    size_t nr_matched_selectors = 0;
+
+    css_media media = {
+        .type = CSS_MEDIA_SCREEN,
+    };
+
+    if (!selector || !node || !handler || !pw || !match ||
+            handler->handler_version != CSS_SELECT_HANDLER_VERSION_1) {
         err = CSS_BADPARM;
         goto out;
     }
+
+    ctx = selector->ctx;
+    err = handler->parent_node(pw, node, &parent);
+    if (err != CSS_OK) {
+        goto out;
+    }
+
+    err = css_select__initialise_selection_state(
+            &state, node, parent, &media, handler, pw);
+    if (err != CSS_OK) {
+        goto out;
+    }
+
+    /* Not sharing; need to select.
+     * Base element style is guaranteed to exist
+     */
+    err = css__computed_style_create(
+            &state.results->styles[CSS_PSEUDO_ELEMENT_NONE]);
+    if (err != CSS_OK) {
+        goto cleanup;
+    }
+
+    /* Iterate through the top-level stylesheets, selecting styles
+     * from those which apply to our current media requirements and
+     * are not disabled */
+    for (uint32_t i = 0; i < ctx->n_sheets; i++) {
+        const css_select_sheet s = ctx->sheets[i];
+
+        if (mq__list_match(s.media, &media) &&
+                s.sheet->disabled == false) {
+            err = select_from_sheet(ctx, s.sheet,
+                    s.origin, &state, &nr_matched_selectors);
+            if (err != CSS_OK)
+                goto cleanup;
+        }
+    }
+
+    if (nr_matched_selectors > 0) {
+        *match = true;
+    }
+    err = CSS_OK;
+
+cleanup:
+    css_select__finalise_selection_state(&state);
 
 out:
     return err;
