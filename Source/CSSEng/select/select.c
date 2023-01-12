@@ -129,9 +129,10 @@ static css_error select_from_sheet(css_select_ctx *ctx,
 		const css_stylesheet *sheet, css_origin origin,
 		css_select_state *state);
 static css_error match_selectors_in_sheet(css_select_ctx *ctx,
-		const css_stylesheet *sheet, css_select_state *state);
+		const css_stylesheet *sheet, css_select_state *state,
+		size_t *nr_matched);
 static css_error match_selector_chain(css_select_ctx *ctx,
-		const css_selector *selector, css_select_state *state);
+		const css_selector *selector, css_select_state *state, bool *match);
 static css_error match_named_combinator(css_select_ctx *ctx,
 		css_combinator type, const css_selector *selector,
 		css_select_state *state, void *node, void **next_node);
@@ -1833,6 +1834,7 @@ css_error select_from_sheet(css_select_ctx *ctx, const css_stylesheet *sheet,
 	const css_rule *rule = s->rule_list;
 	uint32_t sp = 0;
 	const css_rule *import_stack[IMPORT_STACK_SIZE];
+	size_t nr_matched = 0;
 
 	do {
 		/* Find first non-charset rule, if we're at the list head */
@@ -1869,7 +1871,7 @@ css_error select_from_sheet(css_select_ctx *ctx, const css_stylesheet *sheet,
 			state->sheet = s;
 			state->current_origin = origin;
 
-			error = match_selectors_in_sheet(ctx, s, state);
+			error = match_selectors_in_sheet(ctx, s, state, &nr_matched);
 			if (error != CSS_OK)
 				return error;
 
@@ -2084,7 +2086,8 @@ static const css_selector *_selector_next(const css_selector **node,
 }
 
 css_error match_selectors_in_sheet(css_select_ctx *ctx,
-		const css_stylesheet *sheet, css_select_state *state)
+		const css_stylesheet *sheet, css_select_state *state,
+		size_t *nr_matched)
 {
 	static const css_selector *empty_selector = NULL;
 	const uint32_t n_classes = state->n_classes;
@@ -2100,6 +2103,10 @@ css_error match_selectors_in_sheet(css_select_ctx *ctx,
 	css_select_rule_source src = { CSS_SELECT_RULE_SRC_ELEMENT, 0 };
 	struct css_hash_selection_requirments req;
 	css_error error;
+	bool match = false;
+	if (nr_matched) {
+		*nr_matched = 0;
+	}
 
 	/* Set up general selector chain requirments */
 	req.media = state->media;
@@ -2166,9 +2173,12 @@ css_error match_selectors_in_sheet(css_select_ctx *ctx,
 		assert(selector != NULL);
 
 		/* Match and handle the selector chain */
-		error = match_selector_chain(ctx, selector, state);
+		error = match_selector_chain(ctx, selector, state, &match);
 		if (error != CSS_OK)
 			goto cleanup;
+		if (nr_matched && match) {
+			*nr_matched = *nr_matched + 1;
+		}
 
 		/* Advance to next selector in whichever chain we extracted
 		 * the processed selector from. */
@@ -2231,13 +2241,14 @@ static void update_reject_cache(css_select_state *state,
 }
 
 css_error match_selector_chain(css_select_ctx *ctx,
-		const css_selector *selector, css_select_state *state)
+		const css_selector *selector, css_select_state *state, bool *match)
 {
 	const css_selector *s = selector;
 	void *node = state->node;
 	const css_selector_detail *detail = &s->data;
-	bool match = false, may_optimise = true;
+	bool may_optimise = true;
 	bool rejected_by_cache;
+	*match = false;
 	css_pseudo_element pseudo;
 	css_error error;
 
@@ -2254,12 +2265,13 @@ css_error match_selector_chain(css_select_ctx *ctx,
 	 * any selector chains containing pseudo elements anywhere
 	 * else.
 	 */
-	error = match_details(ctx, node, detail, state, &match, &pseudo);
+	error = match_details(ctx, node, detail, state, match, &pseudo);
+
 	if (error != CSS_OK)
 		return error;
 
 	/* Details don't match, so reject selector chain */
-	if (match == false)
+	if (*match == false)
 		return CSS_OK;
 
 	/* Iterate up the selector chain, matching combinators */
@@ -2964,83 +2976,83 @@ void dump_chain(const css_selector *selector)
 	do {
 		switch (detail->type) {
 		case CSS_SELECTOR_ELEMENT:
-			if (lwc_string_length(detail->name) == 1 &&
-				lwc_string_data(detail->name)[0] == '*' &&
+			if (lwc_string_length(detail->qname.name) == 1 &&
+				lwc_string_data(detail->qname.name)[0] == '*' &&
 					detail->next == 1) {
 				break;
 			}
 			fprintf(stderr, "%.*s",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name));
 			break;
 		case CSS_SELECTOR_CLASS:
 			fprintf(stderr, ".%.*s",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name));
 			break;
 		case CSS_SELECTOR_ID:
 			fprintf(stderr, "#%.*s",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name));
 			break;
 		case CSS_SELECTOR_PSEUDO_CLASS:
 		case CSS_SELECTOR_PSEUDO_ELEMENT:
 			fprintf(stderr, ":%.*s",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name));
 
-			if (detail->value != NULL) {
+			if (detail->value.string != NULL) {
 				fprintf(stderr, "(%.*s)",
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			}
 			break;
 		case CSS_SELECTOR_ATTRIBUTE:
 			fprintf(stderr, "[%.*s]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_EQUAL:
 			fprintf(stderr, "[%.*s=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_DASHMATCH:
 			fprintf(stderr, "[%.*s|=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_INCLUDES:
 			fprintf(stderr, "[%.*s~=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_PREFIX:
 			fprintf(stderr, "[%.*s^=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_SUFFIX:
 			fprintf(stderr, "[%.*s$=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		case CSS_SELECTOR_ATTRIBUTE_SUBSTRING:
 			fprintf(stderr, "[%.*s*=\"%.*s\"]",
-					(int) lwc_string_length(detail->name),
-					lwc_string_data(detail->name),
-					(int) lwc_string_length(detail->value),
-					lwc_string_data(detail->value));
+					(int) lwc_string_length(detail->qname.name),
+					lwc_string_data(detail->qname.name),
+					(int) lwc_string_length(detail->value.string),
+					lwc_string_data(detail->value.string));
 			break;
 		}
 
@@ -3050,6 +3062,7 @@ void dump_chain(const css_selector *selector)
 			detail = NULL;
 	} while (detail);
 }
+#endif
 
 static css_error resolve_url(void *pw, const char *base,
         lwc_string *rel, lwc_string **abs)
@@ -3086,7 +3099,7 @@ css_error css_element_selector_create(const char *selector,
     memset(&params, 0, sizeof(params));
     params.params_version = CSS_STYLESHEET_PARAMS_VERSION_1;
     params.level = CSS_LEVEL_DEFAULT;
-    params.charset = FOIL_DEF_CHARSET;
+    params.charset = "UTF-8";
     params.url = "css_element_selector";
     params.title = "css_element_selector";
     params.resolve = resolve_url;
@@ -3096,12 +3109,13 @@ css_error css_element_selector_create(const char *selector,
         goto out_clear_ctx;
     }
 
-    err = css_stylesheet_append_data(sel->sheet, selector, strlen(selector));
+    err = css_stylesheet_append_data(sel->sheet, (const uint8_t *)selector,
+            strlen(selector));
     if (err != CSS_OK) {
         goto out_clear_sheet;
     }
 
-    err = css_stylesheet_append_data(sel->sheet, "{}", 2);
+    err = css_stylesheet_append_data(sel->sheet, (const uint8_t *)"{}", 2);
     if (err != CSS_OK) {
         goto out_clear_sheet;
     }
@@ -3156,5 +3170,17 @@ out:
     return err;
 }
 
-#endif
+css_error css_element_selector_match(css_element_selector *selector,
+		void *node, css_select_handler *handler, void *pw, bool *match)
+{
+    css_error err = CSS_OK;
+    if (!selector || !node || !handler || !pw || !match) {
+        err = CSS_BADPARM;
+        goto out;
+    }
+
+out:
+    return err;
+}
+
 
