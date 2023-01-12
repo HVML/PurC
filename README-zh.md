@@ -67,7 +67,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 1. Python 3
 1. BISON 3.0 或更高版本
 1. FLEX 2.6.4 或更高版本
-1. Ncurses 6.4 或更高版本（`purc` 中的 Foil 渲染器需要此函数库）
+1. Ncurses 5.0 或更高版本（可选；`purc` 中的 Foil 渲染器需要此函数库）
 
 虽然针对 Windows 的移植仍在进行中，但可以在 Windows 10 2004 或更高版本上构建 PurC：你可以在 Windows 系统上安装 WSL（适用于 Linux 的 Windows 子系统）和 Linux 发行版，例如 Ubuntu，然后在 Ubuntu 环境中构建 PurC。
 

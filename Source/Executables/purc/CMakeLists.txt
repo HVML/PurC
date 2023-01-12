@@ -64,10 +64,15 @@ endif ()
 
 set(purc_LIBRARIES
     PurC::PurC
-    PurC::CSSEng
-    Ncurses::Ncurses
-    -lpthread
 )
+
+if (ENABLE_RDR_FOIL)
+    list(APPEND purc_LIBRARIES
+        PurC::CSSEng
+        Ncurses::Ncurses
+        -lpthread
+    )
+endif ()
 
 set_target_properties(purc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
