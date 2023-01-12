@@ -23,6 +23,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// #undef NDEBUG
+
 #include "page.h"
 #include "udom.h"
 #include "widget.h"
