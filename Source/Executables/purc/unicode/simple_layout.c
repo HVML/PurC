@@ -26,6 +26,8 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// #undef NDEBUG
+
 #include "config.h"
 
 #include <glib.h>
@@ -784,6 +786,7 @@ static int get_glyph_extent_info(my_glyph_args* args, uint32_t gv,
     get_glyph_metrics(gv, &adv_x, &adv_y, &bbox);
     normalize_glyph_metrics(args->rf,
             &adv_x, &adv_y, &line_adv, &args->lw);
+    LOG_DEBUG("Glpyh (%x) advance x: %d\n", gv, adv_x);
 
     ges->bbox_x = bbox.x;
     ges->bbox_y = bbox.y;
@@ -921,6 +924,8 @@ size_t foil_ustr_get_glyphs_extent_simple(const uint32_t* ucs, size_t nr_ucs,
             ges[n].line_adv = get_glyph_extent_info(&args, ucs[n], gis + n,
                     ges + n);
         }
+
+        LOG_DEBUG("Glpyh (%x) advance x: %d\n", ucs[n], ges[n].adv_x);
 
         // extra space for word and letter
         extra_spacing = 0;

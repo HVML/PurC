@@ -121,7 +121,7 @@ int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box)
         }
 
         foil_ustr_get_glyphs_extent_simple(p->ucs, p->nr_ucs,
-                p->break_oppos, render_flags,
+                p->break_oppos + 1, render_flags,
                 x, y, box->letter_spacing, box->word_spacing, 0,
                 max_extent, NULL, NULL, gps);
 
@@ -176,7 +176,7 @@ int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box)
         while (nr_laid < p->nr_ucs) {
             size_t n =
                 foil_ustr_get_glyphs_extent_simple(p->ucs + nr_laid,
-                        p->nr_ucs - nr_laid, p->break_oppos + nr_laid,
+                        p->nr_ucs - nr_laid, p->break_oppos + nr_laid + 1,
                         render_flags, 0, 0, 0, 0, 0, max_extent,
                         &line_size, NULL, gps + nr_laid);
 
@@ -289,7 +289,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             size_t n =
                 foil_ustr_get_glyphs_extent_simple(p->ucs + nr_laid,
                         p->nr_ucs + nr_laid,
-                        p->break_oppos + nr_laid, render_flags,
+                        p->break_oppos + nr_laid + 1, render_flags,
                         0, 0, /* line->x, line->y, */
                         box->letter_spacing, box->word_spacing, 0,
                         line->left_extent, &seg_size, NULL,
