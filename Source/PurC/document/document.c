@@ -744,6 +744,8 @@ out:
     return ret;
 }
 
+extern css_select_handler purc_document_css_select_handler;
+
 struct travel_find_elem {
     pcdoc_element_t  elem;
     pcdoc_selector_t selector;
@@ -755,9 +757,17 @@ travel_find_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
     UNUSED_PARAM(doc);
     UNUSED_PARAM(element);
     UNUSED_PARAM(ctxt);
-//    struct travel_find_elem *args = (struct travel_find_elem*)ctxt;
+    struct travel_find_elem *args = (struct travel_find_elem*)ctxt;
+    bool match = false;
 
-    //TODO: call css_element_selector_match
+    css_element_selector_match(args->selector->selector, element,
+            &purc_document_css_select_handler, doc, &match);
+
+    if (match) {
+        args->elem = element;
+        return PCDOC_TRAVEL_STOP;
+    }
+
     return PCDOC_TRAVEL_GOON;
 }
 
@@ -837,12 +847,15 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
 static int
 travel_select_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
 {
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(element);
-    UNUSED_PARAM(ctxt);
-//    pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)ctxt;
+    pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)ctxt;
+    bool match = false;
 
-    //TODO: call css_element_selector_match
+    css_element_selector_match(coll->selector->selector, element,
+            &purc_document_css_select_handler, doc, &match);
+
+    if (match) {
+        pcutils_arrlist_append(coll->elems, element);
+    }
     return PCDOC_TRAVEL_GOON;
 }
 
