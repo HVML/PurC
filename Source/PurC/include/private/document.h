@@ -133,15 +133,18 @@ struct purc_document_ops {
             unsigned opts, purc_rwstream_t stm);
 
     pcdoc_element_t (*find_elem)(purc_document_t doc, pcdoc_element_t scope,
-            const char *selector);
+            pcdoc_selector_t selector);
+
+    pcdoc_element_t (*get_elem_by_id)(purc_document_t doc,
+            pcdoc_element_t scope, const char *selector);
 
     int (*elem_coll_select)(purc_document_t doc,
             pcdoc_elem_coll_t coll, pcdoc_element_t scope,
-            const char *selector);
+            pcdoc_selector_t selector);
 
     int (*elem_coll_filter)(purc_document_t doc,
             pcdoc_elem_coll_t dst_coll,
-            pcdoc_elem_coll_t src_coll, const char *selector);
+            pcdoc_elem_coll_t src_coll, pcdoc_selector_t selector);
 };
 
 struct pcdoc_elem_content {
@@ -158,7 +161,9 @@ struct purc_document {
     unsigned have_head:1;
     unsigned have_body:1;
     unsigned refc;
+    unsigned age;
 
+    pcdoc_element_t root4select;
     struct purc_document_ops *ops;
 
     void *impl;
@@ -166,8 +171,12 @@ struct purc_document {
 
 struct pcdoc_elem_coll {
     /* the CSS selector */
-    char       *selector;
+    pcdoc_selector_t selector;
+
     unsigned    refc;
+    unsigned    doc_age;
+    size_t      select_begin;
+    size_t      nr_elems;
 
     /* the elements in the collection */
     struct pcutils_arrlist *elems;

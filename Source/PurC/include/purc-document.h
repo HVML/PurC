@@ -1304,8 +1304,11 @@ pcdoc_get_element_by_id_in_descendants(purc_document_t doc,
  * Returns: the pointer to the matching element or %NULL if no such one.
  *
  */
-PCA_EXPORT pcdoc_element_t
-pcdoc_get_element_by_id_in_document(purc_document_t doc, const char *id);
+static inline pcdoc_element_t
+pcdoc_get_element_by_id_in_document(purc_document_t doc, const char *id)
+{
+    return pcdoc_get_element_by_id_in_descendants(doc, NULL, id);
+}
 
 
 /**

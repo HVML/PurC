@@ -381,6 +381,7 @@ struct pcdom_document {
     pcutils_hash_t             *attrs;
     pcutils_hash_t             *prefix;
     pcutils_hash_t             *ns;
+    struct pchash_table        *id_elem;
     void                       *parser;
     void                       *user;
 

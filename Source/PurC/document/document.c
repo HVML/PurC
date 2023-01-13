@@ -697,103 +697,120 @@ out:
     return ret;
 }
 
+struct travel_elem_id {
+    pcdoc_element_t elem;
+    const char     *id;
+};
+
+static int
+travel_elem_id_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    struct travel_elem_id *args = (struct travel_elem_id*)ctxt;
+    size_t len;
+    const char *s = pcdoc_element_id(doc, element, &len);
+
+    if (s && (s[len] == '\0') && (strncmp(s, args->id, len) == 0)) {
+        args->elem = element;
+        return PCDOC_TRAVEL_STOP;
+    }
+
+    return PCDOC_TRAVEL_GOON;
+}
+
+pcdoc_element_t
+pcdoc_get_element_by_id_in_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *id)
+{
+    pcdoc_element_t ret;
+    if (ancestor == NULL) {
+        ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+    }
+
+    if (doc->ops->get_elem_by_id) {
+        ret = doc->ops->get_elem_by_id(doc, ancestor, id);
+        goto out;
+    }
+
+    struct travel_elem_id data = {
+        .elem = NULL,
+        .id = id
+    };
+
+    pcdoc_travel_descendant_elements(doc, ancestor, travel_elem_id_cb,
+            &data, NULL);
+    ret = data.elem;
+
+out:
+    return ret;
+}
+
+struct travel_find_elem {
+    pcdoc_element_t  elem;
+    pcdoc_selector_t selector;
+};
+
+static int
+travel_find_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(ctxt);
+//    struct travel_find_elem *args = (struct travel_find_elem*)ctxt;
+
+    //TODO: call css_element_selector_match
+    return PCDOC_TRAVEL_GOON;
+}
+
 pcdoc_element_t
 pcdoc_find_element_in_descendants(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(ancestor);
-    UNUSED_PARAM(selector);
-    pcdoc_element_t found = NULL;
+    pcdoc_element_t ret;
+    if (ancestor == NULL) {
+        ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
+    }
 
-#if 0
     if (doc->ops->find_elem) {
-        if (ancestor == NULL)
-            ancestor = doc->ops->special_elem(doc, PCDOC_SPECIAL_ELEM_ROOT);
-
-        found = doc->ops->find_elem(doc, ancestor, selector);
+        ret = doc->ops->find_elem(doc, ancestor, selector);
+        goto out;
     }
-    else {
-        found = NULL;
-    }
-#endif
 
-    return found;
+    struct travel_find_elem data = {
+        .selector = selector,
+        .elem = NULL
+    };
+
+    pcdoc_travel_descendant_elements(doc, ancestor, travel_find_elem_cb,
+            &data, NULL);
+    ret = data.elem;
+
+out:
+    return ret;
 }
 
 static pcdoc_elem_coll_t
-element_collection_new(const char *selector)
+element_collection_new(pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
-    coll->selector = selector ? strdup(selector) : NULL;
+    coll->selector = selector ? selector : NULL;
     coll->refc = 1;
     coll->elems = pcutils_arrlist_new_ex(NULL, 4);
 
     return coll;
 }
 
-pcdoc_elem_coll_t
-pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
-        pcdoc_element_t ancestor, pcdoc_selector_t selector)
-{
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(ancestor);
-    UNUSED_PARAM(selector);
-#if 0
-    pcdoc_elem_coll_t coll = element_collection_new(selector);
-
-    if (doc->ops->elem_coll_select) {
-        if (ancestor == NULL) {
-            ancestor = doc->ops->special_elem(doc,
-                    PCDOC_SPECIAL_ELEM_ROOT);
-        }
-
-        if (!doc->ops->elem_coll_select(doc, coll, ancestor, selector)) {
-            pcdoc_elem_coll_delete(doc, coll);
-            coll = NULL;
-        }
-    }
-
-    return coll;
-#endif
-    return NULL;
-}
-
-pcdoc_elem_coll_t
-pcdoc_elem_coll_filter(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll, const char *selector)
-{
-    pcdoc_elem_coll_t dst_coll = element_collection_new(selector);
-
-    if (doc->ops->elem_coll_filter) {
-        if (!doc->ops->elem_coll_filter(doc, dst_coll,
-                elem_coll, selector)) {
-            pcdoc_elem_coll_delete(doc, dst_coll);
-            dst_coll = NULL;
-        }
-    }
-
-    return dst_coll;
-}
-
-void
-pcdoc_elem_coll_delete(purc_document_t doc,
-        pcdoc_elem_coll_t elem_coll)
-{
-    UNUSED_PARAM(doc);
-
-    pcutils_arrlist_free(elem_coll->elems);
-    return free(elem_coll);
-}
-
-#if 0
 static void
 element_collection_delete(pcdoc_elem_coll_t coll)
 {
+    if (coll->selector) {
+        pcdoc_selector_delete(coll->selector);
+    }
+
     pcutils_arrlist_free(coll->elems);
     return free(coll);
 }
 
+#if 0
 static pcdoc_elem_coll_t
 element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
 {
@@ -802,6 +819,7 @@ element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
     coll->refc++;
     return coll;
 }
+#endif
 
 static void
 element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
@@ -815,5 +833,161 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
         coll->refc--;
     }
 }
-#endif
+
+static int
+travel_select_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(element);
+    UNUSED_PARAM(ctxt);
+//    pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)ctxt;
+
+    //TODO: call css_element_selector_match
+    return PCDOC_TRAVEL_GOON;
+}
+
+pcdoc_elem_coll_t
+pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, pcdoc_selector_t selector)
+{
+    pcdoc_elem_coll_t coll = element_collection_new(selector);
+    if (!coll) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    coll->doc_age = doc->age;
+    if (ancestor == NULL) {
+        ancestor = doc->ops->special_elem(doc,
+                PCDOC_SPECIAL_ELEM_ROOT);
+    }
+
+    if (doc->ops->elem_coll_select) {
+        if (!doc->ops->elem_coll_select(doc, coll, ancestor, selector)) {
+            pcdoc_elem_coll_delete(doc, coll);
+            coll = NULL;
+        }
+        goto out;
+    }
+
+    pcdoc_travel_descendant_elements(doc, ancestor, travel_select_elem_cb,
+            &coll, NULL);
+out:
+    return coll;
+}
+
+pcdoc_elem_coll_t
+pcdoc_elem_coll_select(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
+{
+    UNUSED_PARAM(doc);
+    UNUSED_PARAM(elem_coll);
+    UNUSED_PARAM(selector);
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+pcdoc_elem_coll_t
+pcdoc_elem_coll_filter(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
+{
+    pcdoc_elem_coll_t dst_coll = element_collection_new(selector);
+
+    if (doc->ops->elem_coll_filter) {
+        if (!doc->ops->elem_coll_filter(doc, dst_coll, elem_coll, selector)) {
+            pcdoc_elem_coll_delete(doc, dst_coll);
+            dst_coll = NULL;
+        }
+    }
+
+    return dst_coll;
+}
+
+void
+pcdoc_elem_coll_delete(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll)
+{
+    element_collection_unref(doc, elem_coll);
+}
+
+ssize_t
+pcdoc_elem_coll_count(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll)
+{
+    UNUSED_PARAM(doc);
+    return elem_coll ? elem_coll->nr_elems : 0;
+}
+
+pcdoc_element_t
+pcdoc_elem_coll_get(purc_document_t doc,
+    pcdoc_elem_coll_t elem_coll, size_t idx)
+{
+    UNUSED_PARAM(doc);
+    pcdoc_element_t elem = NULL;
+    if (!elem_coll || idx >= elem_coll->nr_elems) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    elem = pcutils_arrlist_get_idx(elem_coll->elems, idx);
+out:
+    return elem;
+}
+
+pcdoc_elem_coll_t
+pcdoc_elem_coll_sub(purc_document_t doc,
+        pcdoc_elem_coll_t elem_coll, int offset, size_t length)
+{
+    UNUSED_PARAM(doc);
+    pcdoc_elem_coll_t coll = NULL;
+    if (!elem_coll || (size_t)offset >= elem_coll->nr_elems ||
+            length > (elem_coll->nr_elems - offset)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    coll = element_collection_new(elem_coll->selector);
+    if (!coll) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    coll->select_begin = offset;
+    coll->nr_elems = length;
+
+    size_t end = offset + length;
+    for (size_t i = offset; i < end; i++) {
+        void *v = pcutils_arrlist_get_idx(elem_coll->elems, i);
+        pcutils_arrlist_append(coll->elems, v);
+    }
+
+out:
+    return coll;
+}
+
+int
+pcdoc_elem_coll_travel(purc_document_t doc, pcdoc_elem_coll_t elem_coll,
+        pcdoc_element_cb cb, void *ctxt, size_t *n)
+{
+    int ret = -1;
+    if (!elem_coll || !cb) {
+        goto out;
+    }
+
+    size_t i;
+    pcdoc_element_t elem;
+    for (i = 0; i < elem_coll->nr_elems; i++) {
+        elem = pcutils_arrlist_get_idx(elem_coll->elems, i);
+        if (cb(doc, elem, ctxt)) {
+            break;
+        }
+    }
+
+    if (n) {
+        *n = i;
+    }
+
+    ret = i == elem_coll->nr_elems ? 0 : -1;
+out:
+    return ret;
+}
 
