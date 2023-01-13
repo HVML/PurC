@@ -27,6 +27,7 @@
 
 #include "csseng/csseng.h"
 #include "purc/purc-dom.h"
+#include "private/document.h"
 
 #include <assert.h>
 #include <string.h>
@@ -232,7 +233,7 @@ named_parent_node(void *pw, void *n, const css_qname *qname, void **_parent)
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
     pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
-    if (parent) {
+    if (parent && node.elem != doc->root4select) {
         const char *name1, *name2;
         size_t len1, len2;
 
@@ -359,7 +360,7 @@ parent_node(void *pw, void *n, void **_parent)
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
     pcdoc_element_t parent = pcdoc_node_get_parent(doc, node);
-    if (parent) {
+    if (parent && (node.elem != doc->root4select)) {
         *_parent = (void *)parent;
     }
     else {
@@ -958,7 +959,8 @@ node_is_root(void *pw, void *n, bool *match)
     purc_document_t doc = (purc_document_t)pw;
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
 
-    if (pcdoc_node_get_parent(doc, node) == NULL) {
+    if (pcdoc_node_get_parent(doc, node) == NULL ||
+            node.elem == doc->root4select) {
         *match = true;
     }
     else {
