@@ -136,7 +136,7 @@ struct purc_document_ops {
             pcdoc_selector_t selector);
 
     pcdoc_element_t (*get_elem_by_id)(purc_document_t doc,
-            pcdoc_element_t scope, const char *selector);
+            pcdoc_element_t scope, const char *id);
 
     int (*elem_coll_select)(purc_document_t doc,
             pcdoc_elem_coll_t coll, pcdoc_element_t scope,

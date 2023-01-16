@@ -32,6 +32,8 @@
 #include "private/debug.h"
 #include "private/str.h"
 #include "private/map.h"
+#include "private/hash.h"
+#include "private/dom.h"
 
 #include "ns_const.h"
 
@@ -970,6 +972,26 @@ static int serialize(purc_document_t doc, pcdoc_node node,
     }
 }
 
+static pcdoc_element_t get_elem_by_id(purc_document_t doc,
+            pcdoc_element_t scope, const char *id)
+{
+    UNUSED_PARAM(scope);
+
+    pcdoc_element_t ret = NULL;
+    if (!doc || !id) {
+        goto out;
+    }
+
+    pcdom_document_t *dom_doc = pcdom_interface_document(doc->impl);
+    pchtml_id_elem_data_t *data = pcutils_hash_search(dom_doc->id_elem,
+            pcutils_hash_search_raw, (const unsigned char *)id, strlen(id));
+    if (data) {
+        ret = (pcdoc_element_t)data->elem;
+    }
+out:
+    return ret;
+}
+
 struct purc_document_ops _pcdoc_html_ops = {
     .create = create,
     .destroy = destroy,
@@ -1001,6 +1023,7 @@ struct purc_document_ops _pcdoc_html_ops = {
     .get_data = NULL,
     .travel = travel,
     .serialize = serialize,
+    .get_elem_by_id = get_elem_by_id,
     .elem_coll_select = NULL,
     .elem_coll_filter = NULL,
 };

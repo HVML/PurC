@@ -153,6 +153,13 @@ pcdom_document_init(pcdom_document_t *document, pcdom_document_t *owner,
         goto failed;
     }
 
+    document->id_elem= pcutils_hash_create();
+    status = pcutils_hash_init(document->id_elem, 128,
+                              sizeof(pchtml_id_elem_data_t));
+    if (status != PURC_ERROR_OK) {
+        goto failed;
+    }
+
     node->owner_document = document;
 
     return PURC_ERROR_OK;
@@ -165,6 +172,7 @@ failed:
     pcutils_hash_destroy(document->ns, true);
     pcutils_hash_destroy(document->attrs, true);
     pcutils_hash_destroy(document->prefix, true);
+    pcutils_hash_destroy(document->id_elem, true);
 
     return status;
 }
@@ -179,6 +187,7 @@ pcdom_document_clean(pcdom_document_t *document)
         pcutils_hash_clean(document->ns);
         pcutils_hash_clean(document->attrs);
         pcutils_hash_clean(document->prefix);
+        pcutils_hash_clean(document->id_elem);
     }
 
     document->node.first_child = NULL;
@@ -210,6 +219,7 @@ pcdom_document_destroy(pcdom_document_t *document)
     pcutils_hash_destroy(document->ns, true);
     pcutils_hash_destroy(document->attrs, true);
     pcutils_hash_destroy(document->prefix, true);
+    pcutils_hash_destroy(document->id_elem, true);
 
     return pcutils_free(document);
 }

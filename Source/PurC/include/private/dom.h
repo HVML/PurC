@@ -184,6 +184,13 @@ void pcdom_init_instance(struct pcinst* inst) WTF_INTERNAL;
 void pcdom_cleanup_instance(struct pcinst* inst) WTF_INTERNAL;
 */
 
+// ============================= for id_elem hash =============================
+typedef struct {
+    pcutils_hash_entry_t    entry;
+
+    pcdom_element_t        *elem;
+} pchtml_id_elem_data_t;
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

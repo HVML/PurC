@@ -318,6 +318,12 @@ pcdom_element_set_attribute(pcdom_element_t *element,
 
 update:
 
+    if (exists &&
+            (attr->node.local_name == PCDOM_ATTR_ID)) {
+        pcutils_hash_remove(element->node.owner_document->id_elem,
+                pcutils_hash_search_raw, attr->value->data, attr->value->length);
+    }
+
     status = pcdom_attr_set_value(attr, value, value_len);
     if (status != PURC_ERROR_OK) {
         return pcdom_attr_interface_destroy(attr);
@@ -326,6 +332,14 @@ update:
     if (!exists)
         pcdom_element_attr_append(element, attr);
 
+    if (attr->node.local_name == PCDOM_ATTR_ID) {
+        pchtml_id_elem_data_t *data = pcutils_hash_insert(
+                element->node.owner_document->id_elem,
+                pcutils_hash_insert_raw, attr->value->data, attr->value->length);
+        if (data) {
+            data->elem = element;
+        }
+    }
     return attr;
 }
 
