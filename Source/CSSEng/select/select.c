@@ -3075,6 +3075,7 @@ static css_error resolve_url(void *pw, const char *base,
     return CSS_OK;
 }
 
+#define ELEM_SELECTOR_RULE_DEF  "{width:0;}"
 
 css_error css_element_selector_create(const char *selector,
         css_element_selector **result)
@@ -3114,7 +3115,9 @@ css_error css_element_selector_create(const char *selector,
         goto out_clear_sheet;
     }
 
-    err = css_stylesheet_append_data(sel->sheet, (const uint8_t *)"{}", 2);
+    err = css_stylesheet_append_data(sel->sheet,
+            (const uint8_t *)ELEM_SELECTOR_RULE_DEF,
+            strlen(ELEM_SELECTOR_RULE_DEF));
     if ((err != CSS_OK) && (err != CSS_NEEDDATA)) {
         goto out_clear_sheet;
     }
@@ -3230,6 +3233,10 @@ css_error css_element_selector_match(css_element_selector *selector,
     err = CSS_OK;
 
 cleanup:
+    /* FIXME: xue node : bloom belong to its parent */
+    if (state.node_data->bloom) {
+        state.node_data->bloom = NULL;
+    }
     css_select__finalise_selection_state(&state);
 
 out:

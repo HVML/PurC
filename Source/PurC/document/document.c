@@ -855,6 +855,7 @@ travel_select_elem_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
 
     if (match) {
         pcutils_arrlist_append(coll->elems, element);
+        coll->nr_elems++;
     }
     return PCDOC_TRAVEL_GOON;
 }
@@ -884,7 +885,7 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
     }
 
     pcdoc_travel_descendant_elements(doc, ancestor, travel_select_elem_cb,
-            &coll, NULL);
+            coll, NULL);
 out:
     return coll;
 }
