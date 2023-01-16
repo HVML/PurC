@@ -332,7 +332,7 @@ update:
     if (!exists)
         pcdom_element_attr_append(element, attr);
 
-    if (attr->node.local_name == PCDOM_ATTR_ID) {
+    if (exists && (attr->node.local_name == PCDOM_ATTR_ID)) {
         pchtml_id_elem_data_t *data = pcutils_hash_insert(
                 element->node.owner_document->id_elem,
                 pcutils_hash_insert_raw, attr->value->data, attr->value->length);
@@ -401,6 +401,12 @@ pcdom_element_attr_append(pcdom_element_t *element, pcdom_attr_t *attr)
         }
 
         element->attr_id = attr;
+        pchtml_id_elem_data_t *data = pcutils_hash_insert(
+                element->node.owner_document->id_elem,
+                pcutils_hash_insert_raw, attr->value->data, attr->value->length);
+        if (data) {
+            data->elem = element;
+        }
     }
     else if (attr->node.local_name == PCDOM_ATTR_CLASS) {
         if (element->attr_class != NULL) {

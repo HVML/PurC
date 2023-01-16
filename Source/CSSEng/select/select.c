@@ -3110,12 +3110,12 @@ css_error css_element_selector_create(const char *selector,
 
     err = css_stylesheet_append_data(sel->sheet, (const uint8_t *)selector,
             strlen(selector));
-    if (err != CSS_OK) {
+    if ((err != CSS_OK) && (err != CSS_NEEDDATA)) {
         goto out_clear_sheet;
     }
 
     err = css_stylesheet_append_data(sel->sheet, (const uint8_t *)"{}", 2);
-    if (err != CSS_OK) {
+    if ((err != CSS_OK) && (err != CSS_NEEDDATA)) {
         goto out_clear_sheet;
     }
 

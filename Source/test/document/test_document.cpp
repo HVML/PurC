@@ -538,3 +538,31 @@ TEST(document, travel_descendants)
     ASSERT_EQ(refc, 1);
 }
 
+TEST(document, new_delete_selector)
+{
+    pcdoc_selector_t selector = pcdoc_selector_new("#idd");
+    ASSERT_NE(selector, nullptr);
+
+    pcdoc_selector_delete(selector);
+}
+
+TEST(document, get_elem_by_id)
+{
+    purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
+            html_contents, strlen(html_contents));
+    ASSERT_NE(doc, nullptr);
+
+    pcdoc_element_t elem = pcdoc_get_element_by_id_in_descendants(doc,
+            NULL, "aa");
+    ASSERT_EQ(elem, nullptr);
+
+    elem = pcdoc_get_element_by_id_in_descendants(doc,
+            NULL, "foo");
+    ASSERT_NE(elem, nullptr);
+
+    elem = pcdoc_get_element_by_id_in_document(doc, "foo");
+    ASSERT_NE(elem, nullptr);
+
+    unsigned int refc = purc_document_delete(doc);
+    ASSERT_EQ(refc, 1);
+}
