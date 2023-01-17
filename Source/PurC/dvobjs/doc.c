@@ -150,8 +150,8 @@ static inline purc_variant_t
 select_getter(void *entity,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
     UNUSED_PARAM(call_flags);
+    purc_document_t doc = (purc_document_t)entity;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     const char *type = SELECT_TYPE_ID;
     if (nr_args == 0) {
@@ -174,7 +174,8 @@ select_getter(void *entity,
     }
 
     if (strcmp(type, SELECT_TYPE_ID) == 0) {
-        // select by id
+        ret = pcdvobjs_elem_coll_select_by_id(doc,
+                purc_variant_get_string_const(v));
     }
     else {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);

@@ -92,6 +92,24 @@ purc_variant_t
 pcdvobjs_element_has_class_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
+purc_variant_t
+pcdvobjs_make_elem_coll(pcdoc_elem_coll_t elem_coll);
+
+pcdoc_element_t
+pcdvobjs_find_element_in_doc(purc_document_t doc, const char *selector);
+
+pcdoc_elem_coll_t
+pcdvobjs_elem_coll_from_doc(purc_document_t doc, const char *selector);
+
+int
+pcdvobjs_elem_coll_update(pcdoc_elem_coll_t elem_coll);
+
+purc_variant_t
+pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id);
+
+purc_variant_t
+pcdvobjs_elem_coll_query(purc_document_t doc, const char *sel);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_DVOBJS_ELEMENT_H */

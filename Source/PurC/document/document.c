@@ -834,9 +834,10 @@ out:
 }
 
 static pcdoc_elem_coll_t
-element_collection_new(pcdoc_selector_t selector)
+element_collection_new(purc_document_t doc, pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
+    coll->doc = doc;
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
     coll->elems = pcutils_arrlist_new_ex(NULL, 4);
@@ -899,7 +900,7 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(selector);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, selector);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -951,7 +952,7 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_filter(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t dst_coll = element_collection_new(selector);
+    pcdoc_elem_coll_t dst_coll = element_collection_new(doc, selector);
 
     if (doc->ops->elem_coll_filter) {
         if (!doc->ops->elem_coll_filter(doc, dst_coll, elem_coll, selector)) {
@@ -1006,7 +1007,7 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         goto out;
     }
 
-    coll = element_collection_new(elem_coll->selector);
+    coll = element_collection_new(doc, elem_coll->selector);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -1047,6 +1048,36 @@ pcdoc_elem_coll_travel(purc_document_t doc, pcdoc_elem_coll_t elem_coll,
     }
 
     ret = i == elem_coll->nr_elems ? 0 : -1;
+out:
+    return ret;
+}
+
+int
+pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+    if (!elem_coll) {
+        goto out;
+    }
+
+    pcdoc_elem_coll_t new_coll = pcdoc_elem_coll_new_from_document(
+            elem_coll->doc, elem_coll->selector);
+    if (!new_coll) {
+        goto out;
+    }
+
+    pcutils_arrlist_free(elem_coll->elems);
+    elem_coll->elems = pcutils_arrlist_new_ex(NULL, 4);
+    if (!elem_coll->elems) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    for (size_t i = elem_coll->select_begin; i < new_coll->nr_elems; i++) {
+        void *v = pcutils_arrlist_get_idx(new_coll->elems, i);
+        pcutils_arrlist_append(elem_coll->elems, v);
+    }
+
 out:
     return ret;
 }

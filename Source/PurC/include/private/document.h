@@ -170,7 +170,7 @@ struct purc_document {
 };
 
 struct pcdoc_elem_coll {
-    /* the CSS selector */
+    purc_document_t  doc;
     pcdoc_selector_t selector;
 
     unsigned    refc;
