@@ -651,6 +651,33 @@ purc_document_serialize_contents_to_stream(purc_document_t doc,
     return 0;
 }
 
+static inline void
+selector_delete(pcdoc_selector_t selector)
+{
+    if (selector) {
+        css_element_selector_destroy(selector->selector);
+        free(selector);
+    }
+}
+
+static pcdoc_selector_t
+pcdoc_selector_ref(pcdoc_selector_t selector)
+{
+    selector->refc++;
+    return selector;
+}
+
+static void
+pcdoc_selector_unref(pcdoc_selector_t selector)
+{
+    if (selector->refc <= 1) {
+        selector_delete(selector);
+    }
+    else {
+        selector->refc--;
+    }
+}
+
 pcdoc_selector_t
 pcdoc_selector_new(const char *selector)
 {
@@ -670,6 +697,7 @@ pcdoc_selector_new(const char *selector)
         goto out_clear_ret;
     }
 
+    ret->refc = 1;
     goto out;
 
 out_clear_ret:
@@ -683,18 +711,8 @@ out:
 int
 pcdoc_selector_delete(pcdoc_selector_t selector)
 {
-    int ret = -1;
-    if (!selector) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
-
-    css_element_selector_destroy(selector->selector);
-    free(selector);
-    ret = 0;
-
-out:
-    return ret;
+    pcdoc_selector_unref(selector);
+    return 0;
 }
 
 struct travel_elem_id {
@@ -802,7 +820,7 @@ static pcdoc_elem_coll_t
 element_collection_new(pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
-    coll->selector = selector ? selector : NULL;
+    coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
     coll->elems = pcutils_arrlist_new_ex(NULL, 4);
 
@@ -813,7 +831,7 @@ static void
 element_collection_delete(pcdoc_elem_coll_t coll)
 {
     if (coll->selector) {
-        pcdoc_selector_delete(coll->selector);
+        pcdoc_selector_unref(coll->selector);
     }
 
     pcutils_arrlist_free(coll->elems);

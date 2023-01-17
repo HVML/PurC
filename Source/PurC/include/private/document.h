@@ -185,6 +185,7 @@ struct pcdoc_elem_coll {
 struct css_element_selector;
 struct pcdoc_selector {
     struct css_element_selector *selector;
+    unsigned    refc;
 };
 
 

@@ -601,6 +601,7 @@ TEST(document, new_from_document)
     ASSERT_EQ(count, 26);
 
     pcdoc_elem_coll_delete(doc, coll);
+    pcdoc_selector_delete(selector);
 
     unsigned int refc = purc_document_delete(doc);
     ASSERT_EQ(refc, 1);
