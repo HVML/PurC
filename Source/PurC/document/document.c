@@ -655,7 +655,12 @@ static inline void
 selector_delete(pcdoc_selector_t selector)
 {
     if (selector) {
-        css_element_selector_destroy(selector->selector);
+        if (selector->selector) {
+            css_element_selector_destroy(selector->selector);
+        }
+        if (selector->id) {
+            free(selector->id);
+        }
         free(selector);
     }
 }
@@ -692,10 +697,16 @@ pcdoc_selector_new(const char *selector)
         goto out;
     }
 
-    css_error err = css_element_selector_create(selector, &ret->selector);
-    if (err != CSS_OK) {
-        goto out_clear_ret;
+    if (selector[0] == '#') {
+        ret->id = strdup(selector);
     }
+    else {
+        css_error err = css_element_selector_create(selector, &ret->selector);
+        if (err != CSS_OK) {
+            goto out_clear_ret;
+        }
+    }
+
 
     ret->refc = 1;
     goto out;
@@ -803,6 +814,12 @@ pcdoc_find_element_in_descendants(purc_document_t doc,
         goto out;
     }
 
+    if (selector->id) {
+        ret = pcdoc_get_element_by_id_in_descendants(doc, ancestor,
+                selector->id + 1);
+        goto out;
+    }
+
     struct travel_find_elem data = {
         .selector = selector,
         .elem = NULL
@@ -898,6 +915,17 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         if (!doc->ops->elem_coll_select(doc, coll, ancestor, selector)) {
             pcdoc_elem_coll_delete(doc, coll);
             coll = NULL;
+        }
+        goto out;
+    }
+
+    if (selector->id) {
+        pcdoc_element_t elem  = pcdoc_get_element_by_id_in_descendants(doc,
+                ancestor, selector->id + 1);
+        if (elem) {
+            pcutils_arrlist_append(coll->elems, elem);
+            coll->nr_elems++;
+            coll->select_begin = 0;
         }
         goto out;
     }

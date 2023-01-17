@@ -641,5 +641,30 @@ TEST(document, elem_coll)
     ASSERT_EQ(refc, 1);
 }
 
+TEST(document, elem_coll_by_id)
+{
+    purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
+            html_contents, strlen(html_contents));
+    ASSERT_NE(doc, nullptr);
+
+    pcdoc_selector_t selector = pcdoc_selector_new("#bar");
+    ASSERT_NE(selector, nullptr);
+
+    pcdoc_elem_coll_t coll = pcdoc_elem_coll_new_from_document(doc, selector);
+    ASSERT_NE(coll, nullptr);
+
+    ssize_t count = pcdoc_elem_coll_count(doc, coll);
+    ASSERT_EQ(count, 1);
+
+    pcdoc_elem_coll_delete(doc, coll);
+
+    pcdoc_element_t elem = pcdoc_find_element_in_document(doc, selector);
+    ASSERT_NE(elem, nullptr);
+
+    pcdoc_selector_delete(selector);
+
+    unsigned int refc = purc_document_delete(doc);
+    ASSERT_EQ(refc, 1);
+}
 
 
