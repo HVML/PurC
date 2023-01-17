@@ -3239,6 +3239,22 @@ cleanup:
     }
     css_select__finalise_selection_state(&state);
 
+    struct css_node_data *node_data = NULL;
+    if (parent) {
+        handler->get_node_data(pw, parent, (void **) (void *) &node_data);
+        if (node_data) {
+            css__destroy_node_data(node_data);
+            handler->set_node_data(pw, parent, NULL);
+        }
+    }
+
+    node_data = NULL;
+    handler->get_node_data(pw, node, (void **) (void *) &node_data);
+    if (node_data) {
+        css__destroy_node_data(node_data);
+        handler->set_node_data(pw, node, NULL);
+    }
+
 out:
     return err;
 }
