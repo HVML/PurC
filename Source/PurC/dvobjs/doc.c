@@ -31,6 +31,13 @@
 
 #include "internal.h"
 
+
+#define SELECT_TYPE_ID          "id"
+#define SELECT_TYPE_CLASS       "class"
+#define SELECT_TYPE_TAG         "tag"
+#define SELECT_TYPE_NAME        "name"
+#define SELECT_TYPE_NSTAG       "nstag"
+
 struct dynamic_args {
     const char              *name;
     purc_dvariant_method     getter;
@@ -140,6 +147,45 @@ doctype_getter(void *entity,
 }
 
 static inline purc_variant_t
+select_getter(void *entity,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(call_flags);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    const char *type = SELECT_TYPE_ID;
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    purc_variant_t v = argv[0];
+    if (!purc_variant_is_string(v)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    if (nr_args > 1) {
+        if (!purc_variant_is_string(argv[1])) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+        type = purc_variant_get_string_const(argv[1]);
+    }
+
+    if (strcmp(type, SELECT_TYPE_ID) == 0) {
+        // select by id
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto out;
+    }
+
+out:
+    return ret;
+}
+
+static inline purc_variant_t
 query(purc_document_t doc, const char *css)
 {
     PC_ASSERT(doc);
@@ -180,7 +226,8 @@ query_getter(void *entity,
 
 static struct native_property_cfg configs[] = {
     {"doctype", doctype_getter, NULL, NULL, NULL},
-    {"query", query_getter, NULL, NULL, NULL},
+    {"select",  select_getter,  NULL, NULL, NULL},
+    {"query",   query_getter,   NULL, NULL, NULL},
 };
 
 static struct native_property_cfg*
