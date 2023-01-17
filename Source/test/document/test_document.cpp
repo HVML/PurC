@@ -585,7 +585,16 @@ TEST(document, find_element)
     ASSERT_EQ(refc, 1);
 }
 
-TEST(document, new_from_document)
+int travel_coll_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    (void)doc;
+    (void)element;
+    size_t *n = (size_t *)ctxt;
+    (*n)++;
+    return 0;
+}
+
+TEST(document, elem_coll)
 {
     purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
             html_contents, strlen(html_contents));
@@ -600,9 +609,37 @@ TEST(document, new_from_document)
     ssize_t count = pcdoc_elem_coll_count(doc, coll);
     ASSERT_EQ(count, 26);
 
+    for (ssize_t i = 0; i < count; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(doc, coll, i);
+        ASSERT_NE(elem, nullptr);
+    }
+
+    pcdoc_elem_coll_t sub = pcdoc_elem_coll_sub(doc, coll, 3, 5);
+    ASSERT_NE(sub, nullptr);
+
+    for (ssize_t i = 0, j = 3; i < 5; i++, j++) {
+        pcdoc_element_t sub_elem = pcdoc_elem_coll_get(doc, sub, i);
+        ASSERT_NE(sub_elem, nullptr);
+
+        pcdoc_element_t elem = pcdoc_elem_coll_get(doc, coll, j);
+        ASSERT_NE(elem, nullptr);
+
+        ASSERT_EQ(sub_elem, elem);
+    }
+
+    size_t n = 0;
+    size_t nr = 0;
+    pcdoc_elem_coll_travel(doc, sub, travel_coll_cb, &nr, &n);
+    ASSERT_EQ(nr, 5);
+    ASSERT_EQ(n, 5);
+
+    pcdoc_elem_coll_delete(doc, sub);
     pcdoc_elem_coll_delete(doc, coll);
     pcdoc_selector_delete(selector);
 
     unsigned int refc = purc_document_delete(doc);
     ASSERT_EQ(refc, 1);
 }
+
+
+
