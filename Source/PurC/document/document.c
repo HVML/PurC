@@ -842,6 +842,7 @@ element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
     coll->doc = doc;
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
+    coll->select_size = -1;
     coll->elems = pcutils_arrlist_new_ex(NULL, 4);
 
     return coll;
@@ -1015,13 +1016,17 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         goto out;
     }
     coll->select_begin = offset;
-    coll->nr_elems = length;
+    coll->select_size = length;
 
     size_t end = offset + length;
+    end = end > elem_coll->nr_elems ? elem_coll->nr_elems : end;
+
     for (size_t i = offset; i < end; i++) {
         void *v = pcutils_arrlist_get_idx(elem_coll->elems, i);
         pcutils_arrlist_append(coll->elems, v);
     }
+
+    coll->nr_elems = pcutils_arrlist_length(coll->elems);
 
 out:
     return coll;
@@ -1080,14 +1085,19 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
-    size_t nr = 0;
-    for (size_t i = elem_coll->select_begin;
-            ((i < new_coll->nr_elems) && (nr < elem_coll->nr_elems)); i++, nr++) {
+    size_t offset = elem_coll->select_begin;
+    size_t end = new_coll->nr_elems;
+    if (elem_coll->select_size != (size_t)-1) {
+        end = offset + elem_coll->select_size;
+        end = end > new_coll->nr_elems ? new_coll->nr_elems : end;
+    }
+
+    for (size_t i = offset; i < end; i++) {
         void *v = pcutils_arrlist_get_idx(new_coll->elems, i);
         pcutils_arrlist_append(elem_coll->elems, v);
     }
 
-    elem_coll->nr_elems = nr;
+    elem_coll->nr_elems = pcutils_arrlist_length(elem_coll->elems);
 
     ret = 0;
 

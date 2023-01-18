@@ -177,6 +177,7 @@ struct pcdoc_elem_coll {
     unsigned    refc;
     unsigned    doc_age;
     size_t      select_begin;
+    size_t      select_size;
     size_t      nr_elems;
 
     /* the elements in the collection */
