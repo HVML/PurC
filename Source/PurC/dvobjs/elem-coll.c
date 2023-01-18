@@ -60,13 +60,35 @@ static purc_variant_t
 sub_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (!pcvariant_is_of_number(argv[0]) || !pcvariant_is_of_number(argv[1])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    int64_t pos = 0;
+    purc_variant_cast_to_longint(argv[0], &pos, false);
+
+    int64_t size = 0;
+    purc_variant_cast_to_longint(argv[1], &size, false);
+
+    pcdoc_elem_coll_t coll = pcdoc_elem_coll_sub(elem_coll->doc, elem_coll,
+            pos, size);
+    if (!coll) {
+        goto out;
+    }
+
+    ret = pcdvobjs_make_elem_coll(coll);
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -131,13 +153,19 @@ static purc_variant_t
 content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_element_t elem = NULL;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t nr_elems = elem_coll->nr_elems;
+    if (nr_elems == 0) {
+        goto out;
+    }
+
+    elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, 0);
+    ret = pcdvobjs_element_content_getter(elem_coll->doc, elem,
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -157,13 +185,19 @@ static purc_variant_t
 text_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_element_t elem = NULL;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t nr_elems = elem_coll->nr_elems;
+    if (nr_elems == 0) {
+        goto out;
+    }
+
+    elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, 0);
+    ret = pcdvobjs_element_text_content_getter(elem_coll->doc, elem,
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -183,13 +217,19 @@ static purc_variant_t
 data_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_element_t elem = NULL;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t nr_elems = elem_coll->nr_elems;
+    if (nr_elems == 0) {
+        goto out;
+    }
+
+    elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, 0);
+    ret = pcdvobjs_element_json_content_getter(elem_coll->doc, elem,
+            nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -209,13 +249,31 @@ static purc_variant_t
 has_class_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    bool has_class = false;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    pcdoc_element_t elem = NULL;
+    size_t nr_elems = elem_coll->nr_elems;
+    for (size_t i = 0; i < nr_elems; i++) {
+        elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+
+        purc_variant_t v = pcdvobjs_element_has_class_getter(elem_coll->doc,
+                elem, nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
+        if (v == PURC_VARIANT_INVALID) {
+            continue;
+        }
+
+        has_class = purc_variant_booleanize(v);
+        purc_variant_unref(v);
+
+        if (has_class) {
+            break;
+        }
+    }
+
+    return purc_variant_make_boolean(has_class);
 }
 
 static purc_variant_t
