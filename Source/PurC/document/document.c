@@ -834,9 +834,11 @@ out:
 }
 
 static pcdoc_elem_coll_t
-element_collection_new(purc_document_t doc, pcdoc_selector_t selector)
+element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
+        pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
+    coll->ancestor = ancestor;
     coll->doc = doc;
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
@@ -900,7 +902,7 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(doc, selector);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -952,7 +954,8 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_filter(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t dst_coll = element_collection_new(doc, selector);
+    pcdoc_elem_coll_t dst_coll = element_collection_new(doc, elem_coll->ancestor,
+            selector);
 
     if (doc->ops->elem_coll_filter) {
         if (!doc->ops->elem_coll_filter(doc, dst_coll, elem_coll, selector)) {
@@ -1007,7 +1010,7 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         goto out;
     }
 
-    coll = element_collection_new(doc, elem_coll->selector);
+    coll = element_collection_new(doc, elem_coll->ancestor, elem_coll->selector);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -1060,8 +1063,8 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
-    pcdoc_elem_coll_t new_coll = pcdoc_elem_coll_new_from_document(
-            elem_coll->doc, elem_coll->selector);
+    pcdoc_elem_coll_t new_coll = pcdoc_elem_coll_new_from_descendants(
+            elem_coll->doc, elem_coll->ancestor, elem_coll->selector);
     if (!new_coll) {
         goto out;
     }
@@ -1081,4 +1084,5 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
 out:
     return ret;
 }
+
 

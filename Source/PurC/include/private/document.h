@@ -171,6 +171,7 @@ struct purc_document {
 
 struct pcdoc_elem_coll {
     purc_document_t  doc;
+    pcdoc_element_t  ancestor;
     pcdoc_selector_t selector;
 
     unsigned    refc;
