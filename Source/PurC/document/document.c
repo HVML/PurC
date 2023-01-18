@@ -146,18 +146,21 @@ pcdoc_element_new_element(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *tag, bool self_close)
 {
+    doc->age++;
     return doc->ops->operate_element(doc, elem, op, tag, self_close);
 }
 
 void
 pcdoc_element_clear(purc_document_t doc, pcdoc_element_t elem)
 {
+    doc->age++;
     doc->ops->operate_element(doc, elem, PCDOC_OP_CLEAR, NULL, 0);
 }
 
 void
 pcdoc_element_erase(purc_document_t doc, pcdoc_element_t elem)
 {
+    doc->age++;
     doc->ops->operate_element(doc, elem, PCDOC_OP_ERASE, NULL, 0);
 }
 
@@ -166,6 +169,7 @@ pcdoc_element_new_text_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *text, size_t len)
 {
+    doc->age++;
     return doc->ops->new_text_content(doc, elem, op, text, len);
 }
 
@@ -174,6 +178,7 @@ pcdoc_element_set_data_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         purc_variant_t data)
 {
+    doc->age++;
     if (doc->ops->new_data_content)
         return doc->ops->new_data_content(doc, elem, op, data);
 
@@ -186,6 +191,7 @@ pcdoc_element_new_content(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *content, size_t len)
 {
+    doc->age++;
     return doc->ops->new_content(doc, elem, op, content, len);
 }
 
@@ -206,6 +212,7 @@ pcdoc_element_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,
         const char *name, const char *val, size_t len)
 {
+    doc->age++;
     if (doc->ops->set_attribute) {
         return doc->ops->set_attribute(doc, elem, op, name, val, len);
     }
