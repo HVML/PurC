@@ -1027,6 +1027,7 @@ pcdoc_elem_coll_sub(purc_document_t doc,
     }
 
     coll->nr_elems = pcutils_arrlist_length(coll->elems);
+    coll->doc_age = doc->age;
 
 out:
     return coll;
