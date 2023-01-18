@@ -41,6 +41,9 @@
 int
 pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll);
 
+pcdoc_elem_coll_t
+pcdoc_elem_coll_new_from_element(purc_document_t doc, pcdoc_element_t elem);
+
 static purc_variant_t
 count_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -316,19 +319,40 @@ property_cleaner(void *entity, const char *key_name)
 static purc_variant_t
 cleaner(void *native_entity, unsigned call_flags)
 {
-    UNUSED_PARAM(native_entity);
     UNUSED_PARAM(call_flags);
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return purc_variant_make_boolean(false);
+
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) native_entity;
+
+    pcdoc_element_t elem = NULL;
+    size_t len = elem_coll->nr_elems;
+    for (size_t i = 0; i < len; i++) {
+        elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        if (!elem) {
+            continue;
+        }
+
+        pcdoc_element_clear(elem_coll->doc, elem);
+    }
+
+    return purc_variant_make_boolean(true);
 }
 
 static purc_variant_t
 eraser(void *native_entity, unsigned call_flags)
 {
-    UNUSED_PARAM(native_entity);
     UNUSED_PARAM(call_flags);
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return purc_variant_make_ulongint(0);
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) native_entity;
+
+    pcdoc_element_t elem = NULL;
+    size_t len = elem_coll->nr_elems;
+    size_t nr_erase = 0;
+    for (size_t i = 0; i < len; i++) {
+        elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        pcdoc_element_erase(elem_coll->doc, elem);
+        nr_erase++;
+    }
+
+    return purc_variant_make_ulongint(nr_erase);
 }
 
 static bool
@@ -438,7 +462,8 @@ out:
 }
 
 pcdoc_elem_coll_t
-pcdvobjs_elem_coll_from_doc(purc_document_t doc, const char *sel)
+pcdvobjs_elem_coll_from_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *sel)
 {
     pcdoc_elem_coll_t coll = NULL;
     pcdoc_selector_t selector = NULL;
@@ -453,23 +478,37 @@ pcdvobjs_elem_coll_from_doc(purc_document_t doc, const char *sel)
         goto out_clear_selector;
     }
 
-    coll = pcdoc_elem_coll_new_from_document(doc, selector);
+    coll = pcdoc_elem_coll_new_from_descendants(doc, ancestor, selector);
 
 out_clear_selector:
     pcdoc_selector_delete(selector);
 
 out:
-    if (selector) {
-        pcdoc_selector_delete(selector);
-    }
     return coll;
+}
+
+purc_variant_t
+pcdvobjs_elem_coll_query(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *sel)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_elem_coll_t coll = NULL;
+
+    coll = pcdvobjs_elem_coll_from_descendants(doc, ancestor, sel);
+    if (!coll) {
+        goto out;
+    }
+
+    ret = pcdvobjs_make_elem_coll(coll);
+
+out:
+    return ret;
 }
 
 purc_variant_t
 pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    pcdoc_elem_coll_t coll = NULL;
 
     char *sel = (char *) malloc(strlen(id) + 1);
     if (!sel) {
@@ -479,34 +518,55 @@ pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id)
     sel[0] = '#';
     strcpy(sel + 1, id);
 
-    coll = pcdvobjs_elem_coll_from_doc(doc, sel);
-    if (!coll) {
-        goto out_clear_sel;
-    }
+    ret = pcdvobjs_elem_coll_query(doc, NULL, sel);
 
-    ret = pcdvobjs_make_elem_coll(coll);
-
-out_clear_sel:
     free(sel);
 
 out:
     return ret;
 }
 
-purc_variant_t
-pcdvobjs_elem_coll_query(purc_document_t doc, const char *sel)
+bool
+pcdvobjs_is_elements(purc_variant_t v)
 {
-    purc_variant_t ret = PURC_VARIANT_INVALID;
-    pcdoc_elem_coll_t coll = NULL;
-
-    coll = pcdvobjs_elem_coll_from_doc(doc, sel);
-    if (!coll) {
+    bool ret = false;
+    if (!purc_variant_is_native(v)) {
         goto out;
     }
-
-    ret = pcdvobjs_make_elem_coll(coll);
+    void *entity = purc_variant_native_get_entity(v);
+    struct purc_native_ops *ops = purc_variant_native_get_ops(v);
+    purc_nvariant_method m = ops->property_getter(entity, IS_ELEMENTS);
+    if (m) {
+        ret = true;
+    }
 
 out:
     return ret;
+}
+
+purc_variant_t
+pcdvobjs_elements_by_css(purc_document_t doc, const char *css)
+{
+    return pcdvobjs_elem_coll_query(doc, NULL, css);
+}
+
+purc_variant_t
+pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_elem_coll_t coll = pcdoc_elem_coll_new_from_element(doc, element);
+    if (coll) {
+        ret = pcdvobjs_make_elem_coll(coll);
+    }
+    return ret;
+}
+
+pcdoc_element_t
+pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
+{
+    void *entity = purc_variant_native_get_entity(elems);
+    pcdoc_elem_coll_t coll = (pcdoc_elem_coll_t)entity;
+
+    return pcdoc_elem_coll_get(coll->doc, coll, idx);
 }
 

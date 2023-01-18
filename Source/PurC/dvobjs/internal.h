@@ -57,10 +57,6 @@ struct native_property_cfg {
 PCA_EXTERN_C_BEGIN
 
 purc_variant_t
-pcdvobjs_query_elements(purc_document_t doc, pcdoc_element_t root,
-    const char *css) WTF_INTERNAL;
-
-purc_variant_t
 pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t *argv, bool silently);
 
@@ -99,16 +95,19 @@ pcdoc_element_t
 pcdvobjs_find_element_in_doc(purc_document_t doc, const char *selector);
 
 pcdoc_elem_coll_t
-pcdvobjs_elem_coll_from_doc(purc_document_t doc, const char *selector);
+pcdvobjs_elem_coll_from_descendants(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *sel);
 
 int
 pcdvobjs_elem_coll_update(pcdoc_elem_coll_t elem_coll);
 
 purc_variant_t
-pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id);
+pcdvobjs_elem_coll_query(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *sel);
 
 purc_variant_t
-pcdvobjs_elem_coll_query(purc_document_t doc, const char *sel);
+pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id);
+
 
 PCA_EXTERN_C_END
 

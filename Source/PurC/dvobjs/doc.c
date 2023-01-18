@@ -187,42 +187,29 @@ out:
 }
 
 static inline purc_variant_t
-query(purc_document_t doc, const char *css)
-{
-    PC_ASSERT(doc);
-    PC_ASSERT(css);
-
-    pcdoc_element_t root = purc_document_root(doc);
-    PC_ASSERT(root);
-
-    return pcdvobjs_query_elements(doc, root, css);
-}
-
-static inline purc_variant_t
 query_getter(void *entity,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(call_flags);
     PC_ASSERT(entity);
     purc_document_t doc = (purc_document_t)entity;
+    purc_variant_t ret = PURC_VARIANT_INVALID;
 
-    if (nr_args > 0) {
-        if (argv == NULL || argv[0] == PURC_VARIANT_INVALID) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        purc_variant_t v = argv[0];
-        if (!purc_variant_is_string(v)) {
-            pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            return PURC_VARIANT_INVALID;
-        }
-        const char *css = purc_variant_get_string_const(v);
-        PC_ASSERT(css);
-        return query(doc, css);
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
     }
 
-    pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
-    return PURC_VARIANT_INVALID;
+    purc_variant_t v = argv[0];
+    if (!purc_variant_is_string(v)) {
+        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    ret = pcdvobjs_elem_coll_query(doc, NULL, purc_variant_get_string_const(v));
+
+out:
+    return ret;
 }
 
 static struct native_property_cfg configs[] = {

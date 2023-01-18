@@ -30,6 +30,8 @@
 
 #include "internal.h"
 
+#if 0
+
 static int
 elements_init(struct pcdvobjs_elements *elements)
 {
@@ -688,6 +690,7 @@ pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx)
 
     return elem;
 }
+#endif
 
 #if 0 // VW
 typedef int (*traverse_cb)(struct pcdom_element *element, void *ud);

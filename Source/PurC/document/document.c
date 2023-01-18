@@ -989,7 +989,6 @@ pcdoc_elem_coll_get(purc_document_t doc,
     UNUSED_PARAM(doc);
     pcdoc_element_t elem = NULL;
     if (!elem_coll || idx >= elem_coll->nr_elems) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
 
@@ -1069,6 +1068,11 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
+    if (!elem_coll->selector) {
+        ret = 0;
+        goto out;
+    }
+
     pcutils_arrlist_free(elem_coll->elems);
     elem_coll->elems = pcutils_arrlist_new_ex(NULL, 4);
     if (!elem_coll->elems) {
@@ -1076,13 +1080,35 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
-    for (size_t i = elem_coll->select_begin; i < new_coll->nr_elems; i++) {
+    size_t nr = 0;
+    for (size_t i = elem_coll->select_begin;
+            ((i < new_coll->nr_elems) && (nr < elem_coll->nr_elems)); i++, nr++) {
         void *v = pcutils_arrlist_get_idx(new_coll->elems, i);
         pcutils_arrlist_append(elem_coll->elems, v);
     }
+
+    elem_coll->nr_elems = nr;
+
+    ret = 0;
 
 out:
     return ret;
 }
 
+pcdoc_elem_coll_t
+pcdoc_elem_coll_new_from_element(purc_document_t doc, pcdoc_element_t elem)
+{
+    pcdoc_elem_coll_t coll = element_collection_new(doc, NULL, NULL);
+    if (!coll) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    coll->doc_age = doc->age;
+    coll->nr_elems = 1;
+    pcutils_arrlist_append(coll->elems, elem);
+
+out:
+    return coll;
+}
 
