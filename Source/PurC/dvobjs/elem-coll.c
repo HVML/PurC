@@ -373,7 +373,6 @@ did_matched(void *native_entity, purc_variant_t val)
         comp = purc_variant_native_get_entity(val);
     }
     else {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
 
