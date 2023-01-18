@@ -36,6 +36,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define IS_ELEMENTS         "is_elements"
+
 int
 pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll);
 
@@ -49,6 +51,32 @@ count_getter(void *entity, size_t nr_args, purc_variant_t *argv,
 
     pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
     return purc_variant_make_ulongint(elem_coll->nr_elems);
+}
+
+static purc_variant_t
+sub_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+select_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -70,9 +98,173 @@ attr_getter(void *entity, size_t nr_args, purc_variant_t *argv,
     }
 }
 
+static purc_variant_t
+attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+remove_attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+text_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+text_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+data_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+data_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+has_class_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+remove_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    //TODO
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+is_element_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    return purc_variant_make_boolean(true);
+}
+
 static struct native_property_cfg configs[] = {
-    {"count",   count_getter,   NULL,   NULL,   NULL},
-    {"attr",    attr_getter,    NULL,   NULL,   NULL},
+    {"count",       count_getter,           NULL,                   NULL, NULL},
+    {"sub",         sub_getter,             NULL,                   NULL, NULL},
+    {"select",      select_getter,          NULL,                   NULL, NULL},
+    {"attr",        attr_getter,            attr_setter,            NULL, NULL},
+    {"removeAttr",  NULL,                   remove_attr_setter,     NULL, NULL},
+    {"content",     content_getter,         content_setter,         NULL, NULL},
+    {"textContent", text_content_getter,    text_content_setter,    NULL, NULL},
+    {"dataContent", data_content_getter,    data_content_setter,    NULL, NULL},
+    {"hasClass",    has_class_getter,       NULL,                   NULL, NULL},
+    {"addClass",    NULL,                   add_class_setter,       NULL, NULL},
+    {"removeClass", NULL,                   remove_class_setter,    NULL, NULL},
+    {"is_elements", is_element_getter,      NULL,                   NULL, NULL},
 };
 
 static struct native_property_cfg*
