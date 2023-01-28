@@ -3509,6 +3509,17 @@ out:
     return node;
 }
 
+pcdoc_data_node_t
+pcintr_util_set_data_content(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation_k op,
+        purc_variant_t data, bool sync_to_rdr, bool no_return)
+{
+    UNUSED_PARAM(sync_to_rdr);
+    UNUSED_PARAM(no_return);
+    // TODO: sync to rdr
+    return pcdoc_element_set_data_content(doc, elem, op, data);
+}
+
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,

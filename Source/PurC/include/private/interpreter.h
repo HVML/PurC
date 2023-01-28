@@ -740,6 +740,11 @@ pcintr_util_new_content(purc_document_t doc,
         const char *content, size_t len, purc_variant_t data_type,
         bool sync_to_rdr, bool no_return);
 
+pcdoc_data_node_t
+pcintr_util_set_data_content(purc_document_t doc,
+        pcdoc_element_t elem, pcdoc_operation_k op,
+        purc_variant_t data, bool sync_to_rdr, bool no_return);
+
 int
 pcintr_util_set_attribute(purc_document_t doc,
         pcdoc_element_t elem, pcdoc_operation_k op,

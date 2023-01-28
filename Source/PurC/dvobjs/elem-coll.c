@@ -272,9 +272,30 @@ content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    int ret = -1;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+    else if (nr_args == 1 && !purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    const char *content = purc_variant_get_string_const(argv[0]);
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t len = elem_coll->nr_elems;
+    for (size_t i = 0; i < len; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        pcintr_util_new_content(elem_coll->doc, elem, PCDOC_OP_DISPLACE,
+                content, 0, PURC_VARIANT_INVALID, true, true);
+        ret++;
+    }
+
+
+out:
+    return purc_variant_make_longint(ret);
 }
 
 static purc_variant_t
@@ -304,9 +325,30 @@ text_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    int ret = -1;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+    else if (nr_args == 1 && !purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    const char *content = purc_variant_get_string_const(argv[0]);
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t len = elem_coll->nr_elems;
+    for (size_t i = 0; i < len; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        pcintr_util_new_text_content(elem_coll->doc, elem, PCDOC_OP_DISPLACE,
+                content, 0, true, true);
+        ret++;
+    }
+
+
+out:
+    return purc_variant_make_longint(ret);
 }
 
 static purc_variant_t
@@ -336,9 +378,25 @@ data_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    int ret = -1;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t len = elem_coll->nr_elems;
+    for (size_t i = 0; i < len; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        pcintr_util_set_data_content(elem_coll->doc, elem, PCDOC_OP_DISPLACE,
+                argv[0], true, true);
+        ret++;
+    }
+
+
+out:
+    return purc_variant_make_longint(ret);
 }
 
 static purc_variant_t
