@@ -37,6 +37,9 @@
 #include <unistd.h>
 
 #define IS_ELEMENTS         "is_elements"
+#define BUFF_MIN            1024
+#define BUFF_MAX            1024 * 1024 * 4
+#define ATTR_CLASS          "class"
 
 int
 pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll);
@@ -430,6 +433,50 @@ has_class_getter(void *entity, size_t nr_args, purc_variant_t *argv,
     return purc_variant_make_boolean(has_class);
 }
 
+#define CLASS_SEPARATOR " \f\n\r\t\v"
+
+static purc_variant_t
+get_elem_classes(purc_document_t doc, pcdoc_element_t elem, char **klass)
+{
+    const char *value;
+    size_t len;
+
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+
+    pcdoc_element_get_special_attr(doc, elem, PCDOC_ATTR_CLASS, &value, &len);
+    if (value == NULL) {
+        goto out;
+    }
+
+    ret = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    char *haystack = strndup(value, len);
+
+    char *str;
+    char *saveptr;
+    char *token;
+    for (str = haystack; ; str = NULL) {
+        token = strtok_r(str, CLASS_SEPARATOR, &saveptr);
+        if (token) {
+            purc_variant_t v = purc_variant_make_string(token, false);
+            purc_variant_array_append(ret, v);
+            purc_variant_unref(v);
+        }
+        else {
+            break;
+        }
+    }
+
+    if (klass) {
+        *klass = haystack;
+    }
+    else {
+        free(haystack);
+    }
+
+out:
+    return ret;
+}
+
 static purc_variant_t
 add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -438,9 +485,77 @@ add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    int ret = -1;
+    purc_variant_t param = PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+    else if (nr_args == 1) {
+        if (purc_variant_is_string(argv[0])) {
+            param = purc_variant_make_array(1, argv[0]);
+        }
+        else if (purc_variant_is_array(argv[0])) {
+            param = purc_variant_ref(argv[0]);
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    pcdoc_element_t elem = NULL;
+    size_t nr_elems = elem_coll->nr_elems;
+    size_t nr_param = purc_variant_array_get_size(param);
+
+    for (size_t i = 0; i < nr_elems; i++) {
+        elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (!rws) {
+            goto out_clear_param;
+        }
+
+        const char *value;
+        size_t len;
+        pcdoc_element_get_special_attr(elem_coll->doc, elem, PCDOC_ATTR_CLASS,
+                &value, &len);
+        if (value) {
+            purc_rwstream_write(rws, value, len);
+            purc_rwstream_write(rws, " ", 1);
+        }
+
+        for (size_t j = 0; j < nr_param; j++) {
+            purc_variant_t v = purc_variant_array_get(param, j);
+
+            char *buf = NULL;
+            int total = purc_variant_stringify_alloc(&buf, v);
+            if (total) {
+                purc_rwstream_write(rws, buf, strlen(buf));
+                if (j < nr_param - 1) {
+                    purc_rwstream_write(rws, " ", 1);
+                }
+            }
+            free(buf);
+        }
+
+        size_t nr_kls = 0;
+        const char *kls = purc_rwstream_get_mem_buffer(rws, &nr_kls);
+        pcintr_util_set_attribute(elem_coll->doc, elem,
+                PCDOC_OP_DISPLACE, ATTR_CLASS, kls, nr_kls, true, true);
+        purc_rwstream_destroy(rws);
+    }
+
+out_clear_param:
+    purc_variant_unref(param);
+
+out:
+    return purc_variant_make_longint(ret);
 }
 
 static purc_variant_t
@@ -451,9 +566,109 @@ remove_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    int ret = -1;
+    purc_variant_t param = PURC_VARIANT_INVALID;
+    if (nr_args < 1) {
+        param = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    }
+    else if (nr_args == 1) {
+        if (purc_variant_is_string(argv[0])) {
+            param = purc_variant_make_array(1, argv[0]);
+        }
+        else if (purc_variant_is_array(argv[0])) {
+            param = purc_variant_ref(argv[0]);
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcdoc_element_t elem = NULL;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+    size_t nr_elems = elem_coll->nr_elems;
+    size_t nr_param = purc_variant_array_get_size(param);
+
+    if (nr_param == 0) {
+        pcdoc_element_remove_attribute(elem_coll->doc, elem, ATTR_CLASS);
+        ret = 0;
+        goto out;
+    }
+
+    ret = 0;
+    for (size_t i = 0; i < nr_elems; i++) {
+        elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+        char *klass = NULL;
+
+        purc_variant_t v_kls = get_elem_classes(elem_coll->doc, elem, &klass);
+        if (!v_kls) {
+            goto out;
+        }
+
+        purc_variant_t dst = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        if (!dst) {
+            purc_variant_unref(v_kls);
+            free(klass);
+            goto out;
+        }
+
+        size_t nr_kls = purc_variant_array_get_size(v_kls);
+        for (size_t j = 0; j < nr_kls; j++) {
+            purc_variant_t v = purc_variant_array_get(v_kls, j);
+            const char *vs = purc_variant_get_string_const(v);
+
+            bool match = false;
+            for (size_t k = 0; k < nr_param; k++) {
+                purc_variant_t vk = purc_variant_array_get(param, k);
+                const char *vks = purc_variant_get_string_const(vk);
+                if (strcasecmp(vs, vks) == 0) {
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+                purc_variant_array_append(dst, v);
+            }
+        }
+
+        purc_variant_unref(v_kls);
+        free(klass);
+
+        size_t nr_dst = purc_variant_array_get_size(dst);
+        if (nr_kls != nr_dst) {
+            purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+            if (!rws) {
+                purc_variant_unref(dst);
+                goto out;
+            }
+            for (size_t x = 0; x < nr_dst; x++) {
+                purc_variant_t xv = purc_variant_array_get(dst, x);
+                const char *xs = purc_variant_get_string_const(xv);
+                purc_rwstream_write(rws, xs, strlen(xs));
+                if (x < nr_dst - 1) {
+                    purc_rwstream_write(rws, " ", 1);
+                }
+            }
+            size_t nr_s = 0;
+            const char *s = purc_rwstream_get_mem_buffer(rws, &nr_s);
+            pcintr_util_set_attribute(elem_coll->doc, elem,
+                    PCDOC_OP_DISPLACE, ATTR_CLASS, s, nr_s, true, true);
+            purc_rwstream_destroy(rws);
+        }
+        ret++;
+    }
+
+out:
+    if (param) {
+        purc_variant_unref(param);
+    }
+    return purc_variant_make_longint(ret);
 }
 
 static purc_variant_t
