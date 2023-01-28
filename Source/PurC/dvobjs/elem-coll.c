@@ -95,13 +95,40 @@ static purc_variant_t
 select_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    UNUSED_PARAM(entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
-    //TODO
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return PURC_VARIANT_INVALID;
+
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    pcdoc_selector_t selector = NULL;
+    pcdoc_elem_coll_t coll = NULL;
+    pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
+
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto out;
+    }
+
+    if (!purc_variant_is_string(argv[0])) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    selector = pcdoc_selector_new(purc_variant_get_string_const(argv[0]));
+    if (!selector) {
+        goto out_clear_selector;
+    }
+
+    coll = pcdoc_elem_coll_select(elem_coll->doc, elem_coll, selector);
+    if (!coll) {
+        goto out_clear_selector;
+    }
+
+    ret = pcdvobjs_make_elem_coll(coll);
+
+out_clear_selector:
+    pcdoc_selector_delete(selector);
+
+out:
+    return ret;
 }
 
 static purc_variant_t
@@ -226,7 +253,7 @@ data_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
     }
 
     elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, 0);
-    ret = pcdvobjs_element_json_content_getter(elem_coll->doc, elem,
+    ret = pcdvobjs_element_data_content_getter(elem_coll->doc, elem,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 out:
     return ret;

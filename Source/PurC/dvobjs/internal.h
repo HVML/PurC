@@ -77,7 +77,7 @@ pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t
-pcdvobjs_element_json_content_getter(purc_document_t doc, pcdoc_element_t elem,
+pcdvobjs_element_data_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently);
 
 purc_variant_t

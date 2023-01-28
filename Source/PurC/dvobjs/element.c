@@ -29,6 +29,9 @@
 
 #include "internal.h"
 
+#define BUFF_MIN            1024
+#define BUFF_MAX            1024 * 1024 * 4
+
 purc_variant_t
 pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t *argv, bool silently)
@@ -79,6 +82,20 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
+static int
+content_getter_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    purc_rwstream_t out = (purc_rwstream_t) ctxt;
+    unsigned opt = 0;
+    opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+    opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
+    int sret = pcdoc_serialize_descendants_to_stream(doc, element, opt, out);
+    return sret == 0 ? PCDOC_TRAVEL_GOON : PCDOC_TRAVEL_STOP;
+}
+
 purc_variant_t
 pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently)
@@ -89,22 +106,23 @@ pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-#if 0
-    int r;
-    const char *content;
-    size_t len;
-    r = pcdom_element_content(elem,
-            (const unsigned char**)&content, &len);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    if (rws == NULL) {
+        goto out;
+    }
 
-    if (r)
-        return PURC_VARIANT_INVALID;
-#else
-    // TODO
-    const char *content = "";
-#endif
+    pcdoc_travel_descendant_elements(doc, elem, content_getter_cb, rws, NULL);
 
-    // FIXME: strdup???
-    return purc_variant_make_string_static(content, true);
+    size_t sz_content = 0;
+    char *content = purc_rwstream_get_mem_buffer_ex(rws, &sz_content, NULL, true);
+
+    ret = purc_variant_make_string_reuse_buff(content, sz_content, true);
+
+    purc_rwstream_destroy(rws);
+
+out:
+    return ret;
 }
 
 static inline purc_variant_t
@@ -121,8 +139,27 @@ content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
+static int
+data_content_cb(purc_document_t doc, pcdoc_data_node_t data_node, void *ctxt)
+{
+    int ret = PCDOC_TRAVEL_STOP;
+    purc_variant_t arr = (purc_variant_t) ctxt;
+
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    int r = pcdoc_data_content_get_data(doc, data_node, &data);
+    if (r == 0) {
+        if (data) {
+            purc_variant_array_append(arr, data);
+            purc_variant_unref(data);
+        }
+        ret = PCDOC_TRAVEL_GOON;
+    }
+
+    return ret;
+}
+
 purc_variant_t
-pcdvobjs_element_json_content_getter(purc_document_t doc, pcdoc_element_t elem,
+pcdvobjs_element_data_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently)
 {
     UNUSED_PARAM(doc);
@@ -130,8 +167,16 @@ pcdvobjs_element_json_content_getter(purc_document_t doc, pcdoc_element_t elem,
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
-    PC_ASSERT(0); // Not implemented yet
-    return PURC_VARIANT_INVALID;
+
+    purc_variant_t ret = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (ret == NULL) {
+        goto out;
+    }
+
+    pcdoc_travel_descendant_data_nodes(doc, elem, data_content_cb, ret, NULL);
+
+out:
+    return ret;
 }
 
 static inline purc_variant_t
@@ -144,9 +189,35 @@ json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
     elem = (struct pcdvobjs_element*)native_entity;
     PC_ASSERT(elem && elem->doc && elem->elem);
 
-    return pcdvobjs_element_json_content_getter(elem->doc, elem->elem,
+    return pcdvobjs_element_data_content_getter(elem->doc, elem->elem,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
+
+static int
+text_content_getter_cb(purc_document_t doc, pcdoc_text_node_t text_node,
+        void *ctxt)
+{
+    const char *text;
+    size_t len;
+    int ret;
+
+    purc_rwstream_t out = (purc_rwstream_t) ctxt;
+    int r = pcdoc_text_content_get_text(doc, text_node, &text, &len);
+    if (r) {
+        ret = PCDOC_TRAVEL_STOP;
+        goto out;
+    }
+
+    if (purc_rwstream_write(out, text, len) < 0) {
+        ret = PCDOC_TRAVEL_STOP;
+        goto out;
+    }
+
+    ret = PCDOC_TRAVEL_GOON;
+out:
+    return ret;
+}
+
 
 purc_variant_t
 pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
@@ -158,21 +229,24 @@ pcdvobjs_element_text_content_getter(purc_document_t doc, pcdoc_element_t elem,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
-#if 0
-    int r;
-    char *text;
-    size_t len;
-    r = pcdom_element_text_content(elem, &text, &len);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    if (rws == NULL) {
+        goto out;
+    }
 
-    if (r)
-        return PURC_VARIANT_INVALID;
-#else
-    // TODO:
-    char *text = strdup("");
-    size_t len = 0;
-#endif
+    pcdoc_travel_descendant_text_nodes(doc, elem, text_content_getter_cb, rws,
+            NULL);
 
-    return purc_variant_make_string_reuse_buff(text, len, true);
+    size_t sz_content = 0;
+    char *content = purc_rwstream_get_mem_buffer_ex(rws, &sz_content, NULL, true);
+
+    ret = purc_variant_make_string_reuse_buff(content, sz_content, true);
+
+    purc_rwstream_destroy(rws);
+
+out:
+    return ret;
 }
 
 static inline purc_variant_t
