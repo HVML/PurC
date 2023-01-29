@@ -19,6 +19,7 @@
 
 
 #include "purc/purc.h"
+#include "tools.h"
 
 #include <gtest/gtest.h>
 
@@ -152,5 +153,10 @@ TEST(doc_var, basic)
 
     cleanup = purc_cleanup ();
     ASSERT_EQ (cleanup, true);
+}
+
+TEST(doc_var_hvml, doc)
+{
+    go_comp_test("vars/00-doc*.hvml");
 }
 

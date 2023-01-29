@@ -1,0 +1,10 @@
+#!/usr/bin/purc
+
+# RESULT: 5UL
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    $STREAM.stdout.writelines($DOC.doctype)
+
+</hvml>
