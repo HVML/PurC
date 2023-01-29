@@ -59,7 +59,7 @@
 extern "C" {
 #endif
 
-#define PCHASH_DEFAULT_SIZE     3
+#define PCHASH_DEFAULT_SIZE     5
 
 /* default hash functions */
 unsigned long pchash_default_str_hash(const void *k);
@@ -76,11 +76,10 @@ int pchash_ptr_equal(const void *k1, const void *k2);
 struct pchash_entry {
     /** The key. */
     void *key;
-
     /** The value. */
     void *val;
 
-    /* Independent free function per entry. */
+    /** The independent free function per entry. */
     pchash_free_kv_fn free_kv_alt;
 
     /** The next entry */
@@ -104,6 +103,7 @@ struct pchash_table {
     /** The last entry. */
     struct pchash_entry *tail;
 
+    /** All available entries. */
     struct pchash_entry *table;
 
     /** A pointer onto the function responsible for copying the key. */
