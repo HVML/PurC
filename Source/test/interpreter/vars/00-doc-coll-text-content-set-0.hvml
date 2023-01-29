@@ -1,0 +1,31 @@
+#!/usr/bin/purc
+
+# RESULT: "new content"
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <div id="f01" class="class_div">
+            f01 content
+        </div>
+        <div id="f02" class="class_div color_red">
+            f02 content
+        </div>
+        <div id="f03" class="class_div">
+            f03 content
+        </div>
+        <div id="f04" class="class_div">
+            f04 content
+        </div>
+        <div id="f05" class="class_div">
+            f05 content
+        </div>
+        <init as colls with $DOC.query(".class_div") />
+
+        <init as ret with $colls.textContent(!"new content") />
+
+        <exit with $colls.textContent() />
+    </body>
+
+</hvml>
