@@ -729,6 +729,14 @@ pcdoc_element_t
 pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation_k op, const char *tag, bool self_close, bool sync_to_rdr);
 
+void
+pcintr_util_clear_element(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr);
+
+void
+pcintr_util_erase_element(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr);
+
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr,

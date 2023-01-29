@@ -198,9 +198,8 @@ attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
             int total = purc_variant_stringify_alloc(&buf, v);
             if (total) {
                 const char *name = purc_variant_get_string_const(k);
-                pcdoc_element_set_attribute(elem_coll->doc,
-                        elem, PCDOC_OP_DISPLACE,
-                        name, buf, total);
+                pcintr_util_set_attribute(elem_coll->doc, elem,
+                        PCDOC_OP_DISPLACE, name, buf, total, true, true);
                 ret++;
             }
             free(buf);
@@ -240,7 +239,8 @@ remove_attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     size_t len = elem_coll->nr_elems;
     for (size_t i = 0; i < len; i++) {
         pcdoc_element_t elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
-        pcdoc_element_remove_attribute(elem_coll->doc, elem, name);
+        pcintr_util_set_attribute(elem_coll->doc, elem,
+                        PCDOC_OP_ERASE, name, NULL, 0, true, true);
         ret++;
     }
 
@@ -594,13 +594,17 @@ remove_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     size_t nr_elems = elem_coll->nr_elems;
     size_t nr_param = purc_variant_array_get_size(param);
 
+    ret = 0;
     if (nr_param == 0) {
-        pcdoc_element_remove_attribute(elem_coll->doc, elem, ATTR_CLASS);
-        ret = 0;
+        for (size_t i = 0; i < nr_elems; i++) {
+            elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
+            pcintr_util_set_attribute(elem_coll->doc, elem,
+                            PCDOC_OP_ERASE, ATTR_CLASS, NULL, 0, true, true);
+            ret++;
+        }
         goto out;
     }
 
-    ret = 0;
     for (size_t i = 0; i < nr_elems; i++) {
         elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
         char *klass = NULL;
@@ -758,7 +762,7 @@ cleaner(void *native_entity, unsigned call_flags)
             continue;
         }
 
-        pcdoc_element_clear(elem_coll->doc, elem);
+        pcintr_util_clear_element(elem_coll->doc, elem, true);
     }
 
     return purc_variant_make_boolean(true);
@@ -775,7 +779,7 @@ eraser(void *native_entity, unsigned call_flags)
     size_t nr_erase = 0;
     for (size_t i = 0; i < len; i++) {
         elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
-        pcdoc_element_erase(elem_coll->doc, elem);
+        pcintr_util_erase_element(elem_coll->doc, elem, true);
         nr_erase++;
     }
 

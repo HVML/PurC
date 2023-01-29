@@ -3416,6 +3416,28 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
     return new_elem;
 }
 
+void
+pcintr_util_clear_element(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr)
+{
+    insert_cached_text_node(doc, sync_to_rdr);
+    pcdoc_element_clear(doc, elem);
+    if (sync_to_rdr) {
+        // TODO check stage and send message to rdr
+    }
+}
+
+void
+pcintr_util_erase_element(purc_document_t doc, pcdoc_element_t elem,
+        bool sync_to_rdr)
+{
+    insert_cached_text_node(doc, sync_to_rdr);
+    pcdoc_element_erase(doc, elem);
+    if (sync_to_rdr) {
+        // TODO check stage and send message to rdr
+    }
+}
+
 int
 pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         pcdoc_operation_k op, const char *txt, size_t len, bool sync_to_rdr,
@@ -3516,6 +3538,7 @@ pcintr_util_set_data_content(purc_document_t doc,
 {
     UNUSED_PARAM(sync_to_rdr);
     UNUSED_PARAM(no_return);
+    insert_cached_text_node(doc, sync_to_rdr);
     // TODO: sync to rdr
     return pcdoc_element_set_data_content(doc, elem, op, data);
 }
