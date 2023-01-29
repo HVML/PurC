@@ -667,6 +667,7 @@ remove_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
                     PCDOC_OP_DISPLACE, ATTR_CLASS, s, nr_s, true, true);
             purc_rwstream_destroy(rws);
         }
+        purc_variant_unref(dst);
         ret++;
     }
 
