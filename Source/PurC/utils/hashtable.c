@@ -3,7 +3,7 @@
  * @author Michael Clark <michael@metaparadigm.com>
  * @date 2021/07/07
  *
- * Cleaned up by Vincent Wei.
+ * Enhanced and cleaned up by Vincent Wei.
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
@@ -541,19 +541,19 @@ int pchash_str_equal(const void *k1, const void *k2)
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_clear(&(t)->rwlock)
 
-#define RDLOCK_MAP(t)                         \
+#define RDLOCK_TABLE(t)                         \
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_reader_lock(&(t)->rwlock)
 
-#define RDUNLOCK_MAP(t)                       \
+#define RDUNLOCK_TABLE(t)                       \
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_reader_unlock(&(t)->rwlock)
 
-#define WRLOCK_MAP(t)                         \
+#define WRLOCK_TABLE(t)                         \
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_writer_lock(&(t)->rwlock)
 
-#define WRUNLOCK_MAP(t)                       \
+#define WRUNLOCK_TABLE(t)                       \
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_writer_unlock(&(t)->rwlock)
 
@@ -564,8 +564,10 @@ struct pchash_table *pchash_table_new(size_t size,
 {
     struct pchash_table *t;
 
+    if (size == 0)
+        size = PCHASH_DEFAULT_SIZE;
+
     /* Allocate space for elements to avoid divisions by zero. */
-    assert(size > 0);
     t = (struct pchash_table *)calloc(1, sizeof(struct pchash_table));
     if (!t)
         return NULL;
@@ -613,7 +615,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
 #endif
         if (pchash_table_insert_w_hash(new_t, ent->k, ent->v, h,
                     ent->free_kv_alt) != 0) {
-            pchash_table_free(new_t);
+            pchash_table_delete(new_t);
             return -1;
         }
     }
@@ -628,7 +630,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
     return 0;
 }
 
-void pchash_table_free(struct pchash_table *t)
+void pchash_table_reset(struct pchash_table *t)
 {
     struct pchash_entry *c;
 
@@ -645,26 +647,36 @@ void pchash_table_free(struct pchash_table *t)
                 t->free_val(c->v);
             }
         }
+
+        c->v = NULL;
+        c->k = PCHASH_FREED;
     }
 
+    t->count = 0;
+    t->head = t->tail = NULL;
+}
+
+void pchash_table_delete(struct pchash_table *t)
+{
+    pchash_table_reset(t);
     WRLOCK_CLEAR(t);
     free(t->table);
     free(t);
 }
 
-int pchash_table_insert_w_hash(struct pchash_table *t,
+static int insert_entry(struct pchash_table *t,
         const void *k, const void *v, const unsigned long h,
         pchash_free_kv_fn free_kv_alt)
 {
-    unsigned long n;
-
     if (t->count >= t->size * PCHASH_LOAD_FACTOR) {
         /* Avoid signed integer overflow with large tables. */
         size_t new_size = (t->size > INT_MAX / 2) ? INT_MAX : (t->size * 2);
-        if (t->size == INT_MAX || pchash_table_resize(t, new_size) != 0)
+        if (t->size == INT_MAX || pchash_table_resize(t, new_size) != 0) {
             return -1;
+        }
     }
 
+    unsigned long n;
     n = h % t->size;
     while (1) {
         if (t->table[n].k == PCHASH_EMPTY || t->table[n].k == PCHASH_FREED)
@@ -692,6 +704,18 @@ int pchash_table_insert_w_hash(struct pchash_table *t,
     return 0;
 }
 
+int pchash_table_insert_w_hash(struct pchash_table *t,
+        const void *k, const void *v, const unsigned long h,
+        pchash_free_kv_fn free_kv_alt)
+{
+    int retv;
+
+    WRLOCK_TABLE(t);
+    retv = insert_entry(t, k, v, h, free_kv_alt);
+    WRUNLOCK_TABLE(t);
+    return retv;
+}
+
 int pchash_table_insert_ex(struct pchash_table *t,
         const void *k, const void *v, pchash_free_kv_fn free_kv_alt)
 {
@@ -699,31 +723,65 @@ int pchash_table_insert_ex(struct pchash_table *t,
             pchash_get_hash(t, k), free_kv_alt);
 }
 
-struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
+static struct pchash_entry *find_entry(struct pchash_table *t,
         const void *k, const unsigned long h)
 {
     unsigned long n = h % t->size;
     size_t count = 0;
+    struct pchash_entry *found = NULL;
 
     while (count < t->size) {
         if (t->table[n].k == PCHASH_EMPTY)
-            return NULL;
+            break;
 
-        if (t->table[n].k != PCHASH_FREED && t->equal_fn(t->table[n].k, k))
-            return &t->table[n];
+        if (t->table[n].k != PCHASH_FREED && t->equal_fn(t->table[n].k, k)) {
+            found = &t->table[n];
+            break;
+        }
 
         if ((size_t)++n == t->size)
             n = 0;
         count++;
     }
 
-    return NULL;
+    return found;
+}
+
+struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
+        const void *k, const unsigned long h)
+{
+    struct pchash_entry *found = NULL;
+
+    RDLOCK_TABLE(t);
+    found = find_entry(t, k, h);
+    RDUNLOCK_TABLE(t);
+
+    return found;
 }
 
 struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t,
         const void *k)
 {
     return pchash_table_lookup_entry_w_hash(t, k, pchash_get_hash(t, k));
+}
+
+struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
+        struct pchash_table *t, const void *k, const unsigned long h)
+{
+    struct pchash_entry *found = NULL;
+
+    WRLOCK_TABLE(t);
+    found = find_entry(t, k, h);
+    if (found == NULL)
+        WRUNLOCK_TABLE(t);
+
+    return found;
+}
+
+struct pchash_entry *pchash_table_lookup_and_lock(struct pchash_table *t,
+        const void *k)
+{
+    return pchash_table_lookup_and_lock_w_hash(t, k, pchash_get_hash(t, k));
 }
 
 bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
@@ -741,7 +799,7 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
     return false; /* key not found */
 }
 
-int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e)
+static int erase_entry(struct pchash_table *t, struct pchash_entry *e)
 {
     if ((uintptr_t)e < (uintptr_t)(t->table)) {
         return -2;
@@ -790,11 +848,106 @@ int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e)
     return 0;
 }
 
-int pchash_table_delete(struct pchash_table *t, const void *k)
+int pchash_table_erase_entry(struct pchash_table *t, struct pchash_entry *e)
 {
-    struct pchash_entry *e = pchash_table_lookup_entry(t, k);
-    if (!e)
-        return -1;
-    return pchash_table_delete_entry(t, e);
+    int retv;
+
+    WRLOCK_TABLE(t);
+    retv = erase_entry(t, e);
+    WRUNLOCK_TABLE(t);
+    return retv;
+}
+
+int pchash_table_erase(struct pchash_table *t, const void *k)
+{
+    int retv = -1;
+    struct pchash_entry *e;
+
+    WRLOCK_TABLE(t);
+
+    e = find_entry(t, k, pchash_get_hash(t, k));
+    if (e) {
+        retv = erase_entry(t, e);
+        assert(retv == 0);
+    }
+
+    WRUNLOCK_TABLE(t);
+    return retv;
+}
+
+int pchash_table_erase_nolock(struct pchash_table *t, struct pchash_entry *e)
+{
+    return erase_entry(t, e);
+}
+
+int pchash_table_replace(struct pchash_table *t,
+        const void *k, const void *v, pchash_free_kv_fn free_kv_alt)
+{
+    int retv = -1;
+    struct pchash_entry *e;
+
+    WRLOCK_TABLE(t);
+
+    e = find_entry(t, k, pchash_get_hash(t, k));
+    if (e == NULL) {
+        goto ret;
+    }
+
+    retv = 0;
+
+    if (e->free_kv_alt) {
+        e->free_kv_alt(NULL, e->v);
+    }
+    else if (t->free_val) {
+        t->free_val(e->v);
+    }
+
+    if (t->copy_val) {
+        e->v = t->copy_val(v);
+    }
+    else
+        e->v = (void*)v;
+
+    e->free_kv_alt = free_kv_alt;
+
+ret:
+    WRUNLOCK_TABLE(t);
+    return retv;
+}
+
+int pchash_table_replace_or_insert(struct pchash_table *t,
+        const void *k, const void *v, pchash_free_kv_fn free_kv_alt)
+{
+    int retv = -1;
+    struct pchash_entry *e;
+    unsigned long h = pchash_get_hash(t, k);
+
+    WRLOCK_TABLE(t);
+
+    e = find_entry(t, k, h);
+    if (e) {
+        retv = 0;
+
+        if (e->free_kv_alt) {
+            e->free_kv_alt(NULL, e->v);
+        }
+        else if (t->free_val) {
+            t->free_val(e->v);
+        }
+
+        if (t->copy_val) {
+            e->v = t->copy_val(v);
+        }
+        else
+            e->v = (void*)v;
+
+        e->free_kv_alt = free_kv_alt;
+    }
+    else {
+        retv = insert_entry(t, k, v, h, free_kv_alt);
+    }
+
+    WRUNLOCK_TABLE(t);
+    return retv;
 }
 

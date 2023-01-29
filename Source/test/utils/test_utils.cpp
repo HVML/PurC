@@ -697,7 +697,7 @@ TEST(hashtable, double_free)
     ASSERT_NE(k1, kk);
     EXPECT_STREQ(k1, kk);
     ASSERT_EQ(0, strcmp(k1, kk));
-    pchash_table_free(ht);
+    pchash_table_delete(ht);
 
     // test check
     ASSERT_EQ(_hash_table_items_free, 2);

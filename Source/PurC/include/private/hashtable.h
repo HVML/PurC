@@ -59,7 +59,7 @@
 extern "C" {
 #endif
 
-#define HASHTABLE_DEFAULT_SIZE    32
+#define PCHASH_DEFAULT_SIZE     3
 
 /* default hash functions */
 unsigned long pchash_default_str_hash(const void *k);
@@ -225,14 +225,24 @@ pchash_kptr_table_new(size_t size,
 }
 
 /**
- * Free a hash table.
+ * Reset a hash table.
+ *
+ * If a pchash_entry_free_fn callback free function was provided then it is
+ * called for all entries in the table.
+ *
+ * @param t table to reset.
+ */
+void pchash_table_reset(struct pchash_table *t);
+
+/**
+ * Delete a hash table.
  *
  * If a pchash_entry_free_fn callback free function was provided then it is
  * called for all entries in the table.
  *
  * @param t table to free.
  */
-void pchash_table_free(struct pchash_table *t);
+void pchash_table_delete(struct pchash_table *t);
 
 /**
  * Insert a record into the table.
@@ -240,11 +250,41 @@ void pchash_table_free(struct pchash_table *t);
  * @param t the table to insert into.
  * @param k a pointer to the key to insert.
  * @param v a pointer to the value to insert.
+ * @param free_kv_alt an alternative callback to free the key/value pair.
  *
- * @return On success, <code>0</code> is returned.
+ * @return On success, 0 is returned.
  *     On error, a negative value is returned.
  */
 int pchash_table_insert_ex(struct pchash_table *t,
+        const void *k, const void *v, pchash_free_kv_fn free_kv_alt);
+
+/**
+ * Lookup a record in the table and replace it if found, otherwise insert
+ * a new record into the table.
+ *
+ * @param t the table to insert into.
+ * @param k a pointer to the key to insert.
+ * @param v a pointer to the value to insert.
+ * @param free_kv_alt an alternative callback to free the key/value pair.
+ *
+ * @return On success, 0 is returned.
+ *     On error, a negative value is returned.
+ */
+int pchash_table_replace_or_insert(struct pchash_table *t,
+        const void *k, const void *v, pchash_free_kv_fn free_kv_alt);
+
+/**
+ * Lookup a record in the table and replace it if found, otherwise just return.
+ *
+ * @param t the table to insert into.
+ * @param k a pointer to the key to insert.
+ * @param v a pointer to the value to insert.
+ * @param free_kv_alt an alternative callback to free the key/value pair.
+ *
+ * @return On success, 0 is returned.
+ *     On error, a negative value is returned.
+ */
+int pchash_table_replace(struct pchash_table *t,
         const void *k, const void *v, pchash_free_kv_fn free_kv_alt);
 
 /**
@@ -310,6 +350,35 @@ struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
         const void *k, const unsigned long h);
 
 /**
+ * Lookup a record in the table using a precalculated key hash and lock
+ * the table if found.
+ *
+ * The hash h, which should be calculated with pchash_get_hash() on k, is provided by
+ *  the caller, to allow for optimization when multiple operations with the same
+ *  key are known to be needed.
+ *
+ * @param t the table to lookup
+ * @param k a pointer to the key to lookup
+ * @param h hash value of the key to lookup
+ *
+ * @return a pointer to the record structure of the value or NULL if it does not exist.
+ */
+struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
+        struct pchash_table *t, const void *k, const unsigned long h);
+
+/**
+ * Lookup a record in the table and lock the table if found.
+ *
+ * @param t the table to lookup
+ * @param k a pointer to the key to lookup
+ *
+ * @return a pointer to the record structure of the value or NULL
+ *      if it does not exist.
+ */
+struct pchash_entry *pchash_table_lookup_and_lock(struct pchash_table *t,
+        const void *k);
+
+/**
  * Lookup a record in the table.
  *
  * @param t the table to lookup
@@ -321,7 +390,7 @@ struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
 bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v);
 
 /**
- * Delete a record from the table.
+ * Erase a record from the table.
  *
  * If a callback free function is provided then it is called for the
  * for the item being deleted.
@@ -330,10 +399,10 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e);
+int pchash_table_erase_entry(struct pchash_table *t, struct pchash_entry *e);
 
 /**
- * Delete a record from the table.
+ * Erase a record from the table.
  *
  * If a callback free function is provided then it is called for the
  * for the item being deleted.
@@ -342,7 +411,7 @@ int pchash_table_delete_entry(struct pchash_table *t, struct pchash_entry *e);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-int pchash_table_delete(struct pchash_table *t, const void *k);
+int pchash_table_erase(struct pchash_table *t, const void *k);
 
 /**
  * Get the count of the entries in the table.
