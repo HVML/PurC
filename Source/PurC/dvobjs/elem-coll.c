@@ -940,7 +940,7 @@ pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
 
-    char *sel = (char *) malloc(strlen(id) + 1);
+    char *sel = (char *) malloc(strlen(id) + 2);
     if (!sel) {
         goto out;
     }
