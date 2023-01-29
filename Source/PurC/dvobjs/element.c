@@ -58,7 +58,7 @@ pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
     const char *val;
     size_t len;
     r = pcdoc_element_get_attribute(doc, elem, name, &val, &len);
-    if (!r) {
+    if (r) {
         return PURC_VARIANT_INVALID;
     }
 
