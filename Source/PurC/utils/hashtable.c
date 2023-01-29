@@ -92,7 +92,12 @@ unsigned long pchash_ptr_hash(const void *k)
 
 int pchash_ptr_equal(const void *k1, const void *k2)
 {
-    return (k1 == k2);
+    if (k1 == k2)
+        return 0;
+    else if (k1 > k2)
+        return 1;
+
+    return -1;
 }
 
 /*
@@ -531,7 +536,7 @@ unsigned long pchash_default_str_hash(const void *k)
 
 int pchash_str_equal(const void *k1, const void *k2)
 {
-    return (strcmp((const char *)k1, (const char *)k2) == 0);
+    return strcmp((const char *)k1, (const char *)k2);
 }
 
 #define WRLOCK_INIT(t)                        \
@@ -734,7 +739,8 @@ static struct pchash_entry *find_entry(struct pchash_table *t,
         if (t->table[n].k == PCHASH_EMPTY)
             break;
 
-        if (t->table[n].k != PCHASH_FREED && t->equal_fn(t->table[n].k, k)) {
+        if (t->table[n].k != PCHASH_FREED &&
+                t->equal_fn(t->table[n].k, k) == 0) {
             found = &t->table[n];
             break;
         }

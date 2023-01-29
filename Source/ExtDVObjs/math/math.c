@@ -340,7 +340,7 @@ const_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         val->d = number;
         val->ld = ld;
 
-        if (pcutils_map_find_replace_or_insert (const_map, key, val, NULL)) {
+        if (pcutils_map_replace_or_insert (const_map, key, val, NULL)) {
             free(key);
             free(val);
         }
@@ -1595,7 +1595,7 @@ static purc_variant_t pcdvobjs_create_math (void)
             }
             *v = const_key_value[i].value;
 
-            if (pcutils_map_find_replace_or_insert (const_map, k, v, NULL)) {
+            if (pcutils_map_replace_or_insert (const_map, k, v, NULL)) {
                 free(k);
                 free(v);
                 break;

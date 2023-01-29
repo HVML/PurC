@@ -257,7 +257,7 @@ int pcexecutor_register(pcexec_ops_t ops)
 
     *record = *ops;
 
-    r = pcutils_map_find_replace_or_insert(_executors, key, record, NULL);
+    r = pcutils_map_replace_or_insert(_executors, key, record, NULL);
     if (r) {
         pcinst_set_error(PCEXECUTOR_ERROR_OOM);
         goto failure;

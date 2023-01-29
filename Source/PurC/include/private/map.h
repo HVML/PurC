@@ -93,7 +93,7 @@ static inline int pcutils_map_insert(pcutils_map* map, const void* key,
     return pcutils_map_insert_ex(map, key, val, NULL);
 }
 
-int pcutils_map_find_replace_or_insert(pcutils_map* map, const void* key,
+int pcutils_map_replace_or_insert(pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt);
 
 int pcutils_map_replace(pcutils_map* map, const void* key,

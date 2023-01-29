@@ -182,7 +182,7 @@ cache_vdom(unsigned char *md5, unsigned expire_after, size_t length,
     entry->vdom = vdom;
 
     pcvdom_document_ref(vdom);
-    if (pcutils_map_find_replace_or_insert(md5_vdom_map, md5, entry, NULL)) {
+    if (pcutils_map_replace_or_insert(md5_vdom_map, md5, entry, NULL)) {
         pcvdom_document_unref(vdom);
         return false;
     }

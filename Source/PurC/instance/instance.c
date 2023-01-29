@@ -405,7 +405,7 @@ static void cleanup_modules(struct pcinst *curr_inst)
 static void cleanup_instance(struct pcinst *curr_inst)
 {
     if (curr_inst->local_data_map) {
-        pcutils_map_destroy(curr_inst->local_data_map);
+        pcutils_uomap_destroy(curr_inst->local_data_map);
         curr_inst->local_data_map = NULL;
     }
 
@@ -546,8 +546,8 @@ int purc_init_ex(unsigned int modules,
 
     // map for local data
     curr_inst->local_data_map =
-        pcutils_map_create(copy_key_string,
-                free_key_string, NULL, NULL, comp_key_string, false);
+        pcutils_uomap_create(copy_key_string,
+                free_key_string, NULL, NULL, NULL, comp_key_string, false);
 
     int ret = init_modules(curr_inst, modules, extra_info);
     if (ret) {
@@ -607,7 +607,7 @@ purc_set_local_data(const char* data_name, uintptr_t local_data,
     if (inst == NULL)
         return false;
 
-    if (pcutils_map_find_replace_or_insert(inst->local_data_map,
+    if (pcutils_uomap_replace_or_insert(inst->local_data_map,
                 data_name, (void *)local_data, (free_kv_fn)cb_free)) {
         inst->errcode = PURC_ERROR_OUT_OF_MEMORY;
         return false;
@@ -624,12 +624,12 @@ purc_remove_local_data(const char* data_name)
         return -1;
 
     if (data_name) {
-        if (pcutils_map_erase(inst->local_data_map, (void*)data_name) == 0)
+        if (pcutils_uomap_erase(inst->local_data_map, (void*)data_name) == 0)
             return 1;
     }
     else {
-        ssize_t sz = pcutils_map_get_size(inst->local_data_map);
-        pcutils_map_clear(inst->local_data_map);
+        ssize_t sz = pcutils_uomap_get_size(inst->local_data_map);
+        pcutils_uomap_clear(inst->local_data_map);
         return sz;
     }
 
@@ -641,7 +641,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
         cb_free_local_data* cb_free)
 {
     struct pcinst* inst;
-    const pcutils_map_entry* entry = NULL;
+    const pcutils_uomap_entry* entry = NULL;
 
     if ((inst = pcinst_current()) == NULL)
         return -1;
@@ -651,9 +651,9 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
         return -1;
     }
 
-    if ((entry = pcutils_map_find(inst->local_data_map, data_name))) {
+    if ((entry = pcutils_uomap_find(inst->local_data_map, data_name))) {
         if (local_data)
-            *local_data = (uintptr_t)entry->val;
+            *local_data = (uintptr_t)entry->v;
 
         if (cb_free)
             *cb_free = (cb_free_local_data)entry->free_kv_alt;

@@ -286,7 +286,7 @@ reverse_check_chain(pcutils_map *chain, struct reverse_checker *checker)
             PC_ASSERT((purc_variant_t)p->val == _new);
 
             // add parent/_new pair into output
-            r = pcutils_map_find_replace_or_insert(checker->output,
+            r = pcutils_map_replace_or_insert(checker->output,
                     parent, _new, NULL);
             PURC_VARIANT_SAFE_CLEAR(_new);
 
@@ -499,7 +499,7 @@ wind_up_val(purc_variant_t val, struct reverse_checker *checker)
             r = pcvar_readjust_set(parent, node);
         }
         else {
-            r = pcutils_map_find_replace_or_insert(checker->output,
+            r = pcutils_map_replace_or_insert(checker->output,
                     parent, parent, NULL);
         }
         if (r)

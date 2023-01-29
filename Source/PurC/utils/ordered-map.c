@@ -400,7 +400,7 @@ int pcutils_map_insert_ex (pcutils_map* map, const void* key,
     return r ? -1 : 0;
 }
 
-int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
+int pcutils_map_replace_or_insert (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt)
 {
     pcutils_map_entry **pentry;

@@ -969,7 +969,7 @@ TEST(utils, map)
     pcutils_map_entry *entry;
     int r;
 
-    r = pcutils_map_find_replace_or_insert(map, "name",
+    r = pcutils_map_replace_or_insert(map, "name",
             (const void*)(size_t)1, NULL);
     ASSERT_EQ(r, 0);
     entry = pcutils_map_find(map, "name");
@@ -977,7 +977,7 @@ TEST(utils, map)
     ASSERT_EQ((const char*)entry->key, "name");
     ASSERT_EQ((size_t)entry->val, 1);
 
-    r = pcutils_map_find_replace_or_insert(map, "name",
+    r = pcutils_map_replace_or_insert(map, "name",
             (const void*)(size_t)12, NULL);
     ASSERT_EQ(r, 0);
     entry = pcutils_map_find(map, "name");
