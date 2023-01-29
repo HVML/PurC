@@ -1,0 +1,24 @@
+#!/usr/bin/purc
+
+# RESULT: 5UL
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <div id="f01" class="class_div">
+        </div>
+        <div id="f02" class="class_div">
+        </div>
+        <div id="f03" class="class_div">
+        </div>
+        <div id="f04" class="class_div">
+        </div>
+        <div id="f05" class="class_div">
+        </div>
+        <init as colls with $DOC.query(".class_div") />
+
+        <exit with $colls.count() />
+    </body>
+
+</hvml>

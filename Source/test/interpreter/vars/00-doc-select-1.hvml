@@ -1,0 +1,16 @@
+#!/usr/bin/purc
+
+# RESULT: 1UL
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <div id="f01">
+        </div>
+        <init as colls with $DOC.select("f01") />
+
+        <exit with $colls.count() />
+    </body>
+
+</hvml>
