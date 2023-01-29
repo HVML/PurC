@@ -74,11 +74,11 @@ int pchash_ptr_equal(const void *k1, const void *k2);
  * An entry in the hash table
  */
 struct pchash_entry {
-    /** The key. Use pchash_entry_k() instead of accessing this directly. */
-    void *k;
+    /** The key. */
+    void *key;
 
-    /** The value. Use pchash_entry_v() instead of accessing this directly. */
-    void *v;
+    /** The value. */
+    void *val;
 
     /* Independent free function per entry. */
     pchash_free_kv_fn free_kv_alt;
@@ -472,30 +472,14 @@ static inline void pchash_unlock(pchash_table *t)
 }
 
 /**
- * @deprecated Don't use this outside of hash.h:
+ * Return pchash_entry.key.
  */
-#ifdef __UNCONST
-#define _PCHASH_UNCONST(a) __UNCONST(a)
-#else
-#define _PCHASH_UNCONST(a) ((void *)(uintptr_t)(const void *)(a))
-#endif
+#define pchash_entry_key(entry) ((entry)->key)
 
 /**
- * Return a non-const version of pchash_entry.k.
- *
- * pchash_entry.k is const to indicate and help ensure that hash itself doesn't modify
- * it, but callers are allowed to do what they want with it.
- * See also pchash_entry.k_is_constant
+ * Return pchash_entry.val.
  */
-#define pchash_entry_k(entry) _PCHASH_UNCONST((entry)->k)
-
-/**
- * Return a non-const version of pchash_entry.v.
- *
- * v is const to indicate and help ensure that hash itself doesn't modify
- * it, but callers are allowed to do what they want with it.
- */
-#define pchash_entry_v(entry) _PCHASH_UNCONST((entry)->v)
+#define pchash_entry_val(entry) ((entry)->val)
 
 #ifdef __cplusplus
 }

@@ -121,7 +121,7 @@ purc_atom_try_string_ex(int bucket, const char *string)
 
     purc_rwlock_reader_lock(&atom_rwlock);
     if ((entry = pcutils_uomap_find(atom_bucket->atom_map, string))) {
-        atom = (purc_atom_t)(uintptr_t)entry->v;
+        atom = (purc_atom_t)(uintptr_t)entry->val;
     }
     purc_rwlock_reader_unlock(&atom_rwlock);
 
@@ -142,7 +142,7 @@ purc_atom_remove_string_ex(int bucket, const char *string)
 
     purc_rwlock_writer_lock(&atom_rwlock);
     if ((entry = pcutils_uomap_find(atom_bucket->atom_map, string))) {
-        atom = (purc_atom_t)(uintptr_t)entry->v;
+        atom = (purc_atom_t)(uintptr_t)entry->val;
         pcutils_uomap_erase(atom_bucket->atom_map, (void *)string);
         atom = ATOM_TO_SEQUENCE(atom);
         atom_bucket->quarks[atom] = NULL;
@@ -195,7 +195,7 @@ atom_from_string(struct atom_bucket *bucket, const char *string,
 
     entry = pcutils_uomap_find(bucket->atom_map, string);
     if (entry) {
-        atom = (purc_atom_t)(uintptr_t)entry->v;
+        atom = (purc_atom_t)(uintptr_t)entry->val;
         assert(atom);
 
         if (newly_created)

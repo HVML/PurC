@@ -693,7 +693,7 @@ TEST(hashtable, double_free)
 
     struct pchash_entry *e = pchash_table_lookup_entry(ht, k1);
     EXPECT_NE(e, nullptr);
-    const char *kk = (const char*)pchash_entry_k(e);
+    const char *kk = (const char*)pchash_entry_key(e);
     ASSERT_NE(k1, kk);
     EXPECT_STREQ(k1, kk);
     ASSERT_EQ(0, strcmp(k1, kk));

@@ -31,7 +31,7 @@ int pcutils_uomap_traverse(pcutils_uomap *map, void *ud,
 {
     pcutils_uomap_entry *entry;
     pchash_foreach(map, entry) {
-        int r = cb(entry->k, entry->v, ud);
+        int r = cb(entry->key, entry->val, ud);
         if (r)
             return r;
     }

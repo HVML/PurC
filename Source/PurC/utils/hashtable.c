@@ -593,7 +593,7 @@ struct pchash_table *pchash_table_new(size_t size,
     t->equal_fn = equal_fn;
 
     for (size_t i = 0; i < size; i++)
-        t->table[i].k = PCHASH_EMPTY;
+        t->table[i].key = PCHASH_EMPTY;
 
     if (threads)
         WRLOCK_INIT(t);
@@ -612,13 +612,8 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
         return -1;
 
     for (ent = t->head; ent != NULL; ent = ent->next) {
-        unsigned long h = pchash_get_hash(new_t, ent->k);
-#if 0
-        unsigned int opts = 0;
-        if (ent->k_is_constant)
-            opts = PCHASH_OBJECT_KEY_IS_CONSTANT;
-#endif
-        if (pchash_table_insert_w_hash(new_t, ent->k, ent->v, h,
+        unsigned long h = pchash_get_hash(new_t, ent->key);
+        if (pchash_table_insert_w_hash(new_t, ent->key, ent->val, h,
                     ent->free_kv_alt) != 0) {
             pchash_table_delete(new_t);
             return -1;
@@ -641,20 +636,20 @@ void pchash_table_reset(struct pchash_table *t)
 
     for (c = t->head; c != NULL; c = c->next) {
         if (c->free_kv_alt) {
-            c->free_kv_alt(c->k, c->v);
+            c->free_kv_alt(c->key, c->val);
         }
         else {
             if (t->free_key) {
-                t->free_key(c->k);
+                t->free_key(c->key);
             }
 
             if (t->free_val) {
-                t->free_val(c->v);
+                t->free_val(c->val);
             }
         }
 
-        c->v = NULL;
-        c->k = PCHASH_FREED;
+        c->val = NULL;
+        c->key = PCHASH_FREED;
     }
 
     t->count = 0;
@@ -684,14 +679,14 @@ static int insert_entry(struct pchash_table *t,
     unsigned long n;
     n = h % t->size;
     while (1) {
-        if (t->table[n].k == PCHASH_EMPTY || t->table[n].k == PCHASH_FREED)
+        if (t->table[n].key == PCHASH_EMPTY || t->table[n].key == PCHASH_FREED)
             break;
         if ((size_t)++n == t->size)
             n = 0;
     }
 
-    t->table[n].k = (t->copy_key != NULL) ? t->copy_key(k) : (void *)k;
-    t->table[n].v = (t->copy_val != NULL) ? t->copy_val(v) : (void *)v;
+    t->table[n].key = (t->copy_key != NULL) ? t->copy_key(k) : (void *)k;
+    t->table[n].val = (t->copy_val != NULL) ? t->copy_val(v) : (void *)v;
     t->table[n].free_kv_alt = free_kv_alt;
     t->count++;
 
@@ -736,11 +731,11 @@ static struct pchash_entry *find_entry(struct pchash_table *t,
     struct pchash_entry *found = NULL;
 
     while (count < t->size) {
-        if (t->table[n].k == PCHASH_EMPTY)
+        if (t->table[n].key == PCHASH_EMPTY)
             break;
 
-        if (t->table[n].k != PCHASH_FREED &&
-                t->equal_fn(t->table[n].k, k) == 0) {
+        if (t->table[n].key != PCHASH_FREED &&
+                t->equal_fn(t->table[n].key, k) == 0) {
             found = &t->table[n];
             break;
         }
@@ -796,7 +791,7 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
 
     if (e != NULL) {
         if (v != NULL)
-            *v = pchash_entry_v(e);
+            *v = e->val;
         return true; /* key found */
     }
 
@@ -814,26 +809,26 @@ static int erase_entry(struct pchash_table *t, struct pchash_entry *e)
     ptrdiff_t n = (ptrdiff_t)(e - t->table);
     assert(n >= 0);
 
-    if (t->table[n].k == PCHASH_EMPTY || t->table[n].k == PCHASH_FREED)
+    if (t->table[n].key == PCHASH_EMPTY || t->table[n].key == PCHASH_FREED)
         return -1;
 
     struct pchash_entry *c = t->table + n;
     if (c->free_kv_alt) {
-        c->free_kv_alt(c->k, c->v);
+        c->free_kv_alt(c->key, c->val);
     }
     else {
         if (t->free_key) {
-            t->free_key(c->k);
+            t->free_key(c->key);
         }
 
         if (t->free_val) {
-            t->free_val(c->v);
+            t->free_val(c->val);
         }
     }
 
     t->count--;
-    t->table[n].v = NULL;
-    t->table[n].k = PCHASH_FREED;
+    t->table[n].val = NULL;
+    t->table[n].key = PCHASH_FREED;
     if (t->tail == &t->table[n] && t->head == &t->table[n]) {
         t->head = t->tail = NULL;
     }
@@ -902,17 +897,17 @@ int pchash_table_replace(struct pchash_table *t,
     retv = 0;
 
     if (e->free_kv_alt) {
-        e->free_kv_alt(NULL, e->v);
+        e->free_kv_alt(NULL, e->val);
     }
     else if (t->free_val) {
-        t->free_val(e->v);
+        t->free_val(e->val);
     }
 
     if (t->copy_val) {
-        e->v = t->copy_val(v);
+        e->val = t->copy_val(v);
     }
     else
-        e->v = (void*)v;
+        e->val = (void*)v;
 
     e->free_kv_alt = free_kv_alt;
 
@@ -935,17 +930,17 @@ int pchash_table_replace_or_insert(struct pchash_table *t,
         retv = 0;
 
         if (e->free_kv_alt) {
-            e->free_kv_alt(NULL, e->v);
+            e->free_kv_alt(NULL, e->val);
         }
         else if (t->free_val) {
-            t->free_val(e->v);
+            t->free_val(e->val);
         }
 
         if (t->copy_val) {
-            e->v = t->copy_val(v);
+            e->val = t->copy_val(v);
         }
         else
-            e->v = (void*)v;
+            e->val = (void*)v;
 
         e->free_kv_alt = free_kv_alt;
     }
