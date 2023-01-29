@@ -2,9 +2,10 @@
  * @file map.h
  * @author Vincent Wei
  * @date 2021/07/15
- * @brief the header for map based on red-black tree.
+ * @brief The header for ordered map based on red-black tree and
+ *      unordered map based on hash table.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -30,18 +31,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "private/callbacks.h"
 #include "private/rbtree.h"
+#include "private/hashtable.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-typedef void *(*copy_key_fn) (const void *key);
-typedef void  (*free_key_fn) (void *key);
-typedef void *(*copy_val_fn) (const void *val);
-typedef int   (*comp_key_fn) (const void *key1, const void *key2);
-typedef void  (*free_val_fn) (void *val);
-typedef void  (*free_kv_fn) (void *key, void *val);
+#define copy_key_fn pcutils_copy_fn
+#define free_key_fn pcutils_free_fn
+#define copy_val_fn pcutils_copy_fn
+#define free_val_fn pcutils_free_fn
+#define comp_key_fn pcutils_comp_fn
+#define free_kv_fn  pcutils_free_kv_fn
 
 /* common functions for string key */
 static inline void* copy_key_string (const void *key)
