@@ -1,0 +1,27 @@
+#!/usr/bin/purc
+
+# RESULT: [5L, 5UL, 5UL, true, true]
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <div id="f01" class="class_div">
+        </div>
+        <div id="f02" class="class_div">
+        </div>
+        <div id="f03" class="class_div">
+        </div>
+        <div id="f04" class="class_div">
+        </div>
+        <div id="f05" class="class_div">
+        </div>
+        <init as colls with $DOC.query(".class_div") />
+        <init as ret with $colls.addClass(!["class_add", "class_color"]) />
+        <init as coll_n with $DOC.query(".class_add") />
+        <init as coll_color with $DOC.query(".class_color") />
+
+        <exit with [$ret, $coll_n.count(), $coll_color.count(), $colls.hasClass("class_add"), $colls.hasClass("class_color")]/>
+    </body>
+
+</hvml>

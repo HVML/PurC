@@ -1,0 +1,26 @@
+#!/usr/bin/purc
+
+# RESULT: [5L, 5UL, 0UL]
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <div id="f01" class="class_div">
+        </div>
+        <div id="f02" class="class_div">
+        </div>
+        <div id="f03" class="class_div">
+        </div>
+        <div id="f04" class="class_div">
+        </div>
+        <div id="f05" class="class_div">
+        </div>
+        <init as colls with $DOC.query(".class_div") />
+        <init as ret with $colls.removeClass(!) />
+        <init as coll_n with $DOC.query(".class_div") />
+
+        <exit with [$ret, $colls.count(), $coll_n.count()]/>
+    </body>
+
+</hvml>

@@ -514,6 +514,7 @@ add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
     size_t nr_elems = elem_coll->nr_elems;
     size_t nr_param = purc_variant_array_get_size(param);
 
+    ret = 0;
     for (size_t i = 0; i < nr_elems; i++) {
         elem = pcdoc_elem_coll_get(elem_coll->doc, elem_coll, i);
         purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
@@ -549,6 +550,7 @@ add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
         pcintr_util_set_attribute(elem_coll->doc, elem,
                 PCDOC_OP_DISPLACE, ATTR_CLASS, kls, nr_kls, true, true);
         purc_rwstream_destroy(rws);
+        ret++;
     }
 
 out_clear_param:
