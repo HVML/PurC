@@ -239,6 +239,10 @@ int pcdvobj_url_encode(struct pcutils_mystring *mystr,
 int pcdvobj_url_decode(struct pcutils_mystring *mystr,
         const char *string, size_t length, int rfc, bool silently);
 
+/* on_release : delete the doc */
+purc_variant_t
+pcdvobjs_doc_new(purc_document_t doc);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

@@ -297,6 +297,33 @@ eraser(void* native_entity,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 #endif
 
+static void
+on_release(void* native_entity)
+{
+    purc_document_t doc = (purc_document_t)native_entity;
+    purc_document_delete(doc);
+}
+
+purc_variant_t
+pcdvobjs_doc_new(purc_document_t doc)
+{
+    static struct purc_native_ops ops = {
+        .property_getter            = property_getter,
+        .property_setter            = property_setter,
+        .property_eraser            = property_eraser,
+        .property_cleaner           = property_cleaner,
+
+        .updater                    = NULL,
+        .cleaner                    = NULL,
+        .eraser                     = NULL,
+
+        .on_observe                 = NULL,
+        .on_release                 = on_release,
+    };
+
+    return purc_variant_make_native(doc, &ops);
+}
+
 purc_variant_t
 purc_dvobj_doc_new(purc_document_t doc)
 {
@@ -310,11 +337,9 @@ purc_dvobj_doc_new(purc_document_t doc)
         .cleaner                    = NULL,
         .eraser                     = NULL,
 
-        .on_observe                = NULL,
-        .on_release                = NULL,
+        .on_observe                 = NULL,
+        .on_release                 = NULL,
     };
-
-    PC_ASSERT(doc);
 
     return purc_variant_make_native(doc, &ops);
 }
