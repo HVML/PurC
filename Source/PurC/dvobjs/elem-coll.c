@@ -249,7 +249,7 @@ out:
 }
 
 static purc_variant_t
-content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
+contents_getter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
@@ -268,7 +268,7 @@ out:
 }
 
 static purc_variant_t
-content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
+contents_setter(void *entity, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(entity);
@@ -695,7 +695,7 @@ static struct native_property_cfg configs[] = {
     {"select",      select_getter,          NULL,                   NULL, NULL},
     {"attr",        attr_getter,            attr_setter,            NULL, NULL},
     {"removeAttr",  NULL,                   remove_attr_setter,     NULL, NULL},
-    {"content",     content_getter,         content_setter,         NULL, NULL},
+    {"contents",    contents_getter,        contents_setter,        NULL, NULL},
     {"textContent", text_content_getter,    text_content_setter,    NULL, NULL},
     {"dataContent", data_content_getter,    data_content_setter,    NULL, NULL},
     {"hasClass",    has_class_getter,       NULL,                   NULL, NULL},

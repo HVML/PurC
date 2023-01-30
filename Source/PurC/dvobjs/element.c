@@ -82,42 +82,49 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
             nr_args, argv, (call_flags & PCVRT_CALL_FLAG_SILENTLY));
 }
 
-static int
-content_getter_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
-{
-    purc_rwstream_t out = (purc_rwstream_t) ctxt;
-    unsigned opt = 0;
-    opt |= PCDOC_SERIALIZE_OPT_UNDEF;
-    opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
-    opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-    opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
-    opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
-    int sret = pcdoc_serialize_descendants_to_stream(doc, element, opt, out);
-    return sret == 0 ? PCDOC_TRAVEL_GOON : PCDOC_TRAVEL_STOP;
-}
-
 purc_variant_t
 pcdvobjs_element_content_getter(purc_document_t doc, pcdoc_element_t elem,
         size_t nr_args, purc_variant_t* argv, bool silently)
 {
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(elem);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(silently);
 
+    unsigned opt = 0;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     purc_rwstream_t rws = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
     if (rws == NULL) {
         goto out;
     }
 
-    pcdoc_travel_descendant_elements(doc, elem, content_getter_cb, rws, NULL);
+    opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+    opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+    opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+    opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+    pcdoc_serialize_descendants_to_stream(doc, elem, opt, rws);
 
     size_t sz_content = 0;
-    char *content = purc_rwstream_get_mem_buffer_ex(rws, &sz_content, NULL, true);
+    char *content = purc_rwstream_get_mem_buffer(rws, &sz_content);
 
-    ret = purc_variant_make_string_reuse_buff(content, sz_content, true);
+    size_t begin = 0;
+    size_t end = sz_content;
+    for (size_t i = 0; i < sz_content; i++) {
+        if (content[i] == '>') {
+            begin = i + 1;
+            break;
+        }
+    }
+
+    for (int i = sz_content - 1; i >= 0; i--) {
+        if (content[i] == '<') {
+            end = i;
+            break;
+        }
+    }
+
+    size_t nr_buf = end - begin;
+    char *buf = strndup(content + begin, nr_buf);
+    ret = purc_variant_make_string_reuse_buff(buf, nr_buf, true);
 
     purc_rwstream_destroy(rws);
 
