@@ -28,6 +28,7 @@
 #include "private/errors.h"
 #include "private/document.h"
 #include "private/avl.h"
+#include "private/dvobjs.h"
 
 #include "internal.h"
 

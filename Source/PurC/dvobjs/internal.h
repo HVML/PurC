@@ -102,10 +102,6 @@ int
 pcdvobjs_elem_coll_update(pcdoc_elem_coll_t elem_coll);
 
 purc_variant_t
-pcdvobjs_elem_coll_query(purc_document_t doc,
-        pcdoc_element_t ancestor, const char *sel);
-
-purc_variant_t
 pcdvobjs_elem_coll_select_by_id(purc_document_t doc, const char *id);
 
 

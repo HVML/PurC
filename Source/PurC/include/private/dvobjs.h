@@ -228,6 +228,11 @@ pcdvobjs_make_elements(purc_document_t doc, pcdoc_element_t element);
 purc_variant_t
 pcdvobjs_elements_by_css(purc_document_t doc, const char *css);
 
+purc_variant_t
+pcdvobjs_elem_coll_query(purc_document_t doc,
+        pcdoc_element_t ancestor, const char *sel);
+
+
 pcdoc_element_t
 pcdvobjs_get_element_from_elements(purc_variant_t elems, size_t idx);
 

@@ -1571,7 +1571,7 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     else if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
         purc_document_t doc = co->stack.doc;
-        purc_variant_t elems = pcdvobjs_elements_by_css(doc, s);
+        purc_variant_t elems = pcdvobjs_elem_coll_query(doc, NULL, s);
         if (elems) {
             pcdoc_element_t elem;
             elem = pcdvobjs_get_element_from_elements(elems, 0);
