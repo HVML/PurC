@@ -87,9 +87,9 @@ struct pcinst {
     /* the FILE object for logging (-1: use syslog; NULL: disabled) */
     FILE                   *fp_log;
 
-    /* data bounden to the current session, e.g, the statbuf of the random
-       number generator */
-    pcutils_map            *local_data_map;
+    /* data bound to the current session, e.g, the statbuf of the random
+       number generator (using unordered map) */
+    pcutils_uomap          *local_data_map;
 
     struct pcvariant_heap  *variant_heap;
     struct pcvariant_heap  *org_vrt_heap;

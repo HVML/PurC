@@ -150,7 +150,7 @@ static int _init_instance(struct pcinst *curr_inst,
     struct pcinst *inst = curr_inst;
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
-    // purc_rdrcomm_t rdr_comm;
+    // purc_rdrcomm_k rdr_comm;
 
     if (extra_info == NULL ||
             extra_info->renderer_comm == PURC_RDRCOMM_HEADLESS) {

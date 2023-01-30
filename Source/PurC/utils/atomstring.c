@@ -43,7 +43,7 @@ static struct atom_bucket {
     purc_atom_t     bucket_bits;
     purc_atom_t     atom_seq_id;
 
-    pcutils_map    *atom_map;
+    pcutils_uomap   *atom_map;
     char**          quarks;
 } atom_buckets[PURC_ATOM_BUCKETS_NR];
 
@@ -75,8 +75,8 @@ static void atom_init_bucket(struct atom_bucket *bucket)
 {
     assert (bucket->atom_seq_id == 0);
 
-    bucket->atom_map = pcutils_map_create(NULL, NULL, NULL, NULL,
-            comp_key_string, false);
+    bucket->atom_map = pcutils_uomap_create(NULL, NULL, NULL, NULL,
+            NULL, comp_key_string, false);
     bucket->quarks = (char **)malloc(sizeof(char *) * ATOM_BLOCK_SIZE);
     bucket->quarks[0] = NULL;
     bucket->atom_seq_id = 1;
@@ -103,7 +103,7 @@ static inline void atom_put_bucket(int bucket)
 
     struct atom_bucket *atom_bucket = atom_buckets + bucket;
     if (LIKELY(atom_bucket->atom_map)) {
-        pcutils_map_destroy(atom_bucket->atom_map);
+        pcutils_uomap_destroy(atom_bucket->atom_map);
         free(atom_bucket->quarks);
         memset(atom_bucket, 0, sizeof(*atom_bucket));
     }
@@ -113,14 +113,14 @@ purc_atom_t
 purc_atom_try_string_ex(int bucket, const char *string)
 {
     struct atom_bucket *atom_bucket = atom_get_bucket(bucket);
-    const pcutils_map_entry* entry = NULL;
+    const pcutils_uomap_entry* entry = NULL;
     purc_atom_t atom = 0;
 
     if (string == NULL || atom_bucket == NULL)
         return 0;
 
     purc_rwlock_reader_lock(&atom_rwlock);
-    if ((entry = pcutils_map_find(atom_bucket->atom_map, string))) {
+    if ((entry = pcutils_uomap_find(atom_bucket->atom_map, string))) {
         atom = (purc_atom_t)(uintptr_t)entry->val;
     }
     purc_rwlock_reader_unlock(&atom_rwlock);
@@ -136,14 +136,14 @@ purc_atom_remove_string_ex(int bucket, const char *string)
     if (string == NULL || atom_bucket == NULL)
         return false;
 
-    const pcutils_map_entry* entry;
+    const pcutils_uomap_entry* entry;
     bool ret;
     purc_atom_t atom;
 
     purc_rwlock_writer_lock(&atom_rwlock);
-    if ((entry = pcutils_map_find(atom_bucket->atom_map, string))) {
+    if ((entry = pcutils_uomap_find(atom_bucket->atom_map, string))) {
         atom = (purc_atom_t)(uintptr_t)entry->val;
-        pcutils_map_erase(atom_bucket->atom_map, (void *)string);
+        pcutils_uomap_erase(atom_bucket->atom_map, (void *)string);
         atom = ATOM_TO_SEQUENCE(atom);
         atom_bucket->quarks[atom] = NULL;
         ret = true;
@@ -191,9 +191,9 @@ atom_from_string(struct atom_bucket *bucket, const char *string,
         bool duplicate, bool *newly_created)
 {
     purc_atom_t atom = 0;
-    pcutils_map_entry* entry;
+    pcutils_uomap_entry* entry;
 
-    entry = pcutils_map_find(bucket->atom_map, string);
+    entry = pcutils_uomap_find(bucket->atom_map, string);
     if (entry) {
         atom = (purc_atom_t)(uintptr_t)entry->val;
         assert(atom);
@@ -308,7 +308,7 @@ atom_new(struct atom_bucket *bucket, char *string, bool need_free)
     atom = bucket->atom_seq_id;
     bucket->quarks[atom] = string;
     atom |= bucket->bucket_bits;
-    pcutils_map_insert_ex(bucket->atom_map,
+    pcutils_uomap_insert_ex(bucket->atom_map,
                 string, (void *)(uintptr_t)atom,
                 need_free ? free_dup_key : NULL);
     bucket->atom_seq_id++;

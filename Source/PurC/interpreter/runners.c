@@ -418,7 +418,7 @@ static void create_instance(struct instmgr_info *mgr_info,
     if (tmp && purc_variant_is_ulongint(tmp)) {
         uint64_t u64;
         purc_variant_cast_to_ulongint(tmp, &u64, false);
-        info.renderer_comm = (purc_rdrcomm_t)u64;
+        info.renderer_comm = (purc_rdrcomm_k)u64;
     }
 
     tmp = purc_variant_object_get_by_ckey(request->data, "rendererURI");

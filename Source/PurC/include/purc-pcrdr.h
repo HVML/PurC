@@ -203,7 +203,7 @@ typedef enum {
 #define PURC_RDRCOMM_NAME_SOCKET        "SOCKET"
     PURC_RDRCOMM_HIBUS,
 #define PURC_RDRCOMM_NAME_HIBUS         "HIBUS"
-} purc_rdrcomm_t;
+} purc_rdrcomm_k;
 
 /* Connection types */
 enum {
@@ -564,7 +564,7 @@ pcrdr_conn_type(pcrdr_conn* conn);
  *
  * Since: 0.1.0
  */
-PCA_EXPORT purc_rdrcomm_t
+PCA_EXPORT purc_rdrcomm_k
 pcrdr_conn_comm_method(pcrdr_conn* conn);
 
 typedef enum {

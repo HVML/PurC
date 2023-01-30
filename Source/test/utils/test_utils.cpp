@@ -666,10 +666,15 @@ TEST(arrlist, double_free)
 
 /* test hashtable.double_free */
 static size_t _hash_table_items_free = 0;
-static void _hash_table_item_free(pchash_entry *e)
+static void _hash_entry_free_key(void *k)
 {
-    free(pchash_entry_k(e));
-    free(pchash_entry_v(e));
+    free(k);
+    ++_hash_table_items_free;
+}
+
+static void _hash_entry_free_val(void *v)
+{
+    free(v);
     ++_hash_table_items_free;
 }
 
@@ -679,7 +684,8 @@ TEST(hashtable, double_free)
     // reset
     _hash_table_items_free = 0;
 
-    struct pchash_table *ht = pchash_kchar_table_new(3, _hash_table_item_free);
+    struct pchash_table *ht = pchash_kstr_table_new(3,
+            NULL, _hash_entry_free_key, NULL, _hash_entry_free_val);
 
     const char *k1 = "hello";
     t = pchash_table_insert(ht, strdup(k1), strdup(k1));
@@ -687,14 +693,14 @@ TEST(hashtable, double_free)
 
     struct pchash_entry *e = pchash_table_lookup_entry(ht, k1);
     EXPECT_NE(e, nullptr);
-    const char *kk = (const char*)pchash_entry_k(e);
+    const char *kk = (const char*)pchash_entry_key(e);
     ASSERT_NE(k1, kk);
     EXPECT_STREQ(k1, kk);
     ASSERT_EQ(0, strcmp(k1, kk));
-    pchash_table_free(ht);
+    pchash_table_delete(ht);
 
     // test check
-    ASSERT_EQ(_hash_table_items_free, 1);
+    ASSERT_EQ(_hash_table_items_free, 2);
 }
 
 struct string_s {
@@ -963,7 +969,7 @@ TEST(utils, map)
     pcutils_map_entry *entry;
     int r;
 
-    r = pcutils_map_find_replace_or_insert(map, "name",
+    r = pcutils_map_replace_or_insert(map, "name",
             (const void*)(size_t)1, NULL);
     ASSERT_EQ(r, 0);
     entry = pcutils_map_find(map, "name");
@@ -971,7 +977,7 @@ TEST(utils, map)
     ASSERT_EQ((const char*)entry->key, "name");
     ASSERT_EQ((size_t)entry->val, 1);
 
-    r = pcutils_map_find_replace_or_insert(map, "name",
+    r = pcutils_map_replace_or_insert(map, "name",
             (const void*)(size_t)12, NULL);
     ASSERT_EQ(r, 0);
     entry = pcutils_map_find(map, "name");

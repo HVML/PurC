@@ -64,7 +64,7 @@ typedef struct purc_instance_extra_info {
      *  - PURC_RDRCOMM_HIBUS:
      *      The renderer runs as a hiBus endpoint and uses hiBus.
      */
-    purc_rdrcomm_t  renderer_comm;
+    purc_rdrcomm_k  renderer_comm;
 
     /**
      * When using an HEADLESS renderer, you should specify a file
@@ -117,19 +117,18 @@ PCA_EXTERN_C_BEGIN
 #define PURC_HAVE_PCRDR         0x0100
 #define PURC_HAVE_FETCHER       0x0200
 #define PURC_HAVE_FETCHER_R     0x0400
-#define PURC_HAVE_ALL (           \
-        PURC_HAVE_UTILS         | \
-        PURC_HAVE_DOM           | \
-        PURC_HAVE_HTML          | \
-        PURC_HAVE_XML           | \
-        PURC_HAVE_VARIANT       | \
-        PURC_HAVE_EJSON         | \
-        PURC_HAVE_XGML          | \
-        PURC_HAVE_HVML          | \
-        PURC_HAVE_PCRDR         | \
-        PURC_HAVE_FETCHER       | \
-        PURC_HAVE_FETCHER_R)
-
+#define PURC_HAVE_ALL (                 \
+            PURC_HAVE_UTILS         |   \
+            PURC_HAVE_DOM           |   \
+            PURC_HAVE_HTML          |   \
+            PURC_HAVE_XML           |   \
+            PURC_HAVE_VARIANT       |   \
+            PURC_HAVE_EJSON         |   \
+            PURC_HAVE_XGML          |   \
+            PURC_HAVE_HVML          |   \
+            PURC_HAVE_PCRDR         |   \
+            PURC_HAVE_FETCHER       |   \
+            PURC_HAVE_FETCHER_R)
 
 #define PURC_MODULE_UTILS      (PURC_HAVE_UTILS)
 #define PURC_MODULE_DOM        (PURC_MODULE_UTILS    | PURC_HAVE_DOM)
@@ -140,7 +139,7 @@ PCA_EXTERN_C_BEGIN
 #define PURC_MODULE_XGML       (PURC_MODULE_EJSON    | PURC_HAVE_XGML)
 #define PURC_MODULE_PCRDR      (PURC_MODULE_EJSON    | PURC_HAVE_PCRDR)
 #define PURC_MODULE_HVML       (PURC_MODULE_PCRDR    | PURC_HAVE_HVML | \
-    PURC_HAVE_FETCHER)
+            PURC_HAVE_FETCHER)
 #define PURC_MODULE_ALL         0xFFFF
 
 /**
@@ -184,8 +183,8 @@ PCA_EXTERN_C_BEGIN
  */
 PCA_EXPORT int
 purc_init_ex(unsigned int modules,
-        const char* app_name, const char* runner_name,
-        const purc_instance_extra_info* extra_info);
+        const char *app_name, const char *runner_name,
+        const purc_instance_extra_info *extra_info);
 
 /**
  * purc_init:
@@ -214,8 +213,8 @@ purc_init_ex(unsigned int modules,
  *
  * Since 0.0.1
  */
-static inline int purc_init(const char* app_name, const char* runner_name,
-        const purc_instance_extra_info* extra_info)
+static inline int purc_init(const char *app_name, const char *runner_name,
+        const purc_instance_extra_info *extra_info)
 {
     return purc_init_ex(PURC_MODULE_ALL, app_name, runner_name, extra_info);
 }
@@ -311,7 +310,7 @@ purc_set_local_data(const char* data_name, uintptr_t local_data,
  * Since 0.0.1
  */
 PCA_EXPORT ssize_t
-purc_remove_local_data(const char* data_name);
+purc_remove_local_data(const char *data_name);
 
 /**
  * purc_get_local_data:
@@ -332,8 +331,8 @@ purc_remove_local_data(const char* data_name);
  * Since 0.0.1
  */
 PCA_EXPORT int
-purc_get_local_data(const char* data_name, uintptr_t *local_data,
-        cb_free_local_data* cb_free);
+purc_get_local_data(const char *data_name, uintptr_t *local_data,
+        cb_free_local_data *cb_free);
 
 /**
  * purc_bind_runner_variable:
@@ -349,7 +348,7 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
  * Since 0.0.1
  */
 PCA_EXPORT bool
-purc_bind_runner_variable(const char* name, purc_variant_t variant);
+purc_bind_runner_variable(const char *name, purc_variant_t variant);
 
 /**
  * purc_get_runner_variable:
@@ -366,7 +365,7 @@ PCA_EXPORT purc_variant_t
 purc_get_runner_variable(const char *name);
 
 struct pcvdom_document;
-typedef struct pcvdom_document* purc_vdom_t;
+typedef struct pcvdom_document *purc_vdom_t;
 
 /**
  * purc_load_hvml_from_string:
@@ -381,7 +380,7 @@ typedef struct pcvdom_document* purc_vdom_t;
  * Since 0.0.1
  */
 PCA_EXPORT purc_vdom_t
-purc_load_hvml_from_string(const char* string);
+purc_load_hvml_from_string(const char *string);
 
 /**
  * purc_load_hvml_from_file:
@@ -395,7 +394,7 @@ purc_load_hvml_from_string(const char* string);
  * Since 0.0.1
  */
 PCA_EXPORT purc_vdom_t
-purc_load_hvml_from_file(const char* file);
+purc_load_hvml_from_file(const char *file);
 
 /**
  * purc_load_hvml_from_url:
@@ -409,7 +408,7 @@ purc_load_hvml_from_file(const char* file);
  * Since 0.0.1
  */
 PCA_EXPORT purc_vdom_t
-purc_load_hvml_from_url(const char* url);
+purc_load_hvml_from_url(const char *url);
 
 /**
  * purc_load_hvml_from_rwstream:
@@ -601,7 +600,7 @@ purc_coroutine_identifier(purc_coroutine_t cor);
  * Since 0.2.0
  */
 PCA_EXPORT bool
-purc_coroutine_bind_variable(purc_coroutine_t cor, const char* name,
+purc_coroutine_bind_variable(purc_coroutine_t cor, const char *name,
         purc_variant_t variant);
 
 /**
@@ -857,7 +856,7 @@ purc_get_instmgr_rid(void);
 PCA_EXPORT purc_atom_t
 purc_inst_create_or_get(const char *app_name, const char *runner_name,
         purc_cond_handler cond_handler,
-        const purc_instance_extra_info* extra_info);
+        const purc_instance_extra_info *extra_info);
 
 /**
  * purc_inst_ask_to_shutdown:
@@ -934,7 +933,7 @@ purc_inst_post_event(purc_atom_t inst_to, pcrdr_msg *msg);
 typedef enum {
     PURC_INST_SIGNAL_CANCEL,
     PURC_INST_SIGNAL_KILL,
-} purc_inst_signal_t;
+} purc_inst_signal_k;
 
 /**
  * purc_inst_emit_signal:
@@ -954,7 +953,7 @@ typedef enum {
  * Proposal; not implemented.
  */
 PCA_EXPORT int
-purc_inst_emit_signal(purc_atom_t inst, purc_inst_signal_t signal);
+purc_inst_emit_signal(purc_atom_t inst, purc_inst_signal_k signal);
 
 PCA_EXTERN_C_END
 

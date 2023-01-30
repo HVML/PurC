@@ -1,8 +1,8 @@
 /*
- * @file map.c
+ * @file ordered-map.c
  * @author Vincent Wei
  * @date 2021/07/15
- * @brief the implementation of map based on red-black tree.
+ * @brief the implementation of ordered map based on red-black tree.
  *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
  *
@@ -400,7 +400,7 @@ int pcutils_map_insert_ex (pcutils_map* map, const void* key,
     return r ? -1 : 0;
 }
 
-int pcutils_map_find_replace_or_insert (pcutils_map* map, const void* key,
+int pcutils_map_replace_or_insert (pcutils_map* map, const void* key,
         const void* val, free_kv_fn free_kv_alt)
 {
     pcutils_map_entry **pentry;
@@ -553,13 +553,13 @@ pcutils_map_it_begin_last(pcutils_map *map)
     return it;
 }
 
-struct pcutils_map_entry*
+pcutils_map_entry *
 pcutils_map_it_value(struct pcutils_map_iterator *it)
 {
     return it->curr;
 }
 
-struct pcutils_map_entry*
+pcutils_map_entry *
 pcutils_map_it_next(struct pcutils_map_iterator *it)
 {
     it->prev = it->curr;
@@ -569,7 +569,7 @@ pcutils_map_it_next(struct pcutils_map_iterator *it)
     return it->curr;
 }
 
-struct pcutils_map_entry*
+pcutils_map_entry *
 pcutils_map_it_prev(struct pcutils_map_iterator *it)
 {
     it->next = it->curr;
