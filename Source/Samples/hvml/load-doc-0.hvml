@@ -1,0 +1,13 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="rdoc" from="http://ws.fmsoft.cn/tools/doc.php" via="GET" sync />
+    </head>
+
+    <body>
+        <exit with $rdoc.doctype/>
+    </body>
+</hvml>
+

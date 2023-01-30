@@ -28,6 +28,7 @@
 #include "../internal.h"
 
 #include "private/debug.h"
+#include "private/dvobjs.h"
 #include "purc-runloop.h"
 
 #include "../ops.h"
@@ -38,6 +39,10 @@
 
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
+
+#define MIME_TYPE_HTML                  "text/html"
+#define BUFF_MIN                        1024
+#define BUFF_MAX                        1024 * 1024 * 4
 
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
@@ -57,6 +62,7 @@ struct ctxt_for_init {
     int                           ret_code;
     int                           err;
     purc_rwstream_t               resp;
+    char                         *mime_type;
 
     enum VIA                      via;
     purc_variant_t                v_for;
@@ -93,6 +99,10 @@ ctxt_for_init_destroy(struct ctxt_for_init *ctxt)
         if (ctxt->resp) {
             purc_rwstream_destroy(ctxt->resp);
             ctxt->resp = NULL;
+        }
+        if (ctxt->mime_type) {
+            free(ctxt->mime_type);
+            ctxt->mime_type = NULL;
         }
         free(ctxt);
     }
@@ -515,6 +525,9 @@ static void on_sync_complete(purc_variant_t request_id, void *ud,
 
     ctxt->ret_code = resp_header->ret_code;
     ctxt->resp = resp;
+    if (resp_header->mime_type) {
+        ctxt->mime_type = strdup(resp_header->mime_type);
+    }
 
     if (ctxt->co->stack.exited) {
         return;
@@ -549,6 +562,28 @@ is_observer_match(pcintr_coroutine_t co,
 
 out:
     return match;
+}
+
+static purc_variant_t
+load_doc(purc_rwstream_t rws)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    purc_rwstream_dump_to_another(rws, stream, -1);
+
+    size_t sz_content = 0;
+    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+
+    if (content) {
+        purc_document_t doc = purc_document_load(PCDOC_K_TYPE_HTML,
+                content, sz_content);
+        if (doc) {
+            ret = pcdvobjs_doc_new(doc);
+        }
+    }
+
+    purc_rwstream_destroy(stream);
+    return ret;
 }
 
 static int
@@ -589,8 +624,14 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto out;
     }
 
-    purc_variant_t ret = purc_variant_load_from_json_stream(ctxt->resp);
-    PRINT_VARIANT(ret);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (ctxt->mime_type && strcasecmp(ctxt->mime_type, MIME_TYPE_HTML) == 0) {
+        ret = load_doc(ctxt->resp);
+    }
+    else {
+        ret = purc_variant_load_from_json_stream(ctxt->resp);
+    }
+
     if (ret == PURC_VARIANT_INVALID) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto out;
@@ -680,6 +721,7 @@ struct load_data {
     int                       ret_code;
     int                       err;
     purc_rwstream_t           resp;
+    char                     *mime_type;
 
     purc_variant_t            as;
     purc_variant_t            at;
@@ -702,6 +744,10 @@ static void load_data_release(struct load_data *data)
         if (data->resp) {
             purc_rwstream_destroy(data->resp);
             data->resp = NULL;
+        }
+        if (data->mime_type) {
+            free(data->mime_type);
+            data->mime_type = NULL;
         }
     }
 }
@@ -735,8 +781,13 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
         return;
     }
 
-    purc_variant_t ret = purc_variant_load_from_json_stream(data->resp);
-    PRINT_VARIANT(ret);
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (data->mime_type && strcasecmp(data->mime_type, MIME_TYPE_HTML) == 0) {
+        ret = load_doc(data->resp);
+    }
+    else {
+        ret = purc_variant_load_from_json_stream(data->resp);
+    }
     if (ret == PURC_VARIANT_INVALID)
         return;
 
@@ -829,6 +880,9 @@ static void on_async_complete(purc_variant_t request_id, void *ud,
 
     data->ret_code = resp_header->ret_code;
     data->resp = resp;
+    if (resp_header->mime_type) {
+        data->mime_type = strdup(resp_header->mime_type);
+    }
 
     if (co->stack.exited) {
         return;

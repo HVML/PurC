@@ -1,0 +1,20 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="rdoc" from="http://ws.fmsoft.cn/tools/doc.php" via="GET" async />
+    </head>
+
+    <body>
+        <observe against="rdoc" for="change:progress">
+            <inherit>
+                $STREAM.stdout.writelines($DATA.stringify($?.progress))
+            </inherit>
+        </observe>
+        <observe against="rdoc" for="change:displaced">
+            <exit with $rdoc.doctype/>
+        </observe>
+    </body>
+</hvml>
+

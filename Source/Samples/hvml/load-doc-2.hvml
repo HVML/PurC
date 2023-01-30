@@ -1,0 +1,26 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="rdoc" from="http://ws.fmsoft.cn/tools/doc.php" via="GET" async />
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+        <init as dest_coll with $DOC.select("dest") />
+
+        <observe against="rdoc" for="change:progress">
+            <inherit>
+                $STREAM.stdout.writelines($DATA.stringify($?.progress))
+            </inherit>
+        </observe>
+        <observe against="rdoc" for="change:displaced">
+            <init as src_coll with $rdoc.select("d_01") />
+            <init as ret with $dest_coll.contents(!$src_coll.contents()) />
+            <exit with $ret/>
+        </observe>
+    </body>
+</hvml>
+
