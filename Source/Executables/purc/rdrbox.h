@@ -273,11 +273,30 @@ typedef struct foil_counters {
 
 typedef void (*foil_data_cleanup_cb)(void *data);
 
+struct foil_create_ctxt;
 struct foil_render_ctxt;
 struct foil_rdrbox;
 
-typedef void (*foil_paint_rdrbox_cb)(struct foil_render_ctxt *rdr_ctxt,
+typedef int  (*foil_rdrbox_tailor_cb)(struct foil_create_ctxt *ctxt,
         struct foil_rdrbox *box);
+typedef void (*foil_rdrbox_cleanup_cb)(struct foil_rdrbox *box);
+typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *rdr_ctxt,
+        struct foil_rdrbox *box);
+
+struct foil_rdrbox_tailor_ops {
+    /* the callback to tailor the box and initialize the private data. */
+    foil_rdrbox_tailor_cb   tailor;
+
+    /* the callback to cleanup the private data. */
+    foil_rdrbox_cleanup_cb  cleaner;
+
+    /* the tailored callback for drawing background of a special box, e.g.,
+       `progress` and `meter` */
+    foil_rdrbox_paint_cb    bgnd_painter;
+
+    /* the tailored callback for drawing content of a control or replaced box */
+    foil_rdrbox_paint_cb    ctnt_painter;
+};
 
 struct foil_rdrbox {
     struct foil_rdrbox* parent;
@@ -450,18 +469,11 @@ struct foil_rdrbox {
        and z-index is not auto. */
     struct foil_stacking_context   *stacking_ctxt;
 
-    /* the private data for a special box, e.g., a control box */
-    struct _private_data           *priv_data;
+    /* the tailor data for a special box, e.g., a control box */
+    struct _tailor_data            *tailor_data;
 
-    /* the callback to cleanup the private data */
-    foil_data_cleanup_cb            priv_data_cleaner;
-
-    /* the tailored callback for drawing background of a special box, e.g.,
-       `progress` and `meter` */
-    foil_paint_rdrbox_cb            bgnd_painter;
-
-    /* the tailored callback for drawing content of a control or replaced box */
-    foil_paint_rdrbox_cb            ctnt_painter;
+    /* the operations for extra styles handler, tailored painters, etc. */
+    struct foil_rdrbox_tailor_ops  *tailor_ops;
 };
 
 typedef struct foil_create_ctxt {

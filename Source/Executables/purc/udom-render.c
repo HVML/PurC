@@ -170,8 +170,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
 {
     switch (part) {
     case FOIL_BOX_PART_BACKGROUND:
-        if (box->bgnd_painter) {
-            box->bgnd_painter(ctxt, box);
+        if (box->tailor_ops && box->tailor_ops->bgnd_painter) {
+            box->tailor_ops->bgnd_painter(ctxt, box);
             break;
         }
         else {
@@ -194,8 +194,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
         break;
 
     case FOIL_BOX_PART_CONTENT:
-        if (box->ctnt_painter) {
-            box->ctnt_painter(ctxt, box);
+        if (box->tailor_ops && box->tailor_ops->ctnt_painter) {
+            box->tailor_ops->ctnt_painter(ctxt, box);
             break;
         }
         break;

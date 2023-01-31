@@ -32,9 +32,37 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define TAG_FLAG_NONE           0x00
+#define TAG_FLAG_CONTROL        0x01
+
+static struct special_tag_info {
+    const char                     *tag_name;
+    unsigned                        flags;
+    struct foil_rdrbox_tailor_ops  *tailor_ops;
+} special_tags_html[] = {
+    { "audio",              /* 0 */
+        TAG_FLAG_CONTROL,
+        NULL },
+    { "input",              /* 1 */
+        TAG_FLAG_CONTROL,
+        NULL },
+    { "meter",              /* 2 */
+        TAG_FLAG_NONE,
+        NULL },
+    { "progress",           /* 3 */
+        TAG_FLAG_NONE,
+        NULL },
+    { "select",             /* 4 */
+        TAG_FLAG_CONTROL,
+        NULL },
+};
+
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
+
+    special_tags_html[2].tailor_ops = &_foil_rdrbox_meter_ops;
+    special_tags_html[3].tailor_ops = &_foil_rdrbox_progress_ops;
     return 0;
 }
 
@@ -329,12 +357,12 @@ void foil_rdrbox_delete(foil_rdrbox *box)
         free(box->extra_data);
     }
 
-    if (box->priv_data) {
-        if (box->priv_data_cleaner) {
-            box->priv_data_cleaner(box->priv_data);
-        }
+    if (box->tailor_data) {
+        assert(box->tailor_ops);
 
-        free(box->priv_data);
+        if (box->tailor_ops->cleaner) {
+            box->tailor_ops->cleaner(box);
+        }
     }
 
     if (box->block_fmt_ctxt) {
@@ -1354,27 +1382,21 @@ found:
     return 1;
 }
 
-static const char *control_tags_html[] = {
-    "audio",
-    "input",
-    "select",
-};
-
-/* TODO: check whether an element is a control */
-static int
-is_control_element(pcdoc_element_t elem, const char *tag_name)
+static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    (void)elem;
-    static ssize_t max = PCA_TABLESIZE(control_tags_html);
+    static ssize_t max = PCA_TABLESIZE(special_tags_html);
 
     ssize_t low = 0, high = max, mid;
     while (low <= high) {
         int cmp;
 
         mid = (low + high) / 2;
-        cmp = strcasecmp(tag_name, replaced_tags_html[mid]);
+        cmp = strcasecmp(ctxt->tag_name, special_tags_html[mid].tag_name);
         if (cmp == 0) {
-            goto found;
+            if (special_tags_html[mid].flags & TAG_FLAG_CONTROL)
+                box->is_control = 1;
+            box->tailor_ops = special_tags_html[mid].tailor_ops;
+            goto done;
         }
         else {
             if (cmp < 0) {
@@ -1386,10 +1408,8 @@ is_control_element(pcdoc_element_t elem, const char *tag_name)
         }
     }
 
-    return 0;
-
-found:
-    return 1;
+done:
+    return;
 }
 
 static foil_rdrbox *
@@ -1665,8 +1685,12 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
             box->is_inline_box = 1;
 
-        box->is_control = is_control_element(ctxt->elem, ctxt->tag_name);
-        // TODO: create control
+        if (box->is_replaced) {
+            box->tailor_ops = &_foil_rdrbox_replaced_ops;
+        }
+        else {
+            tailor_box(ctxt, box);
+        }
 
         /* whether is a block contianer */
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK ||
@@ -1729,6 +1753,10 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
                 box->is_zidx_auto = 1;
             }
         }
+    }
+
+    if (box->tailor_ops && box->tailor_ops->tailor) {
+        box->tailor_ops->tailor(ctxt, box);
     }
 
     return box;

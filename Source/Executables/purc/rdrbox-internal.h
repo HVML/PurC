@@ -194,6 +194,10 @@ int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box);
 struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box);
 
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_replaced_ops;
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_progress_ops;
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_meter_ops;
+
 #ifdef __cplusplus
 }
 #endif

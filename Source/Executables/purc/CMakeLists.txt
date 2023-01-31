@@ -57,6 +57,9 @@ if (ENABLE_RDR_FOIL)
         rdrbox-inline.c
         rdrbox-layout.c
         rdrbox-layout-helpers.c
+        rdrbox-replaced.c
+        rdrbox-progress.c
+        rdrbox-meter.c
         udom-render.c
         widget.c
     )
