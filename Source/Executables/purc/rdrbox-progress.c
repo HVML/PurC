@@ -28,12 +28,17 @@
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "udom.h"
+#include "page.h"
 
 #include <assert.h>
 
 struct _tailor_data {
     double max;
+    /* in indeterminate state if the value is negative. */
     double value;
+
+    /* the current indicator position for indeterminate state */
+    int    indicator;
 };
 
 static int
@@ -73,8 +78,10 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     else {
         /* indeterminate */
         box->tailor_data->value = -1.0;
-    }
+        box->tailor_data->indicator = 0;
 
+        /* TODO: set a timer for indeterminate state */
+    }
 
     return 0;
 }
@@ -88,9 +95,37 @@ static void cleaner(struct foil_rdrbox *box)
 static void
 bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    // TODO
-    (void)ctxt;
-    (void)box;
+    foil_rect page_rc;
+    foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
+
+    if (foil_rect_is_empty(&page_rc))
+        return;
+
+    int tray_width = foil_rect_width(&page_rc);
+    foil_page_set_bgc(ctxt->page, box->background_color);
+    foil_page_erase_rect(ctxt->page, &page_rc);
+
+    if (box->tailor_data->value < 0) {
+        /* in indeterminate state */
+        page_rc.left  += box->tailor_data->indicator;
+        page_rc.right = page_rc.left + 1;
+
+        box->tailor_data->indicator++;
+        if (box->tailor_data->indicator >= tray_width)
+            box->tailor_data->indicator = 0;
+
+        foil_page_set_bgc(ctxt->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_erase_rect(ctxt->page, &page_rc);
+    }
+    else {
+        double bar_ratio = box->tailor_data->value / box->tailor_data->max;
+        assert(bar_ratio > 0 && bar_ratio < 1.0);
+        int bar_width = (int)(tray_width * bar_ratio);
+
+        page_rc.right = page_rc.left + bar_width;
+        foil_page_set_bgc(ctxt->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_erase_rect(ctxt->page, &page_rc);
+    }
 }
 
 struct foil_rdrbox_tailor_ops _foil_rdrbox_progress_ops = {
