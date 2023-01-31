@@ -1570,8 +1570,23 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
     else if (type == PURC_VARIANT_TYPE_STRING) {
         const char *s = purc_variant_get_string_const(on);
+
         purc_document_t doc = co->stack.doc;
-        purc_variant_t elems = pcdvobjs_elem_coll_query(doc, NULL, s);
+        purc_variant_t elems;
+
+        size_t op_len = 0;
+        const char *op = pcutils_trim_spaces(s, &op_len);
+        if (op && op[0] == '>') {
+            purc_variant_t at = pcintr_get_at_var(frame);
+            pcdoc_element_t ancestor = pcdvobjs_get_element_from_elements(at, 0);
+            char *sel = strndup(op + 1, op_len - 1);
+            elems = pcdvobjs_elem_coll_query(doc, ancestor, sel);
+            free(sel);
+        }
+        else {
+            elems = pcdvobjs_elem_coll_query(doc, NULL, s);
+        }
+
         if (elems) {
             pcdoc_element_t elem;
             elem = pcdvobjs_get_element_from_elements(elems, 0);

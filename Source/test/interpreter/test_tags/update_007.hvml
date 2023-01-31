@@ -1,0 +1,30 @@
+#!/usr/bin/purc
+
+# update '>p'
+
+# RESULT: "content by update"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+
+        <div id="msg">
+            <p id="p_1">p1 content</p>
+        </div>
+
+        <div id="dest">
+            <p id="p_2">p2 content</p>
+            <update on="p" at="textContent" with="content by update" />
+        </div>
+
+        <init as c_p2 with $DOC.select("p_1") />
+
+        <exit with $c_p2.contents() />
+    </body>
+</hvml>
+
+
+
