@@ -2240,14 +2240,16 @@ static void update_reject_cache(css_select_state *state,
 }
 
 css_error match_selector_chain(css_select_ctx *ctx,
-		const css_selector *selector, css_select_state *state, bool *match)
+		const css_selector *selector, css_select_state *state,
+        bool *match_chain)
 {
 	const css_selector *s = selector;
 	void *node = state->node;
 	const css_selector_detail *detail = &s->data;
 	bool may_optimise = true;
 	bool rejected_by_cache;
-	*match = false;
+	bool match = false;
+	*match_chain = false;
 	css_pseudo_element pseudo;
 	css_error error;
 
@@ -2264,13 +2266,13 @@ css_error match_selector_chain(css_select_ctx *ctx,
 	 * any selector chains containing pseudo elements anywhere
 	 * else.
 	 */
-	error = match_details(ctx, node, detail, state, match, &pseudo);
+	error = match_details(ctx, node, detail, state, &match, &pseudo);
 
 	if (error != CSS_OK)
 		return error;
 
 	/* Details don't match, so reject selector chain */
-	if (*match == false)
+	if (match == false)
 		return CSS_OK;
 
 	/* Iterate up the selector chain, matching combinators */
@@ -2338,6 +2340,7 @@ css_error match_selector_chain(css_select_ctx *ctx,
 	state->current_pseudo = pseudo;
 	state->computed = state->results->styles[pseudo];
 
+	*match_chain = true;
 	return cascade_style(((css_rule_selector *) selector->rule)->style,
 			state);
 }

@@ -1,0 +1,39 @@
+#!/usr/bin/purc
+
+# update 'div > p'
+
+# RESULT: ["p0 content", "content by update", "content by update", "content by update", "content by update"]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <p id="p_0">p0 content</p>
+
+        <div id="msg">
+            <p id="p_1">p1 content</p>
+            <p id="p_1_1">p11 content</p>
+        </div>
+
+        <div id="dest">
+            <p id="p_2">p2 content</p>
+            <p id="p_2_1">p21 content</p>
+        </div>
+
+        <update on="div   p" at="textContent" with="content by update" />
+
+        <init as c_p0 with $DOC.select("p_0") />
+        <init as c_p1 with $DOC.select("p_1") />
+        <init as c_p11 with $DOC.select("p_1_1") />
+
+        <init as c_p2 with $DOC.select("p_2") />
+        <init as c_p21 with $DOC.select("p_2_1") />
+
+        <exit with [$c_p0.contents(), $c_p1.contents(), $c_p11.contents(), $c_p2.contents(), $c_p21.contents()] />
+    </body>
+</hvml>
+
+
+
