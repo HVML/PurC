@@ -158,7 +158,7 @@ PCA_EXTERN_C_BEGIN
  *  - %PURC_MODULE_ALL: All modules including HVML parser and interpreter.
  * @app_name (nullable): A pointer to a null-terminated string contains
  *      the app name. If this argument is null, the executable program name of
- *      the command  line will be used for the app name.
+ *      the command line will be used for the app name.
  * @runner_name (nullable): A pointer to a null-terminated string contains
  *      the runner name. If this argument is null, `unknown` will be used for
  *      the runner name.

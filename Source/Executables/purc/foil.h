@@ -129,6 +129,14 @@ enum {
 #define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
 #define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
 
+/* the background color for progress bar */
+#define FOIL_BGC_PROGRESS_BAR   FOIL_STD_COLOR_DARK_BLUE
+
+/* the background colors for meter */
+#define FOIL_BGC_METER_NORMAL   FOIL_STD_COLOR_DARK_GREEN
+#define FOIL_BGC_METER_WARNING  FOIL_STD_COLOR_DARK_MAGENTA
+#define FOIL_BGC_METER_ERROR    FOIL_STD_COLOR_DARK_RED
+
 enum {
     FOIL_CHAR_ATTR_NULL         = 0x00,
     FOIL_CHAR_ATTR_BOLD         = 0x01,

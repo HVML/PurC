@@ -182,6 +182,15 @@ foil_rdrbox_line_set_size(struct _line_info *line,
     }
 }
 
+static inline void
+foil_rdrbox_map_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
+{
+    page_rc->left = rdrbox_rc->left / FOIL_PX_GRID_CELL_W;
+    page_rc->right = rdrbox_rc->right / FOIL_PX_GRID_CELL_W;
+    page_rc->top = rdrbox_rc->top / FOIL_PX_GRID_CELL_H;
+    page_rc->bottom = rdrbox_rc->bottom / FOIL_PX_GRID_CELL_H;
+}
+
 struct _inline_runbox *
 foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt);
 
@@ -193,6 +202,10 @@ int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box);
 
 struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box);
+
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_replaced_ops;
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_progress_ops;
+extern struct foil_rdrbox_tailor_ops _foil_rdrbox_meter_ops;
 
 #ifdef __cplusplus
 }

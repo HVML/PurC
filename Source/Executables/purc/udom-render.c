@@ -135,6 +135,7 @@ static inline int height_to_rows(int height)
     return height / FOIL_PX_GRID_CELL_H;
 }
 
+#if 0
 static inline void
 map_rdrbox_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
 {
@@ -150,6 +151,7 @@ map_rdrbox_rect_to_page(const foil_rect *rdrbox_rc, foil_rect *page_rc)
     assert(rdrbox_rc->bottom % FOIL_PX_GRID_CELL_H == 0);
     page_rc->bottom = rdrbox_rc->bottom / FOIL_PX_GRID_CELL_H;
 }
+#endif
 
 static void
 render_marker_box(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
@@ -157,7 +159,7 @@ render_marker_box(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     assert(box->type == FOIL_RDRBOX_TYPE_MARKER);
 
     foil_rect page_rc;
-    map_rdrbox_rect_to_page(&box->ctnt_rect, &page_rc);
+    foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
 
     foil_page_set_fgc(ctxt->page, box->color);
     foil_page_draw_ustring(ctxt->page, page_rc.left, page_rc.top,
@@ -170,8 +172,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
 {
     switch (part) {
     case FOIL_BOX_PART_BACKGROUND:
-        if (box->bgnd_painter) {
-            box->bgnd_painter(ctxt, box);
+        if (box->tailor_ops && box->tailor_ops->bgnd_painter) {
+            box->tailor_ops->bgnd_painter(ctxt, box);
             break;
         }
         else {
@@ -181,7 +183,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 rc = NULL;
             }
             else {
-                map_rdrbox_rect_to_page(&box->ctnt_rect, &page_rc);
+                foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
                 rc = &page_rc;
             }
             foil_page_set_bgc(ctxt->page, box->background_color);
@@ -194,8 +196,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
         break;
 
     case FOIL_BOX_PART_CONTENT:
-        if (box->ctnt_painter) {
-            box->ctnt_painter(ctxt, box);
+        if (box->tailor_ops && box->tailor_ops->ctnt_painter) {
+            box->tailor_ops->ctnt_painter(ctxt, box);
             break;
         }
         break;
@@ -212,7 +214,7 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
     case FOIL_BOX_PART_BACKGROUND:
         if (!foil_rect_is_empty(&run->rc)) {
             foil_rect page_rc;
-            map_rdrbox_rect_to_page(&run->rc, &page_rc);
+            foil_rdrbox_map_rect_to_page(&run->rc, &page_rc);
             foil_page_erase_rect(ctxt->page, &page_rc);
         }
         break;
@@ -225,7 +227,7 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
         if (!foil_rect_is_empty(&run->rc) && run->nr_ucs > 0) {
             foil_rect rc = run->rc, page_rc;
             foil_rect_offset(&rc, line->rc.left, line->rc.top);
-            map_rdrbox_rect_to_page(&rc, &page_rc);
+            foil_rdrbox_map_rect_to_page(&rc, &page_rc);
 
             uint32_t *ucs = run->span->ucs + run->first_uc;
             foil_glyph_pos *poses = run->span->glyph_poses + run->first_uc;
