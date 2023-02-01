@@ -52,6 +52,7 @@ struct mime_type  mime_types[] = {
     { ".json",   "application/json" },
     { ".xml",    "application/xml" },
     { ".tar",    "application/x-tar" },
+    { ".sh",     "application/x-sh" },
     { ".txt",    "text/plain" },
     { ".jpg",    "image/jpeg" },
     { ".jpeg",   "image/jpeg" },
