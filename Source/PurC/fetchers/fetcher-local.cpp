@@ -50,6 +50,14 @@ struct mime_type  mime_types[] = {
     { ".hvml",   "text/hvml" },
     { ".html",   "text/html" },
     { ".json",   "application/json" },
+    { ".xml",    "application/xml" },
+    { ".tar",    "application/x-tar" },
+    { ".txt",    "text/plain" },
+    { ".jpg",    "image/jpeg" },
+    { ".jpeg",   "image/jpeg" },
+    { ".png",    "image/png" },
+    { ".mp3",    "audio/mpeg" },
+    { ".mp4",    "video/mp4" },
 };
 
 static const char* get_mime(const char* name)
