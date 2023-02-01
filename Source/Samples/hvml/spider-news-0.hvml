@@ -31,7 +31,6 @@
                     <update on "#dest" to "append" with $mainItem />
                 </choose>
             </iterate>
-            <exit with true />
         </observe>
     </body>
 </hvml>
