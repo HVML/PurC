@@ -37,12 +37,26 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define BUFF_MIN                        1024
+#define BUFF_MAX                        1024 * 1024 * 4
 
 #define INIT_ASYNC_EVENT_HANDLER        "__init_async_event_handler"
 
-#define MIME_TYPE_HTML                  "text/html"
-#define BUFF_MIN                        1024
-#define BUFF_MAX                        1024 * 1024 * 4
+#define MIME_TYPE_TEXT                  "text/"
+#define MIME_TYPE_TEXT_HTML             "text/html"
+#define MIME_TYPE_TEXT_CSS              "text/css"
+#define MIME_TYPE_TEXT_JS               "text/javascript"
+#define MIME_TYPE_TEXT_PLAIN            "text/plain"
+
+#define MIME_TYPE_APP                   "application/"
+#define MIME_TYPE_APP_XML               "application/xml"
+#define MIME_TYPE_APP_JSON              "application/json"
+#define MIME_TYPE_APP_OCTET_STREAM      "application/octet-stream"
+
+#define MIME_TYPE_IMAGE                 "image/"
+#define MIME_TYPE_AUDIO                 "audio/"
+#define MIME_TYPE_VIDEO                 "video/"
+#define MIME_TYPE_FONT                  "font/"
 
 struct ctxt_for_init {
     struct pcvdom_node           *curr;
@@ -586,6 +600,79 @@ load_doc(purc_rwstream_t rws)
     return ret;
 }
 
+static purc_variant_t
+load_text(purc_rwstream_t rws)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    purc_rwstream_dump_to_another(rws, stream, -1);
+
+    size_t sz_content = 0;
+    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+
+    if (content) {
+        ret = purc_variant_make_string_ex(content, sz_content, true);
+    }
+
+    purc_rwstream_destroy(stream);
+    return ret;
+}
+
+static purc_variant_t
+load_byte_sequence(purc_rwstream_t rws)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    purc_rwstream_dump_to_another(rws, stream, -1);
+
+    size_t nr_bytes = 0;
+    void *bytes = purc_rwstream_get_mem_buffer(stream, &nr_bytes);
+
+    if (bytes) {
+        ret = purc_variant_make_byte_sequence(bytes, nr_bytes);
+    }
+
+    purc_rwstream_destroy(stream);
+    return ret;
+}
+
+static purc_variant_t
+build_variant_by_mime(purc_rwstream_t rws, const char *mime)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (!mime) {
+        ret = purc_variant_load_from_json_stream(rws);
+        goto out;
+    }
+
+    if (strcasecmp(mime, MIME_TYPE_TEXT_HTML) == 0) {
+        ret = load_doc(rws);
+    }
+    else if (strcasecmp(mime, MIME_TYPE_APP_XML) == 0) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    }
+    else if (strcasecmp(mime, MIME_TYPE_APP_JSON) == 0) {
+        ret = purc_variant_load_from_json_stream(rws);
+    }
+    else if (strncasecmp(mime, MIME_TYPE_TEXT, strlen(MIME_TYPE_TEXT)) == 0) {
+        ret = load_text(rws);
+    }
+    else if ((strncasecmp(mime, MIME_TYPE_APP, strlen(MIME_TYPE_APP)) == 0) ||
+        (strncasecmp(mime, MIME_TYPE_IMAGE, strlen(MIME_TYPE_IMAGE)) == 0) ||
+        (strncasecmp(mime, MIME_TYPE_AUDIO, strlen(MIME_TYPE_AUDIO)) == 0) ||
+        (strncasecmp(mime, MIME_TYPE_VIDEO, strlen(MIME_TYPE_VIDEO)) == 0) ||
+        (strncasecmp(mime, MIME_TYPE_FONT, strlen(MIME_TYPE_FONT)) == 0)
+        ) {
+        ret = load_byte_sequence(rws);
+    }
+    else {
+        ret = purc_variant_load_from_json_stream(rws);
+    }
+
+out:
+    return ret;
+}
+
 static int
 observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
@@ -624,14 +711,7 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto out;
     }
 
-    purc_variant_t ret = PURC_VARIANT_INVALID;
-    if (ctxt->mime_type && strcasecmp(ctxt->mime_type, MIME_TYPE_HTML) == 0) {
-        ret = load_doc(ctxt->resp);
-    }
-    else {
-        ret = purc_variant_load_from_json_stream(ctxt->resp);
-    }
-
+    purc_variant_t ret = build_variant_by_mime(ctxt->resp, ctxt->mime_type);
     if (ret == PURC_VARIANT_INVALID) {
         frame->next_step = NEXT_STEP_ON_POPPING;
         goto out;
@@ -781,13 +861,7 @@ static void on_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
         return;
     }
 
-    purc_variant_t ret = PURC_VARIANT_INVALID;
-    if (data->mime_type && strcasecmp(data->mime_type, MIME_TYPE_HTML) == 0) {
-        ret = load_doc(data->resp);
-    }
-    else {
-        ret = purc_variant_load_from_json_stream(data->resp);
-    }
+    purc_variant_t ret = build_variant_by_mime(data->resp, data->mime_type);
     if (ret == PURC_VARIANT_INVALID)
         return;
 
