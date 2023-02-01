@@ -1,0 +1,37 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="n163" from="https://news.163.com/" via="GET" async />
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+
+        <archetype name="mainItem">
+            <div class="news-item">
+                <a href="$?.href">$?.title</a>
+            </div>
+        </archetype>
+
+        <observe against="n163" for="change:progress">
+            <inherit>
+                $STREAM.stdout.writelines($DATA.stringify($?.progress))
+            </inherit>
+        </observe>
+        <observe against="n163" for="change:displaced">
+            <init as src_coll with $n163.query("div > div > p > a") />
+            <init as nr_count with $src_coll.count() />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as data with {"href":$src_coll.attr("href"), "title":$src_coll.contents()} />
+                <choose on $data>
+                    <update on "#dest" to "append" with $mainItem />
+                </choose>
+            </iterate>
+            <exit with true />
+        </observe>
+    </body>
+</hvml>
+
