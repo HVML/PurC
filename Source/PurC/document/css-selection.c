@@ -272,10 +272,13 @@ named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
     *sibling = NULL;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    if (node.elem == doc->root4select) {
+        goto done;
+    }
+
     pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
     while (prev.data) {
         if (prev.type == PCDOC_NODE_ELEMENT) {
-
             const char *name1, *name2;
             size_t len1, len2;
 
@@ -295,6 +298,7 @@ named_sibling_node(void *pw, void *n, const css_qname *qname, void **sibling)
         prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
+done:
     return CSS_OK;
 }
 
@@ -318,10 +322,13 @@ named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
     *sibling = NULL;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    if (node.elem == doc->root4select) {
+        goto done;
+    }
+
     pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
     while (prev.data) {
         if (prev.type == PCDOC_NODE_ELEMENT) {
-
             const char *name1, *name2;
             size_t len1, len2;
 
@@ -335,11 +342,16 @@ named_generic_sibling_node(void *pw, void *n, const css_qname *qname,
                 *sibling = prev.data;
                 break;
             }
+
+            if (prev.elem == doc->root4select) {
+                break;
+            }
         }
 
         prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
+done:
     return CSS_OK;
 }
 
@@ -387,6 +399,10 @@ sibling_node(void *pw, void *n, void **sibling)
     *sibling = NULL;
 
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { n } };
+    if (node.elem == doc->root4select) {
+        goto done;
+    }
+
     pcdoc_node prev = pcdoc_node_prev_sibling(doc, node);
     while (prev.data) {
         if (prev.type == PCDOC_NODE_ELEMENT) {
@@ -397,6 +413,7 @@ sibling_node(void *pw, void *n, void **sibling)
         prev = pcdoc_node_prev_sibling(doc, prev);
     }
 
+done:
     return CSS_OK;
 }
 
