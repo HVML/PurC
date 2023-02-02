@@ -30,7 +30,6 @@
 #include "rdrbox.h"
 #include "util/sorted-array.h"
 #include "util/list.h"
-#include "region/region.h"
 
 #include <purc/purc-document.h>
 #include <glib.h>
@@ -78,9 +77,6 @@ struct pcmcth_udom {
     /* quoting depth */
     int nr_open_quotes;
     int nr_close_quotes;
-
-    /* the block heap for region rectangles */
-    foil_block_heap rgnrc_heap;
 
     /* the pointer to the stacking context created by the root element */
     struct foil_stacking_context *root_stk_ctxt;

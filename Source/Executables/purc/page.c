@@ -87,18 +87,31 @@ void foil_page_content_cleanup(pcmcth_page *page)
     page->cells = NULL;
 }
 
-pcmcth_page *foil_page_new(void)
+/* An anonymous page resides in an orphan widget */
+pcmcth_page *foil_page_new(pcmcth_workspace *workspace)
 {
-    pcmcth_page *page = calloc(1, sizeof(*page));
-    return page;
+    struct foil_widget *orphan;
+    foil_rect rc;
+    foil_rect_set(&rc, 0, 0, 80, 25);
+    orphan = foil_widget_new(
+            WSP_WIDGET_TYPE_PLAINWINDOW, WSP_WIDGET_BORDER_NONE,
+            "orphan", "An orphan widget", &rc);
+
+    if (orphan) {
+        orphan->user_data = workspace;
+        return &orphan->page;
+    }
+    return NULL;
 }
 
 pcmcth_udom *foil_page_delete(pcmcth_page *page)
 {
-    pcmcth_udom *udom = page->udom;
+    struct foil_widget *orphan = foil_widget_from_page(page);
+    assert(orphan->parent == NULL);
 
+    pcmcth_udom *udom = page->udom;
     foil_page_content_cleanup(page);
-    free(page);
+    foil_widget_delete(orphan);
 
     return udom;
 }
@@ -402,5 +415,23 @@ bool foil_page_expose(pcmcth_page *page)
     foil_widget_expose(widget);
     foil_rect_empty(&page->dirty_rect);
     return true;
+}
+
+pcmcth_workspace *foil_page_get_workspace(pcmcth_page *page)
+{
+    pcmcth_workspace *workspace = NULL;
+
+    foil_widget *widget = foil_widget_from_page(page);
+
+    foil_widget *root = foil_widget_get_root(widget);
+    if (root) {
+        workspace = (pcmcth_workspace *)root->user_data;
+    }
+    else {
+        /* For anonymous pages */
+        workspace = (pcmcth_workspace *)widget->user_data;
+    }
+
+    return workspace;
 }
 

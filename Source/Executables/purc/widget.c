@@ -208,6 +208,9 @@ void foil_widget_delete_deep(foil_widget *root)
 foil_widget *foil_widget_get_root(foil_widget *widget)
 {
     foil_widget *parent = widget->parent;
+    if (parent == NULL) /* an orphan widget */
+        return parent;
+
     while (parent->parent) {
         parent = parent->parent;
     }
