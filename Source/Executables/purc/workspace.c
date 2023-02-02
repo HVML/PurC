@@ -44,6 +44,11 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
 {
     pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
+        /* initialize the block heap for region rectangles */
+        if (!foil_region_rect_heap_init(&workspace->rgnrc_heap,
+                    FOIL_DEF_RGNRCHEAP_SZ))
+            goto failed;
+
         workspace->rdr = rdr;
         workspace->layouter = NULL;
         foil_rect rc;
@@ -52,9 +57,8 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
                 WSP_WIDGET_TYPE_ROOT, WSP_WIDGET_BORDER_NONE,
                 "root", NULL, &rc);
         if (workspace->root == NULL) {
-            free(workspace);
             workspace = NULL;
-            goto done;
+            goto failed;
         }
 
         /* we use user_data of root to store the pointer to the workspace */
@@ -62,8 +66,13 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
         kvlist_set(&rdr->workspace_list, app_key, &workspace);
     }
 
-done:
     return workspace;
+
+failed:
+    if (workspace->rgnrc_heap.heap)
+        foil_region_rect_heap_cleanup(&workspace->rgnrc_heap);
+    free(workspace);
+    return NULL;
 }
 
 static void workspace_delete(pcmcth_workspace *workspace)
@@ -75,6 +84,8 @@ static void workspace_delete(pcmcth_workspace *workspace)
     }
 
     foil_widget_delete_deep(workspace->root);
+
+    foil_region_rect_heap_cleanup(&workspace->rgnrc_heap);
 
     free(workspace);
 }

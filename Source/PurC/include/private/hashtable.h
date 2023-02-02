@@ -4,8 +4,8 @@
  * @date 2021/07/07
  * @brief The interfaces for hash table.
  *
- * Cleaned up by Vincent Wei
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Cleaned up and enhanced by Vincent Wei
+ * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -88,6 +88,9 @@ struct pchash_entry {
     struct pchash_entry *prev;
 };
 
+typedef struct pchash_entry pchash_entry;
+typedef struct pchash_entry **pchash_entry_handle_t;
+
 /**
  * The hash table structure.
  */
@@ -103,8 +106,8 @@ struct pchash_table {
     /** The last entry. */
     struct pchash_entry *tail;
 
-    /** All available entries. */
-    struct pchash_entry *table;
+    /** The entries. */
+    struct pchash_entry **table;
 
     /** A pointer onto the function responsible for copying the key. */
     pchash_copy_key_fn copy_key;
@@ -327,10 +330,10 @@ int pchash_table_insert_w_hash(struct pchash_table *t,
  * @param t the table to lookup
  * @param k a pointer to the key to lookup
  *
- * @return a pointer to the record structure of the value or NULL
+ * @return The handle (a pointer) to the record structure of the value or NULL
  *      if it does not exist.
  */
-struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_entry(struct pchash_table *t,
         const void *k);
 
 /**
@@ -344,9 +347,10 @@ struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t,
  * @param k a pointer to the key to lookup
  * @param h hash value of the key to lookup
  *
- * @return a pointer to the record structure of the value or NULL if it does not exist.
+ * @return The handle (a pointer) to the record structure of the value or NULL
+ *      if it does not exist.
  */
-struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
         const void *k, const unsigned long h);
 
 /**
@@ -361,9 +365,10 @@ struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
  * @param k a pointer to the key to lookup
  * @param h hash value of the key to lookup
  *
- * @return a pointer to the record structure of the value or NULL if it does not exist.
+ * @return The handle (a pointer) to the record structure of the value or NULL
+ *      if it does not exist.
  */
-struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
+pchash_entry_handle_t pchash_table_lookup_and_lock_w_hash(
         struct pchash_table *t, const void *k, const unsigned long h);
 
 /**
@@ -375,7 +380,7 @@ struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
  * @return a pointer to the record structure of the value or NULL
  *      if it does not exist.
  */
-struct pchash_entry *pchash_table_lookup_and_lock(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_and_lock(struct pchash_table *t,
         const void *k);
 
 /**
@@ -399,7 +404,7 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-int pchash_table_erase_entry(struct pchash_table *t, struct pchash_entry *e);
+int pchash_table_erase_entry(struct pchash_table *t, pchash_entry_handle_t e);
 
 /**
  * Erase a record from the table.
@@ -474,12 +479,17 @@ static inline void pchash_unlock(pchash_table *t)
 /**
  * Return pchash_entry.key.
  */
-#define pchash_entry_key(entry) ((entry)->key)
+#define pchash_entry_key(entry) ((*(entry))->key)
 
 /**
  * Return pchash_entry.val.
  */
-#define pchash_entry_val(entry) ((entry)->val)
+#define pchash_entry_val(entry) ((*(entry))->val)
+
+/**
+ * Return pchash_entry.<field>.
+ */
+#define pchash_entry_field(entry, field) ((*(entry))->field)
 
 #ifdef __cplusplus
 }

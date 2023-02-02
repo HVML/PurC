@@ -1451,7 +1451,7 @@ _COMPILE_TIME_ASSERT(hdl,
 
 static request_handler find_request_handler(const char* operation)
 {
-    static ssize_t max = sizeof(handlers)/sizeof(handlers[0]) - 1;
+    static const ssize_t max = sizeof(handlers)/sizeof(handlers[0]) - 1;
 
     ssize_t low = 0, high = max, mid;
     while (low <= high) {

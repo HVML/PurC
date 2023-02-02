@@ -4,7 +4,7 @@
  * @date 2021/07/07
  *
  * Enhanced and cleaned up by Vincent Wei.
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -39,8 +39,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "purc-utils.h"
 #include "private/hashtable.h"
-
 #include "config.h"
 
 #include <assert.h>
@@ -60,7 +60,9 @@
 #include <windows.h> /* Get InterlockedCompareExchange */
 #endif
 
-#include "purc-utils.h"
+#if HAVE(GLIB)
+#include <gmodule.h>
+#endif
 
 /**
  * golden prime used in hash functions
@@ -74,15 +76,17 @@
  */
 #define PCHASH_LOAD_FACTOR 0.66
 
-/**
- * sentinel pointer value for empty slots
- */
-#define PCHASH_EMPTY (void *)-1
-
+#if 0
 /**
  * sentinel pointer value for freed slots
  */
-#define PCHASH_FREED (void *)-2
+#define PCHASH_FREED (void *)-1
+
+/**
+ * sentinel pointer value for empty slots
+ */
+#define PCHASH_EMPTY (void *)-2
+#endif /* deprecated */
 
 unsigned long pchash_ptr_hash(const void *k)
 {
@@ -143,22 +147,40 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 -------------------------------------------------------------------------------
 */
 
+#if 0
 /*
  * My best guess at if you are big-endian or little-endian.  This may
  * need adjustment.
  */
-#if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) || \
-    (defined(i386) || defined(__i386__) || defined(__i486__) || defined(__i586__) ||          \
-     defined(__i686__) || defined(vax) || defined(MIPSEL))
-#define HASH_LITTLE_ENDIAN 1
-#define HASH_BIG_ENDIAN 0
-#elif (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) || \
-    (defined(sparc) || defined(POWERPC) || defined(mc68000) || defined(sel))
-#define HASH_LITTLE_ENDIAN 0
-#define HASH_BIG_ENDIAN 1
+#if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) &&               \
+        __BYTE_ORDER == __LITTLE_ENDIAN) ||                             \
+    (defined(i386) || defined(__i386__) || defined(__i486__) ||         \
+     defined(__i586__) || defined(__i686__) || defined(__x86_64__) ||   \
+     defined(__ia64__) || defined(vax) || defined(MIPSEL) ||            \
+     defined(__loongarch__) || defined(__riscv))
+#   define HASH_LITTLE_ENDIAN 1
+#   define HASH_BIG_ENDIAN 0
+#elif (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) &&                \
+        __BYTE_ORDER == __BIG_ENDIAN) ||                                \
+    (defined(sparc) || defined(POWERPC) || defined(mc68000) ||          \
+     defined(sel))
+#   define HASH_LITTLE_ENDIAN 0
+#   define HASH_BIG_ENDIAN 1
 #else
-#define HASH_LITTLE_ENDIAN 0
-#define HASH_BIG_ENDIAN 0
+#   define HASH_LITTLE_ENDIAN 0
+#   define HASH_BIG_ENDIAN 0
+#endif
+#endif  /* deprecated */
+
+#if CPU(LITTLE_ENDIAN)
+#   define HASH_LITTLE_ENDIAN 1
+#   define HASH_BIG_ENDIAN 0
+#elif CPU(BIG_ENDIAN)
+#   define HASH_LITTLE_ENDIAN 0
+#   define HASH_BIG_ENDIAN 1
+#else
+#   define HASH_LITTLE_ENDIAN 0
+#   define HASH_BIG_ENDIAN 0
 #endif
 
 #define hashsize(n) ((uint32_t)1 << (n))
@@ -303,7 +325,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
     if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
         const uint32_t *k = (const uint32_t *)key; /* read 32-bit chunks */
 
-        /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
+        /* all but last block: aligned reads and affect 32 bits of (a,b,c) */
         while (length > 12)
         {
             a += k[0];
@@ -314,7 +336,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
             k += 3;
         }
 
-        /*----------------------------- handle the last (probably partial) block */
+        /* handle the last (probably partial) block */
         /*
          * "k[2]&0xffffff" actually reads beyond the end of the string, but
          * then masks off the part it's not allowed to read.  Because the
@@ -382,7 +404,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
         const uint16_t *k = (const uint16_t *)key; /* read 16-bit chunks */
         const uint8_t  *k8;
 
-        /*--------------- all but last block: aligned reads and different mixing */
+        /* all but last block: aligned reads and different mixing */
         while (length > 12)
         {
             a += k[0] + (((uint32_t)k[1])<<16);
@@ -393,7 +415,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
             k += 6;
         }
 
-        /*----------------------------- handle the last (probably partial) block */
+        /* handle the last (probably partial) block */
         k8 = (const uint8_t *)k;
         switch(length)
         {
@@ -422,7 +444,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
              break;
         case 1 : a+=k8[0];
              break;
-        case 0 : return c;                     /* zero length requires no mixing */
+        case 0 : return c;      /* zero length requires no mixing */
         }
 
     }
@@ -431,7 +453,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
         /* need to read the key one byte at a time */
         const uint8_t *k = (const uint8_t *)key;
 
-        /*--------------- all but the last block: affect some 32 bits of (a,b,c) */
+        /* all but the last block: affect some 32 bits of (a,b,c) */
         while (length > 12)
         {
             a += k[0];
@@ -451,7 +473,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
             k += 12;
         }
 
-        /*-------------------------------- last block: affect all 32 bits of (c) */
+        /* last block: affect all 32 bits of (c) */
         switch(length) /* all the case statements fall through */
         {
         case 12: c+=((uint32_t)k[11])<<24; /* FALLTHRU */
@@ -504,9 +526,10 @@ unsigned long pchash_default_str_hash(const void *k)
         RANDOM_SEED_TYPE seed;
         /* we can't use -1 as it is the unitialized sentinel */
         while ((seed = pcutils_get_random_seed()) == -1) {}
-// hacking: sizeof can't be used when pre-processing, because it's compiler-level calculation
-//          https://stackoverflow.com/questions/2319519/why-cant-i-use-sizeof-in-a-if
-// better in config.h
+/* hacking: sizeof can't be used when pre-processing,
+ * because it's compiler-level calculation
+ * https://stackoverflow.com/questions/2319519/why-cant-i-use-sizeof-in-a-if
+ * better in config.h */
 #define SIZEOF_INT 4
 
 #if SIZEOF_INT == 8 && defined __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
@@ -562,6 +585,32 @@ int pchash_str_equal(const void *k1, const void *k2)
     if ((t)->rwlock.native_impl)              \
         purc_rwlock_writer_unlock(&(t)->rwlock)
 
+#if HAVE(GLIB)
+static inline UNUSED_FUNCTION pchash_entry *alloc_entry(void) {
+    return (pchash_entry *)g_slice_alloc(sizeof(pchash_entry));
+}
+
+static inline UNUSED_FUNCTION pchash_entry *alloc_entry_0(void) {
+    return (pchash_entry *)g_slice_alloc0(sizeof(pchash_entry));
+}
+
+static inline void free_entry(pchash_entry *v) {
+    return g_slice_free1(sizeof(pchash_entry), (gpointer)v);
+}
+#else
+static inline UNUSED_FUNCTION pchash_entry *alloc_entry(void) {
+    return (pchash_entry *)malloc(sizeof(pchash_entry));
+}
+
+static inline UNUSED_FUNCTION pchash_entry *alloc_entry_0(void) {
+    return (pchash_entry *)calloc(1, sizeof(pchash_entry));
+}
+
+static inline void free_entry(pchash_entry *v) {
+    return free(v);
+}
+#endif
+
 struct pchash_table *pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
@@ -572,14 +621,13 @@ struct pchash_table *pchash_table_new(size_t size,
     if (size == 0)
         size = PCHASH_DEFAULT_SIZE;
 
-    /* Allocate space for elements to avoid divisions by zero. */
-    t = (struct pchash_table *)calloc(1, sizeof(struct pchash_table));
+    t = (pchash_table *)calloc(1, sizeof(pchash_table));
     if (!t)
         return NULL;
 
     t->count = 0;
     t->size = size;
-    t->table = (struct pchash_entry *)calloc(size, sizeof(struct pchash_entry));
+    t->table = (pchash_entry **)calloc(size, sizeof(pchash_entry *));
     if (!t->table) {
         free(t);
         return NULL;
@@ -592,13 +640,39 @@ struct pchash_table *pchash_table_new(size_t size,
     t->hash_fn = hash_fn;
     t->equal_fn = equal_fn;
 
-    for (size_t i = 0; i < size; i++)
-        t->table[i].key = PCHASH_EMPTY;
-
     if (threads)
         WRLOCK_INIT(t);
 
     return t;
+}
+
+static void move_entry(struct pchash_table *dst, struct pchash_entry *entry,
+        unsigned long h)
+{
+    unsigned long n;
+    n = h % dst->size;
+    while (1) {
+        if (dst->table[n] == NULL)
+            break;
+        if ((size_t)++n == dst->size)
+            n = 0;
+    }
+
+    if (dst->table[n] == NULL) {
+        dst->table[n] = entry;
+    }
+
+    dst->count++;
+    if (dst->head == NULL) {
+        dst->head = dst->tail = dst->table[n];
+        dst->table[n]->next = dst->table[n]->prev = NULL;
+    }
+    else {
+        dst->tail->next = dst->table[n];
+        dst->table[n]->prev = dst->tail;
+        dst->table[n]->next = NULL;
+        dst->tail = dst->table[n];
+    }
 }
 
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
@@ -611,6 +685,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
     if (new_t == NULL)
         return -1;
 
+#if 0
     for (ent = t->head; ent != NULL; ent = ent->next) {
         unsigned long h = pchash_get_hash(new_t, ent->key);
         if (pchash_table_insert_w_hash(new_t, ent->key, ent->val, h,
@@ -620,9 +695,22 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
         }
     }
 
+    for (size_t i = 0; i < t->size; i++) {
+        if (t->table[i])
+            free(t->table[i]);
+    }
+#endif /* deprecated */
+
+    struct pchash_entry *tmp;
+    pchash_foreach_safe(t, ent, tmp) {
+        unsigned long h = pchash_get_hash(new_t, ent->key);
+        move_entry(new_t, ent, h);
+    }
+
     free(t->table);
-    t->table = new_t->table;
+
     t->size = new_size;
+    t->table = new_t->table;
     t->head = new_t->head;
     t->tail = new_t->tail;
     free(new_t);
@@ -634,7 +722,7 @@ void pchash_table_reset(struct pchash_table *t)
 {
     struct pchash_entry *c;
 
-    for (c = t->head; c != NULL; c = c->next) {
+    pchash_foreach(t, c) {
         if (c->free_kv_alt) {
             c->free_kv_alt(c->key, c->val);
         }
@@ -647,10 +735,14 @@ void pchash_table_reset(struct pchash_table *t)
                 t->free_val(c->val);
             }
         }
-
-        c->val = NULL;
-        c->key = PCHASH_FREED;
     }
+
+    for (size_t i = 0; i < t->size; i++) {
+        if (t->table[i])
+            free_entry(t->table[i]);
+    }
+
+    memset(t->table, 0, sizeof(t->table[0]) * t->size);
 
     t->count = 0;
     t->head = t->tail = NULL;
@@ -679,26 +771,32 @@ static int insert_entry(struct pchash_table *t,
     unsigned long n;
     n = h % t->size;
     while (1) {
-        if (t->table[n].key == PCHASH_EMPTY || t->table[n].key == PCHASH_FREED)
+        if (t->table[n] == NULL)
             break;
         if ((size_t)++n == t->size)
             n = 0;
     }
 
-    t->table[n].key = (t->copy_key != NULL) ? t->copy_key(k) : (void *)k;
-    t->table[n].val = (t->copy_val != NULL) ? t->copy_val(v) : (void *)v;
-    t->table[n].free_kv_alt = free_kv_alt;
+    if (t->table[n] == NULL) {
+        t->table[n] = alloc_entry_0();
+        if (t->table[n] == NULL)
+            return -1;
+    }
+
+    t->table[n]->key = (t->copy_key != NULL) ? t->copy_key(k) : (void *)k;
+    t->table[n]->val = (t->copy_val != NULL) ? t->copy_val(v) : (void *)v;
+    t->table[n]->free_kv_alt = free_kv_alt;
     t->count++;
 
     if (t->head == NULL) {
-        t->head = t->tail = &t->table[n];
-        t->table[n].next = t->table[n].prev = NULL;
+        t->head = t->tail = t->table[n];
+        t->table[n]->next = t->table[n]->prev = NULL;
     }
     else {
-        t->tail->next = &t->table[n];
-        t->table[n].prev = t->tail;
-        t->table[n].next = NULL;
-        t->tail = &t->table[n];
+        t->tail->next = t->table[n];
+        t->table[n]->prev = t->tail;
+        t->table[n]->next = NULL;
+        t->tail = t->table[n];
     }
 
     return 0;
@@ -723,19 +821,18 @@ int pchash_table_insert_ex(struct pchash_table *t,
             pchash_get_hash(t, k), free_kv_alt);
 }
 
-static struct pchash_entry *find_entry(struct pchash_table *t,
+static pchash_entry_handle_t find_entry(struct pchash_table *t,
         const void *k, const unsigned long h)
 {
     unsigned long n = h % t->size;
     size_t count = 0;
-    struct pchash_entry *found = NULL;
+    pchash_entry **found = NULL;
 
     while (count < t->size) {
-        if (t->table[n].key == PCHASH_EMPTY)
+        if (t->table[n] == NULL)
             break;
 
-        if (t->table[n].key != PCHASH_FREED &&
-                t->equal_fn(t->table[n].key, k) == 0) {
+        if (t->table[n] && t->equal_fn(t->table[n]->key, k) == 0) {
             found = &t->table[n];
             break;
         }
@@ -748,10 +845,10 @@ static struct pchash_entry *find_entry(struct pchash_table *t,
     return found;
 }
 
-struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
         const void *k, const unsigned long h)
 {
-    struct pchash_entry *found = NULL;
+    pchash_entry_handle_t found = NULL;
 
     RDLOCK_TABLE(t);
     found = find_entry(t, k, h);
@@ -760,16 +857,16 @@ struct pchash_entry *pchash_table_lookup_entry_w_hash(struct pchash_table *t,
     return found;
 }
 
-struct pchash_entry *pchash_table_lookup_entry(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_entry(struct pchash_table *t,
         const void *k)
 {
     return pchash_table_lookup_entry_w_hash(t, k, pchash_get_hash(t, k));
 }
 
-struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
+pchash_entry_handle_t pchash_table_lookup_and_lock_w_hash(
         struct pchash_table *t, const void *k, const unsigned long h)
 {
-    struct pchash_entry *found = NULL;
+    pchash_entry_handle_t found = NULL;
 
     WRLOCK_TABLE(t);
     found = find_entry(t, k, h);
@@ -779,7 +876,7 @@ struct pchash_entry *pchash_table_lookup_and_lock_w_hash(
     return found;
 }
 
-struct pchash_entry *pchash_table_lookup_and_lock(struct pchash_table *t,
+pchash_entry_handle_t pchash_table_lookup_and_lock(struct pchash_table *t,
         const void *k)
 {
     return pchash_table_lookup_and_lock_w_hash(t, k, pchash_get_hash(t, k));
@@ -787,11 +884,11 @@ struct pchash_entry *pchash_table_lookup_and_lock(struct pchash_table *t,
 
 bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
 {
-    struct pchash_entry *e = pchash_table_lookup_entry(t, k);
+    pchash_entry_handle_t e = pchash_table_lookup_entry(t, k);
 
     if (e != NULL) {
         if (v != NULL)
-            *v = e->val;
+            *v = (*e)->val;
         return true; /* key found */
     }
 
@@ -800,19 +897,20 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v)
     return false; /* key not found */
 }
 
-static int erase_entry(struct pchash_table *t, struct pchash_entry *e)
+static int erase_entry(struct pchash_table *t, pchash_entry_handle_t e)
 {
     if ((uintptr_t)e < (uintptr_t)(t->table)) {
+        assert(0);
         return -2;
     }
 
     ptrdiff_t n = (ptrdiff_t)(e - t->table);
     assert(n >= 0);
 
-    if (t->table[n].key == PCHASH_EMPTY || t->table[n].key == PCHASH_FREED)
+    if (t->table[n] == NULL)
         return -1;
 
-    struct pchash_entry *c = t->table + n;
+    struct pchash_entry *c = t->table[n];
     if (c->free_kv_alt) {
         c->free_kv_alt(c->key, c->val);
     }
@@ -827,29 +925,35 @@ static int erase_entry(struct pchash_table *t, struct pchash_entry *e)
     }
 
     t->count--;
-    t->table[n].val = NULL;
-    t->table[n].key = PCHASH_FREED;
-    if (t->tail == &t->table[n] && t->head == &t->table[n]) {
+    if (t->tail == t->table[n] && t->head == t->table[n]) {
         t->head = t->tail = NULL;
     }
-    else if (t->head == &t->table[n]) {
+    else if (t->head == t->table[n]) {
         t->head->next->prev = NULL;
         t->head = t->head->next;
     }
-    else if (t->tail == &t->table[n]) {
+    else if (t->tail == t->table[n]) {
         t->tail->prev->next = NULL;
         t->tail = t->tail->prev;
     }
     else {
-        t->table[n].prev->next = t->table[n].next;
-        t->table[n].next->prev = t->table[n].prev;
+        t->table[n]->prev->next = t->table[n]->next;
+        t->table[n]->next->prev = t->table[n]->prev;
     }
-    t->table[n].next = t->table[n].prev = NULL;
+
+#if 0
+    t->table[n]->val = NULL;
+    t->table[n]->key = PCHASH_FREED;
+    t->table[n]->next = t->table[n]->prev = NULL;
+#endif /* deprecated */
+
+    free_entry(t->table[n]);
+    t->table[n] = NULL;
 
     return 0;
 }
 
-int pchash_table_erase_entry(struct pchash_table *t, struct pchash_entry *e)
+int pchash_table_erase_entry(struct pchash_table *t, pchash_entry_handle_t e)
 {
     int retv;
 
@@ -862,7 +966,7 @@ int pchash_table_erase_entry(struct pchash_table *t, struct pchash_entry *e)
 int pchash_table_erase(struct pchash_table *t, const void *k)
 {
     int retv = -1;
-    struct pchash_entry *e;
+    pchash_entry_handle_t e;
 
     WRLOCK_TABLE(t);
 
@@ -876,7 +980,7 @@ int pchash_table_erase(struct pchash_table *t, const void *k)
     return retv;
 }
 
-int pchash_table_erase_nolock(struct pchash_table *t, struct pchash_entry *e)
+int pchash_table_erase_nolock(struct pchash_table *t, pchash_entry_handle_t e)
 {
     return erase_entry(t, e);
 }
@@ -885,7 +989,7 @@ int pchash_table_replace(struct pchash_table *t,
         const void *k, const void *v, pchash_free_kv_fn free_kv_alt)
 {
     int retv = -1;
-    struct pchash_entry *e;
+    pchash_entry_handle_t e;
 
     WRLOCK_TABLE(t);
 
@@ -896,20 +1000,21 @@ int pchash_table_replace(struct pchash_table *t,
 
     retv = 0;
 
-    if (e->free_kv_alt) {
-        e->free_kv_alt(NULL, e->val);
+    pchash_entry *c = *e;
+    if (c->free_kv_alt) {
+        c->free_kv_alt(NULL, c->val);
     }
     else if (t->free_val) {
-        t->free_val(e->val);
+        t->free_val(c->val);
     }
 
     if (t->copy_val) {
-        e->val = t->copy_val(v);
+        c->val = t->copy_val(v);
     }
     else
-        e->val = (void*)v;
+        c->val = (void*)v;
 
-    e->free_kv_alt = free_kv_alt;
+    c->free_kv_alt = free_kv_alt;
 
 ret:
     WRUNLOCK_TABLE(t);
@@ -920,7 +1025,7 @@ int pchash_table_replace_or_insert(struct pchash_table *t,
         const void *k, const void *v, pchash_free_kv_fn free_kv_alt)
 {
     int retv = -1;
-    struct pchash_entry *e;
+    pchash_entry_handle_t e;
     unsigned long h = pchash_get_hash(t, k);
 
     WRLOCK_TABLE(t);
@@ -929,20 +1034,21 @@ int pchash_table_replace_or_insert(struct pchash_table *t,
     if (e) {
         retv = 0;
 
-        if (e->free_kv_alt) {
-            e->free_kv_alt(NULL, e->val);
+        pchash_entry *c = *e;
+        if (c->free_kv_alt) {
+            c->free_kv_alt(NULL, c->val);
         }
         else if (t->free_val) {
-            t->free_val(e->val);
+            t->free_val(c->val);
         }
 
         if (t->copy_val) {
-            e->val = t->copy_val(v);
+            c->val = t->copy_val(v);
         }
         else
-            e->val = (void*)v;
+            c->val = (void*)v;
 
-        e->free_kv_alt = free_kv_alt;
+        c->free_kv_alt = free_kv_alt;
     }
     else {
         retv = insert_entry(t, k, v, h, free_kv_alt);

@@ -106,15 +106,19 @@ extern "C" {
 int foil_page_module_init(pcmcth_renderer *rdr);
 void foil_page_module_cleanup(pcmcth_renderer *rdr);
 
-pcmcth_page *foil_page_new(void);
-/* return the uDOM set for this page */
+/* Allocates an anonymous page. */
+pcmcth_page *foil_page_new(pcmcth_workspace *workspace);
+/* Deletes an anonymous page and returns the uDOM set for it. */
 pcmcth_udom *foil_page_delete(pcmcth_page *page);
+
+/* Returns the workspace to which the page belongs */
+pcmcth_workspace *foil_page_get_workspace(pcmcth_page *page);
 
 bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
         uint8_t fgc, uint8_t bgc);
 void foil_page_content_cleanup(pcmcth_page *page);
 
-/* set uDOM and return the old one */
+/* Sets uDOM and return the old one */
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 
 uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color);

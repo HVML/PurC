@@ -28,6 +28,7 @@
 
 #include "foil.h"
 #include "widget.h"
+#include "region/region.h"
 
 struct pcmcth_workspace {
     const pcmcth_renderer *rdr;
@@ -37,6 +38,9 @@ struct pcmcth_workspace {
 
     /* TODO: manager of grouped plain windows and pages */
     void *layouter;
+
+    /* the block heap for region rectangles */
+    foil_block_heap rgnrc_heap;
 };
 
 #ifdef __cplusplus
@@ -45,6 +49,7 @@ extern "C" {
 
 /* Initialize workspace module */
 int foil_wsp_module_init(pcmcth_renderer *rdr);
+
 /* Clean up the workspace module */
 void foil_wsp_module_cleanup(pcmcth_renderer *rdr);
 
@@ -68,6 +73,11 @@ void foil_wsp_update_widget(void *workspace, void *session,
 
 pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
         pcmcth_page *page, purc_variant_t edom, int *retv);
+
+static inline foil_block_heap_p foil_wsp_rgnrc_heap(pcmcth_workspace *wsp)
+{
+    return &wsp->rgnrc_heap;
+}
 
 #ifdef __cplusplus
 }

@@ -221,8 +221,6 @@ static void udom_cleanup(pcmcth_udom *udom)
     }
     if (udom->initial_cblock)
         foil_rdrbox_delete_deep(udom->initial_cblock);
-
-    foil_region_rect_heap_cleanup(&udom->rgnrc_heap);
 }
 
 pcmcth_udom *foil_udom_new(pcmcth_page *page)
@@ -1184,7 +1182,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     /* create the box tree */
-    foil_create_ctxt ctxt = { udom,
+    foil_create_ctxt ctxt = { udom, page,
         udom->initial_cblock,           /* initial box */
         NULL,                           /* root box */
         udom->initial_cblock,           /* parent box */
@@ -1199,13 +1197,8 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     if (normalize_rdrtree(&ctxt, udom->initial_cblock))
         goto failed;
 
-    /* initialize the block heap for region rectangles */
-    LOG_DEBUG("Calling foil_region_rect_heap_init()...\n");
-    if (!foil_region_rect_heap_init(&udom->rgnrc_heap, FOIL_DEF_RGNRCHEAP_SZ))
-        goto failed;
-
     /* determine the geometries of boxes and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+    foil_layout_ctxt layout_ctxt = { udom, page, udom->initial_cblock };
     LOG_DEBUG("Calling pre_layout_rdrtree...\n");
     pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
