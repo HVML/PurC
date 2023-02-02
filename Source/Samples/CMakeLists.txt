@@ -64,6 +64,7 @@ set(sample_HVML_FILES
     "hvml/request-rdr.hvml"
     "hvml/spider-news-0.hvml"
     "hvml/spider-news-1.hvml"
+    "hvml/spider-news-2.hvml"
     "hvml/file-manager.hvml"
     "hvml/assets/foil-layouts-displayBlock.css"
     "hvml/assets/foil-layouts-quotes.css"
