@@ -842,9 +842,10 @@ out:
 
 static pcdoc_elem_coll_t
 element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
-        pcdoc_selector_t selector)
+        pcdoc_selector_t selector, pcdoc_elem_coll_type type)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
+    coll->type = type;
     coll->ancestor = ancestor;
     coll->doc = doc;
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
@@ -853,17 +854,6 @@ element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
     coll->elems = pcutils_arrlist_new_ex(NULL, 4);
 
     return coll;
-}
-
-static void
-element_collection_delete(pcdoc_elem_coll_t coll)
-{
-    if (coll->selector) {
-        pcdoc_selector_unref(coll->selector);
-    }
-
-    pcutils_arrlist_free(coll->elems);
-    return free(coll);
 }
 
 #if 0
@@ -883,7 +873,16 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
     UNUSED_PARAM(doc);
 
     if (coll->refc <= 1) {
-        element_collection_delete(coll);
+        if (coll->selector) {
+            pcdoc_selector_unref(coll->selector);
+        }
+
+        if (coll->parent) {
+            element_collection_unref(doc, coll);
+        }
+
+        pcutils_arrlist_free(coll->elems);
+        free(coll);
     }
     else {
         coll->refc--;
@@ -910,7 +909,8 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector,
+            PCDOC_ELEM_COLL_TYPE_DOC_QUERY);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -931,6 +931,7 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
     }
 
     if (selector->id) {
+        coll->type = PCDOC_ELEM_COLL_TYPE_DOC_SELECT;
         pcdoc_element_t elem  = pcdoc_get_element_by_id_in_descendants(doc,
                 ancestor, selector->id + 1);
         if (elem) {
@@ -963,7 +964,7 @@ pcdoc_elem_coll_filter(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t dst_coll = element_collection_new(doc, elem_coll->ancestor,
-            selector);
+            selector, PCDOC_ELEM_COLL_TYPE_COLL_FILTER);
 
     if (doc->ops->elem_coll_filter) {
         if (!doc->ops->elem_coll_filter(doc, dst_coll, elem_coll, selector)) {
@@ -1017,7 +1018,8 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         goto out;
     }
 
-    coll = element_collection_new(doc, elem_coll->ancestor, elem_coll->selector);
+    coll = element_collection_new(doc, elem_coll->ancestor, elem_coll->selector,
+            PCDOC_ELEM_COLL_TYPE_COLL_SUB);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -1067,12 +1069,9 @@ out:
 }
 
 int
-pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
+elem_coll_update_query(pcdoc_elem_coll_t elem_coll)
 {
     int ret = -1;
-    if (!elem_coll) {
-        goto out;
-    }
 
     if (!elem_coll->selector) {
         ret = 0;
@@ -1116,10 +1115,43 @@ out:
     return ret;
 }
 
+int
+pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+    if (!elem_coll) {
+        goto out;
+    }
+
+    if (elem_coll->parent) {
+        pcdoc_elem_coll_update(elem_coll->parent);
+    }
+
+    switch (elem_coll->type) {
+    case PCDOC_ELEM_COLL_TYPE_DOC_QUERY:
+    case PCDOC_ELEM_COLL_TYPE_COLL_SUB:
+        ret = elem_coll_update_query(elem_coll);
+        break;
+
+    case PCDOC_ELEM_COLL_TYPE_COLL_SELECT:
+        break;
+
+    case PCDOC_ELEM_COLL_TYPE_DOC_SELECT:
+    case PCDOC_ELEM_COLL_TYPE_COLL_FILTER:
+    case PCDOC_ELEM_COLL_TYPE_FROM_ELEM:
+    default:
+        goto out;
+    }
+
+out:
+    return ret;
+}
+
 pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_element(purc_document_t doc, pcdoc_element_t elem)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(doc, NULL, NULL);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, NULL, NULL,
+            PCDOC_ELEM_COLL_TYPE_FROM_ELEM);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
