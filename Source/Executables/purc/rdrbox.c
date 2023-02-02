@@ -228,7 +228,7 @@ static struct lang_quotes {
 /* get the initial qutoes for specific language code */
 foil_quotes *foil_quotes_get_initial(uint8_t lang_code)
 {
-    static ssize_t max = PCA_TABLESIZE(lang_quotes) - 1;
+    static const ssize_t max = PCA_TABLESIZE(lang_quotes) - 1;
 
     struct lang_quotes *found = NULL;
     ssize_t low = 0, high = max, mid;
@@ -1355,7 +1355,7 @@ static int
 is_replaced_element(pcdoc_element_t elem, const char *tag_name)
 {
     (void)elem;
-    static ssize_t max = PCA_TABLESIZE(replaced_tags_html);
+    static const ssize_t max = PCA_TABLESIZE(replaced_tags_html) - 1;
 
     ssize_t low = 0, high = max, mid;
     while (low <= high) {
@@ -1384,19 +1384,20 @@ found:
 
 static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    static ssize_t max = PCA_TABLESIZE(special_tags_html);
+    static const ssize_t max = PCA_TABLESIZE(special_tags_html) - 1;
 
     ssize_t low = 0, high = max, mid;
     while (low <= high) {
         int cmp;
 
         mid = (low + high) / 2;
+        printf("low: %d; high: %d; mid: %d\n", (int)low, (int)high, (int)mid);
         cmp = strcasecmp(ctxt->tag_name, special_tags_html[mid].tag_name);
         if (cmp == 0) {
             if (special_tags_html[mid].flags & TAG_FLAG_CONTROL)
                 box->is_control = 1;
             box->tailor_ops = special_tags_html[mid].tailor_ops;
-            goto done;
+            break;
         }
         else {
             if (cmp < 0) {
@@ -1407,9 +1408,6 @@ static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
             }
         }
     }
-
-done:
-    return;
 }
 
 static foil_rdrbox *
@@ -1753,10 +1751,10 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
                 box->is_zidx_auto = 1;
             }
         }
-    }
 
-    if (box->tailor_ops && box->tailor_ops->tailor) {
-        box->tailor_ops->tailor(ctxt, box);
+        if (box->tailor_ops && box->tailor_ops->tailor) {
+            box->tailor_ops->tailor(ctxt, box);
+        }
     }
 
     return box;
