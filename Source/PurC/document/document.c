@@ -856,7 +856,6 @@ element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
     return coll;
 }
 
-#if 0
 static pcdoc_elem_coll_t
 element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
 {
@@ -865,7 +864,6 @@ element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
     coll->refc++;
     return coll;
 }
-#endif
 
 static void
 element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
@@ -878,7 +876,7 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
         }
 
         if (coll->parent) {
-            element_collection_unref(doc, coll);
+            element_collection_unref(doc, coll->parent);
         }
 
         pcutils_arrlist_free(coll->elems);
@@ -1024,6 +1022,9 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
+    coll->parent = elem_coll;
+    element_collection_ref(doc, elem_coll);
+
     coll->select_begin = offset;
     coll->select_size = length;
 
@@ -1084,22 +1085,45 @@ elem_coll_update_query(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
+    struct pcutils_arrlist *elems = elem_coll->elems;
+    elem_coll->elems = new_coll->elems;
+    new_coll->elems = elems;
+
+    elem_coll->nr_elems = new_coll->nr_elems;
+    elem_coll->doc_age = elem_coll->doc->age;
+    pcdoc_elem_coll_delete(new_coll->doc, new_coll);
+    ret = 0;
+
+out:
+    return ret;
+}
+
+int
+elem_coll_update_sub(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+
+    pcdoc_elem_coll_t parent_coll = elem_coll->parent;
+    if (!parent_coll) {
+        goto out;
+    }
+
     pcutils_arrlist_free(elem_coll->elems);
     elem_coll->elems = pcutils_arrlist_new_ex(NULL, 4);
     if (!elem_coll->elems) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out_clear_new_coll;
+        goto out;
     }
 
     size_t offset = elem_coll->select_begin;
-    size_t end = new_coll->nr_elems;
+    size_t end = parent_coll->nr_elems;
     if (elem_coll->select_size != (size_t)-1) {
         end = offset + elem_coll->select_size;
-        end = end > new_coll->nr_elems ? new_coll->nr_elems : end;
+        end = end > parent_coll->nr_elems ? parent_coll->nr_elems : end;
     }
 
     for (size_t i = offset; i < end; i++) {
-        void *v = pcutils_arrlist_get_idx(new_coll->elems, i);
+        void *v = pcutils_arrlist_get_idx(parent_coll->elems, i);
         pcutils_arrlist_append(elem_coll->elems, v);
     }
 
@@ -1107,9 +1131,6 @@ elem_coll_update_query(pcdoc_elem_coll_t elem_coll)
     elem_coll->doc_age = elem_coll->doc->age;
 
     ret = 0;
-
-out_clear_new_coll:
-    pcdoc_elem_coll_delete(new_coll->doc, new_coll);
 
 out:
     return ret;
@@ -1129,18 +1150,23 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
 
     switch (elem_coll->type) {
     case PCDOC_ELEM_COLL_TYPE_DOC_QUERY:
-    case PCDOC_ELEM_COLL_TYPE_COLL_SUB:
         ret = elem_coll_update_query(elem_coll);
         break;
 
+    case PCDOC_ELEM_COLL_TYPE_COLL_SUB:
+        ret = elem_coll_update_sub(elem_coll);
+        break;
+
     case PCDOC_ELEM_COLL_TYPE_COLL_SELECT:
+        ret = 0;
         break;
 
     case PCDOC_ELEM_COLL_TYPE_DOC_SELECT:
     case PCDOC_ELEM_COLL_TYPE_COLL_FILTER:
     case PCDOC_ELEM_COLL_TYPE_FROM_ELEM:
     default:
-        goto out;
+        ret = 0;
+        break;
     }
 
 out:
