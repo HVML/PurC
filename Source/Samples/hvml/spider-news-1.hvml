@@ -12,7 +12,7 @@
 
         <archetype name="mainItem">
             <div class="news-item">
-                <a href="$?.href" target="_blank">$?.title</a>
+                <a href="https://www.sohu.com$?.href" target="_blank">$?.title</a>
             </div>
         </archetype>
 
@@ -22,7 +22,8 @@
             </inherit>
         </observe>
         <observe against="news" for="change:displaced">
-            <init as src_coll with $news.query("div > div > div > a") />
+            <init as block with $news.select("block4") />
+            <init as src_coll with $block.select("div > div > div > a") />
             <init as nr_count with $src_coll.count() />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
