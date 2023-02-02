@@ -1,0 +1,159 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+        <!-- import the Bootstrap assets built in the renderer -->
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
+    </head>
+
+    <body>
+        <div id="dest163">
+        </div>
+
+        <div id="destSohu">
+        </div>
+
+        <div id="destSina">
+        </div>
+
+        <div id="destBaidu">
+        </div>
+
+        <archetype name="mainItem">
+            <div class="news-item">
+                <a href="$?.href" target="_blank">$?.title</a>
+            </div>
+        </archetype>
+
+        <div class="card">
+            <img src="..." class="card-img-top" alt="...">
+
+            <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+
+        <div class="card" aria-hidden="true">
+          <img src="..." class="card-img-top" alt="...">
+          <div class="card-body">
+            <h5 class="card-title placeholder-glow">
+              <span class="placeholder col-6"></span>
+            </h5>
+            <p class="card-text placeholder-glow">
+              <span class="placeholder col-7"></span>
+              <span class="placeholder col-4"></span>
+              <span class="placeholder col-4"></span>
+              <span class="placeholder col-6"></span>
+              <span class="placeholder col-8"></span>
+            </p>
+            <a href="#" tabindex="-1" class="btn btn-primary disabled placeholder col-6"></a>
+          </div>
+        </div>
+
+        <load from "#n163" onto "_null" as news163 async />
+        <load from "#nSohu" onto "_null" as newsSohu async />
+        <load from "#nSina" onto "_null" as newsSina async />
+        <load from "#nBaidu" onto "_null" as newsBaidu async />
+
+        <observe on $news163 for="corState:exited">
+            <iterate on $? >
+                <update on "#dest163" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsSohu for="corState:exited">
+            <iterate on $? >
+                <update on "#destSohu" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsSina for="corState:exited">
+            <iterate on $? >
+                <update on "#destSina" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsBaidu for="corState:exited">
+            <iterate on $? >
+                <update on "#destBaidu" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+    </body>
+
+    <body id="n163">
+        <init as="n163" from="https://news.163.com/" via="GET" async />
+        <init as result with [] />
+
+        <observe against="n163" for="change:displaced">
+            <init as src_coll with $n163.query("div > div > p > a") />
+            <init as nr_count with $src_coll.count() />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nSohu">
+        <init as="news" from="https://news.sohu.com/" via="GET" async />
+        <init as result with [] />
+
+        <observe against="news" for="change:displaced">
+            <init as block with $news.select("block4") />
+            <init as src_coll with $block.select("div > div > div > a") />
+            <init as nr_count with $src_coll.count() />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.contents()} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nSina">
+        <init as="news" from="https://news.sina.com.cn/" via="GET" async />
+        <init as result with [] />
+
+        <observe against="news" for="change:displaced">
+            <init as block with $news.select("blk_yw_01") />
+            <init as src_coll with $block.select("div a") />
+            <init as nr_count with $src_coll.count() />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nBaidu">
+        <init as="news" from="https://news.baidu.com/" via="GET" async />
+        <init as result with [] />
+
+        <observe against="news" for="change:displaced">
+            <init as block with $news.select("pane-news") />
+            <init as src_coll with $block.select("ul > li a") />
+            <init as nr_count with $src_coll.count() />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+</hvml>
+
