@@ -12,7 +12,7 @@
 
         <archetype name="mainItem">
             <div class="news-item">
-                <a href="$?.href">$?.title</a>
+                <a href="$?.href" target="_blank">$?.title</a>
             </div>
         </archetype>
 
