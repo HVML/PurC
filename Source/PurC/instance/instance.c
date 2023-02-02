@@ -653,10 +653,11 @@ purc_get_local_data(const char* data_name, uintptr_t *local_data,
 
     if ((entry = pcutils_uomap_find(inst->local_data_map, data_name))) {
         if (local_data)
-            *local_data = (uintptr_t)entry->val;
+            *local_data = (uintptr_t)pcutils_uomap_entry_field(entry, val);
 
         if (cb_free)
-            *cb_free = (cb_free_local_data)entry->free_kv_alt;
+            *cb_free = (cb_free_local_data)pcutils_uomap_entry_field(entry,
+                    free_kv_alt);
 
         return 1;
     }

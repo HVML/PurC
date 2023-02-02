@@ -29,7 +29,7 @@
 int pcutils_uomap_traverse(pcutils_uomap *map, void *ud,
         int (*cb)(void *key, void *val, void *ud))
 {
-    pcutils_uomap_entry *entry;
+    pcutils_uomap_entry entry;
     pchash_foreach(map, entry) {
         int r = cb(entry->key, entry->val, ud);
         if (r)
@@ -57,13 +57,13 @@ pcutils_uomap_it_begin_last(pcutils_uomap *map)
     return it;
 }
 
-pcutils_uomap_entry *
+pcutils_uomap_entry
 pcutils_uomap_it_value(struct pcutils_uomap_iterator *it)
 {
     return it->curr;
 }
 
-pcutils_uomap_entry *
+pcutils_uomap_entry
 pcutils_uomap_it_next(struct pcutils_uomap_iterator *it)
 {
     it->prev = it->curr;
@@ -72,7 +72,7 @@ pcutils_uomap_it_next(struct pcutils_uomap_iterator *it)
     return it->curr;
 }
 
-pcutils_uomap_entry *
+pcutils_uomap_entry
 pcutils_uomap_it_prev(struct pcutils_uomap_iterator *it)
 {
     it->next = it->curr;

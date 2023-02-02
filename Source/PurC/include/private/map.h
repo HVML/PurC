@@ -73,6 +73,10 @@ typedef struct pcutils_map_entry {
     free_kv_fn      free_kv_alt;   // alternative free function per entry
 } pcutils_map_entry;
 
+#define pcutils_map_entry_key(entry) (((*entry))->key)
+#define pcutils_map_entry_val(entry) (((*entry))->val)
+#define pcutils_map_entry_field(entry, field) (((*entry))->field)
+
 pcutils_map* pcutils_map_create(copy_key_fn copy_key, free_key_fn free_key,
         copy_val_fn copy_val, free_val_fn free_val,
         comp_key_fn comp_key, bool threads);
@@ -138,7 +142,12 @@ pcutils_map_it_end(struct pcutils_map_iterator *it);
 /* pcutils_uomap_xxx: interfaces for ordered map based on red-black tree */
 
 typedef struct pchash_table pcutils_uomap;
-typedef struct pchash_entry pcutils_uomap_entry;
+typedef struct pchash_entry *pcutils_uomap_entry;
+
+#define pcutils_uomap_entry_key(entry) pchash_entry_key(entry)
+#define pcutils_uomap_entry_val(entry) pchash_entry_val(entry)
+#define pcutils_uomap_entry_field(entry, field) \
+    pchash_entry_field(entry, field)
 
 static inline pcutils_uomap* pcutils_uomap_create(
         copy_key_fn copy_key, free_key_fn free_key,
@@ -222,10 +231,10 @@ void pcutils_uomap_lock(pcutils_uomap *map);
 void pcutils_uomap_unlock(pcutils_uomap *map);
 
 struct pcutils_uomap_iterator {
-    pcutils_uomap_entry     *curr;
-    pcutils_uomap_entry     *next;
-    pcutils_uomap_entry     *prev;
-    void                    *ctxt;
+    pcutils_uomap_entry     curr;
+    pcutils_uomap_entry     next;
+    pcutils_uomap_entry     prev;
+    void                   *ctxt;
 };
 
 struct pcutils_uomap_iterator
@@ -234,13 +243,13 @@ pcutils_uomap_it_begin_first(pcutils_uomap *map);
 struct pcutils_uomap_iterator
 pcutils_uomap_it_begin_last(pcutils_uomap *map);
 
-pcutils_uomap_entry*
+pcutils_uomap_entry
 pcutils_uomap_it_value(struct pcutils_uomap_iterator *it);
 
-pcutils_uomap_entry*
+pcutils_uomap_entry
 pcutils_uomap_it_next(struct pcutils_uomap_iterator *it);
 
-pcutils_uomap_entry*
+pcutils_uomap_entry
 pcutils_uomap_it_prev(struct pcutils_uomap_iterator *it);
 
 void

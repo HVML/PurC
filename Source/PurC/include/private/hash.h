@@ -1,13 +1,16 @@
 /**
  * @file hash.h
- * @author 
+ * @author Alexander Borisov <borisov@lexbor.com>
  * @date 2021/07/02
  * @brief The hearder file for hash algorithm.
  *
+ * Cleaned up and enhanced by Vincent Wei
+ *
  * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2018-2020 Alexander Borisov
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,10 +27,6 @@
  * This implementation of HTML parser is derived from Lexbor
  * <https://github.com/lexbor/lexbor>, which is licensed under the Apache
  * License, Version 2.0:
- *
- * Copyright (C) 2018-2020 Alexander Borisov
- *
- * Author: Alexander Borisov <borisov@lexbor.com>
  */
 
 #ifndef PURC_PRIVATE_HASH_H
