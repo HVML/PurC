@@ -90,15 +90,15 @@
     </body>
 
     <body id="n163">
-        <init as="n163" from="https://news.163.com/" via="GET" async />
-        <init as result with [] />
+        <init as="d163" from="https://news.163.com/" via="GET" async />
 
-        <observe against="n163" for="change:displaced">
-            <init as src_coll with $n163.query("div > div > p > a") />
-            <init as nr_count with $src_coll.count() />
+        <observe against="d163" for="change:displaced">
+            <init as result with [] temp />
+            <init as src_coll with $d163.query("div > div > p > a") temp />
+            <init as nr_count with $src_coll.count() temp />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
-                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"163"} temp />
                 <update on "$result" to "append" with $data />
             </iterate>
             <exit with $result />
@@ -106,16 +106,16 @@
     </body>
 
     <body id="nSohu">
-        <init as="news" from="https://news.sohu.com/" via="GET" async />
-        <init as result with [] />
+        <init as="dSohu" from="https://news.sohu.com/" via="GET" async />
 
-        <observe against="news" for="change:displaced">
-            <init as block with $news.select("block4") />
-            <init as src_coll with $block.select("div > div > div > a") />
-            <init as nr_count with $src_coll.count() />
+        <observe against="dSohu" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dSohu.select("block4") temp />
+            <init as src_coll with $block.select("div > div > div > a") temp />
+            <init as nr_count with $src_coll.count() temp />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
-                <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.contents()} temp />
+                <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.textContent(), "src":"sohu"} temp />
                 <update on "$result" to "append" with $data />
             </iterate>
             <exit with $result />
@@ -123,16 +123,16 @@
     </body>
 
     <body id="nSina">
-        <init as="news" from="https://news.sina.com.cn/" via="GET" async />
-        <init as result with [] />
+        <init as="dSina" from="https://news.sina.com.cn/" via="GET" async />
 
-        <observe against="news" for="change:displaced">
-            <init as block with $news.select("blk_yw_01") />
-            <init as src_coll with $block.select("div a") />
-            <init as nr_count with $src_coll.count() />
+        <observe against="dSina" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dSina.select("blk_yw_01") temp />
+            <init as src_coll with $block.select("div a") temp />
+            <init as nr_count with $src_coll.count() temp />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
-                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"sina"} temp />
                 <update on "$result" to "append" with $data />
             </iterate>
             <exit with $result />
@@ -140,16 +140,16 @@
     </body>
 
     <body id="nBaidu">
-        <init as="news" from="https://news.baidu.com/" via="GET" async />
-        <init as result with [] />
+        <init as="dBaidu" from="https://news.baidu.com/" via="GET" async />
 
-        <observe against="news" for="change:displaced">
-            <init as block with $news.select("pane-news") />
-            <init as src_coll with $block.select("ul > li a") />
-            <init as nr_count with $src_coll.count() />
+        <observe against="dBaidu" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dBaidu.select("pane-news") temp />
+            <init as src_coll with $block.select("ul > li a") temp />
+            <init as nr_count with $src_coll.count() temp />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
-                <init as data with {"href":$elem.attr("href"), "title":$elem.contents()} temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"baidu"} temp />
                 <update on "$result" to "append" with $data />
             </iterate>
             <exit with $result />
