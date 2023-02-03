@@ -136,14 +136,14 @@ purc_atom_remove_string_ex(int bucket, const char *string)
     if (string == NULL || atom_bucket == NULL)
         return false;
 
-    const pcutils_uomap_entry* entry;
+    pcutils_uomap_entry* entry;
     bool ret;
     purc_atom_t atom;
 
     purc_rwlock_writer_lock(&atom_rwlock);
     if ((entry = pcutils_uomap_find(atom_bucket->atom_map, string))) {
         atom = (purc_atom_t)(uintptr_t)pcutils_uomap_entry_val(entry);
-        pcutils_uomap_erase(atom_bucket->atom_map, (void *)string);
+        pcutils_uomap_erase_entry_nolock(atom_bucket->atom_map, entry);
         atom = ATOM_TO_SEQUENCE(atom);
         atom_bucket->quarks[atom] = NULL;
         ret = true;
