@@ -1,0 +1,28 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons" from="file://{$SYS.cwd}/assets/buttons.json" />
+        <init as="plain"   from="file://{$SYS.cwd}/assets/plain.txt" />
+        <init as="sh"      from="file://{$SYS.cwd}/assets/test.sh" />
+    </head>
+
+    <body>
+        <div>
+            <update on="$@" at="textContent" to="displace" with = "$DATA.type($buttons)"/>
+        </div>
+        <div>
+            <update on="$@" at="textContent" to="displace" with = "$DATA.type($plain)"/>
+        </div>
+        <div>
+            <update on="$@" at="textContent" to="displace" with = "$DATA.type($sh)"/>
+        </div>
+        <div>
+            <except type=`Unsupported` raw>
+                <p>Not support xml</p>
+            </except>
+            <init as="xml"     from="file://{$SYS.cwd}/assets/test.xml" />
+        <div>
+    </body>
+
+</hvml>
+

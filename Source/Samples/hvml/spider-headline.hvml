@@ -1,0 +1,200 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+        <!-- import the Bootstrap assets built in the renderer -->
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
+        <title>新闻头条</title>
+    </head>
+
+    <body>
+        <section class="py-2 text-center container">
+            <div class="row py-lg-2">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <h1 class="fw-light">新闻头条</h1>
+                    <p class="lead text-muted">来自网易、搜狐、新浪以及百度的新闻头条</p>
+                </div>
+            </div>
+        </section>
+        <div id="headline" class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3 placeholder-glow">
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="dest163">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destSohu">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destSina">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destBaidu">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 3000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <load from "#main" onto "_inherit" async />
+        </observe>
+
+    </body>
+
+    <body id="main">
+        <archetype name="mainItem">
+            <div class="news-item">
+                <a class="text-decoration-none link-dark" href="$?.href" target="_blank">$?.title</a>
+                <div class="mb-1 text-muted">$?.src</div>
+            </div>
+        </archetype>
+
+        <load from "#n163" onto "_null" as news163 async />
+        <load from "#nSohu" onto "_null" as newsSohu async />
+        <load from "#nSina" onto "_null" as newsSina async />
+        <load from "#nBaidu" onto "_null" as newsBaidu async />
+
+        <observe on $news163 for="corState:exited">
+            <update on "#dest163" at "content" with ' ' />
+            <iterate on $? >
+                <update on "#dest163" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsSohu for="corState:exited">
+            <update on "#destSohu" at "content" with ' ' />
+            <iterate on $? >
+                <update on "#destSohu" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsSina for="corState:exited">
+            <update on "#destSina" at "content" with ' ' />
+            <iterate on $? >
+                <update on "#destSina" to "append" with $mainItem />
+            </iterate>
+        </observe>
+
+        <observe on $newsBaidu for="corState:exited">
+            <update on "#destBaidu" at "content" with ' ' />
+            <iterate on $? >
+                <update on "#destBaidu" to "append" with $mainItem />
+            </iterate>
+        </observe>
+    </body>
+
+    <body id="n163">
+        <init as="d163" from="https://news.163.com/" via="GET" async />
+
+        <observe against="d163" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $d163.query(".news_default_news") temp />
+            <init as src_coll with $block.select("div > div > p > a") temp />
+            <init as nr_count with $src_coll.count() temp />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"网易"} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nSohu">
+        <init as="dSohu" from="https://news.sohu.com/" via="GET" async />
+
+        <observe against="dSohu" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dSohu.select("block4") temp />
+            <init as src_coll with $block.select("div > div > div > a") temp />
+            <init as nr_count with $src_coll.count() temp />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.textContent(), "src":"搜狐"} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nSina">
+        <init as="dSina" from="https://news.sina.com.cn/" via="GET" async />
+
+        <observe against="dSina" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dSina.select("blk_yw_01") temp />
+            <init as src_coll with $block.select("div a") temp />
+            <init as nr_count with $src_coll.count() temp />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"新浪"} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+
+    <body id="nBaidu">
+        <init as="dBaidu" from="https://news.baidu.com/" via="GET" async />
+
+        <observe against="dBaidu" for="change:displaced">
+            <init as result with [] temp />
+            <init as block with $dBaidu.select("pane-news") temp />
+            <init as src_coll with $block.select("ul > li a") temp />
+            <init as nr_count with $src_coll.count() temp />
+            <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
+                <init as elem with $src_coll.sub($<, 1) temp />
+                <init as data with {"href":$elem.attr("href"), "title":$elem.textContent(), "src":"百度"} temp />
+                <update on "$result" to "append" with $data />
+            </iterate>
+            <exit with $result />
+        </observe>
+    </body>
+</hvml>
+

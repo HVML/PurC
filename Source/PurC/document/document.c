@@ -832,8 +832,10 @@ pcdoc_find_element_in_descendants(purc_document_t doc,
         .elem = NULL
     };
 
+    doc->root4select = ancestor;
     pcdoc_travel_descendant_elements(doc, ancestor, travel_find_elem_cb,
             &data, NULL);
+    doc->root4select = NULL;
     ret = data.elem;
 
 out:
@@ -842,11 +844,12 @@ out:
 
 static pcdoc_elem_coll_t
 element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
-        pcdoc_selector_t selector)
+        pcdoc_selector_t selector, pcdoc_elem_coll_type type)
 {
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
+    coll->type = type;
     coll->ancestor = ancestor;
-    coll->doc = doc;
+    coll->doc = purc_document_ref(doc);
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
     coll->select_size = -1;
@@ -855,18 +858,6 @@ element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
     return coll;
 }
 
-static void
-element_collection_delete(pcdoc_elem_coll_t coll)
-{
-    if (coll->selector) {
-        pcdoc_selector_unref(coll->selector);
-    }
-
-    pcutils_arrlist_free(coll->elems);
-    return free(coll);
-}
-
-#if 0
 static pcdoc_elem_coll_t
 element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
 {
@@ -875,7 +866,6 @@ element_collection_ref(purc_document_t doc, pcdoc_elem_coll_t coll)
     coll->refc++;
     return coll;
 }
-#endif
 
 static void
 element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
@@ -883,7 +873,20 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
     UNUSED_PARAM(doc);
 
     if (coll->refc <= 1) {
-        element_collection_delete(coll);
+        if (coll->selector) {
+            pcdoc_selector_unref(coll->selector);
+        }
+
+        if (coll->parent) {
+            element_collection_unref(doc, coll->parent);
+        }
+
+        if (coll->doc) {
+            purc_document_unref(doc);
+        }
+
+        pcutils_arrlist_free(coll->elems);
+        free(coll);
     }
     else {
         coll->refc--;
@@ -910,7 +913,8 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         pcdoc_element_t ancestor, pcdoc_selector_t selector)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector,
+            PCDOC_ELEM_COLL_TYPE_DOC_QUERY);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
@@ -922,15 +926,8 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
                 PCDOC_SPECIAL_ELEM_ROOT);
     }
 
-    if (doc->ops->elem_coll_select) {
-        if (!doc->ops->elem_coll_select(doc, coll, ancestor, selector)) {
-            pcdoc_elem_coll_delete(doc, coll);
-            coll = NULL;
-        }
-        goto out;
-    }
-
     if (selector->id) {
+        coll->type = PCDOC_ELEM_COLL_TYPE_DOC_SELECT;
         pcdoc_element_t elem  = pcdoc_get_element_by_id_in_descendants(doc,
                 ancestor, selector->id + 1);
         if (elem) {
@@ -941,8 +938,10 @@ pcdoc_elem_coll_new_from_descendants(purc_document_t doc,
         goto out;
     }
 
+    doc->root4select = ancestor;
     pcdoc_travel_descendant_elements(doc, ancestor, travel_select_elem_cb,
             coll, NULL);
+    doc->root4select = NULL;
 out:
     return coll;
 }
@@ -951,11 +950,39 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_select(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
 {
-    UNUSED_PARAM(doc);
-    UNUSED_PARAM(elem_coll);
-    UNUSED_PARAM(selector);
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-    return NULL;
+    pcdoc_element_t ancestor = NULL;
+    pcdoc_elem_coll_t coll = element_collection_new(doc, ancestor, selector,
+            PCDOC_ELEM_COLL_TYPE_COLL_SELECT);
+    if (!coll) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    if (ancestor == NULL) {
+        ancestor = doc->ops->special_elem(doc,
+                PCDOC_SPECIAL_ELEM_ROOT);
+    }
+
+    if (doc->ops->elem_coll_select) {
+        if (!doc->ops->elem_coll_select(doc, elem_coll, ancestor, selector)) {
+            pcdoc_elem_coll_delete(doc, coll);
+            coll = NULL;
+        }
+        goto out;
+    }
+    coll->doc_age = elem_coll->doc_age;
+
+    size_t nr_elems = elem_coll->nr_elems;
+    for (size_t i = 0; i < nr_elems; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(doc, elem_coll, i);
+        doc->root4select = elem;
+        pcdoc_travel_descendant_elements(doc, elem, travel_select_elem_cb,
+            coll, NULL);
+        doc->root4select = NULL;
+    }
+
+out:
+    return coll;
 }
 
 pcdoc_elem_coll_t
@@ -963,7 +990,7 @@ pcdoc_elem_coll_filter(purc_document_t doc,
         pcdoc_elem_coll_t elem_coll, pcdoc_selector_t selector)
 {
     pcdoc_elem_coll_t dst_coll = element_collection_new(doc, elem_coll->ancestor,
-            selector);
+            selector, PCDOC_ELEM_COLL_TYPE_COLL_FILTER);
 
     if (doc->ops->elem_coll_filter) {
         if (!doc->ops->elem_coll_filter(doc, dst_coll, elem_coll, selector)) {
@@ -1017,11 +1044,15 @@ pcdoc_elem_coll_sub(purc_document_t doc,
         goto out;
     }
 
-    coll = element_collection_new(doc, elem_coll->ancestor, elem_coll->selector);
+    coll = element_collection_new(doc, elem_coll->ancestor, elem_coll->selector,
+            PCDOC_ELEM_COLL_TYPE_COLL_SUB);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
+    coll->parent = elem_coll;
+    element_collection_ref(doc, elem_coll);
+
     coll->select_begin = offset;
     coll->select_size = length;
 
@@ -1067,12 +1098,9 @@ out:
 }
 
 int
-pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
+elem_coll_update_query(pcdoc_elem_coll_t elem_coll)
 {
     int ret = -1;
-    if (!elem_coll) {
-        goto out;
-    }
 
     if (!elem_coll->selector) {
         ret = 0;
@@ -1085,22 +1113,45 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         goto out;
     }
 
+    struct pcutils_arrlist *elems = elem_coll->elems;
+    elem_coll->elems = new_coll->elems;
+    new_coll->elems = elems;
+
+    elem_coll->nr_elems = new_coll->nr_elems;
+    elem_coll->doc_age = elem_coll->doc->age;
+    pcdoc_elem_coll_delete(new_coll->doc, new_coll);
+    ret = 0;
+
+out:
+    return ret;
+}
+
+int
+elem_coll_update_sub(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+
+    pcdoc_elem_coll_t parent_coll = elem_coll->parent;
+    if (!parent_coll) {
+        goto out;
+    }
+
     pcutils_arrlist_free(elem_coll->elems);
     elem_coll->elems = pcutils_arrlist_new_ex(NULL, 4);
     if (!elem_coll->elems) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out_clear_new_coll;
+        goto out;
     }
 
     size_t offset = elem_coll->select_begin;
-    size_t end = new_coll->nr_elems;
+    size_t end = parent_coll->nr_elems;
     if (elem_coll->select_size != (size_t)-1) {
         end = offset + elem_coll->select_size;
-        end = end > new_coll->nr_elems ? new_coll->nr_elems : end;
+        end = end > parent_coll->nr_elems ? parent_coll->nr_elems : end;
     }
 
     for (size_t i = offset; i < end; i++) {
-        void *v = pcutils_arrlist_get_idx(new_coll->elems, i);
+        void *v = pcutils_arrlist_get_idx(parent_coll->elems, i);
         pcutils_arrlist_append(elem_coll->elems, v);
     }
 
@@ -1109,8 +1160,78 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
 
     ret = 0;
 
-out_clear_new_coll:
-    pcdoc_elem_coll_delete(new_coll->doc, new_coll);
+out:
+    return ret;
+}
+
+int
+elem_coll_update_select(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+
+    pcdoc_elem_coll_t parent_coll = elem_coll->parent;
+    if (!parent_coll) {
+        goto out;
+    }
+
+    pcutils_arrlist_free(elem_coll->elems);
+    elem_coll->elems = pcutils_arrlist_new_ex(NULL, 4);
+    if (!elem_coll->elems) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+
+    elem_coll->doc_age = parent_coll->doc_age;
+    elem_coll->nr_elems = 0;
+
+    purc_document_t doc = parent_coll->doc;
+    size_t nr_elems = parent_coll->nr_elems;
+    for (size_t i = 0; i < nr_elems; i++) {
+        pcdoc_element_t elem = pcdoc_elem_coll_get(doc, parent_coll, i);
+        doc->root4select = elem;
+        pcdoc_travel_descendant_elements(doc, elem, travel_select_elem_cb,
+            elem_coll, NULL);
+        doc->root4select = NULL;
+    }
+
+    ret = 0;
+
+out:
+    return ret;
+}
+
+int
+pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
+{
+    int ret = -1;
+    if (!elem_coll) {
+        goto out;
+    }
+
+    if (elem_coll->parent) {
+        pcdoc_elem_coll_update(elem_coll->parent);
+    }
+
+    switch (elem_coll->type) {
+    case PCDOC_ELEM_COLL_TYPE_DOC_QUERY:
+        ret = elem_coll_update_query(elem_coll);
+        break;
+
+    case PCDOC_ELEM_COLL_TYPE_COLL_SUB:
+        ret = elem_coll_update_sub(elem_coll);
+        break;
+
+    case PCDOC_ELEM_COLL_TYPE_COLL_SELECT:
+        ret = elem_coll_update_select(elem_coll);
+        break;
+
+    case PCDOC_ELEM_COLL_TYPE_DOC_SELECT:
+    case PCDOC_ELEM_COLL_TYPE_COLL_FILTER:
+    case PCDOC_ELEM_COLL_TYPE_FROM_ELEM:
+    default:
+        ret = 0;
+        break;
+    }
 
 out:
     return ret;
@@ -1119,7 +1240,8 @@ out:
 pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_element(purc_document_t doc, pcdoc_element_t elem)
 {
-    pcdoc_elem_coll_t coll = element_collection_new(doc, NULL, NULL);
+    pcdoc_elem_coll_t coll = element_collection_new(doc, NULL, NULL,
+            PCDOC_ELEM_COLL_TYPE_FROM_ELEM);
     if (!coll) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;

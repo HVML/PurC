@@ -5,6 +5,9 @@ include(GoogleTest)
 PURC_COPY_FILES(TEST_Assets
     DESTINATION "${CMAKE_BINARY_DIR}"
     FILES "assets/buttons.json"
+    FILES "assets/plain.txt"
+    FILES "assets/test.sh"
+    FILES "assets/test.xml"
 )
 
 enable_testing()

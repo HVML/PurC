@@ -169,7 +169,21 @@ struct purc_document {
     void *impl;
 };
 
+typedef enum {
+    PCDOC_ELEM_COLL_TYPE_FIRST = 0,
+    PCDOC_ELEM_COLL_TYPE_DOC_SELECT = PCDOC_ELEM_COLL_TYPE_FIRST,
+    PCDOC_ELEM_COLL_TYPE_DOC_QUERY,
+    PCDOC_ELEM_COLL_TYPE_COLL_SUB,
+    PCDOC_ELEM_COLL_TYPE_COLL_SELECT,
+    PCDOC_ELEM_COLL_TYPE_COLL_FILTER,
+    PCDOC_ELEM_COLL_TYPE_FROM_ELEM,
+
+    /* XXX: change this when you append a new operation */
+    PCDOC_ELEM_COLL_TYPE_LAST = PCDOC_ELEM_COLL_TYPE_FROM_ELEM,
+} pcdoc_elem_coll_type;
+
 struct pcdoc_elem_coll {
+    pcdoc_elem_coll_type type;
     purc_document_t  doc;
     pcdoc_element_t  ancestor;
     pcdoc_selector_t selector;
@@ -180,6 +194,7 @@ struct pcdoc_elem_coll {
     size_t      select_size;
     size_t      nr_elems;
 
+    pcdoc_elem_coll_t parent;
     /* the elements in the collection */
     struct pcutils_arrlist *elems;
 };

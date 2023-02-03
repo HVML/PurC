@@ -302,7 +302,7 @@ static void
 on_release(void* native_entity)
 {
     purc_document_t doc = (purc_document_t)native_entity;
-    purc_document_delete(doc);
+    purc_document_unref(doc);
 }
 
 purc_variant_t

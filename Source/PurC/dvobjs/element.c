@@ -64,8 +64,7 @@ pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
 
     PC_ASSERT(val && val[len]=='\0');
 
-    // FIXME: strdup???
-    return purc_variant_make_string_static(val, true);
+    return purc_variant_make_string(val, true);
 }
 
 static inline purc_variant_t
