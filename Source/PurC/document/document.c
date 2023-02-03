@@ -849,7 +849,7 @@ element_collection_new(purc_document_t doc, pcdoc_element_t ancestor,
     pcdoc_elem_coll_t coll = calloc(1, sizeof(*coll));
     coll->type = type;
     coll->ancestor = ancestor;
-    coll->doc = doc;
+    coll->doc = purc_document_ref(doc);
     coll->selector = selector ? pcdoc_selector_ref(selector) : NULL;
     coll->refc = 1;
     coll->select_size = -1;
@@ -879,6 +879,10 @@ element_collection_unref(purc_document_t doc, pcdoc_elem_coll_t coll)
 
         if (coll->parent) {
             element_collection_unref(doc, coll->parent);
+        }
+
+        if (coll->doc) {
+            purc_document_unref(doc);
         }
 
         pcutils_arrlist_free(coll->elems);
