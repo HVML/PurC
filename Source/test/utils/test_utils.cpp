@@ -691,7 +691,7 @@ TEST(hashtable, double_free)
     t = pchash_table_insert(ht, strdup(k1), strdup(k1));
     ASSERT_EQ(t, 0);
 
-    pchash_entry_handle_t e = pchash_table_lookup_entry(ht, k1);
+    pchash_entry_t e = pchash_table_lookup_entry(ht, k1);
     EXPECT_NE(e, nullptr);
     const char *kk = (const char*)pchash_entry_key(e);
     ASSERT_NE(k1, kk);
