@@ -74,6 +74,20 @@
             </div>
         </div>
 
+        <update on="$TIMERS" to="unite">
+            [
+                { "id" : "clock", "interval" : 3000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on="$TIMERS" for="expired:clock">
+            <clear on $TIMERS />
+            <load from "#main" onto "_inherit" async />
+        </observe>
+
+    </body>
+
+    <body id="main">
         <archetype name="mainItem">
             <div class="news-item">
                 <a class="text-decoration-none link-dark" href="$?.href" target="_blank">$?.title</a>
@@ -113,7 +127,6 @@
                 <update on "#destBaidu" to "append" with $mainItem />
             </iterate>
         </observe>
-
     </body>
 
     <body id="n163">
