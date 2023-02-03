@@ -1,10 +1,9 @@
 /*
  * @file hashtable.h
- * @author Michael Clark <michael@metaparadigm.com>
+ * @author Vincent Wei <https://github.com/VincentWei>
  * @date 2021/07/07
  * @brief The interfaces for hash table.
  *
- * Cleaned up and enhanced by Vincent Wei
  * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
@@ -23,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Note that the code is derived from json-c which is licensed under MIT Licence.
+ *
+ * Original author: Michael Clark <michael@metaparadigm.com>
  *
  * Copyright (c) 2004, 2005 Metaparadigm Pte. Ltd.
  * Copyright (c) 2009 Hewlett-Packard Development Company, L.P.
@@ -46,6 +47,7 @@
 #include <stdbool.h>
 #include "purc-ports.h"
 #include "private/callbacks.h"
+#include "private/list.h"
 
 #define pchash_copy_key_fn  pcutils_copy_fn
 #define pchash_free_key_fn  pcutils_free_fn
@@ -82,14 +84,16 @@ struct pchash_entry {
     /** The independent free function per entry. */
     pchash_free_kv_fn free_kv_alt;
 
-    /** The next entry */
-    struct pchash_entry *next;
-    /** The previous entry. */
-    struct pchash_entry *prev;
+    /** the hash value */
+    unsigned long hash;
+    /** the index of slot in the table */
+    unsigned long slot;
+
+    struct list_head list;
 };
 
 typedef struct pchash_entry pchash_entry;
-typedef struct pchash_entry **pchash_entry_handle_t;
+typedef struct pchash_entry *pchash_entry_t;
 
 /**
  * The hash table structure.
@@ -100,14 +104,8 @@ struct pchash_table {
     /** Numbers of entries. */
     size_t count;
 
-    /** The first entry. */
-    struct pchash_entry *head;
-
-    /** The last entry. */
-    struct pchash_entry *tail;
-
-    /** The entries. */
-    struct pchash_entry **table;
+    /** The table slots. */
+    struct list_head *table;
 
     /** A pointer onto the function responsible for copying the key. */
     pchash_copy_key_fn copy_key;
@@ -130,22 +128,6 @@ struct pchash_table {
 };
 
 typedef struct pchash_table pchash_table;
-
-/**
- * Convenience list iterator.
- */
-#define pchash_foreach(table, entry) \
-    for (entry = table->head; entry; entry = entry->next)
-
-/**
- * pchash_foreach_safe allows calling of deletion routine while iterating.
- *
- * @param table a struct pchash_table * to iterate over
- * @param entry a struct pchash_entry * variable to hold each element
- * @param tmp a struct pchash_entry * variable to hold a temporary pointer to the next element
- */
-#define pchash_foreach_safe(table, entry, tmp) \
-    for (entry = table->head; entry && ((tmp = entry->next) || 1); entry = tmp)
 
 /**
  * Create a new hash table.
@@ -333,7 +315,7 @@ int pchash_table_insert_w_hash(struct pchash_table *t,
  * @return The handle (a pointer) to the record structure of the value or NULL
  *      if it does not exist.
  */
-pchash_entry_handle_t pchash_table_lookup_entry(struct pchash_table *t,
+pchash_entry_t pchash_table_lookup_entry(struct pchash_table *t,
         const void *k);
 
 /**
@@ -350,7 +332,7 @@ pchash_entry_handle_t pchash_table_lookup_entry(struct pchash_table *t,
  * @return The handle (a pointer) to the record structure of the value or NULL
  *      if it does not exist.
  */
-pchash_entry_handle_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
+pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
         const void *k, const unsigned long h);
 
 /**
@@ -368,7 +350,7 @@ pchash_entry_handle_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
  * @return The handle (a pointer) to the record structure of the value or NULL
  *      if it does not exist.
  */
-pchash_entry_handle_t pchash_table_lookup_and_lock_w_hash(
+pchash_entry_t pchash_table_lookup_and_lock_w_hash(
         struct pchash_table *t, const void *k, const unsigned long h);
 
 /**
@@ -380,7 +362,7 @@ pchash_entry_handle_t pchash_table_lookup_and_lock_w_hash(
  * @return a pointer to the record structure of the value or NULL
  *      if it does not exist.
  */
-pchash_entry_handle_t pchash_table_lookup_and_lock(struct pchash_table *t,
+pchash_entry_t pchash_table_lookup_and_lock(struct pchash_table *t,
         const void *k);
 
 /**
@@ -404,7 +386,7 @@ bool pchash_table_lookup_ex(struct pchash_table *t, const void *k, void **v);
  * @return 0 if the item was deleted.
  * @return -1 if it was not found.
  */
-int pchash_table_erase_entry(struct pchash_table *t, pchash_entry_handle_t e);
+int pchash_table_erase_entry(struct pchash_table *t, pchash_entry_t e);
 
 /**
  * Erase a record from the table.
@@ -479,17 +461,17 @@ static inline void pchash_unlock(pchash_table *t)
 /**
  * Return pchash_entry.key.
  */
-#define pchash_entry_key(entry) ((*(entry))->key)
+#define pchash_entry_key(entry) ((entry)->key)
 
 /**
  * Return pchash_entry.val.
  */
-#define pchash_entry_val(entry) ((*(entry))->val)
+#define pchash_entry_val(entry) ((entry)->val)
 
 /**
  * Return pchash_entry.<field>.
  */
-#define pchash_entry_field(entry, field) ((*(entry))->field)
+#define pchash_entry_field(entry, field) ((entry)->field)
 
 #ifdef __cplusplus
 }

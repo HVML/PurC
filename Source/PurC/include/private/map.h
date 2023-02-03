@@ -142,7 +142,7 @@ pcutils_map_it_end(struct pcutils_map_iterator *it);
 /* pcutils_uomap_xxx: interfaces for ordered map based on red-black tree */
 
 typedef struct pchash_table pcutils_uomap;
-typedef struct pchash_entry *pcutils_uomap_entry;
+typedef struct pchash_entry pcutils_uomap_entry;
 
 #define pcutils_uomap_entry_key(entry) pchash_entry_key(entry)
 #define pcutils_uomap_entry_val(entry) pchash_entry_val(entry)
@@ -156,7 +156,7 @@ static inline pcutils_uomap* pcutils_uomap_create(
 {
     return pchash_table_new(0, copy_key, free_key,
             copy_val, free_val,
-            (hash_key == NULL) ? pchash_default_str_hash : hash_key,
+            (hash_key == NULL) ? pchash_perlish_str_hash : hash_key,
             comp_key, threads);
 }
 
@@ -231,10 +231,8 @@ void pcutils_uomap_lock(pcutils_uomap *map);
 void pcutils_uomap_unlock(pcutils_uomap *map);
 
 struct pcutils_uomap_iterator {
-    pcutils_uomap_entry     curr;
-    pcutils_uomap_entry     next;
-    pcutils_uomap_entry     prev;
-    void                   *ctxt;
+    pcutils_uomap          *map;
+    pcutils_uomap_entry    *curr;
 };
 
 struct pcutils_uomap_iterator
@@ -243,13 +241,13 @@ pcutils_uomap_it_begin_first(pcutils_uomap *map);
 struct pcutils_uomap_iterator
 pcutils_uomap_it_begin_last(pcutils_uomap *map);
 
-pcutils_uomap_entry
+pcutils_uomap_entry *
 pcutils_uomap_it_value(struct pcutils_uomap_iterator *it);
 
-pcutils_uomap_entry
+pcutils_uomap_entry *
 pcutils_uomap_it_next(struct pcutils_uomap_iterator *it);
 
-pcutils_uomap_entry
+pcutils_uomap_entry *
 pcutils_uomap_it_prev(struct pcutils_uomap_iterator *it);
 
 void
