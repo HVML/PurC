@@ -13,142 +13,61 @@
     </head>
 
     <body>
+        <section class="py-2 text-center container">
+            <div class="row py-lg-2">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <h1 class="fw-light">新闻头条</h1>
+                    <p class="lead text-muted">来自网易、搜狐、新浪以及百度的新闻头条</p>
+                </div>
+            </div>
+        </section>
         <div id="headline" class="container">
-            <div class="row placeholder-glow">
-                <div class="col card">
-                    <div class="card-body" id="dest163">
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3 placeholder-glow">
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="dest163">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
                     </div>
                 </div>
-                <div class="col card">
-                    <div class="card-body" id="destSohu">
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destSohu">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
                     </div>
                 </div>
-                <div class="col card">
-                    <div class="card-body" id="destSina">
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destSina">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
                     </div>
                 </div>
-                <div class="col card">
-                    <div class="card-body" id="destBaidu">
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
-                        <p><span class="placeholder col-12"></span></p>
-                        <p><span class="placeholder col-8"></span></p>
-                        <p><span class="placeholder col-10"></span></p>
-                        <p><span class="placeholder col-9"></span></p>
-                        <p><span class="placeholder col-11"></span></p>
+
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="destBaidu">
+                            <p><span class="placeholder col-12"></span></p>
+                            <p><span class="placeholder col-8"></span></p>
+                            <p><span class="placeholder col-10"></span></p>
+                            <p><span class="placeholder col-9"></span></p>
+                            <p><span class="placeholder col-11"></span></p>
+                        </div>
                     </div>
                 </div>
             </div>
