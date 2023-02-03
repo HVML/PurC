@@ -149,7 +149,6 @@ purc_atom_remove_string_ex(int bucket, const char *string)
         ret = true;
     }
     else {
-        printf("Not Found atomstring: %s\n", string);
         ret = false;
     }
     purc_rwlock_writer_unlock(&atom_rwlock);
