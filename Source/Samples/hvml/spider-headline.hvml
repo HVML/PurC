@@ -94,7 +94,8 @@
 
         <observe against="d163" for="change:displaced">
             <init as result with [] temp />
-            <init as src_coll with $d163.query("div > div > p > a") temp />
+            <init as block with $d163.query(".news_default_news") temp />
+            <init as src_coll with $block.select("div > div > p > a") temp />
             <init as nr_count with $src_coll.count() temp />
             <iterate on 0 onlyif $L.lt($0<, $nr_count) with $DATA.arith('+', $0<, 1) nosetotail >
                 <init as elem with $src_coll.sub($<, 1) temp />
