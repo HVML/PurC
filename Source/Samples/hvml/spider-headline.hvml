@@ -10,86 +10,101 @@
         <!-- import the Bootstrap assets built in the renderer -->
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
+
+        <style hvml:raw>
+          .f-txt-overflow {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+          }
+          .f-text-bg-primary {
+            color: #fff!important;
+            background-color: RGBA(13,110,253,1)!important;
+          }
+        </style>
+
+
         <title>新闻头条</title>
 
         <init as nr_show with 5L />
     </head>
 
     <body class="d-flex flex-column h-100">
-        <section class="pt-5 pb-3 text-center container">
+        <section class="py-3 mt-auto text-center container">
             <div class="row py-lg-2">
                 <div class="col-lg-6 col-md-8 mx-auto">
-                    <h1 class="fw-light">新闻头条</h1>
-                    <p class="lead text-muted">$DATETIME.fmttime("%Y年%m月%d日 %H:%M") 来自网易、搜狐、新浪以及百度的新闻头条</p>
+                    <h1 class="display-4 fw-normal">新闻头条</h1>
+                    <p class="lead py-2 text-muted">$DATETIME.fmttime("%Y年%m月%d日 %H:%M")</p>
+                    <p class="lead py-2 text-muted">来自网易、搜狐、新浪以及百度的新闻头条</p>
                 </div>
             </div>
         </section>
 
-        <div id="headline" class="container">
-            <div class="row row-cols-1 row-cols-md-2 mb-3 g-3 placeholder-glow py-3">
-                <div class="col d-flex">
-                    <div class="card shadow-sm w-100 h-100">
-                        <div class="card-header py-3 text-center">
-                            <h4 class="my-0 fw-normal">网易新闻</h4>
+        <div id="headline" class="container mb-auto">
+            <div class="row row-cols-sm-2 row-cols-md-2 g-2 placeholder-glow py-3">
+                <div class="col d-flex px-3">
+                    <div class="card shadow-sm w-100 h-100 border-primary">
+                        <div class="card-header py-3 text-center f-text-bg-primary">
+                            <h3 class="my-0 fw-normal">网易新闻</h3>
                         </div>
 
-                        <div class="card-body" id="dest163">
-                            <p><span class="placeholder col-12"></span></p>
-                            <p><span class="placeholder col-8"></span></p>
-                            <p><span class="placeholder col-10"></span></p>
-                            <p><span class="placeholder col-9"></span></p>
-                            <p><span class="placeholder col-11"></span></p>
-                        </div>
+                        <ul class="list-group list-group-flush" id="dest163">
+                            <li class="list-group-item placeholder my-1 col-12">abc</li>
+                            <li class="list-group-item placeholder my-1 col-8">abc</li>
+                            <li class="list-group-item placeholder my-1 col-10">abc</li>
+                            <li class="list-group-item placeholder my-1 col-9">abc</li>
+                            <li class="list-group-item placeholder my-1 col-11">abc</li>
+                        </ul>
                     </div>
                 </div>
 
-                <div class="col d-flex">
-                    <div class="card shadow-sm w-100 h-100">
-                        <div class="card-header py-3 text-center">
-                            <h4 class="my-0 fw-normal">搜狐新闻</h4>
+                <div class="col d-flex px-3">
+                    <div class="card shadow-sm w-100 h-100 border-primary">
+                        <div class="card-header py-3 text-center f-text-bg-primary">
+                            <h3 class="my-0 fw-normal">搜狐新闻</h3>
                         </div>
 
-                        <div class="card-body" id="destSohu">
-                            <p><span class="placeholder col-12"></span></p>
-                            <p><span class="placeholder col-8"></span></p>
-                            <p><span class="placeholder col-10"></span></p>
-                            <p><span class="placeholder col-9"></span></p>
-                            <p><span class="placeholder col-11"></span></p>
-                        </div>
+                        <ul class="list-group list-group-flush" id="destSohu">
+                            <li class="list-group-item placeholder my-1 col-12">abc</li>
+                            <li class="list-group-item placeholder my-1 col-8">abc</li>
+                            <li class="list-group-item placeholder my-1 col-10">abc</li>
+                            <li class="list-group-item placeholder my-1 col-9">abc</li>
+                            <li class="list-group-item placeholder my-1 col-11">abc</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="row row-cols-sm-2 row-cols-md-2 g-3 placeholder-glow py-3">
-                <div class="col d-flex">
-                    <div class="card shadow-sm w-100 h-100">
-                        <div class="card-header py-3 text-center">
-                            <h4 class="my-0 fw-normal">新浪新闻</h4>
+            <div class="row row-cols-sm-2 row-cols-md-2 g-2 placeholder-glow py-3">
+                <div class="col d-flex px-3">
+                    <div class="card shadow-sm w-100 h-100 border-primary">
+                        <div class="card-header py-3 text-center f-text-bg-primary">
+                            <h3 class="my-0 fw-normal">新浪新闻</h3>
                         </div>
 
-                        <div class="card-body" id="destSina">
-                            <p><span class="placeholder col-12"></span></p>
-                            <p><span class="placeholder col-8"></span></p>
-                            <p><span class="placeholder col-10"></span></p>
-                            <p><span class="placeholder col-9"></span></p>
-                            <p><span class="placeholder col-11"></span></p>
-                        </div>
+                        <ul class="list-group list-group-flush" id="destSina">
+                            <li class="list-group-item placeholder my-1 col-12">abc</li>
+                            <li class="list-group-item placeholder my-1 col-8">abc</li>
+                            <li class="list-group-item placeholder my-1 col-10">abc</li>
+                            <li class="list-group-item placeholder my-1 col-9">abc</li>
+                            <li class="list-group-item placeholder my-1 col-11">abc</li>
+                        </ul>
                     </div>
                 </div>
 
-                <div class="col d-flex">
-                    <div class="card shadow-sm w-100 h-100">
-                        <div class="card-header py-3 text-center">
-                            <h4 class="my-0 fw-normal">百度新闻</h4>
+                <div class="col d-flex px-3">
+                    <div class="card shadow-sm w-100 h-100 border-primary">
+                        <div class="card-header py-3 text-center f-text-bg-primary">
+                            <h3 class="my-0 fw-normal">百度新闻</h3>
                         </div>
 
-                        <div class="card-body" id="destBaidu">
-                            <p><span class="placeholder col-12"></span></p>
-                            <p><span class="placeholder col-8"></span></p>
-                            <p><span class="placeholder col-10"></span></p>
-                            <p><span class="placeholder col-9"></span></p>
-                            <p><span class="placeholder col-11"></span></p>
-                        </div>
+                        <ul class="list-group list-group-flush" id="destBaidu">
+                            <li class="list-group-item placeholder my-1 col-12">abc</li>
+                            <li class="list-group-item placeholder my-1 col-8">abc</li>
+                            <li class="list-group-item placeholder my-1 col-10">abc</li>
+                            <li class="list-group-item placeholder my-1 col-9">abc</li>
+                            <li class="list-group-item placeholder my-1 col-11">abc</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -110,9 +125,9 @@
 
     <body id="main">
         <archetype name="mainItem">
-            <div class="news-item">
+            <li class="list-group-item my-1">
                 <a class="text-decoration-none link-dark" href="$?.href" target="_blank">$?.title</a>
-            </div>
+            </li>
         </archetype>
 
         <load from "#n163" onto "_null" as news163 async />
