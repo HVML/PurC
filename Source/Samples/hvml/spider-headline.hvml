@@ -21,10 +21,17 @@
             color: #fff!important;
             background-color: RGBA(13,110,253,1)!important;
           }
+
+          .f-feature-icon {
+              width: 4rem;
+              height: 4rem;
+              border-radius: .75rem;
+          }
+
         </style>
 
 
-        <title>新闻头条</title>
+        <title>HVML 爬虫</title>
 
         <init as nr_show with 5L />
     </head>
@@ -33,10 +40,7 @@
         <section class="py-3 mt-auto text-center container">
             <div class="row py-lg-2">
                 <div class="col-lg-6 col-md-8 mx-auto">
-                    <h1 class="display-4 fw-normal">新闻头条</h1>
-                    <div class="d-flex">
-                        <button type="button" class="btn btn-light ms-auto">$DATETIME.fmttime("%Y年%m月%d日 %H:%M")</button>
-                    </div>
+                    <h1 class="display-4 fw-normal">HVML 爬虫</h1>
                     <p class="lead py-2 text-muted">来自网易、搜狐、新浪以及百度的新闻头条</p>
                 </div>
             </div>
@@ -46,8 +50,11 @@
             <div class="row row-cols-sm-2 row-cols-md-2 g-2 placeholder-glow py-3">
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
-                        <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal"><i class="bi bi-newspaper"></i> 网易新闻</h3>
+                        <div class="card-header py-3">
+                            <div class="f-feature-icon d-inline-flex align-items-center justify-content-center f-text-bg-primary bg-gradient fs-2 mb-3">
+                                <i class="bi bi-newspaper"></i>
+                            </div>
+                            <h3 class="my-0 fs-2">网易新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="dest163">
@@ -62,8 +69,11 @@
 
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
-                        <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal"><i class="bi bi-rss"></i> 搜狐新闻</h3>
+                        <div class="card-header py-3">
+                            <div class="f-feature-icon d-inline-flex align-items-center justify-content-center f-text-bg-primary bg-gradient fs-2 mb-3">
+                                <i class="bi bi-rss"></i>
+                            </div>
+                            <h3 class="my-0 fs-2">搜狐新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destSohu">
@@ -80,8 +90,11 @@
             <div class="row row-cols-sm-2 row-cols-md-2 g-2 placeholder-glow py-3">
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
-                        <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal"><i class="bi bi-globe2"></i> 新浪新闻</h3>
+                        <div class="card-header py-3">
+                            <div class="f-feature-icon d-inline-flex align-items-center justify-content-center f-text-bg-primary bg-gradient fs-2 mb-3">
+                                <i class="bi bi-globe2"></i>
+                            </div>
+                            <h3 class="my-0 fs-2">新浪新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destSina">
@@ -96,8 +109,11 @@
 
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
-                        <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal"><i class="bi bi-search"></i> 百度新闻</h3>
+                        <div class="card-header py-3">
+                            <div class="f-feature-icon d-inline-flex align-items-center justify-content-center f-text-bg-primary bg-gradient fs-2 mb-3">
+                                <i class="bi bi-search"></i>
+                            </div>
+                            <h3 class="my-0 fs-2">百度新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destBaidu">
@@ -110,6 +126,27 @@
                     </div>
                 </div>
             </div>
+
+            <div class="d-flex">
+                <button type="button" class="btn btn-link ms-auto">$DATETIME.fmttime("%Y 年 %m 月 %d 日 %H:%M")</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+                <div class="col-md-4 d-flex align-items-center">
+                    <a href="https://hvml.fmsoft.cn" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+                        <img class="d-block mx-auto" src="//localhost/_renderer/_builtin/-/assets/hvml-v.png" alt="HVML logo" height="24" />
+                    </a>
+                    <span class="mb-3 mb-md-0 text-muted">© 2023 HVML Community</span>
+                </div>
+
+                <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                    <li class="ms-3"><a class="text-muted" href="https://github.com/HVML"><i class="bi bi-github"></i></a></li>
+                    <li class="ms-3"><a class="text-muted" href="https://store.fmsoft.cn/campaign/denoteoss-lt"><i class="bi bi-coin"></i></a></li>
+                    <li class="ms-3"><a class="text-muted" href="mailto:hvml@fmsoft.cn"><i class="bi bi-envelope-heart-fill"></i></a></li>
+                </ul>
+            </footer>
         </div>
 
         <update on="$TIMERS" to="unite">
