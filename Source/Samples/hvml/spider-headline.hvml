@@ -15,8 +15,8 @@
         <init as nr_show with 5L />
     </head>
 
-    <body>
-        <section class="py-2 text-center container">
+    <body class="d-flex flex-column h-100">
+        <section class="pt-5 pb-3 text-center container">
             <div class="row py-lg-2">
                 <div class="col-lg-6 col-md-8 mx-auto">
                     <h1 class="fw-light">新闻头条</h1>
