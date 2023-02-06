@@ -57,11 +57,11 @@
                         </div>
 
                         <ul class="list-group list-group-flush" id="$?.id">
-                            <li class="list-group-item placeholder my-1 col-12">a</li>
-                            <li class="list-group-item placeholder my-1 col-8">a</li>
-                            <li class="list-group-item placeholder my-1 col-10">a</li>
-                            <li class="list-group-item placeholder my-1 col-9">a</li>
-                            <li class="list-group-item placeholder my-1 col-11">a</li>
+                            <li class="list-group-item"><span class="placeholder my-1 col-12">a</span></li>
+                            <li class="list-group-item"><span class="placeholder my-1 col-8">a</span></li>
+                            <li class="list-group-item"><span class="placeholder my-1 col-10">a</span></li>
+                            <li class="list-group-item"><span class="placeholder my-1 col-9">a</span></li>
+                            <li class="list-group-item"><span class="placeholder my-1 col-11">a</span></li>
                         </ul>
                     </div>
                 </div>
@@ -69,11 +69,11 @@
 
         <archetype name="tmplPlaceholder">
             <div>
-                <li class="list-group-item placeholder my-1 col-12">a</li>
-                <li class="list-group-item placeholder my-1 col-8">a</li>
-                <li class="list-group-item placeholder my-1 col-10">a</li>
-                <li class="list-group-item placeholder my-1 col-9">a</li>
-                <li class="list-group-item placeholder my-1 col-11">a</li>
+                <li class="list-group-item"><span class="placeholder my-1 col-12">a</span></li>
+                <li class="list-group-item"><span class="placeholder my-1 col-8">a</span></li>
+                <li class="list-group-item"><span class="placeholder my-1 col-10">a</span></li>
+                <li class="list-group-item"><span class="placeholder my-1 col-9">a</span></li>
+                <li class="list-group-item"><span class="placeholder my-1 col-11">a</span></li>
             </div>
         </archetype>
 
@@ -118,7 +118,7 @@
 
         <update on="$TIMERS" to="unite">
             [
-                { "id" : "clock", "interval" : 3000, "active" : "yes" },
+                { "id" : "clock", "interval" : 5000, "active" : "yes" },
             ]
         </update>
 
