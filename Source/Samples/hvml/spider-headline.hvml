@@ -46,7 +46,7 @@
     </head>
 
     <body class="d-flex flex-column h-100">
-        <archetype name="tmpCol">
+        <archetype name="tmplCol">
                 <div class="col d-flex px-3 py-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
                         <div class="card-header py-3">
@@ -67,6 +67,16 @@
                 </div>
         </archetype>
 
+        <archetype name="tmplPlaceholder">
+            <div>
+                <li class="list-group-item placeholder my-1 col-12">a</li>
+                <li class="list-group-item placeholder my-1 col-8">a</li>
+                <li class="list-group-item placeholder my-1 col-10">a</li>
+                <li class="list-group-item placeholder my-1 col-9">a</li>
+                <li class="list-group-item placeholder my-1 col-11">a</li>
+            </div>
+        </archetype>
+
         <section class="py-3 mt-auto text-center container">
             <div class="row py-lg-2">
                 <div class="col-lg-6 col-md-8 mx-auto">
@@ -81,7 +91,7 @@
             </div>
 
             <div class="d-flex">
-                <button type="button" class="btn btn-link ms-auto">$DATETIME.fmttime("%Y 年 %m 月 %d 日 %H:%M")</button>
+                <button type="button" class="btn btn-link ms-auto" id="btnRefresh" hvml-events="click">$DATETIME.fmttime("%Y 年 %m 月 %d 日 %H:%M:%S")</button>
             </div>
         </div>
 
@@ -103,7 +113,7 @@
         </div>
 
         <iterate on="$sites">
-            <update on="#destRow" to="append" with="$tmpCol" />
+            <update on="#destRow" to="append" with="$tmplCol" />
         </iterate>
 
         <update on="$TIMERS" to="unite">
@@ -112,8 +122,23 @@
             ]
         </update>
 
+        <observe on="#btnRefresh" for="click">
+            <iterate on="$sites">
+                <update on "#$?.id" at "content" with ' ' />
+                <update on="#$?.id" to="append" with="$tmplPlaceholder" />
+            </iterate>
+
+            <update on="$TIMERS" to="unite">
+                [
+                    { "id" : "clock", "interval" : 1000, "active" : "yes" },
+                ]
+            </update>
+        </observe>
+
         <observe on="$TIMERS" for="expired:clock">
             <clear on $TIMERS />
+
+            <update on "#btnRefresh" at "content" with  $DATETIME.fmttime("%Y 年 %m 月 %d 日 %H:%M:%S")/>
             <load from "#main" onto "_inherit" async />
         </observe>
 
