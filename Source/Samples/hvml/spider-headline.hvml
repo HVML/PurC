@@ -34,7 +34,9 @@
             <div class="row py-lg-2">
                 <div class="col-lg-6 col-md-8 mx-auto">
                     <h1 class="display-4 fw-normal">新闻头条</h1>
-                    <p class="lead py-2 text-muted">$DATETIME.fmttime("%Y年%m月%d日 %H:%M")</p>
+                    <div class="d-flex">
+                        <button type="button" class="btn btn-light ms-auto">$DATETIME.fmttime("%Y年%m月%d日 %H:%M")</button>
+                    </div>
                     <p class="lead py-2 text-muted">来自网易、搜狐、新浪以及百度的新闻头条</p>
                 </div>
             </div>
@@ -45,7 +47,7 @@
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
                         <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal">网易新闻</h3>
+                            <h3 class="my-0 fw-normal"><i class="bi bi-newspaper"></i> 网易新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="dest163">
@@ -61,7 +63,7 @@
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
                         <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal">搜狐新闻</h3>
+                            <h3 class="my-0 fw-normal"><i class="bi bi-rss"></i> 搜狐新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destSohu">
@@ -79,7 +81,7 @@
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
                         <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal">新浪新闻</h3>
+                            <h3 class="my-0 fw-normal"><i class="bi bi-globe2"></i> 新浪新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destSina">
@@ -95,7 +97,7 @@
                 <div class="col d-flex px-3">
                     <div class="card shadow-sm w-100 h-100 border-primary">
                         <div class="card-header py-3 text-center f-text-bg-primary">
-                            <h3 class="my-0 fw-normal">百度新闻</h3>
+                            <h3 class="my-0 fw-normal"><i class="bi bi-search"></i> 百度新闻</h3>
                         </div>
 
                         <ul class="list-group list-group-flush" id="destBaidu">
