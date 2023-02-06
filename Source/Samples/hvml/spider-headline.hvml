@@ -57,11 +57,11 @@
                         </div>
 
                         <ul class="list-group list-group-flush" id="$?.id">
-                            <li class="list-group-item"><span class="placeholder my-1 col-12">a</span></li>
-                            <li class="list-group-item"><span class="placeholder my-1 col-8">a</span></li>
-                            <li class="list-group-item"><span class="placeholder my-1 col-10">a</span></li>
-                            <li class="list-group-item"><span class="placeholder my-1 col-9">a</span></li>
-                            <li class="list-group-item"><span class="placeholder my-1 col-11">a</span></li>
+                            <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-12">...</span></li>
+                            <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-8">...</span></li>
+                            <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-10">...</span></li>
+                            <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-9">...</span></li>
+                            <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-11">...</span></li>
                         </ul>
                     </div>
                 </div>
@@ -69,11 +69,11 @@
 
         <archetype name="tmplPlaceholder">
             <div>
-                <li class="list-group-item"><span class="placeholder my-1 col-12">a</span></li>
-                <li class="list-group-item"><span class="placeholder my-1 col-8">a</span></li>
-                <li class="list-group-item"><span class="placeholder my-1 col-10">a</span></li>
-                <li class="list-group-item"><span class="placeholder my-1 col-9">a</span></li>
-                <li class="list-group-item"><span class="placeholder my-1 col-11">a</span></li>
+                <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-12">...</span></li>
+                <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-8">...</span></li>
+                <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-10">...</span></li>
+                <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-9">...</span></li>
+                <li class="list-group-item"><span class="placeholder bg-secondary placeholder-sm text-secondary my-1 col-11">...</span></li>
             </div>
         </archetype>
 
@@ -147,7 +147,7 @@
     <body id="main">
         <archetype name="mainItem">
             <li class="list-group-item my-1">
-                <a class="text-decoration-none link-dark" href="$?.href" target="_blank">$?.title</a>
+                <a class="text-decoration-none link-dark" href="$?.href" target="_blank"><span class="f-txt-overflow">$?.title</span></a>
             </li>
         </archetype>
 
