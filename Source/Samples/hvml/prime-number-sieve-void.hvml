@@ -2,142 +2,25 @@
 
 <!DOCTYPE hvml SYSTEM "v: MATH">
 <hvml target="void">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
-        <!-- import the Bootstrap assets built in the renderer -->
-        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
-
-        <style type="text/css">
-            .cntr {
-                height:630px;
-            }
-            .cntr__primes {
-                display:flex;
-                flex-direction:row;
-            }
-            .cntr__primes__filter {
-                display:flex;
-                flex-direction:row;
-            }
-            .cntr__primes__filter__in {
-                display:flex;
-                flex-direction:column;
-                justify-content:flex-start;
-            }
-            .cntr__primes__filter__content {
-                width:50px;
-                height:620px;
-            }
-            .cntr__primes__filter__content__number {
-                width:50px;
-                height:20px;
-                font-weight:bold;
-                text-align:center;
-                position: relative;
-                top: 590px;
-                animation: number__fall cubic-bezier(1, 0, 0.45, 1.0) 2s 1;
-            }
-            @keyframes number__fall {
-                from {
-                    top: 0px;
-                }
-                to {
-                    top: calc(610px - 20px);
-                }
-            }
-            .cntr__primes__filter__in__number {
-                padding-left:5px;
-            }
-        </style>
-        <title>Prime Number Sieve（素数筛）</title>
-    </head>
-
-    <body>
-        <update on="$TIMERS" to="unite">
-            [
-                { "id" : "clock", "interval" : 1000, "active" : "yes" },
-            ]
-        </update>
-
-        <div class="px-4 my-4 border-bottom">
-            <div class="text-center">
-                <h1 class="display-6 fw-bold">Prime Number Sieve（素数筛）</h1>
-            </div>
-        </div>
-        <div class="container cntr">
-            <div id="primes" class="container cntr__primes">
-            </div>
-        </div>
-
-        <div class="container">
-            <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-                <div class="col-md-4 d-flex align-items-center">
-                    <a href="https://hvml.fmsoft.cn" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-                        <img class="d-block mx-auto" src="//localhost/_renderer/_builtin/-/assets/hvml-v.png" alt="HVML logo" height="24" />
-                    </a>
-                    <span class="mb-3 mb-md-0 text-muted">© 2022 HVML Community</span>
-                </div>
-
-                <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-                    <li class="ms-3"><a class="text-muted" href="https://github.com/HVML"><i class="bi bi-github"></i></a></li>
-                    <li class="ms-3"><a class="text-muted" href="https://store.fmsoft.cn/campaign/denoteoss-lt"><i class="bi bi-coin"></i></a></li>
-                    <li class="ms-3"><a class="text-muted" href="mailto:hvml@fmsoft.cn"><i class="bi bi-envelope-heart-fill"></i></a></li>
-                </ul>
-            </footer>
-        </div>
-
-        <observe on="$TIMERS" for="expired:clock">
-            <clear on $TIMERS />
-            <load from "#main" onto "_inherit" async />
-        </observe>
-
-        <observe on $CRTN for "rdrState:pageClosed">
-            <exit/>
-        </observe>
-    </body>
 
     <body id="main">
-        <!-- update on $RUNNER.myObj to "merge" with { 'primes': [] } / -->
-        <archetype name="filter">
-            <div id="filter$?" class="cntr__primes__filter">
-                <div id="fin$?" class="cntr__primes__filter__in">
-                </div>
-                <div id="f$?"   class="cntr__primes__filter__content border border-secondary">
-                </div>
-            </div>
-        </archetype>
-
-        <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number small">$? &#x2192;</div>
-        </archetype>
-
-        <archetype name="fall">
-            <div class="cntr__primes__filter__content__number text-danger">$?</div>
-        </archetype>
-
         <inherit>
             $RUNNER.user(! 'primes', [] )
             $RUNNER.user(! 'chans', [] )
         </inherit>
 
+        <init as count with 10L />
         <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
         <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
 
         <!-- iterate 10 times -->
-        <iterate on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
+        <iterate on 0L onlyif $L.lt($0<, $count) with $DATA.arith('+', $0<, 1) nosetotail >
 
             <choose on $chIn.recv() >
 
                 <update on $RUNNER.myObj.primes to "append" with $? />
                 <update on $RUNNER.myObj.chans to "append" with "filter$?" />
-                <update on="#primes" to="append" with="$filter" />
-                <update on="#fin$?" to="append" with="$numberin" />
-                <update on="#f$?" to="append" with="$fall" />
 
                 <!-- open a channel to filter the new prime -->
                 <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
@@ -158,47 +41,29 @@
                 $RUNNER.chan(! "$?", 0 )
             </inherit>
         </iterate>
+
+        <exit with $RUNNER.myObj.primes />
     </body>
 
     <!-- request: {chanName: <string: `the channel name`>, diff: <longint: `the difference`> } -->
     <body id="initialNumbers">
-
-        <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number small">$? &#x2192;</div>
-        </archetype>
-
         <!-- open the channel -->
         <init as chan with $RUNNER.chan( $REQ.chanName ) />
 
         <!-- this iteration will stop only if the the channle was closed -->
         <iterate on 2L onlyif $chan.send($0<) with $DATA.arith('+', $0<, $REQ.diff)  while $L.le($0<, 30) nosetotail silently >
-            <inherit>
-                $SYS.sleep(0.5);
-            </inherit>
         </iterate>
     </body>
 
     <body id="sieve">
-
-        <archetype name="numberin">
-            <div class="cntr__primes__filter__in__number small">$? &#x2192;</div>
-        </archetype>
-
         <!-- this iteration will stop only if the the input channle was closed -->
         <iterate with $REQ.in.recv() silently must-yield>
-            <update on="#fin$REQ.prime" to="append" with="$numberin" />
-            <inherit>
-                $SYS.sleep(0.5);
-            </inherit>
             <inherit>
                 {{
                     $DATA.isdivisible($?, $REQ.prime)
                     ||
                     $REQ.out.send($?)
                 }}
-            </inherit>
-            <inherit>
-                $SYS.sleep(0.5);
             </inherit>
         </iterate>
     </body>
