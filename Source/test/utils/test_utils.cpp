@@ -1809,7 +1809,9 @@ TEST(utils, build_query_object)
                 '&', PCUTILS_URL_OPT_REAL_EJSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
-    ASSERT_STREQ("first=value_1&second=value_2", buf);
+    bool cmp = (strcmp(buf, "first=value_1&second=value_2") == 0) ||
+        (strcmp(buf, "second=value_2&first=value_1") == 0);
+    ASSERT_EQ(cmp, true);
 
     purc_variant_unref(v_2);
     purc_variant_unref(v_1);

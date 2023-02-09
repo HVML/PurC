@@ -36,7 +36,7 @@
 
 PCA_EXTERN_C_BEGIN
 
-#define USE_UOMAP_FOR_OBJECT        0
+#define USE_UOMAP_FOR_OBJECT        1
 
 #define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT

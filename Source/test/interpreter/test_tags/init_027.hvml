@@ -12,7 +12,7 @@
 
     <body>
         <iterate on="$kvs">
-            <update on="$@" to="append" with="$?"/>
+            <update on="$@" to="append" with="$?.val"/>
         </iterate>
     </body>
 
