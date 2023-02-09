@@ -17,8 +17,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __LIB_UTILS_SORTED_ARRAY_H
-#define __LIB_UTILS_SORTED_ARRAY_H
+#ifndef _purc_util_sorted_array_h
+#define _purc_util_sorted_array_h
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -81,4 +81,4 @@ void sorted_array_cleanup(struct sorted_array *sa);
 }
 #endif
 
-#endif  /* __LIB_UTILS_SORTED_ARRAY_H */
+#endif  /* not defined _purc_util_sorted_array_h */

@@ -38,8 +38,8 @@
  * the copyright holders.
  */
 
-#ifndef __MC_LIB_AVL_H
-#define __MC_LIB_AVL_H
+#ifndef _purc_util_avl_h
+#define _purc_util_avl_h
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -558,4 +558,4 @@ __avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, 
        (tree)->count > 0; \
        element = ptr, ptr = avl_next_element(ptr, node_member), (tree)->count--)
 
-#endif /* __MC_LIB_AVL_H */
+#endif /* not defined _purc_util_avl_h */

@@ -1,5 +1,9 @@
 /*
- * Copyright (C) 2012 Felix Fietkau <nbd@openwrt.org>
+ * helpers.c - Implementation of useful helpers.
+ *
+ * Copyright (C) 2023 FMSoft <https://www.fmsoft.cn>
+ *
+ * Author: Vincent Wei <https://github.com/VincentWei>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,17 +17,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef _purc_util_avl_cmp_h
-#define _purc_util_avl_cmp_h
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "helpers.h"
 
-int avl_strcmp(const void *k1, const void *k2, void *ptr);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* not defined _purc_util_avl_cmp_h */
