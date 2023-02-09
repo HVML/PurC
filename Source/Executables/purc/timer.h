@@ -52,11 +52,11 @@ foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
 /** Deletes a timer. */
 int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer);
 
-/** Deletes all timer. */
-void foil_timer_delete_all(pcmcth_renderer* rdr);
+/** Deletes all timer. Returns the number of timers deleted */
+unsigned foil_timer_delete_all(pcmcth_renderer* rdr);
 
 /** Calls the on_timer_expired_f callbacks for all expired timers. */
-int foil_timer_check_expired(pcmcth_renderer *rdr);
+unsigned foil_timer_check_expired(pcmcth_renderer *rdr);
 
 #endif /* !purc_foil_timer_h_ */
 

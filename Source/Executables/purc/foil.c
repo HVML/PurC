@@ -23,9 +23,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// #undef NDEBUG
+
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
+
 #include <pthread.h>
 #include <semaphore.h>
 #include <fcntl.h>           /* For O_* constants */
@@ -135,6 +139,60 @@ no_any_endpoints:
     return false;
 }
 
+#ifndef NDEBUG
+
+#define IDT_REGULAR         0
+#define IDT_ONCE            1
+#define MAX_TIMES_FIRED     20
+
+static unsigned nr_timer_fired;
+static int on_regular_timer(foil_timer_t timer, int id, void *ctxt)
+{
+    assert(timer != NULL);
+    assert(id == IDT_REGULAR);
+    assert(ctxt == NULL);
+
+    printf("regular timer fired: %d\n", nr_timer_fired);
+    nr_timer_fired++;
+    if (nr_timer_fired == MAX_TIMES_FIRED)
+        return 1;
+    return 0;
+}
+
+static int on_once_timer(foil_timer_t timer, int id, void *ctxt)
+{
+    assert(timer != NULL);
+    assert(id == IDT_ONCE);
+    assert(ctxt == NULL);
+
+    printf("once timer fired\n");
+    return 1;
+}
+
+static void test_timer(pcmcth_renderer *rdr)
+{
+    foil_timer_new(rdr, IDT_REGULAR, 10, on_regular_timer, NULL);
+    foil_timer_new(rdr, IDT_ONCE, 500, on_once_timer, NULL);
+
+    while (rdr->t_elapsed < 2) {
+        if (rdr->cbs.handle_event(rdr, 10000))
+            break;
+
+        rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
+        if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
+            rdr->t_elapsed_last = rdr->t_elapsed;
+        }
+
+        foil_timer_check_expired(rdr);
+    }
+
+    assert(nr_timer_fired == MAX_TIMES_FIRED);
+    unsigned n;
+    n = foil_timer_delete_all(rdr);
+    assert(n == 0);
+}
+#endif /* not defined NDEBUG */
+
 static void event_loop(pcmcth_renderer *rdr)
 {
     (void)rdr;
@@ -161,6 +219,7 @@ static void event_loop(pcmcth_renderer *rdr)
                 rdr->t_elapsed_last = rdr->t_elapsed;
             }
 
+            foil_timer_check_expired(rdr);
             continue;
         }
 
@@ -237,6 +296,9 @@ static void* foil_thread_entry(void* arg)
 
         if (init_renderer(&rdr) == 0) {
             purc_set_local_data(FOIL_RENDERER, (uintptr_t)&rdr, NULL);
+#ifndef NDEBUG
+            test_timer(&rdr);
+#endif
             event_loop(&rdr);
             purc_remove_local_data(FOIL_RENDERER);
             deinit_renderer(&rdr);

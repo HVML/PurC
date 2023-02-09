@@ -422,7 +422,7 @@ int64_t purc_get_elapsed_milliseconds(const struct timespec *ts_from,
 
     ds = ts_to->tv_sec - ts_from->tv_sec;
     dns = ts_to->tv_nsec - ts_from->tv_nsec;
-    return ds * 1000 + dns;
+    return ds * 1000 + dns / 1000000;
 }
 
 int64_t purc_get_elapsed_milliseconds_alt(time_t t_from,
@@ -439,7 +439,7 @@ int64_t purc_get_elapsed_milliseconds_alt(time_t t_from,
 
     ds = ts_to->tv_sec - t_from;
     dns = ts_to->tv_nsec - 0;
-    return ds * 1000 + dns;
+    return ds * 1000 + dns / 1000000;
 }
 
 #define HVML_SCHEMA         "hvml://"

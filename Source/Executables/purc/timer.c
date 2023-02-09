@@ -45,11 +45,15 @@ struct foil_timer {
 
 int foil_timer_compare(const void *k1, const void *k2, void *ptr)
 {
+    (void)ptr;
     const struct foil_timer *timer1 = k1;
     const struct foil_timer *timer2 = k2;
 
-    (void)ptr;
-    return timer1->expired_ms - timer2->expired_ms;
+    if (timer1->expired_ms > timer2->expired_ms)
+        return 1;
+    else if (timer1->expired_ms == timer2->expired_ms)
+        return 0;
+    return -1;
 }
 
 int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr)
@@ -96,18 +100,22 @@ int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer)
     return 0;
 }
 
-void foil_timer_delete_all(pcmcth_renderer* rdr)
+unsigned foil_timer_delete_all(pcmcth_renderer* rdr)
 {
+    unsigned n = 0;
     struct foil_timer *timer, *tmp;
 
     avl_remove_all_elements(&rdr->timer_avl, timer, avl, tmp) {
         free(timer);
+        n++;
     }
+
+    return n;
 }
 
-int foil_timer_check_expired(pcmcth_renderer *rdr)
+unsigned foil_timer_check_expired(pcmcth_renderer *rdr)
 {
-    int n = 0;
+    unsigned n = 0;
     int64_t curr_ms = foil_timer_current_milliseconds(rdr);
     struct foil_timer *timer, *tmp;
 
@@ -118,7 +126,7 @@ int foil_timer_check_expired(pcmcth_renderer *rdr)
                 foil_timer_delete(rdr, timer);
             }
             else {
-                /* update expired_ms and reinsert it */
+                /* update expired_ms and reinstall it */
                 timer->expired_ms = curr_ms + timer->interval;
                 avl_delete(&rdr->timer_avl, &timer->avl);
                 avl_insert(&rdr->timer_avl, &timer->avl);
