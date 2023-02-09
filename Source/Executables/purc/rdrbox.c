@@ -1391,7 +1391,6 @@ static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         int cmp;
 
         mid = (low + high) / 2;
-        printf("low: %d; high: %d; mid: %d\n", (int)low, (int)high, (int)mid);
         cmp = strcasecmp(ctxt->tag_name, special_tags_html[mid].tag_name);
         if (cmp == 0) {
             if (special_tags_html[mid].flags & TAG_FLAG_CONTROL)

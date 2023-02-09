@@ -33,6 +33,7 @@
 
 #include "foil.h"
 #include "endpoint.h"
+#include "timer.h"
 
 static int init_renderer(pcmcth_renderer *rdr)
 {
@@ -45,6 +46,7 @@ static int init_renderer(pcmcth_renderer *rdr)
 
     kvlist_init(&rdr->endpoint_list, NULL);
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
+    avl_init(&rdr->timer_avl, foil_timer_compare, true, NULL);
 
     return rdr->cbs.prepare(rdr);
 }
@@ -57,6 +59,7 @@ static void deinit_renderer(pcmcth_renderer *rdr)
 
     rdr->cbs.cleanup(rdr);
 
+    foil_timer_delete_all(rdr);
     remove_all_living_endpoints(&rdr->living_avl);
 
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
@@ -71,6 +74,16 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     }
 
     kvlist_free(&rdr->endpoint_list);
+}
+
+#define FOIL_RENDERER   "renderer"
+
+pcmcth_renderer *foil_get_renderer(void)
+{
+    uintptr_t v;
+    if (purc_get_local_data(FOIL_RENDERER, &v, NULL) == 1)
+        return (pcmcth_renderer *)(void *)v;
+    return NULL;
 }
 
 static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
@@ -223,7 +236,9 @@ static void* foil_thread_entry(void* arg)
         pcmcth_renderer rdr;
 
         if (init_renderer(&rdr) == 0) {
+            purc_set_local_data(FOIL_RENDERER, (uintptr_t)&rdr, NULL);
             event_loop(&rdr);
+            purc_remove_local_data(FOIL_RENDERER);
             deinit_renderer(&rdr);
         }
         purc_inst_destroy_move_buffer();

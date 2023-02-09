@@ -155,10 +155,13 @@ struct pcmcth_rdr_data {
 extern "C" {
 #endif
 
-/* Starts Foil renderer */
+/** Starts Foil renderer */
 purc_atom_t foil_start(const char *rdr_uri);
 
-/* Wait for Foil renderer to exit synchronously */
+/** Returns the pointer to the Foil renderer. */
+pcmcth_renderer *foil_get_renderer(void);
+
+/** Wait for Foil renderer to exit synchronously */
 void foil_sync_exit(void);
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
