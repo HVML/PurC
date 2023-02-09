@@ -408,12 +408,12 @@ double purc_get_elapsed_seconds(const struct timespec *ts_from,
     return ds + dns * 1.0E-9;
 }
 
-intmax_t purc_get_elapsed_miliseconds(const struct timespec *ts_from,
+int64_t purc_get_elapsed_milliseconds(const struct timespec *ts_from,
         const struct timespec *ts_to)
 {
     struct timespec ts_curr;
-    intmax_t ds;
-    intmax_t dns;
+    int64_t ds;
+    int64_t dns;
 
     if (ts_to == NULL) {
         clock_gettime(CLOCK_MONOTONIC, &ts_curr);
@@ -422,6 +422,23 @@ intmax_t purc_get_elapsed_miliseconds(const struct timespec *ts_from,
 
     ds = ts_to->tv_sec - ts_from->tv_sec;
     dns = ts_to->tv_nsec - ts_from->tv_nsec;
+    return ds * 1000 + dns;
+}
+
+int64_t purc_get_elapsed_milliseconds_alt(time_t t_from,
+        const struct timespec *ts_to)
+{
+    struct timespec ts_curr;
+    int64_t ds;
+    int64_t dns;
+
+    if (ts_to == NULL) {
+        clock_gettime(CLOCK_MONOTONIC, &ts_curr);
+        ts_to = &ts_curr;
+    }
+
+    ds = ts_to->tv_sec - t_from;
+    dns = ts_to->tv_nsec - 0;
     return ds * 1000 + dns;
 }
 
