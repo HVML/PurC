@@ -40,7 +40,7 @@ typedef int (*on_timer_expired_f)(foil_timer_t timer, int id, void *ctxt);
 int foil_timer_compare(const void *k1, const void *k2, void *ptr);
 
 /** Returns the current milliseconds since the renderer starts up */
-intmax_t foil_timer_current_milliseconds(pcmcth_renderer* rdr);
+int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr);
 
 /**
  * Creates a new timer.
