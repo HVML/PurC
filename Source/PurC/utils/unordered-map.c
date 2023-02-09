@@ -85,7 +85,7 @@ pcutils_uomap_entry *
 pcutils_uomap_it_next(struct pcutils_uomap_iterator *it)
 {
     if (list_is_last(&it->curr->list, it->map->table + it->curr->slot)) {
-        for (size_t i = it->curr->slot; i < it->map->size; i++) {
+        for (size_t i = it->curr->slot + 1; i < it->map->size; i++) {
             if (!list_empty(it->map->table + i)) {
                 it->curr = list_first_entry(it->map->table + i,
                         pchash_entry, list);
