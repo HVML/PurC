@@ -974,7 +974,8 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
 #if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, key);
     if (entry) {
-        return (purc_variant_t) entry->val;
+        struct obj_node *node = (struct obj_node *) entry->val;
+        return (purc_variant_t) node->val;
     }
 
     pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
