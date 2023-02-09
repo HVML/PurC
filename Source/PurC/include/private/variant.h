@@ -478,6 +478,32 @@ bool
 pcvariant_array_insert_another_after(purc_variant_t array, int idx,
         purc_variant_t another, bool silently);
 
+
+struct obj_iterator {
+    purc_variant_t                obj;
+
+    struct obj_node              *curr;
+    struct obj_node              *next;
+    struct obj_node              *prev;
+};
+
+struct obj_iterator
+pcvar_obj_it_first(purc_variant_t obj);
+struct obj_iterator
+pcvar_obj_it_last(purc_variant_t obj);
+void
+pcvar_obj_it_next(struct obj_iterator *it);
+void
+pcvar_obj_it_prev(struct obj_iterator *it);
+bool
+pcvar_obj_it_is_valid(struct obj_iterator *it);
+struct obj_node *
+pcvar_obj_it_get_curr(struct obj_iterator *it);
+purc_variant_t
+pcvar_obj_it_get_key(struct obj_iterator *it);
+purc_variant_t
+pcvar_obj_it_get_value(struct obj_iterator *it);
+
 PCA_EXTERN_C_END
 
 #define PURC_VARIANT_SAFE_CLEAR(_v)             \
@@ -563,47 +589,39 @@ do {                                            \
 
 #define foreach_value_in_variant_object(_obj, _val)                 \
     do {                                                            \
-        variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
-        struct rb_root *_root = &_data->kvs;                        \
-        struct rb_node *_p = pcutils_rbtree_first(_root);           \
-        for (; _p; _p = pcutils_rbtree_next(_p))                    \
+        struct obj_iterator _it = pcvar_obj_it_first(_obj);         \
+        while (pcvar_obj_it_is_valid(&_it))                         \
         {                                                           \
-            struct obj_node *_node;                                 \
-            _node = container_of(_p, struct obj_node, node);        \
-            _val = _node->val;                                      \
+            struct obj_node *_node = pcvar_obj_it_get_curr(&_it);   \
+            UNUSED_VARIABLE(_node);                                 \
+            _val = pcvar_obj_it_get_value(&_it);                    \
+            pcvar_obj_it_next(&_it);                                \
      /* } */                                                        \
  /* } while (0) */
 
 #define foreach_key_value_in_variant_object(_obj, _key, _val)       \
     do {                                                            \
-        variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
-        struct rb_root *_root = &_data->kvs;                        \
-        struct rb_node *_p = pcutils_rbtree_first(_root);           \
-        for (; _p; _p = pcutils_rbtree_next(_p))                    \
+        struct obj_iterator _it = pcvar_obj_it_first(_obj);         \
+        while (pcvar_obj_it_is_valid(&_it))                         \
         {                                                           \
-            struct obj_node *_node;                                 \
-            _node = container_of(_p, struct obj_node, node);        \
-            _key = _node->key;                                      \
-            _val = _node->val;                                      \
+            struct obj_node *_node = pcvar_obj_it_get_curr(&_it);   \
+            UNUSED_VARIABLE(_node);                                 \
+            _key = pcvar_obj_it_get_key(&_it);                      \
+            _val = pcvar_obj_it_get_value(&_it);                    \
+            pcvar_obj_it_next(&_it);                                \
      /* } */                                                        \
  /* } while (0) */
 
 #define foreach_in_variant_object_safe_x(_obj, _key, _val)          \
     do {                                                            \
-        variant_obj_t _data;                                        \
-        _data = (variant_obj_t)_obj->sz_ptr[1];                     \
-        struct rb_root *_root = &_data->kvs;                        \
-        struct rb_node *_p, *_next;                                 \
-        for (_p = pcutils_rbtree_first(_root);                      \
-            ({_next = _p ? pcutils_rbtree_next(_p) : NULL; _p;});   \
-            _p = _next)                                             \
+        struct obj_iterator _it = pcvar_obj_it_first(_obj);         \
+        while (pcvar_obj_it_is_valid(&_it))                         \
         {                                                           \
-            struct obj_node *_node;                                 \
-            _node = container_of(_p, struct obj_node, node);        \
-            _key = _node->key;                                      \
-            _val = _node->val;                                      \
+            struct obj_node *_node = pcvar_obj_it_get_curr(&_it);   \
+            UNUSED_VARIABLE(_node);                                 \
+            _key = pcvar_obj_it_get_key(&_it);                      \
+            _val = pcvar_obj_it_get_value(&_it);                    \
+            pcvar_obj_it_next(&_it);                                \
      /* } */                                                        \
  /* } while (0) */
 

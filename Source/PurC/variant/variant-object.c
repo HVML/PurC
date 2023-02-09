@@ -1231,6 +1231,38 @@ pcvar_obj_it_prev(struct obj_iterator *it)
     }
 }
 
+bool
+pcvar_obj_it_is_valid(struct obj_iterator *it)
+{
+    return it && it->curr;
+}
+
+struct obj_node *
+pcvar_obj_it_get_curr(struct obj_iterator *it)
+{
+    return it ? it->curr : NULL;
+}
+
+purc_variant_t
+pcvar_obj_it_get_key(struct obj_iterator *it)
+{
+    if (!it || it->curr == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    return it->curr->key;
+}
+
+purc_variant_t
+pcvar_obj_it_get_value(struct obj_iterator *it)
+{
+    if (!it || it->curr == NULL) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    return it->curr->val;
+}
+
 ssize_t
 purc_variant_object_unite(purc_variant_t dst,
         purc_variant_t src, pcvrnt_cr_method_k cr_method)
