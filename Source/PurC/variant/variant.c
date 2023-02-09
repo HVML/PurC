@@ -2829,17 +2829,15 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r,
     rd = (variant_obj_t)r->sz_ptr[1];
     PC_ASSERT(ld);
     PC_ASSERT(rd);
-    struct rb_root *lroot = &ld->kvs;
-    struct rb_root *rroot = &rd->kvs;
-    struct rb_node *lnode = pcutils_rbtree_first(lroot);
-    struct rb_node *rnode = pcutils_rbtree_first(rroot);
-    for (;
-        lnode && rnode;
-        lnode = pcutils_rbtree_next(lnode), rnode = pcutils_rbtree_next(rnode))
-    {
+
+    struct obj_iterator lit, rit;
+    lit = pcvar_obj_it_first(l);
+    rit = pcvar_obj_it_first(r);
+
+    while (pcvar_obj_it_is_valid(&lit) && pcvar_obj_it_is_valid(&rit)) {
         struct obj_node *lo, *ro;
-        lo = container_of(lnode, struct obj_node, node);
-        ro = container_of(rnode, struct obj_node, node);
+        lo = pcvar_obj_it_get_curr(&lit);
+        ro = pcvar_obj_it_get_curr(&rit);
         PC_ASSERT(lo->key);
         PC_ASSERT(ro->key);
         const char *lk = purc_variant_get_string_const(lo->key);
@@ -2860,11 +2858,14 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r,
         diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
+
+        pcvar_obj_it_next(&lit);
+        pcvar_obj_it_next(&rit);
     }
 
-    if (lnode)
+    if (pcvar_obj_it_is_valid(&lit))
         return 1;
-    else if (rnode)
+    else if (pcvar_obj_it_is_valid(&rit))
         return -1;
     else
         return 0;

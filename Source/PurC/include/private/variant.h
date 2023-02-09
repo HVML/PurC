@@ -36,6 +36,8 @@
 
 PCA_EXTERN_C_BEGIN
 
+#define USE_UOMAP_FOR_OBJECT        0
+
 #define PCVRNT_FLAG_CONSTANT        (0x01 << 0)  // for null, true, ...
 #define PCVRNT_FLAG_NOFREE          PCVRNT_FLAG_CONSTANT
 #define PCVRNT_FLAG_EXTRA_SIZE      (0x01 << 1)  // when use extra space
@@ -271,7 +273,11 @@ struct obj_node {
 };
 
 struct variant_obj {
+#if USE(UOMAP_FOR_OBJECT)
+    pcutils_uomap          *kvs;
+#else
     struct rb_root          kvs;  // struct obj_node*
+#endif
     size_t                  size;
 
     // key: arr_node/obj_node/set_node
@@ -481,10 +487,13 @@ pcvariant_array_insert_another_after(purc_variant_t array, int idx,
 
 struct obj_iterator {
     purc_variant_t                obj;
-
+#if USE(UOMAP_FOR_OBJECT)
+    struct pcutils_uomap_iterator uomap_it;
+#else
     struct obj_node              *curr;
     struct obj_node              *next;
     struct obj_node              *prev;
+#endif
 };
 
 struct obj_iterator

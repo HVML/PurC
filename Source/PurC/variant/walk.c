@@ -36,12 +36,13 @@ obj_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
     lit = pcvar_obj_it_first(l);
     rit = pcvar_obj_it_first(r);
 
-    while (lit.curr && rit.curr) {
-        int r = cb(lit.curr->key, rit.curr->key, ctxt);
+    while (pcvar_obj_it_is_valid(&lit) && pcvar_obj_it_is_valid(&rit)) {
+        int r = cb(pcvar_obj_it_get_key(&lit), pcvar_obj_it_get_key(&rit), ctxt);
         if (r)
             return r;
 
-        r = parallel_walk(lit.curr->val, rit.curr->val, ctxt, cb);
+        r = parallel_walk(pcvar_obj_it_get_value(&lit),
+                pcvar_obj_it_get_value(&rit), ctxt, cb);
         if (r)
             return r;
 
@@ -49,13 +50,15 @@ obj_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
         pcvar_obj_it_next(&rit);
     }
 
-    if (lit.curr == NULL && rit.curr == NULL)
+    if (!pcvar_obj_it_is_valid(&lit) && !pcvar_obj_it_is_valid(&rit))
         return 0;
 
-    if (lit.curr)
-        return parallel_walk(lit.curr->val, PURC_VARIANT_INVALID, ctxt, cb);
+    if (pcvar_obj_it_is_valid(&lit))
+        return parallel_walk(pcvar_obj_it_get_value(&lit),
+                PURC_VARIANT_INVALID, ctxt, cb);
     else
-        return parallel_walk(PURC_VARIANT_INVALID, rit.curr->val, ctxt, cb);
+        return parallel_walk(PURC_VARIANT_INVALID,
+                pcvar_obj_it_get_value(&rit), ctxt, cb);
 }
 
 static int
