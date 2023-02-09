@@ -1974,7 +1974,7 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj)
 void
 pcvar_kv_it_next(struct kv_iterator *it)
 {
-    if (pcvar_obj_it_is_valid(&it->it))
+    if (!pcvar_obj_it_is_valid(&it->it))
         return;
 
     variant_set_t data = pcvar_set_get_data(it->set);
@@ -1997,7 +1997,7 @@ pcvar_kv_it_next(struct kv_iterator *it)
 
     while (1) {
         pcvar_obj_it_next(&it->it);
-        if (pcvar_obj_it_is_valid(&it->it))
+        if (!pcvar_obj_it_is_valid(&it->it))
             return;
         struct obj_node *curr = pcvar_obj_it_get_curr(&it->it);
         purc_variant_t key = curr->key;
