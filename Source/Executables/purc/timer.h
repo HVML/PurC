@@ -32,8 +32,12 @@ struct foil_timer;
 typedef struct foil_timer *foil_timer_t;
 
 /**
-  * Prototype of the callback which will be called when a timer expired.
-  * Returns 0 to keep the timer, otherwise cancel the timer. */
+ * Prototype of the callback which will be called when a timer expired.
+ *
+ * Returns zero to keep the timer;
+ * Returns a positive value to change the interval;
+ * Returns a negative value to cancel the timer.
+ */
 typedef int (*on_timer_expired_f)(foil_timer_t timer, int id, void *ctxt);
 
 /** Compares two timers to sort them in AVL tree. */
@@ -47,7 +51,7 @@ int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr);
  * Returns the handle to the timer; NULL for failure.
  */
 foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
-        unsigned interval, on_timer_expired_f callback, void *ctxt);
+        int interval, on_timer_expired_f callback, void *ctxt);
 
 /** Deletes a timer. */
 int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer);

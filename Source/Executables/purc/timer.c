@@ -30,14 +30,15 @@
 #include "config.h"
 #include "timer.h"
 
+#include <assert.h>
+
 struct foil_timer {
-    int      id;
-    unsigned interval;
+    int     id;
+    int     interval;
+    int64_t expired_ms;
+    void   *ctxt;
 
     on_timer_expired_f on_expired;
-    void    *ctxt;
-
-    int64_t expired_ms;
 
     /* AVL node for the AVL tree sorted by living time */
     struct avl_node avl;
@@ -62,8 +63,10 @@ int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr)
 }
 
 foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
-        unsigned interval, on_timer_expired_f on_expired, void *ctxt)
+        int interval, on_timer_expired_f on_expired, void *ctxt)
 {
+    assert(interval > 0);
+
     struct foil_timer *timer;
     timer = (struct foil_timer *)calloc(1, sizeof(struct foil_timer));
     if (timer == NULL) {
@@ -72,11 +75,10 @@ foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
 
     timer->id = id;
     timer->interval = interval;
-    timer->on_expired = on_expired;
+    timer->expired_ms = foil_timer_current_milliseconds(rdr) + interval;
     timer->ctxt = ctxt;
+    timer->on_expired = on_expired;
 
-    timer->expired_ms = foil_timer_current_milliseconds(rdr);
-    timer->expired_ms += interval;
     timer->avl.key = timer;
 
     if (avl_insert(&rdr->timer_avl, &timer->avl)) {
@@ -122,11 +124,14 @@ unsigned foil_timer_check_expired(pcmcth_renderer *rdr)
     avl_for_each_element_safe(&rdr->timer_avl, timer, avl, tmp) {
         if (curr_ms >= timer->expired_ms) {
 
-            if (timer->on_expired(timer, timer->id, timer->ctxt)) {
+            int interval = timer->on_expired(timer, timer->id, timer->ctxt);
+            if (interval < 0) {
                 foil_timer_delete(rdr, timer);
             }
             else {
-                /* update expired_ms and reinstall it */
+                /* update interval and expired_ms and reinstall it */
+                if (interval > 0)
+                    timer->interval = interval;
                 timer->expired_ms = curr_ms + timer->interval;
                 avl_delete(&rdr->timer_avl, &timer->avl);
                 avl_insert(&rdr->timer_avl, &timer->avl);

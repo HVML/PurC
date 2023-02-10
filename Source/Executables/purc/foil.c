@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "config.h"
 
@@ -155,7 +155,7 @@ static int on_regular_timer(foil_timer_t timer, int id, void *ctxt)
     printf("regular timer fired: %d\n", nr_timer_fired);
     nr_timer_fired++;
     if (nr_timer_fired == MAX_TIMES_FIRED)
-        return 1;
+        return 100;
     return 0;
 }
 
@@ -166,13 +166,13 @@ static int on_once_timer(foil_timer_t timer, int id, void *ctxt)
     assert(ctxt == NULL);
 
     printf("once timer fired\n");
-    return 1;
+    return -1;
 }
 
 static void test_timer(pcmcth_renderer *rdr)
 {
     foil_timer_new(rdr, IDT_REGULAR, 10, on_regular_timer, NULL);
-    foil_timer_new(rdr, IDT_ONCE, 500, on_once_timer, NULL);
+    foil_timer_new(rdr, IDT_ONCE, 100, on_once_timer, NULL);
 
     while (rdr->t_elapsed < 2) {
         if (rdr->cbs.handle_event(rdr, 10000))
@@ -186,10 +186,9 @@ static void test_timer(pcmcth_renderer *rdr)
         foil_timer_check_expired(rdr);
     }
 
-    assert(nr_timer_fired == MAX_TIMES_FIRED);
     unsigned n;
     n = foil_timer_delete_all(rdr);
-    assert(n == 0);
+    assert(n == 1);
 }
 #endif /* not defined NDEBUG */
 
