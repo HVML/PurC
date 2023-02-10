@@ -2242,11 +2242,29 @@ stringify_kv(struct stringify_arg *arg, const char *key, purc_variant_t val)
 static void
 stringify_object(struct stringify_arg *arg, purc_variant_t value)
 {
+    purc_variant_t array =
+        purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 4, NULL);
+    if (array == PURC_VARIANT_INVALID) {
+        goto out;
+    }
+
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
+        purc_variant_sorted_array_add(array, k);
+    end_foreach;
+
+    ssize_t sz = purc_variant_sorted_array_get_size(array);
+    for (ssize_t i = 0; i < sz; i++) {
+        k = purc_variant_sorted_array_get(array, i);
+        v = purc_variant_object_get(value, k);
         const char *sk = purc_variant_get_string_const(k);
         stringify_kv(arg, sk, v);
-    end_foreach;
+    }
+
+    purc_variant_unref(array);
+
+out:
+    return;
 }
 
 static void
@@ -2823,52 +2841,30 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r,
         bool caseless, bool unify_number)
 {
     int diff;
+    struct obj_iterator lit = pcvar_obj_it_first(l);
 
-    variant_obj_t ld, rd;
-    ld = (variant_obj_t)l->sz_ptr[1];
-    rd = (variant_obj_t)r->sz_ptr[1];
-    PC_ASSERT(ld);
-    PC_ASSERT(rd);
-
-    struct obj_iterator lit, rit;
-    lit = pcvar_obj_it_first(l);
-    rit = pcvar_obj_it_first(r);
-
-    while (pcvar_obj_it_is_valid(&lit) && pcvar_obj_it_is_valid(&rit)) {
-        struct obj_node *lo, *ro;
-        lo = pcvar_obj_it_get_curr(&lit);
-        ro = pcvar_obj_it_get_curr(&rit);
-        PC_ASSERT(lo->key);
-        PC_ASSERT(ro->key);
-        const char *lk = purc_variant_get_string_const(lo->key);
-        const char *rk = purc_variant_get_string_const(ro->key);
-        PC_ASSERT(lk);
-        PC_ASSERT(rk);
-
-        // NOTE: ignore caseless for keyname
-        diff = strcmp(lk, rk);
-        if (diff)
-            return diff;
-
-        purc_variant_t lv = lo->val;
-        purc_variant_t rv = ro->val;
-        PC_ASSERT(lv != PURC_VARIANT_INVALID);
-        PC_ASSERT(rv != PURC_VARIANT_INVALID);
+    while (pcvar_obj_it_is_valid(&lit)) {
+        purc_variant_t k = pcvar_obj_it_get_key(&lit);
+        purc_variant_t lv = pcvar_obj_it_get_value(&lit);
+        purc_variant_t rv = purc_variant_object_get(r, k);
 
         diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
 
         pcvar_obj_it_next(&lit);
-        pcvar_obj_it_next(&rit);
     }
 
-    if (pcvar_obj_it_is_valid(&lit))
+    size_t lsz = purc_variant_object_get_size(l);
+    size_t rsz = purc_variant_object_get_size(r);
+
+    if (lsz > rsz) {
         return 1;
-    else if (pcvar_obj_it_is_valid(&rit))
+    }
+    else if (lsz < rsz) {
         return -1;
-    else
-        return 0;
+    }
+    return 0;
 }
 
 static int
