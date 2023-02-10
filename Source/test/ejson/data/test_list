@@ -132,6 +132,11 @@ p_multi_line
 p_multi_line_by_single_quoted
 p_single_quote_key
 p_byte_sequence
+p_byte_sequence_1
+p_byte_sequence_2
+p_byte_sequence_3
+p_byte_sequence_4
+p_byte_sequence_5
 y_number_real_capital_e
 y_number_real_capital_e_neg_exp
 y_object_duplicated_key_and_value

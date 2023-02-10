@@ -1,7 +1,7 @@
 {
-    id:         1234567890UL,
-    nickname:   "David",
-    signature:
+    aid:         1234567890UL,
+    anickname:   "David",
+    asignature:
 """
 一个
 

@@ -1,10 +1,4 @@
 {
     hex:     bx00112233445566778899AABBCCDDEEFF,
-    binary:  bb0011.1100.0011.0011,
-    base64:  b64UHVyQyBpcyBhbiBIVk1MIHBhcnNlciBhbmQgaW50ZXJwcmV0ZXIuCiA=,
-    hexEmpty:   bx,
-    binaryEmpty:   bb,
-    base64Empty:   b64,
-    binaryX:  bb0011110000110011,
 }
 
