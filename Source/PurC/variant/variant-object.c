@@ -127,6 +127,31 @@ pcvar_obj_get_data(purc_variant_t obj)
     return data;
 }
 
+#if USE(UOMAP_FOR_OBJECT)
+static inline void* copy_key_var(const void *key)
+{
+    return purc_variant_ref((purc_variant_t)key);
+}
+
+static inline void free_key_var(void *key)
+{
+    purc_variant_unref((purc_variant_t)key);
+}
+
+static inline int comp_key_var(const void *key1, const void *key2)
+{
+    const char *k1 = purc_variant_get_string_const((purc_variant_t)key1);
+    const char *k2 = purc_variant_get_string_const((purc_variant_t)key2);
+    return strcmp(k1, k2);
+}
+
+static unsigned long hash_key_var(const void *key)
+{
+    const char *k = purc_variant_get_string_const((purc_variant_t)key);
+    return pchash_perlish_str_hash(k);
+}
+#endif
+
 static purc_variant_t v_object_new_with_capacity(void)
 {
     purc_variant_t var = pcvariant_get(PVT(_OBJECT));
@@ -148,9 +173,9 @@ static purc_variant_t v_object_new_with_capacity(void)
     }
 
 #if USE(UOMAP_FOR_OBJECT)
-    data->kvs = pcutils_uomap_create(copy_key_string,
-                free_key_string, NULL, NULL, NULL,
-                comp_key_string, false);
+    data->kvs = pcutils_uomap_create(copy_key_var,
+                free_key_var, NULL, NULL, hash_key_var,
+                comp_key_var, false);
 #else
     data->kvs = RB_ROOT;
 #endif
@@ -299,7 +324,7 @@ check_shrink(purc_variant_t obj, struct obj_node *node)
 }
 
 static int
-v_object_remove(purc_variant_t obj, const char *key, bool silently,
+v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         bool check)
 {
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -350,11 +375,12 @@ v_object_remove(purc_variant_t obj, const char *key, bool silently,
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
+    const char *s_key = purc_variant_get_string_const(key);
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
         const char *sk = purc_variant_get_string_const(node->key);
-        int ret = strcmp(key, sk);
+        int ret = strcmp(s_key, sk);
 
         parent = *pnode;
 
@@ -509,11 +535,9 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         return -1;
     }
 
-    const char *sk = purc_variant_get_string_const(key);
-
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
-        v_object_remove(obj, sk, silently, check);
+        v_object_remove(obj, key, silently, check);
         return 0;
     }
 
@@ -526,7 +550,7 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     PC_ASSERT(data);
 
 #if USE(UOMAP_FOR_OBJECT)
-    pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, sk);
+    pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, key);
 
     if (!entry) { //new the entry
         struct obj_node *node = obj_node_create(key, val);
@@ -545,7 +569,7 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
 
 
             ++data->size;
-            pcutils_uomap_insert(data->kvs, sk, node);
+            pcutils_uomap_insert(data->kvs, key, node);
 
             if (check) {
                 if (build_rev_update_chain(obj, node))
@@ -623,6 +647,7 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
+    const char *sk = purc_variant_get_string_const(key);
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
@@ -964,7 +989,7 @@ int pcvariant_object_compare (purc_variant_t lv, purc_variant_t rv)
 */
 
 purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 {
     PCVRNT_CHECK_FAIL_RET((obj && obj->type==PVT(_OBJECT) &&
         obj->sz_ptr[1] && key),
@@ -986,12 +1011,13 @@ purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
     struct rb_node **pnode = &root->rb_node;
     struct rb_node *parent = NULL;
     struct rb_node *entry = NULL;
+    const char *s_key = purc_variant_get_string_const(key);
     while (*pnode) {
         struct obj_node *node;
         node = container_of(*pnode, struct obj_node, node);
         const char *sk = purc_variant_get_string_const(node->key);
 
-        int ret = strcmp(key, sk);
+        int ret = strcmp(s_key, sk);
 
         parent = *pnode;
 
@@ -1031,7 +1057,7 @@ bool purc_variant_object_set (purc_variant_t obj,
 }
 
 bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&
