@@ -46,6 +46,8 @@
 #define KEY_CALLER_NODE                 "__vcm_caller_node"
 #define KEY_PARAM_NODE                  "__vcm_param_node"
 
+#define PCVCM_VARIABLE_ARGS_NAME        "_ARGS"
+
 
 #define MIN_BUF_SIZE                    32
 #define MAX_BUF_SIZE                    SIZE_MAX
@@ -82,7 +84,7 @@ struct pcvcm_eval_stack_frame {
     pcutils_array_t        *params;
     pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
-    struct pcvarmgr        *variables; // _ARGS
+    purc_variant_t          args;    // named variable : _ARGS
 
     size_t                  nr_params;
     size_t                  pos;

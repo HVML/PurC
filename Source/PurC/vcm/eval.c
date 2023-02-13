@@ -41,7 +41,6 @@
 #include "ops.h"
 
 #define PURC_ENVV_VCM_LOG_ENABLE    "PURC_VCM_LOG_ENABLE"
-#define VCM_VARIABLE_ARGS_NAME      "_ARGS"
 
 static const char *stepnames[] = {
     STEP_NAME_AFTER_PUSH,
@@ -66,12 +65,6 @@ pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
         goto out;
     }
 
-    frame->variables = pcvarmgr_create();
-    if (!frame->variables) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out_destroy_frame;
-    }
-
     frame->node = node;
     frame->pos = 0;
     frame->return_pos = return_pos;
@@ -80,7 +73,7 @@ pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos)
         frame->params = pcutils_array_create();
         if (!frame->params) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_destroy_variables;
+            goto out_destroy_frame;
         }
         frame->params_result = pcutils_array_create();
         if (!frame->params_result) {
@@ -108,9 +101,6 @@ out_destroy_params_result:
 out_destroy_params:
     pcutils_array_destroy(frame->params, true);
 
-out_destroy_variables:
-    pcvarmgr_destroy(frame->variables);
-
 out_destroy_frame:
     free(frame);
 
@@ -136,7 +126,10 @@ pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
         }
         pcutils_array_destroy(frame->params_result, true);
     }
-    pcvarmgr_destroy(frame->variables);
+
+    if (frame->args) {
+        purc_variant_unref(frame->args);
+    }
     free(frame);
 }
 
@@ -669,8 +662,9 @@ eval_vcm(struct pcvcm_node *tree,
         goto out;
     }
 
-    if (args && !pcvarmgr_add(frame->variables, VCM_VARIABLE_ARGS_NAME, args)) {
-        goto out;
+    if (args) {
+        PURC_VARIANT_SAFE_CLEAR(frame->args);
+        frame->args = purc_variant_ref(args);
     }
 
     do {
@@ -858,13 +852,14 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
         goto out;
     }
 
-    if (args && !pcvarmgr_add(frame->variables, VCM_VARIABLE_ARGS_NAME, args)) {
-        goto out_destroy_frame;
+
+    if (args) {
+        PURC_VARIANT_SAFE_CLEAR(frame->args);
+        frame->args = purc_variant_ref(args);
     }
 
     result = eval_frame(ctxt, frame, 0);
 
-out_destroy_frame:
     pop_frame(ctxt);
 
 out:

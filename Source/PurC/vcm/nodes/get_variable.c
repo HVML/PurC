@@ -58,11 +58,15 @@ static purc_variant_t
 find_from_frame(struct pcvcm_eval_ctxt *ctxt, const char *name)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (strcmp(name, PCVCM_VARIABLE_ARGS_NAME) != 0) {
+        goto out;
+    }
+
     struct list_head *stack = &ctxt->stack;
     struct pcvcm_eval_stack_frame *p, *n;
     list_for_each_entry_reverse_safe(p, n, stack, ln) {
-        ret = pcvarmgr_get(p->variables, name);
-        if (ret) {
+        if (p->args) {
+            ret = p->args;
             goto out;
         }
     }
