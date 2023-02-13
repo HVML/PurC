@@ -506,3 +506,10 @@ void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
     render_rdrbox_with_stacking_ctxt(&rdr_ctxt, root->stacking_ctxt, root);
 }
 
+void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, const foil_rdrbox *box)
+{
+    (void)udom;
+    (void)box;
+    LOG_DEBUG("called; TODO\n");
+}
+

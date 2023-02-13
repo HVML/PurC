@@ -97,9 +97,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 }
 
 struct foil_rdrbox_tailor_ops _foil_rdrbox_replaced_ops = {
-    tailor,
-    cleaner,
-    NULL,
-    ctnt_painter,
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .ctnt_painter = ctnt_painter,
 };
 

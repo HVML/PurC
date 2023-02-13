@@ -29,27 +29,66 @@
 #include "rdrbox-internal.h"
 #include "udom.h"
 #include "page.h"
+#include "timer.h"
 
 #include <assert.h>
 
+#define IDT_DEFAULT     0
+#define TIMER_INTERVAL  200
+#define INDICATOR_STEPS 10
+
 struct _tailor_data {
+    pcmcth_udom *udom;
+    pcmcth_page *page;
+
+    /* the max value, which must be larger than 0.0 */
     double max;
+
     /* in indeterminate state if the value is negative. */
     double value;
 
-    /* the current indicator position for indeterminate state */
-    int    indicator;
+    /* the current indicator percent for indeterminate state */
+    int     indicator;
+
+    /* the indicator steps for indeterminate state */
+    int     ind_steps;
+
+    /* the handle of the timer for indeterminate status */
+    foil_timer_t    timer;
 };
 
 static int
-tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
+timer_expired(foil_timer_t timer, int id, void *ctxt)
+{
+    (void)timer;
+    (void)id;
+    struct _tailor_data *tailor_data = ctxt;
+    struct foil_rdrbox *box;
+    box = container_of(ctxt, struct foil_rdrbox, tailor_data);
+
+    tailor_data->indicator += tailor_data->ind_steps;
+    if (tailor_data->ind_steps > 0 &&
+            tailor_data->indicator >= 100) {
+        tailor_data->indicator = 100;
+        tailor_data->ind_steps = -INDICATOR_STEPS;
+    }
+    else if (tailor_data->ind_steps < 0 &&
+            tailor_data->indicator <= 0) {
+        tailor_data->indicator = 0;
+        tailor_data->ind_steps = INDICATOR_STEPS;
+    }
+
+    foil_udom_invalidate_rdrbox(tailor_data->udom, box);
+    return 0;
+}
+
+static void
+update_properties(purc_document_t doc, struct foil_rdrbox *box)
 {
     const char *value;
     size_t len;
 
-    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
-
-    if (pcdoc_element_get_attribute(ctxt->udom->doc, box->owner,
+    if (pcdoc_element_get_attribute(doc, box->owner,
             "max", &value, &len) == 0 && len > 0) {
         char buff[len + 1];
         strncpy(buff, value, len);
@@ -63,7 +102,8 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         box->tailor_data->max = 1.0;
     }
 
-    if (pcdoc_element_get_attribute(ctxt->udom->doc, box->owner,
+    pcmcth_renderer* rdr = foil_get_renderer();
+    if (pcdoc_element_get_attribute(doc, box->owner,
             "value", &value, &len) == 0 && len > 0) {
         char buff[len + 1];
         strncpy(buff, value, len);
@@ -74,6 +114,12 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
             box->tailor_data->value = 0;
         else if (box->tailor_data->value > box->tailor_data->max)
             box->tailor_data->value = box->tailor_data->max;
+
+        /* uninstall the timer */
+        if (box->tailor_data->timer) {
+            foil_timer_delete(rdr, box->tailor_data->timer);
+            box->tailor_data->timer = NULL;
+        }
     }
     else {
         /* indeterminate */
@@ -81,14 +127,30 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         box->tailor_data->indicator = 0;
 
         /* TODO: set a timer for indeterminate state */
+        if (box->tailor_data->timer == NULL) {
+            box->tailor_data->timer = foil_timer_new(rdr, IDT_DEFAULT,
+                    TIMER_INTERVAL, timer_expired, box->tailor_data);
+        }
     }
+}
 
+static int
+tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
+    box->tailor_data->udom = ctxt->udom;
+    box->tailor_data->page = ctxt->page;
+    update_properties(ctxt->udom->doc, box);
     return 0;
 }
 
 static void cleaner(struct foil_rdrbox *box)
 {
     assert(box->tailor_data);
+    if (box->tailor_data->timer) {
+        pcmcth_renderer* rdr = foil_get_renderer();
+        foil_timer_delete(rdr, box->tailor_data->timer);
+    }
     free(box->tailor_data);
 }
 
@@ -107,12 +169,8 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 
     if (box->tailor_data->value < 0) {
         /* in indeterminate state */
-        page_rc.left  += box->tailor_data->indicator;
+        page_rc.left  += tray_width * box->tailor_data->indicator / 100;
         page_rc.right = page_rc.left + 1;
-
-        box->tailor_data->indicator++;
-        if (box->tailor_data->indicator >= tray_width)
-            box->tailor_data->indicator = 0;
 
         foil_page_set_bgc(ctxt->page, FOIL_BGC_PROGRESS_BAR);
         foil_page_erase_rect(ctxt->page, &page_rc);
@@ -128,10 +186,23 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     }
 }
 
+static void on_attr_changed(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    double old_max = box->tailor_data->max;
+    double old_val = box->tailor_data->value;
+    update_properties(ctxt->udom->doc, box);
+
+    if (old_max != box->tailor_data->max ||
+            old_val != box->tailor_data->value) {
+        foil_udom_invalidate_rdrbox(ctxt->udom, box);
+    }
+}
+
 struct foil_rdrbox_tailor_ops _foil_rdrbox_progress_ops = {
-    tailor,
-    cleaner,
-    bgnd_painter,
-    NULL,
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .bgnd_painter = bgnd_painter,
+    .on_attr_changed = on_attr_changed,
 };
 

@@ -157,9 +157,8 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 }
 
 struct foil_rdrbox_tailor_ops _foil_rdrbox_meter_ops = {
-    tailor,
-    cleaner,
-    bgnd_painter,
-    NULL,
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .bgnd_painter = bgnd_painter,
 };
 

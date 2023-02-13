@@ -275,12 +275,15 @@ typedef void (*foil_data_cleanup_cb)(void *data);
 
 struct foil_create_ctxt;
 struct foil_render_ctxt;
+struct foil_update_ctxt;
 struct foil_rdrbox;
 
 typedef int  (*foil_rdrbox_tailor_cb)(struct foil_create_ctxt *ctxt,
         struct foil_rdrbox *box);
 typedef void (*foil_rdrbox_cleanup_cb)(struct foil_rdrbox *box);
-typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *rdr_ctxt,
+typedef void (*foil_rdrbox_update_cb)(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box);
+typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box);
 
 struct foil_rdrbox_tailor_ops {
@@ -296,6 +299,12 @@ struct foil_rdrbox_tailor_ops {
 
     /* the tailored callback for drawing content of a control or replaced box */
     foil_rdrbox_paint_cb    ctnt_painter;
+
+    /* the callback to reflect the changes of attributes. */
+    foil_rdrbox_update_cb   on_attr_changed;
+
+    /* the callback to reflect the changes of contents. */
+    foil_rdrbox_update_cb   on_ctnt_changed;
 };
 
 struct foil_rdrbox {
@@ -519,6 +528,11 @@ typedef struct foil_render_ctxt {
         pcmcth_page *page;
     };
 } foil_render_ctxt;
+
+typedef struct foil_update_ctxt {
+    pcmcth_udom *udom;
+    pcmcth_page *page;
+} foil_update_ctxt;
 
 #ifdef __cplusplus
 extern "C" {
