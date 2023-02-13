@@ -128,27 +128,58 @@ pcvar_obj_get_data(purc_variant_t obj)
 }
 
 #if USE(UOMAP_FOR_OBJECT)
-static inline void* copy_key_var(const void *key)
+static void* copy_key_var(const void *key)
 {
     return purc_variant_ref((purc_variant_t)key);
 }
 
-static inline void free_key_var(void *key)
+static void free_key_var(void *key)
 {
     purc_variant_unref((purc_variant_t)key);
 }
 
-static inline int comp_key_var(const void *key1, const void *key2)
+static int comp_key_var(const void *key1, const void *key2)
 {
-    const char *k1 = purc_variant_get_string_const((purc_variant_t)key1);
-    const char *k2 = purc_variant_get_string_const((purc_variant_t)key2);
+    purc_variant_t l = (purc_variant_t) key1;
+    purc_variant_t r = (purc_variant_t) key2;
+    PC_ASSERT((l->type == PURC_VARIANT_TYPE_STRING)
+            && (r->type == PURC_VARIANT_TYPE_STRING));
+
+    const char *k1;
+    if ((l->flags & PCVRNT_FLAG_EXTRA_SIZE) ||
+            (l->flags & PCVRNT_FLAG_STRING_STATIC)) {
+        k1 = (const char *)l->sz_ptr[1];
+    }
+    else {
+        k1 = (const char *)l->bytes;
+    }
+
+    const char *k2;
+    if ((r->flags & PCVRNT_FLAG_EXTRA_SIZE) ||
+            (r->flags & PCVRNT_FLAG_STRING_STATIC)) {
+        k2 = (const char *)r->sz_ptr[1];
+    }
+    else {
+        k2 = (const char *)r->bytes;
+    }
+
     return strcmp(k1, k2);
 }
 
 static unsigned long hash_key_var(const void *key)
 {
-    const char *k = purc_variant_get_string_const((purc_variant_t)key);
-    return pchash_perlish_str_hash(k);
+    purc_variant_t v = (purc_variant_t) key;
+    PC_ASSERT(v->type == PURC_VARIANT_TYPE_STRING);
+
+    const char *k;
+    if ((v->flags & PCVRNT_FLAG_EXTRA_SIZE) ||
+            (v->flags & PCVRNT_FLAG_STRING_STATIC)) {
+        k = (const char *)v->sz_ptr[1];
+    }
+    else {
+        k = (const char *)v->bytes;
+    }
+    return pchash_default_str_hash(k);
 }
 #endif
 
