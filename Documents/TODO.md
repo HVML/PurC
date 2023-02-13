@@ -47,10 +47,10 @@
 
 ### 2.1) Variants
 
+1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2; Resolved] Implement some new APIs:
    - `purc_variant_make_atom()`
-1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
 
 ### 2.2) eJSON and HVML Parsing and Evaluating
