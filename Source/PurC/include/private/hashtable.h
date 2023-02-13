@@ -64,9 +64,9 @@ extern "C" {
 #define PCHASH_DEFAULT_SIZE     5
 
 /* default hash functions */
-unsigned long pchash_default_str_hash(const void *k);
-unsigned long pchash_perlish_str_hash(const void *k);
-unsigned long pchash_ptr_hash(const void *k);
+uint32_t pchash_default_str_hash(const void *k);
+uint32_t pchash_perlish_str_hash(const void *k);
+uint32_t pchash_ptr_hash(const void *k);
 
 /* default comparison functions */
 int pchash_str_equal(const void *k1, const void *k2);
@@ -85,9 +85,9 @@ struct pchash_entry {
     pchash_free_kv_fn free_kv_alt;
 
     /** the hash value */
-    unsigned long hash;
+    uint32_t hash;
     /** the index of slot in the table */
-    unsigned long slot;
+    uint32_t slot;
 
     struct list_head list;
 };
@@ -303,7 +303,7 @@ pchash_table_insert(struct pchash_table *t, const void *k, const void *v)
  *      freeing the entry.
  */
 int pchash_table_insert_w_hash(struct pchash_table *t,
-        const void *k, const void *v, const unsigned long h,
+        const void *k, const void *v, const uint32_t h,
          pchash_free_kv_fn free_kv_alt);
 
 /**
@@ -333,7 +333,7 @@ pchash_entry_t pchash_table_lookup_entry(struct pchash_table *t,
  *      if it does not exist.
  */
 pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
-        const void *k, const unsigned long h);
+        const void *k, const uint32_t h);
 
 /**
  * Lookup a record in the table using a precalculated key hash and lock
@@ -351,7 +351,7 @@ pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
  *      if it does not exist.
  */
 pchash_entry_t pchash_table_lookup_and_lock_w_hash(
-        struct pchash_table *t, const void *k, const unsigned long h);
+        struct pchash_table *t, const void *k, const uint32_t h);
 
 /**
  * Lookup a record in the table and lock the table if found.
@@ -430,7 +430,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size);
  * @param k a pointer to the key to lookup
  * @return the key's hash
  */
-static inline unsigned long
+static inline uint32_t
 pchash_get_hash(const struct pchash_table *t, const void *k)
 {
     return t->hash_fn(k);

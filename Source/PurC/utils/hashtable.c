@@ -78,10 +78,10 @@
  */
 #define PCHASH_LOAD_FACTOR 0.66
 
-unsigned long pchash_ptr_hash(const void *k)
+uint32_t pchash_ptr_hash(const void *k)
 {
     /* CAW: refactored to be 64bit nice */
-    return (unsigned long)((((ptrdiff_t)k * PCHASH_PRIME) >> 4) & ULONG_MAX);
+    return (uint32_t)((((ptrdiff_t)k * PCHASH_PRIME) >> 4) & UINT32_MAX);
 }
 
 int pchash_ptr_equal(const void *k1, const void *k2)
@@ -491,10 +491,10 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 /* a simple hash function similiar to what perl does for strings.
  * for good results, the string should not be excessivly large.
  */
-unsigned long pchash_perlish_str_hash(const void *k)
+uint32_t pchash_perlish_str_hash(const void *k)
 {
     const char *rkey = (const char *)k;
-    unsigned hashval = 1;
+    uint32_t hashval = 1;
 
     while (*rkey)
         hashval = hashval * 33 + *rkey++;
@@ -502,7 +502,7 @@ unsigned long pchash_perlish_str_hash(const void *k)
     return hashval;
 }
 
-unsigned long pchash_default_str_hash(const void *k)
+uint32_t pchash_default_str_hash(const void *k)
 {
 #if defined _MSC_VER || defined __MINGW32__
 #define RANDOM_SEED_TYPE LONG
@@ -711,13 +711,14 @@ void pchash_table_delete(struct pchash_table *t)
 }
 
 static int insert_entry(struct pchash_table *t,
-        const void *k, const void *v, const unsigned long h,
+        const void *k, const void *v, const uint32_t h,
         pchash_free_kv_fn free_kv_alt)
 {
     if (t->count >= t->size * PCHASH_LOAD_FACTOR) {
         /* Avoid signed integer overflow with large tables. */
-        size_t new_size = (t->size > INT_MAX / 2) ? INT_MAX : (t->size * 2);
-        if (t->size == INT_MAX || pchash_table_resize(t, new_size) != 0) {
+        size_t new_size;
+        new_size = (t->size > UINT32_MAX / 2) ? UINT32_MAX : (t->size * 2);
+        if (t->size == UINT32_MAX || pchash_table_resize(t, new_size) != 0) {
             return -1;
         }
     }
@@ -739,7 +740,7 @@ static int insert_entry(struct pchash_table *t,
 }
 
 int pchash_table_insert_w_hash(struct pchash_table *t,
-        const void *k, const void *v, const unsigned long h,
+        const void *k, const void *v, const uint32_t h,
         pchash_free_kv_fn free_kv_alt)
 {
     int retv;
@@ -758,9 +759,9 @@ int pchash_table_insert_ex(struct pchash_table *t,
 }
 
 static pchash_entry_t find_entry(struct pchash_table *t,
-        const void *k, const unsigned long h)
+        const void *k, const uint32_t h)
 {
-    unsigned long slot = h % t->size;
+    uint32_t slot = h % t->size;
     pchash_entry_t found = NULL;
 
     struct list_head *p;
@@ -777,7 +778,7 @@ static pchash_entry_t find_entry(struct pchash_table *t,
 }
 
 pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
-        const void *k, const unsigned long h)
+        const void *k, const uint32_t h)
 {
     pchash_entry_t found = NULL;
 
@@ -795,7 +796,7 @@ pchash_entry_t pchash_table_lookup_entry(struct pchash_table *t,
 }
 
 pchash_entry_t pchash_table_lookup_and_lock_w_hash(
-        struct pchash_table *t, const void *k, const unsigned long h)
+        struct pchash_table *t, const void *k, const uint32_t h)
 {
     pchash_entry_t found = NULL;
 
@@ -925,7 +926,7 @@ int pchash_table_replace_or_insert(struct pchash_table *t,
 {
     int retv = -1;
     pchash_entry_t e;
-    unsigned long h = pchash_get_hash(t, k);
+    uint32_t h = pchash_get_hash(t, k);
 
     WRLOCK_TABLE(t);
 
