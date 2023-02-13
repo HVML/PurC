@@ -23,6 +23,8 @@
 #ifndef PURC_PRIVATE_CALLBACKS_H
 #define PURC_PRIVATE_CALLBACKS_H
 
+#include <stdint.h>
+
 /** The callback function prototype for copying a datum. */
 typedef void *(*pcutils_copy_fn)(const void *datum);
 
@@ -30,7 +32,7 @@ typedef void *(*pcutils_copy_fn)(const void *datum);
 typedef void (*pcutils_free_fn)(void *datum);
 
 /** The callback function prototype for calculating hash value of a datum. */
-typedef unsigned long (*pcutils_hash_fn)(const void *datum);
+typedef uint32_t (*pcutils_hash_fn)(const void *datum);
 
 /** The callback function prototype for comparing two datums. */
 typedef int (*pcutils_comp_fn)(const void *d1, const void *d2);
