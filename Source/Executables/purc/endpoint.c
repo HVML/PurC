@@ -108,7 +108,7 @@ pcmcth_endpoint* new_endpoint(pcmcth_renderer* rdr, const char *uri)
         goto failed;
     }
 
-    endpoint = (pcmcth_endpoint *)calloc(sizeof(pcmcth_endpoint), 1);
+    endpoint = (pcmcth_endpoint *)calloc(1, sizeof(pcmcth_endpoint));
     if (endpoint == NULL) {
         ec = PCRDR_ERROR_NOMEM;
         goto failed;
