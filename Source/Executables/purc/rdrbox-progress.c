@@ -38,8 +38,6 @@
 #define INDICATOR_STEPS 10
 
 struct _tailor_data {
-    pcmcth_udom *udom;
-
     /* the max value, which must be larger than 0.0 */
     double max;
 
@@ -77,7 +75,7 @@ timer_expired(foil_timer_t timer, int id, void *ctxt)
         tailor_data->ind_steps = INDICATOR_STEPS;
     }
 
-    foil_udom_invalidate_rdrbox(tailor_data->udom, box);
+    foil_udom_invalidate_rdrbox(foil_udom_from_rdrbox(box), box);
     return 0;
 }
 
@@ -137,7 +135,6 @@ static int
 tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 {
     box->tailor_data = calloc(1, sizeof(struct _tailor_data));
-    box->tailor_data->udom = ctxt->udom;
     update_properties(ctxt->udom->doc, box);
     return 0;
 }
