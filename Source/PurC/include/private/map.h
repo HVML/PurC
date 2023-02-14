@@ -156,8 +156,8 @@ static inline pcutils_uomap* pcutils_uomap_create(
 {
     return pchash_table_new(0, copy_key, free_key,
             copy_val, free_val,
-            (hash_key == NULL) ? pchash_perlish_str_hash : hash_key,
-            comp_key, threads);
+            (hash_key == NULL) ? pchash_default_str_hash : hash_key,
+            (comp_key == NULL) ? pchash_str_equal : comp_key, threads);
 }
 
 static inline int pcutils_uomap_destroy(pcutils_uomap* map)
