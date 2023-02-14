@@ -910,6 +910,31 @@ TEST(uomap, it)
         ASSERT_STREQ(r1.c_str(), r2.c_str());
     }
 
+    pcutils_uomap_clear(map1);
+    pcutils_uomap_clear(map2);
+
+    size_t n = PCA_TABLESIZE(kvs);
+    for (size_t i = 0; i < n; i++) {
+        r = pcutils_uomap_replace_or_insert(map1,
+                kvs[i].k, kvs[i].v, NULL);
+        r = pcutils_uomap_replace_or_insert(map2,
+                kvs[n - i - 1].k, kvs[n - i - 1].v, NULL);
+        ASSERT_EQ(map1->size, map2->size);
+    }
+
+    n = n >> 1;
+    for (size_t i = 0; i < n; i++) {
+        pcutils_uomap_erase(map1, kvs[i * 2].k);
+        pcutils_uomap_erase(map2, kvs[n * 2 - i * 2 - 2].k);
+        ASSERT_EQ(map1->size, map2->size);
+    }
+
+    r1.clear();
+    r2.clear();
+    pcutils_uomap_traverse(map1, &r1, uomap_per_entry);
+    pcutils_uomap_traverse(map2, &r2, uomap_per_entry);
+    ASSERT_STREQ(r1.c_str(), r2.c_str());
+
     pcutils_uomap_destroy(map1);
     pcutils_uomap_destroy(map2);
 }

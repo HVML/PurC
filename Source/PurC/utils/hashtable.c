@@ -606,28 +606,38 @@ static inline void free_entry(pchash_entry *v) {
 }
 #endif
 
+static inline size_t normalize_size(size_t expected)
+{
+    size_t normalized;
+
+    if (expected < PCHASH_DEFAULT_SIZE)
+        expected = PCHASH_DEFAULT_SIZE;
+
+    normalized = pcutils_get_next_fibonacci_number(expected);
+    if (normalized > UINT32_MAX)
+        normalized = UINT32_MAX;
+
+    return normalized;
+}
+
 struct pchash_table *pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
         pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads)
 {
     struct pchash_table *t;
-
-    if (size == 0)
-        size = pcutils_get_next_fibonacci_number(PCHASH_DEFAULT_SIZE);
-
     t = (pchash_table *)calloc(1, sizeof(pchash_table));
     if (!t)
         return NULL;
 
-    t->table = (struct list_head *)calloc(size, sizeof(struct list_head));
+    t->size = normalize_size(size);
+    t->table = (struct list_head *)calloc(t->size, sizeof(struct list_head));
     if (!t->table) {
         free(t);
         return NULL;
     }
 
     t->count = 0;
-    t->size = size;
     t->copy_key = copy_key;
     t->free_key = free_key;
     t->copy_val = copy_val;
@@ -669,28 +679,39 @@ static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
 {
-    struct pchash_table *new_t;
-    struct pchash_entry *ent;
+    size_t normalized = normalize_size(new_size);
+    if (normalized == t->size) {
+        return 0;
+    }
 
-    new_t = pchash_table_new(new_size, NULL, NULL, NULL, NULL,
-            t->hash_fn, t->keycmp_fn, false);
-    if (new_t == NULL)
+    struct pchash_table nt = { };
+    nt.count = 0;
+    nt.size = normalized;
+    nt.hash_fn = t->hash_fn;
+    nt.keycmp_fn = t->keycmp_fn;
+    nt.table = (struct list_head *)calloc(nt.size, sizeof(struct list_head));
+    if (nt.table == NULL) {
         return -1;
+    }
 
+    for (size_t i = 0; i < nt.size; i++) {
+        list_head_init(nt.table + i);
+    }
+
+    struct pchash_entry *ent;
     for (size_t i = 0; i < t->size; i++) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, t->table + i) {
             ent = list_entry(p, pchash_entry, list);
             list_del(&ent->list);
-            ent->slot = ent->hash % new_t->size;
-            add_entry(new_t, ent);
+            ent->slot = ent->hash % nt.size;
+            add_entry(&nt, ent);
         }
     }
 
-    t->size = new_size;
+    t->size = nt.size;
     free(t->table);
-    t->table = new_t->table;
-    free(new_t);
+    t->table = nt.table;
 
     return 0;
 }
@@ -738,14 +759,8 @@ static int insert_entry(struct pchash_table *t,
         const void *k, const void *v, const uint32_t h,
         pchash_free_kv_fn free_kv_alt)
 {
-    size_t new_size = pcutils_get_next_fibonacci_number(t->count + 1);
-    if (new_size > t->size) {
-        if (new_size > UINT32_MAX)
-            new_size = UINT32_MAX;
-
-        if (pchash_table_resize(t, new_size))
-            return -1;
-    }
+    if (pchash_table_resize(t, t->count + 1))
+        return -1;
 
     pchash_entry *ent = alloc_entry_0();
     if (ent == NULL)
@@ -885,10 +900,12 @@ static int erase_entry(struct pchash_table *t, pchash_entry_t e)
         }
     }
 
-    t->count--;
-
     list_del(&e->list);
     free_entry(e);
+
+    t->count--;
+    if (pchash_table_resize(t, t->count))
+        return -1;
 
     return 0;
 }
