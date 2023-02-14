@@ -658,15 +658,28 @@ struct pchash_table *pchash_table_new(size_t size,
 #ifdef PCHASH_SORTED
 static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 {
-    pchash_entry *node;
-    list_for_each_entry(node, t->table + ent->slot, list) {
-        int cmp;
-        cmp = t->keycmp_fn(ent->key, node->key);
-        if (cmp <= 0) {
+    struct list_head *list;
+    struct list_head *slot = t->table + ent->slot;
+
+    /* compare with the last entry first */
+    if (!list_empty(slot)) {
+        struct pchash_entry *node;
+        node = list_last_entry(slot, pchash_entry, list);
+        if (t->keycmp_fn(ent->key, node->key) > 0) {
+            list = slot;
+            goto done;
+        }
+    }
+
+    list_for_each(list, slot) {
+        struct pchash_entry *node = list_entry(list, pchash_entry, list);
+        if (t->keycmp_fn(ent->key, node->key) <= 0) {
             break;
         }
     }
-    list_add_tail(&ent->list, &node->list);
+
+done:
+    list_add_tail(&ent->list, list);
     t->count++;
 }
 #else
@@ -798,27 +811,28 @@ int pchash_table_insert_ex(struct pchash_table *t,
 static pchash_entry_t find_entry(struct pchash_table *t,
         const void *k, const uint32_t h)
 {
-    uint32_t slot = h % t->size;
-    pchash_entry_t found = NULL;
+    struct list_head *slot = t->table + h % t->size;
+    struct pchash_entry *found = NULL;
 
-    if (list_empty(t->table + slot)) {
+    if (list_empty(slot)) {
         goto done;
     }
 #ifdef PCHASH_SORTED
     else {
+        /* check if the key out of the rang of this slot. */
         pchash_entry_t e;
-        e = list_first_entry(t->table + slot, pchash_entry, list);
+        e = list_first_entry(slot, pchash_entry, list);
         if (t->keycmp_fn(k, e->key) < 0)
             goto done;
 
-        e = list_last_entry(t->table + slot, pchash_entry, list);
+        e = list_last_entry(slot, pchash_entry, list);
         if (t->keycmp_fn(k, e->key) > 0)
             goto done;
     }
 #endif
 
     struct list_head *p;
-    list_for_each(p, t->table + slot) {
+    list_for_each(p, slot) {
         pchash_entry_t ent;
         ent = list_entry(p, pchash_entry, list);
         if (t->keycmp_fn(ent->key, k) == 0) {
