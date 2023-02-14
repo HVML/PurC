@@ -703,6 +703,217 @@ TEST(hashtable, double_free)
     ASSERT_EQ(_hash_table_items_free, 2);
 }
 
+TEST(uomap, basic)
+{
+    int r;
+    pcutils_uomap *map = pcutils_uomap_create(NULL, NULL,
+            NULL, NULL, NULL, NULL, false);
+
+    static const struct kvs {
+        const char *k;
+        const char *v;
+    } kvs[] = {
+        { "HVML", "0" },
+        { "hvml", "1" },
+        { "hvml", "2" },
+        { "html", "3" },
+        { "purc", "4" },
+        { "hello", "5" },
+        { "world", "6" },
+    };
+
+    for (size_t i = 0; i < PCA_TABLESIZE(kvs); i++) {
+        r = pcutils_uomap_insert(map, kvs[i].k, kvs[i].v);
+        ASSERT_EQ(r, 0);
+    }
+
+    pcutils_uomap_entry *ent;
+    const char *v;
+
+    ent = pcutils_uomap_find(map, "foo");
+    ASSERT_EQ(ent, nullptr);
+
+    ent = pcutils_uomap_find(map, "HVML");
+    ASSERT_NE(ent, nullptr);
+    v = (const char *)pcutils_uomap_entry_val(ent);
+    ASSERT_STREQ(v, "0");
+
+    ent = pcutils_uomap_find(map, "hvml");
+    ASSERT_NE(ent, nullptr);
+    v = (const char *)pcutils_uomap_entry_val(ent);
+    ASSERT_TRUE(strcmp(v, "1") == 0 || strcmp(v, "2") == 0);
+    r = pcutils_uomap_erase(map, "hvml");
+    ASSERT_EQ(r, 0);
+
+    ent = pcutils_uomap_find(map, "hvml");
+    ASSERT_NE(ent, nullptr);
+    v = (const char *)pcutils_uomap_entry_val(ent);
+    ASSERT_TRUE(strcmp(v, "1") || strcmp(v, "2"));
+    r = pcutils_uomap_erase(map, "hvml");
+    ASSERT_EQ(r, 0);
+
+    pcutils_uomap_clear(map);
+
+    for (size_t i = 0; i < PCA_TABLESIZE(kvs); i++) {
+        r = pcutils_uomap_replace_or_insert(map, kvs[i].k, kvs[i].v, NULL);
+        ASSERT_EQ(r, 0);
+    }
+
+    ent = pcutils_uomap_find(map, "foo");
+    ASSERT_EQ(ent, nullptr);
+
+    ent = pcutils_uomap_find(map, "HVML");
+    ASSERT_NE(ent, nullptr);
+    v = (const char *)pcutils_uomap_entry_val(ent);
+    ASSERT_STREQ(v, "0");
+
+    ent = pcutils_uomap_find(map, "hvml");
+    ASSERT_NE(ent, nullptr);
+    v = (const char *)pcutils_uomap_entry_val(ent);
+    ASSERT_STREQ(v, "2");
+    r = pcutils_uomap_erase(map, "hvml");
+    ASSERT_EQ(r, 0);
+
+    ent = pcutils_uomap_find(map, "hvml");
+    ASSERT_EQ(ent, nullptr);
+
+    pcutils_uomap_destroy(map);
+}
+
+static int uomap_per_entry(void *k, void *v, void *ud)
+{
+    std::string *str = static_cast<std::string *>(ud);
+    str->append((const char *)k);
+    str->push_back(':');
+    str->append((const char *)v);
+    str->push_back(',');
+    return 0;
+}
+
+TEST(uomap, it)
+{
+    int r;
+    pcutils_uomap *map = pcutils_uomap_create(NULL, NULL,
+            NULL, NULL, NULL, NULL, false);
+
+    static const struct kvs {
+        const char *k;
+        const char *v;
+    } kvs[] = {
+        { "HVML_SPEC_VERSION", "0" },
+        { "HVML_SPEC_RELEASE", "0" },
+        { "HVML_PREDEF_VARS_SPEC_VERSION", "0" },
+        { "HVML_PREDEF_VARS_SPEC_RELEASE", "0" },
+        { "HVML_INTRPR_NAME", "0" },
+        { "HVML_INTRPR_VERSION", "0" },
+        { "HVML_INTRPR_RELEASE", "0" },
+        { "all", "0" },
+        { "default", "0" },
+        { "kernel-name", "0" },
+        { "kernel-release", "0" },
+        { "kernel-version", "0" },
+        { "nodename", "0" },
+        { "machine", "0" },
+        { "processor", "0" },
+        { "hardware-platform", "0" },
+        { "operating-system", "0" },
+        { "ctype", "0" },
+        { "numeric", "0" },
+        { "time", "0" },
+        { "collate", "0" },
+        { "monetary", "0" },
+        { "messages", "0" },
+        { "paper", "0" },
+        { "name", "0" },
+        { "address", "0" },
+        { "telephone", "0" },
+        { "measurement", "0" },
+        { "identification", "0" },
+    };
+
+    for (size_t i = 0; i < PCA_TABLESIZE(kvs); i++) {
+        r = pcutils_uomap_replace_or_insert(map, kvs[i].k, kvs[i].v, NULL);
+        ASSERT_EQ(r, 0);
+    }
+
+    std::string r1, r2, r3;
+    pcutils_uomap_entry *ent;
+
+    struct pcutils_uomap_iterator it;
+    it = pcutils_uomap_it_begin_first(map);
+
+    ent = pcutils_uomap_it_value(&it);
+    while (ent) {
+        const char *k, *v;
+        k = (const char *)pcutils_uomap_entry_key(ent);
+        v = (const char *)pcutils_uomap_entry_val(ent);
+
+        r1.append(k);
+        r1.push_back(':');
+        r1.append(v);
+        r1.push_back(',');
+        ent = pcutils_uomap_it_next(&it);
+    }
+    pcutils_uomap_it_end(&it);
+
+    it = pcutils_uomap_it_begin_last(map);
+    ent = pcutils_uomap_it_value(&it);
+    while (ent) {
+        const char *k, *v;
+        k = (const char *)pcutils_uomap_entry_key(ent);
+        v = (const char *)pcutils_uomap_entry_val(ent);
+
+        std::string tmp;
+        tmp.append(k);
+        tmp.push_back(':');
+        tmp.append(v);
+        tmp.push_back(',');
+        r2.insert(0, tmp);
+        ent = pcutils_uomap_it_prev(&it);
+    }
+    pcutils_uomap_it_end(&it);
+
+    ASSERT_STREQ(r1.c_str(), r2.c_str());
+
+    pcutils_uomap_traverse(map, &r3, uomap_per_entry);
+    ASSERT_STREQ(r1.c_str(), r3.c_str());
+
+    pcutils_uomap_destroy(map);
+
+    pcutils_uomap *map1, *map2;
+    map1 = pcutils_uomap_create(NULL, NULL,
+            NULL, NULL, NULL, NULL, false);
+
+    map2 = pcutils_uomap_create(NULL, NULL,
+            NULL, NULL, NULL, NULL, false);
+
+    for (size_t n = 1; n < PCA_TABLESIZE(kvs); n++) {
+        pcutils_uomap_clear(map1);
+        pcutils_uomap_clear(map2);
+
+        for (size_t i = 0; i < n; i++) {
+            r = pcutils_uomap_replace_or_insert(map1,
+                    kvs[i].k, kvs[i].v, NULL);
+        }
+
+        for (size_t i = n; i > 0; i--) {
+            r = pcutils_uomap_replace_or_insert(map2,
+                    kvs[i - 1].k, kvs[i - 1].v, NULL);
+        }
+
+        r1.clear();
+        r2.clear();
+
+        pcutils_uomap_traverse(map1, &r1, uomap_per_entry);
+        pcutils_uomap_traverse(map2, &r2, uomap_per_entry);
+
+        ASSERT_STREQ(r1.c_str(), r2.c_str());
+    }
+
+    pcutils_uomap_destroy(map1);
+    pcutils_uomap_destroy(map2);
+}
+
 struct string_s {
     struct list_head      list;
     char                 *s;

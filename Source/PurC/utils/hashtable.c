@@ -67,6 +67,11 @@
 #endif
 
 /**
+ * Define this if you want to sort the entries
+ */
+#define PCHASH_SORTED 1
+
+/**
  * golden prime used in hash functions
  */
 #define PCHASH_PRIME 0x9e370001UL
@@ -604,35 +609,35 @@ static inline void free_entry(pchash_entry *v) {
 struct pchash_table *pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_equal_fn equal_fn, bool threads)
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads)
 {
     struct pchash_table *t;
 
     if (size == 0)
-        size = PCHASH_DEFAULT_SIZE;
+        size = pcutils_get_next_fibonacci_number(PCHASH_DEFAULT_SIZE);
 
     t = (pchash_table *)calloc(1, sizeof(pchash_table));
     if (!t)
         return NULL;
 
-    t->count = 0;
-    t->size = size;
     t->table = (struct list_head *)calloc(size, sizeof(struct list_head));
     if (!t->table) {
         free(t);
         return NULL;
     }
 
-    for (size_t i = 0; i < t->size; i++) {
-        list_head_init(t->table + i);
-    }
-
+    t->count = 0;
+    t->size = size;
     t->copy_key = copy_key;
     t->free_key = free_key;
     t->copy_val = copy_val;
     t->free_val = free_val;
     t->hash_fn = hash_fn;
-    t->equal_fn = equal_fn;
+    t->keycmp_fn = keycmp_fn;
+
+    for (size_t i = 0; i < t->size; i++) {
+        list_head_init(t->table + i);
+    }
 
     if (threads)
         WRLOCK_INIT(t);
@@ -640,13 +645,27 @@ struct pchash_table *pchash_table_new(size_t size,
     return t;
 }
 
-static void move_entry(struct pchash_table *dst, struct pchash_entry *ent)
+#ifdef PCHASH_SORTED
+static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 {
-    list_del(&ent->list);
-    ent->slot = ent->hash % dst->size;
-    list_add_tail(&ent->list, dst->table + ent->slot);
-    dst->count++;
+    pchash_entry *node;
+    list_for_each_entry(node, t->table + ent->slot, list) {
+        int cmp;
+        cmp = t->keycmp_fn(ent->key, node->key);
+        if (cmp <= 0) {
+            break;
+        }
+    }
+    list_add_tail(&ent->list, &node->list);
+    t->count++;
 }
+#else
+static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
+{
+    list_add_tail(&ent->list, t->table + ent->slot);
+    t->count++;
+}
+#endif
 
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
 {
@@ -654,7 +673,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
     struct pchash_entry *ent;
 
     new_t = pchash_table_new(new_size, NULL, NULL, NULL, NULL,
-            t->hash_fn, t->equal_fn, false);
+            t->hash_fn, t->keycmp_fn, false);
     if (new_t == NULL)
         return -1;
 
@@ -662,7 +681,9 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
         struct list_head *p, *n;
         list_for_each_safe(p, n, t->table + i) {
             ent = list_entry(p, pchash_entry, list);
-            move_entry(new_t, ent);
+            list_del(&ent->list);
+            ent->slot = ent->hash % new_t->size;
+            add_entry(new_t, ent);
         }
     }
 
@@ -695,8 +716,11 @@ void pchash_table_reset(struct pchash_table *t)
                 }
             }
 
+            list_del(&c->list);
             free_entry(c);
         }
+
+        assert(list_empty(t->table + i));
     }
 
     t->count = 0;
@@ -714,13 +738,13 @@ static int insert_entry(struct pchash_table *t,
         const void *k, const void *v, const uint32_t h,
         pchash_free_kv_fn free_kv_alt)
 {
-    if (t->count >= t->size * PCHASH_LOAD_FACTOR) {
-        /* Avoid signed integer overflow with large tables. */
-        size_t new_size;
-        new_size = (t->size > UINT32_MAX / 2) ? UINT32_MAX : (t->size * 2);
-        if (t->size == UINT32_MAX || pchash_table_resize(t, new_size) != 0) {
+    size_t new_size = pcutils_get_next_fibonacci_number(t->count + 1);
+    if (new_size > t->size) {
+        if (new_size > UINT32_MAX)
+            new_size = UINT32_MAX;
+
+        if (pchash_table_resize(t, new_size))
             return -1;
-        }
     }
 
     pchash_entry *ent = alloc_entry_0();
@@ -732,9 +756,7 @@ static int insert_entry(struct pchash_table *t,
     ent->free_kv_alt = free_kv_alt;
     ent->hash = h;
     ent->slot = h % t->size;
-
-    list_add_tail(&ent->list, t->table + ent->slot);
-    t->count++;
+    add_entry(t, ent);
 
     return 0;
 }
@@ -764,16 +786,33 @@ static pchash_entry_t find_entry(struct pchash_table *t,
     uint32_t slot = h % t->size;
     pchash_entry_t found = NULL;
 
+    if (list_empty(t->table + slot)) {
+        goto done;
+    }
+#ifdef PCHASH_SORTED
+    else {
+        pchash_entry_t e;
+        e = list_first_entry(t->table + slot, pchash_entry, list);
+        if (t->keycmp_fn(k, e->key) < 0)
+            goto done;
+
+        e = list_last_entry(t->table + slot, pchash_entry, list);
+        if (t->keycmp_fn(k, e->key) > 0)
+            goto done;
+    }
+#endif
+
     struct list_head *p;
     list_for_each(p, t->table + slot) {
         pchash_entry_t ent;
         ent = list_entry(p, pchash_entry, list);
-        if (t->equal_fn(ent->key, k) == 0) {
+        if (t->keycmp_fn(ent->key, k) == 0) {
             found = ent;
             break;
         }
     }
 
+done:
     return found;
 }
 
