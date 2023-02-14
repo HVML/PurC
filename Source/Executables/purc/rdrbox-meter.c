@@ -120,8 +120,8 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         return;
 
     int tray_width = foil_rect_width(&page_rc);
-    foil_page_set_bgc(ctxt->page, box->background_color);
-    foil_page_erase_rect(ctxt->page, &page_rc);
+    foil_page_set_bgc(ctxt->udom->page, box->background_color);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
 
     int bgc = FOIL_BGC_METER_NORMAL;
     if (isnan(box->tailor_data->optimum)) {
@@ -152,8 +152,8 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     int bar_width = (int)(tray_width * bar_ratio);
     page_rc.right = page_rc.left + bar_width;
 
-    foil_page_set_bgc(ctxt->page, bgc);
-    foil_page_erase_rect(ctxt->page, &page_rc);
+    foil_page_set_bgc(ctxt->udom->page, bgc);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
 }
 
 struct foil_rdrbox_tailor_ops _foil_rdrbox_meter_ops = {

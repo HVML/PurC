@@ -487,7 +487,6 @@ struct foil_rdrbox {
 
 typedef struct foil_create_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
 
     /* the initial containing block  */
     struct foil_rdrbox *initial_cblock;
@@ -517,21 +516,16 @@ typedef struct foil_create_ctxt {
 
 typedef struct foil_layout_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
     const struct foil_rdrbox *initial_cblock;
 } foil_layout_ctxt;
 
 typedef struct foil_render_ctxt {
     pcmcth_udom *udom;
-    union {
-        FILE *fp;
-        pcmcth_page *page;
-    };
+    FILE *fp;
 } foil_render_ctxt;
 
 typedef struct foil_update_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
 } foil_update_ctxt;
 
 #ifdef __cplusplus

@@ -118,7 +118,7 @@ render_rdrtree_file(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
 void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
 {
     /* render the whole tree */
-    foil_render_ctxt rdr_ctxt = { udom, { fp } };
+    foil_render_ctxt rdr_ctxt = { udom, fp };
 
     render_rdrtree_file(&rdr_ctxt, udom->initial_cblock, 0);
 }
@@ -161,8 +161,8 @@ render_marker_box(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_rect page_rc;
     foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
 
-    foil_page_set_fgc(ctxt->page, box->color);
-    foil_page_draw_ustring(ctxt->page, page_rc.left, page_rc.top,
+    foil_page_set_fgc(ctxt->udom->page, box->color);
+    foil_page_draw_ustring(ctxt->udom->page, page_rc.left, page_rc.top,
             box->marker_data->ucs, box->marker_data->nr_ucs);
 }
 
@@ -186,8 +186,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
                 rc = &page_rc;
             }
-            foil_page_set_bgc(ctxt->page, box->background_color);
-            foil_page_erase_rect(ctxt->page, rc);
+            foil_page_set_bgc(ctxt->udom->page, box->background_color);
+            foil_page_erase_rect(ctxt->udom->page, rc);
         }
         break;
 
@@ -215,7 +215,7 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
         if (!foil_rect_is_empty(&run->rc)) {
             foil_rect page_rc;
             foil_rdrbox_map_rect_to_page(&run->rc, &page_rc);
-            foil_page_erase_rect(ctxt->page, &page_rc);
+            foil_page_erase_rect(ctxt->udom->page, &page_rc);
         }
         break;
 
@@ -240,7 +240,7 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
                 int y = page_rc.top;
                 LOG_DEBUG("Draw char 0x%04x at (%d, %d), line (%d, %d)\n",
                         ucs[i], x, y, line->rc.left, line->rc.top);
-                foil_page_draw_uchar(ctxt->page, x, y, ucs[i], 1);
+                foil_page_draw_uchar(ctxt->udom->page, x, y, ucs[i], 1);
             }
         }
         break;
@@ -300,7 +300,7 @@ render_rdrbox_in_line(struct foil_render_ctxt *ctxt, struct _line_info *line,
         struct _inline_runbox *run = line->runs + i;
 
         if (run->box == box) {
-            foil_page_set_fgc(ctxt->page, run->box->color);
+            foil_page_set_fgc(ctxt->udom->page, run->box->color);
             render_runbox(ctxt, line, run);
         }
     }
@@ -318,7 +318,7 @@ render_lines(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
                 struct _inline_runbox *run = line->runs + j;
 
                 if (run->box->parent == box) {
-                    foil_page_set_fgc(ctxt->page, run->box->color);
+                    foil_page_set_fgc(ctxt->udom->page, run->box->color);
                     render_runbox(ctxt, line, run);
                 }
             }
@@ -491,13 +491,11 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
     }
 }
 
-void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page)
+void foil_udom_render_to_page(pcmcth_udom *udom)
 {
     (void)udom;
-    (void)page;
 
-    foil_render_ctxt rdr_ctxt = { udom, { NULL } };
-    rdr_ctxt.page = page;
+    foil_render_ctxt rdr_ctxt = { udom, NULL };
 
     /* continue for the children */
     foil_rdrbox *root = udom->initial_cblock->first;

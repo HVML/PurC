@@ -230,6 +230,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
+    udom->page = page;
+
     udom->elem2nodedata = sorted_array_create(SAFLAG_DEFAULT, 8, NULL, NULL);
     if (udom->elem2nodedata == NULL) {
         goto failed;
@@ -1091,7 +1093,7 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
 static void dump_udom(pcmcth_udom *udom)
 {
     /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, { NULL }};
+    foil_render_ctxt render_ctxt = { udom, NULL };
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");
@@ -1182,7 +1184,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     /* create the box tree */
-    foil_create_ctxt ctxt = { udom, page,
+    foil_create_ctxt ctxt = { udom,
         udom->initial_cblock,           /* initial box */
         NULL,                           /* root box */
         udom->initial_cblock,           /* parent box */
@@ -1198,7 +1200,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
 
     /* determine the geometries of boxes and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { udom, page, udom->initial_cblock };
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     LOG_DEBUG("Calling pre_layout_rdrtree...\n");
     pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
@@ -1228,7 +1230,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    foil_udom_render_to_page(udom, page);
+    foil_udom_render_to_page(udom);
     foil_page_expose(page);
     return udom;
 

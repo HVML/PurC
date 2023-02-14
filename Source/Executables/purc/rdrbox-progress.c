@@ -39,7 +39,6 @@
 
 struct _tailor_data {
     pcmcth_udom *udom;
-    pcmcth_page *page;
 
     /* the max value, which must be larger than 0.0 */
     double max;
@@ -139,7 +138,6 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 {
     box->tailor_data = calloc(1, sizeof(struct _tailor_data));
     box->tailor_data->udom = ctxt->udom;
-    box->tailor_data->page = ctxt->page;
     update_properties(ctxt->udom->doc, box);
     return 0;
 }
@@ -164,16 +162,16 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         return;
 
     int tray_width = foil_rect_width(&page_rc);
-    foil_page_set_bgc(ctxt->page, box->background_color);
-    foil_page_erase_rect(ctxt->page, &page_rc);
+    foil_page_set_bgc(ctxt->udom->page, box->background_color);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
 
     if (box->tailor_data->value < 0) {
         /* in indeterminate state */
         page_rc.left  += tray_width * box->tailor_data->indicator / 100;
         page_rc.right = page_rc.left + 1;
 
-        foil_page_set_bgc(ctxt->page, FOIL_BGC_PROGRESS_BAR);
-        foil_page_erase_rect(ctxt->page, &page_rc);
+        foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_erase_rect(ctxt->udom->page, &page_rc);
     }
     else {
         double bar_ratio = box->tailor_data->value / box->tailor_data->max;
@@ -181,8 +179,8 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         int bar_width = (int)(tray_width * bar_ratio);
 
         page_rc.right = page_rc.left + bar_width;
-        foil_page_set_bgc(ctxt->page, FOIL_BGC_PROGRESS_BAR);
-        foil_page_erase_rect(ctxt->page, &page_rc);
+        foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_erase_rect(ctxt->udom->page, &page_rc);
     }
 }
 

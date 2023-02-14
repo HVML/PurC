@@ -1931,7 +1931,7 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             (box->is_block_container && !box->is_block_level) ||
             (box->is_block_level &&
              box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE)) {
-        pcmcth_workspace *wsp = foil_page_get_workspace(ctxt->page);
+        pcmcth_workspace *wsp = foil_page_get_workspace(ctxt->udom->page);
         box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(
                 foil_wsp_rgnrc_heap(wsp), box->width, -1);
     }
