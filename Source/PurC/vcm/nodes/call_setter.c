@@ -64,7 +64,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     size_t nr_params = frame->nr_params - 1;
     purc_variant_t params[nr_params];
 
-    struct pcvcm_node *caller_node = pcutils_array_get(frame->params, 0);
+    struct pcvcm_node *caller_node = frame->param_nodes[0];
     purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
 
     if (!purc_variant_is_dynamic(caller_var)

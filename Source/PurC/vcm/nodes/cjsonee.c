@@ -74,7 +74,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
 {
     UNUSED_PARAM(ctxt);
     purc_variant_t curr_val = PURC_VARIANT_INVALID;
-    struct pcvcm_node *param = pcutils_array_get(frame->params, pos);
+    struct pcvcm_node *param = select_param_default(ctxt, frame, pos);
     bool is_op = is_cjsonee_op(param);
     if (!is_op) {
         goto out;

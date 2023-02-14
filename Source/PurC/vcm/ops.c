@@ -78,7 +78,10 @@ select_param_default(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos)
 {
     UNUSED_PARAM(ctxt);
-    return pcutils_array_get(frame->params, pos);
+    if (pos >= frame->nr_params) {
+        return NULL;
+    }
+    return frame->param_nodes[pos];
 }
 
 struct pcvcm_eval_stack_frame_ops *
