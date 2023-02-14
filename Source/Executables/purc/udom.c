@@ -276,7 +276,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     /* set some fileds having non-zero values of
        the initial containing block */
-    udom->initial_cblock->owner = NULL;
+    udom->initial_cblock->udom = udom;
 
     udom->initial_cblock->is_initial = 1;
     udom->initial_cblock->is_block_level = 1;
@@ -344,6 +344,13 @@ void foil_udom_delete(pcmcth_udom *udom)
 {
     udom_cleanup(udom);
     free(udom);
+}
+
+pcmcth_udom *foil_udom_from_rdrbox(foil_rdrbox *box)
+{
+    foil_rdrbox *root = foil_rdrbox_get_root(box);
+    assert(root->is_initial);
+    return root->udom;
 }
 
 foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,

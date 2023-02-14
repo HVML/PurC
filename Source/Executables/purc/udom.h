@@ -113,6 +113,7 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr);
 pcmcth_udom *foil_udom_new(pcmcth_page *page);
 void foil_udom_delete(pcmcth_udom *udom);
 
+pcmcth_udom *foil_udom_from_rdrbox(foil_rdrbox *box);
 foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
         uint64_t element_handle);
 

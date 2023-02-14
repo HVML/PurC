@@ -317,7 +317,10 @@ struct foil_rdrbox {
 
     /* the element creating this box;
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
-    pcdoc_element_t owner;
+    union {
+        pcdoc_element *owner;
+        pcmcth_udom *udom;
+    };
 
     /* the pricipal box if this box is created for a pseudo element */
     struct foil_rdrbox *principal;
@@ -544,6 +547,15 @@ void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
+
+static inline foil_rdrbox *
+foil_rdrbox_get_root(foil_rdrbox *box)
+{
+    while (box->parent) {
+        box = box->parent;
+    }
+    return box;
+}
 
 /* Gets the box name; call free() to release the name after done. */
 char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box);
