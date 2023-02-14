@@ -108,6 +108,8 @@ struct pcvcm_node {
     enum pcvcm_node_type type;
     uint32_t extra;
     uintptr_t attach;
+    int32_t   idx;
+    int32_t   nr_nodes; /* nr_nodes of the tree */
     bool is_closed;
     union {
         bool        b;

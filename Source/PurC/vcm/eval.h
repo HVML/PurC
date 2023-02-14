@@ -89,6 +89,7 @@ struct pcvcm_eval_stack_frame {
     size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
+    int                     idx;
 
     enum pcvcm_eval_stack_frame_step step;
 };
@@ -102,6 +103,7 @@ struct pcvcm_eval_ctxt {
     struct pcvcm_node      *node;
     purc_variant_t          result;
     int                     err;
+    int                     frame_idx;
 
     unsigned int            enable_log:1;
 };
