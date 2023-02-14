@@ -61,6 +61,9 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    size_t nr_params = frame->nr_params - 1;
+    purc_variant_t params[nr_params];
+
     struct pcvcm_node *caller_node = pcutils_array_get(frame->params, 0);
     purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
 
@@ -71,15 +74,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     unsigned call_flags = pcvcm_eval_ctxt_get_call_flags(ctxt);
 
-    purc_variant_t *params = NULL;
-    size_t nr_params = frame->nr_params - 1;
     if (nr_params > 0) {
-        params = (purc_variant_t*)calloc(nr_params, sizeof(purc_variant_t));
-        if (!params) {
-            pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_free_params;
-        }
-
         for (size_t i = 1, j = 0; i < frame->nr_params; i++, j++) {
             params[j] = pcutils_array_get(frame->params_result, i);
         }
@@ -101,11 +96,6 @@ eval(struct pcvcm_eval_ctxt *ctxt,
                         params, GETTER_METHOD, call_flags);
             }
         }
-    }
-
-out_free_params:
-    if (params) {
-        free(params);
     }
 
 out:
