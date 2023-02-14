@@ -61,8 +61,6 @@
 extern "C" {
 #endif
 
-#define PCHASH_DEFAULT_SIZE     4
-
 /* default hash functions */
 uint32_t pchash_default_str_hash(const void *k);
 uint32_t pchash_perlish_str_hash(const void *k);
