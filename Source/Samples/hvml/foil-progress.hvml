@@ -1,0 +1,69 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'anonymousBlocks' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-progress-{$styleCase}.css" />
+
+        <title>Foil Progress - $styleCase</title>
+    </head>
+
+    <body>
+        <init as 'caseName' with 'basic' temp />
+        <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <label for="file">File progress:</label>
+                <progress id="file" max="100" value="10"> 10% </progress>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'indeterminate' temp />
+        <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <label for="file">File progress:</label>
+                <progress id="file" max="100"></progress>
+            </SECTION>
+        </define>
+
+        <!-- check validation of ${$styleCase} -->
+        <choose on ${$styleCase}>
+            <catch>
+                <init as styleCase at '_root' with 'basic' />
+            </catch>
+        </choose>
+
+        <HEADER>
+            <H1 style="color:red;text-align:center">Used Case: $styleCase</H1>
+        </HEADER>
+
+        <include with ${$styleCase} />
+
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <init as 'progress' with 10UL />
+
+        <observe on $TIMERS for "expired:gogogo">
+            <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+            <update on '#file' at 'attr.value' with "$progress" />
+            <test with $L.ge($progress, 100UL) >
+                <update on $TIMERS to "subtract" with { id: "gogogo" } />
+                <forget on="$TIMERS" for="expired:*" />
+            </test>
+        </observe>
+
+    </body>
+
+</hvml>
+
