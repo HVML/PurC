@@ -507,6 +507,5 @@ void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, const foil_rdrbox *box)
 {
     (void)udom;
     (void)box;
-    LOG_DEBUG("called; TODO\n");
 }
 

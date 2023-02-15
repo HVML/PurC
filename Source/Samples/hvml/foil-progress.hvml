@@ -29,12 +29,21 @@
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
             <SECTION id="$caseName">
                 <label for="file">File progress:</label>
-                <progress id="file" max="100"></progress>
+                <progress id="file" max="100">N/A</progress>
             </SECTION>
+
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
         </define>
 
         <init as 'caseName' with 'overall' temp />
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <label for="file">File progress:</label>
+                <progress id="file" max="100"></progress>
+            </SECTION>
+
             <update on "$TIMERS" to "unite">
                 [
                     { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
@@ -52,10 +61,6 @@
                 </test>
             </observe>
 
-            <SECTION id="$caseName">
-                <label for="file">File progress:</label>
-                <progress id="file" max="100"></progress>
-            </SECTION>
         </define>
 
         <!-- check validation of ${$styleCase} -->

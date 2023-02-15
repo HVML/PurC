@@ -59,9 +59,8 @@ timer_expired(foil_timer_t timer, int id, void *ctxt)
 {
     (void)timer;
     (void)id;
-    struct _tailor_data *tailor_data = ctxt;
-    struct foil_rdrbox *box;
-    box = container_of(ctxt, struct foil_rdrbox, tailor_data);
+    struct foil_rdrbox *box = ctxt;
+    struct _tailor_data *tailor_data = box->tailor_data;
 
     tailor_data->indicator += tailor_data->ind_steps;
     if (tailor_data->ind_steps > 0 &&
@@ -126,7 +125,7 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
         /* TODO: set a timer for indeterminate state */
         if (box->tailor_data->timer == NULL) {
             box->tailor_data->timer = foil_timer_new(rdr, IDT_DEFAULT,
-                    TIMER_INTERVAL, timer_expired, box->tailor_data);
+                    TIMER_INTERVAL, timer_expired, box);
         }
     }
 }
@@ -165,10 +164,12 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     if (box->tailor_data->value < 0) {
         /* in indeterminate state */
         page_rc.left  += tray_width * box->tailor_data->indicator / 100;
-        page_rc.right = page_rc.left + 1;
+        page_rc.right = page_rc.left + tray_width / 10;
 
-        foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
-        foil_page_erase_rect(ctxt->udom->page, &page_rc);
+        if (page_rc.right > page_rc.left) {
+            foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+            foil_page_erase_rect(ctxt->udom->page, &page_rc);
+        }
     }
     else {
         double bar_ratio = box->tailor_data->value / box->tailor_data->max;

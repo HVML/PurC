@@ -1037,7 +1037,8 @@ resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (box->is_block_level && box->nr_inline_level_children > 0) {
+    if ((box->is_block_level)
+            && box->nr_inline_level_children > 0) {
         foil_rdrbox_lay_lines_in_block(ctxt, box);
     }
     else if (box->is_block_container) {

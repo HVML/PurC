@@ -364,6 +364,7 @@ void foil_widget_expose(foil_widget *widget)
     if (workspace->rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
         adjust_viewport_line_mode(widget);
         print_dirty_page_area_line_mode(widget);
+        fflush(stdout);
     }
     else {
         // TODO
