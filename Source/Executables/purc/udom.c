@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -1103,7 +1103,7 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
 static void dump_udom(pcmcth_udom *udom)
 {
     /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, NULL };
+    foil_render_ctxt render_ctxt = { .udom = udom };
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");
