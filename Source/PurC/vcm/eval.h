@@ -178,12 +178,6 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
 bool
 pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
 
-static inline purc_variant_t
-pcvcm_eval_get_attach_variant(struct pcvcm_node *node)
-{
-    return node ? (purc_variant_t)node->attach : PURC_VARIANT_INVALID;
-}
-
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
         find_var_fn find_var, void *find_var_ctxt,

@@ -572,7 +572,6 @@ out:
             !has_fatal_error(err)) {
         result = purc_variant_make_undefined();
     }
-    frame->node->attach = (uintptr_t)result;
 
 #if 0
     if (ctxt->enable_log) {
@@ -685,6 +684,7 @@ static void build_eval_nodes_cb(struct pctree_node *node, void *data)
     p->node = (struct pcvcm_node *)node;
     p->idx = ctxt->eval_nodes_insert_pos;
     p->result = PURC_VARIANT_INVALID;
+    p->first_child_idx = -1;
     ctxt->eval_nodes_insert_pos++;
 }
 
