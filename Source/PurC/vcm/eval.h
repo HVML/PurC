@@ -87,12 +87,11 @@ struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
 
-    struct pcvcm_node      *node;
-    size_t                  eval_node_idx;
-
     struct pcvcm_eval_stack_frame_ops *ops;
+    struct pcvcm_node      *node;
     purc_variant_t          args;    // named variable : _ARGS
 
+    size_t                  eval_node_idx;
     size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
@@ -107,16 +106,19 @@ struct pcvcm_eval_ctxt {
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
+
     struct pcvcm_node      *node;
-    struct pcvcm_node     **nodes;
+    purc_variant_t          result;
+
     struct pcvcm_eval_node *eval_nodes;
     size_t                  nr_eval_nodes;
     int32_t                 eval_nodes_insert_pos;
 
-    purc_variant_t          result;
-    int                     err;
-    int                     frame_idx;
+    struct pcvcm_eval_stack_frame *frames;
+    size_t                  nr_frames;
+    int32_t                 frame_idx;
 
+    int                     err;
     unsigned int            enable_log:1;
 };
 

@@ -127,6 +127,15 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
             purc_variant_unref(p->result);
         }
     }
+    free(ctxt->eval_nodes);
+
+    for (int32_t i = 0; i < ctxt->frame_idx; i++) {
+        struct pcvcm_eval_stack_frame *p = ctxt->frames + i;
+        if (p->args) {
+            purc_variant_unref(p->args);
+        }
+    }
+    free(ctxt->frames);
 
     free(ctxt);
 }
@@ -670,13 +679,6 @@ static void assign_idx_cb(struct pctree_node *node,  void *data)
     n->idx = (*idx)++;
 }
 
-static void build_nodes_cb(struct pctree_node *node,  void *data)
-{
-    struct pcvcm_node *n = (struct pcvcm_node *)node;
-    struct pcvcm_node **p = (struct pcvcm_node **)data;
-    p[n->idx] = n;
-}
-
 static void build_eval_nodes_cb(struct pctree_node *node, void *data)
 {
     struct pcvcm_eval_ctxt *ctxt = (struct pcvcm_eval_ctxt *) data;
@@ -755,9 +757,6 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
             tree->nr_nodes = idx;
         }
 
-        struct pcvcm_node *nodes[tree->nr_nodes];
-        pctree_node_pre_order_traversal(&tree->tree_node, build_nodes_cb, nodes);
-
         ctxt = pcvcm_eval_ctxt_create();
         if (!ctxt) {
             goto out;
@@ -765,10 +764,13 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->enable_log = enable_log;
         ctxt->node = tree;
         ctxt->frame_idx = -1;
-        ctxt->nodes = nodes;
         ctxt->nr_eval_nodes = tree->nr_nodes;
         ctxt->eval_nodes = (struct pcvcm_eval_node *) calloc(ctxt->nr_eval_nodes,
                 sizeof(struct pcvcm_eval_node));
+        ctxt->nr_frames = ctxt->nr_eval_nodes;
+        ctxt->frames = (struct pcvcm_eval_stack_frame *) calloc(ctxt->nr_frames,
+                sizeof(struct pcvcm_eval_stack_frame));
+
         build_eval_nodes(ctxt, tree);
 
         if (ctxt_out) {
@@ -850,10 +852,6 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
             tree->nr_nodes = idx;
         }
 
-        struct pcvcm_node *nodes[ctxt->node->nr_nodes];
-        pctree_node_pre_order_traversal(&ctxt->node->tree_node, build_nodes_cb, nodes);
-        ctxt->nodes = nodes;
-
         /* clear AGAIN error */
         ctxt->err = purc_get_last_error();
         if (ctxt->err == PURC_ERROR_AGAIN) {
@@ -904,13 +902,14 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
             tree->nr_nodes = idx;
         }
 
-        struct pcvcm_node *nodes[tree->nr_nodes];
-        pctree_node_pre_order_traversal(&tree->tree_node, build_nodes_cb, nodes);
-        ctxt->nodes = nodes;
-
         ctxt->nr_eval_nodes = ctxt->nr_eval_nodes + tree->nr_nodes;
         ctxt->eval_nodes = (struct pcvcm_eval_node *) realloc(ctxt->eval_nodes,
                 ctxt->nr_eval_nodes * sizeof(struct pcvcm_eval_node));
+
+
+        ctxt->nr_frames = ctxt->nr_eval_nodes;
+        ctxt->frames = (struct pcvcm_eval_stack_frame *) realloc(ctxt->frames,
+                ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame));
 
         size_t pos = ctxt->eval_nodes_insert_pos;
         build_eval_nodes(ctxt, tree);
