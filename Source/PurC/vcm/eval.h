@@ -76,12 +76,20 @@ enum pcvcm_eval_method_type {
     SETTER_METHOD
 };
 
+struct pcvcm_eval_node {
+    struct pcvcm_node      *node;
+    purc_variant_t          result;
+    int32_t                 idx;
+    int32_t                 first_child_idx;
+};
+
 struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
 
+    struct pcvcm_eval_node *eval_node;
+
     struct pcvcm_node      *node;
-    struct pcvcm_node     **param_nodes;
 
     pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
@@ -103,6 +111,10 @@ struct pcvcm_eval_ctxt {
     void                   *find_var_ctxt;
     struct pcvcm_node      *node;
     struct pcvcm_node     **nodes;
+    struct pcvcm_eval_node *eval_nodes;
+    size_t                  nr_eval_nodes;
+    int32_t                 eval_nodes_insert_pos;
+
     purc_variant_t          result;
     int                     err;
     int                     frame_idx;
@@ -114,7 +126,7 @@ struct pcvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 
-    struct pcvcm_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
+    struct pcvcm_eval_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame, size_t pos);
 
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
@@ -127,7 +139,7 @@ extern "C" {
 
 struct pcvcm_eval_stack_frame *
 pcvcm_eval_stack_frame_create(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_node *node, size_t return_pos);
+        struct pcvcm_eval_node *node, size_t return_pos);
 
 void
 pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *);

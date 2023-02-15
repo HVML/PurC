@@ -62,10 +62,12 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t inner_ret = PURC_VARIANT_INVALID;
 
-    struct pcvcm_node *caller_node = frame->param_nodes[0];
+    struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
+    struct pcvcm_node *caller_node = enode->node;
     purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
 
-    struct pcvcm_node *param_node = frame->param_nodes[1];
+    enode = frame->ops->select_param(ctxt, frame, 1);
+    struct pcvcm_node *param_node = enode->node;
     purc_variant_t param_var = pcutils_array_get(frame->params_result, 1);
 
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {

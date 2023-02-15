@@ -73,7 +73,7 @@ static get_ops_fn frame_ops[] = {
 _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(frame_ops) == PCVCM_NODE_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
 
-struct pcvcm_node *
+struct pcvcm_eval_node *
 select_param_default(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos)
 {
@@ -81,7 +81,9 @@ select_param_default(struct pcvcm_eval_ctxt *ctxt,
     if (pos >= frame->nr_params) {
         return NULL;
     }
-    return frame->param_nodes[pos];
+
+    struct pcvcm_eval_node *eval_node = frame->eval_node;
+    return ctxt->eval_nodes + eval_node->first_child_idx + pos;
 }
 
 struct pcvcm_eval_stack_frame_ops *

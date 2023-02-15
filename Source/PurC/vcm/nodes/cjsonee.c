@@ -68,13 +68,14 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 }
 
 
-struct pcvcm_node *
+struct pcvcm_eval_node *
 select_param(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos)
 {
     UNUSED_PARAM(ctxt);
     purc_variant_t curr_val = PURC_VARIANT_INVALID;
-    struct pcvcm_node *param = select_param_default(ctxt, frame, pos);
+    struct pcvcm_eval_node *enode = select_param_default(ctxt, frame, pos);
+    struct pcvcm_node *param = enode->node;
     bool is_op = is_cjsonee_op(param);
     if (!is_op) {
         goto out;
@@ -83,6 +84,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     if ((pos % 2 == 0) && is_op) {
         pcinst_set_error(PURC_ERROR_ARGUMENT_MISSED);
         param = NULL;
+        enode = NULL;
         goto out;
     }
 
@@ -96,10 +98,12 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     switch (param->type) {
     case PCVCM_NODE_TYPE_CJSONEE_OP_SEMICOLON:
         param = NULL;
+        enode = NULL;
         break;
 
     case PCVCM_NODE_TYPE_CJSONEE_OP_AND:
         param = NULL;
+        enode = NULL;
         if (!purc_variant_booleanize(curr_val)) {
             frame->pos++;
             goto out;
@@ -108,6 +112,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
 
     case PCVCM_NODE_TYPE_CJSONEE_OP_OR:
         param = NULL;
+        enode = NULL;
         if (purc_variant_booleanize(curr_val)) {
             frame->pos++;
             goto out;
@@ -117,11 +122,12 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     default:
         pcinst_set_error(PURC_ERROR_INVALID_VALUE);
         param = NULL;
+        enode = NULL;
         goto out;
     }
 
 out:
-    return param;
+    return enode;
 }
 
 static purc_variant_t
