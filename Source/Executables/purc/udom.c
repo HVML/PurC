@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "udom.h"
 #include "page.h"
@@ -68,7 +68,7 @@ static const char *def_style_sheet = ""
     "caption         { text-align: center }"
     "address         { font-style: italic }"
     "body            { margin: 1em 1ex }"
-    "h1              { margin: 3em 0 1em 0 }"
+    "h1              { margin: 2em 0 1em 0 }"
     "h2              { margin: 2em 0 1em 0 }"
     "h3              { margin: 1em 0 1em 0 }"
     "h4, p,"

@@ -225,9 +225,8 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
 
     case FOIL_BOX_PART_CONTENT:
         if (!foil_rect_is_empty(&run->rc) && run->nr_ucs > 0) {
-            foil_rect rc = run->rc, page_rc;
-            foil_rect_offset(&rc, line->rc.left, line->rc.top);
-            foil_rdrbox_map_rect_to_page(&rc, &page_rc);
+            foil_rect page_rc;
+            foil_rdrbox_map_rect_to_page(&run->rc, &page_rc);
 
             uint32_t *ucs = run->span->ucs + run->first_uc;
             foil_glyph_pos *poses = run->span->glyph_poses + run->first_uc;
