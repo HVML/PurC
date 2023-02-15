@@ -29,10 +29,20 @@
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
             <SECTION id="$caseName">
                 <label for="file">File progress: </label>
-                <progress id="file" max="100"> N/A</progress>
+                <progress id="file" max="100" style="width:20em;"> N/A</progress>
             </SECTION>
 
+            <update on "$TIMERS" to "unite">
+                [
+                    { "id" : "quit", "interval" : 5000, "active" : "yes" },
+                ]
+            </update>
+
             <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+
+            <observe on $TIMERS for "expired:quit">
                 <exit with 'Ok' />
             </observe>
         </define>

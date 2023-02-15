@@ -331,6 +331,7 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
             widget->client_rc.left, widget->client_rc.top,
             widget->client_rc.right, widget->client_rc.bottom);
 
+    char buf[64];
     for (int y = page->dirty_rect.top; y < page->dirty_rect.bottom; y++) {
         int x = page->dirty_rect.left;
 
@@ -349,12 +350,15 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
         assert(screen_row >= 0 &&
                 screen_row < foil_rect_height(&widget->client_rc));
 
-        char buf[64];
         snprintf(buf, sizeof(buf), "\x1b[%d;%dH", screen_row, screen_col);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
         free(escaped_str);
     }
+
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH\x1b[39m\x1b[49m",
+            widget->vy + page->rows + 1, 0);
+    fputs(buf, stdout);
 }
 
 void foil_widget_expose(foil_widget *widget)
