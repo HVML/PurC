@@ -66,7 +66,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
     struct pcvcm_node *caller_node = enode->node;
-    purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
+    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame, 0);
 
     if (!purc_variant_is_dynamic(caller_var)
             && !pcvcm_eval_is_native_wrapper(caller_var)) {
@@ -77,7 +77,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     if (nr_params > 0) {
         for (size_t i = 1, j = 0; i < frame->nr_params; i++, j++) {
-            params[j] = pcutils_array_get(frame->params_result, i);
+            params[j]  = pcvcm_get_frame_result(ctxt, frame, i);
         }
     }
 

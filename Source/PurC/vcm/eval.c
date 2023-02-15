@@ -67,25 +67,12 @@ pcvcm_eval_stack_frame_create(struct pcvcm_eval_ctxt *ctxt,
         goto out;
     }
 
-    frame->eval_node = node;
+    frame->eval_node_idx = node->idx;
     frame->node = node->node;
     frame->pos = 0;
     frame->return_pos = return_pos;
     frame->nr_params = pcvcm_node_children_count(frame->node);
-    if (frame->nr_params) {
-        frame->params_result = pcutils_array_create();
-        if (!frame->params_result) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_destroy_params_result;
-        }
-    }
     frame->ops = pcvcm_eval_get_ops_by_node(frame->node);
-    return frame;
-
-out_destroy_params_result:
-    pcutils_array_destroy(frame->params_result, true);
-    free(frame);
-    frame = NULL;
 
 out:
     return frame;
@@ -96,16 +83,6 @@ pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
 {
     if (!frame) {
         return;
-    }
-
-    if (frame->params_result) {
-        for (size_t i = 0; i < frame->nr_params; i++) {
-            purc_variant_t v = pcutils_array_get(frame->params_result, i);
-            if (v) {
-                purc_variant_unref(v);
-            }
-        }
-        pcutils_array_destroy(frame->params_result, true);
     }
 
     if (frame->args) {
@@ -238,7 +215,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
         purc_rwstream_write(rws, s, len);
 
         if (i < frame->pos) {
-            purc_variant_t result = pcutils_array_get(frame->params_result, i);
+            purc_variant_t result = pcvcm_get_frame_result(ctxt, frame, i);
             if (result) {
                 const char *type = pcvariant_typename(result);
                 snprintf(buf, DUMP_BUF_SIZE, ", result: %s/", type);
@@ -544,7 +521,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
 
             case STEP_EVAL_PARAMS:
                 for (; frame->pos < frame->nr_params; frame->pos++) {
-                    purc_variant_t v = pcutils_array_get(frame->params_result, frame->pos);
+                    purc_variant_t v = pcvcm_get_frame_result(ctxt, frame, frame->pos);
                     if (v) {
                         continue;
                     }
@@ -568,7 +545,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame,
                     if (!val) {
                         goto out;
                     }
-                    pcutils_array_set(frame->params_result, param_frame->return_pos, val);
+                    pcvcm_set_frame_result(ctxt, frame, param_frame->return_pos, val);
                     pop_frame(ctxt);
                 }
                 frame->step = STEP_EVAL_VCM;
@@ -668,7 +645,7 @@ eval_vcm(struct pcvcm_eval_node *tree,
         pop_frame(ctxt);
         frame = bottom_frame(ctxt);
         if (frame) {
-            pcutils_array_set(frame->params_result, return_pos, result);
+            pcvcm_set_frame_result(ctxt, frame, return_pos, result);
         }
     } while (frame);
 

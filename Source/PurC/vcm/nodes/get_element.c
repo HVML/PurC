@@ -64,11 +64,11 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
 
     struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
     struct pcvcm_node *caller_node = enode->node;
-    purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
+    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame, 0);
 
     enode = frame->ops->select_param(ctxt, frame, 1);
     struct pcvcm_node *param_node = enode->node;
-    purc_variant_t param_var = pcutils_array_get(frame->params_result, 1);
+    purc_variant_t param_var = pcvcm_get_frame_result(ctxt, frame, 1);
 
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1],

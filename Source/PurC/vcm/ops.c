@@ -82,8 +82,38 @@ select_param_default(struct pcvcm_eval_ctxt *ctxt,
         return NULL;
     }
 
-    struct pcvcm_eval_node *eval_node = frame->eval_node;
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
     return ctxt->eval_nodes + eval_node->first_child_idx + pos;
+}
+
+void
+pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_stack_frame *frame, size_t pos, purc_variant_t v)
+{
+    if (pos >= frame->nr_params) {
+        return;
+    }
+
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
+    int32_t idx = eval_node->first_child_idx + pos;
+    struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+
+    child->result = v;
+}
+
+purc_variant_t
+pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_stack_frame *frame, size_t pos)
+{
+    if (pos >= frame->nr_params) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
+    int32_t idx = eval_node->first_child_idx + pos;
+    struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+
+    return child->result;
 }
 
 struct pcvcm_eval_stack_frame_ops *

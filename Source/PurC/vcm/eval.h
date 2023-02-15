@@ -87,11 +87,9 @@ struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
     struct list_head        ln;
 
-    struct pcvcm_eval_node *eval_node;
-
     struct pcvcm_node      *node;
+    size_t                  eval_node_idx;
 
-    pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
     purc_variant_t          args;    // named variable : _ARGS
 

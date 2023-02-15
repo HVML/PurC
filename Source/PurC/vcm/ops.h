@@ -120,6 +120,14 @@ struct pcvcm_eval_node *
 select_param_default(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos);
 
+void
+pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_stack_frame *frame, size_t pos, purc_variant_t v);
+
+purc_variant_t
+pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_stack_frame *frame, size_t pos);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
