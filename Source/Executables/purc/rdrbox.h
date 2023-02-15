@@ -524,7 +524,10 @@ typedef struct foil_layout_ctxt {
 
 typedef struct foil_render_ctxt {
     pcmcth_udom *udom;
-    FILE *fp;
+    union {
+        FILE        *fp;
+        foil_rect   *invrc;
+    };
 } foil_render_ctxt;
 
 typedef struct foil_update_ctxt {

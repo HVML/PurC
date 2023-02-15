@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -34,7 +34,7 @@
 #include <assert.h>
 
 #define IDT_DEFAULT     0
-#define TIMER_INTERVAL  200
+#define TIMER_INTERVAL  100
 #define INDICATOR_STEPS 10
 
 struct _tailor_data {
@@ -121,6 +121,7 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
         /* indeterminate */
         box->tailor_data->value = -1.0;
         box->tailor_data->indicator = 0;
+        box->tailor_data->ind_steps = INDICATOR_STEPS;
 
         /* TODO: set a timer for indeterminate state */
         if (box->tailor_data->timer == NULL) {
@@ -163,12 +164,16 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 
     if (box->tailor_data->value < 0) {
         /* in indeterminate state */
-        page_rc.left  += tray_width * box->tailor_data->indicator / 100;
-        page_rc.right = page_rc.left + tray_width / 10;
+        foil_rect bar_rc = page_rc;
 
-        if (page_rc.right > page_rc.left) {
+        bar_rc.left += tray_width * box->tailor_data->indicator / 100;
+        bar_rc.right = bar_rc.left + tray_width / 10;
+
+        if (foil_rect_intersect(&bar_rc, &bar_rc, &page_rc)) {
+            LOG_DEBUG("Update PROGRESS bar: from %d to %d (%d)\n",
+                    bar_rc.left, bar_rc.right, box->tailor_data->indicator);
             foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
-            foil_page_erase_rect(ctxt->udom->page, &page_rc);
+            foil_page_erase_rect(ctxt->udom->page, &bar_rc);
         }
     }
     else {

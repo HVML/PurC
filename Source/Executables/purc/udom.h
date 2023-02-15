@@ -145,7 +145,7 @@ void foil_udom_dump(pcmcth_udom *udom);
 void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp);
 void foil_udom_render_to_page(pcmcth_udom *udom);
 
-void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, const foil_rdrbox *box);
+void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, foil_rdrbox *box);
 
 #ifdef __cplusplus
 }

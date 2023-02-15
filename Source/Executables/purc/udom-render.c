@@ -118,7 +118,7 @@ render_rdrtree_file(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
 void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp)
 {
     /* render the whole tree */
-    foil_render_ctxt rdr_ctxt = { udom, fp };
+    foil_render_ctxt rdr_ctxt = { .udom = udom, .fp = fp };
 
     render_rdrtree_file(&rdr_ctxt, udom->initial_cblock, 0);
 }
@@ -212,9 +212,11 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
 {
     switch (part) {
     case FOIL_BOX_PART_BACKGROUND:
-        if (!foil_rect_is_empty(&run->rc)) {
+        // do not draw bkgnd for inline text
+        if (0 && !foil_rect_is_empty(&run->rc)) {
             foil_rect page_rc;
             foil_rdrbox_map_rect_to_page(&run->rc, &page_rc);
+            foil_page_set_bgc(ctxt->udom->page, run->box->background_color);
             foil_page_erase_rect(ctxt->udom->page, &page_rc);
         }
         break;
@@ -494,7 +496,7 @@ void foil_udom_render_to_page(pcmcth_udom *udom)
 {
     (void)udom;
 
-    foil_render_ctxt rdr_ctxt = { udom, NULL };
+    foil_render_ctxt rdr_ctxt = { .udom = udom, .fp = NULL };
 
     /* continue for the children */
     foil_rdrbox *root = udom->initial_cblock->first;
@@ -503,9 +505,28 @@ void foil_udom_render_to_page(pcmcth_udom *udom)
     render_rdrbox_with_stacking_ctxt(&rdr_ctxt, root->stacking_ctxt, root);
 }
 
-void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, const foil_rdrbox *box)
+void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, foil_rdrbox *box)
 {
-    (void)udom;
-    (void)box;
+    struct foil_stacking_context *stacking_ctxt = NULL;
+    foil_rdrbox *parent = box;
+
+    do {
+        if (parent->stacking_ctxt)
+            stacking_ctxt = parent->stacking_ctxt;
+
+        parent = parent->parent;
+    } while (parent);
+
+    assert(stacking_ctxt);
+
+    foil_rect invrc;
+    foil_rdrbox_border_box(box, &invrc);
+
+    if (!foil_rect_is_empty(&invrc)) {
+        foil_render_ctxt rdr_ctxt = { .udom = udom, .invrc = &invrc };
+
+        render_rdrbox_with_stacking_ctxt(&rdr_ctxt, stacking_ctxt, box);
+        foil_page_expose(udom->page);
+    }
 }
 
