@@ -80,7 +80,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame)
 {
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    purc_variant_t name = pcvcm_get_frame_result(ctxt, frame, 0);
+    purc_variant_t name = pcvcm_get_frame_result(ctxt, frame->idx, 0);
     if (name == PURC_VARIANT_INVALID || !purc_variant_is_string(name)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;

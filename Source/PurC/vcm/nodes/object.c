@@ -66,8 +66,8 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (size_t i = 0; i < frame->nr_params; i += 2) {
-        purc_variant_t key = pcvcm_get_frame_result(ctxt, frame, i);
-        purc_variant_t value = pcvcm_get_frame_result(ctxt, frame, i + 1);
+        purc_variant_t key = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        purc_variant_t value = pcvcm_get_frame_result(ctxt, frame->idx, i + 1);
         if (!purc_variant_object_set(object, key, value)) {
             goto out;
         }

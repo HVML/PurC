@@ -89,7 +89,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (int i = pos -1; i >= 0; i -= 2) {
-        curr_val = pcvcm_get_frame_result(ctxt, frame, i);
+        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i);
         if (curr_val) {
             break;
         }
@@ -138,7 +138,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     UNUSED_PARAM(frame);
     purc_variant_t curr_val = PURC_VARIANT_INVALID;
     for (int i = frame->nr_params - 1; i >= 0; i--) {
-        curr_val = pcvcm_get_frame_result(ctxt, frame, i);
+        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i);
         if (curr_val && (i % 2 == 0)) {
             break;
         }
