@@ -6,15 +6,23 @@
 
 Foil supports standard keywords for `appearance` property:
 
-- `auto`:
-- `progress-bar`:
-- `meter`:
+- Since 0.9.6
+   - `auto`
+   - `none`
 
 Foil supports non-standard keywords for `appearance` property:
 
-- `symbol-indicator`
+- Since 0.9.6
+  - `progress-bkgnd`
+  - `progress-bar`, `auto` for `PROGRESS` element.
+  - `progress-mark`
+  - `meter`, `meter-bar`, and `auto` for `METER` element.
+  - `meter-bkgnd`
+  - `meter-mark`
 
 ### `-foil-color-*`
+
+Theses color properties can be used to render a UI control defined by a `progress`, `meter`, `input`, or `select` element.
 
 - `-foil-color-info`: The color for neutral and informative content.
 - `-foil-color-warning`: The color used for non-destructive warning messages.
@@ -22,11 +30,21 @@ Foil supports non-standard keywords for `appearance` property:
 - `-foil-color-success`: The color used for positive or successful actions and information.
 - `-foil-color-primary`: The main color, used for hyperlinks, focus styles, and component and form active states.
 
-### `-foil-candidate-symbols`
+The definition is same as `color` property.
 
-If the appearance is `symbol-indicator`, this property defines the candidate symbols used for symbol indicator.
+### `-foil-candidate-marks`
 
-If the appearance is `progress-bar` or `meter`, this property defines the symbol used to render the bar.
+If the appearance is `progress-mark` or `meter-mark`, this property defines the candidate marks used for mark indicator.
+
+If the appearance is `progress-bar` or `meter`/`meter-bar`, this property defines the mark used to render the bar.
+
+Definition:
+
+- Initial value: auto
+- Applies to: all elements
+- Inherited: no
+- Computed value: A string contains a list of characters can be used as the marks of a progress or meter.
+- Animation type: discrete
 
 ## CSS2 Properties not Supported by Foil
 
@@ -41,7 +59,7 @@ The following properties of CSS2 are not supported by Foil:
   - `richness`
   - `speak-xxx`
   - `stress`
-  - voice-family`
+  - `voice-family`
   - `volume`
 - Properties only work for GUI:
   - `background-attachment`
@@ -69,17 +87,11 @@ The following properties of CSS2 are not supported by Foil:
 
 ## Extended CSS2 Properties
 
-### `background-color`
+### New keyword for color properties
 
-Foil supports non-standard keywords for `background-color` property:
+Foil supports the following non-standard keywords for color properties:
 
-- `default`: The default background color of the terminal.
-
-### `color`
-
-Foil supports non-standard keywords for `color` property:
-
-- `default`: The default foreground color of the terminal.
+- `default`: The default background color or foreground color of the terminal.
 
 ### `list-style-type`
 
