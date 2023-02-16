@@ -2161,7 +2161,7 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         while (child) {
             assert(child->is_width_resolved == 0);
 
-            int shrink_width;
+            int shrink_width = 0;
             if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
                 int pref_width, min_width;
                 pref_width = foil_rdrbox_inline_calc_preferred_width(child);
