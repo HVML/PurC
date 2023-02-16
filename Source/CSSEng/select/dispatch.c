@@ -699,5 +699,33 @@ struct prop_table prop_dispatch[CSS_N_PROPERTIES] = {
         PROPERTY_FUNCS(line_break),
         1,
     },
+    {
+        PROPERTY_FUNCS(appearance),
+        0,
+    },
+    {
+        PROPERTY_FUNCS(_foil_color_info),
+        1,
+    },
+    {
+        PROPERTY_FUNCS(_foil_color_warning),
+        1,
+    },
+    {
+        PROPERTY_FUNCS(_foil_color_danger),
+        1,
+    },
+    {
+        PROPERTY_FUNCS(_foil_color_success),
+        1,
+    },
+    {
+        PROPERTY_FUNCS(_foil_color_primary),
+        1,
+    },
+    {
+        PROPERTY_FUNCS(_foil_candidate_marks),
+        0,
+    },
 
 };

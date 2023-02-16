@@ -192,6 +192,13 @@ PROPERTY_FUNCS(stroke_miterlimit);
 PROPERTY_FUNCS(text_anchor);
 PROPERTY_FUNCS(text_rendering);
 PROPERTY_FUNCS(line_break);
+PROPERTY_FUNCS(appearance);
+PROPERTY_FUNCS(_foil_color_info);
+PROPERTY_FUNCS(_foil_color_warning);
+PROPERTY_FUNCS(_foil_color_danger);
+PROPERTY_FUNCS(_foil_color_success);
+PROPERTY_FUNCS(_foil_color_primary);
+PROPERTY_FUNCS(_foil_candidate_marks);
 
 #undef PROPERTY_FUNCS
 

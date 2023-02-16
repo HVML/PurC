@@ -2,7 +2,7 @@
  * This file is part of CSSEng.
  * Licensed under the MIT License,
  *          http://www.opensource.org/licenses/mit-license.php
- * Copyright (C) 2021 ~ 2023 Beijing FMSoft Technologies Co., Ltd.
+ * Copyright (C) 2023 Beijing FMSoft Technologies Co., Ltd.
  */
 
 #include <assert.h>
@@ -14,7 +14,7 @@
 #include "parse/properties/utils.h"
 
 /**
- * Parse text_overflow
+ * Parse _foil_candidate_mark
  *
  * \param c      Parsing context
  * \param vector  Vector of tokens to process
@@ -27,7 +27,7 @@
  * Post condition: \a *ctx is updated with the next token to process
  *           If the input is invalid, then \a *ctx remains unchanged.
  */
-css_error css__parse_text_overflow_impl(css_language *c,
+css_error css__parse__foil_candidate_marks_impl(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result, int np)
 {
@@ -44,17 +44,18 @@ css_error css__parse_text_overflow_impl(css_language *c,
         return CSS_INVALID;
     }
 
-    if ((token->type == CSS_TOKEN_IDENT) &&
-            (lwc_string_caseless_isequal(token->idata, c->strings[CLIP], &match)
+    if (token->type == CSS_TOKEN_IDENT &&
+            (lwc_string_caseless_isequal(token->idata, c->strings[INHERIT], &match)
              == lwc_error_ok && match)) {
-        error = css__stylesheet_style_appendOPV(result,
-                CSS_PROP_TEXT_OVERFLOW, 0, TEXT_OVERFLOW_CLIP);
+        error = css_stylesheet_style_inherit(result,
+                CSS_PROP_FOIL_CANDIDATE_MARKS);
     }
     else if ((token->type == CSS_TOKEN_IDENT) &&
-            (lwc_string_caseless_isequal(token->idata, c->strings[ELLIPSIS], &match)
+            (lwc_string_caseless_isequal(token->idata, c->strings[AUTO], &match)
              == lwc_error_ok && match)) {
         error = css__stylesheet_style_appendOPV(result,
-                CSS_PROP_TEXT_OVERFLOW, 0, TEXT_OVERFLOW_ELLIPSIS);
+                CSS_PROP_FOIL_CANDIDATE_MARKS, 0,
+                FOIL_CANDIDATE_MARKS_AUTO);
     }
     else if (token->type == CSS_TOKEN_STRING) {
         uint32_t snumber;
@@ -67,14 +68,15 @@ css_error css__parse_text_overflow_impl(css_language *c,
         }
 
         error = css__stylesheet_style_appendOPV(result,
-                CSS_PROP_TEXT_OVERFLOW, 0, TEXT_OVERFLOW_STRING);
+                CSS_PROP_FOIL_CANDIDATE_MARKS, 0, FOIL_CANDIDATE_MARKS_SET);
         if (error != CSS_OK) {
             *ctx = orig_ctx;
             return error;
         }
 
         error = css__stylesheet_style_append(result, snumber);
-    } else {
+    }
+    else {
         error = CSS_INVALID;
     }
 
