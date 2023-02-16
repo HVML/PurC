@@ -2242,29 +2242,11 @@ stringify_kv(struct stringify_arg *arg, const char *key, purc_variant_t val)
 static void
 stringify_object(struct stringify_arg *arg, purc_variant_t value)
 {
-    purc_variant_t array =
-        purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 4, NULL);
-    if (array == PURC_VARIANT_INVALID) {
-        goto out;
-    }
-
     purc_variant_t k, v;
     foreach_key_value_in_variant_object(value, k, v)
-        purc_variant_sorted_array_add(array, k);
-    end_foreach;
-
-    ssize_t sz = purc_variant_sorted_array_get_size(array);
-    for (ssize_t i = 0; i < sz; i++) {
-        k = purc_variant_sorted_array_get(array, i);
-        v = purc_variant_object_get(value, k);
         const char *sk = purc_variant_get_string_const(k);
         stringify_kv(arg, sk, v);
-    }
-
-    purc_variant_unref(array);
-
-out:
-    return;
+    end_foreach;
 }
 
 static void

@@ -166,7 +166,7 @@ static int comp_key_var(const void *key1, const void *key2)
     return strcmp(k1, k2);
 }
 
-static unsigned long hash_key_var(const void *key)
+static uint32_t hash_key_var(const void *key)
 {
     purc_variant_t v = (purc_variant_t) key;
     PC_ASSERT(v->type == PURC_VARIANT_TYPE_STRING);

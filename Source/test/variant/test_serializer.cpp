@@ -839,9 +839,9 @@ TEST(variant, serialize_object)
     ASSERT_EQ(v2->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_by_static_ckey(2, "v1", v1, "v2", v2);
+        purc_variant_make_object_by_static_ckey(1, "v2", v2);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
 
@@ -853,12 +853,12 @@ TEST(variant, serialize_object)
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{\"v1\":123,\"v2\":123.456}");
+    ASSERT_STREQ(buf, "{\"v2\":123.456}");
 
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
 
@@ -869,12 +869,12 @@ TEST(variant, serialize_object)
     my_puts("Serialized object with PCVRNT_SERIALIZE_OPT_PRETTY flag:");
     my_puts(buf);
     ASSERT_GT(n, 0);
-    ASSERT_EQ(v1->refc, 2);
+    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{\n  \"v1\":123,\n  \"v2\":123.456\n}");
+    ASSERT_STREQ(buf, "{\n  \"v2\":123.456\n}");
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
@@ -887,7 +887,7 @@ TEST(variant, serialize_object)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{\n\t\"v1\":123,\n\t\"v2\":123.456\n}");
+    ASSERT_STREQ(buf, "{\n\t\"v2\":123.456\n}");
 
     len_expected = 0;
     purc_rwstream_seek(my_rws, 0, SEEK_SET);
@@ -899,11 +899,10 @@ TEST(variant, serialize_object)
     ASSERT_GT(n, 0);
 
     buf[n] = 0;
-    ASSERT_STREQ(buf, "{ \"v1\": 123, \"v2\": 123.456 }");
+    ASSERT_STREQ(buf, "{ \"v2\": 123.456 }");
 
     purc_variant_unref(v1);
     purc_variant_unref(v2);
-    ASSERT_EQ(v1->refc, 1);
     ASSERT_EQ(v2->refc, 1);
     ASSERT_EQ(my_variant->refc, 1);
     purc_variant_unref(my_variant);
@@ -965,9 +964,9 @@ TEST(variant, serialize_object_with_empty_key2)
     ASSERT_EQ(v1->refc, 1);
 
     purc_variant_t my_variant =
-        purc_variant_make_object_by_static_ckey(2, "x", v1, "", v1);
+        purc_variant_make_object_by_static_ckey(1, "", v1);
     ASSERT_NE(my_variant, PURC_VARIANT_INVALID);
-    ASSERT_EQ(v1->refc, 3);
+    ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
 
     char buf[32];
@@ -978,12 +977,12 @@ TEST(variant, serialize_object_with_empty_key2)
     ssize_t n = purc_variant_serialize(my_variant, my_rws,
             0, PCVRNT_SERIALIZE_OPT_PLAIN, &len_expected);
     ASSERT_GT(n, 0);
-    ASSERT_EQ(v1->refc, 3);
+    ASSERT_EQ(v1->refc, 2);
     ASSERT_EQ(my_variant->refc, 1);
 
     buf[n] = 0;
     fprintf(stderr, "%ld[%s]\n", n, buf);
-    ASSERT_STREQ(buf, "{\"\":123,\"x\":123}");
+    ASSERT_STREQ(buf, "{\"\":123}");
 
     ASSERT_EQ(my_variant->refc, 1);
     purc_variant_unref(my_variant);
