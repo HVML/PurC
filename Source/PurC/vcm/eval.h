@@ -116,6 +116,7 @@ struct pcvcm_eval_ctxt {
 
     int                     err;
     unsigned int            enable_log:1;
+    unsigned int            free_on_destroy:1;
 };
 
 struct pcvcm_eval_stack_frame_ops {

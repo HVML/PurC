@@ -65,6 +65,29 @@ pcvcm_eval_ctxt_create()
         goto out;
     }
 
+    ctxt->free_on_destroy = 1;
+out:
+    return ctxt;
+}
+
+struct pcvcm_eval_ctxt *
+pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
+{
+    struct pcvcm_eval_ctxt *ctxt = pcvcm_eval_ctxt_create();
+    if (!ctxt) {
+        goto out;
+    }
+    *ctxt = *src;
+
+    size_t nr_bytes = ctxt->nr_eval_nodes * sizeof(struct pcvcm_eval_node);
+    ctxt->eval_nodes = (struct pcvcm_eval_node *) malloc(nr_bytes);
+    memcpy(ctxt->eval_nodes, src->eval_nodes, nr_bytes);
+
+    nr_bytes = ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame);
+    ctxt->frames = (struct pcvcm_eval_stack_frame *) malloc(nr_bytes);
+    memcpy(ctxt->frames, src->frames, nr_bytes);
+
+    ctxt->free_on_destroy = 1;
 out:
     return ctxt;
 }
@@ -85,7 +108,6 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
             purc_variant_unref(p->result);
         }
     }
-    free(ctxt->eval_nodes);
 
     for (int32_t i = 0; i < ctxt->frame_idx; i++) {
         struct pcvcm_eval_stack_frame *p = ctxt->frames + i;
@@ -93,9 +115,12 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
             purc_variant_unref(p->args);
         }
     }
-    free(ctxt->frames);
 
-    free(ctxt);
+    if (ctxt->free_on_destroy) {
+        free(ctxt->eval_nodes);
+        free(ctxt->frames);
+        free(ctxt);
+    }
 }
 
 int
@@ -701,10 +726,12 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         bool silently)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
-    struct pcvcm_eval_ctxt *ctxt = NULL;
+    struct pcvcm_eval_ctxt contxt = {0};
+    struct pcvcm_eval_ctxt *ctxt = &contxt;
     unsigned int enable_log = 0;
     const char *env_value;
     int err;
+    int32_t nr_nodes = 0;
 
     if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
         enable_log = (*env_value == '1' ||
@@ -728,33 +755,27 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
                     &idx);
             tree->nr_nodes = idx;
         }
+        nr_nodes = tree->nr_nodes;
+    }
 
-        ctxt = pcvcm_eval_ctxt_create();
-        if (!ctxt) {
-            goto out;
-        }
+    struct pcvcm_eval_node eval_nodes[nr_nodes];
+    struct pcvcm_eval_stack_frame frames[nr_nodes];
+
+    if (nr_nodes) {
         ctxt->enable_log = enable_log;
         ctxt->node = tree;
         ctxt->frame_idx = -1;
-        ctxt->nr_eval_nodes = tree->nr_nodes;
-        ctxt->eval_nodes = (struct pcvcm_eval_node *) calloc(ctxt->nr_eval_nodes,
-                sizeof(struct pcvcm_eval_node));
-        ctxt->nr_frames = ctxt->nr_eval_nodes;
-        ctxt->frames = (struct pcvcm_eval_stack_frame *) calloc(ctxt->nr_frames,
-                sizeof(struct pcvcm_eval_stack_frame));
+        ctxt->nr_eval_nodes = nr_nodes;
+        ctxt->eval_nodes = eval_nodes;
+        ctxt->nr_frames = nr_nodes;
+        ctxt->frames = frames;
 
         build_eval_nodes(ctxt, tree);
-
-        if (ctxt_out) {
-            *ctxt_out = ctxt;
-        }
 
         result = eval_vcm(ctxt->eval_nodes, ctxt, args, find_var, find_var_ctxt, silently,
                 false, false);
     }
 
-
-out:
     err = purc_get_last_error();
     if (!result && silently) {
         if (err == PURC_ERROR_AGAIN && ctxt_out) {
@@ -786,7 +807,7 @@ out:
     }
 
     if (err && ctxt_out) {
-        *ctxt_out = ctxt;
+        *ctxt_out = pcvcm_eval_ctxt_dup(ctxt);
     }
     else if (ctxt) {
         pcvcm_eval_ctxt_destroy(ctxt);
