@@ -85,8 +85,6 @@ struct pcvcm_eval_node {
 
 struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
-    struct list_head        ln;
-
     struct pcvcm_eval_stack_frame_ops *ops;
     struct pcvcm_node      *node;
     purc_variant_t          args;    // named variable : _ARGS
@@ -101,8 +99,6 @@ struct pcvcm_eval_stack_frame {
 };
 
 struct pcvcm_eval_ctxt {
-    /* struct pcvcm_eval_stack_frame */
-    struct list_head        stack;
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
@@ -136,14 +132,6 @@ struct pcvcm_eval_stack_frame_ops {
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-
-struct pcvcm_eval_stack_frame *
-pcvcm_eval_stack_frame_create(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_node *node, size_t return_pos);
-
-void
-pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *);
-
 
 struct pcvcm_eval_ctxt *
 pcvcm_eval_ctxt_create();

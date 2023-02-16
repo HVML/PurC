@@ -55,42 +55,6 @@ pcvcm_eval_stack_frame_step_name(enum pcvcm_eval_stack_frame_step type)
     return stepnames[type];
 }
 
-struct pcvcm_eval_stack_frame *
-pcvcm_eval_stack_frame_create(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_node *node, size_t return_pos)
-{
-    UNUSED_PARAM(ctxt);
-    struct pcvcm_eval_stack_frame *frame;
-    frame = (struct pcvcm_eval_stack_frame*)calloc(1,sizeof(*frame));
-    if (!frame) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    frame->eval_node_idx = node->idx;
-    frame->node = node->node;
-    frame->pos = 0;
-    frame->return_pos = return_pos;
-    frame->nr_params = pcvcm_node_children_count(frame->node);
-    frame->ops = pcvcm_eval_get_ops_by_node(frame->node);
-
-out:
-    return frame;
-}
-
-void
-pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *frame)
-{
-    if (!frame) {
-        return;
-    }
-
-    if (frame->args) {
-        purc_variant_unref(frame->args);
-    }
-    free(frame);
-}
-
 struct pcvcm_eval_ctxt *
 pcvcm_eval_ctxt_create()
 {
@@ -101,7 +65,6 @@ pcvcm_eval_ctxt_create()
         goto out;
     }
 
-    list_head_init(&ctxt->stack);
 out:
     return ctxt;
 }
@@ -111,11 +74,6 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
 {
     if (!ctxt) {
         return;
-    }
-    struct list_head *stack = &ctxt->stack;
-    struct pcvcm_eval_stack_frame *p, *n;
-    list_for_each_entry_safe(p, n, stack, ln) {
-        pcvcm_eval_stack_frame_destroy(p);
     }
     if (ctxt->result) {
         purc_variant_unref(ctxt->result);
@@ -252,7 +210,6 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
 {
     char buf[DUMP_BUF_SIZE];
     size_t len;
-    struct list_head *stack = &ctxt->stack;
 
     char *s = get_jsonee(ctxt->node, &len);
     if (!ignore_prefix) {
@@ -307,17 +264,19 @@ pcvcm_dump_stack(struct pcvcm_eval_ctxt *ctxt, purc_rwstream_t rws,
         purc_rwstream_write(rws, "\n", 1);
     }
 
-    if (!list_empty(stack)) {
+    if (ctxt->frame_idx >= 0) {
         print_indent(rws, indent, NULL);
         snprintf(buf, DUMP_BUF_SIZE, "  Call stack:\n");
         purc_rwstream_write(rws, buf, strlen(buf));
 
-        struct pcvcm_eval_stack_frame *p, *n;
+#if 0
         int level = 0;
-        list_for_each_entry_reverse_safe(p, n, stack, ln) {
+        for (int i = ctxt->frame_idx; i >= 0; i++) {
+            struct pcvcm_eval_stack_frame *p = ctxt->frames + i;
             pcvcm_dump_frame(p, rws, level, indent + 2);
             level++;
         }
+#endif
     }
     return 0;
 }
@@ -355,36 +314,42 @@ pcvcm_eval_ctxt_get_call_flags(struct pcvcm_eval_ctxt *ctxt)
 static struct pcvcm_eval_stack_frame *
 bottom_frame(struct pcvcm_eval_ctxt *ctxt)
 {
-    if (list_empty(&ctxt->stack)) {
+    if (ctxt->frame_idx < 0) {
         return NULL;
     }
-    return list_last_entry(&ctxt->stack, struct pcvcm_eval_stack_frame, ln);
+    return ctxt->frames + ctxt->frame_idx;
 }
 
 static struct pcvcm_eval_stack_frame *
 push_frame(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_node *node,
         size_t return_pos)
 {
-    struct pcvcm_eval_stack_frame *frame = pcvcm_eval_stack_frame_create(
-            ctxt, node, return_pos);
-    if (frame == NULL) {
-        goto out;
-    }
-
-    ctxt->frame_idx++;
+    int idx = ++ctxt->frame_idx;
+    struct pcvcm_eval_stack_frame *frame = ctxt->frames + idx;
     frame->idx = ctxt->frame_idx;
-    list_add_tail(&frame->ln, &ctxt->stack);
-out:
+    frame->eval_node_idx = node->idx;
+    frame->node = node->node;
+    frame->pos = 0;
+    frame->return_pos = return_pos;
+    frame->nr_params = pcvcm_node_children_count(frame->node);
+    frame->ops = pcvcm_eval_get_ops_by_node(frame->node);
+    frame->args = PURC_VARIANT_INVALID;
+    frame->step = STEP_AFTER_PUSH;
     return frame;
 }
 
 static void
 pop_frame(struct pcvcm_eval_ctxt *ctxt)
 {
-    struct pcvcm_eval_stack_frame *last = list_last_entry(
-            &ctxt->stack, struct pcvcm_eval_stack_frame, ln);
-    list_del(&last->ln);
-    pcvcm_eval_stack_frame_destroy(last);
+    if (ctxt->frame_idx < 0) {
+        return;
+    }
+
+    struct pcvcm_eval_stack_frame *frame = ctxt->frames + ctxt->frame_idx;
+    if (frame->args) {
+        purc_variant_unref(frame->args);
+        frame->args = PURC_VARIANT_INVALID;
+    }
     ctxt->frame_idx--;
 }
 
@@ -767,7 +732,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->nr_eval_nodes = tree->nr_nodes;
         ctxt->eval_nodes = (struct pcvcm_eval_node *) calloc(ctxt->nr_eval_nodes,
                 sizeof(struct pcvcm_eval_node));
-        ctxt->nr_frames = ctxt->nr_eval_nodes;
+        ctxt->nr_frames = ctxt->nr_eval_nodes + 100;
         ctxt->frames = (struct pcvcm_eval_stack_frame *) calloc(ctxt->nr_frames,
                 sizeof(struct pcvcm_eval_stack_frame));
 
@@ -907,9 +872,11 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
                 ctxt->nr_eval_nodes * sizeof(struct pcvcm_eval_node));
 
 
-        ctxt->nr_frames = ctxt->nr_eval_nodes;
-        ctxt->frames = (struct pcvcm_eval_stack_frame *) realloc(ctxt->frames,
-                ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame));
+        if (ctxt->nr_frames < ctxt->nr_eval_nodes) {
+            ctxt->nr_frames = ctxt->nr_eval_nodes;
+            ctxt->frames = (struct pcvcm_eval_stack_frame *) realloc(ctxt->frames,
+                    ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame));
+        }
 
         size_t pos = ctxt->eval_nodes_insert_pos;
         build_eval_nodes(ctxt, tree);
