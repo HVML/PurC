@@ -558,7 +558,29 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "strict", SLEN("strict") },
 	{ "anywhere", SLEN("anywhere") },
 
+    /* keywords for appearance */
+	{ "menulist", SLEN("menulist") },
+	{ "menulist-button", SLEN("menulist-button") },
+	{ "textfield", SLEN("textfield") },
+	{ "textarea", SLEN("textarea") },
+	{ "progress-bar", SLEN("progress-bar") },
+	{ "progress-bkgnd", SLEN("progress-bkgnd") },
+	{ "progress-mark", SLEN("progress-mark") },
+	{ "meter", SLEN("meter") },
+	{ "meter-bar", SLEN("meter-bar") },
+	{ "meter-bkgnd", SLEN("meter-bkgnd") },
+	{ "meter-mark", SLEN("meter-mark") },
+	{ "slider-horizontal", SLEN("slider-horizontal") },
+	{ "slider-vertical", SLEN("slider-vertical") },
+	{ "button", SLEN("button") },
+	{ "checkbox", SLEN("checkbox") },
+	{ "listbox", SLEN("listbox") },
+	{ "radio", SLEN("radio") },
+	{ "searchfield", SLEN("searchfield") },
+	{ "push-button", SLEN("push-button") },
+	{ "square-button", SLEN("square-button") },
 
+    /* keywords for color */
 	{ "aliceblue", SLEN("aliceblue") },
 	{ "antiquewhite", SLEN("antiquewhite") },
 	{ "aqua", SLEN("aqua") },
@@ -708,7 +730,7 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "white", SLEN("white") },
 	{ "whitesmoke", SLEN("whitesmoke") },
 	{ "yellow", SLEN("yellow") },
-	{ "yellowgreen", SLEN("yellowgreen") }
+	{ "yellowgreen", SLEN("yellowgreen") },
 };
 
 
