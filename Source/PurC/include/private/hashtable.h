@@ -54,19 +54,17 @@
 #define pchash_copy_val_fn  pcutils_copy_fn
 #define pchash_free_val_fn  pcutils_free_fn
 #define pchash_hash_fn      pcutils_hash_fn
-#define pchash_equal_fn     pcutils_comp_fn
+#define pchash_keycmp_fn    pcutils_comp_fn
 #define pchash_free_kv_fn   pcutils_free_kv_fn
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define PCHASH_DEFAULT_SIZE     5
-
 /* default hash functions */
-unsigned long pchash_default_str_hash(const void *k);
-unsigned long pchash_perlish_str_hash(const void *k);
-unsigned long pchash_ptr_hash(const void *k);
+uint32_t pchash_default_str_hash(const void *k);
+uint32_t pchash_perlish_str_hash(const void *k);
+uint32_t pchash_ptr_hash(const void *k);
 
 /* default comparison functions */
 int pchash_str_equal(const void *k1, const void *k2);
@@ -85,9 +83,9 @@ struct pchash_entry {
     pchash_free_kv_fn free_kv_alt;
 
     /** the hash value */
-    unsigned long hash;
+    uint32_t hash;
     /** the index of slot in the table */
-    unsigned long slot;
+    uint32_t slot;
 
     struct list_head list;
 };
@@ -104,9 +102,6 @@ struct pchash_table {
     /** Numbers of entries. */
     size_t count;
 
-    /** The table slots. */
-    struct list_head *table;
-
     /** A pointer onto the function responsible for copying the key. */
     pchash_copy_key_fn copy_key;
     /** A pointer onto the function responsible for freeing the key. */
@@ -121,10 +116,13 @@ struct pchash_table {
     pchash_hash_fn hash_fn;
 
     /** A pointer onto the function responsible for comparing two keys. */
-    pchash_equal_fn equal_fn;
+    pchash_keycmp_fn keycmp_fn;
 
     /** the read-write lock if multiple threads enabled */
     purc_rwlock     rwlock;
+
+    /** The table slots. */
+    struct list_head *table;
 };
 
 typedef struct pchash_table pchash_table;
@@ -141,7 +139,7 @@ typedef struct pchash_table pchash_table;
  * @param hash_fn  function used to hash keys. 2 standard ones are defined:
  * pchash_ptr_hash and pchash_char_hash for hashing pointer values
  * and C strings respectively.
- * @param equal_fn comparison function to compare keys. 2 standard ones defined:
+ * @param keycmp_fn comparison function to compare keys. 2 standard ones defined:
  * pchash_ptr_hash and pchash_char_hash for comparing pointer values
  * and C strings respectively.
  * @return On success, a pointer to the new hash table is returned.
@@ -151,7 +149,7 @@ struct pchash_table *
 pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_equal_fn equal_fn, bool threads);
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads);
 
 /**
  * Convenience function to create a new hash table with char keys
@@ -303,7 +301,7 @@ pchash_table_insert(struct pchash_table *t, const void *k, const void *v)
  *      freeing the entry.
  */
 int pchash_table_insert_w_hash(struct pchash_table *t,
-        const void *k, const void *v, const unsigned long h,
+        const void *k, const void *v, const uint32_t h,
          pchash_free_kv_fn free_kv_alt);
 
 /**
@@ -333,7 +331,7 @@ pchash_entry_t pchash_table_lookup_entry(struct pchash_table *t,
  *      if it does not exist.
  */
 pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
-        const void *k, const unsigned long h);
+        const void *k, const uint32_t h);
 
 /**
  * Lookup a record in the table using a precalculated key hash and lock
@@ -351,7 +349,7 @@ pchash_entry_t pchash_table_lookup_entry_w_hash(struct pchash_table *t,
  *      if it does not exist.
  */
 pchash_entry_t pchash_table_lookup_and_lock_w_hash(
-        struct pchash_table *t, const void *k, const unsigned long h);
+        struct pchash_table *t, const void *k, const uint32_t h);
 
 /**
  * Lookup a record in the table and lock the table if found.
@@ -430,7 +428,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size);
  * @param k a pointer to the key to lookup
  * @return the key's hash
  */
-static inline unsigned long
+static inline uint32_t
 pchash_get_hash(const struct pchash_table *t, const void *k)
 {
     return t->hash_fn(k);
