@@ -467,6 +467,7 @@ uint32_t pchash_perlish_str_hash(const void *k)
 
 uint32_t pchash_default_str_hash(const void *k)
 {
+#if 0
 #if defined _MSC_VER || defined __MINGW32__
 #define RANDOM_SEED_TYPE LONG
 #else
@@ -505,6 +506,9 @@ uint32_t pchash_default_str_hash(const void *k)
         random_seed = seed; /* potentially racy */
 #endif
     }
+#else /* deprecated */
+    static const uint32_t random_seed = 0x19731128;
+#endif 
 
     return hashlittle((const char *)k, strlen((const char *)k), random_seed);
 }
