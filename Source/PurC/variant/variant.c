@@ -2823,51 +2823,30 @@ cmp_by_obj(purc_variant_t l, purc_variant_t r,
         bool caseless, bool unify_number)
 {
     int diff;
+    struct obj_iterator lit = pcvar_obj_it_first(l);
 
-    variant_obj_t ld, rd;
-    ld = (variant_obj_t)l->sz_ptr[1];
-    rd = (variant_obj_t)r->sz_ptr[1];
-    PC_ASSERT(ld);
-    PC_ASSERT(rd);
-    struct rb_root *lroot = &ld->kvs;
-    struct rb_root *rroot = &rd->kvs;
-    struct rb_node *lnode = pcutils_rbtree_first(lroot);
-    struct rb_node *rnode = pcutils_rbtree_first(rroot);
-    for (;
-        lnode && rnode;
-        lnode = pcutils_rbtree_next(lnode), rnode = pcutils_rbtree_next(rnode))
-    {
-        struct obj_node *lo, *ro;
-        lo = container_of(lnode, struct obj_node, node);
-        ro = container_of(rnode, struct obj_node, node);
-        PC_ASSERT(lo->key);
-        PC_ASSERT(ro->key);
-        const char *lk = purc_variant_get_string_const(lo->key);
-        const char *rk = purc_variant_get_string_const(ro->key);
-        PC_ASSERT(lk);
-        PC_ASSERT(rk);
-
-        // NOTE: ignore caseless for keyname
-        diff = strcmp(lk, rk);
-        if (diff)
-            return diff;
-
-        purc_variant_t lv = lo->val;
-        purc_variant_t rv = ro->val;
-        PC_ASSERT(lv != PURC_VARIANT_INVALID);
-        PC_ASSERT(rv != PURC_VARIANT_INVALID);
+    while (pcvar_obj_it_is_valid(&lit)) {
+        purc_variant_t k = pcvar_obj_it_get_key(&lit);
+        purc_variant_t lv = pcvar_obj_it_get_value(&lit);
+        purc_variant_t rv = purc_variant_object_get(r, k);
 
         diff = pcvar_compare_ex(lv, rv, caseless, unify_number);
         if (diff)
             return diff;
+
+        pcvar_obj_it_next(&lit);
     }
 
-    if (lnode)
+    size_t lsz = purc_variant_object_get_size(l);
+    size_t rsz = purc_variant_object_get_size(r);
+
+    if (lsz > rsz) {
         return 1;
-    else if (rnode)
+    }
+    else if (lsz < rsz) {
         return -1;
-    else
-        return 0;
+    }
+    return 0;
 }
 
 static int

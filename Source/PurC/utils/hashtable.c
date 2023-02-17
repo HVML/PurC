@@ -39,11 +39,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#undef NDEBUG
+// #undef NDEBUG
 
+#include "config.h"
 #include "purc-utils.h"
 #include "private/hashtable.h"
-#include "config.h"
+#include "private/debug.h"
 
 #include <assert.h>
 #include <limits.h>
@@ -66,17 +67,14 @@
 #include <gmodule.h>
 #endif
 
-/**
- * golden prime used in hash functions
- */
-#define PCHASH_PRIME 0x9e370001UL
+/** The minimum/default size of the hash table (must be larger than 4) */
+#define PCHASH_DEFAULT_SIZE     4
 
-/**
- * The fraction of filled hash buckets until an insert will cause the table
- * to be resized.
- * This can range from just above 0 up to 1.0.
- */
-#define PCHASH_LOAD_FACTOR 0.66
+/** Define this if you want to sort the entries in a slot */
+#define PCHASH_SORTED           1
+
+/** Golden prime used in hash functions */
+#define PCHASH_PRIME            0x9e370001UL
 
 uint32_t pchash_ptr_hash(const void *k)
 {
@@ -136,31 +134,6 @@ mixing with 12*3 instructions on 3 integers than you can with 3 instructions
 on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 -------------------------------------------------------------------------------
 */
-
-#if 0
-/*
- * My best guess at if you are big-endian or little-endian.  This may
- * need adjustment.
- */
-#if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) &&               \
-        __BYTE_ORDER == __LITTLE_ENDIAN) ||                             \
-    (defined(i386) || defined(__i386__) || defined(__i486__) ||         \
-     defined(__i586__) || defined(__i686__) || defined(__x86_64__) ||   \
-     defined(__ia64__) || defined(vax) || defined(MIPSEL) ||            \
-     defined(__loongarch__) || defined(__riscv))
-#   define HASH_LITTLE_ENDIAN 1
-#   define HASH_BIG_ENDIAN 0
-#elif (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) &&                \
-        __BYTE_ORDER == __BIG_ENDIAN) ||                                \
-    (defined(sparc) || defined(POWERPC) || defined(mc68000) ||          \
-     defined(sel))
-#   define HASH_LITTLE_ENDIAN 0
-#   define HASH_BIG_ENDIAN 1
-#else
-#   define HASH_LITTLE_ENDIAN 0
-#   define HASH_BIG_ENDIAN 0
-#endif
-#endif  /* deprecated */
 
 #if CPU(LITTLE_ENDIAN)
 #   define HASH_LITTLE_ENDIAN 1
@@ -302,8 +275,7 @@ acceptable.  Do NOT use for cryptographic purposes.
 static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 {
     uint32_t a,b,c; /* internal state */
-    union
-    {
+    union {
         const void *ptr;
         size_t i;
     } u; /* needed for Mac Powerbook G4 */
@@ -316,8 +288,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
         const uint32_t *k = (const uint32_t *)key; /* read 32-bit chunks */
 
         /* all but last block: aligned reads and affect 32 bits of (a,b,c) */
-        while (length > 12)
-        {
+        while (length > 12) {
             a += k[0];
             b += k[1];
             c += k[2];
@@ -349,8 +320,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 #endif
 #ifndef PRECISE_MEMORY_ACCESS
 
-        switch(length)
-        {
+        switch(length) {
         case 12: c+=k[2]; b+=k[1]; a+=k[0]; break;
         case 11: c+=k[2]&0xffffff; b+=k[1]; a+=k[0]; break;
         case 10: c+=k[2]&0xffff; b+=k[1]; a+=k[0]; break;
@@ -369,8 +339,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 #else /* make valgrind happy */
 
         const uint8_t  *k8 = (const uint8_t *)k;
-        switch(length)
-        {
+        switch(length) {
         case 12: c+=k[2]; b+=k[1]; a+=k[0]; break;
         case 11: c+=((uint32_t)k8[10])<<16;  /* fall through */
         case 10: c+=((uint32_t)k8[9])<<8;    /* fall through */
@@ -389,14 +358,12 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 #endif /* !valgrind */
 
     }
-    else if (HASH_LITTLE_ENDIAN && ((u.i & 0x1) == 0))
-    {
+    else if (HASH_LITTLE_ENDIAN && ((u.i & 0x1) == 0)) {
         const uint16_t *k = (const uint16_t *)key; /* read 16-bit chunks */
         const uint8_t  *k8;
 
         /* all but last block: aligned reads and different mixing */
-        while (length > 12)
-        {
+        while (length > 12) {
             a += k[0] + (((uint32_t)k[1])<<16);
             b += k[2] + (((uint32_t)k[3])<<16);
             c += k[4] + (((uint32_t)k[5])<<16);
@@ -407,8 +374,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
 
         /* handle the last (probably partial) block */
         k8 = (const uint8_t *)k;
-        switch(length)
-        {
+        switch(length) {
         case 12: c+=k[4]+(((uint32_t)k[5])<<16);
              b+=k[2]+(((uint32_t)k[3])<<16);
              a+=k[0]+(((uint32_t)k[1])<<16);
@@ -438,14 +404,12 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
         }
 
     }
-    else
-    {
+    else {
         /* need to read the key one byte at a time */
         const uint8_t *k = (const uint8_t *)key;
 
         /* all but the last block: affect some 32 bits of (a,b,c) */
-        while (length > 12)
-        {
+        while (length > 12) {
             a += k[0];
             a += ((uint32_t)k[1])<<8;
             a += ((uint32_t)k[2])<<16;
@@ -464,8 +428,7 @@ static uint32_t hashlittle(const void *key, size_t length, uint32_t initval)
         }
 
         /* last block: affect all 32 bits of (c) */
-        switch(length) /* all the case statements fall through */
-        {
+        switch(length) {    /* all the case statements fall through */
         case 12: c+=((uint32_t)k[11])<<24; /* FALLTHRU */
         case 11: c+=((uint32_t)k[10])<<16; /* FALLTHRU */
         case 10: c+=((uint32_t)k[9])<<8; /* FALLTHRU */
@@ -504,6 +467,7 @@ uint32_t pchash_perlish_str_hash(const void *k)
 
 uint32_t pchash_default_str_hash(const void *k)
 {
+#if 0
 #if defined _MSC_VER || defined __MINGW32__
 #define RANDOM_SEED_TYPE LONG
 #else
@@ -511,8 +475,7 @@ uint32_t pchash_default_str_hash(const void *k)
 #endif
     static volatile RANDOM_SEED_TYPE random_seed = -1;
 
-    if (random_seed == -1)
-    {
+    if (random_seed == -1) {
         RANDOM_SEED_TYPE seed;
         /* we can't use -1 as it is the unitialized sentinel */
         while ((seed = pcutils_get_random_seed()) == -1) {}
@@ -543,6 +506,9 @@ uint32_t pchash_default_str_hash(const void *k)
         random_seed = seed; /* potentially racy */
 #endif
     }
+#else /* deprecated */
+    static const uint32_t random_seed = 0x19731128;
+#endif 
 
     return hashlittle((const char *)k, strlen((const char *)k), random_seed);
 }
@@ -601,38 +567,48 @@ static inline void free_entry(pchash_entry *v) {
 }
 #endif
 
+static inline size_t normalize_size(size_t expected)
+{
+    size_t normalized;
+
+    if (expected < PCHASH_DEFAULT_SIZE)
+        expected = PCHASH_DEFAULT_SIZE;
+
+    normalized = pcutils_get_next_fibonacci_number(expected / 4 * 5);
+    if (normalized > UINT32_MAX)
+        normalized = UINT32_MAX;
+
+    return normalized;
+}
+
 struct pchash_table *pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_equal_fn equal_fn, bool threads)
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads)
 {
     struct pchash_table *t;
-
-    if (size == 0)
-        size = PCHASH_DEFAULT_SIZE;
-
     t = (pchash_table *)calloc(1, sizeof(pchash_table));
     if (!t)
         return NULL;
 
-    t->count = 0;
-    t->size = size;
-    t->table = (struct list_head *)calloc(size, sizeof(struct list_head));
+    t->size = normalize_size(size);
+    t->table = (struct list_head *)calloc(t->size, sizeof(struct list_head));
     if (!t->table) {
         free(t);
         return NULL;
     }
 
-    for (size_t i = 0; i < t->size; i++) {
-        list_head_init(t->table + i);
-    }
-
+    t->count = 0;
     t->copy_key = copy_key;
     t->free_key = free_key;
     t->copy_val = copy_val;
     t->free_val = free_val;
     t->hash_fn = hash_fn;
-    t->equal_fn = equal_fn;
+    t->keycmp_fn = keycmp_fn;
+
+    for (size_t i = 0; i < t->size; i++) {
+        list_head_init(t->table + i);
+    }
 
     if (threads)
         WRLOCK_INIT(t);
@@ -640,36 +616,80 @@ struct pchash_table *pchash_table_new(size_t size,
     return t;
 }
 
-static void move_entry(struct pchash_table *dst, struct pchash_entry *ent)
+#ifdef PCHASH_SORTED
+static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 {
-    list_del(&ent->list);
-    ent->slot = ent->hash % dst->size;
-    list_add_tail(&ent->list, dst->table + ent->slot);
-    dst->count++;
+    struct list_head *list;
+    struct list_head *slot = t->table + ent->slot;
+
+    /* compare with the last entry first */
+    if (!list_empty(slot)) {
+        struct pchash_entry *node;
+        node = list_last_entry(slot, pchash_entry, list);
+        if (t->keycmp_fn(ent->key, node->key) > 0) {
+            list = slot;
+            goto done;
+        }
+    }
+
+    list_for_each(list, slot) {
+        struct pchash_entry *node = list_entry(list, pchash_entry, list);
+        if (t->keycmp_fn(ent->key, node->key) <= 0) {
+            break;
+        }
+    }
+
+done:
+    list_add_tail(&ent->list, list);
+    t->count++;
 }
+#else
+static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
+{
+    list_add_tail(&ent->list, t->table + ent->slot);
+    t->count++;
+}
+#endif
 
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
 {
-    struct pchash_table *new_t;
-    struct pchash_entry *ent;
+    size_t normalized = normalize_size(new_size);
+#ifndef NDEBUG
+    printf("curent: %u, expected: %u, normalized: %u\n",
+            (unsigned)t->size, (unsigned)new_size, (unsigned)normalized);
+#endif
+    if (normalized == t->size) {
+        return 0;
+    }
 
-    new_t = pchash_table_new(new_size, NULL, NULL, NULL, NULL,
-            t->hash_fn, t->equal_fn, false);
-    if (new_t == NULL)
+    struct pchash_table nt = { };
+    nt.count = 0;
+    nt.size = normalized;
+    nt.hash_fn = t->hash_fn;
+    nt.keycmp_fn = t->keycmp_fn;
+    nt.table = (struct list_head *)calloc(nt.size, sizeof(struct list_head));
+    if (nt.table == NULL) {
         return -1;
+    }
 
+    for (size_t i = 0; i < nt.size; i++) {
+        list_head_init(nt.table + i);
+    }
+
+    struct pchash_entry *ent;
     for (size_t i = 0; i < t->size; i++) {
         struct list_head *p, *n;
         list_for_each_safe(p, n, t->table + i) {
             ent = list_entry(p, pchash_entry, list);
-            move_entry(new_t, ent);
+            list_del(&ent->list);
+            ent->slot = ent->hash % nt.size;
+            add_entry(&nt, ent);
         }
     }
 
-    t->size = new_size;
+    t->size = nt.size;
     free(t->table);
-    t->table = new_t->table;
-    free(new_t);
+    t->table = nt.table;
 
     return 0;
 }
@@ -695,8 +715,11 @@ void pchash_table_reset(struct pchash_table *t)
                 }
             }
 
+            list_del(&c->list);
             free_entry(c);
         }
+
+        assert(list_empty(t->table + i));
     }
 
     t->count = 0;
@@ -714,14 +737,8 @@ static int insert_entry(struct pchash_table *t,
         const void *k, const void *v, const uint32_t h,
         pchash_free_kv_fn free_kv_alt)
 {
-    if (t->count >= t->size * PCHASH_LOAD_FACTOR) {
-        /* Avoid signed integer overflow with large tables. */
-        size_t new_size;
-        new_size = (t->size > UINT32_MAX / 2) ? UINT32_MAX : (t->size * 2);
-        if (t->size == UINT32_MAX || pchash_table_resize(t, new_size) != 0) {
-            return -1;
-        }
-    }
+    if (pchash_table_resize(t, t->count + 1))
+        return -1;
 
     pchash_entry *ent = alloc_entry_0();
     if (ent == NULL)
@@ -732,9 +749,7 @@ static int insert_entry(struct pchash_table *t,
     ent->free_kv_alt = free_kv_alt;
     ent->hash = h;
     ent->slot = h % t->size;
-
-    list_add_tail(&ent->list, t->table + ent->slot);
-    t->count++;
+    add_entry(t, ent);
 
     return 0;
 }
@@ -761,19 +776,37 @@ int pchash_table_insert_ex(struct pchash_table *t,
 static pchash_entry_t find_entry(struct pchash_table *t,
         const void *k, const uint32_t h)
 {
-    uint32_t slot = h % t->size;
-    pchash_entry_t found = NULL;
+    struct list_head *slot = t->table + h % t->size;
+    struct pchash_entry *found = NULL;
+
+    if (list_empty(slot)) {
+        goto done;
+    }
+#ifdef PCHASH_SORTED
+    else {
+        /* check if the key out of the rang of this slot. */
+        pchash_entry_t e;
+        e = list_first_entry(slot, pchash_entry, list);
+        if (t->keycmp_fn(k, e->key) < 0)
+            goto done;
+
+        e = list_last_entry(slot, pchash_entry, list);
+        if (t->keycmp_fn(k, e->key) > 0)
+            goto done;
+    }
+#endif
 
     struct list_head *p;
-    list_for_each(p, t->table + slot) {
+    list_for_each(p, slot) {
         pchash_entry_t ent;
         ent = list_entry(p, pchash_entry, list);
-        if (t->equal_fn(ent->key, k) == 0) {
+        if (t->keycmp_fn(ent->key, k) == 0) {
             found = ent;
             break;
         }
     }
 
+done:
     return found;
 }
 
@@ -846,10 +879,12 @@ static int erase_entry(struct pchash_table *t, pchash_entry_t e)
         }
     }
 
-    t->count--;
-
     list_del(&e->list);
     free_entry(e);
+
+    t->count--;
+    if (pchash_table_resize(t, t->count))
+        return -1;
 
     return 0;
 }

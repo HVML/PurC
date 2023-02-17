@@ -1,5 +1,5 @@
 [
-        { age: 10, weight: 30, height: 150, },
-        { age: 11, weight: 32, height: 145, },
+        { age: 10, },
+        { age: 11, },
 ]
 

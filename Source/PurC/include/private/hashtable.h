@@ -54,14 +54,12 @@
 #define pchash_copy_val_fn  pcutils_copy_fn
 #define pchash_free_val_fn  pcutils_free_fn
 #define pchash_hash_fn      pcutils_hash_fn
-#define pchash_equal_fn     pcutils_comp_fn
+#define pchash_keycmp_fn    pcutils_comp_fn
 #define pchash_free_kv_fn   pcutils_free_kv_fn
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define PCHASH_DEFAULT_SIZE     5
 
 /* default hash functions */
 uint32_t pchash_default_str_hash(const void *k);
@@ -104,9 +102,6 @@ struct pchash_table {
     /** Numbers of entries. */
     size_t count;
 
-    /** The table slots. */
-    struct list_head *table;
-
     /** A pointer onto the function responsible for copying the key. */
     pchash_copy_key_fn copy_key;
     /** A pointer onto the function responsible for freeing the key. */
@@ -121,10 +116,13 @@ struct pchash_table {
     pchash_hash_fn hash_fn;
 
     /** A pointer onto the function responsible for comparing two keys. */
-    pchash_equal_fn equal_fn;
+    pchash_keycmp_fn keycmp_fn;
 
     /** the read-write lock if multiple threads enabled */
     purc_rwlock     rwlock;
+
+    /** The table slots. */
+    struct list_head *table;
 };
 
 typedef struct pchash_table pchash_table;
@@ -141,7 +139,7 @@ typedef struct pchash_table pchash_table;
  * @param hash_fn  function used to hash keys. 2 standard ones are defined:
  * pchash_ptr_hash and pchash_char_hash for hashing pointer values
  * and C strings respectively.
- * @param equal_fn comparison function to compare keys. 2 standard ones defined:
+ * @param keycmp_fn comparison function to compare keys. 2 standard ones defined:
  * pchash_ptr_hash and pchash_char_hash for comparing pointer values
  * and C strings respectively.
  * @return On success, a pointer to the new hash table is returned.
@@ -151,7 +149,7 @@ struct pchash_table *
 pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_equal_fn equal_fn, bool threads);
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads);
 
 /**
  * Convenience function to create a new hash table with char keys
