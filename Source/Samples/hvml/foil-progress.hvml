@@ -20,16 +20,36 @@
         <init as 'caseName' with 'basic' temp />
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
             <SECTION id="$caseName">
-                <label for="file">File progress: </label>
-                <progress id="file" max="100" value="10"> 10%</progress>
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" style="appearance:progress-bar;" max="100" value="20"> 20%</progress>
+                </p>
+                <p>
+                    <label for="progress2">Progress 2: </label>
+                    <progress id="progress2" style="appearance:progress-mark;width:3em;" max="100" value="50"> 30%</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress3" style="appearance:progress-bkgnd;" max="100" value="70"> 70%</progress>
+                </p>
             </SECTION>
         </define>
 
         <init as 'caseName' with 'indeterminate' temp />
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
             <SECTION id="$caseName">
-                <label for="file">File progress: </label>
-                <progress id="file" max="100" style="width:20em;"> N/A</progress>
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-bar;width:20em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 2: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-mark;width:1em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-bkgnd;width:20em;">N/A</progress>
+                </p>
             </SECTION>
 
             <update on "$TIMERS" to "unite">

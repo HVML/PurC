@@ -183,8 +183,8 @@ static int on_once_timer(const char *name, void *ctxt)
 
 static void test_timer(pcmcth_renderer *rdr)
 {
-    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
-    foil_timer_new(rdr, "once", on_once_timer, 100, rdr);
+    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr, true);
+    foil_timer_new(rdr, "once", on_once_timer, 100, rdr, true);
 
     while (rdr->t_elapsed < 2) {
         if (rdr->cbs.handle_event(rdr, 10000))

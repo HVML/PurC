@@ -389,7 +389,7 @@ void foil_widget_expose(foil_widget *widget)
 
         if (foil_timer_find(rdr, TIMER_FLUSHER_NAME, flush_contents) == NULL) {
             foil_timer_new(rdr, TIMER_FLUSHER_NAME, flush_contents,
-                    TIMER_FLUSHER_INTERVAL, widget);
+                    TIMER_FLUSHER_INTERVAL, widget, true);
         }
     }
     else {

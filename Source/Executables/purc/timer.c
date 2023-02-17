@@ -109,20 +109,25 @@ pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
 }
 
 pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
-        on_timer_expired_f on_expired, int interval, void *ctxt)
+        on_timer_expired_f on_expired, int interval, void *ctxt, bool unique)
 {
     assert(interval > 0);
     struct pcmcth_timer *timer = NULL;
 
     size_t buf_len = get_timer_key_len(name) + 1;
     char id[buf_len];
-    if (get_timer_key(id, buf_len, name, on_expired))
-        goto failed;
+    if (unique) {
+        if (get_timer_key(id, buf_len, name, on_expired))
+            goto failed;
 
-    void *data;
-    data = kvlist_get(&rdr->timer_list, id);
-    if (data)   /* duplicated */
-        goto failed;
+        void *data;
+        data = kvlist_get(&rdr->timer_list, id);
+        if (data)   /* duplicated */
+            goto failed;
+    }
+    else {
+        id[0] = 0;
+    }
 
     timer = (struct pcmcth_timer *)calloc(1, sizeof(struct pcmcth_timer));
     if (timer == NULL) {
@@ -136,8 +141,10 @@ pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
     timer->on_expired = on_expired;
     timer->avl.key = timer;
 
-    if (!(timer->id = kvlist_set_ex(&rdr->timer_list, id, &timer))) {
-        goto failed;
+    if (unique) {
+        if (!(timer->id = kvlist_set_ex(&rdr->timer_list, id, &timer))) {
+            goto failed;
+        }
     }
 
     if (avl_insert(&rdr->timer_avl, &timer->avl)) {
@@ -148,7 +155,8 @@ pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
     return timer;
 
 failed_avl:
-    kvlist_delete(&rdr->timer_list, timer->id);
+    if (timer->id)
+        kvlist_delete(&rdr->timer_list, timer->id);
 
 failed:
     if (timer) {
@@ -166,7 +174,8 @@ const char *foil_timer_id(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 int foil_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 {
     avl_delete(&rdr->timer_avl, &timer->avl);
-    kvlist_delete(&rdr->timer_list, timer->id);
+    if (timer->id)
+        kvlist_delete(&rdr->timer_list, timer->id);
     free(timer);
     return 0;
 }

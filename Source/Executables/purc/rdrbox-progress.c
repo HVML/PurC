@@ -39,7 +39,7 @@
 #define INDICATOR_STEPS 10
 
 static const char *def_bar_marks = "━━";
-static const char *def_mark_marks = "⠀⠁⠉⠙⠹⢹⣹⣽⣿";
+static const char *def_mark_marks = "⠁⠉⠙⠹⢹⣹⣽⣿⣾⣶⣦⣆⡆⠆⠂";
 // static const char *def_mark_marks = "⠁⠈⠐⠠⢀⡀⠄⠂";
 
 struct _tailor_data {
@@ -74,16 +74,24 @@ timer_expired(const char *name, void *ctxt)
     struct foil_rdrbox *box = ctxt;
     struct _tailor_data *tailor_data = box->tailor_data;
 
-    tailor_data->indicator += tailor_data->ind_steps;
-    if (tailor_data->ind_steps > 0 &&
-            tailor_data->indicator >= 100) {
-        tailor_data->indicator = 100;
-        tailor_data->ind_steps = -INDICATOR_STEPS;
+    if (box->ctrl_type == CSS_APPEARANCE_PROGRESS_MARK) {
+        tailor_data->indicator += tailor_data->ind_steps;
+        if (tailor_data->indicator >= 100) {
+            tailor_data->indicator = 0;
+        }
     }
-    else if (tailor_data->ind_steps < 0 &&
-            tailor_data->indicator <= 0) {
-        tailor_data->indicator = 0;
-        tailor_data->ind_steps = INDICATOR_STEPS;
+    else {
+        tailor_data->indicator += tailor_data->ind_steps;
+        if (tailor_data->ind_steps > 0 &&
+                tailor_data->indicator >= 100) {
+            tailor_data->indicator = 100;
+            tailor_data->ind_steps = -INDICATOR_STEPS;
+        }
+        else if (tailor_data->ind_steps < 0 &&
+                tailor_data->indicator <= 0) {
+            tailor_data->indicator = 0;
+            tailor_data->ind_steps = INDICATOR_STEPS;
+        }
     }
 
     foil_udom_invalidate_rdrbox(foil_udom_from_rdrbox(box), box);
@@ -138,7 +146,7 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
         /* TODO: set a timer for indeterminate state */
         if (box->tailor_data->timer == NULL) {
             box->tailor_data->timer = foil_timer_new(rdr,
-                    TIMER_NAME, timer_expired, TIMER_INTERVAL, box);
+                    TIMER_NAME, timer_expired, TIMER_INTERVAL, box, false);
         }
     }
 }
@@ -393,6 +401,8 @@ foil_rdrbox_progress_tailor_ops(struct foil_create_ctxt *ctxt,
             box->is_control = 0;
             break;
     }
+
+    LOG_DEBUG("appearance: %d\n", (int)v);
 
     if (box->is_control)
         return &progress_ops_as_ctrl;

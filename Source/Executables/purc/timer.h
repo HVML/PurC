@@ -50,12 +50,12 @@ int64_t foil_timer_current_milliseconds(pcmcth_renderer *rdr);
  * Creates a new timer.
  *
  * Note that the name (must be a static string) and the callback handler
- * constitute a unique identifier for the new timer.
+ * constitute a unique identifier for the new timer if @unique is %true.
  *
  * Returns the handle to the timer; NULL for failure.
  */
 pcmcth_timer_t foil_timer_new(pcmcth_renderer *rdr, const char *name,
-        on_timer_expired_f callback, int interval, void *ctxt);
+        on_timer_expired_f callback, int interval, void *ctxt, bool unique);
 
 /**
  * Retrieves a timer based on the identifier and callback.
