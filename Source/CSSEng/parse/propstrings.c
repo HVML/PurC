@@ -273,7 +273,13 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "stroke-miterlimit", SLEN("stroke-miterlimit") },
 	{ "text-anchor", SLEN("text-anchor") },
 	{ "text-rendering", SLEN("text-rendering") },
-
+	{ "appearance", SLEN("appearance") },
+	{ "-foil-color-info", SLEN("-foil-color-info") },
+	{ "-foil-color-warning", SLEN("-foil-color-warning") },
+	{ "-foil-color-danger", SLEN("-foil-color-danger") },
+	{ "-foil-color-success", SLEN("-foil-color-success") },
+	{ "-foil-color-primary", SLEN("-foil-color-primary") },
+	{ "-foil-candidate-marks", SLEN("-foil-candidate-marks") },
 
 	{ "inherit", SLEN("inherit") },
 	{ "important", SLEN("important") },

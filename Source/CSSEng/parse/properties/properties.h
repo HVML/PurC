@@ -636,6 +636,28 @@ css_error css__parse_text_rendering(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result);
 
+css_error css__parse_appearance(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_color_info(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_color_warning(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_color_danger(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_color_success(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_color_primary(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+css_error css__parse__foil_candidate_marks(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
+
 css_error css__parse__foil_candidate_marks_impl(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result, int np);
