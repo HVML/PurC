@@ -366,6 +366,10 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         foil_page_set_fgc(ctxt->udom->page, box->color);
 
         int x = page_rc.left + tray_width / 2;
+        LOG_DEBUG("value: %f, max: %f; left: %d, tray width: %d, x: %d\n",
+                box->tailor_data->value, box->tailor_data->max,
+                page_rc.left, tray_width, x);
+
         foil_page_draw_uchar(ctxt->udom->page, x, y,
                 box->tailor_data->marks[mark_idx], 1);
     }
