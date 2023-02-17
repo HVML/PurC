@@ -166,6 +166,7 @@ const char *foil_timer_id(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 int foil_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 {
     avl_delete(&rdr->timer_avl, &timer->avl);
+    kvlist_delete(&rdr->timer_list, timer->id);
     free(timer);
     return 0;
 }

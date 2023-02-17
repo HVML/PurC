@@ -23,8 +23,11 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// #undef NDEBUG
+
 #include "widget.h"
 #include "workspace.h"
+#include "timer.h"
 
 #include "purc/purc-utils.h"
 #include <assert.h>
@@ -361,14 +364,33 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
     fputs(buf, stdout);
 }
 
+#define TIMER_FLUSHER_NAME          "flusher"
+#define TIMER_FLUSHER_INTERVAL      20  // 50 fps
+
+static int flush_contents(const char *name, void *ctxt)
+{
+    (void)name;
+    foil_widget *widget = ctxt;
+    print_dirty_page_area_line_mode(widget);
+    fflush(stdout);
+
+    foil_rect_empty(&widget->page.dirty_rect);
+    return -1;
+}
+
 void foil_widget_expose(foil_widget *widget)
 {
     foil_widget *root = foil_widget_get_root(widget);
     pcmcth_workspace *workspace = (pcmcth_workspace *)root->user_data;
     if (workspace->rdr->impl->term_mode == FOIL_TERM_MODE_LINE) {
         adjust_viewport_line_mode(widget);
-        print_dirty_page_area_line_mode(widget);
-        fflush(stdout);
+
+        pcmcth_renderer *rdr = foil_get_renderer();
+
+        if (foil_timer_find(rdr, TIMER_FLUSHER_NAME, flush_contents) == NULL) {
+            foil_timer_new(rdr, TIMER_FLUSHER_NAME, flush_contents,
+                    TIMER_FLUSHER_INTERVAL, widget);
+        }
     }
     else {
         // TODO

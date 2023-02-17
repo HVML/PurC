@@ -413,7 +413,6 @@ bool foil_page_expose(pcmcth_page *page)
     }
 
     foil_widget_expose(widget);
-    foil_rect_empty(&page->dirty_rect);
     return true;
 }
 
