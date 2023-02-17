@@ -127,7 +127,6 @@ pcvar_obj_get_data(purc_variant_t obj)
     return data;
 }
 
-#if USE(UOMAP_FOR_OBJECT)
 static void* copy_key_var(const void *key)
 {
     return purc_variant_ref((purc_variant_t)key);
@@ -181,7 +180,6 @@ static uint32_t hash_key_var(const void *key)
     }
     return pchash_default_str_hash(k);
 }
-#endif
 
 static purc_variant_t v_object_new_with_capacity(void)
 {
@@ -203,13 +201,9 @@ static purc_variant_t v_object_new_with_capacity(void)
         return PURC_VARIANT_INVALID;
     }
 
-#if USE(UOMAP_FOR_OBJECT)
     data->kvs = pcutils_uomap_create(copy_key_var,
                 free_key_var, NULL, NULL, hash_key_var,
                 comp_key_var, false);
-#else
-    data->kvs = RB_ROOT;
-#endif
 
     var->sz_ptr[1]     = (uintptr_t)data;
     var->refc          = 1;
@@ -239,18 +233,6 @@ obj_node_release(purc_variant_t obj, struct obj_node *node)
         return;
 
     break_rev_update_chain(obj, node);
-
-#if !USE(UOMAP_FOR_OBJECT)
-    variant_obj_t data = pcvar_obj_get_data(obj);
-    PC_ASSERT(data);
-
-    struct rb_root *root = &data->kvs;
-    if (&node->node == root->rb_node || node->node.rb_parent) {
-        --data->size;
-        pcutils_rbtree_erase(&node->node, root);
-        node->node.rb_parent = NULL;
-    }
-#endif
 
     PURC_VARIANT_SAFE_CLEAR(node->key);
     PURC_VARIANT_SAFE_CLEAR(node->val);
@@ -359,7 +341,6 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
         bool check)
 {
     variant_obj_t data = pcvar_obj_get_data(obj);
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, key);
     if (!entry) {
         if (silently) {
@@ -400,73 +381,6 @@ v_object_remove(purc_variant_t obj, purc_variant_t key, bool silently,
     } while (0);
 
     return -1;
-
-#else
-    struct rb_root *root = &data->kvs;
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    const char *s_key = purc_variant_get_string_const(key);
-    while (*pnode) {
-        struct obj_node *node;
-        node = container_of(*pnode, struct obj_node, node);
-        const char *sk = purc_variant_get_string_const(node->key);
-        int ret = strcmp(s_key, sk);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) {
-        if (silently)
-            return 0;
-
-        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-        return -1;
-    }
-
-    struct obj_node *node;
-    node = container_of(entry, struct obj_node, node);
-    purc_variant_t k = node->key;
-    purc_variant_t v = node->val;
-
-    do {
-        if (check) {
-            if (!shrink(obj, k, v, check))
-                break;
-
-            if (check_shrink(obj, node))
-                break;
-
-            break_rev_update_chain(obj, node);
-        }
-
-        --data->size;
-        PC_ASSERT(entry == root->rb_node || entry->rb_parent);
-        pcutils_rbtree_erase(entry, root);
-        entry->rb_parent = NULL;
-
-        if (check) {
-            pcvar_adjust_set_by_descendant(obj);
-
-            shrunk(obj, k, v, check);
-        }
-
-        obj_node_destroy(obj, node);
-
-        return 0;
-    } while (0);
-
-    return -1;
-#endif
 }
 
 static int
@@ -580,7 +494,6 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     variant_obj_t data = pcvar_obj_get_data(obj);
     PC_ASSERT(data);
 
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, key);
 
     if (!entry) { //new the entry
@@ -672,124 +585,6 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
     } while (0);
 
     return -1;
-#else
-
-    struct rb_root *root = &data->kvs;
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    const char *sk = purc_variant_get_string_const(key);
-    while (*pnode) {
-        struct obj_node *node;
-        node = container_of(*pnode, struct obj_node, node);
-        const char *sko = purc_variant_get_string_const(node->key);
-        int ret = strcmp(sk, sko);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) { //new the entry
-        struct obj_node *node = obj_node_create(key, val);
-        if (!node)
-            return -1;
-
-        do {
-            if (check) {
-                if (!grow(obj, key, val, check))
-                    break;
-
-                if (check_grow(obj, key, val))
-                    break;
-            }
-
-            entry = &node->node;
-
-            pcutils_rbtree_link_node(entry, parent, pnode);
-            pcutils_rbtree_insert_color(entry, root);
-
-            ++data->size;
-
-            if (check) {
-                if (build_rev_update_chain(obj, node))
-                    break;
-
-                pcvar_adjust_set_by_descendant(obj);
-
-                grown(obj, key, val, check);
-            }
-
-            size_t extra = OBJ_EXTRA_SIZE(data);
-            pcvariant_stat_set_extra_size(obj, extra);
-
-            return 0;
-        } while (0);
-
-        obj_node_destroy(obj, node);
-
-        return -1;
-    }
-
-    struct obj_node *node;
-    node = container_of(entry, struct obj_node, node);
-    if (node->val == val) {
-        // NOTE: keep refc intact
-        return 0;
-    }
-
-    do {
-        purc_variant_t ko = node->key;
-        purc_variant_t vo = node->val;
-
-        if (check) {
-            if (!change(obj, ko, vo, key, val, check))
-                break;
-
-            if (check_change(obj, node, key, val))
-                break;
-
-            node->key = key;
-            node->val = val;
-            if (build_rev_update_chain(obj, node)) {
-                break_rev_update_chain(obj, node);
-                node->key = ko;
-                node->val = vo;
-                break;
-            }
-
-            node->key = ko;
-            node->val = vo;
-            break_rev_update_chain(obj, node);
-        }
-
-        node->key = purc_variant_ref(key);
-        node->val = purc_variant_ref(val);
-
-        if (check) {
-            pcvar_adjust_set_by_descendant(obj);
-
-            changed(obj, ko, vo, key, val, check);
-        }
-
-        purc_variant_unref(ko);
-        purc_variant_unref(vo);
-
-        size_t extra = OBJ_EXTRA_SIZE(data);
-        pcvariant_stat_set_extra_size(obj, extra);
-
-        return 0;
-    } while (0);
-
-    return -1;
-#endif
 }
 
 purc_variant_t
@@ -951,7 +746,6 @@ purc_variant_make_object (size_t nr_kv_pairs,
     return v;
 }
 
-#if USE(UOMAP_FOR_OBJECT)
 static int uomap_release_node(void *key, void *val, void *ud)
 {
     UNUSED_PARAM(key);
@@ -960,30 +754,16 @@ static int uomap_release_node(void *key, void *val, void *ud)
     obj_node_destroy(obj, node);
     return 0;
 }
-#endif
 
 void pcvariant_object_release (purc_variant_t value)
 {
     variant_obj_t data = pcvar_obj_get_data(value);
 
-
-#if USE(UOMAP_FOR_OBJECT)
     if (data->kvs) {
         pcutils_uomap_traverse(data->kvs, value, uomap_release_node);
         pcutils_uomap_destroy(data->kvs);
         data->kvs = NULL;
     }
-#else
-    struct rb_root *root = &data->kvs;
-
-    struct rb_node *p, *n;
-    pcutils_rbtree_for_each_safe(pcutils_rbtree_first(root), p, n) {
-        struct obj_node *node;
-        node = container_of(p, struct obj_node, node);
-
-        obj_node_destroy(value, node);
-    }
-#endif
 
     if (data->rev_update_chain) {
         pcvar_destroy_rev_update_chain(data->rev_update_chain);
@@ -1027,7 +807,7 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
         PURC_VARIANT_INVALID);
 
     variant_obj_t data = pcvar_obj_get_data(obj);
-#if USE(UOMAP_FOR_OBJECT)
+
     pcutils_uomap_entry *entry = pcutils_uomap_find(data->kvs, key);
     if (entry) {
         struct obj_node *node = (struct obj_node *) entry->val;
@@ -1036,42 +816,6 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 
     pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
     return PURC_VARIANT_INVALID;
-#else
-    struct rb_root *root = &data->kvs;
-
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    const char *s_key = purc_variant_get_string_const(key);
-    while (*pnode) {
-        struct obj_node *node;
-        node = container_of(*pnode, struct obj_node, node);
-        const char *sk = purc_variant_get_string_const(node->key);
-
-        int ret = strcmp(s_key, sk);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            entry = *pnode;
-            break;
-        }
-    }
-
-    if (!entry) {
-        pcinst_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-
-        return PURC_VARIANT_INVALID;
-    }
-
-    struct obj_node *node;
-    node = container_of(entry, struct obj_node, node);
-    return node->val;
-#endif
 }
 
 bool purc_variant_object_set (purc_variant_t obj,
@@ -1175,16 +919,9 @@ pcvrnt_object_iterator_release (struct pcvrnt_object_iterator* it)
     if (!it)
         return;
 
-#if USE(UOMAP_FOR_OBJECT)
     it->it.obj  = PURC_VARIANT_INVALID;
     it->it.uomap_it.map = NULL;
     it->it.uomap_it.curr = NULL;
-#else
-    it->it.obj  = PURC_VARIANT_INVALID;
-    it->it.curr = NULL;
-    it->it.next = NULL;
-    it->it.prev = NULL;
-#endif
 
     free(it);
 }
@@ -1260,7 +997,6 @@ pcvariant_object_clone(purc_variant_t obj, bool recursively)
     return var;
 }
 
-#if USE(UOMAP_FOR_OBJECT)
 static int uomap_break_rue_downward(void *key, void *val, void *ud)
 {
     UNUSED_PARAM(key);
@@ -1274,7 +1010,6 @@ static int uomap_break_rue_downward(void *key, void *val, void *ud)
     pcvar_break_rue_downward(node->val);
     return 0;
 }
-#endif
 
 void
 pcvar_object_break_rue_downward(purc_variant_t obj)
@@ -1286,22 +1021,7 @@ pcvar_object_break_rue_downward(purc_variant_t obj)
         return;
     }
 
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_traverse(data->kvs, obj, uomap_break_rue_downward);
-#else
-    struct rb_root *root = &data->kvs;
-    struct rb_node *p = pcutils_rbtree_first(root);
-    for (; p; p = pcutils_rbtree_next(p)) {
-        struct obj_node *node;
-        node = container_of(p, struct obj_node, node);
-        struct pcvar_rev_update_edge edge = {
-            .parent         = obj,
-            .obj_me         = node,
-        };
-        pcvar_break_edge_to_parent(node->val, &edge);
-        pcvar_break_rue_downward(node->val);
-    }
-#endif
 }
 
 void
@@ -1319,7 +1039,6 @@ pcvar_object_break_edge_to_parent(purc_variant_t obj,
     pcutils_map_erase(data->rev_update_chain, edge->obj_me);
 }
 
-#if USE(UOMAP_FOR_OBJECT)
 static int uomap_build_rue_downward(void *key, void *val, void *ud)
 {
     UNUSED_PARAM(key);
@@ -1343,7 +1062,6 @@ static int uomap_build_rue_downward(void *key, void *val, void *ud)
 
     return 0;
 }
-#endif
 
 int
 pcvar_object_build_rue_downward(purc_variant_t obj)
@@ -1353,26 +1071,7 @@ pcvar_object_build_rue_downward(purc_variant_t obj)
     if (!data)
         return 0;
 
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_traverse(data->kvs, obj, uomap_build_rue_downward);
-#else
-    struct rb_root *root = &data->kvs;
-    struct rb_node *p = pcutils_rbtree_first(root);
-    for (; p; p = pcutils_rbtree_next(p)) {
-        struct obj_node *node;
-        node = container_of(p, struct obj_node, node);
-        struct pcvar_rev_update_edge edge = {
-            .parent         = obj,
-            .obj_me         = node,
-        };
-        int r = pcvar_build_edge_to_parent(node->val, &edge);
-        if (r)
-            return -1;
-        r = pcvar_build_rue_downward(node->val);
-        if (r)
-            return -1;
-    }
-#endif
 
     return 0;
 }
@@ -1404,40 +1103,6 @@ pcvar_object_build_edge_to_parent(purc_variant_t obj,
     return r ? -1 : 0;
 }
 
-#if !USE(UOMAP_FOR_OBJECT)
-static void
-it_refresh(struct obj_iterator *it, struct rb_node *curr)
-{
-    struct rb_node *next  = NULL;
-    struct rb_node *prev  = NULL;
-    if (curr) {
-        next  = pcutils_rbtree_next(curr);
-        prev  = pcutils_rbtree_prev(curr);
-    }
-
-    if (curr) {
-        it->curr = container_of(curr, struct obj_node, node);
-    }
-    else {
-        it->curr = NULL;
-    }
-
-    if (next) {
-        it->next = container_of(next, struct obj_node, node);
-    }
-    else {
-        it->next = NULL;
-    }
-
-    if (prev) {
-        it->prev = container_of(prev, struct obj_node, node);
-    }
-    else {
-        it->prev = NULL;
-    }
-}
-#endif
-
 struct obj_iterator
 pcvar_obj_it_first(purc_variant_t obj)
 {
@@ -1451,18 +1116,7 @@ pcvar_obj_it_first(purc_variant_t obj)
 
     variant_obj_t data = pcvar_obj_get_data(obj);
 
-#if USE(UOMAP_FOR_OBJECT)
     it.uomap_it = pcutils_uomap_it_begin_first(data->kvs);
-#else
-    if (data->size == 0) {
-        return it;
-    }
-
-    struct rb_root *root = &data->kvs;
-
-    struct rb_node *first = pcutils_rbtree_first(root);
-    it_refresh(&it, first);
-#endif
 
     return it;
 }
@@ -1478,17 +1132,7 @@ pcvar_obj_it_last(purc_variant_t obj)
     }
 
     variant_obj_t data = pcvar_obj_get_data(obj);
-#if USE(UOMAP_FOR_OBJECT)
     it.uomap_it = pcutils_uomap_it_begin_last(data->kvs);
-#else
-    if (data->size==0)
-        return it;
-
-    struct rb_root *root = &data->kvs;
-
-    struct rb_node *last = pcutils_rbtree_last(root);
-    it_refresh(&it, last);
-#endif
 
     return it;
 }
@@ -1496,66 +1140,28 @@ pcvar_obj_it_last(purc_variant_t obj)
 void
 pcvar_obj_it_next(struct obj_iterator *it)
 {
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_it_next(&it->uomap_it);
-#else
-    if (it->curr == NULL)
-        return;
-
-    if (it->next) {
-        struct rb_node *next = &it->next->node;
-        it_refresh(it, next);
-    }
-    else {
-        it->curr = NULL;
-        it->next = NULL;
-        it->prev = NULL;
-    }
-#endif
 }
 
 void
 pcvar_obj_it_prev(struct obj_iterator *it)
 {
-#if USE(UOMAP_FOR_OBJECT)
     pcutils_uomap_it_prev(&it->uomap_it);
-#else
-    if (it->curr == NULL)
-        return;
-
-    if (it->prev) {
-        struct rb_node *prev = &it->prev->node;
-        it_refresh(it, prev);
-    }
-    else {
-        it->curr = NULL;
-        it->next = NULL;
-        it->prev = NULL;
-    }
-#endif
 }
 
 bool
 pcvar_obj_it_is_valid(struct obj_iterator *it)
 {
-#if USE(UOMAP_FOR_OBJECT)
     return it && it->uomap_it.curr;
-#else
-    return it && it->curr;
-#endif
 }
 
 struct obj_node *
 pcvar_obj_it_get_curr(struct obj_iterator *it)
 {
-#if USE(UOMAP_FOR_OBJECT)
     if (it && it->uomap_it.curr) {
         return (struct obj_node *) it->uomap_it.curr->val;
     }
     return NULL;
-#else
-    return it ? it->curr : NULL;
-#endif
 }
 
 purc_variant_t

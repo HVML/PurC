@@ -1985,13 +1985,7 @@ pcvar_kv_it_next(struct kv_iterator *it)
     }
 
     if (it->accu >= data->nr_keynames) {
-#if USE(UOMAP_FOR_OBJECT)
         it->it.uomap_it.curr = NULL;
-#else
-        it->it.curr = NULL;
-        it->it.next = NULL;
-        it->it.prev = NULL;
-#endif
         return;
     }
 
