@@ -30,23 +30,25 @@
 
 #include <assert.h>
 
-struct foil_timer {
-    int     id;
-    int     interval;
-    int64_t expired_ms;
-    void   *ctxt;
+struct pcmcth_timer {
+    const char         *name;
+    on_timer_expired_f  on_expired;
+    void               *ctxt;
 
-    on_timer_expired_f on_expired;
+    int                 interval;
+    int64_t             expired_ms;
+    const char         *id; /* returned by kvlist_set_ex() */
 
     /* AVL node for the AVL tree sorted by living time */
-    struct avl_node avl;
+    struct avl_node     avl;
 };
 
-int foil_timer_compare(const void *k1, const void *k2, void *ptr)
+/* Compares two timers to sort them in AVL tree. */
+static int compare_timers(const void *k1, const void *k2, void *ptr)
 {
     (void)ptr;
-    const struct foil_timer *timer1 = k1;
-    const struct foil_timer *timer2 = k2;
+    const struct pcmcth_timer *timer1 = k1;
+    const struct pcmcth_timer *timer2 = k2;
 
     if (timer1->expired_ms > timer2->expired_ms)
         return 1;
@@ -55,36 +57,98 @@ int foil_timer_compare(const void *k1, const void *k2, void *ptr)
     return -1;
 }
 
+int foil_timer_module_init(pcmcth_renderer *rdr)
+{
+    avl_init(&rdr->timer_avl, compare_timers, true, NULL);
+    kvlist_init(&rdr->timer_list, NULL);
+    return 0;
+}
+
+void foil_timer_module_cleanup(pcmcth_renderer *rdr)
+{
+    kvlist_free(&rdr->timer_list);
+    foil_timer_delete_all(rdr);
+}
+
 int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr)
 {
     return purc_get_elapsed_milliseconds_alt(rdr->t_start, NULL);
 }
 
-foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
-        int interval, on_timer_expired_f on_expired, void *ctxt)
+static inline size_t get_timer_key_len(const char *name)
+{
+    /* pattern: regular-0x1321f0 */
+    return strlen(name) + sizeof(intptr_t) * 2 + 2 /* 0x */ + 1 /* - */;
+}
+
+static inline int get_timer_key(char *buf, size_t buf_len,
+        const char *name, on_timer_expired_f on_expired)
+{
+    int n = snprintf(buf, buf_len, "%s-%p", name, on_expired);
+    if (n < 0 || (size_t)n > buf_len) {
+        return -1;
+    }
+
+    return 0;
+}
+
+pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
+        on_timer_expired_f on_expired)
+{
+    size_t buf_len = get_timer_key_len(name) + 1;
+    char id[buf_len];
+    if (get_timer_key(id, buf_len, name, on_expired))
+        return NULL;
+
+    void *data;
+    data = kvlist_get(&rdr->timer_list, id);
+    if (data == NULL)
+        return NULL;
+
+    return *(pcmcth_timer_t *)data;
+}
+
+pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
+        on_timer_expired_f on_expired, int interval, void *ctxt)
 {
     assert(interval > 0);
+    struct pcmcth_timer *timer = NULL;
 
-    struct foil_timer *timer;
-    timer = (struct foil_timer *)calloc(1, sizeof(struct foil_timer));
+    size_t buf_len = get_timer_key_len(name) + 1;
+    char id[buf_len];
+    if (get_timer_key(id, buf_len, name, on_expired))
+        goto failed;
+
+    void *data;
+    data = kvlist_get(&rdr->timer_list, id);
+    if (data)   /* duplicated */
+        goto failed;
+
+    timer = (struct pcmcth_timer *)calloc(1, sizeof(struct pcmcth_timer));
     if (timer == NULL) {
         goto failed;
     }
 
-    timer->id = id;
+    timer->name = name;
     timer->interval = interval;
     timer->expired_ms = foil_timer_current_milliseconds(rdr) + interval;
     timer->ctxt = ctxt;
     timer->on_expired = on_expired;
-
     timer->avl.key = timer;
 
-    if (avl_insert(&rdr->timer_avl, &timer->avl)) {
+    if (!(timer->id = kvlist_set_ex(&rdr->timer_list, id, &timer))) {
         goto failed;
+    }
+
+    if (avl_insert(&rdr->timer_avl, &timer->avl)) {
+        goto failed_avl;
     }
 
     rdr->nr_timers++;
     return timer;
+
+failed_avl:
+    kvlist_delete(&rdr->timer_list, timer->id);
 
 failed:
     if (timer) {
@@ -93,7 +157,13 @@ failed:
     return NULL;
 }
 
-int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer)
+const char *foil_timer_id(pcmcth_renderer* rdr, pcmcth_timer_t timer)
+{
+    (void)rdr;
+    return timer->id;
+}
+
+int foil_timer_delete(pcmcth_renderer* rdr, pcmcth_timer_t timer)
 {
     avl_delete(&rdr->timer_avl, &timer->avl);
     free(timer);
@@ -103,7 +173,7 @@ int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer)
 unsigned foil_timer_delete_all(pcmcth_renderer* rdr)
 {
     unsigned n = 0;
-    struct foil_timer *timer, *tmp;
+    struct pcmcth_timer *timer, *tmp;
 
     avl_remove_all_elements(&rdr->timer_avl, timer, avl, tmp) {
         free(timer);
@@ -117,12 +187,12 @@ unsigned foil_timer_check_expired(pcmcth_renderer *rdr)
 {
     unsigned n = 0;
     int64_t curr_ms = foil_timer_current_milliseconds(rdr);
-    struct foil_timer *timer, *tmp;
+    struct pcmcth_timer *timer, *tmp;
 
     avl_for_each_element_safe(&rdr->timer_avl, timer, avl, tmp) {
         if (curr_ms >= timer->expired_ms) {
 
-            int interval = timer->on_expired(timer, timer->id, timer->ctxt);
+            int interval = timer->on_expired(timer->name, timer->ctxt);
             if (interval < 0) {
                 foil_timer_delete(rdr, timer);
             }

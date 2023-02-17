@@ -33,7 +33,7 @@
 
 #include <assert.h>
 
-#define IDT_DEFAULT     0
+#define TIMER_NAME      "progress"
 #define TIMER_INTERVAL  100
 #define INDICATOR_STEPS 10
 
@@ -51,14 +51,13 @@ struct _tailor_data {
     int     ind_steps;
 
     /* the handle of the timer for indeterminate status */
-    foil_timer_t    timer;
+    pcmcth_timer_t    timer;
 };
 
 static int
-timer_expired(foil_timer_t timer, int id, void *ctxt)
+timer_expired(const char *name, void *ctxt)
 {
-    (void)timer;
-    (void)id;
+    (void)name;
     struct foil_rdrbox *box = ctxt;
     struct _tailor_data *tailor_data = box->tailor_data;
 
@@ -125,8 +124,8 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
 
         /* TODO: set a timer for indeterminate state */
         if (box->tailor_data->timer == NULL) {
-            box->tailor_data->timer = foil_timer_new(rdr, IDT_DEFAULT,
-                    TIMER_INTERVAL, timer_expired, box);
+            box->tailor_data->timer = foil_timer_new(rdr,
+                    TIMER_NAME, timer_expired, TIMER_INTERVAL, box);
         }
     }
 }

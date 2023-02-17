@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "config.h"
 
@@ -50,7 +50,8 @@ static int init_renderer(pcmcth_renderer *rdr)
 
     kvlist_init(&rdr->endpoint_list, NULL);
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
-    avl_init(&rdr->timer_avl, foil_timer_compare, true, NULL);
+
+    foil_timer_module_init(rdr);
 
     return rdr->cbs.prepare(rdr);
 }
@@ -63,7 +64,8 @@ static void deinit_renderer(pcmcth_renderer *rdr)
 
     rdr->cbs.cleanup(rdr);
 
-    foil_timer_delete_all(rdr);
+    foil_timer_module_cleanup(rdr);
+
     remove_all_living_endpoints(&rdr->living_avl);
 
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
@@ -146,33 +148,43 @@ no_any_endpoints:
 #define MAX_TIMES_FIRED     20
 
 static unsigned nr_timer_fired;
-static int on_regular_timer(foil_timer_t timer, int id, void *ctxt)
+static int on_regular_timer(const char *name, void *ctxt)
 {
-    assert(timer != NULL);
-    assert(id == IDT_REGULAR);
-    assert(ctxt == NULL);
+    assert(strcmp(name, "regular") == 0);
 
-    printf("regular timer fired: %d\n", nr_timer_fired);
+    pcmcth_renderer *rdr = ctxt;
+    pcmcth_timer_t timer = foil_timer_find(rdr, name, on_regular_timer);
+    assert(timer);
+
+    const char* id = foil_timer_id(rdr, timer);
+    printf("Timer %s with id (%s) fired: %d\n", name, id, nr_timer_fired);
     nr_timer_fired++;
     if (nr_timer_fired == MAX_TIMES_FIRED)
         return 100;
     return 0;
 }
 
-static int on_once_timer(foil_timer_t timer, int id, void *ctxt)
+static int on_once_timer(const char *name, void *ctxt)
 {
-    assert(timer != NULL);
-    assert(id == IDT_ONCE);
-    assert(ctxt == NULL);
+    assert(strcmp(name, "once") == 0);
 
-    printf("once timer fired\n");
+    pcmcth_renderer *rdr = ctxt;
+    pcmcth_timer_t timer;
+    timer = foil_timer_find(rdr, name, on_regular_timer);
+    assert(timer == NULL);
+
+    timer = foil_timer_find(rdr, name, on_once_timer);
+    assert(timer);
+
+    const char* id = foil_timer_id(rdr, timer);
+    printf("Timer %s with identifier (%s) fired\n", name, id);
     return -1;
 }
 
 static void test_timer(pcmcth_renderer *rdr)
 {
-    foil_timer_new(rdr, IDT_REGULAR, 10, on_regular_timer, NULL);
-    foil_timer_new(rdr, IDT_ONCE, 100, on_once_timer, NULL);
+    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
+    foil_timer_new(rdr, "once", on_once_timer, 100, rdr);
 
     while (rdr->t_elapsed < 2) {
         if (rdr->cbs.handle_event(rdr, 10000))
