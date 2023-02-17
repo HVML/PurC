@@ -31,6 +31,9 @@
 struct foil_timer;
 typedef struct foil_timer *foil_timer_t;
 
+int foil_timer_module_init(pcmcth_renderer *rdr);
+void foil_timer_module_cleanup(pcmcth_renderer *rdr);
+
 /**
  * Prototype of the callback which will be called when a timer expired.
  *
@@ -44,20 +47,29 @@ typedef int (*on_timer_expired_f)(foil_timer_t timer, int id, void *ctxt);
 int foil_timer_compare(const void *k1, const void *k2, void *ptr);
 
 /** Returns the current milliseconds since the renderer starts up */
-int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr);
+int64_t foil_timer_current_milliseconds(pcmcth_renderer *rdr);
 
 /**
- * Creates a new timer.
+ * Creates a new timer. The identifier and the callback handler
+ * constitute a unique identifier for the new timer.
  * Returns the handle to the timer; NULL for failure.
+ *
  */
-foil_timer_t foil_timer_new(pcmcth_renderer* rdr, int id,
+foil_timer_t foil_timer_new(pcmcth_renderer *rdr, int id,
         int interval, on_timer_expired_f callback, void *ctxt);
 
+/**
+ * Retrieves a timer based on the identifier and callback.
+ * Returns the handle to the timer; NULL for not found.
+ */
+foil_timer_t foil_timer_find(pcmcth_renderer *rdr, int id,
+        on_timer_expired_f callback);
+
 /** Deletes a timer. */
-int foil_timer_delete(pcmcth_renderer* rdr, foil_timer_t timer);
+int foil_timer_delete(pcmcth_renderer *rdr, foil_timer_t timer);
 
 /** Deletes all timer. Returns the number of timers deleted */
-unsigned foil_timer_delete_all(pcmcth_renderer* rdr);
+unsigned foil_timer_delete_all(pcmcth_renderer *rdr);
 
 /** Calls the on_timer_expired_f callbacks for all expired timers. */
 unsigned foil_timer_check_expired(pcmcth_renderer *rdr);

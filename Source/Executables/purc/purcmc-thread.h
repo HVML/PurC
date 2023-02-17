@@ -167,6 +167,10 @@ struct pcmcth_renderer {
     /* the AVL tree of endpoints sorted by living time */
     struct avl_tree living_avl;
 
+    /* The KV list using timer identifier as the key,
+       and pcmcth_timer* as the value */
+    struct kvlist timer_list;
+
     /* the AVL tree of timers sorted by expired time */
     struct avl_tree timer_avl;
 
