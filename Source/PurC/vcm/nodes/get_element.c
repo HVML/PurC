@@ -62,11 +62,15 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t inner_ret = PURC_VARIANT_INVALID;
 
-    struct pcvcm_node *caller_node = pcutils_array_get(frame->params, 0);
-    purc_variant_t caller_var = pcutils_array_get(frame->params_result, 0);
+    struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
+    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame->idx, 0);
 
-    struct pcvcm_node *param_node = pcutils_array_get(frame->params, 1);
-    purc_variant_t param_var = pcutils_array_get(frame->params_result, 1);
+    struct pcvcm_eval_node *first_child = ctxt->eval_nodes + enode->first_child_idx;
+    purc_variant_t caller_node_first_child = first_child->result;
+
+    enode = frame->ops->select_param(ctxt, frame, 1);
+    struct pcvcm_node *param_node = enode->node;
+    purc_variant_t param_var = pcvcm_get_frame_result(ctxt, frame->idx, 1);
 
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1],
@@ -209,8 +213,7 @@ eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
     }
     else if (purc_variant_is_dynamic(caller_var)) {
         ret_var = pcvcm_eval_call_dvariant_method(
-                pcvcm_eval_get_attach_variant(
-                    pcvcm_node_first_child(caller_node)),
+                caller_node_first_child,
                 caller_var, 1, &param_var, GETTER_METHOD,
                 call_flags);
         goto out;

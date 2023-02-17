@@ -73,12 +73,57 @@ static get_ops_fn frame_ops[] = {
 _COMPILE_TIME_ASSERT(types, PCA_TABLESIZE(frame_ops) == PCVCM_NODE_TYPE_NR);
 #undef _COMPILE_TIME_ASSERT
 
-struct pcvcm_node *
+struct pcvcm_eval_node *
 select_param_default(struct pcvcm_eval_ctxt *ctxt,
         struct pcvcm_eval_stack_frame *frame, size_t pos)
 {
     UNUSED_PARAM(ctxt);
-    return pcutils_array_get(frame->params, pos);
+    if (pos >= frame->nr_params) {
+        return NULL;
+    }
+
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
+    return ctxt->eval_nodes + eval_node->first_child_idx + pos;
+}
+
+void
+pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx,
+        size_t pos, purc_variant_t v)
+{
+    if (frame_idx < 0 || frame_idx > ctxt->frame_idx) {
+        return;
+    }
+
+    struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
+    if (pos >= frame->nr_params) {
+        return;
+    }
+
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
+    int32_t idx = eval_node->first_child_idx + pos;
+    struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+
+    child->result = v;
+}
+
+purc_variant_t
+pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
+        int32_t frame_idx, size_t pos)
+{
+    if (frame_idx < 0 || frame_idx > ctxt->frame_idx) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
+    if (pos >= frame->nr_params) {
+        return PURC_VARIANT_INVALID;
+    }
+
+    struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
+    int32_t idx = eval_node->first_child_idx + pos;
+    struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+
+    return child->result;
 }
 
 struct pcvcm_eval_stack_frame_ops *

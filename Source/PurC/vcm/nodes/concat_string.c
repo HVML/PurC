@@ -67,7 +67,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (size_t i = 0; i < frame->nr_params; i++) {
-        purc_variant_t v = pcutils_array_get(frame->params_result, i);
+        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i);
 
         // FIXME: stringify or serialize
         char *buf = NULL;

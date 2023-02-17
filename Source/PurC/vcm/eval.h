@@ -46,6 +46,8 @@
 #define KEY_CALLER_NODE                 "__vcm_caller_node"
 #define KEY_PARAM_NODE                  "__vcm_param_node"
 
+#define PCVCM_VARIABLE_ARGS_NAME        "_ARGS"
+
 
 #define MIN_BUF_SIZE                    32
 #define MAX_BUF_SIZE                    SIZE_MAX
@@ -74,41 +76,54 @@ enum pcvcm_eval_method_type {
     SETTER_METHOD
 };
 
+struct pcvcm_eval_node {
+    struct pcvcm_node      *node;
+    purc_variant_t          result;
+    int32_t                 idx;
+    int32_t                 first_child_idx;
+};
+
 struct pcvcm_eval_stack_frame_ops;
 struct pcvcm_eval_stack_frame {
-    struct list_head        ln;
-
-    struct pcvcm_node      *node;
-    pcutils_array_t        *params;
-    pcutils_array_t        *params_result;
     struct pcvcm_eval_stack_frame_ops *ops;
-    struct pcvarmgr        *variables; // _ARGS
+    struct pcvcm_node      *node;
+    purc_variant_t          args;    // named variable : _ARGS
 
+    size_t                  eval_node_idx;
     size_t                  nr_params;
     size_t                  pos;
     size_t                  return_pos;
+    int                     idx;
 
     enum pcvcm_eval_stack_frame_step step;
 };
 
 struct pcvcm_eval_ctxt {
-    /* struct pcvcm_eval_stack_frame */
-    struct list_head        stack;
     uint32_t                flags;
     find_var_fn             find_var;
     void                   *find_var_ctxt;
+
     struct pcvcm_node      *node;
     purc_variant_t          result;
-    int                     err;
 
+    struct pcvcm_eval_node *eval_nodes;
+    size_t                  nr_eval_nodes;
+    int32_t                 eval_nodes_insert_pos;
+
+    struct pcvcm_eval_stack_frame *frames;
+    size_t                  nr_frames;
+    int32_t                 frame_idx;
+
+    int                     err;
     unsigned int            enable_log:1;
+    unsigned int            free_on_destroy:1;
 };
 
 struct pcvcm_eval_stack_frame_ops {
     int (*after_pushed)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame);
 
-    struct pcvcm_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
+    struct pcvcm_eval_node *(*select_param)(struct pcvcm_eval_ctxt *ctxt,
             struct pcvcm_eval_stack_frame *frame, size_t pos);
 
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
@@ -118,13 +133,6 @@ struct pcvcm_eval_stack_frame_ops {
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-
-struct pcvcm_eval_stack_frame *
-pcvcm_eval_stack_frame_create(struct pcvcm_node *node, size_t return_pos);
-
-void
-pcvcm_eval_stack_frame_destroy(struct pcvcm_eval_stack_frame *);
-
 
 struct pcvcm_eval_ctxt *
 pcvcm_eval_ctxt_create();
@@ -160,12 +168,6 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
         enum pcvcm_eval_method_type type, unsigned call_flags);
 bool
 pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
-
-static inline purc_variant_t
-pcvcm_eval_get_attach_variant(struct pcvcm_node *node)
-{
-    return node ? (purc_variant_t)node->attach : PURC_VARIANT_INVALID;
-}
 
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         struct pcvcm_eval_ctxt **ctxt_out, purc_variant_t args,
