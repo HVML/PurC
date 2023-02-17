@@ -127,12 +127,16 @@ enum {
 };
 
 typedef struct foil_color {
-    bool        is_default;
+    bool        use_def;
     uint32_t    rgb;
 } foil_color;
 
 #define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
 #define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
+
+/* the initial colors for progress */
+#define FOIL_CLR_PROGRESS_INFO      FOIL_STD_COLOR_DARK_GRAY
+#define FOIL_CLR_PROGRESS_PRIMARY   FOIL_STD_COLOR_YELLOW
 
 /* the background color for progress bar */
 #define FOIL_BGC_PROGRESS_BAR   FOIL_STD_COLOR_DARK_BLUE
