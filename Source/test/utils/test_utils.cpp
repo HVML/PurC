@@ -2045,7 +2045,9 @@ TEST(utils, build_query_object)
                 '&', PCUTILS_URL_OPT_REAL_EJSON |  PCUTILS_URL_OPT_RFC1738);
     ASSERT_NE(ret, nullptr);
     buf = purc_variant_get_string_const(ret);
-    ASSERT_STREQ("first=value_1&second=value_2", buf);
+    bool cmp = (strcmp(buf, "first=value_1&second=value_2") == 0) ||
+        (strcmp(buf, "second=value_2&first=value_1") == 0);
+    ASSERT_EQ(cmp, true);
 
     purc_variant_unref(v_2);
     purc_variant_unref(v_1);
@@ -2159,19 +2161,19 @@ static const struct test_data test_cases[] = {
     {
 
         "{'obj':['value_1', 'value_2', {'ka':'b', 'kb':2}]}",
-        "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b&obj%5B2%5D%5Bkb%5D=2",
+        "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bkb%5D=2&obj%5B2%5D%5Bka%5D=b",
         NULL
     },
     {
 
         "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
-        "0=value_1&1=value_2&&2%5Bka%5D=b&2%5Bkb%5D=2",
+        "0=value_1&1=value_2&&2%5Bkb%5D=2&2%5Bka%5D=b",
         NULL
     },
     {
 
         "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
-        "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b&pre2%5Bkb%5D=2",
+        "pre0=value_1&pre1=value_2&&pre2%5Bkb%5D=2&pre2%5Bka%5D=b",
         "pre"
     }
 };

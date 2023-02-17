@@ -3,9 +3,9 @@
     <head>
         <init as="set">
             [
-                {"id":"foo", "value":1},
-                {"id":"bar", "value":2},
-                {"id":"foobar", "value":3},
+                {"id":"foo"},
+                {"id":"bar"},
+                {"id":"foobar"},
             ]
         </init>
 

@@ -24,7 +24,14 @@
         <div>
             <div id="c_value">
                 <archetype name="regionList">
-                    <div>$?</div>
+                    <div>$?.count</div>
+                    <div>$?.regions.zh_CN</div>
+                    <div>$?.regions.zh_TW</div>
+                    <div>$?.regions.zh_HK</div>
+                    <div>$?.regions.zh_SG</div>
+                    <div>$?.regions.zh_MO</div>
+                    <div>$?.regions.en_US</div>
+                    <div>$?.regions.en_UK</div>
                 </archetype>
 
                 <ul>

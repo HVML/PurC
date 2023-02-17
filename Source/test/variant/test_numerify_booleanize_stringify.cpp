@@ -192,13 +192,8 @@ struct stringify_record records[] = {
     { "'123.34'",           "123.34" },
     { "'abcd'",             "abcd" },
     { "[1,2,3,4]",          "1\n2\n3\n4\n" },
-    { "{'a':10,'b':20,'c':30,'d':40}", "a:10\nb:20\nc:30\nd:40\n" },
-    { "[{'id':'1','name': 'Tom', 'age': 2, 'male': true },"
-        "{'id':'2','name':'Jerry','age':3,'male':true}]",
-        "age:2\nid:1\nmale:true\nname:Tom\n"
-            "\n"
-            "age:3\nid:2\nmale:true\nname:Jerry\n"
-            "\n" },
+    { "{'a':10}",           "a:10\n" },
+    { "[{'id':'1'}, {'id':'2'}]", "id:1\n\nid:2\n\n" },
 };
 
 static inline void

@@ -13,7 +13,7 @@
             <div id="c_value">
                 <ul>
                     <choose on=$regionStats by="KEY: ALL">
-                        <update on="$@" to="append" with="$?" />
+                        <update on="$@" to="append" with="$DATA.count($?)" />
                     </choose>
                 </ul>
             </div>
