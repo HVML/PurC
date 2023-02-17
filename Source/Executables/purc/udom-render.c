@@ -331,8 +331,11 @@ static void
 render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box)
 {
-    if (box->is_block_level && box->is_replaced) {
+    if (box->is_control || box->is_replaced) {
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BACKGROUND);
+        render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BORDER);
         render_rdrbox_part(ctxt, box, FOIL_BOX_PART_CONTENT);
+        return;
     }
     else {
         render_rdrbox_part(ctxt, box, FOIL_BOX_PART_BACKGROUND);

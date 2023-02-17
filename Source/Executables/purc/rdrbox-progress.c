@@ -23,13 +23,14 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "udom.h"
 #include "page.h"
 #include "timer.h"
+#include "foil.h"
 
 #include <assert.h>
 
@@ -37,21 +38,33 @@
 #define TIMER_INTERVAL  100
 #define INDICATOR_STEPS 10
 
+static const char *def_bar_marks = "━━";
+static const char *def_mark_marks = "⠀⠁⠉⠙⠹⢹⣹⣽⣿";
+// static const char *def_mark_marks = "⠁⠈⠐⠠⢀⡀⠄⠂";
+
 struct _tailor_data {
     /* the max value, which must be larger than 0.0 */
-    double max;
+    double          max;
 
     /* in indeterminate state if the value is negative. */
-    double value;
+    double          value;
 
     /* the current indicator percent for indeterminate state */
-    int     indicator;
+    int             indicator;
 
     /* the indicator steps for indeterminate state */
-    int     ind_steps;
+    int             ind_steps;
 
     /* the handle of the timer for indeterminate status */
-    pcmcth_timer_t    timer;
+    pcmcth_timer_t  timer;
+
+    /* the candidate marks */
+    size_t          nr_marks;
+    uint32_t*       marks;
+
+    /* color for info */
+    foil_color      info;
+    foil_color      primary;
 };
 
 static int
@@ -130,11 +143,70 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
     }
 }
 
-static int
+static int validate_marks(struct _tailor_data *tailor_data,
+        const char *marks, size_t len)
+{
+    tailor_data->marks =
+        pcutils_string_decode_utf8_alloc(marks, len, &tailor_data->nr_marks);
+    if (tailor_data->marks == NULL || tailor_data->nr_marks == 0)
+        goto failed;
+
+    size_t nr_wide = 0;
+    for (size_t i = 0; i < tailor_data->nr_marks; i++) {
+        if (!g_unichar_isprint(tailor_data->marks[i]))
+            goto failed;
+        if (g_unichar_iswide(tailor_data->marks[i]))
+            nr_wide++;
+    }
+
+    if (nr_wide == 0 || nr_wide == tailor_data->nr_marks)
+        return 0;
+
+failed:
+    if (tailor_data->marks)
+        free(tailor_data->marks);
+    tailor_data->marks = NULL;
+    tailor_data->nr_marks = 0;
+    return -1;
+}
+
 tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 {
     box->tailor_data = calloc(1, sizeof(struct _tailor_data));
     update_properties(ctxt->udom->doc, box);
+
+    if (box->is_control) {
+        const char *marks = NULL;
+        size_t marks_len;
+
+        lwc_string *str;
+        uint8_t v = css_computed_foil_candidate_marks(ctxt->style, &str);
+        if (v != CSS_FOIL_CANDIDATE_MARKS_AUTO) {
+            assert(str);
+
+            marks = lwc_string_data(str);
+            marks_len = lwc_string_length(str);
+            if (validate_marks(box->tailor_data, marks, marks_len)) {
+                // bad value
+                v = CSS_FOIL_CANDIDATE_MARKS_AUTO;
+            }
+        }
+
+        if (v == CSS_FOIL_CANDIDATE_MARKS_AUTO) {
+            if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_MARK) {
+                marks = def_mark_marks;
+            }
+            else {
+                marks = def_bar_marks;
+            }
+
+            marks_len = strlen(marks);
+            int r = validate_marks(box->tailor_data, marks, marks_len);
+            assert(r == 0);
+            (void)r;
+        }
+    }
+
     return 0;
 }
 
@@ -145,6 +217,9 @@ static void cleaner(struct foil_rdrbox *box)
         pcmcth_renderer* rdr = foil_get_renderer();
         foil_timer_delete(rdr, box->tailor_data->timer);
     }
+
+    if (box->tailor_data->marks)
+        free(box->tailor_data->marks);
     free(box->tailor_data);
 }
 
@@ -199,10 +274,85 @@ static void on_attr_changed(struct foil_update_ctxt *ctxt,
     }
 }
 
-struct foil_rdrbox_tailor_ops _foil_rdrbox_progress_ops = {
+struct foil_rdrbox_tailor_ops progress_ops_as_box = {
     .tailor = tailor,
     .cleaner = cleaner,
     .bgnd_painter = bgnd_painter,
     .on_attr_changed = on_attr_changed,
 };
+
+static void
+ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    foil_rect page_rc;
+    foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
+
+    if (foil_rect_is_empty(&page_rc))
+        return;
+
+    int tray_width = foil_rect_width(&page_rc);
+    foil_page_set_bgc(ctxt->udom->page, box->background_color);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
+
+    if (box->tailor_data->value < 0) {
+        /* in indeterminate state */
+        foil_rect bar_rc = page_rc;
+
+        bar_rc.left += tray_width * box->tailor_data->indicator / 100;
+        bar_rc.right = bar_rc.left + tray_width / 10;
+
+        if (foil_rect_intersect(&bar_rc, &bar_rc, &page_rc)) {
+            LOG_DEBUG("Update PROGRESS bar: from %d to %d (%d)\n",
+                    bar_rc.left, bar_rc.right, box->tailor_data->indicator);
+            foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+            foil_page_erase_rect(ctxt->udom->page, &bar_rc);
+        }
+    }
+    else {
+        double bar_ratio = box->tailor_data->value / box->tailor_data->max;
+        assert(bar_ratio > 0 && bar_ratio < 1.0);
+        int bar_width = (int)(tray_width * bar_ratio);
+
+        page_rc.right = page_rc.left + bar_width;
+        foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_erase_rect(ctxt->udom->page, &page_rc);
+    }
+}
+
+static struct foil_rdrbox_tailor_ops progress_ops_as_ctrl = {
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .ctnt_painter = ctnt_painter,
+    .on_attr_changed = on_attr_changed,
+};
+
+struct foil_rdrbox_tailor_ops *
+foil_rdrbox_progress_tailor_ops(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    uint8_t v = css_computed_appearance(ctxt->style);
+    assert(v != CSS_DIRECTION_INHERIT);
+    switch (v) {
+        case CSS_APPEARANCE_AUTO:
+        case CSS_APPEARANCE_PROGRESS_BAR:
+        default:
+            box->is_control = 1;
+            box->ctrl_type = FOIL_RDRBOX_CTRL_PROGRESS_BAR;
+            break;
+
+        case CSS_APPEARANCE_PROGRESS_MARK:
+            box->is_control = 1;
+            box->ctrl_type = FOIL_RDRBOX_CTRL_PROGRESS_MARK;
+            break;
+
+        case CSS_APPEARANCE_PROGRESS_BKGND:
+            box->is_control = 0;
+            break;
+    }
+
+    if (box->is_control)
+        return &progress_ops_as_ctrl;
+
+    return &progress_ops_as_box;
+}
 

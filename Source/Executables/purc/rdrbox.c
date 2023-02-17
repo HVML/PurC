@@ -37,23 +37,18 @@
 
 static struct special_tag_info {
     const char                     *tag_name;
-    unsigned                        flags;
-    struct foil_rdrbox_tailor_ops  *tailor_ops;
+    struct foil_rdrbox_tailor_ops  *(*get_tailor_ops)
+        (struct foil_create_ctxt *ctxt, struct foil_rdrbox *box);
 } special_tags_html[] = {
     { "audio",              /* 0 */
-        TAG_FLAG_CONTROL,
         NULL },
     { "input",              /* 1 */
-        TAG_FLAG_CONTROL,
         NULL },
     { "meter",              /* 2 */
-        TAG_FLAG_NONE,
         NULL },
     { "progress",           /* 3 */
-        TAG_FLAG_NONE,
         NULL },
     { "select",             /* 4 */
-        TAG_FLAG_CONTROL,
         NULL },
 };
 
@@ -61,8 +56,8 @@ int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
 
-    special_tags_html[2].tailor_ops = &_foil_rdrbox_meter_ops;
-    special_tags_html[3].tailor_ops = &_foil_rdrbox_progress_ops;
+    special_tags_html[2].get_tailor_ops = foil_rdrbox_meter_tailor_ops;
+    special_tags_html[3].get_tailor_ops = foil_rdrbox_progress_tailor_ops;
     return 0;
 }
 
@@ -1393,9 +1388,7 @@ static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         mid = (low + high) / 2;
         cmp = strcasecmp(ctxt->tag_name, special_tags_html[mid].tag_name);
         if (cmp == 0) {
-            if (special_tags_html[mid].flags & TAG_FLAG_CONTROL)
-                box->is_control = 1;
-            box->tailor_ops = special_tags_html[mid].tailor_ops;
+            box->tailor_ops = special_tags_html[mid].get_tailor_ops(ctxt, box);
             break;
         }
         else {
@@ -1683,7 +1676,7 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
             box->is_inline_box = 1;
 
         if (box->is_replaced) {
-            box->tailor_ops = &_foil_rdrbox_replaced_ops;
+            box->tailor_ops = foil_rdrbox_replaced_tailor_ops(ctxt, box);
         }
         else {
             tailor_box(ctxt, box);

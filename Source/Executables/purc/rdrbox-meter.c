@@ -156,9 +156,90 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_page_erase_rect(ctxt->udom->page, &page_rc);
 }
 
-struct foil_rdrbox_tailor_ops _foil_rdrbox_meter_ops = {
+struct foil_rdrbox_tailor_ops meter_ops_as_box = {
     .tailor = tailor,
     .cleaner = cleaner,
     .bgnd_painter = bgnd_painter,
 };
+
+static void
+ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    foil_rect page_rc;
+    foil_rdrbox_map_rect_to_page(&box->ctnt_rect, &page_rc);
+
+    if (foil_rect_is_empty(&page_rc))
+        return;
+
+    int tray_width = foil_rect_width(&page_rc);
+    foil_page_set_bgc(ctxt->udom->page, box->background_color);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
+
+    int bgc = FOIL_BGC_METER_NORMAL;
+    if (isnan(box->tailor_data->optimum)) {
+        if (box->tailor_data->value > box->tailor_data->high) {
+            bgc = FOIL_BGC_METER_WARNING;
+        }
+        else if (box->tailor_data->value < box->tailor_data->low) {
+            bgc = FOIL_BGC_METER_WARNING;
+        }
+    }
+    else {
+        if (box->tailor_data->optimum < box->tailor_data->low) {
+            if (box->tailor_data->value > box->tailor_data->high)
+                bgc = FOIL_BGC_METER_ERROR;
+            else
+                bgc = FOIL_BGC_METER_WARNING;
+        }
+        else if (box->tailor_data->optimum > box->tailor_data->high) {
+            if (box->tailor_data->value < box->tailor_data->low)
+                bgc = FOIL_BGC_METER_ERROR;
+            else
+                bgc = FOIL_BGC_METER_WARNING;
+        }
+    }
+
+    double bar_ratio = box->tailor_data->value
+        / (box->tailor_data->max - box->tailor_data->min);
+    int bar_width = (int)(tray_width * bar_ratio);
+    page_rc.right = page_rc.left + bar_width;
+
+    foil_page_set_bgc(ctxt->udom->page, bgc);
+    foil_page_erase_rect(ctxt->udom->page, &page_rc);
+}
+
+struct foil_rdrbox_tailor_ops meter_ops_as_ctrl = {
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .ctnt_painter = ctnt_painter,
+};
+
+struct foil_rdrbox_tailor_ops *
+foil_rdrbox_meter_tailor_ops(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    uint8_t v = css_computed_appearance(ctxt->style);
+    assert(v != CSS_APPEARANCE_INHERIT);
+    switch (v) {
+        case CSS_APPEARANCE_AUTO:
+        case CSS_APPEARANCE_METER_BAR:
+        default:
+            box->is_control = 1;
+            box->ctrl_type = FOIL_RDRBOX_CTRL_METER_BAR;
+            break;
+
+        case CSS_APPEARANCE_METER_MARK:
+            box->is_control = 1;
+            box->ctrl_type = FOIL_RDRBOX_CTRL_METER_MARK;
+            break;
+
+        case CSS_APPEARANCE_METER_BKGND:
+            box->is_control = 0;
+            break;
+    }
+
+    if (box->is_control)
+        return &meter_ops_as_ctrl;
+    return &meter_ops_as_box;
+}
 

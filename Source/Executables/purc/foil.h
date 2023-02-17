@@ -126,6 +126,11 @@ enum {
     FOIL_STD_COLOR_WHITE,
 };
 
+typedef struct foil_color {
+    bool        is_default;
+    uint32_t    rgb;
+} foil_color;
+
 #define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
 #define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
 
