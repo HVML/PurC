@@ -635,7 +635,7 @@ pcutils_escape_string_for_json(const char* str);
 
 /**
  * Counts the number of Unicode characters in a UTF-8 string until
- * reaching the ax length of bytes or encountering a null byte.
+ * reaching the maximal length of bytes or encountering a null byte.
  * If len < 0, the string must be null-terminated.  */
 PCA_EXPORT size_t
 pcutils_string_utf8_chars(const char *p, ssize_t max);
