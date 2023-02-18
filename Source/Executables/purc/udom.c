@@ -290,7 +290,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->height = height;
     LOG_INFO("width of initial containing block: %d\n", width);
 
-    udom->initial_cblock->color.specified = 1;
+    udom->initial_cblock->color.specified = 0;
     udom->initial_cblock->color.argb = FOIL_DEF_FGC;
     udom->initial_cblock->background_color.specified = 0;
     udom->initial_cblock->background_color.argb = FOIL_DEF_BGC;
