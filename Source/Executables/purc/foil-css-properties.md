@@ -30,7 +30,16 @@ Theses color properties can be used to render a UI control defined by a `progres
 - `-foil-color-success`: The color used for positive or successful actions and information.
 - `-foil-color-primary`: The main color, used for hyperlinks, focus styles, and component and form active states.
 
-The definition is same as `color` property.
+The definition is same as `color` property, but they are not inherited.
+
+- Name: `-foil-color-info`
+- Value: `<color>` | `default` | `inherit`
+- Initial: depends on user agent
+- Applies to: all elements
+- Inherited: no
+- Percentages: N/A
+- Media: visual
+- Computed value: as specified
 
 ### `-foil-candidate-marks`
 

@@ -435,7 +435,7 @@ struct foil_rdrbox {
     foil_counters *counter_reset;   // NULL when `counter-reset` is `none`
     foil_counters *counter_incrm;   // NULL when `counter-increment` is `none`
 
-    /* the following non-inherited properties have non-zero intial values */
+    /* the following non-inherited properties have non-zero initial values */
     int32_t min_height, max_height;    // initial value: 0, -1 (none)
     int32_t min_width,  max_width;     // initial value: 0, -1 (none)
 

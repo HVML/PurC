@@ -29,7 +29,7 @@ css_error css__set_background_color_from_hint(const css_hint *hint,
 css_error css__initial_background_color(css_select_state *state)
 {
 	return set_background_color(state->computed,
-			CSS_BACKGROUND_COLOR_COLOR, 0);
+			CSS_BACKGROUND_COLOR_COLOR, 0); // transparent
 }
 
 css_error css__compose_background_color(const css_computed_style *parent,

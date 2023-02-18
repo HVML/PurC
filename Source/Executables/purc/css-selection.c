@@ -1254,19 +1254,47 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
 
     if (property == CSS_PROP_COLOR) {
         hint->data.color = 0xFFFFFFFF;
+        hint->status = CSS_COLOR_DEFAULT;
+    }
+    else if (property == CSS_PROP_BACKGROUND_COLOR) {
+        hint->data.color = 0xFF000000;
+        hint->status = CSS_COLOR_DEFAULT;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_INFO) {
+        hint->data.color = 0xFF087990;
         hint->status = CSS_COLOR_COLOR;
-    } else if (property == CSS_PROP_FONT_FAMILY) {
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_WARNING) {
+        hint->data.color = 0xFF997404;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_DANGER) {
+        hint->data.color = 0XFFB02A37;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_SUCCESS) {
+        hint->data.color = 0XFF146C43;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_PRIMARY) {
+        hint->data.color = 0XFF0A58CA;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FONT_FAMILY) {
         hint->data.strings = NULL;
         hint->status = CSS_FONT_FAMILY_MONOSPACE;
-    } else if (property == CSS_PROP_QUOTES) {
+    }
+    else if (property == CSS_PROP_QUOTES) {
         /* Not exactly useful :) */
         hint->data.strings = NULL;
         hint->status = CSS_QUOTES_NONE;
-    } else if (property == CSS_PROP_VOICE_FAMILY) {
+    }
+    else if (property == CSS_PROP_VOICE_FAMILY) {
         /** \todo Fix this when we have voice-family done */
         hint->data.strings = NULL;
         hint->status = 0;
-    } else {
+    }
+    else {
         return CSS_INVALID;
     }
 
