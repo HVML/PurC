@@ -423,7 +423,7 @@ struct foil_rdrbox {
     uint32_t border_bottom_color:4;
     uint32_t border_left_color:4;
 
-    uint32_t background_color:4;
+    foil_color background_color;
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
@@ -453,7 +453,8 @@ struct foil_rdrbox {
     uint32_t text_transform:2;
     uint32_t visibility:2;
     uint32_t white_space:3;
-    uint32_t color:4;
+
+    foil_color color;
 
     uint32_t border_spacing_x;
     uint32_t border_spacing_y;

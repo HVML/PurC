@@ -23,8 +23,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#undef NDEBUG
 
+#include "config.h"
 #include "foil.h"
 
 #include <purc/purc-document.h>
@@ -186,6 +187,8 @@ uint8_t foil_map_xrgb_to_16c(uint32_t xrgb)
     }
 
     assert(c != 0xFF);
+
+    LOG_DEBUG("map xrgb (0x%08x) to %d\n", xrgb, (int)c);
 
 done:
     return c;

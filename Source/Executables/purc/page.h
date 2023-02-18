@@ -42,6 +42,10 @@ struct foil_tty_cell {
     /* the index of the background color */
     uint8_t bgc;
 
+    /* Indicate whether the foreground color is default. */
+    uint8_t is_fgc_def:1;
+    /* Indicate whether the background color is default. */
+    uint8_t is_bgc_def:1;
     /* Indicate whether the cell is the latter half of a wide character. */
     uint8_t latter_half:1;
 };
@@ -90,7 +94,11 @@ struct pcmcth_page {
     uint8_t fgc;
     /* the index of the current background color */
     uint8_t bgc;
-    uint8_t _padding;
+
+    /* Indicate whether the foreground color is default. */
+    uint8_t is_fgc_def:1;
+    /* Indicate whether the background color is default. */
+    uint8_t is_bgc_def:1;
 
     /* the dirty rectangle */
     foil_rect dirty_rect;
@@ -115,15 +123,15 @@ pcmcth_udom *foil_page_delete(pcmcth_page *page);
 pcmcth_workspace *foil_page_get_workspace(pcmcth_page *page);
 
 bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
-        uint8_t fgc, uint8_t bgc);
+        foil_color fgc, foil_color bgc);
 void foil_page_content_cleanup(pcmcth_page *page);
 
 /* Sets uDOM and return the old one */
 pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 
-uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color);
-uint8_t foil_page_set_bgc(pcmcth_page *page, uint8_t color);
-uint8_t foil_page_set_attrs(pcmcth_page *page, uint8_t attrs);
+void foil_page_set_fgc(pcmcth_page *page, foil_color color);
+void foil_page_set_bgc(pcmcth_page *page, foil_color color);
+void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs);
 
 int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
         uint32_t uc, size_t count);

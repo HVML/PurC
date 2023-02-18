@@ -54,6 +54,12 @@ struct _tailor_data {
     double low;
     double high;
     double optimum;
+
+    foil_color color_info;
+    foil_color color_prim;
+    foil_color color_warn;
+    foil_color color_dang;
+    foil_color color_succ;
 };
 
 static int
@@ -101,6 +107,42 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         box->tailor_data->high = box->tailor_data->max;
     }
 
+    uint8_t v;
+    v = css_computed_foil_color_info(ctxt->style,
+            &box->tailor_data->color_info.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_info.specified = false;
+    else
+        box->tailor_data->color_info.specified = true;
+
+    v = css_computed_foil_color_primary(ctxt->style,
+            &box->tailor_data->color_prim.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_prim.specified = false;
+    else
+        box->tailor_data->color_prim.specified = true;
+
+    v = css_computed_foil_color_warning(ctxt->style,
+            &box->tailor_data->color_warn.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_warn.specified = false;
+    else
+        box->tailor_data->color_warn.specified = true;
+
+    v = css_computed_foil_color_danger(ctxt->style,
+            &box->tailor_data->color_dang.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_dang.specified = false;
+    else
+        box->tailor_data->color_dang.specified = true;
+
+    v = css_computed_foil_color_success(ctxt->style,
+            &box->tailor_data->color_succ.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_succ.specified = false;
+    else
+        box->tailor_data->color_succ.specified = true;
+
     return 0;
 }
 
@@ -123,27 +165,31 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_page_set_bgc(ctxt->udom->page, box->background_color);
     foil_page_erase_rect(ctxt->udom->page, &page_rc);
 
-    int bgc = FOIL_BGC_METER_NORMAL;
+    foil_color bgc = box->tailor_data->color_prim;
     if (isnan(box->tailor_data->optimum)) {
         if (box->tailor_data->value > box->tailor_data->high) {
-            bgc = FOIL_BGC_METER_WARNING;
+            bgc = box->tailor_data->color_warn;
         }
         else if (box->tailor_data->value < box->tailor_data->low) {
-            bgc = FOIL_BGC_METER_WARNING;
+            bgc = box->tailor_data->color_warn;
         }
     }
     else {
         if (box->tailor_data->optimum < box->tailor_data->low) {
-            if (box->tailor_data->value > box->tailor_data->high)
-                bgc = FOIL_BGC_METER_ERROR;
-            else
-                bgc = FOIL_BGC_METER_WARNING;
+            if (box->tailor_data->value > box->tailor_data->high) {
+                bgc = box->tailor_data->color_dang;
+            }
+            else {
+                bgc = box->tailor_data->color_warn;
+            }
         }
         else if (box->tailor_data->optimum > box->tailor_data->high) {
-            if (box->tailor_data->value < box->tailor_data->low)
-                bgc = FOIL_BGC_METER_ERROR;
-            else
-                bgc = FOIL_BGC_METER_WARNING;
+            if (box->tailor_data->value < box->tailor_data->low) {
+                bgc = box->tailor_data->color_dang;
+            }
+            else {
+                bgc = box->tailor_data->color_warn;
+            }
         }
     }
 
@@ -175,27 +221,31 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_page_set_bgc(ctxt->udom->page, box->background_color);
     foil_page_erase_rect(ctxt->udom->page, &page_rc);
 
-    int bgc = FOIL_BGC_METER_NORMAL;
+    foil_color bgc = box->tailor_data->color_prim;
     if (isnan(box->tailor_data->optimum)) {
         if (box->tailor_data->value > box->tailor_data->high) {
-            bgc = FOIL_BGC_METER_WARNING;
+            bgc = box->tailor_data->color_warn;
         }
         else if (box->tailor_data->value < box->tailor_data->low) {
-            bgc = FOIL_BGC_METER_WARNING;
+            bgc = box->tailor_data->color_warn;
         }
     }
     else {
         if (box->tailor_data->optimum < box->tailor_data->low) {
-            if (box->tailor_data->value > box->tailor_data->high)
-                bgc = FOIL_BGC_METER_ERROR;
-            else
-                bgc = FOIL_BGC_METER_WARNING;
+            if (box->tailor_data->value > box->tailor_data->high) {
+                bgc = box->tailor_data->color_dang;
+            }
+            else {
+                bgc = box->tailor_data->color_warn;
+            }
         }
         else if (box->tailor_data->optimum > box->tailor_data->high) {
-            if (box->tailor_data->value < box->tailor_data->low)
-                bgc = FOIL_BGC_METER_ERROR;
-            else
-                bgc = FOIL_BGC_METER_WARNING;
+            if (box->tailor_data->value < box->tailor_data->low) {
+                bgc = box->tailor_data->color_dang;
+            }
+            else {
+                bgc = box->tailor_data->color_warn;
+            }
         }
     }
 

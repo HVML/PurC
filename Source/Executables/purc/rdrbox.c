@@ -1264,16 +1264,32 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
     css_color color_argb;
     v = css_computed_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->color = foil_map_xrgb_to_16c(color_argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->color.specified = 0;
+    else {
+        box->color.specified = 1;
+        box->color.argb = color_argb;
+    }
+    // box->color = foil_map_xrgb_to_16c(color_argb);
 
-    LOG_DEBUG("\tcolor: 0x%08x\n", box->color);
+    LOG_DEBUG("\tcolor: %s, 0x%08x\n",
+            box->color.specified ? "specified" : "default",
+            box->color.argb);
 
     /* determine background color */
     v = css_computed_background_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->background_color = foil_map_xrgb_to_16c(color_argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->background_color.specified = 0;
+    else {
+        box->background_color.specified = 1;
+        box->background_color.argb = color_argb;
+    }
+    // box->background_color = foil_map_xrgb_to_16c(color_argb);
 
-    LOG_DEBUG("\tbackground-color: 0x%08x\n", box->background_color);
+    LOG_DEBUG("\tbackground-color: %s, 0x%08x\n",
+            box->background_color.specified ? "specified" : "default",
+            box->background_color.argb);
 
     /* determine quotes */
     lwc_string **strings = NULL;

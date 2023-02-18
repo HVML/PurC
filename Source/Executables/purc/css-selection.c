@@ -1253,31 +1253,35 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
     (void)pw;
 
     if (property == CSS_PROP_COLOR) {
-        hint->data.color = 0xFFFFFFFF;
-        hint->status = CSS_COLOR_DEFAULT;
+        hint->data.color = FOIL_DEF_FGC;
+        hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_BACKGROUND_COLOR) {
-        hint->data.color = 0xFF000000;
+        hint->data.color = FOIL_DEF_BGC;
         hint->status = CSS_COLOR_DEFAULT;
     }
     else if (property == CSS_PROP_FOIL_COLOR_INFO) {
-        hint->data.color = 0xFF087990;
+        hint->data.color = FOIL_COLOR_INFO;
         hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_FOIL_COLOR_WARNING) {
-        hint->data.color = 0xFF997404;
+        hint->data.color = FOIL_COLOR_WARNING;
         hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_FOIL_COLOR_DANGER) {
-        hint->data.color = 0XFFB02A37;
+        hint->data.color = FOIL_COLOR_DANGER;
         hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_FOIL_COLOR_SUCCESS) {
-        hint->data.color = 0XFF146C43;
+        hint->data.color = FOIL_COLOR_SUCCESS;
         hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_FOIL_COLOR_PRIMARY) {
-        hint->data.color = 0XFF0A58CA;
+        hint->data.color = FOIL_COLOR_PRIMARY;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_SECONDARY) {
+        hint->data.color = FOIL_COLOR_SECONDARY;
         hint->status = CSS_COLOR_COLOR;
     }
     else if (property == CSS_PROP_FONT_FAMILY) {

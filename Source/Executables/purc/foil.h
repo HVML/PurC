@@ -127,24 +127,19 @@ enum {
 };
 
 typedef struct foil_color {
-    bool        use_def;
-    uint32_t    rgb;
+    bool        specified;  /* false (zero) for default */
+    uint32_t    argb;
 } foil_color;
 
-#define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
-#define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
+#define FOIL_DEF_FGC            0xFFA0A0A0
+#define FOIL_DEF_BGC            0xFF000000
 
-/* the initial colors for progress */
-#define FOIL_CLR_PROGRESS_INFO      FOIL_STD_COLOR_DARK_GRAY
-#define FOIL_CLR_PROGRESS_PRIMARY   FOIL_STD_COLOR_YELLOW
-
-/* the background color for progress bar */
-#define FOIL_BGC_PROGRESS_BAR   FOIL_STD_COLOR_DARK_BLUE
-
-/* the background colors for meter */
-#define FOIL_BGC_METER_NORMAL   FOIL_STD_COLOR_DARK_GREEN
-#define FOIL_BGC_METER_WARNING  FOIL_STD_COLOR_DARK_MAGENTA
-#define FOIL_BGC_METER_ERROR    FOIL_STD_COLOR_DARK_RED
+#define FOIL_COLOR_INFO         0xFF087990
+#define FOIL_COLOR_WARNING      0xFF997404
+#define FOIL_COLOR_DANGER       0xFFB02A37
+#define FOIL_COLOR_SUCCESS      0xFF146C43
+#define FOIL_COLOR_PRIMARY      0xFF0A58CA
+#define FOIL_COLOR_SECONDARY    0xFF6C757D
 
 enum {
     FOIL_CHAR_ATTR_NULL         = 0x00,

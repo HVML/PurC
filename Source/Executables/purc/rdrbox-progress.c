@@ -62,9 +62,9 @@ struct _tailor_data {
     int             nr_marks;
     uint32_t*       marks;
 
-    /* color for info */
-    foil_color      color_info;
+    /* colors */
     foil_color      color_prim;
+    foil_color      color_seco;
 };
 
 static int
@@ -189,12 +189,13 @@ static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     box->tailor_data = calloc(1, sizeof(struct _tailor_data));
     update_properties(ctxt->udom->doc, box);
 
+    uint8_t v;
     if (box->is_control) {
         const char *marks = NULL;
         size_t marks_len;
 
         lwc_string *str;
-        uint8_t v = css_computed_foil_candidate_marks(ctxt->style, &str);
+        v = css_computed_foil_candidate_marks(ctxt->style, &str);
         if (v != CSS_FOIL_CANDIDATE_MARKS_AUTO) {
             assert(str);
 
@@ -209,15 +210,6 @@ static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         if (v == CSS_FOIL_CANDIDATE_MARKS_AUTO) {
             if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_MARK) {
                 marks = def_mark_marks;
-                v = css_computed_foil_color_info(ctxt->style,
-                        &box->tailor_data->color_info.rgb);
-                if (v == CSS_COLOR_DEFAULT)
-                    box->tailor_data->color_info.use_def = true;
-
-                v = css_computed_foil_color_primary(ctxt->style,
-                        &box->tailor_data->color_prim.rgb);
-                if (v == CSS_COLOR_DEFAULT)
-                    box->tailor_data->color_prim.use_def = true;
             }
             else {
                 marks = def_bar_marks;
@@ -232,6 +224,28 @@ static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_MARK) {
         }
     }
+
+    v = css_computed_foil_color_primary(ctxt->style,
+            &box->tailor_data->color_prim.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_prim.specified = false;
+    else
+        box->tailor_data->color_prim.specified = true;
+
+    v = css_computed_foil_color_secondary(ctxt->style,
+            &box->tailor_data->color_seco.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_seco.specified = false;
+    else
+        box->tailor_data->color_seco.specified = true;
+
+    LOG_DEBUG("\t-foil-color-primary: %s, 0x%08x\n",
+            box->tailor_data->color_prim.specified ? "specified" : "default",
+            box->tailor_data->color_prim.argb);
+
+    LOG_DEBUG("\t-foil-color-secondary: %s, 0x%08x\n",
+            box->tailor_data->color_seco.specified ? "specified" : "default",
+            box->tailor_data->color_seco.argb);
 
     return 0;
 }
@@ -272,7 +286,7 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         if (foil_rect_intersect(&bar_rc, &bar_rc, &page_rc)) {
             LOG_DEBUG("Update PROGRESS bar: from %d to %d (%d)\n",
                     bar_rc.left, bar_rc.right, box->tailor_data->indicator);
-            foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+            foil_page_set_bgc(ctxt->udom->page, box->tailor_data->color_prim);
             foil_page_erase_rect(ctxt->udom->page, &bar_rc);
         }
     }
@@ -282,7 +296,7 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         int bar_width = (int)(tray_width * bar_ratio);
 
         page_rc.right = page_rc.left + bar_width;
-        foil_page_set_bgc(ctxt->udom->page, FOIL_BGC_PROGRESS_BAR);
+        foil_page_set_bgc(ctxt->udom->page, box->tailor_data->color_prim);
         foil_page_erase_rect(ctxt->udom->page, &page_rc);
     }
 }
@@ -319,7 +333,7 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     int tray_width = foil_rect_width(&page_rc);
     int y = page_rc.top + foil_rect_height(&page_rc) / 2;
     if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_BAR) {
-        foil_page_set_fgc(ctxt->udom->page, FOIL_CLR_PROGRESS_INFO);
+        foil_page_set_fgc(ctxt->udom->page, box->tailor_data->color_seco);
         foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
                 box->tailor_data->marks[0], tray_width);
 
@@ -331,7 +345,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
             bar_rc.right = bar_rc.left + tray_width / 10;
 
             if (foil_rect_intersect(&bar_rc, &bar_rc, &page_rc)) {
-                foil_page_set_fgc(ctxt->udom->page, FOIL_CLR_PROGRESS_PRIMARY);
+                foil_page_set_fgc(ctxt->udom->page,
+                        box->tailor_data->color_prim);
                 foil_page_draw_uchar(ctxt->udom->page, bar_rc.left, y,
                     box->tailor_data->marks[1], foil_rect_width(&bar_rc));
             }
@@ -342,7 +357,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
             int bar_width = (int)(tray_width * bar_ratio);
 
             if (bar_width > 0) {
-                foil_page_set_fgc(ctxt->udom->page, FOIL_CLR_PROGRESS_PRIMARY);
+                foil_page_set_fgc(ctxt->udom->page,
+                        box->tailor_data->color_prim);
                 foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
                         box->tailor_data->marks[1], bar_width);
             }
