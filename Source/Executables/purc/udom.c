@@ -51,7 +51,6 @@ static const char *def_style_sheet = ""
     "dir, hr, menu, pre,"
     "header, nav, article, footer," // HTML 5 tags
     "section, address, aside { display: block; unicode-bidi: embed }"
-    "body            { color: default }"
     "abbr            { display: inline }"
     "li              { display: list-item }"
     "datalist, template, slot, dialog,"  // HTML 5 tags

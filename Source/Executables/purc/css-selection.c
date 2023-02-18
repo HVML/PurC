@@ -1254,7 +1254,7 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
 
     if (property == CSS_PROP_COLOR) {
         hint->data.color = FOIL_DEF_FGC;
-        hint->status = CSS_COLOR_COLOR;
+        hint->status = CSS_COLOR_DEFAULT;
     }
     else if (property == CSS_PROP_BACKGROUND_COLOR) {
         hint->data.color = FOIL_DEF_BGC;
