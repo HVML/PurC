@@ -223,13 +223,26 @@ static void adjust_viewport_line_mode(foil_widget *widget)
 {
     int widget_rows = foil_rect_height(&widget->client_rc);
     int rows = widget->vh;
-    while (rows < widget->page.rows && rows < widget_rows) {
-        fputs("\n", stdout);
-        rows++;
-    }
 
-    widget->vh = rows;
-    widget->vy = foil_rect_height(&widget->client_rc) - widget->page.rows;
+    if (rows < widget->page.rows) {
+        while (rows < widget->page.rows) {
+            fputs("\n", stdout);
+            rows++;
+        }
+        widget->vh = rows;
+
+        if (widget->page.rows > widget_rows) {
+            widget->vy = widget->page.rows - widget_rows;
+            widget->vh = widget_rows;
+        }
+
+        LOG_DEBUG("widget viewport: %d, %d, %d, %d\n",
+                widget->vx, widget->vy, widget->vw, widget->vh);
+
+        /* Save cursor position */
+        fputs("\e7", stdout);
+        fflush(stdout);
+    }
 }
 
 static const char *escaped_bgc[] = {
@@ -347,30 +360,33 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
     for (int y = page->dirty_rect.top; y < page->dirty_rect.bottom; y++) {
         int x = page->dirty_rect.left;
 
-        int screen_col = x + widget->vx;
-        int screen_row = y + widget->vy;
-        if (screen_row < 0)
+        int rel_col = x - widget->vx;
+        int rel_row = widget->vh - y + widget->vy;
+        if (rel_row > widget->vh)
             continue;
 
         struct foil_tty_cell *cell = page->cells[y] + x;
         char *escaped_str = make_escape_string_line_mode(cell, w);
 
-        LOG_DEBUG("screen col, row: %d, %d\n",
-                screen_col, screen_row);
-        assert(screen_col >= 0 &&
-                screen_col < foil_rect_width(&widget->client_rc));
-        assert(screen_row >= 0 &&
-                screen_row < foil_rect_height(&widget->client_rc));
+        LOG_DEBUG("move curosr %d rows up and %d colunms right\n",
+                rel_row, rel_col);
 
-        snprintf(buf, sizeof(buf), "\x1b[%d;%dH", screen_row, screen_col);
+        /* restore curosr and move cursor rel_row up lines,
+           move curosr rel_col right lines */
+        snprintf(buf, sizeof(buf), "\e8\x1b[%dA\x1b[%dC", rel_row, rel_col);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
         free(escaped_str);
     }
 
+#if 0
     snprintf(buf, sizeof(buf), "\x1b[%d;%dH\x1b[39m\x1b[49m",
             widget->vy + page->rows + 1, 0);
     fputs(buf, stdout);
+#else
+    /* restore cursor position (bottom-left corner of the page). */
+    fputs("\e8", stdout);
+#endif
 }
 
 #define TIMER_FLUSHER_NAME          "flusher"
