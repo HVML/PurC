@@ -198,6 +198,7 @@ PROPERTY_FUNCS(_foil_color_warning);
 PROPERTY_FUNCS(_foil_color_danger);
 PROPERTY_FUNCS(_foil_color_success);
 PROPERTY_FUNCS(_foil_color_primary);
+PROPERTY_FUNCS(_foil_color_secondary);
 PROPERTY_FUNCS(_foil_candidate_marks);
 
 #undef PROPERTY_FUNCS

@@ -2101,6 +2101,12 @@ uint8_t css_computed_foil_color_primary(
     return get__foil_color_primary(style, color);
 }
 
+uint8_t css_computed_foil_color_secondary(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_secondary(style, color);
+}
+
 uint8_t css_computed_foil_candidate_marks(
         const css_computed_style *style, lwc_string **marks)
 {

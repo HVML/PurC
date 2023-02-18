@@ -654,6 +654,9 @@ css_error css__parse__foil_color_success(css_language *c,
 css_error css__parse__foil_color_primary(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result);
+css_error css__parse__foil_color_secondary(css_language *c,
+        const parserutils_vector *vector, int *ctx,
+        css_style *result);
 css_error css__parse__foil_candidate_marks(css_language *c,
         const parserutils_vector *vector, int *ctx,
         css_style *result);

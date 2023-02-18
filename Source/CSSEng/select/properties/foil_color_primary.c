@@ -62,7 +62,7 @@ css_error css__initial__foil_color_primary(css_select_state *state)
     css_error error;
 
     error = state->handler->ua_default_for_property(state->pw,
-            CSS_PROP_COLOR, &hint);
+            CSS_PROP_FOIL_COLOR_PRIMARY, &hint);
     if (error != CSS_OK)
         return error;
 

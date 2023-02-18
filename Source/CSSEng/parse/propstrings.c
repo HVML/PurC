@@ -279,6 +279,7 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "-foil-color-danger", SLEN("-foil-color-danger") },
 	{ "-foil-color-success", SLEN("-foil-color-success") },
 	{ "-foil-color-primary", SLEN("-foil-color-primary") },
+	{ "-foil-color-secondary", SLEN("-foil-color-secondary") },
 	{ "-foil-candidate-marks", SLEN("-foil-candidate-marks") },
 
 	{ "inherit", SLEN("inherit") },
