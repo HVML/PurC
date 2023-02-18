@@ -77,14 +77,14 @@ int64_t foil_timer_current_milliseconds(pcmcth_renderer* rdr)
 
 static inline size_t get_timer_key_len(const char *name)
 {
-    /* pattern: regular-0x1321f0 */
-    return strlen(name) + sizeof(intptr_t) * 2 + 2 /* 0x */ + 1 /* - */;
+    /* pattern: regular-0x1321f0-null */
+    return strlen(name) + sizeof(intptr_t) * 4 + 4 /* 0x */ + 2 /* - */;
 }
 
 static inline int get_timer_key(char *buf, size_t buf_len,
-        const char *name, on_timer_expired_f on_expired)
+        const char *name, on_timer_expired_f on_expired, void *ctxt)
 {
-    int n = snprintf(buf, buf_len, "%s-%p", name, on_expired);
+    int n = snprintf(buf, buf_len, "%s-%p-%p", name, on_expired, ctxt);
     if (n < 0 || (size_t)n > buf_len) {
         return -1;
     }
@@ -93,11 +93,11 @@ static inline int get_timer_key(char *buf, size_t buf_len,
 }
 
 pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
-        on_timer_expired_f on_expired)
+        on_timer_expired_f on_expired, void *ctxt)
 {
     size_t buf_len = get_timer_key_len(name) + 1;
     char id[buf_len];
-    if (get_timer_key(id, buf_len, name, on_expired))
+    if (get_timer_key(id, buf_len, name, on_expired, ctxt))
         return NULL;
 
     void *data;
@@ -109,25 +109,20 @@ pcmcth_timer_t foil_timer_find(pcmcth_renderer* rdr, const char *name,
 }
 
 pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
-        on_timer_expired_f on_expired, int interval, void *ctxt, bool unique)
+        on_timer_expired_f on_expired, int interval, void *ctxt)
 {
     assert(interval > 0);
     struct pcmcth_timer *timer = NULL;
 
     size_t buf_len = get_timer_key_len(name) + 1;
     char id[buf_len];
-    if (unique) {
-        if (get_timer_key(id, buf_len, name, on_expired))
-            goto failed;
+    if (get_timer_key(id, buf_len, name, on_expired, ctxt))
+        goto failed;
 
-        void *data;
-        data = kvlist_get(&rdr->timer_list, id);
-        if (data)   /* duplicated */
-            goto failed;
-    }
-    else {
-        id[0] = 0;
-    }
+    void *data;
+    data = kvlist_get(&rdr->timer_list, id);
+    if (data)   /* duplicated */
+        goto failed;
 
     timer = (struct pcmcth_timer *)calloc(1, sizeof(struct pcmcth_timer));
     if (timer == NULL) {
@@ -141,10 +136,8 @@ pcmcth_timer_t foil_timer_new(pcmcth_renderer* rdr, const char *name,
     timer->on_expired = on_expired;
     timer->avl.key = timer;
 
-    if (unique) {
-        if (!(timer->id = kvlist_set_ex(&rdr->timer_list, id, &timer))) {
-            goto failed;
-        }
+    if (!(timer->id = kvlist_set_ex(&rdr->timer_list, id, &timer))) {
+        goto failed;
     }
 
     if (avl_insert(&rdr->timer_avl, &timer->avl)) {

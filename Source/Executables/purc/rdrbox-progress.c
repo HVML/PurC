@@ -146,7 +146,7 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
         /* TODO: set a timer for indeterminate state */
         if (box->tailor_data->timer == NULL) {
             box->tailor_data->timer = foil_timer_new(rdr,
-                    TIMER_NAME, timer_expired, TIMER_INTERVAL, box, false);
+                    TIMER_NAME, timer_expired, TIMER_INTERVAL, box);
         }
     }
 }

@@ -387,9 +387,10 @@ void foil_widget_expose(foil_widget *widget)
 
         pcmcth_renderer *rdr = foil_get_renderer();
 
-        if (foil_timer_find(rdr, TIMER_FLUSHER_NAME, flush_contents) == NULL) {
+        if (foil_timer_find(rdr,
+                    TIMER_FLUSHER_NAME, flush_contents, widget) == NULL) {
             foil_timer_new(rdr, TIMER_FLUSHER_NAME, flush_contents,
-                    TIMER_FLUSHER_INTERVAL, widget, true);
+                    TIMER_FLUSHER_INTERVAL, widget);
         }
     }
     else {

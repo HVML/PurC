@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "config.h"
 
@@ -153,7 +153,7 @@ static int on_regular_timer(const char *name, void *ctxt)
     assert(strcmp(name, "regular") == 0);
 
     pcmcth_renderer *rdr = ctxt;
-    pcmcth_timer_t timer = foil_timer_find(rdr, name, on_regular_timer);
+    pcmcth_timer_t timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
     assert(timer);
 
     const char* id = foil_timer_id(rdr, timer);
@@ -170,10 +170,10 @@ static int on_once_timer(const char *name, void *ctxt)
 
     pcmcth_renderer *rdr = ctxt;
     pcmcth_timer_t timer;
-    timer = foil_timer_find(rdr, name, on_regular_timer);
+    timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
     assert(timer == NULL);
 
-    timer = foil_timer_find(rdr, name, on_once_timer);
+    timer = foil_timer_find(rdr, name, on_once_timer, ctxt);
     assert(timer);
 
     const char* id = foil_timer_id(rdr, timer);
@@ -183,8 +183,8 @@ static int on_once_timer(const char *name, void *ctxt)
 
 static void test_timer(pcmcth_renderer *rdr)
 {
-    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr, true);
-    foil_timer_new(rdr, "once", on_once_timer, 100, rdr, true);
+    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
+    foil_timer_new(rdr, "once", on_once_timer, 100, rdr);
 
     while (rdr->t_elapsed < 2) {
         if (rdr->cbs.handle_event(rdr, 10000))
