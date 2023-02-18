@@ -43,6 +43,32 @@ void foil_page_module_cleanup(pcmcth_renderer *rdr)
     foil_udom_module_cleanup(rdr);
 }
 
+static int xrgb_to_color(const pcmcth_page *page, foil_color color)
+{
+    int c;
+    switch (page->color_mode) {
+    case FOIL_TTY_COLOR_STD_16C:
+        c = foil_map_xrgb_to_16c(color.argb);
+        break;
+
+    case FOIL_TTY_COLOR_XTERM_256C:
+        c = foil_map_xrgb_to_xterm_256c(color.argb);
+        break;
+
+    case FOIL_TTY_COLOR_TRUE_COLOR:
+        c = color.argb & 0x00FFFFFF;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    if (!color.specified)
+        c |= FOIL_DEFCLR_MASK;
+    return c;
+}
+
 bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
         foil_color fgc, foil_color bgc)
 {
@@ -65,10 +91,10 @@ bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
     page->udom = NULL;
 
     page->attrs = FOIL_CHAR_ATTR_NULL;
-    page->fgc = foil_map_xrgb_to_16c(fgc.argb);
-    page->fgc |= fgc.specified ? 0 : 0x80;
-    page->bgc = foil_map_xrgb_to_16c(bgc.argb);
-    page->bgc |= bgc.specified ? 0 : 0x80;
+    page->color_mode = FOIL_TTY_COLOR_STD_16C; /* TODO */
+
+    page->fgc = xrgb_to_color(page, fgc);
+    page->bgc = xrgb_to_color(page, bgc);
 
     foil_page_fill_rect(page, NULL, FOIL_UCHAR_SPACE);
     return true;
@@ -128,14 +154,12 @@ pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
 
 void foil_page_set_fgc(pcmcth_page *page, foil_color color)
 {
-    page->fgc = foil_map_xrgb_to_16c(color.argb);
-    page->fgc |= color.specified ? 0 : 0x80;
+    page->fgc = xrgb_to_color(page, color);
 }
 
 void foil_page_set_bgc(pcmcth_page *page, foil_color color)
 {
-    page->bgc = foil_map_xrgb_to_16c(color.argb);
-    page->bgc |= color.specified ? 0 : 0x80;
+    page->bgc = xrgb_to_color(page, color);
 }
 
 void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)

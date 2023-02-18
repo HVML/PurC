@@ -31,53 +31,30 @@
 #include "unicode/unicode.h"
 #include "util/list.h"
 
+#define FOIL_DEFCLR_MASK    0x80000000
+
+enum {
+    FOIL_TTY_COLOR_STD_16C = 0,
+    FOIL_TTY_COLOR_XTERM_256C,
+    FOIL_TTY_COLOR_TRUE_COLOR,
+};
+
 struct foil_tty_cell {
     /* the Unicode code point of the character */
     uint32_t uc;
 
     /* the character attributes */
     uint8_t attrs;
-    /* the index of the foreground color;
-       the most significant bit indicates using the default color. */
-    uint8_t fgc;
-    /* the index of the background color;
-       the most significant bit indicates using the default color. */
-    uint8_t bgc;
 
     /* Indicate whether the cell is the latter half of a wide character. */
     uint8_t latter_half:1;
-};
 
-/* a span is a group of continuous characters which are all with
-   same foreground color and background color and decorations in a row */
-struct foil_row_span_line_mode {
-    /* the code of the foreground color; e.g., "30m" for black */
-    const char *fgc_code;
-
-    /* the code of the background color; e.g., "40m" for black */
-    const char *bgc_code;
-
-    /* the code for the decoration; e.g., "1" for bold */
-    const char *decoration;
-
-    /* the pointer to the text in Unicode codepoints */
-    const uint32_t *ucs;
-
-    /* the number of characters in this span */
-    int n;
-
-    /* the width (columns) of this span */
-    int cols;
-};
-
-struct foil_line_line_mode {
-    unsigned nr_spans;
-    struct foil_row_span_line_mode *spans;
-};
-
-struct foil_contents_line_mode {
-    unsigned nr_lines;
-    struct foil_line_line_mode *lines;
+    /* the foreground color (index or true color x8r8g8b8);
+       the most significant bit indicates whether it's the default color. */
+    int fgc;
+    /* the background color (index or true color x8r8g8b8);
+       the most significant bit indicates whether it's the default color. */
+    int bgc;
 };
 
 /* a page is the client area of a window or widget,
@@ -88,12 +65,14 @@ struct pcmcth_page {
 
     /* the current character attributes */
     uint8_t attrs;
-    /* the index of the current foreground color;
+    uint8_t color_mode;
+
+    /* the current foreground color;
        the most significant bit indicates using the default color. */
-    uint8_t fgc;
-    /* the index of the current background color;
+    int fgc;
+    /* the current background color;
        the most significant bit indicates using the default color. */
-    uint8_t bgc;
+    int bgc;
 
     /* the dirty rectangle;
        TODO: use region in the future. */
@@ -149,6 +128,40 @@ static inline int foil_page_cols(const pcmcth_page *page) {
 static inline int foil_page_cell(const pcmcth_page *page) {
     return page->rows;
 }
+
+#if 0
+/* a span is a group of continuous characters which are all with
+   same foreground color and background color and decorations in a row */
+struct foil_row_span_line_mode {
+    /* the code of the foreground color; e.g., "30m" for black */
+    const char *fgc_code;
+
+    /* the code of the background color; e.g., "40m" for black */
+    const char *bgc_code;
+
+    /* the code for the decoration; e.g., "1" for bold */
+    const char *decoration;
+
+    /* the pointer to the text in Unicode codepoints */
+    const uint32_t *ucs;
+
+    /* the number of characters in this span */
+    int n;
+
+    /* the width (columns) of this span */
+    int cols;
+};
+
+struct foil_line_line_mode {
+    unsigned nr_spans;
+    struct foil_row_span_line_mode *spans;
+};
+
+struct foil_contents_line_mode {
+    unsigned nr_lines;
+    struct foil_line_line_mode *lines;
+};
+#endif /* deprecated */
 
 #endif  /* purc_foil_page_h */
 

@@ -26,6 +26,7 @@
 // #undef NDEBUG
 
 #include "widget.h"
+#include "page.h"
 #include "workspace.h"
 #include "timer.h"
 
@@ -240,7 +241,7 @@ static void adjust_viewport_line_mode(foil_widget *widget)
                 widget->vx, widget->vy, widget->vw, widget->vh);
 
         /* Save cursor position */
-        fputs("\e7", stdout);
+        fputs("\0337", stdout);
         fflush(stdout);
     }
 }
@@ -285,13 +286,81 @@ static const char *escaped_fgc[] = {
     "\x1b[97m",  // FOIL_STD_COLOR_WHITE
 };
 
+static unsigned char *
+escape_bgc(char *buf, const struct pcmcth_page *page, int bgc)
+{
+    if (bgc & FOIL_DEFCLR_MASK) {
+        strcpy(buf, escaped_bgc[0]);
+    }
+    else {
+        switch (page->color_mode) {
+        case FOIL_TTY_COLOR_STD_16C:
+            strcpy(buf, escaped_bgc[bgc + 1]);
+            break;
+
+        case FOIL_TTY_COLOR_XTERM_256C:
+            sprintf(buf, "\033[48;5;%dm", bgc);
+            break;
+
+        case FOIL_TTY_COLOR_TRUE_COLOR:
+            sprintf(buf, "\033[48;2;%d;%d;%dm",
+                        (int)((uint8_t)((uint32_t)bgc >> 16)),
+                        (int)((uint8_t)((uint32_t)bgc >> 8)),
+                        (int)((uint8_t)((uint32_t)bgc)));
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+    }
+
+    return (unsigned char *)buf;
+}
+
+static unsigned char *
+escape_fgc(char *buf, const struct pcmcth_page *page, int fgc)
+{
+    if (fgc & FOIL_DEFCLR_MASK) {
+        strcpy(buf, escaped_fgc[0]);
+    }
+    else {
+        switch (page->color_mode) {
+        case FOIL_TTY_COLOR_STD_16C:
+            strcpy(buf, escaped_fgc[fgc + 1]);
+            break;
+
+
+        case FOIL_TTY_COLOR_XTERM_256C:
+            sprintf(buf, "\033[38;5;%dm", fgc);
+            break;
+
+        case FOIL_TTY_COLOR_TRUE_COLOR:
+            sprintf(buf, "\033[38;2;%d;%d;%dm",
+                        (int)((uint8_t)((uint32_t)fgc >> 16)),
+                        (int)((uint8_t)((uint32_t)fgc >> 8)),
+                        (int)((uint8_t)((uint32_t)fgc)));
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+    }
+
+    return (unsigned char *)buf;
+}
+
 static char *
-make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
+make_escape_string_line_mode(const struct pcmcth_page *page,
+        const struct foil_tty_cell *cell, int n)
 {
     struct pcutils_mystring mystr = { NULL, 0, 0 };
 
-    uint8_t old_bgc = 255;
-    uint8_t old_fgc = 255;
+    int old_bgc = -1;
+    int old_fgc = -1;
+
+    char buf[64];
 
     unsigned count = 0;
     for (int i = 0; i < n; i++) {
@@ -302,12 +371,9 @@ make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
 
         if (i == 0) {
             pcutils_mystring_append_mchar(&mystr,
-                    (cell->bgc & 0x80) ?
-                    (const unsigned char *)escaped_bgc[0] :
-                    (const unsigned char *)escaped_bgc[cell->bgc + 1], 0);
+                    escape_bgc(buf, page, cell->bgc), 0);
             pcutils_mystring_append_mchar(&mystr,
-                    (cell->fgc & 0x80) ? (const unsigned char *)escaped_fgc[0] :
-                    (const unsigned char *)escaped_fgc[cell->fgc + 1], 0);
+                    escape_fgc(buf, page, cell->fgc), 0);
 
             old_bgc = cell->bgc;
             old_fgc = cell->fgc;
@@ -315,17 +381,13 @@ make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
         else {
             if (old_bgc != cell->bgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        (cell->bgc & 0x80) ?
-                        (const unsigned char *)escaped_bgc[0] :
-                        (const unsigned char*)escaped_bgc[cell->bgc + 1], 0);
+                        escape_bgc(buf, page, cell->bgc), 0);
                 old_bgc = cell->bgc;
             }
 
             if (old_fgc != cell->fgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        (cell->fgc & 0x80) ?
-                        (const unsigned char *)escaped_fgc[0] :
-                        (const unsigned char*)escaped_fgc[cell->fgc + 1], 0);
+                        escape_fgc(buf, page, cell->fgc), 0);
                 old_fgc = cell->fgc;
             }
         }
@@ -366,14 +428,14 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
             continue;
 
         struct foil_tty_cell *cell = page->cells[y] + x;
-        char *escaped_str = make_escape_string_line_mode(cell, w);
+        char *escaped_str = make_escape_string_line_mode(page, cell, w);
 
         LOG_DEBUG("move curosr %d rows up and %d colunms right\n",
                 rel_row, rel_col);
 
         /* restore curosr and move cursor rel_row up lines,
            move curosr rel_col right lines */
-        snprintf(buf, sizeof(buf), "\e8\x1b[%dA\x1b[%dC", rel_row, rel_col);
+        snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
         free(escaped_str);
@@ -385,7 +447,7 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
     fputs(buf, stdout);
 #else
     /* restore cursor position (bottom-left corner of the page). */
-    fputs("\e8", stdout);
+    fputs("\0338", stdout);
 #endif
 }
 

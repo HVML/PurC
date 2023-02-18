@@ -131,7 +131,7 @@ typedef struct foil_color {
     uint32_t    argb;
 } foil_color;
 
-#define FOIL_DEF_FGC            0xFFA0A0A0
+#define FOIL_DEF_FGC            0xFFEEEEEE
 #define FOIL_DEF_BGC            0xFF000000
 
 #define FOIL_COLOR_INFO         0xFF087990
@@ -173,8 +173,9 @@ int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
 
 int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs);
 
-uint8_t foil_map_xrgb_to_256c(uint32_t xrgb);
-uint8_t foil_map_xrgb_to_16c(uint32_t xrgb);
+int foil_map_xrgb_to_16c(uint32_t xrgb);
+int foil_map_xrgb_to_xterm_256c(uint32_t xrgb);
+int foil_map_xrgb_to_std_256c(uint32_t xrgb);
 
 #ifdef __cplusplus
 }
