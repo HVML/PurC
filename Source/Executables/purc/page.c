@@ -66,9 +66,9 @@ bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
 
     page->attrs = FOIL_CHAR_ATTR_NULL;
     page->fgc = foil_map_xrgb_to_16c(fgc.argb);
-    page->is_fgc_def = fgc.specified ? 0 : 1;
+    page->fgc |= fgc.specified ? 0 : 0x80;
     page->bgc = foil_map_xrgb_to_16c(bgc.argb);
-    page->is_bgc_def = bgc.specified ? 0 : 1;
+    page->bgc |= bgc.specified ? 0 : 0x80;
 
     foil_page_fill_rect(page, NULL, FOIL_UCHAR_SPACE);
     return true;
@@ -129,13 +129,13 @@ pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
 void foil_page_set_fgc(pcmcth_page *page, foil_color color)
 {
     page->fgc = foil_map_xrgb_to_16c(color.argb);
-    page->is_fgc_def = color.specified ? 0 : 1;
+    page->fgc |= color.specified ? 0 : 0x80;
 }
 
 void foil_page_set_bgc(pcmcth_page *page, foil_color color)
 {
     page->bgc = foil_map_xrgb_to_16c(color.argb);
-    page->is_bgc_def = color.specified ? 0 : 1;
+    page->bgc |= color.specified ? 0 : 0x80;
 }
 
 void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)

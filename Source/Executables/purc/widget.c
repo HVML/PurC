@@ -233,6 +233,7 @@ static void adjust_viewport_line_mode(foil_widget *widget)
 }
 
 static const char *escaped_bgc[] = {
+    "\x1b[49m",  // Default
     "\x1b[40m",  // FOIL_STD_COLOR_BLACK
     "\x1b[41m",  // FOIL_STD_COLOR_DARK_RED
     "\x1b[42m",  // FOIL_STD_COLOR_DARK_GREEN
@@ -252,6 +253,7 @@ static const char *escaped_bgc[] = {
 };
 
 static const char *escaped_fgc[] = {
+    "\x1b[39m",  // Default
     "\x1b[30m",  // FOIL_STD_COLOR_BLACK
     "\x1b[31m",  // FOIL_STD_COLOR_DARK_RED
     "\x1b[32m",  // FOIL_STD_COLOR_DARK_GREEN
@@ -287,9 +289,12 @@ make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
 
         if (i == 0) {
             pcutils_mystring_append_mchar(&mystr,
-                    (const unsigned char *)escaped_bgc[cell->bgc], 0);
+                    (cell->bgc & 0x80) ?
+                    (const unsigned char *)escaped_bgc[0] :
+                    (const unsigned char *)escaped_bgc[cell->bgc + 1], 0);
             pcutils_mystring_append_mchar(&mystr,
-                    (const unsigned char *)escaped_fgc[cell->fgc], 0);
+                    (cell->fgc & 0x80) ? (const unsigned char *)escaped_fgc[0] :
+                    (const unsigned char *)escaped_fgc[cell->fgc + 1], 0);
 
             old_bgc = cell->bgc;
             old_fgc = cell->fgc;
@@ -297,13 +302,17 @@ make_escape_string_line_mode(const struct foil_tty_cell *cell, int n)
         else {
             if (old_bgc != cell->bgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        (const unsigned char*)escaped_bgc[cell->bgc], 0);
+                        (cell->bgc & 0x80) ?
+                        (const unsigned char *)escaped_bgc[0] :
+                        (const unsigned char*)escaped_bgc[cell->bgc + 1], 0);
                 old_bgc = cell->bgc;
             }
 
             if (old_fgc != cell->fgc) {
                 pcutils_mystring_append_mchar(&mystr,
-                        (const unsigned char*)escaped_fgc[cell->fgc], 0);
+                        (cell->fgc & 0x80) ?
+                        (const unsigned char *)escaped_fgc[0] :
+                        (const unsigned char*)escaped_fgc[cell->fgc + 1], 0);
                 old_fgc = cell->fgc;
             }
         }

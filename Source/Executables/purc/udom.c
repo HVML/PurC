@@ -291,7 +291,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     udom->initial_cblock->color.specified = 1;
     udom->initial_cblock->color.argb = FOIL_DEF_FGC;
-    udom->initial_cblock->background_color.specified = 1;
+    udom->initial_cblock->background_color.specified = 0;
     udom->initial_cblock->background_color.argb = FOIL_DEF_BGC;
 
     udom->initial_cblock->ctnt_rect.left = 0;

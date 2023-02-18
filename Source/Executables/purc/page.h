@@ -37,15 +37,13 @@ struct foil_tty_cell {
 
     /* the character attributes */
     uint8_t attrs;
-    /* the index of the foreground color */
+    /* the index of the foreground color;
+       the most significant bit indicates using the default color. */
     uint8_t fgc;
-    /* the index of the background color */
+    /* the index of the background color;
+       the most significant bit indicates using the default color. */
     uint8_t bgc;
 
-    /* Indicate whether the foreground color is default. */
-    uint8_t is_fgc_def:1;
-    /* Indicate whether the background color is default. */
-    uint8_t is_bgc_def:1;
     /* Indicate whether the cell is the latter half of a wide character. */
     uint8_t latter_half:1;
 };
@@ -90,17 +88,15 @@ struct pcmcth_page {
 
     /* the current character attributes */
     uint8_t attrs;
-    /* the index of the current foreground color */
+    /* the index of the current foreground color;
+       the most significant bit indicates using the default color. */
     uint8_t fgc;
-    /* the index of the current background color */
+    /* the index of the current background color;
+       the most significant bit indicates using the default color. */
     uint8_t bgc;
 
-    /* Indicate whether the foreground color is default. */
-    uint8_t is_fgc_def:1;
-    /* Indicate whether the background color is default. */
-    uint8_t is_bgc_def:1;
-
-    /* the dirty rectangle */
+    /* the dirty rectangle;
+       TODO: use region in the future. */
     foil_rect dirty_rect;
 
     pcmcth_udom *udom;
