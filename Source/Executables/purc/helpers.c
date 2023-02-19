@@ -227,7 +227,7 @@ done:
 struct _tailor_data {
     /* the candidate marks */
     int         nr_marks;
-    int         nr_wide;
+    int         mark_width;
     uint32_t   *marks;
 };
 
@@ -245,17 +245,19 @@ int foil_validate_marks(struct _tailor_data *tailor_data,
     if (tailor_data->nr_marks < 2)
         goto failed;
 
-    tailor_data->nr_wide = 0;
+    int nr_wide = 0;
     for (int i = 0; i < tailor_data->nr_marks; i++) {
         if (!g_unichar_isprint(tailor_data->marks[i]))
             goto failed;
         if (g_unichar_iswide(tailor_data->marks[i]))
-            tailor_data->nr_wide++;
+            nr_wide++;
     }
 
-    if (tailor_data->nr_wide == 0 ||
-            tailor_data->nr_wide == tailor_data->nr_marks)
+    if (nr_wide == 0 ||
+            nr_wide == tailor_data->nr_marks) {
+        tailor_data->mark_width = (nr_wide > 0) ? 2 : 1;
         return 0;
+    }
 
 failed:
     if (tailor_data->marks)
