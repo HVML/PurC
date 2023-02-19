@@ -45,7 +45,7 @@ void foil_page_module_cleanup(pcmcth_renderer *rdr)
 
 static int xrgb_to_color(const pcmcth_page *page, foil_color color)
 {
-    int c;
+    int c = 0;
     switch (page->color_mode) {
     case FOIL_TTY_COLOR_STD_16C:
         c = foil_map_xrgb_to_16c(color.argb);

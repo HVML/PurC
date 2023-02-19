@@ -241,6 +241,7 @@ render_runbox_part(struct foil_render_ctxt *ctxt, struct _line_info *line,
                 int y = page_rc.top;
                 LOG_DEBUG("Draw char 0x%04x at (%d, %d), line (%d, %d)\n",
                         ucs[i], x, y, line->rc.left, line->rc.top);
+                (void)line;
                 foil_page_draw_uchar(ctxt->udom->page, x, y, ucs[i], 1);
             }
         }
