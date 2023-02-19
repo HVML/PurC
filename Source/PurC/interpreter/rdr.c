@@ -1333,9 +1333,36 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
     }
 
     struct pcinst *inst = pcinst_current();
-    response_msg = pcintr_rdr_send_request_and_wait_response(inst->conn_to_rdr,
-        target, target_value, operation, request_id, element_type, elem,
-        property, data_type, data, 0);
+    if (pcrdr_conn_type(inst->conn_to_rdr) == CT_MOVE_BUFFER) {
+    /* XXX: Pass a reference entity instead of the original data
+       if the connection type was move buffer.
+
+Note that for different operation, the reference entity varies:
+
+  - `append`: the last child element of the target element before this op.
+  - `prepend`: the first child element of the tgarget elment before this op.
+  - `insertBefore`: the previous sibling of the target element before this op.
+  - `insertAfter`: the next sibling of the target element before this op.
+  - `displace`: the target element itself.
+  - `update`: the target element itself.
+  - `erase`: the target element itself.
+  - `clear`: the target element itself.
+
+TODO: Currently, we pass element itself.  */
+
+        purc_variant_t req_data = purc_variant_make_native(elem, NULL);
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                inst->conn_to_rdr, target, target_value, operation,
+                request_id, element_type, elem, property,
+                PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
+        purc_variant_unref(req_data);
+    }
+    else {
+        response_msg = pcintr_rdr_send_request_and_wait_response(
+                inst->conn_to_rdr, target, target_value, operation,
+                request_id, element_type, elem, property,
+                data_type, data, 0);
+    }
 
     if (response_msg == NULL) {
         goto failed;
