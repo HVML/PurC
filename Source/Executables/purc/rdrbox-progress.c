@@ -39,7 +39,8 @@
 #define INDICATOR_STEPS 10
 
 static const char *def_bar_marks = "━━";
-static const char *def_mark_marks = "⣿⣾⣶⣦⣆⡆⠆⠂⢁⠁⠉⠙⠹⢹⣹⣽⣿";
+static const char *def_mark_marks = "⣾⣷⣯⣟⡿⢿⣻⣽⣿";
+// static const char *def_mark_marks = "⣿⣾⣶⣦⣆⡆⠆⠂⢁⠁⠉⠙⠹⢹⣹⣽⣿";
 // static const char *def_mark_marks = "⠁⠈⠐⠠⢀⡀⠄⠂";
 
 struct _tailor_data {
