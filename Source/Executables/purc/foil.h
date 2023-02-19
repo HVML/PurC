@@ -177,6 +177,10 @@ int foil_map_xrgb_to_16c(uint32_t xrgb);
 int foil_map_xrgb_to_xterm_256c(uint32_t xrgb);
 int foil_map_xrgb_to_std_256c(uint32_t xrgb);
 
+struct _tailor_data;
+int foil_validate_marks(struct _tailor_data *tailor_data,
+        const char *marks, size_t len);
+
 #ifdef __cplusplus
 }
 #endif

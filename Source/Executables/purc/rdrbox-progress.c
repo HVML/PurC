@@ -43,6 +43,11 @@ static const char *def_mark_marks = "⣿⣾⣶⣦⣆⡆⠆⠂⢁⠁⠉⠙⠹⢹�
 // static const char *def_mark_marks = "⠁⠈⠐⠠⢀⡀⠄⠂";
 
 struct _tailor_data {
+    /* XXX: The following two fields must be placed at the head of this struct.
+       The candidate marks; */
+    int         nr_marks;
+    uint32_t   *marks;
+
     /* the max value, which must be larger than 0.0 */
     double          max;
 
@@ -57,10 +62,6 @@ struct _tailor_data {
 
     /* the handle of the timer for indeterminate status */
     pcmcth_timer_t  timer;
-
-    /* the candidate marks */
-    int             nr_marks;
-    uint32_t*       marks;
 
     /* colors */
     foil_color      color_prim;
@@ -151,57 +152,21 @@ update_properties(purc_document_t doc, struct foil_rdrbox *box)
     }
 }
 
-static int validate_marks(struct _tailor_data *tailor_data,
-        const char *marks, size_t len)
+static int update_style_properties(struct foil_rdrbox *box)
 {
-    size_t n;
-    tailor_data->marks =
-        pcutils_string_decode_utf8_alloc(marks, len, &n);
-    tailor_data->nr_marks = (int)n;
-
-    if (tailor_data->marks == NULL || tailor_data->nr_marks == 0)
-        goto failed;
-
-    if (tailor_data->nr_marks < 2)
-        goto failed;
-
-    int nr_wide = 0;
-    for (int i = 0; i < tailor_data->nr_marks; i++) {
-        if (!g_unichar_isprint(tailor_data->marks[i]))
-            goto failed;
-        if (g_unichar_iswide(tailor_data->marks[i]))
-            nr_wide++;
-    }
-
-    if (nr_wide == 0 || nr_wide == tailor_data->nr_marks)
-        return 0;
-
-failed:
-    if (tailor_data->marks)
-        free(tailor_data->marks);
-    tailor_data->marks = NULL;
-    tailor_data->nr_marks = 0;
-    return -1;
-}
-
-static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
-{
-    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
-    update_properties(ctxt->udom->doc, box);
-
     uint8_t v;
     if (box->is_control) {
         const char *marks = NULL;
         size_t marks_len;
 
         lwc_string *str;
-        v = css_computed_foil_candidate_marks(ctxt->style, &str);
+        v = css_computed_foil_candidate_marks(box->computed_style, &str);
         if (v != CSS_FOIL_CANDIDATE_MARKS_AUTO) {
             assert(str);
 
             marks = lwc_string_data(str);
             marks_len = lwc_string_length(str);
-            if (validate_marks(box->tailor_data, marks, marks_len)) {
+            if (foil_validate_marks(box->tailor_data, marks, marks_len)) {
                 // bad value
                 v = CSS_FOIL_CANDIDATE_MARKS_AUTO;
             }
@@ -216,23 +181,20 @@ static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
             }
 
             marks_len = strlen(marks);
-            int r = validate_marks(box->tailor_data, marks, marks_len);
+            int r = foil_validate_marks(box->tailor_data, marks, marks_len);
             assert(r == 0);
             (void)r;
         }
-
-        if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_MARK) {
-        }
     }
 
-    v = css_computed_foil_color_primary(ctxt->style,
+    v = css_computed_foil_color_primary(box->computed_style,
             &box->tailor_data->color_prim.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_prim.specified = false;
     else
         box->tailor_data->color_prim.specified = true;
 
-    v = css_computed_foil_color_secondary(ctxt->style,
+    v = css_computed_foil_color_secondary(box->computed_style,
             &box->tailor_data->color_seco.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_seco.specified = false;
@@ -246,7 +208,14 @@ static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     LOG_DEBUG("\t-foil-color-secondary: %s, 0x%08x\n",
             box->tailor_data->color_seco.specified ? "specified" : "default",
             box->tailor_data->color_seco.argb);
+    return 0;
+}
 
+static int tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
+    update_properties(ctxt->udom->doc, box);
+    update_style_properties(box);
     return 0;
 }
 
@@ -421,8 +390,6 @@ foil_rdrbox_progress_tailor_ops(struct foil_create_ctxt *ctxt,
             box->is_control = 0;
             break;
     }
-
-    LOG_DEBUG("appearance: %d\n", (int)v);
 
     if (box->is_control)
         return &progress_ops_as_ctrl;

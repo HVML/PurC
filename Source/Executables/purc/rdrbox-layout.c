@@ -2246,14 +2246,21 @@ static void collapse_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box,
     /* collapse margins with the in-flow siblings */
     *real_mt = box->mt;
     foil_rdrbox *prev = prev_in_norml_flow_sibling(box);
-    if (prev && prev->mb > box->mt) {
-        *real_mt = prev->mb;
+    if (prev) {
+        if (prev->mb >= box->mt) {
+            *real_mt = prev->mb - box->mt;
+        }
     }
 
     *real_mb = box->mb;
     foil_rdrbox *next = next_in_norml_flow_sibling(box);
-    if (box->next && next->mt > box->mb) {
-        *real_mb = next->mt;
+    if (box->next) {
+        if (box->mb >= next->mt) {
+            *real_mb = box->mb - next->mt;
+        }
+        else {
+            *real_mb = 0;
+        }
     }
 }
 
@@ -2340,17 +2347,18 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            int real_mt, real_mb;
             /* adjust top of the content rectangle */
             if (prev_sibling) {
+                collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom);
+                        0, prev_sibling->ctnt_rect.bottom + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             child->ctnt_rect.bottom = child->ctnt_rect.top + child->height;
 
-            int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
                     0, real_mt + child->bt + child->pt);
@@ -2449,17 +2457,18 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            int real_mt, real_mb;
             /* adjust top of the content rectangle of this child */
             if (prev_sibling) {
+                collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom);
+                        0, prev_sibling->ctnt_rect.bottom + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             child->ctnt_rect.bottom = child->ctnt_rect.top + child->height;
 
-            int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
                     child->ml + child->bl + child->pl,
@@ -2588,8 +2597,10 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for block level box: %s.\n", name);
 #endif
 
+#if 0
     int real_mt, real_mb;
     collapse_margins(ctxt, block, &real_mt, &real_mb);
+#endif
 
     foil_rect_offset(&block->ctnt_rect,
             container->ctnt_rect.left, container->ctnt_rect.top);

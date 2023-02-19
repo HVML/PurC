@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -33,6 +33,9 @@
 #define _ISOC99_SOURCE
 #include <assert.h>
 #include <math.h>
+
+static const char *def_bar_marks = "━━";
+static const char *def_mark_marks = " ▁▂▃▄▅▆▇█";
 
 static struct attr_info {
     const char *name;
@@ -47,6 +50,11 @@ static struct attr_info {
 };
 
 struct _tailor_data {
+    /* XXX: The following two fields must be placed at the head of this struct.
+       The candidate marks; */
+    int         nr_marks;
+    uint32_t   *marks;
+
     double d[0];
     double min;
     double max;
@@ -57,21 +65,20 @@ struct _tailor_data {
 
     foil_color color_info;
     foil_color color_prim;
+    foil_color color_seco;
     foil_color color_warn;
     foil_color color_dang;
     foil_color color_succ;
 };
 
-static int
-tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
+static void
+update_properties(purc_document_t doc, struct foil_rdrbox *box)
 {
     const char *value;
     size_t len;
 
-    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
-
     for (size_t i = 0; i < PCA_TABLESIZE(meter_attr_info); i++) {
-        if (pcdoc_element_get_attribute(ctxt->udom->doc, box->owner,
+        if (pcdoc_element_get_attribute(doc, box->owner,
                     meter_attr_info[i].name, &value, &len) == 0 && len > 0) {
             char buff[len + 1];
             strncpy(buff, value, len);
@@ -106,37 +113,80 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
             || box->tailor_data->high > box->tailor_data->max) {
         box->tailor_data->high = box->tailor_data->max;
     }
+}
 
+static int update_style_properties(struct foil_rdrbox *box)
+{
     uint8_t v;
-    v = css_computed_foil_color_info(ctxt->style,
+
+    if (box->is_control) {
+        const char *marks = NULL;
+        size_t marks_len;
+
+        lwc_string *str;
+        v = css_computed_foil_candidate_marks(box->computed_style, &str);
+        if (v != CSS_FOIL_CANDIDATE_MARKS_AUTO) {
+            assert(str);
+
+            marks = lwc_string_data(str);
+            marks_len = lwc_string_length(str);
+            if (foil_validate_marks(box->tailor_data, marks, marks_len)) {
+                // bad value
+                v = CSS_FOIL_CANDIDATE_MARKS_AUTO;
+            }
+        }
+
+        if (v == CSS_FOIL_CANDIDATE_MARKS_AUTO) {
+            if (box->ctrl_type == FOIL_RDRBOX_CTRL_METER_MARK) {
+                marks = def_mark_marks;
+            }
+            else {
+                marks = def_bar_marks;
+            }
+
+            marks_len = strlen(marks);
+            int r = foil_validate_marks(box->tailor_data, marks, marks_len);
+            assert(r == 0);
+            (void)r;
+        }
+    }
+
+    v = css_computed_foil_color_info(box->computed_style,
             &box->tailor_data->color_info.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_info.specified = false;
     else
         box->tailor_data->color_info.specified = true;
 
-    v = css_computed_foil_color_primary(ctxt->style,
+    v = css_computed_foil_color_primary(box->computed_style,
             &box->tailor_data->color_prim.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_prim.specified = false;
     else
         box->tailor_data->color_prim.specified = true;
 
-    v = css_computed_foil_color_warning(ctxt->style,
+    v = css_computed_foil_color_secondary(box->computed_style,
+            &box->tailor_data->color_seco.argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->tailor_data->color_seco.specified = false;
+    else
+        box->tailor_data->color_seco.specified = true;
+
+    v = css_computed_foil_color_warning(box->computed_style,
             &box->tailor_data->color_warn.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_warn.specified = false;
     else
         box->tailor_data->color_warn.specified = true;
 
-    v = css_computed_foil_color_danger(ctxt->style,
+    v = css_computed_foil_color_danger(box->computed_style,
             &box->tailor_data->color_dang.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_dang.specified = false;
     else
         box->tailor_data->color_dang.specified = true;
 
-    v = css_computed_foil_color_success(ctxt->style,
+    v = css_computed_foil_color_success(box->computed_style,
             &box->tailor_data->color_succ.argb);
     if (v == CSS_COLOR_DEFAULT)
         box->tailor_data->color_succ.specified = false;
@@ -146,10 +196,55 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     return 0;
 }
 
+static int
+tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
+{
+    box->tailor_data = calloc(1, sizeof(struct _tailor_data));
+    update_properties(ctxt->udom->doc, box);
+    update_style_properties(box);
+    return 0;
+}
+
 static void cleaner(struct foil_rdrbox *box)
 {
     assert(box->tailor_data);
+
+    if (box->tailor_data->marks)
+        free(box->tailor_data->marks);
     free(box->tailor_data);
+}
+
+static foil_color get_color(const struct _tailor_data *tailor_data)
+{
+    foil_color color = tailor_data->color_info;
+    if (isnan(tailor_data->optimum)) {
+        if (tailor_data->value > tailor_data->high) {
+            color = tailor_data->color_warn;
+        }
+        else if (tailor_data->value < tailor_data->low) {
+            color = tailor_data->color_warn;
+        }
+    }
+    else {
+        if (tailor_data->optimum < tailor_data->low) {
+            if (tailor_data->value > tailor_data->high) {
+                color = tailor_data->color_dang;
+            }
+            else if (tailor_data->value > tailor_data->optimum) {
+                color = tailor_data->color_warn;
+            }
+        }
+        else if (tailor_data->optimum > tailor_data->high) {
+            if (tailor_data->value < tailor_data->low) {
+                color = tailor_data->color_dang;
+            }
+            else if (tailor_data->value < tailor_data->optimum) {
+                color = tailor_data->color_warn;
+            }
+        }
+    }
+
+    return color;
 }
 
 static void
@@ -165,33 +260,7 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_page_set_bgc(ctxt->udom->page, box->background_color);
     foil_page_erase_rect(ctxt->udom->page, &page_rc);
 
-    foil_color bgc = box->tailor_data->color_prim;
-    if (isnan(box->tailor_data->optimum)) {
-        if (box->tailor_data->value > box->tailor_data->high) {
-            bgc = box->tailor_data->color_warn;
-        }
-        else if (box->tailor_data->value < box->tailor_data->low) {
-            bgc = box->tailor_data->color_warn;
-        }
-    }
-    else {
-        if (box->tailor_data->optimum < box->tailor_data->low) {
-            if (box->tailor_data->value > box->tailor_data->high) {
-                bgc = box->tailor_data->color_dang;
-            }
-            else {
-                bgc = box->tailor_data->color_warn;
-            }
-        }
-        else if (box->tailor_data->optimum > box->tailor_data->high) {
-            if (box->tailor_data->value < box->tailor_data->low) {
-                bgc = box->tailor_data->color_dang;
-            }
-            else {
-                bgc = box->tailor_data->color_warn;
-            }
-        }
-    }
+    foil_color bgc = get_color(box->tailor_data);
 
     double bar_ratio = box->tailor_data->value
         / (box->tailor_data->max - box->tailor_data->min);
@@ -202,10 +271,23 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     foil_page_erase_rect(ctxt->udom->page, &page_rc);
 }
 
+static void on_attr_changed(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    double old_attrs[PCA_TABLESIZE(meter_attr_info)];
+    memcpy(&old_attrs, box->tailor_data->d, sizeof(old_attrs));
+
+    update_properties(ctxt->udom->doc, box);
+    if (memcmp(old_attrs, box->tailor_data->d, sizeof(old_attrs))) {
+        foil_udom_invalidate_rdrbox(ctxt->udom, box);
+    }
+}
+
 struct foil_rdrbox_tailor_ops meter_ops_as_box = {
     .tailor = tailor,
     .cleaner = cleaner,
     .bgnd_painter = bgnd_painter,
+    .on_attr_changed = on_attr_changed,
 };
 
 static void
@@ -217,51 +299,48 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     if (foil_rect_is_empty(&page_rc))
         return;
 
+    foil_color fgc = get_color(box->tailor_data);
     int tray_width = foil_rect_width(&page_rc);
-    foil_page_set_bgc(ctxt->udom->page, box->background_color);
-    foil_page_erase_rect(ctxt->udom->page, &page_rc);
+    int y = page_rc.top + foil_rect_height(&page_rc) / 2;
 
-    foil_color bgc = box->tailor_data->color_prim;
-    if (isnan(box->tailor_data->optimum)) {
-        if (box->tailor_data->value > box->tailor_data->high) {
-            bgc = box->tailor_data->color_warn;
-        }
-        else if (box->tailor_data->value < box->tailor_data->low) {
-            bgc = box->tailor_data->color_warn;
+    double ratio = box->tailor_data->value
+        / (box->tailor_data->max - box->tailor_data->min);
+    assert(ratio >= 0 && ratio <= 1.0);
+
+    if (box->ctrl_type == FOIL_RDRBOX_CTRL_METER_BAR) {
+        foil_page_set_fgc(ctxt->udom->page, box->tailor_data->color_seco);
+        foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
+                box->tailor_data->marks[0], tray_width);
+
+        int bar_width = (int)(tray_width * ratio + 0.5);
+        LOG_DEBUG("tray width: %d, ratio: %f, bar width: %d\n",
+                tray_width, ratio, bar_width);
+        if (bar_width > 0) {
+            foil_page_set_fgc(ctxt->udom->page, fgc);
+            foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
+                    box->tailor_data->marks[1], bar_width);
         }
     }
     else {
-        if (box->tailor_data->optimum < box->tailor_data->low) {
-            if (box->tailor_data->value > box->tailor_data->high) {
-                bgc = box->tailor_data->color_dang;
-            }
-            else {
-                bgc = box->tailor_data->color_warn;
-            }
-        }
-        else if (box->tailor_data->optimum > box->tailor_data->high) {
-            if (box->tailor_data->value < box->tailor_data->low) {
-                bgc = box->tailor_data->color_dang;
-            }
-            else {
-                bgc = box->tailor_data->color_warn;
-            }
-        }
+        int mark_idx;
+        mark_idx = (int)((box->tailor_data->nr_marks - 1) * ratio + 0.5);
+        LOG_DEBUG("index of mark: %d; nr_marks: %d\n",
+                mark_idx, box->tailor_data->nr_marks);
+        assert(mark_idx >= 0 && mark_idx < box->tailor_data->nr_marks);
+
+        foil_page_set_fgc(ctxt->udom->page, fgc);
+
+        int x = page_rc.left + tray_width / 2;
+        foil_page_draw_uchar(ctxt->udom->page, x, y,
+                box->tailor_data->marks[mark_idx], 1);
     }
-
-    double bar_ratio = box->tailor_data->value
-        / (box->tailor_data->max - box->tailor_data->min);
-    int bar_width = (int)(tray_width * bar_ratio);
-    page_rc.right = page_rc.left + bar_width;
-
-    foil_page_set_bgc(ctxt->udom->page, bgc);
-    foil_page_erase_rect(ctxt->udom->page, &page_rc);
 }
 
 struct foil_rdrbox_tailor_ops meter_ops_as_ctrl = {
     .tailor = tailor,
     .cleaner = cleaner,
     .ctnt_painter = ctnt_painter,
+    .on_attr_changed = on_attr_changed,
 };
 
 struct foil_rdrbox_tailor_ops *
@@ -272,6 +351,7 @@ foil_rdrbox_meter_tailor_ops(struct foil_create_ctxt *ctxt,
     assert(v != CSS_APPEARANCE_INHERIT);
     switch (v) {
         case CSS_APPEARANCE_AUTO:
+        case CSS_APPEARANCE_METER:
         case CSS_APPEARANCE_METER_BAR:
         default:
             box->is_control = 1;

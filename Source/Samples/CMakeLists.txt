@@ -76,6 +76,7 @@ set(sample_HVML_FILES
     "hvml/assets/fibonacci-html-temp-zh.css"
     "hvml/assets/fibonacci-html-temp-zh.json"
     "hvml/foil-progress.hvml"
+    "hvml/foil-meter.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

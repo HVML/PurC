@@ -224,3 +224,42 @@ done:
     return c;
 }
 
+struct _tailor_data {
+    /* the candidate marks */
+    int         nr_marks;
+    uint32_t   *marks;
+};
+
+int foil_validate_marks(struct _tailor_data *tailor_data,
+        const char *marks, size_t len)
+{
+    size_t n;
+    tailor_data->marks =
+        pcutils_string_decode_utf8_alloc(marks, len, &n);
+    tailor_data->nr_marks = (int)n;
+
+    if (tailor_data->marks == NULL || tailor_data->nr_marks == 0)
+        goto failed;
+
+    if (tailor_data->nr_marks < 2)
+        goto failed;
+
+    int nr_wide = 0;
+    for (int i = 0; i < tailor_data->nr_marks; i++) {
+        if (!g_unichar_isprint(tailor_data->marks[i]))
+            goto failed;
+        if (g_unichar_iswide(tailor_data->marks[i]))
+            nr_wide++;
+    }
+
+    if (nr_wide == 0 || nr_wide == tailor_data->nr_marks)
+        return 0;
+
+failed:
+    if (tailor_data->marks)
+        free(tailor_data->marks);
+    tailor_data->marks = NULL;
+    tailor_data->nr_marks = 0;
+    return -1;
+}
+

@@ -237,7 +237,8 @@ static void adjust_viewport_line_mode(foil_widget *widget)
             widget->vh = widget_rows;
         }
 
-        LOG_DEBUG("widget viewport: %d, %d, %d, %d\n",
+        LOG_DEBUG("widget viewport (rows: %d): %d, %d, %d, %d\n",
+                rows,
                 widget->vx, widget->vy, widget->vw, widget->vh);
 
         /* Save cursor position */
@@ -409,7 +410,6 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
         return;
     }
 
-    int w = foil_rect_width(&page->dirty_rect);
     LOG_DEBUG("dirty rect: %d, %d, %d, %d\n",
             page->dirty_rect.left, page->dirty_rect.top,
             page->dirty_rect.right, page->dirty_rect.bottom);
@@ -418,9 +418,18 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
             widget->client_rc.left, widget->client_rc.top,
             widget->client_rc.right, widget->client_rc.bottom);
 
+    foil_rect viewport, dirty;
+    foil_rect_set(&viewport, widget->vx, widget->vy,
+            widget->vx + widget->vw, widget->vy + widget->vh);
+
+    if (!foil_rect_intersect(&dirty, &page->dirty_rect, &viewport)) {
+        return;
+    }
+
     char buf[64];
-    for (int y = page->dirty_rect.top; y < page->dirty_rect.bottom; y++) {
-        int x = page->dirty_rect.left;
+    int w = foil_rect_width(&dirty);
+    for (int y = dirty.top; y < dirty.bottom; y++) {
+        int x = dirty.left;
 
         int rel_col = x - widget->vx;
         int rel_row = widget->vh - y + widget->vy;
