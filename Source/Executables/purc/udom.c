@@ -357,18 +357,6 @@ pcmcth_udom *foil_udom_from_rdrbox(foil_rdrbox *box)
     return root->udom;
 }
 
-foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
-        uint64_t element_handle)
-{
-    void *data;
-
-    if (sorted_array_find(udom->elem2rdrbox, element_handle, &data) < 0) {
-        return NULL;
-    }
-
-    return data;
-}
-
 static void load_css(struct pcmcth_udom *udom, const char *href)
 {
     char *css = NULL;
@@ -713,6 +701,8 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
                     ctxt->tag_name);
             goto done;
         }
+
+        sorted_array_add(ctxt->udom->elem2rdrbox, PTR2U64(ancestor), box);
 
         /* handle :before pseudo element */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
@@ -1251,51 +1241,90 @@ failed:
     return NULL;
 }
 
+foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
+        uint64_t element_handle)
+{
+    void *data;
+
+    if (sorted_array_find(udom->elem2rdrbox, element_handle, &data) < 0) {
+        return NULL;
+    }
+
+    return data;
+}
+
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
-    (void)udom;
-    (void)rdrbox;
     (void)op;
-    (void)property;
-    (void)ref_info;
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
 
-    /* TODO */
-    return PCRDR_SC_NOT_IMPLEMENTED;
+    pcdoc_element_t element;
+    element = purc_variant_native_get_entity(ref_info);
+    assert(element);
+
+    if (strncasecmp(property, "attr.", 5) == 0) {
+        const char *attr = property + 5;
+        if (strcasecmp(attr, "style") == 0) {
+            // TODO: the style changed.
+        }
+        else if (rdrbox->tailor_ops && rdrbox->tailor_ops->on_attr_changed) {
+            foil_update_ctxt ctxt = { udom, element };
+            rdrbox->tailor_ops->on_attr_changed(&ctxt, rdrbox);
+            r = PCRDR_SC_OK;
+        }
+    }
+    else if (strcasecmp(property, "textContent") == 0) {
+        // TODO:
+    }
+    else if (strcasecmp(property, "contents") == 0) {
+        // TODO:
+    }
+    else {
+        LOG_WARN("Unknown property: %s\n", property);
+    }
+
+    return r;
 }
 
 purc_variant_t foil_udom_call_method(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *method, purc_variant_t arg)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)method;
-    (void)arg;
+    LOG_DEBUG("rdrbox: %p, method: %s\n", rdrbox, method);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->call_method) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->call_method(&ctxt, rdrbox, method, arg);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t foil_udom_get_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)property;
+    LOG_DEBUG("rdrbox: %p, property: %s\n", rdrbox, property);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->get_property) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->get_property(&ctxt,
+                rdrbox, property, PURC_VARIANT_INVALID);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property, purc_variant_t value)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)property;
-    (void)value;
+    LOG_DEBUG("rdrbox: %p, property: %s\n", rdrbox, property);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->set_property) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->set_property(&ctxt,
+                rdrbox, property, value);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 

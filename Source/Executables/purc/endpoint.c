@@ -25,7 +25,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "config.h"
 
@@ -1039,6 +1039,7 @@ static int update_dom(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
     if (msg->data != PURC_VARIANT_INVALID &&
             !purc_variant_is_native(msg->data)) {
+        LOG_DEBUG("Not a native entity for message data: %p\n", msg->data);
         retv = PCRDR_SC_BAD_REQUEST;
         goto done;
     }
@@ -1485,7 +1486,7 @@ int on_endpoint_message(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         request_handler handler = find_request_handler(
                 purc_variant_get_string_const(msg->operation));
 
-        purc_log_debug("Got a request message: %s (handler: %p)\n",
+        LOG_DEBUG("Got a request message: %s (handler: %p)\n",
                 purc_variant_get_string_const(msg->operation), handler);
 
         if (handler == NOT_FOUND_HANDLER) {

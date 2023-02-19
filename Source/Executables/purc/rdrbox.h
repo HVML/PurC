@@ -302,10 +302,12 @@ struct foil_rdrbox;
 typedef int  (*foil_rdrbox_tailor_cb)(struct foil_create_ctxt *ctxt,
         struct foil_rdrbox *box);
 typedef void (*foil_rdrbox_cleanup_cb)(struct foil_rdrbox *box);
-typedef void (*foil_rdrbox_update_cb)(struct foil_update_ctxt *ctxt,
-        struct foil_rdrbox *box);
 typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box);
+typedef void (*foil_rdrbox_update_cb)(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box);
+typedef purc_variant_t (*foil_rdrbox_method_cb)(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box, const char *property, purc_variant_t value);
 
 struct foil_rdrbox_tailor_ops {
     /* the callback to tailor the box and initialize the private data. */
@@ -326,6 +328,15 @@ struct foil_rdrbox_tailor_ops {
 
     /* the callback to reflect the changes of contents. */
     foil_rdrbox_update_cb   on_ctnt_changed;
+
+    /* the callback to reflect `getProperty`. */
+    foil_rdrbox_method_cb   get_property;
+
+    /* the callback to reflect `setProperty`. */
+    foil_rdrbox_method_cb   set_property;
+
+    /* the callback to reflect `callMethod`. */
+    foil_rdrbox_method_cb   call_method;
 };
 
 struct foil_rdrbox {
@@ -554,7 +565,8 @@ typedef struct foil_render_ctxt {
 } foil_render_ctxt;
 
 typedef struct foil_update_ctxt {
-    pcmcth_udom *udom;
+    pcmcth_udom    *udom;
+    pcdoc_element_t ref_element;
 } foil_update_ctxt;
 
 #ifdef __cplusplus

@@ -70,8 +70,18 @@
         <init as 'caseName' with 'overall' temp />
         <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
             <SECTION id="$caseName">
-                <label for="file">File progress: </label>
-                <progress id="file" max="100"> N/A</progress>
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-bar;width:10em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress2">Progress 2: </label>
+                    <progress id="progress2" max="100" style="appearance:progress-mark;width:1em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress3" max="100" style="appearance:progress-bkgnd;width:20em;"> N/A</progress>
+                </p>
             </SECTION>
 
             <update on "$TIMERS" to "unite">
@@ -82,12 +92,19 @@
 
             <init as 'progress' with 10UL />
 
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+
             <observe on $TIMERS for "expired:gogogo">
                 <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
-                <update on '#file' at 'attr.value' with "$progress" />
+                <update on '#progress1' at 'attr.value' with "$progress" />
+                <update on '#progress2' at 'attr.value' with "$progress" />
+                <update on '#progress3' at 'attr.value' with "$progress" />
                 <test with $L.ge($progress, 100UL) >
-                    <update on $TIMERS to 'subtract' with { id: 'gogogo' } />
+                    <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
                     <forget on $TIMERS for 'expired:*' />
+                    <exit with 'Ok' />
                 </test>
             </observe>
 

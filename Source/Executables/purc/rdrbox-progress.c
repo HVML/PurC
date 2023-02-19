@@ -292,7 +292,7 @@ bgnd_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     }
     else {
         double bar_ratio = box->tailor_data->value / box->tailor_data->max;
-        assert(bar_ratio > 0 && bar_ratio < 1.0);
+        assert(bar_ratio >= 0 && bar_ratio <= 1.0);
         int bar_width = (int)(tray_width * bar_ratio);
 
         page_rc.right = page_rc.left + bar_width;
@@ -353,7 +353,7 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         }
         else {
             double bar_ratio = box->tailor_data->value / box->tailor_data->max;
-            assert(bar_ratio > 0 && bar_ratio < 1.0);
+            assert(bar_ratio >= 0 && bar_ratio <= 1.0);
             int bar_width = (int)(tray_width * bar_ratio);
 
             if (bar_width > 0) {
