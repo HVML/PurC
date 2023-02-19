@@ -46,6 +46,7 @@ struct _tailor_data {
     /* XXX: The following two fields must be placed at the head of this struct.
        The candidate marks; */
     int         nr_marks;
+    int         nr_wide;
     uint32_t   *marks;
 
     /* the max value, which must be larger than 0.0 */
@@ -304,7 +305,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     if (box->ctrl_type == FOIL_RDRBOX_CTRL_PROGRESS_BAR) {
         foil_page_set_fgc(ctxt->udom->page, box->tailor_data->color_seco);
         foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
-                box->tailor_data->marks[0], tray_width);
+                box->tailor_data->marks[0],
+                box->tailor_data->nr_wide ? tray_width / 2 : tray_width);
 
         if (box->tailor_data->value < 0) {
             /* in indeterminate state */
@@ -313,11 +315,13 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
             bar_rc.left += tray_width * box->tailor_data->indicator / 100;
             bar_rc.right = bar_rc.left + tray_width / 10;
 
+            int bar_width = foil_rect_width(&bar_rc);
             if (foil_rect_intersect(&bar_rc, &bar_rc, &page_rc)) {
                 foil_page_set_fgc(ctxt->udom->page,
                         box->tailor_data->color_prim);
                 foil_page_draw_uchar(ctxt->udom->page, bar_rc.left, y,
-                    box->tailor_data->marks[1], foil_rect_width(&bar_rc));
+                    box->tailor_data->marks[1],
+                    box->tailor_data->nr_wide ? bar_width / 2 : bar_width);
             }
         }
         else {
@@ -329,7 +333,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
                 foil_page_set_fgc(ctxt->udom->page,
                         box->tailor_data->color_prim);
                 foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
-                        box->tailor_data->marks[1], bar_width);
+                        box->tailor_data->marks[1],
+                        box->tailor_data->nr_wide ? bar_width / 2 : bar_width);
             }
         }
     }

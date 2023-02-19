@@ -53,6 +53,7 @@ struct _tailor_data {
     /* XXX: The following two fields must be placed at the head of this struct.
        The candidate marks; */
     int         nr_marks;
+    int         nr_wide;
     uint32_t   *marks;
 
     double d[0];
@@ -310,7 +311,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     if (box->ctrl_type == FOIL_RDRBOX_CTRL_METER_BAR) {
         foil_page_set_fgc(ctxt->udom->page, box->tailor_data->color_seco);
         foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
-                box->tailor_data->marks[0], tray_width);
+                box->tailor_data->marks[0],
+                box->tailor_data->nr_wide ? tray_width / 2 : tray_width);
 
         int bar_width = (int)(tray_width * ratio + 0.5);
         LOG_DEBUG("tray width: %d, ratio: %f, bar width: %d\n",
@@ -318,7 +320,8 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
         if (bar_width > 0) {
             foil_page_set_fgc(ctxt->udom->page, fgc);
             foil_page_draw_uchar(ctxt->udom->page, page_rc.left, y,
-                    box->tailor_data->marks[1], bar_width);
+                    box->tailor_data->marks[1],
+                    box->tailor_data->nr_wide ? bar_width / 2 : bar_width);
         }
     }
     else {

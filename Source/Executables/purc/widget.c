@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "widget.h"
 #include "page.h"
@@ -444,7 +444,7 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
 
         /* restore curosr and move cursor rel_row up lines,
            move curosr rel_col right lines */
-        snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col);
+        snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col + 1);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
         free(escaped_str);
