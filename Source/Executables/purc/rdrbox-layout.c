@@ -2537,6 +2537,8 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 
         foil_rect_offset(&line->rc,
                 block->ctnt_rect.left, block->ctnt_rect.top);
+
+        int line_off_x = 0;
         for (size_t j = 0; j < line->nr_runs; j++) {
             int off_y;
 
@@ -2557,10 +2559,10 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             foil_rect_offset(&run->rc, line->rc.left, line->rc.top);
             if (run->box->is_block_container) {
 
-                foil_rect_offset(&run->box->ctnt_rect, off_x, off_y);
+                foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
                 foil_rect_offset(&run->box->ctnt_rect,
                         line->rc.left, line->rc.top);
-                off_x += foil_rect_width(&run->box->ctnt_rect);
+                line_off_x += foil_rect_width(&run->box->ctnt_rect);
 #ifndef NDEBUG
                 LOG_DEBUG("Laid the block container to: %d, %d\n",
                         run->box->ctnt_rect.left, run->box->ctnt_rect.top);
@@ -2569,12 +2571,14 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                     foil_rdrbox_lay_lines_in_block(ctxt, run->box);
             }
             else {
-                off_x += foil_rect_width(&run->rc);
+                line_off_x += foil_rect_width(&run->rc);
             }
 
 #ifndef NDEBUG
-            LOG_DEBUG("A inline run at (%u, %u); (%d, %d, %d, %d), type: %d\n",
+            LOG_DEBUG("A inline run at (%u, %u); off_x: %d, line (%d, %d), (%d, %d, %d, %d), type: %d\n",
                     (unsigned)i, (unsigned)j,
+                    off_x,
+                    line->rc.left, line->rc.top,
                     run->rc.left, run->rc.top, run->rc.right, run->rc.bottom,
                     run->box->type);
 #endif
