@@ -61,9 +61,10 @@
 extern "C" {
 #endif
 
-/* default hash functions */
+/* hash functions */
 uint32_t pchash_default_str_hash(const void *k);
 uint32_t pchash_perlish_str_hash(const void *k);
+uint32_t pchash_fnv1a_str_hash(const void *k);
 uint32_t pchash_ptr_hash(const void *k);
 
 /* default comparison functions */

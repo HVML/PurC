@@ -232,6 +232,27 @@ enum {
     FOIL_RDRBOX_TYPE_TABLE_CAPTION,
 };
 
+enum {
+    FOIL_RDRBOX_CTRL_NONE = 0,
+    FOIL_RDRBOX_CTRL_BUTTON,
+    FOIL_RDRBOX_CTRL_CHECKBOX,
+    FOIL_RDRBOX_CTRL_LISTBOX,
+    FOIL_RDRBOX_CTRL_MENULIST,
+    FOIL_RDRBOX_CTRL_MENULIST_BUTTON,
+    FOIL_RDRBOX_CTRL_METER_BAR,
+    FOIL_RDRBOX_CTRL_METER_MARK,
+    FOIL_RDRBOX_CTRL_PROGRESS_BAR,
+    FOIL_RDRBOX_CTRL_PROGRESS_MARK,
+    FOIL_RDRBOX_CTRL_PUSH_BUTTON,
+    FOIL_RDRBOX_CTRL_RADIO,
+    FOIL_RDRBOX_CTRL_SEARCHFIELD,
+    FOIL_RDRBOX_CTRL_SLIDER_HORIZONTAL,
+    FOIL_RDRBOX_CTRL_SLIDER_VERTICAL,
+    FOIL_RDRBOX_CTRL_SQUARE_BUTTON,
+    FOIL_RDRBOX_CTRL_TEXTAREA,
+    FOIL_RDRBOX_CTRL_TEXTFIELD,
+};
+
 typedef enum {
     FOIL_BOX_PART_BACKGROUND = 0,
     FOIL_BOX_PART_BORDER,
@@ -275,13 +296,18 @@ typedef void (*foil_data_cleanup_cb)(void *data);
 
 struct foil_create_ctxt;
 struct foil_render_ctxt;
+struct foil_update_ctxt;
 struct foil_rdrbox;
 
 typedef int  (*foil_rdrbox_tailor_cb)(struct foil_create_ctxt *ctxt,
         struct foil_rdrbox *box);
 typedef void (*foil_rdrbox_cleanup_cb)(struct foil_rdrbox *box);
-typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *rdr_ctxt,
+typedef void (*foil_rdrbox_paint_cb)(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box);
+typedef void (*foil_rdrbox_update_cb)(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box);
+typedef purc_variant_t (*foil_rdrbox_method_cb)(struct foil_update_ctxt *ctxt,
+        struct foil_rdrbox *box, const char *property, purc_variant_t value);
 
 struct foil_rdrbox_tailor_ops {
     /* the callback to tailor the box and initialize the private data. */
@@ -296,6 +322,21 @@ struct foil_rdrbox_tailor_ops {
 
     /* the tailored callback for drawing content of a control or replaced box */
     foil_rdrbox_paint_cb    ctnt_painter;
+
+    /* the callback to reflect the changes of attributes. */
+    foil_rdrbox_update_cb   on_attr_changed;
+
+    /* the callback to reflect the changes of contents. */
+    foil_rdrbox_update_cb   on_ctnt_changed;
+
+    /* the callback to reflect `getProperty`. */
+    foil_rdrbox_method_cb   get_property;
+
+    /* the callback to reflect `setProperty`. */
+    foil_rdrbox_method_cb   set_property;
+
+    /* the callback to reflect `callMethod`. */
+    foil_rdrbox_method_cb   call_method;
 };
 
 struct foil_rdrbox {
@@ -308,7 +349,10 @@ struct foil_rdrbox {
 
     /* the element creating this box;
        for initial containing block, it has type of `PCDOC_NODE_VOID`. */
-    pcdoc_element_t owner;
+    union {
+        pcdoc_element *owner;
+        pcmcth_udom *udom;
+    };
 
     /* the pricipal box if this box is created for a pseudo element */
     struct foil_rdrbox *principal;
@@ -359,6 +403,7 @@ struct foil_rdrbox {
 
     /* Used values of non-inherited properties */
     uint32_t type:4;
+    uint32_t ctrl_type:5;
     uint32_t position:3;
     uint32_t floating:2;
     uint32_t clear:2;
@@ -389,7 +434,7 @@ struct foil_rdrbox {
     uint32_t border_bottom_color:4;
     uint32_t border_left_color:4;
 
-    uint32_t background_color:4;
+    foil_color background_color;
     int32_t  z_index;
 
     int32_t width, height;              // content width and height
@@ -401,7 +446,7 @@ struct foil_rdrbox {
     foil_counters *counter_reset;   // NULL when `counter-reset` is `none`
     foil_counters *counter_incrm;   // NULL when `counter-increment` is `none`
 
-    /* the following non-inherited properties have non-zero intial values */
+    /* the following non-inherited properties have non-zero initial values */
     int32_t min_height, max_height;    // initial value: 0, -1 (none)
     int32_t min_width,  max_width;     // initial value: 0, -1 (none)
 
@@ -419,7 +464,8 @@ struct foil_rdrbox {
     uint32_t text_transform:2;
     uint32_t visibility:2;
     uint32_t white_space:3;
-    uint32_t color:4;
+
+    foil_color color;
 
     uint32_t border_spacing_x;
     uint32_t border_spacing_y;
@@ -478,7 +524,6 @@ struct foil_rdrbox {
 
 typedef struct foil_create_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
 
     /* the initial containing block  */
     struct foil_rdrbox *initial_cblock;
@@ -508,17 +553,21 @@ typedef struct foil_create_ctxt {
 
 typedef struct foil_layout_ctxt {
     pcmcth_udom *udom;
-    pcmcth_page *page;
     const struct foil_rdrbox *initial_cblock;
 } foil_layout_ctxt;
 
 typedef struct foil_render_ctxt {
     pcmcth_udom *udom;
     union {
-        FILE *fp;
-        pcmcth_page *page;
+        FILE        *fp;
+        foil_rect   *invrc;
     };
 } foil_render_ctxt;
+
+typedef struct foil_update_ctxt {
+    pcmcth_udom    *udom;
+    pcdoc_element_t ref_element;
+} foil_update_ctxt;
 
 #ifdef __cplusplus
 extern "C" {
@@ -536,6 +585,15 @@ void foil_rdrbox_prepend_child(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_before(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_insert_after(foil_rdrbox *to, foil_rdrbox *box);
 void foil_rdrbox_remove_from_tree(foil_rdrbox *box);
+
+static inline foil_rdrbox *
+foil_rdrbox_get_root(foil_rdrbox *box)
+{
+    while (box->parent) {
+        box = box->parent;
+    }
+    return box;
+}
 
 /* Gets the box name; call free() to release the name after done. */
 char *foil_rdrbox_get_name(purc_document_t doc, const foil_rdrbox *box);

@@ -68,7 +68,7 @@ static const char *def_style_sheet = ""
     "caption         { text-align: center }"
     "address         { font-style: italic }"
     "body            { margin: 1em 1ex }"
-    "h1              { margin: 3em 0 1em 0 }"
+    "h1              { margin: 2em 0 1em 0 }"
     "h2              { margin: 2em 0 1em 0 }"
     "h3              { margin: 1em 0 1em 0 }"
     "h4, p,"
@@ -88,7 +88,9 @@ static const char *def_style_sheet = ""
     "kbd, samp       { font-family: monospace }"
     "pre             { white-space: pre }"
     "button, textarea,"
-    "input, select   { display: inline-block }"
+    "input, select   { appearance: auto; display: inline-block }"
+    "progress        { appearance: auto; display: inline-block; height: 1em; width: 10em; }"
+    "meter           { appearance: auto; display: inline-block; height: 1em; width: 5em; }"
     "big             { font-size: 1em }"
     "small, sub, sup { font-size: 1em }"
     "sub             { vertical-align: sub }"
@@ -230,6 +232,8 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
         goto failed;
     }
 
+    udom->page = page;
+
     udom->elem2nodedata = sorted_array_create(SAFLAG_DEFAULT, 8, NULL, NULL);
     if (udom->elem2nodedata == NULL) {
         goto failed;
@@ -274,7 +278,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
 
     /* set some fileds having non-zero values of
        the initial containing block */
-    udom->initial_cblock->owner = NULL;
+    udom->initial_cblock->udom = udom;
 
     udom->initial_cblock->is_initial = 1;
     udom->initial_cblock->is_block_level = 1;
@@ -285,8 +289,10 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     udom->initial_cblock->height = height;
     LOG_INFO("width of initial containing block: %d\n", width);
 
-    udom->initial_cblock->color = FOIL_DEF_FGC;
-    udom->initial_cblock->background_color = FOIL_DEF_BGC;
+    udom->initial_cblock->color.specified = 0;
+    udom->initial_cblock->color.argb = FOIL_DEF_FGC;
+    udom->initial_cblock->background_color.specified = 0;
+    udom->initial_cblock->background_color.argb = FOIL_DEF_BGC;
 
     udom->initial_cblock->ctnt_rect.left = 0;
     udom->initial_cblock->ctnt_rect.top = 0;
@@ -344,16 +350,11 @@ void foil_udom_delete(pcmcth_udom *udom)
     free(udom);
 }
 
-foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
-        uint64_t element_handle)
+pcmcth_udom *foil_udom_from_rdrbox(foil_rdrbox *box)
 {
-    void *data;
-
-    if (sorted_array_find(udom->elem2rdrbox, element_handle, &data) < 0) {
-        return NULL;
-    }
-
-    return data;
+    foil_rdrbox *root = foil_rdrbox_get_root(box);
+    assert(root->is_initial);
+    return root->udom;
 }
 
 static void load_css(struct pcmcth_udom *udom, const char *href)
@@ -701,6 +702,8 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
             goto done;
         }
 
+        sorted_array_add(ctxt->udom->elem2rdrbox, PTR2U64(ancestor), box);
+
         /* handle :before pseudo element */
         if (result->styles[CSS_PSEUDO_ELEMENT_BEFORE]) {
             if (foil_rdrbox_create_before(ctxt, box) == NULL) {
@@ -1026,7 +1029,8 @@ resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    if (box->is_block_level && box->nr_inline_level_children > 0) {
+    if ((box->is_block_level)
+            && box->nr_inline_level_children > 0) {
         foil_rdrbox_lay_lines_in_block(ctxt, box);
     }
     else if (box->is_block_container) {
@@ -1091,7 +1095,7 @@ dump_rdrtree(struct foil_render_ctxt *ctxt, struct foil_rdrbox *ancestor,
 static void dump_udom(pcmcth_udom *udom)
 {
     /* render the whole tree */
-    foil_render_ctxt render_ctxt = { udom, { NULL }};
+    foil_render_ctxt render_ctxt = { .udom = udom };
 
     /* dump the whole tree */
     LOG_DEBUG("Calling dump_rdrtree...\n");
@@ -1182,7 +1186,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
     }
 
     /* create the box tree */
-    foil_create_ctxt ctxt = { udom, page,
+    foil_create_ctxt ctxt = { udom,
         udom->initial_cblock,           /* initial box */
         NULL,                           /* root box */
         udom->initial_cblock,           /* parent box */
@@ -1198,7 +1202,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
 
     /* determine the geometries of boxes and lay out the boxes */
-    foil_layout_ctxt layout_ctxt = { udom, page, udom->initial_cblock };
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     LOG_DEBUG("Calling pre_layout_rdrtree...\n");
     pre_layout_rdrtree(&layout_ctxt, udom->initial_cblock);
 
@@ -1228,7 +1232,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
         goto failed;
     }
 
-    foil_udom_render_to_page(udom, page);
+    foil_udom_render_to_page(udom);
     foil_page_expose(page);
     return udom;
 
@@ -1237,51 +1241,90 @@ failed:
     return NULL;
 }
 
+foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
+        uint64_t element_handle)
+{
+    void *data;
+
+    if (sorted_array_find(udom->elem2rdrbox, element_handle, &data) < 0) {
+        return NULL;
+    }
+
+    return data;
+}
+
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
-    (void)udom;
-    (void)rdrbox;
     (void)op;
-    (void)property;
-    (void)ref_info;
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
 
-    /* TODO */
-    return PCRDR_SC_NOT_IMPLEMENTED;
+    pcdoc_element_t element;
+    element = purc_variant_native_get_entity(ref_info);
+    assert(element);
+
+    if (strncasecmp(property, "attr.", 5) == 0) {
+        const char *attr = property + 5;
+        if (strcasecmp(attr, "style") == 0) {
+            // TODO: the style changed.
+        }
+        else if (rdrbox->tailor_ops && rdrbox->tailor_ops->on_attr_changed) {
+            foil_update_ctxt ctxt = { udom, element };
+            rdrbox->tailor_ops->on_attr_changed(&ctxt, rdrbox);
+            r = PCRDR_SC_OK;
+        }
+    }
+    else if (strcasecmp(property, "textContent") == 0) {
+        // TODO:
+    }
+    else if (strcasecmp(property, "contents") == 0) {
+        // TODO:
+    }
+    else {
+        LOG_WARN("Unknown property: %s\n", property);
+    }
+
+    return r;
 }
 
 purc_variant_t foil_udom_call_method(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *method, purc_variant_t arg)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)method;
-    (void)arg;
+    LOG_DEBUG("rdrbox: %p, method: %s\n", rdrbox, method);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->call_method) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->call_method(&ctxt, rdrbox, method, arg);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t foil_udom_get_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)property;
+    LOG_DEBUG("rdrbox: %p, property: %s\n", rdrbox, property);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->get_property) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->get_property(&ctxt,
+                rdrbox, property, PURC_VARIANT_INVALID);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 
 purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         const char *property, purc_variant_t value)
 {
-    (void)udom;
-    (void)rdrbox;
-    (void)property;
-    (void)value;
+    LOG_DEBUG("rdrbox: %p, property: %s\n", rdrbox, property);
 
-    /* TODO */
+    if (rdrbox->tailor_ops && rdrbox->tailor_ops->set_property) {
+        foil_update_ctxt ctxt = { udom, NULL };
+        return rdrbox->tailor_ops->set_property(&ctxt,
+                rdrbox, property, value);
+    }
+
     return PURC_VARIANT_INVALID;
 }
 

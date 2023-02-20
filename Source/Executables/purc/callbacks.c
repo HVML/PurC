@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
+// #undef NDEBUG
 
 #include "purcmc-thread.h"
 #include "endpoint.h"
@@ -32,6 +32,8 @@
 #include "util/sorted-array.h"
 #include "tty/tty.h"
 #include "tty/tty-linemode.h"
+
+#include <assert.h>
 
 /* handle types */
 enum {
@@ -383,14 +385,9 @@ static int foil_update_udom(pcmcth_session *sess, pcmcth_udom *udom,
         goto failed;
     }
 
-    if (property != NULL &&
-            !purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME)) {
-        retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
-    }
-
     foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
+        LOG_WARN("Not found rdrbox for element: %p\n", INT2PTR(element_handle));
         retv = PCRDR_SC_NOT_FOUND;
         goto failed;
     }
@@ -481,12 +478,9 @@ foil_set_property_in_udom(pcmcth_session *sess,
 
     foil_rdrbox *rdrbox = foil_udom_find_rdrbox(udom, element_handle);
     if (rdrbox == NULL) {
+        LOG_DEBUG("Not rdrbox for the element handle: %p\n",
+                INT2PTR(element_handle));
         *retv = PCRDR_SC_NOT_FOUND;
-        return PURC_VARIANT_INVALID;
-    }
-
-    if (!purc_is_valid_token(property, PURC_LEN_PROPERTY_NAME)) {
-        *retv = PCRDR_SC_BAD_REQUEST;
         return PURC_VARIANT_INVALID;
     }
 

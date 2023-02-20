@@ -38,6 +38,31 @@ enum op_align_self {
 	ALIGN_SELF_AUTO			= 0x0005
 };
 
+enum op_appearance {
+	APPEARANCE_NONE                 = 0x0000,
+	APPEARANCE_AUTO                 = 0x0001,
+	APPEARANCE_MENULIST             = 0x0002,
+	APPEARANCE_MENULIST_BUTTON      = 0x0003,
+	APPEARANCE_TEXTFIELD            = 0x0004,
+	APPEARANCE_TEXTAREA             = 0x0005,
+	APPEARANCE_PROGRESS_BAR         = 0x0006,
+	APPEARANCE_PROGRESS_BKGND       = 0x0007,
+	APPEARANCE_PROGRESS_MARK        = 0x0008,
+	APPEARANCE_METER                = 0x0009,
+	APPEARANCE_METER_BAR            = 0x000A,
+	APPEARANCE_METER_BKGND          = 0x000B,
+	APPEARANCE_METER_MARK           = 0x000C,
+	APPEARANCE_SLIDER_HORIZONTAL    = 0x000D,
+	APPEARANCE_SLIDER_VERTICAL      = 0x000E,
+	APPEARANCE_BUTTON               = 0x000F,
+	APPEARANCE_CHECKBOX             = 0x0010,
+	APPEARANCE_LISTBOX              = 0x0011,
+	APPEARANCE_RADIO                = 0x0012,
+	APPEARANCE_SEARCHFIELD          = 0x0013,
+	APPEARANCE_PUSH_BUTTON          = 0x0014,
+	APPEARANCE_SQUARE_BUTTON        = 0x0015,
+};
+
 enum op_azimuth {
 	AZIMUTH_ANGLE			= 0x0080,
 
@@ -64,6 +89,7 @@ enum op_background_attachment {
 enum op_background_color {
 	BACKGROUND_COLOR_TRANSPARENT	= 0x0000,
 	BACKGROUND_COLOR_CURRENT_COLOR	= 0x0001,
+	BACKGROUND_COLOR_DEFAULT		= 0x0002,
 	BACKGROUND_COLOR_SET		= 0x0080
 };
 
@@ -103,6 +129,7 @@ enum op_border_spacing {
 enum op_border_color {
 	BORDER_COLOR_TRANSPARENT	= 0x0000,
 	BORDER_COLOR_CURRENT_COLOR	= 0x0001,
+	BORDER_COLOR_DEFAULT		= 0x0002,
 	BORDER_COLOR_SET		= 0x0080
 };
 
@@ -194,6 +221,7 @@ enum op_clip {
 enum op_color {
 	COLOR_TRANSPARENT		= 0x0000,
 	COLOR_CURRENT_COLOR		= 0x0001,
+	COLOR_DEFAULT			= 0x0002,
 	COLOR_SET			= 0x0080
 };
 
@@ -215,6 +243,7 @@ enum op_column_gap {
 enum op_column_rule_color {
 	COLUMN_RULE_COLOR_TRANSPARENT	= COLOR_TRANSPARENT,
 	COLUMN_RULE_COLOR_CURRENT_COLOR	= COLOR_CURRENT_COLOR,
+	COLUMN_RULE_COLOR_DEFAULT	= COLOR_DEFAULT,
 	COLUMN_RULE_COLOR_SET		= COLOR_SET
 };
 
@@ -542,7 +571,8 @@ enum op_orphans {
 enum op_outline_color {
 	OUTLINE_COLOR_TRANSPARENT	= 0x0000,
 	OUTLINE_COLOR_CURRENT_COLOR	= 0x0001,
-	OUTLINE_COLOR_INVERT		= 0x0002,
+	OUTLINE_COLOR_DEFAULT		= 0x0002,
+	OUTLINE_COLOR_INVERT		= 0x0003,
 	OUTLINE_COLOR_SET		= 0x0080
 };
 
@@ -1005,9 +1035,9 @@ enum op_filter {
 };
 
 enum op_flood_color {
-    FLOOD_COLOR_SET             = 0x0080,
     FLOOD_COLOR_TRANSPARENT     = 0x0000,
-    FLOOD_COLOR_CURRENT_COLOR   = 0x0001
+    FLOOD_COLOR_CURRENT_COLOR   = 0x0001,
+    FLOOD_COLOR_SET             = 0x0080,
 };
 
 enum op_flood_opacity {
@@ -1057,9 +1087,9 @@ enum op_shape_rendering {
 };
 
 enum op_stop_color {
-    STOP_COLOR_SET             = 0x0080,
     STOP_COLOR_TRANSPARENT     = 0x0000,
-    STOP_COLOR_CURRENT_COLOR   = 0x0001
+    STOP_COLOR_CURRENT_COLOR   = 0x0001,
+    STOP_COLOR_SET             = 0x0080,
 };
 
 enum op_stop_opacity {
@@ -1130,5 +1160,9 @@ enum op_text_rendering {
     TEXT_RENDERING_DEFAULT              = 0x0004
 };
 
+enum op_foil_candidate_marks {
+    FOIL_CANDIDATE_MARKS_AUTO = 0x0000,
+    FOIL_CANDIDATE_MARKS_SET  = 0x0080,
+};
 
 #endif

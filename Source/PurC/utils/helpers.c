@@ -34,6 +34,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <inttypes.h>
 #include <assert.h>
 
 bool purc_is_valid_token (const char* token, int max_len)
@@ -390,21 +391,55 @@ time_t purc_monotonic_time_after(time_t seconds)
     return ts_curr.tv_sec + seconds;
 }
 
-double purc_get_elapsed_seconds (const struct timespec *ts1,
-        const struct timespec *ts2)
+double purc_get_elapsed_seconds(const struct timespec *ts_from,
+        const struct timespec *ts_to)
 {
     struct timespec ts_curr;
     time_t ds;
     long dns;
 
-    if (ts2 == NULL) {
+    if (ts_to == NULL) {
         clock_gettime (CLOCK_MONOTONIC, &ts_curr);
-        ts2 = &ts_curr;
+        ts_to = &ts_curr;
     }
 
-    ds = ts2->tv_sec - ts1->tv_sec;
-    dns = ts2->tv_nsec - ts1->tv_nsec;
+    ds = ts_to->tv_sec - ts_from->tv_sec;
+    dns = ts_to->tv_nsec - ts_from->tv_nsec;
     return ds + dns * 1.0E-9;
+}
+
+int64_t purc_get_elapsed_milliseconds(const struct timespec *ts_from,
+        const struct timespec *ts_to)
+{
+    struct timespec ts_curr;
+    int64_t ds;
+    int64_t dns;
+
+    if (ts_to == NULL) {
+        clock_gettime(CLOCK_MONOTONIC, &ts_curr);
+        ts_to = &ts_curr;
+    }
+
+    ds = ts_to->tv_sec - ts_from->tv_sec;
+    dns = ts_to->tv_nsec - ts_from->tv_nsec;
+    return ds * 1000 + dns / 1000000;
+}
+
+int64_t purc_get_elapsed_milliseconds_alt(time_t t_from,
+        const struct timespec *ts_to)
+{
+    struct timespec ts_curr;
+    int64_t ds;
+    int64_t dns;
+
+    if (ts_to == NULL) {
+        clock_gettime(CLOCK_MONOTONIC, &ts_curr);
+        ts_to = &ts_curr;
+    }
+
+    ds = ts_to->tv_sec - t_from;
+    dns = ts_to->tv_nsec - 0;
+    return ds * 1000 + dns / 1000000;
 }
 
 #define HVML_SCHEMA         "hvml://"

@@ -1,0 +1,331 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'basic' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-meter-{$styleCase}.css" />
+
+        <title>Foil meter - $styleCase</title>
+    </head>
+
+    <body>
+        <init as 'caseName' with 'basic' temp />
+        <define as "$caseName" from "hvml/assets/foil-meter-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="meter1">Meter 1: </label>
+                    <meter id="meter1" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter2">Meter 2: </label>
+                    <meter id="meter2" style="appearance:meter-mark;width:1em;" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter3">Meter 3: </label>
+                    <meter id="meter2" style="appearance:meter-bkgnd;width:20em;" value=".5"></meter>
+                </p>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'barColors' temp />
+        <define as "$caseName" from "hvml/assets/foil-meter-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="meter1">Meter 1: </label>
+                    <meter id="meter1"></meter>
+                </p>
+                <p>
+                    <label for="meter2">Meter 2: </label>
+                    <meter id="meter2" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter3">Meter 3: </label>
+                    <meter id="meter3" value="1"></meter>
+                </p>
+                <p>
+                    <label for="meter4">Meter 4: </label>
+                    <meter id="meter4" value="5"></meter>
+                </p>
+                <p>
+                    <label for="meter5">Meter 5: </label>
+                    <meter id="meter5" value="-0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter6">Meter 6: </label>
+                    <meter id="meter6" value="0"></meter>
+                </p>
+                <p>
+                    <label for="meter7">Meter 7: </label>
+                    <meter id="meter7" value="0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter8">Meter 8: </label>
+                    <meter id="meter8" value=".5" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter9">Meter 9: </label>
+                    <meter id="meter9" value=".8" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter10">Meter 10: </label>
+                    <meter id="meter10" value=".9" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter11">Meter 11: </label>
+                    <meter id="meter11" value=".15" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter12">Meter 12: </label>
+                    <meter id="meter12" value=".25" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter13">Meter 13: </label>
+                    <meter id="meter13" value=".5" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter14">Meter 14: </label>
+                    <meter id="meter14" low=".25" optimum=".15" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter15">Meter 15: </label>
+                    <meter id="meter15" low=".25" optimum=".5" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter16">Meter 16: </label>
+                    <meter id="meter16" low=".25" optimum=".85" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter17">Meter 17: </label>
+                    <meter id="meter17" low=".25" optimum=".8" high=".75" value=".2"></meter>
+                </p>
+                <p>
+                    <label for="meter18">Meter 18: </label>
+                    <meter id="meter18" low=".25" optimum=".2" high=".75" value=".8"></meter>
+                </p>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'markColors' temp />
+        <define as "$caseName" from "hvml/assets/foil-meter-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="meter1">Meter 1: </label>
+                    <meter id="meter1" style="appearance:meter-mark;width:1em;"></meter>
+                </p>
+                <p>
+                    <label for="meter2">Meter 2: </label>
+                    <meter id="meter2" style="appearance:meter-mark;width:1em;" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter3">Meter 3: </label>
+                    <meter id="meter3" style="appearance:meter-mark;width:1em;" value="1"></meter>
+                </p>
+                <p>
+                    <label for="meter4">Meter 4: </label>
+                    <meter id="meter4" style="appearance:meter-mark;width:1em;" value="5"></meter>
+                </p>
+                <p>
+                    <label for="meter5">Meter 5: </label>
+                    <meter id="meter5" style="appearance:meter-mark;width:1em;" value="-0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter6">Meter 6: </label>
+                    <meter id="meter6" style="appearance:meter-mark;width:1em;" value="0"></meter>
+                </p>
+                <p>
+                    <label for="meter7">Meter 7: </label>
+                    <meter id="meter7" style="appearance:meter-mark;width:1em;" value="0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter8">Meter 8: </label>
+                    <meter id="meter8" style="appearance:meter-mark;width:1em;" value=".5" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter9">Meter 9: </label>
+                    <meter id="meter9" style="appearance:meter-mark;width:1em;" value=".8" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter10">Meter 10: </label>
+                    <meter id="meter10" style="appearance:meter-mark;width:1em;" value=".9" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter11">Meter 11: </label>
+                    <meter id="meter11" style="appearance:meter-mark;width:1em;" value=".15" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter12">Meter 12: </label>
+                    <meter id="meter12" style="appearance:meter-mark;width:1em;" value=".25" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter13">Meter 13: </label>
+                    <meter id="meter13" style="appearance:meter-mark;width:1em;" value=".5" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter14">Meter 14: </label>
+                    <meter id="meter14" style="appearance:meter-mark;width:1em;" low=".25" optimum=".15" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter15">Meter 15: </label>
+                    <meter id="meter15" style="appearance:meter-mark;width:1em;" low=".25" optimum=".5" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter16">Meter 16: </label>
+                    <meter id="meter16" style="appearance:meter-mark;width:1em;" low=".25" optimum=".85" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter17">Meter 17: </label>
+                    <meter id="meter17" style="appearance:meter-mark;width:1em;" low=".25" optimum=".8" high=".75" value=".2"></meter>
+                </p>
+                <p>
+                    <label for="meter18">Meter 18: </label>
+                    <meter id="meter18" style="appearance:meter-mark;width:1em;" low=".25" optimum=".2" high=".75" value=".8"></meter>
+                </p>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'bkgndColors' temp />
+        <define as "$caseName" from "hvml/assets/foil-meter-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="meter1">Meter 1: </label>
+                    <meter id="meter1" style="appearance:meter-bkgnd;width:10em;"></meter>
+                </p>
+                <p>
+                    <label for="meter2">Meter 2: </label>
+                    <meter id="meter2" style="appearance:meter-bkgnd;width:10em;" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter3">Meter 3: </label>
+                    <meter id="meter3" style="appearance:meter-bkgnd;width:10em;" value="1"></meter>
+                </p>
+                <p>
+                    <label for="meter4">Meter 4: </label>
+                    <meter id="meter4" style="appearance:meter-bkgnd;width:10em;" value="5"></meter>
+                </p>
+                <p>
+                    <label for="meter5">Meter 5: </label>
+                    <meter id="meter5" style="appearance:meter-bkgnd;width:10em;" value="-0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter6">Meter 6: </label>
+                    <meter id="meter6" style="appearance:meter-bkgnd;width:10em;" value="0"></meter>
+                </p>
+                <p>
+                    <label for="meter7">Meter 7: </label>
+                    <meter id="meter7" style="appearance:meter-bkgnd;width:10em;" value="0.5"></meter>
+                </p>
+                <p>
+                    <label for="meter8">Meter 8: </label>
+                    <meter id="meter8" style="appearance:meter-bkgnd;width:10em;" value=".5" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter9">Meter 9: </label>
+                    <meter id="meter9" style="appearance:meter-bkgnd;width:10em;" value=".8" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter10">Meter 10: </label>
+                    <meter id="meter10" style="appearance:meter-bkgnd;width:10em;" value=".9" high=".8"></meter>
+                </p>
+                <p>
+                    <label for="meter11">Meter 11: </label>
+                    <meter id="meter11" style="appearance:meter-bkgnd;width:10em;" value=".15" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter12">Meter 12: </label>
+                    <meter id="meter12" style="appearance:meter-bkgnd;width:10em;" value=".25" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter13">Meter 13: </label>
+                    <meter id="meter13" style="appearance:meter-bkgnd;width:10em;" value=".5" low=".25"></meter>
+                </p>
+                <p>
+                    <label for="meter14">Meter 14: </label>
+                    <meter id="meter14" style="appearance:meter-bkgnd;width:10em;" low=".25" optimum=".15" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter15">Meter 15: </label>
+                    <meter id="meter15" style="appearance:meter-bkgnd;width:10em;" low=".25" optimum=".5" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter16">Meter 16: </label>
+                    <meter id="meter16" style="appearance:meter-bkgnd;width:10em;" low=".25" optimum=".85" high=".75" value=".5"></meter>
+                </p>
+                <p>
+                    <label for="meter17">Meter 17: </label>
+                    <meter id="meter17" style="appearance:meter-bkgnd;width:10em;" low=".25" optimum=".8" high=".75" value=".2"></meter>
+                </p>
+                <p>
+                    <label for="meter18">Meter 18: </label>
+                    <meter id="meter18" style="appearance:meter-bkgnd;width:10em;" low=".25" optimum=".2" high=".75" value=".8"></meter>
+                </p>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'overall' temp />
+        <define as "$caseName" from "hvml/assets/foil-meter-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="meter1">Meter 1: </label>
+                    <meter id="meter1" value="0" min="0" max="100" low="33" high="66" optimum="80" style="appearance:meter-bar;width:10em;">N/A</meter>
+                </p>
+                <p>
+                    <label for="meter2">Meter 2: </label>
+                    <meter id="meter2" value="0" min="0" max="100" low="33" high="66" optimum="80" style="appearance:meter-mark;width:1em;">N/A</meter>
+                </p>
+                <p>
+                    <label for="meter3">Meter 3: </label>
+                    <meter id="meter3" value="0" min="0" max="100" low="33" high="66" optimum="80" style="appearance:meter-bkgnd;width:20em;"> N/A</meter>
+                </p>
+            </SECTION>
+
+            <update on "$TIMERS" to "unite">
+                [
+                    { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+                ]
+            </update>
+
+            <init as 'meter' with 0UL />
+
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+
+            <observe on $TIMERS for "expired:gogogo">
+                <init as 'meter' at '_grandparent' with $DATA.arith('+', $meter, 10UL) />
+                <update on '#meter1' at 'attr.value' with "$meter" />
+                <update on '#meter2' at 'attr.value' with "$meter" />
+                <update on '#meter3' at 'attr.value' with "$meter" />
+                <test with $L.ge($meter, 100UL) >
+                    <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
+                    <forget on $TIMERS for 'expired:*' />
+                    <exit with 'Ok' />
+                </test>
+            </observe>
+
+        </define>
+
+        <!-- check validation of ${$styleCase} -->
+        <choose on ${$styleCase}>
+            <catch>
+                <init as styleCase at '_root' with 'basic' />
+            </catch>
+        </choose>
+
+        <HEADER>
+            <H1 style="color:red;text-align:center">Used case: $styleCase</H1>
+        </HEADER>
+
+        <include with ${$styleCase} />
+
+    </body>
+
+</hvml>
+

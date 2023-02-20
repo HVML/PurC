@@ -26,8 +26,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __MC_LIB_LIST_H
-#define __MC_LIB_LIST_H
+#ifndef _purc_util_list_h
+#define _purc_util_list_h
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -209,4 +209,4 @@ list_splice_tail_init(struct list_head *list, struct list_head *head)
     INIT_LIST_HEAD(list);
 }
 
-#endif /* __MC_LIB_LIST_H */
+#endif /* not defined _purc_util_list_h */

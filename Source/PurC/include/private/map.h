@@ -47,6 +47,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* hash functions */
+uint32_t pchash_default_str_hash(const void *k);
+uint32_t pchash_perlish_str_hash(const void *k);
+uint32_t pchash_fnv1a_str_hash(const void *k);
+uint32_t pchash_ptr_hash(const void *k);
+
 /* common functions for string key */
 static inline void* copy_key_string(const void *key)
 {

@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -96,10 +96,19 @@ ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
     (void)box;
 }
 
-struct foil_rdrbox_tailor_ops _foil_rdrbox_replaced_ops = {
-    tailor,
-    cleaner,
-    NULL,
-    ctnt_painter,
+static struct foil_rdrbox_tailor_ops replaced_ops = {
+    .tailor = tailor,
+    .cleaner = cleaner,
+    .ctnt_painter = ctnt_painter,
 };
+
+struct foil_rdrbox_tailor_ops *
+foil_rdrbox_replaced_tailor_ops(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    // TODO
+    (void)ctxt;
+    (void)box;
+    return &replaced_ops;
+}
 

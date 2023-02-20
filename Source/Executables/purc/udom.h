@@ -37,6 +37,9 @@
 #define FOIL_DEF_RGNRCHEAP_SZ   16
 
 struct pcmcth_udom {
+    /* the page in which the uDOM located */
+    pcmcth_page *page;
+
     /* the sorted array of eDOM element and the corresponding CSS node data. */
     struct sorted_array *elem2nodedata;
 
@@ -110,6 +113,7 @@ void foil_udom_module_cleanup(pcmcth_renderer *rdr);
 pcmcth_udom *foil_udom_new(pcmcth_page *page);
 void foil_udom_delete(pcmcth_udom *udom);
 
+pcmcth_udom *foil_udom_from_rdrbox(foil_rdrbox *box);
 foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
         uint64_t element_handle);
 
@@ -139,7 +143,9 @@ purc_variant_t foil_udom_set_property(pcmcth_udom *udom, foil_rdrbox *rdrbox,
 
 void foil_udom_dump(pcmcth_udom *udom);
 void foil_udom_render_to_file(pcmcth_udom *udom, FILE *fp);
-void foil_udom_render_to_page(pcmcth_udom *udom, pcmcth_page *page);
+void foil_udom_render_to_page(pcmcth_udom *udom);
+
+void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, foil_rdrbox *box);
 
 #ifdef __cplusplus
 }

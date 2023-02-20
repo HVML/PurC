@@ -150,6 +150,7 @@ struct pcmcth_rdr_data;
 struct pcmcth_renderer {
     purc_atom_t     master_rid;
     unsigned int    nr_endpoints;
+    unsigned int    nr_timers;
 
     time_t t_start;
     time_t t_elapsed;
@@ -165,6 +166,13 @@ struct pcmcth_renderer {
 
     /* the AVL tree of endpoints sorted by living time */
     struct avl_tree living_avl;
+
+    /* The KV list using timer identifier as the key,
+       and pcmcth_timer_t as the value */
+    struct kvlist timer_list;
+
+    /* the AVL tree of timers sorted by expired time */
+    struct avl_tree timer_avl;
 
     /* the data for the renderer implementation */
     struct pcmcth_rdr_data *impl;

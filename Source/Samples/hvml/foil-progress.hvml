@@ -1,0 +1,129 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="{{ $REQ.lang || $STR.substr($SYS.locale, 0, 2) }}" silently >
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'basic' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="hvml/assets/foil-progress-{$styleCase}.css" />
+
+        <title>Foil progress - $styleCase</title>
+    </head>
+
+    <body>
+        <init as 'caseName' with 'basic' temp />
+        <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" style="appearance:progress-bar;" max="100" value="20"> 20%</progress>
+                </p>
+                <p>
+                    <label for="progress2">Progress 2: </label>
+                    <progress id="progress2" style="appearance:progress-mark;width:10em;" max="100" value="50"> 50%</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress3" style="appearance:progress-bkgnd;width:20em;" max="100" value="70"> 70%</progress>
+                </p>
+            </SECTION>
+        </define>
+
+        <init as 'caseName' with 'indeterminate' temp />
+        <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-bar;width:20em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress2">Progress 2: </label>
+                    <progress id="progress2" max="100" style="appearance:progress-mark;width:10em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress3" max="100" style="appearance:progress-bkgnd;width:20em;"> N/A</progress>
+                </p>
+            </SECTION>
+
+            <update on "$TIMERS" to "unite">
+                [
+                    { "id" : "quit", "interval" : 5000, "active" : "yes" },
+                ]
+            </update>
+
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+
+            <observe on $TIMERS for "expired:quit">
+                <exit with 'Ok' />
+            </observe>
+        </define>
+
+        <init as 'caseName' with 'overall' temp />
+        <define as "$caseName" from "hvml/assets/foil-progress-{$caseName}.html" silently>
+            <SECTION id="$caseName">
+                <p>
+                    <label for="progress1">Progress 1: </label>
+                    <progress id="progress1" max="100" style="appearance:progress-bar;width:10em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress2">Progress 2: </label>
+                    <progress id="progress2" max="100" style="appearance:progress-mark;width:1em;">N/A</progress>
+                </p>
+                <p>
+                    <label for="progress3">Progress 3: </label>
+                    <progress id="progress3" max="100" style="appearance:progress-bkgnd;width:20em;"> N/A</progress>
+                </p>
+            </SECTION>
+
+            <update on "$TIMERS" to "unite">
+                [
+                    { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+                ]
+            </update>
+
+            <init as 'progress' with 10UL />
+
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+
+            <observe on $TIMERS for "expired:gogogo">
+                <init as 'progress' at '_grandparent' with $DATA.arith('+', $progress, 10UL) />
+                <update on '#progress1' at 'attr.value' with "$progress" />
+                <update on '#progress2' at 'attr.value' with "$progress" />
+                <update on '#progress3' at 'attr.value' with "$progress" />
+                <test with $L.ge($progress, 100UL) >
+                    <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
+                    <forget on $TIMERS for 'expired:*' />
+                    <exit with 'Ok' />
+                </test>
+            </observe>
+
+        </define>
+
+        <!-- check validation of ${$styleCase} -->
+        <choose on ${$styleCase}>
+            <catch>
+                <init as styleCase at '_root' with 'basic' />
+            </catch>
+        </choose>
+
+        <HEADER>
+            <H1 style="color:red;text-align:center">Used case: $styleCase</H1>
+        </HEADER>
+
+        <include with ${$styleCase} />
+
+    </body>
+
+</hvml>
+

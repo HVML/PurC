@@ -1,49 +1,8 @@
-/////////////////////////////////////////////////////////////////////////////// //
-//                          IMPORTANT NOTICE
-//
-// The following open source license statement does not apply to any
-// entity in the Exception List published by FMSoft.
-//
-// For more information, please visit:
-//
-// https://www.fmsoft.cn/exception-list
-//
-//////////////////////////////////////////////////////////////////////////////
-/**
- \verbatim
-
-    This file is part of DOM Ruler. DOM Ruler is a library to
-    maintain a DOM tree, lay out and stylize the DOM nodes by
-    using CSS (Cascaded Style Sheets).
-
-    Copyright (C) 2021 Beijing FMSoft Technologies Co., Ltd.
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General License for more details.
-
-    You should have received a copy of the GNU Lesser General License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    Or,
-
-    As this program is a library, any link to this program must follow
-    GNU Lesser General License version 3 (LGPLv3). If you cannot accept
-    LGPLv3, you need to be licensed from FMSoft.
-
-    If you have got a commercial license of this program, please use it
-    under the terms and conditions of the commercial license.
-
-    For more information about the commercial license, please refer to
-    <http://www.minigui.com/blog/minigui-licensing-policy/>.
-
- \endverbatim
+/*
+ * This file is part of CSSEng.
+ * Licensed under the MIT License,
+ *          http://www.opensource.org/licenses/mit-license.php
+ * Copyright (C) 2021 ~ 2023 Beijing FMSoft Technologies Co., Ltd.
  */
 
 #include <assert.h>
@@ -55,8 +14,8 @@
 #include "parse/properties/utils.h"
 
 css_error css__parse_stroke_impl(css_language *c,
-		const parserutils_vector *vector, int *ctx,
-		css_style *result, int np)
+        const parserutils_vector *vector, int *ctx,
+        css_style *result, int np)
 {
     (void)np;
     int orig_ctx = *ctx;
@@ -70,12 +29,21 @@ css_error css__parse_stroke_impl(css_language *c,
         return CSS_INVALID;
     }
 
-    if ((token->type == CSS_TOKEN_IDENT) && (lwc_string_caseless_isequal(token->idata, c->strings[INHERIT], &match) == lwc_error_ok && match)) {
+    if ((token->type == CSS_TOKEN_IDENT)
+            && (lwc_string_caseless_isequal(token->idata,
+                    c->strings[INHERIT], &match) == lwc_error_ok && match)) {
         error = css_stylesheet_style_inherit(result, CSS_PROP_STROKE);
-    } else if ((token->type == CSS_TOKEN_IDENT) && (lwc_string_caseless_isequal(token->idata, c->strings[NONE], &match) == lwc_error_ok && match)) {
-        error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE, 0,STROKE_NONE);
-    } else if ((token->type == CSS_TOKEN_IDENT) && (lwc_string_caseless_isequal(token->idata, c->strings[CURRENTCOLOR], &match) == lwc_error_ok && match)) {
-        error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE, 0,STROKE_CURRENT_COLOR);
+    } else if ((token->type == CSS_TOKEN_IDENT) &&
+            (lwc_string_caseless_isequal(token->idata, c->strings[NONE],
+                                         &match) == lwc_error_ok && match)) {
+        error = css__stylesheet_style_appendOPV(result,
+                CSS_PROP_STROKE, 0,STROKE_NONE);
+    } else if ((token->type == CSS_TOKEN_IDENT) &&
+            (lwc_string_caseless_isequal(token->idata,
+                                         c->strings[CURRENTCOLOR],
+                                         &match) == lwc_error_ok && match)) {
+        error = css__stylesheet_style_appendOPV(result,
+                CSS_PROP_STROKE, 0,STROKE_CURRENT_COLOR);
     } else if (token->type == CSS_TOKEN_URI) {
         lwc_string *uri = NULL;
         uint32_t uri_snumber;
@@ -94,7 +62,8 @@ css_error css__parse_stroke_impl(css_language *c,
             return error;
         }
 
-        error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE, 0, STROKE_URI);
+        error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE,
+                0, STROKE_URI);
         if (error != CSS_OK) {
             *ctx = orig_ctx;
             return error;
@@ -102,21 +71,22 @@ css_error css__parse_stroke_impl(css_language *c,
 
         error = css__stylesheet_style_append(result, uri_snumber);
     } else {
-		uint16_t value = 0;
-		uint32_t color = 0;
-		*ctx = orig_ctx;
+        uint16_t value = 0;
+        uint32_t color = 0;
+        *ctx = orig_ctx;
 
-		error = css__parse_colour_specifier(c, vector, ctx, &value, &color);
-		if (error != CSS_OK) {
-			*ctx = orig_ctx;
-			return error;
-		}
+        error = css__parse_colour_specifier(c, vector, ctx, &value, &color);
+        if (error != CSS_OK) {
+            *ctx = orig_ctx;
+            return error;
+        }
 
-		error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE, 0, STROKE_SET_COLOR);
-		if (error != CSS_OK) {
-			*ctx = orig_ctx;
-			return error;
-		}
+        error = css__stylesheet_style_appendOPV(result, CSS_PROP_STROKE,
+                0, STROKE_SET_COLOR);
+        if (error != CSS_OK) {
+            *ctx = orig_ctx;
+            return error;
+        }
 
         error = css__stylesheet_style_append(result, color);
     }

@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
@@ -37,23 +37,18 @@
 
 static struct special_tag_info {
     const char                     *tag_name;
-    unsigned                        flags;
-    struct foil_rdrbox_tailor_ops  *tailor_ops;
+    struct foil_rdrbox_tailor_ops  *(*get_tailor_ops)
+        (struct foil_create_ctxt *ctxt, struct foil_rdrbox *box);
 } special_tags_html[] = {
     { "audio",              /* 0 */
-        TAG_FLAG_CONTROL,
         NULL },
     { "input",              /* 1 */
-        TAG_FLAG_CONTROL,
         NULL },
     { "meter",              /* 2 */
-        TAG_FLAG_NONE,
         NULL },
     { "progress",           /* 3 */
-        TAG_FLAG_NONE,
         NULL },
     { "select",             /* 4 */
-        TAG_FLAG_CONTROL,
         NULL },
 };
 
@@ -61,8 +56,8 @@ int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
 
-    special_tags_html[2].tailor_ops = &_foil_rdrbox_meter_ops;
-    special_tags_html[3].tailor_ops = &_foil_rdrbox_progress_ops;
+    special_tags_html[2].get_tailor_ops = foil_rdrbox_meter_tailor_ops;
+    special_tags_html[3].get_tailor_ops = foil_rdrbox_progress_tailor_ops;
     return 0;
 }
 
@@ -1269,16 +1264,32 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
     css_color color_argb;
     v = css_computed_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->color = foil_map_xrgb_to_16c(color_argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->color.specified = 0;
+    else {
+        box->color.specified = 1;
+        box->color.argb = color_argb;
+    }
+    // box->color = foil_map_xrgb_to_16c(color_argb);
 
-    LOG_DEBUG("\tcolor: 0x%08x\n", box->color);
+    LOG_DEBUG("\tcolor: %s, 0x%08x\n",
+            box->color.specified ? "specified" : "default",
+            box->color.argb);
 
     /* determine background color */
     v = css_computed_background_color(ctxt->style, &color_argb);
     assert(v != CSS_COLOR_INHERIT);
-    box->background_color = foil_map_xrgb_to_16c(color_argb);
+    if (v == CSS_COLOR_DEFAULT)
+        box->background_color.specified = 0;
+    else {
+        box->background_color.specified = 1;
+        box->background_color.argb = color_argb;
+    }
+    // box->background_color = foil_map_xrgb_to_16c(color_argb);
 
-    LOG_DEBUG("\tbackground-color: 0x%08x\n", box->background_color);
+    LOG_DEBUG("\tbackground-color: %s, 0x%08x\n",
+            box->background_color.specified ? "specified" : "default",
+            box->background_color.argb);
 
     /* determine quotes */
     lwc_string **strings = NULL;
@@ -1391,12 +1402,9 @@ static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
         int cmp;
 
         mid = (low + high) / 2;
-        printf("low: %d; high: %d; mid: %d\n", (int)low, (int)high, (int)mid);
         cmp = strcasecmp(ctxt->tag_name, special_tags_html[mid].tag_name);
         if (cmp == 0) {
-            if (special_tags_html[mid].flags & TAG_FLAG_CONTROL)
-                box->is_control = 1;
-            box->tailor_ops = special_tags_html[mid].tailor_ops;
+            box->tailor_ops = special_tags_html[mid].get_tailor_ops(ctxt, box);
             break;
         }
         else {
@@ -1684,7 +1692,7 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
             box->is_inline_box = 1;
 
         if (box->is_replaced) {
-            box->tailor_ops = &_foil_rdrbox_replaced_ops;
+            box->tailor_ops = foil_rdrbox_replaced_tailor_ops(ctxt, box);
         }
         else {
             tailor_box(ctxt, box);

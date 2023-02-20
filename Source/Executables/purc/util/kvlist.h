@@ -16,8 +16,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __MC_LIB_KVLIST_H
-#define __MC_LIB_KVLIST_H
+#ifndef _purc_util_kvlist_h
+#define _purc_util_kvlist_h
 
 #include "avl-cmp.h"
 #include "avl.h"
@@ -89,4 +89,4 @@ int kvlist_strlen(struct kvlist *kv, const void *data);
 }
 #endif
 
-#endif  /* __MC_LIB_KVLIST_H */
+#endif  /* not defined _purc_util_kvlist_h */

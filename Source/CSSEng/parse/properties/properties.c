@@ -202,5 +202,13 @@ const css_prop_handler property_handlers[LAST_PROP + 1 - FIRST_PROP] =
     css__parse_stroke_linejoin,
     css__parse_stroke_miterlimit,
     css__parse_text_anchor,
-    css__parse_text_rendering
+    css__parse_text_rendering,
+    css__parse_appearance,
+    css__parse__foil_color_info,
+    css__parse__foil_color_warning,
+    css__parse__foil_color_danger,
+    css__parse__foil_color_success,
+    css__parse__foil_color_primary,
+    css__parse__foil_color_secondary,
+    css__parse__foil_candidate_marks,
 };

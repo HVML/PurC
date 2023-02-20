@@ -1253,20 +1253,52 @@ ua_default_for_property(void *pw, uint32_t property, css_hint *hint)
     (void)pw;
 
     if (property == CSS_PROP_COLOR) {
-        hint->data.color = 0xFFFFFFFF;
+        hint->data.color = FOIL_DEF_FGC;
+        hint->status = CSS_COLOR_DEFAULT;
+    }
+    else if (property == CSS_PROP_BACKGROUND_COLOR) {
+        hint->data.color = FOIL_DEF_BGC;
+        hint->status = CSS_COLOR_DEFAULT;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_INFO) {
+        hint->data.color = FOIL_COLOR_INFO;
         hint->status = CSS_COLOR_COLOR;
-    } else if (property == CSS_PROP_FONT_FAMILY) {
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_WARNING) {
+        hint->data.color = FOIL_COLOR_WARNING;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_DANGER) {
+        hint->data.color = FOIL_COLOR_DANGER;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_SUCCESS) {
+        hint->data.color = FOIL_COLOR_SUCCESS;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_PRIMARY) {
+        hint->data.color = FOIL_COLOR_PRIMARY;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FOIL_COLOR_SECONDARY) {
+        hint->data.color = FOIL_COLOR_SECONDARY;
+        hint->status = CSS_COLOR_COLOR;
+    }
+    else if (property == CSS_PROP_FONT_FAMILY) {
         hint->data.strings = NULL;
         hint->status = CSS_FONT_FAMILY_MONOSPACE;
-    } else if (property == CSS_PROP_QUOTES) {
+    }
+    else if (property == CSS_PROP_QUOTES) {
         /* Not exactly useful :) */
         hint->data.strings = NULL;
         hint->status = CSS_QUOTES_NONE;
-    } else if (property == CSS_PROP_VOICE_FAMILY) {
+    }
+    else if (property == CSS_PROP_VOICE_FAMILY) {
         /** \todo Fix this when we have voice-family done */
         hint->data.strings = NULL;
         hint->status = 0;
-    } else {
+    }
+    else {
         return CSS_INVALID;
     }
 

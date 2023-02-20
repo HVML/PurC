@@ -2,8 +2,8 @@
  *  \brief Header: various utilities
  */
 
-#ifndef MC_UTIL_H
-#define MC_UTIL_H
+#ifndef _purc_util_util_h
+#define _purc_util_util_h
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -287,4 +287,4 @@ is_exe (mode_t mode)
     return ((mode & (S_IXUSR | S_IXGRP | S_IXOTH)) != 0);
 }
 
-#endif /* MC_UTIL_H */
+#endif /* not defined _purc_util_util_h */

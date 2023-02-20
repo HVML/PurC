@@ -17,8 +17,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __foil_util_unistring_h
-#define __foil_util_unistring_h
+#ifndef _purc_util_unistring_h
+#define _purc_util_unistring_h
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -207,4 +207,4 @@ foil_unistr_assign(foil_unistr *unistr, const char *str_utf8)
 }
 #endif
 
-#endif  /* __foil_util_unistring_h */
+#endif  /* not defined _purc_util_unistring_h */
