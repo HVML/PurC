@@ -220,33 +220,6 @@ foil_widget *foil_widget_get_root(foil_widget *widget)
     return parent;
 }
 
-static void adjust_viewport_line_mode(foil_widget *widget)
-{
-    int widget_rows = foil_rect_height(&widget->client_rc);
-    int rows = widget->vh;
-
-    if (rows < widget->page.rows) {
-        while (rows < widget->page.rows) {
-            fputs("\n", stdout);
-            rows++;
-        }
-        widget->vh = rows;
-
-        if (widget->page.rows > widget_rows) {
-            widget->vy = widget->page.rows - widget_rows;
-            widget->vh = widget_rows;
-        }
-
-        LOG_DEBUG("widget viewport (rows: %d): %d, %d, %d, %d\n",
-                rows,
-                widget->vx, widget->vy, widget->vw, widget->vh);
-
-        /* Save cursor position */
-        fputs("\0337", stdout);
-        fflush(stdout);
-    }
-}
-
 static const char *escaped_bgc[] = {
     "\x1b[49m",  // Default
     "\x1b[40m",  // FOIL_STD_COLOR_BLACK
@@ -458,6 +431,42 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
     /* restore cursor position (bottom-left corner of the page). */
     fputs("\0338", stdout);
 #endif
+}
+
+static void adjust_viewport_line_mode(foil_widget *widget)
+{
+    int widget_rows = foil_rect_height(&widget->client_rc);
+    int rows = widget->vh;
+
+    if (rows < widget->page.rows) {
+        while (rows < widget->page.rows) {
+            int vy = widget_rows - widget->page.rows + rows;
+            /* Writes the contents of lines off the scrolled screen. */
+            if (vy < 0) {
+                struct foil_tty_cell *cell = widget->page.cells[rows];
+                char *escaped_str = make_escape_string_line_mode(
+                        &widget->page, cell, widget->page.cols);
+                fputs(escaped_str, stdout);
+            }
+
+            fputs("\n", stdout);
+            rows++;
+        }
+        widget->vh = rows;
+
+        if (widget->page.rows > widget_rows) {
+            widget->vy = widget->page.rows - widget_rows;
+            widget->vh = widget_rows;
+        }
+
+        LOG_DEBUG("widget viewport (rows: %d): %d, %d, %d, %d\n",
+                rows,
+                widget->vx, widget->vy, widget->vw, widget->vh);
+
+        /* Save cursor position */
+        fputs("\0337", stdout);
+        fflush(stdout);
+    }
 }
 
 #define TIMER_FLUSHER_NAME          "flusher"
