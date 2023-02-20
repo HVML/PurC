@@ -195,8 +195,8 @@ variant_set_compare_by_set_keys(purc_variant_t set,
     lit = pcvar_kv_it_first(set, l);
     rit = pcvar_kv_it_first(set, r);
     while (1) {
-        struct obj_node *ln = pcvar_obj_it_get_curr(&lit.it);
-        struct obj_node *rn = pcvar_obj_it_get_curr(&rit.it);
+        struct obj_node *ln = lit.it.curr;
+        struct obj_node *rn = rit.it.curr;
         if (ln == NULL && rn == NULL)
             return 0;
         if (ln == NULL)
@@ -316,7 +316,7 @@ break_rev_update_chain(purc_variant_t set, struct set_node *node)
         struct kv_iterator it;
         it = pcvar_kv_it_first(set, node->val);
         while (1) {
-            struct obj_node *on = pcvar_obj_it_get_curr(&it.it);
+            struct obj_node *on = it.it.curr;
             if (on == NULL)
                 break;
             if (pcvariant_is_mutable(on->val)) {
@@ -512,7 +512,7 @@ build_rev_update_chain(purc_variant_t set, struct set_node *node)
         struct kv_iterator it;
         it = pcvar_kv_it_first(set, node->val);
         while (1) {
-            struct obj_node *on = pcvar_obj_it_get_curr(&it.it);
+            struct obj_node *on = it.it.curr;
             if (on == NULL)
                 break;
             if (pcvariant_is_mutable(on->val)) {
@@ -1946,8 +1946,8 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj)
 
     it.it = pcvar_obj_it_first(obj);
 
-    while (pcvar_obj_it_is_valid(&it.it)) {
-        struct obj_node *curr = pcvar_obj_it_get_curr(&it.it);
+    while (it.it.curr) {
+        struct obj_node *curr = it.it.curr;
         purc_variant_t key = curr->key;
         const char *sk = purc_variant_get_string_const(key);
         for (size_t i=0; i<data->nr_keynames; ++i) {
@@ -1974,7 +1974,7 @@ pcvar_kv_it_first(purc_variant_t set, purc_variant_t obj)
 void
 pcvar_kv_it_next(struct kv_iterator *it)
 {
-    if (!pcvar_obj_it_is_valid(&it->it))
+    if (it->it.curr == NULL)
         return;
 
     variant_set_t data = pcvar_set_get_data(it->set);
@@ -1985,15 +1985,17 @@ pcvar_kv_it_next(struct kv_iterator *it)
     }
 
     if (it->accu >= data->nr_keynames) {
-        it->it.uomap_it.curr = NULL;
+        it->it.curr = NULL;
+        it->it.next = NULL;
+        it->it.prev = NULL;
         return;
     }
 
     while (1) {
         pcvar_obj_it_next(&it->it);
-        if (!pcvar_obj_it_is_valid(&it->it))
+        if (it->it.curr == NULL)
             return;
-        struct obj_node *curr = pcvar_obj_it_get_curr(&it->it);
+        struct obj_node *curr = it->it.curr;
         purc_variant_t key = curr->key;
         const char *sk = purc_variant_get_string_const(key);
         for (size_t i=0; i<data->nr_keynames; ++i) {

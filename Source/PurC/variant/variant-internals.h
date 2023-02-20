@@ -171,6 +171,24 @@ int
 pcvar_tuple_build_edge_to_parent(purc_variant_t tuple,
         struct pcvar_rev_update_edge *edge);
 
+
+struct obj_iterator {
+    purc_variant_t                obj;
+
+    struct obj_node              *curr;
+    struct obj_node              *next;
+    struct obj_node              *prev;
+};
+
+struct obj_iterator
+pcvar_obj_it_first(purc_variant_t obj);
+struct obj_iterator
+pcvar_obj_it_last(purc_variant_t obj);
+void
+pcvar_obj_it_next(struct obj_iterator *it);
+void
+pcvar_obj_it_prev(struct obj_iterator *it);
+
 struct arr_iterator {
     purc_variant_t                arr;
 

@@ -1014,22 +1014,6 @@ purc_variant_make_object_0(void)
 }
 
 /**
- * purc_variant_object_get:
- *
- * @obj: An object variant.
- * @key: The key of the property to find.
- *
- * Gets the property value in @obj by the key value specified by
- * a string, an atom, or an exception variant.
- *
- * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT purc_variant_t
-purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
-
-/**
  * purc_variant_object_get_by_ckey:
  *
  * @obj: An object variant.
@@ -1042,16 +1026,31 @@ purc_variant_object_get(purc_variant_t obj, purc_variant_t key);
  *
  * Since: 0.0.1
  */
-PCA_INLINE  purc_variant_t
-purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key)
+PCA_EXPORT purc_variant_t
+purc_variant_object_get_by_ckey(purc_variant_t obj, const char* key);
+
+/**
+ * purc_variant_object_get:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ *
+ * Gets the property value in @obj by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: The property value on success, or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE purc_variant_t
+purc_variant_object_get(purc_variant_t obj, purc_variant_t key)
 {
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k == PURC_VARIANT_INVALID) {
-        return PURC_VARIANT_INVALID;
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_get_by_ckey(obj, sk);
     }
-    purc_variant_t ret = purc_variant_object_get(obj, k);
-    purc_variant_unref(k);
-    return ret;
+
+    return PURC_VARIANT_INVALID;
 }
 
 /**
@@ -1105,25 +1104,6 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * purc_variant_object_remove:
- *
- * @obj: An object variant.
- * @key: The key of the property to find.
- * @silently: Whether to ignore the following errors:
- *      - PCVRNT_ERROR_NOT_FOUND
- *
- * Removes a property from the object by the key value specified by
- * a string, an atom, or an exception variant.
- *
- * Returns: %true on success, otherwise %false.
- *
- * Since: 0.0.1
- */
-PCA_EXPORT bool
-purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
-        bool silently);
-
-/**
  * purc_variant_object_remove_by_static_ckey:
  *
  * @obj: An object variant.
@@ -1141,18 +1121,35 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
  *
  * Since: 0.0.1
  */
-PCA_INLINE bool
+PCA_EXPORT bool
 purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+        bool silently);
+
+/**
+ * purc_variant_object_remove:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to find.
+ * @silently: Whether to ignore the following errors:
+ *      - PCVRNT_ERROR_NOT_FOUND
+ *
+ * Removes a property from the object by the key value specified by
+ * a string, an atom, or an exception variant.
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.0.1
+ */
+PCA_INLINE bool
+purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
         bool silently)
 {
-    purc_variant_t k = purc_variant_make_string_static(key, true);
-    if (k == PURC_VARIANT_INVALID) {
-        return false;
+    const char *sk = purc_variant_get_string_const(key);
+    if (sk) {
+        return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
     }
 
-    bool ret = purc_variant_object_remove(obj, k, silently);
-    purc_variant_unref(k);
-    return ret;
+    return false;
 }
 
 /**

@@ -2161,19 +2161,19 @@ static const struct test_data test_cases[] = {
     {
 
         "{'obj':['value_1', 'value_2', {'ka':'b', 'kb':2}]}",
-        "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bkb%5D=2&obj%5B2%5D%5Bka%5D=b",
+        "obj%5B0%5D=value_1&obj%5B1%5D=value_2&&obj%5B2%5D%5Bka%5D=b&obj%5B2%5D%5Bkb%5D=2",
         NULL
     },
     {
 
         "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
-        "0=value_1&1=value_2&&2%5Bkb%5D=2&2%5Bka%5D=b",
+        "0=value_1&1=value_2&&2%5Bka%5D=b&2%5Bkb%5D=2",
         NULL
     },
     {
 
         "['value_1', 'value_2', {'ka':'b', 'kb':2}]",
-        "pre0=value_1&pre1=value_2&&pre2%5Bkb%5D=2&pre2%5Bka%5D=b",
+        "pre0=value_1&pre1=value_2&&pre2%5Bka%5D=b&pre2%5Bkb%5D=2",
         "pre"
     }
 };

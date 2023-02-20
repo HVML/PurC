@@ -32,31 +32,30 @@ static int
 obj_parallel_walk(purc_variant_t l, purc_variant_t r, void *ctxt,
         int (*cb)(purc_variant_t l, purc_variant_t r, void *ctxt))
 {
-    struct obj_iterator lit = pcvar_obj_it_first(l);
+    struct obj_iterator lit, rit;
+    lit = pcvar_obj_it_first(l);
+    rit = pcvar_obj_it_first(r);
 
-    while (pcvar_obj_it_is_valid(&lit)) {
-        purc_variant_t k = pcvar_obj_it_get_key(&lit);
-        purc_variant_t lv = pcvar_obj_it_get_value(&lit);
-        purc_variant_t rv = purc_variant_object_get(r, k);
+    while (lit.curr && rit.curr) {
+        int r = cb(lit.curr->key, rit.curr->key, ctxt);
+        if (r)
+            return r;
 
-        int ret = parallel_walk(lv, rv, ctxt, cb);
-        if (ret) {
-            return ret;
-        }
+        r = parallel_walk(lit.curr->val, rit.curr->val, ctxt, cb);
+        if (r)
+            return r;
 
         pcvar_obj_it_next(&lit);
+        pcvar_obj_it_next(&rit);
     }
 
-    size_t lsz = purc_variant_object_get_size(l);
-    size_t rsz = purc_variant_object_get_size(r);
+    if (lit.curr == NULL && rit.curr == NULL)
+        return 0;
 
-    if (lsz > rsz) {
-        return 1;
-    }
-    else if (lsz < rsz) {
-        return -1;
-    }
-    return 0;
+    if (lit.curr)
+        return parallel_walk(lit.curr->val, PURC_VARIANT_INVALID, ctxt, cb);
+    else
+        return parallel_walk(PURC_VARIANT_INVALID, rit.curr->val, ctxt, cb);
 }
 
 static int
