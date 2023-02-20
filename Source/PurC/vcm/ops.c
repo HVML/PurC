@@ -90,15 +90,7 @@ void
 pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx,
         size_t pos, purc_variant_t v)
 {
-    if (frame_idx < 0 || frame_idx > ctxt->frame_idx) {
-        return;
-    }
-
     struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
-    if (pos >= frame->nr_params) {
-        return;
-    }
-
     struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
     int32_t idx = eval_node->first_child_idx + pos;
     struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
@@ -110,15 +102,7 @@ purc_variant_t
 pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
         int32_t frame_idx, size_t pos)
 {
-    if (frame_idx < 0 || frame_idx > ctxt->frame_idx) {
-        return PURC_VARIANT_INVALID;
-    }
-
     struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
-    if (pos >= frame->nr_params) {
-        return PURC_VARIANT_INVALID;
-    }
-
     struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
     int32_t idx = eval_node->first_child_idx + pos;
     struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;

@@ -347,7 +347,10 @@ v_object_remove(purc_variant_t obj, const char *key, bool silently,
         entry->rb_parent = NULL;
 
         if (check) {
-            pcvar_adjust_set_by_descendant(obj);
+            variant_obj_t obj_data = pcvar_obj_get_data(obj);
+            if (obj_data->rev_update_chain) {
+                pcvar_adjust_set_by_descendant(obj);
+            }
 
             shrunk(obj, k, v, check);
         }
@@ -452,22 +455,12 @@ static int
 v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
         bool check)
 {
-    if (!key || !val) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
-    }
-
     const char *sk = purc_variant_get_string_const(key);
 
     if (purc_variant_is_undefined(val)) {
         bool silently = true;
         v_object_remove(obj, sk, silently, check);
         return 0;
-    }
-
-    if (key->type != PVT(_STRING)) {
-        pcinst_set_error(PURC_ERROR_INVALID_VALUE);
-        return -1;
     }
 
     variant_obj_t data = pcvar_obj_get_data(obj);
@@ -520,7 +513,10 @@ v_object_set(purc_variant_t obj, purc_variant_t key, purc_variant_t val,
                 if (build_rev_update_chain(obj, node))
                     break;
 
-                pcvar_adjust_set_by_descendant(obj);
+                variant_obj_t obj_data = pcvar_obj_get_data(obj);
+                if (obj_data->rev_update_chain) {
+                    pcvar_adjust_set_by_descendant(obj);
+                }
 
                 grown(obj, key, val, check);
             }
