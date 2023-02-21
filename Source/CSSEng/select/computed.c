@@ -2066,3 +2066,50 @@ uint8_t css_computed_text_rendering(const css_computed_style *style)
     return get_text_rendering(style);
 }
 
+uint8_t css_computed_appearance(const css_computed_style *style)
+{
+    return get_appearance(style);
+}
+
+uint8_t css_computed_foil_color_info(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_info(style, color);
+}
+
+uint8_t css_computed_foil_color_warning(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_warning(style, color);
+}
+
+uint8_t css_computed_foil_color_danger(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_danger(style, color);
+}
+
+uint8_t css_computed_foil_color_success(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_success(style, color);
+}
+
+uint8_t css_computed_foil_color_primary(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_primary(style, color);
+}
+
+uint8_t css_computed_foil_color_secondary(
+        const css_computed_style *style, css_color *color)
+{
+    return get__foil_color_secondary(style, color);
+}
+
+uint8_t css_computed_foil_candidate_marks(
+        const css_computed_style *style, lwc_string **marks)
+{
+    return get__foil_candidate_marks(style, marks);
+}
+

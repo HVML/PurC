@@ -40,6 +40,7 @@
 #include "private/vdom.h"
 #include "private/timer.h"
 #include "private/sorted-array.h"
+#include "private/avl.h"
 
 #define PCINTR_MOVE_BUFFER_SIZE 64
 #define CRTN_TOKEN_LEN          15
@@ -126,7 +127,7 @@ struct pcintr_heap {
 
     struct list_head    crtns;
     struct list_head    stopped_crtns;
-    struct sorted_array *wait_timeout_crtns;
+    struct avl_tree     wait_timeout_crtns_avl;
 
     pcutils_map        *name_chan_map;  // name to channel map.
     pcutils_map        *token_crtn_map; // token to crtn map.
@@ -349,6 +350,9 @@ struct pcintr_coroutine {
 
     // for loaded dynamic variants
     struct rb_root              loaded_vars;  // struct pcintr_loaded_var*
+
+    /* AVL node for the AVL tree sorted by stopped timeout */
+    struct avl_node             avl;
 
     void                       *user_data;
     unsigned long               run_idx;

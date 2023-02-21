@@ -23,9 +23,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// #undef NDEBUG
+
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
+
 #include <pthread.h>
 #include <semaphore.h>
 #include <fcntl.h>           /* For O_* constants */
@@ -33,6 +37,7 @@
 
 #include "foil.h"
 #include "endpoint.h"
+#include "timer.h"
 
 static int init_renderer(pcmcth_renderer *rdr)
 {
@@ -46,6 +51,8 @@ static int init_renderer(pcmcth_renderer *rdr)
     kvlist_init(&rdr->endpoint_list, NULL);
     avl_init(&rdr->living_avl, comp_living_time, true, NULL);
 
+    foil_timer_module_init(rdr);
+
     return rdr->cbs.prepare(rdr);
 }
 
@@ -56,6 +63,8 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     pcmcth_endpoint *endpoint;
 
     rdr->cbs.cleanup(rdr);
+
+    foil_timer_module_cleanup(rdr);
 
     remove_all_living_endpoints(&rdr->living_avl);
 
@@ -71,6 +80,16 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     }
 
     kvlist_free(&rdr->endpoint_list);
+}
+
+#define FOIL_RENDERER   "renderer"
+
+pcmcth_renderer *foil_get_renderer(void)
+{
+    uintptr_t v;
+    if (purc_get_local_data(FOIL_RENDERER, &v, NULL) == 1)
+        return (pcmcth_renderer *)(void *)v;
+    return NULL;
 }
 
 static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
@@ -122,6 +141,69 @@ no_any_endpoints:
     return false;
 }
 
+#ifndef NDEBUG
+
+#define IDT_REGULAR         0
+#define IDT_ONCE            1
+#define MAX_TIMES_FIRED     20
+
+static unsigned nr_timer_fired;
+static int on_regular_timer(const char *name, void *ctxt)
+{
+    assert(strcmp(name, "regular") == 0);
+
+    pcmcth_renderer *rdr = ctxt;
+    pcmcth_timer_t timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
+    assert(timer);
+
+    const char* id = foil_timer_id(rdr, timer);
+    printf("Timer %s with id (%s) fired: %d\n", name, id, nr_timer_fired);
+    nr_timer_fired++;
+    if (nr_timer_fired == MAX_TIMES_FIRED)
+        return 100;
+    return 0;
+}
+
+static int on_once_timer(const char *name, void *ctxt)
+{
+    assert(strcmp(name, "once") == 0);
+
+    pcmcth_renderer *rdr = ctxt;
+    pcmcth_timer_t timer;
+    timer = foil_timer_find(rdr, name, on_regular_timer, ctxt);
+    assert(timer == NULL);
+
+    timer = foil_timer_find(rdr, name, on_once_timer, ctxt);
+    assert(timer);
+
+    const char* id = foil_timer_id(rdr, timer);
+    printf("Timer %s with identifier (%s) fired\n", name, id);
+    return -1;
+}
+
+static void test_timer(pcmcth_renderer *rdr)
+{
+    foil_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
+    foil_timer_new(rdr, "once", on_once_timer, 100, rdr);
+
+    while (rdr->t_elapsed < 2) {
+        if (rdr->cbs.handle_event(rdr, 10000))
+            break;
+
+        rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
+        if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
+            rdr->t_elapsed_last = rdr->t_elapsed;
+        }
+
+        foil_timer_check_expired(rdr);
+    }
+
+    unsigned n;
+    n = foil_timer_delete_all(rdr);
+    assert(n == 1);
+}
+#endif /* not defined NDEBUG */
+
 static void event_loop(pcmcth_renderer *rdr)
 {
     (void)rdr;
@@ -148,6 +230,7 @@ static void event_loop(pcmcth_renderer *rdr)
                 rdr->t_elapsed_last = rdr->t_elapsed;
             }
 
+            foil_timer_check_expired(rdr);
             continue;
         }
 
@@ -223,7 +306,12 @@ static void* foil_thread_entry(void* arg)
         pcmcth_renderer rdr;
 
         if (init_renderer(&rdr) == 0) {
+            purc_set_local_data(FOIL_RENDERER, (uintptr_t)&rdr, NULL);
+#ifndef NDEBUG
+            test_timer(&rdr);
+#endif
             event_loop(&rdr);
+            purc_remove_local_data(FOIL_RENDERER);
             deinit_renderer(&rdr);
         }
         purc_inst_destroy_move_buffer();

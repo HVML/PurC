@@ -62,6 +62,7 @@ if (ENABLE_RDR_FOIL)
         rdrbox-meter.c
         udom-render.c
         widget.c
+        timer.c
     )
 endif ()
 

@@ -273,7 +273,14 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "stroke-miterlimit", SLEN("stroke-miterlimit") },
 	{ "text-anchor", SLEN("text-anchor") },
 	{ "text-rendering", SLEN("text-rendering") },
-
+	{ "appearance", SLEN("appearance") },
+	{ "-foil-color-info", SLEN("-foil-color-info") },
+	{ "-foil-color-warning", SLEN("-foil-color-warning") },
+	{ "-foil-color-danger", SLEN("-foil-color-danger") },
+	{ "-foil-color-success", SLEN("-foil-color-success") },
+	{ "-foil-color-primary", SLEN("-foil-color-primary") },
+	{ "-foil-color-secondary", SLEN("-foil-color-secondary") },
+	{ "-foil-candidate-marks", SLEN("-foil-candidate-marks") },
 
 	{ "inherit", SLEN("inherit") },
 	{ "important", SLEN("important") },
@@ -558,7 +565,29 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "strict", SLEN("strict") },
 	{ "anywhere", SLEN("anywhere") },
 
+    /* keywords for appearance */
+	{ "menulist", SLEN("menulist") },
+	{ "menulist-button", SLEN("menulist-button") },
+	{ "textfield", SLEN("textfield") },
+	{ "textarea", SLEN("textarea") },
+	{ "progress-bar", SLEN("progress-bar") },
+	{ "progress-bkgnd", SLEN("progress-bkgnd") },
+	{ "progress-mark", SLEN("progress-mark") },
+	{ "meter", SLEN("meter") },
+	{ "meter-bar", SLEN("meter-bar") },
+	{ "meter-bkgnd", SLEN("meter-bkgnd") },
+	{ "meter-mark", SLEN("meter-mark") },
+	{ "slider-horizontal", SLEN("slider-horizontal") },
+	{ "slider-vertical", SLEN("slider-vertical") },
+	{ "button", SLEN("button") },
+	{ "checkbox", SLEN("checkbox") },
+	{ "listbox", SLEN("listbox") },
+	{ "radio", SLEN("radio") },
+	{ "searchfield", SLEN("searchfield") },
+	{ "push-button", SLEN("push-button") },
+	{ "square-button", SLEN("square-button") },
 
+    /* keywords for color */
 	{ "aliceblue", SLEN("aliceblue") },
 	{ "antiquewhite", SLEN("antiquewhite") },
 	{ "aqua", SLEN("aqua") },
@@ -708,7 +737,7 @@ const stringmap_entry stringmap[LAST_KNOWN] = {
 	{ "white", SLEN("white") },
 	{ "whitesmoke", SLEN("whitesmoke") },
 	{ "yellow", SLEN("yellow") },
-	{ "yellowgreen", SLEN("yellowgreen") }
+	{ "yellowgreen", SLEN("yellowgreen") },
 };
 
 

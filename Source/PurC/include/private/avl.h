@@ -170,13 +170,29 @@ enum avl_find_mode {
 extern "C" {
 #endif
 
-void pcutils_avl_init(struct avl_tree *, avl_tree_comp, bool, void *);
-struct avl_node *pcutils_avl_find(const struct avl_tree *, const void *);
-struct avl_node *pcutils_avl_find_greaterequal(const struct avl_tree *tree, const void *key);
-struct avl_node *pcutils_avl_find_lessequal(const struct avl_tree *tree, const void *key);
-int pcutils_avl_insert(struct avl_tree *, struct avl_node *);
-void pcutils_avl_delete(struct avl_tree *, struct avl_node *);
+/** Initializes an AVL tree. */
+void pcutils_avl_init(struct avl_tree *tree,
+        avl_tree_comp cmp_fn, bool allow_dups, void *user_ptr);
 
+/** Finds a node which is equal to the specified key. */
+struct avl_node *pcutils_avl_find(const struct avl_tree *tree,
+        const void *key);
+
+/** Finds a node which is greater than or equal to the specified key. */
+struct avl_node *pcutils_avl_find_greaterequal(const struct avl_tree *tree,
+        const void *key);
+
+/** Finds a node which is less than or equal to the specified key. */
+struct avl_node *pcutils_avl_find_lessequal(const struct avl_tree *tree,
+        const void *key);
+
+/** Inserts a node to the tree. */
+int pcutils_avl_insert(struct avl_tree *tree, struct avl_node *node);
+
+/** Deletes a node in the tree. */
+void pcutils_avl_delete(struct avl_tree *tree, struct avl_node *node);
+
+/** Compares two keys as they are two null-terminated strings. */
 int pcutils_avl_strcmp(const void *k1, const void *k2, void *ptr);
 
 #ifdef __cplusplus

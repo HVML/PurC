@@ -412,7 +412,13 @@ css_error css__parse_colour_specifier(css_language *c,
 				token->idata, c->strings[TRANSPARENT],
 				&match) == lwc_error_ok && match)) {
 			*value = COLOR_TRANSPARENT;
-			*result = 0; /* black transparent */
+			*result = 0; /* transparent */
+			return CSS_OK;
+		} else if ((lwc_string_caseless_isequal(
+				token->idata, c->strings[DEFAULT],
+				&match) == lwc_error_ok && match)) {
+			*value = COLOR_DEFAULT;
+			*result = 0; /* default (Foil-specific) */
 			return CSS_OK;
 		} else if ((lwc_string_caseless_isequal(
 				token->idata, c->strings[CURRENTCOLOR],

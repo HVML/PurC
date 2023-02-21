@@ -47,14 +47,16 @@
 
 ### 2.1) Variants
 
+1. [0.9.6; Resolved] Optimize variant module.
 1. [0.9.2; Resolved] Full support for the new variant type: tuple.
 1. [0.9.2; Resolved] Implement some new APIs:
    - `purc_variant_make_atom()`
-1. [0.9.8] Use an indepedent structure to maintain the listeners of variants, so we can decrease the size of a variant structure.
 1. [0.9.0; Resolved] Basic support for the new variant type: tuple.
+1. [Pending] Use an indepedent structure (hash table) to maintain the listeners of variants, so we can decrease the size of a variant structure.
 
-### 2.2) eJSON and HVML Parsing and Evaluating
+### 2.2) HEE and HVML Parsing and Evaluating
 
+1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
 1. [0.9.2; Resolved] Support line comments in CHEE.
 1. [0.9.2; Resolved] Support for tuples.
@@ -70,38 +72,39 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.6] Complete the implementation of the following predefined variables:
-   - `$DOC` (including the document entity and the element collection entity).
-   - `$URL`
+1. [0.9.8] Basic support for `$PY`.
 1. [0.9.8] Basic support for `$SOCKET`.
 1. [0.9.8] Support for the following URI schemas for `$STREAM`:
    - `fifo`
 1. [0.9.9] Support for the following filters for `$STREAM` and `$SOCKET`:
    - `http`
 1. [1.0.0] Complete the implementation of the following predefined variables:
+   - `$URL`
    - `$STR`
    - `$DATA`
+1. [0.9.6; Resolved] Complete the implementation of the following predefined variables:
+   - `$DOC` (including the document entity and the element collection entity).
 1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
 1. [0.8.2; Resolved] Implement `$RUNNER.chan` and the native entity representing a channel, which can act as an inter-coroutine communication (ICC) mechanism. See Section 3.2.7 of [HVML Predefined Variables V1.0].
 1. [0.8.2; Resolved] Tune `$SYS.sleep` to utilize evaluating again.
 
 ### 2.4) eDOM
 
-1. [0.9.6] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
-1. [0.9.6] Optimize the implementation of the map from `id` and `class` to element(s).
-1. [0.9.6] Enhance `purc_document` to fast validate an `hvml-handle`.
+1. [0.9.6; Resolved] Optimize the implementation of element collection, and provide the support for CSS Selector Level 3.
+1. [0.9.6; Resolved] Optimize the implementation of the map from `id` and `class` to element(s).
+1. [Pending] Enhance `purc_document` to fast validate an HVML handle.
 1. [Pending] Support for the new target document type: `plain` and/or `markdown`.
 
 ### 2.5) Interpreter
 
-1. [0.9.6] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
-1. [0.9.6] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.8] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
 1. [0.9.9] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
 1. [0.9.9] Review the implementation of all elements.
 1. [0.9.9] Review all uses of exception names.
+1. [0.9.6; Resolved] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+1. [0.9.6; Resolved] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.4; Resolved] Improve the implementation of the element `update`:
    - The value of the attribute `to` can be `intersect`, `subtract`, and `xor`.
    - The value of the attribute `at` can be `content`.
@@ -137,11 +140,14 @@
 
 ### 2.6) `purc`
 
-1. [0.9.6] Enhance `foil` to support `meter` and `progress` elements.
-1. [0.9.6] Enhance `foil` to support table layout.
-1. [0.9.8] Enhance `foil` to support full-screen and multiple-page rendering.
-1. [0.9.4; Resolved] Enhance `foil` to support more properties and layouts except for table.
-1. [0.9.0; Resolved] A simple built-in HTML renderer (foil) for text terminal via `THREAD` protocol.
+1. [0.9.8] Enhance Foil to render borders.
+1. [0.9.8] Enhance Foil to support floats and absolute positioning.
+1. [0.9.8] Enhance Foil to support dynamic change of element styles and contents.
+1. [0.9.9] Enhance Foil to support table, flex, and grid layout.
+1. [1.0.0] Enhance Foil to support full-screen, controls, and multiple-page rendering.
+1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
+1. [0.9.4; Resolved] Enhance Foil to support more properties and layouts except for table.
+1. [0.9.0; Resolved] A simple built-in HTML renderer (Foil) for text terminal via `THREAD` protocol.
 
 ### 2.7) More Platforms
 

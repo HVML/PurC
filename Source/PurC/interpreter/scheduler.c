@@ -501,7 +501,7 @@ execute_one_step(struct pcinst *inst)
     bool busy = false;
     struct pcintr_heap *heap = inst->intr_heap;
 
-    pcintr_coroutine_t p, q;
+    pcintr_coroutine_t p, q, cor_tmp;
     pcintr_coroutine_t co;
     struct list_head *crtns;
 
@@ -513,9 +513,7 @@ execute_one_step(struct pcinst *inst)
         return false;
     }
 
-    size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
-    for (size_t i = 0; i < nr; i++) {
-        pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
+    avl_for_each_element_safe(&heap->wait_timeout_crtns_avl, co, avl, cor_tmp) {
         if (now < co->stopped_timeout) {
             break;
         }
@@ -523,7 +521,7 @@ execute_one_step(struct pcinst *inst)
         pcutils_array_push(cos, co);
     }
 
-    nr = pcutils_array_length(cos);
+    size_t nr = pcutils_array_length(cos);
     for (size_t i = 0; i < nr; i++) {
         co = pcutils_array_get(cos, i);
         pcintr_resume_coroutine(co);
@@ -1011,8 +1009,7 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
         crtn->stopped_timeout = -1;
     }
     if (crtn->stopped_timeout != -1) {
-        if (pcutils_sorted_array_add(heap->wait_timeout_crtns,
-                    (void *)(uintptr_t)crtn->stopped_timeout, crtn, NULL) < 0) {
+        if (pcutils_avl_insert(&heap->wait_timeout_crtns_avl, &crtn->avl)) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         }
     }
@@ -1029,15 +1026,7 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
     list_add_tail(&crtn->ln, &heap->crtns);
 
     if (crtn->stopped_timeout != -1) {
-        size_t nr = pcutils_sorted_array_count(heap->wait_timeout_crtns);
-        for (size_t i = 0; i < nr; i++) {
-            pcintr_coroutine_t co;
-            pcutils_sorted_array_get(heap->wait_timeout_crtns, i, (void **)&co);
-            if (co == crtn) {
-                pcutils_sorted_array_delete(heap->wait_timeout_crtns, i);
-                break;
-            }
-        }
+        pcutils_avl_delete(&heap->wait_timeout_crtns_avl, &crtn->avl);
     }
 
     crtn->stopped_timeout = -1;

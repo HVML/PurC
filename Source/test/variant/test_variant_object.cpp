@@ -308,6 +308,7 @@ TEST(object, make_object)
     obj = purc_variant_make_object(1, k1, v1);
     ASSERT_NE(obj, PURC_VARIANT_INVALID);
     ASSERT_EQ(obj->refc, 1);
+    /* uomap key */
     ASSERT_EQ(k1->refc, 2);
     ASSERT_EQ(v1->refc, 2);
     _check_get_by_key(obj, k1, v1, true);

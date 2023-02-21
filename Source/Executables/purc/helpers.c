@@ -23,12 +23,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+// #undef NDEBUG
 
+#include "config.h"
 #include "foil.h"
 
 #include <purc/purc-document.h>
 #include <glib.h>
+#include <stdlib.h>
 #include <assert.h>
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
@@ -67,7 +69,38 @@ int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs)
     return w;
 }
 
-uint8_t foil_map_xrgb_to_256c(uint32_t xrgb)
+// l,m,t,i;a(c,x){x=abs(c-=i>215?8+(i-216)*10:x*40+!!x*55);}
+// f(r,g,b){for(i=l=240;~i--;t=a(r,i/36)+a(g,i/6%6)+a(b,i%6),t<l?l=t,m=i:1);i=m+16;}
+
+static int xterm_256c_helper(int i, int c, int x)
+{
+    x = abs(c -= (i > 215) ? (8 + (i - 216) * 10) : (x * 40 + !!x * 55));
+    return x;
+}
+
+int foil_map_xrgb_to_xterm_256c(uint32_t xrgb)
+{
+    int r, g, b;
+
+    // a = ((uint8_t)((uint32_t)xrgb >> 24));
+    r = (int)((uint8_t)((uint32_t)xrgb >> 16));
+    g = (int)((uint8_t)((uint32_t)xrgb >> 8));
+    b = (int)((uint8_t)((uint32_t)xrgb));
+
+    int l, m, t, i;
+    for (i = l = 240; ~i--;
+            t = xterm_256c_helper(i, r, i / 36) +
+                xterm_256c_helper(i, g, i / 6 % 6) +
+                xterm_256c_helper(i, b, i % 6),
+            (t < l) ? (l = t, m = i) : 1)
+        ;
+    i = m + 16;
+
+    LOG_DEBUG("map #%02x%02x%02x to %d\n", r, g, b, i);
+    return i;
+}
+
+int foil_map_xrgb_to_std_256c(uint32_t xrgb)
 {
     uint8_t r, g, b;
 
@@ -80,9 +113,9 @@ uint8_t foil_map_xrgb_to_256c(uint32_t xrgb)
     return ((r & 0x07) << 5) | ((g & 0x03) << 3) | (b & 0x07);
 }
 
-uint8_t foil_map_xrgb_to_16c(uint32_t xrgb)
+int foil_map_xrgb_to_16c(uint32_t xrgb)
 {
-    uint8_t c = 0xFF;
+    int c = 0xFF;
     uint8_t r, g, b;
 
     // a = ((uint8_t)((uint32_t)xrgb >> 24));
@@ -189,5 +222,48 @@ uint8_t foil_map_xrgb_to_16c(uint32_t xrgb)
 
 done:
     return c;
+}
+
+struct _tailor_data {
+    /* the candidate marks */
+    int         nr_marks;
+    int         mark_width;
+    uint32_t   *marks;
+};
+
+int foil_validate_marks(struct _tailor_data *tailor_data,
+        const char *marks, size_t len)
+{
+    size_t n;
+    tailor_data->marks =
+        pcutils_string_decode_utf8_alloc(marks, len, &n);
+    tailor_data->nr_marks = (int)n;
+
+    if (tailor_data->marks == NULL || tailor_data->nr_marks == 0)
+        goto failed;
+
+    if (tailor_data->nr_marks < 2)
+        goto failed;
+
+    int nr_wide = 0;
+    for (int i = 0; i < tailor_data->nr_marks; i++) {
+        if (!g_unichar_isprint(tailor_data->marks[i]))
+            goto failed;
+        if (g_unichar_iswide(tailor_data->marks[i]))
+            nr_wide++;
+    }
+
+    if (nr_wide == 0 ||
+            nr_wide == tailor_data->nr_marks) {
+        tailor_data->mark_width = (nr_wide > 0) ? 2 : 1;
+        return 0;
+    }
+
+failed:
+    if (tailor_data->marks)
+        free(tailor_data->marks);
+    tailor_data->marks = NULL;
+    tailor_data->nr_marks = 0;
+    return -1;
 }
 

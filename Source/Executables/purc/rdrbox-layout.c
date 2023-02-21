@@ -1266,6 +1266,13 @@ calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         assert(v != CSS_HEIGHT_INHERIT);
         if (v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_height(ctxt, box, u, l);
+            if (box->nr_inline_level_children > 0)
+                calc_height_for_visible_non_replaced(ctxt, box);
+            else
+                calc_height_for_block_fmt_ctxt_maker(ctxt, box);
+        }
+        else if (box->nr_inline_level_children > 0) {
+            box->height = calc_height_for_visible_non_replaced(ctxt, box);
         }
         else {
             box->height = calc_height_for_block_fmt_ctxt_maker(ctxt, box);
@@ -1931,7 +1938,7 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             (box->is_block_container && !box->is_block_level) ||
             (box->is_block_level &&
              box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE)) {
-        pcmcth_workspace *wsp = foil_page_get_workspace(ctxt->page);
+        pcmcth_workspace *wsp = foil_page_get_workspace(ctxt->udom->page);
         box->block_fmt_ctxt = foil_rdrbox_block_fmt_ctxt_new(
                 foil_wsp_rgnrc_heap(wsp), box->width, -1);
     }
@@ -1946,7 +1953,8 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     LOG_DEBUG("called for box %s (type: %d)\n", name, box->type);
 #endif
 
-    if (box->is_block_level && box->nr_inline_level_children > 0) {
+    if ((box->is_block_level || box->is_block_container)
+            && box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *lfmt_ctxt = NULL;
 
         if (box->type == FOIL_RDRBOX_TYPE_BLOCK) {
@@ -1981,7 +1989,6 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     if (box->type == FOIL_RDRBOX_TYPE_MARKER) {
         box->height = FOIL_PX_GRID_CELL_H;
-        box->ctnt_rect.bottom = box->ctnt_rect.top + box->height;
     }
     else if (box->computed_style) {
         /* calculate height and margins */
@@ -1998,16 +2005,15 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     else if ((box->is_anonymous && box->is_block_level) || box->is_initial) {
         box->height = calc_height_for_visible_non_replaced(ctxt, box);
-        box->ctnt_rect.bottom = box->ctnt_rect.top + box->height;
     }
 
+    box->ctnt_rect.bottom = box->ctnt_rect.top + box->height;
     box->is_height_resolved = 1;
 
 #ifndef NDEBUG
-    LOG_DEBUG("   height: %d\n", box->height);
+    LOG_DEBUG("   height for %s: %d\n", name, box->height);
     free(name);
 #endif
-
 }
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc)
@@ -2155,7 +2161,7 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         while (child) {
             assert(child->is_width_resolved == 0);
 
-            int shrink_width;
+            int shrink_width = 0;
             if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
                 int pref_width, min_width;
                 pref_width = foil_rdrbox_inline_calc_preferred_width(child);
@@ -2240,18 +2246,25 @@ static void collapse_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box,
     /* collapse margins with the in-flow siblings */
     *real_mt = box->mt;
     foil_rdrbox *prev = prev_in_norml_flow_sibling(box);
-    if (prev && prev->mb > box->mt) {
-        *real_mt = prev->mb;
+    if (prev) {
+        if (prev->mb >= box->mt) {
+            *real_mt = prev->mb - box->mt;
+        }
     }
 
     *real_mb = box->mb;
     foil_rdrbox *next = next_in_norml_flow_sibling(box);
-    if (box->next && next->mt > box->mb) {
-        *real_mb = next->mt;
+    if (box->next) {
+        if (box->mb >= next->mt) {
+            *real_mb = box->mb - next->mt;
+        }
+        else {
+            *real_mb = 0;
+        }
     }
 }
 
-/* this function also applies to anonymous block box */
+/* this function also applies to anonymous block box and inline-block */
 static int
 calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
@@ -2265,7 +2278,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->nr_inline_level_children, box->nr_block_level_children);
 #endif
 
-    assert(box->is_block_level);
+    assert(box->is_block_level || box->is_block_container);
     if (box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *fmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
         assert(fmt_ctxt);
@@ -2295,7 +2308,9 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
                 int margin_width = child->ml + child->bl + child->pl +
                     child->width + child->mr + child->br + child->pr;
-                if (margin_width < line->left_extent) {
+                LOG_DEBUG("child width: %d, left extent in line: %d\n",
+                        margin_width, line->left_extent);
+                if (margin_width > line->left_extent) {
                     line = foil_rdrbox_block_allocate_new_line(ctxt, box);
                     if (line == NULL)
                         goto failed;
@@ -2332,17 +2347,18 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            int real_mt, real_mb;
             /* adjust top of the content rectangle */
             if (prev_sibling) {
+                collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom);
+                        0, prev_sibling->ctnt_rect.bottom + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             child->ctnt_rect.bottom = child->ctnt_rect.top + child->height;
 
-            int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
                     0, real_mt + child->bt + child->pt);
@@ -2372,7 +2388,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     (void)ctxt;
 
-    assert(box->is_block_level);
+    assert(box->is_block_level || box->is_block_container);
     if (box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *fmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
         assert(fmt_ctxt);
@@ -2441,17 +2457,18 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
+            int real_mt, real_mb;
             /* adjust top of the content rectangle of this child */
             if (prev_sibling) {
+                collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom);
+                        0, prev_sibling->ctnt_rect.bottom + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
             foil_rdrbox_resolve_height(ctxt, child);
             child->ctnt_rect.bottom = child->ctnt_rect.top + child->height;
 
-            int real_mt, real_mb;
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
                     child->ml + child->bl + child->pl,
@@ -2480,14 +2497,21 @@ failed:
 void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 {
     (void)ctxt;
-    assert(block->is_block_level && block->nr_inline_level_children > 0);
+    assert((block->is_block_level || block->is_block_container)
+        && block->nr_inline_level_children > 0);
 
     struct _inline_fmt_ctxt *fmt_ctxt = foil_rdrbox_inline_fmt_ctxt(block);
     assert(fmt_ctxt);
 
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, block);
+    LOG_DEBUG("called for block level box: %s.\n", name);
+#endif
+
     if (fmt_ctxt->poss_extent < 0)
         return;
 
+    int lines_height = 0;
     for (size_t i = 0; i < fmt_ctxt->nr_lines; i++) {
         struct _line_info *line = fmt_ctxt->lines + i;
 
@@ -2511,6 +2535,10 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             }
         }
 
+        foil_rect_offset(&line->rc,
+                block->ctnt_rect.left, block->ctnt_rect.top);
+
+        int line_off_x = 0;
         for (size_t j = 0; j < line->nr_runs; j++) {
             int off_y;
 
@@ -2526,22 +2554,65 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 off_y = 0;
             }
 
+            off_y += lines_height;
             foil_rect_offset(&run->rc, off_x, off_y);
+            foil_rect_offset(&run->rc, line->rc.left, line->rc.top);
+            if (run->box->is_block_container) {
+
+                foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
+                foil_rect_offset(&run->box->ctnt_rect,
+                        line->rc.left, line->rc.top);
+                line_off_x += foil_rect_width(&run->box->ctnt_rect);
+#ifndef NDEBUG
+                LOG_DEBUG("Laid the block container to: %d, %d\n",
+                        run->box->ctnt_rect.left, run->box->ctnt_rect.top);
+#endif
+                if (run->box->nr_inline_level_children > 0)
+                    foil_rdrbox_lay_lines_in_block(ctxt, run->box);
+            }
+            else {
+                line_off_x += foil_rect_width(&run->rc);
+            }
+
+#ifndef NDEBUG
+            LOG_DEBUG("A inline run at (%u, %u); off_x: %d, line (%d, %d), (%d, %d, %d, %d), type: %d\n",
+                    (unsigned)i, (unsigned)j,
+                    off_x,
+                    line->rc.left, line->rc.top,
+                    run->rc.left, run->rc.top, run->rc.right, run->rc.bottom,
+                    run->box->type);
+#endif
         }
 
-        foil_rect_offset(&line->rc,
-                block->ctnt_rect.left, block->ctnt_rect.top);
+        lines_height += line->height;
     }
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for block level box: %s.\n", name);
+    free(name);
+#endif
 }
 
 void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         const foil_rdrbox *container, foil_rdrbox *block)
 {
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, block);
+    LOG_DEBUG("called for block level box: %s.\n", name);
+#endif
+
+#if 0
     int real_mt, real_mb;
     collapse_margins(ctxt, block, &real_mt, &real_mb);
+#endif
 
     foil_rect_offset(&block->ctnt_rect,
             container->ctnt_rect.left, container->ctnt_rect.top);
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for block level box: %s.\n", name);
+    free(name);
+#endif
 }
 
 void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box)

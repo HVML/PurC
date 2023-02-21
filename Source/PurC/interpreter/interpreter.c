@@ -518,8 +518,6 @@ static void _cleanup_instance(struct pcinst* inst)
         coroutine_destroy(pco);
     }
 
-    pcutils_sorted_array_destroy(heap->wait_timeout_crtns);
-
     if (heap->move_buff) {
         size_t n = purc_inst_destroy_move_buffer();
         PC_DEBUG("Instance is quiting, %u messages discarded\n", (unsigned)n);
@@ -548,6 +546,19 @@ static void _cleanup_instance(struct pcinst* inst)
 
 static void
 event_timer_fire(pcintr_timer_t timer, const char* id, void* data);
+
+static int wait_timeout_comp(const void *k1, const void *k2, void *ptr)
+{
+    (void)ptr;
+    const pcintr_coroutine_t cor1 = (pcintr_coroutine_t) k1;
+    const pcintr_coroutine_t cor2 = (pcintr_coroutine_t) k2;
+
+    if (cor1->stopped_timeout > cor2->stopped_timeout)
+        return 1;
+    else if (cor1->stopped_timeout == cor2->stopped_timeout)
+        return 0;
+    return -1;
+}
 
 static int _init_instance(struct pcinst* inst,
         const purc_instance_extra_info* extra_info)
@@ -582,8 +593,7 @@ static int _init_instance(struct pcinst* inst,
 
     list_head_init(&heap->crtns);
     list_head_init(&heap->stopped_crtns);
-    heap->wait_timeout_crtns = pcutils_sorted_array_create(
-            SAFLAG_ORDER_ASC | SAFLAG_DUPLCATE_SORTV, 0, NULL, NULL);
+    pcutils_avl_init(&heap->wait_timeout_crtns_avl, wait_timeout_comp , true, NULL);
 
     heap->name_chan_map =
         pcutils_map_create(NULL, NULL, NULL,
@@ -1903,6 +1913,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     }
 
     co->stopped_timeout = -1;
+    co->avl.key = co;
 
     return co;
 

@@ -303,6 +303,40 @@ purc_get_elapsed_seconds(const struct timespec *ts1,
         const struct timespec *ts2);
 
 /**
+ * Gets the elapsed milliseconds.
+ *
+ * @param ts1: the earlier time.
+ * @param ts2 (nullable): the later time.
+ *
+ * Calculates the elapsed milliseconds between two times.
+ * If \a ts2 is NULL, the function uses the current time.
+ *
+ * Returns: the elapsed time in milliseconds (an int64_t value).
+ *
+ * Since: 0.9.6
+ */
+PCA_EXPORT int64_t
+purc_get_elapsed_milliseconds(const struct timespec *ts1,
+        const struct timespec *ts2);
+
+/**
+ * Gets the elapsed milliseconds alternatively.
+ *
+ * @param t1: the earlier time in seconds.
+ * @param ts2 (nullable): the later time.
+ *
+ * Calculates the elapsed milliseconds between two times.
+ * If \a ts2 is NULL, the function uses the current time.
+ *
+ * Returns: the elapsed time in milliseconds (an int64_t value).
+ *
+ * Since: 0.9.6
+ */
+PCA_EXPORT int64_t
+purc_get_elapsed_milliseconds_alt(time_t t1,
+        const struct timespec *ts2);
+
+/**
  * Loads the whole contents from a file.
  *
  * @param file: the file name.

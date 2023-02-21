@@ -11,8 +11,12 @@
 
     <body>
         <div>
+            <archetype name="tmpl">
+                <div>$DATA.type($?)</div>
+            </archetype>
+
             <iterate on="$foo" by="FUNC:to_array@FUNC_DEMO" with="name">
-                <update on="$@" to="append" with="$?" />
+                <update on="$@" to="append" with="$tmpl" />
             </iterate>
         </div>
     </body>

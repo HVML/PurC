@@ -43,8 +43,34 @@ void foil_page_module_cleanup(pcmcth_renderer *rdr)
     foil_udom_module_cleanup(rdr);
 }
 
+static int xrgb_to_color(const pcmcth_page *page, foil_color color)
+{
+    int c = 0;
+    switch (page->color_mode) {
+    case FOIL_TTY_COLOR_STD_16C:
+        c = foil_map_xrgb_to_16c(color.argb);
+        break;
+
+    case FOIL_TTY_COLOR_XTERM_256C:
+        c = foil_map_xrgb_to_xterm_256c(color.argb);
+        break;
+
+    case FOIL_TTY_COLOR_TRUE_COLOR:
+        c = color.argb & 0x00FFFFFF;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    if (!color.specified)
+        c |= FOIL_DEFCLR_MASK;
+    return c;
+}
+
 bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
-        uint8_t fgc, uint8_t bgc)
+        foil_color fgc, foil_color bgc)
 {
     if (page->cells)
         foil_page_content_cleanup(page);
@@ -65,8 +91,10 @@ bool foil_page_content_init(pcmcth_page *page, int cols, int rows,
     page->udom = NULL;
 
     page->attrs = FOIL_CHAR_ATTR_NULL;
-    page->fgc   = fgc;
-    page->bgc   = bgc;
+    page->color_mode = FOIL_TTY_COLOR_STD_16C; /* TODO */
+
+    page->fgc = xrgb_to_color(page, fgc);
+    page->bgc = xrgb_to_color(page, bgc);
 
     foil_page_fill_rect(page, NULL, FOIL_UCHAR_SPACE);
     return true;
@@ -124,25 +152,19 @@ pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
     return old_udom;
 }
 
-uint8_t foil_page_set_fgc(pcmcth_page *page, uint8_t color)
+void foil_page_set_fgc(pcmcth_page *page, foil_color color)
 {
-    uint8_t old = page->fgc;
-    page->fgc = color;
-    return old;
+    page->fgc = xrgb_to_color(page, color);
 }
 
-uint8_t foil_page_set_bgc(pcmcth_page *page, uint8_t color)
+void foil_page_set_bgc(pcmcth_page *page, foil_color color)
 {
-    uint8_t old = page->bgc;
-    page->bgc = color;
-    return old;
+    page->bgc = xrgb_to_color(page, color);
 }
 
-uint8_t foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)
+void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)
 {
-    uint8_t old = page->attrs;
     page->attrs = attrs;
-    return old;
 }
 
 /* use the foreground color of the page but reserve the background color */
@@ -413,7 +435,6 @@ bool foil_page_expose(pcmcth_page *page)
     }
 
     foil_widget_expose(widget);
-    foil_rect_empty(&page->dirty_rect);
     return true;
 }
 

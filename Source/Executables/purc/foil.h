@@ -126,16 +126,20 @@ enum {
     FOIL_STD_COLOR_WHITE,
 };
 
-#define FOIL_DEF_FGC            FOIL_STD_COLOR_GRAY
-#define FOIL_DEF_BGC            FOIL_STD_COLOR_BLACK
+typedef struct foil_color {
+    bool        specified;  /* false (zero) for default */
+    uint32_t    argb;
+} foil_color;
 
-/* the background color for progress bar */
-#define FOIL_BGC_PROGRESS_BAR   FOIL_STD_COLOR_DARK_BLUE
+#define FOIL_DEF_FGC            0xFFEEEEEE
+#define FOIL_DEF_BGC            0xFF000000
 
-/* the background colors for meter */
-#define FOIL_BGC_METER_NORMAL   FOIL_STD_COLOR_DARK_GREEN
-#define FOIL_BGC_METER_WARNING  FOIL_STD_COLOR_DARK_MAGENTA
-#define FOIL_BGC_METER_ERROR    FOIL_STD_COLOR_DARK_RED
+#define FOIL_COLOR_INFO         0xFF087990
+#define FOIL_COLOR_WARNING      0xFF997404
+#define FOIL_COLOR_DANGER       0xFFB02A37
+#define FOIL_COLOR_SUCCESS      0xFF146C43
+#define FOIL_COLOR_PRIMARY      0xFF0A58CA
+#define FOIL_COLOR_SECONDARY    0xFF6C757D
 
 enum {
     FOIL_CHAR_ATTR_NULL         = 0x00,
@@ -155,10 +159,13 @@ struct pcmcth_rdr_data {
 extern "C" {
 #endif
 
-/* Starts Foil renderer */
+/** Starts Foil renderer */
 purc_atom_t foil_start(const char *rdr_uri);
 
-/* Wait for Foil renderer to exit synchronously */
+/** Returns the pointer to the Foil renderer. */
+pcmcth_renderer *foil_get_renderer(void);
+
+/** Wait for Foil renderer to exit synchronously */
 void foil_sync_exit(void);
 
 int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
@@ -166,8 +173,13 @@ int foil_doc_get_element_lang(purc_document_t doc, pcdoc_element_t ele,
 
 int foil_ucs_calc_width_nowrap(const uint32_t *ucs, size_t nr_ucs);
 
-uint8_t foil_map_xrgb_to_256c(uint32_t xrgb);
-uint8_t foil_map_xrgb_to_16c(uint32_t xrgb);
+int foil_map_xrgb_to_16c(uint32_t xrgb);
+int foil_map_xrgb_to_xterm_256c(uint32_t xrgb);
+int foil_map_xrgb_to_std_256c(uint32_t xrgb);
+
+struct _tailor_data;
+int foil_validate_marks(struct _tailor_data *tailor_data,
+        const char *marks, size_t len);
 
 #ifdef __cplusplus
 }

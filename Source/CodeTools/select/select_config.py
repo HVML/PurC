@@ -2,7 +2,7 @@
 # Licensed under the MIT License,
 # http://www.opensource.org/licenses/mit-license.php
 # Copyright 2017 Lucas Neves <lcneves@gmail.com>
-# Copyright (C) 2021 Beijing FMSoft Technologies Co., Ltd.
+# Copyright (C) 2021 ~ 2023 Beijing FMSoft Technologies Co., Ltd.
 
 # Configuration of CSS values.
 # The tuples in this set will be unpacked as arguments to the CSSValue
@@ -29,6 +29,7 @@ style = {
     ('align_content', 3),
     ('align_items', 3),
     ('align_self', 3),
+    ('appearance', 5),
     ('background_attachment', 2),
     ('background_repeat', 3),
     ('border_collapse', 2),
@@ -79,7 +80,7 @@ style = {
     ('right', 2, 'length', 'CSS_RIGHT_SET', None, None, 'get'),
     ('bottom', 2, 'length', 'CSS_BOTTOM_SET', None, None, 'get'),
     ('left', 2, 'length', 'CSS_LEFT_SET', None, None, 'get'),
-    ('color', 1, 'color'),
+    ('color', 2, 'color'),
     ('flex_basis', 2, 'length', 'CSS_FLEX_BASIS_SET'),
     ('flex_grow', 1, 'fixed', 'CSS_FLEX_GROW_SET'),
     ('flex_shrink', 1, 'fixed', 'CSS_FLEX_SHRINK_SET'),
@@ -105,6 +106,13 @@ style = {
     ('vertical_align', 4, 'length', 'CSS_VERTICAL_ALIGN_SET'),
     ('width', 2, 'length', 'CSS_WIDTH_SET'),
     ('z_index', 2, 'integer'),
+    ('_foil_color_info', 2, 'color'),
+    ('_foil_color_warning', 2, 'color'),
+    ('_foil_color_danger', 2, 'color'),
+    ('_foil_color_success', 2, 'color'),
+    ('_foil_color_primary', 2, 'color'),
+    ('_foil_color_secondary', 2, 'color'),
+    ('_foil_candidate_marks', 1, 'string'),
     # Style group, arrays
     ('font_family', 3, 'string_arr', None, None,
         'Encode font family as an array of string objects, terminated with a '
