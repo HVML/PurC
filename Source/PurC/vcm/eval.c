@@ -720,6 +720,23 @@ static void build_eval_nodes(struct pcvcm_eval_ctxt *ctxt,
     build_eval_node_children(&node->tree_node, ctxt);
 }
 
+static bool _init_by_env = false;
+static bool _enable_log = false;
+
+static bool
+is_log_enable()
+{
+    if (!_init_by_env) {
+        _init_by_env = true;
+        const char *env_value;
+        if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
+            _enable_log = (*env_value == '1' ||
+                    pcutils_strcasecmp(env_value, "true") == 0);
+        }
+    }
+    return _enable_log;
+}
+
 
 static int i = 0;
 purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
@@ -730,15 +747,9 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     purc_variant_t result = PURC_VARIANT_INVALID;
     struct pcvcm_eval_ctxt contxt = {0};
     struct pcvcm_eval_ctxt *ctxt = &contxt;
-    unsigned int enable_log = 0;
-    const char *env_value;
+    unsigned int enable_log = is_log_enable();
     int err;
     int32_t nr_nodes = 0;
-
-    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
-        enable_log = (*env_value == '1' ||
-                pcutils_strcasecmp(env_value, "true") == 0);
-    }
 
     if (enable_log) {
         PLOG("begin vcm\n");
@@ -826,13 +837,7 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
         bool silently, bool timeout)
 {
     purc_variant_t result = PURC_VARIANT_INVALID;
-    unsigned int enable_log = 0;
-    const char *env_value;
-
-    if ((env_value = getenv(PURC_ENVV_VCM_LOG_ENABLE))) {
-        enable_log = (*env_value == '1' ||
-                pcutils_strcasecmp(env_value, "true") == 0);
-    }
+    unsigned int enable_log = is_log_enable();
 
     if (enable_log) {
         PLOG("begin vcm again\n");
