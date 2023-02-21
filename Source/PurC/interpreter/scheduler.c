@@ -505,29 +505,23 @@ execute_one_step(struct pcinst *inst)
     pcintr_coroutine_t co;
     struct list_head *crtns;
 
-    time_t now = pcintr_monotonic_time_ms();
+    pcintr_coroutine_t cos[heap->nr_stopped_crtns];
+    size_t pos = 0;
 
-    pcutils_array_t *cos = pcutils_array_create();
-    if (!cos) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        return false;
-    }
+    time_t now = pcintr_monotonic_time_ms();
 
     avl_for_each_element_safe(&heap->wait_timeout_crtns_avl, co, avl, cor_tmp) {
         if (now < co->stopped_timeout) {
             break;
         }
         co->stack.timeout = true;
-        pcutils_array_push(cos, co);
+        cos[pos++] = co;
     }
 
-    size_t nr = pcutils_array_length(cos);
-    for (size_t i = 0; i < nr; i++) {
-        co = pcutils_array_get(cos, i);
+    for (size_t i = 0; i < pos; i++) {
+        co = cos[i];
         pcintr_resume_coroutine(co);
     }
-    pcutils_array_destroy(cos, true);
-
 
     crtns = &heap->crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
@@ -1000,6 +994,7 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
     list_del(&crtn->ln);
     pcintr_heap_t heap = crtn->owner;
     list_add_tail(&crtn->ln, &heap->stopped_crtns);
+    heap->nr_stopped_crtns++;
 
     if (timeout) {
         time_t curr = pcintr_monotonic_time_ms();
@@ -1008,6 +1003,7 @@ void pcintr_stop_coroutine(pcintr_coroutine_t crtn,
     else {
         crtn->stopped_timeout = -1;
     }
+
     if (crtn->stopped_timeout != -1) {
         if (pcutils_avl_insert(&heap->wait_timeout_crtns_avl, &crtn->avl)) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1024,6 +1020,7 @@ void pcintr_resume_coroutine(pcintr_coroutine_t crtn)
     list_del(&crtn->ln);
     pcintr_heap_t heap = crtn->owner;
     list_add_tail(&crtn->ln, &heap->crtns);
+    heap->nr_stopped_crtns--;
 
     if (crtn->stopped_timeout != -1) {
         pcutils_avl_delete(&heap->wait_timeout_crtns_avl, &crtn->avl);
