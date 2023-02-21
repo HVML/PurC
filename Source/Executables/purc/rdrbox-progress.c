@@ -40,6 +40,7 @@
 
 static const char *def_bar_marks = "━━";
 static const char *def_mark_marks = "⣾⣷⣯⣟⡿⢿⣻⣽⣿";
+// static const char *def_mark_marks = "⓿➊➋➌➍➎➏➐➑➒➓";
 // static const char *def_mark_marks = "⣿⣾⣶⣦⣆⡆⠆⠂⢁⠁⠉⠙⠹⢹⣹⣽⣿";
 // static const char *def_mark_marks = "⠁⠈⠐⠠⢀⡀⠄⠂";
 
