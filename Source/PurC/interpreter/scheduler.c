@@ -615,12 +615,14 @@ handle_coroutine_event(pcintr_coroutine_t co)
     char *type = NULL;
     purc_atom_t event_type = 0;
     const char *event_sub_type = NULL;
+    pcrdr_msg *msg = NULL;
 
     if (co->state == CO_STATE_READY || co->state == CO_STATE_RUNNING) {
         goto out;
     }
 
-    pcrdr_msg *msg = pcinst_msg_queue_get_msg(co->mq);
+again:
+    msg = pcinst_msg_queue_get_msg(co->mq);
 
     if (msg && msg->eventName) {
         const char *event = purc_variant_get_string_const(msg->eventName);
@@ -635,6 +637,13 @@ handle_coroutine_event(pcintr_coroutine_t co)
             if (!type) {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                 goto out;
+            }
+
+            if (co->stack.exited && ((strcmp(type, MSG_TYPE_CALL_STATE) == 0)
+                        || (strcmp(type, MSG_TYPE_CORSTATE) == 0)) ){
+                pcrdr_release_message(msg);
+                msg = NULL;
+                goto again;
             }
 
             event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
