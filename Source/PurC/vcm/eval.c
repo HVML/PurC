@@ -412,6 +412,8 @@ pcvcm_eval_is_native_wrapper(purc_variant_t val)
     if (purc_variant_object_get_by_ckey(val, KEY_INNER_HANDLER)) {
         return true;
     }
+    // clear not found
+    purc_clr_error();
     if (err) {
         purc_set_error(err);
     }
