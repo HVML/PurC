@@ -7,6 +7,35 @@
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
 
+## Version 0.9.6
+
+On Feb. 25, 2023, HVML Community announces the availability of PurC 0.9.6,
+   which is also the sixth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.6
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - (N/A).
+* ADJUSTMENTS:
+* ENHANCEMENTS:
+   - Complete the implementation of the predefined variables `$DOC`.
+   - Improve `init` to load content with MIME type `text/html` as a document entity.
+   - Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
+   - Enhance Foil renderer to support `meter` and `progress` elements.
+* OPTIMIZATIONS:
+   - Optimize the variant moudule.
+   - Optimize the evaluation of a VCM tree to descrease uses of `malloc()` and `free()`.
+* BUGFIXES:
+   - Fix some minor bugs in Foil when laying the redering boxes.
+* SAMPLES:
+   - New sample `spider-headline.hvml`: fetching the latest headlines from news websites.
+   - New sample `foil-progress.hvml`: Show usage of `progress` tag in Foil renderer.
+   - New sample `foil-meter.hvml`: Show usage of `meter` tag in Foil renderer.
+
 ## Version 0.9.5
 
 On Jan. 10, 2023, HVML Community announces the availability of PurC 0.9.5,
