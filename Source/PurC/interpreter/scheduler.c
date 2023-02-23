@@ -652,6 +652,8 @@ again:
                 )) {
                 pcrdr_release_message(msg);
                 msg = NULL;
+                free(type);
+                type = NULL;
                 goto again;
             }
         }
