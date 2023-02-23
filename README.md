@@ -504,6 +504,12 @@ Here is the screenshot on macOS:
 
 ![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
+You can also try other samples which illustrate the features of Foil renderer:
+
+- `hvml/foil-layouts.hvml`
+- `hvml/foil-progress.hvml`
+- `hvml/foil-meter.hvml`
+
 Note that in current version (0.9.6), Foil is not fully functional.
 In the near future, Foil will provide support for most properties of CSS 2.2 and some properties of CSS Level 3,
    in order that you can get the similiar experience like a web browser.
