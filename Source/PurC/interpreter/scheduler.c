@@ -639,18 +639,20 @@ again:
                 goto out;
             }
 
-            if (co->stack.exited && ((strcmp(type, MSG_TYPE_CALL_STATE) == 0)
-                        || (strcmp(type, MSG_TYPE_CORSTATE) == 0)) ){
-                pcrdr_release_message(msg);
-                msg = NULL;
-                goto again;
-            }
-
             event_type = purc_atom_try_string_ex(ATOM_BUCKET_MSG, type);
             if (!event_type) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 PC_WARN("unknown event '%s'\n", event);
                 goto out;
+            }
+
+            if (co->stack.exited && (
+                (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CALLSTATE)) == event_type)
+                || (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, CORSTATE)) == event_type)
+                )) {
+                pcrdr_release_message(msg);
+                msg = NULL;
+                goto again;
             }
         }
     }
