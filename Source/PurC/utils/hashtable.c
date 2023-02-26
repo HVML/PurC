@@ -60,7 +60,7 @@
 #define PCHASH_DEFAULT_SIZE     4
 
 /** Define this if you want to sort the entries in a slot */
-#define PCHASH_SORTED           1
+#define PCHASH_FLAG_SORTED      0x0001
 
 #define WRLOCK_INIT(t)                          \
         purc_rwlock_init(&(t)->rwlock)
@@ -128,12 +128,16 @@ static inline size_t normalize_size(size_t expected)
 struct pchash_table *pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads)
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn,
+        bool threads, bool sorted)
 {
     struct pchash_table *t;
     t = (pchash_table *)calloc(1, sizeof(pchash_table));
     if (!t)
         return NULL;
+
+    if (sorted)
+        t->flags |= PCHASH_FLAG_SORTED;
 
     t->size = normalize_size(size);
     t->table = (struct list_head *)calloc(t->size, sizeof(struct list_head));
@@ -160,8 +164,7 @@ struct pchash_table *pchash_table_new(size_t size,
     return t;
 }
 
-#ifdef PCHASH_SORTED
-static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
+static void add_entry_sorted(struct pchash_table *t, pchash_entry *ent)
 {
     struct list_head *list;
     struct list_head *slot = t->table + ent->slot;
@@ -187,13 +190,12 @@ done:
     list_add_tail(&ent->list, list);
     t->count++;
 }
-#else
+
 static inline void add_entry(struct pchash_table *t, pchash_entry *ent)
 {
     list_add_tail(&ent->list, t->table + ent->slot);
     t->count++;
 }
-#endif
 
 int pchash_table_resize(struct pchash_table *t, size_t new_size)
 {
@@ -207,6 +209,7 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
     }
 
     struct pchash_table nt = { };
+    nt.flags = t->flags;
     nt.count = 0;
     nt.size = normalized;
     nt.hash_fn = t->hash_fn;
@@ -227,7 +230,10 @@ int pchash_table_resize(struct pchash_table *t, size_t new_size)
             ent = list_entry(p, pchash_entry, list);
             list_del(&ent->list);
             ent->slot = ent->hash % nt.size;
-            add_entry(&nt, ent);
+            if (t->flags & PCHASH_FLAG_SORTED)
+                add_entry_sorted(&nt, ent);
+            else
+                add_entry(&nt, ent);
         }
     }
 
@@ -293,7 +299,10 @@ static int insert_entry(struct pchash_table *t,
     ent->free_kv_alt = free_kv_alt;
     ent->hash = h;
     ent->slot = h % t->size;
-    add_entry(t, ent);
+    if (t->flags & PCHASH_FLAG_SORTED)
+        add_entry_sorted(t, ent);
+    else
+        add_entry(t, ent);
 
     return 0;
 }
@@ -326,8 +335,7 @@ static pchash_entry_t find_entry(struct pchash_table *t,
     if (list_empty(slot)) {
         goto done;
     }
-#ifdef PCHASH_SORTED
-    else {
+    else if (t->flags & PCHASH_FLAG_SORTED) {
         /* check if the key out of the rang of this slot. */
         pchash_entry_t e;
         e = list_first_entry(slot, pchash_entry, list);
@@ -338,7 +346,6 @@ static pchash_entry_t find_entry(struct pchash_table *t,
         if (t->keycmp_fn(k, e->key) > 0)
             goto done;
     }
-#endif
 
     struct list_head *p;
     list_for_each(p, slot) {
