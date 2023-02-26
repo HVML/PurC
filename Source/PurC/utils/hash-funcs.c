@@ -30,7 +30,7 @@
 /** Golden prime used in hash functions */
 #define PCHASH_PRIME            0x9e370001UL
 
-uint32_t pchash_ptr_hash(const void *k)
+uint32_t pchash_default_ptr_hash(const void *k)
 {
     /* CAW: refactored to be 64bit nice */
     return (uint32_t)((((ptrdiff_t)k * PCHASH_PRIME) >> 4) & UINT32_MAX);
@@ -432,7 +432,7 @@ uint32_t pchash_perlish_str_hash(const void *k)
 #   define FNV_INIT         ((uint32_t)0x811c9dc5)
 #endif
 
-/* We use FNV-1a algrithm for Str2Key:
+/* The hash function uses FNV-1a algrithm:
    <http://isthe.com/chongo/tech/comp/fnv/>
    This implementation is copied from MiniGUI. */
 uint32_t pchash_fnv1a_str_hash(const char *str)
@@ -440,9 +440,7 @@ uint32_t pchash_fnv1a_str_hash(const char *str)
     const unsigned char *s = (const unsigned char *)str;
     uint32_t hval = FNV_INIT;
 
-    /*
-     * FNV-1a hash each octet in the buffer
-     */
+    /* FNV-1a hash each octet in the buffer */
     while (*s) {
 
         /* xor the bottom with the current octet */
@@ -468,5 +466,54 @@ uint32_t pchash_fnv1a_str_hash(const char *str)
 int pchash_str_equal(const void *k1, const void *k2)
 {
     return strcmp((const char *)k1, (const char *)k2);
+}
+
+uint32_t pchash_fnv1a_ptr_hash(const void *ptr)
+{
+    const uint8_t *u8b = (const uint8_t *)ptr;
+    const uint8_t *u8e = u8b + sizeof(void *);
+    uint32_t hval = FNV_INIT;
+
+    /* FNV-1a hash each octet in the buffer */
+    while (u8b < u8e) {
+
+        /* xor the bottom with the current octet */
+        hval ^= (uint32_t)*u8b++;
+
+        /* multiply by the FNV magic prime */
+#if COMPILER(GCC)
+        hval += (hval<<1) + (hval<<4) + (hval<<7) + (hval<<8) + (hval<<24);
+#else
+        hval *= FNV_PRIME;
+#endif
+    }
+
+    /* return our new hash value */
+    return hval;
+}
+
+uint32_t pchash_fnv1a_u32_hash(const void *ptr)
+{
+    uint32_t u32 = (uint32_t)(uintptr_t)ptr;
+    const uint8_t *u8b = (const uint8_t *)&u32;
+    const uint8_t *u8e = u8b + 4;
+    uint32_t hval = FNV_INIT;
+
+    /* FNV-1a hash each octet in the buffer */
+    while (u8b < u8e) {
+
+        /* xor the bottom with the current octet */
+        hval ^= (uint32_t)*u8b++;
+
+        /* multiply by the FNV magic prime */
+#if COMPILER(GCC)
+        hval += (hval<<1) + (hval<<4) + (hval<<7) + (hval<<8) + (hval<<24);
+#else
+        hval *= FNV_PRIME;
+#endif
+    }
+
+    /* return our new hash value */
+    return hval;
 }
 

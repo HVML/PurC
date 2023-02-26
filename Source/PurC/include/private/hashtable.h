@@ -65,7 +65,9 @@ extern "C" {
 uint32_t pchash_default_str_hash(const void *k);
 uint32_t pchash_perlish_str_hash(const void *k);
 uint32_t pchash_fnv1a_str_hash(const void *k);
-uint32_t pchash_ptr_hash(const void *k);
+uint32_t pchash_default_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_u32_hash(const void *k);
 
 /* default comparison functions */
 int pchash_str_equal(const void *k1, const void *k2);
@@ -158,7 +160,7 @@ pchash_table_new(size_t size,
 
 /**
  * Convenience function to create a new hash table with char keys
- * by using the pchash_default_str_hash() hash function.
+ * by using the pchash_fnv1a_str_hash() hash function.
  *
  * @param size initial table size.
  * @param free_fn callback function used to free memory for entries.
@@ -172,7 +174,7 @@ pchash_kstr_table_new(size_t size,
 {
     return pchash_table_new(size, copy_key, free_key,
             copy_val, free_val,
-            pchash_default_str_hash, pchash_str_equal, false, false);
+            pchash_fnv1a_str_hash, pchash_str_equal, false, false);
 }
 
 /**
@@ -209,7 +211,7 @@ pchash_kptr_table_new(size_t size,
 {
     return pchash_table_new(size, copy_key, free_key,
             copy_val, free_val,
-            pchash_ptr_hash, pchash_ptr_equal, false, false);
+            pchash_fnv1a_ptr_hash, pchash_ptr_equal, false, false);
 }
 
 /**
