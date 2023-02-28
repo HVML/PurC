@@ -174,54 +174,6 @@ doc_init(pcintr_stack_t stack)
     return 0;
 }
 
-static void
-release_loaded_var(struct pcintr_loaded_var *p)
-{
-    if (p) {
-        if (p->val != PURC_VARIANT_INVALID) {
-            purc_variant_unload_dvobj(p->val);
-            p->val = PURC_VARIANT_INVALID;
-        }
-        if (p->name) {
-            free(p->name);
-            p->name = NULL;
-        }
-    }
-}
-
-static void
-destroy_loaded_var(struct pcintr_loaded_var *p)
-{
-    if (p) {
-        release_loaded_var(p);
-        free(p);
-    }
-}
-
-static int
-unload_dynamic_var(struct rb_node *node, void *ud)
-{
-    struct rb_root *root = (struct rb_root*)ud;
-    struct pcintr_loaded_var *p;
-    p = container_of(node, struct pcintr_loaded_var, node);
-    pcutils_rbtree_erase(node, root);
-    destroy_loaded_var(p);
-
-    return 0;
-}
-
-static void
-loaded_vars_release(pcintr_coroutine_t cor)
-{
-    struct rb_root *root = &cor->loaded_vars;
-    if (RB_EMPTY_ROOT(root))
-        return;
-
-    int r;
-    r = pcutils_rbtree_traverse(root, root, unload_dynamic_var);
-    PC_ASSERT(r == 0);
-}
-
 void
 pcintr_exception_clear(struct pcintr_exception *exception)
 {
@@ -469,8 +421,6 @@ coroutine_release(pcintr_coroutine_t co)
             pcintr_timers_destroy(co->timers);
             co->timers = NULL;
         }
-
-        loaded_vars_release(co);
     }
 }
 
@@ -1875,7 +1825,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     stack->co = co;
     co->owner = heap;
     co->user_data = user_data;
-    co->loaded_vars = RB_ROOT;
 
     list_add_tail(&co->ln, &heap->crtns);
 
@@ -2424,63 +2373,37 @@ bool
 pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
     const char *name, size_t len)
 {
+    UNUSED_PARAM(cor);
     char NAME[PATH_MAX+1];
     snprintf(NAME, sizeof(NAME), "%.*s", (int)len, name);
-
-    struct rb_root *root = &cor->loaded_vars;
-
-    struct rb_node **pnode = &root->rb_node;
-    struct rb_node *parent = NULL;
-    struct rb_node *entry = NULL;
-    while (*pnode) {
-        struct pcintr_loaded_var *p;
-        p = container_of(*pnode, struct pcintr_loaded_var, node);
-
-        int ret = strcmp(NAME, p->name);
-
-        parent = *pnode;
-
-        if (ret < 0)
-            pnode = &parent->rb_left;
-        else if (ret > 0)
-            pnode = &parent->rb_right;
-        else{
-            return true;
-        }
-    }
-
-    struct pcintr_loaded_var *p = NULL;
-
-    purc_variant_t v = purc_variant_load_dvobj_from_so(NULL, NAME);
-    if (v == PURC_VARIANT_INVALID)
-        return false;
-
-    p = (struct pcintr_loaded_var*)calloc(1, sizeof(*p));
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto error;
-    }
-
-    p->val = v;
-
-    p->name = strdup(NAME);
-    if (!p->name) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto error;
-    }
-
-    entry = &p->node;
-
-    pcutils_rbtree_link_node(entry, parent, pnode);
-    pcutils_rbtree_insert_color(entry, root);
-
-    if (pcintr_bind_coroutine_variable(cor, NAME, v)) {
+    purc_variant_t var = pcinst_get_variable(NAME);
+    if (var) {
         return true;
     }
 
-error:
-    destroy_loaded_var(p);
+    purc_variant_t v = purc_variant_load_dvobj_from_so(NULL, NAME);
+    if (v == PURC_VARIANT_INVALID) {
+        return false;
+    }
 
+    struct pcinst *inst = pcinst_current();
+    if (!inst->dvobjs) {
+        inst->dvobjs = pcutils_array_create();
+        if (!inst->dvobjs) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+    }
+
+    if (!purc_bind_runner_variable(NAME, v)) {
+        goto out;
+    }
+
+    pcutils_array_push(inst->dvobjs, v);
+    return true;
+
+out:
+    purc_variant_unload_dvobj(v);
     return false;
 }
 

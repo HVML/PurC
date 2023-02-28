@@ -143,6 +143,16 @@ static void _cleanup_instance(struct pcinst *inst)
         inst->variables = NULL;
     }
 
+    if (inst->dvobjs) {
+        size_t nr = pcutils_array_length(inst->dvobjs);
+        for (size_t i = 0; i < nr; i++) {
+            purc_variant_t v = pcutils_array_get(inst->dvobjs, i);
+            purc_variant_unload_dvobj(v);
+        }
+        pcutils_array_destroy(inst->dvobjs, true);
+        inst->dvobjs = NULL;
+    }
+
     if (heap == NULL)
         return;
 
