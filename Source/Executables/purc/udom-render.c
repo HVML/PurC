@@ -33,6 +33,39 @@
 #include <stdio.h>
 #include <assert.h>
 
+static const uint32_t border_dotted_row = 0x2504;
+static const uint32_t border_dotted_col = 0x2506;
+
+static const uint32_t border_dash_row = 0x254C;
+static const uint32_t border_dash_col = 0x254E;
+
+static const uint32_t border_solid_row = 0x2500;
+static const uint32_t border_solid_col = 0x2502;
+
+static const uint32_t border_double_row = 0x2550;
+static const uint32_t border_double_col = 0x2551;
+
+static const uint32_t border_corner_down_right = 0x250C;
+static const uint32_t border_corner_up_right = 0x2514;
+static const uint32_t border_corner_down_left = 0x2510;
+static const uint32_t border_corner_up_left = 0x2518;
+
+static const uint32_t border_corner_double_down_right = 0x255F;
+static const uint32_t border_corner_double_up_right = 0x255A;
+static const uint32_t border_corner_double_down_left = 0x2557;
+static const uint32_t border_corner_double_up_left = 0x255D;
+
+static const uint32_t border_corner_down_single_right_double = 0x2552;
+static const uint32_t border_corner_up_single_right_double = 0x2558;
+static const uint32_t border_corner_down_single_left_double = 0x2555;
+static const uint32_t border_corner_up_single_left_double = 0x255B;
+
+static const uint32_t border_corner_down_double_right_single= 0x2553;
+static const uint32_t border_corner_up_double_right_single= 0x2559;
+static const uint32_t border_corner_down_double_left_single= 0x2556;
+static const uint32_t border_corner_up_double_left_single= 0x255C;
+
+
 static void rdrbox_render_before_file(foil_render_ctxt *ctxt,
         const foil_rdrbox *box, unsigned level)
 {
@@ -166,6 +199,172 @@ render_marker_box(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
             box->marker_data->ucs, box->marker_data->nr_ucs);
 }
 
+static uint32_t
+get_border_row_uc(int style)
+{
+    uint32_t uc;
+    switch (style) {
+    case FOIL_RDRBOX_BORDER_STYLE_DOTTED:
+        uc = border_dotted_row;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_DASHED:
+        uc = border_dash_row;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_SOLID:
+        uc = border_solid_row;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_DOUBLE:
+        uc = border_double_row;
+        break;
+
+    default:
+        uc = 0;
+    }
+    return uc;
+}
+
+static uint32_t
+get_border_col_uc(int style)
+{
+    uint32_t uc;
+    switch (style) {
+    case FOIL_RDRBOX_BORDER_STYLE_DOTTED:
+        uc = border_dotted_col;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_DASHED:
+        uc = border_dash_col;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_SOLID:
+        uc = border_solid_col;
+        break;
+
+    case FOIL_RDRBOX_BORDER_STYLE_DOUBLE:
+        uc = border_double_col;
+        break;
+
+    default:
+        uc = 0;
+    }
+    return uc;
+}
+
+static uint32_t
+get_border_corner_lt(struct foil_rdrbox *box)
+{
+    uint32_t uc = 0;
+    if (box->bl && box->bt) {
+        if ((box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
+            (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
+            uc = border_corner_double_down_right;
+        }
+        else if (box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_down_double_right_single;
+        }
+        else if (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_down_single_right_double;
+        }
+        else {
+            uc = border_corner_down_right;
+        }
+    }
+    else if (box->bl) {
+        uc = get_border_col_uc(box->border_left_style);
+    }
+    else if (box->bt) {
+        uc = get_border_row_uc(box->border_top_style);
+    }
+    return uc;
+}
+
+static uint32_t
+get_border_corner_lb(struct foil_rdrbox *box)
+{
+    uint32_t uc = 0;
+    if (box->bl && box->bb) {
+        if ((box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
+            (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
+            uc = border_corner_double_up_right;
+        }
+        else if (box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_up_double_right_single;
+        }
+        else if (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_up_single_right_double;
+        }
+        else {
+            uc = border_corner_up_right;
+        }
+    }
+    else if (box->bl) {
+        uc = get_border_col_uc(box->border_left_style);
+    }
+    else if (box->bb) {
+        uc = get_border_row_uc(box->border_bottom_style);
+    }
+    return uc;
+}
+
+static uint32_t
+get_border_corner_rt(struct foil_rdrbox *box)
+{
+    uint32_t uc = 0;
+    if (box->br && box->bt) {
+        if ((box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
+            (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
+            uc = border_corner_double_down_left;
+        }
+        else if (box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_down_double_left_single;
+        }
+        else if (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_down_single_left_double;
+        }
+        else {
+            uc = border_corner_down_left;
+        }
+    }
+    else if (box->br) {
+        uc = get_border_col_uc(box->border_right_style);
+    }
+    else if (box->bt) {
+        uc = get_border_row_uc(box->border_top_style);
+    }
+    return uc;
+}
+
+static uint32_t
+get_border_corner_rb(struct foil_rdrbox *box)
+{
+    uint32_t uc = 0;
+    if (box->br && box->bb) {
+        if ((box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
+            (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
+            uc = border_corner_double_up_left;
+        }
+        else if (box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_up_double_left_single;
+        }
+        else if (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
+            uc = border_corner_up_single_left_double;
+        }
+        else {
+            uc = border_corner_up_left;
+        }
+    }
+    else if (box->br) {
+        uc = get_border_col_uc(box->border_right_style);
+    }
+    else if (box->bb) {
+        uc = get_border_row_uc(box->border_bottom_style);
+    }
+    return uc;
+}
+
 static void
 render_rdrbox_part(struct foil_render_ctxt *ctxt,
         struct foil_rdrbox *box, foil_box_part_k part)
@@ -197,14 +396,14 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             foil_rect border_rc;
             foil_rect destrc;
             const foil_rect *rc;
-            uint32_t uc = 0x2504;
+            uint32_t uc;
 
             foil_rdrbox_border_box(box, &border_rc);
             foil_rdrbox_map_rect_to_page(&border_rc, &destrc);
             rc = &destrc;
 
             if (box->bt) {
-                uc = 0x2504;
+                uc = get_border_row_uc(box->border_top_style);
                 ctxt->udom->page->bgc = box->border_top_color;
                 int x = rc->left + 1;
                 int y = rc->top;
@@ -213,19 +412,19 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             }
 
             if (box->br) {
+                uc = get_border_col_uc(box->border_right_style);
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->right;
                 int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
-                uc = 0x2506;
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
             }
 
             if (box->bb) {
-                uc = 0x2504;
+                uc = get_border_row_uc(box->border_bottom_style);
                 ctxt->udom->page->bgc = box->border_bottom_color;
                 int x = rc->left + 1;
                 int y = rc->bottom - 1;
@@ -234,70 +433,38 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             }
 
             if (box->bl) {
+                uc = get_border_col_uc(box->border_left_style);
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->left;
                 int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
-                uc = 0x2506;
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
             }
 
             /* top left corner */
-            if (box->bt && box->bl) {
-                uc = 0x250c;
-                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
-            }
-            else if (box->bt) {
-                uc = 0x2504;
-                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
-            }
-            else if (box->bl) {
-                uc = 0x2506;
+            uc = get_border_corner_lt(box);
+            if (uc) {
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
             }
 
             /* bottom left corner */
-            if (box->bb && box->bl) {
-                uc = 0x2514;
-                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
-            }
-            else if (box->bb) {
-                uc = 0x2504;
-                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
-            }
-            else if (box->bl) {
-                uc = 0x2506;
+            uc = get_border_corner_lb(box);
+            if (uc) {
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
             }
 
             /* top right corner */
-            if (box->bt && box->br) {
-                uc = 0x2510;
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
-            }
-            else if (box->bt) {
-                uc = 0x2504;
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
-            }
-            else if (box->br) {
-                uc = 0x2506;
+            uc = get_border_corner_rt(box);
+            if (box->br) {
                 foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
             }
 
             /* bottom right corner */
-            if (box->bb && box->br) {
-                uc = 0x2518;
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
-            }
-            else if (box->bb) {
-                uc = 0x2504;
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
-            }
-            else if (box->br) {
-                uc = 0x2506;
+            uc = get_border_corner_rb(box);
+            if (box->br) {
                 foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
             }
         }
