@@ -193,6 +193,50 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
 
     case FOIL_BOX_PART_BORDER:
         // TODO: draw border
+        if (box->bt || box->br || box->bb || box->bl) {
+            foil_rect border_rc;
+            foil_rect destrc;
+            const foil_rect *rc;
+            uint32_t uc = 0x2504;
+
+            foil_rdrbox_border_box(box, &border_rc);
+            foil_rdrbox_map_rect_to_page(&border_rc, &destrc);
+            rc = &destrc;
+
+            if (box->bt) {
+                uc = 0x2504;
+                ctxt->udom->page->bgc = box->border_top_color;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top,
+                    uc, rc->right - rc->left);
+            }
+
+            if (box->br) {
+                ctxt->udom->page->bgc = box->border_right_color;
+                int x = rc->right;
+                uc = 0x2506;
+                for (int i = rc->top; i < rc->bottom; i++) {
+                    foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
+                }
+            }
+
+            if (box->bb) {
+                uc = 0x2504;
+                ctxt->udom->page->bgc = box->border_bottom_color;
+                int x = rc->left;
+                int y = rc->bottom - height_to_rows(box->bb);
+                foil_page_draw_uchar(ctxt->udom->page, x, y,
+                    uc, rc->right - rc->left);
+            }
+
+            if (box->bl) {
+                ctxt->udom->page->bgc = box->border_right_color;
+                int x = rc->left;
+                uc = 0x2506;
+                for (int i = rc->top; i < rc->bottom; i++) {
+                    foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
+                }
+            }
+        }
         break;
 
     case FOIL_BOX_PART_CONTENT:
