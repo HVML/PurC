@@ -1,0 +1,17 @@
+<hvml target="html">
+    <body>
+        <div style="border-style: solid; border-width:thick">
+            border-style: soild
+        </div>
+        <div style="border-style: dashed; border-width:thick">
+            border-style: dash
+        </div>
+        <div style="border-style: dotted; border-width:thick">
+            border-style: dotted
+        </div>
+        <div style="border-style: double; border-width:thick">
+            border-style: double
+        </div>
+    </body>
+</hvml>
+

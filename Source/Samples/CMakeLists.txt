@@ -79,6 +79,12 @@ set(sample_HVML_FILES
     "hvml/assets/fibonacci-html-temp-zh.json"
     "hvml/foil-progress.hvml"
     "hvml/foil-meter.hvml"
+    "hvml/foil-border-0.hvml"
+    "hvml/foil-border-1.hvml"
+    "hvml/foil-border-2.hvml"
+    "hvml/foil-border-3.hvml"
+    "hvml/foil-border-4.hvml"
+    "hvml/foil-border-5.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
