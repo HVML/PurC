@@ -206,33 +206,20 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             if (box->bt) {
                 uc = 0x2504;
                 ctxt->udom->page->bgc = box->border_top_color;
-                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top,
-                    uc, rc->right - rc->left);
+                int x = rc->left + 1;
+                int y = rc->top;
+                int count = rc->right - x;
+                foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
             if (box->br) {
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->right;
+                int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
-                if (box->bt) {
-                    uc = 0x2510;
-                }
-                else {
-                    uc = 0x2506;
-                }
-                foil_page_draw_uchar(ctxt->udom->page, x, rc->top, uc, 1);
-
-                if (box->bb) {
-                    uc = 0x2518;
-                }
-                else {
-                    uc = 0x2506;
-                }
-                foil_page_draw_uchar(ctxt->udom->page, x, rc->bottom - 1, uc, 1);
-
                 uc = 0x2506;
-                for (int i = rc->top + 1; i < end; i++) {
+                for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
             }
@@ -240,36 +227,78 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             if (box->bb) {
                 uc = 0x2504;
                 ctxt->udom->page->bgc = box->border_bottom_color;
-                int x = rc->left;
-                int y = rc->bottom - height_to_rows(box->bb);
-                foil_page_draw_uchar(ctxt->udom->page, x, y,
-                    uc, rc->right - rc->left);
+                int x = rc->left + 1;
+                int y = rc->bottom - 1;
+                int count = rc->right - x;
+                foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
             if (box->bl) {
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->left;
+                int begin = rc->top + 1;
                 int end = rc->bottom - 1;
-                if (box->bt) {
-                    uc = 0x250C;
-                }
-                else {
-                    uc = 0x2506;
-                }
-                foil_page_draw_uchar(ctxt->udom->page, x, rc->top, uc, 1);
-
-                if (box->bb) {
-                    uc = 0x2514;
-                }
-                else {
-                    uc = 0x2506;
-                }
-                foil_page_draw_uchar(ctxt->udom->page, x, rc->bottom - 1, uc, 1);
 
                 uc = 0x2506;
-                for (int i = rc->top + 1; i < end; i++) {
+                for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
+            }
+
+            /* top left corner */
+            if (box->bt && box->bl) {
+                uc = 0x250c;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
+            }
+            else if (box->bt) {
+                uc = 0x2504;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
+            }
+            else if (box->bl) {
+                uc = 0x2506;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
+            }
+
+            /* bottom left corner */
+            if (box->bb && box->bl) {
+                uc = 0x2514;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
+            }
+            else if (box->bb) {
+                uc = 0x2504;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
+            }
+            else if (box->bl) {
+                uc = 0x2506;
+                foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
+            }
+
+            /* top right corner */
+            if (box->bt && box->br) {
+                uc = 0x2510;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
+            }
+            else if (box->bt) {
+                uc = 0x2504;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
+            }
+            else if (box->br) {
+                uc = 0x2506;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
+            }
+
+            /* bottom right corner */
+            if (box->bb && box->br) {
+                uc = 0x2518;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
+            }
+            else if (box->bb) {
+                uc = 0x2504;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
+            }
+            else if (box->br) {
+                uc = 0x2506;
+                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
             }
         }
         break;
