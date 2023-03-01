@@ -214,10 +214,21 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->right;
                 int end = rc->bottom - 1;
-                uc = 0x2510;
+
+                if (box->bt) {
+                    uc = 0x2510;
+                }
+                else {
+                    uc = 0x2506;
+                }
                 foil_page_draw_uchar(ctxt->udom->page, x, rc->top, uc, 1);
 
-                uc = 0x2518;
+                if (box->bb) {
+                    uc = 0x2518;
+                }
+                else {
+                    uc = 0x2506;
+                }
                 foil_page_draw_uchar(ctxt->udom->page, x, rc->bottom - 1, uc, 1);
 
                 uc = 0x2506;
@@ -239,10 +250,20 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->left;
                 int end = rc->bottom - 1;
-                uc = 0x250C;
+                if (box->bt) {
+                    uc = 0x250C;
+                }
+                else {
+                    uc = 0x2506;
+                }
                 foil_page_draw_uchar(ctxt->udom->page, x, rc->top, uc, 1);
 
-                uc = 0x2514;
+                if (box->bb) {
+                    uc = 0x2514;
+                }
+                else {
+                    uc = 0x2506;
+                }
                 foil_page_draw_uchar(ctxt->udom->page, x, rc->bottom - 1, uc, 1);
 
                 uc = 0x2506;
