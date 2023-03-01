@@ -50,7 +50,7 @@ static const uint32_t border_corner_up_right = 0x2514;
 static const uint32_t border_corner_down_left = 0x2510;
 static const uint32_t border_corner_up_left = 0x2518;
 
-static const uint32_t border_corner_double_down_right = 0x255F;
+static const uint32_t border_corner_double_down_right = 0x2554;
 static const uint32_t border_corner_double_up_right = 0x255A;
 static const uint32_t border_corner_double_down_left = 0x2557;
 static const uint32_t border_corner_double_up_left = 0x255D;
