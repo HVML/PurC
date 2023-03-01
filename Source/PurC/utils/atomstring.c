@@ -76,7 +76,7 @@ static void atom_init_bucket(struct atom_bucket *bucket)
     assert (bucket->atom_seq_id == 0);
 
     bucket->atom_map = pcutils_uomap_create(NULL, NULL, NULL, NULL,
-            pchash_fnv1a_str_hash, comp_key_string, false);
+            pchash_fnv1a_str_hash, comp_key_string, false, false);
     bucket->quarks = (char **)malloc(sizeof(char *) * ATOM_BLOCK_SIZE);
     bucket->quarks[0] = NULL;
     bucket->atom_seq_id = 1;

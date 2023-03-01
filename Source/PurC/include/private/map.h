@@ -51,7 +51,9 @@ extern "C" {
 uint32_t pchash_default_str_hash(const void *k);
 uint32_t pchash_perlish_str_hash(const void *k);
 uint32_t pchash_fnv1a_str_hash(const void *k);
-uint32_t pchash_ptr_hash(const void *k);
+uint32_t pchash_default_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_u32_hash(const void *k);
 
 /* common functions for string key */
 static inline void* copy_key_string(const void *key)
@@ -158,12 +160,12 @@ typedef struct pchash_entry pcutils_uomap_entry;
 static inline pcutils_uomap* pcutils_uomap_create(
         copy_key_fn copy_key, free_key_fn free_key,
         copy_val_fn copy_val, free_val_fn free_val,
-        hash_key_fn hash_key, comp_key_fn comp_key, bool threads)
+        hash_key_fn hash_key, comp_key_fn comp_key, bool threads, bool sorted)
 {
     return pchash_table_new(0, copy_key, free_key,
             copy_val, free_val,
-            (hash_key == NULL) ? pchash_default_str_hash : hash_key,
-            (comp_key == NULL) ? pchash_str_equal : comp_key, threads);
+            (hash_key == NULL) ? pchash_fnv1a_str_hash : hash_key,
+            (comp_key == NULL) ? pchash_str_equal : comp_key, threads, sorted);
 }
 
 static inline int pcutils_uomap_destroy(pcutils_uomap* map)

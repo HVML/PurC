@@ -65,7 +65,9 @@ extern "C" {
 uint32_t pchash_default_str_hash(const void *k);
 uint32_t pchash_perlish_str_hash(const void *k);
 uint32_t pchash_fnv1a_str_hash(const void *k);
-uint32_t pchash_ptr_hash(const void *k);
+uint32_t pchash_default_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_ptr_hash(const void *k);
+uint32_t pchash_fnv1a_u32_hash(const void *k);
 
 /* default comparison functions */
 int pchash_str_equal(const void *k1, const void *k2);
@@ -98,6 +100,9 @@ typedef struct pchash_entry *pchash_entry_t;
  * The hash table structure.
  */
 struct pchash_table {
+    /** internal flags  */
+    unsigned flags;
+
     /** Size of our hash. */
     size_t size;
     /** Numbers of entries. */
@@ -150,11 +155,12 @@ struct pchash_table *
 pchash_table_new(size_t size,
         pchash_copy_key_fn copy_key, pchash_free_key_fn free_key,
         pchash_copy_val_fn copy_val, pchash_free_val_fn free_val,
-        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn, bool threads);
+        pchash_hash_fn hash_fn, pchash_keycmp_fn keycmp_fn,
+        bool threads, bool sorted);
 
 /**
  * Convenience function to create a new hash table with char keys
- * by using the pchash_default_str_hash() hash function.
+ * by using the pchash_fnv1a_str_hash() hash function.
  *
  * @param size initial table size.
  * @param free_fn callback function used to free memory for entries.
@@ -168,7 +174,7 @@ pchash_kstr_table_new(size_t size,
 {
     return pchash_table_new(size, copy_key, free_key,
             copy_val, free_val,
-            pchash_default_str_hash, pchash_str_equal, false);
+            pchash_fnv1a_str_hash, pchash_str_equal, false, false);
 }
 
 /**
@@ -187,7 +193,7 @@ pchash_kstr_table_new_perlish(size_t size,
 {
     return pchash_table_new(size, copy_key, free_key,
             copy_val, free_val,
-            pchash_perlish_str_hash, pchash_str_equal, false);
+            pchash_perlish_str_hash, pchash_str_equal, false, false);
 }
 
 /**
@@ -205,7 +211,7 @@ pchash_kptr_table_new(size_t size,
 {
     return pchash_table_new(size, copy_key, free_key,
             copy_val, free_val,
-            pchash_ptr_hash, pchash_ptr_equal, false);
+            pchash_fnv1a_ptr_hash, pchash_ptr_equal, false, false);
 }
 
 /**

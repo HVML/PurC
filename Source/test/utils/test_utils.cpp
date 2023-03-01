@@ -707,7 +707,7 @@ TEST(uomap, basic)
 {
     int r;
     pcutils_uomap *map = pcutils_uomap_create(NULL, NULL,
-            NULL, NULL, NULL, NULL, false);
+            NULL, NULL, NULL, NULL, false, false);
 
     static const struct kvs {
         const char *k;
@@ -794,7 +794,7 @@ TEST(uomap, it)
 {
     int r;
     pcutils_uomap *map = pcutils_uomap_create(NULL, NULL,
-            NULL, NULL, NULL, NULL, false);
+            NULL, NULL, NULL, NULL, false, true);
 
     static const struct kvs {
         const char *k;
@@ -882,10 +882,10 @@ TEST(uomap, it)
 
     pcutils_uomap *map1, *map2;
     map1 = pcutils_uomap_create(NULL, NULL,
-            NULL, NULL, NULL, NULL, false);
+            NULL, NULL, NULL, NULL, false, true);
 
     map2 = pcutils_uomap_create(NULL, NULL,
-            NULL, NULL, NULL, NULL, false);
+            NULL, NULL, NULL, NULL, false, true);
 
     for (size_t n = 1; n < PCA_TABLESIZE(kvs); n++) {
         pcutils_uomap_clear(map1);

@@ -48,6 +48,8 @@ set(sample_HVML_FILES
     "hvml/call-concurrently.hvml"
     "hvml/sys-sleep.hvml"
     "hvml/prime-number-sieve.hvml"
+    "hvml/prime-number-sieve-void.hvml"
+    "hvml/prime-number-sieve-global.hvml"
     "hvml/fetch-with-param-0.hvml"
     "hvml/fetch-with-param-1.hvml"
     "hvml/fetch-with-param-2.hvml"

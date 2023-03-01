@@ -129,6 +129,8 @@ struct pcintr_heap {
     struct list_head    stopped_crtns;
     struct avl_tree     wait_timeout_crtns_avl;
 
+    size_t              nr_stopped_crtns;
+
     pcutils_map        *name_chan_map;  // name to channel map.
     pcutils_map        *token_crtn_map; // token to crtn map.
 

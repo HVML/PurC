@@ -548,7 +548,7 @@ int purc_init_ex(unsigned int modules,
     curr_inst->local_data_map =
         pcutils_uomap_create(copy_key_string,
                 free_key_string, NULL, NULL, pchash_fnv1a_str_hash,
-                comp_key_string, false);
+                comp_key_string, false, false);
 
     int ret = init_modules(curr_inst, modules, extra_info);
     if (ret) {
