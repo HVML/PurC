@@ -1745,9 +1745,9 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     if (box->border_bottom_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
-        box->br = 0;
+        box->bb = 0;
     else {
-        box->br = FOIL_PX_GRID_CELL_H;
+        box->bb = FOIL_PX_GRID_CELL_H;
         v = css_computed_border_bottom_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
         box->border_bottom_color = foil_map_xrgb_to_16c(color);
@@ -1774,9 +1774,9 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     if (box->border_left_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
-        box->br = 0;
+        box->bl = 0;
     else {
-        box->br = FOIL_PX_GRID_CELL_W;
+        box->bl = FOIL_PX_GRID_CELL_W;
         v = css_computed_border_left_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
         box->border_left_color = foil_map_xrgb_to_16c(color);
