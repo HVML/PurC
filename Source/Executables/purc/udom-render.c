@@ -45,20 +45,20 @@ static const uint32_t border_solid_col = 0x2502;
 static const uint32_t border_double_row = 0x2550;
 static const uint32_t border_double_col = 0x2551;
 
-static const uint32_t border_corner_down_right = 0x250C;
-static const uint32_t border_corner_up_right = 0x2514;
-static const uint32_t border_corner_down_left = 0x2510;
-static const uint32_t border_corner_up_left = 0x2518;
+static const uint32_t border_corner_top_left = 0x250C;
+static const uint32_t border_corner_bottom_left = 0x2514;
+static const uint32_t border_corner_top_right = 0x2510;
+static const uint32_t border_corner_bottom_right = 0x2518;
 
-static const uint32_t border_corner_arc_down_right = 0x256D;
-static const uint32_t border_corner_arc_up_right = 0x2570;
-static const uint32_t border_corner_arc_down_left = 0x256E;
-static const uint32_t border_corner_arc_up_left = 0x256F;
+static const uint32_t border_corner_arc_top_left = 0x256D;
+static const uint32_t border_corner_arc_bottom_left = 0x2570;
+static const uint32_t border_corner_arc_top_right = 0x256E;
+static const uint32_t border_corner_arc_bottom_right = 0x256F;
 
-static const uint32_t border_corner_double_down_right = 0x2554;
-static const uint32_t border_corner_double_up_right = 0x255A;
-static const uint32_t border_corner_double_down_left = 0x2557;
-static const uint32_t border_corner_double_up_left = 0x255D;
+static const uint32_t border_corner_double_top_left = 0x2554;
+static const uint32_t border_corner_double_bottom_left = 0x255A;
+static const uint32_t border_corner_double_top_right = 0x2557;
+static const uint32_t border_corner_double_bottom_right = 0x255D;
 
 static const uint32_t border_corner_down_single_right_double = 0x2552;
 static const uint32_t border_corner_up_single_right_double = 0x2558;
@@ -259,13 +259,13 @@ get_border_col_uc(int style)
 }
 
 static uint32_t
-get_border_corner_lt(struct foil_rdrbox *box)
+get_border_corner_tl(struct foil_rdrbox *box)
 {
     uint32_t uc = 0;
     if (box->bl && box->bt) {
         if ((box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
             (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
-            uc = border_corner_double_down_right;
+            uc = border_corner_double_top_left;
         }
         else if (box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_down_double_right_single;
@@ -274,10 +274,10 @@ get_border_corner_lt(struct foil_rdrbox *box)
             uc = border_corner_down_single_right_double;
         }
         else if (box->border_top_left_radius) {
-            uc = border_corner_arc_down_right;
+            uc = border_corner_arc_top_left;
         }
         else {
-            uc = border_corner_down_right;
+            uc = border_corner_top_left;
         }
     }
     else if (box->bl) {
@@ -290,13 +290,13 @@ get_border_corner_lt(struct foil_rdrbox *box)
 }
 
 static uint32_t
-get_border_corner_lb(struct foil_rdrbox *box)
+get_border_corner_bl(struct foil_rdrbox *box)
 {
     uint32_t uc = 0;
     if (box->bl && box->bb) {
         if ((box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
             (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
-            uc = border_corner_double_up_right;
+            uc = border_corner_double_bottom_left;
         }
         else if (box->border_left_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_up_double_right_single;
@@ -305,10 +305,10 @@ get_border_corner_lb(struct foil_rdrbox *box)
             uc = border_corner_up_single_right_double;
         }
         else if (box->border_bottom_left_radius) {
-            uc = border_corner_arc_up_right;
+            uc = border_corner_arc_bottom_left;
         }
         else {
-            uc = border_corner_up_right;
+            uc = border_corner_bottom_left;
         }
     }
     else if (box->bl) {
@@ -321,13 +321,13 @@ get_border_corner_lb(struct foil_rdrbox *box)
 }
 
 static uint32_t
-get_border_corner_rt(struct foil_rdrbox *box)
+get_border_corner_tr(struct foil_rdrbox *box)
 {
     uint32_t uc = 0;
     if (box->br && box->bt) {
         if ((box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
             (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
-            uc = border_corner_double_down_left;
+            uc = border_corner_double_top_right;
         }
         else if (box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_down_double_left_single;
@@ -336,10 +336,10 @@ get_border_corner_rt(struct foil_rdrbox *box)
             uc = border_corner_down_single_left_double;
         }
         else if (box->border_top_right_radius) {
-            uc = border_corner_arc_down_left;
+            uc = border_corner_arc_top_right;
         }
         else {
-            uc = border_corner_down_left;
+            uc = border_corner_top_right;
         }
     }
     else if (box->br) {
@@ -352,13 +352,13 @@ get_border_corner_rt(struct foil_rdrbox *box)
 }
 
 static uint32_t
-get_border_corner_rb(struct foil_rdrbox *box)
+get_border_corner_br(struct foil_rdrbox *box)
 {
     uint32_t uc = 0;
     if (box->br && box->bb) {
         if ((box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) &&
             (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE)) {
-            uc = border_corner_double_up_left;
+            uc = border_corner_double_bottom_right;
         }
         else if (box->border_right_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_up_double_left_single;
@@ -367,10 +367,10 @@ get_border_corner_rb(struct foil_rdrbox *box)
             uc = border_corner_up_single_left_double;
         }
         else if (box->border_bottom_right_radius) {
-            uc = border_corner_arc_up_left;
+            uc = border_corner_arc_bottom_right;
         }
         else {
-            uc = border_corner_up_left;
+            uc = border_corner_bottom_right;
         }
     }
     else if (box->br) {
@@ -464,28 +464,28 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             }
 
             /* top left corner */
-            uc = get_border_corner_lt(box);
+            uc = get_border_corner_tl(box);
             if (uc) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
             }
 
             /* bottom left corner */
-            uc = get_border_corner_lb(box);
+            uc = get_border_corner_bl(box);
             if (uc) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
             }
 
             /* top right corner */
-            uc = get_border_corner_rt(box);
+            uc = get_border_corner_tr(box);
             if (box->br) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->right - 1, rc->top, uc, 1);
             }
 
             /* bottom right corner */
-            uc = get_border_corner_rb(box);
+            uc = get_border_corner_br(box);
             if (box->br) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->right - 1, rc->bottom - 1, uc, 1);
