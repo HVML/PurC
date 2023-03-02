@@ -391,7 +391,6 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
         break;
 
     case FOIL_BOX_PART_BORDER:
-        // TODO: draw border
         if (box->bt || box->br || box->bb || box->bl) {
             foil_rect border_rc;
             foil_rect destrc;
@@ -405,7 +404,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             if (box->bt) {
                 int x = rc->left + 1;
                 int y = rc->top;
-                int count = rc->right - x;
+                int count = rc->right - x - 1;
 
                 uc = get_border_row_uc(box->border_top_style);
                 box->border_top_color.specified = true;
@@ -414,7 +413,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             }
 
             if (box->br) {
-                int x = rc->right;
+                int x = rc->right - 1;
                 int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
@@ -428,7 +427,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             if (box->bb) {
                 int x = rc->left + 1;
                 int y = rc->bottom - 1;
-                int count = rc->right - x;
+                int count = rc->right - x - 1;
 
                 uc = get_border_row_uc(box->border_bottom_style);
                 foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
@@ -465,14 +464,14 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             uc = get_border_corner_rt(box);
             if (box->br) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
+                foil_page_draw_uchar(ctxt->udom->page, rc->right - 1, rc->top, uc, 1);
             }
 
             /* bottom right corner */
             uc = get_border_corner_rb(box);
             if (box->br) {
                 foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
-                foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
+                foil_page_draw_uchar(ctxt->udom->page, rc->right - 1, rc->bottom - 1, uc, 1);
             }
         }
         break;
