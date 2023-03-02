@@ -429,6 +429,11 @@ struct foil_rdrbox {
     uint32_t border_bottom_style:4;
     uint32_t border_left_style:4;
 
+    uint32_t border_top_left_radius:1;
+    uint32_t border_top_right_radius:1;
+    uint32_t border_bottom_left_radius:1;
+    uint32_t border_bottom_right_radius:1;
+
     foil_color border_top_color;
     foil_color border_right_color;
     foil_color border_bottom_color;

@@ -1785,6 +1785,39 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->border_left_color.specified = 1;
         box->border_left_color.argb = color;
     }
+
+    if (box->bt || box->bl) {
+        v = css_computed_border_top_left_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_LEFT_RADIUS_SET) {
+            box->border_top_left_radius = 1;
+        }
+    }
+
+    if (box->bt || box->br) {
+        v = css_computed_border_top_right_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_RIGHT_RADIUS_SET) {
+            box->border_top_right_radius = 1;
+        }
+    }
+
+    if (box->bb || box->bl) {
+        v = css_computed_border_bottom_left_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_BOTTOM_LEFT_RADIUS_SET) {
+            box->border_bottom_left_radius = 1;
+        }
+    }
+
+    if (box->bb || box->br) {
+        v = css_computed_border_bottom_right_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_RIGHT_RADIUS_SET) {
+            box->border_bottom_right_radius = 1;
+        }
+    }
+
 }
 
 void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)

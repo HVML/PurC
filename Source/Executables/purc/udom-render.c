@@ -50,6 +50,11 @@ static const uint32_t border_corner_up_right = 0x2514;
 static const uint32_t border_corner_down_left = 0x2510;
 static const uint32_t border_corner_up_left = 0x2518;
 
+static const uint32_t border_corner_arc_down_right = 0x256D;
+static const uint32_t border_corner_arc_up_right = 0x2570;
+static const uint32_t border_corner_arc_down_left = 0x256E;
+static const uint32_t border_corner_arc_up_left = 0x256F;
+
 static const uint32_t border_corner_double_down_right = 0x2554;
 static const uint32_t border_corner_double_up_right = 0x255A;
 static const uint32_t border_corner_double_down_left = 0x2557;
@@ -268,6 +273,9 @@ get_border_corner_lt(struct foil_rdrbox *box)
         else if (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_down_single_right_double;
         }
+        else if (box->border_top_left_radius) {
+            uc = border_corner_arc_down_right;
+        }
         else {
             uc = border_corner_down_right;
         }
@@ -295,6 +303,9 @@ get_border_corner_lb(struct foil_rdrbox *box)
         }
         else if (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_up_single_right_double;
+        }
+        else if (box->border_bottom_left_radius) {
+            uc = border_corner_arc_up_right;
         }
         else {
             uc = border_corner_up_right;
@@ -324,6 +335,9 @@ get_border_corner_rt(struct foil_rdrbox *box)
         else if (box->border_top_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_down_single_left_double;
         }
+        else if (box->border_top_right_radius) {
+            uc = border_corner_arc_down_left;
+        }
         else {
             uc = border_corner_down_left;
         }
@@ -351,6 +365,9 @@ get_border_corner_rb(struct foil_rdrbox *box)
         }
         else if (box->border_bottom_style == FOIL_RDRBOX_BORDER_STYLE_DOUBLE) {
             uc = border_corner_up_single_left_double;
+        }
+        else if (box->border_bottom_right_radius) {
+            uc = border_corner_arc_up_left;
         }
         else {
             uc = border_corner_up_left;
