@@ -1,16 +1,16 @@
 <hvml target="html">
     <body>
-        <div style="border-style: solid; border-width:thick">
-            border-style: soild
+        <div style="border-style: solid; border-width:thick; border-color:red;">
+            border-style: soild; border-color:red;
         </div>
-        <div style="border-style: dashed; border-width:thick">
-            border-style: dash
+        <div style="border-style: dashed; border-width:thick; border-color: red blue;">
+            border-style: dash; border-color: red blue;
         </div>
-        <div style="border-style: dotted; border-width:thick">
-            border-style: dotted
+        <div style="border-style: dotted; border-width:thick; border-color: red blue yellow;">
+            border-style: dotted; border-color: red blue yellow;
         </div>
-        <div style="border-style: double; border-width:thick">
-            border-style: double
+        <div style="border-style: double; border-width:thick; border-color: red blue yellow green;">
+            border-style: double; border-color: red blue yellow green;
         </div>
     </body>
 </hvml>

@@ -408,7 +408,8 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 int count = rc->right - x;
 
                 uc = get_border_row_uc(box->border_top_style);
-                foil_page_set_bgc(ctxt->udom->page, box->border_top_color);
+                box->border_top_color.specified = true;
+                foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
@@ -418,7 +419,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 int end = rc->bottom - 1;
 
                 uc = get_border_col_uc(box->border_right_style);
-                foil_page_set_bgc(ctxt->udom->page, box->border_right_color);
+                foil_page_set_fgc(ctxt->udom->page, box->border_right_color);
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
@@ -430,7 +431,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 int count = rc->right - x;
 
                 uc = get_border_row_uc(box->border_bottom_style);
-                foil_page_set_bgc(ctxt->udom->page, box->border_bottom_color);
+                foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
@@ -440,7 +441,7 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
                 int end = rc->bottom - 1;
 
                 uc = get_border_col_uc(box->border_left_style);
-                foil_page_set_bgc(ctxt->udom->page, box->border_right_color);
+                foil_page_set_fgc(ctxt->udom->page, box->border_right_color);
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
@@ -449,24 +450,28 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             /* top left corner */
             uc = get_border_corner_lt(box);
             if (uc) {
+                foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->top, uc, 1);
             }
 
             /* bottom left corner */
             uc = get_border_corner_lb(box);
             if (uc) {
+                foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->left, rc->bottom - 1, uc, 1);
             }
 
             /* top right corner */
             uc = get_border_corner_rt(box);
             if (box->br) {
+                foil_page_set_fgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->top, uc, 1);
             }
 
             /* bottom right corner */
             uc = get_border_corner_rb(box);
             if (box->br) {
+                foil_page_set_fgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, rc->right, rc->bottom - 1, uc, 1);
             }
         }
