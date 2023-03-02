@@ -403,42 +403,44 @@ render_rdrbox_part(struct foil_render_ctxt *ctxt,
             rc = &destrc;
 
             if (box->bt) {
-                uc = get_border_row_uc(box->border_top_style);
-                ctxt->udom->page->bgc = box->border_top_color;
                 int x = rc->left + 1;
                 int y = rc->top;
                 int count = rc->right - x;
+
+                uc = get_border_row_uc(box->border_top_style);
+                foil_page_set_bgc(ctxt->udom->page, box->border_top_color);
                 foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
             if (box->br) {
-                uc = get_border_col_uc(box->border_right_style);
-                ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->right;
                 int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
+                uc = get_border_col_uc(box->border_right_style);
+                foil_page_set_bgc(ctxt->udom->page, box->border_right_color);
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }
             }
 
             if (box->bb) {
-                uc = get_border_row_uc(box->border_bottom_style);
-                ctxt->udom->page->bgc = box->border_bottom_color;
                 int x = rc->left + 1;
                 int y = rc->bottom - 1;
                 int count = rc->right - x;
+
+                uc = get_border_row_uc(box->border_bottom_style);
+                foil_page_set_bgc(ctxt->udom->page, box->border_bottom_color);
                 foil_page_draw_uchar(ctxt->udom->page, x, y, uc, count);
             }
 
             if (box->bl) {
-                uc = get_border_col_uc(box->border_left_style);
-                ctxt->udom->page->bgc = box->border_right_color;
                 int x = rc->left;
                 int begin = rc->top + 1;
                 int end = rc->bottom - 1;
 
+                uc = get_border_col_uc(box->border_left_style);
+                foil_page_set_bgc(ctxt->udom->page, box->border_right_color);
                 for (int i = begin; i < end; i++) {
                     foil_page_draw_uchar(ctxt->udom->page, x, i, uc, 1);
                 }

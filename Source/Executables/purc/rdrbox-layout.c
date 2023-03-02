@@ -1692,7 +1692,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->bt = FOIL_PX_GRID_CELL_H;
         v = css_computed_border_top_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_top_color = foil_map_xrgb_to_16c(color);
+        box->border_top_color.specified = 1;
+        box->border_top_color.argb = color;
     }
 
     v = css_computed_border_right_style(box->computed_style);
@@ -1721,7 +1722,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->br = FOIL_PX_GRID_CELL_W;
         v = css_computed_border_right_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_right_color = foil_map_xrgb_to_16c(color);
+        box->border_right_color.specified = 1;
+        box->border_right_color.argb = color;
     }
 
     v = css_computed_border_bottom_style(box->computed_style);
@@ -1750,7 +1752,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->bb = FOIL_PX_GRID_CELL_H;
         v = css_computed_border_bottom_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_bottom_color = foil_map_xrgb_to_16c(color);
+        box->border_bottom_color.specified = 1;
+        box->border_bottom_color.argb = color;
     }
 
     v = css_computed_border_left_style(box->computed_style);
@@ -1779,7 +1782,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->bl = FOIL_PX_GRID_CELL_W;
         v = css_computed_border_left_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_left_color = foil_map_xrgb_to_16c(color);
+        box->border_left_color.specified = 1;
+        box->border_left_color.argb = color;
     }
 }
 
