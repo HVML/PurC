@@ -2,76 +2,76 @@
     <body>
         <div style="border-style: solid dashed dotted double; border-width:thick">
             border-style: solid dashed dotted double
-        </dir>
+        </div>
         <div style="border-style: solid dashed double dotted; border-width:thick">
             border-style: solid dashed double dotted
-        </dir>
+        </div>
         <div style="border-style: solid dotted dashed double; border-width:thick">
             border-style: solid dotted dashed double
-        </dir>
+        </div>
         <div style="border-style: solid dotted double dashed; border-width:thick">
             border-style: solid dotted double dashed
-        </dir>
+        </div>
         <div style="border-style: solid double dashed dotted; border-width:thick">
             border-style: solid double dashed dotted
-        </dir>
+        </div>
         <div style="border-style: solid double dotted dashed; border-width:thick">
             border-style: solid double dotted dashed
-        </dir>
+        </div>
         <div style="border-style: dashed solid dotted double; border-width:thick">
             border-style: dashed solid dotted double
-        </dir>
+        </div>
         <div style="border-style: dashed solid double dotted; border-width:thick">
             border-style: dashed solid double dotted
-        </dir>
+        </div>
         <div style="border-style: dashed dotted double solid; border-width:thick">
             border-style: dashed dotted double solid
-        </dir>
+        </div>
         <div style="border-style: dashed dotted solid double; border-width:thick">
             border-style: dashed dotted solid double
-        </dir>
+        </div>
         <div style="border-style: dashed double solid dotted; border-width:thick">
             border-style: dashed double solid dotted
-        </dir>
+        </div>
         <div style="border-style: dashed double dotted solid; border-width:thick">
             border-style: dashed double dotted solid
-        </dir>
+        </div>
         <div style="border-style: dotted solid dashed double; border-width:thick">
             border-style: dotted solid dashed double
-        </dir>
+        </div>
         <div style="border-style: dotted solid double dashed; border-width:thick">
             border-style: dotted solid double dashed
-        </dir>
+        </div>
         <div style="border-style: dotted dashed double solid; border-width:thick">
             border-style: dotted dashed double solid
-        </dir>
+        </div>
         <div style="border-style: dotted dashed solid double; border-width:thick">
             border-style: dotted dashed solid double
-        </dir>
+        </div>
         <div style="border-style: dotted double solid dashed; border-width:thick">
             border-style: dotted double solid dashed
-        </dir>
+        </div>
         <div style="border-style: dotted double dashed solid; border-width:thick">
             border-style: dotted double dashed solid
-        </dir>
+        </div>
         <div style="border-style: double solid dashed dotted; border-width:thick">
             border-style: double solid dashed dotted
-        </dir>
+        </div>
         <div style="border-style: double solid dotted dashed; border-width:thick">
             border-style: double solid dotted dashed
-        </dir>
+        </div>
         <div style="border-style: double dashed dotted solid; border-width:thick">
             border-style: double dashed dotted solid
-        </dir>
+        </div>
         <div style="border-style: double dashed solid dotted; border-width:thick">
             border-style: double dashed solid dotted
-        </dir>
+        </div>
         <div style="border-style: double dotted dashed solid; border-width:thick">
             border-style: double dotted dashed solid
-        </dir>
+        </div>
         <div style="border-style: double dotted solid dashed; border-width:thick">
             border-style: double dotted solid dashed
-        </dir>
+        </div>
     </body>
 </hvml>
 
