@@ -27,6 +27,7 @@
 #include "config.h"
 #include "private/map.h"
 #include "private/dvobjs.h"
+#include "private/instance.h"
 #include "purc-variant.h"
 #include "purc-errors.h"
 
@@ -34,170 +35,32 @@
 #include <assert.h>
 
 #define PY_DVOBJ_VERSION    0
+#define PY_INFO_VERSION     "version"
+#define PY_INFO_PLATFORM    "platform"
+#define PY_INFO_COPYRIGHT   "copyright"
+#define PY_INFO_COMPILER    "compiler"
+#define PY_INFO_BUILD_INFO  "build-info"
 
-static struct dvobj_py_info {
-    purc_variant_t entity;
+#define PY_HANDLE_NAME      "__handle_python__"
+#define PY_ATTR_HVML        "__hvml__"
+
+struct dvobj_pyinfo {
     pcutils_map *prop_map;
-    char *error;
-} py_info;
-
-static purc_nvariant_method property_getter(void* native_entity,
-            const char* propert_name)
-{
-    struct dvobj_py_info *info = native_entity;
-    assert(&py_info == info);
-
-    pcutils_map_entry *entry = pcutils_map_find(info->prop_map, propert_name);
-    if (entry)
-        return (purc_nvariant_method)entry->val;
-
-    return NULL;
-}
-
-static void on_release(void* native_entity)
-{
-    struct dvobj_py_info *info = native_entity;
-
-    assert(Py_IsInitialized());
-    assert(&py_info == native_entity);
-
-    Py_Finalize();
-
-    free(info->error);
-    pcutils_map_destroy(info->prop_map);
-
-    info->error = NULL;
-    info->prop_map = NULL;
-    info->entity = PURC_VARIANT_INVALID;
-}
-
-static struct purc_native_ops py_ops = {
-    .property_getter = property_getter,
-    .on_release = on_release,
 };
 
-#define INFO_VERSION    "version"
-#define INFO_PLATFORM   "platform"
-#define INFO_COPYRIGHT  "copyright"
-#define INFO_COMPILER   "compiler"
-#define INFO_BUILD_INFO "build-info"
-
-purc_variant_t info_getter(void* native_entity,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+static inline struct dvobj_pyinfo *
+get_pyinfo(purc_variant_t root)
 {
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
+    purc_variant_t v;
 
-    assert(Py_IsInitialized());
-    assert(&py_info == native_entity);
-    bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
-    purc_variant_t retv = PURC_VARIANT_INVALID;
-    purc_variant_t val = PURC_VARIANT_INVALID;
+    v = purc_variant_object_get_by_ckey(root, PY_HANDLE_NAME);
+    assert(v && purc_variant_is_native(v));
 
-    if (nr_args > 0) {
-        const char *which_str;
-        size_t which_len;
-        which_str = purc_variant_get_string_const_ex(argv[0], &which_len);
-        if (which_str == NULL) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        which_str = pcutils_trim_spaces(which_str, &which_len);
-        const char *result = NULL;
-        if (which_len > 0) {
-            switch (which_str[0]) {
-                case 'v':
-                    if (strcasecmp(which_str, INFO_VERSION) == 0) {
-                        result = Py_GetVersion();
-                    }
-                    break;
-                case 'p':
-                    if (strcasecmp(which_str, INFO_PLATFORM) == 0) {
-                        result = Py_GetPlatform();
-                    }
-                    break;
-                case 'c':
-                    if (strcasecmp(which_str, INFO_COPYRIGHT) == 0) {
-                        result = Py_GetCopyright();
-                    }
-                    else if (strcasecmp(which_str, INFO_COMPILER) == 0) {
-                        result = Py_GetCompiler();
-                    }
-                    break;
-                case 'b':
-                    if (strcasecmp(which_str, INFO_BUILD_INFO) == 0) {
-                        result = Py_GetBuildInfo();
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            retv = purc_variant_make_string_static(result, false);
-        }
-    }
-
-    if (retv == PURC_VARIANT_INVALID) {
-        retv = purc_variant_make_object_0();
-        if (retv == PURC_VARIANT_INVALID) {
-            goto fatal;
-        }
-
-        val = purc_variant_make_string_static(Py_GetVersion(), false);
-        if (val == PURC_VARIANT_INVALID)
-            goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(retv, INFO_VERSION, val))
-            goto fatal;
-        purc_variant_unref(val);
-
-        val = purc_variant_make_string_static(Py_GetPlatform(), false);
-        if (val == PURC_VARIANT_INVALID)
-            goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(retv, INFO_PLATFORM, val))
-            goto fatal;
-        purc_variant_unref(val);
-
-        val = purc_variant_make_string_static(Py_GetCopyright(), false);
-        if (val == PURC_VARIANT_INVALID)
-            goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(retv, INFO_COPYRIGHT, val))
-            goto fatal;
-        purc_variant_unref(val);
-
-        val = purc_variant_make_string_static(Py_GetCompiler(), false);
-        if (val == PURC_VARIANT_INVALID)
-            goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(retv, INFO_COMPILER, val))
-            goto fatal;
-        purc_variant_unref(val);
-
-        val = purc_variant_make_string_static(Py_GetBuildInfo(), false);
-        if (val == PURC_VARIANT_INVALID)
-            goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(retv, INFO_BUILD_INFO, val))
-            goto fatal;
-        purc_variant_unref(val);
-    }
-
-    return retv;
-
-fatal:
-    silently = false;
-
-failed:
-    if (val)
-        purc_variant_unref(val);
-    if (retv)
-        purc_variant_unref(retv);
-
-    if (silently)
-        return purc_variant_make_undefined();
-
-    return PURC_VARIANT_INVALID;
+    return (struct dvobj_pyinfo *)purc_variant_native_get_entity(v);
 }
 
-purc_variant_t error_getter(void* native_entity,
+#if 0
+static purc_variant_t call_pyfunc(void* native_entity,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
@@ -205,30 +68,202 @@ purc_variant_t error_getter(void* native_entity,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    struct dvobj_py_info *info = native_entity;
-    return purc_variant_make_string(info->error, false);
+    return purc_variant_make_undefined();
+}
+
+static purc_nvariant_method property_getter(void* native_entity,
+            const char* property_name)
+{
+    struct dvobj_pyinfo *pyinfo = native_entity;
+    assert(&pyinfo == pyinfo);
+
+    pcutils_map_entry *entry = pcutils_map_find(pyinfo->prop_map, property_name);
+    if (entry) {
+        PyObject *o = (PyObject *)entry->val;
+        if (PyFunction_Check(o)) {
+            return call_pyfunc;
+        }
+        else if (PyModule_Check(o)) {
+            /* We use a Python Capsule to store the variant created for
+               the module */
+            PyObject *cap = PyObject_GetAttrString(o, PY_ATTR_HVML);
+            if (PyCapsule_CheckExact(cap)) {
+                purc_variant_t mod_entity;
+                mod_entity = PyCapsule_GetPointer(p, NULL);
+                assert(mod_entity);
+
+                return 
+            }
+        }
+    }
+
+    return NULL;
+}
+#endif
+
+static purc_variant_t run_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t import_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    return purc_variant_make_undefined();
+}
+
+static purc_variant_t make_info_object(void)
+{
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t val  = PURC_VARIANT_INVALID;
+
+    retv = purc_variant_make_object_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    val = purc_variant_make_string_static(Py_GetVersion(), false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_VERSION, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    val = purc_variant_make_string_static(Py_GetPlatform(), false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_PLATFORM, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    val = purc_variant_make_string_static(Py_GetCopyright(), false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_COPYRIGHT, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    val = purc_variant_make_string_static(Py_GetCompiler(), false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_COMPILER, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    val = purc_variant_make_string_static(Py_GetBuildInfo(), false);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_BUILD_INFO, val))
+        goto fatal;
+    purc_variant_unref(val);
+
+    return retv;
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static void on_release_pyinfo(void* native_entity)
+{
+    struct dvobj_pyinfo *pyinfo = native_entity;
+
+    assert(Py_IsInitialized());
+    assert(&pyinfo == native_entity);
+
+    Py_Finalize();
+
+    pcutils_map_destroy(pyinfo->prop_map);
+    free(pyinfo);
 }
 
 static purc_variant_t create_py(void)
 {
-    if (py_info.entity) {
-        assert(Py_IsInitialized());
-        assert(py_info.error != NULL);
-        assert(py_info.prop_map != NULL);
-    }
-    else {
-        Py_Initialize();
+    static struct purc_dvobj_method methods[] = {
+        { "run",           run_getter,      NULL },
+        { "import",        import_getter,   NULL },
+    };
 
-        py_info.prop_map = pcutils_map_create(
+    static struct purc_native_ops pyinfo_ops = {
+        .on_release = on_release_pyinfo,
+    };
+
+    if (!Py_IsInitialized()) {
+        Py_Initialize();
+    }
+
+    purc_variant_t py;
+    py = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
+
+    purc_variant_t val = PURC_VARIANT_INVALID;
+    struct dvobj_pyinfo *pyinfo = NULL;
+    if (py) {
+        pyinfo = calloc(1, sizeof(*pyinfo));
+        if (pyinfo == NULL)
+            goto failed_info;
+        pyinfo->prop_map = pcutils_map_create(
                 copy_key_string, free_key_string,
                 NULL, NULL, comp_key_string, true);
-        pcutils_map_insert(py_info.prop_map, "info", info_getter);
-        pcutils_map_insert(py_info.prop_map, "error", error_getter);
-        py_info.error = strdup("Ok");
-        py_info.entity = purc_variant_make_native(&py_info, &py_ops);
+        if (pyinfo->prop_map == NULL)
+            goto failed_info;
+
+        if ((val = make_info_object()) == PURC_VARIANT_INVALID)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(py, "info", val))
+            goto fatal;
+        purc_variant_unref(val);
+
+        if ((val = purc_variant_make_native((void *)pyinfo,
+                        &pyinfo_ops)) == NULL)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(py,
+                    PY_HANDLE_NAME, val))
+            goto fatal;
+        purc_variant_unref(val);
+
+        val = purc_variant_make_string_static("Ok", false);
+        if (!purc_variant_object_set_by_static_ckey(py, "error", val))
+            goto fatal;
+        purc_variant_unref(val);
+        return py;
     }
 
-    return py_info.entity;
+failed_info:
+    if (pyinfo) {
+        if (pyinfo->prop_map) {
+            pcutils_map_destroy(pyinfo->prop_map);
+        }
+        free(pyinfo);
+    }
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (py)
+        purc_variant_unref(py);
+
+    pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    return PURC_VARIANT_INVALID;
 }
 
 static struct dvobj_info {
