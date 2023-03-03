@@ -670,6 +670,14 @@ typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
  * The operation set for a native entity variant.
  */
 struct purc_native_ops {
+    /** This operation gets the value represented by
+      * the native entity itself (nullable). */
+    purc_nvariant_method getter;
+
+    /** This operation sets the value represented by
+      * the native entity itself (nullable). */
+    purc_nvariant_method setter;
+
     /** This operation returns the getter for a specific property. */
     purc_nvariant_method (*property_getter)(void* native_entity,
             const char* propert_name);
@@ -722,6 +730,27 @@ struct purc_native_ops {
 };
 
 /**
+ * purc_variant_make_native_entity:
+ *
+ * @entity (nullable): The pointer to a native entity.
+ * @ops (nullable): The pointer to the operation set structure
+ *      (#purc_native_ops) for the native entity.
+ * @name (nullable): The pointer to a static null-terminated string which
+ *      indicates the name of the native entity. If it is %NULL, the native
+ *      entity will have the default name `anonymous`.
+ *
+ * Creates a variant which represents a native entity.
+ *
+ * Returns: A desired native entity variant,
+ *      or %PURC_VARIANT_INVALID on failure.
+ *
+ * Since: 0.9.8
+ */
+PCA_EXPORT purc_variant_t
+purc_variant_make_native_entity(void *native_entity,
+    const struct purc_native_ops *ops, const char *name);
+
+/**
  * purc_variant_make_native:
  *
  * @entity (nullable): The pointer to a native entity.
@@ -735,9 +764,12 @@ struct purc_native_ops {
  *
  * Since: 0.0.2
  */
-PCA_EXPORT purc_variant_t
+static inline purc_variant_t
 purc_variant_make_native(void *native_entity,
-    const struct purc_native_ops *ops);
+    const struct purc_native_ops *ops)
+{
+    return purc_variant_make_native_entity(native_entity, ops, NULL);
+}
 
 /**
  * purc_variant_native_get_entity:
@@ -772,6 +804,23 @@ purc_variant_native_get_entity(purc_variant_t native);
  */
 PCA_EXPORT struct purc_native_ops *
 purc_variant_native_get_ops(purc_variant_t native);
+
+/**
+ * purc_variant_native_get_name:
+ *
+ * @native: A native entity variant.
+ *
+ * Gets the pointer to the name of the native entity variant @native.
+ *
+ * Returns: The pointer to the native pointer. On failure, it returns %NULL
+ *      and sets error code %PCVRNT_ERROR_INVALID_TYPE.
+ *      Note that, the pointer to the entity can be %NULL for a valid native
+ *      entity variant.
+ *
+ * Since: 0.9.8
+ */
+PCA_EXPORT const char *
+purc_variant_native_get_name(purc_variant_t native);
 
 /**
  * purc_variant_make_array:

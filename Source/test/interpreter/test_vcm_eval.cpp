@@ -261,15 +261,18 @@ static inline purc_nvariant_method property_setter(void *entity,
 }
 
 struct purc_native_ops native_ops = {
-    .property_getter             = property_getter,
-    .property_setter             = property_setter,
-    .property_cleaner            = NULL,
-    .property_eraser             = NULL,
+    .getter                     = NULL,
+    .setter                     = NULL,
 
-    .updater                     = NULL,
-    .cleaner                     = NULL,
-    .eraser                      = NULL,
-    .did_matched                 = NULL,
+    .property_getter            = property_getter,
+    .property_setter            = property_setter,
+    .property_cleaner           = NULL,
+    .property_eraser            = NULL,
+
+    .updater                    = NULL,
+    .cleaner                    = NULL,
+    .eraser                     = NULL,
+    .did_matched                = NULL,
 
     .on_observe                 = NULL,
     .on_forget                  = NULL,

@@ -199,6 +199,9 @@ purc_variant_t
 vcm_again_variant_create()
 {
     static struct purc_native_ops ops = {
+        .getter                = NULL,
+        .setter                = NULL,
+
         .property_getter        = property_getter,
         .property_setter        = property_setter,
         .property_cleaner       = NULL,

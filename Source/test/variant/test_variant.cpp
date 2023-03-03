@@ -977,6 +977,9 @@ static void rws_releaser (void* entity)
 }
 
 static struct purc_native_ops _rws_ops = {
+    .getter                = NULL,
+    .setter                = NULL,
+
     .property_getter       = NULL,
     .property_setter       = NULL,
     .property_cleaner      = NULL,
@@ -1184,6 +1187,9 @@ _nr_native_releaser(void* entity)
 }
 
 static struct purc_native_ops _nr_ops = {
+    .getter                = NULL,
+    .setter                = NULL,
+
     .property_getter       = NULL,
     .property_setter       = NULL,
     .property_cleaner      = NULL,

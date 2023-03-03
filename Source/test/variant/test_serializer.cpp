@@ -473,6 +473,9 @@ static void _my_releaser (void* native_entity)
 }
 
 static struct purc_native_ops _my_ops = {
+    .getter                = NULL,
+    .setter                = NULL,
+
     .property_getter       = NULL,
     .property_setter       = NULL,
     .property_cleaner      = NULL,
