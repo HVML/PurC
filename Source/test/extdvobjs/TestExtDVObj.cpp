@@ -117,7 +117,10 @@ purc_variant_t TestExtDVObj::extdvobj_new(const char *name)
     purc_variant_t dvobj = PURC_VARIANT_INVALID;
 
     if (strcmp(name, "FS") == 0) {
-        dvobj = purc_variant_load_dvobj_from_so ("FS", "FS");
+        dvobj = purc_variant_load_dvobj_from_so("FS", "FS");
+    }
+    else if (strcmp(name, "PY") == 0) {
+        dvobj = purc_variant_load_dvobj_from_so("PY", "PY");
     }
 
     if (dvobj != PURC_VARIANT_INVALID) {

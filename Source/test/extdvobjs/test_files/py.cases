@@ -1,0 +1,18 @@
+# test cases for $PY
+
+positive:
+    $PY.impl.vendor
+    'HVML Community'
+
+positive:
+    $PY.impl.author
+    'Vincent Wei'
+
+positive:
+    $PY.impl.license
+    'LGPLv3+'
+
+positive:
+    $PY.error
+    'Ok'
+

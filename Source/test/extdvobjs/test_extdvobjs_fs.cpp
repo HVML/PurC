@@ -39,10 +39,10 @@ TEST(dvobjs, basic)
     purc_cleanup();
 }
 
-TEST(dvobjs, overall)
+TEST(dvobjs, hee)
 {
     TestExtDVObj tester;
-    tester.run_testcases_in_file("overall");
+    tester.run_testcases_in_file("fs");
 }
 
 #include "private/avl.h"

@@ -34,7 +34,13 @@
 #include <Python.h>
 #include <assert.h>
 
-#define PY_DVOBJ_VERSION    0
+#define PY_DVOBJ_VERNAME        "0.1.0"
+#define PY_DVOBJ_VERCODE        0
+
+#define STR(x)                  #x
+#define STR2(x)                 STR(x)
+#define PY_DVOBJ_VERCODE_STR    STR2(PY_DVOBJ_VERCODE)
+
 #define PY_INFO_VERSION     "version"
 #define PY_INFO_PLATFORM    "platform"
 #define PY_INFO_COPYRIGHT   "copyright"
@@ -123,6 +129,52 @@ static purc_variant_t import_getter(purc_variant_t root,
     return purc_variant_make_undefined();
 }
 
+static purc_variant_t make_impl_object(void)
+{
+    static const char *kvs[] = {
+        "vendor",
+        "HVML Community",
+        "author",
+        "Vincent Wei",
+        "verName",
+        PY_DVOBJ_VERNAME,
+        "verCode",
+        PY_DVOBJ_VERCODE_STR,
+        "license",
+        "LGPLv3+",
+        "url",
+        "https://hvml.fmsoft.cn",
+        "repo",
+        "https://github.com/HVML",
+    };
+
+    purc_variant_t retv, val = PURC_VARIANT_INVALID;
+    retv = purc_variant_make_object_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto fatal;
+    }
+
+    assert(PCA_TABLESIZE(kvs) % 2 == 0);
+    for (size_t i = 0; i < PCA_TABLESIZE(kvs); i += 2) {
+        val = purc_variant_make_string_static(kvs[i+1], false);
+        if (val == PURC_VARIANT_INVALID)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(retv, kvs[i], val))
+            goto fatal;
+        purc_variant_unref(val);
+    }
+
+    return retv;
+
+fatal:
+    if (val)
+        purc_variant_unref(val);
+    if (retv)
+        purc_variant_unref(retv);
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t make_info_object(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -189,7 +241,6 @@ static void on_release_pyinfo(void* native_entity)
     struct dvobj_pyinfo *pyinfo = native_entity;
 
     assert(Py_IsInitialized());
-    assert(&pyinfo == native_entity);
 
     Py_Finalize();
 
@@ -226,6 +277,12 @@ static purc_variant_t create_py(void)
                 NULL, NULL, comp_key_string, true);
         if (pyinfo->prop_map == NULL)
             goto failed_info;
+
+        if ((val = make_impl_object()) == PURC_VARIANT_INVALID)
+            goto fatal;
+        if (!purc_variant_object_set_by_static_ckey(py, "impl", val))
+            goto fatal;
+        purc_variant_unref(val);
 
         if ((val = make_info_object()) == PURC_VARIANT_INVALID)
             goto fatal;
@@ -289,7 +346,7 @@ purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
     if (i == PCA_TABLESIZE(dvobjs))
         return PURC_VARIANT_INVALID;
     else {
-        *ver_code = PY_DVOBJ_VERSION;
+        *ver_code = PY_DVOBJ_VERCODE;
         return dvobjs[i].create_func();
     }
 }
