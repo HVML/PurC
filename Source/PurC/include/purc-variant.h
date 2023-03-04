@@ -661,8 +661,9 @@ purc_variant_dynamic_get_getter(purc_variant_t dynamic);
 PCA_EXPORT purc_dvariant_method
 purc_variant_dynamic_get_setter(purc_variant_t dynamic);
 
-typedef purc_variant_t (*purc_nvariant_method) (void* native_entity,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags);
+typedef purc_variant_t (*purc_nvariant_method)(
+        void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags);
 
 /**
  * purc_native_ops:
@@ -680,7 +681,7 @@ struct purc_native_ops {
 
     /** This operation returns the getter for a specific property. */
     purc_nvariant_method (*property_getter)(void* native_entity,
-            const char* propert_name);
+            const char* property_name);
 
     /** This operation returns the setter for a specific property. */
     purc_nvariant_method (*property_setter)(void* native_entity,

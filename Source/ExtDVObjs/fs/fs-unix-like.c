@@ -3296,9 +3296,10 @@ failed:
 }
 
 static purc_variant_t
-on_dir_read (void *native_entity,
+on_dir_read (void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -3326,9 +3327,10 @@ failed:
 }
 
 static purc_variant_t
-on_dir_rewind (void *native_entity,
+on_dir_rewind (void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);

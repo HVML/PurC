@@ -2362,8 +2362,8 @@ pcintr_doc_query(purc_coroutine_t cor, const char* css, bool silently)
         goto end;
     }
 
-    // TODO: silenly
-    ret = native_func (entity, 1, &arg, silently);
+    ret = native_func(entity, DOC_QUERY, 1, &arg,
+            silently ? PCVRT_CALL_FLAG_SILENTLY : PCVRT_CALL_FLAG_NONE);
     purc_variant_unref(arg);
 end:
     return ret;
@@ -2794,13 +2794,15 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     // method name
     purc_nvariant_method method_name = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_METHOD_NAME);
-    name_val = method_name(native_entity, 0, NULL, call_flags);
+    name_val = method_name(native_entity,
+            PCVCM_EV_PROPERTY_METHOD_NAME, 0, NULL, call_flags);
 
     const char *m = purc_variant_get_string_const(name_val);
 
     // eval value
     purc_nvariant_method eval_getter = ops->property_getter(native_entity, m);
-    purc_variant_t new_val = eval_getter(native_entity, 0, NULL, call_flags);
+    purc_variant_t new_val = eval_getter(native_entity,
+            m, 0, NULL, call_flags);
     pop_stack_frame(stack);
 
     if (!new_val) {
@@ -2810,8 +2812,8 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
     // get last value
     purc_nvariant_method last_value_getter = ops->property_getter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
-    purc_variant_t last_value = last_value_getter(native_entity, 0, NULL,
-            call_flags);
+    purc_variant_t last_value = last_value_getter(native_entity,
+            PCVCM_EV_PROPERTY_LAST_VALUE, 0, NULL, call_flags);
     int cmp = purc_variant_compare_ex(new_val, last_value,
             PCVRNT_COMPARE_METHOD_AUTO);
     if (cmp == 0) {
@@ -2821,7 +2823,8 @@ pcintr_observe_vcm_ev(pcintr_stack_t stack, struct pcintr_observer* observer,
 
     purc_nvariant_method last_value_setter = ops->property_setter(native_entity,
             PCVCM_EV_PROPERTY_LAST_VALUE);
-    last_value_setter(native_entity, 1, &new_val, call_flags);
+    last_value_setter(native_entity, PCVCM_EV_PROPERTY_LAST_VALUE,
+            1, &new_val, call_flags);
 
     // dispatch change event
     pcintr_coroutine_post_event(stack->co->cid,

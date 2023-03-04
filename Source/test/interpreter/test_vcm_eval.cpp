@@ -217,10 +217,11 @@ int to_error(const char* err)
 
 
 static inline purc_variant_t
-attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+attr_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -228,10 +229,11 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
 }
 
 static inline purc_variant_t
-attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+attr_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);

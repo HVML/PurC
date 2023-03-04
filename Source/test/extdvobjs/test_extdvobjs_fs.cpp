@@ -2918,7 +2918,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     printf ("TEST dir_read:\n");
     int i;
     for (i = 0; i < 5; i++) {
-        ret_var = func_dir_read (native, 0, param, false);
+        ret_var = func_dir_read (native, "read", 0, param, 0);
         ASSERT_NE(ret_var, nullptr);
         printf ("dir_read: %s\n", purc_variant_get_string_const (ret_var));
         purc_variant_unref(ret_var);
@@ -2926,7 +2926,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
 
     // rewind dir
     printf ("TEST dir_rewind:\n");
-    ret_var = func_dir_rewind (native, 0, param, false);
+    ret_var = func_dir_rewind (native, "rewind", 0, param, 0);
     ASSERT_NE(ret_var, nullptr);
     char *s = pcvariant_to_string(ret_var);
     printf ("dir_rewind return: %s\n", s);
@@ -2937,7 +2937,7 @@ TEST(dvobjs, dvobjs_fs_open_dir)
     // read dir
     printf ("TEST dir_read:\n");
     for (i = 0; i < 3; i++) {
-        ret_var = func_dir_read (native, 0, param, false);
+        ret_var = func_dir_read (native, "read", 0, param, 0);
         ASSERT_NE(dir_object, nullptr);
         printf ("dir_read: %s\n", purc_variant_get_string_const (ret_var));
         purc_variant_unref(ret_var);

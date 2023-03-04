@@ -459,7 +459,7 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
             ops->property_getter(entity, key_name) :
             ops->property_setter(entity, key_name);
         if (native_func) {
-            return  native_func(entity, nr_args, argv, call_flags);
+            return native_func(entity, key_name, nr_args, argv, call_flags);
         }
     }
     return PURC_VARIANT_INVALID;
