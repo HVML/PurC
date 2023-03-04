@@ -219,19 +219,22 @@ static void _dummy_releaser (void* entity)
 }
 
 static struct purc_native_ops _dummy_ops = {
-    .property_getter       = NULL,
-    .property_setter       = NULL,
-    .property_cleaner      = NULL,
-    .property_eraser       = NULL,
+    .getter                 = NULL,
+    .setter                 = NULL,
 
-    .updater               = NULL,
-    .cleaner               = NULL,
-    .eraser                = NULL,
-    .did_matched         = NULL,
+    .property_getter        = NULL,
+    .property_setter        = NULL,
+    .property_cleaner       = NULL,
+    .property_eraser        = NULL,
 
-    .on_observe           = NULL,
-    .on_forget            = NULL,
-    .on_release           = _dummy_releaser,
+    .updater                = NULL,
+    .cleaner                = NULL,
+    .eraser                 = NULL,
+    .did_matched            = NULL,
+
+    .on_observe             = NULL,
+    .on_forget              = NULL,
+    .on_release             = _dummy_releaser,
 };
 
 static purc_variant_t _make_native(int lvl)
