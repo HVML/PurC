@@ -13,6 +13,6 @@ positive:
     'LGPLv3+'
 
 positive:
-    $PY.error
-    'Ok'
+    $PY.except
+    null
 

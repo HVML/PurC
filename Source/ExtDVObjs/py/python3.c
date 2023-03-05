@@ -46,6 +46,12 @@
 #define STR2(x)                 STR(x)
 #define PY_DVOBJ_VERCODE_STR    STR2(PY_DVOBJ_VERCODE)
 
+#define PY_KEY_IMPL         "impl"
+#define PY_KEY_INFO         "info"
+#define PY_KEY_EXCEPT       "except"
+#define PY_KEY_RUN          "run"
+#define PY_KEY_IMPORT       "import"
+
 #define PY_INFO_VERSION     "version"
 #define PY_INFO_PLATFORM    "platform"
 #define PY_INFO_COPYRIGHT   "copyright"
@@ -141,29 +147,204 @@ static purc_nvariant_method property_getter(void* native_entity,
 }
 #endif
 
+static int set_python_except(purc_variant_t root, const char *except)
+{
+    int ret = 0;
+    purc_variant_t val = purc_variant_make_string_static(except, false);
+    if (!purc_variant_object_set_by_static_ckey(root, PY_KEY_EXCEPT, val))
+        ret = -1;
+    purc_variant_unref(val);
+    return ret;
+}
+
 static purc_variant_t make_variant_from_pyobj(PyObject *pyobj)
 {
+
     UNUSED_PARAM(pyobj);
     return purc_variant_make_string_static("Ok", false);
 }
 
-static void handle_pyerr(void)
+static void handle_pyerr(purc_variant_t root)
 {
-    PyObject *err = PyErr_Occurred();
-    if (err == PyExc_KeyboardInterrupt) {
-    }
-    else {
-    }
-}
+    int hvml_err = PURC_ERROR_OK;
 
-static int set_error(purc_variant_t root, const char *error)
-{
-    int ret = 0;
-    purc_variant_t val = purc_variant_make_string_static(error, false);
-    if (!purc_variant_object_set_by_static_ckey(root, "error", val))
-        ret = -1;
-    purc_variant_unref(val);
-    return ret;
+    PyObject *pyerr = PyErr_Occurred();
+    if (pyerr == PyExc_ArithmeticError) {
+        hvml_err = PURC_ERROR_INVALID_FLOAT;
+        set_python_except(root, "ArithmeticError");
+    }
+    else if (pyerr == PyExc_AssertionError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "AssertionError");
+    }
+    else if (pyerr == PyExc_AttributeError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "AttributeError");
+    }
+    else if (pyerr == PyExc_BlockingIOError) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+    }
+    else if (pyerr == PyExc_BrokenPipeError) {
+        hvml_err = PURC_ERROR_BROKEN_PIPE;
+    }
+    else if (pyerr == PyExc_BufferError) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+    }
+    else if (pyerr == PyExc_ChildProcessError) {
+        hvml_err = PURC_ERROR_CHILD_TERMINATED;
+    }
+    else if (pyerr == PyExc_ConnectionAbortedError) {
+        hvml_err = PURC_ERROR_CONNECTION_ABORTED;
+    }
+    else if (pyerr == PyExc_ConnectionRefusedError) {
+        hvml_err = PURC_ERROR_CONNECTION_REFUSED;
+    }
+    else if (pyerr == PyExc_ConnectionResetError) {
+        hvml_err = PURC_ERROR_CONNECTION_RESET;
+    }
+    else if (pyerr == PyExc_ConnectionError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "ConnectionError");
+    }
+    else if (pyerr == PyExc_EOFError) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+    }
+    else if (pyerr == PyExc_FileExistsError) {
+        hvml_err = PURC_ERROR_EXISTS;
+    }
+    else if (pyerr == PyExc_FileNotFoundError) {
+        hvml_err = PURC_ERROR_NOT_EXISTS;
+    }
+    else if (pyerr == PyExc_FloatingPointError) {
+        hvml_err = PURC_ERROR_INVALID_FLOAT;
+        set_python_except(root, "FloatingPointError");
+    }
+    else if (pyerr == PyExc_GeneratorExit) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "GeneratorExit");
+    }
+    else if (pyerr == PyExc_ImportError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "ImportError");
+    }
+    else if (pyerr == PyExc_IndentationError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "IndentationError");
+    }
+    else if (pyerr == PyExc_IndexError) {
+        hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
+    }
+    else if (pyerr == PyExc_InterruptedError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "InterruptedError");
+    }
+    else if (pyerr == PyExc_IsADirectoryError) {
+        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+    }
+    else if (pyerr == PyExc_KeyError) {
+        hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
+    }
+    else if (pyerr == PyExc_KeyboardInterrupt) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "KeyboardInterrupt");
+    }
+    else if (pyerr == PyExc_LookupError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "LookupError");
+    }
+    else if (pyerr == PyExc_MemoryError) {
+        hvml_err = PURC_ERROR_OUT_OF_MEMORY;
+    }
+    else if (pyerr == PyExc_ModuleNotFoundError) {
+        hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
+    }
+    else if (pyerr == PyExc_NameError) {
+        hvml_err = PURC_ERROR_BAD_NAME;
+    }
+    else if (pyerr == PyExc_NotADirectoryError) {
+        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+    }
+    else if (pyerr == PyExc_NotImplementedError) {
+        hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
+    }
+    else if (pyerr == PyExc_OSError) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+    }
+    else if (pyerr == PyExc_OverflowError) {
+        hvml_err = PURC_ERROR_OVERFLOW;
+    }
+    else if (pyerr == PyExc_PermissionError) {
+        hvml_err = PURC_ERROR_ACCESS_DENIED;
+    }
+    else if (pyerr == PyExc_ProcessLookupError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "ProcessLookupError");
+    }
+    else if (pyerr == PyExc_RecursionError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "RecursionError");
+    }
+    else if (pyerr == PyExc_ReferenceError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "ReferenceError");
+    }
+    else if (pyerr == PyExc_RuntimeError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "RuntimeError");
+    }
+    else if (pyerr == PyExc_StopAsyncIteration) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "StopAsyncIteration");
+    }
+    else if (pyerr == PyExc_StopIteration) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "StopIteration");
+    }
+    else if (pyerr == PyExc_SyntaxError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "SyntaxError");
+    }
+    else if (pyerr == PyExc_SystemError) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+    }
+    else if (pyerr == PyExc_SystemExit) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+    }
+    else if (pyerr == PyExc_TabError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "TabError");
+    }
+    else if (pyerr == PyExc_TimeoutError) {
+        hvml_err = PURC_ERROR_TIMEOUT;
+    }
+    else if (pyerr == PyExc_TypeError) {
+        hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
+    }
+    else if (pyerr == PyExc_UnboundLocalError) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "UnboundLocalError");
+    }
+    else if (pyerr == PyExc_UnicodeDecodeError) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+    }
+    else if (pyerr == PyExc_UnicodeEncodeError) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+    }
+    else if (pyerr == PyExc_UnicodeError) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+    }
+    else if (pyerr == PyExc_UnicodeTranslateError) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+    }
+    else if (pyerr == PyExc_ValueError) {
+        hvml_err = PURC_ERROR_INVALID_VALUE;
+    }
+    else if (pyerr == PyExc_ZeroDivisionError) {
+        hvml_err = PURC_ERROR_DIVBYZERO;
+    }
+
+    if (hvml_err != PURC_ERROR_OK)
+        purc_set_error(hvml_err);
 }
 
 enum {
@@ -173,63 +354,7 @@ enum {
     RUN_OPT_SET_ARGV0               = 0x0008,
 };
 
-static purc_variant_t run_module(purc_variant_t root,
-        const char *modname, size_t len, PyCompilerFlags *cf, unsigned options)
-{
-    UNUSED_PARAM(cf);
-    UNUSED_PARAM(options);
-
-    PyObject *module, *runpy, *runmodule, *runargs, *result;
-
-    runpy = PyImport_ImportModule("runpy");
-    if (runpy == NULL) {
-        set_error(root, "Could not import runpy module");
-        goto failed;
-    }
-
-    runmodule = PyObject_GetAttrString(runpy, "_run_module_as_main");
-    if (runmodule == NULL) {
-        Py_DECREF(runpy);
-        set_error(root, "Could not access runpy._run_module_as_main");
-        goto failed;
-    }
-
-    module = PyUnicode_DecodeUTF8(modname, len, NULL);
-    if (module == NULL) {
-        set_error(root, "Could not convert module name to unicode");
-        Py_DECREF(runpy);
-        Py_DECREF(runmodule);
-        goto failed;
-    }
-
-    runargs = PyTuple_Pack(2, module,
-            (options & RUN_OPT_SET_ARGV0) ? Py_True : Py_False);
-    if (runargs == NULL) {
-        set_error(root, "Could not create arguments for runpy._run_module_as_main");
-        Py_DECREF(runpy);
-        Py_DECREF(runmodule);
-        Py_DECREF(module);
-        goto failed;
-    }
-
-    result = PyObject_Call(runmodule, runargs, NULL);
-    Py_DECREF(runpy);
-    Py_DECREF(runmodule);
-    Py_DECREF(module);
-    Py_DECREF(runargs);
-    if (result == NULL) {
-        handle_pyerr();
-        goto failed;
-    }
-
-    purc_variant_t ret = make_variant_from_pyobj(result);
-    Py_DECREF(result);
-    return ret;
-
-failed:
-    return PURC_VARIANT_INVALID;
-}
-
+#if 0
 #define TMP_FILE_TEMPLATE       "/tmp/hvml-py-XXXXXX"
 
 static int redirect_stdout(char *tmpfile)
@@ -271,6 +396,7 @@ static purc_variant_t restore_stdout(void)
 failed:
     return purc_variant_make_string_static("", false);
 }
+#endif
 
 static purc_variant_t run_command(purc_variant_t root,
         const char *cmd, size_t len, PyCompilerFlags *cf, unsigned options)
@@ -279,6 +405,7 @@ static purc_variant_t run_command(purc_variant_t root,
     UNUSED_PARAM(len);
     UNUSED_PARAM(options);
 
+#if 0
     char tmpfile[] = TMP_FILE_TEMPLATE;
     int redirected = -1;
     if (options & RUN_OPT_RETURN_STDOUT) {
@@ -289,43 +416,121 @@ static purc_variant_t run_command(purc_variant_t root,
     if (redirected == 0) {
         return restore_stdout();
     }
+#endif
 
-    return purc_variant_make_boolean(ret != 0);
+    int start = 0;
+    if (options & RUN_OPT_SKIP_FIRST_LINE) {
+        while (*cmd) {
+            if (*cmd == '\n') {
+                if (start > 0)
+                    start--;
+                break;
+            }
+            start++;
+        }
+    }
+
+    PyObject *result = PyRun_StringFlags(cmd, start, NULL, NULL, cf);
+    if (result == NULL) {
+        handle_pyerr(root);
+        goto failed;
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(result);
+    Py_DECREF(result);
+    return ret;
+
+failed:
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t run_module(purc_variant_t root,
+        const char *modname, size_t len, PyCompilerFlags *cf, unsigned options)
+{
+    UNUSED_PARAM(cf);
+    UNUSED_PARAM(options);
+
+    PyObject *module, *runpy, *runmodule, *runargs, *result;
+
+    runpy = PyImport_ImportModule("runpy");
+    if (runpy == NULL) {
+        goto failed;
+    }
+
+    runmodule = PyObject_GetAttrString(runpy, "_run_module_as_main");
+    if (runmodule == NULL) {
+        Py_DECREF(runpy);
+        goto failed;
+    }
+
+    module = PyUnicode_DecodeUTF8(modname, len, NULL);
+    if (module == NULL) {
+        Py_DECREF(runpy);
+        Py_DECREF(runmodule);
+        goto failed;
+    }
+
+    runargs = PyTuple_Pack(2, module,
+            (options & RUN_OPT_SET_ARGV0) ? Py_True : Py_False);
+    if (runargs == NULL) {
+        Py_DECREF(runpy);
+        Py_DECREF(runmodule);
+        Py_DECREF(module);
+        goto failed;
+    }
+
+    result = PyObject_Call(runmodule, runargs, NULL);
+    Py_DECREF(runpy);
+    Py_DECREF(runmodule);
+    Py_DECREF(module);
+    Py_DECREF(runargs);
+    if (result == NULL) {
+        goto failed;
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(result);
+    Py_DECREF(result);
+    return ret;
+
+failed:
+    handle_pyerr(root);
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t run_file(purc_variant_t root,
         const char *fname, size_t len, PyCompilerFlags *cf, unsigned options)
 {
-    PyObject *filename;
-    filename = PyUnicode_DecodeUTF8(fname, len, NULL);
-    if (filename == NULL) {
-        set_error(root, "Could not convert module name to unicode");
-        goto failed;
-    }
+    UNUSED_PARAM(len);
 
     FILE *fp = fopen(fname, "rb");
     if (fp == NULL) {
-        // Ignore the OSError
-        PyErr_Clear();
-        set_error(root, "Could not open file");
         goto failed;
     }
 
+    int start = 0;
     if (options & RUN_OPT_SKIP_FIRST_LINE) {
         int ch;
         /* Push back first newline so line numbers remain the same */
         while ((ch = getc(fp)) != EOF) {
             if (ch == '\n') {
-                (void)ungetc(ch, fp);
+                if (start > 0)
+                    start--;
                 break;
             }
+            start++;
         }
     }
 
+#if 0
     // Call pending calls like signal handlers (SIGINT)
     if (Py_MakePendingCalls() == -1) {
         fclose(fp);
-        set_error(root, "Failed call to Py_MakePendingCalls() ");
+        goto failed;
+    }
+
+    PyObject *filename;
+    filename = PyUnicode_DecodeUTF8(fname, len, NULL);
+    if (filename == NULL) {
         goto failed;
     }
 
@@ -342,8 +547,22 @@ static purc_variant_t run_file(purc_variant_t root,
         return restore_stdout();
     }
     return purc_variant_make_boolean(run != 0);
+#endif
+
+    PyObject *result = PyRun_FileFlags(fp, fname, start, NULL, NULL, cf);
+    if (result == NULL) {
+        goto failed;
+    }
+
+    fclose(fp);
+    purc_variant_t ret = make_variant_from_pyobj(result);
+    Py_DECREF(result);
+    return ret;
 
 failed:
+    if (fp)
+        fclose(fp);
+    handle_pyerr(root);
     return PURC_VARIANT_INVALID;
 }
 
@@ -607,8 +826,8 @@ static void on_release_pyinfo(void* native_entity)
 static purc_variant_t create_py(void)
 {
     static struct purc_dvobj_method methods[] = {
-        { "run",           run_getter,      NULL },
-        { "import",        import_getter,   NULL },
+        { PY_KEY_RUN,           run_getter,      NULL },
+        { PY_KEY_IMPORT,        import_getter,   NULL },
     };
 
     static struct purc_native_ops pyinfo_ops = {
@@ -642,15 +861,22 @@ static purc_variant_t create_py(void)
         if (pyinfo->prop_map == NULL)
             goto failed_info;
 
+        /* placeholders for built-in properties of $PY */
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPL, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_INFO, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_EXCEPT, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_RUN, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPORT, NULL);
+
         if ((val = make_impl_object()) == PURC_VARIANT_INVALID)
             goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(py, "impl", val))
+        if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_IMPL, val))
             goto fatal;
         purc_variant_unref(val);
 
         if ((val = make_info_object()) == PURC_VARIANT_INVALID)
             goto fatal;
-        if (!purc_variant_object_set_by_static_ckey(py, "info", val))
+        if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_INFO, val))
             goto fatal;
         purc_variant_unref(val);
 
@@ -662,8 +888,8 @@ static purc_variant_t create_py(void)
             goto fatal;
         purc_variant_unref(val);
 
-        val = purc_variant_make_string_static("Ok", false);
-        if (!purc_variant_object_set_by_static_ckey(py, "error", val))
+        val = purc_variant_make_null();
+        if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_EXCEPT, val))
             goto fatal;
         purc_variant_unref(val);
         return py;
