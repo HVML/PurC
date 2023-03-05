@@ -158,6 +158,11 @@ AccessDenied
     flags: None
     msg: "Access denied"
 
+IoFailure
+    except: IOFailure
+    flags: None
+    msg: "IO Failure"
+
 TooMany
     except: TooMany
     flags: None
