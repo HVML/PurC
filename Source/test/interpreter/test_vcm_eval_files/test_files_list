@@ -24,3 +24,5 @@ jsonee_022_nvariant_getter
 jsonee_023_nvariant_setter
 jsonee_024_obj_with_nobj_getter
 jsonee_025_obj_with_nobj_setter
+jsonee_026_obj_with_nobj_chain_getter
+jsonee_027_obj_with_nobj_chain_setter
