@@ -571,6 +571,8 @@ static purc_variant_t run_getter(purc_variant_t root,
 
     PyCompilerFlags cf = _PyCompilerFlags_INIT;
     cf.cf_flags |= PyCF_IGNORE_COOKIE;
+    size_t len;
+    const char *cmd_mod_file;
 
     if (nr_args < 1) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -647,8 +649,7 @@ static purc_variant_t run_getter(purc_variant_t root,
     }
 
 empty_option:
-    size_t len;
-    const char *cmd_mod_file = purc_variant_get_string_const_ex(argv[0], &len);
+    cmd_mod_file = purc_variant_get_string_const_ex(argv[0], &len);
     if (cmd_mod_file == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
