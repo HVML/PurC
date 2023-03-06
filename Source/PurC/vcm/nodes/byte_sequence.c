@@ -52,9 +52,10 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
     static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(name);
     struct pcvcm_node *node = frame->node;
     return (node->sz_ptr[0] > 0) ? purc_variant_make_byte_sequence(
             (void*)node->sz_ptr[1], node->sz_ptr[0])

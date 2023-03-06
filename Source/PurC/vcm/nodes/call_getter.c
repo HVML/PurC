@@ -56,16 +56,19 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     size_t nr_params = frame->nr_params - 1;
     purc_variant_t params[nr_params];
 
     struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
-    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame->idx, 0);
+
+    const char *caller_name = NULL;
+    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame->idx, 0, &caller_name);
 
     struct pcvcm_eval_node *first_child = ctxt->eval_nodes + enode->first_child_idx;
     purc_variant_t caller_node_first_child = first_child->result;
@@ -80,7 +83,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
 
     if (nr_params > 0) {
         for (size_t i = 1, j = 0; i < frame->nr_params; i++, j++) {
-            params[j] = pcvcm_get_frame_result(ctxt, frame->idx, i);
+            params[j] = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
         }
     }
 
@@ -91,7 +94,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
     else if (purc_variant_is_native(caller_var)) {
         ret_var = pcvcm_eval_call_nvariant_getter(caller_var,
-                NULL, nr_params, params, call_flags);
+                caller_name, nr_params, params, call_flags);
     }
     else if (pcvcm_eval_is_native_wrapper(caller_var)) {
         purc_variant_t nv = pcvcm_eval_native_wrapper_get_caller(caller_var);

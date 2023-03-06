@@ -55,24 +55,29 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 }
 
 static purc_variant_t
-eval(struct pcvcm_eval_ctxt *ctxt, struct pcvcm_eval_stack_frame *frame)
+eval(struct pcvcm_eval_ctxt *ctxt,
+        struct pcvcm_eval_stack_frame *frame, const char **name_out)
 {
+    UNUSED_PARAM(name_out);
     bool has_index = true;
     int64_t index = -1;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t inner_ret = PURC_VARIANT_INVALID;
 
     struct pcvcm_eval_node *enode = frame->ops->select_param(ctxt, frame, 0);
-    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame->idx, 0);
+    purc_variant_t caller_var = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
 
     struct pcvcm_eval_node *first_child = ctxt->eval_nodes + enode->first_child_idx;
     purc_variant_t caller_node_first_child = first_child->result;
 
     enode = frame->ops->select_param(ctxt, frame, 1);
     struct pcvcm_node *param_node = enode->node;
-    purc_variant_t param_var = pcvcm_get_frame_result(ctxt, frame->idx, 1);
+    purc_variant_t param_var = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
 
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
+        if (name_out) {
+            *name_out = (const char*)param_node->sz_ptr[1];
+        }
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1],
                     param_node->sz_ptr[0], &index) != 0) {
             has_index = false;

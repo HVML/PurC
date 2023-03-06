@@ -87,6 +87,10 @@ pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
     ctxt->frames = (struct pcvcm_eval_stack_frame *) malloc(nr_bytes);
     memcpy(ctxt->frames, src->frames, nr_bytes);
 
+    nr_bytes = ctxt->nr_frames * sizeof(char *);
+    ctxt->names = (const char **) malloc (nr_bytes);
+    memcpy(ctxt->names, src->names, nr_bytes);
+
     ctxt->free_on_destroy = 1;
 out:
     return ctxt;
@@ -119,6 +123,7 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     if (ctxt->free_on_destroy) {
         free(ctxt->eval_nodes);
         free(ctxt->frames);
+        free(ctxt->names);
         free(ctxt);
     }
 }
@@ -207,7 +212,7 @@ pcvcm_dump_frame(struct pcvcm_eval_stack_frame *frame, purc_rwstream_t rws,
         purc_rwstream_write(rws, s, len);
 
         if (i < frame->pos) {
-            purc_variant_t result = pcvcm_get_frame_result(ctxt, frame_idx, i);
+            purc_variant_t result = pcvcm_get_frame_result(ctxt, frame_idx, i, NULL);
             if (result) {
                 const char *type = pcvariant_typename(result);
                 snprintf(buf, DUMP_BUF_SIZE, ", result: %s/", type);
@@ -521,7 +526,8 @@ has_fatal_error(int err)
 }
 
 purc_variant_t
-eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos)
+eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos,
+        const char **name)
 {
     UNUSED_PARAM(return_pos);
     purc_variant_t result = PURC_VARIANT_INVALID;
@@ -553,7 +559,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos)
             case STEP_EVAL_PARAMS:
                 for (; frame->pos < frame->nr_params; frame->pos++) {
                     purc_variant_t v = pcvcm_get_frame_result(ctxt, frame_idx,
-                            frame->pos);
+                            frame->pos, NULL);
                     if (v) {
                         continue;
                     }
@@ -573,12 +579,13 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos)
                         goto out;
                     }
 
-                    val = eval_frame(ctxt, param_frame->idx, frame->pos);
+                    const char *name = NULL;
+                    val = eval_frame(ctxt, param_frame->idx, frame->pos, &name);
                     if (!val) {
                         goto out;
                     }
                     pcvcm_set_frame_result(ctxt, frame_idx,
-                            param_frame->return_pos, val);
+                            param_frame->return_pos, val, name);
                     pop_frame(ctxt);
                 }
                 frame->step = STEP_EVAL_VCM;
@@ -586,7 +593,7 @@ eval_frame(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx, size_t return_pos)
                 break;
 
             case STEP_EVAL_VCM:
-                result = frame->ops->eval(ctxt, frame);
+                result = frame->ops->eval(ctxt, frame, name);
                 if (!result) {
                     goto out;
                 }
@@ -671,8 +678,9 @@ eval_vcm(struct pcvcm_eval_node *tree,
     }
 
     do {
+        const char *name = NULL;
         size_t return_pos = frame->return_pos;
-        result = eval_frame(ctxt, frame->idx, return_pos);
+        result = eval_frame(ctxt, frame->idx, return_pos, &name);
         ctxt->err = purc_get_last_error();
         if (!result || ctxt->err) {
             goto out;
@@ -680,7 +688,7 @@ eval_vcm(struct pcvcm_eval_node *tree,
         pop_frame(ctxt);
         frame = bottom_frame(ctxt);
         if (frame) {
-            pcvcm_set_frame_result(ctxt, frame->idx, return_pos, result);
+            pcvcm_set_frame_result(ctxt, frame->idx, return_pos, result, name);
         }
     } while (frame);
 
@@ -801,6 +809,7 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     struct pcvcm_eval_node eval_nodes[nr_nodes];
     struct pcvcm_eval_stack_frame frames[nr_nodes];
+    const char *names[nr_nodes];
 
     if (nr_nodes) {
         ctxt->enable_log = enable_log;
@@ -810,6 +819,8 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->eval_nodes = eval_nodes;
         ctxt->nr_frames = nr_nodes;
         ctxt->frames = frames;
+        ctxt->names = names;
+        memset(names, 0, sizeof(names));
 
         build_eval_nodes(ctxt, tree);
 
@@ -939,6 +950,9 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
             ctxt->nr_frames = ctxt->nr_eval_nodes;
             ctxt->frames = (struct pcvcm_eval_stack_frame *) realloc(ctxt->frames,
                     ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame));
+
+            ctxt->names = (const char **) realloc(ctxt->names,
+                    ctxt->nr_frames * sizeof(char *));
         }
 
         size_t pos = ctxt->eval_nodes_insert_pos;
@@ -955,7 +969,8 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
             frame->args = purc_variant_ref(args);
         }
 
-        result = eval_frame(ctxt, frame->idx, 0);
+        const char *name = NULL;
+        result = eval_frame(ctxt, frame->idx, 0, &name);
 
         pop_frame(ctxt);
     }

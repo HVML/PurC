@@ -77,10 +77,11 @@ out:
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name_out)
 {
+    UNUSED_PARAM(name_out);
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    purc_variant_t name = pcvcm_get_frame_result(ctxt, frame->idx, 0);
+    purc_variant_t name = pcvcm_get_frame_result(ctxt, frame->idx, 0, NULL);
     if (name == PURC_VARIANT_INVALID || !purc_variant_is_string(name)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
@@ -92,6 +93,10 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     const char *sname = purc_variant_get_string_const(name);
+    if (name_out) {
+        *name_out = sname;
+        fprintf(stderr, "#####> get_variable return name %s\n", sname);
+    }
     ret = find_from_frame(ctxt, sname);
     if (!ret) {
         ret = ctxt->find_var(ctxt->find_var_ctxt, sname);

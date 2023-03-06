@@ -114,6 +114,8 @@ struct pcvcm_eval_ctxt {
     size_t                  nr_frames;
     int32_t                 frame_idx;
 
+    const char            **names;
+
     int                     err;
     unsigned int            enable_log:1;
     unsigned int            free_on_destroy:1;
@@ -127,7 +129,7 @@ struct pcvcm_eval_stack_frame_ops {
             struct pcvcm_eval_stack_frame *frame, size_t pos);
 
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
-            struct pcvcm_eval_stack_frame *frame);
+            struct pcvcm_eval_stack_frame *frame, const char **name);
 };
 
 #ifdef __cplusplus
