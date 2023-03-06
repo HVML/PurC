@@ -16,6 +16,10 @@ positive:
     $PY.except
     null
 
+positive:
+    {{ $PY.run('2 / 0'); $PY.except }}
+    'ZeroDivisionError'
+
 negative:
     $PY.run
     ArgumentMissed

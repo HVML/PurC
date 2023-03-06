@@ -191,11 +191,8 @@ static void handle_pyerr(purc_variant_t root)
     PyObject *pyerr = PyErr_Occurred();
     if (pyerr == NULL)
         return;
-    if (PyErr_GivenExceptionMatches(pyerr, PyExc_ArithmeticError)) {
-        hvml_err = PURC_ERROR_INVALID_FLOAT;
-        set_python_except(root, "ArithmeticError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
+
+    if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
         set_python_except(root, "AssertionError");
     }
@@ -205,24 +202,31 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BlockingIOError)) {
         hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(root, "BlockingIOError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BrokenPipeError)) {
         hvml_err = PURC_ERROR_BROKEN_PIPE;
+        set_python_except(root, "BrokenPipeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BufferError)) {
         hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(root, "BufferError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ChildProcessError)) {
         hvml_err = PURC_ERROR_CHILD_TERMINATED;
+        set_python_except(root, "ChildProcessError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionAbortedError)) {
         hvml_err = PURC_ERROR_CONNECTION_ABORTED;
+        set_python_except(root, "ConnectionAbortedError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionRefusedError)) {
         hvml_err = PURC_ERROR_CONNECTION_REFUSED;
+        set_python_except(root, "ConnectionRefusedError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionResetError)) {
         hvml_err = PURC_ERROR_CONNECTION_RESET;
+        set_python_except(root, "ConnectionResetError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -230,12 +234,15 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_EOFError)) {
         hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(root, "EOFError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileExistsError)) {
         hvml_err = PURC_ERROR_EXISTS;
+        set_python_except(root, "FileExistsError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileNotFoundError)) {
         hvml_err = PURC_ERROR_NOT_EXISTS;
+        set_python_except(root, "FileNotFoundError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FloatingPointError)) {
         hvml_err = PURC_ERROR_INVALID_FLOAT;
@@ -255,6 +262,7 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndexError)) {
         hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
+        set_python_except(root, "IndexError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_InterruptedError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -262,41 +270,47 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IsADirectoryError)) {
         hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        set_python_except(root, "IsADirectoryError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyError)) {
         hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
+        set_python_except(root, "KeyError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyboardInterrupt)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
         set_python_except(root, "KeyboardInterrupt");
     }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_LookupError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "LookupError");
-    }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_MemoryError)) {
         hvml_err = PURC_ERROR_OUT_OF_MEMORY;
+        set_python_except(root, "MemoryError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ModuleNotFoundError)) {
         hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
+        set_python_except(root, "ModuleNotFoundError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NameError)) {
         hvml_err = PURC_ERROR_BAD_NAME;
+        set_python_except(root, "NameError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotADirectoryError)) {
         hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        set_python_except(root, "NotADirectoryError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotImplementedError)) {
         hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
+        set_python_except(root, "NotImplementedError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OSError)) {
         hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(root, "OSError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OverflowError)) {
         hvml_err = PURC_ERROR_OVERFLOW;
+        set_python_except(root, "OverflowError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_PermissionError)) {
         hvml_err = PURC_ERROR_ACCESS_DENIED;
+        set_python_except(root, "PermissionError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ProcessLookupError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -328,9 +342,11 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemError)) {
         hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(root, "SystemError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemExit)) {
         hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(root, "SystemExit");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -338,9 +354,11 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TimeoutError)) {
         hvml_err = PURC_ERROR_TIMEOUT;
+        set_python_except(root, "TimeoutError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TypeError)) {
         hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
+        set_python_except(root, "TypeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -348,21 +366,53 @@ static void handle_pyerr(purc_variant_t root)
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeDecodeError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(root, "UnicodeDecodeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeEncodeError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(root, "UnicodeEncodeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(root, "UnicodeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeTranslateError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(root, "UnicodeTranslateError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ValueError)) {
         hvml_err = PURC_ERROR_INVALID_VALUE;
+        set_python_except(root, "ValueError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ZeroDivisionError)) {
         hvml_err = PURC_ERROR_DIVBYZERO;
+        set_python_except(root, "ZeroDivisionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ArithmeticError)) {
+        /* The base class for those built-in exceptions that are raised for
+           various arithmetic errors: OverflowError, ZeroDivisionError,
+           and FloatingPointError. */
+        hvml_err = PURC_ERROR_INVALID_FLOAT;
+        set_python_except(root, "ArithmeticError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_LookupError)) {
+        /* The base class for the exceptions that are raised when
+           a key or index used on a mapping or sequence is invalid:
+           IndexError, KeyError. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "LookupError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_Exception)) {
+        /* All built-in, non-system-exiting exceptions are derived from
+           this class. All user-defined exceptions should also be derived
+           from this class. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "Exception");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BaseException)) {
+        /* The base class for all built-in exceptions. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(root, "BaseException");
     }
 
     if (hvml_err != PURC_ERROR_OK) {
