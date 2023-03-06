@@ -71,6 +71,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     purc_variant_t caller_node_first_child = first_child->result;
 
     if (!purc_variant_is_dynamic(caller_var)
+            && !purc_variant_is_native(caller_var)
             && !pcvcm_eval_is_native_wrapper(caller_var)) {
         goto out;
     }
@@ -87,6 +88,10 @@ eval(struct pcvcm_eval_ctxt *ctxt,
         ret_var = pcvcm_eval_call_dvariant_method(
                 caller_node_first_child,
                 caller_var, nr_params, params, GETTER_METHOD, call_flags);
+    }
+    else if (purc_variant_is_native(caller_var)) {
+        ret_var = pcvcm_eval_call_nvariant_getter(caller_var,
+                NULL, nr_params, params, call_flags);
     }
     else if (pcvcm_eval_is_native_wrapper(caller_var)) {
         purc_variant_t nv = pcvcm_eval_native_wrapper_get_caller(caller_var);

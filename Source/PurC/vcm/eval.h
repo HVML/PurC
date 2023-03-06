@@ -166,6 +166,17 @@ purc_variant_t
 pcvcm_eval_call_nvariant_method(purc_variant_t var,
         const char *key_name, size_t nr_args, purc_variant_t *argv,
         enum pcvcm_eval_method_type type, unsigned call_flags);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_getter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_setter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags);
+
 bool
 pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
 

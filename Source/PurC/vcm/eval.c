@@ -465,6 +465,32 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
     return PURC_VARIANT_INVALID;
 }
 
+purc_variant_t
+pcvcm_eval_call_nvariant_getter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    if (ops && ops->getter) {
+        void *entity = purc_variant_native_get_entity(var);
+        return ops->getter(entity, key_name, nr_args, argv, call_flags);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+purc_variant_t
+pcvcm_eval_call_nvariant_setter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    if (ops && ops->setter) {
+        void *entity = purc_variant_native_get_entity(var);
+        return ops->setter(entity, key_name, nr_args, argv, call_flags);
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 static bool
 is_action_node(struct pcvcm_node *node)
 {
