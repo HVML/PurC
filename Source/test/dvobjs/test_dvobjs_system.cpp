@@ -880,19 +880,18 @@ purc_variant_t system_timezone(purc_variant_t dvobj, const char* name)
 
         char path[PATH_MAX + 1];
         const char *env_tz = getenv("TZ");
-        if (env_tz && env_tz[0] == ':') {
-            timezone = env_tz + 1;
+        if (env_tz) {
+               if (env_tz[0] == ':') timezone = env_tz + 1;
         }
         else {
 
             ssize_t nr_bytes;
-            nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path));
-            if (nr_bytes > 0 &&
-                    strncmp(path, PURC_SYS_TZ_DIR,
-                        sizeof(PURC_SYS_TZ_DIR) - 1) == 0) {
-                path[nr_bytes] = 0;
-                timezone = path + sizeof(PURC_SYS_TZ_DIR) - 1;
-            }
+            nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path)-1);
+            if (nr_bytes > 0 ) path[nr_bytes] = '\0';
+            if ((nr_bytes > 0 ) &&
+                (strstr(path, PURC_SYS_TZ_DIR) != NULL))
+                     timezone = strstr(path,PURC_SYS_TZ_DIR) +
+                         sizeof(PURC_SYS_TZ_DIR) - 1;
         }
 
         purc_log_info("expected timezone: %s; tzname[0]: %s; tzname[1]: %s\n",
