@@ -262,9 +262,31 @@ static inline purc_nvariant_method property_setter(void *entity,
     return NULL;
 }
 
+static purc_variant_t
+nobj_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(call_flags);
+    return purc_variant_ref(argv[0]);
+}
+
+static purc_variant_t
+nobj_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(call_flags);
+    return purc_variant_ref(argv[0]);
+}
+
 struct purc_native_ops native_ops = {
-    .getter                     = NULL,
-    .setter                     = NULL,
+    .getter                     = nobj_getter,
+    .setter                     = nobj_setter,
 
     .property_getter            = property_getter,
     .property_setter            = property_setter,
@@ -287,6 +309,7 @@ struct find_var_ctxt {
     purc_variant_t array_var;
     purc_variant_t set_var;
     purc_variant_t obj_set_var;
+    purc_variant_t obj_with_nobj;
 };
 
 purc_variant_t find_var(void* ctxt, const char* name)
@@ -306,6 +329,9 @@ purc_variant_t find_var(void* ctxt, const char* name)
     }
     else if (strcmp(name, "VOBJSET") == 0) {
         return find_ctxt->obj_set_var;
+    }
+    else if (strcmp(name, "OBJWITHNOBJ") == 0) {
+        return find_ctxt->obj_with_nobj;
     }
     return PURC_VARIANT_INVALID;
 }
@@ -365,10 +391,13 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     purc_variant_t obj_set_var = purc_variant_make_set_by_ckey(2,
             "okey", obj_set_val_0, obj_set_val_1);
 
+    purc_variant_t obj_with_nobj = purc_variant_make_object_by_static_ckey(1,
+            "nobj", nobj);
 
     struct pcvcm_node* root = pchvml_token_get_vcm_content(token);
 
-    struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
+    struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var,
+        obj_with_nobj};
 
     purc_variant_t vt = pcvcm_eval_ex (root, NULL, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
@@ -392,6 +421,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
 
+    purc_variant_unref(obj_with_nobj);
     purc_variant_unref(obj_set_val_0_k);
     purc_variant_unref(obj_set_val_0_v);
     purc_variant_unref(obj_set_val_0);

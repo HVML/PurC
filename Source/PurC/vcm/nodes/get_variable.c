@@ -95,7 +95,6 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     const char *sname = purc_variant_get_string_const(name);
     if (name_out) {
         *name_out = sname;
-        fprintf(stderr, "#####> get_variable return name %s\n", sname);
     }
     ret = find_from_frame(ctxt, sname);
     if (!ret) {
