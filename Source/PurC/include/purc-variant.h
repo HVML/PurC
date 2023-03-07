@@ -1598,10 +1598,10 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * Since: 0.0.1
  */
-#define purc_variant_make_set(sz, unique_key, v0, ...)             \
-    purc_variant_make_set_by_ckey_ex(sz,                           \
-            purc_variant_get_string_const(unique_key), false,      \
-            v0, ##__VA_ARGS__)
+#define purc_variant_make_set(sz, unique_key, v0, ...)                      \
+    purc_variant_make_set_by_ckey_ex(sz,                                    \
+            unique_key ? purc_variant_get_string_const(unique_key) : NULL,  \
+            false, v0, ##__VA_ARGS__)
 
 /**
  * purc_variant_make_set_0:
@@ -1616,10 +1616,10 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * Since: 0.2.0
  */
-#define purc_variant_make_set_0(unique_key)                        \
-    purc_variant_make_set_by_ckey_ex(0,                            \
-            purc_variant_get_string_const(unique_key), false,      \
-            PURC_VARIANT_INVALID)
+#define purc_variant_make_set_0(unique_key)                                 \
+    purc_variant_make_set_by_ckey_ex(0,                                     \
+            unique_key ? purc_variant_get_string_const(unique_key) : NULL,  \
+            false, PURC_VARIANT_INVALID)
 
 /**
  * purc_variant_set_add:

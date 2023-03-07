@@ -64,6 +64,7 @@
 #define PY_INFO_BUILD_INFO  "build-info"
 
 #define PY_HANDLE_NAME      "__handle_python__"
+#define PY_NATIVE_NAME      "pyObject"
 #define PY_ATTR_HVML        "__hvml__"
 
 #define _KW_DELIMITERS      " \t\n\v\f\r"
@@ -98,10 +99,10 @@ static struct keyword_to_atom {
 struct dvobj_pyinfo {
     pcutils_map *prop_map;
     PyObject *locals;                   // local variables
+    purc_variant_t root;                // the root variant, i.e., $PY itself
 };
 
-static inline struct dvobj_pyinfo *
-get_pyinfo(purc_variant_t root)
+static inline struct dvobj_pyinfo *get_pyinfo(purc_variant_t root)
 {
     purc_variant_t v;
 
@@ -111,25 +112,262 @@ get_pyinfo(purc_variant_t root)
     return (struct dvobj_pyinfo *)purc_variant_native_get_entity(v);
 }
 
-static int set_python_except(purc_variant_t root, const char *except)
+static int set_python_except(struct dvobj_pyinfo *pyinfo, const char *except)
 {
     int ret = 0;
     purc_variant_t val = purc_variant_make_string_static(except, false);
-    if (!purc_variant_object_set_by_static_ckey(root, PY_KEY_EXCEPT, val))
+    if (!purc_variant_object_set_by_static_ckey(pyinfo->root,
+                PY_KEY_EXCEPT, val))
         ret = -1;
     purc_variant_unref(val);
     return ret;
 }
 
-static PyObject *make_pyobj_from_variant(purc_variant_t v)
+static void handle_python_error(struct dvobj_pyinfo *pyinfo)
+{
+    int hvml_err = PURC_ERROR_OK;
+
+    PyObject *pyerr = PyErr_Occurred();
+    if (pyerr == NULL)
+        return;
+
+    if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "AssertionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_AttributeError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "AttributeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BlockingIOError)) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(pyinfo, "BlockingIOError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BrokenPipeError)) {
+        hvml_err = PURC_ERROR_BROKEN_PIPE;
+        set_python_except(pyinfo, "BrokenPipeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BufferError)) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(pyinfo, "BufferError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ChildProcessError)) {
+        hvml_err = PURC_ERROR_CHILD_TERMINATED;
+        set_python_except(pyinfo, "ChildProcessError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionAbortedError)) {
+        hvml_err = PURC_ERROR_CONNECTION_ABORTED;
+        set_python_except(pyinfo, "ConnectionAbortedError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionRefusedError)) {
+        hvml_err = PURC_ERROR_CONNECTION_REFUSED;
+        set_python_except(pyinfo, "ConnectionRefusedError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionResetError)) {
+        hvml_err = PURC_ERROR_CONNECTION_RESET;
+        set_python_except(pyinfo, "ConnectionResetError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "ConnectionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_EOFError)) {
+        hvml_err = PURC_ERROR_IO_FAILURE;
+        set_python_except(pyinfo, "EOFError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileExistsError)) {
+        hvml_err = PURC_ERROR_EXISTS;
+        set_python_except(pyinfo, "FileExistsError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileNotFoundError)) {
+        hvml_err = PURC_ERROR_NOT_EXISTS;
+        set_python_except(pyinfo, "FileNotFoundError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FloatingPointError)) {
+        hvml_err = PURC_ERROR_INVALID_FLOAT;
+        set_python_except(pyinfo, "FloatingPointError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_GeneratorExit)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "GeneratorExit");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ImportError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "ImportError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndentationError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "IndentationError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndexError)) {
+        hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
+        set_python_except(pyinfo, "IndexError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_InterruptedError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "InterruptedError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IsADirectoryError)) {
+        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        set_python_except(pyinfo, "IsADirectoryError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyError)) {
+        hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
+        set_python_except(pyinfo, "KeyError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyboardInterrupt)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "KeyboardInterrupt");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_MemoryError)) {
+        hvml_err = PURC_ERROR_OUT_OF_MEMORY;
+        set_python_except(pyinfo, "MemoryError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ModuleNotFoundError)) {
+        hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
+        set_python_except(pyinfo, "ModuleNotFoundError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NameError)) {
+        hvml_err = PURC_ERROR_BAD_NAME;
+        set_python_except(pyinfo, "NameError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotADirectoryError)) {
+        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        set_python_except(pyinfo, "NotADirectoryError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotImplementedError)) {
+        hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
+        set_python_except(pyinfo, "NotImplementedError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OSError)) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(pyinfo, "OSError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OverflowError)) {
+        hvml_err = PURC_ERROR_OVERFLOW;
+        set_python_except(pyinfo, "OverflowError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_PermissionError)) {
+        hvml_err = PURC_ERROR_ACCESS_DENIED;
+        set_python_except(pyinfo, "PermissionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ProcessLookupError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "ProcessLookupError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RecursionError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "RecursionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ReferenceError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "ReferenceError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RuntimeError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "RuntimeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopAsyncIteration)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "StopAsyncIteration");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopIteration)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "StopIteration");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SyntaxError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "SyntaxError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemError)) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(pyinfo, "SystemError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemExit)) {
+        hvml_err = PURC_ERROR_SYS_FAULT;
+        set_python_except(pyinfo, "SystemExit");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "TabError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TimeoutError)) {
+        hvml_err = PURC_ERROR_TIMEOUT;
+        set_python_except(pyinfo, "TimeoutError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TypeError)) {
+        hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
+        set_python_except(pyinfo, "TypeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "UnboundLocalError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeDecodeError)) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(pyinfo, "UnicodeDecodeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeEncodeError)) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(pyinfo, "UnicodeEncodeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(pyinfo, "UnicodeError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeTranslateError)) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(pyinfo, "UnicodeTranslateError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ValueError)) {
+        hvml_err = PURC_ERROR_INVALID_VALUE;
+        set_python_except(pyinfo, "ValueError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ZeroDivisionError)) {
+        hvml_err = PURC_ERROR_DIVBYZERO;
+        set_python_except(pyinfo, "ZeroDivisionError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ArithmeticError)) {
+        /* The base class for those built-in exceptions that are raised for
+           various arithmetic errors: OverflowError, ZeroDivisionError,
+           and FloatingPointError. */
+        hvml_err = PURC_ERROR_INVALID_FLOAT;
+        set_python_except(pyinfo, "ArithmeticError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_LookupError)) {
+        /* The base class for the exceptions that are raised when
+           a key or index used on a mapping or sequence is invalid:
+           IndexError, KeyError. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "LookupError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_Exception)) {
+        /* All built-in, non-system-exiting exceptions are derived from
+           this class. All user-defined exceptions should also be derived
+           from this class. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "Exception");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BaseException)) {
+        /* The base class for all built-in exceptions. */
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "BaseException");
+    }
+
+    if (hvml_err != PURC_ERROR_OK) {
+        purc_set_error(hvml_err);
+        PyErr_Clear();
+    }
+}
+
+static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,
+        purc_variant_t v)
 {
     PyObject *pyobj = NULL;
 
     enum purc_variant_type t = purc_variant_get_type(v);
     switch (t) {
         case PURC_VARIANT_TYPE_UNDEFINED:
-            break;
-
         case PURC_VARIANT_TYPE_NULL:
             pyobj = Py_NewRef(Py_None);
             break;
@@ -213,313 +451,223 @@ static PyObject *make_pyobj_from_variant(purc_variant_t v)
             break;
     }
 
+    if (pyobj == NULL)
+        handle_python_error(pyinfo);
     return pyobj;
 }
 
-static purc_variant_t make_variant_from_pyobj(PyObject *pyobj)
+static void on_release_pyobject(void* native_entity)
 {
+    PyObject *pyobj = native_entity;
+    Py_DECREF(pyobj);
+}
+
+static struct purc_native_ops native_pyobject_ops = {
+    .on_release = on_release_pyobject,
+};
+
+static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
+        PyObject *pyobj)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
     if (pyobj == Py_None) {
-        return purc_variant_make_null();
+        v = purc_variant_make_null();
     }
     else if (PyBool_Check(pyobj)) {
         if (pyobj == Py_True)
-            return purc_variant_make_boolean(true);
+            v = purc_variant_make_boolean(true);
         else
-            return purc_variant_make_boolean(false);
+            v = purc_variant_make_boolean(false);
     }
     else if (PyLong_Check(pyobj)) {
         int overflow;
         long l = PyLong_AsLongAndOverflow(pyobj, &overflow);
         if (overflow) {
             long long ll = PyLong_AsLongLongAndOverflow(pyobj, &overflow);
-            if (overflow) {
-                double d = PyLong_AsDouble(pyobj);
-                return purc_variant_make_number(d);
+            if (overflow > 0) {
+                if (sizeof(unsigned long long) <= sizeof(uint64_t)) {
+                    unsigned long long ull = PyLong_AsUnsignedLongLong(pyobj);
+                    v = purc_variant_make_ulongint((uint64_t)ull);
+                }
+                else {
+                    double d = PyLong_AsDouble(pyobj);
+                    v = purc_variant_make_number(d);
+                }
             }
-
-            if (sizeof(long long) <= sizeof(int64_t)) {
-                return purc_variant_make_longint((int64_t)ll);
+            else if (overflow) {
+                if (sizeof(long long) <= sizeof(int64_t)) {
+                    v = purc_variant_make_longint((int64_t)ll);
+                }
+                else {
+                    double d = PyLong_AsDouble(pyobj);
+                    v = purc_variant_make_number(d);
+                }
             }
             else {
-                double d = PyLong_AsDouble(pyobj);
-                return purc_variant_make_number(d);
+                if (sizeof(long long) <= sizeof(int64_t)) {
+                    v = purc_variant_make_longint((int64_t)ll);
+                }
+                else {
+                    double d = PyLong_AsDouble(pyobj);
+                    v = purc_variant_make_number(d);
+                }
             }
         }
-
-        return purc_variant_make_longint((int64_t)l);
+        else {
+            v = purc_variant_make_longint((int64_t)l);
+        }
     }
     else if (PyFloat_Check(pyobj)) {
         double d = PyFloat_AsDouble(pyobj);
-        return purc_variant_make_number(d);
+        v = purc_variant_make_number(d);
     }
-    else if (PyComplex_Check(pyobj)) {
+    else if (PyBytes_Check(pyobj)) {
+        char *buffer;
+        Py_ssize_t length;
+        PyBytes_AsStringAndSize(pyobj, &buffer, &length);
+        v = purc_variant_make_byte_sequence(buffer, length);
+    }
+    else if (PyByteArray_Check(pyobj)) {
+        char *buffer = PyByteArray_AS_STRING(pyobj);
+        Py_ssize_t length = PyByteArray_GET_SIZE(pyobj);
+        v = purc_variant_make_byte_sequence(buffer, length);
+    }
+    else if (PyUnicode_Check(pyobj)) {
+        const char *c_str;
+        c_str = PyUnicode_AsUTF8(pyobj);
+        if (c_str == NULL) {
+            handle_python_error(pyinfo);
+            goto failed;
+        }
+
+        v = purc_variant_make_string(c_str, false);
+    }
+    else if (PyDict_Check(pyobj)) {
+        v = purc_variant_make_object_0();
+        if (v == PURC_VARIANT_INVALID)
+            goto failed;
+
+        PyObject *key, *value;
+        Py_ssize_t pos = 0;
+        while (PyDict_Next(pyobj, &pos, &key, &value)) {
+            const char *c_key = PyUnicode_AsUTF8(key);
+            if (c_key == NULL) {
+                handle_python_error(pyinfo);
+                goto failed;
+            }
+
+            purc_variant_t hvml_k, hvml_v;
+            hvml_k = purc_variant_make_string(c_key, false);
+            hvml_v = make_variant_from_pyobj(pyinfo, value);
+            if (hvml_k && hvml_v) {
+                if (!purc_variant_object_set(v, hvml_k, hvml_v))
+                    goto failed;
+                purc_variant_unref(hvml_k);
+                purc_variant_unref(hvml_v);
+            }
+            else {
+                if (hvml_k)
+                    purc_variant_unref(hvml_k);
+                if (hvml_v)
+                    purc_variant_unref(hvml_v);
+                goto failed;
+            }
+        }
+    }
+    else if (PyList_Check(pyobj)) {
+        v = purc_variant_make_array_0();
+        if (v == PURC_VARIANT_INVALID)
+            goto failed;
+
+        Py_ssize_t sz = PyList_Size(pyobj);
+        for (Py_ssize_t i = 0; i < sz; i++) {
+            PyObject *member = PyList_GetItem(pyobj, i);
+            purc_variant_t hvml_m = make_variant_from_pyobj(pyinfo, member);
+            if (hvml_m) {
+                if (!purc_variant_array_append(v, hvml_m))
+                    goto failed;
+                purc_variant_unref(hvml_m);
+            }
+            else
+                goto failed;
+        }
+    }
+    else if (PyTuple_Check(pyobj)) {
+        Py_ssize_t sz = PyTuple_Size(pyobj);
+        v = purc_variant_make_tuple(sz, NULL);
+        if (v == PURC_VARIANT_INVALID)
+            goto failed;
+
+        for (Py_ssize_t i = 0; i < sz; i++) {
+            PyObject *member = PyTuple_GetItem(pyobj, i);
+            purc_variant_t hvml_m = make_variant_from_pyobj(pyinfo, member);
+            if (hvml_m) {
+                if (!purc_variant_tuple_set(v, i, hvml_m))
+                    goto failed;
+                purc_variant_unref(hvml_m);
+            }
+            else
+                goto failed;
+        }
+    }
+    else if (PyAnySet_Check(pyobj)) {
+        PyObject *iter = PyObject_GetIter(pyobj);
+        PyObject *item;
+
+        if (iter == NULL) {
+            handle_python_error(pyinfo);
+            goto failed;
+        }
+
+        v = purc_variant_make_set_0(PURC_VARIANT_INVALID);
+        if (v == PURC_VARIANT_INVALID)
+            goto failed;
+
+        while ((item = PyIter_Next(iter))) {
+            purc_variant_t hvml_item = make_variant_from_pyobj(pyinfo, item);
+            Py_DECREF(item);
+
+            if (hvml_item == PURC_VARIANT_INVALID) {
+                goto failed;
+            }
+
+            if (purc_variant_set_add(v, hvml_item,
+                        PCVRNT_CR_METHOD_IGNORE) < 0) {
+                purc_variant_unref(hvml_item);
+                goto failed;
+            }
+
+            purc_variant_unref(hvml_item);
+        }
+
+        Py_DECREF(iter);
+    }
+    /* else if (PyComplex_Check(pyobj)) {
         // TODO: support for complex
 
         double real = PyComplex_RealAsDouble(pyobj);
         double imag = PyComplex_ImagAsDouble(pyobj);
         char buff[128];
         snprintf(buff, sizeof(buff), "%.6f+%.6fi", real, imag);
-        return purc_variant_make_string(buff, false);
-    }
-    else if (PyBytes_Check(pyobj)) {
-        char *buffer;
-        Py_ssize_t length;
-        PyBytes_AsStringAndSize(pyobj, &buffer, &length);
-        return purc_variant_make_byte_sequence(buffer, length);
-    }
-    else if (PyByteArray_Check(pyobj)) {
-        char *buffer = PyByteArray_AS_STRING(pyobj);
-        Py_ssize_t length = PyByteArray_GET_SIZE(pyobj);
-        return purc_variant_make_byte_sequence(buffer, length);
-    }
-    else if (PyUnicode_Check(pyobj)) {
-        PyObject *bytes = PyUnicode_AsUTF8String(pyobj);
-
-        char *buffer;
-        buffer = PyBytes_AsString(bytes);
-        return purc_variant_make_string(buffer, false);
+        v = purc_variant_make_string(buff, false);
+    } */
+    else {
+        Py_INCREF(pyobj);
+        v = purc_variant_make_native_entity(pyobj, &native_pyobject_ops,
+                PY_NATIVE_NAME);
+        if (v == PURC_VARIANT_INVALID) {
+            Py_DECREF(pyobj);
+            goto failed;
+        }
     }
 
-    // TODO: more Python objects.
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return v;
+
+failed:
+    if (v)
+        purc_variant_unref(v);
     return PURC_VARIANT_INVALID;
-}
-
-static void handle_pyerr(purc_variant_t root)
-{
-    int hvml_err = PURC_ERROR_OK;
-
-    PyObject *pyerr = PyErr_Occurred();
-    if (pyerr == NULL)
-        return;
-
-    if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "AssertionError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_AttributeError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "AttributeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BlockingIOError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(root, "BlockingIOError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BrokenPipeError)) {
-        hvml_err = PURC_ERROR_BROKEN_PIPE;
-        set_python_except(root, "BrokenPipeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BufferError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(root, "BufferError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ChildProcessError)) {
-        hvml_err = PURC_ERROR_CHILD_TERMINATED;
-        set_python_except(root, "ChildProcessError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionAbortedError)) {
-        hvml_err = PURC_ERROR_CONNECTION_ABORTED;
-        set_python_except(root, "ConnectionAbortedError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionRefusedError)) {
-        hvml_err = PURC_ERROR_CONNECTION_REFUSED;
-        set_python_except(root, "ConnectionRefusedError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionResetError)) {
-        hvml_err = PURC_ERROR_CONNECTION_RESET;
-        set_python_except(root, "ConnectionResetError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "ConnectionError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_EOFError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(root, "EOFError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileExistsError)) {
-        hvml_err = PURC_ERROR_EXISTS;
-        set_python_except(root, "FileExistsError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileNotFoundError)) {
-        hvml_err = PURC_ERROR_NOT_EXISTS;
-        set_python_except(root, "FileNotFoundError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FloatingPointError)) {
-        hvml_err = PURC_ERROR_INVALID_FLOAT;
-        set_python_except(root, "FloatingPointError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_GeneratorExit)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "GeneratorExit");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ImportError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "ImportError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndentationError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "IndentationError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndexError)) {
-        hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
-        set_python_except(root, "IndexError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_InterruptedError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "InterruptedError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IsADirectoryError)) {
-        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
-        set_python_except(root, "IsADirectoryError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyError)) {
-        hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
-        set_python_except(root, "KeyError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyboardInterrupt)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "KeyboardInterrupt");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_MemoryError)) {
-        hvml_err = PURC_ERROR_OUT_OF_MEMORY;
-        set_python_except(root, "MemoryError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ModuleNotFoundError)) {
-        hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
-        set_python_except(root, "ModuleNotFoundError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NameError)) {
-        hvml_err = PURC_ERROR_BAD_NAME;
-        set_python_except(root, "NameError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotADirectoryError)) {
-        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
-        set_python_except(root, "NotADirectoryError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotImplementedError)) {
-        hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
-        set_python_except(root, "NotImplementedError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OSError)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(root, "OSError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OverflowError)) {
-        hvml_err = PURC_ERROR_OVERFLOW;
-        set_python_except(root, "OverflowError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_PermissionError)) {
-        hvml_err = PURC_ERROR_ACCESS_DENIED;
-        set_python_except(root, "PermissionError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ProcessLookupError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "ProcessLookupError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RecursionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "RecursionError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ReferenceError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "ReferenceError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RuntimeError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "RuntimeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopAsyncIteration)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "StopAsyncIteration");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopIteration)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "StopIteration");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SyntaxError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "SyntaxError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemError)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(root, "SystemError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemExit)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(root, "SystemExit");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "TabError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TimeoutError)) {
-        hvml_err = PURC_ERROR_TIMEOUT;
-        set_python_except(root, "TimeoutError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TypeError)) {
-        hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
-        set_python_except(root, "TypeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "UnboundLocalError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeDecodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(root, "UnicodeDecodeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeEncodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(root, "UnicodeEncodeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(root, "UnicodeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeTranslateError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(root, "UnicodeTranslateError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ValueError)) {
-        hvml_err = PURC_ERROR_INVALID_VALUE;
-        set_python_except(root, "ValueError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ZeroDivisionError)) {
-        hvml_err = PURC_ERROR_DIVBYZERO;
-        set_python_except(root, "ZeroDivisionError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ArithmeticError)) {
-        /* The base class for those built-in exceptions that are raised for
-           various arithmetic errors: OverflowError, ZeroDivisionError,
-           and FloatingPointError. */
-        hvml_err = PURC_ERROR_INVALID_FLOAT;
-        set_python_except(root, "ArithmeticError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_LookupError)) {
-        /* The base class for the exceptions that are raised when
-           a key or index used on a mapping or sequence is invalid:
-           IndexError, KeyError. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "LookupError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_Exception)) {
-        /* All built-in, non-system-exiting exceptions are derived from
-           this class. All user-defined exceptions should also be derived
-           from this class. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "Exception");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BaseException)) {
-        /* The base class for all built-in exceptions. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(root, "BaseException");
-    }
-
-    if (hvml_err != PURC_ERROR_OK) {
-        purc_set_error(hvml_err);
-        PyErr_Clear();
-    }
 }
 
 enum {
@@ -576,6 +724,7 @@ failed:
 static purc_variant_t run_command(purc_variant_t root,
         const char *cmd, size_t len, PyCompilerFlags *cf, unsigned options)
 {
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
     UNUSED_PARAM(len);
 
     if (options & RUN_OPT_SKIP_FIRST_LINE) {
@@ -597,13 +746,13 @@ static purc_variant_t run_command(purc_variant_t root,
 
     globals = PyModule_GetDict(m);
     result = PyRun_StringFlags(cmd, Py_eval_input,
-            globals, get_pyinfo(root)->locals, cf);
+            globals, pyinfo->locals, cf);
     if (result == NULL) {
-        handle_pyerr(root);
+        handle_python_error(pyinfo);
         goto failed;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(result);
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
     Py_DECREF(result);
     return ret;
 
@@ -614,11 +763,11 @@ failed:
 static purc_variant_t run_module(purc_variant_t root,
         const char *modname, size_t len, PyCompilerFlags *cf, unsigned options)
 {
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
     UNUSED_PARAM(cf);
     UNUSED_PARAM(options);
 
     PyObject *module, *runpy, *runmodule, *runargs, *result;
-
     runpy = PyImport_ImportModule("runpy");
     if (runpy == NULL) {
         goto failed;
@@ -655,12 +804,12 @@ static purc_variant_t run_module(purc_variant_t root,
         goto failed;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(result);
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
     Py_DECREF(result);
     return ret;
 
 failed:
-    handle_pyerr(root);
+    handle_python_error(pyinfo);
     return PURC_VARIANT_INVALID;
 }
 
@@ -668,6 +817,7 @@ static purc_variant_t run_file(purc_variant_t root,
         const char *fname, size_t len, PyCompilerFlags *cf, unsigned options)
 {
     UNUSED_PARAM(len);
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
 
     FILE *fp = fopen(fname, "rb");
     if (fp == NULL) {
@@ -693,19 +843,19 @@ static purc_variant_t run_file(purc_variant_t root,
 
     globals = PyModule_GetDict(m);
     result = PyRun_FileFlags(fp, fname, Py_eval_input,
-            globals, get_pyinfo(root)->locals, cf);
+            globals, pyinfo->locals, cf);
     if (result == NULL) {
         goto failed;
     }
 
     fclose(fp);
-    purc_variant_t ret = make_variant_from_pyobj(result);
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
     Py_DECREF(result);
     return ret;
 
 failed:
     fclose(fp);
-    handle_pyerr(root);
+    handle_python_error(pyinfo);
     return PURC_VARIANT_INVALID;
 }
 
@@ -882,8 +1032,7 @@ static purc_nvariant_method property_getter(void* native_entity,
 static purc_variant_t global_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    UNUSED_PARAM(root);
-
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
     purc_variant_t ret = PURC_VARIANT_INVALID;
     PyObject *m, *globals;
     m = PyImport_AddModule("__main__");
@@ -892,7 +1041,7 @@ static purc_variant_t global_getter(purc_variant_t root,
 
     globals = PyModule_GetDict(m);
     if (nr_args == 0) {
-        ret = make_variant_from_pyobj(globals);
+        ret = make_variant_from_pyobj(pyinfo, globals);
     }
     else {
 
@@ -915,7 +1064,7 @@ static purc_variant_t global_getter(purc_variant_t root,
             goto failed;
         }
 
-        ret = make_variant_from_pyobj(val);
+        ret = make_variant_from_pyobj(pyinfo, val);
     }
 
     return ret;
@@ -930,8 +1079,7 @@ failed:
 static purc_variant_t global_setter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    UNUSED_PARAM(root);
-
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
     PyObject *m, *globals;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
@@ -955,18 +1103,18 @@ static purc_variant_t global_setter(purc_variant_t root,
 
         if (purc_variant_is_undefined(argv[1])) {
             if (PyDict_DelItemString(globals, symbol)) {
-                handle_pyerr(root);
+                handle_python_error(pyinfo);
                 goto failed;
             }
         }
         else {
-            PyObject *pyobj = make_pyobj_from_variant(argv[1]);
+            PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
             if (pyobj == NULL) {
                 goto failed;
             }
 
             if (PyDict_SetItemString(globals, symbol, pyobj)) {
-                handle_pyerr(root);
+                handle_python_error(pyinfo);
                 goto failed;
             }
         }
@@ -988,11 +1136,12 @@ failed:
 static purc_variant_t local_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    PyObject *locals = get_pyinfo(root)->locals;
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
+    PyObject *locals = pyinfo->locals;
     purc_variant_t ret;
 
     if (nr_args == 0) {
-        ret = make_variant_from_pyobj(locals);
+        ret = make_variant_from_pyobj(pyinfo, locals);
     }
     else {
 
@@ -1015,7 +1164,7 @@ static purc_variant_t local_getter(purc_variant_t root,
             goto failed;
         }
 
-        ret = make_variant_from_pyobj(val);
+        ret = make_variant_from_pyobj(pyinfo, val);
     }
 
     return ret;
@@ -1030,7 +1179,8 @@ failed:
 static purc_variant_t local_setter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    PyObject *locals = get_pyinfo(root)->locals;
+    struct dvobj_pyinfo *pyinfo = get_pyinfo(root);
+    PyObject *locals = pyinfo->locals;
 
     if (nr_args > 1) {
 
@@ -1049,18 +1199,18 @@ static purc_variant_t local_setter(purc_variant_t root,
 
         if (purc_variant_is_undefined(argv[1])) {
             if (PyDict_DelItemString(locals, symbol)) {
-                handle_pyerr(root);
+                handle_python_error(pyinfo);
                 goto failed;
             }
         }
         else {
-            PyObject *pyobj = make_pyobj_from_variant(argv[1]);
+            PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
             if (pyobj == NULL) {
                 goto failed;
             }
 
             if (PyDict_SetItemString(locals, symbol, pyobj)) {
-                handle_pyerr(root);
+                handle_python_error(pyinfo);
                 goto failed;
             }
         }
@@ -1253,6 +1403,8 @@ static purc_variant_t create_py(void)
         pyinfo->locals = PyDict_New();
         if (pyinfo->locals == NULL)
             goto failed_info;
+
+        pyinfo->root = py;
 
         /* placeholders for built-in properties of $PY */
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPL, NULL);
