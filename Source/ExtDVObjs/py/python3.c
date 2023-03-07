@@ -52,8 +52,8 @@
 #define PY_KEY_IMPL         "impl"
 #define PY_KEY_INFO         "info"
 #define PY_KEY_EXCEPT       "except"
-#define PY_KEY_GLOBALS      "globals"
-#define PY_KEY_LOCALS       "locals"
+#define PY_KEY_GLOBAL       "global"
+#define PY_KEY_LOCAL        "local"
 #define PY_KEY_RUN          "run"
 #define PY_KEY_IMPORT       "import"
 
@@ -879,7 +879,7 @@ static purc_nvariant_method property_getter(void* native_entity,
 }
 #endif
 
-static purc_variant_t globals_getter(purc_variant_t root,
+static purc_variant_t global_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -927,7 +927,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t globals_setter(purc_variant_t root,
+static purc_variant_t global_setter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(root);
@@ -985,7 +985,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t locals_getter(purc_variant_t root,
+static purc_variant_t local_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     PyObject *locals = get_pyinfo(root)->locals;
@@ -1027,7 +1027,7 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t locals_setter(purc_variant_t root,
+static purc_variant_t local_setter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     PyObject *locals = get_pyinfo(root)->locals;
@@ -1213,8 +1213,8 @@ static void on_release_pyinfo(void* native_entity)
 static purc_variant_t create_py(void)
 {
     static struct purc_dvobj_method methods[] = {
-        { PY_KEY_GLOBALS,       globals_getter,  globals_setter },
-        { PY_KEY_LOCALS,        locals_getter,   locals_setter },
+        { PY_KEY_GLOBAL,        global_getter,   global_setter },
+        { PY_KEY_LOCAL,         local_getter,    local_setter },
         { PY_KEY_RUN,           run_getter,      NULL },
         { PY_KEY_IMPORT,        import_getter,   NULL },
     };
@@ -1258,8 +1258,8 @@ static purc_variant_t create_py(void)
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPL, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_INFO, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_EXCEPT, NULL);
-        pcutils_map_insert(pyinfo->prop_map, PY_KEY_GLOBALS, NULL);
-        pcutils_map_insert(pyinfo->prop_map, PY_KEY_LOCALS, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_GLOBAL, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_LOCAL, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_RUN, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPORT, NULL);
 

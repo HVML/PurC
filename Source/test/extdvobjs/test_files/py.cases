@@ -46,41 +46,41 @@ positive:
     $PY.run('3.14 * 2')
     6.28
 
-# $PY.globals
+# $PY.global
 negative:
-    $PY.globals(5.0)
+    $PY.global(5.0)
     WrongDataType
 
 negative:
-    $PY.globals('foo-bar')
+    $PY.global('foo-bar')
     BadName
 
 negative:
-    $PY.globals('foo')
+    $PY.global('foo')
     NoSuchKey
 
 negative:
-    $PY.globals(! 5.0)
+    $PY.global(! 5.0)
     ArgumentMissed
 
 negative:
-    $PY.globals(! 5.0, 'asfsad')
+    $PY.global(! 5.0, 'asfsad')
     WrongDataType
 
 negative:
-    $PY.globals(!'foo-bar', 5)
+    $PY.global(!'foo-bar', 5)
     BadName
 
 negative:
-    $PY.globals(!'x')
+    $PY.global(!'x')
     ArgumentMissed
 
 positive:
-    $PY.globals(!'x', 5.0)
+    $PY.global(!'x', 5.0)
     true
 
 positive:
-    $PY.globals('x')
+    $PY.global('x')
     5.0
 
 positive:
@@ -88,19 +88,19 @@ positive:
     10.0
 
 positive:
-    $PY.globals(! 'x', undefined )
+    $PY.global(! 'x', undefined )
     true
 
 negative:
-    $PY.globals( 'x' )
+    $PY.global( 'x' )
     NoSuchKey
 
 positive:
-    $PY.globals(!'x', 10.0)
+    $PY.global(!'x', 10.0)
     true
 
 positive:
-    $PY.locals(!'x', 6.0)
+    $PY.local(!'x', 6.0)
     true
 
 positive:
@@ -108,7 +108,7 @@ positive:
     12.0
 
 positive:
-    $PY.locals(!'x', undefined)
+    $PY.local(!'x', undefined)
     true
 
 positive:
