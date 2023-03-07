@@ -95,3 +95,23 @@ negative:
     $PY.globals( 'x' )
     NoSuchKey
 
+positive:
+    $PY.globals(!'x', 10.0)
+    true
+
+positive:
+    $PY.locals(!'x', 6.0)
+    true
+
+positive:
+    $PY.run('x * 2')
+    12.0
+
+positive:
+    $PY.locals(!'x', undefined)
+    true
+
+positive:
+    $PY.run('x * 2')
+    20.0
+

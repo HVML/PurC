@@ -53,6 +53,7 @@
 #define PY_KEY_INFO         "info"
 #define PY_KEY_EXCEPT       "except"
 #define PY_KEY_GLOBALS      "globals"
+#define PY_KEY_LOCALS       "locals"
 #define PY_KEY_RUN          "run"
 #define PY_KEY_IMPORT       "import"
 
@@ -96,6 +97,7 @@ static struct keyword_to_atom {
 
 struct dvobj_pyinfo {
     pcutils_map *prop_map;
+    PyObject *locals;                   // local variables
 };
 
 static inline struct dvobj_pyinfo *
@@ -594,7 +596,8 @@ static purc_variant_t run_command(purc_variant_t root,
         goto failed;
 
     globals = PyModule_GetDict(m);
-    result = PyRun_StringFlags(cmd, Py_eval_input, globals, globals, cf);
+    result = PyRun_StringFlags(cmd, Py_eval_input,
+            globals, get_pyinfo(root)->locals, cf);
     if (result == NULL) {
         handle_pyerr(root);
         goto failed;
@@ -689,7 +692,8 @@ static purc_variant_t run_file(purc_variant_t root,
     }
 
     globals = PyModule_GetDict(m);
-    result = PyRun_FileFlags(fp, fname, Py_eval_input, globals, globals, cf);
+    result = PyRun_FileFlags(fp, fname, Py_eval_input,
+            globals, get_pyinfo(root)->locals, cf);
     if (result == NULL) {
         goto failed;
     }
@@ -958,13 +962,104 @@ static purc_variant_t globals_setter(purc_variant_t root,
         else {
             PyObject *pyobj = make_pyobj_from_variant(argv[1]);
             if (pyobj == NULL) {
-                PC_DEBUG("Failed to make PyObject\n");
                 goto failed;
             }
 
             if (PyDict_SetItemString(globals, symbol, pyobj)) {
-                PC_DEBUG("Failed PyObject_SetAttrString(%p, %s, %p)\n",
-                        globals, symbol, pyobj);
+                handle_pyerr(root);
+                goto failed;
+            }
+        }
+    }
+    else {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t locals_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    PyObject *locals = get_pyinfo(root)->locals;
+    purc_variant_t ret;
+
+    if (nr_args == 0) {
+        ret = make_variant_from_pyobj(locals);
+    }
+    else {
+
+        const char *symbol;
+        size_t symbol_len;
+        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
+        if (symbol == NULL || symbol_len == 0) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
+            purc_set_error(PURC_ERROR_BAD_NAME);
+            goto failed;
+        }
+
+        PyObject *val = PyDict_GetItemString(locals, symbol);
+        if (val == NULL) {
+            purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+            goto failed;
+        }
+
+        ret = make_variant_from_pyobj(val);
+    }
+
+    return ret;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t locals_setter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    PyObject *locals = get_pyinfo(root)->locals;
+
+    if (nr_args > 1) {
+
+        const char *symbol;
+        size_t symbol_len;
+        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
+        if (symbol == NULL || symbol_len == 0) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
+            purc_set_error(PURC_ERROR_BAD_NAME);
+            goto failed;
+        }
+
+        if (purc_variant_is_undefined(argv[1])) {
+            if (PyDict_DelItemString(locals, symbol)) {
+                handle_pyerr(root);
+                goto failed;
+            }
+        }
+        else {
+            PyObject *pyobj = make_pyobj_from_variant(argv[1]);
+            if (pyobj == NULL) {
+                goto failed;
+            }
+
+            if (PyDict_SetItemString(locals, symbol, pyobj)) {
                 handle_pyerr(root);
                 goto failed;
             }
@@ -1106,8 +1201,9 @@ static void on_release_pyinfo(void* native_entity)
 {
     struct dvobj_pyinfo *pyinfo = native_entity;
 
-    assert(Py_IsInitialized());
+    Py_DECREF(pyinfo->locals);
 
+    assert(Py_IsInitialized());
     Py_Finalize();
 
     pcutils_map_destroy(pyinfo->prop_map);
@@ -1118,6 +1214,7 @@ static purc_variant_t create_py(void)
 {
     static struct purc_dvobj_method methods[] = {
         { PY_KEY_GLOBALS,       globals_getter,  globals_setter },
+        { PY_KEY_LOCALS,        locals_getter,   locals_setter },
         { PY_KEY_RUN,           run_getter,      NULL },
         { PY_KEY_IMPORT,        import_getter,   NULL },
     };
@@ -1153,11 +1250,16 @@ static purc_variant_t create_py(void)
         if (pyinfo->prop_map == NULL)
             goto failed_info;
 
+        pyinfo->locals = PyDict_New();
+        if (pyinfo->locals == NULL)
+            goto failed_info;
+
         /* placeholders for built-in properties of $PY */
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPL, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_INFO, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_EXCEPT, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_GLOBALS, NULL);
+        pcutils_map_insert(pyinfo->prop_map, PY_KEY_LOCALS, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_RUN, NULL);
         pcutils_map_insert(pyinfo->prop_map, PY_KEY_IMPORT, NULL);
 
@@ -1193,6 +1295,7 @@ failed_info:
         if (pyinfo->prop_map) {
             pcutils_map_destroy(pyinfo->prop_map);
         }
+        Py_XDECREF(pyinfo->locals);
         free(pyinfo);
     }
 
