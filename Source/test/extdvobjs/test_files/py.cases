@@ -1,5 +1,6 @@
 # test cases for $PY
 
+# $PY.impl and $PY.info
 positive:
     $PY.impl.vendor
     'HVML Community'
@@ -16,6 +17,7 @@ positive:
     $PY.except
     null
 
+# $PY.run
 positive:
     {{ $PY.run('2 / 0'); $PY.except }}
     'ZeroDivisionError'
@@ -43,3 +45,53 @@ positive:
 positive:
     $PY.run('3.14 * 2')
     6.28
+
+# $PY.globals
+negative:
+    $PY.globals(5.0)
+    WrongDataType
+
+negative:
+    $PY.globals('foo-bar')
+    BadName
+
+negative:
+    $PY.globals('foo')
+    NoSuchKey
+
+negative:
+    $PY.globals(! 5.0)
+    ArgumentMissed
+
+negative:
+    $PY.globals(! 5.0, 'asfsad')
+    WrongDataType
+
+negative:
+    $PY.globals(!'foo-bar', 5)
+    BadName
+
+negative:
+    $PY.globals(!'x')
+    ArgumentMissed
+
+positive:
+    $PY.globals(!'x', 5.0)
+    true
+
+positive:
+    $PY.globals('x')
+    5.0
+
+positive:
+    $PY.run('x * 2')
+    10.0
+
+positive:
+    $PY.globals(! 'x', undefined )
+    true
+
+negative:
+    $PY.globals( 'x' )
+    NoSuchKey
+

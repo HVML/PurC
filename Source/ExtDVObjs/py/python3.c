@@ -29,6 +29,7 @@
 #include "private/dvobjs.h"
 #include "private/instance.h"
 #include "private/atom-buckets.h"
+#include "private/debug.h"
 #include "purc-variant.h"
 #include "purc-errors.h"
 
@@ -587,13 +588,13 @@ static purc_variant_t run_command(purc_variant_t root,
         }
     }
 
-    PyObject *m, *d, *result;
+    PyObject *m, *globals, *result;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
         goto failed;
 
-    d = PyModule_GetDict(m);
-    result = PyRun_StringFlags(cmd, Py_eval_input, d, d, cf);
+    globals = PyModule_GetDict(m);
+    result = PyRun_StringFlags(cmd, Py_eval_input, globals, globals, cf);
     if (result == NULL) {
         handle_pyerr(root);
         goto failed;
@@ -671,7 +672,7 @@ static purc_variant_t run_file(purc_variant_t root,
         return PURC_VARIANT_INVALID;
     }
 
-    PyObject *m, *d, *result;
+    PyObject *m, *globals, *result;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
         goto failed;
@@ -687,8 +688,8 @@ static purc_variant_t run_file(purc_variant_t root,
         }
     }
 
-    d = PyModule_GetDict(m);
-    result = PyRun_FileFlags(fp, fname, Py_eval_input, d, d, cf);
+    globals = PyModule_GetDict(m);
+    result = PyRun_FileFlags(fp, fname, Py_eval_input, globals, globals, cf);
     if (result == NULL) {
         goto failed;
     }
@@ -880,14 +881,14 @@ static purc_variant_t globals_getter(purc_variant_t root,
     UNUSED_PARAM(root);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
-    PyObject *m, *d;
+    PyObject *m, *globals;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
         goto failed;
 
-    d = PyModule_GetDict(m);
+    globals = PyModule_GetDict(m);
     if (nr_args == 0) {
-        ret = make_variant_from_pyobj(d);
+        ret = make_variant_from_pyobj(globals);
     }
     else {
 
@@ -895,7 +896,7 @@ static purc_variant_t globals_getter(purc_variant_t root,
         size_t symbol_len;
         symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
         if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
@@ -904,7 +905,7 @@ static purc_variant_t globals_getter(purc_variant_t root,
             goto failed;
         }
 
-        PyObject *val = PyObject_GetAttrString(d, symbol);
+        PyObject *val = PyDict_GetItemString(globals, symbol);
         if (val == NULL) {
             purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
             goto failed;
@@ -927,19 +928,19 @@ static purc_variant_t globals_setter(purc_variant_t root,
 {
     UNUSED_PARAM(root);
 
-    PyObject *m, *d;
+    PyObject *m, *globals;
     m = PyImport_AddModule("__main__");
     if (m == NULL)
         goto failed;
 
-    d = PyModule_GetDict(m);
+    globals = PyModule_GetDict(m);
     if (nr_args > 1) {
 
         const char *symbol;
         size_t symbol_len;
         symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
         if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
@@ -949,16 +950,22 @@ static purc_variant_t globals_setter(purc_variant_t root,
         }
 
         if (purc_variant_is_undefined(argv[1])) {
-            if (PyObject_DelAttrString(d, symbol))
+            if (PyDict_DelItemString(globals, symbol)) {
+                handle_pyerr(root);
                 goto failed;
+            }
         }
         else {
             PyObject *pyobj = make_pyobj_from_variant(argv[1]);
             if (pyobj == NULL) {
+                PC_DEBUG("Failed to make PyObject\n");
                 goto failed;
             }
 
-            if (PyObject_SetAttrString(d, symbol, pyobj)) {
+            if (PyDict_SetItemString(globals, symbol, pyobj)) {
+                PC_DEBUG("Failed PyObject_SetAttrString(%p, %s, %p)\n",
+                        globals, symbol, pyobj);
+                handle_pyerr(root);
                 goto failed;
             }
         }
