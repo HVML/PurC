@@ -259,7 +259,7 @@ TEST(dvobjs, uname)
         { "uname -m",
             "$SYS.uname()['machine']",
             get_system_uname, NULL, 0 },
-        { "uname -m",
+        { "uname -p",
             "$SYS.uname()['processor']",
             get_system_uname, NULL, 0 },
 #if OS(LINUX)
@@ -349,7 +349,7 @@ TEST(dvobjs, uname_ptr)
         { "uname -m",
             "$SYS.uname_prt('machine')",
             get_system_uname, NULL, 0 },
-        { "uname -m",
+        { "uname -p",
             "$SYS.uname_prt('processor')",
             get_system_uname, NULL, 0 },
 #if OS(LINUX)
@@ -1357,9 +1357,6 @@ static bool env_vrtcmp(purc_variant_t r1, purc_variant_t r2)
 TEST(dvobjs, env)
 {
     static const struct ejson_result test_cases[] = {
-        { "bad",
-            "$SYS.env",
-            system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
         { "bad",
             "$SYS.env",
             system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
