@@ -37,8 +37,6 @@
 
 #include "eval.h"
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -122,11 +120,11 @@ select_param_default(struct pcvcm_eval_ctxt *ctxt,
 
 void
 pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx,
-        size_t pos, purc_variant_t v);
+        size_t pos, purc_variant_t v, const char *name);
 
 purc_variant_t
 pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
-        int32_t frame_idx, size_t pos);
+        int32_t frame_idx, size_t pos, const char **name);
 
 #ifdef __cplusplus
 }

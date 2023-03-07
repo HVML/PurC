@@ -52,16 +52,17 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
+    UNUSED_PARAM(name);
     purc_variant_t tuple = purc_variant_make_tuple(frame->nr_params, NULL);
     if (tuple == PURC_VARIANT_INVALID) {
         goto out;
     }
 
     for (size_t i = 0; i < frame->nr_params; i++) {
-        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
         if(!purc_variant_tuple_set(tuple, i, v)) {
             goto out;
         }
