@@ -889,9 +889,14 @@ purc_variant_t system_timezone(purc_variant_t dvobj, const char* name)
             nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path)-1);
             if (nr_bytes > 0 ) path[nr_bytes] = '\0';
             if ((nr_bytes > 0 ) &&
-                (strstr(path, PURC_SYS_TZ_DIR) != NULL))
+                (strstr(path, PURC_SYS_TZ_DIR) != NULL)){
                      timezone = strstr(path,PURC_SYS_TZ_DIR) +
                          sizeof(PURC_SYS_TZ_DIR) - 1;
+            }
+            else{
+                purc_log_error("Cannot determine timezone for test.\n");
+                return purc_variant_make_boolean(false);
+                }
         }
 
         purc_log_info("expected timezone: %s; tzname[0]: %s; tzname[1]: %s\n",
