@@ -75,9 +75,11 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     purc_variant_t param_var = pcvcm_get_frame_result(ctxt, frame->idx, 1, NULL);
 
     if (param_node->type == PCVCM_NODE_TYPE_STRING) {
+#ifdef PCVCM_KEEP_NAME
         if (name_out) {
             *name_out = (const char*)param_node->sz_ptr[1];
         }
+#endif
         if (pcutils_parse_int64((const char*)param_node->sz_ptr[1],
                     param_node->sz_ptr[0], &index) != 0) {
             has_index = false;

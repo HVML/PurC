@@ -87,9 +87,11 @@ pcvcm_eval_ctxt_dup(struct pcvcm_eval_ctxt *src)
     ctxt->frames = (struct pcvcm_eval_stack_frame *) malloc(nr_bytes);
     memcpy(ctxt->frames, src->frames, nr_bytes);
 
+#ifdef PCVCM_KEEP_NAME
     nr_bytes = ctxt->nr_frames * sizeof(char *);
     ctxt->names = (const char **) malloc (nr_bytes);
     memcpy(ctxt->names, src->names, nr_bytes);
+#endif
 
     ctxt->free_on_destroy = 1;
 out:
@@ -123,7 +125,9 @@ pcvcm_eval_ctxt_destroy(struct pcvcm_eval_ctxt *ctxt)
     if (ctxt->free_on_destroy) {
         free(ctxt->eval_nodes);
         free(ctxt->frames);
+#ifdef PCVCM_KEEP_NAME
         free(ctxt->names);
+#endif
         free(ctxt);
     }
 }
@@ -463,6 +467,10 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
         purc_nvariant_method native_func = (type == GETTER_METHOD) ?
             ops->property_getter(entity, key_name) :
             ops->property_setter(entity, key_name);
+        if (!native_func) {
+            native_func = (type == GETTER_METHOD) ? ops->getter: ops->setter;
+        }
+
         if (native_func) {
             return native_func(entity, key_name, nr_args, argv, call_flags);
         }
@@ -809,7 +817,9 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
 
     struct pcvcm_eval_node eval_nodes[nr_nodes];
     struct pcvcm_eval_stack_frame frames[nr_nodes];
+#ifdef PCVCM_KEEP_NAME
     const char *names[nr_nodes];
+#endif
 
     if (nr_nodes) {
         ctxt->enable_log = enable_log;
@@ -819,8 +829,10 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
         ctxt->eval_nodes = eval_nodes;
         ctxt->nr_frames = nr_nodes;
         ctxt->frames = frames;
+#ifdef PCVCM_KEEP_NAME
         ctxt->names = names;
         memset(names, 0, sizeof(names));
+#endif
 
         build_eval_nodes(ctxt, tree);
 
@@ -951,8 +963,10 @@ purc_variant_t pcvcm_eval_sub_expr_full(struct pcvcm_node *tree,
             ctxt->frames = (struct pcvcm_eval_stack_frame *) realloc(ctxt->frames,
                     ctxt->nr_frames * sizeof(struct pcvcm_eval_stack_frame));
 
+#ifdef PCVCM_KEEP_NAME
             ctxt->names = (const char **) realloc(ctxt->names,
                     ctxt->nr_frames * sizeof(char *));
+#endif
         }
 
         size_t pos = ctxt->eval_nodes_insert_pos;

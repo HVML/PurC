@@ -37,6 +37,8 @@
 
 #define __DEV_VCM__                0
 
+//#define PCVCM_KEEP_NAME
+
 #define PCVCM_EVAL_FLAG_NONE            0x0000
 #define PCVCM_EVAL_FLAG_SILENTLY        0x0001
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
@@ -114,7 +116,9 @@ struct pcvcm_eval_ctxt {
     size_t                  nr_frames;
     int32_t                 frame_idx;
 
+#ifdef PCVCM_KEEP_NAME
     const char            **names;
+#endif
 
     int                     err;
     unsigned int            enable_log:1;
