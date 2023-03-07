@@ -141,6 +141,9 @@ static int calc_used_value_height(foil_layout_ctxt *ctxt, foil_rdrbox *box,
 static void
 dtrm_margin_left_right(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    if (!box->computed_style) {
+        return;
+    }
     (void)ctxt;
     uint8_t value;
     css_fixed length;
@@ -2291,7 +2294,7 @@ static void collapse_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box,
 
     *real_mb = box->mb;
     foil_rdrbox *next = next_in_norml_flow_sibling(box);
-    if (box->next) {
+    if (next) {
         if (box->mb >= next->mt) {
             *real_mb = box->mb - next->mt;
         }

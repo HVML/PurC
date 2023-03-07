@@ -85,6 +85,7 @@ set(sample_HVML_FILES
     "hvml/foil-border-3.hvml"
     "hvml/foil-border-4.hvml"
     "hvml/foil-border-5.hvml"
+    "hvml/foil-floating-0.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
