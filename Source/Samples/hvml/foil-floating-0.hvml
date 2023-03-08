@@ -1,10 +1,13 @@
 <hvml target="html">
     <body>
         <div style="border-style: solid; border-width:thick; border-color:red; border-top-left-radius:10px; border-top-right-radius:10px;border-bottom-left-radius:10px; border-bottom-right-radius:10px;">
-            this is a short text; this is a short text; this is a short text; this is a short text; this is a short text; this is a short text; this is a short text; this is a short;
+            this is a short text; this is a short text; this is a short text; this is a short text; this is a short text; this is a short text; this is a short text;
         </div>
         <div style="border-style: solid; border-width:thick; border-color:green;float:left;">
             this is float;
+        </div>
+        <div style="border-style: solid; border-width:thick; border-color:green; border-top-left-radius:10px;">
+            this is a long text; this is a long text; this is a long text; this is a long text; this is a long text; this is a long text; this is a long text;
         </div>
     </body>
 </hvml>
