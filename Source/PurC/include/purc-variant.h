@@ -1723,6 +1723,22 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...);
 
 /**
+ * purc_variant_set_unique_keys:
+ *
+ * @set: A set variant.
+ * @sz: The pointer to a string pointer buffer to receive the pointer to
+ *  the unique keys of this set.
+ *
+ * Gets the unique keys of a set variant.
+ *
+ * Returns: %true on success, otherwise %false (if the variant is not a set).
+ *
+ * Since: 0.9.8
+ */
+PCA_EXPORT bool
+purc_variant_set_unique_keys(purc_variant_t set, const char **unique_keys);
+
+/**
  * purc_variant_set_size:
  *
  * @set: A set variant.
