@@ -2671,7 +2671,7 @@ static void calc_floating_left(foil_layout_ctxt *ctxt,
     (void) ctxt;
     foil_rdrbox *prev = box->prev;
     if (prev) {
-#if 0
+        // TODO
         int real_mt, real_mb;
         collapse_margins(ctxt, prev, &real_mt, &real_mb);
         if (prev->floating == FOIL_RDRBOX_FLOAT_LEFT) {
@@ -2688,7 +2688,6 @@ static void calc_floating_left(foil_layout_ctxt *ctxt,
             *left = container->ctnt_rect.left;
             *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
         }
-#endif
     }
     else {
         *left = container->ctnt_rect.left;
@@ -2726,7 +2725,8 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for floating box: %s.\n", name);
 #endif
 
-    int left, top;
+    int left = 0;
+    int top = 0;
     if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
         calc_floating_left(ctxt, container, box, &left, &top);
     }

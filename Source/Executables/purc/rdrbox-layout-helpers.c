@@ -114,10 +114,13 @@ int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box)
 
         foil_glyph_pos *gps = gps_in_stack;
         if (p->nr_ucs > SZ_IN_STACK_BUFF) {
-            gps = malloc(sizeof(*gps) * p->nr_ucs);
+            gps = calloc(p->nr_ucs, sizeof(*gps));
             if (gps == NULL) {
                 goto failed;
             }
+        }
+        else {
+            memset(gps, 0, sizeof(gps_in_stack));
         }
 
         foil_ustr_get_glyphs_extent_simple(p->ucs, p->nr_ucs,
