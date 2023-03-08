@@ -2664,3 +2664,81 @@ void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     foil_rect_offset(&marker->ctnt_rect, -marker->marker_data->width, 0);
 }
 
+static void calc_floating_left(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box,
+        int *left, int *top)
+{
+    (void) ctxt;
+    foil_rdrbox *prev = box->prev;
+    if (prev) {
+#if 0
+        int real_mt, real_mb;
+        collapse_margins(ctxt, prev, &real_mt, &real_mb);
+        if (prev->floating == FOIL_RDRBOX_FLOAT_LEFT) {
+            if (prev->right + box->width > container->right) {
+                *left = container->ctnt_rect.left;
+                *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+            }
+            else {
+                *left = prev->ctnt_rect.right;
+                *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+            }
+        }
+        else {
+            *left = container->ctnt_rect.left;
+            *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+        }
+#endif
+    }
+    else {
+        *left = container->ctnt_rect.left;
+        *top = container->ctnt_rect.top;
+    }
+}
+
+static void calc_floating_right(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box,
+        int *left, int *top)
+{
+    (void) ctxt;
+    foil_rdrbox *prev = box->prev;
+    if (prev) {
+        int real_mt, real_mb;
+        collapse_margins(ctxt, prev, &real_mt, &real_mb);
+        if (prev->floating) {
+        }
+        else {
+            *left = container->ctnt_rect.right - box->width;
+            *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+        }
+    }
+    else {
+        *left = container->ctnt_rect.right - box->width;
+        *top = container->ctnt_rect.top;
+    }
+}
+
+void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box)
+{
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for floating box: %s.\n", name);
+#endif
+
+    int left, top;
+    if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
+        calc_floating_left(ctxt, container, box, &left, &top);
+    }
+    else {
+        calc_floating_right(ctxt, container, box, &left, &top);
+    }
+
+    foil_rect_offset(&box->ctnt_rect, left, top);
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for floating box: %s.\n", name);
+    free(name);
+#endif
+}
+

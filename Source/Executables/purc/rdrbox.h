@@ -698,6 +698,8 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block);
 void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         const foil_rdrbox *container, foil_rdrbox *block);
 void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *block);
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc);
 void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,

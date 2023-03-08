@@ -1041,7 +1041,7 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                     // TODO
                 }
                 else if (child->floating) {
-                    // TODO
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
                 }
                 else {
                     foil_rdrbox_lay_block_in_container(ctxt, box, child);

@@ -3,11 +3,11 @@
         <div style="border-style: solid; border-width:thick; border-color:red; border-top-left-radius:10px; border-top-right-radius:10px;border-bottom-left-radius:10px; border-bottom-right-radius:10px;">
             This is a short text 0; This is a short text 1; This is a short text 2; This is a short text 3; This is a short text 4; This is a short text 5; This is a short text 6; This is a short text 7; This is a short text 8; This is a short text 9; This is a short text 10; This is a short text 11; This is a short text 12; This is a short text 13; This is a short text 14; This is a short text 15; This is a short text 16; This is a short text 17; This is a short text 18; This is a short text 19; This is a short text 20; This is a short text 21; This is a short text 22; This is a short text 23; This is a short text 24; This is a short text 25; This is a short text 26; This is a short text 27; This is a short text 28; This is a short text 29;
         </div>
-        <div style="border-style: solid; border-width:thick; border-color:green;float:left;">
-            this is float;
+        <div style="border-style: solid; border-width:thick; border-color:blue;float:left;">
+            this is float; this is float;
         </div>
         <div style="border-style: solid; border-width:thick; border-color:green; border-top-left-radius:10px;">
-            this is a long text; this is a long text; this is a long text; this is a long text; this is a long text; this is a long text; this is a long text;
+            This is a short text 0; This is a short text 1; This is a short text 2; This is a short text 3; This is a short text 4; This is a short text 5; This is a short text 6; This is a short text 7; This is a short text 8; This is a short text 9; This is a short text 10; This is a short text 11; This is a short text 12; This is a short text 13; This is a short text 14; This is a short text 15; This is a short text 16; This is a short text 17; This is a short text 18; This is a short text 19; This is a short text 20; This is a short text 21; This is a short text 22; This is a short text 23; This is a short text 24; This is a short text 25; This is a short text 26; This is a short text 27; This is a short text 28; This is a short text 29;
         </div>
     </body>
 </hvml>

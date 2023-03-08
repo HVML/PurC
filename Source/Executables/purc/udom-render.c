@@ -676,6 +676,16 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
 
         child = child->next;
     }
+
+    child = box->first;
+    while (child) {
+
+        if (child->floating && !child->position && child->is_block_level) {
+            render_normal_boxes_in_tree_order(ctxt, child);
+        }
+
+        child = child->next;
+    }
 }
 
 static void
