@@ -117,9 +117,8 @@ pcvar_native_numerify(purc_variant_t val)
     if (!method)
         return 0.0;
 
-    bool silently = true;
     purc_variant_t v;
-    v = method(entity, 0, NULL, silently);
+    v = method(entity, "__number", 0, NULL, PCVRT_CALL_FLAG_SILENTLY);
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 

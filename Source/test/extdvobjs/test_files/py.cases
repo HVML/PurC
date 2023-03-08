@@ -1,0 +1,41 @@
+# test cases for $PY
+
+positive:
+    $PY.impl.vendor
+    'HVML Community'
+
+positive:
+    $PY.impl.author
+    'Vincent Wei'
+
+positive:
+    $PY.impl.license
+    'LGPLv3+'
+
+positive:
+    $PY.except
+    null
+
+negative:
+    $PY.run
+    ArgumentMissed
+
+negative:
+    $PY.run('asdfasfd', 'file');
+    IOFailure
+
+negative:
+    $PY.run('asdfasfd', 'module');
+    SysFault
+
+positive:
+    $PY.run('print("Hello from Python")')
+    null
+
+positive:
+    $PY.run('pow(2,2)')
+    4L
+
+positive:
+    $PY.run('3.14 * 2')
+    6.28

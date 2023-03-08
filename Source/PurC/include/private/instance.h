@@ -95,6 +95,8 @@ struct pcinst {
     struct pcvariant_heap  *org_vrt_heap;
 
     struct pcvarmgr        *variables;
+    // for loaded dynamic variants
+    pcutils_array_t        *dvobjs;
 
     struct pcrdr_conn      *conn_to_rdr;
     struct renderer_capabilities *rdr_caps;

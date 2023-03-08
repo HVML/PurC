@@ -52,10 +52,11 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
 
     purc_variant_t array =
         purc_variant_make_sorted_array(PCVRNT_SAFLAG_ASC, 4, NULL);
@@ -64,7 +65,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (size_t i = 0; i < frame->nr_params; i++) {
-        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
         ssize_t r = purc_variant_sorted_array_add(array, v);
         if(r < 0) {
             goto out;

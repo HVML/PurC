@@ -55,10 +55,11 @@ int sacb_compare_def(const void *sortv1, const void *sortv2)
 }
 
 static purc_variant_t
-type_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+type_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);

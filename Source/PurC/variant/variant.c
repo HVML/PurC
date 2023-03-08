@@ -143,6 +143,16 @@ static void _cleanup_instance(struct pcinst *inst)
         inst->variables = NULL;
     }
 
+    if (inst->dvobjs) {
+        size_t nr = pcutils_array_length(inst->dvobjs);
+        for (size_t i = 0; i < nr; i++) {
+            purc_variant_t v = pcutils_array_get(inst->dvobjs, i);
+            purc_variant_unload_dvobj(v);
+        }
+        pcutils_array_destroy(inst->dvobjs, true);
+        inst->dvobjs = NULL;
+    }
+
     if (heap == NULL)
         return;
 
@@ -1920,7 +1930,8 @@ numerify_native(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
+    purc_variant_t v = getter(native, "__number", 0, NULL,
+            PCVRT_CALL_FLAG_SILENTLY);
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
@@ -2101,7 +2112,8 @@ booleanize_native(purc_variant_t value)
     if (!getter)
         return false;
 
-    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
+    purc_variant_t v = getter(native, "__boolean", 0, NULL,
+            PCVRT_CALL_FLAG_SILENTLY);
     if (v == PURC_VARIANT_INVALID)
         return false;
 

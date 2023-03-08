@@ -350,9 +350,6 @@ struct pcintr_coroutine {
     struct pcintr_timers       *timers;     // $TIMERS
     struct pcvarmgr            *variables;  // coroutine level named variable
 
-    // for loaded dynamic variants
-    struct rb_root              loaded_vars;  // struct pcintr_loaded_var*
-
     /* AVL node for the AVL tree sorted by stopped timeout */
     struct avl_node             avl;
 

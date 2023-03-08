@@ -95,3 +95,34 @@ PURC_COMPUTE_SOURCES(test_extdvobjs_file)
 PURC_FRAMEWORK(test_extdvobjs_file)
 GTEST_DISCOVER_TESTS(test_extdvobjs_file DISCOVERY_TIMEOUT 10)
 
+# test_extdvobjs_py
+PURC_EXECUTABLE_DECLARE(test_extdvobjs_py)
+
+list(APPEND test_extdvobjs_py_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${WTF_DIR}
+)
+
+PURC_EXECUTABLE(test_extdvobjs_py)
+
+target_compile_definitions(test_extdvobjs_py PRIVATE SOPATH="${CMAKE_BINARY_DIR}/lib")
+
+set(test_extdvobjs_py_SOURCES
+    test_extdvobjs_py.cpp
+    TestExtDVObj.cpp
+    helper.cpp
+)
+
+set(test_extdvobjs_py_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_extdvobjs_py)
+PURC_FRAMEWORK(test_extdvobjs_py)
+GTEST_DISCOVER_TESTS(test_extdvobjs_py DISCOVERY_TIMEOUT 10)
+

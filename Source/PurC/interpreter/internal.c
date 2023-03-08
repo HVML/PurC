@@ -1418,7 +1418,7 @@ pcintr_chan_post(const char *chan_name, purc_variant_t data)
         goto out;
     }
 
-    send_ret = sender(entity, 1, &data, PCVRT_CALL_FLAG_SILENTLY);
+    send_ret = sender(entity, "send", 1, &data, PCVRT_CALL_FLAG_SILENTLY);
     if (send_ret && purc_variant_booleanize(send_ret)) {
         ret = 0;
     }

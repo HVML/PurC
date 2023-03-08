@@ -88,10 +88,11 @@ doctype_public(struct pcdom_document *doc)
 #endif // VW
 
 static inline purc_variant_t
-doctype_getter(void *entity,
+doctype_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
@@ -148,10 +149,12 @@ doctype_getter(void *entity,
 }
 
 static inline purc_variant_t
-select_getter(void *entity,
+select_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
+
     purc_document_t doc = (purc_document_t)entity;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     const char *type = SELECT_TYPE_ID;
@@ -188,10 +191,12 @@ out:
 }
 
 static inline purc_variant_t
-query_getter(void *entity,
+query_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
+
     PC_ASSERT(entity);
     purc_document_t doc = (purc_document_t)entity;
     purc_variant_t ret = PURC_VARIANT_INVALID;

@@ -55,10 +55,11 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
     purc_variant_t ret = PURC_VARIANT_INVALID;
     purc_rwstream_t rws = purc_rwstream_new_buffer(MIN_BUF_SIZE, MAX_BUF_SIZE);
     if (!rws) {
@@ -67,7 +68,7 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (size_t i = 0; i < frame->nr_params; i++) {
-        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        purc_variant_t v = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
 
         // FIXME: stringify or serialize
         char *buf = NULL;

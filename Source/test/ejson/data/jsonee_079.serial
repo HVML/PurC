@@ -1,0 +1,1 @@
+callSetter(callGetter(getVariable("FOO"),"bar"),"foobar")

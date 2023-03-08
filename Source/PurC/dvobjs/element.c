@@ -68,9 +68,10 @@ pcdvobjs_element_attr_getter(purc_document_t doc, pcdoc_element_t elem,
 }
 
 static inline purc_variant_t
-attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+attr_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -132,9 +133,10 @@ out:
 }
 
 static inline purc_variant_t
-content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+content_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -186,9 +188,10 @@ out:
 }
 
 static inline purc_variant_t
-json_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+json_content_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -256,9 +259,10 @@ out:
 }
 
 static inline purc_variant_t
-text_content_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+text_content_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
@@ -301,9 +305,10 @@ pcdvobjs_element_has_class_getter(purc_document_t doc, pcdoc_element_t elem,
 }
 
 static inline purc_variant_t
-has_class_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+has_class_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PC_ASSERT(native_entity);
 
     struct pcdvobjs_element *elem;
