@@ -1487,6 +1487,8 @@ static int split_module_names(const char *string, size_t str_len,
 
         strncpy(package_name, dup, len);
         package_name[len] = '\0';
+        if (!purc_is_valid_token(package_name, MAX_SYMBOL_LEN))
+            goto failed;
         module_start = dot + 1;
     }
     else {
@@ -1500,6 +1502,8 @@ static int split_module_names(const char *string, size_t str_len,
 
     strncpy(module_name, module_start, len);
     module_name[len] = '\0';
+    if (!purc_is_valid_token(module_name, MAX_SYMBOL_LEN))
+        goto failed;
     return 0;
 
 failed:
@@ -1536,6 +1540,8 @@ static int split_symbol_names(const char *string, size_t str_len,
 
     strncpy(symbol_name, symbol_start, len);
     symbol_name[len] = '\0';
+    if (!purc_is_valid_token(symbol_name, MAX_SYMBOL_LEN))
+        goto failed;
 
     return 0;
 
@@ -2190,6 +2196,93 @@ static struct dvobj_info {
     },
 };
 
+#ifndef NDEBUG
+static void test_split_module_names(void)
+{
+    /* test some internal helpers */
+    static const char *good_strings[] = {
+        "foo",
+        "foo.foo:foo",
+        "foo.foo",
+    };
+    static const char *bad_strings[] = {
+        "foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo",
+        "foo bar",
+        "foo.",
+        "foo.:",
+        " asfa sdf ",
+        ".asfa sdf:",
+        "foo.foo bar:",
+        "foo.foo:",
+        "foo.foo:foo bar",
+        "foo.foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo:foo",
+        "foo.foo:foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo",
+    };
+
+    char package_name[MAX_SYMBOL_LEN + 1];
+    char module_name[MAX_SYMBOL_LEN + 1];
+    char module_aliase[MAX_SYMBOL_LEN + 1];
+    for (size_t i = 0; i < PCA_TABLESIZE(good_strings); i++) {
+        int ret = split_module_names(good_strings[i],
+                strlen(good_strings[i]),
+                package_name, module_name, module_aliase);
+
+        assert(ret == 0);
+        assert(strcmp(module_name, "foo") == 0);
+    }
+
+    for (size_t i = 0; i < PCA_TABLESIZE(bad_strings); i++) {
+        int ret = split_module_names(bad_strings[i],
+                strlen(bad_strings[i]),
+                package_name, module_name, module_aliase);
+
+        if (ret == 0)
+            printf("module_name %d): %s\n", (int)i, module_name);
+        assert(ret != 0);
+    }
+}
+
+static void test_split_symbol_names(void)
+{
+    /* test some internal helpers */
+    static const char *good_strings[] = {
+        "foo",
+        "foo:foo",
+    };
+    static const char *bad_strings[] = {
+        "foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo",
+        "foo bar",
+        "foo:",
+        "foo.:",
+        " asfa sdf ",
+        "asfa sdf:",
+        "foo.foo bar:",
+        "foo.foo:",
+        "foo:",
+        "foo:foo bar",
+        "foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo:foo",
+        "foo:foofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoofoo",
+    };
+
+    char symbol_name[MAX_SYMBOL_LEN + 1];
+    char symbol_aliase[MAX_SYMBOL_LEN + 1];
+    for (size_t i = 0; i < PCA_TABLESIZE(good_strings); i++) {
+        int ret = split_symbol_names(good_strings[i],
+                strlen(good_strings[i]), symbol_name, symbol_aliase);
+
+        assert(ret == 0);
+        assert(strcmp(symbol_name, "foo") == 0);
+    }
+
+    for (size_t i = 0; i < PCA_TABLESIZE(bad_strings); i++) {
+        int ret = split_symbol_names(bad_strings[i],
+                strlen(bad_strings[i]), symbol_name, symbol_aliase);
+        assert(ret != 0);
+    }
+}
+
+#endif /* not defined NDEBUG */
+
 purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
 {
     size_t i = 0;
@@ -2197,6 +2290,11 @@ purc_variant_t __purcex_load_dynamic_variant(const char *name, int *ver_code)
         if (strcasecmp(name, dvobjs[i].name) == 0)
             break;
     }
+
+#ifndef NDEBUG
+    test_split_module_names();
+    test_split_symbol_names();
+#endif
 
     if (i == PCA_TABLESIZE(dvobjs))
         return PURC_VARIANT_INVALID;
