@@ -440,19 +440,156 @@ static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,
             }
 
         case PURC_VARIANT_TYPE_DYNAMIC:
-        case PURC_VARIANT_TYPE_NATIVE:
-            pyobj = Py_NewRef(Py_None); // TODO
+            pyobj = Py_NewRef(Py_None);
             break;
+
+        case PURC_VARIANT_TYPE_NATIVE:
+            {
+                const char *name = purc_variant_native_get_name(v);
+                if (strcmp(name, PY_NATIVE_NAME) == 0) {
+                    pyobj = purc_variant_native_get_entity(v);
+                    pyobj = Py_NewRef(pyobj);
+                }
+                else {
+                    pyobj = Py_NewRef(Py_None);
+                }
+                break;
+            }
 
         case PURC_VARIANT_TYPE_OBJECT:
+            {
+                pyobj = PyDict_New();
+                if (pyobj == NULL)
+                    goto failed;
+
+                struct pcvrnt_object_iterator* it;
+                it = pcvrnt_object_iterator_create_begin(v);
+                while (it) {
+                    const char     *key = pcvrnt_object_iterator_get_ckey(it);
+                    purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
+
+                    PyObject *pyval = make_pyobj_from_variant(pyinfo, val);
+                    if (pyval == NULL) {
+                        pcvrnt_object_iterator_release(it);
+                        goto failed_subcall;
+                    }
+
+                    if (PyDict_SetItemString(pyobj, key, pyval)) {
+                        pcvrnt_object_iterator_release(it);
+                        goto failed;
+                    }
+
+                    if (!pcvrnt_object_iterator_next(it))
+                        break;
+                }
+                pcvrnt_object_iterator_release(it);
+                break;
+            }
+
         case PURC_VARIANT_TYPE_ARRAY:
-        case PURC_VARIANT_TYPE_SET:
+            {
+                size_t sz;
+                purc_variant_array_size(v, &sz);
+                pyobj = PyList_New(sz);
+                if (pyobj == NULL)
+                    goto failed;
+
+                for (size_t i = 0; i < sz; i++) {
+                    purc_variant_t mbr = purc_variant_array_get(v, i);
+
+                    PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                    if (pymbr == NULL) {
+                        goto failed_subcall;
+                    }
+
+                    if (PyList_SetItem(pyobj, i, pymbr)) {
+                        goto failed;
+                    }
+                }
+
+                break;
+            }
+
         case PURC_VARIANT_TYPE_TUPLE:
-            break;
+            {
+                size_t sz;
+                purc_variant_tuple_size(v, &sz);
+                pyobj = PyTuple_New(sz);
+                if (pyobj == NULL)
+                    goto failed;
+
+                for (size_t i = 0; i < sz; i++) {
+                    purc_variant_t mbr = purc_variant_tuple_get(v, i);
+
+                    PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                    if (pymbr == NULL) {
+                        goto failed_subcall;
+                    }
+
+                    if (PyTuple_SetItem(pyobj, i, pymbr)) {
+                        goto failed;
+                    }
+                }
+
+                break;
+            }
+
+        case PURC_VARIANT_TYPE_SET:
+            {
+                const char *unique_keys;
+                purc_variant_set_unique_keys(v, &unique_keys);
+                size_t sz;
+                purc_variant_set_size(v, &sz);
+
+                if (unique_keys == NULL) {
+                    /* make a PySet from this set variant */
+                    pyobj = PySet_New(NULL);
+                    if (pyobj == NULL)
+                        goto failed;
+
+                    for (size_t i = 0; i < sz; i++) {
+                        purc_variant_t mbr;
+                        mbr = purc_variant_set_get_by_index(v, i);
+
+                        PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                        if (pymbr == NULL) {
+                            goto failed_subcall;
+                        }
+
+                        if (PySet_Add(pyobj, pymbr)) {
+                            goto failed;
+                        }
+                    }
+                }
+                else {
+                    /* make a PyList from this set variant */
+                    pyobj = PyList_New(sz);
+                    if (pyobj == NULL)
+                        goto failed;
+
+                    for (size_t i = 0; i < sz; i++) {
+                        purc_variant_t mbr = purc_variant_array_get(v, i);
+
+                        PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                        if (pymbr == NULL) {
+                            goto failed_subcall;
+                        }
+
+                        if (PyList_SetItem(pyobj, i, pymbr)) {
+                            goto failed;
+                        }
+                    }
+                }
+
+                break;
+            }
     }
 
+failed:
     if (pyobj == NULL)
         handle_python_error(pyinfo);
+
+failed_subcall:
     return pyobj;
 }
 
