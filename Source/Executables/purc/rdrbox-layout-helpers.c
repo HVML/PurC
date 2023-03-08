@@ -214,7 +214,7 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     struct _line_info *last_line = NULL;
     if (lfmt_ctxt->nr_lines > 0)
-        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
+        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines - 1;
 
     // TODO: determine the fields of the line according to
     // the floats and text-indent
@@ -224,7 +224,7 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     else
         line->rc.top = lfmt_ctxt->rc.top;
     line->rc.right = 0;
-    line->rc.bottom = box->line_height;
+    line->rc.bottom = line->rc.top + box->line_height;
 
     line->x = line->rc.left;
     line->y = line->rc.top;

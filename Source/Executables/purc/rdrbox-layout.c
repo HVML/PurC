@@ -2594,9 +2594,8 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 off_y = 0;
             }
 
-            off_y += lines_height;
             foil_rect_offset(&run->rc, off_x, off_y);
-            foil_rect_offset(&run->rc, line->rc.left, line->rc.top);
+            foil_rect_offset(&run->rc, line->rc.left, line->rc.top - lines_height);
             if (run->box->is_block_container) {
 
                 foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
