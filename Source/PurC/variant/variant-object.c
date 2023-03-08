@@ -849,7 +849,7 @@ bool purc_variant_object_set (purc_variant_t obj,
 }
 
 bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_remove_by_ckey(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&

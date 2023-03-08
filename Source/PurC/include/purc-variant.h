@@ -1154,7 +1154,37 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * purc_variant_object_remove_by_static_ckey:
+ * purc_variant_object_set_by_ckey:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to set.
+ * @value: The new property value.
+ *
+ * Sets the value of the property given by a static null-terminated
+ * string @key to @value, in the object variant @obj.
+ *
+ * If there is no property in @obj specified by @key, this function will
+ * create a new property with @key and @value.
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.9.8
+ */
+static inline bool
+purc_variant_object_set_by_ckey(purc_variant_t obj, const char* key,
+        purc_variant_t value)
+{
+    purc_variant_t k = purc_variant_make_string(key, true);
+    if (k == PURC_VARIANT_INVALID) {
+        return false;
+    }
+    bool b = purc_variant_object_set(obj, k, value);
+    purc_variant_unref(k);
+    return b;
+}
+
+/**
+ * purc_variant_object_remove_by_ckey:
  *
  * @obj: An object variant.
  * @key: The key of an property, specified by a static null-terminated string.
@@ -1172,7 +1202,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_remove_by_ckey(purc_variant_t obj, const char* key,
         bool silently);
 
 /**
@@ -1196,7 +1226,7 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
 {
     const char *sk = purc_variant_get_string_const(key);
     if (sk) {
-        return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
+        return purc_variant_object_remove_by_ckey(obj, sk, silently);
     }
 
     return false;
