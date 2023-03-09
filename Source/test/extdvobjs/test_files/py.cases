@@ -76,6 +76,14 @@ negative:
     WrongDataType
 
 positive:
+    $PY.global
+    pyObject::dict
+
+positive:
+    $PY.global()
+    {}
+
+positive:
     $PY.global(!'x', 5.0)
     true
 
@@ -132,6 +140,10 @@ positive:
     true
 
 # $PY.local
+positive:
+    $PY.local()
+    {}
+
 positive:
     $PY.local(!'x', 6.0)
     true

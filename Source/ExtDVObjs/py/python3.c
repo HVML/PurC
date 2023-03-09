@@ -787,6 +787,12 @@ static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
                 goto failed;
             }
 
+            /* ignore internal key/value pair */
+            size_t key_len = strlen(c_key);
+            if (key_len >= 4 && c_key[0] == '_' && c_key[1] == '_' &&
+                    c_key[key_len - 1] == '_' && c_key[key_len - 2] == '_')
+                continue;
+
             purc_variant_t hvml_k, hvml_v;
             hvml_k = purc_variant_make_string(c_key, false);
             hvml_v = make_variant_from_pyobj(pyinfo, value);
