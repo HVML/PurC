@@ -250,12 +250,41 @@ attr_setter(void* native_entity, const char *property_name,
     return purc_variant_make_string("call setter success!", false);
 }
 
+static inline purc_variant_t
+chain_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
+    return purc_variant_ref(ctxt->nobj);
+}
+
+static inline purc_variant_t
+chain_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
+    return purc_variant_ref(ctxt->nobj);
+}
+
 static inline purc_nvariant_method property_getter(void *entity,
         const char* key_name)
 {
     UNUSED_PARAM(entity);
     if (strcmp(key_name, "attr") == 0) {
         return attr_getter;
+    }
+    else if (strcmp(key_name, "chain") == 0) {
+        return chain_getter;
     }
 
     return NULL;
@@ -267,6 +296,9 @@ static inline purc_nvariant_method property_setter(void *entity,
     UNUSED_PARAM(entity);
     if (strcmp(key_name, "attr") == 0) {
         return attr_setter;
+    }
+    else if (strcmp(key_name, "chain") == 0) {
+        return chain_setter;
     }
 
     return NULL;
@@ -280,10 +312,6 @@ nobj_getter(void* native_entity, const char *property_name,
     UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(call_flags);
-    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
-    if (property_name && strcmp(property_name, "chain") == 0) {
-        return purc_variant_ref(ctxt->nobj);
-    }
     return purc_variant_ref(argv[0]);
 }
 

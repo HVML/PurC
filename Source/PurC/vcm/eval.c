@@ -467,10 +467,6 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
         purc_nvariant_method native_func = (type == GETTER_METHOD) ?
             ops->property_getter(entity, key_name) :
             ops->property_setter(entity, key_name);
-        if (!native_func) {
-            native_func = (type == GETTER_METHOD) ? ops->getter: ops->setter;
-        }
-
         if (native_func) {
             return native_func(entity, key_name, nr_args, argv, call_flags);
         }
