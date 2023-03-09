@@ -61,7 +61,7 @@ negative:
 
 negative:
     $PY.global(! 5.0)
-    ArgumentMissed
+    WrongDataType
 
 negative:
     $PY.global(! 5.0, 'asfsad')
@@ -73,7 +73,7 @@ negative:
 
 negative:
     $PY.global(!'x')
-    ArgumentMissed
+    WrongDataType
 
 positive:
     $PY.global(!'x', 5.0)
@@ -82,6 +82,18 @@ positive:
 positive:
     $PY.global('x')
     5.0
+
+positive:
+    $PY.global.x
+    5.0
+
+positive:
+    $PY.global.x(! 5.0 )
+    true
+
+negative:
+    $PY.global.y
+    NoSuchKey
 
 positive:
     $PY.run('x * 2')
