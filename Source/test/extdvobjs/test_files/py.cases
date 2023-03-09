@@ -205,3 +205,52 @@ positive:
     $PY.local.x
     [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ]
 
+# $PY.import
+negative:
+    $PY.import
+    ArgumentMissed
+
+negative:
+    $PY.import(null)
+    WrongDataType
+
+negative:
+    $PY.import(' ')
+    InvalidValue
+
+negative:
+    $PY.import('asfd&* ')
+    InvalidValue
+
+negative:
+    $PY.import('import')
+    Conflict
+
+positive:
+    $PY.import('math')
+    true
+
+positive:
+    $PY.math
+    pyObject::module
+
+positive:
+    $PY.math.pow(2, 3)
+    8
+
+positive:
+    $PY.import('datetime', ['datetime:dt', 'timedelta:td'])
+    true
+
+positive:
+    $PY.dt
+    pyObject::callable
+
+positive:
+    $PY.td
+    pyObject::callable
+
+positive:
+    $PY.stringify($PY.dt.fromtimestamp(1429417200.0))
+    '2015-04-19 12:20:00'
+
