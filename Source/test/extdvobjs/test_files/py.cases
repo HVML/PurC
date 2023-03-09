@@ -238,6 +238,14 @@ positive:
     $PY.math.pow(2, 3)
     8
 
+negative:
+    $PY.math.pow(! { x: 3, y: 3 } )
+    WrongDataType
+
+positive:
+    $PY.math.pi
+    3.1415926535897931
+
 positive:
     $PY.import('datetime', ['datetime:dt', 'timedelta:td'])
     true
@@ -250,7 +258,77 @@ positive:
     $PY.td
     pyObject::callable
 
+# $PY.stringify
 positive:
     $PY.stringify($PY.dt.fromtimestamp(1429417200.0))
     '2015-04-19 12:20:00'
+
+positive:
+    $PY.stringify($PY.math.e)
+    '2.718281828459045'
+
+# $PY.compile
+negative:
+    $PY.compile('c = ')
+    InternalFailure
+
+positive:
+    $PY.except
+    SyntaxError
+
+positive:
+    $RUNNER.user(! 'pyCode', $PY.compile('x + y'))
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local()
+    {}
+
+negative:
+    $RUNNER.myObj.pyCode.local.x
+    NoSuchKey
+
+positive:
+    $RUNNER.myObj.pyCode.local.x(! 100.0 )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local.y(! 100.0 )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local(! { x: 50.0, y: 50.0 } )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.eval()
+    100.0
+
+positive:
+    $RUNNER.myObj.pyCode.eval(null, { x: 100.0, y: 100.0 })
+    200.0
+
+positive:
+    $PY.global.x(! undefined )
+    true
+
+positive:
+    $PY.global.y(! 1.0 )
+    true
+
+positive:
+    $PY.global.y(! undefined )
+    true
+
+negative:
+    $RUNNER.myObj.pyCode.eval(null, { })
+    BadName
+
+positive:
+    $PY.global(! { x: 10.0, y: 10.0 } )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.eval(null, { })
+    20.0
 
