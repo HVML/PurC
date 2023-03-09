@@ -1461,6 +1461,7 @@ static purc_nvariant_method pydict_property_getter_getter(void* native_entity,
     if (PyDict_GetItemString(dict, property_name))
         return pydict_property_getter;
 
+    purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
     return NULL;
 }
 
@@ -1474,6 +1475,7 @@ static purc_nvariant_method pydict_property_setter_getter(void* native_entity,
     if (PyDict_GetItemString(dict, property_name))
         return pydict_property_setter;
 
+    purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
     return NULL;
 }
 
