@@ -332,3 +332,11 @@ positive:
     $RUNNER.myObj.pyCode.eval(null, { })
     20.0
 
+positive:
+    $RUNNER.user(! 'pyCode', undefined )
+    true
+
+positive:
+    $PY.compile('math.pow(x, y)').eval( null, { x: 2, y: 3 } )
+    8
+
