@@ -546,6 +546,7 @@ static int calc_hanged_glyphs_start(my_glyph_args* args,
         }
 
         for (i = 0; i <= args->hanged_start; i++) {
+            pos[i].advance = ges[i].adv_x;
             if (i == 0) {
                 pos[i].x = 0;
                 pos[i].y = -hanged_extent;
@@ -566,6 +567,7 @@ static int calc_hanged_glyphs_start(my_glyph_args* args,
         }
 
         for (i = 0; i <= args->hanged_start; i++) {
+            pos[i].advance = ges[i].adv_x;
             if (i == 0) {
                 pos[i].x = -hanged_extent;
                 pos[i].y = 0;
@@ -607,6 +609,7 @@ static int calc_hanged_glyphs_end(my_glyph_args* args,
     case FOIL_GRF_WRITING_MODE_VERTICAL_RL:
     case FOIL_GRF_WRITING_MODE_VERTICAL_LR:
         for (i = args->hanged_end; i < n; i++) {
+            pos[i].advance = ges[i].adv_x;
             if (i == args->hanged_end) {
                 pos[i].x = 0;
                 pos[i].y = extent;
@@ -625,6 +628,7 @@ static int calc_hanged_glyphs_end(my_glyph_args* args,
     case FOIL_GRF_WRITING_MODE_HORIZONTAL_TB:
     default:
         for (i = args->hanged_end; i < n; i++) {
+            pos[i].advance = ges[i].adv_x;
             if (i == args->hanged_end) {
                 pos[i].x = extent;
                 pos[i].y = 0;
