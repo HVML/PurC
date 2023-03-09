@@ -2665,41 +2665,90 @@ void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 }
 
 static void calc_floating_left(foil_layout_ctxt *ctxt,
+        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box,
         int *left, int *top)
 {
     (void) ctxt;
     foil_rdrbox *prev = box->prev;
-    if (prev) {
-        // TODO
+
+    if (!prev) {
+        int real_mt, real_mb;
+        collapse_margins(ctxt, box, &real_mt, &real_mb);
+
+        *left = container->ctnt_rect.left;
+        *top = container->ctnt_rect.top;
+        float_ctxt->l_box = box;
+        float_ctxt->pt_lb_x = *left + box->width + box->pr + box->br + box->mr;
+        float_ctxt->pt_lb_y = *top + box->height + box->pb + box->bb + real_mb;
+        float_ctxt->pt_rb_x = container->ctnt_rect.right;
+        float_ctxt->pt_rb_y = float_ctxt->pt_lb_y;
+        return;
+    }
+
+    if (prev->floating == FOIL_RDRBOX_FLOAT_NONE) {
         int real_mt, real_mb;
         collapse_margins(ctxt, prev, &real_mt, &real_mb);
-        if (prev->floating == FOIL_RDRBOX_FLOAT_LEFT) {
-            if (prev->right + box->width > container->right) {
-                *left = container->ctnt_rect.left;
-                *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
-            }
-            else {
-                *left = prev->ctnt_rect.right;
-                *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
-            }
+        *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+
+        if (*top > float_ctxt->pt_lb_y) {
+            *left = container->ctnt_rect.left;
+
+            float_ctxt->pt_lb_x = *left + box->width + box->pr + box->br + box->mr;
+            float_ctxt->pt_lb_y = *top + box->height + box->pb + box->bb + real_mb;
         }
         else {
-            *left = container->ctnt_rect.left;
-            *top = prev->ctnt_rect.bottom + prev->pb + prev->bb + real_mb;
+            *left = float_ctxt->pt_lb_x;
+            int bottom = *top + box->height + box->pb + box->bb + real_mb;
+            if (bottom > float_ctxt->pt_lb_y) {
+                float_ctxt->pt_lb_y = bottom;
+            }
+        }
+        float_ctxt->l_box = box;
+        return;
+    }
+
+    int real_mt, real_mb;
+    collapse_margins(ctxt, prev, &real_mt, &real_mb);
+
+    if (float_ctxt->r_box == NULL && float_ctxt->pt_rb_x == 0) {
+        float_ctxt->pt_rb_x = container->ctnt_rect.right;
+        float_ctxt->pt_rb_y = float_ctxt->pt_lb_y;
+    }
+
+    int w = box->ml + box->bl + box->pl + box->width + box->pr + box->br + box->mr;
+    int large_w = float_ctxt->pt_rb_x - float_ctxt->pt_lb_x;
+    int l_box_x = float_ctxt->l_box->ctnt_rect.right + box->pr + box->br + box->mr;
+    int min_w = float_ctxt->pt_rb_x - l_box_x;
+
+    if (w > large_w) {
+        *left = container->ctnt_rect.left;
+        *top = float_ctxt->pt_rb_y;
+        float_ctxt->pt_lb_x = *left + box->width + box->pr + box->br + box->mr;
+        float_ctxt->pt_lb_y = *top + box->height + box->pb + box->bb + real_mb;
+    }
+    else if (w > min_w) {
+        *left = float_ctxt->pt_lb_x;
+        *top = prev->bottom + prev->pb + prev->bb + real_mb;
+        int bottom = *top + box->height + box->pb + box->bb + real_mb;
+        if (bottom > float_ctxt->pt_lb_y) {
+            float_ctxt->pt_lb_y = bottom;
         }
     }
     else {
-        *left = container->ctnt_rect.left;
-        *top = container->ctnt_rect.top;
+        *left = l_box_x;
+        *top = float_ctxt->l_box->ctnt_rect.top - float_ctxt->l_box->pt - float_ctxt->l_box->bt - real_mt;
     }
+    float_ctxt->l_box = box;
 }
 
 static void calc_floating_right(foil_layout_ctxt *ctxt,
+        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box,
         int *left, int *top)
 {
     (void) ctxt;
+    (void) float_ctxt;
     foil_rdrbox *prev = box->prev;
     if (prev) {
         int real_mt, real_mb;
@@ -2718,6 +2767,7 @@ static void calc_floating_right(foil_layout_ctxt *ctxt,
 }
 
 void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box)
 {
 #ifndef NDEBUG
@@ -2728,10 +2778,10 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     int left = 0;
     int top = 0;
     if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
-        calc_floating_left(ctxt, container, box, &left, &top);
+        calc_floating_left(ctxt, float_ctxt, container, box, &left, &top);
     }
     else {
-        calc_floating_right(ctxt, container, box, &left, &top);
+        calc_floating_right(ctxt, float_ctxt, container, box, &left, &top);
     }
 
     foil_rect_offset(&box->ctnt_rect, left, top);

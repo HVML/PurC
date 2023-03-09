@@ -574,6 +574,15 @@ typedef struct foil_update_ctxt {
     pcdoc_element_t ref_element;
 } foil_update_ctxt;
 
+typedef struct foil_layout_floating_ctxt {
+    foil_rdrbox *l_box;
+    foil_rdrbox *r_box;
+    int pt_lb_x;
+    int pt_lb_y;
+    int pt_rb_x;
+    int pt_rb_y;
+} foil_layout_floating_ctxt;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -699,7 +708,8 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         const foil_rdrbox *container, foil_rdrbox *block);
 void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box);
 void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
-        const foil_rdrbox *container, foil_rdrbox *block);
+        foil_layout_floating_ctxt *ly_floating_ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box);
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc);
 void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,

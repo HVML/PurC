@@ -1034,6 +1034,7 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
         foil_rdrbox_lay_lines_in_block(ctxt, box);
     }
     else if (box->is_block_container) {
+        foil_layout_floating_ctxt ly_floating_ctxt = {0};
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_block_level) {
@@ -1041,10 +1042,14 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                     // TODO
                 }
                 else if (child->floating) {
-                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, &ly_floating_ctxt,
+                            box, child);
                 }
                 else {
                     foil_rdrbox_lay_block_in_container(ctxt, box, child);
+                    if (ly_floating_ctxt.l_box || ly_floating_ctxt.r_box) {
+                        ly_floating_ctxt = (foil_layout_floating_ctxt) {0};
+                    }
                 }
             }
 
