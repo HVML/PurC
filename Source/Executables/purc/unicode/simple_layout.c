@@ -479,6 +479,7 @@ static void calc_unhanged_glyph_positions(my_glyph_args* args,
         stop = args->hanged_end;
 
     for (i = first; i < stop; i++) {
+        pos[i].advance = ges[i].adv_x;
         if (i == first) {
             pos[i].x = 0;
             pos[i].y = 0;
