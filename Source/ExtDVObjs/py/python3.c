@@ -24,6 +24,9 @@
 
 #undef NDEBUG
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include "config.h"
 #include "private/map.h"
 #include "private/dvobjs.h"
@@ -32,13 +35,6 @@
 #include "private/debug.h"
 #include "purc-variant.h"
 #include "purc-errors.h"
-
-#include <Python.h>
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <unistd.h>
 
 #define PY_DVOBJ_VERNAME        "0.1.0"
 #define PY_DVOBJ_VERCODE        0
@@ -99,6 +95,22 @@ static struct keyword_to_atom {
     { _KW_dont_write_byte_code, 0 },    // "dont-write-byte-code"
     { _KW_return_stdout, 0 },           // "return-stdout"
 };
+
+#if PY_VERSION_HEX < 0x030a0000
+
+static inline PyObject* Py_NewRef(PyObject *obj)
+{
+    Py_INCREF(obj);
+    return obj;
+}
+
+static inline PyObject* Py_XNewRef(PyObject *obj)
+{
+    Py_XINCREF(obj);
+    return obj;
+}
+
+#endif /* PY_VERSION_HEX < 0x030a0000 */
 
 struct dvobj_pyinfo {
     pcutils_map *reserved_symbols;

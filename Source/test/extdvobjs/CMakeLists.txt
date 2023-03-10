@@ -4,7 +4,7 @@ include(GoogleTest)
 
 enable_testing()
 
-find_package(Python3 COMPONENTS Development)
+find_package(Python3 3.9.0 COMPONENTS Development)
 
 # test_extdvobjs_math
 PURC_EXECUTABLE_DECLARE(test_extdvobjs_math)
