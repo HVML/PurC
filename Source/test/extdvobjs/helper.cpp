@@ -17,8 +17,6 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-
 #include "purc/purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
@@ -76,9 +74,6 @@ static void rws_releaser (void* entity)
 }
 
 static struct purc_native_ops rws_ops = {
-    .getter                 = NULL,
-    .setter                 = NULL,
-
     .property_getter        = NULL,
     .property_setter        = NULL,
     .property_cleaner       = NULL,

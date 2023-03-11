@@ -276,34 +276,6 @@ chain_setter(void* native_entity, const char *property_name,
     return purc_variant_ref(ctxt->nobj);
 }
 
-static inline purc_nvariant_method property_getter(void *entity,
-        const char* key_name)
-{
-    UNUSED_PARAM(entity);
-    if (strcmp(key_name, "attr") == 0) {
-        return attr_getter;
-    }
-    else if (strcmp(key_name, "chain") == 0) {
-        return chain_getter;
-    }
-
-    return NULL;
-}
-
-static inline purc_nvariant_method property_setter(void *entity,
-        const char* key_name)
-{
-    UNUSED_PARAM(entity);
-    if (strcmp(key_name, "attr") == 0) {
-        return attr_setter;
-    }
-    else if (strcmp(key_name, "chain") == 0) {
-        return chain_setter;
-    }
-
-    return NULL;
-}
-
 static purc_variant_t
 nobj_getter(void* native_entity, const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
@@ -330,10 +302,47 @@ nobj_setter(void* native_entity, const char *property_name,
     return purc_variant_ref(argv[0]);
 }
 
-struct purc_native_ops native_ops = {
-    .getter                     = nobj_getter,
-    .setter                     = nobj_setter,
+static inline purc_nvariant_method property_getter(void *entity,
+        const char* key_name)
+{
+    UNUSED_PARAM(entity);
+    if (key_name) {
+        if (strcmp(key_name, "attr") == 0) {
+            return attr_getter;
+        }
+        else if (strcmp(key_name, "chain") == 0) {
+            return chain_getter;
+        }
+    }
+    else {
+        return nobj_getter;
+    }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static inline purc_nvariant_method property_setter(void *entity,
+        const char* key_name)
+{
+    UNUSED_PARAM(entity);
+    if (key_name) {
+        if (strcmp(key_name, "attr") == 0) {
+            return attr_setter;
+        }
+        else if (strcmp(key_name, "chain") == 0) {
+            return chain_setter;
+        }
+    }
+    else {
+        return nobj_setter;
+    }
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+struct purc_native_ops native_ops = {
     .property_getter            = property_getter,
     .property_setter            = property_setter,
     .property_cleaner           = NULL,

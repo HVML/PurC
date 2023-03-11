@@ -63,6 +63,9 @@
 #define PY_INFO_COMPILER    "compiler"
 #define PY_INFO_BUILD_INFO  "build-info"
 
+#define PY_ATTR_ARG_PREFIX      "__attr_hvml::"
+#define PY_ATTR_ARG_PRE_LEN     (sizeof(PY_ATTR_ARG_PREFIX) - 1)
+
 #define PY_NATIVE_PREFIX        "pyObject::"
 #define PY_NATIVE_PREFIX_LEN    (sizeof(PY_NATIVE_PREFIX) - 1)
 #define PY_ATTR_HVML            "__hvml__"
@@ -130,9 +133,16 @@ static inline struct dvobj_pyinfo *get_pyinfo_from_root(purc_variant_t root)
 
 static inline struct dvobj_pyinfo *get_pyinfo(void)
 {
+    assert(Py_IsInitialized());
     PyObject *m = PyImport_AddModule("__main__");
+    if (m == NULL) {
+        PyErr_Print();
+    }
     assert(m);
     PyObject *cap = PyObject_GetAttrString(m, PY_ATTR_HVML);
+    if (cap == NULL) {
+        PyErr_Print();
+    }
     assert(PyCapsule_CheckExact(cap));
     struct dvobj_pyinfo *pyinfo = PyCapsule_GetPointer(cap, PY_ATTR_HVML);
     assert(pyinfo);
@@ -474,7 +484,7 @@ static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,
         case PURC_VARIANT_TYPE_NATIVE:
             {
                 const char *name = purc_variant_native_get_name(v);
-                if (strncmp(name, PY_NATIVE_PREFIX, PY_NATIVE_PREFIX_LEN) == 0) {
+                if (!strncmp(name, PY_NATIVE_PREFIX, PY_NATIVE_PREFIX_LEN)) {
                     pyobj = purc_variant_native_get_entity(v);
                     pyobj = Py_NewRef(pyobj);
                 }
@@ -621,96 +631,24 @@ failed_subcall:
     return pyobj;
 }
 
-static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
-        PyObject *pyobj);
-
-static purc_variant_t pyobject_getter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    PyObject *pyobj;
-    if (property_name == NULL) {
-        pyobj = native_entity;
-    }
-    else {
-        PyObject *parent = native_entity;
-        pyobj = PyObject_GetAttrString(parent, property_name);
-        if (pyobj == NULL)
-            goto failed_python;
-    }
-
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, pyobj);
-    if (ret == PURC_VARIANT_INVALID)
-        goto failed;
-    return ret;
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pyobject_setter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    if (property_name == NULL) {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        goto failed;
-    }
-
-    PyObject *parent = native_entity;
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-    else if (purc_variant_is_undefined(argv[0])) {
-        if (PyObject_DelAttrString(parent, property_name))
-            goto failed_python;
-    }
-    else {
-        PyObject *val = make_pyobj_from_variant(pyinfo, argv[0]);
-        if (val == NULL)
-            goto failed;
-
-        if (PyObject_SetAttrString(parent, property_name, val))
-            goto failed_python;
-    }
-
-    return purc_variant_make_boolean(true);
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-
-    return PURC_VARIANT_INVALID;
-}
-
-static void on_release_pyobject(void* native_entity)
-{
-    PyObject *pyobj = native_entity;
-    Py_DECREF(pyobj);
-}
+static purc_nvariant_method
+pyobject_property_getter_getter(void* native_entity,
+        const char* property_name);
+static purc_nvariant_method
+pyobject_property_setter_getter(void* native_entity,
+        const char* property_name);
+static void on_release_pyobject(void* native_entity);
 
 static struct purc_native_ops native_pyobject_ops = {
-    .getter = pyobject_getter,
-    .setter = pyobject_setter,
+    .property_getter = pyobject_property_getter_getter,
+    .property_setter = pyobject_property_setter_getter,
     .on_release = on_release_pyobject,
 };
 
 static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
         PyObject *pyobj)
 {
+    UNUSED_PARAM(pyinfo);
     purc_variant_t v = PURC_VARIANT_INVALID;
 
     if (pyobj == Py_None) {
@@ -764,7 +702,29 @@ static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
         double d = PyFloat_AsDouble(pyobj);
         v = purc_variant_make_number(d);
     }
-    else if (PyBytes_Check(pyobj)) {
+    else {
+        Py_INCREF(pyobj);
+        v = purc_variant_make_native_entity(pyobj, &native_pyobject_ops,
+                PY_NATIVE_PREFIX "any");
+        if (v == PURC_VARIANT_INVALID) {
+            Py_DECREF(pyobj);
+            goto failed;
+        }
+    }
+
+    return v;
+
+failed:
+    if (v)
+        purc_variant_unref(v);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
+        PyObject *pyobj)
+{
+    purc_variant_t v;
+    if (PyBytes_Check(pyobj)) {
         char *buffer;
         Py_ssize_t length;
         PyBytes_AsStringAndSize(pyobj, &buffer, &length);
@@ -891,7 +851,24 @@ static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
 
         Py_DECREF(iter);
     }
-    /* else if (PyComplex_Check(pyobj)) {
+    else {
+        PyObject *result = PyObject_Str(pyobj);
+        if (result == NULL) {
+            goto failed_python;
+        }
+
+        const char *c_str;
+        c_str = PyUnicode_AsUTF8(result);
+        Py_DECREF(result);
+        if (c_str == NULL) {
+            goto failed_python;
+        }
+
+        v = purc_variant_make_string(c_str, false);
+    }
+
+#if 0
+    else if (PyComplex_Check(pyobj)) {
         // TODO: support for complex
 
         double real = PyComplex_RealAsDouble(pyobj);
@@ -899,23 +876,848 @@ static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
         char buff[128];
         snprintf(buff, sizeof(buff), "%.6f+%.6fi", real, imag);
         v = purc_variant_make_string(buff, false);
-    } */
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, pyobj);
+    if (ret == PURC_VARIANT_INVALID)
+        goto failed;
+    return ret;
+#endif
+
+    return v;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This getter returns the result of a callable PyObject by using the
+ * variants as a tuple argument.
+ *
+ * The self getter can be used to support the following usage:
+    {{
+        $PY.import('datetime', ['datetime:dt', 'timedelta:td']);
+        $PY.dt(2020,8,31,12,10,10)
+    }}
+ */
+static purc_variant_t pycallable_self_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    assert(native_entity);
+    assert(property_name == NULL);
+    PyObject *pyobj = native_entity;
+    assert(PyCallable_Check(pyobj));
+
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *result;
+    if (nr_args == 0) {
+        result = PyObject_CallNoArgs(pyobj);
+    }
+    else if (nr_args == 1) {
+        PyObject *arg = make_pyobj_from_variant(pyinfo, argv[0]);
+        if (arg == NULL)
+            goto failed;
+
+        result = PyObject_CallOneArg(pyobj, arg);
+        Py_DECREF(arg);
+    }
     else {
-        Py_INCREF(pyobj);
-        v = purc_variant_make_native_entity(pyobj, &native_pyobject_ops,
-                PY_NATIVE_PREFIX "any");
-        if (v == PURC_VARIANT_INVALID) {
-            Py_DECREF(pyobj);
+        PyObject *arg = PyTuple_New(nr_args);
+        if (arg == NULL)
+            goto failed_python;
+
+        for (size_t i = 0; i < nr_args; i++) {
+            PyObject *pymbr = make_pyobj_from_variant(pyinfo, argv[i]);
+            if (pymbr == NULL) {
+                Py_DECREF(arg);
+                goto failed;
+            }
+
+            if (PyTuple_SetItem(arg, i, pymbr)) {
+                Py_DECREF(arg);
+                goto failed_python;
+            }
+        }
+
+        result = PyObject_Call(pyobj, arg, NULL);
+    }
+
+    if (result == NULL)
+        goto failed_python;
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    Py_DECREF(result);
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This self setter returns the result of a callable PyObject by using the
+ * first variant (must be an HVML object) as the keyword arguments.
+ *
+ * This self setter can be used to support the following usage:
+    {{
+        $PY.import('datetime', ['datetime:dt', 'timedelta:td']);
+        $PY.dt(! { year: 2020, month: 8, day: 31,
+                    hour: 12, minute: 10, seconod: 10 } )
+    }}
+ */
+static purc_variant_t pycallable_self_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    assert(property_name == NULL);
+
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = native_entity;
+
+    if (!PyCallable_Check(pyobj)) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto failed;
+    }
+
+    PyObject *args = NULL, *kwargs = NULL;
+    PyObject *result = NULL;
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+    else if (!purc_variant_is_object(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    args = PyTuple_New(0);
+    if (args == NULL)
+        goto failed_python;
+
+    kwargs = make_pyobj_from_variant(pyinfo, argv[0]);
+    if (kwargs == NULL)
+        goto failed;
+
+    assert(PyDict_Check(kwargs));
+    result = PyObject_Call(pyobj, args, kwargs);
+    if (result == NULL) {
+        goto failed_python;
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    if (ret == PURC_VARIANT_INVALID)
+        goto failed;
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
+    Py_DECREF(result);
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    Py_XDECREF(result);
+    Py_XDECREF(args);
+    Py_XDECREF(kwargs);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t pydict_self_getter(void *native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+
+    PyObject *dict = (PyObject *)native_entity;
+    assert(PyDict_Check(dict));
+
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (nr_args == 0) {
+        ret = convert_pyobj_to_variant(pyinfo, dict);
+    }
+    else {
+
+        const char *symbol;
+        size_t symbol_len;
+        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
+        if (symbol == NULL || symbol_len == 0) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
+            purc_set_error(PURC_ERROR_BAD_NAME);
+            goto failed;
+        }
+
+        PyObject *val = PyDict_GetItemString(dict, symbol);
+        if (val == NULL) {
+            purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+            goto failed;
+        }
+
+        ret = make_variant_from_pyobj(pyinfo, val);
+    }
+
+    if (ret == PURC_VARIANT_INVALID)
+        goto failed;
+    return ret;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This getter returns the specified attribute value if the first argument
+ * is a string and prefixed by `__attr_hvml:`. Otherwise,
+ *
+ * If the PyObject is callable, it calls the object with the tuple argument.
+ * If there is no argument, it converts the PyObject to the HVML representation:
+ *
+ *  - Python Bytes and ByteArray: HVML byte sequence.
+ *  - Python string: HVML string
+ *  - Python list: HVML array
+ *  - Python dictionary: object
+ *  - Python set: HVML generic set
+ *  - Others: an HVML string returned by PyObject_Str().
+ *
+ * If the PyObject is a dictionary, and the first argument is a string which
+ * is not prefixed by `__attr_hvml:`, this getter returns the item as the
+ * first argument specifies the key name.
+ */
+static purc_variant_t pyobject_self_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = native_entity;
+    assert(property_name == NULL);
+
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    const char *name = NULL;
+    if (nr_args == 1 && (name = purc_variant_get_string_const(argv[0]))) {
+        if (strncmp(name, PY_ATTR_ARG_PREFIX, PY_ATTR_ARG_PRE_LEN) == 0) {
+            const char *attr_name = name + PY_ATTR_ARG_PRE_LEN;
+            if (!purc_is_valid_token(attr_name, MAX_SYMBOL_LEN)) {
+                purc_set_error(PURC_ERROR_BAD_NAME);
+                goto failed;
+            }
+
+            if (!PyObject_HasAttrString(pyobj, attr_name)) {
+                goto failed_python;
+            }
+
+            PyObject *val = PyObject_GetAttrString(pyobj, attr_name);
+            if (val == NULL) {
+                goto failed_python;
+            }
+
+            ret = make_variant_from_pyobj(pyinfo, val);
+            if (ret == PURC_VARIANT_INVALID)
+                goto failed;
+        }
+    }
+
+    if (ret == PURC_VARIANT_INVALID) {
+        if (PyCallable_Check(pyobj)) {
+            return pycallable_self_getter(pyobj, NULL, nr_args, argv, call_flags);
+        }
+        else if (PyDict_Check(pyobj)) {
+            return pydict_self_getter(pyobj, NULL, nr_args, argv, call_flags);
+        }
+        else {
+            ret = convert_pyobj_to_variant(pyinfo, pyobj);
+            if (ret == PURC_VARIANT_INVALID)
+                goto failed;
+        }
+    }
+
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t pydict_self_setter(void *native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *dict = (PyObject *)native_entity;
+    assert(PyDict_Check(dict));
+    UNUSED_PARAM(property_name);
+
+    if (nr_args == 0) {
+        // PyDict_Clear(dict);
+    }
+    else if (nr_args >= 1) {
+        if (purc_variant_is_object(argv[0])) {
+            // PyDict_Clear(dict);
+
+            struct pcvrnt_object_iterator* it;
+            it = pcvrnt_object_iterator_create_begin(argv[0]);
+            while (it) {
+                const char     *key = pcvrnt_object_iterator_get_ckey(it);
+                purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
+
+                PyObject *pyval = make_pyobj_from_variant(pyinfo, val);
+                if (pyval == NULL) {
+                    pcvrnt_object_iterator_release(it);
+                    goto failed;
+                }
+
+                if (PyDict_SetItemString(dict, key, pyval)) {
+                    pcvrnt_object_iterator_release(it);
+                    goto failed;
+                }
+
+                if (!pcvrnt_object_iterator_next(it))
+                    break;
+            }
+            pcvrnt_object_iterator_release(it);
+        }
+        else if (nr_args == 1) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+        else if (nr_args > 1) {
+            const char *symbol;
+            size_t symbol_len;
+            symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
+            if (symbol == NULL || symbol_len == 0) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+
+            if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
+                purc_set_error(PURC_ERROR_BAD_NAME);
+                goto failed;
+            }
+
+            if (purc_variant_is_undefined(argv[1])) {
+                if (PyDict_DelItemString(dict, symbol)) {
+                    handle_python_error(pyinfo);
+                    goto failed;
+                }
+            }
+            else {
+                PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
+                if (pyobj == NULL) {
+                    goto failed;
+                }
+
+                if (PyDict_SetItemString(dict, symbol, pyobj)) {
+                    handle_python_error(pyinfo);
+                    goto failed;
+                }
+            }
+        }
+        else {
+            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
             goto failed;
         }
     }
 
-    return v;
+    return purc_variant_make_boolean(true);
 
 failed:
-    if (v)
-        purc_variant_unref(v);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
     return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t pyset_self_setter(void *native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = (PyObject *)native_entity;
+    assert(PySet_Check(pyobj));
+    UNUSED_PARAM(property_name);
+
+    if (nr_args == 0) {
+        if (!PySet_Clear(pyobj))
+            goto failed_python;
+    }
+    else {
+        if (purc_variant_is_set(argv[0])) {
+            if (!PySet_Clear(pyobj))
+                goto failed_python;
+
+            size_t sz;
+            purc_variant_set_size(argv[0], &sz);
+            for (size_t i = 0; i < sz; i++) {
+                purc_variant_t mbr;
+                mbr = purc_variant_set_get_by_index(argv[0], i);
+                PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                if (pymbr == NULL) {
+                    goto failed;
+                }
+
+                if (PySet_Add(pyobj, pymbr)) {
+                    goto failed_python;
+                }
+            }
+        }
+        else if (nr_args == 1) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This setter is used to set an attribute of a PyObject, or operate on
+ * a special PyObject if it is callable, a dictionary, or a set.
+ *
+ * If the first argument is a string prefixed by `__attr_hvml:`, the setter
+ * will try to change the attribute of the PyObject.
+ *
+ * If the first arugment is not a string or it is not prefixed by
+ * `__attr_hvml:`, the setter will operate according to the type of PyObject:
+ *  - PyCallable: call the object by treating the first arugment as the
+ *      keyword argument.
+ *  - PyDict: clear the dictionary, update/remove an item,
+ *      reset an dictionary.
+ *  - PySet: reset or clear the set.
+ */
+static purc_variant_t pyobject_self_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    PyObject *pyobj = native_entity;
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    assert(pyobj);
+    assert(property_name == NULL);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *name;
+    name = purc_variant_get_string_const(argv[0]);
+    if (name && strncmp(name, PY_ATTR_ARG_PREFIX, PY_ATTR_ARG_PRE_LEN) == 0) {
+        const char *attr_name = name + PY_ATTR_ARG_PRE_LEN;
+        if (!purc_is_valid_token(attr_name, MAX_SYMBOL_LEN)) {
+            purc_set_error(PURC_ERROR_BAD_NAME);
+            goto failed;
+        }
+
+        if (!PyObject_HasAttrString(pyobj, attr_name)) {
+            goto failed_python;
+        }
+
+        if (purc_variant_is_undefined(argv[1])) {
+            if (PyObject_DelAttrString(pyobj, attr_name))
+                goto failed_python;
+        }
+        else {
+            PyObject *val = make_pyobj_from_variant(pyinfo, argv[1]);
+            if (val == NULL)
+                goto failed;
+
+            if (PyObject_SetAttrString(pyobj, attr_name, val))
+                goto failed_python;
+        }
+    }
+    else if (PyCallable_Check(pyobj)) {
+        return pycallable_self_setter(pyobj, NULL, nr_args, argv, call_flags);
+    }
+    else if (PyDict_Check(pyobj)) {
+        return pydict_self_setter(pyobj, NULL, nr_args, argv, call_flags);
+    }
+    else if (PySet_Check(pyobj)) {
+        return pyset_self_setter(pyobj, NULL, nr_args, argv, call_flags);
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This getter returns the result when calling a method on a PyObject by using
+ * the tuple arguments.
+ *
+ * The method getter can be used to support the following usage:
+    {{
+        $PY.local.x(! [1, 2, 2, 3] );
+        $PY.local.x.count(2)
+    }}
+ */
+static purc_variant_t pyobject_method_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+
+    PyObject *pyobj = native_entity;
+    assert(PyCallable_Check(pyobj));
+
+    PyObject *method = PyObject_GetAttrString(pyobj, property_name);
+    assert(PyMethod_Check(method));
+
+    PyObject *name = PyUnicode_FromString(property_name);
+    if (name == NULL)
+        goto failed_python;
+
+    PyObject *result;
+    if (nr_args == 0) {
+        result = PyObject_CallMethodNoArgs(pyobj, name);
+    }
+    else if (nr_args == 1) {
+        PyObject *arg = make_pyobj_from_variant(pyinfo, argv[0]);
+        if (arg == NULL)
+            goto failed;
+
+        result = PyObject_CallMethodOneArg(pyobj, name, arg);
+        Py_DECREF(arg);
+    }
+    else {
+        PyObject *vc_args[nr_args + 1]; // use vectorcall
+        vc_args[0] = pyobj;
+
+        for (size_t i = 0; i < nr_args; i++) {
+            PyObject *pymbr = make_pyobj_from_variant(pyinfo, argv[i]);
+            if (pymbr == NULL) {
+                goto failed;
+            }
+
+            vc_args[i + 1] = pymbr;
+        }
+
+        result = PyObject_VectorcallMethod(name, vc_args, nr_args + 1, NULL);
+        for (size_t i = 0; i < nr_args; i++) {
+            Py_DECREF(vc_args[i + 1]);
+        }
+    }
+
+    if (result == NULL)
+        goto failed_python;
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    Py_DECREF(result);
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This setter returns the result when calling a method on a PyObject by using
+ * the keyword arguments.
+ *
+ * The method getter can be used to support the following usage:
+    {{
+        $PY.local.x(! [1, 2, 2, 3] );
+        $PY.local.x.count(2)
+    }}
+ */
+static purc_variant_t pyobject_method_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = native_entity;
+
+    PyObject *method = PyObject_GetAttrString(pyobj, property_name);
+    assert(PyMethod_Check(method));
+
+    PyObject *name = PyUnicode_FromString(property_name);
+    if (name == NULL)
+        goto failed_python;
+
+    PyObject *kwargs = NULL;
+    PyObject *result = NULL;
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+    else if (!purc_variant_is_object(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    kwargs = make_pyobj_from_variant(pyinfo, argv[0]);
+    if (kwargs == NULL)
+        goto failed;
+
+    result = PyObject_VectorcallMethod(name, &pyobj, 1, kwargs);
+    if (result == NULL)
+        goto failed_python;
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    Py_DECREF(kwargs);
+    Py_DECREF(result);
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    Py_XDECREF(result);
+    Py_XDECREF(kwargs);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t pyobject_callable_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    assert(native_entity);
+    assert(property_name);
+    PyObject *pyobj = native_entity;
+    PyObject *callable = PyObject_GetAttrString(pyobj, property_name);
+    assert(PyCallable_Check(callable));
+
+    return pycallable_self_getter(callable, NULL, nr_args, argv, call_flags);
+}
+
+static purc_variant_t pyobject_callable_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    assert(native_entity);
+    assert(property_name);
+    PyObject *pyobj = native_entity;
+    PyObject *callable = PyObject_GetAttrString(pyobj, property_name);
+    assert(PyCallable_Check(callable));
+
+    return pycallable_self_setter(callable, NULL, nr_args, argv, call_flags);
+}
+
+static purc_variant_t pyobject_attr_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    assert(native_entity);
+    assert(property_name);
+
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = native_entity;
+    PyObject *attr = PyObject_GetAttrString(pyobj, property_name);
+    if (attr == NULL) {
+        goto failed_python;
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, attr);
+    if (ret == PURC_VARIANT_INVALID)
+        goto failed;
+    return ret;
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This getter is used to get the value of the specified key of a PyDict:
+ *
+    {{
+        $PY.local.x(! 3 ); $PY.local.x
+    }}
+ */
+static purc_variant_t pydict_item_getter(void *native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *dict = (PyObject *)native_entity;
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    printf("FUNC %s called\n", __func__);
+
+    assert(property_name);
+    PyObject *val = PyDict_GetItemString(dict, property_name);
+    if (val == NULL) {
+        purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
+        goto failed;
+    }
+
+    purc_variant_t ret = make_variant_from_pyobj(pyinfo, val);
+    if (ret == PURC_VARIANT_INVALID)
+        goto failed;
+    return ret;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
+/*
+ * This setter is used to set the value of the specified key of a PyDict:
+ *
+    {{
+        $PY.local.x(! [1, 2, 2, 3] );
+    }}
+ */
+static purc_variant_t pydict_item_setter(void *native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *dict = (PyObject *)native_entity;
+    assert(PyDict_Check(dict));
+    assert(property_name);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (purc_variant_is_undefined(argv[0])) {
+        if (PyDict_DelItemString(dict, property_name)) {
+            goto failed_python;
+        }
+    }
+    else {
+        PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[0]);
+        if (pyobj == NULL) {
+            goto failed;
+        }
+
+        if (PyDict_SetItemString(dict, property_name, pyobj)) {
+            goto failed_python;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed_python:
+    handle_python_error(pyinfo);
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_nvariant_method
+pyobject_property_getter_getter(void* native_entity, const char* property_name)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = (PyObject *)native_entity;
+    assert(pyobj);
+
+    if (property_name == NULL) {
+        return pyobject_self_getter;
+    }
+    else {
+        PyObject *val = PyObject_GetAttrString(pyobj, property_name);
+        if (val == NULL && !PyDict_Check(pyobj)) {
+            handle_python_error(pyinfo);
+            return NULL;
+        }
+        else if (val != NULL && PyMethod_Check(val)) {
+            return pyobject_method_getter;
+        }
+        else if (val != NULL && PyCallable_Check(val)) {
+            return pyobject_callable_getter;
+        }
+        else if (val == NULL && PyDict_Check(pyobj)) {
+            if (PyErr_Occurred())
+                PyErr_Clear();
+            return pydict_item_getter;
+        }
+        else if (val) {
+            return pyobject_attr_getter;
+        }
+    }
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static purc_nvariant_method
+pyobject_property_setter_getter(void* native_entity, const char* property_name)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo();
+    PyObject *pyobj = (PyObject *)native_entity;
+    assert(pyobj);
+
+    if (property_name == NULL) {
+        return pyobject_self_setter;
+    }
+    else {
+        PyObject *val = PyObject_GetAttrString(pyobj, property_name);
+        if (val == NULL && !PyDict_Check(pyobj)) {
+            handle_python_error(pyinfo);
+            return NULL;
+        }
+        else if (val != NULL && PyMethod_Check(val)) {
+            return pyobject_method_setter;
+        }
+        else if (val != NULL && PyCallable_Check(val)) {
+            return pyobject_callable_setter;
+        }
+        else if (PyDict_Check(pyobj)) {
+            if (PyErr_Occurred())
+                PyErr_Clear();
+            return pydict_item_setter;
+        }
+        else {
+            handle_python_error(pyinfo);
+            purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+            return NULL;
+        }
+    }
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
+}
+
+static void on_release_pyobject(void* native_entity)
+{
+    PyObject *pyobj = native_entity;
+    Py_DECREF(pyobj);
 }
 
 enum {
@@ -1191,249 +1993,6 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static purc_variant_t pydict_getter(void *native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    PyObject *dict = (PyObject *)native_entity;
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-    UNUSED_PARAM(property_name);
-
-    purc_variant_t ret = PURC_VARIANT_INVALID;
-    if (nr_args == 0) {
-        ret = make_variant_from_pyobj(pyinfo, dict);
-    }
-    else {
-
-        const char *symbol;
-        size_t symbol_len;
-        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-        if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-            purc_set_error(PURC_ERROR_BAD_NAME);
-            goto failed;
-        }
-
-        PyObject *val = PyDict_GetItemString(dict, symbol);
-        if (val == NULL) {
-            purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-            goto failed;
-        }
-
-        ret = make_variant_from_pyobj(pyinfo, val);
-    }
-
-    return ret;
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pydict_setter(void *native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-    PyObject *dict = (PyObject *)native_entity;
-    UNUSED_PARAM(property_name);
-
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-    else if (nr_args >= 1) {
-        if (purc_variant_is_object(argv[0])) {
-            struct pcvrnt_object_iterator* it;
-            it = pcvrnt_object_iterator_create_begin(argv[0]);
-            while (it) {
-                const char     *key = pcvrnt_object_iterator_get_ckey(it);
-                purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
-
-                PyObject *pyval = make_pyobj_from_variant(pyinfo, val);
-                if (pyval == NULL) {
-                    pcvrnt_object_iterator_release(it);
-                    goto failed;
-                }
-
-                if (PyDict_SetItemString(dict, key, pyval)) {
-                    pcvrnt_object_iterator_release(it);
-                    goto failed;
-                }
-
-                if (!pcvrnt_object_iterator_next(it))
-                    break;
-            }
-            pcvrnt_object_iterator_release(it);
-        }
-        else if (nr_args == 1) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-        else if (nr_args > 1) {
-            const char *symbol;
-            size_t symbol_len;
-            symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-            if (symbol == NULL || symbol_len == 0) {
-                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-                goto failed;
-            }
-
-            if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-                purc_set_error(PURC_ERROR_BAD_NAME);
-                goto failed;
-            }
-
-            if (purc_variant_is_undefined(argv[1])) {
-                if (PyDict_DelItemString(dict, symbol)) {
-                    handle_python_error(pyinfo);
-                    goto failed;
-                }
-            }
-            else {
-                PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
-                if (pyobj == NULL) {
-                    goto failed;
-                }
-
-                if (PyDict_SetItemString(dict, symbol, pyobj)) {
-                    handle_python_error(pyinfo);
-                    goto failed;
-                }
-            }
-        }
-        else {
-            purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-            goto failed;
-        }
-    }
-
-    return purc_variant_make_boolean(true);
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pydict_property_getter(void *native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-    PyObject *dict = (PyObject *)native_entity;
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-
-    assert(property_name);
-    PyObject *val = PyDict_GetItemString(dict, property_name);
-    if (val == NULL) {
-        purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-        goto failed;
-    }
-
-    return make_variant_from_pyobj(pyinfo, val);
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pydict_property_setter(void *native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-    PyObject *dict = (PyObject *)native_entity;
-
-    assert(property_name);
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
-    if (purc_variant_is_undefined(argv[0])) {
-        if (PyDict_DelItemString(dict, property_name)) {
-            goto failed_python;
-        }
-    }
-    else {
-        PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[0]);
-        if (pyobj == NULL) {
-            goto failed;
-        }
-
-        if (PyDict_SetItemString(dict, property_name, pyobj)) {
-            goto failed_python;
-        }
-    }
-
-    return purc_variant_make_boolean(true);
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_nvariant_method pydict_property_getter_getter(void* native_entity,
-        const char* property_name)
-{
-    PyObject *dict = (PyObject *)native_entity;
-    assert(dict);
-    assert(property_name);
-
-    if (PyDict_GetItemString(dict, property_name))
-        return pydict_property_getter;
-
-    purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-    return NULL;
-}
-
-static purc_nvariant_method pydict_property_setter_getter(void* native_entity,
-            const char* property_name)
-{
-    PyObject *dict = (PyObject *)native_entity;
-    assert(dict);
-    assert(property_name);
-
-    return pydict_property_setter;
-#if 0
-    if (PyDict_GetItemString(dict, property_name))
-        return pydict_property_setter;
-
-    purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-    return NULL;
-#endif
-}
-
-static struct purc_native_ops native_pydict_ops = {
-    .getter = pydict_getter,
-    .setter = pydict_setter,
-    .property_getter = pydict_property_getter_getter,
-    .property_setter = pydict_property_setter_getter,
-    .on_release = NULL, // on_release_pyobject,
-};
-
-static struct purc_native_ops native_pycode_locals_ops = {
-    .getter = pydict_getter,
-    .setter = pydict_setter,
-    .property_getter = pydict_property_getter_getter,
-    .property_setter = pydict_property_setter_getter,
-    .on_release = on_release_pyobject,
-};
-
 static int split_module_names(const char *string, size_t str_len,
             char *package_name, char *module_name, char *module_aliase)
 {
@@ -1528,346 +2087,6 @@ static int split_symbol_names(const char *string, size_t str_len,
 failed:
     return -1;
 }
-
-static purc_variant_t pycallable_getter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    PyObject *callable;
-    if (property_name == NULL) {
-        callable = native_entity;
-    }
-    else {
-        PyObject *parent = native_entity;
-        callable = PyObject_GetAttrString(parent, property_name);
-    }
-
-    assert(PyCallable_Check(callable));
-
-    PyObject *result;
-    if (nr_args == 0) {
-        result = PyObject_CallNoArgs(callable);
-    }
-    else if (nr_args == 1) {
-        PyObject *arg = make_pyobj_from_variant(pyinfo, argv[0]);
-        if (arg == NULL)
-            goto failed;
-
-        result = PyObject_CallOneArg(callable, arg);
-        Py_DECREF(arg);
-    }
-    else {
-        PyObject *arg = PyTuple_New(nr_args);
-        if (arg == NULL)
-            goto failed_python;
-
-        for (size_t i = 0; i < nr_args; i++) {
-            PyObject *pymbr = make_pyobj_from_variant(pyinfo, argv[i]);
-            if (pymbr == NULL) {
-                Py_DECREF(arg);
-                goto failed;
-            }
-
-            if (PyTuple_SetItem(arg, i, pymbr)) {
-                Py_DECREF(arg);
-                goto failed_python;
-            }
-        }
-
-        result = PyObject_Call(callable, arg, NULL);
-    }
-
-    if (result == NULL)
-        goto failed_python;
-
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
-    Py_DECREF(result);
-    return ret;
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pycallable_setter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    PyObject *callable;
-    if (property_name == NULL) {
-        callable = native_entity;
-    }
-    else {
-        PyObject *parent = native_entity;
-        callable = PyObject_GetAttrString(parent, property_name);
-    }
-
-    assert(PyCallable_Check(callable));
-
-    PyObject *args = NULL, *kwargs = NULL;
-    PyObject *result = NULL;
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-    else if (!purc_variant_is_object(argv[0])) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
-    args = PyTuple_New(0);
-    if (args == NULL)
-        goto failed_python;
-
-    kwargs = make_pyobj_from_variant(pyinfo, argv[0]);
-    if (kwargs == NULL)
-        goto failed;
-
-    assert(PyDict_Check(kwargs));
-    result = PyObject_Call(callable, args, kwargs);
-    if (result == NULL) {
-        goto failed_python;
-    }
-
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
-    if (ret == PURC_VARIANT_INVALID)
-        goto failed;
-    Py_DECREF(args);
-    Py_DECREF(kwargs);
-    Py_DECREF(result);
-    return ret;
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    Py_XDECREF(result);
-    Py_XDECREF(args);
-    Py_XDECREF(kwargs);
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pycallable_method_getter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    PyObject *callable = native_entity;
-    assert(PyCallable_Check(callable));
-
-    PyObject *method = PyObject_GetAttrString(callable, property_name);
-    assert(PyMethod_Check(method));
-
-    PyObject *name = PyUnicode_FromString(property_name);
-    if (name == NULL)
-        goto failed_python;
-
-    PyObject *result;
-    if (nr_args == 0) {
-        result = PyObject_CallMethodNoArgs(callable, name);
-    }
-    else if (nr_args == 1) {
-        PyObject *arg = make_pyobj_from_variant(pyinfo, argv[0]);
-        if (arg == NULL)
-            goto failed;
-
-        result = PyObject_CallMethodOneArg(callable, name, arg);
-        Py_DECREF(arg);
-    }
-    else {
-        PyObject *vc_args[nr_args + 1]; // use vectorcall
-        vc_args[0] = callable;
-
-        for (size_t i = 0; i < nr_args; i++) {
-            PyObject *pymbr = make_pyobj_from_variant(pyinfo, argv[i]);
-            if (pymbr == NULL) {
-                goto failed;
-            }
-
-            vc_args[i + 1] = pymbr;
-        }
-
-        result = PyObject_VectorcallMethod(name, vc_args, nr_args + 1, NULL);
-        for (size_t i = 0; i < nr_args; i++) {
-            Py_DECREF(vc_args[i + 1]);
-        }
-    }
-
-    if (result == NULL)
-        goto failed_python;
-
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
-    Py_DECREF(result);
-    return ret;
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t pycallable_method_setter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
-
-    PyObject *callable = native_entity;
-    assert(PyCallable_Check(callable));
-
-    PyObject *method = PyObject_GetAttrString(callable, property_name);
-    assert(PyMethod_Check(method));
-
-    PyObject *name = PyUnicode_FromString(property_name);
-    if (name == NULL)
-        goto failed_python;
-
-    PyObject *kwargs = NULL;
-    PyObject *result = NULL;
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-    else if (!purc_variant_is_object(argv[0])) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-
-    kwargs = make_pyobj_from_variant(pyinfo, argv[0]);
-    if (kwargs == NULL)
-        goto failed;
-
-    result = PyObject_VectorcallMethod(name, &callable, 1, kwargs);
-    if (result == NULL)
-        goto failed_python;
-
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
-    Py_DECREF(kwargs);
-    Py_DECREF(result);
-    return ret;
-
-failed_python:
-    handle_python_error(pyinfo);
-failed:
-    Py_XDECREF(result);
-    Py_XDECREF(kwargs);
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_nvariant_method
-pycallable_property_getter_getter(void* native_entity,
-        const char* property_name)
-{
-    PyObject *callable = (PyObject *)native_entity;
-    assert(callable);
-    assert(property_name);
-
-    PyObject *val = PyObject_GetAttrString(callable, property_name);
-    if (val == NULL) {
-        purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-        return NULL;
-    }
-    else if (PyMethod_Check(val)) {
-        return pycallable_method_getter;
-    }
-    else if (PyCallable_Check(val)) {
-        return pycallable_getter;
-    }
-    else {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return NULL;
-    }
-}
-
-static purc_nvariant_method
-pycallable_property_setter_getter(void* native_entity,
-            const char* property_name)
-{
-    PyObject *callable = (PyObject *)native_entity;
-    assert(callable);
-    assert(property_name);
-
-    PyObject *val = PyObject_GetAttrString(callable, property_name);
-    if (val == NULL) {
-        purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-        return NULL;
-    }
-    else if (PyMethod_Check(val)) {
-        return pycallable_method_setter;
-    }
-    else if (PyCallable_Check(val)) {
-        return pycallable_setter;
-    }
-    else {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        return NULL;
-    }
-}
-
-static struct purc_native_ops native_pycallable_ops = {
-    .getter = pycallable_getter,
-    .setter = pycallable_setter,
-    .property_getter = pycallable_property_getter_getter,
-    .property_setter = pycallable_property_setter_getter,
-    .on_release = on_release_pyobject,
-};
-
-static purc_nvariant_method pymodule_property_getter(void* native_entity,
-            const char* property_name)
-{
-    PyObject *module = native_entity;
-    assert(PyModule_Check(module));
-
-    PyObject *obj = PyObject_GetAttrString(module, property_name);
-    if (obj == NULL) {
-        struct dvobj_pyinfo *pyinfo = get_pyinfo();
-        handle_python_error(pyinfo);
-        return NULL;
-    }
-    else if (PyCallable_Check(obj)) {
-        return pycallable_getter;
-    }
-
-    return pyobject_getter;
-}
-
-static purc_nvariant_method pymodule_property_setter(void* native_entity,
-            const char* property_name)
-{
-    PyObject *module = native_entity;
-    assert(PyModule_Check(module));
-
-    PyObject *obj = PyObject_GetAttrString(module, property_name);
-    if (obj == NULL) {
-        struct dvobj_pyinfo *pyinfo = get_pyinfo();
-        handle_python_error(pyinfo);
-        return NULL;
-    }
-    else if (PyCallable_Check(obj)) {
-        return pycallable_setter;
-    }
-
-    return pyobject_setter;
-}
-
-static struct purc_native_ops native_pymodule_ops = {
-    .property_getter = pymodule_property_getter,
-    .property_setter = pymodule_property_setter,
-    .on_release = on_release_pyobject,
-};
 
 static purc_variant_t import_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
@@ -2024,7 +2243,7 @@ static purc_variant_t import_getter(purc_variant_t root,
 
     Py_INCREF(module);
     if ((val = purc_variant_make_native_entity(module,
-                    &native_pymodule_ops, PY_NATIVE_PREFIX "module")) == NULL) {
+                    &native_pyobject_ops, PY_NATIVE_PREFIX "module")) == NULL) {
         Py_DECREF(module);
         goto failed;
     }
@@ -2061,7 +2280,7 @@ static purc_variant_t import_getter(purc_variant_t root,
             Py_INCREF(obj);
             if (PyCallable_Check(obj)) {
                 if ((val = purc_variant_make_native_entity(obj,
-                                &native_pycallable_ops,
+                                &native_pyobject_ops,
                                 PY_NATIVE_PREFIX "callable")) == NULL) {
                     Py_DECREF(obj);
                     goto failed;
@@ -2074,7 +2293,7 @@ static purc_variant_t import_getter(purc_variant_t root,
             }
             else if (PyModule_Check(obj)) {
                 if ((val = purc_variant_make_native_entity(obj,
-                                &native_pymodule_ops,
+                                &native_pyobject_ops,
                                 PY_NATIVE_PREFIX "module")) == NULL) {
                     Py_DECREF(obj);
                     goto failed;
@@ -2154,7 +2373,14 @@ static purc_variant_t stringify_getter(purc_variant_t root,
         }
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    assert(PyUnicode_Check(result));
+    const char *c_str = PyUnicode_AsUTF8(result);
+    if (c_str == NULL) {
+        handle_python_error(pyinfo);
+        goto failed_python;
+    }
+
+    purc_variant_t ret = purc_variant_make_string(c_str, false);
     Py_DECREF(result);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
@@ -2289,7 +2515,7 @@ static purc_variant_t compile_getter(purc_variant_t root,
     }
 
     if ((val = purc_variant_make_native_entity(locals,
-                    &native_pycode_locals_ops,
+                    &native_pyobject_ops,
                     PY_NATIVE_PREFIX "dict")) == NULL)
         goto failed;
     if (!purc_variant_object_set_by_static_ckey(ret, PY_KEY_LOCAL, val))
@@ -2429,17 +2655,26 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
-static void on_release_pyinfo(void* native_entity)
+static bool on_py_being_released(purc_variant_t src, pcvar_op_t op,
+        void *ctxt, size_t nr_args, purc_variant_t *argv)
 {
-    struct dvobj_pyinfo *pyinfo = native_entity;
+    UNUSED_PARAM(src);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
 
-    Py_DECREF(pyinfo->locals);
+    if (op == PCVAR_OPERATION_RELEASING) {
+        struct dvobj_pyinfo *pyinfo = ctxt;
 
-    assert(Py_IsInitialized());
-    Py_Finalize();
+        Py_DECREF(pyinfo->locals);
 
-    pcutils_map_destroy(pyinfo->reserved_symbols);
-    free(pyinfo);
+        assert(Py_IsInitialized());
+        Py_Finalize();
+
+        pcutils_map_destroy(pyinfo->reserved_symbols);
+        free(pyinfo);
+    }
+
+    return true;
 }
 
 static purc_variant_t create_py(void)
@@ -2449,10 +2684,6 @@ static purc_variant_t create_py(void)
         { PY_KEY_IMPORT,        import_getter,      NULL },
         { PY_KEY_STRINGIFY,     stringify_getter,   NULL },
         { PY_KEY_COMPILE,       compile_getter,     NULL },
-    };
-
-    static struct purc_native_ops pyinfo_ops = {
-        .on_release = on_release_pyinfo,
     };
 
     if (!Py_IsInitialized()) {
@@ -2466,6 +2697,8 @@ static purc_variant_t create_py(void)
                     keywords2atoms[i].keyword);
         }
     }
+
+    printf("%s called:\n", __func__);
 
     purc_variant_t py = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
@@ -2522,21 +2755,20 @@ static purc_variant_t create_py(void)
 
         PyObject *globals = PyModule_GetDict(m);
         if ((val = purc_variant_make_native_entity(globals,
-                        &native_pydict_ops, PY_NATIVE_PREFIX "dict")) == NULL)
+                        &native_pyobject_ops, PY_NATIVE_PREFIX "dict")) == NULL)
             goto fatal;
         if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_GLOBAL, val))
             goto fatal;
         purc_variant_unref(val);
 
         if ((val = purc_variant_make_native_entity(pyinfo->locals,
-                        &native_pydict_ops, PY_NATIVE_PREFIX "dict")) == NULL)
+                        &native_pyobject_ops, PY_NATIVE_PREFIX "dict")) == NULL)
             goto fatal;
         if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_LOCAL, val))
             goto fatal;
         purc_variant_unref(val);
 
-        if ((val = purc_variant_make_native((void *)pyinfo,
-                        &pyinfo_ops)) == NULL)
+        if ((val = purc_variant_make_native((void *)pyinfo, NULL)) == NULL)
             goto fatal;
         if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_HANDLE, val))
             goto fatal;
@@ -2546,6 +2778,9 @@ static purc_variant_t create_py(void)
         if (!purc_variant_object_set_by_static_ckey(py, PY_KEY_EXCEPT, val))
             goto fatal;
         purc_variant_unref(val);
+
+        purc_variant_register_post_listener(py, PCVAR_OPERATION_RELEASING,
+                on_py_being_released, pyinfo);
         return py;
     }
 
@@ -2709,288 +2944,4 @@ const char *__purcex_get_dynamic_variant_desc(size_t idx)
     else
         return dvobjs[idx].desc;
 }
-
-#if 0 /* deprecated */
-#define TMP_FILE_TEMPLATE       "/tmp/hvml-py-XXXXXX"
-
-static int redirect_stdout(char *tmpfile)
-{
-    int fd = mkstemp(tmpfile);
-    if (fd >= 0) {
-        close(fd);
-        FILE *fp = freopen(tmpfile, "w+", stdout);
-        if (fp == NULL)
-            goto failed;
-        return 0;
-    }
-
-failed:
-    return -1;
-}
-
-static purc_variant_t restore_stdout(void)
-{
-    long sz;
-
-    if (fseek(stdout, 0L, SEEK_END))
-        goto failed;
-
-    sz = ftell(stdout);
-    char *p = malloc(sz + 1);
-    if (p == NULL)
-        goto failed;
-
-    rewind(stdout);
-    size_t read = fread(p, 1, sz, stdout);
-    p[read] = '\0';
-
-    fclose(stdout);
-    stdout = fdopen(STDOUT_FILENO, "w");
-
-    return purc_variant_make_string_reuse_buff(p, sz + 1, false);
-
-failed:
-    return purc_variant_make_string_static("", false);
-}
-
-static purc_variant_t global_getter(purc_variant_t root,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
-    purc_variant_t ret = PURC_VARIANT_INVALID;
-    PyObject *m, *globals;
-    m = PyImport_AddModule("__main__");
-    if (m == NULL)
-        goto failed;
-
-    globals = PyModule_GetDict(m);
-    if (nr_args == 0) {
-        ret = make_variant_from_pyobj(pyinfo, globals);
-    }
-    else {
-
-        const char *symbol;
-        size_t symbol_len;
-        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-        if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-            purc_set_error(PURC_ERROR_BAD_NAME);
-            goto failed;
-        }
-
-        PyObject *val = PyDict_GetItemString(globals, symbol);
-        if (val == NULL) {
-            purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-            goto failed;
-        }
-
-        ret = make_variant_from_pyobj(pyinfo, val);
-    }
-
-    return ret;
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t global_setter(purc_variant_t root,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
-    PyObject *m, *globals;
-    m = PyImport_AddModule("__main__");
-    if (m == NULL)
-        goto failed;
-
-    globals = PyModule_GetDict(m);
-    if (nr_args > 1) {
-
-        const char *symbol;
-        size_t symbol_len;
-        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-        if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-            purc_set_error(PURC_ERROR_BAD_NAME);
-            goto failed;
-        }
-
-        if (purc_variant_is_undefined(argv[1])) {
-            if (PyDict_DelItemString(globals, symbol)) {
-                handle_python_error(pyinfo);
-                goto failed;
-            }
-        }
-        else {
-            PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
-            if (pyobj == NULL) {
-                goto failed;
-            }
-
-            if (PyDict_SetItemString(globals, symbol, pyobj)) {
-                handle_python_error(pyinfo);
-                goto failed;
-            }
-        }
-    }
-    else {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
-    return purc_variant_make_boolean(true);
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t local_getter(purc_variant_t root,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
-    PyObject *locals = pyinfo->locals;
-    purc_variant_t ret;
-
-    if (nr_args == 0) {
-        ret = make_variant_from_pyobj(pyinfo, locals);
-    }
-    else {
-
-        const char *symbol;
-        size_t symbol_len;
-        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-        if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-            purc_set_error(PURC_ERROR_BAD_NAME);
-            goto failed;
-        }
-
-        PyObject *val = PyDict_GetItemString(locals, symbol);
-        if (val == NULL) {
-            purc_set_error(PCVRNT_ERROR_NO_SUCH_KEY);
-            goto failed;
-        }
-
-        ret = make_variant_from_pyobj(pyinfo, val);
-    }
-
-    return ret;
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_undefined();
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t local_setter(purc_variant_t root,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
-    PyObject *locals = pyinfo->locals;
-
-    if (nr_args > 1) {
-
-        const char *symbol;
-        size_t symbol_len;
-        symbol = purc_variant_get_string_const_ex(argv[0], &symbol_len);
-        if (symbol == NULL || symbol_len == 0) {
-            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
-
-        if (!purc_is_valid_token(symbol, MAX_SYMBOL_LEN)) {
-            purc_set_error(PURC_ERROR_BAD_NAME);
-            goto failed;
-        }
-
-        if (purc_variant_is_undefined(argv[1])) {
-            if (PyDict_DelItemString(locals, symbol)) {
-                handle_python_error(pyinfo);
-                goto failed;
-            }
-        }
-        else {
-            PyObject *pyobj = make_pyobj_from_variant(pyinfo, argv[1]);
-            if (pyobj == NULL) {
-                goto failed;
-            }
-
-            if (PyDict_SetItemString(locals, symbol, pyobj)) {
-                handle_python_error(pyinfo);
-                goto failed;
-            }
-        }
-    }
-    else {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
-    return purc_variant_make_boolean(true);
-
-failed:
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean(false);
-
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t call_pyfunc(void* native_entity,
-            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-
-    return purc_variant_make_undefined();
-}
-
-static purc_nvariant_method property_getter(void* native_entity,
-            const char* property_name)
-{
-    struct dvobj_pyinfo *pyinfo = native_entity;
-    assert(&pyinfo == pyinfo);
-
-    pcutils_map_entry *entry = pcutils_map_find(pyinfo->reserved_symbols, property_name);
-    if (entry) {
-        PyObject *o = (PyObject *)entry->val;
-        if (PyFunction_Check(o)) {
-            return call_pyfunc;
-        }
-        else if (PyModule_Check(o)) {
-            /* We use a Python Capsule to store the variant created for
-               the module */
-            PyObject *cap = PyObject_GetAttrString(o, PY_ATTR_HVML);
-            if (PyCapsule_CheckExact(cap)) {
-                purc_variant_t mod_entity;
-                mod_entity = PyCapsule_GetPointer(p, NULL);
-                assert(mod_entity);
-
-                return 
-            }
-        }
-    }
-
-    return NULL;
-}
-#endif /* deprecated */
 

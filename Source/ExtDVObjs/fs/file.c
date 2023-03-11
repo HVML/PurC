@@ -728,7 +728,7 @@ stream_open_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
-    
+
     return PURC_VARIANT_INVALID;
 }
 

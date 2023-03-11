@@ -305,6 +305,9 @@ static inline purc_nvariant_method
 property_getter(void *native_entity, const char *key_name)
 {
     UNUSED_PARAM(native_entity);
+    if (key_name == NULL)
+        goto failed;
+
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     if (strcmp(vcm_ev->method_name, key_name) == 0) {
         return eval_getter;
@@ -328,7 +331,8 @@ property_getter(void *native_entity, const char *key_name)
         return constantly_getter;
     }
 
-
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -336,10 +340,11 @@ static inline purc_nvariant_method
 property_setter(void *native_entity, const char *key_name)
 {
     UNUSED_PARAM(native_entity);
-    if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
+    if (key_name && strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
         return last_value_setter;
     }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

@@ -350,9 +350,12 @@ property_getter(void *entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_getter)
         return cfg->property_getter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -362,9 +365,12 @@ property_setter(void *entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_setter)
         return cfg->property_setter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -374,9 +380,12 @@ property_eraser(void *entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_eraser)
         return cfg->property_eraser;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -386,9 +395,12 @@ property_cleaner(void *entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_cleaner)
         return cfg->property_cleaner;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

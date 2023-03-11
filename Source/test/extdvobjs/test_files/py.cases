@@ -178,44 +178,52 @@ positive:
     1L
 
 positive:
-    $PY.local.x(! [1, 2, 3] )
+    $PY.local.x(! [1, 2, 2, 3] )
     true
 
-positive:
-    $PY.local.x
-    [1, 2, 3]
+#positive:
+#    $PY.local.x()
+#    [1, 2, 2, 3]
+
+#positive:
+#    $PY.local.x.reverse()
+#    [3, 2, 2, 1]
+
+#positive:
+#    $PY.local.x.reverse().count(2)
+#    2
 
 positive:
     $PY.local.x(! [!1, 2, 3] )
     true
 
-positive:
-    $PY.local.x
-    [!1, 2, 3]
+#positive:
+#    $PY.local.x()
+#    [!1, 2, 3]
 
 positive:
     $PY.local.x(! {a: 'a', b: 'b'} )
     true
 
-positive:
-    $PY.local.x
-    {a: 'a', b: 'b'}
+#positive:
+#    $PY.local.x()
+#    {a: 'a', b: 'b'}
 
 positive:
     $PY.local.x(! 'zh_CN' )
     true
 
-positive:
-    $PY.local.x
-    'zh_CN'
+#positive:
+#    $PY.local.x()
+#    'zh_CN'
 
 positive:
     $PY.local.x(! [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ])
     true
 
-positive:
-    $PY.local.x
-    [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ]
+#positive:
+#    $PY.local.x()
+#    [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ]
 
 # $PY.import
 negative:

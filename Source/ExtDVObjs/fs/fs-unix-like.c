@@ -3348,20 +3348,23 @@ property_getter(void* native_entity, const char* key_name)
 {
     UNUSED_PARAM(native_entity);
 
-    switch (key_name[0]) {
-    case 'r':
-        if (strcmp(key_name, "read") == 0) {
-            return on_dir_read;
-        }
-        if (strcmp(key_name, "rewind") == 0) {
-            return on_dir_rewind;
-        }
-        break;
+    if (key_name) {
+        switch (key_name[0]) {
+        case 'r':
+            if (strcmp(key_name, "read") == 0) {
+                return on_dir_read;
+            }
+            if (strcmp(key_name, "rewind") == 0) {
+                return on_dir_rewind;
+            }
+            break;
 
-    default:
-        break;
+        default:
+            break;
+        }
     }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -3428,7 +3431,7 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (ret_var == PURC_VARIANT_INVALID) {
         goto failed;
     }
-    
+
     return ret_var;
 
 failed:

@@ -173,7 +173,7 @@ name_getter(void *native_entity, const char *property_name,
     return PURC_VARIANT_INVALID;
 }
 
-static inline purc_nvariant_method
+static purc_nvariant_method
 property_getter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);
@@ -181,7 +181,7 @@ property_getter(void *entity, const char *key_name)
     return name_getter;
 }
 
-static inline purc_nvariant_method
+static purc_nvariant_method
 property_setter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);
@@ -200,9 +200,6 @@ purc_variant_t
 vcm_again_variant_create()
 {
     static struct purc_native_ops ops = {
-        .getter                = NULL,
-        .setter                = NULL,
-
         .property_getter        = property_getter,
         .property_setter        = property_setter,
         .property_cleaner       = NULL,

@@ -842,18 +842,10 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
     UNUSED_PARAM(name);
     UNUSED_PARAM(elem);
     static struct purc_native_ops ops = {
-        .property_getter            = NULL,
-        .property_setter            = NULL,
-        .property_eraser            = NULL,
-        .property_cleaner           = NULL,
+        .did_matched                = did_matched,
 
-        .updater                    = NULL,
-        .cleaner                    = NULL,
-        .eraser                     = NULL,
-        .did_matched               = did_matched,
-
-        .on_observe                = on_observe,
-        .on_release                = on_release,
+        .on_observe                 = on_observe,
+        .on_release                 = on_release,
     };
 
     struct pcvarmgr_named_variables_observe *named =
