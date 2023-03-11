@@ -398,6 +398,14 @@ positive:
     20.0
 
 positive:
+    $RUNNER.myObj.pyCode.entity
+    pyObject::code
+
+positive:
+    $DATA.type($PY.stringify($RUNNER.myObj.pyCode.entity))
+    'string'
+
+positive:
     $RUNNER.user(! 'pyCode', undefined )
     true
 
