@@ -56,6 +56,7 @@
 #define PY_KEY_STRINGIFY    "stringify"
 #define PY_KEY_COMPILE      "compile"
 #define PY_KEY_EVAL         "eval"
+#define PY_KEY_ENTITY       "entity"
 #define PY_KEY_HANDLE       "__handle_python__"
 
 #define PY_INFO_VERSION     "version"
@@ -2525,6 +2526,19 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t code_entity_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    purc_variant_t val = purc_variant_object_get_by_ckey(root, PY_KEY_HANDLE);
+    assert(val && purc_variant_is_native(val));
+
+    return purc_variant_ref(val);
+}
+
 static purc_variant_t compile_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
@@ -2565,6 +2579,7 @@ static purc_variant_t compile_getter(purc_variant_t root,
 
     static struct purc_dvobj_method methods[] = {
         { PY_KEY_EVAL,      code_eval_getter,       NULL },
+        { PY_KEY_ENTITY,    code_entity_getter,     NULL },
     };
 
     ret = purc_dvobj_make_from_methods(methods, PCA_TABLESIZE(methods));
