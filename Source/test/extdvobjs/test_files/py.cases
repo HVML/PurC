@@ -96,6 +96,18 @@ positive:
     5.0
 
 positive:
+    $PY.global.get('x')
+    5.0
+
+positive:
+    $PY.global.pop('x')
+    5.0
+
+negative:
+    $PY.global.x
+    NoSuchKey
+
+positive:
     $PY.global.x(! 5.0 )
     true
 
