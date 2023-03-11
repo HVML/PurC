@@ -1535,6 +1535,8 @@ pcvrnt_set_iterator_get_value(struct pcvrnt_set_iterator* it)
 void
 pcvariant_set_release(purc_variant_t value)
 {
+    pcvariant_on_post_fired(value, PCVAR_OPERATION_RELEASING, 0, NULL);
+
     variant_set_t data = pcvar_set_get_data(value);
     PC_ASSERT(data);
 

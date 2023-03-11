@@ -746,6 +746,8 @@ purc_variant_make_object (size_t nr_kv_pairs,
 
 void pcvariant_object_release (purc_variant_t value)
 {
+    pcvariant_on_post_fired(value, PCVAR_OPERATION_RELEASING, 0, NULL);
+
     variant_obj_t data = pcvar_obj_get_data(value);
 
     struct rb_root *root = &data->kvs;

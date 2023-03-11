@@ -672,18 +672,23 @@ typedef purc_variant_t (*purc_nvariant_method)(
  */
 struct purc_native_ops {
     /** This operation gets the value represented by
-      * the native entity itself (nullable). */
+      * the native entity itself (nullable).
     purc_nvariant_method getter;
 
-    /** This operation sets the value represented by
-      * the native entity itself (nullable). */
+    ** This operation sets the value represented by
+      * the native entity itself (nullable).
     purc_nvariant_method setter;
+    */
 
-    /** This operation returns the getter for a specific property. */
+    /** This operation returns the getter for a specific property.
+      * If @property_name is NULL, it returns the getter for
+      * the native entity itself. */
     purc_nvariant_method (*property_getter)(void* native_entity,
             const char* property_name);
 
-    /** This operation returns the setter for a specific property. */
+    /** This operation returns the setter for a specific property.
+      * If @property_name is NULL, it returns the setter for
+      * the native entity itself. */
     purc_nvariant_method (*property_setter)(void* native_entity,
             const char* property_name);
 
@@ -3386,7 +3391,8 @@ typedef enum {
     PCVAR_OPERATION_SHRINK       = (0x01 << 1),
     PCVAR_OPERATION_CHANGE       = (0x01 << 2),
     PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
-    PCVAR_OPERATION_ALL          = ((0x01 << 4) - 1),
+    PCVAR_OPERATION_RELEASING    = (0x01 << 4),
+    PCVAR_OPERATION_ALL          = ((0x01 << 5) - 1),
 } pcvar_op_t;
 
 typedef bool (*pcvar_op_handler) (
@@ -3436,6 +3442,8 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *        The contents of the container have changed.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant was referenced as a child of another container.
+ *      - PCVAR_OPERATION_RELEASING:
+ *        The variant is being released.
  * @handler: The callback that will be called upon the listened event is fired.
  * @ctxt: The context will be passed to the callback.
  *

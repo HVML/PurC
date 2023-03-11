@@ -108,6 +108,7 @@ property_getter(void *entity, const char *name)
     }
 
 out:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return method;
 }
 
