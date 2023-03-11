@@ -181,6 +181,10 @@ positive:
     $PY.local.x(! [1, 2, 2, 3] )
     true
 
+positive:
+    $PY.local.x
+    pyObject::any
+
 #positive:
 #    $PY.local.x()
 #    [1, 2, 2, 3]
@@ -208,6 +212,14 @@ positive:
 #positive:
 #    $PY.local.x()
 #    {a: 'a', b: 'b'}
+
+positive:
+    $PY.local.x.a
+    pyObject::any
+
+#positive:
+#    $PY.local.x.a()
+#    'a'
 
 positive:
     $PY.local.x(! 'zh_CN' )
