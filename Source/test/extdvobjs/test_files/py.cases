@@ -302,6 +302,27 @@ positive:
     $PY.td
     pyObject::callable
 
+# $PY.pythonize
+negative:
+    $PY.pythonize()
+    ArgumentMissed
+
+negative:
+    $PY.pythonize(0)
+    WrongDataType
+
+negative:
+    $PY.pythonize(undefined)
+    WrongDataType
+
+positive:
+    $PY.pythonize('Hello, world!')
+    pyObject::any
+
+positive:
+    $PY.pythonize('Hello, world!').upper()()
+    'HELLO, WORLD!'
+
 # $PY.stringify
 positive:
     $PY.stringify($PY.dt.fromtimestamp(1429417200.0))

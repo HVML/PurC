@@ -52,6 +52,7 @@
 #define PY_KEY_LOCAL        "local"
 #define PY_KEY_RUN          "run"
 #define PY_KEY_IMPORT       "import"
+#define PY_KEY_PYTHONIZE    "pythonize"
 #define PY_KEY_STRINGIFY    "stringify"
 #define PY_KEY_COMPILE      "compile"
 #define PY_KEY_EVAL         "eval"
@@ -405,222 +406,212 @@ static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,
 
     enum purc_variant_type t = purc_variant_get_type(v);
     switch (t) {
-        case PURC_VARIANT_TYPE_UNDEFINED:
-        case PURC_VARIANT_TYPE_NULL:
-            pyobj = Py_NewRef(Py_None);
-            break;
+    case PURC_VARIANT_TYPE_UNDEFINED:
+    case PURC_VARIANT_TYPE_NULL:
+        pyobj = Py_NewRef(Py_None);
+        break;
 
-        case PURC_VARIANT_TYPE_BOOLEAN:
-            if (purc_variant_is_true(v))
-                pyobj = Py_NewRef(Py_True);
-            else
-                pyobj = Py_NewRef(Py_False);
-            break;
+    case PURC_VARIANT_TYPE_BOOLEAN:
+        if (purc_variant_is_true(v))
+            pyobj = Py_NewRef(Py_True);
+        else
+            pyobj = Py_NewRef(Py_False);
+        break;
 
-        case PURC_VARIANT_TYPE_EXCEPTION:
-        case PURC_VARIANT_TYPE_ATOMSTRING:
-        case PURC_VARIANT_TYPE_STRING:
-            {
-                const char *string;
-                size_t length;
-                string = purc_variant_get_string_const_ex(v, &length);
-                assert(string);
-                pyobj = PyUnicode_DecodeUTF8(string, length, NULL);
+    case PURC_VARIANT_TYPE_EXCEPTION:
+    case PURC_VARIANT_TYPE_ATOMSTRING:
+    case PURC_VARIANT_TYPE_STRING: {
+        const char *string;
+        size_t length;
+        string = purc_variant_get_string_const_ex(v, &length);
+        assert(string);
+        pyobj = PyUnicode_DecodeUTF8(string, length, NULL);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_NUMBER: {
+        double d;
+        purc_variant_cast_to_number(v, &d, false);
+        pyobj = PyFloat_FromDouble(d);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_LONGINT: {
+        int64_t l;
+        purc_variant_cast_to_longint(v, &l, false);
+        if (sizeof(long long) >= sizeof(int64_t))
+            pyobj = PyLong_FromLongLong((long long)l);
+        else
+            pyobj = PyLong_FromDouble((double)l);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_ULONGINT: {
+        uint64_t ul;
+        purc_variant_cast_to_ulongint(v, &ul, false);
+        if (sizeof(unsigned long long) >= sizeof(int64_t))
+            pyobj = PyLong_FromUnsignedLongLong((unsigned long long)ul);
+        else
+            pyobj = PyLong_FromDouble((double)ul);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_LONGDOUBLE: {
+        long double ld;
+        purc_variant_cast_to_longdouble(v, &ld, false);
+        pyobj = PyFloat_FromDouble((double)ld);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_BSEQUENCE: {
+        const unsigned char* bytes;
+        size_t length;
+        bytes = purc_variant_get_bytes_const(v, &length);
+        pyobj = PyByteArray_FromStringAndSize((const char *)bytes,
+                length);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_DYNAMIC:
+        pyobj = Py_NewRef(Py_None);
+        break;
+
+    case PURC_VARIANT_TYPE_NATIVE: {
+        const char *name = purc_variant_native_get_name(v);
+        if (!strncmp(name, PY_NATIVE_PREFIX, PY_NATIVE_PREFIX_LEN)) {
+            pyobj = purc_variant_native_get_entity(v);
+            if (pyobj) {
+                pyobj = Py_NewRef(pyobj);
                 break;
             }
+        }
+        pyobj = Py_NewRef(Py_None);
+        break;
+    }
 
-        case PURC_VARIANT_TYPE_NUMBER:
-            {
-                double d;
-                purc_variant_cast_to_number(v, &d, false);
-                pyobj = PyFloat_FromDouble(d);
-                break;
-            }
+    case PURC_VARIANT_TYPE_OBJECT: {
+        pyobj = PyDict_New();
+        if (pyobj == NULL)
+            goto failed;
 
-        case PURC_VARIANT_TYPE_LONGINT:
-            {
-                int64_t l;
-                purc_variant_cast_to_longint(v, &l, false);
-                if (sizeof(long long) >= sizeof(int64_t))
-                    pyobj = PyLong_FromLongLong((long long)l);
-                else
-                    pyobj = PyLong_FromDouble((double)l);
-                break;
-            }
+        struct pcvrnt_object_iterator* it;
+        it = pcvrnt_object_iterator_create_begin(v);
+        while (it) {
+            const char     *key = pcvrnt_object_iterator_get_ckey(it);
+            purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
 
-        case PURC_VARIANT_TYPE_ULONGINT:
-            {
-                uint64_t ul;
-                purc_variant_cast_to_ulongint(v, &ul, false);
-                if (sizeof(unsigned long long) >= sizeof(int64_t))
-                    pyobj = PyLong_FromUnsignedLongLong((unsigned long long)ul);
-                else
-                    pyobj = PyLong_FromDouble((double)ul);
-                break;
-            }
-
-        case PURC_VARIANT_TYPE_LONGDOUBLE:
-            {
-                long double ld;
-                purc_variant_cast_to_longdouble(v, &ld, false);
-                pyobj = PyFloat_FromDouble((double)ld);
-                break;
-            }
-
-        case PURC_VARIANT_TYPE_BSEQUENCE:
-            {
-                const unsigned char* bytes;
-                size_t length;
-                bytes = purc_variant_get_bytes_const(v, &length);
-                pyobj = PyByteArray_FromStringAndSize((const char *)bytes,
-                        length);
-                break;
-            }
-
-        case PURC_VARIANT_TYPE_DYNAMIC:
-            pyobj = Py_NewRef(Py_None);
-            break;
-
-        case PURC_VARIANT_TYPE_NATIVE:
-            {
-                const char *name = purc_variant_native_get_name(v);
-                if (!strncmp(name, PY_NATIVE_PREFIX, PY_NATIVE_PREFIX_LEN)) {
-                    pyobj = purc_variant_native_get_entity(v);
-                    pyobj = Py_NewRef(pyobj);
-                }
-                else {
-                    pyobj = Py_NewRef(Py_None);
-                }
-                break;
-            }
-
-        case PURC_VARIANT_TYPE_OBJECT:
-            {
-                pyobj = PyDict_New();
-                if (pyobj == NULL)
-                    goto failed;
-
-                struct pcvrnt_object_iterator* it;
-                it = pcvrnt_object_iterator_create_begin(v);
-                while (it) {
-                    const char     *key = pcvrnt_object_iterator_get_ckey(it);
-                    purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
-
-                    PyObject *pyval = make_pyobj_from_variant(pyinfo, val);
-                    if (pyval == NULL) {
-                        pcvrnt_object_iterator_release(it);
-                        goto failed_subcall;
-                    }
-
-                    if (PyDict_SetItemString(pyobj, key, pyval)) {
-                        pcvrnt_object_iterator_release(it);
-                        goto failed;
-                    }
-
-                    if (!pcvrnt_object_iterator_next(it))
-                        break;
-                }
+            PyObject *pyval = make_pyobj_from_variant(pyinfo, val);
+            if (pyval == NULL) {
                 pcvrnt_object_iterator_release(it);
-                break;
+                goto failed_subcall;
             }
 
-        case PURC_VARIANT_TYPE_ARRAY:
-            {
-                size_t sz;
-                purc_variant_array_size(v, &sz);
-                pyobj = PyList_New(sz);
-                if (pyobj == NULL)
+            if (PyDict_SetItemString(pyobj, key, pyval)) {
+                pcvrnt_object_iterator_release(it);
+                goto failed;
+            }
+
+            if (!pcvrnt_object_iterator_next(it))
+                break;
+        }
+        pcvrnt_object_iterator_release(it);
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_ARRAY: {
+        size_t sz;
+        purc_variant_array_size(v, &sz);
+        pyobj = PyList_New(sz);
+        if (pyobj == NULL)
+            goto failed;
+
+        for (size_t i = 0; i < sz; i++) {
+            purc_variant_t mbr = purc_variant_array_get(v, i);
+
+            PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+            if (pymbr == NULL) {
+                goto failed_subcall;
+            }
+
+            if (PyList_SetItem(pyobj, i, pymbr)) {
+                goto failed;
+            }
+        }
+
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_TUPLE: {
+        size_t sz;
+        purc_variant_tuple_size(v, &sz);
+        pyobj = PyTuple_New(sz);
+        if (pyobj == NULL)
+            goto failed;
+
+        for (size_t i = 0; i < sz; i++) {
+            purc_variant_t mbr = purc_variant_tuple_get(v, i);
+
+            PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+            if (pymbr == NULL) {
+                goto failed_subcall;
+            }
+
+            if (PyTuple_SetItem(pyobj, i, pymbr)) {
+                goto failed;
+            }
+        }
+
+        break;
+    }
+
+    case PURC_VARIANT_TYPE_SET: {
+        const char *unique_keys;
+        purc_variant_set_unique_keys(v, &unique_keys);
+        size_t sz;
+        purc_variant_set_size(v, &sz);
+
+        if (unique_keys == NULL) {
+            /* make a PySet from this set variant */
+            pyobj = PySet_New(NULL);
+            if (pyobj == NULL)
+                goto failed;
+
+            for (size_t i = 0; i < sz; i++) {
+                purc_variant_t mbr;
+                mbr = purc_variant_set_get_by_index(v, i);
+
+                PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                if (pymbr == NULL) {
+                    goto failed_subcall;
+                }
+
+                if (PySet_Add(pyobj, pymbr)) {
                     goto failed;
+                }
+            }
+        }
+        else {
+            /* make a PyList from this set variant */
+            pyobj = PyList_New(sz);
+            if (pyobj == NULL)
+                goto failed;
 
-                for (size_t i = 0; i < sz; i++) {
-                    purc_variant_t mbr = purc_variant_array_get(v, i);
+            for (size_t i = 0; i < sz; i++) {
+                purc_variant_t mbr = purc_variant_array_get(v, i);
 
-                    PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
-                    if (pymbr == NULL) {
-                        goto failed_subcall;
-                    }
-
-                    if (PyList_SetItem(pyobj, i, pymbr)) {
-                        goto failed;
-                    }
+                PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
+                if (pymbr == NULL) {
+                    goto failed_subcall;
                 }
 
-                break;
-            }
-
-        case PURC_VARIANT_TYPE_TUPLE:
-            {
-                size_t sz;
-                purc_variant_tuple_size(v, &sz);
-                pyobj = PyTuple_New(sz);
-                if (pyobj == NULL)
+                if (PyList_SetItem(pyobj, i, pymbr)) {
                     goto failed;
-
-                for (size_t i = 0; i < sz; i++) {
-                    purc_variant_t mbr = purc_variant_tuple_get(v, i);
-
-                    PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
-                    if (pymbr == NULL) {
-                        goto failed_subcall;
-                    }
-
-                    if (PyTuple_SetItem(pyobj, i, pymbr)) {
-                        goto failed;
-                    }
                 }
-
-                break;
             }
+        }
 
-        case PURC_VARIANT_TYPE_SET:
-            {
-                const char *unique_keys;
-                purc_variant_set_unique_keys(v, &unique_keys);
-                size_t sz;
-                purc_variant_set_size(v, &sz);
-
-                if (unique_keys == NULL) {
-                    /* make a PySet from this set variant */
-                    pyobj = PySet_New(NULL);
-                    if (pyobj == NULL)
-                        goto failed;
-
-                    for (size_t i = 0; i < sz; i++) {
-                        purc_variant_t mbr;
-                        mbr = purc_variant_set_get_by_index(v, i);
-
-                        PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
-                        if (pymbr == NULL) {
-                            goto failed_subcall;
-                        }
-
-                        if (PySet_Add(pyobj, pymbr)) {
-                            goto failed;
-                        }
-                    }
-                }
-                else {
-                    /* make a PyList from this set variant */
-                    pyobj = PyList_New(sz);
-                    if (pyobj == NULL)
-                        goto failed;
-
-                    for (size_t i = 0; i < sz; i++) {
-                        purc_variant_t mbr = purc_variant_array_get(v, i);
-
-                        PyObject *pymbr = make_pyobj_from_variant(pyinfo, mbr);
-                        if (pymbr == NULL) {
-                            goto failed_subcall;
-                        }
-
-                        if (PyList_SetItem(pyobj, i, pymbr)) {
-                            goto failed;
-                        }
-                    }
-                }
-
-                break;
-            }
+        break;
+    }
     }
 
 failed:
@@ -2338,6 +2329,73 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t pythonize_getter(purc_variant_t root,
+            size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
+    PyObject *result = NULL;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+    else {
+        switch (purc_variant_get_type(argv[0])) {
+        case PURC_VARIANT_TYPE_UNDEFINED:
+        case PURC_VARIANT_TYPE_NULL:
+        case PURC_VARIANT_TYPE_BOOLEAN:
+        case PURC_VARIANT_TYPE_NUMBER:
+        case PURC_VARIANT_TYPE_LONGINT:
+        case PURC_VARIANT_TYPE_ULONGINT:
+        case PURC_VARIANT_TYPE_LONGDOUBLE:
+        case PURC_VARIANT_TYPE_DYNAMIC:
+            break;
+
+        case PURC_VARIANT_TYPE_NATIVE: {
+            const char *name = purc_variant_native_get_name(argv[0]);
+            if (strncmp(name, PY_NATIVE_PREFIX, PY_NATIVE_PREFIX_LEN)) {
+                purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+                goto failed;
+            }
+
+            result = purc_variant_native_get_entity(argv[0]);
+            if (result) {
+                Py_NewRef(result);
+            }
+
+            break;
+        }
+
+        default:
+            result = make_pyobj_from_variant(pyinfo, argv[0]);
+            if (result == NULL)
+                goto failed;
+            break;
+        }
+    }
+
+    if (result == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    purc_variant_t ret;
+    ret = purc_variant_make_native_entity(result, &native_pyobject_ops,
+            PY_NATIVE_PREFIX "any");
+    if (ret == PURC_VARIANT_INVALID) {
+        Py_DECREF(result);
+        goto failed;
+    }
+
+    return ret;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t stringify_getter(purc_variant_t root,
             size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
@@ -2682,6 +2740,7 @@ static purc_variant_t create_py(void)
     static struct purc_dvobj_method methods[] = {
         { PY_KEY_RUN,           run_getter,         NULL },
         { PY_KEY_IMPORT,        import_getter,      NULL },
+        { PY_KEY_PYTHONIZE,     pythonize_getter,   NULL },
         { PY_KEY_STRINGIFY,     stringify_getter,   NULL },
         { PY_KEY_COMPILE,       compile_getter,     NULL },
     };
@@ -2740,6 +2799,7 @@ static purc_variant_t create_py(void)
         pcutils_map_insert(pyinfo->reserved_symbols, PY_KEY_IMPORT, NULL);
         pcutils_map_insert(pyinfo->reserved_symbols, PY_KEY_STRINGIFY, NULL);
         pcutils_map_insert(pyinfo->reserved_symbols, PY_KEY_COMPILE, NULL);
+        pcutils_map_insert(pyinfo->reserved_symbols, PY_KEY_HANDLE, NULL);
 
         if ((val = make_impl_object()) == PURC_VARIANT_INVALID)
             goto fatal;
