@@ -100,15 +100,18 @@ property_getter(void *entity, const char *name)
 
     purc_atom_t atom = purc_atom_try_string_ex(SORTED_ARRAY_ATOM_BUCKET, name);
     if (atom == 0) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         goto out;
     }
 
     if (atom == sorted_array_type_atom) {
         method = type_getter;
     }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    }
 
 out:
-    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return method;
 }
 
