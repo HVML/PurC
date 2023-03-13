@@ -637,12 +637,12 @@ static struct purc_native_ops native_pyobject_ops = {
     .on_release = on_release_pyobject,
 };
 
-static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
-        PyObject *pyobj)
+static purc_variant_t make_variant_from_basic_pyobj(PyObject *pyobj,
+        bool *is_basic)
 {
-    UNUSED_PARAM(pyinfo);
     purc_variant_t v = PURC_VARIANT_INVALID;
 
+    *is_basic = true;
     if (pyobj == Py_None) {
         v = purc_variant_make_null();
     }
@@ -695,28 +695,41 @@ static purc_variant_t make_variant_from_pyobj(struct dvobj_pyinfo *pyinfo,
         v = purc_variant_make_number(d);
     }
     else {
+        *is_basic = false;
+    }
+
+    return v;
+}
+
+static purc_variant_t make_variant_from_pyobj(PyObject *pyobj)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
+    bool is_basic;
+    v = make_variant_from_basic_pyobj(pyobj, &is_basic);
+    if (!is_basic) {
         Py_INCREF(pyobj);
         v = purc_variant_make_native_entity(pyobj, &native_pyobject_ops,
                 PY_NATIVE_PREFIX "any");
         if (v == PURC_VARIANT_INVALID) {
             Py_DECREF(pyobj);
-            goto failed;
         }
     }
 
     return v;
-
-failed:
-    if (v)
-        purc_variant_unref(v);
-    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
         PyObject *pyobj)
 {
     purc_variant_t v;
-    if (PyBytes_Check(pyobj)) {
+    bool is_basic;
+    v = make_variant_from_basic_pyobj(pyobj, &is_basic);
+
+    if (is_basic) {
+        // do nothing.
+    }
+    else if (PyBytes_Check(pyobj)) {
         char *buffer;
         Py_ssize_t length;
         PyBytes_AsStringAndSize(pyobj, &buffer, &length);
@@ -759,7 +772,7 @@ static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
 
             purc_variant_t hvml_k, hvml_v;
             hvml_k = purc_variant_make_string(c_key, false);
-            hvml_v = make_variant_from_pyobj(pyinfo, value);
+            hvml_v = convert_pyobj_to_variant(pyinfo, value);
             if (hvml_k && hvml_v) {
                 if (!purc_variant_object_set(v, hvml_k, hvml_v))
                     goto failed;
@@ -783,7 +796,7 @@ static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
         Py_ssize_t sz = PyList_Size(pyobj);
         for (Py_ssize_t i = 0; i < sz; i++) {
             PyObject *member = PyList_GetItem(pyobj, i);
-            purc_variant_t hvml_m = make_variant_from_pyobj(pyinfo, member);
+            purc_variant_t hvml_m = convert_pyobj_to_variant(pyinfo, member);
             if (hvml_m) {
                 if (!purc_variant_array_append(v, hvml_m))
                     goto failed;
@@ -801,7 +814,7 @@ static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
 
         for (Py_ssize_t i = 0; i < sz; i++) {
             PyObject *member = PyTuple_GetItem(pyobj, i);
-            purc_variant_t hvml_m = make_variant_from_pyobj(pyinfo, member);
+            purc_variant_t hvml_m = convert_pyobj_to_variant(pyinfo, member);
             if (hvml_m) {
                 if (!purc_variant_tuple_set(v, i, hvml_m))
                     goto failed;
@@ -825,7 +838,7 @@ static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
             goto failed;
 
         while ((item = PyIter_Next(iter))) {
-            purc_variant_t hvml_item = make_variant_from_pyobj(pyinfo, item);
+            purc_variant_t hvml_item = convert_pyobj_to_variant(pyinfo, item);
             Py_DECREF(item);
 
             if (hvml_item == PURC_VARIANT_INVALID) {
@@ -870,7 +883,7 @@ static purc_variant_t convert_pyobj_to_variant(struct dvobj_pyinfo *pyinfo,
         v = purc_variant_make_string(buff, false);
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, pyobj);
+    purc_variant_t ret = make_variant_from_pyobj(pyobj);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
     return ret;
@@ -940,7 +953,7 @@ static purc_variant_t pycallable_self_getter(void* native_entity,
     if (result == NULL)
         goto failed_python;
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(result);
     return ret;
 
@@ -1002,7 +1015,7 @@ static purc_variant_t pycallable_self_setter(void* native_entity,
         goto failed_python;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
     Py_DECREF(args);
@@ -1056,7 +1069,7 @@ static purc_variant_t pydict_self_getter(void *native_entity,
             goto failed;
         }
 
-        ret = make_variant_from_pyobj(pyinfo, val);
+        ret = make_variant_from_pyobj(val);
     }
 
     if (ret == PURC_VARIANT_INVALID)
@@ -1117,7 +1130,7 @@ static purc_variant_t pyobject_self_getter(void* native_entity,
                 goto failed_python;
             }
 
-            ret = make_variant_from_pyobj(pyinfo, val);
+            ret = make_variant_from_pyobj(val);
             if (ret == PURC_VARIANT_INVALID)
                 goto failed;
         }
@@ -1422,7 +1435,7 @@ static purc_variant_t pyobject_method_getter(void* native_entity,
     if (result == NULL)
         goto failed_python;
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(result);
     return ret;
 
@@ -1477,7 +1490,7 @@ static purc_variant_t pyobject_method_setter(void* native_entity,
     if (result == NULL)
         goto failed_python;
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(kwargs);
     Py_DECREF(result);
     return ret;
@@ -1535,7 +1548,7 @@ static purc_variant_t pyobject_attr_getter(void* native_entity,
         goto failed_python;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, attr);
+    purc_variant_t ret = make_variant_from_pyobj(attr);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
     return ret;
@@ -1559,12 +1572,9 @@ static purc_variant_t pydict_item_getter(void *native_entity,
         const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    struct dvobj_pyinfo *pyinfo = get_pyinfo();
     PyObject *dict = (PyObject *)native_entity;
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-
-    printf("FUNC %s called\n", __func__);
 
     assert(property_name);
     PyObject *val = PyDict_GetItemString(dict, property_name);
@@ -1573,7 +1583,7 @@ static purc_variant_t pydict_item_getter(void *native_entity,
         goto failed;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, val);
+    purc_variant_t ret = make_variant_from_pyobj(val);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
     return ret;
@@ -1750,7 +1760,7 @@ static purc_variant_t run_command(purc_variant_t root,
         goto failed;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(result);
     return ret;
 
@@ -1802,7 +1812,7 @@ static purc_variant_t run_module(purc_variant_t root,
         goto failed;
     }
 
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(result);
     return ret;
 
@@ -1847,7 +1857,7 @@ static purc_variant_t run_file(purc_variant_t root,
     }
 
     fclose(fp);
-    purc_variant_t ret = make_variant_from_pyobj(pyinfo, result);
+    purc_variant_t ret = make_variant_from_pyobj(result);
     Py_DECREF(result);
     return ret;
 
@@ -2511,7 +2521,7 @@ static purc_variant_t code_eval_getter(purc_variant_t root,
     }
 
     purc_variant_t ret;
-    ret = make_variant_from_pyobj(pyinfo, result);
+    ret = make_variant_from_pyobj(result);
     if (ret == PURC_VARIANT_INVALID)
         goto failed;
 
