@@ -28,13 +28,11 @@ def random_walk(num_steps, max_step=0.05):
     walk = start_pos + np.cumsum(steps, axis=0)
     return walk
 
-
 def update_lines(num, walks, lines):
     for line, walk in zip(lines, walks):
         # NOTE: there is no .set_data() for 3 dim data...
         line.set_data(walk[:num, :2].T)
         line.set_3d_properties(walk[:num, 2])
-
 
 # Data: 40 random walks as (num_steps, 3) arrays
 num_steps = 30
@@ -61,30 +59,23 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
         </choose>
 
         <div id='myNS' >
-            <img id="fig" src="aa" width="638" height="476" />
+            <img id="theFigure" width="638" height="476" />
 
             <init as 'step' at '#myNS' with 0L />
             <observe on $TIMERS for "expired:clock">
                 <inherit>
                     {{
-                            $STREAM.stdout.writelines("going to handle Frame $step");
-                            $STREAM.stdout.writelines("generated file: frame-$step.png")
+                            $STREAM.stdout.writelines("Going to handle Frame {$step}...");
+                            $PY.global.update_lines()($step, $PY.global.walks, $PY.global.lines);
+                            $PY.global.fig.canvas.draw_idle();
+                            $PY.global.fig.savefig("frame-{$step}.svg");
+                            $STREAM.stdout.writelines("File frame-{$step}.svg generated")
                     }}
                 </inherit>
 
-                <inherit>
-                    {{
-                            $PY.global.update_lines($step, $PY.global.walks, $PY.global.lines);
-                            $PY.global.fig.savefig("frame-$step.png")
-                    }}
-                </inherit>
-
-                <inherit>
-                            $STREAM.stdout.writelines("generated file: frame-$step.png")
-                </inherit>
-
+                <update on '#theFigure' at 'attr.href' with "file://$SYS.cwd/frame-{$step}.svg" />
                 <init as 'step' at '#myNS' with $DATA.arith('+', $step, 1) />
-                <test with $L.gt($step, 10) >
+                <test with $L.gt($step, 30) >
                     <exit with "Ok" />
                 </test>
             </observe>

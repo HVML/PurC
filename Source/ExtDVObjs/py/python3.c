@@ -1396,7 +1396,6 @@ static purc_variant_t pyobject_method_getter(void* native_entity,
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
 
     PyObject *pyobj = native_entity;
-    assert(PyCallable_Check(pyobj));
 
 #ifndef NDEBUG
     PyObject *method = PyObject_GetAttrString(pyobj, property_name);
