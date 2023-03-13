@@ -1042,6 +1042,8 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
             }
             foil_region_init(&ly_floating_ctxt.region,
                     &ly_floating_ctxt.rgnrc_heap);
+            foil_region_add_rect(&ly_floating_ctxt.region, &box->ctnt_rect);
+            ly_floating_ctxt.top = box->ctnt_rect.top;
         }
 
         foil_rdrbox *child = box->first;
@@ -1056,6 +1058,15 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                 }
                 else {
                     foil_rdrbox_lay_block_in_container(ctxt, box, child);
+                    if (box->nr_floating_children) {
+                        foil_rect rc;
+                        rc.left = child->ctnt_rect.left - child->pl - child->bl;
+                        rc.right = child->ctnt_rect.right + child->pr + child->br;
+                        rc.top = child->ctnt_rect.top - child->pt - child->bt;
+                        rc.bottom = child->ctnt_rect.bottom + child->pb + child->bb;
+                        ly_floating_ctxt.top = rc.bottom;
+                        foil_region_subtract_rect(&ly_floating_ctxt.region, &rc);
+                    }
                 }
             }
 

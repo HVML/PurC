@@ -583,6 +583,7 @@ typedef struct foil_layout_floating_ctxt {
     int pt_rb_x;
     int pt_rb_y;
 
+    int top;
     foil_block_heap rgnrc_heap;
     foil_region region;
 } foil_layout_floating_ctxt;

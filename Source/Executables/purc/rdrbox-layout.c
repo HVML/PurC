@@ -2686,6 +2686,7 @@ static void calc_floating_left(foil_layout_ctxt *ctxt,
         return;
     }
 
+
     if (prev->floating == FOIL_RDRBOX_FLOAT_NONE) {
         int real_mt, real_mb;
         collapse_margins(ctxt, prev, &real_mt, &real_mb);
@@ -2766,7 +2767,7 @@ static void calc_floating_right(foil_layout_ctxt *ctxt,
     }
 }
 
-void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+void foil_rdrbox_lay_floating_in_container_o(foil_layout_ctxt *ctxt,
         foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box)
 {
@@ -2792,3 +2793,53 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
 #endif
 }
 
+void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        foil_layout_floating_ctxt *float_ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box)
+{
+    (void) container;
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for floating box: %s.\n", name);
+#endif
+
+    int w = box->right - box->left;
+    int h = box->bottom - box->top;
+
+    foil_region *region = &float_ctxt->region;
+    foil_rgnrc_p rg = region->head;
+    foil_rect *rc_dest = NULL;
+    foil_rect *rgrc = NULL;
+    while(rg) {
+        rgrc = &rg->rc;
+        if (rgrc->bottom < float_ctxt->top) {
+            rg = rg->next;
+            continue;
+        }
+        int rgw = rgrc->right - rgrc->left;
+        int rgh = rgrc->bottom - rgrc->top;
+        if (rgw >= w && rgh >= h) {
+            rc_dest = &rg->rc;
+            break;
+        }
+        rg = rg->next;
+    }
+
+    if (rc_dest) {
+        int left = rc_dest->left;
+        int top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
+        foil_rect_offset(&box->ctnt_rect, left, top);
+        foil_rect rc;
+        rc.left = box->ctnt_rect.left - box->pl - box->bl;
+        rc.right = box->ctnt_rect.right + box->pr + box->br;
+        rc.top = box->ctnt_rect.top - box->pt - box->bt;
+        rc.bottom = box->ctnt_rect.bottom + box->pb + box->bb;
+        float_ctxt->top = rc.top;
+        foil_region_subtract_rect(region, &rc);
+    }
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for floating box: %s.\n", name);
+    free(name);
+#endif
+}
