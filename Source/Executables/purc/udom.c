@@ -1029,12 +1029,21 @@ resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
+    foil_layout_floating_ctxt ly_floating_ctxt = {0};
     if ((box->is_block_level)
             && box->nr_inline_level_children > 0) {
         foil_rdrbox_lay_lines_in_block(ctxt, box);
     }
     else if (box->is_block_container) {
-        foil_layout_floating_ctxt ly_floating_ctxt = {0};
+        if (box->nr_floating_children) {
+            if (!foil_region_rect_heap_init(&ly_floating_ctxt.rgnrc_heap,
+                    FOIL_DEF_RGNRCHEAP_SZ)) {
+                goto out;
+            }
+            foil_region_init(&ly_floating_ctxt.region,
+                    &ly_floating_ctxt.rgnrc_heap);
+        }
+
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_block_level) {
@@ -1047,9 +1056,6 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                 }
                 else {
                     foil_rdrbox_lay_block_in_container(ctxt, box, child);
-                    if (ly_floating_ctxt.l_box || ly_floating_ctxt.r_box) {
-                        ly_floating_ctxt = (foil_layout_floating_ctxt) {0};
-                    }
                 }
             }
 
@@ -1061,6 +1067,12 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
     if (box->type == FOIL_RDRBOX_TYPE_LIST_ITEM &&
             box->list_item_data->marker_box) {
         foil_rdrbox_lay_marker_box(ctxt, box);
+    }
+
+out:
+    if (ly_floating_ctxt.rgnrc_heap.heap) {
+        foil_region_empty(&ly_floating_ctxt.region);
+        foil_region_rect_heap_cleanup(&ly_floating_ctxt.rgnrc_heap);
     }
 }
 

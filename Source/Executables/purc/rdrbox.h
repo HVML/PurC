@@ -28,6 +28,7 @@
 
 #include "foil.h"
 #include "region/rect.h"
+#include "region/region.h"
 
 #include <glib.h>
 #include <csseng/csseng.h>
@@ -581,6 +582,9 @@ typedef struct foil_layout_floating_ctxt {
     int pt_lb_y;
     int pt_rb_x;
     int pt_rb_y;
+
+    foil_block_heap rgnrc_heap;
+    foil_region region;
 } foil_layout_floating_ctxt;
 
 #ifdef __cplusplus
