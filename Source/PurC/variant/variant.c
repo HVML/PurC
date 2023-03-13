@@ -1690,7 +1690,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             // let dlopen to handle path search
             n = snprintf(so, sizeof(so), "%s", so_name);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-            library_handle = dlopen(so, RTLD_LAZY);
+            library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             break;
         }
         if (so_name && strchr(so_name, '.')) {
@@ -1733,7 +1733,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
                         "%s/libpurc-dvobj-%s%s",
                         dir, so_name ? so_name : var_name, ext);
                 PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-                library_handle = dlopen(so, RTLD_LAZY);
+                library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
 
                 if (library_handle) {
                     break;
@@ -1759,7 +1759,7 @@ purc_variant_t purc_variant_load_dvobj_from_so (const char *so_name,
             n = snprintf(so, sizeof(so), other_tries[i],
                     ver, so_name ? so_name : var_name, ext);
             PC_ASSERT(n>0 && (size_t)n<sizeof(so));
-            library_handle = dlopen(so, RTLD_LAZY);
+            library_handle = dlopen(so, RTLD_LAZY | RTLD_GLOBAL);
             if (library_handle) {
                 break;
             }

@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#undef NDEBUG
+// #undef NDEBUG
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -64,6 +64,7 @@
 #define PY_INFO_COPYRIGHT   "copyright"
 #define PY_INFO_COMPILER    "compiler"
 #define PY_INFO_BUILD_INFO  "build-info"
+#define PY_INFO_PATH        "path"
 
 #define PY_ATTR_ARG_PREFIX      "__attr_hvml::"
 #define PY_ATTR_ARG_PRE_LEN     (sizeof(PY_ATTR_ARG_PREFIX) - 1)
@@ -77,6 +78,10 @@
 enum {
 #define _KW_command                 "command"
     K_KW_command,
+#define _KW_statement               "statement"
+    K_KW_statement,
+#define _KW_source                  "source"
+    K_KW_source,
 #define _KW_module                  "module"
     K_KW_module,
 #define _KW_file                    "file"
@@ -92,6 +97,8 @@ static struct keyword_to_atom {
     purc_atom_t atom;
 } keywords2atoms [] = {
     { _KW_command, 0 },                 // "command"
+    { _KW_statement, 0 },               // "statement"
+    { _KW_source, 0 },                  // "source"
     { _KW_module, 0 },                  // "module"
     { _KW_file, 0 },                    // "file"
     { _KW_skip_first_line, 0 },         // "skip-first-line"
@@ -134,14 +141,8 @@ static inline struct dvobj_pyinfo *get_pyinfo(void)
 {
     assert(Py_IsInitialized());
     PyObject *m = PyImport_AddModule("__main__");
-    if (m == NULL) {
-        PyErr_Print();
-    }
     assert(m);
     PyObject *cap = PyObject_GetAttrString(m, PY_ATTR_HVML);
-    if (cap == NULL) {
-        PyErr_Print();
-    }
     assert(PyCapsule_CheckExact(cap));
     struct dvobj_pyinfo *pyinfo = PyCapsule_GetPointer(cap, PY_ATTR_HVML);
     assert(pyinfo);
@@ -167,6 +168,10 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
     PyObject *pyerr = PyErr_Occurred();
     if (pyerr == NULL)
         return;
+
+#ifndef NDEBUG
+    PyErr_Print();
+#endif
 
     if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -228,9 +233,9 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
         set_python_except(pyinfo, "GeneratorExit");
     }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ImportError)) {
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "ImportError");
+        set_python_except(pyinfo, "TabError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndentationError)) {
         hvml_err = PURC_ERROR_INTERNAL_FAILURE;
@@ -263,6 +268,14 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ModuleNotFoundError)) {
         hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
         set_python_except(pyinfo, "ModuleNotFoundError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ImportError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "ImportError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
+        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        set_python_except(pyinfo, "UnboundLocalError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NameError)) {
         hvml_err = PURC_ERROR_BAD_NAME;
@@ -324,10 +337,6 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
         hvml_err = PURC_ERROR_SYS_FAULT;
         set_python_except(pyinfo, "SystemExit");
     }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "TabError");
-    }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TimeoutError)) {
         hvml_err = PURC_ERROR_TIMEOUT;
         set_python_except(pyinfo, "TimeoutError");
@@ -335,10 +344,6 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TypeError)) {
         hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
         set_python_except(pyinfo, "TypeError");
-    }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "UnboundLocalError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeDecodeError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
@@ -348,13 +353,13 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
         hvml_err = PURC_ERROR_BAD_ENCODING;
         set_python_except(pyinfo, "UnicodeEncodeError");
     }
-    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(pyinfo, "UnicodeError");
-    }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeTranslateError)) {
         hvml_err = PURC_ERROR_BAD_ENCODING;
         set_python_except(pyinfo, "UnicodeTranslateError");
+    }
+    else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
+        hvml_err = PURC_ERROR_BAD_ENCODING;
+        set_python_except(pyinfo, "UnicodeError");
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ValueError)) {
         hvml_err = PURC_ERROR_INVALID_VALUE;
@@ -909,7 +914,8 @@ static purc_variant_t pycallable_self_getter(void* native_entity,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     assert(native_entity);
-    assert(property_name == NULL);
+    UNUSED_PARAM(property_name);
+
     PyObject *pyobj = native_entity;
     assert(PyCallable_Check(pyobj));
 
@@ -977,7 +983,7 @@ static purc_variant_t pycallable_self_setter(void* native_entity,
         const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
-    assert(property_name == NULL);
+    UNUSED_PARAM(property_name);
 
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
     PyObject *pyobj = native_entity;
@@ -1104,9 +1110,10 @@ static purc_variant_t pyobject_self_getter(void* native_entity,
 {
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
+    UNUSED_PARAM(property_name);
+
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
     PyObject *pyobj = native_entity;
-    assert(property_name == NULL);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
     const char *name = NULL;
@@ -1315,10 +1322,10 @@ static purc_variant_t pyobject_self_setter(void* native_entity,
         const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     PyObject *pyobj = native_entity;
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
     assert(pyobj);
-    assert(property_name == NULL);
 
     if (nr_args == 0) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -1391,8 +1398,10 @@ static purc_variant_t pyobject_method_getter(void* native_entity,
     PyObject *pyobj = native_entity;
     assert(PyCallable_Check(pyobj));
 
+#ifndef NDEBUG
     PyObject *method = PyObject_GetAttrString(pyobj, property_name);
     assert(PyMethod_Check(method));
+#endif
 
     PyObject *name = PyUnicode_FromString(property_name);
     if (name == NULL)
@@ -1461,8 +1470,10 @@ static purc_variant_t pyobject_method_setter(void* native_entity,
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
     PyObject *pyobj = native_entity;
 
+#ifndef NDEBUG
     PyObject *method = PyObject_GetAttrString(pyobj, property_name);
     assert(PyMethod_Check(method));
+#endif
 
     PyObject *name = PyUnicode_FromString(property_name);
     if (name == NULL)
@@ -1725,8 +1736,9 @@ enum {
     RUN_OPT_SET_ARGV0               = 0x0004,
 };
 
-static purc_variant_t run_command(purc_variant_t root,
-        const char *cmd, size_t len, PyCompilerFlags *cf, unsigned options)
+static purc_variant_t run_string(purc_variant_t root,
+        const char *cmd, size_t len, int start,
+        PyCompilerFlags *cf, unsigned options)
 {
     struct dvobj_pyinfo *pyinfo = get_pyinfo_from_root(root);
     UNUSED_PARAM(len);
@@ -1749,8 +1761,9 @@ static purc_variant_t run_command(purc_variant_t root,
         goto failed;
 
     globals = PyModule_GetDict(m);
-    result = PyRun_StringFlags(cmd, Py_eval_input,
-            globals, pyinfo->locals, cf);
+    result = PyRun_StringFlags(cmd, start, globals,
+            PyDict_Size(pyinfo->locals) == 0 ? globals : pyinfo->locals,
+            cf);
     if (result == NULL) {
         handle_python_error(pyinfo);
         goto failed;
@@ -1846,8 +1859,8 @@ static purc_variant_t run_file(purc_variant_t root,
     }
 
     globals = PyModule_GetDict(m);
-    result = PyRun_FileFlags(fp, fname, Py_eval_input,
-            globals, pyinfo->locals, cf);
+    result = PyRun_FileFlags(fp, fname, Py_file_input, globals,
+            PyDict_Size(pyinfo->locals) == 0 ? globals : pyinfo->locals, cf);
     if (result == NULL) {
         goto failed;
     }
@@ -1871,6 +1884,8 @@ static purc_variant_t run_getter(purc_variant_t root,
     enum {
         RUN_TYPE_UNKNOWN = -1,
         RUN_TYPE_COMMAND = 0,
+        RUN_TYPE_STATEMENT,
+        RUN_TYPE_SOURCE,
         RUN_TYPE_MODULE,
         RUN_TYPE_FILE,
     } run_type = RUN_TYPE_UNKNOWN;
@@ -1922,6 +1937,14 @@ static purc_variant_t run_getter(purc_variant_t root,
                     // command
                     run_type = RUN_TYPE_COMMAND;
                 }
+                else if (atom == keywords2atoms[K_KW_statement].atom) {
+                    // statement
+                    run_type = RUN_TYPE_STATEMENT;
+                }
+                else if (atom == keywords2atoms[K_KW_source].atom) {
+                    // source
+                    run_type = RUN_TYPE_SOURCE;
+                }
                 else if (atom == keywords2atoms[K_KW_module].atom) {
                     // module
                     run_options |= RUN_OPT_SET_ARGV0;
@@ -1962,8 +1985,14 @@ empty_option:
     switch (run_type) {
         case RUN_TYPE_UNKNOWN:
         case RUN_TYPE_COMMAND:
+        case RUN_TYPE_STATEMENT:
+        case RUN_TYPE_SOURCE:
             cf.cf_flags |= PyCF_SOURCE_IS_UTF8;
-            ret = run_command(root, cmd_mod_file, len, &cf, run_options);
+            ret = run_string(root, cmd_mod_file, len,
+                    (run_type == RUN_TYPE_SOURCE) ? Py_file_input :
+                        ((run_type == RUN_TYPE_STATEMENT) ? Py_single_input :
+                            Py_eval_input),
+                    &cf, run_options);
             break;
 
         case RUN_TYPE_MODULE:
@@ -2225,7 +2254,8 @@ static purc_variant_t import_getter(purc_variant_t root,
         goto failed;
     }
 
-    PyObject *module = PyImport_ImportModuleEx(module_name, globals, locals,
+    PyObject *module = PyImport_ImportModuleEx(module_name, globals,
+            (PyDict_Size(locals) == 0) ? globals : locals,
             fromlist);
     if (module == NULL) {
         goto failed_python;
@@ -2503,7 +2533,8 @@ static purc_variant_t code_eval_getter(purc_variant_t root,
         }
     }
 
-    PyObject *result = PyEval_EvalCode(code, globals, locals);
+    PyObject *result = PyEval_EvalCode(code, globals,
+            (PyDict_Size(locals) == 0) ? globals : locals);
     if (globals != def_globals)
         Py_DECREF(globals);
     if (locals != def_locals)
@@ -2669,6 +2700,57 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t info_path_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t * argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    char *path = Py_EncodeLocale(Py_GetPath(), NULL);
+    if (path) {
+        purc_variant_t ret = purc_variant_make_string(path, false);
+        PyMem_Free(path);
+        return ret;
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t info_path_setter(purc_variant_t root,
+        size_t nr_args, purc_variant_t * argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    const char *str = purc_variant_get_string_const(argv[0]);
+    if (str == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    wchar_t *path = Py_DecodeLocale(str, NULL);
+    if (path == NULL) {
+        purc_set_error(PURC_ERROR_BAD_STDC_CALL);
+        goto failed;
+    }
+
+    Py_SetPath(path);
+    PyMem_RawFree(path);
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_variant_t make_info_object(void)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
@@ -2719,6 +2801,14 @@ static purc_variant_t make_info_object(void)
         goto fatal;
     purc_variant_unref(val);
 
+    val = purc_variant_make_dynamic(info_path_getter, info_path_setter);
+    if (val == PURC_VARIANT_INVALID)
+        goto fatal;
+    if (!purc_variant_object_set_by_static_ckey(retv,
+                PY_INFO_PATH, val))
+        goto fatal;
+    purc_variant_unref(val);
+
     return retv;
 
 fatal:
@@ -2764,6 +2854,9 @@ static purc_variant_t create_py(void)
 
     if (!Py_IsInitialized()) {
         Py_Initialize();
+#ifndef NDEBUG
+        Py_VerboseFlag = 1;
+#endif
     }
 
     if (keywords2atoms[0].atom == 0) {
@@ -2773,8 +2866,6 @@ static purc_variant_t create_py(void)
                     keywords2atoms[i].keyword);
         }
     }
-
-    printf("%s called:\n", __func__);
 
     purc_variant_t py = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;

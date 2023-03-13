@@ -421,3 +421,7 @@ positive:
     $PY.compile('math.pow(x, y)').eval( null, { x: 2, y: 3 } )
     8
 
+positive:
+    {{ $PY.info.path(!""); $PY.info.path }}
+    ""
+
