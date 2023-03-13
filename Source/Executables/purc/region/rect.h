@@ -363,7 +363,8 @@ void foil_rect_get_bound (foil_rect_p pdrc,
 int foil_rect_get_subtract (foil_rect* rc,
         const foil_rect* psrc1, const foil_rect* psrc2);
 
-foil_rect foil_rect_get_max_inscribed_rect(foil_rect *rects[], size_t nr_rects);
+int foil_rect_get_max_inscribed_rect(foil_rect *rects[], size_t nr_rects,
+        int min_width, int min_height, foil_rect *dest);
 
 #ifdef __cplusplus
 }
