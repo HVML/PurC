@@ -54,12 +54,6 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
 '''
         </init>
 
-        <choose on {{ $PY.import('numpy') }} >
-            <catch for `InternalFailure`>
-                <p>A Python exception raised when calling import: $PY.except</p>
-            </catch>
-        </choose>
-
         <choose on {{ $PY.run($pyCode, 'source') }} >
             <catch for `InternalFailure`>
                 <p>A Python exception raised: $PY.except</p>
@@ -74,6 +68,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                 <inherit>
                     {{
                             $STREAM.stdout.writelines("going to handle Frame $step");
+                            $STREAM.stdout.writelines("generated file: frame-$step.png")
                     }}
                 </inherit>
 
