@@ -2529,6 +2529,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_STRING_ESCAPE)
         case '\\':
         case '"':
         case '\'':
+        case '.':
             APPEND_TO_TEMP_BUFFER(character);
             ADVANCE_TO(parser->return_state);
             break;
