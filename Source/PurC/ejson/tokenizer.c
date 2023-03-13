@@ -1216,6 +1216,9 @@ BEGIN_STATE(EJSON_TKZ_STATE_RIGHT_PARENTHESIS)
     if (character == '[' || character == '.') {
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
+    if (character == '(') {
+        RECONSUME_IN(EJSON_TKZ_STATE_LEFT_PARENTHESIS);
+    }
     update_tkz_stack(parser);
     RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
 END_STATE()
