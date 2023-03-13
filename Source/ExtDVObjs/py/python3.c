@@ -85,8 +85,6 @@ enum {
     K_KW_skip_first_line,
 #define _KW_dont_write_byte_code    "dont-write-byte-code"
     K_KW_dont_write_byte_code,
-#define _KW_return_stdout           "return-stdout"
-    K_KW_return_stdout,
 };
 
 static struct keyword_to_atom {
@@ -98,7 +96,6 @@ static struct keyword_to_atom {
     { _KW_file, 0 },                    // "file"
     { _KW_skip_first_line, 0 },         // "skip-first-line"
     { _KW_dont_write_byte_code, 0 },    // "dont-write-byte-code"
-    { _KW_return_stdout, 0 },           // "return-stdout"
 };
 
 #if PY_VERSION_HEX < 0x030a0000
@@ -1090,11 +1087,11 @@ failed:
  * If the PyObject is callable, it calls the object with the tuple argument.
  * If there is no argument, it converts the PyObject to the HVML representation:
  *
- *  - Python Bytes and ByteArray: HVML byte sequence.
- *  - Python string: HVML string
- *  - Python list: HVML array
- *  - Python dictionary: object
- *  - Python set: HVML generic set
+ *  - Python Bytes and ByteArray: an HVML byte sequence.
+ *  - Python string: an HVML string.
+ *  - Python list: an HVML array.
+ *  - Python dictionary: an HVML object.
+ *  - Python set: an HVML generic set.
  *  - Others: an HVML string returned by PyObject_Str().
  *
  * If the PyObject is a dictionary, and the first argument is a string which
@@ -1310,8 +1307,8 @@ failed:
  * `__attr_hvml:`, the setter will operate according to the type of PyObject:
  *  - PyCallable: call the object by treating the first arugment as the
  *      keyword argument.
- *  - PyDict: clear the dictionary, update/remove an item,
- *      reset an dictionary.
+ *  - PyDict: merge properties of an HVML object to the dictionary,
+ *      update or remove an item.
  *  - PySet: reset or clear the set.
  */
 static purc_variant_t pyobject_self_setter(void* native_entity,
@@ -1454,7 +1451,7 @@ failed:
  * The method getter can be used to support the following usage:
     {{
         $PY.local.x(! [1, 2, 2, 3] );
-        $PY.local.x.count(2)
+        $PY.local.x.foo(! {bar: 'aaa' } )
     }}
  */
 static purc_variant_t pyobject_method_setter(void* native_entity,
@@ -1565,7 +1562,7 @@ failed:
  * This getter is used to get the value of the specified key of a PyDict:
  *
     {{
-        $PY.local.x(! 3 ); $PY.local.x
+        $PY.local.x(! 3 ); $PY.local.x()
     }}
  */
 static purc_variant_t pydict_item_getter(void *native_entity,
@@ -1599,7 +1596,7 @@ failed:
  * This setter is used to set the value of the specified key of a PyDict:
  *
     {{
-        $PY.local.x(! [1, 2, 2, 3] );
+        $PY.local.x(! [1, 2, 2, 3] )
     }}
  */
 static purc_variant_t pydict_item_setter(void *native_entity,
@@ -1725,8 +1722,7 @@ static void on_release_pyobject(void* native_entity)
 enum {
     RUN_OPT_SKIP_FIRST_LINE         = 0x0001,
     RUN_OPT_DONT_WRITE_BYTE_CODE    = 0x0002,
-    RUN_OPT_RETURN_STDOUT           = 0x0004,
-    RUN_OPT_SET_ARGV0               = 0x0008,
+    RUN_OPT_SET_ARGV0               = 0x0004,
 };
 
 static purc_variant_t run_command(purc_variant_t root,
@@ -1944,10 +1940,6 @@ static purc_variant_t run_getter(purc_variant_t root,
             else if (atom == keywords2atoms[K_KW_dont_write_byte_code].atom) {
                 // dont-write-byte-code
                 run_options |= RUN_OPT_DONT_WRITE_BYTE_CODE;
-            }
-            else if (atom == keywords2atoms[K_KW_return_stdout].atom) {
-                // return-stdout
-                run_options |= RUN_OPT_RETURN_STDOUT;
             }
 
             if (options_len <= length)
