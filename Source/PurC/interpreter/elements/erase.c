@@ -225,7 +225,7 @@ object_erase(purc_variant_t on, purc_variant_t at, bool silently)
         char *token;
         while ((token = strtok_r(ctxt, " ", &ctxt))) {
             if (strlen(token) > 0 && token[0] == '.'
-                    && purc_variant_object_remove_by_static_ckey(on, token + 1,
+                    && purc_variant_object_remove_by_ckey(on, token + 1,
                         silently)) {
                     nr_remove++;
             }

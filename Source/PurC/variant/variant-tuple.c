@@ -250,6 +250,8 @@ failed:
 
 void pcvariant_tuple_release(purc_variant_t tuple)
 {
+    pcvariant_on_post_fired(tuple, PCVAR_OPERATION_RELEASING, 0, NULL);
+
     size_t sz;
     purc_variant_t *members = tuple_members(tuple, &sz);
     assert(members != NULL);

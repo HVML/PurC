@@ -369,6 +369,9 @@ static bool dump_handle (
     case PCVAR_OPERATION_REFASCHILD:
         fprintf(stderr, "op=PCVAR_OPERATION_REFASCHILD\n");
         break;
+    case PCVAR_OPERATION_RELEASING:
+        fprintf(stderr, "op=PCVAR_OPERATION_RELEASING\n");
+        break;
     case PCVAR_OPERATION_ALL:
         fprintf(stderr, "op=PCVAR_OPERATION_ALL\n");
         break;

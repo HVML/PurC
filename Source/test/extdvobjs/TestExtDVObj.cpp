@@ -356,32 +356,42 @@ void TestExtDVObj::run_testcases_in_file(const char *file_name)
 
             purc_log_info("Result `%s` expected\n", exp);
 
-            ptree = purc_variant_ejson_parse_string(exp, exp_len);
-            expected = purc_ejson_parsing_tree_evalute(ptree,
-                    NULL, NULL, true);
-            purc_ejson_parsing_tree_destroy(ptree);
+            if (purc_variant_get_type(result) == PURC_VARIANT_TYPE_NATIVE) {
+                const char *entity_name = purc_variant_native_get_name(result);
+                purc_log_info("result=%s/%s\n", purc_variant_typename(purc_variant_get_type(result)), entity_name);
+                purc_log_info("expected=%s\n", exp);
 
-            bool check = purc_variant_is_equal_to(result, expected);
-            purc_log_info("result=%s\n", purc_variant_typename(purc_variant_get_type(result)));
-            purc_log_info("expected=%s\n", purc_variant_typename(purc_variant_get_type(expected)));
-            if (!check) {
-                char buf[4096];
-                purc_rwstream_t stm;
-                stm = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);
-                ssize_t n = purc_variant_serialize(result, stm, 0, 0, NULL);
-                ASSERT_GT(n, 0);
-                buf[n] = '\0';
-                purc_log_info("Serialized result: %s\n", buf);
-                purc_rwstream_destroy(stm);
+                int cmp = strncmp(entity_name, exp, exp_len);
+                EXPECT_EQ(cmp, 0);
+                purc_variant_unref(result);
             }
+            else {
+                ptree = purc_variant_ejson_parse_string(exp, exp_len);
+                expected = purc_ejson_parsing_tree_evalute(ptree,
+                        NULL, NULL, true);
+                purc_ejson_parsing_tree_destroy(ptree);
 
-            EXPECT_EQ(check, true);
+                bool check = purc_variant_is_equal_to(result, expected);
+                purc_log_info("result=%s\n", purc_variant_typename(purc_variant_get_type(result)));
+                purc_log_info("expected=%s\n", purc_variant_typename(purc_variant_get_type(expected)));
+                if (!check) {
+                    char buf[4096];
+                    purc_rwstream_t stm;
+                    stm = purc_rwstream_new_from_mem(buf, sizeof(buf)-1);
+                    ssize_t n = purc_variant_serialize(result, stm, 0, 0, NULL);
+                    ASSERT_GT(n, 0);
+                    buf[n] = '\0';
+                    purc_log_info("Serialized result: %s\n", buf);
+                    purc_rwstream_destroy(stm);
+                }
 
-            purc_variant_unref(result);
-            purc_variant_unref(expected);
+                EXPECT_EQ(check, true);
+
+                purc_variant_unref(result);
+                purc_variant_unref(expected);
+            }
             case_number++;
         }
-
     }
 
     fclose(fp);

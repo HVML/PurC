@@ -1262,6 +1262,18 @@ purc_variant_set_remove_member_by_key_values(purc_variant_t set,
 }
 
 bool
+purc_variant_set_unique_keys(purc_variant_t set, const char **unique_keys)
+{
+    PC_ASSERT(set && unique_keys);
+
+    PCVRNT_CHECK_FAIL_RET(set->type == PVT(_SET), false);
+
+    variant_set_t data = pcvar_set_get_data(set);
+    *unique_keys = data->unique_key;
+    return true;
+}
+
+bool
 purc_variant_set_size(purc_variant_t set, size_t *sz)
 {
     PC_ASSERT(set && sz);
@@ -1523,6 +1535,8 @@ pcvrnt_set_iterator_get_value(struct pcvrnt_set_iterator* it)
 void
 pcvariant_set_release(purc_variant_t value)
 {
+    pcvariant_on_post_fired(value, PCVAR_OPERATION_RELEASING, 0, NULL);
+
     variant_set_t data = pcvar_set_get_data(value);
     PC_ASSERT(data);
 

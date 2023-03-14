@@ -235,6 +235,36 @@ eval(struct pcvcm_eval_ctxt *ctxt,
                 GETTER_METHOD, call_flags);
         goto out;
     }
+    else {
+        char *prev = NULL;
+        purc_variant_stringify_alloc(&prev, caller_var);
+        if (!prev) {
+            goto out;
+        }
+
+        char *next = NULL;
+        purc_variant_stringify_alloc(&next, param_var);
+        if (!next) {
+            free(prev);
+            goto out;
+        }
+
+        size_t nr = strlen(prev) + strlen(next) + 2;
+        char *buf = malloc(nr);
+        if (!buf) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            free(prev);
+            free(next);
+            goto out;
+        }
+        sprintf(buf, "%s.%s", prev, next);
+
+        ret_var = purc_variant_make_string_reuse_buff(buf, nr, true);
+
+        free(prev);
+        free(next);
+        goto out;
+    }
 
 out:
     if (inner_ret) {

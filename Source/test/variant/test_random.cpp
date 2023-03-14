@@ -219,9 +219,6 @@ static void _dummy_releaser (void* entity)
 }
 
 static struct purc_native_ops _dummy_ops = {
-    .getter                 = NULL,
-    .setter                 = NULL,
-
     .property_getter        = NULL,
     .property_setter        = NULL,
     .property_cleaner       = NULL,

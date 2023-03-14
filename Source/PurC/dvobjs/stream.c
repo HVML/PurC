@@ -1083,9 +1083,14 @@ static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
     UNUSED_PARAM(entity);
+
+    if (name == NULL) {
+        goto failed;
+    }
+
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
     if (atom == 0) {
-        return NULL;
+        goto failed;
     }
 
     if (atom == keywords2atoms[K_KW_readstruct].atom) {
@@ -1118,6 +1123,9 @@ property_getter(void *entity, const char *name)
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
     }
+
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

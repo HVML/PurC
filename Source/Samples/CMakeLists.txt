@@ -86,6 +86,7 @@ set(sample_HVML_FILES
     "hvml/foil-border-4.hvml"
     "hvml/foil-border-5.hvml"
     "hvml/foil-floating-0.hvml"
+    "hvml/embedded-python-animated-3d-random-walk.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

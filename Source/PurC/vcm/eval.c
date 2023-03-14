@@ -467,10 +467,6 @@ pcvcm_eval_call_nvariant_method(purc_variant_t var,
         purc_nvariant_method native_func = (type == GETTER_METHOD) ?
             ops->property_getter(entity, key_name) :
             ops->property_setter(entity, key_name);
-        if (!native_func) {
-            native_func = (type == GETTER_METHOD) ? ops->getter: ops->setter;
-        }
-
         if (native_func) {
             return native_func(entity, key_name, nr_args, argv, call_flags);
         }
@@ -484,11 +480,26 @@ pcvcm_eval_call_nvariant_getter(purc_variant_t var,
         unsigned call_flags)
 {
     struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    UNUSED_PARAM(key_name);
+
+    if (ops && ops->property_getter) {
+        void *entity = purc_variant_native_get_entity(var);
+        purc_nvariant_method self_getter;
+        self_getter = ops->property_getter(entity, NULL);
+        if (self_getter) {
+            return self_getter(entity, NULL, nr_args, argv, call_flags);
+        }
+    }
+
+    return PURC_VARIANT_INVALID;
+
+#if 0
     if (ops && ops->getter) {
         void *entity = purc_variant_native_get_entity(var);
         return ops->getter(entity, key_name, nr_args, argv, call_flags);
     }
     return PURC_VARIANT_INVALID;
+#endif
 }
 
 purc_variant_t
@@ -497,11 +508,25 @@ pcvcm_eval_call_nvariant_setter(purc_variant_t var,
         unsigned call_flags)
 {
     struct purc_native_ops *ops = purc_variant_native_get_ops(var);
+    UNUSED_PARAM(key_name);
+
+    if (ops && ops->property_setter) {
+        void *entity = purc_variant_native_get_entity(var);
+        purc_nvariant_method self_setter;
+        self_setter = ops->property_setter(entity, NULL);
+        if (self_setter) {
+            return self_setter(entity, NULL, nr_args, argv, call_flags);
+        }
+    }
+    return PURC_VARIANT_INVALID;
+
+#if 0
     if (ops && ops->setter) {
         void *entity = purc_variant_native_get_entity(var);
         return ops->setter(entity, key_name, nr_args, argv, call_flags);
     }
     return PURC_VARIANT_INVALID;
+#endif
 }
 
 static bool

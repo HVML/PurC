@@ -746,6 +746,8 @@ purc_variant_make_object (size_t nr_kv_pairs,
 
 void pcvariant_object_release (purc_variant_t value)
 {
+    pcvariant_on_post_fired(value, PCVAR_OPERATION_RELEASING, 0, NULL);
+
     variant_obj_t data = pcvar_obj_get_data(value);
 
     struct rb_root *root = &data->kvs;
@@ -849,7 +851,7 @@ bool purc_variant_object_set (purc_variant_t obj,
 }
 
 bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_remove_by_ckey(purc_variant_t obj, const char* key,
         bool silently)
 {
     PCVRNT_CHECK_FAIL_RET(obj && obj->type==PVT(_OBJECT) &&

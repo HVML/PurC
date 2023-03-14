@@ -756,6 +756,7 @@ purc_variant_t purc_variant_make_array (size_t sz, purc_variant_t value0, ...)
 
 void pcvariant_array_release (purc_variant_t value)
 {
+    pcvariant_on_post_fired(value, PCVAR_OPERATION_RELEASING, 0, NULL);
     array_release(value);
 }
 

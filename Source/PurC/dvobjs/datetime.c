@@ -699,7 +699,7 @@ make_broken_down_time(const struct tm *tm, suseconds_t usec,
         goto fatal;
     purc_variant_unref(val);
 
-    val = purc_variant_make_number (tm->tm_hour);
+    val = purc_variant_make_number(tm->tm_hour);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
     if (!purc_variant_object_set_by_static_ckey(retv, _KN_hour, val))

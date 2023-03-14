@@ -842,7 +842,7 @@ TEST(variant_set, constraint_scalar_shrink)
 
     bool silently = true;
     PRINT_VARIANT(set);
-    ok = purc_variant_object_remove_by_static_ckey(obj, "gender", silently);
+    ok = purc_variant_object_remove_by_ckey(obj, "gender", silently);
     ASSERT_FALSE(ok);
     PRINT_VARIANT(set);
 

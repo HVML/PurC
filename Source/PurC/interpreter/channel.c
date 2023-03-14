@@ -448,6 +448,10 @@ static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
     UNUSED_PARAM(entity);
+    if (name == NULL) {
+        goto failed;
+    }
+
     switch (name[0]) {
     case 's':
         if (strcmp(name, "send") == 0) {
@@ -477,6 +481,8 @@ property_getter(void *entity, const char *name)
         break;
     }
 
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

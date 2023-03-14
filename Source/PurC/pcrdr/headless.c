@@ -1082,14 +1082,10 @@ static void on_load(struct pcrdr_prot_data *prot_data,
 static void on_write_begin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
-    void **domdocs = NULL;
-
     UNUSED_PARAM(op_id);
     if (find_domdoc_ptr(prot_data, msg, result) == NULL) {
         return;
     }
-
-    *domdocs = domdocs;
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = msg->targetValue;
@@ -1101,7 +1097,7 @@ static void on_write_more(struct pcrdr_prot_data *prot_data,
     void **domdocs = NULL;
 
     UNUSED_PARAM(op_id);
-    if (find_domdoc_ptr(prot_data, msg, result) == NULL) {
+    if ((domdocs = find_domdoc_ptr(prot_data, msg, result)) == NULL) {
         return;
     }
 
@@ -1123,7 +1119,7 @@ static void on_write_end(struct pcrdr_prot_data *prot_data,
     void **domdocs = NULL;
 
     UNUSED_PARAM(op_id);
-    if (find_domdoc_ptr(prot_data, msg, result) == NULL) {
+    if ((domdocs = find_domdoc_ptr(prot_data, msg, result)) == NULL) {
         return;
     }
 

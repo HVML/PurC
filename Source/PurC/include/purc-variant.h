@@ -672,18 +672,23 @@ typedef purc_variant_t (*purc_nvariant_method)(
  */
 struct purc_native_ops {
     /** This operation gets the value represented by
-      * the native entity itself (nullable). */
+      * the native entity itself (nullable).
     purc_nvariant_method getter;
 
-    /** This operation sets the value represented by
-      * the native entity itself (nullable). */
+    ** This operation sets the value represented by
+      * the native entity itself (nullable).
     purc_nvariant_method setter;
+    */
 
-    /** This operation returns the getter for a specific property. */
+    /** This operation returns the getter for a specific property.
+      * If @property_name is NULL, it returns the getter for
+      * the native entity itself. */
     purc_nvariant_method (*property_getter)(void* native_entity,
             const char* property_name);
 
-    /** This operation returns the setter for a specific property. */
+    /** This operation returns the setter for a specific property.
+      * If @property_name is NULL, it returns the setter for
+      * the native entity itself. */
     purc_nvariant_method (*property_setter)(void* native_entity,
             const char* property_name);
 
@@ -1154,7 +1159,37 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
 }
 
 /**
- * purc_variant_object_remove_by_static_ckey:
+ * purc_variant_object_set_by_ckey:
+ *
+ * @obj: An object variant.
+ * @key: The key of the property to set.
+ * @value: The new property value.
+ *
+ * Sets the value of the property given by a static null-terminated
+ * string @key to @value, in the object variant @obj.
+ *
+ * If there is no property in @obj specified by @key, this function will
+ * create a new property with @key and @value.
+ *
+ * Returns: %true on success, otherwise %false.
+ *
+ * Since: 0.9.8
+ */
+static inline bool
+purc_variant_object_set_by_ckey(purc_variant_t obj, const char* key,
+        purc_variant_t value)
+{
+    purc_variant_t k = purc_variant_make_string(key, true);
+    if (k == PURC_VARIANT_INVALID) {
+        return false;
+    }
+    bool b = purc_variant_object_set(obj, k, value);
+    purc_variant_unref(k);
+    return b;
+}
+
+/**
+ * purc_variant_object_remove_by_ckey:
  *
  * @obj: An object variant.
  * @key: The key of an property, specified by a static null-terminated string.
@@ -1172,7 +1207,7 @@ purc_variant_object_set_by_static_ckey(purc_variant_t obj, const char* key,
  * Since: 0.0.1
  */
 PCA_EXPORT bool
-purc_variant_object_remove_by_static_ckey(purc_variant_t obj, const char* key,
+purc_variant_object_remove_by_ckey(purc_variant_t obj, const char* key,
         bool silently);
 
 /**
@@ -1196,7 +1231,7 @@ purc_variant_object_remove(purc_variant_t obj, purc_variant_t key,
 {
     const char *sk = purc_variant_get_string_const(key);
     if (sk) {
-        return purc_variant_object_remove_by_static_ckey(obj, sk, silently);
+        return purc_variant_object_remove_by_ckey(obj, sk, silently);
     }
 
     return false;
@@ -1598,10 +1633,10 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * Since: 0.0.1
  */
-#define purc_variant_make_set(sz, unique_key, v0, ...)             \
-    purc_variant_make_set_by_ckey_ex(sz,                           \
-            purc_variant_get_string_const(unique_key), false,      \
-            v0, ##__VA_ARGS__)
+#define purc_variant_make_set(sz, unique_key, v0, ...)                      \
+    purc_variant_make_set_by_ckey_ex(sz,                                    \
+            unique_key ? purc_variant_get_string_const(unique_key) : NULL,  \
+            false, v0, ##__VA_ARGS__)
 
 /**
  * purc_variant_make_set_0:
@@ -1616,10 +1651,10 @@ purc_variant_make_set_by_ckey_ex(size_t sz, const char* unique_key,
  *
  * Since: 0.2.0
  */
-#define purc_variant_make_set_0(unique_key)                        \
-    purc_variant_make_set_by_ckey_ex(0,                            \
-            purc_variant_get_string_const(unique_key), false,      \
-            PURC_VARIANT_INVALID)
+#define purc_variant_make_set_0(unique_key)                                 \
+    purc_variant_make_set_by_ckey_ex(0,                                     \
+            unique_key ? purc_variant_get_string_const(unique_key) : NULL,  \
+            false, PURC_VARIANT_INVALID)
 
 /**
  * purc_variant_set_add:
@@ -1721,6 +1756,22 @@ purc_variant_set_get_member_by_key_values(purc_variant_t set,
 PCA_EXPORT purc_variant_t
 purc_variant_set_remove_member_by_key_values(purc_variant_t set,
         purc_variant_t v1, ...);
+
+/**
+ * purc_variant_set_unique_keys:
+ *
+ * @set: A set variant.
+ * @sz: The pointer to a string pointer buffer to receive the pointer to
+ *  the unique keys of this set.
+ *
+ * Gets the unique keys of a set variant.
+ *
+ * Returns: %true on success, otherwise %false (if the variant is not a set).
+ *
+ * Since: 0.9.8
+ */
+PCA_EXPORT bool
+purc_variant_set_unique_keys(purc_variant_t set, const char **unique_keys);
 
 /**
  * purc_variant_set_size:
@@ -3340,7 +3391,8 @@ typedef enum {
     PCVAR_OPERATION_SHRINK       = (0x01 << 1),
     PCVAR_OPERATION_CHANGE       = (0x01 << 2),
     PCVAR_OPERATION_REFASCHILD   = (0x01 << 3),
-    PCVAR_OPERATION_ALL          = ((0x01 << 4) - 1),
+    PCVAR_OPERATION_RELEASING    = (0x01 << 4),
+    PCVAR_OPERATION_ALL          = ((0x01 << 5) - 1),
 } pcvar_op_t;
 
 typedef bool (*pcvar_op_handler) (
@@ -3373,7 +3425,7 @@ typedef bool (*pcvar_op_handler) (
  *
  * Since: 0.0.5
  */
-PCA_EXPORT struct pcvar_listener*
+PCA_EXPORT struct pcvar_listener *
 purc_variant_register_pre_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
@@ -3390,6 +3442,8 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *        The contents of the container have changed.
  *      - PCVAR_OPERATION_REFASCHILD:
  *        The variant was referenced as a child of another container.
+ *      - PCVAR_OPERATION_RELEASING:
+ *        The variant is being released.
  * @handler: The callback that will be called upon the listened event is fired.
  * @ctxt: The context will be passed to the callback.
  *
@@ -3399,7 +3453,7 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *
  * Since: 0.0.5
  */
-PCA_EXPORT struct pcvar_listener*
+PCA_EXPORT struct pcvar_listener *
 purc_variant_register_post_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
