@@ -2803,8 +2803,8 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for floating box: %s.\n", name);
 #endif
 
-    int w = box->right - box->left;
-    int h = box->bottom - box->top;
+    int w = box->ctnt_rect.right - box->ctnt_rect.left;
+    int h = box->ctnt_rect.bottom - box->ctnt_rect.top;
 
     foil_region *region = &float_ctxt->region;
     foil_rgnrc_p rg = region->head;
@@ -2828,6 +2828,8 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     if (rc_dest) {
         int left = rc_dest->left;
         int top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
+
+
         foil_rect_offset(&box->ctnt_rect, left, top);
         foil_rect rc;
         rc.left = box->ctnt_rect.left - box->pl - box->bl;
