@@ -1029,21 +1029,21 @@ resolve_heights(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 static void
 layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    foil_layout_floating_ctxt ly_floating_ctxt = {0};
+    foil_layout_floating_ctxt float_ctxt = {0};
     if ((box->is_block_level)
             && box->nr_inline_level_children > 0) {
         foil_rdrbox_lay_lines_in_block(ctxt, box);
     }
     else if (box->is_block_container) {
         if (box->nr_floating_children) {
-            if (!foil_region_rect_heap_init(&ly_floating_ctxt.rgnrc_heap,
+            if (!foil_region_rect_heap_init(&float_ctxt.rgnrc_heap,
                     FOIL_DEF_RGNRCHEAP_SZ)) {
                 goto out;
             }
-            foil_region_init(&ly_floating_ctxt.region,
-                    &ly_floating_ctxt.rgnrc_heap);
-            foil_region_add_rect(&ly_floating_ctxt.region, &box->ctnt_rect);
-            ly_floating_ctxt.top = box->ctnt_rect.top;
+            foil_region_init(&float_ctxt.region,
+                    &float_ctxt.rgnrc_heap);
+            foil_region_add_rect(&float_ctxt.region, &box->ctnt_rect);
+            float_ctxt.top = box->ctnt_rect.top;
         }
 
         foil_rdrbox *child = box->first;
@@ -1053,20 +1053,12 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
                     // TODO
                 }
                 else if (child->floating) {
-                    foil_rdrbox_lay_floating_in_container(ctxt, &ly_floating_ctxt,
+                    foil_rdrbox_lay_floating_in_container(ctxt, &float_ctxt,
                             box, child);
                 }
                 else {
-                    foil_rdrbox_lay_block_in_container(ctxt, box, child);
-                    if (box->nr_floating_children) {
-                        foil_rect rc;
-                        rc.left = child->ctnt_rect.left - child->pl - child->bl;
-                        rc.right = child->ctnt_rect.right + child->pr + child->br;
-                        rc.top = child->ctnt_rect.top - child->pt - child->bt;
-                        rc.bottom = child->ctnt_rect.bottom + child->pb + child->bb;
-                        ly_floating_ctxt.top = rc.bottom;
-                        foil_region_subtract_rect(&ly_floating_ctxt.region, &rc);
-                    }
+                    foil_rdrbox_lay_block_in_container(ctxt, &float_ctxt, box,
+                            child);
                 }
             }
 
@@ -1081,9 +1073,9 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
     }
 
 out:
-    if (ly_floating_ctxt.rgnrc_heap.heap) {
-        foil_region_empty(&ly_floating_ctxt.region);
-        foil_region_rect_heap_cleanup(&ly_floating_ctxt.rgnrc_heap);
+    if (float_ctxt.rgnrc_heap.heap) {
+        foil_region_empty(&float_ctxt.region);
+        foil_region_rect_heap_cleanup(&float_ctxt.rgnrc_heap);
     }
 }
 

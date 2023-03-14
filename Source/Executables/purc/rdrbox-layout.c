@@ -2633,6 +2633,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 }
 
 void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
+        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *block)
 {
 #ifndef NDEBUG
@@ -2647,6 +2648,16 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
 
     foil_rect_offset(&block->ctnt_rect,
             container->ctnt_rect.left, container->ctnt_rect.top);
+
+    if (container->nr_floating_children) {
+        foil_rect rc;
+        rc.left = block->ctnt_rect.left - block->pl - block->bl;
+        rc.right = block->ctnt_rect.right + block->pr + block->br;
+        rc.top = block->ctnt_rect.top - block->pt - block->bt;
+        rc.bottom = block->ctnt_rect.bottom + block->pb + block->bb;
+        float_ctxt->top = rc.bottom;
+        foil_region_subtract_rect(&float_ctxt->region, &rc);
+    }
 
 #ifndef NDEBUG
     LOG_DEBUG("end for block level box: %s.\n", name);
