@@ -107,8 +107,7 @@ handle_rdr_conn_lost(struct pcinst *inst)
     list_for_each_entry_safe(p, q, crtns, ln) {
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
-        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                BUILTIN_VAR_CRTN);
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
 
         stack->co->target_workspace_handle = 0;
         stack->co->target_page_handle = 0;
@@ -119,14 +118,15 @@ handle_rdr_conn_lost(struct pcinst *inst)
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+        purc_variant_unref(hvml);
     }
 
     crtns = &heap->stopped_crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
         pcintr_coroutine_t co = p;
         pcintr_stack_t stack = &co->stack;
-        purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                BUILTIN_VAR_CRTN);
+        purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
 
         stack->co->target_workspace_handle = 0;
         stack->co->target_page_handle = 0;
@@ -137,6 +137,8 @@ handle_rdr_conn_lost(struct pcinst *inst)
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                 hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_CONN_LOST,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+        purc_variant_unref(hvml);
     }
 
     // FIXME:
