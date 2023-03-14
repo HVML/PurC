@@ -321,10 +321,12 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
     stack->co->waits--;
 
     // observe idle
-    purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-            BUILTIN_VAR_CRTN);
-    if (observer->observed == hvml) {
-        stack->observe_idle = 0;
+    if (pcintr_is_crtn_observed(observer->observed)) {
+        purc_atom_t idle_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
+            MSG_TYPE_IDLE);
+        if (observer->msg_type_atom == idle_atom) {
+            stack->observe_idle = 0;
+        }
     }
 
     free_observer(observer);

@@ -540,12 +540,12 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
                 stack->co->target_workspace_handle = 0;
                 stack->co->target_page_handle = 0;
                 stack->co->target_dom_handle = 0;
-                purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                        PURC_PREDEF_VARNAME_CRTN);
+                purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
                 pcintr_coroutine_post_event(stack->co->cid,
                         PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                         hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_CLOSED,
                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
             }
             return;
         }
@@ -564,12 +564,12 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
                 stack->co->target_workspace_handle = 0;
                 stack->co->target_page_handle = 0;
                 stack->co->target_dom_handle = 0;
-                purc_variant_t hvml = pcintr_get_coroutine_variable(stack->co,
-                        PURC_PREDEF_VARNAME_CRTN);
+                purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
                 pcintr_coroutine_post_event(stack->co->cid,
                         PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
                         hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_CLOSED,
                         PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
             }
         }
         break;
