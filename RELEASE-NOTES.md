@@ -8,6 +8,44 @@
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
 
+## Version 0.9.8
+
+On Mar. 31, 2023, HVML Community announces the availability of PurC 0.9.8,
+   which is also the sixth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.8
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - Rename `purc_variant_is_mutable()` to `purc_variant_is_container()`.
+   - Use `purc_ejson_parsing_tree` instead of `purc_ejson_parse_tree`; use `purc_ejson_parse_` instead of `purc_variant_ejson_parse_`.
+   - Add a new API: `purc_variant_object_set_by_ckey()`.
+   - Rename `purc_variant_object_remove_by_static_ckey()` to `purc_variant_object_remove_by_ckey()`.
+   - Add a new API: `purc_variant_set_unique_keys()`. Use this function to get the unique keys of a variant set.
+   - Add a new API: `purc_variant_make_native_entity()`. Use this function to create a native entity with name. Note that `purc_variant_make_native()` will create a native entity named `anonymous`.
+   - Add a new API: `purc_get_elapsed_milliseconds()`. Use this function to get the elapsed milliseconds since the specified time.
+   - Add a new API: `pcutils_mystring_append_uchar()`. Use this function to append a Unicode character to the mystring object.
+   - Add a new API: `purc_make_object_from_query_string()`.
+   - Add new APIs: `pcutils_utf8_to_unichar()`, `pcutils_string_utf8_chars_with_nulls()`, and `pcutils_string_decode_utf8_alloc_with_nulls()`.
+   - Add a new generic error: `PURC_ERROR_IO_FAILURE`.
+* ENHANCEMENTS:
+   - The native entity now supports getter and setter on itself.
+   - Add a new post listener operation: `PCVAR_OPERATION_RELEASING`.
+   - The basic implementation of `$PY`. HVML now can interact with Python.
+   - Draw borders of boxes in Foil renderer.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix some bugs related timezone (from @bkmgit).
+   - Fix lost of event `rdrState:pageClosed`.
+* CLEANUP:
+   - Remove repeated identical test (from @bkmgit)
+* SAMPLES:
+   - New sample `embedded-python-animated-3d-random-walk.hvml`: Embed Python in HVML to show the animated 3D random walks.
+
 ## Version 0.9.6
 
 On Feb. 25, 2023, HVML Community announces the availability of PurC 0.9.6,
