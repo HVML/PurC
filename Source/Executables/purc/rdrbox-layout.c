@@ -2836,20 +2836,30 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
         rg = rg->next;
     }
 
-    if (rc_dest) {
-        int left = rc_dest->left;
-        int top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
-
-
-        foil_rect_offset(&box->ctnt_rect, left, top);
-        foil_rect rc;
-        rc.left = box->ctnt_rect.left - box->pl - box->bl;
-        rc.right = box->ctnt_rect.right + box->pr + box->br;
-        rc.top = box->ctnt_rect.top - box->pt - box->bt;
-        rc.bottom = box->ctnt_rect.bottom + box->pb + box->bb;
-        float_ctxt->top = rc.top;
-        foil_region_subtract_rect(region, &rc);
+    if (!rc_dest) {
+        goto out;
     }
+
+    int left, top;
+    if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
+        left = rc_dest->left;
+    }
+    else {
+        left = rc_dest->right - box->bl - box->pl - w - box->pr - box->br;
+    }
+
+    top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
+
+    foil_rect_offset(&box->ctnt_rect, left, top);
+
+    foil_rect rc;
+    rc.left = box->ctnt_rect.left - box->pl - box->bl;
+    rc.right = box->ctnt_rect.right + box->pr + box->br;
+    rc.top = box->ctnt_rect.top - box->pt - box->bt;
+    rc.bottom = box->ctnt_rect.bottom + box->pb + box->bb;
+    float_ctxt->top = rc.top;
+    foil_region_subtract_rect(region, &rc);
+out:
 
 #ifndef NDEBUG
     LOG_DEBUG("end for floating box: %s.\n", name);

@@ -14,6 +14,12 @@
         <div style="border-style: solid; border-width:thick; border-color:blue;float:left;">
             this is first float left;
         </div>
+        <div style="border-style: solid; border-width:thick; border-color:blue;float:right;">
+            right 0;
+        </div>
+        <div style="border-style: solid; border-width:thick; border-color:blue;float:right;">
+            right 1;
+        </div>
         <div style="border-style: solid; border-width:thick; border-color:blue;float:left;">
             this is second float left;
             this is second float left;
