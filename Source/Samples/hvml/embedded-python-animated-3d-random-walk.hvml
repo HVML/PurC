@@ -128,7 +128,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                     <a href="https://hvml.fmsoft.cn" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
                         <img class="d-block mx-auto" src="//localhost/_renderer/_builtin/-/assets/hvml-v.png" alt="HVML logo" height="24" />
                     </a>
-                    <span class="mb-3 mb-md-0 text-muted">© 2022 HVML Community</span>
+                    <span class="mb-3 mb-md-0 text-muted">© 2023 HVML Community</span>
                 </div>
 
                 <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
