@@ -57,6 +57,8 @@
 #define PCRDR_LOCALHOST                 "localhost"
 #define PCRDR_APP_RENDERER              "_renderer"
 #define PCRDR_RUNNER_BUILTIN            "_builtin"
+#define PCRDR_APP_SYSTEM                "_system"
+#define PCRDR_RUNNER_FILESYSTEM         "_filesystem"
 #define PCRDR_GROUP_NULL                "-"
 #define PCRDR_PAGE_NULL                 "-"
 

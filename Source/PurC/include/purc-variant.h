@@ -3425,7 +3425,7 @@ typedef bool (*pcvar_op_handler) (
  *
  * Since: 0.0.5
  */
-PCA_EXPORT struct pcvar_listener*
+PCA_EXPORT struct pcvar_listener *
 purc_variant_register_pre_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
@@ -3453,7 +3453,7 @@ purc_variant_register_pre_listener(purc_variant_t v,
  *
  * Since: 0.0.5
  */
-PCA_EXPORT struct pcvar_listener*
+PCA_EXPORT struct pcvar_listener *
 purc_variant_register_post_listener(purc_variant_t v,
         pcvar_op_t op, pcvar_op_handler handler, void *ctxt);
 
