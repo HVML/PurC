@@ -1042,7 +1042,9 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
             }
             foil_region_init(&float_ctxt.region,
                     &float_ctxt.rgnrc_heap);
-            foil_region_add_rect(&float_ctxt.region, &box->ctnt_rect);
+            foil_rect rc = box->ctnt_rect;
+            rc.bottom = INT_MAX;
+            foil_region_add_rect(&float_ctxt.region, &rc);
             float_ctxt.top = box->ctnt_rect.top;
         }
 

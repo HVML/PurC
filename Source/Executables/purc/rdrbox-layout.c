@@ -2651,10 +2651,10 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
 
     if (container->nr_floating_children) {
         foil_rect rc;
-        rc.left = block->ctnt_rect.left - block->pl - block->bl;
-        rc.right = block->ctnt_rect.right + block->pr + block->br;
-        rc.top = block->ctnt_rect.top - block->pt - block->bt;
-        rc.bottom = block->ctnt_rect.bottom + block->pb + block->bb;
+        rc.left = block->ctnt_rect.left - block->pl - block->bl - block->ml;
+        rc.right = block->ctnt_rect.right + block->pr + block->br + block->mr;
+        rc.top = block->ctnt_rect.top - block->pt - block->bt - block->mt;
+        rc.bottom = block->ctnt_rect.bottom + block->pb + block->bb + block->mb;
         float_ctxt->top = rc.bottom;
         foil_region_subtract_rect(&float_ctxt->region, &rc);
     }
@@ -2814,13 +2814,15 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for floating box: %s.\n", name);
 #endif
 
-    int w = box->ctnt_rect.right - box->ctnt_rect.left;
-    int h = box->ctnt_rect.bottom - box->ctnt_rect.top;
+    // TODO: collapse margin
+    int w = box->ml + box->bl + box->pl + box->width + box->pr + box->br + box->mr;
+    int h = box->mt + box->bt + box->pt + box->height + box->pb + box->bb + box->mb;
 
     foil_region *region = &float_ctxt->region;
-    foil_rgnrc_p rg = region->head;
+
     foil_rect *rc_dest = NULL;
     foil_rect *rgrc = NULL;
+    foil_rgnrc_p rg = region->head;
     while(rg) {
         rgrc = &rg->rc;
         if (rgrc->bottom < float_ctxt->top) {
@@ -2845,7 +2847,7 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
         left = rc_dest->left;
     }
     else {
-        left = rc_dest->right - box->bl - box->pl - w - box->pr - box->br;
+        left = rc_dest->right - w;
     }
 
     top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
@@ -2853,11 +2855,9 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     foil_rect_offset(&box->ctnt_rect, left, top);
 
     foil_rect rc;
-    rc.left = box->ctnt_rect.left - box->pl - box->bl;
-    rc.right = box->ctnt_rect.right + box->pr + box->br;
-    rc.top = box->ctnt_rect.top - box->pt - box->bt;
-    rc.bottom = box->ctnt_rect.bottom + box->pb + box->bb;
-    float_ctxt->top = rc.top;
+    foil_rect_set(&rc, left, top, left + w, top + h);
+    float_ctxt->top = top;
+
     foil_region_subtract_rect(region, &rc);
 out:
 
