@@ -48,9 +48,10 @@ pcdoc_elem_coll_t
 pcdoc_elem_coll_new_from_element(purc_document_t doc, pcdoc_element_t elem);
 
 static purc_variant_t
-count_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+count_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -60,9 +61,10 @@ count_getter(void *entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-sub_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+sub_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
@@ -95,9 +97,10 @@ out:
 }
 
 static purc_variant_t
-select_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+select_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
 
     purc_variant_t ret = PURC_VARIANT_INVALID;
@@ -135,9 +138,10 @@ out:
 }
 
 static purc_variant_t
-attr_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+attr_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -154,10 +158,11 @@ attr_getter(void *entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+attr_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -213,10 +218,11 @@ out:
 }
 
 static purc_variant_t
-remove_attr_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+remove_attr_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -249,9 +255,11 @@ out:
 }
 
 static purc_variant_t
-contents_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+contents_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
+
     purc_variant_t ret = PURC_VARIANT_INVALID;
     pcdoc_element_t elem = NULL;
     pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
@@ -268,10 +276,11 @@ out:
 }
 
 static purc_variant_t
-contents_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+contents_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -302,9 +311,10 @@ out:
 }
 
 static purc_variant_t
-text_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+text_content_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     purc_variant_t ret = PURC_VARIANT_INVALID;
     pcdoc_element_t elem = NULL;
     pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
@@ -321,10 +331,11 @@ out:
 }
 
 static purc_variant_t
-text_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+text_content_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -355,9 +366,11 @@ out:
 }
 
 static purc_variant_t
-data_content_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+data_content_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
+
     purc_variant_t ret = PURC_VARIANT_INVALID;
     pcdoc_element_t elem = NULL;
     pcdoc_elem_coll_t elem_coll = (pcdoc_elem_coll_t) entity;
@@ -374,10 +387,11 @@ out:
 }
 
 static purc_variant_t
-data_content_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+data_content_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -403,9 +417,10 @@ out:
 }
 
 static purc_variant_t
-has_class_getter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+has_class_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -478,10 +493,11 @@ out:
 }
 
 static purc_variant_t
-add_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+add_class_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -561,10 +577,11 @@ out:
 }
 
 static purc_variant_t
-remove_class_setter(void *entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+remove_class_setter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -679,10 +696,11 @@ out:
 }
 
 static purc_variant_t
-is_element_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+is_element_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -721,24 +739,40 @@ static purc_nvariant_method
 property_getter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(entity);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    return cfg ? cfg->property_getter : NULL;
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_getter)
+        return cfg->property_getter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
 }
 
 static purc_nvariant_method
 property_setter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(entity);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    return cfg ? cfg->property_setter : NULL;
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_setter)
+        return cfg->property_setter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
 }
 
 static purc_nvariant_method
 property_eraser(void *entity, const char *key_name)
 {
     UNUSED_PARAM(entity);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    return cfg ? cfg->property_eraser : NULL;
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+
+    if (cfg && cfg->property_eraser)
+        return cfg->property_eraser;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
 }
 
 static purc_nvariant_method
@@ -746,8 +780,14 @@ property_cleaner(void *entity, const char *key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    return cfg ? cfg->property_cleaner : NULL;
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+
+    if (cfg && cfg->property_cleaner)
+       return cfg->property_cleaner;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+    return NULL;
 }
 
 static purc_variant_t

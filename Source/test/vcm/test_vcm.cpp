@@ -157,10 +157,11 @@ struct vcm_again {
 #define VCM_AGAIN_NAME          "VCM_AGAIN"
 
 static purc_variant_t
-name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+name_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -172,7 +173,7 @@ name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
     return PURC_VARIANT_INVALID;
 }
 
-static inline purc_nvariant_method
+static purc_nvariant_method
 property_getter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);
@@ -180,7 +181,7 @@ property_getter(void *entity, const char *key_name)
     return name_getter;
 }
 
-static inline purc_nvariant_method
+static purc_nvariant_method
 property_setter(void *entity, const char *key_name)
 {
     UNUSED_PARAM(key_name);

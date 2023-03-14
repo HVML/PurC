@@ -248,9 +248,11 @@ pcchan_retrieve(const char *chan_name)
 }
 
 static purc_variant_t
-send_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+send_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
+
     pcchan_t chan = native_entity;
     pcintr_coroutine_t crtn = pcintr_get_coroutine();
 
@@ -325,9 +327,10 @@ failed:
 }
 
 static purc_variant_t
-recv_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+recv_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -396,9 +399,10 @@ failed:
 }
 
 static purc_variant_t
-cap_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+cap_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -418,9 +422,10 @@ failed:
 }
 
 static purc_variant_t
-len_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+len_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -443,6 +448,10 @@ static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
     UNUSED_PARAM(entity);
+    if (name == NULL) {
+        goto failed;
+    }
+
     switch (name[0]) {
     case 's':
         if (strcmp(name, "send") == 0) {
@@ -472,6 +481,8 @@ property_getter(void *entity, const char *name)
         break;
     }
 
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

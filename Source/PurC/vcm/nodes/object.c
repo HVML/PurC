@@ -55,10 +55,11 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
     purc_variant_t object = purc_variant_make_object(0,
             PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     if (object == PURC_VARIANT_INVALID) {
@@ -66,8 +67,8 @@ eval(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (size_t i = 0; i < frame->nr_params; i += 2) {
-        purc_variant_t key = pcvcm_get_frame_result(ctxt, frame->idx, i);
-        purc_variant_t value = pcvcm_get_frame_result(ctxt, frame->idx, i + 1);
+        purc_variant_t key = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
+        purc_variant_t value = pcvcm_get_frame_result(ctxt, frame->idx, i + 1, NULL);
         if (!purc_variant_object_set(object, key, value)) {
             goto out;
         }

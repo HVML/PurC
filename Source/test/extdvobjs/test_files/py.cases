@@ -1,0 +1,423 @@
+# test cases for $PY
+
+# $PY.impl and $PY.info
+positive:
+    $PY.impl.vendor
+    'HVML Community'
+
+positive:
+    $PY.impl.author
+    'Vincent Wei'
+
+positive:
+    $PY.impl.license
+    'LGPLv3+'
+
+positive:
+    $PY.except
+    null
+
+# $PY.run
+positive:
+    {{ $PY.run('2 / 0'); $PY.except }}
+    'ZeroDivisionError'
+
+negative:
+    $PY.run
+    ArgumentMissed
+
+negative:
+    $PY.run('asdfasfd', 'file');
+    IOFailure
+
+negative:
+    $PY.run('asdfasfd', 'module');
+    SysFault
+
+positive:
+    $PY.run('print("Hello from Python")')
+    null
+
+positive:
+    $PY.run('pow(2,2)')
+    4L
+
+positive:
+    $PY.run('3.14 * 2')
+    6.28
+
+# $PY.global
+negative:
+    $PY.global(5.0)
+    WrongDataType
+
+negative:
+    $PY.global('foo-bar')
+    BadName
+
+negative:
+    $PY.global('foo')
+    NoSuchKey
+
+negative:
+    $PY.global(! 5.0)
+    WrongDataType
+
+negative:
+    $PY.global(! 5.0, 'asfsad')
+    WrongDataType
+
+negative:
+    $PY.global(!'foo-bar', 5)
+    BadName
+
+negative:
+    $PY.global(!'x')
+    WrongDataType
+
+positive:
+    $PY.global
+    pyObject::dict
+
+positive:
+    $PY.global()
+    {}
+
+positive:
+    $PY.global(!'x', 5.0)
+    true
+
+positive:
+    $PY.global('x')
+    5.0
+
+positive:
+    $PY.global.x
+    5.0
+
+positive:
+    $PY.global.get('x')
+    5.0
+
+positive:
+    $PY.global.pop('x')
+    5.0
+
+negative:
+    $PY.global.x
+    NoSuchKey
+
+positive:
+    $PY.global.x(! 5.0 )
+    true
+
+negative:
+    $PY.global.y
+    NoSuchKey
+
+positive:
+    $PY.global.y(! 3.0 )
+    true
+
+positive:
+    $PY.global.y
+    3.0
+
+positive:
+    $PY.run('x * y')
+    15.0
+
+positive:
+    $PY.global.y(! undefined )
+    true
+
+negative:
+    $PY.global.y
+    NoSuchKey
+
+positive:
+    $PY.run('x * 2')
+    10.0
+
+positive:
+    $PY.global(! 'x', undefined )
+    true
+
+negative:
+    $PY.global( 'x' )
+    NoSuchKey
+
+positive:
+    $PY.global(!'x', 10.0)
+    true
+
+# $PY.local
+positive:
+    $PY.local()
+    {}
+
+positive:
+    $PY.local(!'x', 6.0)
+    true
+
+positive:
+    $PY.run('x * 2')
+    12.0
+
+positive:
+    $PY.local(!'x', undefined)
+    true
+
+positive:
+    $PY.run('x * 2')
+    20.0
+
+positive:
+    $PY.local.x(! 6.0 )
+    true
+
+positive:
+    $PY.local.y(! 11.0 )
+    true
+
+positive:
+    $PY.run('x * y')
+    66.0
+
+# test cases for interconversion of variant and PyObject
+positive:
+    {{ $PY.local.x(! 1L ); $PY.local.x }}
+    1L
+
+positive:
+    $PY.local.x(! [1, 2, 2, 3] )
+    true
+
+positive:
+    $PY.local.x
+    pyObject::any
+
+positive:
+    $PY.local.x()()
+    [1, 2, 2, 3]
+
+positive:
+    $PY.local.x.reverse()
+    null
+
+positive:
+    $PY.local.x()()
+    [3, 2, 2, 1]
+
+positive:
+    {{ $PY.local.x.reverse(); $PY.local.x()() }}
+    [1, 2, 2, 3]
+
+positive:
+    $PY.local.x.count(2)
+    2L
+
+positive:
+    $PY.local.x(! [!1, 2, 3] )
+    true
+
+positive:
+    $PY.local.x()()
+    [!1, 2, 3]
+
+positive:
+    $PY.local.x(! {a: 'a', b: 'b'} )
+    true
+
+positive:
+    $PY.local.x()()
+    {a: 'a', b: 'b'}
+
+positive:
+    $PY.local.x.a
+    pyObject::any
+
+positive:
+    $PY.local.x.a()()
+    'a'
+
+positive:
+    $PY.local.x(! 'zh_CN' )
+    true
+
+positive:
+    $PY.local.x()()
+    'zh_CN'
+
+positive:
+    $PY.local.x(! [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ])
+    true
+
+positive:
+    $PY.local.x()()
+    [ [! 'a', 'b', 'c' ], { a: 'a', b : 'b', c : 'c' }, true, null, false, 10.0, 5L, '中国' ]
+
+# $PY.import
+negative:
+    $PY.import
+    ArgumentMissed
+
+negative:
+    $PY.import(null)
+    WrongDataType
+
+negative:
+    $PY.import(' ')
+    InvalidValue
+
+negative:
+    $PY.import('asfd&* ')
+    InvalidValue
+
+negative:
+    $PY.import('import')
+    Conflict
+
+positive:
+    $PY.import('math')
+    true
+
+positive:
+    $PY.math
+    pyObject::module
+
+positive:
+    $PY.math.pow(2, 3)
+    8
+
+negative:
+    $PY.math.pow(! { x: 3, y: 3 } )
+    WrongDataType
+
+positive:
+    $PY.math.pi
+    3.1415926535897931
+
+positive:
+    $PY.import('datetime', ['datetime:dt', 'timedelta:td'])
+    true
+
+positive:
+    $PY.dt
+    pyObject::callable
+
+positive:
+    $PY.td
+    pyObject::callable
+
+# $PY.pythonize
+negative:
+    $PY.pythonize()
+    ArgumentMissed
+
+negative:
+    $PY.pythonize(0)
+    WrongDataType
+
+negative:
+    $PY.pythonize(undefined)
+    WrongDataType
+
+positive:
+    $PY.pythonize('Hello, world!')
+    pyObject::any
+
+positive:
+    $PY.pythonize('Hello, world!').upper()()
+    'HELLO, WORLD!'
+
+# $PY.stringify
+positive:
+    $PY.stringify($PY.dt.fromtimestamp(1429417200.0))
+    '2015-04-19 12:20:00'
+
+positive:
+    $PY.stringify($PY.math.e)
+    '2.718281828459045'
+
+# $PY.compile
+negative:
+    $PY.compile('c = ')
+    InternalFailure
+
+positive:
+    $PY.except
+    SyntaxError
+
+positive:
+    $RUNNER.user(! 'pyCode', $PY.compile('x + y'))
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local()
+    {}
+
+negative:
+    $RUNNER.myObj.pyCode.local.x
+    NoSuchKey
+
+positive:
+    $RUNNER.myObj.pyCode.local.x(! 100.0 )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local.y(! 100.0 )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.local(! { x: 50.0, y: 50.0 } )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.eval()
+    100.0
+
+positive:
+    $RUNNER.myObj.pyCode.eval(null, { x: 100.0, y: 100.0 })
+    200.0
+
+positive:
+    $PY.global.x(! undefined )
+    true
+
+positive:
+    $PY.global.y(! 1.0 )
+    true
+
+positive:
+    $PY.global.y(! undefined )
+    true
+
+negative:
+    $RUNNER.myObj.pyCode.eval(null, { })
+    BadName
+
+positive:
+    $PY.global(! { x: 10.0, y: 10.0 } )
+    true
+
+positive:
+    $RUNNER.myObj.pyCode.eval(null, { })
+    20.0
+
+positive:
+    $RUNNER.myObj.pyCode.entity
+    pyObject::code
+
+positive:
+    $DATA.type($PY.stringify($RUNNER.myObj.pyCode.entity))
+    'string'
+
+positive:
+    $RUNNER.user(! 'pyCode', undefined )
+    true
+
+positive:
+    $PY.compile('math.pow(x, y)').eval( null, { x: 2, y: 3 } )
+    8
+

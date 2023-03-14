@@ -1930,7 +1930,8 @@ numerify_native(purc_variant_t value)
     if (!getter)
         return 0.0;
 
-    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
+    purc_variant_t v = getter(native, "__number", 0, NULL,
+            PCVRT_CALL_FLAG_SILENTLY);
     if (v == PURC_VARIANT_INVALID)
         return 0.0;
 
@@ -2111,7 +2112,8 @@ booleanize_native(purc_variant_t value)
     if (!getter)
         return false;
 
-    purc_variant_t v = getter(native, 0, NULL, true);  // TODO: silently
+    purc_variant_t v = getter(native, "__boolean", 0, NULL,
+            PCVRT_CALL_FLAG_SILENTLY);
     if (v == PURC_VARIANT_INVALID)
         return false;
 

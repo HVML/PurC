@@ -151,7 +151,7 @@ struct purc_variant {
            ptr_ptr[0] stores the pointer to the native entity, and
            ptr_ptr[1] stores the ops that's bound to the class of
            such entity. */
-        void*       ptr_ptr[2];
+        void       *ptr_ptr[2];
 
         /* for long byte sequence, array, object, and set,
               - `sz_ptr[0]` stores the size in bytes;
@@ -177,7 +177,7 @@ struct purc_variant {
         /* union fields for extra information of the variant. */
         uintptr_t           extra_uintptr;
         intptr_t            extra_intptr;
-        void*               extra_data;
+        void               *extra_data;
         size_t              extra_size;
 
         /* other aliases */

@@ -54,10 +54,11 @@ struct pcvcm_ev {
 };
 
 static purc_variant_t
-eval_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+eval_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -162,9 +163,11 @@ out:
 }
 
 static purc_variant_t
-eval_const_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+eval_const_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
+
     purc_variant_t ret = PURC_VARIANT_INVALID;
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     struct pcintr_stack *stack = pcintr_get_stack();
@@ -215,10 +218,11 @@ out:
 }
 
 static purc_variant_t
-vcm_ev_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+vcm_ev_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -227,9 +231,10 @@ vcm_ev_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
 
 static purc_variant_t
-last_value_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+last_value_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -238,9 +243,10 @@ last_value_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-last_value_setter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+last_value_setter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -260,9 +266,10 @@ last_value_setter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-method_name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-        unsigned call_flags)
+method_name_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -271,9 +278,10 @@ method_name_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 }
 
 static purc_variant_t
-const_method_name_getter(void *native_entity, size_t nr_args,
-        purc_variant_t *argv, unsigned call_flags)
+const_method_name_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -282,9 +290,10 @@ const_method_name_getter(void *native_entity, size_t nr_args,
 }
 
 static purc_variant_t
-constantly_getter(void *native_entity, size_t nr_args,
-        purc_variant_t *argv, unsigned call_flags)
+constantly_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -296,6 +305,9 @@ static inline purc_nvariant_method
 property_getter(void *native_entity, const char *key_name)
 {
     UNUSED_PARAM(native_entity);
+    if (key_name == NULL)
+        goto failed;
+
     struct pcvcm_ev *vcm_ev = (struct pcvcm_ev*)native_entity;
     if (strcmp(vcm_ev->method_name, key_name) == 0) {
         return eval_getter;
@@ -319,7 +331,8 @@ property_getter(void *native_entity, const char *key_name)
         return constantly_getter;
     }
 
-
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -327,10 +340,11 @@ static inline purc_nvariant_method
 property_setter(void *native_entity, const char *key_name)
 {
     UNUSED_PARAM(native_entity);
-    if (strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
+    if (key_name && strcmp(key_name, PCVCM_EV_PROPERTY_LAST_VALUE) == 0) {
         return last_value_setter;
     }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

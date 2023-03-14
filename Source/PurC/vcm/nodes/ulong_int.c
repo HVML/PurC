@@ -52,10 +52,11 @@ after_pushed(struct pcvcm_eval_ctxt *ctxt,
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
     struct pcvcm_node *node = frame->node;
     return purc_variant_make_ulongint(node->u64);
 }

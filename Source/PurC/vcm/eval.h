@@ -37,6 +37,8 @@
 
 #define __DEV_VCM__                0
 
+//#define PCVCM_KEEP_NAME
+
 #define PCVCM_EVAL_FLAG_NONE            0x0000
 #define PCVCM_EVAL_FLAG_SILENTLY        0x0001
 #define PCVCM_EVAL_FLAG_AGAIN           0x0002
@@ -114,6 +116,10 @@ struct pcvcm_eval_ctxt {
     size_t                  nr_frames;
     int32_t                 frame_idx;
 
+#ifdef PCVCM_KEEP_NAME
+    const char            **names;
+#endif
+
     int                     err;
     unsigned int            enable_log:1;
     unsigned int            free_on_destroy:1;
@@ -127,7 +133,7 @@ struct pcvcm_eval_stack_frame_ops {
             struct pcvcm_eval_stack_frame *frame, size_t pos);
 
     purc_variant_t (*eval)(struct pcvcm_eval_ctxt *ctxt,
-            struct pcvcm_eval_stack_frame *frame);
+            struct pcvcm_eval_stack_frame *frame, const char **name);
 };
 
 #ifdef __cplusplus
@@ -166,6 +172,17 @@ purc_variant_t
 pcvcm_eval_call_nvariant_method(purc_variant_t var,
         const char *key_name, size_t nr_args, purc_variant_t *argv,
         enum pcvcm_eval_method_type type, unsigned call_flags);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_getter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags);
+
+purc_variant_t
+pcvcm_eval_call_nvariant_setter(purc_variant_t var,
+        const char *key_name, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags);
+
 bool
 pcvcm_eval_is_handle_as_getter(struct pcvcm_node *node);
 

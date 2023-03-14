@@ -55,10 +55,11 @@ int sacb_compare_def(const void *sortv1, const void *sortv2)
 }
 
 static purc_variant_t
-type_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+type_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -99,11 +100,15 @@ property_getter(void *entity, const char *name)
 
     purc_atom_t atom = purc_atom_try_string_ex(SORTED_ARRAY_ATOM_BUCKET, name);
     if (atom == 0) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         goto out;
     }
 
     if (atom == sorted_array_type_atom) {
         method = type_getter;
+    }
+    else {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     }
 
 out:

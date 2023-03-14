@@ -84,24 +84,34 @@ select_param_default(struct pcvcm_eval_ctxt *ctxt,
 
 void
 pcvcm_set_frame_result(struct pcvcm_eval_ctxt *ctxt, int32_t frame_idx,
-        size_t pos, purc_variant_t v)
+        size_t pos, purc_variant_t v, const char *name)
 {
+    UNUSED_PARAM(name);
     struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
     struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
     int32_t idx = eval_node->first_child_idx + pos;
     struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+#ifdef PCVCM_KEEP_NAME
+    ctxt->names[idx] = name;
+#endif
 
     child->result = v;
 }
 
 purc_variant_t
 pcvcm_get_frame_result(struct pcvcm_eval_ctxt *ctxt,
-        int32_t frame_idx, size_t pos)
+        int32_t frame_idx, size_t pos, const char **name)
 {
+    UNUSED_PARAM(name);
     struct pcvcm_eval_stack_frame *frame = ctxt->frames + frame_idx;
     struct pcvcm_eval_node *eval_node = ctxt->eval_nodes + frame->eval_node_idx;
     int32_t idx = eval_node->first_child_idx + pos;
     struct pcvcm_eval_node *child = ctxt->eval_nodes + idx;
+#ifdef PCVCM_KEEP_NAME
+    if (name) {
+        *name = ctxt->names[idx];
+    }
+#endif
 
     return child->result;
 }

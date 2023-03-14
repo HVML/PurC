@@ -291,9 +291,10 @@ struct pcdvobjs_stream *get_stream(void *native_entity)
 }
 
 static purc_variant_t
-readstruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+readstruct_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
     const char *formats = NULL;
@@ -346,9 +347,10 @@ out:
 }
 
 static purc_variant_t
-writestruct_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+writestruct_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     bool silently = call_flags & PCVRT_CALL_FLAG_SILENTLY;
     struct pcdvobj_bytes_buff bf = { NULL, 0, 0 };
 
@@ -471,9 +473,10 @@ static int read_lines(purc_rwstream_t stream, int line_num,
 }
 
 static purc_variant_t
-readlines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+readlines_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
     int64_t line_num = 0;
@@ -527,9 +530,10 @@ out:
 }
 
 static purc_variant_t
-writelines_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+writelines_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
     ssize_t nr_write = 0;
@@ -616,9 +620,10 @@ out:
 }
 
 static purc_variant_t
-readbytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+readbytes_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
@@ -680,9 +685,10 @@ out:
 }
 
 static purc_variant_t
-writebytes_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+writebytes_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream = NULL;
@@ -737,9 +743,10 @@ out:
 }
 
 static purc_variant_t
-writeeof_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+writeeof_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -776,9 +783,10 @@ out:
 }
 
 static purc_variant_t
-status_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+status_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
 
@@ -844,9 +852,10 @@ out:
 }
 
 static purc_variant_t
-seek_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+seek_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     struct pcdvobjs_stream *stream;
     purc_rwstream_t rwstream;
@@ -922,9 +931,10 @@ out:
 }
 
 static purc_variant_t
-close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
-                unsigned call_flags)
+close_getter(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -936,7 +946,6 @@ close_getter(void *native_entity, size_t nr_args, purc_variant_t *argv,
 
     struct pcdvobjs_stream *stream = get_stream(native_entity);
     native_stream_close(stream);
-
 
     return purc_variant_make_boolean(true);
 }
@@ -1074,9 +1083,14 @@ static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
     UNUSED_PARAM(entity);
+
+    if (name == NULL) {
+        goto failed;
+    }
+
     purc_atom_t atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, name);
     if (atom == 0) {
-        return NULL;
+        goto failed;
     }
 
     if (atom == keywords2atoms[K_KW_readstruct].atom) {
@@ -1109,6 +1123,9 @@ property_getter(void *entity, const char *name)
     else if (atom == keywords2atoms[K_KW_close].atom) {
         return close_getter;
     }
+
+failed:
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

@@ -778,8 +778,8 @@ purc_dvariant_method purc_variant_dynamic_get_setter(purc_variant_t dynamic)
     return fn;
 }
 
-purc_variant_t purc_variant_make_native (void *native_entity,
-    const struct purc_native_ops *ops)
+purc_variant_t purc_variant_make_native_entity(void *native_entity,
+    const struct purc_native_ops *ops, const char *name)
 {
     // VWNOTE: check entity is not NULL.
     PCVRNT_CHECK_FAIL_RET((native_entity != NULL), PURC_VARIANT_INVALID);
@@ -796,7 +796,8 @@ purc_variant_t purc_variant_make_native (void *native_entity,
     value->flags = 0;
     value->refc = 1;
     value->ptr_ptr[0] = native_entity;
-    value->ptr_ptr[1] = (void*)ops; // FIXME: globally available ?
+    value->ptr_ptr[1] = (void *)ops; // FIXME: globally available ?
+    value->extra_data = name ? (void *)name : (void *)"anonymous";
 
     return value;
 }
@@ -822,7 +823,7 @@ void *purc_variant_native_get_entity(purc_variant_t native)
         ret = native->ptr_ptr[0];
     }
     else
-        pcinst_set_error (PCVRNT_ERROR_INVALID_TYPE);
+        pcinst_set_error(PCVRNT_ERROR_INVALID_TYPE);
 
     return ret;
 }
@@ -837,8 +838,23 @@ struct purc_native_ops *purc_variant_native_get_ops(purc_variant_t native)
         ret = native->ptr_ptr[1];
     }
     else
-        pcinst_set_error (PCVRNT_ERROR_INVALID_TYPE);
+        pcinst_set_error(PCVRNT_ERROR_INVALID_TYPE);
 
     return ret;
+}
+
+const char *purc_variant_native_get_name(purc_variant_t native)
+{
+    PC_ASSERT(native);
+
+    const char *name = NULL;
+
+    if (IS_TYPE(native, PURC_VARIANT_TYPE_NATIVE)) {
+        name = native->extra_data;
+    }
+    else
+        pcinst_set_error(PCVRNT_ERROR_INVALID_TYPE);
+
+    return name;
 }
 

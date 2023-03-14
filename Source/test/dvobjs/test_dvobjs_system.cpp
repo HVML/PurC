@@ -259,7 +259,7 @@ TEST(dvobjs, uname)
         { "uname -m",
             "$SYS.uname()['machine']",
             get_system_uname, NULL, 0 },
-        { "uname -m",
+        { "uname -p",
             "$SYS.uname()['processor']",
             get_system_uname, NULL, 0 },
 #if OS(LINUX)
@@ -349,7 +349,7 @@ TEST(dvobjs, uname_ptr)
         { "uname -m",
             "$SYS.uname_prt('machine')",
             get_system_uname, NULL, 0 },
-        { "uname -m",
+        { "uname -p",
             "$SYS.uname_prt('processor')",
             get_system_uname, NULL, 0 },
 #if OS(LINUX)
@@ -880,18 +880,24 @@ purc_variant_t system_timezone(purc_variant_t dvobj, const char* name)
 
         char path[PATH_MAX + 1];
         const char *env_tz = getenv("TZ");
-        if (env_tz && env_tz[0] == ':') {
-            timezone = env_tz + 1;
+        if (env_tz) {
+               if (env_tz[0] == ':')
+                   timezone = env_tz + 1;
         }
         else {
 
             ssize_t nr_bytes;
-            nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path));
-            if (nr_bytes > 0 &&
-                    strncmp(path, PURC_SYS_TZ_DIR,
-                        sizeof(PURC_SYS_TZ_DIR) - 1) == 0) {
-                path[nr_bytes] = 0;
-                timezone = path + sizeof(PURC_SYS_TZ_DIR) - 1;
+            nr_bytes = readlink(PURC_SYS_TZ_FILE, path, sizeof(path)-1);
+            if (nr_bytes > 0)
+                path[nr_bytes] = '\0';
+            if ((nr_bytes > 0) &&
+                    (strstr(path, PURC_SYS_TZ_DIR) != NULL)) {
+                     timezone = strstr(path, PURC_SYS_TZ_DIR);
+                     timezone += sizeof(PURC_SYS_TZ_DIR) - 1;
+            }
+            else {
+                purc_log_error("Cannot determine timezone for test.\n");
+                return purc_variant_make_boolean(false);
             }
         }
 
@@ -1357,9 +1363,6 @@ static bool env_vrtcmp(purc_variant_t r1, purc_variant_t r2)
 TEST(dvobjs, env)
 {
     static const struct ejson_result test_cases[] = {
-        { "bad",
-            "$SYS.env",
-            system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },
         { "bad",
             "$SYS.env",
             system_env, NULL, PURC_ERROR_ARGUMENT_MISSED },

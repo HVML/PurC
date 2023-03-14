@@ -65,6 +65,16 @@ struct vcm_eval_test_data {
     int error;
 };
 
+struct find_var_ctxt {
+    purc_variant_t dsystem;
+    purc_variant_t nobj;
+    purc_variant_t array_var;
+    purc_variant_t set_var;
+    purc_variant_t obj_set_var;
+    purc_variant_t obj_with_nobj;
+};
+
+
 static inline void
 push_back(std::vector<vcm_eval_test_data> &vec,
         const char *name, const char *hvml, const char *comp, int error)
@@ -217,10 +227,11 @@ int to_error(const char* err)
 
 
 static inline purc_variant_t
-attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+attr_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
@@ -228,24 +239,86 @@ attr_getter(void* native_entity, size_t nr_args, purc_variant_t* argv,
 }
 
 static inline purc_variant_t
-attr_setter(void* native_entity, size_t nr_args, purc_variant_t* argv,
-        unsigned call_flags)
+attr_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
     return purc_variant_make_string("call setter success!", false);
 }
 
+static inline purc_variant_t
+chain_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
+    return purc_variant_ref(ctxt->nobj);
+}
+
+static inline purc_variant_t
+chain_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
+    return purc_variant_ref(ctxt->nobj);
+}
+
+static purc_variant_t
+nobj_getter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(call_flags);
+    return purc_variant_ref(argv[0]);
+}
+
+static purc_variant_t
+nobj_setter(void* native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(call_flags);
+    struct find_var_ctxt *ctxt = (struct find_var_ctxt *) native_entity;
+    if (property_name && strcmp(property_name, "chain") == 0) {
+        return purc_variant_ref(ctxt->nobj);
+    }
+    return purc_variant_ref(argv[0]);
+}
+
 static inline purc_nvariant_method property_getter(void *entity,
         const char* key_name)
 {
     UNUSED_PARAM(entity);
-    if (strcmp(key_name, "attr") == 0) {
-        return attr_getter;
+    if (key_name) {
+        if (strcmp(key_name, "attr") == 0) {
+            return attr_getter;
+        }
+        else if (strcmp(key_name, "chain") == 0) {
+            return chain_getter;
+        }
+    }
+    else {
+        return nobj_getter;
     }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -253,35 +326,36 @@ static inline purc_nvariant_method property_setter(void *entity,
         const char* key_name)
 {
     UNUSED_PARAM(entity);
-    if (strcmp(key_name, "attr") == 0) {
-        return attr_setter;
+    if (key_name) {
+        if (strcmp(key_name, "attr") == 0) {
+            return attr_setter;
+        }
+        else if (strcmp(key_name, "chain") == 0) {
+            return chain_setter;
+        }
+    }
+    else {
+        return nobj_setter;
     }
 
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
 struct purc_native_ops native_ops = {
-    .property_getter             = property_getter,
-    .property_setter             = property_setter,
-    .property_cleaner            = NULL,
-    .property_eraser             = NULL,
+    .property_getter            = property_getter,
+    .property_setter            = property_setter,
+    .property_cleaner           = NULL,
+    .property_eraser            = NULL,
 
-    .updater                     = NULL,
-    .cleaner                     = NULL,
-    .eraser                      = NULL,
-    .did_matched                 = NULL,
+    .updater                    = NULL,
+    .cleaner                    = NULL,
+    .eraser                     = NULL,
+    .did_matched                = NULL,
 
     .on_observe                 = NULL,
     .on_forget                  = NULL,
     .on_release                 = NULL,
-};
-
-struct find_var_ctxt {
-    purc_variant_t dsystem;
-    purc_variant_t nobj;
-    purc_variant_t array_var;
-    purc_variant_t set_var;
-    purc_variant_t obj_set_var;
 };
 
 purc_variant_t find_var(void* ctxt, const char* name)
@@ -301,6 +375,9 @@ purc_variant_t find_var(void* ctxt, const char* name)
     }
     else if (strcmp(name, "VOBJSET") == 0) {
         return find_ctxt->obj_set_var;
+    }
+    else if (strcmp(name, "OBJWITHNOBJ") == 0) {
+        return find_ctxt->obj_with_nobj;
     }
     return PURC_VARIANT_INVALID;
 }
@@ -331,9 +408,10 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         return;
     }
 
+    struct find_var_ctxt ctxt;
     purc_variant_t sys = purc_dvobj_system_new();
 
-    purc_variant_t nobj = purc_variant_make_native((void*)1, &native_ops);
+    purc_variant_t nobj = purc_variant_make_native((void*)&ctxt, &native_ops);
 
     purc_variant_t array_member_0 = purc_variant_make_string("array member 0", false);
     purc_variant_t array_member_1 = purc_variant_make_string("array member 1", false);
@@ -360,10 +438,12 @@ TEST_P(test_vcm_eval, parse_and_serialize)
     purc_variant_t obj_set_var = purc_variant_make_set_by_ckey(2,
             "okey", obj_set_val_0, obj_set_val_1);
 
+    purc_variant_t obj_with_nobj = purc_variant_make_object_by_static_ckey(2,
+            "nobj", nobj, "chain", nobj);
 
     struct pcvcm_node* root = pchvml_token_get_vcm_content(token);
 
-    struct find_var_ctxt ctxt = { sys, nobj, array_var, set_var, obj_set_var};
+    ctxt = { sys, nobj, array_var, set_var, obj_set_var, obj_with_nobj};
 
     purc_variant_t vt = pcvcm_eval_ex (root, NULL, find_var, &ctxt, false);
     if (vt == PURC_VARIANT_INVALID) {
@@ -387,6 +467,7 @@ TEST_P(test_vcm_eval, parse_and_serialize)
         ASSERT_STREQ(buf, comp) << "Test Case : "<< get_name();
     }
 
+    purc_variant_unref(obj_with_nobj);
     purc_variant_unref(obj_set_val_0_k);
     purc_variant_unref(obj_set_val_0_v);
     purc_variant_unref(obj_set_val_0);

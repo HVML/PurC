@@ -89,7 +89,7 @@ select_param(struct pcvcm_eval_ctxt *ctxt,
     }
 
     for (int i = pos -1; i >= 0; i -= 2) {
-        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
         if (curr_val) {
             break;
         }
@@ -132,13 +132,14 @@ out:
 
 static purc_variant_t
 eval(struct pcvcm_eval_ctxt *ctxt,
-        struct pcvcm_eval_stack_frame *frame)
+        struct pcvcm_eval_stack_frame *frame, const char **name)
 {
     UNUSED_PARAM(ctxt);
     UNUSED_PARAM(frame);
+    UNUSED_PARAM(name);
     purc_variant_t curr_val = PURC_VARIANT_INVALID;
     for (int i = frame->nr_params - 1; i >= 0; i--) {
-        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i);
+        curr_val = pcvcm_get_frame_result(ctxt, frame->idx, i, NULL);
         if (curr_val && (i % 2 == 0)) {
             break;
         }

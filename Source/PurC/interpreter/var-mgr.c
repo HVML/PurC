@@ -336,7 +336,7 @@ purc_variant_t pcvarmgr_get(pcvarmgr_t mgr, const char* name)
 bool pcvarmgr_remove_ex(pcvarmgr_t mgr, const char* name, bool silently)
 {
     if (name) {
-        return purc_variant_object_remove_by_static_ckey(mgr->object,
+        return purc_variant_object_remove_by_ckey(mgr->object,
                 name, silently);
     }
     return false;
@@ -682,7 +682,7 @@ again:
         if (v == PURC_VARIANT_INVALID)
             break;
 
-        return purc_variant_object_remove_by_static_ckey(tmp, name, false);
+        return purc_variant_object_remove_by_ckey(tmp, name, false);
     } while (0);
 
     p = pcintr_stack_frame_get_parent(p);
@@ -842,18 +842,10 @@ pcintr_get_named_var_for_observed(pcintr_stack_t stack, const char *name,
     UNUSED_PARAM(name);
     UNUSED_PARAM(elem);
     static struct purc_native_ops ops = {
-        .property_getter            = NULL,
-        .property_setter            = NULL,
-        .property_eraser            = NULL,
-        .property_cleaner           = NULL,
+        .did_matched                = did_matched,
 
-        .updater                    = NULL,
-        .cleaner                    = NULL,
-        .eraser                     = NULL,
-        .did_matched               = did_matched,
-
-        .on_observe                = on_observe,
-        .on_release                = on_release,
+        .on_observe                 = on_observe,
+        .on_release                 = on_release,
     };
 
     struct pcvarmgr_named_variables_observe *named =

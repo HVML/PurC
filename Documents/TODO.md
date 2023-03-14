@@ -72,8 +72,8 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.8] Basic support for `$PY`.
-1. [0.9.8] Basic support for `$SOCKET`.
+1. [0.9.7] Basic support for `$PY`.
+1. [0.9.7] Basic support for `$SOCK`.
 1. [0.9.8] Support for the following URI schemas for `$STREAM`:
    - `fifo`
 1. [0.9.9] Support for the following filters for `$STREAM` and `$SOCKET`:
@@ -140,9 +140,9 @@
 
 ### 2.6) `purc`
 
-1. [0.9.8] Enhance Foil to render borders.
-1. [0.9.8] Enhance Foil to support floats and absolute positioning.
-1. [0.9.8] Enhance Foil to support dynamic change of element styles and contents.
+1. [0.9.7] Enhance Foil to render borders.
+1. [0.9.7] Enhance Foil to support floats and absolute positioning.
+1. [0.9.7] Enhance Foil to support dynamic change of element styles and contents.
 1. [0.9.9] Enhance Foil to support table, flex, and grid layout.
 1. [1.0.0] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.

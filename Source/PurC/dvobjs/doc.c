@@ -88,10 +88,11 @@ doctype_public(struct pcdom_document *doc)
 #endif // VW
 
 static inline purc_variant_t
-doctype_getter(void *entity,
+doctype_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
     UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
@@ -148,10 +149,12 @@ doctype_getter(void *entity,
 }
 
 static inline purc_variant_t
-select_getter(void *entity,
+select_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
+
     purc_document_t doc = (purc_document_t)entity;
     purc_variant_t ret = PURC_VARIANT_INVALID;
     const char *type = SELECT_TYPE_ID;
@@ -188,10 +191,12 @@ out:
 }
 
 static inline purc_variant_t
-query_getter(void *entity,
+query_getter(void *entity, const char *property_name,
         size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
+    UNUSED_PARAM(property_name);
     UNUSED_PARAM(call_flags);
+
     PC_ASSERT(entity);
     purc_document_t doc = (purc_document_t)entity;
     purc_variant_t ret = PURC_VARIANT_INVALID;
@@ -239,9 +244,12 @@ property_getter(void* entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_getter)
         return cfg->property_getter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -251,9 +259,12 @@ property_setter(void* entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_setter)
         return cfg->property_setter;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -263,9 +274,12 @@ property_eraser(void* entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_eraser)
         return cfg->property_eraser;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 
@@ -275,9 +289,12 @@ property_cleaner(void* entity, const char* key_name)
 {
     UNUSED_PARAM(entity);
     PC_ASSERT(key_name);
-    struct native_property_cfg *cfg = property_cfg_by_name(key_name);
-    if (cfg)
+    struct native_property_cfg *cfg =
+        key_name ? property_cfg_by_name(key_name) : NULL;
+    if (cfg && cfg->property_cleaner)
         return cfg->property_cleaner;
+
+    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
     return NULL;
 }
 

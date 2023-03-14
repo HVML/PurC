@@ -17,8 +17,6 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-
 #include "purc/purc.h"
 #include "private/avl.h"
 #include "private/hashtable.h"
@@ -76,19 +74,19 @@ static void rws_releaser (void* entity)
 }
 
 static struct purc_native_ops rws_ops = {
-    .property_getter       = NULL,
-    .property_setter       = NULL,
-    .property_cleaner      = NULL,
-    .property_eraser       = NULL,
+    .property_getter        = NULL,
+    .property_setter        = NULL,
+    .property_cleaner       = NULL,
+    .property_eraser        = NULL,
 
-    .updater               = NULL,
-    .cleaner               = NULL,
-    .eraser                = NULL,
-    .did_matched           = NULL,
+    .updater                = NULL,
+    .cleaner                = NULL,
+    .eraser                 = NULL,
+    .did_matched            = NULL,
 
-    .on_observe           = NULL,
-    .on_forget            = NULL,
-    .on_release           = rws_releaser,
+    .on_observe             = NULL,
+    .on_forget              = NULL,
+    .on_release             = rws_releaser,
 };
 
 static void replace_for_bsequence(char *buf, size_t *length_sub)
