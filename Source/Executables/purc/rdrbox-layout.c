@@ -2804,6 +2804,40 @@ void foil_rdrbox_lay_floating_in_container_o(foil_layout_ctxt *ctxt,
 #endif
 }
 
+bool is_region_section_match(foil_rgnrc_p head, foil_rgnrc_p tail,
+        int w, int h, int top, uint32_t floating)
+{
+    foil_region my_region;
+    my_region.type = SIMPLEREGION;
+    my_region.head = head;
+    my_region.tail = tail;
+    my_region.heap = NULL;
+
+    foil_rect rect;
+    if (floating == FOIL_RDRBOX_FLOAT_LEFT) {
+        rect.left = head->rc.left;
+        rect.top = top;
+        rect.right = rect.left + w;
+        rect.bottom = rect.top + h;
+    }
+    else {
+        rect.left = head->rc.right - w;
+        rect.top = top;
+        rect.right = head->rc.right;
+        rect.bottom = rect.top + h;
+    }
+
+    for (int i = rect.top; i < rect.bottom; i++) {
+        for (int j = rect.left; j < rect.right; j++) {
+            if (!foil_region_is_point_in(&my_region, i, j)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
         foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box)
@@ -2825,7 +2859,7 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     foil_rgnrc_p rg = region->head;
     while(rg) {
         rgrc = &rg->rc;
-        if (rgrc->bottom < float_ctxt->top) {
+        if (rgrc->bottom <= float_ctxt->top) {
             rg = rg->next;
             continue;
         }
@@ -2834,6 +2868,12 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
         if (rgw >= w && rgh >= h) {
             rc_dest = &rg->rc;
             break;
+        }
+        else if (rgw >= w) {
+            if (is_region_section_match(rg, region->tail, w, h, float_ctxt->top, box->floating)) {
+                rc_dest = &rg->rc;
+                break;
+            }
         }
         rg = rg->next;
     }
