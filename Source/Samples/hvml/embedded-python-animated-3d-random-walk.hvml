@@ -95,7 +95,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                             }}
                         </inherit>
 
-                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$step}.png" />
+                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$step}.png?once=yes" />
                         <init as 'step' at '#myNS' with $DATA.arith('+', $step, 1) />
                         <test with $L.gt($step, 30) >
                             <update on $TIMERS to 'subtract' with = [{ id : 'clock' }] />
@@ -112,8 +112,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                 <observe on '#runAgain' for 'click'>
                     <inherit>
                         {{
-                            $PY.global(! 'myseed', $SYS.time );
-                            $PY.global(! 'walks', $PY.global.update_walks($DATA.arith('*', $step, 2)))
+                            $PY.global.update_walks($DATA.arith('*', $step, 2))
                         }}
                     </inherit>
                     <init as 'step' at '#myNS' with 0L />
