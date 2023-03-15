@@ -90,12 +90,12 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                                     $STREAM.stdout.writelines("Going to handle Frame {$step}...");
                                     $PY.global.update_lines($step, $PY.global.walks, $PY.global.lines);
                                     $PY.global.fig.canvas.draw_idle();
-                                    $PY.global.fig.savefig("frame-{$step}.png");
-                                    $STREAM.stdout.writelines("File frame-{$step}.png generated")
+                                    $PY.global.fig.savefig("frame-{$step}.svg");
+                                    $STREAM.stdout.writelines("File frame-{$step}.svg generated")
                             }}
                         </inherit>
 
-                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$step}.png?once=yes" />
+                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$step}.svg?once=yes" />
                         <init as 'step' at '#myNS' with $DATA.arith('+', $step, 1) />
                         <test with $L.gt($step, 30) >
                             <update on $TIMERS to 'subtract' with = [{ id : 'clock' }] />
