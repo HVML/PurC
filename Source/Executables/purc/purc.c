@@ -1456,7 +1456,7 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
-#if ENABLE(RDR_FOIL)
+#if ENABLE(RENDERER_FOIL)
         opts->rdr_prot = "thread";
 
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;

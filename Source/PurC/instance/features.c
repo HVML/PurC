@@ -32,48 +32,48 @@ purc_is_feature_enabled(enum purc_feature feature)
             if (PCA_ENABLE_SOCKET_STREAM)
                 return true;
             break;
-        case PURC_FEATURE_HTML:
-            if (PCA_ENABLE_HTML)
+        case PURC_FEATURE_DOCTYPE_HTML:
+            if (PCA_ENABLE_DOCTYPE_HTML)
                 return true;
             break;
-        case PURC_FEATURE_XML:
-            if (PCA_ENABLE_XML)
+        case PURC_FEATURE_DOCTYPE_XML:
+            if (PCA_ENABLE_DOCTYPE_XML)
                 return true;
             break;
-        case PURC_FEATURE_XGML:
-            if (PCA_ENABLE_XGML)
+        case PURC_FEATURE_DOCTYPE_XGML:
+            if (PCA_ENABLE_DOCTYPE_XGML)
                 return true;
             break;
         case PURC_FEATURE_REMOTE_FETCHER:
             if (PCA_ENABLE_REMOTE_FETCHER)
                 return true;
             break;
-        case PURC_FEATURE_RENDERER_THREAD:
-            if (PCA_ENABLE_RENDERER_THREAD)
+        case PURC_FEATURE_RDRCM_THREAD:
+            if (PCA_ENABLE_RDRCM_THREAD)
                 return true;
             break;
-        case PURC_FEATURE_RENDERER_SOCKET:
-            if (PCA_ENABLE_RENDERER_SOCKET)
+        case PURC_FEATURE_RDRCM_SOCKET:
+            if (PCA_ENABLE_RDRCM_SOCKET)
                 return true;
             break;
-        case PURC_FEATURE_RENDERER_HIBUS:
-            if (PCA_ENABLE_RENDERER_HIBUS)
+        case PURC_FEATURE_RDRCM_HIBUS:
+            if (PCA_ENABLE_RDRCM_HIBUS)
                 return true;
             break;
-        case PURC_FEATURE_HIBUS:
-            if (PCA_ENABLE_HIBUS)
+        case PURC_FEATURE_STREAM_HIBUS:
+            if (PCA_ENABLE_STREAM_HIBUS)
                 return true;
             break;
-        case PURC_FEATURE_MQTT:
-            if (PCA_ENABLE_MQTT)
+        case PURC_FEATURE_STREAM_MQTT:
+            if (PCA_ENABLE_STREAM_MQTT)
+                return true;
+            break;
+        case PURC_FEATURE_STREAM_WEB_SOCKET:
+            if (PCA_ENABLE_STREAM_WEB_SOCKET)
                 return true;
             break;
         case PURC_FEATURE_SSL:
             if (PCA_ENABLE_SSL)
-                return true;
-            break;
-        case PURC_FEATURE_WEB_SOCKET:
-            if (PCA_ENABLE_WEB_SOCKET)
                 return true;
             break;
     }

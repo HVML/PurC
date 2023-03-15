@@ -25,7 +25,7 @@ PURC_EXECUTABLE(purc)
 # TODO: List the directorires which do not contain any platform-dependent C source files
 set(purc_PLATFORM_INDEPENDENT_DIRS )
 
-if (ENABLE_RDR_FOIL)
+if (ENABLE_RENDERER_FOIL)
     list(APPEND purc_PLATFORM_INDEPENDENT_DIRS
         "tty/"
         "strutil/"
@@ -40,7 +40,7 @@ list(APPEND purc_SOURCES
     purc.c
 )
 
-if (ENABLE_RDR_FOIL)
+if (ENABLE_RENDERER_FOIL)
     list(APPEND purc_SOURCES
         foil.c
         helpers.c
@@ -70,7 +70,7 @@ set(purc_LIBRARIES
     PurC::PurC
 )
 
-if (ENABLE_RDR_FOIL)
+if (ENABLE_RENDERER_FOIL)
     list(APPEND purc_LIBRARIES
         PurC::CSSEng
         Ncurses::Ncurses

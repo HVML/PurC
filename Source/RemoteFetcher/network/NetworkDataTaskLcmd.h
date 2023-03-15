@@ -48,7 +48,7 @@
 
 #pragma once
 
-#if ENABLE(LCMD)
+#if ENABLE(SCHEMA_LCMD)
 
 #include "NetworkDataTask.h"
 #include "NetworkLoadMetrics.h"
@@ -117,4 +117,4 @@ private:
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(LCMD)
+#endif // ENABLE(SCHEMA_LCMD)

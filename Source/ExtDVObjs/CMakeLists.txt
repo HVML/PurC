@@ -2,11 +2,15 @@ set_property(DIRECTORY . PROPERTY FOLDER "ExtDVObjs")
 
 include(PurCCommon)
 
-find_package(Python3 3.9.0 COMPONENTS Development)
-if (Python3_Development_FOUND)
-    add_subdirectory(py)
-endif()
+if (ENABLE_EXTDVOBJ_MATH)
+    add_subdirectory(math)
+endif ()
 
-add_subdirectory(fs)
-add_subdirectory(math)
+if (ENABLE_EXTDVOBJ_FS)
+    add_subdirectory(fs)
+endif ()
+
+if (ENABLE_EXTDVOBJ_PY)
+    add_subdirectory(py)
+endif ()
 

@@ -36,15 +36,15 @@
 #include "ResourceResponse.h"
 #include <wtf/RunLoop.h>
 
-#if ENABLE(LCMD)
+#if ENABLE(SCHEMA_LCMD)
 #include "NetworkDataTaskLcmd.h"
 #endif
 
-#if ENABLE(LSQL)
+#if ENABLE(SCHEMA_LSQL)
 #include "NetworkDataTaskLsql.h"
 #endif
 
-#if ENABLE(RSQL)
+#if ENABLE(SCHEMA_RSQL)
 #include "NetworkDataTaskRsql.h"
 #endif
 
@@ -61,19 +61,19 @@ using namespace PurCFetcher;
 Ref<NetworkDataTask> NetworkDataTask::create(NetworkSession& session, NetworkDataTaskClient& client, const NetworkLoadParameters& parameters)
 {
     ASSERT(!parameters.request.url().protocolIsBlob());
-#if ENABLE(LCMD)
+#if ENABLE(SCHEMA_LCMD)
     if (parameters.request.url().protocolIsLcmd()) {
         return NetworkDataTaskLcmd::create(session, client, parameters.request, parameters.storedCredentialsPolicy, parameters.contentSniffingPolicy, parameters.contentEncodingSniffingPolicy, parameters.shouldClearReferrerOnHTTPSToHTTPRedirect, parameters.isMainFrameNavigation);
     }
 #endif
 
-#if ENABLE(LSQL)
+#if ENABLE(SCHEMA_LSQL)
     if (parameters.request.url().protocolIsLsql()) {
         return NetworkDataTaskLsql::create(session, client, parameters.request, parameters.storedCredentialsPolicy, parameters.contentSniffingPolicy, parameters.contentEncodingSniffingPolicy, parameters.shouldClearReferrerOnHTTPSToHTTPRedirect, parameters.isMainFrameNavigation);
     }
 #endif
 
-#if ENABLE(RSQL)
+#if ENABLE(SCHEMA_RSQL)
     if (parameters.request.url().protocolIsRsql()) {
         return NetworkDataTaskRsql::create(session, client, parameters.request, parameters.storedCredentialsPolicy, parameters.contentSniffingPolicy, parameters.contentEncodingSniffingPolicy, parameters.shouldClearReferrerOnHTTPSToHTTPRedirect, parameters.isMainFrameNavigation);
     }

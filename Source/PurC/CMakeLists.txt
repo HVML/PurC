@@ -92,11 +92,11 @@ if (ENABLE_WEBSOCKET)
     )
 endif ()
 
-if (ENABLE_LSQL)
+if (ENABLE_SCHEMA_LSQL)
     list(APPEND PurC_LIBRARIES SQLite::SQLite3)
 endif ()
 
-if (ENABLE_XML)
+if (ENABLE_DOCTYPE_XML)
     list(APPEND PurC_LIBRARIES LibXml2::LibXml2)
 endif ()
 
