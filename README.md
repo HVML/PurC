@@ -589,6 +589,18 @@ Below is the screenshot of `hvml/file-manager.hvml`:
 
 ![the File Manager](https://files.fmsoft.cn/hvml/screenshots/file-manager.png)
 
+Since PurC 0.9.7, the interpreter provides support for the Python.
+That is, you can now embed Python code in HVML, import Python modules, access the Python variables, or call Python functions directly in your HVML program.
+For example, the sample `hvml/embedded-python-animated-3d-random-walk.hvml` shows an animated 3D random walk in a window of xGUI Pro:
+
+```
+$ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
+```
+
+Below is the screenshot of this sample:
+
+![Embedding Python in HVML](https://files.fmsoft.cn/hvml/screenshots/embedded-python-animated-3d-random-walk.png)
+
 ### Options for `purc`
 
 You can see the all options supported by `purc` when you run `purc` with `-h` option:
@@ -961,7 +973,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### ExtDVObjs/fs
 
-Copyright (C) 2022 LIU Xin
+Copyright (C) 2022 LIU Xin  
 Copyright (C) 2022 [FMSoft Technologies]
 
 This program is free software: you can redistribute it and/or modify

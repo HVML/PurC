@@ -72,11 +72,11 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.7] Basic support for `$PY`.
-1. [0.9.7] Basic support for `$SOCK`.
-1. [0.9.8] Support for the following URI schemas for `$STREAM`:
+1. [0.9.8; Resolved] Basic support for `$PY`.
+1. [0.9.8] Basic support for `$SOCK`.
+1. [0.9.a] Support for the following URI schemas for `$STREAM`:
    - `fifo`
-1. [0.9.9] Support for the following filters for `$STREAM` and `$SOCKET`:
+1. [0.9.a] Support for the following filters for `$STREAM` and `$SOCKET`:
    - `http`
 1. [1.0.0] Complete the implementation of the following predefined variables:
    - `$URL`
@@ -97,12 +97,12 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.8] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
-1. [0.9.9] The generation and handling mechanism of uncatchable errors:
+1. [0.9.a] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
+1. [0.9.a] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.9.9] Review the implementation of all elements.
-1. [0.9.9] Review all uses of exception names.
+1. [0.9.a] Review the implementation of all elements.
+1. [0.9.a] Review all uses of exception names.
 1. [0.9.6; Resolved] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.6; Resolved] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.4; Resolved] Improve the implementation of the element `update`:
@@ -140,10 +140,10 @@
 
 ### 2.6) `purc`
 
-1. [0.9.7] Enhance Foil to render borders.
-1. [0.9.7] Enhance Foil to support floats and absolute positioning.
-1. [0.9.7] Enhance Foil to support dynamic change of element styles and contents.
-1. [0.9.9] Enhance Foil to support table, flex, and grid layout.
+1. [0.9.8] Enhance Foil to render borders.
+1. [0.9.8] Enhance Foil to support floats and absolute positioning.
+1. [0.9.8] Enhance Foil to support dynamic change of element styles and contents.
+1. [0.9.10] Enhance Foil to support table, flex, and grid layout.
 1. [1.0.0] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
 1. [0.9.4; Resolved] Enhance Foil to support more properties and layouts except for table.

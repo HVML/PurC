@@ -1,5 +1,6 @@
 # Release Notes
 
+- [Version 0.9.8](#version-098)
 - [Version 0.9.6](#version-096)
 - [Version 0.9.5](#version-095)
 - [Version 0.9.4](#version-094)
