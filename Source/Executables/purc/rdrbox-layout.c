@@ -1240,6 +1240,9 @@ calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (height_v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_height(ctxt, box, height_u, height_l);
+            /* calc children height */
+            calc_height_for_visible_non_replaced(ctxt, box);
+            dtrm_margin_top_bottom(ctxt, box);
         }
         else {
             box->height = calc_height_for_visible_non_replaced(ctxt, box);
