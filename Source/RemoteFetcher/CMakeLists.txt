@@ -81,11 +81,11 @@ GENERATE_MESSAGE_SOURCES(RemoteFetcher_SOURCES "${RemoteFetcher_MESSAGES_IN_FILE
 set(RemoteFetcher_LIBRARIES)
 
 # TODO: the source files and libraries for optional features.
-if (ENABLE_LSQL)
+if (ENABLE_SCHEMA_LSQL)
     list(APPEND RemoteFetcher_LIBRARIES SQLite::SQLite3)
 endif ()
 
-if (ENABLE_XML)
+if (ENABLE_DOCTYPE_XML)
     list(APPEND RemoteFetcher_LIBRARIES LibXml2::LibXml2)
 endif ()
 
@@ -96,7 +96,7 @@ list(APPEND RemoteFetcher_LIBRARIES xdgmime)
 list(APPEND RemoteFetcher_LIBRARIES ${ICU_LIBRARIES})
 list(APPEND RemoteFetcher_LIBRARIES  ${LIBGCRYPT_LIBRARIES})
 
-if (ENABLE_RSQL)
+if (ENABLE_SCHEMA_RSQL)
     list(APPEND RemoteFetcher_LIBRARIES ${MYSQLCLIENT_LIBRARIES})
 endif ()
 

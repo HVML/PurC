@@ -2,7 +2,7 @@
  * @file purc.c
  * @author XueShuming, Vincent Wei
  * @date 2022/03/07
- * @brief A standalone HVML interpreter/debugger based-on PurC.
+ * @brief A standalone HVML interpreter/debugger based on PurC.
  *
  * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
@@ -113,7 +113,7 @@ static void print_usage(FILE *fp)
 {
     fputs(
         "purc (" PURC_VERSION_STRING ") - "
-        "a standalone HVML interpreter/debugger based-on PurC.\n",
+        "a standalone HVML interpreter/debugger based on PurC.\n",
         fp);
 
     print_short_copying(fp);
@@ -140,19 +140,19 @@ static void print_usage(FILE *fp)
         "\n"
         "  -c --rdr-comm=< headless | thread | socket >\n"
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
-        "            - `headless`: use the built-in headlesss renderer.\n"
+        "            - `headless`: use the built-in headless renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
         "            - `socket`: use the remote socket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
         "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri:\n"
-        "            - For the renderer comm method `headleass`,\n"
-        "              default value is `file:///dev/null`.\n"
+        "            - For the renderer comm method `headless`,\n"
+        "              the default value is `file:///dev/null`.\n"
         "            - For the renderer comm method `thread`,\n"
-        "              default value is `" DEF_RDR_URI_THREAD "`.\n"
+        "              the default value is `" DEF_RDR_URI_THREAD "`.\n"
         "            - For the renderer comm method `socket`,\n"
-        "              default value is `unix:///var/tmp/purcmc.sock`.\n"
+        "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
         "\n"
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
@@ -1456,7 +1456,7 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
-#if ENABLE(RDR_FOIL)
+#if ENABLE(RENDERER_FOIL)
         opts->rdr_prot = "thread";
 
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;

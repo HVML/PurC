@@ -48,7 +48,7 @@
 
 #include "config.h"
 
-#if ENABLE(RSQL)
+#if ENABLE(SCHEMA_RSQL)
 
 #include <stdio.h>
 #include "NetworkDataTaskLsql.h"
@@ -719,4 +719,4 @@ void NetworkDataTaskRsql::parseSqlQuery(String sqlQuery)
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(RSQL)
+#endif // ENABLE(SCHEMA_RSQL)

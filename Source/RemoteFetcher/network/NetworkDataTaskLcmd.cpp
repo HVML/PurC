@@ -48,7 +48,7 @@
 
 #include "config.h"
 
-#if ENABLE(LCMD)
+#if ENABLE(SCHEMA_LCMD)
 
 #include <stdio.h>
 #include "NetworkDataTaskLcmd.h"
@@ -519,4 +519,4 @@ String NetworkDataTaskLcmd::parseCmdLine(String cmdLine)
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(LCMD)
+#endif // ENABLE(SCHEMA_LCMD)

@@ -35,43 +35,31 @@ purc_fetcher_is_feature_enabled(enum purc_fetcher_feature feature)
 {
     switch (feature) {
         case PURCFETCHER_FEATURE_HTML:
-            if (PURCFETCHER_ENABLE_HTML)
+            if (PURCFETCHER_ENABLE_DOCTYPE_HTML)
                 return true;
             break;
         case PURCFETCHER_FEATURE_XGML:
-            if (PURCFETCHER_ENABLE_XGML)
+            if (PURCFETCHER_ENABLE_DOCTYPE_XGML)
                 return true;
             break;
         case PURCFETCHER_FEATURE_XML:
-            if (PURCFETCHER_ENABLE_XML)
+            if (PURCFETCHER_ENABLE_DOCTYPE_XML)
                 return true;
             break;
         case PURCFETCHER_FEATURE_LCMD:
-            if (PURCFETCHER_ENABLE_LCMD)
+            if (PURCFETCHER_ENABLE_SCHEMA_LCMD)
                 return true;
             break;
         case PURCFETCHER_FEATURE_LSQL:
-            if (PURCFETCHER_ENABLE_LSQL)
+            if (PURCFETCHER_ENABLE_SCHEMA_LSQL)
                 return true;
             break;
         case PURCFETCHER_FEATURE_RSQL:
-            if (PURCFETCHER_ENABLE_RSQL)
+            if (PURCFETCHER_ENABLE_SCHEMA_RSQL)
                 return true;
             break;
         case PURCFETCHER_FEATURE_HTTP:
-            if (PURCFETCHER_ENABLE_HTTP)
-                return true;
-            break;
-        case PURCFETCHER_FEATURE_HIBUS:
-            if (PURCFETCHER_ENABLE_HIBUS)
-                return true;
-            break;
-        case PURCFETCHER_FEATURE_MQTT:
-            if (PURCFETCHER_ENABLE_MQTT)
-                return true;
-            break;
-        case PURCFETCHER_FEATURE_SSL:
-            if (PURCFETCHER_ENABLE_SSL)
+            if (PURCFETCHER_ENABLE_SCHEMA_HTTP)
                 return true;
             break;
     }

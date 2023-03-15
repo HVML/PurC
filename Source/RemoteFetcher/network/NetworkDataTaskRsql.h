@@ -48,7 +48,7 @@
 
 #pragma once
 
-#if ENABLE(RSQL)
+#if ENABLE(SCHEMA_RSQL)
 
 #include "NetworkDataTask.h"
 #include "NetworkLoadMetrics.h"
@@ -134,4 +134,4 @@ private:
 
 } // namespace PurCFetcher
 
-#endif // ENABLE(RSQL)
+#endif // ENABLE(SCHEMA_RSQL)
