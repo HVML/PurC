@@ -530,6 +530,19 @@ $ purc -c socket hvml/file-manager.hvml
 
 ![the File Manager](https://files.fmsoft.cn/hvml/screenshots/file-manager.png)
 
+从 0.9.7 版本开始，PurC 提供了对 Python 的支持。
+您现在可以在 HVML 中嵌入 Python 代码、导入 Python 模块、访问 Python 变量或直接在 HVML 程序中调用 Python 函数。
+例如，示例 `hvml/embedded-python-animated-3d-random-walk.hvml` 在 xGUI Pro 的窗口中显示了一些通过调用 NumPy 生成的 3D 随机动画行走：
+
+```
+$ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
+```
+
+该示例程序的截图如下：
+
+![Embedding Python in HVML](https://files.fmsoft.cn/hvml/screenshots/embedded-python-animated-3d-random-walk.png)
+
+
 ### `purc` 的选项
 
 当你使用 `-h` 选项运行 `purc` 时，你可以看到 `purc` 支持的所有选项：
