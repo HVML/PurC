@@ -285,7 +285,7 @@ The main coroutine terminated due to an uncaught exception: NoSuchKey.
     on: 0
     onlyif: true
     with: 1L
-  CONTENT: `NoSuckKey` raised when evaluating the experssion: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
+  CONTENT: `NoSuckKey` raised when evaluating the expression: $STREAM.stdout.writelines( "$0<) Hello, world! $CRTN.foo" )
     Variant Creation Model: callGetter(getElement(getElement(getVariable("STREAM"),"stdout"),"writelines"),concatString(getVariable("0<"),") Hello, world! ",getElement(getVariable("CRTN"),"foo")))
     Call stack:
       #00: $CRTN.foo
@@ -606,23 +606,23 @@ Usage: purc [ options ... ] [ file | url ] ... | [ app_desc_json | app_desc_ejso
 The following options can be supplied to the command:
 
   -a --app=< app_name >
-        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).
+        Run with the specified app name (the default value is `cn.fmsoft.hvml.purc`).
 
   -r --runner=< runner_name >
-        Run with the specified runner name (default value is `main`).
+        Run with the specified runner name (the default value is `main`).
 
   -d --data-fetcher=< local | remote >
         The data fetcher; uses `local` or `remote`.
-            - `local`: use the built-in data fetcher, and only `file://` URLs
+            - `local`: the built-in data fetcher, and only `file://` URLs
                supported.
-            - `remote`: use the remote data fetcher to support more URL schemas,
+            - `remote`: the remote data fetcher to support more URL schemas,
                such as `http`, `https`, `ftp` and so on.
 
   -c --rdr-comm=< headless | thread | socket >
         The renderer communication method; uses `headless` (default), `thread`, or `socket`.
-            - `headless`: use the built-in headless renderer.
-            - `thread`: use the built-in thread-based renderer.
-            - `socket`: use the remote socket-based renderer;
+            - `headless`: the built-in headless renderer.
+            - `thread`: the built-in thread-based renderer.
+            - `socket`: the remote socket-based renderer;
               `purc` will connect to the renderer via Unix Socket or WebSocket.
   -u --rdr-uri=< renderer_uri >
         The renderer uri:
