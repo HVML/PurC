@@ -239,6 +239,11 @@ InternalFailure
     flags: None
     msg: "Internal failure"
 
+ExternalFailure
+    except: ExternalFailure
+    flags: None
+    msg: "External (dynamic variant object) failure"
+
 Unknown
     except: NULL
     flags: None
