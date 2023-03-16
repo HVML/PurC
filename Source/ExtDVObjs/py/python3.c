@@ -164,8 +164,6 @@ static int set_python_except(struct dvobj_pyinfo *pyinfo, const char *except)
 
 static void handle_python_error(struct dvobj_pyinfo *pyinfo)
 {
-    int hvml_err = PURC_ERROR_OK;
-
     PyObject *pyerr = PyErr_Occurred();
     if (pyerr == NULL)
         return;
@@ -178,233 +176,234 @@ static void handle_python_error(struct dvobj_pyinfo *pyinfo)
     }
 #endif
 
+    int hvml_err = PURC_ERROR_EXTERNAL_FAILURE;
+    const char *pyexcept = "UnknownError";
     if (PyErr_GivenExceptionMatches(pyerr, PyExc_AssertionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "AssertionError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "AssertionError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_AttributeError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "AttributeError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "AttributeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BlockingIOError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(pyinfo, "BlockingIOError");
+        // hvml_err = PURC_ERROR_IO_FAILURE;
+        pyexcept = "BlockingIOError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BrokenPipeError)) {
-        hvml_err = PURC_ERROR_BROKEN_PIPE;
-        set_python_except(pyinfo, "BrokenPipeError");
+        // hvml_err = PURC_ERROR_BROKEN_PIPE;
+        pyexcept = "BrokenPipeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BufferError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(pyinfo, "BufferError");
+        // hvml_err = PURC_ERROR_IO_FAILURE;
+        pyexcept = "BufferError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ChildProcessError)) {
-        hvml_err = PURC_ERROR_CHILD_TERMINATED;
-        set_python_except(pyinfo, "ChildProcessError");
+        // hvml_err = PURC_ERROR_CHILD_TERMINATED;
+        pyexcept = "ChildProcessError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionAbortedError)) {
-        hvml_err = PURC_ERROR_CONNECTION_ABORTED;
-        set_python_except(pyinfo, "ConnectionAbortedError");
+        // hvml_err = PURC_ERROR_CONNECTION_ABORTED;
+        pyexcept = "ConnectionAbortedError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionRefusedError)) {
-        hvml_err = PURC_ERROR_CONNECTION_REFUSED;
-        set_python_except(pyinfo, "ConnectionRefusedError");
+        // hvml_err = PURC_ERROR_CONNECTION_REFUSED;
+        pyexcept = "ConnectionRefusedError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionResetError)) {
-        hvml_err = PURC_ERROR_CONNECTION_RESET;
-        set_python_except(pyinfo, "ConnectionResetError");
+        // hvml_err = PURC_ERROR_CONNECTION_RESET;
+        pyexcept = "ConnectionResetError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ConnectionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "ConnectionError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "ConnectionError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_EOFError)) {
-        hvml_err = PURC_ERROR_IO_FAILURE;
-        set_python_except(pyinfo, "EOFError");
+        // hvml_err = PURC_ERROR_IO_FAILURE;
+        pyexcept = "EOFError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileExistsError)) {
-        hvml_err = PURC_ERROR_EXISTS;
-        set_python_except(pyinfo, "FileExistsError");
+        // hvml_err = PURC_ERROR_EXISTS;
+        pyexcept = "FileExistsError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FileNotFoundError)) {
-        hvml_err = PURC_ERROR_NOT_EXISTS;
-        set_python_except(pyinfo, "FileNotFoundError");
+        // hvml_err = PURC_ERROR_NOT_EXISTS;
+        pyexcept = "FileNotFoundError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_FloatingPointError)) {
-        hvml_err = PURC_ERROR_INVALID_FLOAT;
-        set_python_except(pyinfo, "FloatingPointError");
+        // hvml_err = PURC_ERROR_INVALID_FLOAT;
+        pyexcept = "FloatingPointError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_GeneratorExit)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "GeneratorExit");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "GeneratorExit";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TabError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "TabError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "TabError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndentationError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "IndentationError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "IndentationError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IndexError)) {
-        hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
-        set_python_except(pyinfo, "IndexError");
+        // hvml_err = PCVRNT_ERROR_OUT_OF_BOUNDS;
+        pyexcept = "IndexError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_InterruptedError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "InterruptedError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "InterruptedError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_IsADirectoryError)) {
-        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
-        set_python_except(pyinfo, "IsADirectoryError");
+        // hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        pyexcept = "IsADirectoryError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyError)) {
-        hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
-        set_python_except(pyinfo, "KeyError");
+        // hvml_err = PCVRNT_ERROR_NO_SUCH_KEY;
+        pyexcept = "KeyError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_KeyboardInterrupt)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "KeyboardInterrupt");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "KeyboardInterrupt";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_MemoryError)) {
-        hvml_err = PURC_ERROR_OUT_OF_MEMORY;
-        set_python_except(pyinfo, "MemoryError");
+        // hvml_err = PURC_ERROR_OUT_OF_MEMORY;
+        pyexcept = "MemoryError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ModuleNotFoundError)) {
-        hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
-        set_python_except(pyinfo, "ModuleNotFoundError");
+        // hvml_err = PURC_ERROR_ENTITY_NOT_FOUND;
+        pyexcept = "ModuleNotFoundError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ImportError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "ImportError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "ImportError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnboundLocalError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "UnboundLocalError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "UnboundLocalError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NameError)) {
-        hvml_err = PURC_ERROR_BAD_NAME;
-        set_python_except(pyinfo, "NameError");
+        // hvml_err = PURC_ERROR_BAD_NAME;
+        pyexcept = "NameError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotADirectoryError)) {
-        hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
-        set_python_except(pyinfo, "NotADirectoryError");
+        // hvml_err = PURC_ERROR_NOT_DESIRED_ENTITY;
+        pyexcept = "NotADirectoryError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_NotImplementedError)) {
-        hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
-        set_python_except(pyinfo, "NotImplementedError");
+        // hvml_err = PURC_ERROR_NOT_IMPLEMENTED;
+        pyexcept = "NotImplementedError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OSError)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(pyinfo, "OSError");
+        // hvml_err = PURC_ERROR_SYS_FAULT;
+        pyexcept = "OSError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_OverflowError)) {
-        hvml_err = PURC_ERROR_OVERFLOW;
-        set_python_except(pyinfo, "OverflowError");
+        // hvml_err = PURC_ERROR_OVERFLOW;
+        pyexcept = "OverflowError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_PermissionError)) {
-        hvml_err = PURC_ERROR_ACCESS_DENIED;
-        set_python_except(pyinfo, "PermissionError");
+        // hvml_err = PURC_ERROR_ACCESS_DENIED;
+        pyexcept = "PermissionError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ProcessLookupError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "ProcessLookupError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "ProcessLookupError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RecursionError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "RecursionError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "RecursionError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ReferenceError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "ReferenceError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "ReferenceError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_RuntimeError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "RuntimeError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "RuntimeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopAsyncIteration)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "StopAsyncIteration");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "StopAsyncIteration";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_StopIteration)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "StopIteration");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "StopIteration";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SyntaxError)) {
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "SyntaxError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "SyntaxError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemError)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(pyinfo, "SystemError");
+        // hvml_err = PURC_ERROR_SYS_FAULT;
+        pyexcept = "SystemError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_SystemExit)) {
-        hvml_err = PURC_ERROR_SYS_FAULT;
-        set_python_except(pyinfo, "SystemExit");
+        // hvml_err = PURC_ERROR_SYS_FAULT;
+        pyexcept = "SystemExit";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TimeoutError)) {
-        hvml_err = PURC_ERROR_TIMEOUT;
-        set_python_except(pyinfo, "TimeoutError");
+        // hvml_err = PURC_ERROR_TIMEOUT;
+        pyexcept = "TimeoutError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_TypeError)) {
-        hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
-        set_python_except(pyinfo, "TypeError");
+        // hvml_err = PURC_ERROR_WRONG_DATA_TYPE;
+        pyexcept = "TypeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeDecodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(pyinfo, "UnicodeDecodeError");
+        // hvml_err = PURC_ERROR_BAD_ENCODING;
+        pyexcept = "UnicodeDecodeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeEncodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(pyinfo, "UnicodeEncodeError");
+        // hvml_err = PURC_ERROR_BAD_ENCODING;
+        pyexcept = "UnicodeEncodeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeTranslateError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(pyinfo, "UnicodeTranslateError");
+        // hvml_err = PURC_ERROR_BAD_ENCODING;
+        pyexcept = "UnicodeTranslateError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_UnicodeError)) {
-        hvml_err = PURC_ERROR_BAD_ENCODING;
-        set_python_except(pyinfo, "UnicodeError");
+        // hvml_err = PURC_ERROR_BAD_ENCODING;
+        pyexcept = "UnicodeError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ValueError)) {
-        hvml_err = PURC_ERROR_INVALID_VALUE;
-        set_python_except(pyinfo, "ValueError");
+        // hvml_err = PURC_ERROR_INVALID_VALUE;
+        pyexcept = "ValueError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ZeroDivisionError)) {
-        hvml_err = PURC_ERROR_DIVBYZERO;
-        set_python_except(pyinfo, "ZeroDivisionError");
+        // hvml_err = PURC_ERROR_DIVBYZERO;
+        pyexcept = "ZeroDivisionError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_ArithmeticError)) {
         /* The base class for those built-in exceptions that are raised for
            various arithmetic errors: OverflowError, ZeroDivisionError,
            and FloatingPointError. */
-        hvml_err = PURC_ERROR_INVALID_FLOAT;
-        set_python_except(pyinfo, "ArithmeticError");
+        // hvml_err = PURC_ERROR_INVALID_FLOAT;
+        pyexcept = "ArithmeticError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_LookupError)) {
         /* The base class for the exceptions that are raised when
            a key or index used on a mapping or sequence is invalid:
            IndexError, KeyError. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "LookupError");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "LookupError";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_Exception)) {
         /* All built-in, non-system-exiting exceptions are derived from
            this class. All user-defined exceptions should also be derived
            from this class. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "Exception");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "Exception";
     }
     else if (PyErr_GivenExceptionMatches(pyerr, PyExc_BaseException)) {
         /* The base class for all built-in exceptions. */
-        hvml_err = PURC_ERROR_INTERNAL_FAILURE;
-        set_python_except(pyinfo, "BaseException");
+        // hvml_err = PURC_ERROR_INTERNAL_FAILURE;
+        pyexcept = "BaseException";
     }
 
-    if (hvml_err != PURC_ERROR_OK) {
-        purc_set_error(hvml_err);
-        PyErr_Clear();
-    }
+    set_python_except(pyinfo, pyexcept);
+    purc_set_error(hvml_err);
+    PyErr_Clear();
 }
 
 static PyObject *make_pyobj_from_variant(struct dvobj_pyinfo *pyinfo,

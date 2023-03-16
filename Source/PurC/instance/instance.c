@@ -93,6 +93,7 @@ static struct const_str_atom _except_names[] = {
     { "LostRenderer", 0 },
     { "MemoryFailure", 0 },
     { "InternalFailure", 0 },
+    { "ExternalFailure", 0 },
     { "ZeroDivision", 0 },
     { "Overflow", 0 },
     { "Underflow", 0 },

@@ -63,8 +63,8 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                  $PY.global(! 'myseed', $SYS.time );
                  $PY.run($pyCode, 'source')
             }}
-            <catch for `InternalFailure`>
-                <p>A Python exception raised: $PY.except</p>
+            <catch for `ExternalFailure`>
+                <exit with "A Python exception raised: $PY.except" />
             </catch>
         </choose>
 
@@ -101,6 +101,10 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                             <update on $TIMERS to 'subtract' with = [{ id : 'clock' }] />
                         </test>
                     </observe>
+
+                    <catch for `ExternalFailure`>
+                        <p>A Python exception raised: $PY.except</p>
+                    </catch>
                 </div>
 
                 <div class="col">
