@@ -1,0 +1,35 @@
+<!DOCTYPE hvml>
+<hvml target="void">
+    <body>
+      <div class="col" >
+           <div class="text-center">
+               <img id="theFigure" width="638" height="476" />
+           </div>
+
+           <init as 'step' at '#myNS' with 0L />
+           <observe on $TIMERS for 'expired:clock'>
+               <inherit>
+                   {{
+                           $STREAM.stdout.writelines("Going to handle Frame {$step}...");
+                           $PY.global.update_lines($step, $PY.global.walks, $PY.global.lines);
+                           $PY.global.fig.canvas.draw_idle();
+                           $PY.global.fig.savefig("frame-{$run}-{$step}.svg");
+                           $STREAM.stdout.writelines("File frame-$run-{$xyz}-{$step}.svg generated")
+                   }}
+               </inherit>
+
+               <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$run}-{$a}-$b-$c-{$step}.svg?once=yes" />
+               <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-$a-1-2-3-4-5-{$step}.svg?once=yes" />
+               <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$a}1-2-3-4-5-{$step}.svg?once=yes" />
+               <init as 'step' at '#myNS' with $DATA.arith('+', $step, 1) />
+               <test with $L.gt($step, 30) >
+                   <update on $TIMERS to 'subtract' with = [{ id : 'clock' }] />
+               </test>
+           </observe>
+
+           <catch for `ExternalFailure`>
+               <p>A Python exception raised: $PY.except</p>
+           </catch>
+       </div>
+    </body>
+</hvml>
