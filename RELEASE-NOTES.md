@@ -33,6 +33,7 @@ In this version, we fixed some bugs and made som enhancements:
    - Add new APIs: `pcutils_utf8_to_unichar()`, `pcutils_string_utf8_chars_with_nulls()`, and `pcutils_string_decode_utf8_alloc_with_nulls()`.
    - Add a new generic error: `PURC_ERROR_IO_FAILURE`.
 * ENHANCEMENTS:
+   - Add a new exception `ExternalFailure` for errors in external dynamic variant objects.
    - The native entity now supports getter and setter on itself.
    - Add a new post listener operation: `PCVAR_OPERATION_RELEASING`.
    - The basic implementation of `$PY`. HVML now can interact with Python.
@@ -45,7 +46,7 @@ In this version, we fixed some bugs and made som enhancements:
 * CLEANUP:
    - Remove repeated identical test (from @bkmgit)
 * SAMPLES:
-   - New sample `embedded-python-animated-3d-random-walk.hvml`: Embed Python in HVML to show the animated 3D random walks.
+   - A new sample `embedded-python-animated-3d-random-walk.hvml`: Embeding Python in HVML to show the animated 3D random walks.
 
 ## Version 0.9.6
 

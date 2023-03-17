@@ -795,7 +795,17 @@ END_STATE()
 
 BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
     if (is_ascii_digit(character) || character == '-') {
-        if (!top) {
+        if (top) {
+            if (top->type == ETT_MULTI_UNQUOTED_S) {
+                tkz_stack_push(ETT_VALUE);
+                RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+            }
+            else if (top->type == ETT_MULTI_QUOTED_S) {
+                tkz_stack_push(ETT_VALUE);
+                RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+            }
+        }
+        else {
             tkz_stack_push(ETT_VALUE);
         }
         RESET_TEMP_BUFFER();

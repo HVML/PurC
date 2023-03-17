@@ -80,17 +80,27 @@
 
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
+        int hee_line = tkz_reader_hee_line(parser->tkz_reader);             \
+        int hee_column = tkz_reader_hee_column(parser->tkz_reader);         \
+        int line = parser->curr_uc->line;                                   \
+        int column = parser->curr_uc->column;                               \
+        if (hee_line > 0) {                                                 \
+            line = line + hee_line - 1;                                     \
+        }                                                                   \
+        if (parser->curr_uc->line == 1) {                                   \
+            column = column + hee_column;                                   \
+        }                                                                   \
         char buf[ERROR_BUF_SIZE+1];                                         \
         snprintf(buf, ERROR_BUF_SIZE,                                       \
                 "line=%d, column=%d, character=%c",                         \
-                parser->curr_uc->line,                                      \
-                parser->curr_uc->column,                                    \
+                line,                                                       \
+                column,                                                     \
                 parser->curr_uc->character);                                \
         if (parser->enable_log) {                                           \
             PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
-    tkz_set_error_info(parser->curr_uc, err);                               \
+    tkz_set_error_info(parser->tkz_reader, parser->curr_uc, err);           \
 } while (0)
 
 #define BEGIN_STATE(state)                                                  \

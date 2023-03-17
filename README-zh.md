@@ -30,13 +30,10 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 
 这是 PurC 的 0.9.5 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
 
-要了解有关 HVML 编程的基本概念，请参考以下教程：
+要了解有关 HVML 编程的基本概念，请参考以下教程或文章：
 
-[30 分钟学会 HVML 编程](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
-
-有关 HVML 的更多信息，请参考文章（10% 完成）：
-
-[HVML，一种可编程标记语言](https://github.com/HVML/hvml-docs/blob/master/en/an-introduction-to-hvml-en.md)
+- [漫谈 HVML，它的由来和未来](https://github.com/HVML/hvml-docs/blob/master/zh/a-brief-introduction-to-hvml-zh.md)
+- [30 分钟学会 HVML 编程](https://github.com/HVML/hvml-docs/blob/master/zh/learn-hvml-programming-in-30-minutes-zh.md)
 
 有关 HVML 的规范文档、解释器和渲染器的开源实现，可通过如下代码仓库获得：
 

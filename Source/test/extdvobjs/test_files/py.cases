@@ -32,7 +32,11 @@ negative:
 
 negative:
     $PY.run('asdfasfd', 'module');
-    SysFault
+    ExternalFailure
+
+positive:
+    $PY.except
+    'SystemExit'
 
 positive:
     $PY.run('print("Hello from Python")')
@@ -292,7 +296,11 @@ positive:
 
 negative:
     $PY.math.pow(! { x: 3, y: 3 } )
-    WrongDataType
+    ExternalFailure
+
+positive:
+    $PY.except
+    'TypeError'
 
 positive:
     $PY.math.pi
@@ -343,7 +351,7 @@ positive:
 # $PY.compile
 negative:
     $PY.compile('c = ')
-    InternalFailure
+    ExternalFailure
 
 positive:
     $PY.except
@@ -395,7 +403,11 @@ positive:
 
 negative:
     $RUNNER.myObj.pyCode.eval(null, { })
-    BadName
+    ExternalFailure
+
+positive:
+    $PY.except
+    'NameError'
 
 positive:
     $PY.global(! { x: 10.0, y: 10.0 } )

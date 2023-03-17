@@ -73,13 +73,15 @@
             PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
-    tkz_set_error_info(parser->curr_uc, err);                               \
+    tkz_set_error_info(parser->reader, parser->curr_uc, err);               \
 } while (0)
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
                                           purc_rwstream_t rws)          \
 {                                                                       \
+    int hee_line = -1;                                                  \
+    int hee_column = -1;                                                \
     uint32_t character = 0;                                             \
     if (parser->token) {                                                \
         struct pchvml_token* token = parser->token;                     \
@@ -577,8 +579,17 @@ void pchvml_switch_to_ejson_state(struct pchvml_parser* parser)
 //    purc_set_error(PURC_ERROR_NOT_SUPPORTED);
 }
 
+static bool
+is_finished_default(struct pcejson *parser, uint32_t character)
+{
+    UNUSED_PARAM(parser);
+    UNUSED_PARAM(character);
+    return false;
+}
+
 struct pcvcm_node *
-parse_ejson(struct pchvml_parser *parser, const char *content)
+parse_ejson(struct pchvml_parser *parser, const char *content,
+        int hee_line, int hee_column)
 {
     struct pcvcm_node *node = NULL;
     if (!content) {
@@ -597,8 +608,15 @@ parse_ejson(struct pchvml_parser *parser, const char *content)
     }
     pcejson_reset(parser->ejson_parser, parser->ejson_parser_max_depth,
             flags);
-    pcejson_parse(&node, &parser->ejson_parser, rws,
-            parser->ejson_parser_max_depth);
+    struct tkz_reader *reader = tkz_reader_new(hee_line, hee_column);
+    if (!reader) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out;
+    }
+    tkz_reader_set_rwstream(reader, rws);
+    pcejson_parse_full(&node, &parser->ejson_parser, reader,
+            parser->ejson_parser_max_depth, is_finished_default);
+    tkz_reader_destroy(reader);
     purc_rwstream_destroy(rws);
 out:
     return node;
@@ -1814,6 +1832,10 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
         SET_ERR(PCHVML_ERROR_EOF_IN_TAG);
         RETURN_AND_STOP_PARSE();
     }
+    if (hee_line == -1) {
+        hee_line = parser->curr_uc->line;
+        hee_column = parser->curr_uc->column;
+    }
     APPEND_TO_TEMP_BUFFER(character);
     ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA);
 END_STATE()
@@ -1862,7 +1884,9 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     }
     else {
         const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes);
+        node = parse_ejson(parser, bytes, hee_line, hee_column);
+        hee_line = -1;
+        hee_column = -1;
     }
 
     if (!node) {
@@ -1912,6 +1936,10 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
         }
     }
     if (parser->nr_quoted < 2) {
+        if (hee_line == -1) {
+            hee_line = parser->curr_uc->line;
+            hee_column = parser->curr_uc->column;
+        }
         APPEND_TO_TEMP_BUFFER(character);
         ADVANCE_TO(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED);
     }
@@ -1926,7 +1954,9 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
     }
     else {
         const char *bytes = tkz_buffer_get_bytes(parser->temp_buffer);
-        node = parse_ejson(parser, bytes);
+        node = parse_ejson(parser, bytes, hee_line, hee_column);
+        hee_line = -1;
+        hee_column = -1;
     }
     if (node) {
         pchvml_token_append_vcm_to_attr(parser->token, node);

@@ -61,10 +61,12 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
         <choose on true  >
             {{
                  $PY.global(! 'myseed', $SYS.time );
-                 $PY.run($pyCode, 'source')
+                 $PY.run($pyCode, 'source');
+                 $PY.global.fig.canvas.draw_idle();
+                 $PY.global.fig.savefig("frame-orig.svg");
             }}
-            <catch for `InternalFailure`>
-                <p>A Python exception raised: $PY.except</p>
+            <catch for `ExternalFailure`>
+                <exit with "A Python exception raised: $PY.except" />
             </catch>
         </choose>
 
@@ -80,27 +82,32 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
 
                 <div class="col" >
                     <div class="text-center">
-                        <img id="theFigure" width="638" height="476" />
+                        <img id="theFigure" width="638" height="476" src="hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-orig.svg?once=yes"/>
                     </div>
 
-                    <init as 'step' at '#myNS' with 0L />
+                    <init as 'run' at '#myNS' with 1L />
+                    <init as 'step' at '#myNS' with 1L />
                     <observe on $TIMERS for 'expired:clock'>
                         <inherit>
                             {{
-                                    $STREAM.stdout.writelines("Going to handle Frame {$step}...");
+                                    $STREAM.stdout.writelines("Going to handle Frame $step for Run $run ...");
                                     $PY.global.update_lines($step, $PY.global.walks, $PY.global.lines);
                                     $PY.global.fig.canvas.draw_idle();
-                                    $PY.global.fig.savefig("frame-{$step}.svg");
-                                    $STREAM.stdout.writelines("File frame-{$step}.svg generated")
+                                    $PY.global.fig.savefig("frame-{$run}-{$step}.svg");
+                                    $STREAM.stdout.writelines("File frame-{$run}-{$step}.svg generated")
                             }}
                         </inherit>
 
-                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$step}.svg?once=yes" />
+                        <update on '#theFigure' at 'attr.src' with "hvml://localhost/_system/_filesystem/-$SYS.cwd/frame-{$run}-{$step}.svg?once=yes" />
                         <init as 'step' at '#myNS' with $DATA.arith('+', $step, 1) />
                         <test with $L.gt($step, 30) >
                             <update on $TIMERS to 'subtract' with = [{ id : 'clock' }] />
                         </test>
                     </observe>
+
+                    <catch for `ExternalFailure`>
+                        <p>A Python exception raised: $PY.except</p>
+                    </catch>
                 </div>
 
                 <div class="col">
@@ -115,6 +122,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
                             $PY.global.update_walks($DATA.arith('*', $step, 2))
                         }}
                     </inherit>
+                    <init as 'run' at '#myNS' with $DATA.arith('+', $run, 1) />
                     <init as 'step' at '#myNS' with 0L />
                     <update on $TIMERS to 'unite' with [{ "id" : "clock", "interval" : 100, "active" : "yes" }] />
                 </observe>

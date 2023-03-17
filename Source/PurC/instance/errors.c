@@ -104,6 +104,8 @@ static const char *except_messages[] = {
     "Memory failure",
     /* PURC_EXCEPT_INTERNAL_FAILURE */
     "Internal failure",
+    /* PURC_EXCEPT_EXTERNAL_FAILURE */
+    "External (dynamic variant object) failure",
     /* PURC_EXCEPT_ZERO_DIVISION */
     "Zero division",
     /* PURC_EXCEPT_OVERFLOW */

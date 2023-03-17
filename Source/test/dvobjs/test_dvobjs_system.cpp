@@ -259,10 +259,10 @@ TEST(dvobjs, uname)
         { "uname -m",
             "$SYS.uname()['machine']",
             get_system_uname, NULL, 0 },
+#if OS(LINUX)
         { "uname -p",
             "$SYS.uname()['processor']",
             get_system_uname, NULL, 0 },
-#if OS(LINUX)
         { "uname -i",
             "$SYS.uname()['hardware-platform']",
             get_system_uname, NULL, 0 },
@@ -349,10 +349,10 @@ TEST(dvobjs, uname_ptr)
         { "uname -m",
             "$SYS.uname_prt('machine')",
             get_system_uname, NULL, 0 },
+#if OS(LINUX)
         { "uname -p",
             "$SYS.uname_prt('processor')",
             get_system_uname, NULL, 0 },
-#if OS(LINUX)
         { "uname -i",
             "$SYS.uname_prt('hardware-platform')",
             get_system_uname, NULL, 0 },

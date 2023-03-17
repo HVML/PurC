@@ -451,7 +451,7 @@ int pcejson_parse(struct pcvcm_node **vcm_tree,
         struct pcejson **parser_param, purc_rwstream_t rws, uint32_t depth)
 {
     int ret;
-    struct tkz_reader *reader = tkz_reader_new();
+    struct tkz_reader *reader = tkz_reader_new(0, 0);
     if (!reader) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         ret = -1;
