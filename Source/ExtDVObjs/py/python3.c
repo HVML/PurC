@@ -991,14 +991,14 @@ static purc_variant_t pycallable_self_setter(void* native_entity,
 
     struct dvobj_pyinfo *pyinfo = get_pyinfo();
     PyObject *pyobj = native_entity;
+    PyObject *args = NULL, *kwargs = NULL;
+    PyObject *result = NULL;
 
     if (!PyCallable_Check(pyobj)) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         goto failed;
     }
 
-    PyObject *args = NULL, *kwargs = NULL;
-    PyObject *result = NULL;
     if (nr_args == 0) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
