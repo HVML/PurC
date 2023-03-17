@@ -60,6 +60,9 @@ struct tkz_reader {
     int line;
     int column;
     int consumed;
+
+    int hee_line;
+    int hee_column;
 };
 
 
@@ -102,7 +105,7 @@ void tkz_uc_destroy(struct tkz_uc *uc)
     }
 }
 
-struct tkz_reader *tkz_reader_new(void)
+struct tkz_reader *tkz_reader_new(int hee_line, int hee_column)
 {
     struct tkz_reader *reader = PCHVML_ALLOC(sizeof(struct tkz_reader));
     if (!reader) {
@@ -113,6 +116,9 @@ struct tkz_reader *tkz_reader_new(void)
     reader->line = 1;
     reader->column = 0;
     reader->consumed = 0;
+
+    reader->hee_line = hee_line;
+    reader->hee_column = hee_column;
     return reader;
 }
 
@@ -225,6 +231,16 @@ struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
         return ret;
     }
     return NULL;
+}
+
+int tkz_reader_hee_line(struct tkz_reader *reader)
+{
+    return reader->hee_line;
+}
+
+int tkz_reader_hee_column(struct tkz_reader *reader)
+{
+    return reader->hee_column;
 }
 
 void tkz_reader_destroy(struct tkz_reader *reader)
@@ -574,7 +590,7 @@ free_error_info(void *key, void *local_data)
 }
 
 int
-tkz_set_error_info(struct tkz_uc *uc, int error)
+tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error)
 {
     purc_set_error(error);
     if (!uc) {
@@ -587,9 +603,19 @@ tkz_set_error_info(struct tkz_uc *uc, int error)
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out;
     }
+    int hee_line = tkz_reader_hee_line(reader);
+    int hee_column = tkz_reader_hee_column(reader);
+    int line = uc->line;
+    int column = uc->column;
+    if (hee_line > 0) {
+        line = line + hee_line - 1;
+    }
+    if (uc->line == 1) {
+        column = column + hee_column;
+    }
     info->character = uc->character;
-    info->line = uc->line;
-    info->column = uc->column;
+    info->line = line;
+    info->column = column;
     info->position = uc->position;
     info->error = error;
 
