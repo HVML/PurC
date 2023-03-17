@@ -259,7 +259,7 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     unix_addr.sun_family = AF_UNIX;
     /* On Linux sun_path is 108 bytes in size */
     sprintf (unix_addr.sun_path, "%s%s-%05d", CLI_PATH, peer_name, getpid());
-    len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
+    len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path) + 1;
 
     unlink (unix_addr.sun_path);        /* in case it already exists */
     if (bind (fd, (struct sockaddr *) &unix_addr, len) < 0) {
