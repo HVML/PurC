@@ -32,12 +32,12 @@ def find_next_prime(start):
         <h1>Embeding Python in HVML: Find Primes</h1>
 
         <ul>
-            <init as 'prime' at '_topmost' with 2L temp />
-            <iterate on $prime onlyif $L.lt($0<, 200L)
-                    with $PY.global.find_next_prime($prime) nosetotail >
-                <init as "prime" at '_topmost' with $? temp />
-                <li>$?</li>
-            </iterate>
+            <choose on 2L>
+                <iterate on $? onlyif $L.lt($0<, 200L)
+                        with $PY.global.find_next_prime($0<) nosetotail >
+                    <li>$?</li>
+                </iterate>
+            </choose>
         </ul>
 
         <test with $L.streq('caseless', $RDR.state.comm, 'socket') >
