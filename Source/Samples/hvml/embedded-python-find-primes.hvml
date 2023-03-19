@@ -29,16 +29,22 @@ def find_next_prime(start):
             </catch>
         </inherit>
 
-        <h1>Embeding Python in HVML: Find Primes</h1>
+        <h1 style="text-align:center">Embeding Python in HVML: Find Primes</h1>
 
-        <ul>
+        <p id="myNS">
             <choose on 2L>
-                <iterate on $? onlyif $L.lt($0<, 200L)
-                        with $PY.global.find_next_prime($0<) nosetotail >
-                    <li>$?</li>
+                <iterate on $? onlyif $L.lt($0~, 10000L)
+                        with $PY.global.find_next_prime($0~) nosetotail >
+                    <test with $DATA.arith('%', $%, 2L)>
+                        <init as 'color' at '#myNS' with 'yellow' />
+                        <differ>
+                            <init as 'color' at '#myNS' with 'red' />
+                        </differ>
+                    </test>
+                    <span style="color:$color">$?, </span>
                 </iterate>
             </choose>
-        </ul>
+        </p>
 
         <test with $L.streq('caseless', $RDR.state.comm, 'socket') >
             <observe on $CRTN for "rdrState:pageClosed">
