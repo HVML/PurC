@@ -1,0 +1,50 @@
+<!DOCTYPE hvml SYSTEM "f: PY">
+<hvml target="html">
+    <head>
+        <title>Embedded Python in HVML: Find Primes</title>
+    </head>
+
+    <body>
+        <init as 'pyCode'>
+'''
+def find_next_prime(start):
+    if start < 2:
+        start = 2
+
+    while True:
+        start += 1
+        for j in range(2, start + 1):
+            if start % j == 0:
+                break
+        if j == start:
+            return start
+'''
+        </init>
+
+        <inherit>
+            {{ $PY.run($pyCode, 'source') }}
+
+            <catch for `ExternalFailure`>
+                <exit with "A Python exception raised: $PY.except" />
+            </catch>
+        </inherit>
+
+        <h1>Embeding Python in HVML: Find Primes</h1>
+
+        <ul>
+            <choose on 2L>
+                <iterate on $? onlyif $L.lt($0<, 200L)
+                        with $PY.global.find_next_prime($0<) nosetotail >
+                    <li>$?</li>
+                </iterate>
+            </choose>
+        </ul>
+
+        <test with $L.streq('caseless', $RDR.state.comm, 'socket') >
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with 'Ok' />
+            </observe>
+        </test>
+    </body>
+</hvml>
+

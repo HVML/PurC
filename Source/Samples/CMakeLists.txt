@@ -87,6 +87,7 @@ set(sample_HVML_FILES
     "hvml/foil-border-5.hvml"
     "hvml/foil-floating-0.hvml"
     "hvml/foil-floating-1.hvml"
+    "hvml/embedded-python-find-primes.hvml"
     "hvml/embedded-python-animated-3d-random-walk.hvml"
 )
 

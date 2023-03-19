@@ -330,7 +330,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (!stack->inherit && stack->co->stage == CO_STAGE_FIRST_RUN &&
             !pcintr_rdr_page_control_load(stack))
     {
-        PC_ASSERT(0); // TODO:
+        // PC_ASSERT(0); VWNOTE: XXX
         // stack->exited = 1;
         return;
     }
