@@ -2851,7 +2851,6 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for floating box: %s.\n", name);
 #endif
 
-    // TODO: collapse margin
     int w = box->ml + box->bl + box->pl + box->width + box->pr + box->br + box->mr;
     int h = box->mt + box->bt + box->pt + box->height + box->pb + box->bb + box->mb;
 
@@ -2886,22 +2885,31 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     }
 
     int left, top;
+    int sub_l, sub_t, sub_r, sub_b;
+
+    top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
+    sub_t = top;
+    sub_b = top + h;
+
     if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
         left = rc_dest->left;
+        sub_l = container->ctnt_rect.left;
+        sub_r = left + w;
     }
     else {
         left = rc_dest->right - w;
+        sub_l = left;
+        sub_r = container->ctnt_rect.right;
     }
 
-    top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
 
+    float_ctxt->top = top;
     foil_rect_offset(&box->ctnt_rect, left, top);
 
     foil_rect rc;
-    foil_rect_set(&rc, left, top, left + w, top + h);
-    float_ctxt->top = top;
-
+    foil_rect_set(&rc, sub_l, sub_t, sub_r, sub_b);
     foil_region_subtract_rect(region, &rc);
+
 out:
 
 #ifndef NDEBUG
