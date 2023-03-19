@@ -58,7 +58,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
 '''
         </init>
 
-        <choose on true  >
+        <inherit>
             {{
                  $PY.global(! 'myseed', $SYS.time );
                  $PY.run($pyCode, 'source');
@@ -68,7 +68,7 @@ ax.set(zlim3d=(0, 1), zlabel='Z')
             <catch for `ExternalFailure`>
                 <exit with "A Python exception raised: $PY.except" />
             </catch>
-        </choose>
+        </inherit>
 
         <div class="px-4 my-5 border-bottom">
             <div class="text-center">
