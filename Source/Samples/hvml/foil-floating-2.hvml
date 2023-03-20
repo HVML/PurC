@@ -1,0 +1,97 @@
+<hvml target="html">
+    <head>
+        <style hvml:raw>
+            .border_red {
+                border-style: solid;
+                border-width: thick;
+                border-color: red;
+            }
+            .border_green {
+                border-style: solid;
+                border-width: thick;
+                border-color: green;
+            }
+            .border_blue {
+                border-style: solid;
+                border-width: thick;
+                border-color: blue;
+            }
+            .fl {
+                float: left;
+            }
+
+            .fr {
+                float: right;
+            }
+
+            #n_1 {
+                height: 120px;
+            }
+
+            #f_3 {
+                height: 60px;
+            }
+            #f_6 {
+                height: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="t_0" class="border_green">
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+            div 0 : text
+        </div>
+        <div id="f_0" class="border_red fl">
+            float left
+        </div>
+        <div id="f_0" class="border_red fr">
+            float right
+        </div>
+        <div id="t_1" class="border_blue">
+            div 0 : text content
+            div 1 : text content
+            div 2 : text content
+            div 3 : text content
+            div 4 : text content
+            div 5 : text content
+            div 6 : text content
+            div 7 : text content
+            div 8 : text content
+            div 9 : text content
+            div 10 : text content
+            div 11 : text content
+            div 12 : text content
+            div 13 : text content
+            div 14 : text content
+            div 15 : text content
+            div 16 : text content
+            div 17 : text content
+            div 18 : text content
+            div 19 : text content
+            div 20 : text content
+            div 21 : text content
+            div 22 : text content
+            div 23 : text content
+            div 24 : text content
+            div 25 : text content
+            div 26 : text content
+            div 27 : text content
+            div 28 : text content
+            div 29 : text content
+        </div>
+    </body>
+</hvml>
+
