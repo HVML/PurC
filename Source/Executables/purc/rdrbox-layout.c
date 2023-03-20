@@ -1977,7 +1977,8 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     free(name);
 #endif
 
-    if (box->floating || box->is_abs_positioned ||
+    if (box->nr_floating_children || box->nr_abspos_children ||
+            box->floating || box->is_abs_positioned ||
             (box->is_block_container && !box->is_block_level) ||
             (box->is_block_level &&
              box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE)) {
@@ -2636,7 +2637,6 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 }
 
 void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
-        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *block)
 {
 #ifndef NDEBUG
@@ -2660,7 +2660,7 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
     int h = block->mt + block->bt + block->pt + block->height + block->pb +
         block->bb + block->mb;
 
-    foil_region *region = &float_ctxt->region;
+    foil_region *region = &container->block_fmt_ctxt->region;
     foil_rect *rc_dest = NULL;
     foil_rect *rgrc = NULL;
     foil_rgnrc_p rg = region->head;
@@ -2684,8 +2684,8 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         rc.top = rc_dest->top;
         rc.bottom = rc.top + h;
 
-        float_ctxt->top = rc.bottom;
-        foil_region_subtract_rect(&float_ctxt->region, &rc);
+        container->block_fmt_ctxt->last_float_top = rc.bottom;
+        foil_region_subtract_rect(region, &rc);
     }
 
 
@@ -2741,7 +2741,6 @@ bool is_region_section_match(foil_rgnrc_p head, foil_rgnrc_p tail,
 
 
 void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
-        foil_layout_floating_ctxt *float_ctxt,
         const foil_rdrbox *container, foil_rdrbox *box)
 {
     (void) container;
@@ -2753,14 +2752,15 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     int w = box->ml + box->bl + box->pl + box->width + box->pr + box->br + box->mr;
     int h = box->mt + box->bt + box->pt + box->height + box->pb + box->bb + box->mb;
 
-    foil_region *region = &float_ctxt->region;
+    foil_region *region = &container->block_fmt_ctxt->region;
+    int last_float_top = container->block_fmt_ctxt->last_float_top;
 
     foil_rect *rc_dest = NULL;
     foil_rect *rgrc = NULL;
     foil_rgnrc_p rg = region->head;
     while(rg) {
         rgrc = &rg->rc;
-        if (rgrc->bottom <= float_ctxt->top) {
+        if (rgrc->bottom <= last_float_top) {
             rg = rg->next;
             continue;
         }
@@ -2771,7 +2771,8 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
             break;
         }
         else if (rgw >= w) {
-            if (is_region_section_match(rg, region->tail, w, h, float_ctxt->top, box->floating)) {
+            if (is_region_section_match(rg, region->tail, w, h,
+                        last_float_top, box->floating)) {
                 rc_dest = &rg->rc;
                 break;
             }
@@ -2786,7 +2787,7 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     int left, top;
     int sub_l, sub_t, sub_r, sub_b;
 
-    top = rc_dest->top > float_ctxt->top ? rc_dest->top : float_ctxt->top;
+    top = rc_dest->top > last_float_top ? rc_dest->top : last_float_top;
     sub_t = top;
     sub_b = top + h;
 
@@ -2802,7 +2803,7 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
     }
 
 
-    float_ctxt->top = top;
+    container->block_fmt_ctxt->last_float_top = top;
     foil_rect_offset(&box->ctnt_rect, left, top);
 
     foil_rect rc;
