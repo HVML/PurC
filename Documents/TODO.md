@@ -78,7 +78,7 @@
    - `fifo`
 1. [0.9.a] Support for the following filters for `$STREAM` and `$SOCKET`:
    - `http`
-1. [1.0.0] Complete the implementation of the following predefined variables:
+1. [0.9.c] Complete the implementation of the following predefined variables:
    - `$URL`
    - `$STR`
    - `$DATA`
@@ -97,12 +97,12 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.a] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
-1. [0.9.a] The generation and handling mechanism of uncatchable errors:
+1. [0.9.e] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
+1. [0.9.e] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.9.a] Review the implementation of all elements.
-1. [0.9.a] Review all uses of exception names.
+1. [0.9.e] Review the implementation of all elements.
+1. [0.9.e] Review all uses of exception names.
 1. [0.9.6; Resolved] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.6; Resolved] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.4; Resolved] Improve the implementation of the element `update`:
@@ -143,23 +143,23 @@
 1. [0.9.8] Enhance Foil to render borders.
 1. [0.9.8] Enhance Foil to support floats and absolute positioning.
 1. [0.9.8] Enhance Foil to support dynamic change of element styles and contents.
-1. [0.9.10] Enhance Foil to support table, flex, and grid layout.
-1. [1.0.0] Enhance Foil to support full-screen, controls, and multiple-page rendering.
+1. [0.9.a] Enhance Foil to support table, flex, and grid layout.
+1. [0.9.c] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
 1. [0.9.4; Resolved] Enhance Foil to support more properties and layouts except for table.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (Foil) for text terminal via `THREAD` protocol.
 
 ### 2.7) More Platforms
 
-1. [1.0.0] Windows
+1. [0.9.c] Windows
 
 ### 2.8) Others
 
-1. [1.0.0] Clean up all unnecessary calls of `PC_ASSERT`.
-1. [1.0.0] Normalize the typedef names.
-1. [1.0.0] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
+1. [0.9.c] Clean up all unnecessary calls of `PC_ASSERT`.
+1. [0.9.c] Normalize the typedef names.
+1. [0.9.c] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
-1. [1.0.0] Tune API description.
+1. [0.9.c] Tune API description.
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
 1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
