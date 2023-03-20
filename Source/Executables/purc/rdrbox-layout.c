@@ -1997,6 +1997,13 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     LOG_DEBUG("called for box %s (type: %d)\n", name, box->type);
 #endif
 
+    if (box->nr_floating_children) {
+        foil_rect rc = { 0, 0, box->width, INT_MAX};
+        foil_region_empty(&box->block_fmt_ctxt->region);
+        foil_region_set(&box->block_fmt_ctxt->region, &rc);
+        box->block_fmt_ctxt->last_float_top = box->ctnt_rect.top;
+    }
+
     if ((box->is_block_level || box->is_block_container)
             && box->nr_inline_level_children > 0) {
         struct _inline_fmt_ctxt *lfmt_ctxt = NULL;
@@ -2336,6 +2343,10 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
                 child = child->next;
                 continue;
             }
@@ -2375,18 +2386,34 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 line->left_extent -= margin_width;
             }
 
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - child->mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + child->mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+
             child = child->next;
         }
 
         height = line->rc.bottom - fmt_ctxt->lines->rc.top;
         box->ctnt_rect.bottom = box->ctnt_rect.top + box->height;
-        foil_rect_offset(&box->ctnt_rect, 0, box->mt + box->bt + box->pt);
+        /* FIXME: have offset after foil_rdrbox_resolve_height */
+//        foil_rect_offset(&box->ctnt_rect, 0, box->mt + box->bt + box->pt);
     }
     else if (box->nr_block_level_children > 0) {
         foil_rdrbox *child = box->first;
         foil_rdrbox *prev_sibling = NULL;
         while (child) {
             if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
                 child = child->next;
                 continue;
             }
@@ -2396,7 +2423,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             if (prev_sibling) {
                 collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom + real_mb);
+                        0, prev_sibling->ctnt_rect.bottom + prev_sibling->pb + prev_sibling->bb + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
@@ -2411,6 +2438,17 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 + child->height + child->pb + child->bb + real_mb;
 
             prev_sibling = child;
+
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - real_mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + real_mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
             child = child->next;
         }
     }
@@ -2688,7 +2726,6 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         foil_region_subtract_rect(region, &rc);
     }
 
-
 out:
 #ifndef NDEBUG
     LOG_DEBUG("end for block level box: %s.\n", name);
@@ -2804,7 +2841,7 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
 
 
     container->block_fmt_ctxt->last_float_top = top;
-    foil_rect_offset(&box->ctnt_rect, left, top);
+    foil_rect_offset(&box->ctnt_rect, left, top + box->mt + box->bt + box->pt);
 
     foil_rect rc;
     foil_rect_set(&rc, sub_l, sub_t, sub_r, sub_b);
