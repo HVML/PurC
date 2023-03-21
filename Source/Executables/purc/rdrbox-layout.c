@@ -2687,46 +2687,9 @@ void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
     collapse_margins(ctxt, block, &real_mt, &real_mb);
 #endif
 
-    if (!container->nr_floating_children) {
-        foil_rect_offset(&block->ctnt_rect,
+    foil_rect_offset(&block->ctnt_rect,
             container->ctnt_rect.left, container->ctnt_rect.top);
-        goto out;
-    }
 
-    int w = block->ml + block->bl + block->pl + block->width + block->pr +
-        block->br + block->mr;
-    int h = block->mt + block->bt + block->pt + block->height + block->pb +
-        block->bb + block->mb;
-
-    foil_region *region = &container->block_fmt_ctxt->region;
-    foil_rect *rc_dest = NULL;
-    foil_rect *rgrc = NULL;
-    foil_rgnrc_p rg = region->head;
-    while(rg) {
-        rgrc = &rg->rc;
-        int rgw = rgrc->right - rgrc->left;
-        int rgh = rgrc->bottom - rgrc->top;
-
-        if (rgw >= w && rgh >= h) {
-            rc_dest = &rg->rc;
-            break;
-        }
-        rg = rg->next;
-    }
-
-    if (rc_dest) {
-        foil_rect_offset(&block->ctnt_rect, rc_dest->left, rc_dest->top);
-        foil_rect rc;
-        rc.left = rc_dest->left;
-        rc.right = rc.left + w;
-        rc.top = rc_dest->top;
-        rc.bottom = rc.top + h;
-
-        container->block_fmt_ctxt->last_float_top = rc.bottom;
-        foil_region_subtract_rect(region, &rc);
-    }
-
-out:
 #ifndef NDEBUG
     LOG_DEBUG("end for block level box: %s.\n", name);
     free(name);
