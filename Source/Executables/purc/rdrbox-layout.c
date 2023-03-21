@@ -2637,7 +2637,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
             }
 
             foil_rect_offset(&run->rc, off_x, off_y);
-            foil_rect_offset(&run->rc, line->rc.left, line->rc.top - lines_height);
+            foil_rect_offset(&run->rc, block->ctnt_rect.left, block->ctnt_rect.top);
             if (run->box->is_block_container) {
 
                 foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
@@ -2830,13 +2830,13 @@ void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
 
     if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
         left = rc_dest->left;
-        sub_l = container->ctnt_rect.left;
+        sub_l = 0;
         sub_r = left + w;
     }
     else {
         left = rc_dest->right - w;
         sub_l = left;
-        sub_r = container->ctnt_rect.right;
+        sub_r = container->ctnt_rect.right + container->pr + container->br + container->mr;
     }
 
 
