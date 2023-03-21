@@ -369,7 +369,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             foil_rect_get_bound(&fmt_ctxt->rc, &fmt_ctxt->rc, &line->rc);
 
             nr_laid += n;
-            if (seg_size.cx >= line->left_extent) {
+            if (seg_size.cx > line->left_extent) {
                 line = foil_rdrbox_block_allocate_new_line(ctxt, block);
                 if (line == NULL)
                     goto failed;
