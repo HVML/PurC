@@ -254,6 +254,9 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         left = rc_dest->left;
         top = rc_dest->top;
         left_extent = rc_dest->right - rc_dest->left;
+        if (left_extent > lfmt_ctxt->poss_extent) {
+            left_extent = lfmt_ctxt->poss_extent;
+        }
     }
 
     line->rc.left = left;
@@ -332,13 +335,6 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             assert(n > 0);
             if (seg_size.cx > line->left_extent &&
                     fmt_ctxt->poss_extent > line->left_extent) {
-                foil_rdrbox *parent = block->parent;
-                if (!block->floating &&  parent && parent->nr_floating_children) {
-                    foil_rect rc = line->rc;
-                    rc.right = rc.left + line->left_extent;
-                    foil_region_subtract_rect(&parent->block_fmt_ctxt->region,
-                            &rc);
-                }
                 /* try to allocate a new line */
                 line = foil_rdrbox_block_allocate_new_line(ctxt, block);
                 if (line == NULL)
