@@ -12,11 +12,20 @@ sample_failed=""
 sample_crashed=""
 
 for x in $SAMPLE_PROGS; do
-    echo ">> Start of $x"
     if test $USE_VALGRIND -eq 0; then
-        ./$x 2> /dev/null
+        if [[ "$x" =~ .*"layout_html".* ]]; then
+             ./$x -f Source/Samples/DOMRuler/layout_html/window.html  \
+                  -c Source/Samples/DOMRuler/layout_html/window.css 2> /dev/null
+        else
+             ./$x 2> /dev/null
+        fi
     else
-        ${VALGRIND} ./$x || exit
+        if [[ "$x" =~ .*"layout_html".* ]]; then
+             ${VALGRIND} ./$x -f Source/Samples/DOMRuler/layout_html/window.html  \
+                          -c Source/Samples/DOMRuler/layout_html/window.css || exit
+        else
+             ${VALGRIND} ./$x || exit
+        fi
     fi
     if test "$?" -eq 0; then
         total_passed=$((total_passed + 1))
