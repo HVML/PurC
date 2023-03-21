@@ -24,40 +24,45 @@
                 float: right;
             }
 
-            #n_1 {
-                height: 120px;
-            }
-
-            #f_3 {
-                height: 60px;
-            }
-            #f_6 {
-                height: 40px;
-            }
         </style>
     </head>
     <body>
         <div id="t_0" class="border_green">
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
-            div 0 : text
+            div 0 : text first
+            div 1 : text first
+            div 2 : text first
+            div 3 : text first
+            div 4 : text first
+            div 5 : text first
+            div 6 : text first
+            div 7 : text first
+            div 8 : text first
+            div 9 : text first
+            div 10 : text first
+            div 11 : text first
+            div 12 : text first
+            div 13 : text first
+            div 14 : text first
+            div 15 : text first
+            div 16 : text first
+            div 17 : text first
+            div 18 : text first
+            div 19 : text first
+            div 20 : text first
+            div 21 : text first
+            div 22 : text first
+            div 23 : text first
+            div 24 : text first
+            div 25 : text first
+            div 26 : text first
+            div 27 : text first
+            div 28 : text first
+            div 29 : text first
         </div>
         <div id="f_0" class="border_red fl">
             float left
         </div>
-        <div id="f_0" class="border_red fr">
+        <div id="f_1" class="border_red fr">
             float right
         </div>
         <div id="t_1" class="border_blue">
@@ -91,6 +96,82 @@
             div 27 : text content
             div 28 : text content
             div 29 : text content
+        </div>
+        <div id="f_2" class="border_red fl">
+            float left
+        </div>
+        <div id="f_3" class="border_red fr">
+            float right
+        </div>
+        <div id="t_2" class="border_blue">
+            div 0 : normal text
+            div 1 : normal text
+            div 2 : normal text
+            div 3 : normal text
+            div 4 : normal text
+            div 5 : normal text
+            div 6 : normal text
+            div 7 : normal text
+            div 8 : normal text
+            div 9 : normal text
+            div 10 : normal text
+            div 11 : normal text
+            div 12 : normal text
+            div 13 : normal text
+            div 14 : normal text
+            div 15 : normal text
+            div 16 : normal text
+            div 17 : normal text
+            div 18 : normal text
+            div 19 : normal text
+            div 20 : normal text
+            div 21 : normal text
+            div 22 : normal text
+            div 23 : normal text
+            div 24 : normal text
+            div 25 : normal text
+            div 26 : normal text
+            div 27 : normal text
+            div 28 : normal text
+            div 29 : normal text
+        </div>
+        <div id="f_4" class="border_red fl">
+            float left
+        </div>
+        <div id="f_5" class="border_red fr">
+            float right
+        </div>
+        <div id="t_3" class="border_blue">
+            div 0 : normal text
+            div 1 : normal text
+            div 2 : normal text
+            div 3 : normal text
+            div 4 : normal text
+            div 5 : normal text
+            div 6 : normal text
+            div 7 : normal text
+            div 8 : normal text
+            div 9 : normal text
+            div 10 : normal text
+            div 11 : normal text
+            div 12 : normal text
+            div 13 : normal text
+            div 14 : normal text
+            div 15 : normal text
+            div 16 : normal text
+            div 17 : normal text
+            div 18 : normal text
+            div 19 : normal text
+            div 20 : normal text
+            div 21 : normal text
+            div 22 : normal text
+            div 23 : normal text
+            div 24 : normal text
+            div 25 : normal text
+            div 26 : normal text
+            div 27 : normal text
+            div 28 : normal text
+            div 29 : normal text
         </div>
     </body>
 </hvml>
