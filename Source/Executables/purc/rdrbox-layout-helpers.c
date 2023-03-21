@@ -358,6 +358,9 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             if (!block->floating &&  parent && parent->nr_floating_children) {
                 foil_region_subtract_rect(&parent->block_fmt_ctxt->region,
                         &run->rc);
+                if (parent->nr_block_level_children) {
+                    foil_rect_offset(&run->rc, 0, -block->ctnt_rect.top);
+                }
             }
             foil_rdrbox_line_set_size(line, seg_size.cx, seg_size.cy);
             LOG_DEBUG("line rectangle: (%d, %d, %d, %d)\n",
