@@ -27,6 +27,7 @@
 
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
+#include "region/region.h"
 #include "udom.h"
 
 #include "unicode/unicode.h"
@@ -201,8 +202,15 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     (void)ctxt;
     assert(box->is_block_level && box->nr_inline_level_children > 0);
 
+    foil_rdrbox *parent = box->parent;
+
     struct _inline_fmt_ctxt *lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box);
     assert(lfmt_ctxt);
+
+    foil_rect *rc = &lfmt_ctxt->rc;
+    int left = rc->left;
+    int top;
+    int left_extent;
 
     lfmt_ctxt->lines = realloc(lfmt_ctxt->lines,
             sizeof(struct _line_info) * (lfmt_ctxt->nr_lines + 1));
@@ -212,17 +220,42 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     struct _line_info *line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
     memset(line, 0, sizeof(struct _line_info));
 
-    struct _line_info *last_line = NULL;
-    if (lfmt_ctxt->nr_lines > 0)
-        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines - 1;
+    if (!box->floating &&  parent && parent->nr_floating_children) {
+        foil_region *region = &parent->block_fmt_ctxt->region;
+        foil_rect *rc_dest = NULL;
+        foil_rect *rgrc = NULL;
+        foil_rgnrc_p rg = region->head;
+        while(rg) {
+            rgrc = &rg->rc;
+            int rgh = rgrc->bottom - rgrc->top;
 
-    // TODO: determine the fields of the line according to
-    // the floats and text-indent
-    line->rc.left = lfmt_ctxt->rc.left;
-    if (last_line)
-        line->rc.top = last_line->rc.top + last_line->height;
-    else
-        line->rc.top = lfmt_ctxt->rc.top;
+            if ((uint32_t)rgh >= box->line_height) {
+                rc_dest = &rg->rc;
+                break;
+            }
+            rg = rg->next;
+        }
+        left = rc_dest->left;
+        top = rc_dest->top;
+        left_extent = rc_dest->right - rc_dest->left;
+        //left_extent = lfmt_ctxt->poss_extent;
+    }
+    else {
+        struct _line_info *last_line = NULL;
+        if (lfmt_ctxt->nr_lines > 0)
+            last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines - 1;
+
+        // TODO: determine the fields of the line according to
+        // the floats and text-indent
+        if (last_line)
+            top = last_line->rc.top + last_line->height;
+        else
+            top = rc->top;
+        left_extent = lfmt_ctxt->poss_extent;
+    }
+
+    line->rc.left = left;
+    line->rc.top = top;
     line->rc.right = 0;
     line->rc.bottom = line->rc.top + box->line_height;
 
@@ -230,7 +263,7 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     line->y = line->rc.top;
     line->width = 0;
     line->height = box->line_height;
-    line->left_extent = lfmt_ctxt->poss_extent;
+    line->left_extent = left_extent;
     lfmt_ctxt->nr_lines++;
     return line;
 
@@ -297,6 +330,13 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             assert(n > 0);
             if (seg_size.cx > line->left_extent &&
                     fmt_ctxt->poss_extent > line->left_extent) {
+                foil_rdrbox *parent = block->parent;
+                if (!block->floating &&  parent && parent->nr_floating_children) {
+                    foil_rect rc = line->rc;
+                    rc.right = rc.left + line->left_extent;
+                    foil_region_subtract_rect(&parent->block_fmt_ctxt->region,
+                            &rc);
+                }
                 /* try to allocate a new line */
                 line = foil_rdrbox_block_allocate_new_line(ctxt, block);
                 if (line == NULL)
@@ -315,6 +355,12 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             run->nr_ucs = n;
             foil_rect_set(&run->rc, line->x, line->y,
                     line->x + seg_size.cx, line->y + seg_size.cy);
+
+            foil_rdrbox *parent = block->parent;
+            if (!block->floating &&  parent && parent->nr_floating_children) {
+                foil_region_subtract_rect(&parent->block_fmt_ctxt->region,
+                        &run->rc);
+            }
             foil_rdrbox_line_set_size(line, seg_size.cx, seg_size.cy);
             LOG_DEBUG("line rectangle: (%d, %d, %d, %d)\n",
                     line->rc.left, line->rc.top,
