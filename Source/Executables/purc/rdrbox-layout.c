@@ -2352,14 +2352,6 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             }
 
             if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
-                if (!box->floating && box->parent->nr_floating_children) {
-                    foil_rect rc = line->rc;
-                    if (rc.right == 0) {
-                        rc.right = box->parent->ctnt_rect.right;
-                    }
-                    foil_region_subtract_rect(&box->parent->block_fmt_ctxt->region,
-                            &rc);
-                }
                 line = foil_rdrbox_layout_inline(ctxt, box, child);
                 if (line == NULL)
                     goto failed;

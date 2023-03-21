@@ -220,16 +220,32 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     struct _line_info *line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines;
     memset(line, 0, sizeof(struct _line_info));
 
+    struct _line_info *last_line = NULL;
+    if (lfmt_ctxt->nr_lines > 0) {
+        last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines - 1;
+    }
+
+    // TODO: determine the fields of the line according to
+    // the floats and text-indent
+    if (last_line) {
+        top = last_line->rc.top + last_line->height;
+    }
+    else {
+        top = rc->top;
+    }
+    left_extent = lfmt_ctxt->poss_extent;
+
     if (!box->floating &&  parent && parent->nr_floating_children) {
         foil_region *region = &parent->block_fmt_ctxt->region;
         foil_rect *rc_dest = NULL;
         foil_rect *rgrc = NULL;
         foil_rgnrc_p rg = region->head;
+
         while(rg) {
             rgrc = &rg->rc;
             int rgh = rgrc->bottom - rgrc->top;
 
-            if ((uint32_t)rgh >= box->line_height) {
+            if (rgrc->top >= top && (uint32_t)rgh >= box->line_height) {
                 rc_dest = &rg->rc;
                 break;
             }
@@ -238,20 +254,6 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         left = rc_dest->left;
         top = rc_dest->top;
         left_extent = rc_dest->right - rc_dest->left;
-        //left_extent = lfmt_ctxt->poss_extent;
-    }
-    else {
-        struct _line_info *last_line = NULL;
-        if (lfmt_ctxt->nr_lines > 0)
-            last_line = lfmt_ctxt->lines + lfmt_ctxt->nr_lines - 1;
-
-        // TODO: determine the fields of the line according to
-        // the floats and text-indent
-        if (last_line)
-            top = last_line->rc.top + last_line->height;
-        else
-            top = rc->top;
-        left_extent = lfmt_ctxt->poss_extent;
     }
 
     line->rc.left = left;
