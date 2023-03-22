@@ -40,7 +40,7 @@ def find_next_prime(start):
                         <init as 'color' at '#myNS' with 'red' />
                     </differ>
                 </test>
-                <span style="color:$color">$?, </span>
+                <span style="color:$color"> $? </span>
             </iterate>
         </p>
 

@@ -22,7 +22,7 @@
             <li>$last_one</li>
             <li>$last_two</li>
 
-            <iterate on $last_two onlyif $L.lt($0<, 2000L) with $DATA.arith('+', $0<, $last_one) nosetotail >
+            <iterate on $last_two onlyif $L.lt($0<, 10000L) with $DATA.arith('+', $0<, $last_one) nosetotail >
                 <init as "last_one" at "3" with $last_two temp />
                 <init as "last_two" at "3" with $? temp />
                 <!-- init as "last_two" at "#theBody" with $? temp / -->
