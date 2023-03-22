@@ -303,6 +303,24 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
     struct _line_info *line = fmt_ctxt->lines + (fmt_ctxt->nr_lines - 1);
 
     struct _inline_box_data *inline_data = box->inline_data;
+
+    /* FIXME: span have multiple children */
+    foil_rdrbox *child = box->first;
+    if (child && child->type == FOIL_RDRBOX_TYPE_INLINE) {
+        while(child) {
+            struct _inline_box_data *child_data = child->inline_data;
+            struct text_paragraph *p, *n;
+            list_for_each_entry_safe(p, n, &child_data->paras, ln) {
+                list_del(&p->ln);
+                child_data->nr_paras--;
+
+                list_add_tail(&p->ln, &inline_data->paras);
+                inline_data->nr_paras++;
+            }
+            child = child->next;
+        }
+    }
+
     if (inline_data->nr_paras == 0)
         return line;
 
