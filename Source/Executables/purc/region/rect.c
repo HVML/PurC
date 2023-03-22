@@ -239,3 +239,134 @@ int foil_rect_get_subtract(foil_rect* rc, const foil_rect* psrc1, const foil_rec
     return nCount;
 }
 
+#define in_rect(r, x, y) \
+      ( ( ((r).right >  x)) && \
+        ( ((r).left <= x)) && \
+        ( ((r).bottom >  y)) && \
+        ( ((r).top <= y)) )
+
+
+static foil_rect max_rect(bool *matrix[], int row, int column, int *area,
+        int min_w, int min_h)
+{
+    foil_rect rc = {0};
+    if (row == 0) {
+        if (area) {
+            area = 0;
+        }
+        return rc;
+    }
+
+    int nums[row][column];
+    int maximal = 0, statck[column + 1], top = 0, height, width;
+
+    statck[0] = -1;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < column; j++) {
+            if (i == 0) {
+                nums[i][j] = matrix[i][j] - 0;
+            }
+            else if (matrix[i][j] == 1) {
+                nums[i][j] = nums[i - 1][j] + 1;
+            }
+            else {
+                nums[i][j] = 0;
+            }
+
+            while (top > 0 && nums[i][j] <= nums[i][statck[top]]) {
+                height = nums[i][statck[top--]];
+                width = j - statck[top] - 1;
+                if ((min_w > 0 && width < min_w) ||
+                        (min_h > 0 && height < min_h)) {
+                    continue;
+                }
+                if (height * width > maximal) {
+                    maximal = height * width;
+                    rc.left = top;
+                    rc.top = i + 1 - height;
+                    rc.right = rc.left + width;
+                    rc.bottom = rc.top + height;
+                }
+            }
+            statck[++top] = j;
+        }
+
+        while (top > 0) {
+            height = nums[i][statck[top]];
+            width = statck[top] - statck[top - 1];
+            if ((min_w > 0 && width < min_w) ||
+                    (min_h > 0 && height < min_h)) {
+                top--;
+                continue;
+            }
+            if (height * width > maximal) {
+                maximal = height * width;
+                rc.left = top - 1;
+                rc.top = i + 1 - height;
+                rc.right = rc.left + width;
+                rc.bottom = rc.top + height;
+            }
+            top--;
+        }
+    }
+
+    if (area) {
+        *area = maximal;
+    }
+    return rc;
+}
+
+int foil_rect_get_max_inscribed_rect(foil_rect *rects[], size_t nr_rects,
+        int min_width, int min_height, foil_rect *dest)
+{
+    (void)rects;
+    (void)nr_rects;
+    if (nr_rects == 0) {
+        return -1;
+    }
+
+    foil_rect rc = *rects[0];
+    for (size_t i = 1; i < nr_rects; i++) {
+        rc.left = rects[i]->left < rc.left ? rects[i]->left : rc.left;
+        rc.top = rects[i]->top < rc.top ? rects[i]->top : rc.top;
+        rc.right = rects[i]->right > rc.right ? rects[i]->right : rc.right;
+        rc.bottom = rects[i]->bottom > rc.bottom ? rects[i]->bottom : rc.bottom;
+    }
+
+    int r = rc.bottom - rc.top;
+    int c = rc.right - rc.left;
+    bool bits[r][c];
+    bool *p[r];
+
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j ++) {
+            int x = rc.left + j;
+            int y = rc.top + i;
+            bits[i][j] = 0;
+            for (size_t k = 0; k < nr_rects; k++) {
+                if (in_rect(*rects[k], x, y)) {
+                    bits[i][j] = 1;
+                    break;
+                }
+            }
+        }
+        p[i] = bits[i];
+    }
+
+    int area;
+    foil_rect max_rc = max_rect(p, r, c, &area, min_width, min_height);
+
+    if (area > 0) {
+        rc.left = rc.left + max_rc.left;
+        rc.top = rc.top + max_rc.top;
+        rc.right = rc.left + (max_rc.right - max_rc.left);
+        rc.bottom = rc.top + (max_rc.bottom - max_rc.top);
+        if (dest) {
+            *dest = rc;
+        }
+        return 0;
+    }
+
+    return -1;
+}
+

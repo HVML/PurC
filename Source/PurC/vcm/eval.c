@@ -821,7 +821,10 @@ purc_variant_t pcvcm_eval_full(struct pcvcm_node *tree,
     int32_t nr_nodes = 0;
 
     if (enable_log) {
-        PLOG("begin vcm\n");
+        size_t len;
+        char *s = pcvcm_node_to_string(tree, &len);
+        PLOG("begin vcm : %s\n", s);
+        free(s);
     }
 
     purc_clr_error();
@@ -916,7 +919,10 @@ purc_variant_t pcvcm_eval_again_full(struct pcvcm_node *tree,
     unsigned int enable_log = is_log_enable();
 
     if (enable_log) {
-        PLOG("begin vcm again\n");
+        size_t len;
+        char *s = pcvcm_node_to_string(tree, &len);
+        PLOG("begin vcm again : %s\n", s);
+        free(s);
     }
 
     if (ctxt) {

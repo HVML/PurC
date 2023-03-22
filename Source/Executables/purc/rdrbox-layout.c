@@ -141,6 +141,9 @@ static int calc_used_value_height(foil_layout_ctxt *ctxt, foil_rdrbox *box,
 static void
 dtrm_margin_left_right(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
+    if (!box->computed_style) {
+        return;
+    }
     (void)ctxt;
     uint8_t value;
     css_fixed length;
@@ -1237,6 +1240,9 @@ calc_height_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         if (height_v != CSS_HEIGHT_AUTO) {
             box->height = calc_used_value_height(ctxt, box, height_u, height_l);
+            /* calc children height */
+            calc_height_for_visible_non_replaced(ctxt, box);
+            dtrm_margin_top_bottom(ctxt, box);
         }
         else {
             box->height = calc_height_for_visible_non_replaced(ctxt, box);
@@ -1692,7 +1698,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->bt = FOIL_PX_GRID_CELL_H;
         v = css_computed_border_top_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_top_color = foil_map_xrgb_to_16c(color);
+        box->border_top_color.specified = 1;
+        box->border_top_color.argb = color;
     }
 
     v = css_computed_border_right_style(box->computed_style);
@@ -1721,7 +1728,8 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         box->br = FOIL_PX_GRID_CELL_W;
         v = css_computed_border_right_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_right_color = foil_map_xrgb_to_16c(color);
+        box->border_right_color.specified = 1;
+        box->border_right_color.argb = color;
     }
 
     v = css_computed_border_bottom_style(box->computed_style);
@@ -1745,12 +1753,13 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     if (box->border_bottom_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
-        box->br = 0;
+        box->bb = 0;
     else {
-        box->br = FOIL_PX_GRID_CELL_H;
+        box->bb = FOIL_PX_GRID_CELL_H;
         v = css_computed_border_bottom_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_bottom_color = foil_map_xrgb_to_16c(color);
+        box->border_bottom_color.specified = 1;
+        box->border_bottom_color.argb = color;
     }
 
     v = css_computed_border_left_style(box->computed_style);
@@ -1774,13 +1783,47 @@ static void dtmr_border_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
 
     if (box->border_left_width == FOIL_RDRBOX_BORDER_WIDTH_ZERO)
-        box->br = 0;
+        box->bl = 0;
     else {
-        box->br = FOIL_PX_GRID_CELL_W;
+        box->bl = FOIL_PX_GRID_CELL_W;
         v = css_computed_border_left_color(box->computed_style, &color);
         assert(v != CSS_COLOR_INHERIT);
-        box->border_left_color = foil_map_xrgb_to_16c(color);
+        box->border_left_color.specified = 1;
+        box->border_left_color.argb = color;
     }
+
+    if (box->bt || box->bl) {
+        v = css_computed_border_top_left_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_LEFT_RADIUS_SET) {
+            box->border_top_left_radius = 1;
+        }
+    }
+
+    if (box->bt || box->br) {
+        v = css_computed_border_top_right_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_RIGHT_RADIUS_SET) {
+            box->border_top_right_radius = 1;
+        }
+    }
+
+    if (box->bb || box->bl) {
+        v = css_computed_border_bottom_left_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_BOTTOM_LEFT_RADIUS_SET) {
+            box->border_bottom_left_radius = 1;
+        }
+    }
+
+    if (box->bb || box->br) {
+        v = css_computed_border_bottom_right_radius(box->computed_style, &length,
+                &unit);
+        if (v == CSS_BORDER_TOP_RIGHT_RADIUS_SET) {
+            box->border_bottom_right_radius = 1;
+        }
+    }
+
 }
 
 void foil_rdrbox_pre_layout(foil_layout_ctxt *ctxt, foil_rdrbox *box)
@@ -1934,7 +1977,8 @@ void foil_rdrbox_resolve_width(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     free(name);
 #endif
 
-    if (box->floating || box->is_abs_positioned ||
+    if (box->nr_floating_children || box->nr_abspos_children ||
+            box->floating || box->is_abs_positioned ||
             (box->is_block_container && !box->is_block_level) ||
             (box->is_block_level &&
              box->overflow_y != FOIL_RDRBOX_OVERFLOW_VISIBLE)) {
@@ -1952,6 +1996,13 @@ void foil_rdrbox_resolve_height(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
     LOG_DEBUG("called for box %s (type: %d)\n", name, box->type);
 #endif
+
+    if (box->nr_floating_children) {
+        foil_rect rc = { 0, 0, box->width, INT_MAX};
+        foil_region_empty(&box->block_fmt_ctxt->region);
+        foil_region_set(&box->block_fmt_ctxt->region, &rc);
+        box->block_fmt_ctxt->last_float_top = box->ctnt_rect.top;
+    }
 
     if ((box->is_block_level || box->is_block_container)
             && box->nr_inline_level_children > 0) {
@@ -2254,7 +2305,7 @@ static void collapse_margins(foil_layout_ctxt *ctxt, foil_rdrbox *box,
 
     *real_mb = box->mb;
     foil_rdrbox *next = next_in_norml_flow_sibling(box);
-    if (box->next) {
+    if (next) {
         if (box->mb >= next->mt) {
             *real_mb = box->mb - next->mt;
         }
@@ -2292,6 +2343,10 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
                 child = child->next;
                 continue;
             }
@@ -2331,18 +2386,34 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 line->left_extent -= margin_width;
             }
 
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - child->mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + child->mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+
             child = child->next;
         }
 
         height = line->rc.bottom - fmt_ctxt->lines->rc.top;
         box->ctnt_rect.bottom = box->ctnt_rect.top + box->height;
-        foil_rect_offset(&box->ctnt_rect, 0, box->mt + box->bt + box->pt);
+        /* FIXME: have offset after foil_rdrbox_resolve_height */
+//        foil_rect_offset(&box->ctnt_rect, 0, box->mt + box->bt + box->pt);
     }
     else if (box->nr_block_level_children > 0) {
         foil_rdrbox *child = box->first;
         foil_rdrbox *prev_sibling = NULL;
         while (child) {
             if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
                 child = child->next;
                 continue;
             }
@@ -2352,7 +2423,7 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             if (prev_sibling) {
                 collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom + real_mb);
+                        0, prev_sibling->ctnt_rect.bottom + prev_sibling->pb + prev_sibling->bb + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
@@ -2367,6 +2438,17 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 + child->height + child->pb + child->bb + real_mb;
 
             prev_sibling = child;
+
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - real_mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + real_mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
             child = child->next;
         }
     }
@@ -2554,9 +2636,8 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 off_y = 0;
             }
 
-            off_y += lines_height;
             foil_rect_offset(&run->rc, off_x, off_y);
-            foil_rect_offset(&run->rc, line->rc.left, line->rc.top);
+            foil_rect_offset(&run->rc, block->ctnt_rect.left, block->ctnt_rect.top);
             if (run->box->is_block_container) {
 
                 foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
@@ -2625,3 +2706,114 @@ void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     foil_rect_offset(&marker->ctnt_rect, -marker->marker_data->width, 0);
 }
 
+bool is_region_section_match(foil_rgnrc_p head, foil_rgnrc_p tail,
+        int w, int h, int top, uint32_t floating)
+{
+    foil_region my_region;
+    my_region.type = SIMPLEREGION;
+    my_region.head = head;
+    my_region.tail = tail;
+    my_region.heap = NULL;
+
+    foil_rect rect;
+    if (floating == FOIL_RDRBOX_FLOAT_LEFT) {
+        rect.left = head->rc.left;
+        rect.top = top;
+        rect.right = rect.left + w;
+        rect.bottom = rect.top + h;
+    }
+    else {
+        rect.left = head->rc.right - w;
+        rect.top = top;
+        rect.right = head->rc.right;
+        rect.bottom = rect.top + h;
+    }
+
+    for (int i = rect.top; i < rect.bottom; i++) {
+        for (int j = rect.left; j < rect.right; j++) {
+            if (!foil_region_is_point_in(&my_region, i, j)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box)
+{
+    (void) container;
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    LOG_DEBUG("called for floating box: %s.\n", name);
+#endif
+
+    int w = box->ml + box->bl + box->pl + box->width + box->pr + box->br + box->mr;
+    int h = box->mt + box->bt + box->pt + box->height + box->pb + box->bb + box->mb;
+
+    foil_region *region = &container->block_fmt_ctxt->region;
+    int last_float_top = container->block_fmt_ctxt->last_float_top;
+
+    foil_rect *rc_dest = NULL;
+    foil_rect *rgrc = NULL;
+    foil_rgnrc_p rg = region->head;
+    while(rg) {
+        rgrc = &rg->rc;
+        if (rgrc->bottom <= last_float_top) {
+            rg = rg->next;
+            continue;
+        }
+        int rgw = rgrc->right - rgrc->left;
+        int rgh = rgrc->bottom - rgrc->top;
+        if (rgw >= w && rgh >= h) {
+            rc_dest = &rg->rc;
+            break;
+        }
+        else if (rgw >= w) {
+            if (is_region_section_match(rg, region->tail, w, h,
+                        last_float_top, box->floating)) {
+                rc_dest = &rg->rc;
+                break;
+            }
+        }
+        rg = rg->next;
+    }
+
+    if (!rc_dest) {
+        goto out;
+    }
+
+    int left, top;
+    int sub_l, sub_t, sub_r, sub_b;
+
+    top = rc_dest->top > last_float_top ? rc_dest->top : last_float_top;
+    sub_t = top;
+    sub_b = top + h;
+
+    if (box->floating == FOIL_RDRBOX_FLOAT_LEFT) {
+        left = rc_dest->left;
+        sub_l = 0;
+        sub_r = left + w;
+    }
+    else {
+        left = rc_dest->right - w;
+        sub_l = left;
+        sub_r = container->ctnt_rect.right + container->pr + container->br + container->mr;
+    }
+
+
+    container->block_fmt_ctxt->last_float_top = top;
+    foil_rect_offset(&box->ctnt_rect, left, top + box->mt + box->bt + box->pt);
+
+    foil_rect rc;
+    foil_rect_set(&rc, sub_l, sub_t, sub_r, sub_b);
+    foil_region_subtract_rect(region, &rc);
+
+out:
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for floating box: %s.\n", name);
+    free(name);
+#endif
+}

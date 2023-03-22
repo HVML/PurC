@@ -138,6 +138,9 @@ struct _block_fmt_ctxt {
 
     /* the available region to lay out floats and inline boxes. */
     foil_region region;
+
+    /* the top of the last float child node */
+    int last_float_top;
 };
 
 /* not used so far */

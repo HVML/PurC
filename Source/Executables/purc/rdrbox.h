@@ -28,6 +28,7 @@
 
 #include "foil.h"
 #include "region/rect.h"
+#include "region/region.h"
 
 #include <glib.h>
 #include <csseng/csseng.h>
@@ -429,10 +430,15 @@ struct foil_rdrbox {
     uint32_t border_bottom_style:4;
     uint32_t border_left_style:4;
 
-    uint32_t border_top_color:4;
-    uint32_t border_right_color:4;
-    uint32_t border_bottom_color:4;
-    uint32_t border_left_color:4;
+    uint32_t border_top_left_radius:1;
+    uint32_t border_top_right_radius:1;
+    uint32_t border_bottom_left_radius:1;
+    uint32_t border_bottom_right_radius:1;
+
+    foil_color border_top_color;
+    foil_color border_right_color;
+    foil_color border_bottom_color;
+    foil_color border_left_color;
 
     foil_color background_color;
     int32_t  z_index;
@@ -693,6 +699,8 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block);
 void foil_rdrbox_lay_block_in_container(foil_layout_ctxt *ctxt,
         const foil_rdrbox *container, foil_rdrbox *block);
 void foil_rdrbox_lay_marker_box(foil_layout_ctxt *ctxt, foil_rdrbox *box);
+void foil_rdrbox_lay_floating_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box);
 
 void foil_rdrbox_containing_block(const foil_rdrbox *box, foil_rect *rc);
 void foil_rdrbox_containing_block_from_inlines(const foil_rdrbox *box,
