@@ -351,6 +351,16 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
                         line->left_extent, &seg_size, NULL,
                         p->glyph_poses + nr_laid);
             assert(n > 0);
+            /* <br/> generate 0x0A */
+            if (n == 1 && p->ucs[nr_laid] == 0x0A) {
+                line = foil_rdrbox_block_allocate_new_line(ctxt, block);
+                if (line == NULL) {
+                    goto failed;
+                }
+                break;
+
+            }
+
             if (seg_size.cx > line->left_extent &&
                     fmt_ctxt->poss_extent > line->left_extent) {
                 /* try to allocate a new line */
