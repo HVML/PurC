@@ -61,7 +61,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 1. 兼容 C11 和 CXX17 的编译器：GCC 8+ 或 Clang 6+
 1. Zlib 1.2.0 或更高版本
 1. Glib 2.44.0 或更高版本
-1. Python 3.9.0 或更高版本
+1. Python 3 (Python 3.9.0 或更高版本,可支持 HVML 构建外部动态变量对象 $PY 来使用 Python )
 1. BISON 3.0 或更高版本
 1. FLEX 2.6.4 或更高版本
 1. Ncurses 5.0 或更高版本（可选；`purc` 中的 Foil 渲染器需要此函数库）
