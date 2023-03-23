@@ -1,7 +1,7 @@
 <!DOCTYPE hvml SYSTEM "f: PY">
 <hvml target="html">
     <head>
-        <title>Embedded Python in HVML: Find Primes</title>
+        <title>Embedding Python in HVML: Looking for Primes</title>
     </head>
 
     <body>
@@ -29,7 +29,7 @@ def find_next_prime(start):
             </catch>
         </inherit>
 
-        <h1 style="text-align:center">Embeding Python in HVML: Find Primes</h1>
+        <h1 style="text-align:center">Embedding Python in HVML: Looking for Primes</h1>
 
         <p id="myNS">
             <iterate on 2L onlyif $L.lt($0~, 10000L)
