@@ -212,7 +212,7 @@ purc_variant_t pcfetcher_local_request_async(
 #ifdef NDEBUG
         runloop->dispatch([info] {
 #else
-        double tm = 1.0;
+        double tm = 0.1;
         runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
                 info->tracker(info->req_id, info->tracker_ctxt,
@@ -224,8 +224,7 @@ purc_variant_t pcfetcher_local_request_async(
 #ifdef NDEBUG
     runloop->dispatch([info] {
 #else
-    // random
-    double tm = 3.0;
+    double tm = 0.2;
     runloop->dispatchAfter(Seconds(tm), [info] {
 #endif
                 if (info->tracker) {

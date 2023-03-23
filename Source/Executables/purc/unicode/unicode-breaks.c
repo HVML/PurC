@@ -2126,12 +2126,17 @@ size_t foil_ustr_get_breaks(foil_langcode_t lang_code,
         if (break_push_back(&ctxt, uc, bt, lbo) == 0)
             goto error;
 
+#if 0
+        // 2023-03-23  disabled. eg:
+        // <p> This text is defined by the first <Q>P</Q>.</p>
+        // Should not break after word 'first'.
         // LB3 Always break at the end of text.
         if (break_next_uchar(&ctxt, ucs_left, nr_left_ucs, &next_uc) == 0) {
             LOG_DEBUG ("LB3 Always break at the end of text\n");
             ctxt.curr_od = LB3;
             break_change_lbo_last(&ctxt, FOIL_BOV_LB_MANDATORY);
         }
+#endif
 
         /* Mandatory breaks */
         // LB4 Always break after hard line breaks

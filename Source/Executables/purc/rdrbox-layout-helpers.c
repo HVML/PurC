@@ -128,7 +128,8 @@ int foil_rdrbox_inline_calc_preferred_width(foil_rdrbox *box)
 
         x = gps[p->nr_ucs - 1].x;
         y = gps[p->nr_ucs - 1].y;
-        if (p->break_oppos[p->nr_ucs] == FOIL_BOV_LB_MANDATORY) {
+
+        if ((p->break_oppos[p->nr_ucs] & FOIL_BOV_LB_MASK) == FOIL_BOV_LB_MANDATORY) {
             x = 0;
             y += box->line_height;
         }
@@ -200,7 +201,8 @@ struct _line_info *
 foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
-    assert(box->is_block_level && box->nr_inline_level_children > 0);
+    /* progress, meter : inline-block */
+    assert((box->is_block_level || box->is_inline_level) && box->nr_inline_level_children > 0);
 
     foil_rdrbox *parent = box->parent;
 
@@ -296,7 +298,8 @@ foil_rdrbox_line_allocate_new_run(struct _inline_fmt_ctxt *fmt_ctxt)
 struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box)
 {
-    assert(block->is_block_level && box->is_inline_box);
+    /* progress, meter : inline-block */
+    assert((block->is_block_level || block->is_inline_level) && box->is_inline_box);
 
     struct _inline_fmt_ctxt *fmt_ctxt = block->block_data->lfmt_ctxt;
     assert(fmt_ctxt->lines && fmt_ctxt->nr_lines > 0);
@@ -344,23 +347,13 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             foil_size seg_size;
             size_t n =
                 foil_ustr_get_glyphs_extent_simple(p->ucs + nr_laid,
-                        p->nr_ucs + nr_laid,
+                        p->nr_ucs - nr_laid,
                         p->break_oppos + nr_laid + 1, render_flags,
                         0, 0, /* line->x, line->y, */
                         box->letter_spacing, box->word_spacing, 0,
                         line->left_extent, &seg_size, NULL,
                         p->glyph_poses + nr_laid);
             assert(n > 0);
-            /* <br/> generate 0x0A */
-            if (n == 1 && p->ucs[nr_laid] == 0x0A) {
-                line = foil_rdrbox_block_allocate_new_line(ctxt, block);
-                if (line == NULL) {
-                    goto failed;
-                }
-                break;
-
-            }
-
             if (seg_size.cx > line->left_extent &&
                     fmt_ctxt->poss_extent > line->left_extent) {
                 /* try to allocate a new line */
@@ -408,7 +401,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
             }
         }
 
-        if (p->break_oppos[p->nr_ucs] == FOIL_BOV_LB_MANDATORY) {
+        if ((p->break_oppos[p->nr_ucs] & FOIL_BOV_LB_MASK) == FOIL_BOV_LB_MANDATORY) {
             line = foil_rdrbox_block_allocate_new_line(ctxt, block);
         }
     }
