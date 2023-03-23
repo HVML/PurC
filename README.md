@@ -601,7 +601,7 @@ $ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
 
 Below is the screenshot of this sample:
 
-![Embedding Python in HVML](https://files.fmsoft.cn/hvml/screenshots/embedded-python-animated-3d-random-walk.png)
+![Embedding Python in HVML](https://files.fmsoft.cn/hvml/screenshots/embed-python-animated-3d-random-walk.png)
 
 ### Options for `purc`
 
