@@ -192,7 +192,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         PC_DEBUG("Move in variant type %s (%u): %s\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
-                purc_variant_get_string_const(v));
+                purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);
 
         retv = v;
         move_variant_in(inst, v);
@@ -202,7 +202,7 @@ move_or_clone_immutable(struct pcinst *inst, purc_variant_t v)
         PC_DEBUG("Clone a variant type %s (%u): %s\n",
                 purc_variant_typename(v->type),
                 (unsigned)move_heap.stat.nr_values[v->type],
-                purc_variant_get_string_const(v));
+                purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);
 
         retv = pcvariant_alloc();
         memcpy(retv, v, sizeof(*retv));
@@ -1240,7 +1240,7 @@ static purc_variant_t move_variant_out(purc_variant_t v)
     PC_DEBUG("Move out a variant type: %s (%u): %s\n",
             purc_variant_typename(v->type),
             (unsigned)move_heap.stat.nr_values[v->type],
-            purc_variant_get_string_const(v));
+            purc_variant_is_string(v) ? purc_variant_get_string_const(v): NULL);
 
     assert(move_heap.stat.nr_values[v->type] > 0);
     assert(move_heap.stat.nr_total_values > 0);
