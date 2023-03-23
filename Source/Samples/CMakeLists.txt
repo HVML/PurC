@@ -91,8 +91,8 @@ set(sample_HVML_FILES
     "hvml/foil-floating-2.hvml"
     "hvml/foil-floating-3.hvml"
     "hvml/foil-floating-4.hvml"
-    "hvml/embedded-python-find-primes.hvml"
-    "hvml/embedded-python-animated-3d-random-walk.hvml"
+    "hvml/embed-python-looking-for-primes.hvml"
+    "hvml/embed-python-animated-3d-random-walk.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
