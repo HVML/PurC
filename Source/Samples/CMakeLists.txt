@@ -97,6 +97,7 @@ set(sample_HVML_FILES
     "hvml/foil-absolute-1.hvml"
     "hvml/foil-absolute-2.hvml"
     "hvml/foil-absolute-3.hvml"
+    "hvml/foil-absolute-4.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

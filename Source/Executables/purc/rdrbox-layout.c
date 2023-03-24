@@ -734,13 +734,13 @@ dtrm_width_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                         margin_right_u, margin_right_l));
             if (box->cblock_creator->direction ==
                     FOIL_RDRBOX_DIRECTION_LTR) {
-                box->left = cblock_width - box->ml - box->bl - box->pl -
-                    box->width - box->pr - box->br - box->mr - box->right;
-            }
-            else {
                 box->right = cblock_width - box->left -
                     box->ml - box->bl - box->pl -
                     box->width - box->pr - box->br - box->mr;
+            }
+            else {
+                box->left = cblock_width - box->ml - box->bl - box->pl -
+                    box->width - box->pr - box->br - box->mr - box->right;
             }
         }
     }
