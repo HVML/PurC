@@ -237,7 +237,8 @@ foil_rdrbox_block_allocate_new_line(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     }
     left_extent = lfmt_ctxt->poss_extent;
 
-    if (!box->floating &&  parent && parent->nr_floating_children) {
+    if (box->is_in_normal_flow &&
+            parent && parent->nr_floating_children) {
         foil_region *region = &parent->block_fmt_ctxt->region;
         foil_rect *rc_dest = NULL;
         foil_rect *rgrc = NULL;
@@ -376,7 +377,8 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
                     line->x + seg_size.cx, line->y + seg_size.cy);
 
             foil_rdrbox *parent = block->parent;
-            if (!block->floating &&  parent && parent->nr_floating_children) {
+            if (block->is_in_normal_flow &&
+                    parent && parent->nr_floating_children) {
                 foil_region_subtract_rect(&parent->block_fmt_ctxt->region,
                         &run->rc);
                 if (parent->nr_block_level_children) {
