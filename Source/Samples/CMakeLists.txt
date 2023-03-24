@@ -93,6 +93,7 @@ set(sample_HVML_FILES
     "hvml/foil-floating-4.hvml"
     "hvml/embed-python-looking-for-primes.hvml"
     "hvml/embed-python-animated-3d-random-walk.hvml"
+    "hvml/foil-absolute-0.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles

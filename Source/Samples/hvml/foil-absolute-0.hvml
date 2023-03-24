@@ -1,0 +1,45 @@
+<hvml target="html">
+    <head>
+        <style hvml:raw>
+            .border_red {
+                border-style: solid;
+                border-width: thick;
+                border-color: red;
+            }
+            .border_green {
+                border-style: solid;
+                border-width: thick;
+                border-color: green;
+            }
+            .border_blue {
+                border-style: solid;
+                border-width: thick;
+                border-color: blue;
+            }
+            .h100 {
+                height:100px;
+            }
+            .h50 {
+                height:50px;
+            }
+
+            .w50 {
+                width:50px;
+            }
+            .w100 {
+                width:100px;
+            }
+            .abs {
+                position:absolute;
+                left: 0px;
+                top: 0px;
+            }
+        </style>
+    </head>
+    <body class="border_blue h100">
+        <div id="abs_0" class="border_red h50 w50 abs">
+            absolute
+        </div>
+    </body>
+</hvml>
+
