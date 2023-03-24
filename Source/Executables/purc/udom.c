@@ -1046,8 +1046,9 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_block_level) {
-                if (child->position) {
-                    // TODO
+                if (child->position && child->is_abs_positioned) {
+                    foil_rdrbox_lay_abs_in_container(ctxt,
+                                child->cblock_creator, child);
                 }
                 else if (child->floating) {
                     foil_rect_offset(&child->ctnt_rect,

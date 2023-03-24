@@ -29,15 +29,38 @@
             .w100 {
                 width:100px;
             }
+            .relative {
+                position:relative;
+            }
             .abs {
                 position:absolute;
-                left: 0px;
-                top: 0px;
+                left: 10px;
+                top: 10px;
             }
         </style>
     </head>
-    <body class="border_blue h100">
-        <div id="abs_0" class="border_red h50 w50 abs">
+    <body class="border_blue h100 relative">
+        This is some text 0.
+        This is some text 1.
+        This is some text 2.
+        This is some text 3.
+        This is some text 4.
+        This is some text 5.
+        This is some text 6.
+        This is some text 7.
+        This is some text 8.
+        This is some text 9.
+        This is some text 10.
+        This is some text 11.
+        This is some text 12.
+        This is some text 13.
+        This is some text 14.
+        This is some text 15.
+        This is some text 16.
+        This is some text 17.
+        This is some text 18.
+        This is some text 19.
+        <div id="abs_0" class="border_red abs">
             absolute
         </div>
     </body>

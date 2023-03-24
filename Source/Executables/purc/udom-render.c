@@ -665,6 +665,8 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         render_marker_box(ctxt, box->list_item_data->marker_box);
     }
 
+    bool floating = false;
+    bool abs_positioned = false;
     foil_rdrbox *child = box->first;
     while (child) {
 
@@ -673,18 +675,38 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         if (child->is_in_flow && !child->position && child->is_block_level) {
             render_normal_boxes_in_tree_order(ctxt, child);
         }
+        else if (child->floating) {
+            floating = true;
+        }
+        else if (child->is_abs_positioned) {
+            abs_positioned = true;
+        }
 
         child = child->next;
     }
 
-    child = box->first;
-    while (child) {
+    if (floating) {
+        child = box->first;
+        while (child) {
 
-        if (child->floating && !child->position && child->is_block_level) {
-            render_normal_boxes_in_tree_order(ctxt, child);
+            if (child->floating) {
+                render_normal_boxes_in_tree_order(ctxt, child);
+            }
+
+            child = child->next;
         }
+    }
 
-        child = child->next;
+    if (abs_positioned) {
+        child = box->first;
+        while (child) {
+
+            if (child->is_abs_positioned) {
+                render_normal_boxes_in_tree_order(ctxt, child);
+            }
+
+            child = child->next;
+        }
     }
 }
 

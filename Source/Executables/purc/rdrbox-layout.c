@@ -2817,3 +2817,24 @@ out:
     free(name);
 #endif
 }
+
+void foil_rdrbox_lay_abs_in_container(foil_layout_ctxt *ctxt,
+        const foil_rdrbox *container, foil_rdrbox *box)
+{
+    (void) container;
+#ifndef NDEBUG
+    char *name = foil_rdrbox_get_name(ctxt->udom->doc, box);
+    char *cntr = foil_rdrbox_get_name(ctxt->udom->doc, container);
+    LOG_DEBUG("called for abs container: %s box: %s.\n", cntr, name);
+#endif
+
+    foil_rect_offset(&box->ctnt_rect,
+            container->ctnt_rect.left, container->ctnt_rect.top);
+
+#ifndef NDEBUG
+    LOG_DEBUG("end for abs container: %s box: %s.\n", cntr, name);
+    free(cntr);
+    free(name);
+#endif
+}
+
