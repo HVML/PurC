@@ -32,10 +32,25 @@
             .relative {
                 position:relative;
             }
-            .abs {
+            .abs_lt {
                 position:absolute;
                 left: 10px;
                 top: 10px;
+            }
+            .abs_rt {
+                position:absolute;
+                right: 10px;
+                top: 10px;
+            }
+            .abs_lb {
+                position:absolute;
+                left: 10px;
+                bottom: 10px;
+            }
+            .abs_rb {
+                position:absolute;
+                right: 10px;
+                bottom: 10px;
             }
         </style>
     </head>
@@ -60,8 +75,17 @@
         This is some text 17.
         This is some text 18.
         This is some text 19.
-        <div id="abs_0" class="border_red abs">
-            absolute
+        <div id="abs_0" class="border_red abs_lt">
+            absolute left top
+        </div>
+        <div id="abs_1" class="border_red abs_rt">
+            absolute right top
+        </div>
+        <div id="abs_2" class="border_red abs_lb">
+            absolute left bottom
+        </div>
+        <div id="abs_3" class="border_red abs_rb">
+            absolute right bottom
         </div>
     </body>
 </hvml>

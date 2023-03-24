@@ -2828,8 +2828,9 @@ void foil_rdrbox_lay_abs_in_container(foil_layout_ctxt *ctxt,
     LOG_DEBUG("called for abs container: %s box: %s.\n", cntr, name);
 #endif
 
-    foil_rect_offset(&box->ctnt_rect,
-            container->ctnt_rect.left, container->ctnt_rect.top);
+    int left = box->left + container->ctnt_rect.left;
+    int top = box->top + container->ctnt_rect.top;
+    foil_rect_offset(&box->ctnt_rect, left, top);
 
 #ifndef NDEBUG
     LOG_DEBUG("end for abs container: %s box: %s.\n", cntr, name);
