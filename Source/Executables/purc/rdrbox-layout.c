@@ -1138,6 +1138,8 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
         }
+        /* layout content text */
+        calc_height_for_block_fmt_ctxt_maker(ctxt, box);
     }
     else {
         if (margin_top_v == CSS_MARGIN_AUTO)
@@ -1167,6 +1169,8 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->bottom = cblock_height - box->top -
                 box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
+            /* layout content text */
+            calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         }
         else if (top_v != CSS_MARGIN_AUTO && height_v == CSS_HEIGHT_AUTO &&
                 bottom_v == CSS_MARGIN_AUTO) {
@@ -1185,6 +1189,8 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                         bottom_u, bottom_l));
             box->top = cblock_height - box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb - box->bottom;
+            /* layout content text */
+            calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         }
         else if (top_v != CSS_MARGIN_AUTO && height_v == CSS_HEIGHT_AUTO &&
                 bottom_v != CSS_MARGIN_AUTO) {
@@ -1195,6 +1201,8 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->height = cblock_height - box->top -
                 box->mt - box->bt - box->pt -
                 box->pb - box->bb - box->mb- box->bottom;
+            /* layout content text */
+            calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         }
         else if (top_v != CSS_MARGIN_AUTO && height_v != CSS_HEIGHT_AUTO &&
                 bottom_v == CSS_MARGIN_AUTO) {
@@ -1205,6 +1213,8 @@ dtrm_heights_abspos_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             box->bottom = cblock_height - box->top -
                 box->mt - box->bt - box->pt -
                 box->height - box->pb - box->bb - box->mb;
+            /* layout content text */
+            calc_height_for_block_fmt_ctxt_maker(ctxt, box);
         }
         else {
             assert(0); // never reach here

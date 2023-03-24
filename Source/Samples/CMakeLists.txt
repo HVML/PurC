@@ -95,6 +95,8 @@ set(sample_HVML_FILES
     "hvml/embed-python-animated-3d-random-walk.hvml"
     "hvml/foil-absolute-0.hvml"
     "hvml/foil-absolute-1.hvml"
+    "hvml/foil-absolute-2.hvml"
+    "hvml/foil-absolute-3.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
