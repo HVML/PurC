@@ -169,7 +169,6 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         purc_variant_t toolkit_style, int *retv)
 {
     (void)class_name;
-    (void)title;
     (void)layout_style;
     (void)toolkit_style;
 

@@ -31,7 +31,7 @@
 #include "region/rect.h"
 
 typedef enum {
-    WSP_WIDGET_TYPE_NONE = 0,       /* not-existing */
+    WSP_WIDGET_TYPE_OFFSCREEN = 0,  /* an off-screen plain window */
     WSP_WIDGET_TYPE_ROOT,           /* a virtual root window */
     WSP_WIDGET_TYPE_PLAINWINDOW,    /* a plain main window */
     WSP_WIDGET_TYPE_TABBEDWINDOW,   /* a tabbed main window */
@@ -59,6 +59,13 @@ typedef int  (*foil_widget_moved_cb)(foil_widget *);
 typedef int  (*foil_widget_resized_cb)(foil_widget *);
 typedef void (*foil_widget_destroy_cb)(foil_widget *);
 
+struct foil_widget_ops {
+    int   (*init)(foil_widget *);
+    void  (*expose)(foil_widget *);
+    int   (*dump)(foil_widget *, const char *);
+    void  (*clean)(foil_widget *);
+};
+
 struct foil_widget {
     pcmcth_page         page;
 
@@ -85,13 +92,10 @@ struct foil_widget {
 
     char               *name;
     char               *title;
-
-    foil_widget_create_cb   on_create;
-    foil_widget_moved_cb    on_moved;
-    foil_widget_resized_cb  on_resized;
-    foil_widget_destroy_cb  on_destroy;
-
     void               *user_data;
+
+    void                   *data;
+    struct foil_widget_ops *ops;
 };
 
 #define WSP_WIDGET_FLAG_NAME      0x00000001
@@ -154,6 +158,7 @@ void foil_widget_delete_deep(foil_widget *widget);
 foil_widget *foil_widget_get_root(foil_widget *widget);
 
 void foil_widget_expose(foil_widget *widget);
+int foil_widget_dump(foil_widget *widget, const char *fname);
 
 #ifdef __cplusplus
 }

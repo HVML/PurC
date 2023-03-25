@@ -33,6 +33,8 @@
 #include "purc/purc-utils.h"
 #include <assert.h>
 
+static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type);
+
 foil_widget *foil_widget_new(foil_widget_type_k type,
         foil_widget_border_k border,
         const char *name, const char *title, const foil_rect *rect)
@@ -71,9 +73,25 @@ foil_widget *foil_widget_new(foil_widget_type_k type,
         widget->vy = 0;
         widget->vw = foil_rect_width(&widget->client_rc);
         widget->vh = 0;
+
+        widget->ops = get_widget_ops(type);
+        assert(widget->ops);
+
+        if (widget->ops->init) {
+            if (widget->ops->init(widget))
+                goto failed;
+        }
     }
 
     return widget;
+
+failed:
+    if (widget->name)
+        free(widget->name);
+    if (widget->title)
+        free(widget->title);
+    free(widget);
+    return NULL;
 }
 
 void foil_widget_append_child(foil_widget *to, foil_widget *widget)
@@ -170,6 +188,8 @@ void foil_widget_remove_from_tree(foil_widget *widget)
 
 void foil_widget_delete(foil_widget *widget)
 {
+    if (widget->ops->clean)
+        widget->ops->clean(widget);
     foil_widget_remove_from_tree(widget);
     foil_page_content_cleanup(&widget->page);
     if (widget->name)
@@ -218,6 +238,20 @@ foil_widget *foil_widget_get_root(foil_widget *widget)
     }
 
     return parent;
+}
+
+void foil_widget_expose(foil_widget *widget)
+{
+    if (widget->ops->expose)
+        widget->ops->expose(widget);
+}
+
+int foil_widget_dump(foil_widget *widget, const char *fname)
+{
+    if (widget->ops->dump)
+        return widget->ops->dump(widget, fname);
+
+    return -1;
 }
 
 static const char *escaped_bgc[] = {
@@ -416,7 +450,7 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
                 rel_row, rel_col);
 
         /* restore curosr and move cursor rel_row up lines,
-           move curosr rel_col right lines */
+           move curosr rel_col right columns */
         snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col + 1);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
@@ -483,7 +517,7 @@ static int flush_contents(const char *name, void *ctxt)
     return -1;
 }
 
-void foil_widget_expose(foil_widget *widget)
+static void expose_on_screen(foil_widget *widget)
 {
     foil_widget *root = foil_widget_get_root(widget);
     pcmcth_workspace *workspace = (pcmcth_workspace *)root->user_data;
@@ -502,4 +536,51 @@ void foil_widget_expose(foil_widget *widget)
         // TODO
     }
 }
+
+static int init_off_screen(foil_widget *widget)
+{
+    (void)widget;
+    return 0;
+}
+
+static void expose_off_screen(foil_widget *widget)
+{
+    (void)widget;
+}
+
+static int dump_off_screen(foil_widget *widget, const char *fname)
+{
+    (void)widget;
+    (void)fname;
+    return 0;
+}
+
+static void clean_off_screen(foil_widget *widget)
+{
+    (void)widget;
+}
+
+static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type)
+{
+    static struct foil_widget_ops ops_for_on_scrn = {
+        .init = NULL,
+        .expose = expose_on_screen,
+        .dump = NULL,
+        .clean = NULL,
+    };
+
+    static struct foil_widget_ops ops_for_off_scrn = {
+        .init = init_off_screen,
+        .expose = expose_off_screen,
+        .dump = dump_off_screen,
+        .clean = clean_off_screen,
+    };
+
+    if (type == WSP_WIDGET_TYPE_OFFSCREEN) {
+        return &ops_for_off_scrn;
+    }
+
+    return &ops_for_on_scrn;
+}
+
 
