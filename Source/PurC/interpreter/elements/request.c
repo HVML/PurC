@@ -44,6 +44,7 @@
 #define ARG_KEY_DATA_TYPE       "dataType"
 #define ARG_KEY_DATA            "data"
 #define ARG_KEY_ELEMENT         "element"
+#define ARG_KEY_PROPERTY        "property"
 #define ARG_KEY_NAME            "name"
 
 struct ctxt_for_request {
@@ -368,6 +369,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     uint64_t target_value = co->target_workspace_handle;
     pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     const char *element = NULL;
+    const char *property = NULL;
     pcrdr_msg_data_type data_type;
 
     struct pcinst* inst = pcinst_current();
@@ -454,18 +456,22 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method) ||
             (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        target_value = inst->rdr_caps->session_handle;
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CALLMETHOD)) == method) {
-        target = PCRDR_MSG_TARGET_SESSION;
-        purc_variant_t elem = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
-        if (!elem || !purc_variant_is_string(elem)) {
+        purc_variant_t v;
+        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
+        if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
                 "Argument missed for request $RDR '%s'", operation);
             goto out;
         }
         element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
-        element = purc_variant_get_string_const(elem);
+        element = purc_variant_get_string_const(v);
+
+        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY);
+        if (v) {
+            property = purc_variant_get_string_const(v);
+        }
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method) {
         target = PCRDR_MSG_TARGET_WORKSPACE;
@@ -502,8 +508,8 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, request_id, element_type, element, NULL,
-            data_type, data, 0);
+            target_value, operation, request_id, element_type, element,
+            property, data_type, data, 0);
 
     purc_variant_t v = PURC_VARIANT_INVALID;
     if (ctxt->is_noreturn) {
