@@ -18,9 +18,9 @@
 
     <body>
         <init as 'caseName' with "$styleCase" temp />
-        <define as "$styleCase" from "file://$SYS.cwd/foil-test-cases/{$styleCase}.html" >
-            <SECTION id="$styleCase">
-                <P>Failed to load test case from foil-test-cases/{$styleCase}.html</P>
+        <define as "$styleCase" from "file://$SYS.cwd/style-cases/{$styleCase}.html" silently >
+            <SECTION id="$caseName">
+                <P>Failed to load test case from style-cases/{$styleCase}.html</P>
             </SECTION>
         </define>
 
