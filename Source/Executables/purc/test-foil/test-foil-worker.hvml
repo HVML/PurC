@@ -13,7 +13,7 @@
 
         <link rel="stylesheet" type="text/css" href="{$styleCase}.css" />
 
-        <title>Foil Layouts - $styleCase</title>
+        <title>Foil Test Case - $styleCase</title>
     </head>
 
     <body>
@@ -25,7 +25,7 @@
         </define>
 
         <HEADER>
-            <H1 style="color:red;text-align:center">Used Layout: $styleCase</H1>
+            <H1 style="color:red;text-align:center">Used Case: $styleCase</H1>
         </HEADER>
 
         <include with ${$styleCase} />
