@@ -49,6 +49,8 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
                     FOIL_DEF_RGNRCHEAP_SZ))
             goto failed;
 
+        kvlist_init(&workspace->ug_wins, NULL);
+
         workspace->rdr = rdr;
         workspace->layouter = NULL;
         foil_rect rc;
@@ -78,6 +80,9 @@ failed:
 static void workspace_delete(pcmcth_workspace *workspace)
 {
     assert(workspace->root);
+
+    LOG_DEBUG("destroy kvlist for ungrouped plain windows...\n");
+    kvlist_free(&workspace->ug_wins);
 
     if (workspace->layouter) {
         // TODO: ws_layouter_delete(workspace->layouter);
@@ -258,4 +263,44 @@ pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
     pcmcth_udom *udom = foil_udom_load_edom(page, edom, retv);
     return udom;
 }
+
+#define STR_TYPE_SEPARATOR      ":"
+#define STR_GROUP_SEPARATOR     "@"
+
+foil_widget *foil_wsp_find_widget(void *workspace, void *session,
+        const char *id)
+{
+    (void)session;
+
+    foil_widget* widget = NULL;
+    char *cloned = strdup(id);
+    char *type, *name, *group;
+    char *saveptr;
+
+    type = strtok_r(cloned, STR_TYPE_SEPARATOR, &saveptr);
+    name = strtok_r(NULL, STR_GROUP_SEPARATOR, &saveptr);
+    group = strtok_r(NULL, STR_GROUP_SEPARATOR, &saveptr);
+
+    /* TODO: currently, only non-grouped plain window supported */
+    if (strcasecmp(type, "plainwin") || group) {
+        LOG_DEBUG("Not supported widget identifier: %s\n", id);
+        goto done;
+    }
+    else if (name == NULL) {
+        LOG_DEBUG("Bad widget identifier: %s\n", id);
+        goto done;
+    }
+
+    pcmcth_workspace *wsp = workspace;
+    void *data = kvlist_get(&wsp->ug_wins, name);
+    if (data == NULL)
+        goto done;
+
+    widget = *(foil_widget **)data;
+
+done:
+    free(cloned);
+    return widget;
+}
+
 

@@ -1130,29 +1130,6 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     }
 
     arg = purc_variant_object_get_by_ckey(msg->data, "arg");
-
-    const char *element_type = NULL;
-    switch (msg->elementType) {
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLE:
-            element_type = "handle";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLES:
-            element_type = "handles";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_ID:
-            element_type = "id";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_CSS:
-            element_type = "css";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_XPATH:
-            element_type = "xpath";
-            break;
-        default:
-            element_type = "void";
-            break;
-    }
-
     const char *element_value;
     element_value = purc_variant_get_string_const(msg->elementValue);
 
@@ -1189,7 +1166,7 @@ static int on_call_method(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
         result = rdr->cbs.call_method_in_session(endpoint->session,
                 msg->target, msg->targetValue,
-                element_type, element_value,
+                msg->elementType, element_value,
                 purc_variant_get_string_const(msg->property),
                 method, arg, &retv);
     }
@@ -1221,28 +1198,6 @@ static int on_get_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
-    }
-
-    const char *element_type = NULL;
-    switch (msg->elementType) {
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLE:
-            element_type = "handle";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLES:
-            element_type = "handles";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_ID:
-            element_type = "id";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_CSS:
-            element_type = "css";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_XPATH:
-            element_type = "xpath";
-            break;
-        default:
-            element_type = "void";
-            break;
     }
 
     const char *element_value;
@@ -1287,7 +1242,7 @@ static int on_get_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
         result = rdr->cbs.get_property_in_session(endpoint->session,
                 msg->target, msg->targetValue,
-                element_type, element_value,
+                msg->elementType, element_value,
                 property, &retv);
     }
     else {
@@ -1318,28 +1273,6 @@ static int on_set_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     if (msg->dataType == PCRDR_MSG_DATA_TYPE_VOID) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
-    }
-
-    const char *element_type = NULL;
-    switch (msg->elementType) {
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLE:
-            element_type = "handle";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_HANDLES:
-            element_type = "handles";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_ID:
-            element_type = "id";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_CSS:
-            element_type = "css";
-            break;
-        case PCRDR_MSG_ELEMENT_TYPE_XPATH:
-            element_type = "xpath";
-            break;
-        default:
-            element_type = "void";
-            break;
     }
 
     const char *element_value;
@@ -1385,7 +1318,7 @@ static int on_set_property(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
         result = rdr->cbs.set_property_in_session(endpoint->session,
                 msg->target, msg->targetValue,
-                element_type, element_value,
+                msg->elementType, element_value,
                 property, msg->data, &retv);
     }
     else {

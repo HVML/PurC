@@ -246,12 +246,25 @@ void foil_widget_expose(foil_widget *widget)
         widget->ops->expose(widget);
 }
 
-int foil_widget_dump(foil_widget *widget, const char *fname)
+purc_variant_t foil_widget_call_method(foil_widget *widget,
+        const char *method, purc_variant_t arg)
 {
-    if (widget->ops->dump)
-        return widget->ops->dump(widget, fname);
+    if (strcmp(method, "dumpContents") == 0) {
+        const char *fname = purc_variant_get_string_const(arg);
 
-    return -1;
+        int retv = -1;
+        if (fname && widget->ops->dump) {
+            retv = widget->ops->dump(widget, fname);
+        }
+
+        if (retv)
+            goto failed;
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    return PURC_VARIANT_INVALID;
 }
 
 static const char *escaped_bgc[] = {

@@ -36,6 +36,9 @@ struct pcmcth_workspace {
     /* the root window in the workspace */
     struct foil_widget *root;
 
+    /* ungrouped plain windows */
+    struct kvlist ug_wins;
+
     /* TODO: manager of grouped plain windows and pages */
     void *layouter;
 
@@ -78,6 +81,9 @@ static inline foil_block_heap_p foil_wsp_rgnrc_heap(pcmcth_workspace *wsp)
 {
     return &wsp->rgnrc_heap;
 }
+
+foil_widget *foil_wsp_find_widget(void *workspace, void *session,
+        const char *id);
 
 #ifdef __cplusplus
 }

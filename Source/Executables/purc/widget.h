@@ -160,7 +160,8 @@ void foil_widget_delete_deep(foil_widget *widget);
 foil_widget *foil_widget_get_root(foil_widget *widget);
 
 void foil_widget_expose(foil_widget *widget);
-int foil_widget_dump(foil_widget *widget, const char *fname);
+purc_variant_t foil_widget_call_method(foil_widget *widget,
+        const char *method, purc_variant_t arg);
 
 #ifdef __cplusplus
 }
