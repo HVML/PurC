@@ -30,6 +30,8 @@
 #include "page.h"
 #include "region/rect.h"
 
+#define WSP_WIDGET_CLASS_OFF_SCREEN     "-off-screen"
+
 typedef enum {
     WSP_WIDGET_TYPE_OFFSCREEN = 0,  /* an off-screen plain window */
     WSP_WIDGET_TYPE_ROOT,           /* a virtual root window */

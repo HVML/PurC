@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "purcmc-thread.h"
 #include "endpoint.h"
@@ -162,15 +162,63 @@ static int foil_remove_session(pcmcth_session *sess)
     return PCRDR_SC_OK;
 }
 
+#define STR_STYLE_SEPARATOR ";"
+#define STR_PAIR_SEPARATOR  ":"
+
+/* use `rows` and `columns` for the size of the off-screen plain window,
+   for example, "rows:25;columns:80". */
+static void parse_layout_style_for_off_screen(const char *layout_style,
+        foil_rect *rc)
+{
+    char *styles = strdup(layout_style);
+    char *str1;
+    char *style;
+    char *saveptr1;
+    for (str1 = styles; ; str1 = NULL) {
+        style = strtok_r(str1, STR_STYLE_SEPARATOR, &saveptr1);
+        if (style == NULL) {
+            goto done;
+        }
+
+        char *key, *value;
+        char *saveptr2;
+        key = strtok_r(style, STR_PAIR_SEPARATOR, &saveptr2);
+        if (key == NULL) {
+            goto done;
+        }
+
+        value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+        if (value == NULL) {
+            goto done;
+        }
+
+        int v = (int)strtol(value, NULL, 10);
+        if (strcmp(key, "rows") == 0) {
+            LOG_DEBUG("height of the off-screen window was overwritten: %d\n",
+                    v);
+            rc->bottom = rc->top + v;
+        }
+        else if (strcmp(key, "columns") == 0) {
+            LOG_DEBUG("width of the off-screen window was overwritten: %d\n",
+                    v);
+            rc->right = rc->left + v;
+        }
+        else {
+            goto done;
+        }
+    }
+
+done:
+    return;
+}
+
 static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         pcmcth_workspace *workspace,
         const char *gid, const char *name,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
 {
-    (void)class_name;
     (void)layout_style;
-    (void)toolkit_style;
 
     pcmcth_page *plain_win = NULL;
 
@@ -178,21 +226,37 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
 
     if (gid == NULL) {
         /* create a ungrouped plain window */
-        LOG_DEBUG("creating an ungrouped plain window with name (%s)\n", name);
-
         if (kvlist_get(&sess->ug_wins, name)) {
             LOG_WARN("Duplicated ungrouped plain window: %s\n", name);
             *retv = PCRDR_SC_CONFLICT;
             goto done;
         }
 
-        struct foil_widget_info style = { };
-        style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
-        style.name = name;
-        style.title = title;
-        foil_wsp_convert_style(workspace, sess, &style, toolkit_style);
-        plain_win = foil_wsp_create_widget(workspace, sess,
-                WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
+        if (class_name &&
+                strcmp(class_name, WSP_WIDGET_CLASS_OFF_SCREEN) == 0) {
+            LOG_DEBUG("creating an off-screen window with name (%s)\n", name);
+            foil_rect rc;
+            foil_rect_set(&rc, 0, 0,
+                    workspace->rdr->impl->cols, workspace->rdr->impl->rows);
+            parse_layout_style_for_off_screen(layout_style, &rc);
+            foil_widget *plainwin = foil_widget_new(
+                    WSP_WIDGET_TYPE_OFFSCREEN, WSP_WIDGET_BORDER_NONE,
+                    name, title, &rc);
+            plain_win = &plainwin->page;
+        }
+        else {
+            LOG_DEBUG("creating an ungrouped plain window with name (%s)\n",
+                    name);
+
+            struct foil_widget_info style = { };
+            style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
+            style.name = name;
+            style.title = title;
+            foil_wsp_convert_style(workspace, sess, &style, toolkit_style);
+            plain_win = foil_wsp_create_widget(workspace, sess,
+                    WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
+        }
+
         kvlist_set(&sess->ug_wins, name, &plain_win);
 
     }
