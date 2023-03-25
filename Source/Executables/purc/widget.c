@@ -69,7 +69,7 @@ foil_widget *foil_widget_new(foil_widget_type_k type,
             widget->client_rc.bottom = foil_rect_height(rect) - 1;
         }
 
-        widget->vx = widget->client_rc.left;
+        widget->vx = 0;
         widget->vy = 0;
         widget->vw = foil_rect_width(&widget->client_rc);
         widget->vh = 0;
@@ -537,27 +537,96 @@ static void expose_on_screen(foil_widget *widget)
     }
 }
 
+struct off_screen_lines {
+    int cols, rows;
+    char *lines[];
+};
+
 static int init_off_screen(foil_widget *widget)
 {
-    (void)widget;
-    return 0;
+    int rows = foil_rect_height(&widget->rect);
+    char **lines = calloc(rows, sizeof(char *));
+    if (lines) {
+        widget->data = lines;
+        return 0;
+    }
+
+    return -1;
 }
 
 static void expose_off_screen(foil_widget *widget)
 {
-    (void)widget;
+    pcmcth_page *page = &widget->page;
+
+    if (foil_rect_is_empty(&page->dirty_rect)) {
+        return;
+    }
+
+    /* always make the last line visible */
+    if (page->rows > widget->vh) {
+        int cli_height = foil_rect_height(&widget->client_rc);
+        widget->vh = page->rows;
+        if (widget->vh > cli_height)
+            widget->vh = cli_height;
+        widget->vy = page->rows - cli_height;
+    }
+
+    foil_rect viewport, dirty;
+    foil_rect_set(&viewport, widget->vx, widget->vy,
+            widget->vx + widget->vw, widget->vy + widget->vh);
+
+    if (!foil_rect_intersect(&dirty, &page->dirty_rect, &viewport)) {
+        return;
+    }
+
+    /* handle border of widget here */
+    char **lines = widget->data;
+    int w = foil_rect_width(&widget->client_rc);
+    for (int y = dirty.top; y < dirty.bottom; y++) {
+        int rel_row = y - widget->vy;
+        if (rel_row > widget->vh)
+            continue;
+
+        if (lines[y])
+            free(lines[y]);
+        lines[y] = make_escape_string_line_mode(page, page->cells[y], w);
+    }
 }
 
 static int dump_off_screen(foil_widget *widget, const char *fname)
 {
-    (void)widget;
-    (void)fname;
+    assert(widget->data);
+
+    FILE* fp = fopen(fname, "w+");
+    if (fp == NULL)
+        return -1;
+
+    char **lines = widget->data;
+    int rows = foil_rect_height(&widget->rect);
+
+    for (int y = 0; y < rows; y++) {
+        if (lines[y]) {
+            fputs(lines[y], fp);
+        }
+
+        /* always write a new line character */
+        fputs("\n", fp);
+    }
+
+    fclose(fp);
     return 0;
 }
 
 static void clean_off_screen(foil_widget *widget)
 {
-    (void)widget;
+    assert(widget->data);
+    char **lines = widget->data;
+    int rows = foil_rect_height(&widget->rect);
+
+    for (int y = 0; y < rows; y++) {
+        if (lines[y])
+            free(lines[y]);
+    }
 }
 
 static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type)
