@@ -2998,6 +2998,12 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             update_tkz_stack(parser);
         }
         top = tkz_stack_top();
+        if (top->type == ETT_MULTI_QUOTED_S) {
+            RESET_TEMP_BUFFER();
+            tkz_stack_push(ETT_VALUE);
+            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
+        }
+        top = tkz_stack_top();
         if (is_parse_finished(parser, character)) {
             if (top->type == ETT_MULTI_UNQUOTED_S) {
                 pcejson_token_close(top);
@@ -3006,11 +3012,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
             RECONSUME_IN(EJSON_TKZ_STATE_FINISHED);
         }
         top = tkz_stack_top();
-        if (top->type == ETT_MULTI_QUOTED_S) {
-            RESET_TEMP_BUFFER();
-            tkz_stack_push(ETT_VALUE);
-            RECONSUME_IN(EJSON_TKZ_STATE_VALUE_DOUBLE_QUOTED);
-        }
         if (top->type == ETT_MULTI_UNQUOTED_S) {
             RESET_TEMP_BUFFER();
             tkz_stack_push(ETT_VALUE);
