@@ -10,10 +10,16 @@ header h1 {
     color:red;
     text-align:center
 }
+
 .column {
     // display:inline-block;
     width:45%;
 }
+
+.plain-list {
+    list-style-type:none;
+}
+
 .case-mark {
     appearance:meter-mark;
     width:1em;
@@ -37,14 +43,19 @@ header h1 {
         </archetype>
 
         <div>
-            <ul style="list-style-type:none;">
+            <ul class="plain-list">
                 <iterate on $cases>
                     <choose on $STR.substr($?, 0, -5L) >
                         <update on $@ to 'append' with $caseItem />
+                        <update on $cases at "[$2%]" with $? />
                     </choose>
                 </iterate>
             </ul>
         </div>
+
+        <iterate on $cases>
+            <update on "#caseMark$?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />
+        </iterate>
 
     </body>
 
