@@ -11,12 +11,13 @@ header h1 {
     text-align:center
 }
 .column {
-    display:inline-block;
+    // display:inline-block;
     width:45%;
 }
 .case-mark {
     appearance:meter-mark;
     width:1em;
+    -foil-candidate-marks:'✗…↷↻✓';
 }
         </style>
     </head>
@@ -29,31 +30,20 @@ header h1 {
         </header>
 
         <archetype name="caseItem">
-            <p>
-                <meter class="case-mark" id="caseMark$?" value="0" min="0" max="100" low="33" high="66" optimum="80"></meter>
+            <li>
+                <meter class="case-mark" id="caseMark$?" value="20" min="0" max="100" low="20" high="80" optimum="90"></meter>
                 <span class="case-name">$?</span>
-            </p>
+            </li>
         </archetype>
 
         <div>
-            <div class="column">
+            <ul style="list-style-type:none;">
                 <iterate on $cases>
                     <choose on $STR.substr($?, 0, -5L) >
-                        $STREAM.stdout.writelines($?)
-
                         <update on $@ to 'append' with $caseItem />
                     </choose>
                 </iterate>
-            </div>
-            <div class="column">
-                <iterate on $cases>
-                    <choose on $STR.substr($?, 0, -5L) >
-                        $STREAM.stdout.writelines($?)
-
-                        <update on $@ to 'append' with $caseItem />
-                    </choose>
-                </iterate>
-            </div>
+            </ul>
         </div>
 
     </body>
