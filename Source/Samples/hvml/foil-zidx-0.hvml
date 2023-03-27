@@ -1,0 +1,237 @@
+<hvml target="html">
+    <head>
+        <style hvml:raw>
+            .border_yellow {
+                border-style: solid;
+                border-width: thick;
+                border-color: yellow;
+            }
+            .border_red {
+                border-style: solid;
+                border-width: thick;
+                border-color: red;
+            }
+            .border_green {
+                border-style: solid;
+                border-width: thick;
+                border-color: green;
+            }
+            .border_blue {
+                border-style: solid;
+                border-width: thick;
+                border-color: blue;
+            }
+            .fl {
+                float: left;
+            }
+            .h100 {
+                height:100px;
+            }
+            .h50 {
+                height:50px;
+            }
+            .h40 {
+                height:40px;
+            }
+            .h30 {
+                height:30px;
+            }
+            .h20 {
+                height:20px;
+            }
+
+            .w50 {
+                width:50px;
+            }
+            .w100 {
+                width:100px;
+            }
+            .w200 {
+                width:200px;
+            }
+            .relative {
+                position:relative;
+            }
+            .abs_lt {
+                position:absolute;
+                left: 10px;
+                top: 10px;
+            }
+            .abs_rt {
+                position:absolute;
+                right: 10px;
+                top: 10px;
+            }
+            .abs_lb {
+                position:absolute;
+                left: 10px;
+                bottom: 10px;
+            }
+            .abs_rb {
+                position:absolute;
+                right: 10px;
+                bottom: 10px;
+            }
+            .abs_ltrb {
+                position:absolute;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .abs_ltr {
+                position:absolute;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+            }
+            .abs_ltb {
+                position:absolute;
+                left: 10px;
+                top: 30px;
+                bottom: 10px;
+            }
+            .abs_trb {
+                position:absolute;
+                top: 50px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .fixed_lt {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+            }
+            .fixed_rt {
+                position:fixed;
+                right: 10px;
+                top: 10px;
+            }
+            .fixed_lb {
+                position:fixed;
+                left: 10px;
+                bottom: 10px;
+            }
+            .fixed_rb {
+                position:fixed;
+                right: 10px;
+                bottom: 10px;
+            }
+            .fixed_ltrb {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .fixed_ltr {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+            }
+            .fixed_ltb {
+                position:fixed;
+                left: 10px;
+                top: 30px;
+                bottom: 10px;
+            }
+            .fixed_trb {
+                position:fixed;
+                top: 50px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .z1 {
+                z-index: 1;
+            }
+            .z2 {
+                z-index: 2;
+            }
+            .z3 {
+                z-index: 3;
+            }
+        </style>
+    </head>
+    <body class="border_yellow">
+        <div id="n_0" class="border_blue">
+            This is some text 0.
+            This is some text 1.
+            This is some text 2.
+            This is some text 3.
+            This is some text 4.
+            This is some text 5.
+            This is some text 6.
+            This is some text 7.
+            This is some text 8.
+            This is some text 9.
+            This is some text 10.
+            This is some text 11.
+            This is some text 12.
+            This is some text 13.
+            This is some text 14.
+            This is some text 15.
+            This is some text 16.
+            This is some text 17.
+            This is some text 18.
+            This is some text 19.
+        </div>
+        <div id="n_1" class="border_blue">
+            This is some text 0.
+            This is some text 1.
+            This is some text 2.
+            This is some text 3.
+            This is some text 4.
+            This is some text 5.
+            This is some text 6.
+            This is some text 7.
+            This is some text 8.
+            This is some text 9.
+            This is some text 10.
+            This is some text 11.
+            This is some text 12.
+            This is some text 13.
+            This is some text 14.
+            This is some text 15.
+            This is some text 16.
+            This is some text 17.
+            This is some text 18.
+            This is some text 19.
+        </div>
+        <div id="n_2" class="border_blue">
+            This is some text 0.
+            This is some text 1.
+            This is some text 2.
+            This is some text 3.
+            This is some text 4.
+            This is some text 5.
+            This is some text 6.
+            This is some text 7.
+            This is some text 8.
+            This is some text 9.
+            This is some text 10.
+            This is some text 11.
+            This is some text 12.
+            This is some text 13.
+            This is some text 14.
+            This is some text 15.
+            This is some text 16.
+            This is some text 17.
+            This is some text 18.
+            This is some text 19.
+        </div>
+        <div id="text1" class="border_red fixed_lt z2">
+          This is text 1 will overlay the text 3.
+        </div>
+
+        <div id="text2" class="border_green fixed_lt">
+          This text 2 will be beneath everything.
+          This text 2 will be beneath everything.
+        </div>
+
+        <div id="text3" class="border_blue fixed_lt z1">
+          This text 3 will underlay text 1, but overlay the text 2.
+        </div>
+    </body>
+</hvml>
+
