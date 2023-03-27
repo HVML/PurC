@@ -420,7 +420,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
     printf ("TEST list: nr_args = 1, \
             param[0] = path, param[1] = NULL, param[2] = name size:\n");
     param[0] = purc_variant_make_string (file_path, true);
-    param[1] = NULL;
+    param[1] = purc_variant_make_null();
     param[2] = purc_variant_make_string ("name size", true);
     ret_var = func (NULL, 3, param, false);
     ASSERT_NE(ret_var, nullptr);
