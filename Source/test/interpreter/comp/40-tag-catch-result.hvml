@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: "Exception raised: ArgumentMissed"
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <div class="ab" id="abC">
+                <update/>
+            </div>
+        </div>
+        <catch for=`ArgumentMissed`>
+            <exit with "Exception raised: $?.name" />
+        </catch>
+    </body>
+</hvml>
+
+
