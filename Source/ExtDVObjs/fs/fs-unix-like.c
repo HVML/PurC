@@ -1295,6 +1295,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         i = 0;
         bool quit = false;
         size_t length = 0;
+        const char * end = mode + strlen(mode);
         const char * head = pcutils_get_next_token (mode, " ", &length);
         while (head) {
             switch (* head)
@@ -1380,7 +1381,11 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             if (quit)
                 break;
-            head = pcutils_get_next_token (head + length + 1, " ", &length);
+            const char *p = head + length + 1;
+            if (p > end) {
+                break;
+            }
+            head = pcutils_get_next_token (p, " ", &length);
         }
     }
     else {
