@@ -1,4 +1,4 @@
-#!/usr/local/bin/purc -v
+#!/usr/local/bin/purc
 
 <!DOCTYPE hvml SYSTEM 'f: FS'>
 <hvml target="html">
@@ -74,7 +74,8 @@ header h1 {
                 }
 
                 <catch for `ANY`>
-                    <!-- exit with "Failed to run case $3? (exception: $?.name)" / -->
+                    $STREAM.stdout.writelines("Failed to run case $3? (exception: $?.name, $?.info)")
+                    <exit with "Failed to run case $3? (exception: $?.name)" />
                 </catch>
 
                 <update on "#caseMark$2?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />

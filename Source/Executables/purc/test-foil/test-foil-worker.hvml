@@ -30,6 +30,10 @@
 
         <include with ${$styleCase} />
 
+        <inherit>
+            $STREAM.stdout.writelines("$caseName done.")
+        </inherit>
+
     </body>
 
 </hvml>
