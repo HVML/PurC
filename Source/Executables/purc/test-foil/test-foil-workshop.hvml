@@ -3,7 +3,7 @@
 <!DOCTYPE hvml SYSTEM 'f: FS'>
 <hvml target="html">
     <head>
-        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
         <title>Foil Test Workshop</title>
         <style hvml:raw>
 header h1 {
