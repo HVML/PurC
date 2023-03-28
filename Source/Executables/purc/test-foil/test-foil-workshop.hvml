@@ -58,9 +58,8 @@ header h1 {
         <init as 'nr_total_cases' with $DATA.arith('*', $DATA.count($all_cases), 9L) />
 
         <archetype name="caseItem">
-            <span class="grid">$?.rows X $?.columns </span>
+            <span class="grid">{$?.rows}x{$?.columns}</span>
             <meter class="case-mark" id="case-mark-$?.name-$?.rows-$?.columns" value="20" min="0" max="100" low="20" high="80" optimum="90"></meter>
-            <span> </span>
         </archetype>
 
         <iterate on $all_cases>
