@@ -425,6 +425,10 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
                 data_type = PCRDR_MSG_DATA_TYPE_XML;
             }
         }
+        else {
+            /* clear no such key */
+            purc_clr_error();
+        }
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
