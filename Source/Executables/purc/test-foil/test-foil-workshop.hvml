@@ -12,8 +12,8 @@ header h1 {
 }
 
 .column {
-    // display:inline-block;
-    width:45%;
+    display:inline-block;
+    width:33%;
 }
 
 .plain-list {
@@ -34,87 +34,140 @@ header h1 {
     </head>
 
     <body>
-        <init as 'cases' with $FS.list_prt("$SYS.cwd/style-cases", '*.html') />
+        <init as 'all_cases' with $FS.list_prt("$SYS.cwd/style-cases", '*.html') >
+            <catch for `ANY`>
+                $STREAM.stdout.writelines("Failed to get cases (exception: $?.name)!")
+                <exit with false />
+            </catch>
+        </init>
+
+        <test with $L.eq($DATA.count($all_cases), 0L) >
+            <inherit>
+                $STREAM.stdout.writelines("No any case!")
+            </inherit>
+
+            <exit with false />
+        </test>
 
         <header>
-            <h1>Foil Test Workshop (totally $DATA.count($cases) cases)</h1>
+            <h1>Foil Test Workshop (totally $DATA.count($all_cases) cases)</h1>
         </header>
 
+        <init as 'all_columns' with [ 40L, 80L, 160L ] />
+        <init as 'all_rows' with [ 10L, 30L, 50L ] />
+        <init as 'nr_total_cases' with $DATA.arith('*', $DATA.count($all_cases), 9L) />
+
         <archetype name="caseItem">
-            <li>
-                <meter class="case-mark" id="caseMark$?" value="20" min="0" max="100" low="20" high="80" optimum="90"></meter>
-                <span class="case-name">$?</span>
-            </li>
+            <span class="grid">$?.rows X $?.columns </span>
+            <meter class="case-mark" id="case-mark-$?.name-$?.rows-$?.columns" value="20" min="0" max="100" low="20" high="80" optimum="90"></meter>
+            <span> </span>
         </archetype>
 
+        <iterate on $all_cases>
+            <init as 'case_name' with $STR.substr($?, 0, -5L) temp />
+            <update on $all_cases at "[$%]" with $case_name />
+        </iterate>
+
         <div>
-            <ul class="plain-list">
-                <iterate on $cases>
-                    <choose on $STR.substr($?, 0, -5L) >
-                        <update on $@ to 'append' with $caseItem />
-                        <update on $cases at "[$2%]" with $? />
-                    </choose>
-                </iterate>
-            </ul>
+            <iterate on $all_columns>
+                <init as 'curr_columns' with $? temp />
+                <div class="column">
+                    <ul class="plain-list">
+                        <iterate on $all_cases>
+                            <init as 'case_name' with $? temp />
+                            <li>
+                                <iterate on $all_rows>
+                                    <init as 'curr_rows' with $? temp />
+
+                                    <choose on { name: $case_name, rows: $curr_rows, columns: $curr_columns } >
+                                        <update on $@ to 'append' with $caseItem />
+                                    </choose>
+                                </iterate>
+                                <span>$case_name</span>
+                            </li>
+
+                        </iterate>
+                    </ul>
+                </div>
+            </iterate>
+         </div>
+
+        <div>
             <p>
-                <label for="totalProgress">Total Progress: </label>
-                <progress id="totalProgress" class="total-progress" value="0" max="$DATA.count($cases)"></progress>
+                <label for="totalProgress">Total progress: </label>
+                <progress id="totalProgress" class="total-progress" value="0" max="$nr_total_cases"></progress>
             </p>
         </div>
 
-        <request on $RDR to 'createPlainWindow' >
-            {
-                 data: {
-                        name: 'test',
-                        title: 'The off screen plain window for testing',
-                        arg: 'screenshot.txt',
-                        class: '-off-screen',
-                        layoutStyle: 'rows:25;columns:80',
-                 },
-            }
-        </request>
+        <init as 'total_cases' with [] />
+        <iterate on $all_columns>
+            <init as 'curr_columns' with $? temp />
 
-        <init as caseIdx at '_root' with 0L />
+            <iterate on $all_rows>
+                <init as 'curr_rows' with $? temp />
 
-        <observe on $CRTN for 'idle'>
-            <choose on $cases[$caseIdx] >
-                <load from 'test-foil-worker.hvml' onto 'test' >
+                <request on $RDR to 'createPlainWindow' >
                     {
-                        case: $?,
+                         data: {
+                                name: "test-$curr_rows-$curr_columns",
+                                title: 'The off-screen plain window for testing',
+                                class: '-off-screen',
+                                layoutStyle: "rows:$curr_rows;columns:$curr_columns"}
+                    }
+                </request>
+
+                <iterate on $all_cases>
+                    <update on $total_cases to 'append' with { name: $?, rows: $curr_rows, columns: $curr_columns } />
+                </iterate>
+
+            </iterate>
+        </iterate>
+
+        <init as total_idx at '_root' with 0L />
+        <observe on $CRTN for 'idle'>
+            <choose on $total_cases[$total_idx] >
+                <init as 'win_name' with "test-$?.rows-$?.columns" temp />
+                <init as 'case_name' with "$?.name-$?.rows-$?.columns" temp />
+
+                <load from 'test-foil-worker.hvml' onto $win_name >
+                    {
+                        case: $?.name,
                     }
 
                     <catch for `ANY`>
                         $STREAM.stdout.writelines("Failed to run case $3? (exception: $?.name, $?.info)")
-                        <exit with "Failed to run case $3? (exception: $?.name)" />
+                        <exit with false />
                     </catch>
 
                 </load>
 
-                <update on "#caseMark$?" at 'attr.value' with "40" />
+                <update on "#case-mark-$case_name" at 'attr.value' with "40" />
 
                 <request on $RDR to 'callMethod' >
                     {
                          element: "main",
-                         property: "plainwin:test",
+                         property: "plainwin:$win_name",
                          data: {
                                 method: 'dumpContents',
-                                arg: "screenshot-$?.txt"
+                                arg: "screenshot-$case_name.txt"
                          },
                     }
                 </request>
 
-                <update on "#caseMark$?" at 'attr.value' with "60" />
+                <update on "#case-mark-$case_name" at 'attr.value' with "60" />
 
-                <update on "#caseMark$?" at 'attr.value' with "80" />
+                <update on "#case-mark-$case_name" at 'attr.value' with "80" />
 
-                <update on "#caseMark$?" at 'attr.value' with "100" />
+                <update on "#case-mark-$case_name" at 'attr.value' with "100" />
 
-                <init as 'caseIdx' at '_root' with $DATA.arith('+', $caseIdx, 1L) />
-                <update on "#totalProgress" at 'attr.value' with "$caseIdx" />
+                <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
 
-                <test with $L.ge($caseIdx, $DATA.count($cases)) >
-                    <exit with 'Ok' />
+                <update on "#totalProgress" at 'attr.value' with "$total_idx" />
+
+                <test with $L.ge($total_idx, $nr_total_cases) >
+                    <exit with true />
                 </test>
+
             </choose>
         </observe>
 

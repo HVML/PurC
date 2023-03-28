@@ -171,6 +171,8 @@ static void parse_layout_style_for_off_screen(const char *layout_style,
     char *str1;
     char *style;
     char *saveptr1;
+
+    LOG_DEBUG("layout style: %s\n", layout_style);
     for (str1 = styles; ; str1 = NULL) {
         style = strtok_r(str1, STR_STYLE_SEPARATOR, &saveptr1);
         if (style == NULL) {
