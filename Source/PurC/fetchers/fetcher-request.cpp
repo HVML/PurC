@@ -109,6 +109,8 @@ static const char* transMethod(enum pcfetcher_request_method method)
     }
 }
 
+String pcfetcher_build_uri(const char *base_url,  const char *url);
+
 purc_variant_t PcFetcherRequest::requestAsync(
         const char* base_uri,
         const char* url,
@@ -141,14 +143,13 @@ purc_variant_t PcFetcherRequest::requestAsync(
         encode_p = purc_variant_get_string_const(encode_val);
     }
 
-    URL tmp(URL(), url);
-
     String uri;
-    if (base_uri && !tmp.isValid() &&
-            strncmp(url, base_uri, strlen(base_uri)) != 0) {
-        uri.append(base_uri);
+    if (base_uri) {
+        uri = pcfetcher_build_uri(base_uri, url);
     }
-    uri.append(url);
+    else {
+        uri.append(url);
+    }
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
