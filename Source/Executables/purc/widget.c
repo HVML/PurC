@@ -190,6 +190,8 @@ void foil_widget_delete(foil_widget *widget)
 {
     if (widget->ops->clean)
         widget->ops->clean(widget);
+    if (widget->data)
+        free(widget->data);
     foil_widget_remove_from_tree(widget);
     foil_page_content_cleanup(&widget->page);
     if (widget->name)
@@ -242,13 +244,24 @@ foil_widget *foil_widget_get_root(foil_widget *widget)
 
 void foil_widget_expose(foil_widget *widget)
 {
-    if (widget->ops->expose)
-        widget->ops->expose(widget);
+    assert(widget->ops->expose);
+    widget->ops->expose(widget);
+}
+
+void foil_widget_reset_viewport(foil_widget *widget)
+{
+    widget->vx = widget->vy = 0;
+    widget->vw = foil_rect_width(&widget->client_rc);
+    widget->vh = 0;
+
+    if (widget->ops->clean)
+        widget->ops->clean(widget);
 }
 
 purc_variant_t foil_widget_call_method(foil_widget *widget,
         const char *method, purc_variant_t arg)
 {
+
     if (strcmp(method, "dumpContents") == 0) {
         const char *fname = purc_variant_get_string_const(arg);
 
@@ -257,8 +270,10 @@ purc_variant_t foil_widget_call_method(foil_widget *widget,
             retv = widget->ops->dump(widget, fname);
         }
 
-        if (retv)
+        if (retv) {
+            LOG_WARN("Failed to dump contents to file: %s\n", fname);
             goto failed;
+        }
     }
 
     return purc_variant_make_boolean(true);
@@ -550,6 +565,37 @@ static void expose_on_screen(foil_widget *widget)
     }
 }
 
+static int dump_on_screen(foil_widget *widget, const char *fname)
+{
+    FILE* fp = fopen(fname, "w+");
+    if (fp == NULL)
+        return -1;
+
+    pcmcth_page *page = &widget->page;
+
+    foil_rect viewport;
+    foil_rect_set(&viewport, widget->vx, widget->vy,
+            widget->vx + widget->vw, widget->vy + widget->vh);
+
+    int w = foil_rect_width(&viewport);
+    for (int y = viewport.top; y < viewport.bottom; y++) {
+        int x = viewport.left;
+
+        int rel_row = widget->vh - y + widget->vy;
+        if (rel_row > widget->vh)
+            continue;
+
+        struct foil_tty_cell *cell = page->cells[y] + x;
+        char *escaped_str = make_escape_string_line_mode(page, cell, w);
+
+        fputs(escaped_str, fp);
+        free(escaped_str);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
 struct off_screen_lines {
     int cols, rows;
     char *lines[];
@@ -579,20 +625,20 @@ static void expose_off_screen(foil_widget *widget)
     if (page->rows > widget->vh) {
         int cli_height = foil_rect_height(&widget->client_rc);
         widget->vh = page->rows;
-        if (widget->vh > cli_height)
+        if (widget->vh > cli_height) {
             widget->vh = cli_height;
-        widget->vy = page->rows - cli_height;
+            widget->vy = page->rows - cli_height;
+        }
     }
 
     foil_rect viewport, dirty;
     foil_rect_set(&viewport, widget->vx, widget->vy,
             widget->vx + widget->vw, widget->vy + widget->vh);
-
     if (!foil_rect_intersect(&dirty, &page->dirty_rect, &viewport)) {
         return;
     }
 
-    /* handle border of widget here */
+    /* TODO: handle border of widget */
     char **lines = widget->data;
     int w = foil_rect_width(&widget->client_rc);
     for (int y = dirty.top; y < dirty.bottom; y++) {
@@ -600,9 +646,10 @@ static void expose_off_screen(foil_widget *widget)
         if (rel_row > widget->vh)
             continue;
 
-        if (lines[y])
-            free(lines[y]);
-        lines[y] = make_escape_string_line_mode(page, page->cells[y], w);
+        if (lines[rel_row]) {
+            free(lines[rel_row]);
+        }
+        lines[rel_row] = make_escape_string_line_mode(page, page->cells[y], w);
     }
 }
 
@@ -637,8 +684,10 @@ static void clean_off_screen(foil_widget *widget)
     int rows = foil_rect_height(&widget->rect);
 
     for (int y = 0; y < rows; y++) {
-        if (lines[y])
+        if (lines[y]) {
             free(lines[y]);
+            lines[y] = NULL;
+        }
     }
 }
 
@@ -647,7 +696,7 @@ static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type)
     static struct foil_widget_ops ops_for_on_scrn = {
         .init = NULL,
         .expose = expose_on_screen,
-        .dump = NULL,
+        .dump = dump_on_screen,
         .clean = NULL,
     };
 

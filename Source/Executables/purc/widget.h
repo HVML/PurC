@@ -163,6 +163,8 @@ void foil_widget_expose(foil_widget *widget);
 purc_variant_t foil_widget_call_method(foil_widget *widget,
         const char *method, purc_variant_t arg);
 
+void foil_widget_reset_viewport(foil_widget *widget);
+
 #ifdef __cplusplus
 }
 #endif

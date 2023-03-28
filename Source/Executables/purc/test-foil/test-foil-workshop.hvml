@@ -62,42 +62,62 @@ header h1 {
             </p>
         </div>
 
-        <iterate on $cases>
-            <load from 'test-foil-worker.hvml' onto 'test' >
-                {
-                    case: $?,
-                    _renderer: {
-                        title: $?,
+        <request on $RDR to 'createPlainWindow' >
+            {
+                 data: {
+                        name: 'test',
+                        title: 'The off screen plain window for testing',
+                        arg: 'screenshot.txt',
                         class: '-off-screen',
                         layoutStyle: 'rows:25;columns:80',
-                    }
-                }
+                 },
+            }
+        </request>
 
-                <catch for `ANY`>
-                    $STREAM.stdout.writelines("Failed to run case $3? (exception: $?.name, $?.info)")
-                    <exit with "Failed to run case $3? (exception: $?.name)" />
-                </catch>
-
-                <update on "#caseMark$2?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />
-
-                <update on "#totalProgress" at 'attr.value' with "$2%" />
-            </load>
-        </iterate>
+        <init as caseIdx at '_root' with 0L />
 
         <observe on $CRTN for 'idle'>
-            <request on $RDR to 'callMethod' >
-                {
-                     element: "main",
-                     property: "plainwin:page-0",
-                     data: {
-                            method: 'dumpContents',
-                            arg: 'screenshot.txt'
-                     },
-                }
-            </request>
+            <choose on $cases[$caseIdx] >
+                <load from 'test-foil-worker.hvml' onto 'test' >
+                    {
+                        case: $?,
+                    }
+
+                    <catch for `ANY`>
+                        $STREAM.stdout.writelines("Failed to run case $3? (exception: $?.name, $?.info)")
+                        <exit with "Failed to run case $3? (exception: $?.name)" />
+                    </catch>
+
+                </load>
+
+                <update on "#caseMark$?" at 'attr.value' with "40" />
+
+                <request on $RDR to 'callMethod' >
+                    {
+                         element: "main",
+                         property: "plainwin:test",
+                         data: {
+                                method: 'dumpContents',
+                                arg: "screenshot-$?.txt"
+                         },
+                    }
+                </request>
+
+                <update on "#caseMark$?" at 'attr.value' with "60" />
+
+                <update on "#caseMark$?" at 'attr.value' with "80" />
+
+                <update on "#caseMark$?" at 'attr.value' with "100" />
+
+                <init as 'caseIdx' at '_root' with $DATA.arith('+', $caseIdx, 1L) />
+                <update on "#totalProgress" at 'attr.value' with "$caseIdx" />
+
+                <test with $L.ge($caseIdx, $DATA.count($cases)) >
+                    <exit with 'Ok' />
+                </test>
+            </choose>
         </observe>
 
     </body>
-
 </hvml>
 

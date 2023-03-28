@@ -241,6 +241,7 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
             foil_widget *plainwin = foil_widget_new(
                     WSP_WIDGET_TYPE_OFFSCREEN, WSP_WIDGET_BORDER_NONE,
                     name, title, &rc);
+            plainwin->user_data = workspace;    /* an orphan widget */
             plain_win = &plainwin->page;
         }
         else {
@@ -472,8 +473,10 @@ foil_call_method_in_session(pcmcth_session *sess,
 
     purc_variant_t result = PURC_VARIANT_INVALID;
 
+    LOG_DEBUG("element: %s; property: %s; method: %s\n",
+            element_value, property, method);
     if (target != PCRDR_MSG_TARGET_WORKSPACE ||
-            (void *)(uintptr_t)target_value != sess->workspace) {
+            (void *)(uintptr_t)target_value != 0) {
         *retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
     }

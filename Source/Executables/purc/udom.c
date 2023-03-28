@@ -261,6 +261,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     }
 
     foil_widget *widget = foil_widget_from_page(page);
+    foil_widget_reset_viewport(widget);
     int cols = foil_widget_client_width(widget);
     int rows = foil_widget_client_height(widget);
     int width = cols * FOIL_PX_GRID_CELL_W;

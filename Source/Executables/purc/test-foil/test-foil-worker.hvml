@@ -30,9 +30,9 @@
 
         <include with ${$styleCase} />
 
-        <inherit>
+        <!-- inherit>
             $STREAM.stdout.writelines("$caseName done.")
-        </inherit>
+        </inherit -->
 
     </body>
 
