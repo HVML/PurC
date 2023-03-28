@@ -107,6 +107,57 @@ ctxt_destroy(void *ctxt)
     ctxt_for_load_destroy((struct ctxt_for_load*)ctxt);
 }
 
+#if 0
+struct load_data {
+    pcintr_coroutine_t        co;
+    struct pcvdom_element    *vdom_element;
+    purc_variant_t            async_id;
+    purc_variant_t            within;
+    purc_variant_t            with;
+    purc_variant_t            onto;
+    purc_variant_t            as;
+    purc_variant_t            at;
+
+    struct pcintr_cancel      cancel;
+
+    int                       ret_code;
+    int                       err;
+    purc_rwstream_t           resp;
+    char                     *mime_type;
+
+};
+
+static void load_data_release(struct load_data *data)
+{
+    if (data) {
+        PURC_VARIANT_SAFE_CLEAR(data->async_id);
+        PURC_VARIANT_SAFE_CLEAR(data->within);
+        PURC_VARIANT_SAFE_CLEAR(data->with);
+        PURC_VARIANT_SAFE_CLEAR(data->onto);
+        PURC_VARIANT_SAFE_CLEAR(data->as);
+        PURC_VARIANT_SAFE_CLEAR(data->at);
+        data->co = NULL;
+        data->vdom_element = NULL;
+        if (data->resp) {
+            purc_rwstream_destroy(data->resp);
+            data->resp = NULL;
+        }
+        if (data->mime_type) {
+            free(data->mime_type);
+            data->mime_type = NULL;
+        }
+    }
+}
+
+static void load_data_destroy(struct load_data *data)
+{
+    if (data) {
+        load_data_release(data);
+        free(data);
+    }
+}
+#endif
+
 static bool
 is_observer_match(pcintr_coroutine_t co,
         struct pcintr_observer *observer, pcrdr_msg *msg,
@@ -166,7 +217,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         purc_set_error_with_info(PURC_ERROR_UNKNOWN,
                 "sub coroutine failed with except: %s", s);
     }
-
 
     pcintr_resume(cor, msg);
     pcintr_set_current_co(NULL);
@@ -333,6 +383,13 @@ fetch_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     int r = post_process(cor, frame, vdom, NULL);
     if (r) {
         frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    /* do not resume becase 'post_process'  will yield again */
+    if (ctxt->synchronously) {
+        pcintr_set_current_co(NULL);
+        return 0;
     }
 
 out:
@@ -378,6 +435,223 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     return 0;
 }
+
+#if 0
+static void load_data_cancel(void *ud)
+{
+    struct load_data *data;
+    data = (struct load_data*)ud;
+
+    pcfetcher_cancel_async(data->async_id);
+}
+
+static void on_fetch_async_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(request_id);
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    struct load_data *data;
+    data = (struct load_data*)ud;
+
+    pcintr_coroutine_t co = data->co;
+
+    data->ret_code = resp_header->ret_code;
+    data->resp = resp;
+    if (resp_header->mime_type) {
+        data->mime_type = strdup(resp_header->mime_type);
+    }
+
+    if (co->stack.exited) {
+        return;
+    }
+
+    purc_variant_t payload = purc_variant_make_native(data, NULL);
+    pcintr_coroutine_post_event(co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        data->async_id,
+        MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+        payload, data->async_id);
+    purc_variant_unref(payload);
+}
+
+static bool
+is_fetch_async_observer_match(pcintr_coroutine_t cor,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, FETCHERSTATE)) == type) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+static void on_fetch_async_resume_on_frame_pseudo(pcintr_coroutine_t co,
+        struct load_data *data)
+{
+    pcintr_stack_t stack = &co->stack;
+    struct pcintr_stack_frame *frame;
+    frame = pcintr_stack_get_bottom_frame(stack);
+
+    if (data->ret_code == RESP_CODE_USER_STOP)
+        return;
+
+    if (!data->resp || data->ret_code != 200) {
+        if (frame->silently) {
+            return;
+        }
+
+        // FIXME: what error to set?
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                data->ret_code);
+        return;
+    }
+
+    purc_vdom_t vdom = load_vdom(data->resp);
+    if (!vdom) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE ,
+                "load vdom from on/from failed");
+    }
+    else {
+        const char *runner_name = data->within ?
+            purc_variant_get_string_const(data->within) : NULL;
+        const char *as = data->as ? purc_variant_get_string_const(data->as) : NULL;
+        const char *onto = data->onto ?
+            purc_variant_get_string_const(data->onto) : NULL;
+        purc_atom_t child_cid = pcintr_schedule_child_co(vdom, co->cid,
+                runner_name, onto, data->with, NULL, false);
+
+        if (child_cid && as) {
+            purc_variant_t request_id = pcintr_crtn_observed_create(child_cid);
+            pcintr_bind_named_variable(&co->stack, frame, as, data->at, false,
+                    false, request_id);
+            purc_variant_unref(request_id);
+        }
+    }
+
+}
+
+static void on_fetch_async_resume(void *ud)
+{
+    struct load_data *data;
+    data = (struct load_data*)ud;
+
+    pcintr_coroutine_t co = pcintr_get_coroutine();
+
+    pcintr_unregister_cancel(&data->cancel);
+
+    pcintr_push_stack_frame_pseudo(data->vdom_element);
+    on_fetch_async_resume_on_frame_pseudo(co, data);
+    pcintr_pop_stack_frame_pseudo();
+
+    load_data_destroy(data);
+}
+
+
+static int
+fetch_async_observer_handle(pcintr_coroutine_t cor,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_atom_t type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+
+    pcintr_set_current_co(cor);
+    struct load_data *payload = purc_variant_native_get_entity(msg->data);
+    on_fetch_async_resume(payload);
+    pcintr_set_current_co(NULL);
+    return 0;
+}
+
+static int
+process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
+{
+    pcintr_stack_t stack = &co->stack;
+
+    struct ctxt_for_load *ctxt;
+    ctxt = (struct ctxt_for_load*)frame->ctxt;
+
+    struct load_data *data;
+    data = (struct load_data *)calloc(1, sizeof(*data));
+    if (!data) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return -1;
+    }
+    pcintr_cancel_init(&data->cancel, data, load_data_cancel);
+
+    data->co              = co;
+    data->vdom_element    = frame->pos;
+    if (ctxt->within) {
+        data->within = purc_variant_ref(ctxt->within);
+    }
+    if (ctxt->with) {
+        data->with = purc_variant_ref(ctxt->with);
+    }
+    if (ctxt->onto) {
+        data->onto = purc_variant_ref(ctxt->onto);
+    }
+    if (ctxt->as) {
+        data->as = purc_variant_ref(ctxt->as);
+    }
+    if (ctxt->at) {
+        data->at = purc_variant_ref(ctxt->at);
+    }
+
+    enum pcfetcher_request_method method;
+    method = pcintr_method_from_via(ctxt->via);
+
+    purc_variant_t params = PURC_VARIANT_INVALID;
+
+    data->async_id = pcintr_load_from_uri_async(stack, ctxt->from_uri,
+            method, params, on_fetch_async_complete, data, PURC_VARIANT_INVALID);
+
+    if (data->async_id == PURC_VARIANT_INVALID) {
+        load_data_destroy(data);
+        return -1;
+    }
+
+    data->async_id = purc_variant_ref(data->async_id);
+
+    ctxt->sync_id = purc_variant_ref(data->async_id);
+
+    pcintr_register_inner_observer(
+            stack,
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_READY | CO_STATE_OBSERVING,
+            data->async_id,
+            MSG_TYPE_FETCHER_STATE,
+            MSG_SUB_TYPE_SUCCESS,
+            is_fetch_async_observer_match,
+            fetch_async_observer_handle,
+            NULL,
+            true
+        );
+
+    pcintr_register_cancel(&data->cancel);
+
+    return 0;
+}
+#endif
 
 
 static int
@@ -744,7 +1018,16 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
         else {
             ctxt->from_uri = from;
+#if 0
+            if (ctxt->synchronously) {
+                process_from_sync(stack->co, frame);
+            }
+            else {
+                process_from_async(stack->co, frame);
+            }
+#else
             process_from_sync(stack->co, frame);
+#endif
             return ctxt;
         }
     }
