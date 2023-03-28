@@ -1,4 +1,4 @@
-#!/usr/bin/purc
+#!/usr/local/bin/purc -c thread
 
 <!DOCTYPE hvml SYSTEM 'f: FS'>
 <hvml target="html">
@@ -24,6 +24,11 @@ header h1 {
     appearance:meter-mark;
     width:1em;
     -foil-candidate-marks:'✗…↷↻✓';
+}
+
+.total-progress {
+    appearance:progress-bar;
+    width:10em;
 }
         </style>
     </head>
@@ -51,10 +56,31 @@ header h1 {
                     </choose>
                 </iterate>
             </ul>
+            <p>
+                <label for="totalProgress">Total Progress: </label>
+                <progress id="totalProgress" class="total-progress" value="0" max="$DATA.count($cases)"></progress>
+            </p>
         </div>
 
         <iterate on $cases>
-            <update on "#caseMark$?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />
+            <load from 'test-foil-worker.hvml' onto 'test' >
+                {
+                    case: $?,
+                    _renderer: {
+                        title: $?,
+                        class: '-off-screen',
+                        layoutStyle: 'rows:25;columns:80',
+                    }
+                }
+
+                <catch for `ANY`>
+                    <exit with "Failed to run case $3? (exception: $?)" />
+                </catch>
+
+                <update on "#caseMark$2?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />
+
+                <update on "#totalProgress" at 'attr.value' with "$2%" />
+            </load>
         </iterate>
 
     </body>
