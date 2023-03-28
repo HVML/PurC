@@ -1,4 +1,4 @@
-#!/usr/local/bin/purc -c thread
+#!/usr/local/bin/purc -v
 
 <!DOCTYPE hvml SYSTEM 'f: FS'>
 <hvml target="html">
@@ -74,7 +74,7 @@ header h1 {
                 }
 
                 <catch for `ANY`>
-                    <exit with "Failed to run case $3? (exception: $?)" />
+                    <!-- exit with "Failed to run case $3? (exception: $?.name)" / -->
                 </catch>
 
                 <update on "#caseMark$2?" at 'attr.value' with {{ $DATA.arith('%', $%, 2) && "0" || "100" }} />
@@ -82,6 +82,19 @@ header h1 {
                 <update on "#totalProgress" at 'attr.value' with "$2%" />
             </load>
         </iterate>
+
+        <observe on $CRTN for 'idle'>
+            <request on $RDR to 'callMethod' >
+                {
+                     element: "main",
+                     property: "plainwin:page-0",
+                     data: {
+                            method: 'dumpContents',
+                            arg: 'screenshot.txt'
+                     },
+                }
+            </request>
+        </observe>
 
     </body>
 
