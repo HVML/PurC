@@ -192,19 +192,12 @@ header h1 {
                     </call>
 
                     <differ>
-                        <inherit>
+                        <!-- inherit>
                             $STREAM.stderr.writelines("Not readable file: $checked_fname")
-                        </inherit>
+                        </inherit -->
                         <update on "#case-mark-$case_name" at 'attr.value' with "80" />
                     </differ>
                 </test>
-
-                <differ>
-                    <!-- inherit>
-                        $STREAM.stdout.writelines("No checked file: $checked_fname")
-                    </inherit -->
-                    <update on "#case-mark-$case_name" at 'attr.value' with "80" />
-                </differ>
 
                 <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />
