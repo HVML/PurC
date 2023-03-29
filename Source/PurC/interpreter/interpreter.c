@@ -2370,18 +2370,16 @@ end:
 }
 
 bool
-pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
-    const char *name, size_t len)
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor, const char *so_name,
+    const char *var_name, const char *bind_name)
 {
     UNUSED_PARAM(cor);
-    char NAME[PATH_MAX+1];
-    snprintf(NAME, sizeof(NAME), "%.*s", (int)len, name);
-    purc_variant_t var = pcinst_get_variable(NAME);
+    purc_variant_t var = pcinst_get_variable(bind_name);
     if (var) {
         return true;
     }
 
-    purc_variant_t v = purc_variant_load_dvobj_from_so(NULL, NAME);
+    purc_variant_t v = purc_variant_load_dvobj_from_so(so_name, var_name);
     if (v == PURC_VARIANT_INVALID) {
         return false;
     }
@@ -2395,7 +2393,7 @@ pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
         }
     }
 
-    if (!purc_bind_runner_variable(NAME, v)) {
+    if (!purc_bind_runner_variable(bind_name, v)) {
         goto out;
     }
 

@@ -723,8 +723,8 @@ pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
         purc_atom_t msg_type_atom, const char *sub_type);
 
 bool
-pcintr_load_dynamic_variant(pcintr_coroutine_t cor,
-    const char *name, size_t len);
+pcintr_load_dynamic_variant(pcintr_coroutine_t cor, const char *so_name,
+    const char *var_name, const char *bind_name);
 
 // utilities
 

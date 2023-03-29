@@ -1,0 +1,15 @@
+#!/usr/bin/purc
+
+# RESULT: "object object object object object"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH MATH:MH FS.FILE:FFF FS.FILE:YYY FS.FILE'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <exit with "$DATA.type($MATH) $DATA.type($MH) $DATA.type($FFF) $DATA.type($YYY) $DATA.type($FILE)" />
+    </body>
+
+</hvml>
+
