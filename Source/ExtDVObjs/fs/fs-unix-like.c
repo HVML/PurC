@@ -63,6 +63,9 @@
 
 #define FS_DVOBJ_VERSION    0
 
+#define _KW_DELIMITERS      " \t\n\v\f\r"
+#define _DEF_FILE_IS_WHICH  "regular readable"
+
 purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
@@ -197,7 +200,7 @@ static inline int strcmp_len (const char *str1, const char *str2, size_t *real_l
         if (*str1 != *str2) {
             return (*str1 > *str2) ? 1 : -1;
         }
-        
+
         (*real_length) ++;
         str1 ++;
         str2 ++;
@@ -265,6 +268,7 @@ static void set_purc_error_by_errno (void)
 
         default:
             purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            break;
     }
 }
 
@@ -561,22 +565,16 @@ static bool find_mountpoint (char *dir)
         last_char = (*last_char_pos);
         (*last_char_pos) = '\0';
 
-        // printf ("------ find_mountpoint: current path is: %s\n", dir);
         if (stat (dir, &st) != 0) {
-            // printf ("------ find_mountpoint: get st error\n");
             return false;
         }
 
-        // printf ("------ find_mountpoint: current st_dev is: %d\n", (int)st.st_dev);
-        
         if (st.st_dev != orig_dev) {// we crossed the device border
-            // printf ("------ find_mountpoint: normal return\n");
             (*last_char_pos) = last_char;
             return true;
         }
     }
 
-    // printf ("------ find_mountpoint: search to '/'\n");
     return true;
 }
 #endif
@@ -929,13 +927,9 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the filter
-    if ((nr_args > 1) && (argv[1] == NULL ||
-            (!purc_variant_is_string (argv[1])))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-    if ((nr_args > 1) && (argv[1] != NULL))
+    if (nr_args > 1) {
         filter = purc_variant_get_string_const (argv[1]);
+    }
 
     // get filter array
     if (filter) {
@@ -1225,7 +1219,6 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     char au[10] = {0};
-    int i = 0;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -1246,13 +1239,9 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the filter
-    if ((nr_args > 1) && (argv[1] != PURC_VARIANT_INVALID &&
-            (!purc_variant_is_string (argv[1])))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        goto failed;
-    }
-    if ((nr_args > 1) && (argv[1] != NULL))
+    if (nr_args > 1) {
         filter = purc_variant_get_string_const (argv[1]);
+    }
 
     // get filter array
     if (filter) {
@@ -1292,78 +1281,94 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the mode
-    if ((nr_args > 2) && (argv[2] == NULL || (!purc_variant_is_string (argv[2])))) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-        goto discontinue;
-    }
-    if ((nr_args > 2) && (argv[2] != NULL)) {
+    if ((nr_args > 2)) {
         mode = purc_variant_get_string_const (argv[2]);
+        if (mode == NULL) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            goto discontinue;
+        }
+    }
+    else {
+        mode = "name";
+    }
+
+    if (true) {
 
         // get mode array
-        i = 0;
+        int i = 0;
         bool quit = false;
         size_t length = 0;
-        const char * head = pcutils_get_next_token (mode, " ", &length);
+        const char * end = mode + strlen(mode);
+        const char * head = pcutils_get_next_token (mode, _KW_DELIMITERS, &length);
         while (head) {
-            switch (* head)
-            {
+            switch (* head) {
                 case 'm':
                 case 'M':
-                    if (pcutils_strncasecmp (head, "mode", length) == 0) {
+                    if (length == 4 &&
+                            strncasecmp (head, "mode", length) == 0) {
                         display[i] = DISPLAY_MODE;
                         i++;
                     }
-                    else if (pcutils_strncasecmp (head, "mtime", length) == 0) {
+                    else if (length == 5 &&
+                            strncasecmp (head, "mtime", length) == 0) {
                         display[i] = DISPLAY_MTIME;
                         i++;
                     }
                     break;
                 case 'n':
                 case 'N':
-                    if (pcutils_strncasecmp (head, "nlink", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "nlink", length) == 0) {
                         display[i] = DISPLAY_NLINK;
                         i++;
                     }
-                    else if (pcutils_strncasecmp (head, "name", length) == 0) {
+                    else if (length == 4 &&
+                            strncasecmp (head, "name", length) == 0) {
                         display[i] = DISPLAY_NAME;
                         i++;
                     }
                     break;
                 case 'u':
                 case 'U':
-                    if (pcutils_strncasecmp (head, "uid", length) == 0) {
+                    if (length == 3 &&
+                            strncasecmp (head, "uid", length) == 0) {
                         display[i] = DISPLAY_UID;
                         i++;
                     }
                     break;
                 case 'g':
                 case 'G':
-                    if (pcutils_strncasecmp (head, "gid", length) == 0) {
+                    if (length == 3 &&
+                            strncasecmp (head, "gid", length) == 0) {
                         display[i] = DISPLAY_GID;
                         i++;
                     }
                     break;
                 case 's':
                 case 'S':
-                    if (pcutils_strncasecmp (head, "size", length) == 0) {
+                    if (length == 4 &&
+                            strncasecmp (head, "size", length) == 0) {
                         display[i] = DISPLAY_SIZE;
                         i++;
                     }
                     break;
                 case 'b':
                 case 'B':
-                    if (pcutils_strncasecmp (head, "blksize", length) == 0) {
+                    if (length == 7 &&
+                            strncasecmp (head, "blksize", length) == 0) {
                         display[i] = DISPLAY_BLKSIZE;
                         i++;
                     }
                     break;
                 case 'a':
                 case 'A':
-                    if (pcutils_strncasecmp (head, "atime", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "atime", length) == 0) {
                         display[i] = DISPLAY_ATIME;
                         i++;
                     }
-                    else if (pcutils_strncasecmp (head, "all", length) == 0) {
+                    else if (length == 3 &&
+                            strncasecmp (head, "all", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -1371,14 +1376,16 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     break;
                 case 'c':
                 case 'C':
-                    if (pcutils_strncasecmp (head, "ctime", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "ctime", length) == 0) {
                         display[i] = DISPLAY_CTIME;
                         i++;
                     }
                     break;
                 case 'd':
                 case 'D':
-                    if (pcutils_strncasecmp (head, "default", length) == 0) {
+                    if (length == 7 &&
+                            strncasecmp (head, "default", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -1388,11 +1395,16 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             if (quit)
                 break;
-            head = pcutils_get_next_token (head + length + 1, " ", &length);
+
+            const char *p = head + length + 1;
+            if (p > end) {
+                break;
+            }
+            head = pcutils_get_next_token (p, _KW_DELIMITERS, &length);
         }
     }
     else {
-        for (i = 0; i < (DISPLAY_MAX - 1); i++)
+        for (int i = 0; i < (DISPLAY_MAX - 1); i++)
             display[i] = i + 1;
     }
 
@@ -1400,7 +1412,6 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     DIR *dir = NULL;
     struct dirent *ptr = NULL;
     struct stat file_stat;
-    char info[PATH_MAX] = {0};
 
     if ((dir = opendir (dir_name)) == NULL) {
         set_purc_error_by_errno();
@@ -1408,8 +1419,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     ret_var = purc_variant_make_array (0, PURC_VARIANT_INVALID);
-    while ((ptr = readdir(dir)) != NULL)
-    {
+    while ((ptr = readdir(dir)) != NULL) {
         if (strcmp (ptr->d_name,".") == 0 || strcmp(ptr->d_name, "..") == 0)
             continue;
 
@@ -1430,7 +1440,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (stat(filename, &file_stat) < 0)
             continue;
 
-        for (i = 0; i < (DISPLAY_MAX - 1); i++) {
+        char info[NAME_MAX + 256] = {0};
+        for (int i = 0; i < (DISPLAY_MAX - 1); i++) {
             switch (display[i]) {
                 case DISPLAY_MODE:
                     // type
@@ -1457,19 +1468,19 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     // mode_str
-                    for (i = 0; i < 3; i++) {
-                        if ((0x01 << (8 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 0] = 'r';
+                    for (int j = 0; j < 3; j++) {
+                        if ((0x01 << (8 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 0] = 'r';
                         else
-                            au[i * 3 + 0] = '-';
-                        if ((0x01 << (7 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 1] = 'w';
+                            au[j * 3 + 0] = '-';
+                        if ((0x01 << (7 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 1] = 'w';
                         else
-                            au[i * 3 + 1] = '-';
-                        if ((0x01 << (6 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 2] = 'x';
+                            au[j * 3 + 1] = '-';
+                        if ((0x01 << (6 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 2] = 'x';
                         else
-                            au[i * 3 + 2] = '-';
+                            au[j * 3 + 2] = '-';
                     }
                     sprintf (info + strlen (info), "%s\t", au);
                     break;
@@ -2001,115 +2012,171 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
-    const char *string_which = NULL;
-    struct stat st;
+    const char *filename = NULL;
+    const char *which = NULL;
+    size_t which_len;
 
-    if (nr_args < 2) {
+    if (nr_args == 0) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
     // get the file name and which type
-    string_filename = purc_variant_get_string_const (argv[0]);
-    string_which = purc_variant_get_string_const (argv[1]);
-
-    if (NULL == string_filename || NULL == string_which) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (lstat(string_filename, &st) == -1) {
+    if (nr_args > 1) {
+        which = purc_variant_get_string_const_ex (argv[1], &which_len);
+        if (NULL == which) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        which = pcutils_trim_spaces(which, &which_len);
+        if (which_len == 0) {
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+    else {
+        which = _DEF_FILE_IS_WHICH;
+        which_len = strlen (_DEF_FILE_IS_WHICH);
+    }
+
+    struct stat st;
+    if (lstat(filename, &st) == -1) {
         set_purc_error_by_errno ();
         goto failed;
     }
 
-    switch (string_which[0]) {
-        case 'd':
-            if (strcmp(string_which, "dir") == 0) {
-                if (S_IFDIR == (st.st_mode & S_IFMT)) {
-                    goto success;
-                }
-            }
-            break;
+    size_t keyword_len = 0;
+    const char *keyword = pcutils_get_next_token_len(which, which_len,
+            _KW_DELIMITERS, &keyword_len);
 
-        case 'f':
-            if (strcmp(string_which, "file") == 0) {
-                if (S_IFREG == (st.st_mode & S_IFMT)) {
-                    goto success;
+    bool type_matched = true;
+    bool mode_matched = true;
+    do {
+        switch (keyword[0]) {
+            case 'd':
+            case 'D':
+                if (keyword_len == 3 &&
+                        strncasecmp(keyword, "dir", 3) == 0) {
+                    if (S_IFDIR != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 's':
-            if (strcmp(string_which, "symlink") == 0) {
-                if (S_IFLNK == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 's':
+            case 'S':
+                if (keyword_len == 7 &&
+                        strncasecmp(keyword, "symlink", 7) == 0) {
+                    if (S_IFLNK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            if (strcmp(string_which, "socket") == 0) {
-                if (S_IFSOCK == (st.st_mode & S_IFMT)) {
-                    goto success;
+                else if (keyword_len == 5 &&
+                        strncasecmp(keyword, "socket", 5) == 0) {
+                    if (S_IFSOCK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'p':
-            if (strcmp(string_which, "pipe") == 0) {
-                if (S_IFIFO == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'p':
+            case 'P':
+                if (keyword_len == 4 && strncasecmp(keyword, "pipe", 4) == 0) {
+                    if (S_IFIFO != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'b':
-            if (strcmp(string_which, "block") == 0) {
-                if (S_IFBLK == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'b':
+            case 'B':
+                if (keyword_len == 5 &&
+                        strncasecmp(keyword, "block", 5) == 0) {
+                    if (S_IFBLK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'c':
-            if (strcmp(string_which, "char") == 0) {
-                if (S_IFCHR == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'c':
+            case 'C':
+                if (keyword_len == 4 && strncasecmp(keyword, "char", 4) == 0) {
+                    if (S_IFCHR != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'e':
-            if (strcmp(string_which, "exe") == 0 ||
-                strcmp(string_which, "executable") == 0) {
-                if (0 == access(string_filename, X_OK)) {
-                    goto success;
+            case 'e':
+            case 'E':
+                if ((keyword_len == 3 && strncasecmp(keyword, "exe", 3) == 0)
+                        || (keyword_len == 10 &&
+                            strncasecmp(keyword, "executable", 10) == 0)) {
+                    if (access(filename, X_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'r':
-            if (strcmp(string_which, "read") == 0 ||
-                strcmp(string_which, "readable") == 0) {
-                if (0 == access(string_filename, R_OK)) {
-                    goto success;
+            case 'r':
+            case 'R':
+                if (keyword_len == 7 &&
+                        strncasecmp(keyword, "regular", 7) == 0) {
+                    if (S_IFREG != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
-
-        case 'w':
-            if (strcmp(string_which, "write") == 0 ||
-                strcmp(string_which, "writable") == 0) {
-                if (0 == access(string_filename, W_OK)) {
-                    goto success;
+                else if ((keyword_len == 4 &&
+                        strncasecmp(keyword, "read", 4) == 0) ||
+                        (keyword_len == 8 &&
+                         strncasecmp(keyword, "readable", 8) == 0)) {
+                    if (access(filename, R_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
-    }
+                break;
 
-    return purc_variant_make_boolean (false);
+            case 'w':
+            case 'W':
+                if ((keyword_len == 5 &&
+                        strncasecmp(keyword, "write", 5) == 0) ||
+                        (keyword_len == 8 &&
+                         strncasecmp(keyword, "writable", 8) == 0)) {
+                    if (access(filename, W_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
+                }
+                break;
 
-success:
-    return purc_variant_make_boolean (true);
+            default:
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+        }
+
+        which_len -= keyword_len;
+        keyword = pcutils_get_next_token_len(keyword + keyword_len, which_len,
+                _KW_DELIMITERS, &keyword_len);
+    } while (keyword);
+
+done:
+    return purc_variant_make_boolean (type_matched && mode_matched);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
@@ -2447,8 +2514,7 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     purc_variant_unref (val);
                     break;
                 }
-                
-                //printf ("ext_begin: %s, ext_length=%ld\n", ext_begin, ext_length);
+
                 if (strcmp_len (flag, "extension", &flag_len) == 0) {
                     val = ext_begin ?
                             purc_variant_make_string_ex (ext_begin, ext_length, true)
@@ -2458,7 +2524,6 @@ pathinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     break;
                 }
 
-                //printf ("base_begin: %s, fname_length=%ld\n", base_begin, fname_length);
                 if (strcmp_len (flag, "filename", &flag_len) == 0) {
                     val = base_begin ?
                             purc_variant_make_string_ex (base_begin, fname_length, true)
@@ -3535,7 +3600,7 @@ purc_variant_t __purcex_load_dynamic_variant (const char *name, int *ver_code)
 {
     size_t i = 0;
     for (i = 0; i < PCA_TABLESIZE(dynamic_objects); i++) {
-        if (pcutils_strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
+        if (strncasecmp (name, dynamic_objects[i].name, strlen (name)) == 0)
             break;
     }
 

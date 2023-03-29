@@ -1,0 +1,21 @@
+#!/usr/bin/purc
+
+# RESULT: "Exception raised: ArgumentMissed no matching <call>/<include> for <return>"
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div>
+            <return>
+                <catch for=`ANY`>
+                    <exit with "Exception raised: $?.name $?.info" />
+                </catch>
+            </return>
+        </div>
+    </body>
+</hvml>
+
+

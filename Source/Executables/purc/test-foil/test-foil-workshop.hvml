@@ -1,0 +1,227 @@
+#!/usr/local/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'f: FS'>
+<hvml target="html">
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
+        <title>Foil Test Workshop</title>
+        <style hvml:raw>
+header h1 {
+    color:red;
+    text-align:center
+}
+
+.column {
+    display:inline-block;
+    width:33%;
+}
+
+.plain-list {
+    list-style-type:none;
+    margin:0px;
+}
+
+.case-mark {
+    appearance:meter-mark;
+    width:1em;
+    -foil-candidate-marks:'✗…↷↻?✓';
+}
+
+.total-progress {
+    appearance:progress-bar;
+    width:10em;
+}
+        </style>
+    </head>
+
+    <body>
+        <init as 'all_cases' with $FS.list_prt("$SYS.cwd/style-cases", '*.html') >
+            <catch for `ANY`>
+                $STREAM.stdout.writelines("Failed to get cases (exception: $?.name)!")
+                <exit with false />
+            </catch>
+        </init>
+
+        <test with $L.eq($DATA.count($all_cases), 0L) >
+            <inherit>
+                $STREAM.stdout.writelines("No any case!")
+            </inherit>
+
+            <exit with false />
+        </test>
+
+        <header>
+            <h1>Foil Test Workshop (totally $DATA.count($all_cases) cases)</h1>
+        </header>
+
+        <init as 'all_columns' with [ 40L, 80L, 160L ] />
+        <init as 'all_rows' with [ 10L, 30L, 50L ] />
+        <init as 'nr_total_cases' with $DATA.arith('*', $DATA.count($all_cases),
+                $DATA.arith('*', $DATA.count($all_columns), $DATA.count($all_rows))) />
+
+        <archetype name="caseItem">
+            <span class="grid">{$?.rows}x{$?.columns}</span>
+            <meter class="case-mark" id="case-mark-$?.name-$?.rows-$?.columns" value="20" min="0" max="100" low="20" high="90" optimum="95"></meter>
+        </archetype>
+
+        <!-- trim suffix .html -->
+        <iterate on $all_cases>
+            <init as 'case_name' with $STR.substr($?, 0, -5L) temp />
+            <update on $all_cases at "[$%]" with $case_name />
+        </iterate>
+
+        <sort on $all_cases ascendingly />
+
+        <div>
+            <iterate on $all_columns>
+                <init as 'curr_columns' with $? temp />
+                <div class="column">
+                    <ul class="plain-list">
+                        <iterate on $all_cases>
+                            <init as 'case_name' with $? temp />
+                            <li>
+                                <iterate on $all_rows>
+                                    <init as 'curr_rows' with $? temp />
+
+                                    <choose on { name: $case_name, rows: $curr_rows, columns: $curr_columns } >
+                                        <update on $@ to 'append' with $caseItem />
+                                    </choose>
+                                </iterate>
+                                <span>$case_name</span>
+                            </li>
+
+                        </iterate>
+                    </ul>
+                </div>
+            </iterate>
+         </div>
+
+        <div>
+            <p>
+                <label for="totalProgress">Total progress: </label>
+                <progress id="totalProgress" class="total-progress" value="0" max="$nr_total_cases"></progress>
+            </p>
+        </div>
+
+        <init as 'total_cases' with [] />
+        <iterate on $all_columns>
+            <init as 'curr_columns' with $? temp />
+
+            <iterate on $all_rows>
+                <init as 'curr_rows' with $? temp />
+
+                <request on $RDR to 'createPlainWindow' >
+                    {
+                         data: {
+                                name: "test-$curr_rows-$curr_columns",
+                                title: 'The off-screen plain window for testing',
+                                class: '-off-screen',
+                                layoutStyle: "rows:$curr_rows;columns:$curr_columns"}
+                    }
+                </request>
+
+                <iterate on $all_cases>
+                    <update on $total_cases to 'append' with { name: $?, rows: $curr_rows, columns: $curr_columns } />
+                </iterate>
+
+            </iterate>
+        </iterate>
+
+        <define as 'compare_two_files' >
+            <init as ctnt1 with $FS.file_contents($?[0]) temp />
+            <init as ctnt2 with $FS.file_contents($?[1]) temp />
+
+            <return with $L.eq($DATA.compare($ctnt1, $ctnt2, 'case'), 0L) />
+        </define>
+
+        <init as total_idx at '_root' with 0L />
+        <init as failed_cases at '_root' with [] />
+        <observe on $CRTN for 'idle'>
+            <choose on $total_cases[$total_idx] >
+                <init as 'win_name' with "test-$?.rows-$?.columns" temp />
+                <init as 'case_name' with "$?.name-$?.rows-$?.columns" temp />
+                <init as 'checked_fname' with "checked/screenshot-$case_name.txt" temp />
+                <init as 'dumped_fname' with "screenshot-$case_name.txt" temp />
+
+                <load from 'test-foil-worker.hvml' onto $win_name >
+                    {
+                        case: $?.name,
+                    }
+
+                    <catch for `ANY`>
+                        $STREAM.stdout.writelines("Failed to run case $3? (exception: $?.name, $?.info)")
+                        <exit with false />
+                    </catch>
+
+                </load>
+
+                <update on "#case-mark-$case_name" at 'attr.value' with "40" />
+
+                <request on $RDR to 'callMethod' >
+                    {
+                         element: "main",
+                         property: "plainwin:$win_name",
+                         data: {
+                                method: 'dumpContents',
+                                arg: $dumped_fname,
+                         },
+                    }
+                </request>
+
+                <update on "#case-mark-$case_name" at 'attr.value' with "60" />
+
+                <test with $FS.file_is($checked_fname, 'regular readable') silently>
+                    <call on $compare_two_files with [$checked_fname, $dumped_fname] >
+
+                        <!-- inherit>
+                            $STREAM.stdout.writelines("result: $?")
+                        </inherit -->
+
+                        <test with $?>
+                            <update on "#case-mark-$case_name" at 'attr.value' with "100" />
+
+                            <inherit>
+                                {{ $FS.unlink($dumped_fname) }}
+                            </inherit>
+
+                            <differ>
+                                <update on $failed_cases to 'append' with $case_name />
+                                <update on "#case-mark-$case_name" at 'attr.value' with "0" />
+                            </differ>
+                        </test>
+                    </call>
+
+                    <differ>
+                        <!-- inherit>
+                            $STREAM.stderr.writelines("Not readable file: $checked_fname")
+                        </inherit -->
+                        <update on "#case-mark-$case_name" at 'attr.value' with "80" />
+                    </differ>
+                </test>
+
+                <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
+                <update on "#totalProgress" at 'attr.value' with "$total_idx" />
+
+                <test with $L.ge($total_idx, $nr_total_cases) >
+                    <test with $failed_cases>
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Failed cases:")
+                        </inherit>
+
+                        <iterate on $failed_cases>
+                            <inherit>
+                                $STREAM.stdout.writelines($?)
+                            </inherit>
+                        </iterate>
+                    </test>
+
+                    <exit with $failed_cases />
+                </test>
+
+            </choose>
+        </observe>
+
+    </body>
+</hvml>
+

@@ -23,7 +23,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "purcmc-thread.h"
 #include "endpoint.h"
@@ -48,9 +48,6 @@ enum {
 struct pcmcth_session {
     pcmcth_renderer *rdr;
     pcmcth_endpoint *edpt;
-
-    /* ungrouped plain windows */
-    struct kvlist ug_wins;
 
     /* the sorted array of all valid handles */
     struct sorted_array *all_handles;
@@ -123,8 +120,6 @@ foil_create_session(pcmcth_renderer *rdr, pcmcth_endpoint *edpt)
 
     sess->rdr = rdr;
     sess->edpt = edpt;
-
-    kvlist_init(&sess->ug_wins, NULL);
     return sess;
 
 failed:
@@ -143,14 +138,16 @@ static int foil_remove_session(pcmcth_session *sess)
 
     LOG_DEBUG("removing session (%p)...\n", sess);
 
-    LOG_DEBUG("destroy all ungrouped plain windows...\n");
-    kvlist_for_each_safe(&sess->ug_wins, name, next, data) {
+    LOG_DEBUG("destroy all ungrouped plain windows created by this session...\n");
+    kvlist_for_each_safe(&sess->workspace->ug_wins, name, next, data) {
         pcmcth_page *page = *(pcmcth_page **)data;
-        foil_udom_delete(page->udom);
+        if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
+            pcmcth_udom *udom = foil_page_delete(page);
+            if (udom) {
+                foil_udom_delete(udom);
+            }
+        }
     }
-
-    LOG_DEBUG("destroy kvlist for ungrouped plain windows...\n");
-    kvlist_free(&sess->ug_wins);
 
     LOG_DEBUG("destroy sorted array for all handles...\n");
     sorted_array_destroy(sess->all_handles);
@@ -162,40 +159,107 @@ static int foil_remove_session(pcmcth_session *sess)
     return PCRDR_SC_OK;
 }
 
+#define STR_STYLE_SEPARATOR ";"
+#define STR_PAIR_SEPARATOR  ":"
+
+/* use `rows` and `columns` for the size of the off-screen plain window,
+   for example, "rows:25;columns:80". */
+static void parse_layout_style_for_off_screen(const char *layout_style,
+        foil_rect *rc)
+{
+    char *styles = strdup(layout_style);
+    char *str1;
+    char *style;
+    char *saveptr1;
+
+    LOG_DEBUG("layout style: %s\n", layout_style);
+    for (str1 = styles; ; str1 = NULL) {
+        style = strtok_r(str1, STR_STYLE_SEPARATOR, &saveptr1);
+        if (style == NULL) {
+            goto done;
+        }
+
+        char *key, *value;
+        char *saveptr2;
+        key = strtok_r(style, STR_PAIR_SEPARATOR, &saveptr2);
+        if (key == NULL) {
+            goto done;
+        }
+
+        value = strtok_r(NULL, STR_PAIR_SEPARATOR, &saveptr2);
+        if (value == NULL) {
+            goto done;
+        }
+
+        int v = (int)strtol(value, NULL, 10);
+        if (strcmp(key, "rows") == 0) {
+            LOG_DEBUG("height of the off-screen window was overwritten: %d\n",
+                    v);
+            rc->bottom = rc->top + v;
+        }
+        else if (strcmp(key, "columns") == 0) {
+            LOG_DEBUG("width of the off-screen window was overwritten: %d\n",
+                    v);
+            rc->right = rc->left + v;
+        }
+        else {
+            goto done;
+        }
+    }
+
+done:
+    free(styles);
+    return;
+}
+
 static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         pcmcth_workspace *workspace,
         const char *gid, const char *name,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
 {
-    (void)class_name;
-    (void)title;
     (void)layout_style;
-    (void)toolkit_style;
 
     pcmcth_page *plain_win = NULL;
 
     workspace = sess->workspace;
 
     if (gid == NULL) {
+        /* TODO: use workspace to maintain the names of plain windows */
         /* create a ungrouped plain window */
-        LOG_DEBUG("creating an ungrouped plain window with name (%s)\n", name);
-
-        if (kvlist_get(&sess->ug_wins, name)) {
+        if (kvlist_get(&workspace->ug_wins, name)) {
             LOG_WARN("Duplicated ungrouped plain window: %s\n", name);
             *retv = PCRDR_SC_CONFLICT;
             goto done;
         }
 
-        struct foil_widget_info style = { };
-        style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
-        style.name = name;
-        style.title = title;
-        foil_wsp_convert_style(workspace, sess, &style, toolkit_style);
-        plain_win = foil_wsp_create_widget(workspace, sess,
-                WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
-        kvlist_set(&sess->ug_wins, name, &plain_win);
+        if (class_name &&
+                strcmp(class_name, WSP_WIDGET_CLASS_OFF_SCREEN) == 0) {
+            LOG_DEBUG("creating an off-screen window with name (%s)\n", name);
+            foil_rect rc;
+            foil_rect_set(&rc, 0, 0,
+                    workspace->rdr->impl->cols, workspace->rdr->impl->rows);
+            parse_layout_style_for_off_screen(layout_style, &rc);
+            foil_widget *plainwin = foil_widget_new(
+                    WSP_WIDGET_TYPE_OFFSCREEN, WSP_WIDGET_BORDER_NONE,
+                    name, title, &rc);
+            plainwin->user_data = workspace;    /* an orphan widget */
+            plain_win = &plainwin->page;
+        }
+        else {
+            LOG_DEBUG("creating an ungrouped plain window with name (%s)\n",
+                    name);
 
+            struct foil_widget_info style = { };
+            style.flags = WSP_WIDGET_FLAG_NAME | WSP_WIDGET_FLAG_TITLE;
+            style.name = name;
+            style.title = title;
+            foil_wsp_convert_style(workspace, sess, &style, toolkit_style);
+            plain_win = foil_wsp_create_widget(workspace, sess,
+                    WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
+        }
+
+        kvlist_set(&workspace->ug_wins, name, &plain_win);
     }
     else if (workspace->layouter == NULL) {
         *retv = PCRDR_SC_PRECONDITION_FAILED;
@@ -399,6 +463,53 @@ failed:
 }
 
 static purc_variant_t
+foil_call_method_in_session(pcmcth_session *sess,
+            pcrdr_msg_target target, uint64_t target_value,
+            pcrdr_msg_element_type element_type, const char *element_value,
+            const char *property, const char *method, purc_variant_t arg,
+            int* retv)
+{
+    (void)target;
+    (void)target_value;
+    (void)element_value;
+
+    purc_variant_t result = PURC_VARIANT_INVALID;
+
+    LOG_DEBUG("element: %s; property: %s; method: %s\n",
+            element_value, property, method);
+    if (target != PCRDR_MSG_TARGET_WORKSPACE ||
+            (void *)(uintptr_t)target_value != 0) {
+        *retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    /* use element to specify the workspace and
+       use property to specify the widget. */
+    if (element_type != PCRDR_MSG_ELEMENT_TYPE_ID || property == NULL) {
+        *retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    foil_widget *widget;
+    widget = foil_wsp_find_widget(sess->workspace, sess, property);
+    if (widget == NULL) {
+        *retv = PCRDR_SC_NOT_FOUND;
+        goto failed;
+    }
+
+    result = foil_widget_call_method(widget, method, arg);
+    if (result) {
+        *retv = PCRDR_SC_OK;
+    }
+    else {
+        *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
+    }
+
+failed:
+    return result;
+}
+
+static purc_variant_t
 foil_call_method_in_udom(pcmcth_session *sess,
         pcmcth_udom *udom, uint64_t element_handle,
         const char *method, purc_variant_t arg, int* retv)
@@ -512,6 +623,7 @@ void pcmcth_set_renderer_callbacks(pcmcth_renderer *rdr)
     rdr->cbs.load_edom = foil_load_edom;
     rdr->cbs.update_udom = foil_update_udom;
     rdr->cbs.call_method_in_udom = foil_call_method_in_udom;
+    rdr->cbs.call_method_in_session = foil_call_method_in_session;
     rdr->cbs.get_property_in_udom = foil_get_property_in_udom;
     rdr->cbs.set_property_in_udom = foil_set_property_in_udom;
 

@@ -37,6 +37,9 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#define KEY_NAME        "name"
+#define KEY_INFO        "info"
+
 struct ctxt_for_catch {
     struct pcvdom_node           *curr;
     purc_variant_t                for_var;
@@ -76,6 +79,36 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     else {
         ctxt->match = true;
     }
+
+    if (ctxt->match) {
+        const char *s_except = purc_atom_to_string(ctxt->exception->error_except);
+        purc_variant_t s = purc_variant_make_string(s_except, false);
+        if (!s) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+
+        purc_variant_t obj;
+        if (ctxt->exception->exinfo) {
+            obj = purc_variant_make_object_by_static_ckey(2,
+                KEY_NAME, s, KEY_INFO, ctxt->exception->exinfo);
+        }
+        else {
+            obj = purc_variant_make_object_by_static_ckey(1,
+                KEY_NAME, s, KEY_INFO, s);
+        }
+        if (!obj) {
+            purc_variant_unref(s);
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+
+        pcintr_set_question_var(frame, obj);
+        purc_variant_unref(s);
+        purc_variant_unref(obj);
+    }
+
+out:
 
     return 0;
 }

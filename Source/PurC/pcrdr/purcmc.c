@@ -658,7 +658,7 @@ pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
 {
     pcrdr_msg *msg = NULL;
 
-    if (pcutils_strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
+    if (strncasecmp (SCHEMA_UNIX_SOCKET, renderer_uri,
             sizeof(SCHEMA_UNIX_SOCKET) - 1)) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return NULL;

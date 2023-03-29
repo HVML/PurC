@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define FOIL_FPCT_TOFLOAT(v) (FIXTOFLT(FDIV(v, F_100)))
+
 static float normalize_used_length(foil_layout_ctxt *ctxt, foil_rdrbox *box,
         css_unit unit, css_fixed length)
 {
@@ -41,7 +43,7 @@ static float normalize_used_length(foil_layout_ctxt *ctxt, foil_rdrbox *box,
     switch (unit) {
     case CSS_UNIT_PCT:
         v = foil_rect_width(&box->cblock_creator->ctnt_rect);
-        v = v * FIXTOFLT(length);
+        v = v * FOIL_FPCT_TOFLOAT(length);
         break;
 
     case CSS_UNIT_PX:
@@ -1546,7 +1548,7 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
     case CSS_LINE_HEIGHT_DIMENSION:
         if (unit == CSS_UNIT_PCT) {
-            float pct = FIXTOFLT(length);
+            float pct = FOIL_FPCT_TOFLOAT(length);
             box->line_height = round_height(FOIL_PX_GRID_CELL_H * pct);
         }
         else
@@ -1580,7 +1582,7 @@ static void dtmr_sizing_properties(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
             case CSS_VERTICAL_ALIGN_SET:
                 if (unit == CSS_UNIT_PCT) {
-                    float pct = FIXTOFLT(length);
+                    float pct = FOIL_FPCT_TOFLOAT(length);
                     if (pct < 0.25f)
                         box->vertical_align = FOIL_RDRBOX_VALIGN_BOTTOM;
                     else if (pct > 0.75f)
@@ -2652,8 +2654,12 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 
                 foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
                 foil_rect_offset(&run->box->ctnt_rect,
-                        line->rc.left, line->rc.top);
-                line_off_x += foil_rect_width(&run->box->ctnt_rect);
+                        line->rc.left, line->rc.top +
+                        run->box->mt + run->box->bt + run->box->pt);
+
+                line_off_x += foil_rect_width(&run->box->ctnt_rect) +
+                    run->box->ml + run->box->bl + run->box->pl +
+                    run->box->mr + run->box->br + run->box->pr;
 #ifndef NDEBUG
                 LOG_DEBUG("Laid the block container to: %d, %d\n",
                         run->box->ctnt_rect.left, run->box->ctnt_rect.top);

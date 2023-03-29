@@ -889,25 +889,25 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
             case 'i':
             case 'I':
                 *((int64_t *)buf) = 0;
-                if (pcutils_strncasecmp (head, "i8", length) == 0)
+                if (strncasecmp (head, "i8", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (pcutils_strncasecmp (head, "i16", length) == 0)
+                else if (strncasecmp (head, "i16", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp (head, "i32", length) == 0)
+                else if (strncasecmp (head, "i32", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp (head, "i64", length) == 0)
+                else if (strncasecmp (head, "i64", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp (head, "i16le", length) == 0)
+                else if (strncasecmp (head, "i16le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp (head, "i32le", length) == 0)
+                else if (strncasecmp (head, "i32le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp (head, "i64le", length) == 0)
+                else if (strncasecmp (head, "i64le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp (head, "i16be", length) == 0)
+                else if (strncasecmp (head, "i16be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp (head, "i32be", length) == 0)
+                else if (strncasecmp (head, "i32be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp (head, "i64be", length) == 0)
+                else if (strncasecmp (head, "i64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
                 i64 = (int64_t)(*((int64_t *)buf));
@@ -916,61 +916,61 @@ stream_readstruct_getter (purc_variant_t root, size_t nr_args,
             case 'f':
             case 'F':
                 *((float *)buf) = 0;
-                if (pcutils_strncasecmp (head, "f16", length) == 0)
+                if (strncasecmp (head, "f16", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp (head, "f32", length) == 0)
+                else if (strncasecmp (head, "f32", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp (head, "f64", length) == 0)
+                else if (strncasecmp (head, "f64", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp (head, "f96", length) == 0)
+                else if (strncasecmp (head, "f96", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 12);
-                else if (pcutils_strncasecmp (head, "f128", length) == 0)
+                else if (strncasecmp (head, "f128", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_PLATFORM, 16);
 
-                else if (pcutils_strncasecmp (head, "f16le", length) == 0)
+                else if (strncasecmp (head, "f16le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp (head, "f32le", length) == 0)
+                else if (strncasecmp (head, "f32le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp (head, "f64le", length) == 0)
+                else if (strncasecmp (head, "f64le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp (head, "f96le", length) == 0)
+                else if (strncasecmp (head, "f96le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 12);
-                else if (pcutils_strncasecmp (head, "f128le", length) == 0)
+                else if (strncasecmp (head, "f128le", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_LITTLE, 16);
 
-                else if (pcutils_strncasecmp (head, "f16be", length) == 0)
+                else if (strncasecmp (head, "f16be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp (head, "f32be", length) == 0)
+                else if (strncasecmp (head, "f32be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp (head, "f64be", length) == 0)
+                else if (strncasecmp (head, "f64be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 8);
-                else if (pcutils_strncasecmp (head, "f96be", length) == 0)
+                else if (strncasecmp (head, "f96be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 12);
-                else if (pcutils_strncasecmp (head, "f128be", length) == 0)
+                else if (strncasecmp (head, "f128be", length) == 0)
                     val = read_rwstream_float (rwstream, ENDIAN_BIG, 16);
                 break;
             case 'u':
             case 'U':
                 *((uint64_t *)buf) = 0;
-                if (pcutils_strncasecmp (head, "u8", length) == 0)
+                if (strncasecmp (head, "u8", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 1);
-                else if (pcutils_strncasecmp (head, "u16", length) == 0)
+                else if (strncasecmp (head, "u16", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 2);
-                else if (pcutils_strncasecmp (head, "u32", length) == 0)
+                else if (strncasecmp (head, "u32", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 4);
-                else if (pcutils_strncasecmp (head, "u64", length) == 0)
+                else if (strncasecmp (head, "u64", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_PLATFORM, 8);
-                else if (pcutils_strncasecmp (head, "u16le", length) == 0)
+                else if (strncasecmp (head, "u16le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 2);
-                else if (pcutils_strncasecmp (head, "u32le", length) == 0)
+                else if (strncasecmp (head, "u32le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 4);
-                else if (pcutils_strncasecmp (head, "u64le", length) == 0)
+                else if (strncasecmp (head, "u64le", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_LITTLE, 8);
-                else if (pcutils_strncasecmp (head, "u16be", length) == 0)
+                else if (strncasecmp (head, "u16be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 2);
-                else if (pcutils_strncasecmp (head, "u32be", length) == 0)
+                else if (strncasecmp (head, "u32be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 4);
-                else if (pcutils_strncasecmp (head, "u64be", length) == 0)
+                else if (strncasecmp (head, "u64be", length) == 0)
                     read_rwstream (rwstream, buf, ENDIAN_BIG, 8);
 
                 u64 = (uint64_t)(*((uint64_t *)buf));
@@ -1232,40 +1232,40 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
         {
             case 'i':
             case 'I':
-                if (pcutils_strncasecmp (head, "i8", length) == 0)
+                if (strncasecmp (head, "i8", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 1, &write_length);
-                else if (pcutils_strncasecmp (head, "i16", length) == 0)
+                else if (strncasecmp (head, "i16", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "i32", length) == 0)
+                else if (strncasecmp (head, "i32", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "i64", length) == 0)
+                else if (strncasecmp (head, "i64", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 8, &write_length);
-                else if (pcutils_strncasecmp (head, "i16le", length) == 0)
+                else if (strncasecmp (head, "i16le", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "i32le", length) == 0)
+                else if (strncasecmp (head, "i32le", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "i64le", length) == 0)
+                else if (strncasecmp (head, "i64le", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 8, &write_length);
-                else if (pcutils_strncasecmp (head, "i16be", length) == 0)
+                else if (strncasecmp (head, "i16be", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "i32be", length) == 0)
+                else if (strncasecmp (head, "i32be", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "i64be", length) == 0)
+                else if (strncasecmp (head, "i64be", length) == 0)
                     write_rwstream_int (rwstream,
                             argv[2], &i, ENDIAN_BIG, 8, &write_length);
                 break;
             case 'f':
             case 'F':
-                if (pcutils_strncasecmp (head, "f16", length) == 0) {
+                if (strncasecmp (head, "f16", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1273,7 +1273,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, &ui16, 2);
                     write_length += 2;
                 }
-                else if (pcutils_strncasecmp (head, "f32", length) == 0) {
+                else if (strncasecmp (head, "f32", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1281,28 +1281,28 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&f, 4);
                     write_length += 4;
                 }
-                else if (pcutils_strncasecmp (head, "f64", length) == 0) {
+                else if (strncasecmp (head, "f64", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
                     purc_rwstream_write (rwstream, (char *)&d, 8);
                     write_length += 8;
                 }
-                else if (pcutils_strncasecmp (head, "f96", length) == 0) {
+                else if (strncasecmp (head, "f96", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                     write_length += 12;
                 }
-                else if (pcutils_strncasecmp (head, "f128", length) == 0) {
+                else if (strncasecmp (head, "f128", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
                     write_length += 16;
                 }
-                else if (pcutils_strncasecmp (head, "f16be", length) == 0) {
+                else if (strncasecmp (head, "f16be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1310,7 +1310,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, &ui16, 2);
                     write_length += 2;
                 }
-                else if (pcutils_strncasecmp (head, "f32be", length) == 0) {
+                else if (strncasecmp (head, "f32be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1320,7 +1320,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&f, 4);
                     write_length += 4;
                 }
-                else if (pcutils_strncasecmp (head, "f64be", length) == 0) {
+                else if (strncasecmp (head, "f64be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1329,7 +1329,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&d, 8);
                     write_length += 8;
                 }
-                else if (pcutils_strncasecmp (head, "f96be", length) == 0) {
+                else if (strncasecmp (head, "f96be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
@@ -1339,7 +1339,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                     write_length += 12;
                 }
-                else if (pcutils_strncasecmp (head, "f128be", length) == 0) {
+                else if (strncasecmp (head, "f128be", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
@@ -1349,7 +1349,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&ld, 16);
                     write_length += 16;
                 }
-                else if (pcutils_strncasecmp (head, "f16le", length) == 0) {
+                else if (strncasecmp (head, "f16le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1357,7 +1357,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, &ui16, 2);
                     write_length += 2;
                 }
-                else if (pcutils_strncasecmp (head, "f32le", length) == 0) {
+                else if (strncasecmp (head, "f32le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1367,7 +1367,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&f, 4);
                     write_length += 4;
                 }
-                else if (pcutils_strncasecmp (head, "f64le", length) == 0) {
+                else if (strncasecmp (head, "f64le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_number (val, &d, false);
@@ -1376,7 +1376,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&d, 8);
                     write_length += 8;
                 }
-                else if (pcutils_strncasecmp (head, "f96le", length) == 0) {
+                else if (strncasecmp (head, "f96le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
@@ -1386,7 +1386,7 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                     purc_rwstream_write (rwstream, (char *)&ld, 12);
                     write_length += 12;
                 }
-                else if (pcutils_strncasecmp (head, "f128le", length) == 0) {
+                else if (strncasecmp (head, "f128le", length) == 0) {
                     val = purc_variant_array_get (argv[2], i);
                     i++;
                     purc_variant_cast_to_longdouble (val, &ld, false);
@@ -1399,35 +1399,35 @@ stream_writestruct_getter (purc_variant_t root, size_t nr_args,
                 break;
             case 'u':
             case 'U':
-                if (pcutils_strncasecmp (head, "u8", length) == 0)
+                if (strncasecmp (head, "u8", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 1, &write_length);
-                else if (pcutils_strncasecmp (head, "u16", length) == 0)
+                else if (strncasecmp (head, "u16", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "u32", length) == 0)
+                else if (strncasecmp (head, "u32", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "u64", length) == 0) {
+                else if (strncasecmp (head, "u64", length) == 0) {
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_PLATFORM, 8, &write_length);
                 }
-                else if (pcutils_strncasecmp (head, "u16le", length) == 0)
+                else if (strncasecmp (head, "u16le", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "u32le", length) == 0)
+                else if (strncasecmp (head, "u32le", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "u64le", length) == 0)
+                else if (strncasecmp (head, "u64le", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_LITTLE, 8, &write_length);
-                else if (pcutils_strncasecmp (head, "u16be", length) == 0)
+                else if (strncasecmp (head, "u16be", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 2, &write_length);
-                else if (pcutils_strncasecmp (head, "u32be", length) == 0)
+                else if (strncasecmp (head, "u32be", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 4, &write_length);
-                else if (pcutils_strncasecmp (head, "u64be", length) == 0)
+                else if (strncasecmp (head, "u64be", length) == 0)
                     write_rwstream_uint (rwstream,
                             argv[2], &i, ENDIAN_BIG, 8, &write_length);
 

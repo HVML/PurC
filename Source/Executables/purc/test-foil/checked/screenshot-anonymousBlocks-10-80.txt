@@ -1,0 +1,10 @@
+[49m[39m                           [91mUsed Case: anonymousBlocks[39m                           
+[49m[39m                                                                                
+[49m[39m  [39mThere is an anonymous block box around this text. [91m                          [39m  
+[49m[39m  [91m                                                                            [39m  
+[49m[39m  [39mThis text is in the block box created by "P".                               [39m  
+[49m[39m  [91m                                                                            [39m  
+[49m[39m  [39mThis is anonymous text before the "SPAN".                                   [39m  
+[49m[39m  [39m                       This is the content of "SPAN".                       [39m  
+[49m[39m  [39mThis is anonymous text after the "SPAN".                                    [39m  
+[49m[39m                                                                                

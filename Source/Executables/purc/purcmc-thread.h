@@ -116,7 +116,7 @@ typedef struct pcmcth_rdr_cbs {
     /* nullable */
     purc_variant_t (*call_method_in_session)(pcmcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
-            const char *element_type, const char *element_value,
+            pcrdr_msg_element_type element_type, const char *element_value,
             const char *property, const char *method, purc_variant_t arg,
             int* retv);
     /* nullable */
@@ -127,7 +127,7 @@ typedef struct pcmcth_rdr_cbs {
     /* nullable */
     purc_variant_t (*get_property_in_session)(pcmcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
-            const char *element_type, const char *element_value,
+            pcrdr_msg_element_type element_type, const char *element_value,
             const char *property, int *retv);
     /* nullable */
     purc_variant_t (*get_property_in_udom)(pcmcth_session *,
@@ -137,7 +137,7 @@ typedef struct pcmcth_rdr_cbs {
     /* nullable */
     purc_variant_t (*set_property_in_session)(pcmcth_session *,
             pcrdr_msg_target target, uint64_t target_value,
-            const char *element_type, const char *element_value,
+            pcrdr_msg_element_type element_type, const char *element_value,
             const char *property, purc_variant_t value, int *retv);
     /* nullable */
     purc_variant_t (*set_property_in_udom)(pcmcth_session *,

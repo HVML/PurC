@@ -133,6 +133,7 @@ static int update_style_properties(struct foil_rdrbox *box)
             marks_len = lwc_string_length(str);
             if (foil_validate_marks(box->tailor_data, marks, marks_len)) {
                 // bad value
+                LOG_WARN("bad candidate marks: %s\n", marks);
                 v = CSS_FOIL_CANDIDATE_MARKS_AUTO;
             }
         }

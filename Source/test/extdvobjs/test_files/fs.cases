@@ -284,15 +284,11 @@ negative:
 
 negative:
     $FS.file_is(false)
-    ArgumentMissed
+    WrongDataType
 
 negative:
     $FS.file_is(1)
-    ArgumentMissed
-
-negative:
-    $FS.file_is("/abcdefg/123")
-    ArgumentMissed
+    WrongDataType
 
 negative:
     $FS.file_is(false, false)
@@ -307,7 +303,23 @@ negative:
     WrongDataType
 
 positive:
-    $FS.file_is("/bin/ls", "file")
+    $FS.file_is("/abcdefg/123")
+    false
+
+positive:
+    $FS.file_is("/bin/ls", "regular")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "read")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "EXE")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "regular   readable executable")
     true
 
 positive:

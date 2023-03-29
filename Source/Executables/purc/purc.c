@@ -519,8 +519,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         else {
             for (int i = optind; i < argc; i++) {
                 if (!validate_url(opts, argv[i])) {
-                    if (opts->verbose)
-                        fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
+                    fprintf(stderr, "Speicified a bad file or URL: %s\n",
+                            argv[i]);
                     return -1;
                 }
             }
@@ -530,8 +530,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     return 0;
 
 bad_arg:
-    if (opts->verbose)
-        fprintf(stdout, "Got an unknown argument: %s (%c)\n", optarg, o);
+    fprintf(stderr, "Got an unknown argument: %s (%c)\n", optarg, o);
     return -1;
 }
 
@@ -928,10 +927,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         rid = purc_inst_create_or_get(app_name, run_name,
             NULL, &inst_info);
         if (rid == 0) {
-            if (opts->verbose) {
-                fprintf(stderr, "Failed to create PurC instance for %s/%s\n",
-                        app_name, run_name);
-            }
+            fprintf(stderr, "Failed to create PurC instance for %s/%s\n",
+                    app_name, run_name);
             return n;
         }
     }
@@ -943,10 +940,7 @@ schedule_coroutines_for_runner(struct my_opts *opts,
     for (size_t i = 0; i < nr_coroutines; i++) {
         purc_variant_t crtn = purc_variant_array_get(coroutines, i);
         if (!purc_variant_is_object(crtn)) {
-            if (opts->verbose) {
-                fprintf(stderr, "Not an object for crtn[%u]\n",
-                        (unsigned)i);
-            }
+            fprintf(stderr, "Not an object for crtn[%u]\n", (unsigned)i);
             continue;
         }
 
@@ -957,25 +951,22 @@ schedule_coroutines_for_runner(struct my_opts *opts,
         }
 
         if (url == NULL) {
-            if (opts->verbose) {
-                fprintf(stderr, "No valid URL given for crtn[%u]\n",
-                        (unsigned)i);
-            }
+            fprintf(stderr, "No valid URL given for crtn[%u]\n", (unsigned)i);
             continue;
         }
 
         purc_vdom_t vdom = load_hvml(url);
         if (vdom == NULL) {
-            if (opts->verbose) {
-                fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
-                        url, (unsigned)i,
-                        purc_get_error_message(purc_get_last_error()));
+            fprintf(stderr, "Failed to load HVML from %s for crtn[%u]: %s\n",
+                    url, (unsigned)i,
+                    purc_get_error_message(purc_get_last_error()));
 
+            if (opts->verbose) {
                 struct purc_parse_error_info *parse_error = NULL;
                 purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
                         (uintptr_t *)(void *)&parse_error, NULL);
                 if (parse_error) {
-                    fprintf(stderr,
+                    fprintf(stdout,
                             "Parse %s failed : line=%d, column=%d, character=0x%x\n",
                             url, parse_error->line, parse_error->column,
                             parse_error->character);
@@ -1028,10 +1019,8 @@ schedule_coroutines_for_runner(struct my_opts *opts,
             n++;
         }
         else {
-            if (opts->verbose) {
-                fprintf(stderr, "Failed to schedule coroutine from %s for #%u\n",
-                        url, (unsigned)i);
-            }
+            fprintf(stderr, "Failed to schedule coroutine from %s for #%u\n",
+                    url, (unsigned)i);
         }
     }
 
@@ -1086,10 +1075,8 @@ static bool run_app(struct my_opts *opts)
         purc_variant_object_get_by_ckey(run_info.app_info, "runners");
     size_t nr_runners = 0;
     if (!purc_variant_array_size(runners, &nr_runners) || nr_runners == 0) {
-        if (opts->verbose) {
-            fprintf(stderr, "Invalid runners\n");
-            return false;
-        }
+        fprintf(stderr, "No runner defined.\n");
+        return false;
     }
 
     size_t nr_live_runners = 0;
@@ -1101,30 +1088,24 @@ static bool run_app(struct my_opts *opts)
             purc_variant_object_get_by_ckey(runner, "coroutines");
 
         if (!coroutines) {
-            if (opts->verbose) {
-                fprintf(stderr, "No coroutines for runner #%u\n",
-                        (unsigned)i);
-                continue;
-            }
+            fprintf(stderr, "No coroutines for runner #%u\n",
+                    (unsigned)i);
+            continue;
         }
 
         size_t nr_coroutines = 0;
         if (!purc_variant_array_size(coroutines, &nr_coroutines) ||
                 nr_coroutines == 0) {
-            if (opts->verbose) {
-                fprintf(stderr, "Invalid coroutines for runner #%u\n",
-                        (unsigned)i);
-                continue;
-            }
+            fprintf(stderr, "Invalid coroutines for runner #%u\n",
+                    (unsigned)i);
+            continue;
         }
 
         size_t n;
         n = schedule_coroutines_for_runner(opts, app, runner, coroutines);
         if (n == 0) {
-            if (opts->verbose) {
-                fprintf(stderr, "No coroutine schedule for runner #%u\n",
-                        (unsigned)i);
-            }
+            fprintf(stderr, "No coroutine schedule for runner #%u\n",
+                    (unsigned)i);
             continue;
         }
 
@@ -1209,18 +1190,6 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         if (runr_info->opts->verbose) {
             struct purc_cor_term_info *term_info = data;
 
-            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
-            if (crtn_info) {
-                fprintf(stdout,
-                        "\nThe main coroutine terminated due to an uncaught exception: %s.\n",
-                        purc_atom_to_string(term_info->except));
-            }
-            else {
-                fprintf(stdout,
-                        "\nA child coroutine terminated due to an uncaught exception: %s.\n",
-                        purc_atom_to_string(term_info->except));
-            }
-
             unsigned opt = 0;
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
@@ -1234,6 +1203,18 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
             purc_document_serialize_contents_to_stream(term_info->doc,
                     opt, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
+
+            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+            if (crtn_info) {
+                fprintf(stdout,
+                        "\nThe main coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
+            else {
+                fprintf(stdout,
+                        "\nA child coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
 
             fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);
@@ -1268,10 +1249,10 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             nr_executed++;
         }
         else {
-            if (opts->verbose) {
-                fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
-                        purc_get_error_message(purc_get_last_error()));
+            fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
+                    purc_get_error_message(purc_get_last_error()));
 
+            if (opts->verbose) {
                 struct purc_parse_error_info *parse_error = NULL;
                 purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
                         (uintptr_t *)(void *)&parse_error, NULL);
@@ -1417,8 +1398,8 @@ int main(int argc, char** argv)
 
     if (opts->app_info == NULL &&
             (opts->urls == NULL || opts->urls->length == 0)) {
+        fprintf(stderr, "No valid HVML program specified.\n");
         if (opts->verbose) {
-            fprintf(stdout, "No valid HVML program specified\n");
             print_usage(stdout);
         }
 
@@ -1465,21 +1446,21 @@ int main(int argc, char** argv)
         }
 
         if ((foil_atom = foil_start(opts->rdr_uri)) == 0) {
-            fprintf(stdout,
+            fprintf(stderr,
                     "Failed to initialize the built-in Foil renderer: %s\n",
                     opts->rdr_prot);
             return EXIT_FAILURE;
         }
 #else
-        fprintf(stdout, "The built-in Foil renderer is not enabled\n");
+        fprintf(stderr, "The built-in Foil renderer is not enabled.\n");
         return EXIT_FAILURE;
 #endif
     }
     else {
         if (strcmp(opts->rdr_prot, "socket")) {
+            fprintf(stderr, "Unknown renderer communication method: %s\n",
+                    opts->rdr_prot);
             if (opts->verbose) {
-                fprintf(stdout, "Unknown renderer communication method: %s\n",
-                        opts->rdr_prot);
                 print_usage(stdout);
             }
 
@@ -1498,9 +1479,8 @@ int main(int argc, char** argv)
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
             opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
     if (ret != PURC_ERROR_OK) {
-        if (opts->verbose)
-            fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
-                purc_get_error_message(ret));
+        fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
+            purc_get_error_message(ret));
         my_opts_delete(opts);
         return EXIT_FAILURE;
     }
@@ -1510,18 +1490,16 @@ int main(int argc, char** argv)
     purc_variant_t request = PURC_VARIANT_INVALID;
     if (opts->request) {
         if ((request = get_request_data(opts)) == PURC_VARIANT_INVALID) {
-            if (opts->verbose)
-                fprintf(stderr, "Failed to get the request data from %s\n",
-                    opts->request);
+            fprintf(stderr, "Failed to get the request data from %s\n",
+                opts->request);
             my_opts_delete(opts);
             goto failed;
         }
     }
     else if (opts->query) {
         if ((request = parse_query_string(opts)) == PURC_VARIANT_INVALID) {
-            if (opts->verbose)
-                fprintf(stderr, "Failed to parse the query string: %s\n",
-                    opts->query);
+            fprintf(stderr, "Failed to parse the query string: %s\n",
+                opts->query);
             my_opts_delete(opts);
             goto failed;
         }
@@ -1539,9 +1517,8 @@ int main(int argc, char** argv)
     if (opts->app_info) {
         transfer_opts_to_variant(opts, request);
         if (!evalute_app_info(opts->app_info)) {
-            if (opts->verbose)
-                fprintf(stderr, "Failed to evalute the app info from %s\n",
-                        opts->app_info);
+            fprintf(stderr, "Failed to evalute the app info from %s\n",
+                    opts->app_info);
             my_opts_delete(opts);
             goto failed;
         }
