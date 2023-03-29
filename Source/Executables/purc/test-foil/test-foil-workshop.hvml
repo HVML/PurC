@@ -170,43 +170,41 @@ header h1 {
 
                 <update on "#case-mark-$case_name" at 'attr.value' with "60" />
 
-                <test with $FS.file_exists($checked_fname)>
-                    <test with $FS.file_is($checked_fname, 'readable') >
-                        <call on $compare_two_files with [$checked_fname, $dumped_fname] >
+                <test with $FS.file_is($checked_fname, 'regular readable') silently>
+                    <call on $compare_two_files with [$checked_fname, $dumped_fname] >
 
-                            <!-- inherit>
-                                $STREAM.stdout.writelines("result: $?")
-                            </inherit -->
+                        <!-- inherit>
+                            $STREAM.stdout.writelines("result: $?")
+                        </inherit -->
 
-                            <test with $?>
-                                <update on "#case-mark-$case_name" at 'attr.value' with "100" />
+                        <test with $?>
+                            <update on "#case-mark-$case_name" at 'attr.value' with "100" />
 
-                                <inherit>
-                                    {{ $FS.unlink($dumped_fname) }}
-                                </inherit>
-
-                                <differ>
-                                    <update on $failed_cases to 'append' with $case_name />
-                                    <update on "#case-mark-$case_name" at 'attr.value' with "0" />
-                                </differ>
-                            </test>
-                        </call>
-
-                        <differ>
                             <inherit>
-                                $STREAM.stderr.writelines("Not readable file: $checked_fname")
+                                {{ $FS.unlink($dumped_fname) }}
                             </inherit>
-                            <update on "#case-mark-$case_name" at 'attr.value' with "80" />
-                        </differ>
-                    </test>
+
+                            <differ>
+                                <update on $failed_cases to 'append' with $case_name />
+                                <update on "#case-mark-$case_name" at 'attr.value' with "0" />
+                            </differ>
+                        </test>
+                    </call>
 
                     <differ>
-                        <!-- inherit>
-                            $STREAM.stdout.writelines("No checked file: $checked_fname")
-                        </inherit -->
+                        <inherit>
+                            $STREAM.stderr.writelines("Not readable file: $checked_fname")
+                        </inherit>
                         <update on "#case-mark-$case_name" at 'attr.value' with "80" />
                     </differ>
                 </test>
+
+                <differ>
+                    <!-- inherit>
+                        $STREAM.stdout.writelines("No checked file: $checked_fname")
+                    </inherit -->
+                    <update on "#case-mark-$case_name" at 'attr.value' with "80" />
+                </differ>
 
                 <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />

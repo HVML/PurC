@@ -307,7 +307,19 @@ negative:
     WrongDataType
 
 positive:
-    $FS.file_is("/bin/ls", "file")
+    $FS.file_is("/bin/ls", "regular")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "read")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "EXE")
+    true
+
+positive:
+    $FS.file_is("/bin/ls", "regular   readable executable")
     true
 
 positive:

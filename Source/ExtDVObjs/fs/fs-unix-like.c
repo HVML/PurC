@@ -265,6 +265,7 @@ static void set_purc_error_by_errno (void)
 
         default:
             purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+            break;
     }
 }
 
@@ -1991,15 +1992,17 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+#define _KW_DELIMITERS  " \t\n\v\f\r"
+
 static purc_variant_t
 file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
-    const char *string_which = NULL;
-    struct stat st;
+    const char *filename = NULL;
+    const char *which = NULL;
+    size_t which_len;
 
     if (nr_args < 2) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -2007,105 +2010,153 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name and which type
-    string_filename = purc_variant_get_string_const (argv[0]);
-    string_which = purc_variant_get_string_const (argv[1]);
+    filename = purc_variant_get_string_const (argv[0]);
+    which = purc_variant_get_string_const_ex (argv[1], &which_len);
 
-    if (NULL == string_filename || NULL == string_which) {
+    if (NULL == filename || NULL == which) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (lstat(string_filename, &st) == -1) {
+    which = pcutils_trim_spaces(which, &which_len);
+    if (which_len == 0) {
+        purc_set_error (PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    struct stat st;
+    if (lstat(filename, &st) == -1) {
         set_purc_error_by_errno ();
         goto failed;
     }
 
-    switch (string_which[0]) {
-        case 'd':
-            if (strcmp(string_which, "dir") == 0) {
-                if (S_IFDIR == (st.st_mode & S_IFMT)) {
-                    goto success;
-                }
-            }
-            break;
+    size_t keyword_len = 0;
+    const char *keyword = pcutils_get_next_token_len(which, which_len,
+            _KW_DELIMITERS, &keyword_len);
 
-        case 'f':
-            if (strcmp(string_which, "file") == 0) {
-                if (S_IFREG == (st.st_mode & S_IFMT)) {
-                    goto success;
+    bool type_matched = true;
+    bool mode_matched = true;
+    do {
+        printf("Token: %s (%d)\n", keyword, (int)keyword_len);
+        switch (keyword[0]) {
+            case 'd':
+            case 'D':
+                if (keyword_len == 3 &&
+                        strncasecmp(keyword, "dir", 3) == 0) {
+                    if (S_IFDIR != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 's':
-            if (strcmp(string_which, "symlink") == 0) {
-                if (S_IFLNK == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 's':
+            case 'S':
+                if (keyword_len == 7 &&
+                        strncasecmp(keyword, "symlink", 7) == 0) {
+                    if (S_IFLNK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            if (strcmp(string_which, "socket") == 0) {
-                if (S_IFSOCK == (st.st_mode & S_IFMT)) {
-                    goto success;
+                else if (keyword_len == 5 &&
+                        strncasecmp(keyword, "socket", 5) == 0) {
+                    if (S_IFSOCK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'p':
-            if (strcmp(string_which, "pipe") == 0) {
-                if (S_IFIFO == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'p':
+            case 'P':
+                if (keyword_len == 4 && strncasecmp(keyword, "pipe", 4) == 0) {
+                    if (S_IFIFO != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'b':
-            if (strcmp(string_which, "block") == 0) {
-                if (S_IFBLK == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'b':
+            case 'B':
+                if (keyword_len == 5 &&
+                        strncasecmp(keyword, "block", 5) == 0) {
+                    if (S_IFBLK != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'c':
-            if (strcmp(string_which, "char") == 0) {
-                if (S_IFCHR == (st.st_mode & S_IFMT)) {
-                    goto success;
+            case 'c':
+            case 'C':
+                if (keyword_len == 4 && strncasecmp(keyword, "char", 4) == 0) {
+                    if (S_IFCHR != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'e':
-            if (strcmp(string_which, "exe") == 0 ||
-                strcmp(string_which, "executable") == 0) {
-                if (0 == access(string_filename, X_OK)) {
-                    goto success;
+            case 'e':
+            case 'E':
+                if ((keyword_len == 3 && strncasecmp(keyword, "exe", 3) == 0)
+                        || (keyword_len == 10 &&
+                            strncasecmp(keyword, "executable", 10) == 0)) {
+                    if (access(filename, X_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
+                break;
 
-        case 'r':
-            if (strcmp(string_which, "read") == 0 ||
-                strcmp(string_which, "readable") == 0) {
-                if (0 == access(string_filename, R_OK)) {
-                    goto success;
+            case 'r':
+            case 'R':
+                if (keyword_len == 7 &&
+                        strncasecmp(keyword, "regular", 7) == 0) {
+                    if (S_IFREG != (st.st_mode & S_IFMT)) {
+                        type_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
-
-        case 'w':
-            if (strcmp(string_which, "write") == 0 ||
-                strcmp(string_which, "writable") == 0) {
-                if (0 == access(string_filename, W_OK)) {
-                    goto success;
+                else if ((keyword_len == 4 &&
+                        strncasecmp(keyword, "read", 4) == 0) ||
+                        (keyword_len == 8 &&
+                         strncasecmp(keyword, "readable", 8) == 0)) {
+                    if (access(filename, R_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
                 }
-            }
-            break;
-    }
+                break;
 
-    return purc_variant_make_boolean (false);
+            case 'w':
+            case 'W':
+                if ((keyword_len == 5 &&
+                        strncasecmp(keyword, "write", 5) == 0) ||
+                        (keyword_len == 8 &&
+                         strncasecmp(keyword, "writable", 8) == 0)) {
+                    if (access(filename, W_OK)) {
+                        mode_matched = false;
+                        goto done;
+                    }
+                }
+                break;
 
-success:
-    return purc_variant_make_boolean (true);
+            default:
+                printf("unknown keyword: %s\n", keyword);
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+        }
+
+        which_len -= keyword_len;
+        keyword = pcutils_get_next_token_len(keyword + keyword_len, which_len,
+                _KW_DELIMITERS, &keyword_len);
+    } while (keyword);
+
+done:
+    return purc_variant_make_boolean (type_matched && mode_matched);
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)

@@ -1190,18 +1190,6 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
         if (runr_info->opts->verbose) {
             struct purc_cor_term_info *term_info = data;
 
-            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
-            if (crtn_info) {
-                fprintf(stdout,
-                        "\nThe main coroutine terminated due to an uncaught exception: %s.\n",
-                        purc_atom_to_string(term_info->except));
-            }
-            else {
-                fprintf(stdout,
-                        "\nA child coroutine terminated due to an uncaught exception: %s.\n",
-                        purc_atom_to_string(term_info->except));
-            }
-
             unsigned opt = 0;
             opt |= PCDOC_SERIALIZE_OPT_UNDEF;
             opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
@@ -1215,6 +1203,18 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
             purc_document_serialize_contents_to_stream(term_info->doc,
                     opt, runr_info->run_info->dump_stm);
             fprintf(stdout, "\n");
+
+            struct crtn_info *crtn_info = purc_coroutine_get_user_data(cor);
+            if (crtn_info) {
+                fprintf(stdout,
+                        "\nThe main coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
+            else {
+                fprintf(stdout,
+                        "\nA child coroutine terminated due to an uncaught exception: %s.\n",
+                        purc_atom_to_string(term_info->except));
+            }
 
             fprintf(stdout, ">> The executing stack frame(s):\n");
             purc_coroutine_dump_stack(cor, runr_info->run_info->dump_stm);

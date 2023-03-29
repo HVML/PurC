@@ -1277,10 +1277,10 @@ TEST(dvobjs, dvobjs_fs_file_is)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    // Normal file
-    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'file':\n");
+    // regular file
+    printf ("TEST file_is: nr_args = 2, param[0] = path, param[1] = 'regular':\n");
     param[0] = purc_variant_make_string ("/bin/ls", true);
-    param[1] = purc_variant_make_string ("file", true);
+    param[1] = purc_variant_make_string ("regular read exe", true);
     ret_var = func (NULL, 2, param, false);
     ASSERT_TRUE(pcvariant_is_true(ret_var));
     purc_variant_unref(param[0]);
