@@ -284,15 +284,11 @@ negative:
 
 negative:
     $FS.file_is(false)
-    ArgumentMissed
+    WrongDataType
 
 negative:
     $FS.file_is(1)
-    ArgumentMissed
-
-negative:
-    $FS.file_is("/abcdefg/123")
-    ArgumentMissed
+    WrongDataType
 
 negative:
     $FS.file_is(false, false)
@@ -305,6 +301,10 @@ negative:
 negative:
     $FS.file_is("/abcdefg/123", false)
     WrongDataType
+
+positive:
+    $FS.file_is("/abcdefg/123")
+    false
 
 positive:
     $FS.file_is("/bin/ls", "regular")

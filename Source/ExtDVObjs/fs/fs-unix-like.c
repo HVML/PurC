@@ -1992,7 +1992,8 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-#define _KW_DELIMITERS  " \t\n\v\f\r"
+#define _KW_DELIMITERS      " \t\n\v\f\r"
+#define _DEF_FILE_IS_WHICH  "regular readable"
 
 static purc_variant_t
 file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -2004,24 +2005,34 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     const char *which = NULL;
     size_t which_len;
 
-    if (nr_args < 2) {
+    if (nr_args == 0) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
     // get the file name and which type
     filename = purc_variant_get_string_const (argv[0]);
-    which = purc_variant_get_string_const_ex (argv[1], &which_len);
-
-    if (NULL == filename || NULL == which) {
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    which = pcutils_trim_spaces(which, &which_len);
-    if (which_len == 0) {
-        purc_set_error (PURC_ERROR_INVALID_VALUE);
-        goto failed;
+    if (nr_args > 1) {
+        which = purc_variant_get_string_const_ex (argv[1], &which_len);
+        if (NULL == which) {
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        which = pcutils_trim_spaces(which, &which_len);
+        if (which_len == 0) {
+            purc_set_error (PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+    else {
+        which = _DEF_FILE_IS_WHICH;
+        which_len = strlen (_DEF_FILE_IS_WHICH);
     }
 
     struct stat st;
@@ -2037,7 +2048,6 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     bool type_matched = true;
     bool mode_matched = true;
     do {
-        printf("Token: %s (%d)\n", keyword, (int)keyword_len);
         switch (keyword[0]) {
             case 'd':
             case 'D':
@@ -2145,7 +2155,6 @@ file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 break;
 
             default:
-                printf("unknown keyword: %s\n", keyword);
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
         }
