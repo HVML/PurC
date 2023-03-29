@@ -1,0 +1,55 @@
+.border_red {
+    border-style: solid;
+    border-width: thick;
+    border-color: red;
+}
+.border_green {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+}
+.border_blue {
+    border-style: solid;
+    border-width: thick;
+    border-color: blue;
+}
+.fl {
+    float: left;
+}
+.h100 {
+    height:100px;
+}
+.h50 {
+    height:50px;
+}
+
+.w50 {
+    width:50px;
+}
+.w100 {
+    width:100px;
+}
+.relative {
+    position:relative;
+}
+.abs_lt {
+    position:absolute;
+    left: 10px;
+    top: 10px;
+}
+.abs_rt {
+    position:absolute;
+    right: 10px;
+    top: 10px;
+}
+.abs_lb {
+    position:absolute;
+    left: 10px;
+    bottom: 10px;
+}
+.abs_rb {
+    position:absolute;
+    right: 10px;
+    bottom: 10px;
+}
+
