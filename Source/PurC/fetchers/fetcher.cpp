@@ -30,6 +30,7 @@
 #include "fetcher-internal.h"
 
 #include <wtf/Lock.h>
+#include <wtf/URL.h>
 
 static Lock s_fetcher_lock;
 static struct pcfetcher* s_remote_fetcher = NULL;
@@ -141,6 +142,38 @@ void pcfetcher_destroy_callback_info(struct pcfetcher_callback_info *info)
         purc_rwstream_destroy(info->rws);
     }
     free(info);
+}
+
+String pcfetcher_build_uri(const char *base_url,  const char *url)
+{
+    PurCWTF::URL u(URL(), url);
+    if (u.isValid()) {
+        return url;
+    }
+
+    PurCWTF::URL uri(URL(), base_url);
+
+    String result;
+    size_t n = strlen(url);
+    if (n > 1 && url[0] == '/' && url[1] == '/') {
+        result.append(uri.protocol().toString());
+        result.append(":");
+        result.append(url);
+    }
+    else if (url[0] == '/') {
+        uri.setPath(url);
+        result = uri.path().toString();
+    }
+    else {
+        result.append(base_url);
+        size_t nr = strlen(base_url);
+        if (base_url[nr - 1] != '/') {
+            result.append('/');
+        }
+        result.append(url);
+    }
+
+    return result;
 }
 
 static int _local_init_once(void)

@@ -248,6 +248,8 @@ off_t filesize(const char* filename)
     return statbuf.st_size;
 }
 
+String pcfetcher_build_uri(const char *base_url,  const char *url);
+
 purc_rwstream_t pcfetcher_local_request_sync(
         struct pcfetcher* fetcher,
         const char* url,
@@ -268,11 +270,12 @@ purc_rwstream_t pcfetcher_local_request_sync(
     }
     struct pcfetcher_local* local = (struct pcfetcher_local*)fetcher;
     String uri;
-    if (local->base_uri &&
-            strncmp(url, local->base_uri, strlen(local->base_uri)) != 0) {
-        uri.append(local->base_uri);
+    if (local->base_uri) {
+        uri = pcfetcher_build_uri(local->base_uri, url);
     }
-    uri.append(url);
+    else {
+        uri.append(url);
+    }
     PurCWTF::URL wurl(URL(), uri);
     if (!wurl.isLocalFile()) {
         resp_header->ret_code = 404;
