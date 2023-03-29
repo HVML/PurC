@@ -1,0 +1,40 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd" ) hvml:silently />
+        <init as 'styleCase' at '_root' with $REQ.case>
+            <catch>
+                <!-- set the default case -->
+                <init as 'styleCase' at '_root' with 'caseNotSpecified' />
+            </catch>
+        </init>
+
+        <link rel="stylesheet" type="text/css" href="{$styleCase}.css" />
+
+        <title>Foil Test Case - $styleCase</title>
+    </head>
+
+    <body>
+        <init as 'caseName' with "$styleCase" temp />
+        <define as "$styleCase" from "file://$SYS.cwd/style-cases/{$styleCase}.html" silently >
+            <SECTION id="$caseName">
+                <P>Failed to load test case from style-cases/{$styleCase}.html</P>
+            </SECTION>
+        </define>
+
+        <HEADER>
+            <H1 style="color:red;text-align:center">Used Case: $styleCase</H1>
+        </HEADER>
+
+        <include with ${$styleCase} />
+
+        <!-- inherit>
+            $STREAM.stdout.writelines("$caseName done.")
+        </inherit -->
+
+    </body>
+
+</hvml>
+

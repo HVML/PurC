@@ -1,0 +1,50 @@
+[49m[39m                                                                                
+[49m[39m                                                                                
+[49m[39m                                                                                
+[49m[39m                          [91mUsed Case: unorderedListItems[39m                         
+[49m[39m                                                                                
+[49m[39m  [91m                                                                            [39m  
+[49m[39m  [91m      [39m● The first item.[91m                                                     [39m  
+[49m[39m  [91m      [39m● The second item.                                                    [39m  
+[49m[39m  [91m      [39m● The third item.                                                     [39m  
+[49m[39m  [91m                                                                            [39m  
+[49m[39m  [91m      [39m○ The first item.                                                     [39m  
+[49m[39m  [91m      [39m○ The second item.                                                    [39m  
+[49m[39m  [91m      [39m○ The third item.                                                     [39m  
+[49m[39m  [91m                                                                            [39m  
+[49m[39m                                                                                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

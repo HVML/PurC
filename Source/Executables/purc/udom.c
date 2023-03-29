@@ -261,6 +261,7 @@ pcmcth_udom *foil_udom_new(pcmcth_page *page)
     }
 
     foil_widget *widget = foil_widget_from_page(page);
+    foil_widget_reset_viewport(widget);
     int cols = foil_widget_client_width(widget);
     int rows = foil_widget_client_height(widget);
     int width = cols * FOIL_PX_GRID_CELL_W;
@@ -1032,6 +1033,13 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
     if ((box->is_block_level)
             && box->nr_inline_level_children > 0) {
         foil_rdrbox_lay_lines_in_block(ctxt, box);
+
+        /* layout children */
+        foil_rdrbox *child = box->first;
+        while (child) {
+            layout_rdrtree(ctxt, child);
+            child = child->next;
+        }
     }
     else if (box->is_block_container) {
         if (box->nr_floating_children) {

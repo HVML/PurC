@@ -33,6 +33,8 @@
 #include "purc/purc-utils.h"
 #include <assert.h>
 
+static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type);
+
 foil_widget *foil_widget_new(foil_widget_type_k type,
         foil_widget_border_k border,
         const char *name, const char *title, const foil_rect *rect)
@@ -67,13 +69,29 @@ foil_widget *foil_widget_new(foil_widget_type_k type,
             widget->client_rc.bottom = foil_rect_height(rect) - 1;
         }
 
-        widget->vx = widget->client_rc.left;
+        widget->vx = 0;
         widget->vy = 0;
         widget->vw = foil_rect_width(&widget->client_rc);
         widget->vh = 0;
+
+        widget->ops = get_widget_ops(type);
+        assert(widget->ops);
+
+        if (widget->ops->init) {
+            if (widget->ops->init(widget))
+                goto failed;
+        }
     }
 
     return widget;
+
+failed:
+    if (widget->name)
+        free(widget->name);
+    if (widget->title)
+        free(widget->title);
+    free(widget);
+    return NULL;
 }
 
 void foil_widget_append_child(foil_widget *to, foil_widget *widget)
@@ -170,6 +188,10 @@ void foil_widget_remove_from_tree(foil_widget *widget)
 
 void foil_widget_delete(foil_widget *widget)
 {
+    if (widget->ops->clean)
+        widget->ops->clean(widget);
+    if (widget->data)
+        free(widget->data);
     foil_widget_remove_from_tree(widget);
     foil_page_content_cleanup(&widget->page);
     if (widget->name)
@@ -218,6 +240,46 @@ foil_widget *foil_widget_get_root(foil_widget *widget)
     }
 
     return parent;
+}
+
+void foil_widget_expose(foil_widget *widget)
+{
+    assert(widget->ops->expose);
+    widget->ops->expose(widget);
+}
+
+void foil_widget_reset_viewport(foil_widget *widget)
+{
+    widget->vx = widget->vy = 0;
+    widget->vw = foil_rect_width(&widget->client_rc);
+    widget->vh = 0;
+
+    if (widget->ops->clean)
+        widget->ops->clean(widget);
+}
+
+purc_variant_t foil_widget_call_method(foil_widget *widget,
+        const char *method, purc_variant_t arg)
+{
+
+    if (strcmp(method, "dumpContents") == 0) {
+        const char *fname = purc_variant_get_string_const(arg);
+
+        int retv = -1;
+        if (fname && widget->ops->dump) {
+            retv = widget->ops->dump(widget, fname);
+        }
+
+        if (retv) {
+            LOG_WARN("Failed to dump contents to file: %s\n", fname);
+            goto failed;
+        }
+    }
+
+    return purc_variant_make_boolean(true);
+
+failed:
+    return PURC_VARIANT_INVALID;
 }
 
 static const char *escaped_bgc[] = {
@@ -416,7 +478,7 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
                 rel_row, rel_col);
 
         /* restore curosr and move cursor rel_row up lines,
-           move curosr rel_col right lines */
+           move curosr rel_col right columns */
         snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col + 1);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
@@ -483,7 +545,7 @@ static int flush_contents(const char *name, void *ctxt)
     return -1;
 }
 
-void foil_widget_expose(foil_widget *widget)
+static void expose_on_screen(foil_widget *widget)
 {
     foil_widget *root = foil_widget_get_root(widget);
     pcmcth_workspace *workspace = (pcmcth_workspace *)root->user_data;
@@ -502,4 +564,154 @@ void foil_widget_expose(foil_widget *widget)
         // TODO
     }
 }
+
+static int dump_on_screen(foil_widget *widget, const char *fname)
+{
+    FILE* fp = fopen(fname, "w+");
+    if (fp == NULL)
+        return -1;
+
+    pcmcth_page *page = &widget->page;
+
+    foil_rect viewport;
+    foil_rect_set(&viewport, widget->vx, widget->vy,
+            widget->vx + widget->vw, widget->vy + widget->vh);
+
+    int w = foil_rect_width(&viewport);
+    for (int y = viewport.top; y < viewport.bottom; y++) {
+        int x = viewport.left;
+
+        int rel_row = widget->vh - y + widget->vy;
+        if (rel_row > widget->vh)
+            continue;
+
+        struct foil_tty_cell *cell = page->cells[y] + x;
+        char *escaped_str = make_escape_string_line_mode(page, cell, w);
+
+        fputs(escaped_str, fp);
+        free(escaped_str);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+struct off_screen_lines {
+    int cols, rows;
+    char *lines[];
+};
+
+static int init_off_screen(foil_widget *widget)
+{
+    int rows = foil_rect_height(&widget->rect);
+    char **lines = calloc(rows, sizeof(char *));
+    if (lines) {
+        widget->data = lines;
+        return 0;
+    }
+
+    return -1;
+}
+
+static void expose_off_screen(foil_widget *widget)
+{
+    pcmcth_page *page = &widget->page;
+
+    if (foil_rect_is_empty(&page->dirty_rect)) {
+        return;
+    }
+
+    /* always make the last line visible */
+    if (page->rows > widget->vh) {
+        int cli_height = foil_rect_height(&widget->client_rc);
+        widget->vh = page->rows;
+        if (widget->vh > cli_height) {
+            widget->vh = cli_height;
+            widget->vy = page->rows - cli_height;
+        }
+    }
+
+    foil_rect viewport, dirty;
+    foil_rect_set(&viewport, widget->vx, widget->vy,
+            widget->vx + widget->vw, widget->vy + widget->vh);
+    if (!foil_rect_intersect(&dirty, &page->dirty_rect, &viewport)) {
+        return;
+    }
+
+    /* TODO: handle border of widget */
+    char **lines = widget->data;
+    int w = foil_rect_width(&widget->client_rc);
+    for (int y = dirty.top; y < dirty.bottom; y++) {
+        int rel_row = y - widget->vy;
+        if (rel_row > widget->vh)
+            continue;
+
+        if (lines[rel_row]) {
+            free(lines[rel_row]);
+        }
+        lines[rel_row] = make_escape_string_line_mode(page, page->cells[y], w);
+    }
+}
+
+static int dump_off_screen(foil_widget *widget, const char *fname)
+{
+    assert(widget->data);
+
+    FILE* fp = fopen(fname, "w+");
+    if (fp == NULL)
+        return -1;
+
+    char **lines = widget->data;
+    int rows = foil_rect_height(&widget->rect);
+
+    for (int y = 0; y < rows; y++) {
+        if (lines[y]) {
+            fputs(lines[y], fp);
+        }
+
+        /* always write a new line character */
+        fputs("\n", fp);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+static void clean_off_screen(foil_widget *widget)
+{
+    assert(widget->data);
+    char **lines = widget->data;
+    int rows = foil_rect_height(&widget->rect);
+
+    for (int y = 0; y < rows; y++) {
+        if (lines[y]) {
+            free(lines[y]);
+            lines[y] = NULL;
+        }
+    }
+}
+
+static struct foil_widget_ops *get_widget_ops(foil_widget_type_k type)
+{
+    static struct foil_widget_ops ops_for_on_scrn = {
+        .init = NULL,
+        .expose = expose_on_screen,
+        .dump = dump_on_screen,
+        .clean = NULL,
+    };
+
+    static struct foil_widget_ops ops_for_off_scrn = {
+        .init = init_off_screen,
+        .expose = expose_off_screen,
+        .dump = dump_off_screen,
+        .clean = clean_off_screen,
+    };
+
+    if (type == WSP_WIDGET_TYPE_OFFSCREEN) {
+        return &ops_for_off_scrn;
+    }
+
+    return &ops_for_on_scrn;
+}
+
 

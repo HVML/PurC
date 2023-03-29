@@ -94,7 +94,7 @@ The following properties of CSS2 are not supported by Foil:
   - `page-break-inside`
   - `widows`
 
-## Extended CSS2 Properties
+## Extended Properties
 
 ### New keyword for color properties
 

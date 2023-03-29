@@ -112,7 +112,7 @@ style = {
     ('_foil_color_success', 2, 'color'),
     ('_foil_color_primary', 2, 'color'),
     ('_foil_color_secondary', 2, 'color'),
-    ('_foil_candidate_marks', 1, 'string'),
+    ('_foil_candidate_marks', 2, 'string'),
     # Style group, arrays
     ('font_family', 3, 'string_arr', None, None,
         'Encode font family as an array of string objects, terminated with a '

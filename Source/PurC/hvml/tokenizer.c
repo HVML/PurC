@@ -377,6 +377,7 @@ bool pchvml_parser_is_json_content_tag(const char* name)
             || strcmp(name, "update") == 0
             || strcmp(name, "bind") == 0
             || strcmp(name, "request") == 0
+            || strcmp(name, "load") == 0
             || strcmp(name, "hvml") == 0);
 }
 
