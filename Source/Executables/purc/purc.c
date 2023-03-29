@@ -519,8 +519,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         else {
             for (int i = optind; i < argc; i++) {
                 if (!validate_url(opts, argv[i])) {
-                    if (opts->verbose)
-                        fprintf(stdout, "Got a bad file or URL: %s\n", argv[i]);
+                    fprintf(stderr, "Speicified a bad file or URL: %s\n",
+                            argv[i]);
                     return -1;
                 }
             }
@@ -530,8 +530,7 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     return 0;
 
 bad_arg:
-    if (opts->verbose)
-        fprintf(stdout, "Got an unknown argument: %s (%c)\n", optarg, o);
+    fprintf(stderr, "Got an unknown argument: %s (%c)\n", optarg, o);
     return -1;
 }
 
@@ -1393,7 +1392,6 @@ int main(int argc, char** argv)
 
     struct my_opts *opts = my_opts_new();
     if (read_option_args(opts, argc, argv)) {
-        fprintf(stderr, "Wrong arguments.\n");
         my_opts_delete(opts);
         return EXIT_FAILURE;
     }
