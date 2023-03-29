@@ -18,6 +18,7 @@ header h1 {
 
 .plain-list {
     list-style-type:none;
+    margin:0px;
 }
 
 .case-mark {
