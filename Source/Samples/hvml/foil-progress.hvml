@@ -7,7 +7,7 @@
         <init as 'styleCase' at '_root' with $REQ.case>
             <catch>
                 <!-- set the default case -->
-                <init as 'styleCase' at '_root' with 'basic' />
+                <init as 'styleCase' at '_root' with 'overall' />
             </catch>
         </init>
 
