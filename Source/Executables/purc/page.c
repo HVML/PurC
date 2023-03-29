@@ -224,8 +224,7 @@ int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
     }
     dirty.right = x;
 
-    if (nr_cells > 0 && dst_cell->latter_half) {
-        assert(x < page->cols);
+    if (nr_cells > 0 && x < page->cols && dst_cell->latter_half) {
 
         /* reset this cell to space */
         dst_cell[0].uc = FOIL_UCHAR_SPACE;
