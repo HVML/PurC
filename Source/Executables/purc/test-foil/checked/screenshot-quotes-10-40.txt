@@ -1,10 +1,10 @@
-[49m[39m  [39mkaia' blir deklamert."              [39m  
+[49m[39m  [39mkaia> blir deklamert.»              [39m  
 [49m[39m  [91m                                    [39m  
 [49m[39m  [91m                                    [39m  
-[49m[39m  [39m"This Spanish quote has a 'nested'  [39m  
-[49m[39m  [39mquote inside."                      [39m  
-[49m[39m  [39m"This French quote has a 'nested'   [39m  
-[49m[39m  [39mquote inside."                      [39m  
-[49m[39m  [39m"This German quote has a 'nested'   [39m  
-[49m[39m  [39mquote inside."                      [39m  
+[49m[39m  [39m“This Spanish quote has a ‘nested’  [39m  
+[49m[39m  [39mquote inside.”                      [39m  
+[49m[39m  [39m« This French quote has a « nested »[39m  
+[49m[39m  [39m quote inside. »                    [39m  
+[49m[39m  [39m»This German quote has a ‹nested›   [39m  
+[49m[39m  [39mquote inside.«                      [39m  
 [49m[39m                                        

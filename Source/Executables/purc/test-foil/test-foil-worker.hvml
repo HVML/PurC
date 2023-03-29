@@ -11,7 +11,7 @@
             </catch>
         </init>
 
-        <link rel="stylesheet" type="text/css" href="{$styleCase}.css" />
+        <link rel="stylesheet" type="text/css" href="file://$SYS.cwd/style-cases/{$styleCase}.css" />
 
         <title>Foil Test Case - $styleCase</title>
     </head>
