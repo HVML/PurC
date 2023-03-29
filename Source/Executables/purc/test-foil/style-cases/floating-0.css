@@ -1,0 +1,28 @@
+.border_red {
+    border-style: solid;
+    border-width: thick;
+    border-color: red;
+}
+.border_green {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+}
+.border_blue {
+    border-style: solid;
+    border-width: thick;
+    border-color: blue;
+}
+.fl {
+    float: left;
+}
+.fr {
+    float: right;
+}
+#f_3 {
+    height: 60px;
+}
+#f_6 {
+    height: 30px;
+}
+
