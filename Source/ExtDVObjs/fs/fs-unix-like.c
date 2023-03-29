@@ -63,6 +63,9 @@
 
 #define FS_DVOBJ_VERSION    0
 
+#define _KW_DELIMITERS      " \t\n\v\f\r"
+#define _DEF_FILE_IS_WHICH  "regular readable"
+
 purc_variant_t pcdvobjs_create_file (void);
 typedef purc_variant_t (*pcdvobjs_create) (void);
 
@@ -1216,7 +1219,6 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     char au[10] = {0};
-    int i = 0;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -1293,71 +1295,80 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (true) {
 
         // get mode array
-        i = 0;
+        int i = 0;
         bool quit = false;
         size_t length = 0;
         const char * end = mode + strlen(mode);
-        const char * head = pcutils_get_next_token (mode, " ", &length);
+        const char * head = pcutils_get_next_token (mode, _KW_DELIMITERS, &length);
         while (head) {
-            switch (* head)
-            {
+            switch (* head) {
                 case 'm':
                 case 'M':
-                    if (strncasecmp (head, "mode", length) == 0) {
+                    if (length == 4 &&
+                            strncasecmp (head, "mode", length) == 0) {
                         display[i] = DISPLAY_MODE;
                         i++;
                     }
-                    else if (strncasecmp (head, "mtime", length) == 0) {
+                    else if (length == 5 &&
+                            strncasecmp (head, "mtime", length) == 0) {
                         display[i] = DISPLAY_MTIME;
                         i++;
                     }
                     break;
                 case 'n':
                 case 'N':
-                    if (strncasecmp (head, "nlink", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "nlink", length) == 0) {
                         display[i] = DISPLAY_NLINK;
                         i++;
                     }
-                    else if (strncasecmp (head, "name", length) == 0) {
+                    else if (length == 4 &&
+                            strncasecmp (head, "name", length) == 0) {
                         display[i] = DISPLAY_NAME;
                         i++;
                     }
                     break;
                 case 'u':
                 case 'U':
-                    if (strncasecmp (head, "uid", length) == 0) {
+                    if (length == 3 &&
+                            strncasecmp (head, "uid", length) == 0) {
                         display[i] = DISPLAY_UID;
                         i++;
                     }
                     break;
                 case 'g':
                 case 'G':
-                    if (strncasecmp (head, "gid", length) == 0) {
+                    if (length == 3 &&
+                            strncasecmp (head, "gid", length) == 0) {
                         display[i] = DISPLAY_GID;
                         i++;
                     }
                     break;
                 case 's':
                 case 'S':
-                    if (strncasecmp (head, "size", length) == 0) {
+                    if (length == 4 &&
+                            strncasecmp (head, "size", length) == 0) {
                         display[i] = DISPLAY_SIZE;
                         i++;
                     }
                     break;
                 case 'b':
                 case 'B':
-                    if (strncasecmp (head, "blksize", length) == 0) {
+                    if (length == 7 &&
+                            strncasecmp (head, "blksize", length) == 0) {
                         display[i] = DISPLAY_BLKSIZE;
                         i++;
                     }
                     break;
                 case 'a':
                 case 'A':
-                    if (strncasecmp (head, "atime", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "atime", length) == 0) {
                         display[i] = DISPLAY_ATIME;
                         i++;
                     }
-                    else if (strncasecmp (head, "all", length) == 0) {
+                    else if (length == 3 &&
+                            strncasecmp (head, "all", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -1365,14 +1376,16 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     break;
                 case 'c':
                 case 'C':
-                    if (strncasecmp (head, "ctime", length) == 0) {
+                    if (length == 5 &&
+                            strncasecmp (head, "ctime", length) == 0) {
                         display[i] = DISPLAY_CTIME;
                         i++;
                     }
                     break;
                 case 'd':
                 case 'D':
-                    if (strncasecmp (head, "default", length) == 0) {
+                    if (length == 7 &&
+                            strncasecmp (head, "default", length) == 0) {
                         for (i = 0; i < (DISPLAY_MAX - 1); i++)
                             display[i] = i + 1;
                         quit = true;
@@ -1382,15 +1395,16 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
             if (quit)
                 break;
+
             const char *p = head + length + 1;
             if (p > end) {
                 break;
             }
-            head = pcutils_get_next_token (p, " ", &length);
+            head = pcutils_get_next_token (p, _KW_DELIMITERS, &length);
         }
     }
     else {
-        for (i = 0; i < (DISPLAY_MAX - 1); i++)
+        for (int i = 0; i < (DISPLAY_MAX - 1); i++)
             display[i] = i + 1;
     }
 
@@ -1427,7 +1441,7 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             continue;
 
         char info[NAME_MAX + 256] = {0};
-        for (i = 0; i < (DISPLAY_MAX - 1); i++) {
+        for (int i = 0; i < (DISPLAY_MAX - 1); i++) {
             switch (display[i]) {
                 case DISPLAY_MODE:
                     // type
@@ -1454,19 +1468,19 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     }
 
                     // mode_str
-                    for (i = 0; i < 3; i++) {
-                        if ((0x01 << (8 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 0] = 'r';
+                    for (int j = 0; j < 3; j++) {
+                        if ((0x01 << (8 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 0] = 'r';
                         else
-                            au[i * 3 + 0] = '-';
-                        if ((0x01 << (7 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 1] = 'w';
+                            au[j * 3 + 0] = '-';
+                        if ((0x01 << (7 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 1] = 'w';
                         else
-                            au[i * 3 + 1] = '-';
-                        if ((0x01 << (6 - 3 * i)) & file_stat.st_mode)
-                            au[i * 3 + 2] = 'x';
+                            au[j * 3 + 1] = '-';
+                        if ((0x01 << (6 - 3 * j)) & file_stat.st_mode)
+                            au[j * 3 + 2] = 'x';
                         else
-                            au[i * 3 + 2] = '-';
+                            au[j * 3 + 2] = '-';
                     }
                     sprintf (info + strlen (info), "%s\t", au);
                     break;
@@ -1991,9 +2005,6 @@ failed:
 
     return PURC_VARIANT_INVALID;
 }
-
-#define _KW_DELIMITERS      " \t\n\v\f\r"
-#define _DEF_FILE_IS_WHICH  "regular readable"
 
 static purc_variant_t
 file_is_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
