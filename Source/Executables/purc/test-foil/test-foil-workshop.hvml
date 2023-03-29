@@ -24,7 +24,7 @@ header h1 {
 .case-mark {
     appearance:meter-mark;
     width:1em;
-    -foil-candidate-marks:'✗…↷↻↧✓';
+    -foil-candidate-marks:'✗…↷↻?✓';
 }
 
 .total-progress {
@@ -127,11 +127,21 @@ header h1 {
             </iterate>
         </iterate>
 
+        <define as 'compare_two_files' >
+            <init as ctnt1 with $FS.file_contents($?[0]) temp />
+            <init as ctnt2 with $FS.file_contents($?[1]) temp />
+
+            <return with $L.eq($DATA.compare($ctnt1, $ctnt2, 'case'), 0L) />
+        </define>
+
         <init as total_idx at '_root' with 0L />
+        <init as failed_cases at '_root' with [] />
         <observe on $CRTN for 'idle'>
             <choose on $total_cases[$total_idx] >
                 <init as 'win_name' with "test-$?.rows-$?.columns" temp />
                 <init as 'case_name' with "$?.name-$?.rows-$?.columns" temp />
+                <init as 'checked_fname' with "checked/screenshot-$case_name.txt" temp />
+                <init as 'dumped_fname' with "screenshot-$case_name.txt" temp />
 
                 <load from 'test-foil-worker.hvml' onto $win_name >
                     {
@@ -153,22 +163,69 @@ header h1 {
                          property: "plainwin:$win_name",
                          data: {
                                 method: 'dumpContents',
-                                arg: "screenshot-$case_name.txt"
+                                arg: $dumped_fname,
                          },
                     }
                 </request>
 
                 <update on "#case-mark-$case_name" at 'attr.value' with "60" />
 
-                <update on "#case-mark-$case_name" at 'attr.value' with "80" />
+                <test with $FS.file_exists($checked_fname)>
+                    <test with $FS.file_is($checked_fname, 'readable') >
+                        <call on $compare_two_files with [$checked_fname, $dumped_fname] >
 
-                <update on "#case-mark-$case_name" at 'attr.value' with "100" />
+                            <!-- inherit>
+                                $STREAM.stdout.writelines("result: $?")
+                            </inherit -->
+
+                            <test with $?>
+                                <update on "#case-mark-$case_name" at 'attr.value' with "100" />
+
+                                <inherit>
+                                    {{ $FS.unlink($dumped_fname) }}
+                                </inherit>
+
+                                <differ>
+                                    <update on $failed_cases to 'append' with $case_name />
+                                    <update on "#case-mark-$case_name" at 'attr.value' with "0" />
+                                </differ>
+                            </test>
+                        </call>
+
+                        <differ>
+                            <inherit>
+                                $STREAM.stderr.writelines("Not readable file: $checked_fname")
+                            </inherit>
+                            <update on "#case-mark-$case_name" at 'attr.value' with "80" />
+                        </differ>
+                    </test>
+
+                    <differ>
+                        <!-- inherit>
+                            $STREAM.stdout.writelines("No checked file: $checked_fname")
+                        </inherit -->
+                        <update on "#case-mark-$case_name" at 'attr.value' with "80" />
+                    </differ>
+                </test>
 
                 <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />
 
                 <test with $L.ge($total_idx, $nr_total_cases) >
-                    <exit with true />
+                    <test with $failed_cases>
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Failed cases:")
+                        </inherit>
+
+                        <iterate on $failed_cases>
+                            <inherit>
+                                $STREAM.stdout.writelines($?)
+                            </inherit>
+                        </iterate>
+                    </test>
+
+                    <exit with $failed_cases />
                 </test>
 
             </choose>
