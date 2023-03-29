@@ -432,6 +432,7 @@ TEST(dvobjs, dvobjs_fs_list_prt)
         printf ("\t%s\n", purc_variant_get_string_const (tmp_var));
     }
     purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
     purc_variant_unref(param[2]);
     purc_variant_unref(ret_var);
 

@@ -88,8 +88,15 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
             goto out;
         }
 
-        purc_variant_t obj = purc_variant_make_object_by_static_ckey(2,
+        purc_variant_t obj;
+        if (ctxt->exception->exinfo) {
+            obj = purc_variant_make_object_by_static_ckey(2,
                 KEY_NAME, s, KEY_INFO, ctxt->exception->exinfo);
+        }
+        else {
+            obj = purc_variant_make_object_by_static_ckey(1,
+                KEY_NAME, s, KEY_INFO, s);
+        }
         if (!obj) {
             purc_variant_unref(s);
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

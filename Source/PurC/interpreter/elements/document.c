@@ -62,11 +62,52 @@ token_found(const char *start, const char *end, void *ud)
     pcintr_stack_t stack = (pcintr_stack_t)ud;
     (void)stack;
 
-    if (start == end)
+    if (start == end) {
         return 0;
+    }
+
+    char token[PATH_MAX + 1];
+
+    const char *so_name = token;
+    const char *var_name = token;
+    const char *bind_name = token;
+
+    int len = end - start;
+    snprintf(token, sizeof(token), "%.*s", (int)len, start);
+    char *pe = token + len;
+
+    char *p = strchr(token, '.');
+    if (p) {
+        *p = '\0';
+        p++;
+
+        if (p < pe) {
+            var_name = p;
+            bind_name = p;
+
+            p = strchr(p, ':');
+            if (p) {
+                *p = '\0';
+                p++;
+                if (p < pe) {
+                    bind_name = p;
+                }
+            }
+        }
+    }
+    else {
+        p = strchr(token, ':');
+        if (p) {
+            *p = '\0';
+            p++;
+            if (p < pe) {
+                bind_name = p;
+            }
+        }
+    }
 
     bool ok;
-    ok = pcintr_load_dynamic_variant(stack->co, start, end-start);
+    ok = pcintr_load_dynamic_variant(stack->co, so_name, var_name, bind_name);
 
     return ok ? 0 : -1;
 }
