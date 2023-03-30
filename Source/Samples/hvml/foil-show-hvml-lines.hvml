@@ -1,4 +1,4 @@
-#!/usr/local/bin/purc
+#!/usr/bin/env purc
 
 <!DOCTYPE hvml SYSTEM 'f: FS.FS FS.FILE'>
 <hvml target="html">
@@ -13,7 +13,7 @@ header h1 {
 
 .column {
     display:inline-block;
-    width:40%;
+    width:45%;
 }
 
 .plain-list {
@@ -34,7 +34,7 @@ header h1 {
 
 .total-progress {
     appearance:progress-bar;
-    width:10em;
+    width:60%;
 }
         </style>
     </head>

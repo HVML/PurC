@@ -36,29 +36,8 @@
 #define ENDIAN_LITTLE       1
 #define ENDIAN_BIG          2
 
-// for file to get '\n'
-static const char * pcdvobjs_file_get_next_option (const char *data,
-        const char *delims, size_t *length)
-{
-    const char *head = data;
-    char *temp = NULL;
-
-    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
-        return NULL;
-
-    *length = 0;
-
-    while (*data != 0x00) {
-        temp = strchr (delims, *data);
-        if (temp)
-            break;
-        data++;
-    }
-
-    *length = data - head;
-
-    return head;
-}
+/* FILE.stream is deprecated */
+#define FILE_STREAM        0
 
 static inline bool is_little_endian (void)
 {
@@ -313,43 +292,6 @@ out:
         free (content);
 
     return ret_var;
-}
-
-static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
-{
-    size_t pos = 0;
-    unsigned char buffer[BUFFER_SIZE];
-    ssize_t read_size = 0;
-    size_t length = 0;
-    const char *head = NULL;
-
-    purc_rwstream_seek (stream, 0L, SEEK_SET);
-
-    while (line_num) {
-        read_size = purc_rwstream_read (stream, buffer, BUFFER_SIZE);
-        if (read_size < 0)
-            break;
-
-        head = pcdvobjs_file_get_next_option ((char *)buffer,
-                "\n", &length);
-        while (head) {
-            pos += length + 1;          // to be checked
-            line_num --;
-
-            if (line_num == 0)
-                break;
-
-            head = pcdvobjs_file_get_next_option (head + length + 1,
-                    "\n", &length);
-        }
-        if (read_size < BUFFER_SIZE)           // to the end
-            break;
-
-        if (line_num == 0)
-            break;
-    }
-
-    return pos;
 }
 
 static purc_variant_t
@@ -657,14 +599,76 @@ empty:
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean(false);
-    
+
     return PURC_VARIANT_INVALID;
+}
+
+#if defined(FILE_STREAM) && FILE_STREAM
+// for file to get '\n'
+static const char * pcdvobjs_file_get_next_option (const char *data,
+        const char *delims, size_t *length)
+{
+    const char *head = data;
+    char *temp = NULL;
+
+    if ((delims == NULL) || (data == NULL) || (*delims == 0x00))
+        return NULL;
+
+    *length = 0;
+
+    while (*data != 0x00) {
+        temp = strchr (delims, *data);
+        if (temp)
+            break;
+        data++;
+    }
+
+    *length = data - head;
+
+    return head;
 }
 
 static void
 release_rwstream(void *native_entity)
 {
     purc_rwstream_destroy((purc_rwstream_t)native_entity);
+}
+
+static ssize_t find_line_stream (purc_rwstream_t stream, int line_num)
+{
+    size_t pos = 0;
+    unsigned char buffer[BUFFER_SIZE];
+    ssize_t read_size = 0;
+    size_t length = 0;
+    const char *head = NULL;
+
+    purc_rwstream_seek (stream, 0L, SEEK_SET);
+
+    while (line_num) {
+        read_size = purc_rwstream_read (stream, buffer, BUFFER_SIZE);
+        if (read_size < 0)
+            break;
+
+        head = pcdvobjs_file_get_next_option ((char *)buffer,
+                "\n", &length);
+        while (head) {
+            pos += length + 1;          // to be checked
+            line_num --;
+
+            if (line_num == 0)
+                break;
+
+            head = pcdvobjs_file_get_next_option (head + length + 1,
+                    "\n", &length);
+        }
+        if (read_size < BUFFER_SIZE)           // to the end
+            break;
+
+        if (line_num == 0)
+            break;
+    }
+
+    return pos;
 }
 
 static purc_variant_t
@@ -1679,6 +1683,7 @@ failed:
     
     return PURC_VARIANT_INVALID;
 }
+#endif
 
 #if 0   // we do not need close method, the rwstream will be destroyed
         // when the variant is released.
@@ -1724,7 +1729,6 @@ purc_variant_t pcdvobjs_create_file (void)
 {
     purc_variant_t file_text = PURC_VARIANT_INVALID;
     purc_variant_t file_bin = PURC_VARIANT_INVALID;
-    purc_variant_t file_stream = PURC_VARIANT_INVALID;
     purc_variant_t file = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method text [] = {
@@ -1735,6 +1739,8 @@ purc_variant_t pcdvobjs_create_file (void)
         {"head",     bin_head_getter, NULL},
         {"tail",     bin_tail_getter, NULL} };
 
+#if defined(FILE_STREAM) && FILE_STREAM
+    purc_variant_t file_stream = PURC_VARIANT_INVALID;
     static struct purc_dvobj_method  stream[] = {
         {"open",        stream_open_getter,        NULL},
         {"readstruct",  stream_readstruct_getter,  NULL},
@@ -1744,7 +1750,7 @@ purc_variant_t pcdvobjs_create_file (void)
         {"seek",        stream_seek_getter,        NULL},
         // {"close",       stream_close_getter,       NULL},
     };
-
+#endif
 
     file_text = purc_dvobj_make_from_methods (text, PCA_TABLESIZE(text));
     if (file_text == PURC_VARIANT_INVALID)
@@ -1755,17 +1761,20 @@ purc_variant_t pcdvobjs_create_file (void)
     if (file_bin == PURC_VARIANT_INVALID)
         goto error_bin;
 
+#if defined(FILE_STREAM) && FILE_STREAM
     file_stream = purc_dvobj_make_from_methods (stream, PCA_TABLESIZE(stream));
     if (file_stream == PURC_VARIANT_INVALID)
         goto error_stream;
 
     file = purc_variant_make_object_by_static_ckey (3,
-                                "txt",    file_text,
-                                "bin",    file_bin,
-                                "stream", file_stream);
-
+            "txt", file_text, "bin", file_bin, "stream", file_stream);
     purc_variant_unref (file_stream);
 error_stream:
+#else
+    file = purc_variant_make_object_by_static_ckey (2,
+            "txt", file_text, "bin", file_bin);
+#endif
+
     purc_variant_unref (file_bin);
 error_bin:
     purc_variant_unref (file_text);

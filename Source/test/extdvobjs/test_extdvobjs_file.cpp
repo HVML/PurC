@@ -365,6 +365,7 @@ TEST(dvobjs, dvobjs_file_bin_tail)
     purc_cleanup ();
 }
 
+#if 0
 TEST(dvobjs, dvobjs_file_stream_open_seek_close)
 {
     purc_variant_t param[MAX_PARAM_NR];
@@ -1075,3 +1076,4 @@ TEST(dvobjs, dvobjs_file_stream_read_write_struct)
 
     purc_cleanup ();
 }
+#endif  /* deprecated $FILE.stream */
