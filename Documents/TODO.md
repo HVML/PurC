@@ -56,6 +56,7 @@
 
 ### 2.2) HEE and HVML Parsing and Evaluating
 
+1. [0.9.a] Optimize the HVML and HEE parsing error messages.
 1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
 1. [0.9.2; Resolved] Support line comments in CHEE.
@@ -72,16 +73,16 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.8; Resolved] Basic support for `$PY`.
-1. [0.9.8] Basic support for `$SOCK`.
-1. [0.9.a] Support for the following URI schemas for `$STREAM`:
+1. [0.9.c] Basic support for `$SOCK`.
+1. [0.9.c] Support for the following URI schemas for `$STREAM`:
    - `fifo`
-1. [0.9.a] Support for the following filters for `$STREAM` and `$SOCKET`:
+1. [0.9.c] Support for the following filters for `$STREAM` and `$SOCKET`:
    - `http`
 1. [0.9.c] Complete the implementation of the following predefined variables:
    - `$URL`
    - `$STR`
    - `$DATA`
+1. [0.9.8; Resolved] Basic support for `$PY`.
 1. [0.9.6; Resolved] Complete the implementation of the following predefined variables:
    - `$DOC` (including the document entity and the element collection entity).
 1. [0.9.2; Resolved] In the implementation of predefined variables, use the interfaces for linear container instead of array.
@@ -140,11 +141,12 @@
 
 ### 2.6) `purc`
 
-1. [0.9.8] Enhance Foil to render borders.
-1. [0.9.8] Enhance Foil to support floats and absolute positioning.
-1. [0.9.8] Enhance Foil to support dynamic change of element styles and contents.
-1. [0.9.a] Enhance Foil to support table, flex, and grid layout.
+1. [0.9.a] Enhance Foil to support dynamic change of element styles and contents.
+1. [0.9.a] Enhance Foil to support table.
+1. [0.9.c] Enhance Foil to support flex and grid layout.
 1. [0.9.c] Enhance Foil to support full-screen, controls, and multiple-page rendering.
+1. [0.9.8; Resolved] Enhance Foil to render borders.
+1. [0.9.8; Resolved] Enhance Foil to support floats and absolute positioning.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
 1. [0.9.4; Resolved] Enhance Foil to support more properties and layouts except for table.
 1. [0.9.0; Resolved] A simple built-in HTML renderer (Foil) for text terminal via `THREAD` protocol.
