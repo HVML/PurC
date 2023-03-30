@@ -1,0 +1,168 @@
+#!/usr/local/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'f: FS'>
+<hvml target="html">
+    <head>
+        <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
+        <title>Foil Test Workshop</title>
+        <style hvml:raw>
+header h1 {
+    color:red;
+    text-align:center
+}
+
+.column {
+    display:inline-block;
+    width:40%;
+}
+
+.plain-list {
+    list-style-type:none;
+    margin:0px;
+}
+
+.case-lines {
+    appearance:progress-bar;
+    width:10em;
+}
+
+.total-progress {
+    appearance:progress-bar;
+    width:10em;
+}
+        </style>
+    </head>
+
+    <body>
+        <init as 'all_cases' with $FS.list_prt("$SYS.cwd/hvml", '*.hvml') >
+            <catch for `ANY`>
+                <inherit>
+                    $STREAM.stdout.writelines("Failed to get HVML program list in `$SYS.cwd/hvml` directoy (exception: $?.name)!")
+                </inherit>
+
+                <exit with false />
+            </catch>
+        </init>
+
+        <test with $L.eq($DATA.count($all_cases), 0L) >
+            <inherit>
+                $STREAM.stdout.writelines("No any HVML program in the `$SYS.cwd/hvml/` directory!")
+            </inherit>
+
+            <exit with false />
+        </test>
+
+        <header>
+            <h1>Foil Counting Lines in HVML Programs (total $DATA.count($all_cases) files)</h1>
+        </header>
+
+        <sort on $all_cases ascendingly />
+
+        <!-- trim suffix .hvml and split all cases to two parts -->
+        <init as 'cases_part_one' with [] />
+        <init as 'cases_part_two' with [] />
+        <iterate on $all_cases>
+            <init as 'case_name' with $STR.substr($?, 0, -5L) temp />
+            <test with $DATA.arith('%', $%, 2) >
+                <update on $cases_part_one to 'append' with $case_name />
+
+                <differ>
+                    <update on $cases_part_two to 'append' with $case_name />
+                </differ>
+            </test>
+            <update on $all_cases at "[$%]" with $case_name />
+        </iterate>
+
+        <define as 'one_column'>
+            <init as 'array_name' with $? temp />
+            <div class="column">
+                <ul class="plain-list">
+                    <iterate on ${$array_name}>
+                        <init as 'case_name' with $? temp />
+                        <li>
+                            <span class="case-name">$case_name: </span>
+                            <progress class="case-lines" id="progress-$case_name" max="200"></progress>
+                        </li>
+                    </iterate>
+                </ul>
+            </div>
+        </define>
+
+        <div>
+            <include with $one_column on 'cases_part_one' />
+            <include with $one_column on 'cases_part_two' />
+        </div>
+
+        <init as 'cases_part_one' with undefined />
+        <init as 'cases_part_two' with undefined />
+        <init as 'nr_total_cases' with $DATA.count($all_cases) />
+
+        <div>
+            <p>
+                <label for="totalProgress">Total progress: </label>
+                <progress id="totalProgress" class="total-progress" value="0" max="$nr_total_cases"></progress>
+            </p>
+        </div>
+
+        <define as 'count_lines_in_file' >
+            <return with 300L />
+        </define>
+
+        <init as 'total_idx' at '_root' with 0L />
+        <init as 'max_lines' at '_root' with 0L />
+        <init as 'failed_cases' at '_root' with [] />
+        <observe on $CRTN for 'idle'>
+            <choose on $all_cases[$total_idx] >
+                <init as 'case_name' with $? temp />
+                <init as 'file_name' with "$SYS.cwd/hvml/$?.hvml" temp />
+
+                <call on $count_lines_in_file with $file_name >
+
+                    <!-- inherit>
+                        $STREAM.stdout.writelines("result: $?")
+                    </inherit -->
+
+                    <test with $L.gt($?, 0L) >
+                        <update on "#progress-$case_name" at 'attr.value' with "$2?" />
+
+                        <differ>
+                            <update on $failed_cases to 'append' with $case_name />
+                            <update on "#progress-$case_name" at 'attr.value' with "0" />
+                        </differ>
+                    </test>
+
+                    <test with $L.gt($?, $max_lines) >
+                        <init as 'max_lines' at '_root' with $2? />
+                    </test>
+                </call>
+
+                <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
+                <update on "#totalProgress" at 'attr.value' with "$total_idx" />
+
+                <test with $L.ge($total_idx, $nr_total_cases) >
+                    <iterate on $all_cases>
+                        <update on "#progress-$?" at 'attr.max' with "$max_lines" />
+                    </iterate>
+
+                    <test with $failed_cases>
+
+                        <inherit>
+                            $STREAM.stdout.writelines("Failed cases:")
+                        </inherit>
+
+                        <iterate on $failed_cases>
+                            <inherit>
+                                $STREAM.stdout.writelines($?)
+                            </inherit>
+                        </iterate>
+                    </test>
+
+                    <exit with $failed_cases />
+                </test>
+
+            </choose>
+        </observe>
+
+    </body>
+</hvml>
+

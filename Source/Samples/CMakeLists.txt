@@ -103,6 +103,7 @@ set(sample_HVML_FILES
     "hvml/foil-fixed-2.hvml"
     "hvml/foil-fixed-3.hvml"
     "hvml/foil-fixed-4.hvml"
+    "hvml/foil-show-hvml-lines.hvml"
 )
 
 PURC_COPY_FILES(SampleHVMLFiles
