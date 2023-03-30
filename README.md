@@ -44,11 +44,13 @@ To learn the basic concepts of HVML programming, please refer to the following t
 
 - [HVML, a Programable Markup Language](https://github.com/HVML/hvml-docs/blob/master/en/a-brief-introduction-to-hvml-en.md)
 - [Learn HVML Programming in 30 Minutes](https://github.com/HVML/hvml-docs/blob/master/en/learn-hvml-programming-in-30-minutes-en.md)
+- [Embedding Python in HVML](https://github.com/HVML/HVML-Docs/blob/master/en/embed-python-in-hvml-program-en.md)
 
 For the Chinese version, please refer to the following links:
 
 - [漫谈 HVML，它的由来和未来](https://github.com/HVML/hvml-docs/blob/master/zh/a-brief-introduction-to-hvml-zh.md)
 - [30 分钟学会 HVML 编程](https://github.com/HVML/hvml-docs/blob/master/zh/learn-hvml-programming-in-30-minutes-zh.md)
+- [在 HVML 中嵌入 Python](https://github.com/HVML/HVML-Docs/blob/master/zh/embed-python-in-hvml-program-zh.md)
 
 For documents, specifications, and open-source software related to HVML, please refer to the following repositories:
 
