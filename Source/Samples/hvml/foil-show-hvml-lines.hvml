@@ -13,7 +13,7 @@ header h1 {
 
 .column {
     display:inline-block;
-    width:40%;
+    width:45%;
 }
 
 .plain-list {
