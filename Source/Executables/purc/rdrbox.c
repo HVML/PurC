@@ -1358,6 +1358,7 @@ static const char *replaced_tags_html[] = {
     "iframe",
     "img",
     "object",
+    "svg",
     "video",
 };
 
