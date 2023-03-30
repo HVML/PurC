@@ -498,9 +498,9 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
 static void adjust_viewport_line_mode(foil_widget *widget)
 {
     int widget_rows = foil_rect_height(&widget->client_rc);
-    int rows = widget->vh;
 
-    if (rows < widget->page.rows) {
+    if (widget->vy + widget->vh < widget->page.rows) {
+        int rows = widget->vh;
         while (rows < widget->page.rows) {
             int vy = widget_rows - widget->page.rows + rows;
             /* Writes the contents of lines off the scrolled screen. */

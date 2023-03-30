@@ -59,7 +59,7 @@ header h1 {
         </test>
 
         <!-- discard some members -->
-        <test with $L.gt($DATA.count($all_cases), 50L) >
+        <!-- test with $L.gt($DATA.count($all_cases), 50L) >
             <init as 'count' with $DATA.count($all_cases) temp />
             <iterate on 50L onlyif $L.lt($0~, $count)
                     with $DATA.arith('+', $0~, 1) nosetotail >
@@ -73,7 +73,7 @@ header h1 {
             </inherit>
 
             <exit with false />
-        </test>
+        </test-->
 
         <header>
             <h1>Counting Lines in HVML Programs (total $DATA.count($all_cases) files)</h1>
