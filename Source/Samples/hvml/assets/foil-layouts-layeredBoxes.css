@@ -1,7 +1,25 @@
+.container {
+    height:2in;
+}
 .pile {
     position: absolute;
-    left: 2in;
-    top: 2in;
-    width: 3in;
-    height: 3in;
+    left: 1in;
+    top: 1in;
+    height: 0.5in;
+}
+
+.border_red {
+    border-style: solid;
+    border-width: thick;
+    border-color: red;
+}
+.border_green {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+}
+.border_blue {
+    border-style: solid;
+    border-width: thick;
+    border-color: blue;
 }

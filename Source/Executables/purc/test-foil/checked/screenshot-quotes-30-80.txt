@@ -6,14 +6,14 @@
 [49m[39m  [91m                                                                            [39m  
 [49m[39m  [39m"Quote me!"[91m                                                                 [39m  
 [49m[39m  [91m                                                                            [39m  
-[49m[39m  [39m"中文双引号'嵌套单引号'"                                                    [39m  
+[49m[39m  [39m“中文双引号‘嵌套单引号’”                                                    [39m  
 [49m[39m  [91m                                                                            [39m  
-[49m[39m  [39m"Trøndere gråter når 'Vinsjan på kaia' blir deklamert."                     [39m  
+[49m[39m  [39m«Trøndere gråter når <Vinsjan på kaia> blir deklamert.»                     [39m  
 [49m[39m  [91m                                                                            [39m  
 [49m[39m  [91m                                                                            [39m  
-[49m[39m  [39m"This Spanish quote has a 'nested' quote inside."                           [39m  
-[49m[39m  [39m"This French quote has a 'nested' quote inside."                            [39m  
-[49m[39m  [39m"This German quote has a 'nested' quote inside."                            [39m  
+[49m[39m  [39m“This Spanish quote has a ‘nested’ quote inside.”                           [39m  
+[49m[39m  [39m« This French quote has a « nested » quote inside. »                        [39m  
+[49m[39m  [39m»This German quote has a ‹nested› quote inside.«                            [39m  
 [49m[39m                                                                                
 
 

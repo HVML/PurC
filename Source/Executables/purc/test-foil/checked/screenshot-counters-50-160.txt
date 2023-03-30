@@ -1,50 +1,50 @@
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39mThis is a pragraph.                                                                                                                                         [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m        This is a blockquote. [β]                                                                                                                           [39m  
+[49m[39m  [39m        This is a blockquote. [β]  [β]                                                                                                                      [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a note. (disc)                                                                                                                                      [39m  
+[49m[39m  [39m● This is a note. (disc)                                                                                                                                    [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThe 3rd head in level 2 (III)                                                                                                                               [39m  
+[49m[39m  [39mIII - The 3rd head in level 2 (III)                                                                                                                         [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m        This is a blockquote. [γ]                                                                                                                           [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a note. (disc)                                                                                                                                      [39m  
+[49m[39m  [39m        This is a blockquote. [γ]  [γ]                                                                                                                      [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThe 2nd head in level 1 (B.)                                                                                                                                [39m  
+[49m[39m  [39m● This is a note. (disc)                                                                                                                                    [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39mB. The 2nd head in level 1 (B.)                                                                                                                             [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThe 4th head in level 2 (I)                                                                                                                                 [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a pragraph.                                                                                                                                         [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m        This is a blockquote. [δ]                                                                                                                           [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a note. (disc)                                                                                                                                      [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThe 5th head in level 2 (II)                                                                                                                                [39m  
+[49m[39m  [39mI - The 4th head in level 2 (I)                                                                                                                             [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39mThis is a pragraph.                                                                                                                                         [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m        This is a blockquote. [ε]                                                                                                                           [39m  
+[49m[39m  [39m        This is a blockquote. [δ]  [δ]                                                                                                                      [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a note. (disc)                                                                                                                                      [39m  
+[49m[39m  [39m● This is a note. (disc)                                                                                                                                    [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThe 6th head in level 2 (III)                                                                                                                               [39m  
+[49m[39m  [39mII - The 5th head in level 2 (II)                                                                                                                           [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39mThis is a pragraph.                                                                                                                                         [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39m        This is a blockquote. [ζ]                                                                                                                           [39m  
+[49m[39m  [39m        This is a blockquote. [ε]  [ε]                                                                                                                      [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
 [49m[39m  [39m                                                                                                                                                            [39m  
-[49m[39m  [39mThis is a note. (disc)                                                                                                                                      [39m  
+[49m[39m  [39m● This is a note. (disc)                                                                                                                                    [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39mIII - The 6th head in level 2 (III)                                                                                                                         [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39mThis is a pragraph.                                                                                                                                         [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39m        This is a blockquote. [ζ]  [ζ]                                                                                                                      [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39m                                                                                                                                                            [39m  
+[49m[39m  [39m● This is a note. (disc)                                                                                                                                    [39m  
 [49m[39m                                                                                                                                                                

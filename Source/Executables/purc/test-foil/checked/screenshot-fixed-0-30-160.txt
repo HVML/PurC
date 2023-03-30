@@ -1,0 +1,30 @@
+[49m[39m                                                                                                                                                                
+[49m[39m    [91m┌───────────────┐[39m                                                                                                                       [91m┌────────────────┐[39m  
+[49m[39m    [91m│[39mfixed left top [91m│[39m                                                                                                                       [91m│[39mfixed right top [91m│[39m  
+[49m[39m    [91m└───────────────┘[39m                                                  [91mUsed Case: fixed-0[39m                                                   [91m└────────────────┘[39m  
+[49m[39m                                                                                                                                                                
+[49m[39m  [93m┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[39m  
+[49m[39m  [93m│[94m┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[93m│[39m  
+[49m[39m  [93m│[94m│[39mThis is some text 0. This is some text 1. This is some text 2. This is some text 3. This is some text 4. This is some text 5. This is some text 6. This [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[39mis some text 7. This is some text 8. This is some text 9. This is some text 10. This is some text 11. This is some text 12. This is some text 13. This [93m [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[39mis some text 14. This is some text 15. This is some text 16. This is some text 17. This is some text 18. This is some text 19. [93m                         [94m│[93m│[39m  
+[49m[39m  [93m│[94m└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘[93m│[39m  
+[49m[39m  [93m│[94m┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[93m│[39m  
+[49m[39m  [93m│[94m│[39mThis is some text 0. This is some text 1. This is some text 2. This is some text 3. This is some text 4. This is some text 5. This is some text 6. This [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[39mis some text 7. This is some text 8. This is some text 9. This is some text 10. This is some text 11. This is some text 12. This is some text 13. This  [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[39mis some text 14. This is some text 15. This is some text 16. This is some text 17. This is some text 18. This is some text 19.                          [94m│[93m│[39m  
+[49m[39m  [93m│[94m└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘[93m│[39m  
+[49m[39m  [93m│[94m┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[93m│[39m  
+[49m[39m  [93m│[94m│[39mThis is some text 0. This is some text 1. This is some text 2. This is some text 3. This is some text 4. This is some text 5. This is some text 6. This [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[39mis some text 7. This is some text 8. This is some text 9. This is some text 10. This is some text 11. This is some text 12. This is some text 13. This  [94m│[93m│[39m  
+[49m[39m  [93m│[94m│[91m┌──────────────────┐[39ms is some text 15. This is some text 16. This is some text 17. This is some text 18. This is some text 19.       [91m┌───────────────────┐[39m  
+[49m[39m  [93m│[94m└[91m│[39mfixed left bottom [91m│[94m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────[91m│[39mfixed right bottom [91m│[39m  
+[49m[39m  [93m└─[91m└──────────────────┘[93m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────[91m└───────────────────┘[39m  
+[49m[39m                                                                                                                                                                
+
+
+
+
+
+
+

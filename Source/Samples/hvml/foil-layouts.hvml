@@ -77,20 +77,20 @@
 
         <init as 'caseName' with 'layeredBoxes' temp />
         <define as "$caseName" from "hvml/assets/foil-layouts-{$caseName}.html" silently>
-          <SECTION id="$caseName">
+          <SECTION id="$caseName" class="container border_red">
             <P>
               <IMG id="image" class="pile" src="butterfly.png" alt="A butterfly image" style="z-index: 1" />
             </P>
 
-            <DIV id="text1" class="pile" style="z-index: 3">
+            <DIV id="text1" class="pile border_red" style="z-index: 3">
               This text will overlay the butterfly image.
             </DIV>
 
-            <DIV id="text2">
+            <DIV id="text2" class="border_green">
               This text will be beneath everything.
             </DIV>
 
-            <DIV id="text3" class="pile" style="z-index: 2">
+            <DIV id="text3" class="pile border_blue" style="z-index: 2">
               This text will underlay text1, but overlay the butterfly image.
             </DIV>
 

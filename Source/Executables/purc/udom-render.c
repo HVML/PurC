@@ -665,8 +665,6 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         render_marker_box(ctxt, box->list_item_data->marker_box);
     }
 
-    bool floating = false;
-    bool abs_positioned = false;
     foil_rdrbox *child = box->first;
     while (child) {
 
@@ -675,38 +673,37 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         if (child->is_in_flow && !child->position && child->is_block_level) {
             render_normal_boxes_in_tree_order(ctxt, child);
         }
-        else if (child->floating) {
-            floating = true;
-        }
-        else if (child->is_abs_positioned) {
-            abs_positioned = true;
-        }
 
         child = child->next;
     }
+}
 
-    if (floating) {
-        child = box->first;
-        while (child) {
-
-            if (child->floating) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
-
-            child = child->next;
-        }
+static void
+render_floating_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    if (!box->position && box->floating) {
+        render_normal_boxes_in_tree_order(ctxt, box);
     }
 
-    if (abs_positioned) {
-        child = box->first;
-        while (child) {
+    foil_rdrbox *child = box->first;
+    while (child) {
+        render_floating_boxes_in_tree_order(ctxt, child);
+        child = child->next;
+    }
+}
 
-            if (child->is_abs_positioned) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
+static void
+render_abs_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
 
-            child = child->next;
+    foil_rdrbox *child = box->first;
+    while (child) {
+        if (child->nr_abspos_children) {
+            render_rdrbox_with_stacking_ctxt(ctxt, NULL, child);
         }
+        child = child->next;
     }
 }
 
@@ -800,6 +797,11 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         // non-positioned, block-level descendants in tree order:
         render_normal_boxes_in_tree_order(rdr_ctxt, box);
     }
+
+    // FIXME: render_rdrbox_with_stacking_ctxt(&rdr_ctxt, root->stacking_ctxt, root);
+    // recursion not reach root's grandchildren (hvml->body->grandchildren)
+    render_floating_boxes_in_tree_order(rdr_ctxt, box);
+    render_abs_boxes_in_tree_order(rdr_ctxt, box);
 
     // All positioned descendants with 'z-index: auto' or 'z-index: 0',
     // in tree order.
