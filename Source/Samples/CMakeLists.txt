@@ -2,10 +2,10 @@ add_subdirectory(PurC)
 add_subdirectory(CSSEng)
 add_subdirectory(DOMRuler)
 
-PURC_COPY_FILES(ScriptToRunSamples
-    DESTINATION ${CMAKE_BINARY_DIR}/
-    FILES run_all_samples.sh
-)
+#PURC_COPY_FILES(ScriptToRunSamples
+#    DESTINATION ${CMAKE_BINARY_DIR}/
+#    FILES run_all_samples.sh
+#)
 
 set(sample_HVML_FILES
     "hvml/hello.hvml"
