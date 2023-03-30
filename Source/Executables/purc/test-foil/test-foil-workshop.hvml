@@ -29,7 +29,7 @@ header h1 {
 
 .total-progress {
     appearance:progress-bar;
-    width:100%;
+    width:60%;
 }
         </style>
     </head>
