@@ -1,6 +1,6 @@
 #!/usr/local/bin/purc
 
-<!DOCTYPE hvml SYSTEM 'f: FS'>
+<!DOCTYPE hvml SYSTEM 'f: FS.FS FS.FILE'>
 <hvml target="html">
     <head>
         <base href=$CRTN.base(! "file://$SYS.cwd/" ) hvml:silently />
@@ -26,6 +26,12 @@ header h1 {
     width:10em;
 }
 
+.case-mark {
+    appearance:meter-mark;
+    width:1em;
+    -foil-candidate-marks:'✗…↷↻?✓';
+}
+
 .total-progress {
     appearance:progress-bar;
     width:10em;
@@ -47,6 +53,23 @@ header h1 {
         <test with $L.eq($DATA.count($all_cases), 0L) >
             <inherit>
                 $STREAM.stdout.writelines("No any HVML program in the `$SYS.cwd/hvml/` directory!")
+            </inherit>
+
+            <exit with false />
+        </test>
+
+        <!-- discard some members -->
+        <test with $L.gt($DATA.count($all_cases), 50L) >
+            <init as 'count' with $DATA.count($all_cases) temp />
+            <iterate on 50L onlyif $L.lt($0~, $count)
+                    with $DATA.arith('+', $0~, 1) nosetotail >
+                <update on $all_cases at "[50]" to 'remove' />
+            </iterate>
+        </test>
+
+        <test with $L.gt($DATA.count($all_cases), 50L) >
+            <inherit>
+                $STREAM.stdout.writelines("Too many files: $DATA.count($all_cases)!")
             </inherit>
 
             <exit with false />
@@ -81,7 +104,8 @@ header h1 {
                         <init as 'case_name' with $? temp />
                         <li>
                             <span class="case-name">$case_name: </span>
-                            <progress class="case-lines" id="progress-$case_name" max="200"></progress>
+                            <meter class="case-mark" id="case-mark-$case_name" value="20" min="0" max="100" low="20" high="90" optimum="95"></meter>
+                            <!-- progress class="case-lines" id="progress-$case_name" max="200"></progress -->
                         </li>
                     </iterate>
                 </ul>
@@ -105,49 +129,59 @@ header h1 {
         </div>
 
         <define as 'count_lines_in_file' >
-            <return with 300L />
+            <init as 'lines' with $FILE.txt.head($?) temp>
+                <catch `ANY`>
+                    <return with -1L />
+                </catch>
+            </init>
+            <return with $DATA.count($lines) />
         </define>
 
         <init as 'total_idx' at '_root' with 0L />
-        <init as 'max_lines' at '_root' with 0L />
+        <init as 'total_lines' at '_root' with 0L />
         <init as 'failed_cases' at '_root' with [] />
         <observe on $CRTN for 'idle'>
             <choose on $all_cases[$total_idx] >
                 <init as 'case_name' with $? temp />
                 <init as 'file_name' with "$SYS.cwd/hvml/$?.hvml" temp />
 
+                <update on "#case-mark-$case_name" at 'attr.value' with "60" />
                 <call on $count_lines_in_file with $file_name >
 
                     <!-- inherit>
                         $STREAM.stdout.writelines("result: $?")
                     </inherit -->
 
-                    <test with $L.gt($?, 0L) >
-                        <update on "#progress-$case_name" at 'attr.value' with "$2?" />
+                    <test with $L.ge($?, 0L) >
+                        <update on "#case-mark-$case_name" at 'attr.value' with "100" />
+                        <!-- update on "#progress-$case_name" at 'attr.value' with "$2?" /-->
 
                         <differ>
                             <update on $failed_cases to 'append' with $case_name />
-                            <update on "#progress-$case_name" at 'attr.value' with "0" />
+                            <update on "#case-mark-$case_name" at 'attr.value' with "0" />
+                            <!-- update on "#progress-$case_name" at 'attr.value' with "0" /-->
                         </differ>
                     </test>
 
-                    <test with $L.gt($?, $max_lines) >
-                        <init as 'max_lines' at '_root' with $2? />
-                    </test>
+                    <init as 'total_lines' at '_root' with $DATA.arith('+', $?, $total_lines) />
                 </call>
 
                 <init as 'total_idx' at '_root' with $DATA.arith('+', $total_idx, 1L) />
                 <update on "#totalProgress" at 'attr.value' with "$total_idx" />
 
                 <test with $L.ge($total_idx, $nr_total_cases) >
-                    <iterate on $all_cases>
+                    <!-- iterate on $all_cases>
                         <update on "#progress-$?" at 'attr.max' with "$max_lines" />
-                    </iterate>
+                    </iterate -->
+
+                    <!-- inherit>
+                        $STREAM.stdout.writelines("Total lines in $nr_total_cases files: $total_lines")
+                    </inherit -->
 
                     <test with $failed_cases>
 
                         <inherit>
-                            $STREAM.stdout.writelines("Failed cases:")
+                            $STREAM.stdout.writelines("Files failed to open:")
                         </inherit>
 
                         <iterate on $failed_cases>
@@ -157,7 +191,7 @@ header h1 {
                         </iterate>
                     </test>
 
-                    <exit with $failed_cases />
+                    <exit with $total_lines />
                 </test>
 
             </choose>

@@ -1760,7 +1760,7 @@ purc_variant_t pcdvobjs_create_file (void)
         goto error_stream;
 
     file = purc_variant_make_object_by_static_ckey (3,
-                                "text",   file_text,
+                                "txt",    file_text,
                                 "bin",    file_bin,
                                 "stream", file_stream);
 

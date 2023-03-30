@@ -67,7 +67,7 @@ TEST(dvobjs, dvobjs_file_text_head)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey(file, "text");
+    purc_variant_t text = purc_variant_object_get_by_ckey(file, "txt");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
@@ -152,7 +152,7 @@ TEST(dvobjs, dvobjs_file_text_tail)
     ASSERT_NE(file, nullptr);
     ASSERT_EQ(purc_variant_is_object (file), true);
 
-    purc_variant_t text = purc_variant_object_get_by_ckey (file, "text");
+    purc_variant_t text = purc_variant_object_get_by_ckey (file, "txt");
     ASSERT_NE(text, nullptr);
     ASSERT_EQ(purc_variant_is_object (text), true);
 
