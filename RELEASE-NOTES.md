@@ -39,6 +39,7 @@ In this version, we fixed some bugs and made som enhancements:
    - Add a new exception `ExternalFailure` for errors in external dynamic variant objects.
    - The native entity now supports getter and setter on itself.
    - Add a new post listener operation: `PCVAR_OPERATION_RELEASING`.
+   - Add a auto-test HVML program and many test cases to test Foil renderer.
 * OPTIMIZATIONS:
 * ADJUSTMENTS:
 * BUGFIXES:
@@ -47,8 +48,9 @@ In this version, we fixed some bugs and made som enhancements:
 * CLEANUP:
    - Remove repeated identical test (from @bkmgit)
 * SAMPLES:
-   - A new sample `embedded-python-find-primes.hvml`: Embeding Python in HVML to find primes.
-   - A new sample `embedded-python-animated-3d-random-walk.hvml`: Embeding Python in HVML to show the animated 3D random walks.
+   - A new sample `embed-python-looking-for-primes.hvml`: Embeding Python in HVML to find primes.
+   - A new sample `embed-python-animated-3d-random-walk.hvml`: Embeding Python in HVML to show the animated 3D random walks.
+   - A new sample `foil-three-columns.hvml`: Using Foil to show three columns to run samples.
 
 ## Version 0.9.6
 
