@@ -98,7 +98,7 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.e] Optimize and improve the synchronization between eDOM and uDOM when multiple coroutines share the same eDOM.
+1. [0.9.a] Tune the implementation related to PURCMC protocol to support plainwin/widget management.
 1. [0.9.e] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
