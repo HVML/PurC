@@ -28,6 +28,7 @@
 #include "rdrbox.h"
 #include "rdrbox-internal.h"
 #include "udom.h"
+#include "page.h"
 
 #include <assert.h>
 
@@ -73,6 +74,10 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
                     box->tailor_data->ucs, box->tailor_data->nr_ucs,
                     &box->tailor_data->break_oppos);
         }
+
+        box->inline_data = calloc(1, sizeof(*box->inline_data));
+        INIT_LIST_HEAD(&box->inline_data->paras);
+        foil_rdrbox_init_inline_data(ctxt, box, text, len);
     }
 
     return 0;
@@ -88,12 +93,110 @@ static void cleaner(struct foil_rdrbox *box)
     free(box->tailor_data);
 }
 
+static inline int width_to_cols(int width)
+{
+    assert(width % FOIL_PX_GRID_CELL_W == 0);
+    return width / FOIL_PX_GRID_CELL_W;
+}
+
+static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
+{
+    (void)ctxt;
+    struct _inline_box_data *inline_data = box->inline_data;
+
+    if (inline_data->nr_paras == 0) {
+        return;
+    }
+
+
+    foil_rect *rc_dest = &box->ctnt_rect;
+    int x = rc_dest->left;
+    int y = rc_dest->top;
+    int left_extent = rc_dest->right - rc_dest->left;
+    if (left_extent <= 0) {
+        goto failed;
+    }
+
+    foil_rect page_rc;
+    foil_rdrbox_map_rect_to_page(rc_dest, &page_rc);
+
+    const uint32_t render_flags =
+        FOIL_GRF_WRITING_MODE_HORIZONTAL_TB |
+        FOIL_GRF_TEXT_ORIENTATION_UPRIGHT |
+        FOIL_GRF_OVERFLOW_WRAP_NORMAL;
+
+    struct text_paragraph *p;
+    list_for_each_entry(p, &inline_data->paras, ln) {
+        assert(p->nr_ucs > 0);
+
+        if (p->glyph_poses == NULL) {
+            p->glyph_poses = malloc(sizeof(foil_glyph_pos) * p->nr_ucs);
+            if (p->glyph_poses == NULL)
+                goto failed;
+        }
+
+        size_t nr_laid = 0;
+        while (nr_laid < p->nr_ucs) {
+            foil_size seg_size;
+            size_t n =
+                foil_ustr_get_glyphs_extent_simple(p->ucs + nr_laid,
+                        p->nr_ucs - nr_laid,
+                        p->break_oppos + nr_laid + 1, render_flags,
+                        0, 0,
+                        box->letter_spacing, box->word_spacing, 0,
+                        left_extent, &seg_size, NULL,
+                        p->glyph_poses + nr_laid);
+            assert(n > 0);
+            if (seg_size.cx > left_extent) {
+                /* new line */
+                x = rc_dest->left;
+                y += box->line_height;
+                left_extent = rc_dest->right - rc_dest->left;
+                continue;
+            }
+
+            foil_page_set_fgc(ctxt->udom->page, box->color);
+
+            uint32_t *ucs = p->ucs + nr_laid;
+            foil_glyph_pos *poses = p->glyph_poses + nr_laid;
+            for (size_t i = 0; i < n; i++) {
+                if (poses[i].suppressed) {
+                    continue;
+                }
+
+                int px = x / FOIL_PX_GRID_CELL_W + width_to_cols(poses[i].x);
+                int py = y / FOIL_PX_GRID_CELL_H;
+
+                foil_page_draw_uchar(ctxt->udom->page, px, py, ucs[i], 1);
+            }
+
+            nr_laid += n;
+            if (seg_size.cx > left_extent) {
+                x = rc_dest->left;
+                y += box->line_height;
+                left_extent = rc_dest->right - rc_dest->left;
+            }
+            else {
+                left_extent -= seg_size.cx;
+                x += seg_size.cx;
+            }
+        }
+
+        if ((p->break_oppos[p->nr_ucs] & FOIL_BOV_LB_MASK) == FOIL_BOV_LB_MANDATORY) {
+            x = rc_dest->left;
+            y += box->line_height;
+            left_extent = rc_dest->right - rc_dest->left;
+        }
+    }
+
+failed:
+    return;
+}
+
 static void
 ctnt_painter(struct foil_render_ctxt *ctxt, struct foil_rdrbox *box)
 {
-    // TODO
-    (void)ctxt;
-    (void)box;
+    paint_alt(ctxt, box);
 }
 
 static struct foil_rdrbox_tailor_ops replaced_ops = {

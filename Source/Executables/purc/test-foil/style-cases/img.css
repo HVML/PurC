@@ -1,11 +1,7 @@
-.container {
-    height:2in;
-}
-.pile {
-    position: absolute;
-    left: 1in;
-    top: 1in;
-    height: 0.5in;
+.border_yellow {
+    border-style: solid;
+    border-width: thick;
+    border-color: yellow;
 }
 .border_red {
     border-style: solid;
@@ -22,3 +18,7 @@
     border-width: thick;
     border-color: blue;
 }
+.img_cls {
+    width:50px;
+}
+
