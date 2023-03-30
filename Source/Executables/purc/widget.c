@@ -478,8 +478,9 @@ static void print_dirty_page_area_line_mode(foil_widget *widget)
                 rel_row, rel_col);
 
         /* restore curosr and move cursor rel_row up lines,
-           move curosr rel_col right columns */
-        snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dC", rel_row, rel_col + 1);
+           move curosr to the 'rel_col + 1' column */
+        snprintf(buf, sizeof(buf), "\0338\x1b[%dA\x1b[%dG",
+                rel_row, rel_col + 1);
         fputs(buf, stdout);
         fputs(escaped_str, stdout);
         free(escaped_str);
@@ -504,11 +505,12 @@ static void adjust_viewport_line_mode(foil_widget *widget)
         while (rows < widget->page.rows) {
             int vy = widget_rows - widget->page.rows + rows;
             /* Writes the contents of lines off the scrolled screen. */
-            if (vy < 0) {
+            if (vy <= 0) {
                 struct foil_tty_cell *cell = widget->page.cells[rows];
                 char *escaped_str = make_escape_string_line_mode(
                         &widget->page, cell, widget->page.cols);
                 fputs(escaped_str, stdout);
+                free(escaped_str);
             }
 
             fputs("\n", stdout);
