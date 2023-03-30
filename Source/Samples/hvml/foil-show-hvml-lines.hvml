@@ -76,7 +76,7 @@ header h1 {
         </test>
 
         <header>
-            <h1>Foil Counting Lines in HVML Programs (total $DATA.count($all_cases) files)</h1>
+            <h1>Counting Lines in HVML Programs (total $DATA.count($all_cases) files)</h1>
         </header>
 
         <sort on $all_cases ascendingly />
@@ -174,9 +174,9 @@ header h1 {
                         <update on "#progress-$?" at 'attr.max' with "$max_lines" />
                     </iterate -->
 
-                    <!-- inherit>
+                    <inherit>
                         $STREAM.stdout.writelines("Total lines in $nr_total_cases files: $total_lines")
-                    </inherit -->
+                    </inherit>
 
                     <test with $failed_cases>
 
