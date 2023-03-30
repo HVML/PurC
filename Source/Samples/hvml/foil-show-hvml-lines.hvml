@@ -1,4 +1,4 @@
-#!/usr/local/bin/purc
+#!/usr/bin/env purc
 
 <!DOCTYPE hvml SYSTEM 'f: FS.FS FS.FILE'>
 <hvml target="html">
