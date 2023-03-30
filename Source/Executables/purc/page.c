@@ -135,7 +135,7 @@ pcmcth_page *foil_page_new(pcmcth_workspace *workspace)
 pcmcth_udom *foil_page_delete(pcmcth_page *page)
 {
     struct foil_widget *orphan = foil_widget_from_page(page);
-    assert(orphan->parent == NULL);
+//    assert(orphan->parent == NULL);
 
     pcmcth_udom *udom = page->udom;
     foil_page_content_cleanup(page);

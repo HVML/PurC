@@ -592,6 +592,9 @@ render_runbox(struct foil_render_ctxt *ctxt, struct _line_info *line,
         if (run->span) {
             render_runbox_part(ctxt, line, run, FOIL_BOX_PART_CONTENT);
         }
+        else if (box->is_replaced) {
+            render_rdrbox_part(ctxt, box, FOIL_BOX_PART_CONTENT);
+        }
         else if (box->is_in_flow && !box->position && box->is_inline_level) {
             render_rdrbox_in_line(ctxt, line, box);
         }

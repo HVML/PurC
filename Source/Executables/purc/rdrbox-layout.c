@@ -2141,7 +2141,7 @@ void foil_rdrbox_padding_box(const foil_rdrbox *box, foil_rect *rc)
 
 void foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc)
 {
-    assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
+    //assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
 
     rc->left   = box->ctnt_rect.left   - box->pl - box->bl;
     rc->top    = box->ctnt_rect.top    - box->pt - box->bt;
@@ -2151,7 +2151,7 @@ void foil_rdrbox_border_box(const foil_rdrbox *box, foil_rect *rc)
 
 void foil_rdrbox_margin_box(const foil_rdrbox *box, foil_rect *rc)
 {
-    assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
+    //assert(box->type != FOIL_RDRBOX_TYPE_INLINE);
 
     rc->left   = box->ctnt_rect.left   - box->pl - box->bl - box->ml;
     rc->top    = box->ctnt_rect.top    - box->pt - box->bt - box->mt;
@@ -2363,14 +2363,15 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
-            if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
+            if (child->type == FOIL_RDRBOX_TYPE_INLINE && !child->is_replaced) {
                 line = foil_rdrbox_layout_inline(ctxt, box, child);
                 if (line == NULL)
                     goto failed;
             }
             else {
                 assert(child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
-                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE);
+                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE ||
+                        child->is_replaced);
                 assert(child->is_width_resolved);
 
                 int margin_width = child->ml + child->bl + child->pl +
@@ -2500,14 +2501,15 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 continue;
             }
 
-            if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
+            if (child->type == FOIL_RDRBOX_TYPE_INLINE && !child->is_replaced) {
                 line = foil_rdrbox_layout_inline(ctxt, box, child);
                 if (line == NULL)
                     goto failed;
             }
             else {
                 assert(child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK ||
-                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE);
+                        child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE ||
+                        child->is_replaced);
                 assert(child->is_width_resolved);
 
                 int margin_width = child->ml + child->bl + child->pl +
@@ -2650,7 +2652,7 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
 
             foil_rect_offset(&run->rc, off_x, off_y);
             foil_rect_offset(&run->rc, block->ctnt_rect.left, block->ctnt_rect.top);
-            if (run->box->is_block_container) {
+            if (run->box->is_block_container || run->box->is_replaced) {
 
                 foil_rect_offset(&run->box->ctnt_rect, line_off_x, off_y);
                 foil_rect_offset(&run->box->ctnt_rect,

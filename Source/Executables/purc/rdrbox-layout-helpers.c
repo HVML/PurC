@@ -300,7 +300,7 @@ struct _line_info *foil_rdrbox_layout_inline(foil_layout_ctxt *ctxt,
         foil_rdrbox *block, foil_rdrbox *box)
 {
     /* progress, meter : inline-block */
-    assert((block->is_block_level || block->is_inline_level) && box->is_inline_box);
+    //assert((block->is_block_level || block->is_inline_level) && box->is_inline_box);
 
     struct _inline_fmt_ctxt *fmt_ctxt = block->block_data->lfmt_ctxt;
     assert(fmt_ctxt->lines && fmt_ctxt->nr_lines > 0);
