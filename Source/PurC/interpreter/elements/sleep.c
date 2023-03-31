@@ -324,27 +324,28 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
                 frame->pos->tag_name);
         return -1;
     }
-    long int n;
-    char *end;
+
     errno = 0;
-    n = strtol(s, &end, 0);
-    if (n == LONG_MIN || n == LONG_MAX) {
-        if (errno == ERANGE) {
-            purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                    "vdom attribute 'for' for element <%s> "
-                    "is overflow/underflow",
-                    frame->pos->tag_name);
-            return -1;
-        }
+    char *end;
+    double n = strtod(s, &end);
+
+    if (errno == ERANGE) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute 'for' for element <%s> "
+                "is overflow/underflow",
+                frame->pos->tag_name);
+        return -1;
     }
-    if (n < 0)
-        n = 0;
 
     if (!end) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "vdom attribute 'for' for element <%s> no unit specified",
                 frame->pos->tag_name);
         return -1;
+    }
+
+    if (n < 0) {
+        n = 0;
     }
 
     if (strcmp(end, "ns") == 0) {
