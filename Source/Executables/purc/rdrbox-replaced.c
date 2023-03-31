@@ -55,6 +55,7 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     }
 
     if (len > 0) {
+#if 0
         box->tailor_data = calloc(1, sizeof(struct _tailor_data));
 
         size_t consumed = foil_ustr_from_utf8_until_paragraph_boundary(text,
@@ -74,6 +75,7 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
                     box->tailor_data->ucs, box->tailor_data->nr_ucs,
                     &box->tailor_data->break_oppos);
         }
+#endif
 
         box->inline_data = calloc(1, sizeof(*box->inline_data));
         INIT_LIST_HEAD(&box->inline_data->paras);
@@ -85,12 +87,15 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 
 static void cleaner(struct foil_rdrbox *box)
 {
+    (void) box;
+#if 0
     assert(box->tailor_data);
     if (box->tailor_data->ucs)
         free(box->tailor_data->ucs);
     if (box->tailor_data->break_oppos)
         free(box->tailor_data->break_oppos);
     free(box->tailor_data);
+#endif
 }
 
 static inline int width_to_cols(int width)
@@ -112,8 +117,9 @@ static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
     foil_rect *rc_dest = &box->ctnt_rect;
     int x = rc_dest->left;
     int y = rc_dest->top;
+    int bottom = rc_dest->bottom;
     int left_extent = rc_dest->right - rc_dest->left;
-    if (left_extent <= 0) {
+    if (left_extent <= 0 || y >= bottom) {
         goto failed;
     }
 
@@ -149,8 +155,11 @@ static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
             assert(n > 0);
             if (seg_size.cx > left_extent) {
                 /* new line */
-                x = rc_dest->left;
                 y += box->line_height;
+                if (y >= bottom) {
+                    goto paint_overflow;
+                }
+                x = rc_dest->left;
                 left_extent = rc_dest->right - rc_dest->left;
                 continue;
             }
@@ -159,21 +168,26 @@ static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
 
             uint32_t *ucs = p->ucs + nr_laid;
             foil_glyph_pos *poses = p->glyph_poses + nr_laid;
+
+            int px = x / FOIL_PX_GRID_CELL_W;
+            int py = y / FOIL_PX_GRID_CELL_H;
+
             for (size_t i = 0; i < n; i++) {
                 if (poses[i].suppressed) {
                     continue;
                 }
 
-                int px = x / FOIL_PX_GRID_CELL_W + width_to_cols(poses[i].x);
-                int py = y / FOIL_PX_GRID_CELL_H;
-
-                foil_page_draw_uchar(ctxt->udom->page, px, py, ucs[i], 1);
+                foil_page_draw_uchar(ctxt->udom->page,
+                        px + width_to_cols(poses[i].x), py, ucs[i], 1);
             }
 
             nr_laid += n;
             if (seg_size.cx > left_extent) {
-                x = rc_dest->left;
                 y += box->line_height;
+                if (y >= bottom) {
+                    goto paint_overflow;
+                }
+                x = rc_dest->left;
                 left_extent = rc_dest->right - rc_dest->left;
             }
             else {
@@ -183,11 +197,33 @@ static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
         }
 
         if ((p->break_oppos[p->nr_ucs] & FOIL_BOV_LB_MASK) == FOIL_BOV_LB_MANDATORY) {
-            x = rc_dest->left;
             y += box->line_height;
+            if (y >= bottom) {
+                goto paint_overflow;
+            }
+            x = rc_dest->left;
             left_extent = rc_dest->right - rc_dest->left;
         }
     }
+    return;
+
+paint_overflow:
+    if (rc_dest->right - x < 3) {
+        x = rc_dest->right - 3;
+    }
+
+    if (x <= rc_dest->left) {
+        return;
+    }
+
+    uint32_t ucs = '.';
+    y = y - box->line_height;
+    int px = x / FOIL_PX_GRID_CELL_W;
+    int py = y / FOIL_PX_GRID_CELL_H;
+    for (size_t i = 0; i < 3; i++) {
+        foil_page_draw_uchar(ctxt->udom->page, px + i, py, ucs, 1);
+    }
+
 
 failed:
     return;
