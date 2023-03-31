@@ -83,6 +83,7 @@ set(sample_HVML_FILES
     "hvml/embed-python-looking-for-primes-ul.hvml"
     "hvml/embed-python-looking-for-primes.hvml"
     "hvml/embed-python-animated-3d-random-walk.hvml"
+    "hvml/list-hvml-files.hvml"
     "hvml/foil-show-hvml-lines.hvml"
 )
 
