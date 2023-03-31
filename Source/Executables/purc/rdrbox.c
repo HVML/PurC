@@ -1296,6 +1296,9 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
     v = css_computed_quotes(ctxt->style, &strings);
     if (v == CSS_QUOTES_INHERIT) {
         if (ctxt->parent_box->quotes) {
+            if (box->quotes) {
+                foil_quotes_unref(box->quotes);
+            }
             box->quotes = foil_quotes_ref(ctxt->parent_box->quotes);
         }
     }
@@ -1312,6 +1315,9 @@ static void dtrm_common_properties(foil_create_ctxt *ctxt,
         }
 
         if (n > 0 && strings != NULL) {
+            if (box->quotes) {
+                foil_quotes_unref(box->quotes);
+            }
             box->quotes = foil_quotes_new_lwc(n, strings);
         }
     }
@@ -1943,9 +1949,8 @@ init_pseudo_box_content(foil_create_ctxt *ctxt, foil_rdrbox *box)
             if (!foil_rdrbox_init_inline_data(ctxt, inline_box,
                         text->str, text->len))
                 goto failed;
-
-            g_string_free(text, TRUE);
         }
+        g_string_free(text, TRUE);
     }
 
     return;
