@@ -17,6 +17,7 @@
     </iterate>
 
     <observe on $CRTN for 'idle'>
+        <sleep for 0.5s />
         <exit with $count />
     </observe>
 </hvml>
