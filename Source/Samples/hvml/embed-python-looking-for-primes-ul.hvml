@@ -5,7 +5,7 @@
 <!DOCTYPE hvml SYSTEM "f: PY">
 <hvml target="html">
     <head>
-        <title>Embedding Python in HVML: Looking for Primes</title>
+        <title>Embedding Python in HVML: Find Primes</title>
     </head>
 
     <body>
@@ -49,7 +49,7 @@ def find_next_prime(start):
             </catch>
         </inherit>
 
-        <h1>Embedding Python in HVML: Looking for Primes</h1>
+        <h1>Embedding Python in HVML: Find Primes</h1>
 
         <ul>
             <!--
