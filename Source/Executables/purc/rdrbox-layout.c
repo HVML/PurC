@@ -1350,6 +1350,9 @@ static void inherit_used_values(foil_rdrbox *box, const foil_rdrbox *from)
     memcpy(dst, start, nr_bytes);
 
     if (from->quotes) {
+        if (box->quotes) {
+            foil_quotes_unref(box->quotes);
+        }
         box->quotes = foil_quotes_ref(from->quotes);
     }
 }

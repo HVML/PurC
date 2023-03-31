@@ -209,18 +209,25 @@ static int send_simple_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
     (void)rdr;
+    int ret = PCRDR_SC_OK;
     pcrdr_msg *my_msg = pcrdr_clone_message(msg);
     if (my_msg == NULL) {
-        return PCRDR_SC_INSUFFICIENT_STORAGE;
+        ret = PCRDR_SC_INSUFFICIENT_STORAGE;
+        goto out;
     }
 
     if (purc_inst_move_message(endpoint->rid, my_msg) == 0) {
         LOG_ERROR("Failed to move message to %u\n", endpoint->rid);
-        return PCRDR_SC_INTERNAL_SERVER_ERROR;
+        ret = PCRDR_SC_INTERNAL_SERVER_ERROR;
     }
 
     pcrdr_release_message(my_msg);
-    return PCRDR_SC_OK;
+
+out:
+    if (msg->data) {
+        purc_variant_unref(msg->data);
+    }
+    return ret;
 }
 
 int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint)

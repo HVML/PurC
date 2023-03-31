@@ -33,13 +33,78 @@
 #include <assert.h>
 
 struct _tailor_data {
-    /* the code points of text in Unicode (logical order) */
-    uint32_t *ucs;
-    size_t nr_ucs;
-
-    /* the break opportunities of the characters */
-    foil_break_oppo_t *break_oppos;
+    struct _inline_box_data *inline_data;
 };
+
+static void inline_data_cleaner(struct _inline_box_data *inline_data)
+{
+    struct text_paragraph *p, *n;
+    list_for_each_entry_safe(p, n, &inline_data->paras, ln) {
+        list_del(&p->ln);
+        free(p->ucs);
+        if (p->break_oppos)
+            free(p->break_oppos);
+        if (p->glyph_poses)
+            free(p->glyph_poses);
+        free(p);
+    }
+}
+
+static bool init_inline_data(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, struct _inline_box_data *inline_data,
+        const char *text, size_t len)
+{
+    (void)ctxt;
+
+    size_t consumed;
+    size_t left = len;
+
+    while (left > 0) {
+        uint32_t *ucs;
+        size_t nr_ucs;
+
+        consumed = foil_ustr_from_utf8_until_paragraph_boundary(text, left,
+                box->white_space, &ucs, &nr_ucs);
+
+        if (consumed == 0)
+            break;
+
+        if (nr_ucs > 0) {
+            assert(ucs);
+
+            struct text_paragraph *seg;
+            seg = calloc(1, sizeof(*seg));
+            if (seg == NULL)
+                goto failed;
+
+            seg->ucs = ucs;
+            seg->nr_ucs = nr_ucs;
+
+            // break oppos
+            uint8_t lbp = box->line_break;
+            if (lbp == FOIL_RDRBOX_LINE_BREAK_AUTO)
+                lbp = FOIL_RDRBOX_LINE_BREAK_NORMAL;
+
+            foil_ustr_get_breaks(box->lang_code, box->text_transform,
+                    box->word_break, lbp, ucs, nr_ucs, &seg->break_oppos);
+            if (seg->break_oppos == NULL) {
+                LOG_ERROR("failed when getting break opportunities\n");
+                goto failed;
+            }
+
+            list_add_tail(&seg->ln, &inline_data->paras);
+            inline_data->nr_paras++;
+        }
+
+        left -= consumed;
+        text += consumed;
+    }
+
+    return true;
+
+failed:
+    return false;
+}
 
 static int
 tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
@@ -55,31 +120,10 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     }
 
     if (len > 0) {
-#if 0
         box->tailor_data = calloc(1, sizeof(struct _tailor_data));
-
-        size_t consumed = foil_ustr_from_utf8_until_paragraph_boundary(text,
-                len, box->white_space,
-                &box->tailor_data->ucs, &box->tailor_data->nr_ucs);
-
-        if (consumed > 0 && box->tailor_data->nr_ucs > 0) {
-
-            // break oppos
-            uint8_t lbp = box->line_break;
-            if (lbp == FOIL_RDRBOX_LINE_BREAK_AUTO)
-                lbp = FOIL_RDRBOX_LINE_BREAK_NORMAL;
-
-            foil_ustr_get_breaks(box->lang_code,
-                    box->text_transform,
-                    box->word_break, lbp,
-                    box->tailor_data->ucs, box->tailor_data->nr_ucs,
-                    &box->tailor_data->break_oppos);
-        }
-#endif
-
-        box->inline_data = calloc(1, sizeof(*box->inline_data));
-        INIT_LIST_HEAD(&box->inline_data->paras);
-        foil_rdrbox_init_inline_data(ctxt, box, text, len);
+        box->tailor_data->inline_data = calloc(1, sizeof(*box->inline_data));
+        INIT_LIST_HEAD(&box->tailor_data->inline_data->paras);
+        init_inline_data(ctxt, box, box->tailor_data->inline_data, text, len);
     }
 
     return 0;
@@ -87,15 +131,10 @@ tailor(struct foil_create_ctxt *ctxt, struct foil_rdrbox *box)
 
 static void cleaner(struct foil_rdrbox *box)
 {
-    (void) box;
-#if 0
     assert(box->tailor_data);
-    if (box->tailor_data->ucs)
-        free(box->tailor_data->ucs);
-    if (box->tailor_data->break_oppos)
-        free(box->tailor_data->break_oppos);
+    inline_data_cleaner(box->tailor_data->inline_data);
+    free(box->tailor_data->inline_data);
     free(box->tailor_data);
-#endif
 }
 
 static inline int width_to_cols(int width)
@@ -107,7 +146,7 @@ static inline int width_to_cols(int width)
 static void paint_alt(struct foil_render_ctxt *ctxt, foil_rdrbox *box)
 {
     (void)ctxt;
-    struct _inline_box_data *inline_data = box->inline_data;
+    struct _inline_box_data *inline_data = box->tailor_data->inline_data;
 
     if (inline_data->nr_paras == 0) {
         return;

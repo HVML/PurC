@@ -79,6 +79,7 @@ ctxt_for_load_destroy(struct ctxt_for_load *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->from);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->within);
         PURC_VARIANT_SAFE_CLEAR(ctxt->as);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
