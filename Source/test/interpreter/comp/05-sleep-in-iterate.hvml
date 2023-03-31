@@ -1,0 +1,22 @@
+#!/usr/bin/env purc
+
+# RESULT: 4L
+
+<!-- The expected output of this HVML program should be like
+
+-->
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <init as count at '_root' with 0L />
+    <iterate on [1, 1, 2, 3] >
+
+        <init as count at '_root' with $DATA.arith('+', $count, 1L) />
+        <sleep for '1s' />
+    </iterate>
+
+    <observe on $CRTN for 'idle'>
+        <exit with $count />
+    </observe>
+</hvml>
