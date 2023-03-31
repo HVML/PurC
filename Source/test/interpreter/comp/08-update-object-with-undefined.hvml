@@ -1,0 +1,13 @@
+#!/usr/bin/env purc
+
+# RESULT: {"name":"abc"}
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <init as my_obj with {"name":"abc", "age":10}  />
+
+    <update on $my_obj at "age" with undefined />
+
+    <exit with $my_obj />
+</hvml>
