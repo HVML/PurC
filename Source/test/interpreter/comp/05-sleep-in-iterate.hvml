@@ -13,7 +13,7 @@
     <iterate on [1, 1, 2, 3] >
 
         <init as count at '_root' with $DATA.arith('+', $count, 1L) />
-        <sleep for '1s' />
+        <sleep for "0.5s" />
     </iterate>
 
     <observe on $CRTN for 'idle'>

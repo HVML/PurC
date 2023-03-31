@@ -212,7 +212,11 @@ comp_add_sample(struct comp_sample_data *sample)
 
     if (vdom == NULL) {
         ADD_FAILURE()
-            << sample->file << std::endl;
+            << TCS_RED
+            << "Errors when loading HVML program: "
+            << sample->file
+            << TCS_NONE
+            << std::endl;
         comp_sample_destroy(sample);
         return -1;
     }
@@ -371,13 +375,10 @@ go_comp_test(const char *files)
                 break;
 
             for (size_t i=0; i<globbuf.gl_pathc; ++i) {
-                r = comp_process_file(globbuf.gl_pathv[i]);
-                if (r)
-                    break;
-                purc_run((purc_cond_handler)comp_cond_handler);
+                int ret = comp_process_file(globbuf.gl_pathv[i]);
+                if (ret == 0)
+                    purc_run((purc_cond_handler)comp_cond_handler);
             }
-            if (r)
-                break;
         } while (0);
         globfree(&globbuf);
     }
