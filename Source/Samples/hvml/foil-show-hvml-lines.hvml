@@ -36,6 +36,18 @@ header h1 {
     appearance:progress-bar;
     width:60%;
 }
+
+.border-green {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+}
+
+.fixed-rb {
+    position:fixed;
+    right:1em;
+    bottom:1em;
+}
         </style>
     </head>
 
@@ -126,6 +138,9 @@ header h1 {
                 <label for="totalProgress">Total progress: </label>
                 <progress id="totalProgress" class="total-progress" value="0" max="$nr_total_cases"></progress>
             </p>
+            <div class="border-green fixed-rb">
+                HVML&reg; Community &copy; 2023
+            </div>
         </div>
 
         <define as 'count_lines_in_file' >
