@@ -80,6 +80,7 @@ set(sample_HVML_FILES
     "hvml/assets/fibonacci-html-temp-zh.json"
     "hvml/foil-progress.hvml"
     "hvml/foil-meter.hvml"
+    "hvml/embed-python-looking-for-primes-ul.hvml"
     "hvml/embed-python-looking-for-primes.hvml"
     "hvml/embed-python-animated-3d-random-walk.hvml"
     "hvml/foil-show-hvml-lines.hvml"
