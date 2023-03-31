@@ -2198,6 +2198,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_FRACTION)
         APPEND_TO_TEMP_BUFFER('e');
         ADVANCE_TO(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT);
     }
+    if (is_eof(character)) {
+        ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+    if (parser->is_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+
+    struct pcejson_token *prev = tkz_prev_token();
+    if (prev == NULL) {
+        tkz_stack_push(ETT_UNQUOTED_S);
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+    }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_FRACTION);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -2246,6 +2259,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_EXPONENT_INTEGER)
             ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
         }
     }
+    if (is_eof(character)) {
+        ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+    if (parser->is_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+
+    struct pcejson_token *prev = tkz_prev_token();
+    if (prev == NULL) {
+        tkz_stack_push(ETT_UNQUOTED_S);
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
+    }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_EXPONENT);
     RETURN_AND_STOP_PARSE();
 END_STATE()
@@ -2287,6 +2313,19 @@ BEGIN_STATE(EJSON_TKZ_STATE_VALUE_NUMBER_SUFFIX_INTEGER)
                 ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE);
             }
         }
+    }
+    if (is_eof(character)) {
+        ADVANCE_TO(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+    if (parser->is_finished(parser, character)) {
+        RECONSUME_IN(EJSON_TKZ_STATE_AFTER_VALUE_NUMBER);
+    }
+
+    struct pcejson_token *prev = tkz_prev_token();
+    if (prev == NULL) {
+        tkz_stack_push(ETT_UNQUOTED_S);
+        tkz_stack_push(ETT_VALUE);
+        RECONSUME_IN(EJSON_TKZ_STATE_RAW_STRING);
     }
     SET_ERR(PCEJSON_ERROR_UNEXPECTED_JSON_NUMBER_INTEGER);
     RETURN_AND_STOP_PARSE();
