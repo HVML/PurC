@@ -395,10 +395,19 @@ update_variant_object(purc_variant_t dst, purc_variant_t src,
                 break;
             }
 
+            if (purc_variant_is_undefined(src)) {
+                if (purc_variant_object_remove(dst, k, true)) {
+                    ret = 0;
+                }
+                purc_variant_unref(k);
+                break;
+            }
+
             purc_variant_t o = purc_variant_object_get(dst, k);
             if (!o) {
                 purc_clr_error(); /* clear no such key */
             }
+
             purc_variant_t v = with_eval(o, src);
             if (!v) {
                 purc_variant_unref(k);
@@ -536,6 +545,12 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
+            if (purc_variant_is_undefined(src)) {
+                if (purc_variant_array_remove(dst, idx)) {
+                    ret = 0;
+                }
+                break;
+            }
 
             purc_variant_t o = purc_variant_array_get(dst, idx);
             purc_variant_t v = with_eval(o, src);
@@ -652,6 +667,13 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
         if (idx >= 0) {
             if (!is_support_with_op(src, with_op)) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
+                break;
+            }
+
+            if (purc_variant_is_undefined(src)) {
+                if (purc_variant_set_remove_by_index(dst, idx)) {
+                    ret = 0;
+                }
                 break;
             }
 

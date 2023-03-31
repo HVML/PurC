@@ -1,0 +1,16 @@
+#!/usr/bin/env purc
+
+# RESULT: ["zh_CN", 1UL]
+
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="void">
+
+    <init as="locales" uniquely>
+        [ "zh_CN", "zh_HK" ]
+    </init>
+
+    <update on="$locales" at="[1]" with=undefined />
+
+    <init as count with $DATA.count($locales) />
+    <exit with [$locales[0], $count] />
+</hvml>
