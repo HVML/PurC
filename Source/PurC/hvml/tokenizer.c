@@ -83,7 +83,8 @@
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
                                           purc_rwstream_t rws)          \
 {                                                                       \
-    struct tkz_uc first_uc = *tkz_reader_current(parser->reader);       \
+    struct tkz_uc first_uc = {};                                        \
+    struct tkz_uc multi_token_first_uc = {};                            \
     int hee_line = -1;                                                  \
     int hee_column = -1;                                                \
     uint32_t character = 0;                                             \
@@ -94,12 +95,15 @@ struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
         return token;                                                   \
     }                                                                   \
                                                                         \
-    tkz_reader_set_rwstream (parser->reader, rws);                 \
+    tkz_reader_set_rwstream (parser->reader, rws);                      \
                                                                         \
 next_input:                                                             \
-    parser->curr_uc = tkz_reader_next_char (parser->reader);       \
+    parser->curr_uc = tkz_reader_next_char (parser->reader);            \
     if (!parser->curr_uc) {                                             \
         return NULL;                                                    \
+    }                                                                   \
+    if (!first_uc.line) {                                               \
+        first_uc = *parser->curr_uc;                                    \
     }                                                                   \
                                                                         \
     character = parser->curr_uc->character;                             \
@@ -1836,6 +1840,7 @@ END_STATE()
 
 BEGIN_STATE(TKZ_STATE_TEMPLATE_DATA)
     if (character == '<') {
+        multi_token_first_uc = *parser->curr_uc;
         ADVANCE_TO(TKZ_STATE_TEMPLATE_DATA_LESS_THAN_SIGN);
     }
     if (is_eof(character)) {
@@ -1906,6 +1911,7 @@ BEGIN_STATE(TKZ_STATE_TEMPLATE_FINISHED)
     struct pchvml_token* next_token = pchvml_token_new_end_tag();
     pchvml_token_append_buffer_to_name(next_token,
             parser->string_buffer);
+    pchvml_token_set_first_uc(next_token, &multi_token_first_uc);
     RESET_TEMP_BUFFER();
     RESET_STRING_BUFFER();
     RETURN_MULTIPLE_AND_SWITCH_TO(token, next_token, TKZ_STATE_DATA);
@@ -2078,6 +2084,7 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
                 }
                 struct pchvml_token* next_token = pchvml_token_new_vcm(node);
                 pchvml_token_set_is_whitespace(next_token, true);
+                pchvml_token_set_first_uc(next_token, &multi_token_first_uc);
                 parser->nr_whitespace = 0;
                 tkz_reader_reconsume_last_char(parser->reader);
                 RETURN_MULTIPLE_AND_SWITCH_TO(
@@ -2103,6 +2110,9 @@ BEGIN_STATE(TKZ_STATE_CONTENT_TEXT)
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
     if (is_whitespace(character)) {
+        if (parser->nr_whitespace == 0) {
+            multi_token_first_uc = *parser->curr_uc;
+        }
         parser->nr_whitespace++;
     }
     else {
