@@ -592,8 +592,8 @@ free_error_info(void *key, void *local_data)
 int
 tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error)
 {
-    purc_set_error(error);
     if (!uc) {
+        purc_set_error(error);
         goto out;
     }
 
@@ -618,6 +618,10 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error)
     info->column = column;
     info->position = uc->position;
     info->error = error;
+
+    purc_set_error_with_info(error, "line=%d,column=%d,character=0x%x",
+                            info->line, info->column,
+                            info->character);
 
     purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
             free_error_info);
