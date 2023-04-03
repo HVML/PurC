@@ -78,6 +78,8 @@ struct pchvml_token {
     struct tkz_buffer* system_information;
 
     struct pchvml_token_attr* curr_attr;
+
+    struct tkz_uc first_uc;
 };
 
 struct pchvml_token_attr* pchvml_token_attr_new()
@@ -245,6 +247,16 @@ void pchvml_token_end_attr(struct pchvml_token* token)
     }
     pcutils_arrlist_append(token->attr_list, token->curr_attr);
     token->curr_attr = NULL;
+}
+
+struct tkz_uc* pchvml_token_get_first_uc(struct pchvml_token* token)
+{
+    return &token->first_uc;
+}
+
+void pchvml_token_set_first_uc(struct pchvml_token* token, struct tkz_uc *uc)
+{
+    token->first_uc = *uc;
 }
 
 void pchvml_token_append_to_name(struct pchvml_token* token, uint32_t uc)

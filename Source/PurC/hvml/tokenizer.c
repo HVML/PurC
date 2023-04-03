@@ -83,6 +83,7 @@
 struct pchvml_token* pchvml_next_token(struct pchvml_parser* parser,    \
                                           purc_rwstream_t rws)          \
 {                                                                       \
+    struct tkz_uc first_uc = *tkz_reader_current(parser->reader);       \
     int hee_line = -1;                                                  \
     int hee_column = -1;                                                \
     uint32_t character = 0;                                             \
@@ -192,6 +193,7 @@ next_state:                                                             \
         parser->token = NULL;                                               \
         CHECK_TEMPLATE_TAG_AND_SWITCH_STATE(token);                         \
         parser->last_token_type = pchvml_token_get_type(token);             \
+        pchvml_token_set_first_uc(token, &first_uc);                        \
         return token;                                                       \
     } while (false)
 
@@ -202,8 +204,9 @@ next_state:                                                             \
         pchvml_token_done(parser->token);                                   \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
-        tkz_reader_reconsume_last_char(parser->reader);                \
+        tkz_reader_reconsume_last_char(parser->reader);                     \
         parser->last_token_type = pchvml_token_get_type(token);             \
+        pchvml_token_set_first_uc(token, &first_uc);                        \
         return token;                                                       \
     } while (false)
 
@@ -213,6 +216,7 @@ next_state:                                                             \
         struct pchvml_token* token = parser->token;                         \
         parser->token = NULL;                                               \
         parser->last_token_type = pchvml_token_get_type(token);             \
+        pchvml_token_set_first_uc(token, &first_uc);                        \
         return token;                                                       \
     } while (false)
 
@@ -222,6 +226,7 @@ next_state:                                                             \
             struct pchvml_token* token = parser->token;                     \
             parser->token = pchvml_token_new_eof();                         \
             parser->last_token_type = pchvml_token_get_type(token);         \
+            pchvml_token_set_first_uc(token, &first_uc);                    \
             return token;                                                   \
         }                                                                   \
         return pchvml_token_new_eof();                                      \
@@ -235,6 +240,7 @@ next_state:                                                             \
         parser->token = next_token;                                         \
         parser->last_token_type = pchvml_token_get_type(token);             \
         pchvml_parser_save_tag_name(parser);                                \
+        pchvml_token_set_first_uc(token, &first_uc);                        \
         return token;                                                       \
     } while (false)
 

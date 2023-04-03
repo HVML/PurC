@@ -44,6 +44,9 @@
 #define VGIM_REC(x)    { VGIM(x), VGIM_S(x) }
 #endif // VGIM
 
+
+#define VDOM_ERROR_TYPE       "vdomConstruction"
+
 struct enum_to_str {
     unsigned int     e;
     const char      *s;
@@ -105,11 +108,14 @@ vgim_to_string(struct pcvdom_gen *gen)
 #ifndef FAIL_RET
 #define FAIL_RET()                                                \
     do {                                                          \
-        PC_DEBUGX("%s[%s] @ %s: fail_ret",                        \
+        struct tkz_uc* uc = pchvml_token_get_first_uc(token);     \
+        PC_DEBUGX("%s[%s] @ %s: %d:%d fail_ret",                  \
             vtt_to_string(token),                                 \
             pchvml_token_get_name(token),                         \
-            vgim_to_string(gen));                                 \
-        purc_set_error(PCHVML_ERROR_UNEXPECTED_CHARACTER);        \
+            vgim_to_string(gen), uc->line, uc->column);           \
+        tkz_set_error_info(gen->parser->reader, uc,               \
+                PCHVML_ERROR_UNEXPECTED_CHARACTER,                \
+                VDOM_ERROR_TYPE, NULL);                           \
         return -1;                                                \
     } while (0)
 #endif // FAIL_RET

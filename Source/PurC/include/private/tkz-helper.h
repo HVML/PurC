@@ -259,6 +259,8 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column);
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
 
+struct tkz_uc *tkz_reader_current(struct tkz_reader *reader);
+
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
 
 bool tkz_reader_reconsume_last_char(struct tkz_reader *reader);
