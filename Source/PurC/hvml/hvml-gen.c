@@ -109,10 +109,11 @@ vgim_to_string(struct pcvdom_gen *gen)
 #define FAIL_RET()                                                \
     do {                                                          \
         struct tkz_uc* uc = pchvml_token_get_first_uc(token);     \
-        PC_DEBUGX("%s[%s] @ %s: %d:%d fail_ret",                  \
+        PC_DEBUGX("%s[%s] @ %s: %s;%d:%d;fail_ret",               \
             vtt_to_string(token),                                 \
             pchvml_token_get_name(token),                         \
-            vgim_to_string(gen), uc->line, uc->column);           \
+            vgim_to_string(gen), VDOM_ERROR_TYPE,                 \
+                uc->line, uc->column);                            \
         tkz_set_error_info(gen->parser->reader, uc,               \
                 PCHVML_ERROR_UNEXPECTED_CHARACTER,                \
                 VDOM_ERROR_TYPE, NULL);                           \
