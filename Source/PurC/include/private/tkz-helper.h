@@ -391,7 +391,8 @@ struct pcutils_arrlist*
 tkz_sbst_get_buffered_ucs(struct tkz_sbst *sbst);
 
 int
-tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error);
+tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
+        const char *type, const char *extra);
 
 size_t uc_to_utf8(uint32_t c, char *outbuf);
 

@@ -53,6 +53,8 @@
 #define EXTERNAL_LANG_STYLE     "style"
 #define EXTERNAL_LANG_SCRIPT    "script"
 
+#define PARSER_ERROR_TYPE       "hvmlParsing"
+
 #define PRINT_STATE(state_name)                                             \
     if (parser->enable_log) {                                               \
         PC_DEBUG(                                                           \
@@ -73,7 +75,8 @@
             PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
-    tkz_set_error_info(parser->reader, parser->curr_uc, err);               \
+    tkz_set_error_info(parser->reader, parser->curr_uc, err,                \
+            PARSER_ERROR_TYPE, NULL);                                       \
 } while (0)
 
 #define PCHVML_NEXT_TOKEN_BEGIN                                         \
