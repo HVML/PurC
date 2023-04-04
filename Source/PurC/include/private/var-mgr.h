@@ -44,6 +44,10 @@ struct pcvarmgr {
     struct pcvdom_node       *vdom_node;
 };
 
+struct pcns_varmgr {
+    pcutils_map           *map;
+};
+
 
 struct pcintr_stack;
 
@@ -67,6 +71,16 @@ static inline bool pcvarmgr_remove(pcvarmgr_t mgr, const char* name)
 
 bool pcvarmgr_dispatch_except(pcvarmgr_t mgr, const char* name,
         const char* except);
+
+struct pcns_varmgr *pcns_varmgr_create(void);
+
+int pcns_varmgr_destroy(struct pcns_varmgr *ns_mgr);
+
+bool pcns_varmgr_add(struct pcns_varmgr *ns_mgr, const char *name,
+        purc_variant_t value, purc_variant_t ns);
+
+purc_variant_t pcns_varmgr_get(struct pcns_varmgr *ns_mgr, const char *name,
+        purc_variant_t ns);
 
 PCA_EXTERN_C_END
 
