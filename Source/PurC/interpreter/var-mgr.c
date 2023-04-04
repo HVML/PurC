@@ -485,6 +485,17 @@ purc_variant_t pcns_varmgr_get(struct pcns_varmgr *ns_mgr, const char *name,
     return ret;
 }
 
+bool pcns_varmgr_remove(struct pcns_varmgr *ns_mgr, const char *name,
+        purc_variant_t ns)
+{
+    bool ret = false;
+    pcvarmgr_t mgr = find_by_ns(ns_mgr, ns);
+    if (mgr) {
+        ret = pcvarmgr_remove(mgr, name);
+    }
+    return ret;
+}
+
 static purc_variant_t
 _find_named_scope_var_in_vdom(purc_coroutine_t cor,
         pcvdom_element_t elem, const char* name, pcvarmgr_t* mgr)

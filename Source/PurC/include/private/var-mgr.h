@@ -45,7 +45,9 @@ struct pcvarmgr {
 };
 
 struct pcns_varmgr {
-    pcutils_map           *map;
+    struct rb_node            node;
+    struct pcvdom_node       *vdom_node;
+    pcutils_map              *map;
 };
 
 
@@ -80,6 +82,9 @@ bool pcns_varmgr_add(struct pcns_varmgr *ns_mgr, const char *name,
         purc_variant_t value, purc_variant_t ns);
 
 purc_variant_t pcns_varmgr_get(struct pcns_varmgr *ns_mgr, const char *name,
+        purc_variant_t ns);
+
+bool pcns_varmgr_remove(struct pcns_varmgr *ns_mgr, const char *name,
         purc_variant_t ns);
 
 PCA_EXTERN_C_END

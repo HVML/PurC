@@ -235,6 +235,24 @@ release_scoped_variables(pcintr_stack_t stack)
 }
 
 static void
+release_scoped_ns_vars(pcintr_stack_t stack)
+{
+    if (!stack)
+        return;
+
+    struct rb_node *p, *n;
+    struct rb_node *last = pcutils_rbtree_last(&stack->scoped_ns_vars);
+    pcutils_rbtree_for_each_reverse_safe(last, p, n) {
+        struct pcns_varmgr *ns_mgr = container_of(p, struct pcns_varmgr, node);
+        pcutils_rbtree_erase(p, &stack->scoped_ns_vars);
+        PC_ASSERT(p->rb_left == NULL);
+        PC_ASSERT(p->rb_right == NULL);
+        PC_ASSERT(p->rb_parent == NULL);
+        pcns_varmgr_destroy(ns_mgr);
+    }
+}
+
+static void
 destroy_stack_frame(struct pcintr_stack_frame *frame)
 {
     struct pcintr_stack_frame_normal *frame_normal = NULL;
@@ -289,6 +307,7 @@ stack_release(pcintr_stack_t stack)
     PC_ASSERT(stack->nr_frames == 0);
 
     release_scoped_variables(stack);
+    release_scoped_ns_vars(stack);
 
     pcintr_destroy_observer_list(&stack->intr_observers);
     pcintr_destroy_observer_list(&stack->hvml_observers);
@@ -444,6 +463,7 @@ stack_init(pcintr_stack_t stack)
     list_head_init(&stack->intr_observers);
     list_head_init(&stack->hvml_observers);
     stack->scoped_variables = RB_ROOT;
+    stack->scoped_ns_vars = RB_ROOT;
 
     stack->mode = STACK_VDOM_BEFORE_HVML;
     stack->timeout = false;

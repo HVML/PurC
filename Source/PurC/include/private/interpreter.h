@@ -254,6 +254,9 @@ struct pcintr_stack {
     // key: vdom_node  val: pcvarmgr_t
     struct rb_root                scoped_variables;
 
+    // key: vdom_node  val: pcns_varmgr
+    struct rb_root                scoped_ns_vars;
+
     // current dom text content
     pcdoc_element_t               curr_edom_elem;
     pcutils_mraw_t               *mraw;
@@ -642,6 +645,24 @@ pcintr_unbind_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
 purc_variant_t
 pcintr_get_scope_variable(purc_coroutine_t cor, pcvdom_element_t elem,
         const char* name);
+
+
+struct pcns_varmgr *
+pcintr_get_scope_ns_vars(purc_coroutine_t cor, pcvdom_element_t elem);
+
+bool
+pcintr_bind_scope_ns_var(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name, purc_variant_t variant, purc_variant_t ns,
+        struct pcns_varmgr **mgr);
+
+bool
+pcintr_unbind_scope_ns_var(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name, purc_variant_t ns);
+
+purc_variant_t
+pcintr_get_scope_ns_var(purc_coroutine_t cor, pcvdom_element_t elem,
+        const char* name, purc_variant_t ns);
+
 
 purc_variant_t
 pcintr_find_named_var(pcintr_stack_t stack, const char* name);
