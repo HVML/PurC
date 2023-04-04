@@ -390,6 +390,8 @@ pcns_varmgr_create(void)
         goto out_clear_mgr;
     }
 
+    return mgr;
+
 out_clear_mgr:
     free(mgr);
     mgr = NULL;

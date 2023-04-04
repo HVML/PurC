@@ -349,6 +349,7 @@ struct pcintr_coroutine {
 
     struct pcintr_timers       *timers;     // $TIMERS
     struct pcvarmgr            *variables;  // coroutine level named variable
+    struct pcns_varmgr         *ns_vars;    // $CRTN.static.xx
 
     /* AVL node for the AVL tree sorted by stopped timeout */
     struct avl_node             avl;

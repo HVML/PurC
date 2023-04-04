@@ -379,6 +379,10 @@ coroutine_release(pcintr_coroutine_t co)
             pcvarmgr_destroy(co->variables);
         }
 
+        if (co->ns_vars) {
+            pcns_varmgr_destroy(co->ns_vars);
+        }
+
         struct purc_broken_down_url *url = &co->base_url_broken_down;
 
         if (url->schema) {
@@ -1818,7 +1822,12 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {
-        goto fail_variables;
+        goto fail_clr_mq;
+    }
+
+    co->ns_vars = pcns_varmgr_create();
+    if (!co->ns_vars) {
+        goto fail_clr_variables;
     }
 
     stack = &co->stack;
@@ -1837,7 +1846,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         stack->inherit = 1;
     }
     else if (doc_init(stack)) {
-        goto fail_variables;
+        goto fail_clr_variables;
     }
 
     if (parent) {
@@ -1846,7 +1855,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
         if (!child) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fail_variables;
+            goto fail_clr_variables;
         }
         child->cid = co->cid;
         list_add_tail(&child->ln, &parent->children);
@@ -1866,7 +1875,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     return co;
 
-fail_variables:
+fail_clr_variables:
+    pcvarmgr_destroy(co->variables);
+
+fail_clr_mq:
     pcinst_msg_queue_destroy(co->mq);
 
 fail_co:
