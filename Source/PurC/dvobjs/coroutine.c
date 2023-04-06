@@ -540,6 +540,28 @@ static purc_variant_t static_variable_getter(void* native_entity,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
+    purc_variant_t at = PURC_VARIANT_INVALID;
+
+    if (nr_args > 0) {
+        at = argv[1];
+        if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    if (!pcintr_is_variable_token(property_name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    return pcintr_get_named_variable(stack,
+            frame, property_name, at, false, false);
+
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_undefined();
     }
@@ -666,6 +688,28 @@ static purc_variant_t temp_variable_getter(void* native_entity,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
+    purc_variant_t at = PURC_VARIANT_INVALID;
+
+    if (nr_args > 0) {
+        at = argv[1];
+        if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    if (!pcintr_is_variable_token(property_name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    return pcintr_get_named_variable(stack,
+            frame, property_name, at, true, false);
+
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_undefined();
     }

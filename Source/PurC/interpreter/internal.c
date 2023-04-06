@@ -147,11 +147,37 @@ bind_at_frame(struct pcintr_stack_frame *frame, const char *name,
     return -1;
 }
 
+static purc_variant_t
+get_from_frame(struct pcintr_stack_frame *frame, const char *name)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    purc_variant_t exclamation_var;
+    exclamation_var = pcintr_get_exclamation_var(frame);
+    if (purc_variant_is_object(exclamation_var) == false) {
+        purc_set_error_with_info(PURC_ERROR_INTERNAL_FAILURE,
+                "temporary variable on stack frame is not object");
+        goto out;
+    }
+
+    ret = purc_variant_object_get_by_ckey(exclamation_var, name);
+    purc_clr_error();
+
+out:
+    return ret;
+}
+
 static int
 bind_at_element(purc_coroutine_t cor, struct pcvdom_element *elem,
         const char *name, purc_variant_t val, pcvarmgr_t *mgr)
 {
     return pcintr_bind_scope_variable(cor, elem, name, val, mgr) ? 0 : -1 ;
+}
+
+static purc_variant_t
+get_from_element(purc_coroutine_t cor, struct pcvdom_element *elem,
+        const char *name)
+{
+    return pcintr_get_scope_variable(cor, elem, name);
 }
 
 static int
@@ -190,6 +216,44 @@ bind_temp_by_level(struct pcintr_stack_frame *frame,
         p = parent;
     }
     return bind_at_frame(p, name, val);
+}
+
+static purc_variant_t
+get_temp_by_level(struct pcintr_stack_frame *frame,
+        const char *name, uint64_t level)
+{
+    struct pcintr_stack_frame *p = frame;
+    struct pcintr_stack_frame *parent;
+    parent = pcintr_stack_frame_get_parent(frame);
+    if (parent == NULL) {
+        purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                "no frame exists");
+        return PURC_VARIANT_INVALID;
+    }
+    if (level == (uint64_t)-1) {
+        while (p && p->pos && p->pos->tag_id != PCHVML_TAG_HVML) {
+            p = pcintr_stack_frame_get_parent(p);
+        }
+    }
+    else {
+        for (uint64_t i = 0; i < level; ++i) {
+            if (p == NULL) {
+                break;
+            }
+            p = pcintr_stack_frame_get_parent(p);
+        }
+    }
+
+
+    if (p == NULL) {
+        if (!frame->silently) {
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                    "no frame exists");
+            return PURC_VARIANT_INVALID;
+        }
+        p = parent;
+    }
+    return get_from_frame(p, name);
 }
 
 static int
@@ -237,6 +301,49 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     return -1;
 }
 
+static purc_variant_t
+get_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *name, bool temporarily, uint64_t level)
+{
+    if (temporarily) {
+        return get_temp_by_level(frame, name, level);
+    }
+
+    bool silently = frame->silently;
+    struct pcvdom_element *p = frame->pos;
+
+    if (level == (uint64_t)-1) {
+        while (p && p->tag_id != PCHVML_TAG_HVML) {
+            p = pcvdom_element_parent(p);
+        }
+    }
+    else {
+        for (uint64_t i = 0; i < level; ++i) {
+            if (p == NULL) {
+                break;
+            }
+            p = pcvdom_element_parent(p);
+        }
+    }
+    purc_clr_error();
+
+    if (p && p->node.type != PCVDOM_NODE_DOCUMENT) {
+        return get_from_element(stack->co, p, name);
+    }
+
+    if (silently) {
+        p = frame->pos;
+        while (p && p->tag_id != PCHVML_TAG_HVML) {
+            p = pcvdom_element_parent(p);
+        }
+        purc_clr_error();
+        return get_from_element(stack->co, p, name);
+    }
+    purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+            "no vdom element exists");
+    return PURC_VARIANT_INVALID;
+}
+
 static int
 bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *name, bool temporarily, purc_variant_t val, pcvarmgr_t *mgr)
@@ -256,6 +363,26 @@ bind_at_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
                 (uint64_t)-1, mgr);
     }
     return bind_by_level(stack, frame, name, temporarily, val, 1, mgr);
+}
+
+static purc_variant_t
+get_from_default(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *name, bool temporarily)
+{
+    bool under_head = false;
+    if (frame) {
+        struct pcvdom_element *element = frame->pos;
+        while ((element = pcvdom_element_parent(element))) {
+            if (element->tag_id == PCHVML_TAG_HEAD) {
+                under_head = true;
+            }
+        }
+        purc_clr_error();
+    }
+    if (under_head) {
+        return get_by_level(stack, frame, name, temporarily, (uint64_t)-1);
+    }
+    return get_by_level(stack, frame, name, temporarily, 1);
 }
 
 static int
@@ -289,6 +416,37 @@ bind_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     return bind_at_frame(dest_frame, name, val);
 }
 
+static purc_variant_t
+get_temp_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *id, const char *name)
+{
+    struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(frame);
+    struct pcintr_stack_frame *dest_frame = NULL;
+    struct pcintr_stack_frame *p = frame;
+    while (p && p->pos) {
+        struct pcvdom_element *elem = p->pos;
+        if (pcintr_match_id(stack, elem, id)) {
+            dest_frame = p;
+            break;
+        }
+
+        p = pcintr_stack_frame_get_parent(p);
+    }
+
+    if (dest_frame == NULL) {
+        if (!frame->silently) {
+            purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+                    "no vdom element exists");
+            return PURC_VARIANT_INVALID;
+        }
+
+        // not found, bind at parent default
+        dest_frame = parent;
+    }
+
+    return get_from_frame(dest_frame, name);
+}
+
 static int
 bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
         const char *id, const char *name, bool temporarily, purc_variant_t val,
@@ -320,6 +478,38 @@ bind_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
             "no vdom element exists");
     return -1;
+}
+
+static purc_variant_t
+get_by_elem_id(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
+        const char *id, const char *name, bool temporarily)
+{
+    if (temporarily) {
+        return get_temp_by_elem_id(stack, frame, id, name);
+    }
+
+    struct pcvdom_element *p = frame->pos;
+    struct pcvdom_element *dest = NULL;
+    while (p) {
+        if (pcintr_match_id(stack, p, id)) {
+            dest = p;
+            break;
+        }
+        p = pcvdom_element_parent(p);
+    }
+
+    purc_clr_error();
+    if (dest && dest->node.type != PCVDOM_NODE_DOCUMENT) {
+        return get_from_element(stack->co, dest, name);
+    }
+
+    if (frame->silently) {
+        return get_from_default(stack, frame, name, temporarily);
+    }
+
+    purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
+            "no vdom element exists");
+    return PURC_VARIANT_INVALID;
 }
 
 static int
@@ -387,6 +577,64 @@ not_found:
     return -1;
 }
 
+static purc_variant_t
+get_by_name_space(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *ns, const char *name,
+        bool temporarily, bool runner_level_enable)
+{
+    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, ns);
+    if (atom == 0) {
+        goto not_found;
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _PARENT)) == atom) {
+        return get_by_level(stack, frame, name, temporarily, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _GRANDPARENT)) == atom ) {
+        return get_by_level(stack, frame, name, temporarily, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _ROOT)) == atom ) {
+        return get_by_level(stack, frame, name, temporarily, (uint64_t)-1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _LAST)) == atom) {
+        return get_by_level(stack, frame, name, temporarily, 1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _NEXTTOLAST)) == atom) {
+        return get_by_level(stack, frame, name, temporarily, 2);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _TOPMOST)) == atom) {
+        return get_by_level(stack, frame, name, temporarily, (uint64_t)-1);
+    }
+
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, _RUNNER)) == atom) {
+        if (runner_level_enable) {
+            if (!name) {
+                pcinst_set_error(PURC_ERROR_INVALID_VALUE);
+                return PURC_VARIANT_INVALID;
+            }
+            return purc_get_runner_variable(name);
+        }
+        else {
+            purc_set_error_with_info(PURC_ERROR_NOT_SUPPORTED,
+                    "at = '%s'", name);
+            return PURC_VARIANT_INVALID;
+        }
+    }
+
+not_found:
+    if (frame->silently) {
+        return get_from_default(stack, frame, name, temporarily);
+    }
+    purc_set_error_with_info(PURC_ERROR_BAD_NAME,
+            "at = '%s'", name);
+    return PURC_VARIANT_INVALID;
+}
+
 static int
 _bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
@@ -439,6 +687,53 @@ out:
     return bind_ret;
 }
 
+static purc_variant_t
+_get_named_variable(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
+        bool temporarily, bool runner_level_enable)
+{
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    if (!at) {
+        ret = get_from_default(stack, frame, name, temporarily);
+        goto out;
+    }
+
+    if (purc_variant_is_string(at)) {
+        const char *s_at = purc_variant_get_string_const(at);
+        if (s_at[0] == '#') {
+            ret = get_by_elem_id(stack, frame, s_at + 1, name, temporarily);
+        }
+        else if (s_at[0] == '_') {
+            ret = get_by_name_space(stack, frame, s_at, name, temporarily,
+                    runner_level_enable);
+        }
+        else {
+            uint64_t level;
+            bool ok = purc_variant_cast_to_ulongint(at, &level,
+                    true);
+            if (ok) {
+                ret = get_by_level(stack, frame, name, temporarily, level);
+            }
+            else {
+                ret = get_from_default(stack, frame, name, temporarily);
+            }
+        }
+    }
+    else {
+        uint64_t level;
+        bool ok = purc_variant_cast_to_ulongint(at, &level, true);
+        if (ok) {
+            ret = get_by_level(stack, frame, name, temporarily, level);
+        }
+        else {
+            ret = get_from_default(stack, frame, name, temporarily);
+        }
+    }
+
+out:
+    return ret;
+}
+
 int
 pcintr_bind_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
@@ -459,6 +754,16 @@ pcintr_get_named_variable_mgr_by_at(pcintr_stack_t stack,
     purc_clr_error();
     return mgr;
 }
+
+purc_variant_t
+pcintr_get_named_variable(pcintr_stack_t stack,
+        struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
+        bool temporarily, bool runner_level_enable)
+{
+    return _get_named_variable(stack, frame, name, at, temporarily,
+            runner_level_enable);
+}
+
 
 static int
 serial_element(const char *buf, size_t len, void *ctxt)
