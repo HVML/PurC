@@ -584,7 +584,7 @@ static purc_variant_t static_variable_setter(void* native_entity,
     pcintr_stack_t stack = &cor->stack;
     struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
     int ret = pcintr_bind_named_variable(stack,
-            frame, property_name, at, false, true, val);
+            frame, property_name, at, false, false, val);
 
     return purc_variant_make_boolean(ret == 0);
 
@@ -709,7 +709,7 @@ static purc_variant_t temp_variable_setter(void* native_entity,
     pcintr_stack_t stack = &cor->stack;
     struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
     int ret = pcintr_bind_named_variable(stack,
-            frame, property_name, at, true, true, val);
+            frame, property_name, at, true, false, val);
 
     return purc_variant_make_boolean(ret == 0);
 
