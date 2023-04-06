@@ -564,11 +564,21 @@ static purc_variant_t static_variable_setter(void* native_entity,
         goto failed;
     }
 
+    if (!pcintr_is_variable_token(property_name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     val = argv[0];
 
     if (nr_args > 1) {
         at = argv[1];
+        if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
     }
+
 
     pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
     pcintr_stack_t stack = &cor->stack;
@@ -580,7 +590,7 @@ static purc_variant_t static_variable_setter(void* native_entity,
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
-        return purc_variant_make_undefined();
+        return purc_variant_make_boolean(false);
     }
     return PURC_VARIANT_INVALID;
 }
@@ -640,29 +650,6 @@ static purc_variant_t temp_self_setter(void* native_entity,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
-    purc_variant_t at = PURC_VARIANT_INVALID;
-    purc_variant_t val;
-
-    if (nr_args == 0) {
-        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
-        goto failed;
-    }
-
-    val = argv[0];
-
-    if (nr_args > 1) {
-        at = argv[1];
-    }
-
-    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
-    pcintr_stack_t stack = &cor->stack;
-    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
-    int ret = pcintr_bind_named_variable(stack,
-            frame, property_name, at, true, true, val);
-
-    return purc_variant_make_boolean(ret == 0);
-
-failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
         return purc_variant_make_undefined();
     }
@@ -695,8 +682,40 @@ static purc_variant_t temp_variable_setter(void* native_entity,
     UNUSED_PARAM(argv);
     UNUSED_PARAM(call_flags);
 
+    purc_variant_t at = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!pcintr_is_variable_token(property_name)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    val = argv[0];
+
+    if (nr_args > 1) {
+        at = argv[1];
+        if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+    }
+
+    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    int ret = pcintr_bind_named_variable(stack,
+            frame, property_name, at, true, true, val);
+
+    return purc_variant_make_boolean(ret == 0);
+
+failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
-        return purc_variant_make_undefined();
+        return purc_variant_make_boolean(false);
     }
     return PURC_VARIANT_INVALID;
 }
