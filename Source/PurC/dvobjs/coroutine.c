@@ -498,6 +498,264 @@ curator_getter(purc_variant_t root,
     return purc_variant_make_ulongint(cor->curator);
 }
 
+static purc_variant_t static_self_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t static_self_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t static_variable_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t static_variable_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    purc_variant_t at = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    val = argv[0];
+
+    if (nr_args > 1) {
+        at = argv[1];
+    }
+
+    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    int ret = pcintr_bind_named_variable(stack,
+            frame, property_name, at, false, true, val);
+
+    return purc_variant_make_boolean(ret == 0);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_nvariant_method
+static_property_getter(void* native_entity, const char* property_name)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+
+    if (property_name) {
+        return static_variable_getter;
+    }
+    return static_self_getter;
+}
+
+static purc_nvariant_method
+static_property_setter(void* native_entity, const char* property_name)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+
+    if (property_name) {
+        return static_variable_setter;
+    }
+    return static_self_setter;
+}
+
+static struct purc_native_ops native_static_var_ops = {
+    .property_getter = static_property_getter,
+    .property_setter = static_property_setter,
+};
+
+static purc_variant_t temp_self_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t temp_self_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    purc_variant_t at = PURC_VARIANT_INVALID;
+    purc_variant_t val;
+
+    if (nr_args == 0) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    val = argv[0];
+
+    if (nr_args > 1) {
+        at = argv[1];
+    }
+
+    pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
+    pcintr_stack_t stack = &cor->stack;
+    struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
+    int ret = pcintr_bind_named_variable(stack,
+            frame, property_name, at, true, true, val);
+
+    return purc_variant_make_boolean(ret == 0);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t temp_variable_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t temp_variable_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_nvariant_method
+temp_property_getter(void* native_entity, const char* property_name)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+
+    if (property_name) {
+        return temp_variable_getter;
+    }
+    return temp_self_getter;
+}
+
+static purc_nvariant_method
+temp_property_setter(void* native_entity, const char* property_name)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+
+    if (property_name) {
+        return temp_variable_setter;
+    }
+    return temp_self_setter;
+}
+
+static struct purc_native_ops native_temp_var_ops = {
+    .property_getter = temp_property_getter,
+    .property_setter = temp_property_setter,
+};
+
+static purc_variant_t
+static_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    return purc_variant_make_native(cor, &native_static_var_ops);
+}
+
+static purc_variant_t
+temp_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
+    return purc_variant_make_native(cor, &native_temp_var_ops);
+}
+
 purc_variant_t
 purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
 {
@@ -518,6 +776,8 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
         { "uri",     uri_getter,     NULL },
         { "token",   token_getter,   token_setter },
         { "curator", curator_getter, NULL },
+        { "static",  static_getter, NULL },
+        { "temp",    temp_getter, NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
