@@ -1,0 +1,15 @@
+#!/usr/bin/purc
+
+# RESULT: 10UL
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <body>
+        <div>
+            $CRTN.static.count(!10UL)
+        </div>
+        <exit with $count />
+    </body>
+</hvml>
+
+

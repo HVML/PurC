@@ -498,38 +498,6 @@ curator_getter(purc_variant_t root,
     return purc_variant_make_ulongint(cor->curator);
 }
 
-static purc_variant_t static_self_getter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(property_name);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
-        return purc_variant_make_undefined();
-    }
-    return PURC_VARIANT_INVALID;
-}
-
-static purc_variant_t static_self_setter(void* native_entity,
-        const char *property_name,
-        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
-{
-    UNUSED_PARAM(native_entity);
-    UNUSED_PARAM(property_name);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-
-    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
-        return purc_variant_make_undefined();
-    }
-    return PURC_VARIANT_INVALID;
-}
-
 static purc_variant_t static_variable_getter(void* native_entity,
         const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
@@ -543,7 +511,7 @@ static purc_variant_t static_variable_getter(void* native_entity,
     purc_variant_t at = PURC_VARIANT_INVALID;
 
     if (nr_args > 0) {
-        at = argv[1];
+        at = argv[0];
         if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
@@ -616,6 +584,49 @@ failed:
     }
     return PURC_VARIANT_INVALID;
 }
+
+static purc_variant_t static_self_getter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (property_name) {
+        return static_variable_getter(native_entity, property_name,
+                nr_args, argv, call_flags);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t static_self_setter(void* native_entity,
+        const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    UNUSED_PARAM(call_flags);
+
+    if (property_name) {
+        return static_variable_setter(native_entity, property_name,
+                nr_args, argv, call_flags);
+    }
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_undefined();
+    }
+    return PURC_VARIANT_INVALID;
+}
+
 
 static purc_nvariant_method
 static_property_getter(void* native_entity, const char* property_name)
@@ -691,7 +702,7 @@ static purc_variant_t temp_variable_getter(void* native_entity,
     purc_variant_t at = PURC_VARIANT_INVALID;
 
     if (nr_args > 0) {
-        at = argv[1];
+        at = argv[0];
         if (!purc_variant_is_string(at) && !purc_variant_is_ulongint(at)) {
             purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
@@ -793,36 +804,12 @@ static struct purc_native_ops native_temp_var_ops = {
     .property_setter = temp_property_setter,
 };
 
-static purc_variant_t
-static_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-
-    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
-    return purc_variant_make_native(cor, &native_static_var_ops);
-}
-
-static purc_variant_t
-temp_getter(purc_variant_t root,
-        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
-{
-    UNUSED_PARAM(root);
-    UNUSED_PARAM(nr_args);
-    UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
-
-    pcintr_coroutine_t cor = hvml_ctrl_coroutine(root);
-    return purc_variant_make_native(cor, &native_temp_var_ops);
-}
-
 purc_variant_t
 purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
 {
     purc_variant_t retv = PURC_VARIANT_INVALID;
+    purc_variant_t static_val = PURC_VARIANT_INVALID;
+    purc_variant_t temp_val = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
 
     static const struct purc_dvobj_method method [] = {
@@ -839,13 +826,29 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
         { "uri",     uri_getter,     NULL },
         { "token",   token_getter,   token_setter },
         { "curator", curator_getter, NULL },
-        { "static",  static_getter, NULL },
-        { "temp",    temp_getter, NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
     if (retv == PURC_VARIANT_INVALID) {
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    static_val = purc_variant_make_native(cor, &native_static_var_ops);
+    if (static_val == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    if (!purc_variant_object_set_by_static_ckey(retv, "static", static_val)) {
+        goto failed;
+    }
+
+    temp_val = purc_variant_make_native(cor, &native_temp_var_ops);
+    if (temp_val == PURC_VARIANT_INVALID) {
+        pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    if (!purc_variant_object_set_by_static_ckey(retv, "temp", temp_val)) {
         goto failed;
     }
 
@@ -880,6 +883,8 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
         pcinst_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
+    purc_variant_unref(static_val);
+    purc_variant_unref(temp_val);
     purc_variant_unref(val);
 
     return retv;
@@ -887,6 +892,10 @@ purc_dvobj_coroutine_new(pcintr_coroutine_t cor)
 failed:
     if (val)
         purc_variant_unref(val);
+    if (temp_val)
+        purc_variant_unref(temp_val);
+    if (static_val)
+        purc_variant_unref(static_val);
     if (retv)
         purc_variant_unref(retv);
 
