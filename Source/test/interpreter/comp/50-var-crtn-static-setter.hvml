@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: 10UL
+# RESULT: [10UL, 10UL]
 
 <!DOCTYPE hvml>
 <hvml target="html" lang="en">
@@ -8,7 +8,7 @@
         <div>
             $CRTN.static.count(!10UL)
         </div>
-        <exit with $count />
+        <exit with [$count, $CRTN.static.count()] />
     </body>
 </hvml>
 

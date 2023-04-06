@@ -526,8 +526,9 @@ static purc_variant_t static_variable_getter(void* native_entity,
     pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
     pcintr_stack_t stack = &cor->stack;
     struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
-    return pcintr_get_named_variable(stack,
+    purc_variant_t ret = pcintr_get_named_variable(stack,
             frame, property_name, at, false, false);
+    return ret ? purc_variant_ref(ret) : PURC_VARIANT_INVALID;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
@@ -717,8 +718,9 @@ static purc_variant_t temp_variable_getter(void* native_entity,
     pcintr_coroutine_t cor = (pcintr_coroutine_t)native_entity;
     pcintr_stack_t stack = &cor->stack;
     struct pcintr_stack_frame *frame = pcintr_stack_get_bottom_frame(stack);
-    return pcintr_get_named_variable(stack,
+    purc_variant_t ret = pcintr_get_named_variable(stack,
             frame, property_name, at, true, false);
+    return ret ? purc_variant_ref(ret) : PURC_VARIANT_INVALID;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
