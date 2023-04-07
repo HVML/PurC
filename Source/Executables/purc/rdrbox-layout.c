@@ -2234,7 +2234,13 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 min_width = foil_rdrbox_inline_calc_preferred_minimum_width(
                         child);
 
-                shrink_width = MIN(MAX(min_width, avl_width), pref_width);
+                /* box->floating cblock_width = 0 */
+                if (avl_width > 0) {
+                    shrink_width = MIN(MAX(min_width, avl_width), pref_width);
+                }
+                else {
+                    shrink_width = pref_width;
+                }
             }
             else if (child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
                 shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
@@ -2258,6 +2264,11 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         while (child) {
             assert(child->is_width_resolved == 0);
+
+            if (!child->computed_style) {
+                child = child->next;
+                continue;
+            }
 
             int shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
             if (shrink_width > width)
