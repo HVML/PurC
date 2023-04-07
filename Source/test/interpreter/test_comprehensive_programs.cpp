@@ -59,3 +59,8 @@ TEST(comp_hvml, tag)
 {
     go_comp_test("comp/4*.hvml");
 }
+
+TEST(comp_hvml, var)
+{
+    go_comp_test("comp/5*.hvml");
+}

@@ -671,7 +671,9 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
             }
 
             if (purc_variant_is_undefined(src)) {
-                if (purc_variant_set_remove_by_index(dst, idx)) {
+                purc_variant_t v = purc_variant_set_remove_by_index(dst, idx);
+                if (v) {
+                    purc_variant_unref(v);
                     ret = 0;
                 }
                 break;

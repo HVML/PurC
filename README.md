@@ -57,13 +57,6 @@ For documents, specifications, and open-source software related to HVML, please 
 - HVML Documents: <https://github.com/HVML/hvml-docs>.
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
-- PurC Midnight Commander (an HVML renderer in text mode): <https://github.com/HVML/PurC-Midnight-Commander>.
-
-Note that, since PurC 0.9.0, we merged the repositories of DOM Ruler and PurC Fetcher to this repository.
-Therefore, the following repositories were marked deprecated:
-
-- PurC Fetcher (the remote data fetcher for PurC).
-- DOM Ruler (A library to maintain a DOM tree, layout, and stylize the DOM elements by using CSS).
 
 ## Building PurC
 
@@ -506,7 +499,7 @@ $ purc -c thread hvml/fibonacci-html-temp.hvml
 
 Here is the screenshot on macOS:
 
-![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
+![Fibonacci Numbers in Foil](/Documents/screenshots/fibonacci-html-temp-foil.png)
 
 You can also try other samples which illustrate the features of the Foil renderer:
 
@@ -545,7 +538,7 @@ By using the `observe` element, the HVML program will wait for the time when the
 
 You will see that the contents in a window of xGUI Pro created by `hvml/fibonacci-html-temp-rdr.hvml`:
 
-![Fibonacci Numbers](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp.png)
+![Fibonacci Numbers](/Documents/screenshots/fibonacci-html-temp.png)
 
 If you close the window by clicking the close box on the caption bar,
    the HVML program will exit as normal.
@@ -559,7 +552,7 @@ $ purc -c socket hvml/calculator-bc.hvml
 
 Here is the screenshot of `hvml/calculator-bc.hvml`:
 
-![the Arbitrary Precision Calculator](https://files.fmsoft.cn/hvml/screenshots/calculator-bc.png)
+![the Arbitrary Precision Calculator](/Documents/screenshots/calculator-bc.png)
 
 Or run `hvml/planetary-resonance-lines.hvml`, which shows the Planetary Resonance:
 
@@ -569,7 +562,7 @@ $ purc -c socket hvml/planetary-resonance-lines.hvml
 
 Here is the screenshot of `hvml/planetary-resonance-lines.hvml`:
 
-![the Planetary Resonance](https://files.fmsoft.cn/hvml/screenshots/planetary-resonance.png)
+![the Planetary Resonance](/Documents/screenshots/planetary-resonance.png)
 
 For an amazing HVML program that uses multiple coroutines to sieve the prime numbers,
     you can run `hvml/prime-number-sieve.hvml`, which visually illustrates the prime number sieve algorithm:
@@ -580,7 +573,7 @@ $ purc -c socket hvml/prime-number-sieve.hvml
 
 Here is the screenshot of `hvml/prime-number-sieve.hvml`:
 
-![the Prime Number Sieve](https://files.fmsoft.cn/hvml/screenshots/prime-number-sieve.png)
+![the Prime Number Sieve](/Documents/screenshots/prime-number-sieve.png)
 
 For example, to use an external dynamic object defined in a shared library in an HVML program,
     you can run `hvml/file-manager.hvml`, which illustrates the usage of the external dynamic object `$FS`:
@@ -591,7 +584,7 @@ $ purc -c socket hvml/file-manager.hvml
 
 Below is the screenshot of `hvml/file-manager.hvml`:
 
-![the File Manager](https://files.fmsoft.cn/hvml/screenshots/file-manager.png)
+![the File Manager](/Documents/screenshots/file-manager.png)
 
 Since version 0.9.7, PurC provides support for the Python.
 You can now embed Python code in HVML, import Python modules, access the Python variables, or call Python functions directly in your HVML program.
@@ -603,7 +596,7 @@ $ purc -c socket hvml/embed-python-animated-3d-random-walk.hvml
 
 Below is the screenshot of this sample:
 
-![Embedding Python in HVML](https://files.fmsoft.cn/hvml/screenshots/embed-python-animated-3d-random-walk.png)
+![Embedding Python in HVML](/Documents/screenshots/embed-python-animated-3d-random-walk.png)
 
 ### Options for `purc`
 

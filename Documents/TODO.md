@@ -73,6 +73,7 @@
 
 ### 2.3) Predefined Variables
 
+1. [0.9.a] Implementation of `$CRTN.static` and `$CRTN.temp`.
 1. [0.9.c] Basic support for `$SOCK`.
 1. [0.9.c] Support for the following URI schemas for `$STREAM`:
    - `fifo`

@@ -259,6 +259,8 @@ struct tkz_reader *tkz_reader_new(int hee_line, int hee_column);
 
 void tkz_reader_set_rwstream(struct tkz_reader *reader, purc_rwstream_t rws);
 
+struct tkz_uc *tkz_reader_current(struct tkz_reader *reader);
+
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader);
 
 bool tkz_reader_reconsume_last_char(struct tkz_reader *reader);
@@ -391,7 +393,8 @@ struct pcutils_arrlist*
 tkz_sbst_get_buffered_ucs(struct tkz_sbst *sbst);
 
 int
-tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error);
+tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
+        const char *type, const char *extra);
 
 size_t uc_to_utf8(uint32_t c, char *outbuf);
 

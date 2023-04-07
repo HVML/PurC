@@ -2,7 +2,7 @@
 
 pkgbase=purc
 pkgname=purc
-pkgver=0.9.6
+pkgver=0.9.8
 pkgrel=0
 pkgdesc="The prime HVML interpreter for C Language."
 arch=(x86_64
@@ -14,34 +14,54 @@ url="https://github.com/HVML/PurC"
 license=('LGPL-3.0')
 groups=('hvml')
 provides=(${pkgname}
-        PurC
         domruler
         purc-fetcher)
 conflicts=(${pkgname})
 replaces=(domruler
-        purc-fetcher)
+          purc-fetcher)
 depends=(glib2
-        bison
-        flex)
-makedepends=(git
+        glibc
+        python)
+makedepends=(bison
             cmake
+            cython
+            flex
+            git
             ninja
             ccache
-            gcc
-            python
-            libxml2
-            ruby
             curl
+            gcc
+            gperf
+            lua-lgi
+            ncurses
+            libgcrypt
+            libjpeg-turbo
+            libnotify
+            libmanette
+            libtasn1
+            libsecret
+            libseccomp
+            libpsl
+            libxml2
+            libxslt
+            libsoup
+            icu
+            mariadb
             openssl
             sqlite
+            systemd
             pkgconf
-            zlib
-            icu)
-optdepends=('purc-midnight-commander: A generic HVML renderer in text mode for development and debugging.'
+            zlib)
+checkdepends=(check
+            gtest
+            valgrind)
+optdepends=('python-numpy: Scientific tools for Python'
             'webkit2gtk-hvml: Web content engine for GTK (HVML)'
+            'webkit2gtk: Web content engine for GTK'
             'xguipro: xGUI (the X Graphics User Interface) Pro is a modern, cross-platform, and advanced HVML renderer which is based on tailored WebKit.')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/ver-${pkgver}.tar.gz")
-sha256sums=('3b648e546bb8b43ef32f15b8dfd3fe37d1cfe22202f1230697be51469b6fdf5c')
+sha256sums=('SKIP')
+options=('!strip')
 
 build() {
     cd "${srcdir}/PurC-ver-${pkgver}/"
@@ -58,6 +78,12 @@ build() {
         -G Ninja
 
     ninja -C build
+}
+
+check() {
+    cd "${srcdir}/PurC-ver-${pkgver}/build"
+#     ctest --test-dir build --output-on-failure
+    bash run_all_tests.sh
 }
 
 package() {

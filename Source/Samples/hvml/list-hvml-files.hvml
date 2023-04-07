@@ -1,0 +1,18 @@
+#!/usr/local/bin/purc
+<!DOCTYPE hvml SYSTEM 'f: FS'>
+<hvml target="html">
+    <head>
+        <title>List HVML Files</title>
+    </head>
+
+    <body>
+        <init as 'all_cases' with $FS.list_prt("$SYS.cwd/hvml", '*.hvml') />
+        <sort on $all_cases />
+        <iterate on $all_cases>
+            <inherit>
+                $STREAM.stdout.writelines($?)
+            </inherit>
+        </iterate>
+    </body>
+</hvml>
+

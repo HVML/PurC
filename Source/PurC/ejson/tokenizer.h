@@ -78,6 +78,8 @@
 
 #define PLINE()            PLOG("%s:%d:%s\n", __FILE__, __LINE__, __func__)
 
+#define PARSER_ERROR_TYPE       "heeParsing"
+
 #define SET_ERR(err)    do {                                                \
     if (parser->curr_uc) {                                                  \
         int hee_line = tkz_reader_hee_line(parser->tkz_reader);             \
@@ -100,7 +102,8 @@
             PC_DEBUG( "%s:%d|%s|%s\n", __FILE__, __LINE__, #err, buf);      \
         }                                                                   \
     }                                                                       \
-    tkz_set_error_info(parser->tkz_reader, parser->curr_uc, err);           \
+    tkz_set_error_info(parser->tkz_reader, parser->curr_uc, err,            \
+            PARSER_ERROR_TYPE, NULL);                                       \
 } while (0)
 
 #define BEGIN_STATE(state)                                                  \
