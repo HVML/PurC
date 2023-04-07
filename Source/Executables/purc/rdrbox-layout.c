@@ -2255,7 +2255,9 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
             child->width = shrink_width;
             dtrm_margin_left_right(ctxt, child);
-            child->is_width_resolved = 1;
+            if (box->is_in_normal_flow) {
+                child->is_width_resolved = 1;
+            }
 
             child = child->next;
         }
@@ -2276,7 +2278,9 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
             child->width = shrink_width;
             dtrm_margin_left_right(ctxt, child);
-            child->is_width_resolved = 1;
+            if (box->is_in_normal_flow) {
+                child->is_width_resolved = 1;
+            }
 
             child = child->next;
         }
