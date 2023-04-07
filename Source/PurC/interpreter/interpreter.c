@@ -1818,7 +1818,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     co->variables = pcvarmgr_create();
     if (!co->variables) {
-        goto fail_variables;
+        goto fail_clr_mq;
     }
 
     stack = &co->stack;
@@ -1837,7 +1837,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         stack->inherit = 1;
     }
     else if (doc_init(stack)) {
-        goto fail_variables;
+        goto fail_clr_variables;
     }
 
     if (parent) {
@@ -1846,7 +1846,7 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
         child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
         if (!child) {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fail_variables;
+            goto fail_clr_variables;
         }
         child->cid = co->cid;
         list_add_tail(&child->ln, &parent->children);
@@ -1866,7 +1866,10 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     return co;
 
-fail_variables:
+fail_clr_variables:
+    pcvarmgr_destroy(co->variables);
+
+fail_clr_mq:
     pcinst_msg_queue_destroy(co->mq);
 
 fail_co:

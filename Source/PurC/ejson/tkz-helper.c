@@ -217,6 +217,11 @@ bool tkz_reader_reconsume_last_char(struct tkz_reader *reader)
     return true;
 }
 
+struct tkz_uc *tkz_reader_current(struct tkz_reader *reader)
+{
+    return &reader->curr_uc;
+}
+
 struct tkz_uc *tkz_reader_next_char(struct tkz_reader *reader)
 {
     struct tkz_uc *ret = NULL;
@@ -590,10 +595,11 @@ free_error_info(void *key, void *local_data)
 }
 
 int
-tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error)
+tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error,
+        const char *type, const char *extra)
 {
-    purc_set_error(error);
     if (!uc) {
+        purc_set_error(error);
         goto out;
     }
 
@@ -618,6 +624,17 @@ tkz_set_error_info(struct tkz_reader *reader, struct tkz_uc *uc, int error)
     info->column = column;
     info->position = uc->position;
     info->error = error;
+
+    if (extra) {
+        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s:%s",
+                error, type, info->line, info->column,
+                purc_get_error_message(error), extra);
+    }
+    else {
+        purc_set_error_with_info(error, "E%d:%s:%d:%d:%s",
+                error, type, info->line, info->column,
+                purc_get_error_message(error));
+    }
 
     purc_set_local_data(PURC_LDNAME_PARSE_ERROR, (uintptr_t)info,
             free_error_info);

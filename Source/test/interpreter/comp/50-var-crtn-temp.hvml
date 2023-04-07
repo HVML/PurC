@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: [10UL, 10UL, 99UL, "test", "test", "zh", "zh"]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <body>
+        $CRTN.static.count(!99UL)
+        <div>
+            $CRTN.temp.count(!10UL, 2UL)
+        </div>
+        <div>
+            $CRTN.temp.name(!"test", "_root")
+        </div>
+        <div>
+            $CRTN.temp.lang(!"zh", 2UL)
+        </div>
+        <exit with [$count, $CRTN.temp.count(2UL), $CRTN.static.count(2UL), $name, $CRTN.temp.name("_root"), $lang, $CRTN.temp.lang(2UL)] />
+    </body>
+</hvml>
+
+

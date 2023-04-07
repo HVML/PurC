@@ -44,7 +44,6 @@ struct pcvarmgr {
     struct pcvdom_node       *vdom_node;
 };
 
-
 struct pcintr_stack;
 
 PCA_EXTERN_C_BEGIN
