@@ -1,11 +1,10 @@
 .container {
-    height:2in;
 }
 .pile {
     position: absolute;
-    left: 1in;
-    top: 1in;
-    height: 0.5in;
+    left: 0.2in;
+    top: 0.2in;
+    height: 0.2in;
 }
 .border_red {
     border-style: solid;
