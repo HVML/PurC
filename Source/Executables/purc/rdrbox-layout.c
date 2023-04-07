@@ -2479,6 +2479,18 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             child = child->next;
         }
     }
+    else if (box->nr_floating_children > 0) {
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+            }
+            child = child->next;
+        }
+    }
 
 #ifndef NDEBUG
     LOG_DEBUG("called for box %s, height: %d\n", name, height);
