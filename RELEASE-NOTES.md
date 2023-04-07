@@ -12,7 +12,7 @@
 ## Version 0.9.8
 
 On Mar. 31, 2023, HVML Community announces the availability of PurC 0.9.8,
-   which is also the sixth alpha release of PurC 1.0.x.
+   which is also the seventh alpha release of PurC 1.0.x.
 
 For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
 
@@ -48,8 +48,8 @@ In this version, we fixed some bugs and made som enhancements:
 * CLEANUP:
    - Remove repeated identical test (from @bkmgit)
 * SAMPLES:
-   - A new sample `embed-python-looking-for-primes.hvml`: Embeding Python in HVML to find primes.
-   - A new sample `embed-python-animated-3d-random-walk.hvml`: Embeding Python in HVML to show the animated 3D random walks.
+   - A new sample `embed-python-looking-for-primes.hvml`: Embedding Python in HVML to find primes.
+   - A new sample `embed-python-animated-3d-random-walk.hvml`: Embedding Python in HVML to show the animated 3D random walks.
    - A new sample `foil-three-columns.hvml`: Using Foil to show three columns to run samples.
 
 ## Version 0.9.6
