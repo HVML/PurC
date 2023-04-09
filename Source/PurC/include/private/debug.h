@@ -60,8 +60,8 @@ extern "C" {
 #define PC_ASSERT(cond)                                                 \
     do {                                                                \
         if (!(cond)) {                                                  \
-            purc_log_error("PurC assertion failure %s:%d: condition \"" \
-                    __STRING(cond) " failed\n",                         \
+            purc_log_error("PurC assertion failure %s:%d: condition ‘"  \
+                    __STRING(cond) "’ failed\n",                        \
                     __FILE__, __LINE__);                                \
             assert(0);                                                  \
         }                                                               \
