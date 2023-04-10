@@ -2544,7 +2544,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
                 int margin_width = child->ml + child->bl + child->pl +
                     child->width + child->mr + child->br + child->pr;
-                if (margin_width < line->left_extent) {
+                if (margin_width > line->left_extent) {
                     line = foil_rdrbox_block_allocate_new_line(ctxt, box);
                     if (line == NULL)
                         goto failed;
