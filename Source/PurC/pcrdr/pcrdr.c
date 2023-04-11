@@ -75,6 +75,8 @@ static struct pcrdr_opatom {
     { PCRDR_OPERATION_WRITEBEGIN,           0 }, // "writeBegin"
     { PCRDR_OPERATION_WRITEMORE,            0 }, // "writeMore"
     { PCRDR_OPERATION_WRITEEND,             0 }, // "writeEnd"
+    { PCRDR_OPERATION_REGISTER,             0 }, // "register"
+    { PCRDR_OPERATION_REVOKE,               0 }, // "revoke"
     { PCRDR_OPERATION_APPEND,               0 }, // "append"
     { PCRDR_OPERATION_PREPEND,              0 }, // "prepend"
     { PCRDR_OPERATION_INSERTBEFORE,         0 }, // "insertBefore"

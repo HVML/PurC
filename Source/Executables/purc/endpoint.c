@@ -1012,6 +1012,84 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
+static int on_register(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
+{
+    pcrdr_msg response = { };
+    int retv = PCRDR_SC_OK;
+    pcmcth_page *page = NULL;
+    pcmcth_udom *dom = NULL;
+
+    void *edom;
+    if (msg->data == PURC_VARIANT_INVALID ||
+            !purc_variant_is_native(msg->data) ||
+            (edom = purc_variant_native_get_entity(msg->data)) == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
+            msg->target == PCRDR_MSG_TARGET_WIDGET) {
+        page = (void *)(uintptr_t)msg->targetValue;
+    }
+
+    if (page == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    dom = rdr->cbs.load_edom(endpoint->session, page, msg->data, &retv);
+
+failed:
+    response.type = PCRDR_MSG_TYPE_RESPONSE;
+    response.requestId = msg->requestId;
+    response.sourceURI = PURC_VARIANT_INVALID;
+    response.retCode = retv;
+    response.resultValue = (uint64_t)(uintptr_t)dom;
+    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+
+    return send_simple_response(rdr, endpoint, &response);
+}
+
+static int on_revoke(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
+{
+    pcrdr_msg response = { };
+    int retv = PCRDR_SC_OK;
+    pcmcth_page *page = NULL;
+    pcmcth_udom *dom = NULL;
+
+    void *edom;
+    if (msg->data == PURC_VARIANT_INVALID ||
+            !purc_variant_is_native(msg->data) ||
+            (edom = purc_variant_native_get_entity(msg->data)) == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
+            msg->target == PCRDR_MSG_TARGET_WIDGET) {
+        page = (void *)(uintptr_t)msg->targetValue;
+    }
+
+    if (page == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    dom = rdr->cbs.load_edom(endpoint->session, page, msg->data, &retv);
+
+failed:
+    response.type = PCRDR_MSG_TYPE_RESPONSE;
+    response.requestId = msg->requestId;
+    response.sourceURI = PURC_VARIANT_INVALID;
+    response.retCode = retv;
+    response.resultValue = (uint64_t)(uintptr_t)dom;
+    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+
+    return send_simple_response(rdr, endpoint, &response);
+}
+
 static int update_dom(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg, int op)
 {
@@ -1369,6 +1447,8 @@ static struct request_handler {
     { PCRDR_OPERATION_LOAD, on_load },
     { PCRDR_OPERATION_PREPEND, on_prepend },
     { PCRDR_OPERATION_REMOVEPAGEGROUP, on_remove_page_group },
+    { PCRDR_OPERATION_REGISTER, on_register },
+    { PCRDR_OPERATION_REVOKE, on_revoke },
     { PCRDR_OPERATION_SETPAGEGROUPS, on_set_page_groups },
     { PCRDR_OPERATION_SETPROPERTY, on_set_property },
     { PCRDR_OPERATION_STARTSESSION, on_start_session },

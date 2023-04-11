@@ -1206,6 +1206,8 @@ static const char *rdr_ops[] = {
     PCRDR_OPERATION_WRITEBEGIN,                // "writeBegin"
     PCRDR_OPERATION_WRITEMORE,                 // "writeMore"
     PCRDR_OPERATION_WRITEEND,                  // "writeEnd"
+    PCRDR_OPERATION_REGISTER,                  // "register"
+    PCRDR_OPERATION_REVOKE,                    // "revoke"
     PCRDR_OPERATION_APPEND,                    // "append"
     PCRDR_OPERATION_PREPEND,                   // "prepend"
     PCRDR_OPERATION_INSERTBEFORE,              // "insertBefore"
@@ -1299,7 +1301,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
 
     const char *operation = rdr_ops[op];
     if (property && op == PCDOC_OP_DISPLACE) {
-        // VW: use 'update' operation when displace property
+        // VW: use 'update' operation when displacing property
         operation = PCRDR_OPERATION_UPDATE;
     }
 

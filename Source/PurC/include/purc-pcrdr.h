@@ -42,9 +42,9 @@
 
 /* Constants */
 #define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
-#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "110"
-#define PCRDR_PURCMC_PROTOCOL_VERSION           110
-#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   110
+#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "120"
+#define PCRDR_PURCMC_PROTOCOL_VERSION           120
+#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   120
 
 #define PCRDR_PURCMC_US_PATH                    "/var/tmp/purcmc.sock"
 #define PCRDR_PURCMC_WS_PORT                    "7702"
@@ -71,7 +71,7 @@
 #define PCRDR_THREAD_OPERATION_HELLO    "hello"
 #define PCRDR_THREAD_OPERATION_BYE      "bye"
 
-/* operations */
+/* operations from interpreter to render */
 enum {
     PCRDR_K_OPERATION_FIRST = 0,
     PCRDR_K_OPERATION_STARTSESSION = PCRDR_K_OPERATION_FIRST,
@@ -110,6 +110,10 @@ enum {
 #define PCRDR_OPERATION_WRITEMORE           "writeMore"
     PCRDR_K_OPERATION_WRITEEND,
 #define PCRDR_OPERATION_WRITEEND            "writeEnd"
+    PCRDR_K_OPERATION_REGISTER,
+#define PCRDR_OPERATION_REGISTER            "register"
+    PCRDR_K_OPERATION_REVOKE,
+#define PCRDR_OPERATION_REVOKE              "revoke"
     PCRDR_K_OPERATION_APPEND,
 #define PCRDR_OPERATION_APPEND              "append"
     PCRDR_K_OPERATION_PREPEND,
@@ -139,6 +143,21 @@ enum {
 
 #define PCRDR_NR_OPERATIONS \
     (PCRDR_K_OPERATION_LAST - PCRDR_K_OPERATION_FIRST + 1)
+
+/* operations from renderer to interpreter */
+enum {
+    PCRDR_K_OPERATION2INTR_FIRST = 0,
+    PCRDR_K_OPERATION2INTR_SUPPRESSPAGE = PCRDR_K_OPERATION2INTR_FIRST,
+#define PCRDR_OPERATION2INTR_SUPPRESSPAGE   "suppressPage"
+    PCRDR_K_OPERATION2INTR_RELOADPAGE,
+#define PCRDR_OPERATION2INTR_RELOADPAGE     "reloadPage"
+
+    /* XXX: change this when you append a new operation */
+    PCRDR_K_OPERATION2INTR_LAST = PCRDR_K_OPERATION2INTR_RELOADPAGE,
+};
+
+#define PCRDR_NR_OPERATIONS2INTR \
+    (PCRDR_K_OPERATION2INTR_LAST - PCRDR_K_OPERATION2INTR_FIRST + 1)
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
