@@ -45,7 +45,7 @@ struct kvlist {
     struct avl_tree avl;
 
     /* VW: can be NULL for pointer */
-    int (*get_len)(struct kvlist *kv, const void *data);
+    size_t (*get_len)(struct kvlist *kv, const void *data);
 };
 
 struct kvlist_node {
@@ -87,10 +87,16 @@ extern "C" {
 #endif
 
 /* get_len can be NULL for pointer */
-void pcutils_kvlist_init(struct kvlist *kv, int (*get_len)(struct kvlist *kv, const void *data));
+void pcutils_kvlist_init(struct kvlist *kv,
+        size_t (*get_len)(struct kvlist *kv, const void *data));
 void pcutils_kvlist_free(struct kvlist *kv);
 void *pcutils_kvlist_get(struct kvlist *kv, const char *name);
-bool pcutils_kvlist_set(struct kvlist *kv, const char *name, const void *data);
+const char *pcutils_kvlist_set_ex(struct kvlist *kv,
+        const char *name, const void *data);
+static inline bool pcutils_kvlist_set(struct kvlist *kv,
+        const char *name, const void *data) {
+    return pcutils_kvlist_set_ex(kv, name, data) != NULL;
+}
 bool pcutils_kvlist_delete(struct kvlist *kv, const char *name);
 
 int pcutils_kvlist_strlen(struct kvlist *kv, const void *data);

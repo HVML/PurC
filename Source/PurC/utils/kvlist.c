@@ -51,8 +51,8 @@ int pcutils_kvlist_strlen(struct kvlist *kv, const void *data)
     return strlen(data) + 1;
 }
 
-void pcutils_kvlist_init(struct kvlist *kv, int (*get_len)(struct kvlist *kv,
-            const void *data))
+void pcutils_kvlist_init(struct kvlist *kv,
+        size_t (*get_len)(struct kvlist *kv, const void *data))
 {
     pcutils_avl_init(&kv->avl, pcutils_avl_strcmp, false, NULL);
     kv->get_len = get_len;
@@ -89,25 +89,24 @@ bool pcutils_kvlist_delete(struct kvlist *kv, const char *name)
     return !!node;
 }
 
-bool pcutils_kvlist_set(struct kvlist *kv, const char *name, const void *data)
+const char *pcutils_kvlist_set_ex(struct kvlist *kv,
+        const char *name, const void *data)
 {
     struct kvlist_node *node;
     char *name_buf;
-    int len = kv->get_len ? kv->get_len(kv, data) : (int)(sizeof (void *));
 
+    int len = kv->get_len ? kv->get_len(kv, data) : (int)(sizeof (void *));
     node = calloc_a(sizeof(struct kvlist_node) + len,
         &name_buf, strlen(name) + 1);
     if (!node)
-        return false;
+        return NULL;
 
     pcutils_kvlist_delete(kv, name);
-
     memcpy(node->data, data, len);
-
     node->avl.key = strcpy(name_buf, name);
     pcutils_avl_insert(&kv->avl, &node->avl);
 
-    return true;
+    return node->avl.key;
 }
 
 void pcutils_kvlist_free(struct kvlist *kv)
