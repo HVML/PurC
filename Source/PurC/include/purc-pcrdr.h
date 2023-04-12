@@ -72,7 +72,7 @@
 #define PCRDR_THREAD_OPERATION_BYE      "bye"
 
 /* operations from interpreter to render */
-enum {
+typedef enum {
     PCRDR_K_OPERATION_FIRST = 0,
     PCRDR_K_OPERATION_STARTSESSION = PCRDR_K_OPERATION_FIRST,
 #define PCRDR_OPERATION_STARTSESSION        "startSession"
@@ -139,13 +139,13 @@ enum {
 
     /* XXX: change this when you append a new operation */
     PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_SETPROPERTY,
-};
+} pcrdr_operation_k;
 
 #define PCRDR_NR_OPERATIONS \
     (PCRDR_K_OPERATION_LAST - PCRDR_K_OPERATION_FIRST + 1)
 
 /* operations from renderer to interpreter */
-enum {
+typedef enum {
     PCRDR_K_OPERATION2INTR_FIRST = 0,
     PCRDR_K_OPERATION2INTR_SUPPRESSPAGE = PCRDR_K_OPERATION2INTR_FIRST,
 #define PCRDR_OPERATION2INTR_SUPPRESSPAGE   "suppressPage"
@@ -154,10 +154,43 @@ enum {
 
     /* XXX: change this when you append a new operation */
     PCRDR_K_OPERATION2INTR_LAST = PCRDR_K_OPERATION2INTR_RELOADPAGE,
-};
+} pcrdr_operation2intr_k;
 
-#define PCRDR_NR_OPERATIONS2INTR \
-    (PCRDR_K_OPERATION2INTR_LAST - PCRDR_K_OPERATION2INTR_FIRST + 1)
+/* reserved names for workspace */
+typedef enum {
+    PCRDR_K_RESNAME_WORKSPACE_FIRST = 0,
+    PCRDR_K_RESNAME_WORKSPACE_default = PCRDR_K_RESNAME_WORKSPACE_FIRST,
+#define PCRDR_RESNAME_WORKSPACE_default     "_default"
+    PCRDR_K_RESNAME_WORKSPACE_active,
+#define PCRDR_RESNAME_WORKSPACE_active      "_active"
+    PCRDR_K_RESNAME_WORKSPACE_first,
+#define PCRDR_RESNAME_WORKSPACE_first       "_first"
+    PCRDR_K_RESNAME_WORKSPACE_last,
+#define PCRDR_RESNAME_WORKSPACE_last        "_last"
+
+    /* XXX: change this when you append a new name */
+    PCRDR_K_RESNAME_WORKSPACE_LAST = PCRDR_K_RESNAME_WORKSPACE_last,
+} pcrdr_resname_workspace_k;
+
+#define PCRDR_NR_RESNAME_WORKSPACE \
+    (PCRDR_K_RESNAME_WORKSPACE_LAST - PCRDR_K_RESNAME_WORKSPACE_FIRST + 1)
+
+/* reserved names for page */
+typedef enum {
+    PCRDR_K_RESNAME_PAGE_FIRST = 0,
+    PCRDR_K_RESNAME_PAGE_active = PCRDR_K_RESNAME_PAGE_FIRST,
+#define PCRDR_RESNAME_PAGE_active      "_active"
+    PCRDR_K_RESNAME_PAGE_first,
+#define PCRDR_RESNAME_PAGE_first       "_first"
+    PCRDR_K_RESNAME_PAGE_last,
+#define PCRDR_RESNAME_PAGE_last        "_last"
+
+    /* XXX: change this when you append a new name */
+    PCRDR_K_RESNAME_PAGE_LAST = PCRDR_K_RESNAME_PAGE_last,
+} pcrdr_resname_page_k;
+
+#define PCRDR_NR_RESNAME_PAGE \
+    (PCRDR_K_RESNAME_PAGE_LAST - PCRDR_K_RESNAME_PAGE_FIRST + 1)
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
@@ -273,35 +306,6 @@ PCA_EXTERN_C_BEGIN
  * The functions to manage the connection with renderer.
  * @{
  */
-
-/**
- * Get the return message of a return code.
- *
- * @param ret_code: the return code.
- *
- * Returns the pointer to the message string of the specific return code.
- *
- * Returns: a pointer to the message string.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT const char *
-pcrdr_get_ret_message(int ret_code);
-
-/**
- * Convert an error code to a return code.
- *
- * @param err_code: the internal error code.
- *
- * Returns the return code of the PurCMC protocol according to
- * the internal error code.
- *
- * Returns: the return code of PurCMC protocol.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_errcode_to_retcode(int err_code);
 
 /**
  * Disconnect from the renderer.
@@ -1366,6 +1370,73 @@ purc_inst_retrieve_message(size_t index);
 PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
 
+/**@}*/
+
+/**
+ * @defgroup purcmcHelpers  Helpers for PURCMC communication
+ *
+ * The helpers for communication between the interpreter and the renderer.
+ * @{
+ */
+
+/**
+ * Get the return message of a return code.
+ *
+ * @param ret_code: the return code.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: a pointer to the message string.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const char *
+pcrdr_get_ret_message(int ret_code);
+
+/**
+ * Convert an error code to a return code.
+ *
+ * @param err_code: the internal error code.
+ *
+ * Returns the return code of the PurCMC protocol according to
+ * the internal error code.
+ *
+ * Returns: the return code of PurCMC protocol.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_errcode_to_retcode(int err_code);
+
+/**
+ * Checks the reserved name for workspace.
+ *
+ * @param name: the name for workspace.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: -1 for not a valid reserved workspace name, otherwise
+ *  a value of @pcrdr_resname_workspace_k.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_check_reserved_workspace_name(const char *name);
+
+/**
+ * Checks the reserved name for page.
+ *
+ * @param name: the name for page.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: -1 for not a valid reserved page name, otherwise
+ *  a value of @pcrdr_resname_page_k.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_check_reserved_page_name(const char *name);
 
 /**@}*/
 

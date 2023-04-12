@@ -58,20 +58,23 @@
     "/widgetInTabbedWindow:" __STRING(32)                   \
     "/plainWindow:" __STRING(256)
 
-struct tabbed_window_info {
-    // the group identifier of the tabbed window
+struct tabbedwin_info {
+    // the group identifier of the tabbedwin
     const char *group;
 
     // handle of this tabbedWindow; NULL for not used slot.
     void *handle;
 
-    // number of tabpages in this tabbedWindow
+    // number of widgets in this tabbedWindow
     int nr_widgets;
 
-    // handles of all tabpages/widgets in this tabbedWindow
-    void *tabpages[NR_WIDGETS];
+    // the active widget in this tabbedWindow
+    int active_widget;
 
-    // handles of all DOM documents in all tabpages.
+    // handles of all widgets in this tabbedWindow
+    void *widgets[NR_WIDGETS];
+
+    // handles of all DOM documents in all widgets.
     void *domdocs[NR_WIDGETS];
 };
 
@@ -83,16 +86,19 @@ struct workspace_info {
     char *name;
 
     // number of tabbed windows in this workspace
-    int nr_tabbed_windows;
+    int nr_tabbedwins;
 
     // number of plain windows in this workspace
-    int nr_plain_windows;
+    int nr_plainwins;
+
+    // index of the active plain window in this workspace
+    int active_plainwin;
 
     // information of all tabbed windows in this workspace.
-    struct tabbed_window_info tabbed_windows[NR_TABBEDWINDOWS];
+    struct tabbedwin_info tabbedwins[NR_TABBEDWINDOWS];
 
     // handles of all plain windows in this workspace.
-    void *plain_windows[NR_PLAINWINDOWS];
+    void *plainwins[NR_PLAINWINDOWS];
 
     // handles of DOM documents in all plain windows.
     void *domdocs[NR_PLAINWINDOWS];
@@ -107,6 +113,7 @@ struct workspace_info {
 struct session_info {
     // number of workspaces
     int nr_workspaces;
+    int active_workspace;
 
     // workspaces
     struct workspace_info workspaces[NR_WORKSPACES];
@@ -398,6 +405,8 @@ static void on_start_session(struct pcrdr_prot_data *prot_data,
 
     /* create the default workspace */
     create_workspace(prot_data, 0, PCRDR_DEFAULT_WORKSPACE);
+    prot_data->session->nr_workspaces = 1;
+    prot_data->session->active_workspace = 0;
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = (uint64_t)(uintptr_t)prot_data->session;
@@ -440,6 +449,142 @@ static void on_end_session(struct pcrdr_prot_data *prot_data,
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = msg->targetValue;
+}
+
+static uint64_t get_special_workspace_handle(struct session_info *session,
+        pcrdr_resname_workspace_k v)
+{
+    void *handle = 0;
+
+    switch (v) {
+        case PCRDR_K_RESNAME_WORKSPACE_default:
+            handle = session->workspaces[0].handle;
+            break;
+        case PCRDR_K_RESNAME_WORKSPACE_active:
+            handle = session->workspaces[session->active_workspace].handle;
+            break;
+        case PCRDR_K_RESNAME_WORKSPACE_first:
+            handle = session->workspaces[0].handle;
+            break;
+        case PCRDR_K_RESNAME_WORKSPACE_last:
+            for (int i = NR_WORKSPACES - 1; i >= 0; i++) {
+                if (session->workspaces[i].handle) {
+                    handle = session->workspaces[i].handle;
+                    break;
+                }
+            }
+            break;
+    }
+
+    assert(handle != NULL);
+    return (uint64_t)(uintptr_t)handle;
+}
+
+static int find_new_active_workspace(struct session_info *session, int removed)
+{
+    assert(removed > 0);
+
+    int i;
+    for (i = removed - 1; i >= 0; i--) {
+        if (session->workspaces[i].handle) {
+            break;
+        }
+    }
+
+    return i;
+}
+
+static uint64_t get_special_plainwin_handle(struct workspace_info *workspace,
+        pcrdr_resname_page_k v)
+{
+    void *handle = 0;
+
+    switch (v) {
+        case PCRDR_K_RESNAME_PAGE_active:
+            handle = workspace->plainwins[workspace->active_plainwin];
+            break;
+
+        case PCRDR_K_RESNAME_PAGE_first:
+            for (int i = 0; i < NR_PLAINWINDOWS; i++) {
+                if (workspace->plainwins[i]) {
+                    handle = workspace->plainwins[i];
+                    break;
+                }
+            }
+            break;
+
+        case PCRDR_K_RESNAME_PAGE_last:
+            for (int i = NR_PLAINWINDOWS - 1; i >= 0; i--) {
+                if (workspace->plainwins[i]) {
+                    handle = workspace->plainwins[i];
+                    break;
+                }
+            }
+            break;
+    }
+
+    return (uint64_t)(uintptr_t)handle;
+}
+
+static int find_new_active_plainwin(struct workspace_info *workspace)
+{
+    int active = -1;
+
+    for (int i = 0; i < NR_PLAINWINDOWS; i++) {
+        if (workspace->plainwins[i]) {
+            active = i;
+            break;
+        }
+    }
+
+    return active;
+}
+
+static uint64_t get_special_widget_handle(struct tabbedwin_info *tabbedwin,
+        pcrdr_resname_page_k v)
+{
+    void *handle = 0;
+
+    switch (v) {
+        case PCRDR_K_RESNAME_PAGE_active:
+            handle = tabbedwin->widgets[tabbedwin->active_widget];
+            break;
+
+        case PCRDR_K_RESNAME_PAGE_first:
+            for (int i = 0; i < NR_WIDGETS; i++) {
+                if (tabbedwin->widgets[i]) {
+                    handle = tabbedwin->widgets[i];
+                    break;
+                }
+            }
+            break;
+
+        case PCRDR_K_RESNAME_PAGE_last:
+            for (int i = NR_WIDGETS - 1; i >= 0; i--) {
+                if (tabbedwin->widgets[i]) {
+                    handle = tabbedwin->widgets[i];
+                    break;
+                }
+            }
+            break;
+    }
+
+    assert(handle != NULL);
+    return (uint64_t)(uintptr_t)handle;
+}
+
+static int find_new_active_widget(struct tabbedwin_info *tabbedwin)
+{
+    int active = -1;
+
+    for (int i = 0; i < NR_WIDGETS; i++) {
+        if (tabbedwin->widgets[i]) {
+            active = i;
+            break;
+        }
+    }
+
+    return active;
 }
 
 static void on_create_workspace(struct pcrdr_prot_data *prot_data,
@@ -486,6 +631,21 @@ static void on_create_workspace(struct pcrdr_prot_data *prot_data,
         return;
     }
 
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_workspace_name(name);
+        if (v < 0) {
+            result->retCode = PCRDR_SC_BAD_REQUEST;
+            result->resultValue = 0;
+            return;
+
+        }
+
+        result->retCode = PCRDR_SC_OK;
+        result->resultValue = get_special_workspace_handle(prot_data->session,
+                (pcrdr_resname_workspace_k)v);
+        return;
+    }
+
     int i;
     struct workspace_info *workspaces = prot_data->session->workspaces;
     for (i = 0; i < NR_WORKSPACES; i++) {
@@ -504,6 +664,7 @@ static void on_create_workspace(struct pcrdr_prot_data *prot_data,
 
     create_workspace(prot_data, i, name);
     prot_data->session->nr_workspaces++;
+    prot_data->session->active_workspace = i;
 
 done:
     result->retCode = PCRDR_SC_OK;
@@ -586,6 +747,12 @@ static void on_destroy_workspace(struct pcrdr_prot_data *prot_data,
         }
     }
 
+    if (i == 0) {
+        result->retCode = PCRDR_SC_FORBIDDEN;
+        result->resultValue = msg->targetValue;
+        return;
+    }
+
     if (i >= NR_WORKSPACES) {
         result->retCode = PCRDR_SC_NOT_FOUND;
         result->resultValue = msg->targetValue;
@@ -594,6 +761,8 @@ static void on_destroy_workspace(struct pcrdr_prot_data *prot_data,
 
     destroy_workspace(prot_data, i);
     prot_data->session->nr_workspaces--;
+    prot_data->session->active_workspace = find_new_active_workspace(
+            prot_data->session, i);
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = msg->targetValue;
@@ -602,50 +771,76 @@ static void on_destroy_workspace(struct pcrdr_prot_data *prot_data,
 /* plainwin:hello@main */
 #define PREFIX_PLAINWIN         "plainwin:"
 #define PREFIX_WIDGET           "widget:"
-#define SEP_GROUP_NAME          "@"
+#define SEP_GROUP_NAME          '@'
 
 #define MAX_PLAINWIN_ID     \
     (sizeof(PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
 #define MAX_WIDGET_ID     \
     (sizeof(PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
 
-static int check_and_make_plainwin_id(char *id_buf,
-        const char *group, const char *name)
+static int check_and_make_plainwin_id(char *id_buf, const char *name_group)
 {
-    if (group && !purc_is_valid_identifier(group))
-        return -1;
+    const char *name;
+    char *allocated = NULL;
+    const char *group = strchr(name_group, SEP_GROUP_NAME);
+    if (group && !purc_is_valid_identifier(group + 1))
+        goto failed;
 
-    if (name == NULL || !purc_is_valid_identifier(name))
-        return -1;
-
-    strcpy(id_buf, PREFIX_PLAINWIN);
-    strcat(id_buf, name);
     if (group) {
-        strcat(id_buf, SEP_GROUP_NAME);
-        strcat(id_buf, group);
+        size_t n = group - name_group;
+        if (n == 0)
+            goto failed;
+
+        allocated = strndup(name_group, n);
+        name = allocated;
+    }
+    else {
+        name = name_group;
     }
 
+    if (!purc_is_valid_identifier(name))
+        goto failed;
+
+    strcpy(id_buf, PREFIX_PLAINWIN);
+    strcat(id_buf, name_group);
+
+    if (allocated)
+        free(allocated);
     return 0;
+
+failed:
+    if (allocated)
+        free(allocated);
+    return -1;
 }
 
-static int check_and_make_widget_id(char *id_buf,
-        const char *group, const char *name)
+static const char *check_and_make_widget_id(char *id_buf, char *name,
+        const char *name_group)
 {
-    if (group == NULL || !purc_is_valid_identifier(group))
-        return -1;
+    const char *group = strchr(name_group, SEP_GROUP_NAME);
 
-    if (name == NULL || !purc_is_valid_identifier(name))
-        return -1;
+    if (group == NULL || !purc_is_valid_identifier(group + 1))
+        goto failed;
+
+    size_t n = group - name_group;
+    if (n == 0 || n > PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    strncpy(name, name_group, n);
+    name[n] = 0;
+    if (!purc_is_valid_identifier(name))
+        goto failed;
 
     strcpy(id_buf, PREFIX_WIDGET);
-    strcat(id_buf, name);
-    strcat(id_buf, SEP_GROUP_NAME);
-    strcat(id_buf, group);
+    strcat(id_buf, name_group);
 
-    return 0;
+    return group + 1;
+
+failed:
+    return NULL;
 }
 
-static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
+static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -662,22 +857,15 @@ static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    const char *group = NULL;
+    /* Since 120, use element to specify the window name and group name:
+        <window_name>[@<group_name>]
+     */
     const char *name = NULL;
     if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-        group = purc_variant_get_string_const(msg->elementValue);
+        name = purc_variant_get_string_const(msg->elementValue);
     }
 
-    /* Since 120, use property to specify the window name */
-    name = purc_variant_get_string_const(msg->property);
     if (name == NULL) {
-        result->retCode = PCRDR_SC_BAD_REQUEST;
-        result->resultValue = 0;
-        return;
-    }
-
-    char idbuf[MAX_PLAINWIN_ID];
-    if (check_and_make_plainwin_id(idbuf, group, name)) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
         return;
@@ -701,6 +889,29 @@ static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
         }
     }
 
+    /* Since 120, support the special page name. */
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_page_name(name);
+        if (v < 0) {
+            result->retCode = PCRDR_SC_BAD_REQUEST;
+            result->resultValue = 0;
+            return;
+
+        }
+
+        result->retCode = PCRDR_SC_OK;
+        result->resultValue = get_special_plainwin_handle(workspaces + i,
+                (pcrdr_resname_page_k)v);
+        return;
+    }
+
+    char idbuf[MAX_PLAINWIN_ID];
+    if (check_and_make_plainwin_id(idbuf, name)) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
     /* Since 120, returns the window handle if the window existed */
     void **data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
@@ -711,7 +922,7 @@ static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    if (workspaces[i].nr_plain_windows >= NR_PLAINWINDOWS) {
+    if (workspaces[i].nr_plainwins >= NR_PLAINWINDOWS) {
         result->retCode = PCRDR_SC_SERVICE_UNAVAILABLE;
         result->resultValue = msg->targetValue;
         return;
@@ -719,30 +930,31 @@ static void on_create_plain_window(struct pcrdr_prot_data *prot_data,
 
     int j;
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
-        if (workspaces[i].plain_windows[j] == NULL) {
+        if (workspaces[i].plainwins[j] == NULL) {
 
             struct widget_ostack *ostack;
             if ((ostack = create_widget_ostack(workspaces + i,
-                    idbuf, workspaces[i].plain_windows + j)) == NULL) {
+                    idbuf, workspaces[i].plainwins + j)) == NULL) {
                 result->retCode = PCRDR_SC_INSUFFICIENT_STORAGE;
                 result->resultValue = 0;
                 return;
             }
 
-            workspaces[i].plain_windows[j] = ostack;
+            workspaces[i].plainwins[j] = ostack;
             break;
         }
     }
 
     assert(j < NR_PLAINWINDOWS);
 
-    workspaces[i].nr_plain_windows++;
+    workspaces[i].nr_plainwins++;
+    workspaces[i].active_plainwin = j;
     result->retCode = PCRDR_SC_OK;
-    result->resultValue = (uint64_t)(uintptr_t)workspaces[i].plain_windows[j];
+    result->resultValue = (uint64_t)(uintptr_t)workspaces[i].plainwins[j];
     return;
 }
 
-static void on_update_plain_window(struct pcrdr_prot_data *prot_data,
+static void on_update_plainwin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -783,7 +995,7 @@ static void on_update_plain_window(struct pcrdr_prot_data *prot_data,
 
     int j;
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
-        uint64_t handle = (uint64_t)(uintptr_t)&workspaces[i].plain_windows[j];
+        uint64_t handle = (uint64_t)(uintptr_t)&workspaces[i].plainwins[j];
         if (handle == elem_handle) {
             break;
         }
@@ -799,7 +1011,7 @@ static void on_update_plain_window(struct pcrdr_prot_data *prot_data,
     result->resultValue = elem_handle;
 }
 
-static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
+static void on_destroy_plainwin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     UNUSED_PARAM(op_id);
@@ -840,7 +1052,7 @@ static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
 
     int j;
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
-        uint64_t handle = (uint64_t)(uintptr_t)workspaces[i].plain_windows[j];
+        uint64_t handle = (uint64_t)(uintptr_t)workspaces[i].plainwins[j];
         if (handle == elem_handle) {
             break;
         }
@@ -853,13 +1065,14 @@ static void on_destroy_plain_window(struct pcrdr_prot_data *prot_data,
     }
 
     /* TODO: generate window destroyed events */
-    struct widget_ostack *ostack = workspaces[i].plain_windows[j];
+    struct widget_ostack *ostack = workspaces[i].plainwins[j];
     pcutils_kvlist_delete(&workspaces[i].widget_owners, ostack->id);
     destroy_widget_ostack(ostack);
 
-    workspaces[i].plain_windows[j] = NULL;
+    workspaces[i].plainwins[j] = NULL;
     workspaces[i].domdocs[j] = NULL;
-    workspaces[i].nr_plain_windows--;
+    workspaces[i].nr_plainwins--;
+    workspaces[i].active_plainwin = find_new_active_plainwin(workspaces + i);
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = elem_handle;
@@ -984,18 +1197,18 @@ static void on_remove_page_group(struct pcrdr_prot_data *prot_data,
     result->resultValue = 0;
 }
 
-static struct tabbed_window_info *
+static struct tabbedwin_info *
 create_or_get_tabbedwin(struct workspace_info *workspace, const char *group)
 {
     void *data = pcutils_kvlist_get(&workspace->group_tabbedwin, group);
     if (data) {
-        return *(struct tabbed_window_info **)data;
+        return *(struct tabbedwin_info **)data;
     }
 
-    struct tabbed_window_info *tabbedwin = NULL;
+    struct tabbedwin_info *tabbedwin = NULL;
     int j;
     for (j = 0; j < NR_TABBEDWINDOWS; j++) {
-        tabbedwin = workspace->tabbed_windows + j;
+        tabbedwin = workspace->tabbedwins + j;
         if (tabbedwin->handle == NULL) {
             tabbedwin->handle = tabbedwin;
             tabbedwin->group = pcutils_kvlist_set_ex(
@@ -1028,25 +1241,6 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    const char *group = NULL;
-    const char *name = NULL;
-
-    /* Since 120, use property to specify the window name */
-    group = purc_variant_get_string_const(msg->elementValue);
-    name = purc_variant_get_string_const(msg->property);
-    if (group == NULL || name == NULL) {
-        result->retCode = PCRDR_SC_BAD_REQUEST;
-        result->resultValue = 0;
-        return;
-    }
-
-    char idbuf[MAX_WIDGET_ID];
-    if (check_and_make_widget_id(idbuf, group, name)) {
-        result->retCode = PCRDR_SC_BAD_REQUEST;
-        result->resultValue = 0;
-        return;
-    }
-
     int i =0 ;
     struct workspace_info *workspaces = prot_data->session->workspaces;
     if (msg->targetValue != 0) {
@@ -1065,6 +1259,54 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
         }
     }
 
+    const char *name_group = NULL;
+    /* Since 120, use element to specify the widget name and group name:
+            <widget_name>@<group_name>
+     */
+    name_group = purc_variant_get_string_const(msg->elementValue);
+    if (name_group == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    char idbuf[MAX_WIDGET_ID];
+    char name[PURC_LEN_IDENTIFIER + 1];
+    const char *group;
+    if ((group = check_and_make_widget_id(idbuf, name, name_group)) == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    /* Since 120, support the special page name. */
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_page_name(name);
+        if (v < 0) {
+            result->retCode = PCRDR_SC_BAD_REQUEST;
+            result->resultValue = 0;
+            return;
+
+        }
+
+        struct tabbedwin_info *tabbedwin = NULL;
+        void *data = pcutils_kvlist_get(&workspaces[i].group_tabbedwin, group);
+        if (data) {
+            tabbedwin = *(struct tabbedwin_info **)data;
+        }
+
+        if (tabbedwin == NULL) {
+            result->retCode = PCRDR_SC_NOT_FOUND;
+            result->resultValue = 0;
+            return;
+        }
+
+        result->retCode = PCRDR_SC_OK;
+        result->resultValue = get_special_widget_handle(tabbedwin,
+                (pcrdr_resname_page_k)v);
+        return;
+    }
+
     /* Since 120, returns the widget handle if the widget existed */
     void **data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
@@ -1075,7 +1317,7 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    struct tabbed_window_info* tabbedwin;
+    struct tabbedwin_info *tabbedwin;
     tabbedwin = create_or_get_tabbedwin(workspaces + i, group);
     if (tabbedwin == NULL || tabbedwin->nr_widgets >= NR_WIDGETS) {
         result->retCode = PCRDR_SC_SERVICE_UNAVAILABLE;
@@ -1085,16 +1327,16 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
 
     int k;
     for (k = 0; k < NR_WIDGETS; k++) {
-        if (tabbedwin->tabpages[k] == NULL) {
+        if (tabbedwin->widgets[k] == NULL) {
             struct widget_ostack *ostack;
             if ((ostack = create_widget_ostack(workspaces + i,
-                    idbuf, tabbedwin->tabpages + k)) == NULL) {
+                    idbuf, tabbedwin->widgets + k)) == NULL) {
                 result->retCode = PCRDR_SC_INSUFFICIENT_STORAGE;
                 result->resultValue = 0;
                 return;
             }
 
-            tabbedwin->tabpages[k] = ostack;
+            tabbedwin->widgets[k] = ostack;
             break;
         }
     }
@@ -1102,9 +1344,10 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
     assert(k < NR_WIDGETS);
 
     tabbedwin->nr_widgets++;
+    tabbedwin->active_widget = k;
     result->retCode = PCRDR_SC_OK;
     result->resultValue =
-        (uint64_t)(uintptr_t)tabbedwin->tabpages[k];
+        (uint64_t)(uintptr_t)tabbedwin->widgets[k];
 }
 
 static void on_update_widget(struct pcrdr_prot_data *prot_data,
@@ -1148,9 +1391,9 @@ static void on_update_widget(struct pcrdr_prot_data *prot_data,
 
     int j, k;
     for (j = 0; j < NR_TABBEDWINDOWS; j++) {
-        struct tabbed_window_info *twin = workspaces[i].tabbed_windows + j;
+        struct tabbedwin_info *twin = workspaces[i].tabbedwins + j;
         for (k = 0; k < NR_WIDGETS; k++) {
-            uint64_t handle = (uint64_t)(uintptr_t)twin->tabpages[k];
+            uint64_t handle = (uint64_t)(uintptr_t)twin->widgets[k];
             if (handle == widget) {
                 goto found;
             }
@@ -1209,9 +1452,9 @@ static void on_destroy_widget(struct pcrdr_prot_data *prot_data,
 
     int j, k;
     for (j = 0; j < NR_TABBEDWINDOWS; j++) {
-        struct tabbed_window_info *twin = workspaces[i].tabbed_windows + j;
+        struct tabbedwin_info *twin = workspaces[i].tabbedwins + j;
         for (k = 0; k < NR_WIDGETS; k++) {
-            uint64_t handle = (uint64_t)(uintptr_t)twin->tabpages[k];
+            uint64_t handle = (uint64_t)(uintptr_t)twin->widgets[k];
             if (handle == widget) {
                 goto found;
             }
@@ -1225,14 +1468,16 @@ found:
         return;
     }
 
-    /* TODO: generate DOM document and/or tabpage destroyed events */
-    struct widget_ostack *ostack = workspaces[i].tabbed_windows[j].tabpages[k];
+    /* TODO: generate DOM document and/or widget destroyed events */
+    struct widget_ostack *ostack = workspaces[i].tabbedwins[j].widgets[k];
     pcutils_kvlist_delete(&workspaces[i].widget_owners, ostack->id);
     destroy_widget_ostack(ostack);
 
-    workspaces[i].tabbed_windows[j].tabpages[k] = NULL;
-    workspaces[i].tabbed_windows[j].domdocs[k] = NULL;
-    workspaces[i].tabbed_windows[j].nr_widgets--;
+    workspaces[i].tabbedwins[j].widgets[k] = NULL;
+    workspaces[i].tabbedwins[j].domdocs[k] = NULL;
+    workspaces[i].tabbedwins[j].nr_widgets--;
+    workspaces[i].tabbedwins[j].active_widget = find_new_active_widget(
+            workspaces[i].tabbedwins + j);
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = widget;
@@ -1259,10 +1504,10 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
         for (i = 0; i < NR_WORKSPACES; i++) {
             for (j = 0; j < NR_PLAINWINDOWS; j++) {
                 uint64_t handle =
-                    (uint64_t)(uintptr_t)&workspaces[i].plain_windows[j];
+                    (uint64_t)(uintptr_t)&workspaces[i].plainwins[j];
                 if (handle == msg->targetValue) {
                     if (widget)
-                        *widget = &workspaces[i].plain_windows[j];
+                        *widget = &workspaces[i].plainwins[j];
                     goto found_pw;
                 }
             }
@@ -1285,11 +1530,11 @@ found_pw:
                 for (k = 0; k < NR_WIDGETS; k++) {
                     uint64_t handle =
                         (uint64_t)(uintptr_t)
-                        &workspaces[i].tabbed_windows[j].tabpages[k];
+                        &workspaces[i].tabbedwins[j].widgets[k];
                     if (handle == msg->targetValue) {
                         if (widget)
                             *widget =
-                                &workspaces[i].tabbed_windows[j].tabpages[k];
+                                &workspaces[i].tabbedwins[j].widgets[k];
                         goto found_tp;
                     }
                 }
@@ -1303,7 +1548,7 @@ found_tp:
             return NULL;
         }
 
-        domdocs = &workspaces[i].tabbed_windows[j].domdocs[k];
+        domdocs = &workspaces[i].tabbedwins[j].domdocs[k];
     }
     else {
         result->retCode = PCRDR_SC_BAD_REQUEST;
@@ -1524,13 +1769,13 @@ static void on_operate_dom(struct pcrdr_prot_data *prot_data,
 
         for (int j = 0; j < NR_TABBEDWINDOWS; j++) {
 
-            if (workspaces[i].tabbed_windows[j].handle == NULL)
+            if (workspaces[i].tabbedwins[j].handle == NULL)
                 continue;
 
             for (int k = 0; k < NR_WIDGETS; k++) {
                 uint64_t handle =
                     (uint64_t)(uintptr_t)
-                    &workspaces[i].tabbed_windows[j].domdocs[k];
+                    &workspaces[i].tabbedwins[j].domdocs[k];
                 if (handle == msg->targetValue) {
                     found = true;
                     goto found;
@@ -1647,9 +1892,9 @@ static request_handler handlers[] = {
     on_create_workspace,
     on_update_workspace,
     on_destroy_workspace,
-    on_create_plain_window,
-    on_update_plain_window,
-    on_destroy_plain_window,
+    on_create_plainwin,
+    on_update_plainwin,
+    on_destroy_plainwin,
     on_reset_page_groups,
     on_add_page_groups,
     on_remove_page_group,
