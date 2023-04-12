@@ -256,7 +256,7 @@ uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
         uint64_t session, const char *workspace_name);
 
 uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
-        uint64_t session, const char *name, const char *title);
+        uint64_t session, const char *name, purc_variant_t data);
 
 bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
         uint64_t session, uint64_t workspace);
@@ -268,8 +268,7 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
 uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
         pcrdr_page_type_k page_type, const char *target_group,
-        const char *pag_name, const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style);
+        const char *page_name, purc_variant_t data);
 
 bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
         pcrdr_page_type_k page_type, uint64_t page_handle);
@@ -281,13 +280,11 @@ pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
 
 static inline uint64_t
 pcintr_rdr_create_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
-        const char *target_group, const char *pag_name,
-        const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style)
+        const char *target_group, const char *page_name,
+        purc_variant_t data)
 {
     return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_PLAINWIN, target_group, pag_name, title, classes,
-        layout_style, toolkit_style);
+        PCRDR_PAGE_TYPE_PLAINWIN, target_group, page_name, data);
 }
 
 static inline bool
@@ -318,12 +315,10 @@ bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
 static inline uint64_t
 pcintr_rdr_create_widget(struct pcrdr_conn *conn, uint64_t workspace,
         const char *target_group, const char *page_name,
-        const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style)
+        purc_variant_t data)
 {
     return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, title, classes,
-        layout_style, toolkit_style);
+        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, data);
 }
 
 static inline bool

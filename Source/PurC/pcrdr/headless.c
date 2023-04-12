@@ -23,6 +23,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "config.h"
 #include "purc-pcrdr.h"
 #include "private/pcrdr.h"
@@ -225,6 +227,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
         pcrdr_serialize_message(msg,
                 (pcrdr_cb_write)write_to_log, conn->prot_data->fp);
         fputs("\n<<<END\n", conn->prot_data->fp);
+        fflush(conn->prot_data->fp);
     }
 
     return msg;
@@ -249,16 +252,17 @@ static struct widget_ostack *create_widget_ostack(
     struct widget_ostack *ostack;
     ostack = calloc(1, sizeof(*ostack));
     if (ostack) {
-         ostack->owners = calloc(SZ_INITIAL_OSTACK, sizeof(uintptr_t));
-         if (ostack->owners == NULL)
-             goto failed;
+        ostack->owners = calloc(SZ_INITIAL_OSTACK, sizeof(uint64_t));
+        if (ostack->owners == NULL)
+            goto failed;
 
-         ostack->widget = widget;
-         ostack->alloc_size = SZ_INITIAL_OSTACK;
-         ostack->nr_owners = 0;
+        ostack->widget = widget;
+        ostack->alloc_size = SZ_INITIAL_OSTACK;
+        ostack->nr_owners = 0;
+        ostack->id = pcutils_kvlist_set_ex(&workspace->widget_owners,
+                id, &ostack);
     }
 
-    ostack->id = pcutils_kvlist_set_ex(&workspace->widget_owners, id, &ostack);
     return ostack;
 
 failed:
@@ -298,7 +302,9 @@ widget_ostack_register(struct widget_ostack *ostack, uint64_t owner)
 
     ostack->owners[ostack->nr_owners] = owner;
     ostack->nr_owners++;
-    return ostack->owners[ostack->nr_owners - 1];
+    if (ostack->nr_owners > 1)
+        return ostack->owners[ostack->nr_owners - 2];
+    return 0;
 
 failed:
     purc_log_error("RDR/HEADLESS: Memory failure in %s\n", __func__);
@@ -951,7 +957,6 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
     workspaces[i].active_plainwin = j;
     result->retCode = PCRDR_SC_OK;
     result->resultValue = (uint64_t)(uintptr_t)workspaces[i].plainwins[j];
-    return;
 }
 
 static void on_update_plainwin(struct pcrdr_prot_data *prot_data,
@@ -1488,6 +1493,9 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
 {
     if (msg->target != PCRDR_MSG_TARGET_PLAINWINDOW &&
             msg->target != PCRDR_MSG_TARGET_WIDGET) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return NULL;
     }
 
     if (prot_data->session == 0) {
@@ -1502,13 +1510,15 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
         int i, j;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
-            for (j = 0; j < NR_PLAINWINDOWS; j++) {
-                uint64_t handle =
-                    (uint64_t)(uintptr_t)&workspaces[i].plainwins[j];
-                if (handle == msg->targetValue) {
-                    if (widget)
-                        *widget = &workspaces[i].plainwins[j];
-                    goto found_pw;
+            if (workspaces[i].handle) {
+                for (j = 0; j < NR_PLAINWINDOWS; j++) {
+                    uint64_t handle =
+                        (uint64_t)(uintptr_t)workspaces[i].plainwins[j];
+                    if (handle == msg->targetValue) {
+                        if (widget)
+                            *widget = &workspaces[i].plainwins[j];
+                        goto found_pw;
+                    }
                 }
             }
         }
@@ -1526,16 +1536,18 @@ found_pw:
         int i, j, k;
         struct workspace_info *workspaces = prot_data->session->workspaces;
         for (i = 0; i < NR_WORKSPACES; i++) {
-            for (j = 0; j < NR_TABBEDWINDOWS; j++) {
-                for (k = 0; k < NR_WIDGETS; k++) {
-                    uint64_t handle =
-                        (uint64_t)(uintptr_t)
-                        &workspaces[i].tabbedwins[j].widgets[k];
-                    if (handle == msg->targetValue) {
-                        if (widget)
-                            *widget =
-                                &workspaces[i].tabbedwins[j].widgets[k];
-                        goto found_tp;
+            if (workspaces[i].handle) {
+                for (j = 0; j < NR_TABBEDWINDOWS; j++) {
+                    for (k = 0; k < NR_WIDGETS; k++) {
+                        uint64_t handle =
+                            (uint64_t)(uintptr_t)
+                            workspaces[i].tabbedwins[j].widgets[k];
+                        if (handle == msg->targetValue) {
+                            if (widget)
+                                *widget =
+                                    &workspaces[i].tabbedwins[j].widgets[k];
+                            goto found_tp;
+                        }
                     }
                 }
             }
@@ -1584,8 +1596,16 @@ static void on_load(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t suppressed = widget_ostack_register(ostack, handle);
-    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    result->data = purc_variant_make_ulongint(suppressed);
+    if (suppressed) {
+        char buff[LEN_BUFF_LONGLONGINT];
+        int n = snprintf(buff, sizeof(buff),
+                "%llx", (unsigned long long int)suppressed);
+        assert(n < (int)sizeof(buff));
+        (void)n;
+
+        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+        result->data = purc_variant_make_string(buff, false);
+    }
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = (uint64_t)(uintptr_t)domdocs;
@@ -1616,8 +1636,16 @@ static void on_write_begin(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t suppressed = widget_ostack_register(ostack, handle);
-    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    result->data = purc_variant_make_ulongint(suppressed);
+    if (suppressed) {
+        char buff[LEN_BUFF_LONGLONGINT];
+        int n = snprintf(buff, sizeof(buff),
+                "%llx", (unsigned long long int)suppressed);
+        assert(n < (int)sizeof(buff));
+        (void)n;
+
+        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+        result->data = purc_variant_make_string(buff, false);
+    }
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = msg->targetValue;
@@ -1695,8 +1723,16 @@ static void on_register(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t suppressed = widget_ostack_register(ostack, handle);
-    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    result->data = purc_variant_make_ulongint(suppressed);
+    if (suppressed) {
+        char buff[LEN_BUFF_LONGLONGINT];
+        int n = snprintf(buff, sizeof(buff),
+                "%llx", (unsigned long long int)suppressed);
+        assert(n < (int)sizeof(buff));
+        (void)n;
+
+        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+        result->data = purc_variant_make_string(buff, false);
+    }
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = 0;
@@ -1730,8 +1766,16 @@ static void on_revoke(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t reloaded = widget_ostack_revoke(ostack, handle);
-    result->data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    result->data = purc_variant_make_ulongint(reloaded);
+    if (reloaded) {
+        char buff[LEN_BUFF_LONGLONGINT];
+        int n = snprintf(buff, sizeof(buff),
+                "%llx", (unsigned long long int)reloaded);
+        assert(n < (int)sizeof(buff));
+        (void)n;
+
+        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
+        result->data = purc_variant_make_string(buff, false);
+    }
 
     result->retCode = PCRDR_SC_OK;
     result->resultValue = 0;
@@ -1966,6 +2010,7 @@ static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
         goto failed;
     }
     fputs("\n>>>END\n", conn->prot_data->fp);
+    fflush(conn->prot_data->fp);
 
     evaluate_result(conn->prot_data, msg);
     return 0;
@@ -2019,7 +2064,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     }
 
     if ((*conn = calloc(1, sizeof(pcrdr_conn))) == NULL) {
-        PC_DEBUG ("Failed to allocate space for connection: %s\n",
+        PC_DEBUG("Failed to allocate space for connection: %s\n",
                 strerror (errno));
         err_code = PCRDR_ERROR_NOMEM;
         goto failed;
@@ -2027,7 +2072,7 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
 
     if (((*conn)->prot_data =
                 calloc(1, sizeof(struct pcrdr_prot_data))) == NULL) {
-        PC_DEBUG ("Failed to allocate space for protocol data: %s\n",
+        PC_DEBUG("Failed to allocate space for protocol data: %s\n",
                 strerror (errno));
         err_code = PCRDR_ERROR_NOMEM;
         goto failed;
