@@ -2592,6 +2592,14 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         foil_rdrbox *child = box->first;
         while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+                child = child->next;
+                continue;
+            }
             if (child->is_abs_positioned) {
                 child = child->next;
                 continue;
@@ -2631,6 +2639,17 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 line->left_extent -= margin_width;
             }
 
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - child->mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + child->mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+
             child = child->next;
         }
 
@@ -2644,6 +2663,15 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         foil_rdrbox *prev_sibling = NULL;
         while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+                child = child->next;
+                continue;
+            }
+
             if (child->is_abs_positioned) {
                 child = child->next;
                 continue;
@@ -2669,6 +2697,29 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 + child->height + child->pb + child->bb + real_mb;
 
             prev_sibling = child;
+
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - real_mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + real_mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+            child = child->next;
+        }
+    }
+    else if (box->nr_floating_children > 0) {
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+            }
             child = child->next;
         }
     }
