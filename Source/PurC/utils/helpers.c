@@ -1,10 +1,10 @@
 /*
  * helpers.c -- The global helpers.
  *
- * Copyright (c) 2021, 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (c) 2021 ~ 2023 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
- *  Vincent Wei (https://github.com/VincentWei), 2021, 2022
+ *  Vincent Wei (https://github.com/VincentWei), 2021, 2022, 2023
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -37,20 +37,20 @@
 #include <inttypes.h>
 #include <assert.h>
 
-bool purc_is_valid_token (const char* token, int max_len)
+bool purc_is_valid_token(const char* token, int max_len)
 {
     int i;
 
-    if (token[0] != '_' && !purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha(token[0]))
         return false;
 
     i = 1;
-    while (token [i]) {
+    while (token[i]) {
 
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!purc_isalnum (token [i]) && token[i] != '_')
+        if (!purc_isalnum(token[i]) && token[i] != '_')
             return false;
 
         i++;
@@ -59,20 +59,20 @@ bool purc_is_valid_token (const char* token, int max_len)
     return true;
 }
 
-bool purc_is_valid_loose_token (const char* token, int max_len)
+bool purc_is_valid_loose_token(const char* token, int max_len)
 {
     int i;
 
-    if (token[0] != '_' && !purc_isalpha (token [0]))
+    if (token[0] != '_' && !purc_isalpha(token [0]))
         return false;
 
     i = 1;
-    while (token [i]) {
+    while (token[i]) {
 
         if (max_len > 0 && i > max_len)
             return false;
 
-        if (!purc_isalnum (token [i]) && token[i] != '_' && token[i] != '-')
+        if (!purc_isalnum(token[i]) && token[i] != '_' && token[i] != '-')
             return false;
 
         i++;
@@ -81,36 +81,36 @@ bool purc_is_valid_loose_token (const char* token, int max_len)
     return true;
 }
 
-bool purc_is_valid_endpoint_name (const char* endpoint_name)
+bool purc_is_valid_endpoint_name(const char* endpoint_name)
 {
-    char host_name [PURC_LEN_HOST_NAME + 1];
-    char app_name [PURC_LEN_APP_NAME + 1];
-    char runner_name [PURC_LEN_RUNNER_NAME + 1];
+    char host_name[PURC_LEN_HOST_NAME + 1];
+    char app_name[PURC_LEN_APP_NAME + 1];
+    char runner_name[PURC_LEN_RUNNER_NAME + 1];
 
-    if (purc_extract_host_name (endpoint_name, host_name) <= 0)
+    if (purc_extract_host_name(endpoint_name, host_name) <= 0)
         return false;
 
-    if (purc_extract_app_name (endpoint_name, app_name) <= 0)
+    if (purc_extract_app_name(endpoint_name, app_name) <= 0)
         return false;
 
-    if (purc_extract_runner_name (endpoint_name, runner_name) <= 0)
+    if (purc_extract_runner_name(endpoint_name, runner_name) <= 0)
         return false;
 
-    return purc_is_valid_host_name (host_name) &&
-        purc_is_valid_app_name (app_name) &&
-        purc_is_valid_runner_name (runner_name);
+    return purc_is_valid_host_name(host_name) &&
+        purc_is_valid_app_name(app_name) &&
+        purc_is_valid_runner_name(runner_name);
 }
 
 static inline const char *check_endpoint_schema (const char *endpoint)
 {
-    if (strncasecmp (endpoint, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0)
+    if (strncasecmp(endpoint, PURC_EDPT_SCHEMA, PURC_LEN_EDPT_SCHEMA) == 0)
         return endpoint + PURC_LEN_EDPT_SCHEMA;
 
     return NULL;
 }
 
 /* edpt://<host_name>/<app_name>/<runner_name> */
-int purc_extract_host_name (const char* endpoint, char* host_name)
+int purc_extract_host_name(const char* endpoint, char* host_name)
 {
     int len;
     char* slash;
@@ -118,34 +118,34 @@ int purc_extract_host_name (const char* endpoint, char* host_name)
     if ((endpoint = check_endpoint_schema(endpoint)) == NULL)
         return 0;
 
-    if ((slash = strchr (endpoint, '/')) == NULL)
+    if ((slash = strchr(endpoint, '/')) == NULL)
         return 0;
 
     len = (uintptr_t)slash - (uintptr_t)endpoint;
     if (len <= 0 || len > PURC_LEN_APP_NAME)
         return 0;
 
-    strncpy (host_name, endpoint, len);
-    host_name [len] = '\0';
+    strncpy(host_name, endpoint, len);
+    host_name[len] = '\0';
 
     return len;
 }
 
-char* purc_extract_host_name_alloc (const char* endpoint)
+char* purc_extract_host_name_alloc(const char* endpoint)
 {
     char* host_name;
-    if ((host_name = malloc (PURC_LEN_HOST_NAME + 1)) == NULL)
+    if ((host_name = malloc(PURC_LEN_HOST_NAME + 1)) == NULL)
         return NULL;
 
-    if (purc_extract_host_name (endpoint, host_name) > 0)
+    if (purc_extract_host_name(endpoint, host_name) > 0)
         return host_name;
 
-    free (host_name);
+    free(host_name);
     return NULL;
 }
 
 /* edpt://<host_name>/<app_name>/<runner_name> */
-int purc_extract_app_name (const char* endpoint, char* app_name)
+int purc_extract_app_name(const char* endpoint, char* app_name)
 {
     int len;
     char *first_slash, *second_slash;
@@ -153,8 +153,8 @@ int purc_extract_app_name (const char* endpoint, char* app_name)
     if ((endpoint = check_endpoint_schema(endpoint)) == NULL)
         return 0;
 
-    if ((first_slash = strchr (endpoint, '/')) == 0 ||
-            (second_slash = strrchr (endpoint, '/')) == 0 ||
+    if ((first_slash = strchr(endpoint, '/')) == 0 ||
+            (second_slash = strrchr(endpoint, '/')) == 0 ||
             first_slash == second_slash)
         return 0;
 
@@ -163,120 +163,120 @@ int purc_extract_app_name (const char* endpoint, char* app_name)
     if (len <= 0 || len > PURC_LEN_APP_NAME)
         return 0;
 
-    strncpy (app_name, first_slash, len);
-    app_name [len] = '\0';
+    strncpy(app_name, first_slash, len);
+    app_name[len] = '\0';
 
     return len;
 }
 
-char* purc_extract_app_name_alloc (const char* endpoint)
+char* purc_extract_app_name_alloc(const char* endpoint)
 {
     char* app_name;
 
-    if ((app_name = malloc (PURC_LEN_APP_NAME + 1)) == NULL)
+    if ((app_name = malloc(PURC_LEN_APP_NAME + 1)) == NULL)
         return NULL;
 
-    if (purc_extract_app_name (endpoint, app_name) > 0)
+    if (purc_extract_app_name(endpoint, app_name) > 0)
         return app_name;
 
-    free (app_name);
+    free(app_name);
     return NULL;
 }
 
 /* edpt://<host_name>/<app_name>/<runner_name> */
-int purc_extract_runner_name (const char* endpoint, char* runner_name)
+int purc_extract_runner_name(const char* endpoint, char* runner_name)
 {
     int len;
     char *second_slash;
 
-    if ((endpoint = check_endpoint_schema (endpoint)) == NULL)
+    if ((endpoint = check_endpoint_schema(endpoint)) == NULL)
         return 0;
 
-    if ((second_slash = strrchr (endpoint, '/')) == 0)
+    if ((second_slash = strrchr(endpoint, '/')) == 0)
         return 0;
 
     second_slash++;
-    len = strlen (second_slash);
+    len = strlen(second_slash);
     if (len > PURC_LEN_RUNNER_NAME)
         return 0;
 
-    strcpy (runner_name, second_slash);
+    strcpy(runner_name, second_slash);
 
     return len;
 }
 
-char* purc_extract_runner_name_alloc (const char* endpoint)
+char* purc_extract_runner_name_alloc(const char* endpoint)
 {
     char* runner_name;
 
-    if ((runner_name = malloc (PURC_LEN_RUNNER_NAME + 1)) == NULL)
+    if ((runner_name = malloc(PURC_LEN_RUNNER_NAME + 1)) == NULL)
         return NULL;
 
-    if ( purc_extract_runner_name (endpoint, runner_name) > 0)
+    if (purc_extract_runner_name(endpoint, runner_name) > 0)
         return runner_name;
 
-    free (runner_name);
+    free(runner_name);
     return NULL;
 }
 
-int purc_assemble_endpoint_name_ex (const char* host_name,
+int purc_assemble_endpoint_name_ex(const char* host_name,
         const char* app_name, const char* runner_name, char* buff, size_t sz)
 {
     int host_len, app_len, runner_len;
 
-    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
+    if ((host_len = strlen(host_name)) > PURC_LEN_HOST_NAME)
         return 0;
 
-    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
+    if ((app_len = strlen(app_name)) > PURC_LEN_APP_NAME)
         return 0;
 
-    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
+    if ((runner_len = strlen(runner_name)) > PURC_LEN_RUNNER_NAME)
         return 0;
 
     size_t len = PURC_LEN_EDPT_SCHEMA + host_len + 1 + app_len + 1 + runner_len;
     if (len >= sz)
         return 0;
 
-    strcpy (buff, PURC_EDPT_SCHEMA);
-    strcat (buff, host_name);
+    strcpy(buff, PURC_EDPT_SCHEMA);
+    strcat(buff, host_name);
     buff += PURC_LEN_EDPT_SCHEMA + host_len;
-    buff [0] = '/';
-    buff [1] = '\0';
+    buff[0] = '/';
+    buff[1] = '\0';
 
-    strcat (buff, app_name);
+    strcat(buff, app_name);
     buff += app_len + 1;
-    buff [0] = '/';
-    buff [1] = '\0';
+    buff[0] = '/';
+    buff[1] = '\0';
 
-    strcat (buff, runner_name);
+    strcat(buff, runner_name);
     return len;
 }
 
-char* purc_assemble_endpoint_name_alloc (const char* host_name,
+char* purc_assemble_endpoint_name_alloc(const char* host_name,
         const char* app_name, const char* runner_name)
 {
     char* endpoint;
     int host_len, app_len, runner_len;
 
-    if ((host_len = strlen (host_name)) > PURC_LEN_HOST_NAME)
+    if ((host_len = strlen(host_name)) > PURC_LEN_HOST_NAME)
         return NULL;
 
-    if ((app_len = strlen (app_name)) > PURC_LEN_APP_NAME)
+    if ((app_len = strlen(app_name)) > PURC_LEN_APP_NAME)
         return NULL;
 
-    if ((runner_len = strlen (runner_name)) > PURC_LEN_RUNNER_NAME)
+    if ((runner_len = strlen(runner_name)) > PURC_LEN_RUNNER_NAME)
         return NULL;
 
     int len = PURC_LEN_EDPT_SCHEMA + host_len + app_len + runner_len + 3;
-    if ((endpoint = malloc (len)) == NULL)
+    if ((endpoint = malloc(len)) == NULL)
         return NULL;
 
-    purc_assemble_endpoint_name_ex (host_name, app_name, runner_name,
+    purc_assemble_endpoint_name_ex(host_name, app_name, runner_name,
             endpoint, len);
     return endpoint;
 }
 
-bool purc_is_valid_host_name (const char* host_name)
+bool purc_is_valid_host_name(const char* host_name)
 {
     // TODO
     (void)host_name;
@@ -284,7 +284,7 @@ bool purc_is_valid_host_name (const char* host_name)
 }
 
 /* cn.fmsoft.hybridos.aaa */
-bool purc_is_valid_app_name (const char* app_name)
+bool purc_is_valid_app_name(const char* app_name)
 {
     size_t len, left = strlen(app_name);
     const char *start;
@@ -295,7 +295,7 @@ bool purc_is_valid_app_name (const char* app_name)
 
     start = app_name;
     while (*start) {
-        end = strchr (start, '.');
+        end = strchr(start, '.');
         if (end == NULL) {
             end += left;
             len = left;
@@ -310,7 +310,7 @@ bool purc_is_valid_app_name (const char* app_name)
         char token[len + 1];
         strncpy(token, start, len);
         token[len] = 0;
-        if (!purc_is_valid_token (token, 0)) {
+        if (!purc_is_valid_token(token, 0)) {
             return false;
         }
 
@@ -328,28 +328,28 @@ bool purc_is_valid_app_name (const char* app_name)
     return true;
 }
 
-void purc_generate_md5_id (char* id_buff, const char* prefix)
+void purc_generate_md5_id(char* id_buff, const char* prefix)
 {
     int n;
-    char key [256];
-    unsigned char md5_digest [MD5_DIGEST_SIZE];
+    char key[256];
+    unsigned char md5_digest[MD5_DIGEST_SIZE];
     struct timespec tp;
 
-    clock_gettime (CLOCK_REALTIME, &tp);
-    n = snprintf (key, sizeof (key), "%s-%ld-%ld-%ld", prefix,
-            tp.tv_sec, tp.tv_nsec, random ());
+    clock_gettime(CLOCK_REALTIME, &tp);
+    n = snprintf(key, sizeof(key), "%s-%ld-%ld-%ld", prefix,
+            tp.tv_sec, tp.tv_nsec, random());
 
     if (n < 0) {
-        PC_INFO ("Unexpected call to snprintf.\n");
+        PC_INFO("Unexpected call to snprintf.\n");
     }
-    else if ((size_t)n >= sizeof (key))
-        PC_INFO ("The buffer is too small for resultId.\n");
+    else if ((size_t)n >= sizeof(key))
+        PC_INFO("The buffer is too small for resultId.\n");
 
-    pcutils_md5digest (key, md5_digest);
-    pcutils_bin2hex (md5_digest, MD5_DIGEST_SIZE, id_buff, false);
+    pcutils_md5digest(key, md5_digest);
+    pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, id_buff, false);
 }
 
-bool purc_is_valid_unique_id (const char* id)
+bool purc_is_valid_unique_id(const char* id)
 {
     int n = 0;
 
@@ -357,7 +357,7 @@ bool purc_is_valid_unique_id (const char* id)
         if (n > PURC_LEN_UNIQUE_ID)
             return false;
 
-        if (!purc_isalnum (id [n]) && id [n] != '-')
+        if (!purc_isalnum(id [n]) && id [n] != '-')
             return false;
 
         n++;
@@ -366,7 +366,7 @@ bool purc_is_valid_unique_id (const char* id)
     return true;
 }
 
-bool purc_is_valid_md5_id (const char* id)
+bool purc_is_valid_md5_id(const char* id)
 {
     int n = 0;
 
@@ -374,7 +374,7 @@ bool purc_is_valid_md5_id (const char* id)
         if (n > (MD5_DIGEST_SIZE << 1))
             return false;
 
-        if (!purc_isalnum (id [n]))
+        if (!purc_isalnum(id [n]))
             return false;
 
         n++;
@@ -399,7 +399,7 @@ double purc_get_elapsed_seconds(const struct timespec *ts_from,
     long dns;
 
     if (ts_to == NULL) {
-        clock_gettime (CLOCK_MONOTONIC, &ts_curr);
+        clock_gettime(CLOCK_MONOTONIC, &ts_curr);
         ts_to = &ts_curr;
     }
 
@@ -871,26 +871,26 @@ purc_make_object_from_query_string(const char *query, bool rfc1738)
 
 #include <stdatomic.h>
 
-void purc_generate_unique_id (char* id_buff, const char* prefix)
+void purc_generate_unique_id(char* id_buff, const char* prefix)
 {
     static atomic_ullong atomic_accumulator;
     struct timespec tp;
-    int i, n = strlen (prefix);
-    char my_prefix [9];
+    int i, n = strlen(prefix);
+    char my_prefix[9];
 
     for (i = 0; i < 8; i++) {
         if (i < n) {
-            my_prefix [i] = purc_toupper (prefix [i]);
+            my_prefix[i] = purc_toupper(prefix [i]);
         }
         else
-            my_prefix [i] = 'X';
+            my_prefix[i] = 'X';
     }
-    my_prefix [8] = '\0';
+    my_prefix[8] = '\0';
 
-    clock_gettime (CLOCK_REALTIME, &tp);
+    clock_gettime(CLOCK_REALTIME, &tp);
 
-    unsigned long long accumulator = atomic_fetch_add(&atomic_accumulator, 1);
-    snprintf (id_buff, PURC_LEN_UNIQUE_ID + 1,
+    unsigned long long accumulator =atomic_fetch_add(&atomic_accumulator, 1);
+    snprintf(id_buff, PURC_LEN_UNIQUE_ID + 1,
             "%s-%016lX-%016lX-%016llX",
             my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
 }
@@ -898,24 +898,24 @@ void purc_generate_unique_id (char* id_buff, const char* prefix)
 #else /* HAVE(STDATOMIC_H) */
 
 /* see the atomic version at the end of this file */
-void purc_generate_unique_id (char* id_buff, const char* prefix)
+void purc_generate_unique_id(char* id_buff, const char* prefix)
 {
     static unsigned long long accumulator;
     struct timespec tp;
-    int i, n = strlen (prefix);
-    char my_prefix [9];
+    int i, n = strlen(prefix);
+    char my_prefix[9];
 
     for (i = 0; i < 8; i++) {
         if (i < n) {
-            my_prefix [i] = purc_toupper (prefix [i]);
+            my_prefix[i] = purc_toupper(prefix [i]);
         }
         else
-            my_prefix [i] = 'X';
+            my_prefix[i] = 'X';
     }
     my_prefix [8] = '\0';
 
-    clock_gettime (CLOCK_REALTIME, &tp);
-    snprintf (id_buff, PURC_LEN_UNIQUE_ID + 1,
+    clock_gettime(CLOCK_REALTIME, &tp);
+    snprintf(id_buff, PURC_LEN_UNIQUE_ID + 1,
             "%s-%016lX-%016lX-%016llX",
             my_prefix, tp.tv_sec, tp.tv_nsec, accumulator);
     accumulator++;
