@@ -1,0 +1,69 @@
+.border_red {
+    border-style: solid;
+    border-width: thick;
+    border-color: red;
+}
+.border_green {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+}
+.border_blue {
+    border-style: solid;
+    border-width: thick;
+    border-color: blue;
+}
+
+.normal {
+    border-style: solid;
+    border-width: thick;
+    border-color: red;
+}
+
+.fl {
+    border-style: solid;
+    border-width: thick;
+    border-color: blue;
+    float: left;
+}
+
+.fr {
+    border-style: solid;
+    border-width: thick;
+    border-color: green;
+    float: right;
+}
+
+.container {
+    width:150px;
+    height:100px;
+}
+
+.h50 {
+    height:50px;
+}
+
+.h60 {
+    height:60px;
+}
+
+.h100 {
+    height:100px;
+}
+
+.w20 {
+    width:20px;
+}
+
+.w40 {
+    width:40px;
+}
+
+.w50 {
+    width:50px;
+}
+
+.w100 {
+    width:100px;
+}
+
