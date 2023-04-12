@@ -2279,6 +2279,10 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         }
         else if (child->is_block_level && child->is_in_normal_flow) {
             int child_width = dtrm_width_shrink_to_fit(ctxt, child);
+            dtrm_margin_left_right(ctxt, child);
+            child_width += child->ml + child->bl + child->pl +
+                child->pr + child->br + child->mr;
+
             if (pref_width < child_width) {
                 pref_width = child_width;
             }
@@ -2309,6 +2313,9 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         else if (child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
                 child->is_in_normal_flow) {
             int child_width = dtrm_width_shrink_to_fit(ctxt, child);
+            dtrm_margin_left_right(ctxt, box);
+            child_width += child->ml + child->bl + child->pl +
+                child->pr + child->br + child->mr;
 
             if (last_child_type == FOIL_RDRBOX_TYPE_INLINE ||
                     last_child_type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
