@@ -2654,7 +2654,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             if (prev_sibling) {
                 collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom + real_mb);
+                        0, prev_sibling->ctnt_rect.bottom + prev_sibling->pb + prev_sibling->bb + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
@@ -2663,8 +2663,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
-                    child->ml + child->bl + child->pl,
-                    real_mt + child->bt + child->pt);
+                    0, real_mt + child->bt + child->pt);
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;
