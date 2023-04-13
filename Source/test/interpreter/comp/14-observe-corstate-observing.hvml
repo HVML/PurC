@@ -12,7 +12,7 @@
 <hvml target="void">
     <body>
 
-        <load from "#subPage" onto "_null" as "subPage" async />
+        <load from "#subPage" onto "null:" as "subPage" async />
 
         <observe on $subPage for "corState:observing" >
             <inherit>
