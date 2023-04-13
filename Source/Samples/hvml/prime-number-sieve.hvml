@@ -92,7 +92,7 @@
 
         <observe on="$TIMERS" for="expired:clock">
             <clear on $TIMERS />
-            <load from "#main" onto "_inherit" async />
+            <load from "#main" onto "inherit:" async />
         </observe>
 
         <observe on $CRTN for "rdrState:pageClosed">
@@ -126,7 +126,7 @@
 
         <init as chIn with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} temp />
 
-        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
+        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "inherit:" async />
 
         <!-- iterate 10 times -->
         <iterate on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
@@ -142,7 +142,7 @@
                 <!-- open a channel to filter the new prime -->
                 <init as chOut with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} temp />
 
-                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "_inherit" async />
+                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "inherit:" async />
 
                 <!-- make the output channel to be the input channel -->
                 <init as chIn at "#main" with $chOut temp />

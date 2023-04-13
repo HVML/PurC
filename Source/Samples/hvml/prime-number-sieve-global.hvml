@@ -14,7 +14,7 @@
         <init as count at "_root" with 10L />
         <init as chIn at "_root" with {{ $RUNNER.chan(! "natural" ) && $RUNNER.chan( "natural" ) }} />
 
-        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "_inherit" async />
+        <load from "#initialNumbers" with { chanName: 'natural', diff: 1L } onto "inherit:" async />
 
         <iterate on 0L onlyif $L.lt($0<, $count) with $DATA.arith('+', $0<, 1) nosetotail >
 
@@ -25,7 +25,7 @@
                 <!-- open a channel to filter the new prime -->
                 <init as chOut at "_root" with {{ $RUNNER.chan(! "filter$?" ) && $RUNNER.chan( "filter$?" ) }} />
 
-                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "_inherit" async />
+                <load from "#sieve" with { 'in': $chIn, "out": $chOut, 'prime': $? } onto "inherit:" async />
 
                 <!-- make the output channel to be the input channel -->
                 <init as chIn at "_root" with $chOut />
