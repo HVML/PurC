@@ -223,10 +223,10 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
         purc_set_error(PCRDR_ERROR_NOMEM);
     }
     else {
-        fputs("<<<\n", conn->prot_data->fp);
+        fputs("<<<STT\n", conn->prot_data->fp);
         pcrdr_serialize_message(msg,
                 (pcrdr_cb_write)write_to_log, conn->prot_data->fp);
-        fputs("\n<<<END\n", conn->prot_data->fp);
+        fputs("\n<<<END\n\n", conn->prot_data->fp);
         fflush(conn->prot_data->fp);
     }
 
@@ -2004,12 +2004,12 @@ done:
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 {
-    fputs(">>>\n", conn->prot_data->fp);
+    fputs(">>>STT\n", conn->prot_data->fp);
     if (pcrdr_serialize_message(msg,
                 (pcrdr_cb_write)write_to_log, conn->prot_data->fp) < 0) {
         goto failed;
     }
-    fputs("\n>>>END\n", conn->prot_data->fp);
+    fputs("\n>>>END\n\n", conn->prot_data->fp);
     fflush(conn->prot_data->fp);
 
     evaluate_result(conn->prot_data, msg);
@@ -2114,10 +2114,11 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
         goto failed;
     }
     else {
-        fputs("<<<\n", (*conn)->prot_data->fp);
+        fputs("<<<STT\n", (*conn)->prot_data->fp);
         pcrdr_serialize_message(msg,
                     (pcrdr_cb_write)write_to_log, (*conn)->prot_data->fp);
-        fputs("\n<<<END\n", (*conn)->prot_data->fp);
+        fputs("\n<<<END\n\n", (*conn)->prot_data->fp);
+        fflush((*conn)->prot_data->fp);
     }
 
     (*conn)->prot = PURC_RDRCOMM_HEADLESS;
