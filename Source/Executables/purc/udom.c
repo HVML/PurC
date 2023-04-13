@@ -1042,15 +1042,6 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
         }
     }
     else if (box->is_block_container) {
-        if (box->nr_floating_children) {
-            foil_rect rc = box->ctnt_rect;
-            rc.bottom = INT_MAX;
-
-            foil_region_empty(&box->block_fmt_ctxt->region);
-            foil_region_add_rect(&box->block_fmt_ctxt->region, &rc);
-            box->block_fmt_ctxt->last_float_top = box->ctnt_rect.top;
-        }
-
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_block_level) {
