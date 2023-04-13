@@ -726,14 +726,6 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         if (box->type == FOIL_RDRBOX_TYPE_TABLE) {
             // TODO: table
         }
-        else {
-            // background color of element unless it is the root element.
-            if (!box->is_root)
-                render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BACKGROUND);
-
-            // border of element.
-            render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BORDER);
-        }
     }
 
     // Stacking contexts formed by positioned descendants
@@ -766,11 +758,6 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
             if (child->type == FOIL_RDRBOX_TYPE_TABLE) {
                 // TODO: table
             }
-            else {
-                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BACKGROUND);
-                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BORDER);
-            }
-
         }
 
         // All non-positioned floating descendants, in tree order.
