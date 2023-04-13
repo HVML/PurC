@@ -857,6 +857,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         ret = true;
         goto out;
 
+#if 0 /* VW NOTE: deprecated due to PURCMC 120 */
     case PCRDR_PAGE_TYPE_FIRST:
     {
         struct pcrdr_page_handle *ph = list_first_entry(
@@ -886,6 +887,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     case PCRDR_PAGE_TYPE_ACTIVE:
         purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
         goto out;
+#endif
 
     case PCRDR_PAGE_TYPE_PLAINWIN:
     case PCRDR_PAGE_TYPE_WIDGET:

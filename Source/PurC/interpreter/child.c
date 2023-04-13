@@ -112,6 +112,8 @@ fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type_k *page_type,
         if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_SELF) == 0) {
             *page_type = PCRDR_PAGE_TYPE_SELF;
         }
+
+#if 0   /* VW NOTE: deprecated duto PURCMC 120 */
         if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_FIRST) == 0) {
             *page_type = PCRDR_PAGE_TYPE_FIRST;
         }
@@ -121,6 +123,7 @@ fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type_k *page_type,
         if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_ACTIVE) == 0) {
             *page_type = PCRDR_PAGE_TYPE_ACTIVE;
         }
+#endif
     }
 
     free(type);
