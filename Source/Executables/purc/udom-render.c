@@ -668,48 +668,16 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         render_marker_box(ctxt, box->list_item_data->marker_box);
     }
 
-    bool floating = false;
-    bool abs_positioned = false;
     foil_rdrbox *child = box->first;
     while (child) {
 
         // For all its in-flow, non-positioned, block-level descendants
         // in tree order
         if (child->is_in_flow && !child->position && child->is_block_level) {
-            render_normal_boxes_in_tree_order(ctxt, child);
-        }
-        else if (child->floating) {
-            floating = true;
-        }
-        else if (child->is_abs_positioned) {
-            abs_positioned = true;
+            render_rdrbox_with_stacking_ctxt(ctxt, NULL, child);
         }
 
         child = child->next;
-    }
-
-    if (floating) {
-        child = box->first;
-        while (child) {
-
-            if (child->floating) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
-
-            child = child->next;
-        }
-    }
-
-    if (abs_positioned) {
-        child = box->first;
-        while (child) {
-
-            if (child->is_abs_positioned) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
-
-            child = child->next;
-        }
     }
 }
 
@@ -749,6 +717,25 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         }
     }
 
+    // If the element is an inline element that generates a stacking context
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE && box->stacking_ctxt) {
+        assert(box->parent);
+
+        struct _inline_fmt_ctxt *lfmt_ctxt;
+        lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box->parent);
+        if (lfmt_ctxt) {
+            for (size_t i = 0; i < lfmt_ctxt->nr_lines; i++) {
+                struct _line_info *line = lfmt_ctxt->lines + i;
+                render_rdrbox_in_line(rdr_ctxt, line, box);
+            }
+        }
+    }
+    else {
+        // Otherwise: first for the element, then for all its in-flow,
+        // non-positioned, block-level descendants in tree order:
+        render_normal_boxes_in_tree_order(rdr_ctxt, box);
+    }
+
     foil_rdrbox *child = box->first;
     while (child) {
 
@@ -772,24 +759,6 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         child = child->next;
     }
 
-    // If the element is an inline element that generates a stacking context
-    if (box->type == FOIL_RDRBOX_TYPE_INLINE && box->stacking_ctxt) {
-        assert(box->parent);
-
-        struct _inline_fmt_ctxt *lfmt_ctxt;
-        lfmt_ctxt = foil_rdrbox_inline_fmt_ctxt(box->parent);
-        if (lfmt_ctxt) {
-            for (size_t i = 0; i < lfmt_ctxt->nr_lines; i++) {
-                struct _line_info *line = lfmt_ctxt->lines + i;
-                render_rdrbox_in_line(rdr_ctxt, line, box);
-            }
-        }
-    }
-    else {
-        // Otherwise: first for the element, then for all its in-flow,
-        // non-positioned, block-level descendants in tree order:
-        render_normal_boxes_in_tree_order(rdr_ctxt, box);
-    }
 
     // All positioned descendants with 'z-index: auto' or 'z-index: 0',
     // in tree order.
