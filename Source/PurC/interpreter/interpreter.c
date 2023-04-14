@@ -3329,8 +3329,16 @@ insert_cached_text_node(purc_document_t doc, bool sync_to_rdr)
 
     // TODO: append/prepend textContent?
     if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+        /* Reference element
+         * `append`: the last child element of the target element before this op.
+         */
+        pcdoc_element_t ref_elem = elem;
+        pcdoc_node last_child = pcdoc_element_last_child(doc, elem);
+        if (last_child.type == PCDOC_NODE_ELEMENT) {
+            ref_elem = last_child.elem;
+        }
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                NULL, elem, elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
+                NULL, elem, ref_elem, "textContent", PCRDR_MSG_DATA_TYPE_PLAIN,
                 txt, len);
     }
 
@@ -3405,10 +3413,18 @@ pcintr_util_new_text_content(purc_document_t doc, pcdoc_element_t elem,
         // TODO: append/prepend textContent?
         pcintr_stack_t stack = pcintr_get_stack();
         if (sync_to_rdr && text_node && stack && stack->co->target_page_handle) {
+            /* Reference element
+             * `append`: the last child element of the target element before this op.
+             */
+            pcdoc_element_t ref_elem = elem;
+            pcdoc_node last_child = pcdoc_element_last_child(doc, elem);
+            if (last_child.type == PCDOC_NODE_ELEMENT) {
+                ref_elem = last_child.elem;
+            }
             const char *request_id = no_return ?
                 PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
             pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                    request_id, elem, elem, "textContent",
+                    request_id, elem, ref_elem, "textContent",
                     PCRDR_MSG_DATA_TYPE_PLAIN, txt, len);
         }
     }
@@ -3458,10 +3474,18 @@ pcintr_util_new_content(purc_document_t doc,
 
         size_t sz_content = 0;
         char *p = (char*)purc_rwstream_get_mem_buffer(out, &sz_content);
+        /* Reference element
+         * `append`: the last child element of the target element before this op.
+         */
+        pcdoc_element_t ref_elem = elem;
+        pcdoc_node last_child = pcdoc_element_last_child(doc, elem);
+        if (last_child.type == PCDOC_NODE_ELEMENT) {
+            ref_elem = last_child.elem;
+        }
 
         const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                request_id, elem, elem, NULL, type, p, sz_content);
+                request_id, elem, ref_elem, NULL, type, p, sz_content);
         purc_rwstream_destroy(out);
     }
 
@@ -3497,6 +3521,7 @@ pcintr_util_set_attribute(purc_document_t doc,
         strcat(property, name);
 
         const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
+        /* (reference element) `update`: the target element itself. */
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
                 request_id, elem, elem, property, PCRDR_MSG_DATA_TYPE_PLAIN,
                 val, len);

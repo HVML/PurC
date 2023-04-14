@@ -354,7 +354,7 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
 Note that for different operation, the reference element:
 
   - `append`: the last child element of the target element before this op.
-  - `prepend`: the first child element of the tgarget elment before this op.
+  - `prepend`: the first child element of the target elment before this op.
   - `insertBefore`: the previous sibling of the target element before this op.
   - `insertAfter`: the next sibling of the target element before this op.
   - `displace`: the target element itself.
