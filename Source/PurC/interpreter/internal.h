@@ -348,29 +348,39 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack);
 int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
 
+/*
+  if the connection type was move buffer.
+
+Note that for different operation, the reference element:
+
+  - `append`: the last child element of the target element before this op.
+  - `prepend`: the first child element of the tgarget elment before this op.
+  - `insertBefore`: the previous sibling of the target element before this op.
+  - `insertAfter`: the next sibling of the target element before this op.
+  - `displace`: the target element itself.
+  - `update`: the target element itself.
+  - `erase`: the target element itself.
+  - `clear`: the target element itself.
+
+*/
 pcrdr_msg *
 pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, const char* property,
+        pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data);
 
 pcrdr_msg *
 pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, const char* property,
+        pcdoc_element_t element, pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len);
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
-        const char *request_id,
-        pcdoc_element_t element, const char* property,
-        pcrdr_msg_data_type data_type, purc_variant_t data);
-
-bool
-pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack, int op,
-        const char *request_id,
-        pcdoc_element_t element, const char *property,
-        pcrdr_msg_data_type data_type, const char *data, size_t len);
+pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
+        int op, const char *request_id,
+        pcdoc_element_t element, pcdoc_element_t ref_elem,
+        const char *property, pcrdr_msg_data_type data_type,
+        const char *data, size_t len);
 
 purc_variant_t
 pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,

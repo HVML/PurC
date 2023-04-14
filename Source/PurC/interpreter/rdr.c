@@ -1264,7 +1264,7 @@ pcintr_doc_op_to_rdr_op(pcdoc_operation_k op)
 pcrdr_msg *
 pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, const char* property,
+        pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, purc_variant_t data)
 {
     if (!stack) {
@@ -1350,7 +1350,7 @@ Note that for different operation, the reference entity varies:
 
 TODO: Currently, we pass element itself.  */
 
-        purc_variant_t req_data = purc_variant_make_native(elem, NULL);
+        purc_variant_t req_data = purc_variant_make_native(ref_elem, NULL);
         response_msg = pcintr_rdr_send_request_and_wait_response(
                 inst->conn_to_rdr, target, target_value, operation,
                 request_id, element_type, elem, property,
@@ -1386,7 +1386,7 @@ failed:
 pcrdr_msg *
 pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id,
         pcrdr_msg_element_type element_type, const char *css_selector,
-        pcdoc_element_t element, const char* property,
+        pcdoc_element_t element,  pcdoc_element_t ref_elem, const char* property,
         pcrdr_msg_data_type data_type, const char *data, size_t len)
 {
     pcrdr_msg *ret = NULL;
@@ -1437,7 +1437,7 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id
     }
 
     ret = pcintr_rdr_send_dom_req(stack, op, request_id, element_type, css_selector,
-            element, property, data_type, req_data);
+            element, ref_elem, property, data_type, req_data);
     purc_variant_unref(req_data);
 
 out:
@@ -1445,24 +1445,9 @@ out:
 }
 
 bool
-pcintr_rdr_send_dom_req_simple(pcintr_stack_t stack, int op,
-        const char *request_id,
-        pcdoc_element_t element, const char *property,
-        pcrdr_msg_data_type data_type, purc_variant_t data)
-{
-    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack, op,
-            request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
-            element, property, data_type, data);
-    if (response_msg != NULL) {
-        pcrdr_release_message(response_msg);
-        return true;
-    }
-    return false;
-}
-
-bool
 pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
-        int op, const char *request_id, pcdoc_element_t element,
+        int op, const char *request_id,
+        pcdoc_element_t element, pcdoc_element_t ref_elem,
         const char *property, pcrdr_msg_data_type data_type,
         const char *data, size_t len)
 {
@@ -1476,7 +1461,7 @@ pcintr_rdr_send_dom_req_simple_raw(pcintr_stack_t stack,
     }
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req_raw(stack, op,
             request_id, PCRDR_MSG_ELEMENT_TYPE_HANDLE, NULL,
-            element, property, data_type, data, len);
+            element, ref_elem, property, data_type, data, len);
 
     if (response_msg != NULL) {
         pcrdr_release_message(response_msg);
@@ -1514,7 +1499,7 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
 
     pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack,
             PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
-            css_selector, NULL, NULL, data_type, data);
+            css_selector, NULL, NULL, NULL, data_type, data);
     if (response_msg != NULL) {
         ret = purc_variant_ref(response_msg->data);
         pcrdr_release_message(response_msg);
