@@ -376,54 +376,6 @@ purc_variant_t
 pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
         const char *css_selector, const char *method, purc_variant_t arg);
 
-#define pcintr_rdr_dom_append_content(stack, element, content)                \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_APPEND,       \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_prepend_content(stack, element, content)               \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_PREPEND,      \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_insert_before_element(stack, element, content)         \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_INSERTBEFORE, \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_insert_after_element(stack, element, content)          \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_INSERTAFTER,  \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_displace_content(stack, element, content)              \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_DISPLACE,     \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_clear_element_content(stack, element)                  \
-    pcintr_rdr_send_dom_req_simple(stack, PCRDR_K_OPERATION_CLEAR,            \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
-
-#define pcintr_rdr_dom_erase_element(stack, element)                          \
-    pcintr_rdr_send_dom_req_simple(stack, PCRDR_K_OPERATION_ERASE,            \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
-
-#define pcintr_rdr_dom_erase_element_property(stack, element, prop)           \
-    pcintr_rdr_send_dom_req_simple(stack, PCRDR_K_OPERATION_ERASE,            \
-            NULL, element, prop, PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID)
-
-#define pcintr_rdr_dom_update_element_content_text(stack, element, content)   \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_UPDATE,       \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-#define pcintr_rdr_dom_update_element_content_ejson(stack, element, data)     \
-    pcintr_rdr_send_dom_req_simple(stack, PCRDR_K_OPERATION_UPDATE,           \
-            NULL, element, NULL, PCRDR_MSG_DATA_TYPE_EJSON, data)
-
-#define pcintr_rdr_dom_update_element_property(stack, element, prop, content) \
-    pcintr_rdr_send_dom_req_simple_raw(stack, PCRDR_K_OPERATION_UPDATE,       \
-            NULL, element, prop, PCRDR_MSG_DATA_TYPE_TEXT, content, 0)
-
-bool
-pcintr_rdr_dom_operate_element(pcintr_stack_t stack, pcdoc_element_t element,
-        int op, const char *contents, size_t len);
-
 purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom);
 
