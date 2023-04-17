@@ -1516,7 +1516,7 @@ static void **find_domdoc_ptr(struct pcrdr_prot_data *prot_data,
                         (uint64_t)(uintptr_t)workspaces[i].plainwins[j];
                     if (handle == msg->targetValue) {
                         if (widget)
-                            *widget = &workspaces[i].plainwins[j];
+                            *widget = workspaces[i].plainwins[j];
                         goto found_pw;
                     }
                 }
@@ -1545,7 +1545,7 @@ found_pw:
                         if (handle == msg->targetValue) {
                             if (widget)
                                 *widget =
-                                    &workspaces[i].tabbedwins[j].widgets[k];
+                                    workspaces[i].tabbedwins[j].widgets[k];
                             goto found_tp;
                         }
                     }
@@ -1575,7 +1575,7 @@ static void on_load(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     void **domdocs;
-    struct widget_ostack *ostack;
+    struct widget_ostack *ostack = NULL;
 
     UNUSED_PARAM(op_id);
 
