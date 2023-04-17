@@ -160,8 +160,13 @@ struct purc_document {
     unsigned data_content:1;
     unsigned have_head:1;
     unsigned have_body:1;
+
     unsigned refc;
     unsigned age;
+    unsigned expc;
+
+    /* owners of this document */
+    struct list_head owner_list;
 
     pcdoc_element_t root4select;
     struct purc_document_ops *ops;
