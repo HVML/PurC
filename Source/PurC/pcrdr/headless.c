@@ -1,11 +1,11 @@
 /*
- * headless.c -- The implementation of HEADLESS protocol.
+ * headless.c -- The implementation of HEADLESS method for PURCMC protocol.
  *      Created on 7 Mar 2022
  *
- * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022, 2023 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
- *  Vincent Wei (https://github.com/VincentWei), 2022
+ *  Vincent Wei (https://github.com/VincentWei), 2022, 2023
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -1723,19 +1723,8 @@ static void on_register(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t suppressed = widget_ostack_register(ostack, handle);
-    if (suppressed) {
-        char buff[LEN_BUFF_LONGLONGINT];
-        int n = snprintf(buff, sizeof(buff),
-                "%llx", (unsigned long long int)suppressed);
-        assert(n < (int)sizeof(buff));
-        (void)n;
-
-        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
-        result->data = purc_variant_make_string(buff, false);
-    }
-
     result->retCode = PCRDR_SC_OK;
-    result->resultValue = 0;
+    result->resultValue = suppressed;
 }
 
 static void on_revoke(struct pcrdr_prot_data *prot_data,
@@ -1766,19 +1755,8 @@ static void on_revoke(struct pcrdr_prot_data *prot_data,
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
     uint64_t reloaded = widget_ostack_revoke(ostack, handle);
-    if (reloaded) {
-        char buff[LEN_BUFF_LONGLONGINT];
-        int n = snprintf(buff, sizeof(buff),
-                "%llx", (unsigned long long int)reloaded);
-        assert(n < (int)sizeof(buff));
-        (void)n;
-
-        result->data_type = PCRDR_MSG_DATA_TYPE_PLAIN;
-        result->data = purc_variant_make_string(buff, false);
-    }
-
     result->retCode = PCRDR_SC_OK;
-    result->resultValue = 0;
+    result->resultValue = reloaded;
 }
 
 static void on_operate_dom(struct pcrdr_prot_data *prot_data,
@@ -2137,7 +2115,6 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
-    list_head_init (&(*conn)->page_handles);
     return msg;
 
 failed:

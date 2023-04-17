@@ -489,6 +489,11 @@ static void _cleanup_instance(struct pcinst* inst)
         heap->token_crtn_map = NULL;
     }
 
+    if (heap->loaded_crtn_handles) {
+        pcutils_sorted_array_destroy(heap->loaded_crtn_handles);
+        heap->loaded_crtn_handles = NULL;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -552,6 +557,9 @@ static int _init_instance(struct pcinst* inst,
     heap->token_crtn_map =
         pcutils_map_create(copy_key_string, free_key_string, NULL, NULL,
                 comp_key_string, false);
+
+    heap->loaded_crtn_handles =
+        pcutils_sorted_array_create(SAFLAG_DEFAULT, 0, NULL, NULL);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {

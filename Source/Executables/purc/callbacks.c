@@ -471,7 +471,7 @@ foil_call_method_in_session(pcmcth_session *sess,
 {
     (void)target;
     (void)target_value;
-    (void)element_value;
+    (void)property;
 
     purc_variant_t result = PURC_VARIANT_INVALID;
 
@@ -483,15 +483,14 @@ foil_call_method_in_session(pcmcth_session *sess,
         goto failed;
     }
 
-    /* use element to specify the workspace and
-       use property to specify the widget. */
-    if (element_type != PCRDR_MSG_ELEMENT_TYPE_ID || property == NULL) {
+    /* use element to specify the widget. */
+    if (element_type != PCRDR_MSG_ELEMENT_TYPE_ID || element_value == NULL) {
         *retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
     }
 
     foil_widget *widget;
-    widget = foil_wsp_find_widget(sess->workspace, sess, property);
+    widget = foil_wsp_find_widget(sess->workspace, sess, element_value);
     if (widget == NULL) {
         *retv = PCRDR_SC_NOT_FOUND;
         goto failed;

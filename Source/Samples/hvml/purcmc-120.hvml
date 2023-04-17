@@ -1,0 +1,51 @@
+<hvml target="html">
+    <body>
+        <p>Hello from the main coroutine!</p>
+
+        <load from "#repeater" onto 'null:' async>
+        </load>
+
+        <load from "#repeater" onto 'self:'>
+            {
+                pageName: "self:",
+                _renderer: {
+                    "title": "The title",
+                    "class": "The class",
+                    "layoutStyle": "the layout style",
+                    "toolkitStyle": "the layout style",
+                }
+            }
+        </load>
+
+        <load from "#repeater" onto 'other' async>
+            {
+                pageName: "plainwin:other-async",
+                _renderer: {
+                    "title": "The title",
+                    "class": "The class",
+                    "layoutStyle": "the layout style",
+                    "toolkitStyle": "the layout style",
+                }
+            }
+        </load>
+
+        <load from "#repeater" onto 'other'>
+            {
+                pageName: "plainwin:other-sync",
+                _renderer: {
+                    "title": "The title",
+                    "class": "The class",
+                    "layoutStyle": "the layout style",
+                    "toolkitStyle": "the layout style",
+                }
+            }
+        </load>
+    </body>
+
+    <body id="repeater">
+
+        <p>Hello from child coroutine {$REQ.pageName}.</p>
+
+    </body>
+</hvml>
+

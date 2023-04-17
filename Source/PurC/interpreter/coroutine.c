@@ -380,3 +380,80 @@ pcintr_get_crtn_by_token(struct pcinst *inst, const char *token)
     return NULL;
 }
 
+bool
+pcintr_register_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_add(heap->loaded_crtn_handles, co,
+            co->stack.doc, NULL)) {
+        purc_log_warn("Failed to register coroutine as a loaded one: %p\n", co);
+        return false;
+    }
+
+    list_add(&co->doc_node, &co->stack.doc->owner_list);
+    co->stack.doc->expc++;
+    return true;
+}
+
+bool
+pcintr_revoke_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_remove(heap->loaded_crtn_handles, co)) {
+        list_del(&co->doc_node);
+        co->stack.doc->expc--;
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
+    purc_document_t doc;
+
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
+                co, (void **)&doc, NULL)) {
+        assert(co->stack.doc->expc != 0);
+        co->stack.doc->expc--;
+
+        if (co->stack.doc->expc == 0) {
+            /* TODO: fire rdrState:pageSuppressed event */
+        }
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+pcintr_reload_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
+    purc_document_t doc;
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
+                co, (void **)&doc, NULL)) {
+        co->stack.doc->expc++;
+
+        if (co->stack.doc->expc == 1) {
+            /* TODO: fire rdrState:pageReloaded event */
+        }
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
+}
+

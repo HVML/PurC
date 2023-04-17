@@ -84,9 +84,6 @@ struct pcrdr_conn {
     /* the pending requests queue */
     struct list_head pending_requests;
 
-    /* the rdr page handles */
-    struct list_head page_handles;
-
     /* operations */
     int (*wait_message) (pcrdr_conn* conn, int timeout_ms);
     pcrdr_msg *(*read_message) (pcrdr_conn* conn);

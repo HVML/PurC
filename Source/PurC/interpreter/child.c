@@ -39,24 +39,49 @@
 
 #define DEFAULT_RUNNER_NAME     "_self"
 
+/* Since PURCMC 120, use the pattern `[null|inherit|self|plainwin|widget]:`
+   for page type. `plainwin:` can be ignored. */
 static void
-parse_info(const char *org, char **page_type,
+fill_vdom_rdr_param(const char *onto, pcrdr_page_type_k *page_type,
         char **workspace, char **group, char **page_name)
 {
-    const char *end = org + strlen(org);
-    const char *p = strchr(org, ':');
+    const char *end = onto + strlen(onto);
+    const char *p = strchr(onto, ':');
     const char *q = NULL;
+
     if (p) {
-        *page_type = strndup(org, p - org);
+        size_t len = p - onto;
+        if (strncmp(onto, PCRDR_PAGE_TYPE_NAME_NULL, len) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_NULL;
+            goto done;
+        }
+        else if (strncmp(onto, PCRDR_PAGE_TYPE_NAME_INHERIT, len) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_INHERIT;
+            goto done;
+        }
+        else if (strncmp(onto, PCRDR_PAGE_TYPE_NAME_SELF, len) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_SELF;
+            goto done;
+        }
+        else if (strncmp(onto, PCRDR_PAGE_TYPE_NAME_PLAINWIN, len) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_PLAINWIN;
+        }
+        else if (strncmp(onto, PCRDR_PAGE_TYPE_NAME_WIDGET, len) == 0) {
+            *page_type = PCRDR_PAGE_TYPE_WIDGET;
+        }
+        else {
+            // TODO: raise the exception `BadName`.
+        }
+
         p = p + 1;
     }
     else {
-        *page_type = NULL;
-        p = org;
+        *page_type = PCRDR_PAGE_TYPE_PLAINWIN;
+        p = onto;
     }
 
     if (p == end) {
-        goto out;
+        goto done;
     }
 
     q = strchr(p, '@');
@@ -70,7 +95,7 @@ parse_info(const char *org, char **page_type,
     }
 
     if (!q || q == end) {
-        goto out;
+        goto done;
     }
 
     p = strchr(q, '/');
@@ -82,54 +107,11 @@ parse_info(const char *org, char **page_type,
         *group = strdup(q);
     }
 
-out:
+done:
     return;
 }
 
-void
-fill_vdom_rdr_param(const char *rdr_info, pcrdr_page_type_k *page_type,
-        char **workspace, char **group, char **page_name)
-{
-    char *type = NULL;
-    parse_info(rdr_info, &type, workspace, group, page_name);
-
-    if (type != NULL) {
-        if (strcmp(type, PCRDR_PAGE_TYPE_NAME_WIDGET) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_WIDGET;
-        }
-        else {
-            *page_type = PCRDR_PAGE_TYPE_PLAINWIN;
-        }
-    }
-
-    if (*page_name && *page_name[0] == '_') {
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_NULL) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_NULL;
-        }
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_INHERIT) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_INHERIT;
-        }
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_SELF) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_SELF;
-        }
-
-#if 0   /* VW NOTE: deprecated duto PURCMC 120 */
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_FIRST) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_FIRST;
-        }
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_LAST) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_LAST;
-        }
-        if (strcmp(*page_name, PCRDR_PAGE_TYPE_NAME_ACTIVE) == 0) {
-            *page_type = PCRDR_PAGE_TYPE_ACTIVE;
-        }
-#endif
-    }
-
-    free(type);
-}
-
-void
+static void
 fill_cor_rdr_info(purc_renderer_extra_info *rdr_info, purc_variant_t rdr)
 {
     purc_variant_t tmp;

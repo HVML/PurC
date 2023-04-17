@@ -67,6 +67,7 @@
 #define PCRDR_SOURCEURI_ANONYMOUS       "-"
 
 #define PCRDR_DEFAULT_WORKSPACE         "main"
+#define PCRDR_DEFAULT_PAGENAME          "main"
 
 #define PCRDR_THREAD_OPERATION_HELLO    "hello"
 #define PCRDR_THREAD_OPERATION_BYE      "bye"
@@ -707,7 +708,8 @@ struct pcrdr_msg
     unsigned int            retCode;
     union {
         unsigned int        __data_len; // internal use only
-        unsigned int        textLen;    // set this only if dataType is TEXT
+        unsigned int        textLen;    // set this only if dataType is
+                                        // plain text in a request message.
     };
 
     uint64_t        targetValue;
@@ -756,7 +758,7 @@ struct pcrdr_msg
     purc_variant_t  property;
 
     /**
-     * The attached data for a request or an event message.
+     * The attached data to a request, a response, or an event message.
      * The type of the value depends on `dataType` field.
      */
     purc_variant_t  data;

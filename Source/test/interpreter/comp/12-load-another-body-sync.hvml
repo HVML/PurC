@@ -5,7 +5,7 @@
 <hvml target="void">
     <body>
 
-        <load from "#errorPage" onto "null:">
+        <load from "#errorPage" onto 'null:'>
             <exit with $? />
         </load>
 

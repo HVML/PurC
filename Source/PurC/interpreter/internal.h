@@ -1,13 +1,13 @@
 /**
  * @file internal.h
- * @author Xu Xiaohong
+ * @author Xue Shuming, Xu Xiaohong
  * @date 2021/12/18
  * @brief The internal interfaces for interpreter/internal
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022, 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -340,6 +340,12 @@ pcintr_rdr_update_widget(struct pcrdr_conn *conn, uint64_t workspace,
 bool
 pcintr_rdr_page_control_load(pcintr_stack_t stack);
 
+bool
+pcintr_rdr_page_control_register(pcintr_stack_t stack);
+
+bool
+pcintr_rdr_page_control_revoke(pcintr_stack_t stack);
+
 int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
 
@@ -631,6 +637,17 @@ pcintr_crtn_observed_get_cid(purc_variant_t v);
 bool
 pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v);
 
+bool
+pcintr_register_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co);
+
+bool
+pcintr_revoke_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co);
+
+bool
+pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle);
+
+bool
+pcintr_reload_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle);
 
 PCA_EXTERN_C_END
 

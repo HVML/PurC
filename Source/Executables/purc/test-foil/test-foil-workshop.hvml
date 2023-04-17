@@ -112,11 +112,12 @@ header h1 {
 
                 <request on $RDR to 'createPlainWindow' >
                     {
-                         data: {
-                                name: "test-$curr_rows-$curr_columns",
+                        name: "test-$curr_rows-$curr_columns",
+                        data: {
                                 title: 'The off-screen plain window for testing',
                                 class: '-off-screen',
-                                layoutStyle: "rows:$curr_rows;columns:$curr_columns"}
+                                layoutStyle: "rows:$curr_rows;columns:$curr_columns"
+                        }
                     }
                 </request>
 
@@ -159,8 +160,7 @@ header h1 {
 
                 <request on $RDR to 'callMethod' >
                     {
-                         element: "main",
-                         property: "plainwin:$win_name",
+                         name: "plainwin:$win_name",
                          data: {
                                 method: 'dumpContents',
                                 arg: $dumped_fname,

@@ -1,11 +1,11 @@
 /*
- * thread.c -- The implementation of THREAD protocol.
+ * thread.c -- The implementation of THREAD method for PURCMC protocol.
  *      Created on 8 Mar 2022
  *
- * Copyright (C) 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (C) 2022, 2023 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
- *  Vincent Wei (https://github.com/VincentWei), 2022
+ *  Vincent Wei (https://github.com/VincentWei), 2022, 2023
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -208,7 +208,6 @@ pcrdr_msg *pcrdr_thread_connect(const char* renderer_uri,
     (*conn)->prot_data->rdr_atom = rdr_atom;
 
     list_head_init (&(*conn)->pending_requests);
-    list_head_init (&(*conn)->page_handles);
 
     /* say hello to the renderer thread */
     pcrdr_msg *hello_msg = pcrdr_make_request_message(

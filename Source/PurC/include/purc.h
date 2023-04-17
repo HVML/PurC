@@ -498,8 +498,8 @@ typedef struct pcintr_coroutine *purc_coroutine_t;
  * @target_group: The identifier of the target group (nullable) in the layout
  *  HTML contents. When %NULL given, the renderer will create an ungrouped
  *  plain window for this coroutine.
- * @page_name: The page name (nullable). When %NULL given, the page will be
- *  assigned with an auto-generated page name like `page-10`.
+ * @page_name: The page name which is used to show the contents (nullable).
+ *  When %NULL given, use `main` as the default one.
  * @extra_info: The extra renderer information.
  * @body_id: The identifier of the `body` element as the entry in @vdom.
  * @user_data: The pointer to the initial user data.

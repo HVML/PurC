@@ -76,6 +76,8 @@
 #define MSG_SUB_TYPE_DISPLACED        "displaced"
 #define MSG_SUB_TYPE_EXITED           "exited"
 #define MSG_SUB_TYPE_PAGE_CLOSED      "pageClosed"
+#define MSG_SUB_TYPE_PAGE_SUPPRESSED  "pageSuppressed"
+#define MSG_SUB_TYPE_PAGE_RELOADED    "pageReloaded"
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
@@ -133,6 +135,9 @@ struct pcintr_heap {
 
     pcutils_map        *name_chan_map;  // name to channel map.
     pcutils_map        *token_crtn_map; // token to crtn map.
+
+    /* coroutines which were loaded to the renderer */
+    struct sorted_array *loaded_crtn_handles;
 
     purc_atom_t         move_buff;
     pcintr_timer_t     *event_timer;    // 10ms
@@ -300,7 +305,7 @@ struct pcintr_coroutine {
     char                        token[CRTN_TOKEN_LEN + 1];
 
     /* fields for renderer */
-    pcrdr_page_type_k             target_page_type;
+    pcrdr_page_type_k           target_page_type;
     uint64_t                    target_workspace_handle;
     uint64_t                    target_page_handle;
     uint64_t                    target_dom_handle;
@@ -311,6 +316,8 @@ struct pcintr_coroutine {
     struct list_head            ln;       /* heap::crtns, stopped_crtns */
 
     struct list_head            children; /* struct pcintr_coroutine_child */
+
+    struct list_head            doc_node;   /* doc::share_list */
 
     const char                 *error_except;
 

@@ -16,7 +16,7 @@
         }
     </init>
 
-    <load on "$request.hvml" with $request onto "null:" >
+    <load on "$request.hvml" with $request onto 'null:' >
 
         <exit with $? />
     </load>

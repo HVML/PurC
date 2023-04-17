@@ -1,10 +1,10 @@
 /*
- * purcmc.c -- The implementation of PurCMC protocol.
+ * socket.c -- The implementation of socket method for PURCMC protocol.
  *
- * Copyright (c) 2021, 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (c) 2021, 2022, 2023 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
- *  Vincent Wei (https://github.com/VincentWei), 2021, 2022
+ *  Vincent Wei (https://github.com/VincentWei), 2021, 2022, 2023
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -301,8 +301,6 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
-    list_head_init (&(*conn)->page_handles);
-
     return fd;
 
 error:
