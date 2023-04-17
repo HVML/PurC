@@ -3485,7 +3485,7 @@ pcintr_util_new_content(purc_document_t doc,
 
         const char *request_id = no_return ?  PCINTR_RDR_NORETURN_REQUEST_ID : NULL;
         pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
-                request_id, elem, ref_elem, NULL, type, p, sz_content);
+                request_id, elem, ref_elem, "content", type, p, sz_content);
         purc_rwstream_destroy(out);
     }
 
