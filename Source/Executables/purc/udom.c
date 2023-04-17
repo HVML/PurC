@@ -1263,6 +1263,118 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
     return data;
 }
 
+static void foil_rdrbox_delete_children(foil_rdrbox *root)
+{
+    foil_rdrbox *tmp;
+    foil_rdrbox *box = root;
+
+    while (box) {
+        if (box->first) {
+            box = box->first;
+        }
+        else {
+            while (box != root && box->next == NULL) {
+                tmp = box->parent;
+                foil_rdrbox_delete(box);
+                box = tmp;
+            }
+
+            if (box == root) {
+                break;
+            }
+
+            tmp = box->next;
+            foil_rdrbox_delete(box);
+            box = tmp;
+        }
+    }
+}
+
+static int
+make_children_rdrtree(struct foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    char *tag_name = NULL;
+
+    pcdoc_element *ancestor = box->owner;
+    pcdoc_node node;
+    if (box->is_replaced || box->is_control) {
+        /* skip contents if the element is a replaced one or a control */
+        node.type = PCDOC_NODE_VOID;
+        node.elem = NULL;
+    }
+    else {
+        /* continue for the children */
+        node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    }
+
+    while (node.type != PCDOC_NODE_VOID) {
+
+        if (node.type == PCDOC_NODE_ELEMENT) {
+            ctxt->parent_box = box;
+            if (make_rdrtree(ctxt, node.elem))
+                goto failed;
+        }
+        else if (node.type == PCDOC_NODE_TEXT) {
+            const char *text = NULL;
+            size_t len = 0;
+            pcdoc_text_content_get_text(ctxt->udom->doc, node.text_node,
+                    &text, &len);
+
+            if (text && len > 0) {
+                if (box->type == FOIL_RDRBOX_TYPE_INLINE &&
+                        box->inline_data->nr_paras == 0) {
+                    if (!foil_rdrbox_init_inline_data(ctxt, box, text, len))
+                        goto done;
+                }
+                else {
+                    foil_rdrbox *my_box;
+                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                    box)) == NULL)
+                        goto done;
+
+                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                        goto done;
+                }
+            }
+        }
+        else if (node.type == PCDOC_NODE_CDATA_SECTION) {
+            LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
+        }
+
+        node = pcdoc_node_next_sibling(ctxt->udom->doc, node);
+    }
+
+done:
+    if (tag_name)
+        free(tag_name);
+    return 0;
+
+failed:
+    if (tag_name)
+        free(tag_name);
+    return -1;
+}
+
+static int rebuild_children(pcmcth_udom *udom, foil_rdrbox *box)
+{
+    foil_rdrbox_delete_children(box);
+        foil_create_ctxt ctxt = { udom,
+            udom->initial_cblock,           /* initial box */
+            NULL,                           /* root box */
+            box->parent,                     /* parent box */
+            purc_document_root(udom->doc),   /* root element */
+            purc_document_body(udom->doc),   /* body element */
+            NULL, NULL, NULL, NULL };
+    if (make_children_rdrtree(&ctxt, box)) {
+        goto failed;
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
@@ -1286,9 +1398,33 @@ int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     }
     else if (strcasecmp(property, "textContent") == 0) {
         // TODO:
+        rebuild_children(udom, rdrbox);
+        rdrbox->is_width_resolved = 0;
+        rdrbox->is_height_resolved = 0;
+
+
+        foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+        pre_layout_rdrtree(&layout_ctxt, rdrbox);
+        foil_rdrbox_resolve_width(&layout_ctxt, rdrbox);
+        foil_rdrbox_resolve_height(&layout_ctxt, rdrbox);
+
+        foil_udom_invalidate_rdrbox(udom, rdrbox);
+        r = PCRDR_SC_OK;
     }
-    else if (strcasecmp(property, "contents") == 0) {
+    else if (strcasecmp(property, "content") == 0) {
         // TODO:
+        rebuild_children(udom, rdrbox);
+        rdrbox->is_width_resolved = 0;
+        rdrbox->is_height_resolved = 0;
+
+
+        foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+        pre_layout_rdrtree(&layout_ctxt, rdrbox);
+        foil_rdrbox_resolve_width(&layout_ctxt, rdrbox);
+        foil_rdrbox_resolve_height(&layout_ctxt, rdrbox);
+
+        foil_udom_invalidate_rdrbox(udom, rdrbox);
+        r = PCRDR_SC_OK;
     }
     else {
         LOG_WARN("Unknown property: %s\n", property);
