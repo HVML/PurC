@@ -106,10 +106,10 @@ struct workspace_info {
     void *domdocs[NR_PLAINWINDOWS];
 
     // plainwin/widget name (plainwin:hello@main) -> owners;
-    struct kvlist        widget_owners;
+    struct pcutils_kvlist        widget_owners;
 
     // widget group name (main) -> tabbedwindows;
-    struct kvlist        group_tabbedwin;
+    struct pcutils_kvlist        group_tabbedwin;
 };
 
 struct session_info {
@@ -133,7 +133,7 @@ struct pcrdr_prot_data {
     FILE                *fp;
 
     // requestId -> results;
-    struct kvlist        results;
+    struct pcutils_kvlist        results;
 
     // FILE pointer to serialize the message.
     struct session_info *session;
@@ -216,7 +216,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
     msg->dataType = result->data_type;
     msg->data = result->data;
 
-    pcutils_kvlist_delete(&conn->prot_data->results, request_id);
+    pcutils_kvlist_remove(&conn->prot_data->results, request_id);
     free(result);
 
     if (msg == NULL) {
@@ -371,13 +371,13 @@ static void destroy_workspace(struct pcrdr_prot_data *prot_data, size_t slot)
     kvlist_for_each_safe(&workspace->widget_owners, name, next, data) {
         ostack = *(struct widget_ostack **)data;
 
-        pcutils_kvlist_delete(&workspace->widget_owners, name);
+        pcutils_kvlist_remove(&workspace->widget_owners, name);
         destroy_widget_ostack(ostack);
     }
 
-    pcutils_kvlist_free(&workspace->widget_owners);
+    pcutils_kvlist_cleanup(&workspace->widget_owners);
 
-    pcutils_kvlist_free(&workspace->group_tabbedwin);
+    pcutils_kvlist_cleanup(&workspace->group_tabbedwin);
 
     free(workspace->name);
     memset(workspace, 0, sizeof(struct workspace_info));
@@ -1069,7 +1069,7 @@ static void on_destroy_plainwin(struct pcrdr_prot_data *prot_data,
 
     /* TODO: generate window destroyed events */
     struct widget_ostack *ostack = workspaces[i].plainwins[j];
-    pcutils_kvlist_delete(&workspaces[i].widget_owners, ostack->id);
+    pcutils_kvlist_remove(&workspaces[i].widget_owners, ostack->id);
     destroy_widget_ostack(ostack);
 
     workspaces[i].plainwins[j] = NULL;
@@ -1473,7 +1473,7 @@ found:
 
     /* TODO: generate DOM document and/or widget destroyed events */
     struct widget_ostack *ostack = workspaces[i].tabbedwins[j].widgets[k];
-    pcutils_kvlist_delete(&workspaces[i].widget_owners, ostack->id);
+    pcutils_kvlist_remove(&workspaces[i].widget_owners, ostack->id);
     destroy_widget_ostack(ostack);
 
     workspaces[i].tabbedwins[j].widgets[k] = NULL;
@@ -2010,11 +2010,11 @@ static int my_disconnect(pcrdr_conn* conn)
     kvlist_for_each_safe(&conn->prot_data->results, name, next, data) {
         result = *(struct result_info **)data;
 
-        pcutils_kvlist_delete(&conn->prot_data->results, name);
+        pcutils_kvlist_remove(&conn->prot_data->results, name);
         free(result);
     }
 
-    pcutils_kvlist_free(&conn->prot_data->results);
+    pcutils_kvlist_cleanup(&conn->prot_data->results);
     fclose(conn->prot_data->fp);
     if (conn->prot_data->session)
         free(conn->prot_data->session);

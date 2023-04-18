@@ -39,13 +39,14 @@
 #ifndef PURC_PRIVATE_KVLIST_H
 #define PURC_PRIVATE_KVLIST_H
 
+#include "purc-utils.h"
 #include "private/avl.h"
 
-struct kvlist {
+struct pcutils_kvlist {
     struct avl_tree avl;
 
     /* VW: can be NULL for pointer */
-    size_t (*get_len)(struct kvlist *kv, const void *data);
+    size_t (*get_len)(struct pcutils_kvlist *kv, const void *data);
 };
 
 struct kvlist_node {
@@ -55,51 +56,46 @@ struct kvlist_node {
     char data[0] __attribute__((aligned));
 };
 
-#define KVLIST_INIT(_name, _get_len)                        \
-    {                                    \
-        .avl = AVL_TREE_INIT(_name.avl, pcutils_avl_strcmp, false, NULL),    \
-        .get_len = _get_len                        \
+#define KVLIST_INIT(_name, _get_len)                                        \
+    {                                                                       \
+        .avl = AVL_TREE_INIT(_name.avl, pcutils_avl_strcmp, false, NULL),   \
+        .get_len = _get_len                                                 \
     }
 
-#define KVLIST(_name, _get_len)                            \
-    struct kvlist _name = KVLIST_INIT(_name, _get_len)
+#define KVLIST(_name, _get_len)                                             \
+    struct pcutils_kvlist _name = KVLIST_INIT(_name, _get_len)
 
-#define __ptr_to_kv(_ptr) container_of(((char *) (_ptr)), struct kvlist_node, data[0])
-#define __avl_list_to_kv(_l) container_of(_l, struct kvlist_node, avl.list)
+#define __ptr_to_kv(_ptr)                                                   \
+    container_of(((char *) (_ptr)), struct kvlist_node, data[0])
+#define __avl_list_to_kv(_l)                                                \
+    container_of(_l, struct kvlist_node, avl.list)
 
-#define kvlist_for_each(kv, name, value) \
-    for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data,            \
-         name = (const char *) __ptr_to_kv(value)->avl.key, (void) name;            \
-         &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;                \
-         value = (void *) (__avl_list_to_kv(__ptr_to_kv(value)->avl.list.next))->data,    \
+#define kvlist_for_each(kv, name, value)                                    \
+    for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data, \
+         name = (const char *) __ptr_to_kv(value)->avl.key, (void) name;    \
+         &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;             \
+         value = (void *)(__avl_list_to_kv(                                 \
+                 __ptr_to_kv(value)->avl.list.next))->data,                 \
          name = (const char *) __ptr_to_kv(value)->avl.key)
 
 #define kvlist_for_each_safe(kv, name, next, value) \
-    for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data,             \
-         name = (const char *) __ptr_to_kv(value)->avl.key, (void) name,                \
-         next = (void *) (__avl_list_to_kv(__ptr_to_kv(value)->avl.list.next))->data;   \
-         &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;                         \
-         value = next, name = (const char *) __ptr_to_kv(value)->avl.key,               \
-         next = (void *) (__avl_list_to_kv(__ptr_to_kv(value)->avl.list.next))->data)
+    for (value = (void *) __avl_list_to_kv((kv)->avl.list_head.next)->data, \
+         name = (const char *) __ptr_to_kv(value)->avl.key, (void) name,    \
+         next = (void *) (__avl_list_to_kv(                                 \
+                 __ptr_to_kv(value)->avl.list.next))->data;                 \
+         &__ptr_to_kv(value)->avl.list != &(kv)->avl.list_head;             \
+         value = next, name = (const char *) __ptr_to_kv(value)->avl.key,   \
+         next = (void *) (__avl_list_to_kv(                                 \
+                 __ptr_to_kv(value)->avl.list.next))->data)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* get_len can be NULL for pointer */
-void pcutils_kvlist_init(struct kvlist *kv,
-        size_t (*get_len)(struct kvlist *kv, const void *data));
-void pcutils_kvlist_free(struct kvlist *kv);
-void *pcutils_kvlist_get(struct kvlist *kv, const char *name);
-const char *pcutils_kvlist_set_ex(struct kvlist *kv,
-        const char *name, const void *data);
-static inline bool pcutils_kvlist_set(struct kvlist *kv,
-        const char *name, const void *data) {
-    return pcutils_kvlist_set_ex(kv, name, data) != NULL;
-}
-bool pcutils_kvlist_delete(struct kvlist *kv, const char *name);
-
-int pcutils_kvlist_strlen(struct kvlist *kv, const void *data);
+/* internal interfaces */
+void pcutils_kvlist_init(struct pcutils_kvlist *kv,
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data));
+void pcutils_kvlist_cleanup(struct pcutils_kvlist *kv);
 
 #ifdef __cplusplus
 }

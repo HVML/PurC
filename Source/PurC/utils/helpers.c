@@ -26,6 +26,7 @@
 #include "purc-helpers.h"
 #include "private/dvobjs.h"
 #include "private/utils.h"
+#include "private/kvlist.h"
 #include "private/debug.h"
 
 #include <stdio.h>
@@ -954,5 +955,121 @@ failed:
     }
 
     return buf;
+}
+
+struct purc_page_ostack {
+    const char *id;
+    void *page;
+    struct purc_page_owner *owners;
+    size_t alloc_size;
+    size_t nr_owners;
+};
+
+#define SZ_INITIAL_OSTACK   2
+
+purc_page_ostack_t
+purc_page_ostack_new(pcutils_kvlist_t page_map, const char *id, void *page)
+{
+    purc_page_ostack_t ostack;
+    ostack = calloc(1, sizeof(*ostack));
+    if (ostack) {
+        ostack->owners = calloc(SZ_INITIAL_OSTACK, sizeof(ostack->owners[0]));
+        if (ostack->owners == NULL)
+            goto failed;
+
+        ostack->page = page;
+        ostack->alloc_size = SZ_INITIAL_OSTACK;
+        ostack->nr_owners = 0;
+        ostack->id = pcutils_kvlist_set_ex(page_map, id, &ostack);
+    }
+
+    return ostack;
+
+failed:
+    free(ostack);
+    return NULL;
+}
+
+void
+purc_page_ostack_delete(pcutils_kvlist_t page_map, purc_page_ostack_t ostack)
+{
+    pcutils_kvlist_remove(page_map, ostack->id);
+    free(ostack->owners);
+    free(ostack);
+}
+
+struct purc_page_owner
+purc_page_ostack_register(purc_page_ostack_t ostack,
+        struct purc_page_owner owner)
+{
+    struct purc_page_owner nil = { };
+    assert(owner != 0);
+
+    for (size_t i = 0; i < ostack->nr_owners; i++) {
+        if (owner.sess == ostack->owners[i].sess &&
+                owner.corh == ostack->owners[i].corh) {
+            return nil;
+        }
+    }
+
+    if (ostack->alloc_size < ostack->nr_owners + 1) {
+        size_t new_size;
+        new_size = pcutils_get_next_fibonacci_number(ostack->alloc_size);
+        ostack->owners = realloc(ostack->owners, sizeof(owner) * new_size);
+
+        if (ostack->owners == NULL)
+            goto failed;
+
+        ostack->alloc_size = new_size;
+    }
+
+    ostack->owners[ostack->nr_owners] = owner;
+    ostack->nr_owners++;
+    if (ostack->nr_owners > 1)
+        return ostack->owners[ostack->nr_owners - 2];
+    return nil;
+
+failed:
+    purc_log_error("RDR/HEADLESS: Memory failure in %s\n", __func__);
+    return nil;
+}
+
+struct purc_page_owner
+purc_page_ostack_revoke(purc_page_ostack_t ostack, struct purc_page_owner owner)
+{
+    struct purc_page_owner nil = { };
+
+    if (ostack->nr_owners == 0) {
+        purc_log_warn("Empty page owner stack\n");
+        return nil;
+    }
+
+    size_t i;
+    for (i = 0; i < ostack->nr_owners; i++) {
+        if (owner.sess == ostack->owners[i].sess &&
+                owner.corh == ostack->owners[i].corh) {
+            break;
+        }
+    }
+
+    if (i == ostack->nr_owners) {
+        purc_log_warn("Not registered page owner (%p/%llu)\n",
+                owner.sess, (unsigned long long)owner.corh);
+        return nil;
+    }
+
+    ostack->nr_owners--;
+    if (i == ostack->nr_owners) {
+        if (i == 0)
+            return nil;
+
+        return ostack->owners[i - 1];
+    }
+
+    for (; i < ostack->nr_owners; i++) {
+        ostack->owners[i] = ostack->owners[i + 1];
+    }
+
+    return nil;
 }
 

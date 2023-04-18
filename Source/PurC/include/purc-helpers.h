@@ -473,8 +473,32 @@ purc_log_error(const char *msg, ...)
  *
  * Since: 0.9.2
  */
-purc_variant_t
+PCA_EXPORT purc_variant_t
 purc_make_object_from_query_string(const char *query, bool rfc1738);
+
+struct purc_page_ostack;
+typedef struct purc_page_ostack *purc_page_ostack_t;
+
+struct purc_page_owner {
+    /* the pointer to the session */
+    void    *sess;
+    /* the handle to the coroutine */
+    uint64_t corh;
+};
+
+PCA_EXPORT purc_page_ostack_t
+purc_page_ostack_new(pcutils_kvlist_t page_map, const char *id, void *page);
+
+PCA_EXPORT void
+purc_page_ostack_delete(pcutils_kvlist_t page_map, purc_page_ostack_t ostack);
+
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_register(purc_page_ostack_t ostack,
+        struct purc_page_owner owner);
+
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_revoke(purc_page_ostack_t ostack,
+        struct purc_page_owner owner);
 
 /**@}*/
 
