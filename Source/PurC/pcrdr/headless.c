@@ -236,9 +236,10 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 typedef void (*request_handler)(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result);
 
+#if 0
 #define SZ_INITIAL_OSTACK   2
 
-struct widget_ostack {
+struct purc_page_ostack {
     const char *id;
     void *widget;
     uint64_t *owners;
@@ -246,10 +247,10 @@ struct widget_ostack {
     size_t nr_owners;
 };
 
-static struct widget_ostack *create_widget_ostack(
+static struct purc_page_ostack *create_widget_ostack(
         struct workspace_info *workspace, const char *id, void *widget)
 {
-    struct widget_ostack *ostack;
+    struct purc_page_ostack *ostack;
     ostack = calloc(1, sizeof(*ostack));
     if (ostack) {
         ostack->owners = calloc(SZ_INITIAL_OSTACK, sizeof(uint64_t));
@@ -270,14 +271,14 @@ failed:
     return NULL;
 }
 
-static void destroy_widget_ostack(struct widget_ostack *ostack)
+static void destroy_widget_ostack(struct purc_page_ostack *ostack)
 {
     free(ostack->owners);
     free(ostack);
 }
 
 static uint64_t
-widget_ostack_register(struct widget_ostack *ostack, uint64_t owner)
+widget_ostack_register(struct purc_page_ostack *ostack, uint64_t owner)
 {
     assert(owner != 0);
 
@@ -310,7 +311,7 @@ failed:
 }
 
 static uint64_t
-widget_ostack_revoke(struct widget_ostack *ostack, uint64_t owner)
+widget_ostack_revoke(struct purc_page_ostack *ostack, uint64_t owner)
 {
     if (ostack->nr_owners == 0) {
         purc_log_warn("RDR/HEADLESS: Empty owner stack\n");
@@ -344,6 +345,7 @@ widget_ostack_revoke(struct widget_ostack *ostack, uint64_t owner)
 
     return 0;
 }
+#endif
 
 static int create_workspace(struct pcrdr_prot_data *prot_data, size_t slot,
         const char *name)
@@ -363,16 +365,15 @@ static void destroy_workspace(struct pcrdr_prot_data *prot_data, size_t slot)
 
     const char *name;
     void *next, *data;
-    struct widget_ostack *ostack;
+    struct purc_page_ostack *ostack;
 
     assert(workspace->handle);
 
     /* TODO: generate window and/or widget destroyed events */
     kvlist_for_each_safe(&workspace->widget_owners, name, next, data) {
-        ostack = *(struct widget_ostack **)data;
+        ostack = *(struct purc_page_ostack **)data;
 
-        pcutils_kvlist_remove(&workspace->widget_owners, name);
-        destroy_widget_ostack(ostack);
+        purc_page_ostack_delete(&workspace->widget_owners, ostack);
     }
 
     pcutils_kvlist_cleanup(&workspace->widget_owners);
@@ -920,7 +921,7 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
     void **data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
     if (data != NULL) {
-        struct widget_ostack *ostack = *(struct widget_ostack **)data;
+        struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
         result->retCode = PCRDR_SC_OK;
         result->resultValue = (uint64_t)(uintptr_t)ostack;
         return;
@@ -936,8 +937,8 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
     for (j = 0; j < NR_PLAINWINDOWS; j++) {
         if (workspaces[i].plainwins[j] == NULL) {
 
-            struct widget_ostack *ostack;
-            if ((ostack = create_widget_ostack(workspaces + i,
+            struct purc_page_ostack *ostack;
+            if ((ostack = purc_page_ostack_new(&workspaces[i].widget_owners,
                     idbuf, workspaces[i].plainwins + j)) == NULL) {
                 result->retCode = PCRDR_SC_INSUFFICIENT_STORAGE;
                 result->resultValue = 0;
@@ -1068,9 +1069,8 @@ static void on_destroy_plainwin(struct pcrdr_prot_data *prot_data,
     }
 
     /* TODO: generate window destroyed events */
-    struct widget_ostack *ostack = workspaces[i].plainwins[j];
-    pcutils_kvlist_remove(&workspaces[i].widget_owners, ostack->id);
-    destroy_widget_ostack(ostack);
+    struct purc_page_ostack *ostack = workspaces[i].plainwins[j];
+    purc_page_ostack_delete(&workspaces[i].widget_owners, ostack);
 
     workspaces[i].plainwins[j] = NULL;
     workspaces[i].domdocs[j] = NULL;
@@ -1314,7 +1314,7 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
     void **data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
     if (data != NULL) {
-        struct widget_ostack *ostack = *(struct widget_ostack **)data;
+        struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
         result->retCode = PCRDR_SC_OK;
         result->resultValue = (uint64_t)(uintptr_t)ostack;
         return;
@@ -1331,8 +1331,8 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
     int k;
     for (k = 0; k < NR_WIDGETS; k++) {
         if (tabbedwin->widgets[k] == NULL) {
-            struct widget_ostack *ostack;
-            if ((ostack = create_widget_ostack(workspaces + i,
+            struct purc_page_ostack *ostack;
+            if ((ostack = purc_page_ostack_new(&workspaces[i].widget_owners,
                     idbuf, tabbedwin->widgets + k)) == NULL) {
                 result->retCode = PCRDR_SC_INSUFFICIENT_STORAGE;
                 result->resultValue = 0;
@@ -1472,9 +1472,8 @@ found:
     }
 
     /* TODO: generate DOM document and/or widget destroyed events */
-    struct widget_ostack *ostack = workspaces[i].tabbedwins[j].widgets[k];
-    pcutils_kvlist_remove(&workspaces[i].widget_owners, ostack->id);
-    destroy_widget_ostack(ostack);
+    struct purc_page_ostack *ostack = workspaces[i].tabbedwins[j].widgets[k];
+    purc_page_ostack_delete(&workspaces[i].widget_owners, ostack);
 
     workspaces[i].tabbedwins[j].widgets[k] = NULL;
     workspaces[i].tabbedwins[j].domdocs[k] = NULL;
@@ -1573,7 +1572,7 @@ static void on_load(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     void **domdocs;
-    struct widget_ostack *ostack = NULL;
+    struct purc_page_ostack *ostack = NULL;
 
     UNUSED_PARAM(op_id);
 
@@ -1593,11 +1592,12 @@ static void on_load(struct pcrdr_prot_data *prot_data,
 
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
-    uint64_t suppressed = widget_ostack_register(ostack, handle);
-    if (suppressed) {
+    struct purc_page_owner owner = { NULL, handle }, suppressed;
+    suppressed = purc_page_ostack_register(ostack, owner);
+    if (suppressed.corh) {
         char buff[LEN_BUFF_LONGLONGINT];
         int n = snprintf(buff, sizeof(buff),
-                "%llx", (unsigned long long int)suppressed);
+                "%llx", (unsigned long long int)suppressed.corh);
         assert(n < (int)sizeof(buff));
         (void)n;
 
@@ -1613,7 +1613,7 @@ static void on_write_begin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     void **domdocs;
-    struct widget_ostack *ostack;
+    struct purc_page_ostack *ostack;
 
     UNUSED_PARAM(op_id);
 
@@ -1633,11 +1633,12 @@ static void on_write_begin(struct pcrdr_prot_data *prot_data,
 
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
-    uint64_t suppressed = widget_ostack_register(ostack, handle);
-    if (suppressed) {
+    struct purc_page_owner owner = { NULL, handle }, suppressed;
+    suppressed = purc_page_ostack_register(ostack, owner);
+    if (suppressed.corh) {
         char buff[LEN_BUFF_LONGLONGINT];
         int n = snprintf(buff, sizeof(buff),
-                "%llx", (unsigned long long int)suppressed);
+                "%llx", (unsigned long long int)suppressed.corh);
         assert(n < (int)sizeof(buff));
         (void)n;
 
@@ -1697,7 +1698,7 @@ static void on_register(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     void **domdocs = NULL;
-    struct widget_ostack *ostack;
+    struct purc_page_ostack *ostack;
 
     UNUSED_PARAM(op_id);
 
@@ -1720,16 +1721,17 @@ static void on_register(struct pcrdr_prot_data *prot_data,
 
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
-    uint64_t suppressed = widget_ostack_register(ostack, handle);
+    struct purc_page_owner owner = { NULL, handle }, suppressed;
+    suppressed = purc_page_ostack_register(ostack, owner);
     result->retCode = PCRDR_SC_OK;
-    result->resultValue = suppressed;
+    result->resultValue = suppressed.corh;
 }
 
 static void on_revoke(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
     void **domdocs = NULL;
-    struct widget_ostack *ostack;
+    struct purc_page_ostack *ostack;
 
     UNUSED_PARAM(op_id);
 
@@ -1752,9 +1754,10 @@ static void on_revoke(struct pcrdr_prot_data *prot_data,
 
     uint64_t handle = (uint64_t)strtoull(
             purc_variant_get_string_const(msg->elementValue), NULL, 16);
-    uint64_t reloaded = widget_ostack_revoke(ostack, handle);
+    struct purc_page_owner owner = { NULL, handle }, reloaded;
+    reloaded = purc_page_ostack_revoke(ostack, owner);
     result->retCode = PCRDR_SC_OK;
-    result->resultValue = reloaded;
+    result->resultValue = reloaded.corh;
 }
 
 static void on_operate_dom(struct pcrdr_prot_data *prot_data,

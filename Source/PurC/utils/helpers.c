@@ -1073,3 +1073,14 @@ purc_page_ostack_revoke(purc_page_ostack_t ostack, struct purc_page_owner owner)
     return nil;
 }
 
+const char *
+purc_page_ostack_get_id(purc_page_ostack_t ostack)
+{
+    return ostack->id;
+}
+
+void *
+purc_page_ostack_get_page(purc_page_ostack_t ostack)
+{
+    return ostack->page;
+}
