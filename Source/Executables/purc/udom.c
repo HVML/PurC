@@ -1398,30 +1398,48 @@ int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     }
     else if (strcasecmp(property, "textContent") == 0) {
         // TODO:
+        foil_rect orc = rdrbox->ctnt_rect;
+
         rebuild_children(udom, rdrbox);
         rdrbox->is_width_resolved = 0;
         rdrbox->is_height_resolved = 0;
-
+        rdrbox->width = 0;
+        rdrbox->height = 0;
+        foil_rect_set(&rdrbox->ctnt_rect, 0, 0, 0, 0);
 
         foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
         pre_layout_rdrtree(&layout_ctxt, rdrbox);
-        foil_rdrbox_resolve_width(&layout_ctxt, rdrbox);
-        foil_rdrbox_resolve_height(&layout_ctxt, rdrbox);
+        resolve_widths(&layout_ctxt, rdrbox);
+        resolve_heights(&layout_ctxt, rdrbox);
+
+        foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
+                orc.left + rdrbox->width, orc.top + rdrbox->height);
+
+        layout_rdrtree(&layout_ctxt, rdrbox);
 
         foil_udom_invalidate_rdrbox(udom, rdrbox);
         r = PCRDR_SC_OK;
     }
     else if (strcasecmp(property, "content") == 0) {
         // TODO:
+        foil_rect orc = rdrbox->ctnt_rect;
+
         rebuild_children(udom, rdrbox);
         rdrbox->is_width_resolved = 0;
         rdrbox->is_height_resolved = 0;
-
+        rdrbox->width = 0;
+        rdrbox->height = 0;
+        foil_rect_set(&rdrbox->ctnt_rect, 0, 0, 0, 0);
 
         foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
         pre_layout_rdrtree(&layout_ctxt, rdrbox);
-        foil_rdrbox_resolve_width(&layout_ctxt, rdrbox);
-        foil_rdrbox_resolve_height(&layout_ctxt, rdrbox);
+        resolve_widths(&layout_ctxt, rdrbox);
+        resolve_heights(&layout_ctxt, rdrbox);
+
+        foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
+                orc.left + rdrbox->width, orc.top + rdrbox->height);
+
+        layout_rdrtree(&layout_ctxt, rdrbox);
 
         foil_udom_invalidate_rdrbox(udom, rdrbox);
         r = PCRDR_SC_OK;
