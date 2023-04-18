@@ -1,0 +1,23 @@
+#!/usr/bin/purc
+
+# RESULT: '<html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>'
+
+<hvml target="html">
+    <body>
+        <ul id='theList'>
+            <li>main</li>
+        </ul>
+
+        <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
+
+        <observe on $childCrtn for 'corState:exited' >
+            <exit with $DOC.serialize />
+        </observe>
+
+    </body>
+
+    <body id="theChild">
+        <update on '#theList' to 'append' with '<li>child</li>' />
+    </body>
+</hvml>
+

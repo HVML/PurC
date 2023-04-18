@@ -962,7 +962,8 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
 
         page = pcintr_rdr_create_page(conn_to_rdr, workspace,
                 page_type, target_group, page_name, data);
-        purc_variant_unref(data);
+        if (data)
+            purc_variant_unref(data);
         if (!page) {
             purc_log_error("Failed to create page: %s.\n", page_name);
             goto out;

@@ -1,0 +1,28 @@
+#!/usr/bin/purc
+
+# RESULT: '<html><head></head><body><p>main</p></body></html>'
+
+<hvml target="html">
+    <body>
+        <p>main</p>
+
+        <observe on $CRTN for 'rdrState:pageLoaded' >
+            <load from "#theChild" onto 'self:' async />
+        </observe>
+
+        <observe on $CRTN for 'rdrState:pageSuppressed' >
+            <exit with $DOC.serialize />
+        </observe>
+
+        <observe on $CRTN for 'rdrState:pageReloaded' >
+            <exit with $DOC.serialize />
+        </observe>
+
+    </body>
+
+    <body id="theChild">
+        <p>child</p>
+        <sleep for '1s' />
+    </body>
+</hvml>
+

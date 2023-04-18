@@ -229,10 +229,8 @@ serialize_getter(void *entity, const char *property_name,
     purc_document_t doc = (purc_document_t)entity;
 
     unsigned opt = 0;
-
     opt |= PCDOC_SERIALIZE_OPT_UNDEF;
     opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
-    opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
 
     if (nr_args > 0) {
         const char *method = purc_variant_get_string_const(argv[0]);
@@ -242,15 +240,20 @@ serialize_getter(void *entity, const char *property_name,
         }
 
         if (strcmp(method, "compact") == 0) {
+            opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
             opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
-            opt |= PCDOC_SERIALIZE_OPT_RAW;
         }
         else if (strcmp(method, "loose") == 0) {
+            opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
         }
         else {
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
+    }
+    else {
+        opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+        opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
     }
 
     purc_rwstream_t my_stream;
