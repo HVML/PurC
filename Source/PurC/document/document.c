@@ -79,7 +79,7 @@ purc_document_new(purc_document_type_k type)
     purc_document_t doc = ops->create(NULL, 0);
     if (doc) {
         doc->refc = 1;
-        doc->expc = 0;
+        doc->ldc = 0;
         list_head_init(&doc->owner_list);
     }
 
@@ -100,7 +100,7 @@ purc_document_load(purc_document_type_k type, const char *content, size_t len)
     purc_document_t doc = ops->create(content, len);
     if (doc) {
         doc->refc = 1;
-        doc->expc = 0;
+        doc->ldc = 0;
         list_head_init(&doc->owner_list);
     }
 

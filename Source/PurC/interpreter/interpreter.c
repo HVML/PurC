@@ -1925,9 +1925,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     /* Attach to rdr only if the document needs rdr,
        the document is newly created, and the page type is not null. */
-    if (co->stack.doc->need_rdr &&
-            purc_document_get_refc(co->stack.doc) == 1
-            ) {
+    if (co->stack.doc->need_rdr && co->stack.doc->refc == 1) {
 
         if (!pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
@@ -1935,9 +1933,8 @@ purc_schedule_vdom(purc_vdom_t vdom,
             purc_log_warn("Failed to attach to renderer\n");
         }
     }
-    else if (co->stack.doc->need_rdr &&
-            purc_document_get_refc(co->stack.doc) > 1) {
-        /* use same rdr parameters with parent */
+    else if (co->stack.doc->need_rdr && co->stack.doc->refc > 1) {
+        /* Inherited, use same rdr parameters with parent */
         PC_ASSERT(parent);
 
         co->target_page_type = parent->target_page_type;

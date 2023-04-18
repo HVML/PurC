@@ -945,6 +945,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
                                 extra_info->toolkit_style)) {
                         errors++;
                     }
+                    purc_variant_unref(extra_info->toolkit_style);
                 }
             }
             else
@@ -961,6 +962,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
 
         page = pcintr_rdr_create_page(conn_to_rdr, workspace,
                 page_type, target_group, page_name, data);
+        purc_variant_unref(data);
         if (!page) {
             purc_log_error("Failed to create page: %s.\n", page_name);
             goto out;
@@ -994,7 +996,7 @@ check_response_for_suppressed_coroutine(struct pcinst *inst,
         if (plain) {
             crtn_handle = strtoull(plain, NULL, 16);
             if (crtn_handle) {
-                pcintr_suppress_loaded_coroutine(inst, crtn_handle);
+                pcintr_suppress_crtn_doc(inst, crtn_handle);
             }
         }
     }
@@ -1112,11 +1114,9 @@ failed:
 }
 
 bool
-pcintr_rdr_page_control_load(pcintr_stack_t stack)
+pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
 {
-    if (stack->co->target_page_handle == 0) {
-        return true;
-    }
+    assert(stack->co->target_page_handle);
 
     int ret_code;
     pcrdr_msg *response_msg = NULL;
@@ -1147,8 +1147,6 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         break;
     }
     target_value = stack->co->target_page_handle;
-
-    struct pcinst *inst = pcinst_current();
 
     const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     char elem[LEN_BUFF_LONGLONGINT];
@@ -1255,7 +1253,7 @@ failed:
 }
 
 bool
-pcintr_rdr_page_control_register(pcintr_stack_t stack)
+pcintr_rdr_page_control_register(struct pcinst *inst, pcintr_stack_t stack)
 {
     pcrdr_msg_target target;
     switch (stack->co->target_page_type) {
@@ -1277,7 +1275,6 @@ pcintr_rdr_page_control_register(pcintr_stack_t stack)
         break;
     }
 
-    struct pcinst *inst = pcinst_current();
     char elem[LEN_BUFF_LONGLONGINT];
     int n = snprintf(elem, sizeof(elem),
             "%llx", (unsigned long long int)(uint64_t)(uintptr_t)stack->co);
@@ -1296,7 +1293,7 @@ pcintr_rdr_page_control_register(pcintr_stack_t stack)
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK && response_msg->resultValue != 0) {
-        pcintr_suppress_loaded_coroutine(inst, response_msg->resultValue);
+        pcintr_suppress_crtn_doc(inst, response_msg->resultValue);
     }
 
     pcrdr_release_message(response_msg);
@@ -1313,7 +1310,7 @@ failed:
 }
 
 bool
-pcintr_rdr_page_control_revoke(pcintr_stack_t stack)
+pcintr_rdr_page_control_revoke(struct pcinst *inst, pcintr_stack_t stack)
 {
     pcrdr_msg_target target;
     switch (stack->co->target_page_type) {
@@ -1335,7 +1332,6 @@ pcintr_rdr_page_control_revoke(pcintr_stack_t stack)
         break;
     }
 
-    struct pcinst *inst = pcinst_current();
     char elem[LEN_BUFF_LONGLONGINT];
     int n = snprintf(elem, sizeof(elem),
             "%llx", (unsigned long long int)(uint64_t)(uintptr_t)stack->co);
@@ -1353,15 +1349,15 @@ pcintr_rdr_page_control_revoke(pcintr_stack_t stack)
     }
 
     int ret_code = response_msg->retCode;
-    if (ret_code == PCRDR_SC_OK && response_msg->resultValue != 0) {
-        pcintr_reload_loaded_coroutine(inst, response_msg->resultValue);
-    }
-
+    uint64_t result = response_msg->resultValue;
     pcrdr_release_message(response_msg);
 
     if (ret_code != PCRDR_SC_OK) {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
         goto failed;
+    }
+    else if (ret_code == PCRDR_SC_OK && result != 0) {
+        pcintr_reload_crtn_doc(inst, result);
     }
 
     return true;

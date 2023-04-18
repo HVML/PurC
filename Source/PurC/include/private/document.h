@@ -163,7 +163,7 @@ struct purc_document {
 
     unsigned refc;
     unsigned age;
-    unsigned expc;
+    unsigned ldc;       /* loaded count; ldc > 0 if the document is loaded */
 
     /* owners of this document */
     struct list_head owner_list;

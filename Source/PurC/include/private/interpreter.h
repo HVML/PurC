@@ -317,7 +317,7 @@ struct pcintr_coroutine {
 
     struct list_head            children; /* struct pcintr_coroutine_child */
 
-    struct list_head            doc_node;   /* doc::share_list */
+    struct list_head            doc_node;   /* doc::owner_list */
 
     const char                 *error_except;
 

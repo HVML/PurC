@@ -147,15 +147,15 @@ typedef enum {
 
 /* operations from renderer to interpreter */
 typedef enum {
-    PCRDR_K_OPERATION2INTR_FIRST = 0,
-    PCRDR_K_OPERATION2INTR_SUPPRESSPAGE = PCRDR_K_OPERATION2INTR_FIRST,
-#define PCRDR_OPERATION2INTR_SUPPRESSPAGE   "suppressPage"
-    PCRDR_K_OPERATION2INTR_RELOADPAGE,
-#define PCRDR_OPERATION2INTR_RELOADPAGE     "reloadPage"
+    PCRDR_K_OP2INTR_FIRST = 0,
+    PCRDR_K_OP2INTR_SUPPRESSPAGE = PCRDR_K_OP2INTR_FIRST,
+#define PCRDR_OP2INTR_SUPPRESSPAGE   "suppressPage"
+    PCRDR_K_OP2INTR_RELOADPAGE,
+#define PCRDR_OP2INTR_RELOADPAGE     "reloadPage"
 
     /* XXX: change this when you append a new operation */
-    PCRDR_K_OPERATION2INTR_LAST = PCRDR_K_OPERATION2INTR_RELOADPAGE,
-} pcrdr_operation2intr_k;
+    PCRDR_K_OP2INTR_LAST = PCRDR_K_OP2INTR_RELOADPAGE,
+} pcrdr_op2intr_k;
 
 /* reserved names for workspace */
 typedef enum {

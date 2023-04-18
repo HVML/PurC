@@ -338,13 +338,13 @@ pcintr_rdr_update_widget(struct pcrdr_conn *conn, uint64_t workspace,
 }
 
 bool
-pcintr_rdr_page_control_load(pcintr_stack_t stack);
+pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack);
 
 bool
-pcintr_rdr_page_control_register(pcintr_stack_t stack);
+pcintr_rdr_page_control_register(struct pcinst *inst, pcintr_stack_t stack);
 
 bool
-pcintr_rdr_page_control_revoke(pcintr_stack_t stack);
+pcintr_rdr_page_control_revoke(struct pcinst *inst, pcintr_stack_t stack);
 
 int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
@@ -638,16 +638,16 @@ bool
 pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v);
 
 bool
-pcintr_register_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co);
+pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co);
 
 bool
-pcintr_revoke_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co);
+pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co);
 
 bool
-pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle);
+pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle);
 
 bool
-pcintr_reload_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle);
+pcintr_reload_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle);
 
 PCA_EXTERN_C_END
 

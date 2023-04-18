@@ -32,6 +32,7 @@
 #include "private/vdom.h"
 #include "private/instance.h"
 #include "private/regex.h"
+#include "internal.h"
 
 #define HVML_CRTN_TOKEN_REGEX "^[A-Za-z0-9_]+$"
 
@@ -381,7 +382,7 @@ pcintr_get_crtn_by_token(struct pcinst *inst, const char *token)
 }
 
 bool
-pcintr_register_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
+pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co)
 {
     pcintr_heap_t heap = inst->intr_heap;
     if (pcutils_sorted_array_add(heap->loaded_crtn_handles, co,
@@ -391,17 +392,17 @@ pcintr_register_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     list_add(&co->doc_node, &co->stack.doc->owner_list);
-    co->stack.doc->expc++;
+    co->stack.doc->ldc++;
     return true;
 }
 
 bool
-pcintr_revoke_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
+pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
 {
     pcintr_heap_t heap = inst->intr_heap;
     if (pcutils_sorted_array_remove(heap->loaded_crtn_handles, co)) {
         list_del(&co->doc_node);
-        co->stack.doc->expc--;
+        co->stack.doc->ldc--;
     }
     else {
         purc_log_warn("Not a loaded coroutine: %p\n", co);
@@ -412,7 +413,7 @@ pcintr_revoke_loaded_coroutine(struct pcinst *inst, pcintr_coroutine_t co)
 }
 
 bool
-pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
+pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
@@ -420,11 +421,20 @@ pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
     pcintr_heap_t heap = inst->intr_heap;
     if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
                 co, (void **)&doc, NULL)) {
-        assert(co->stack.doc->expc != 0);
-        co->stack.doc->expc--;
+        assert(co->stack.doc->ldc != 0);
+        co->stack.doc->ldc--;
 
-        if (co->stack.doc->expc == 0) {
-            /* TODO: fire rdrState:pageSuppressed event */
+        if (co->stack.doc->ldc == 0) {
+            /* fire rdrState:pageSuppressed event */
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &doc->owner_list, doc_node) {
+                purc_variant_t hvml = purc_variant_make_ulongint(p->cid);
+                pcintr_coroutine_post_event(p->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_SUPPRESSED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
+            }
         }
     }
     else {
@@ -436,17 +446,28 @@ pcintr_suppress_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
 }
 
 bool
-pcintr_reload_loaded_coroutine(struct pcinst *inst, uint64_t ctrn_handle)
+pcintr_reload_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
     pcintr_heap_t heap = inst->intr_heap;
     if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
                 co, (void **)&doc, NULL)) {
-        co->stack.doc->expc++;
+        co->stack.doc->ldc++;
 
-        if (co->stack.doc->expc == 1) {
-            /* TODO: fire rdrState:pageReloaded event */
+        pcintr_rdr_page_control_load(inst, &co->stack);
+
+        if (co->stack.doc->ldc == 1) {
+            /* fire rdrState:pageReloaded event */
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &doc->owner_list, doc_node) {
+                purc_variant_t hvml = purc_variant_make_ulongint(p->cid);
+                pcintr_coroutine_post_event(p->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_RELOADED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
+            }
         }
     }
     else {
