@@ -97,7 +97,7 @@ static inline bool arena__compare_string_list(
 }
 
 
-static inline bool css__arena_style_is_equal(
+bool css__arena_style_is_equal(
 		struct css_computed_style *a,
 		struct css_computed_style *b)
 {
