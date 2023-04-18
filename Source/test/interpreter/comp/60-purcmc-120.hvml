@@ -1,3 +1,7 @@
+#!/usr/bin/purc
+
+# RESULT: [10UL, 10UL, "test", "test", "zh", "zh"]
+
 <hvml target="html">
     <body>
         <p>Hello from the main coroutine!</p>

@@ -218,10 +218,69 @@ out:
     return ret;
 }
 
+static inline purc_variant_t
+serialize_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(call_flags);
+
+    PC_ASSERT(entity);
+    purc_document_t doc = (purc_document_t)entity;
+
+    unsigned opt = 0;
+
+    opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+    opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+    opt |= PCDOC_SERIALIZE_OPT_IGNORE_C0CTRLS;
+
+    if (nr_args > 0) {
+        const char *method = purc_variant_get_string_const(argv[0]);
+        if (method == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (strcmp(method, "compact") == 0) {
+            opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+            opt |= PCDOC_SERIALIZE_OPT_RAW;
+        }
+        else if (strcmp(method, "loose") == 0) {
+        }
+        else {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+    }
+
+    purc_rwstream_t my_stream;
+    my_stream = purc_rwstream_new_buffer(LEN_INI_SERIALIZE_BUF,
+            LEN_MAX_SERIALIZE_BUF);
+    if (purc_document_serialize_contents_to_stream(doc, opt, my_stream)) {
+        purc_rwstream_destroy(my_stream);
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    char *buf = NULL;
+    size_t sz_content, sz_buffer;
+    buf = purc_rwstream_get_mem_buffer_ex(my_stream, &sz_content, &sz_buffer,
+            true);
+    purc_rwstream_destroy(my_stream);
+
+    return purc_variant_make_string_reuse_buff(buf, sz_buffer, false);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+    return PURC_VARIANT_INVALID;
+}
+
 static struct native_property_cfg configs[] = {
-    {"doctype", doctype_getter, NULL, NULL, NULL},
-    {"select",  select_getter,  NULL, NULL, NULL},
-    {"query",   query_getter,   NULL, NULL, NULL},
+    { "doctype",    doctype_getter, NULL, NULL, NULL },
+    { "select",     select_getter,  NULL, NULL, NULL },
+    { "query",      query_getter,   NULL, NULL, NULL },
+    { "serialize",  serialize_getter,   NULL, NULL, NULL },
 };
 
 static struct native_property_cfg*
