@@ -942,7 +942,7 @@ generate_content_from_counters(foil_create_ctxt *ctxt, foil_rdrbox *box,
 
 /* display, positionn, and float must be determined
    before calling this function */
-static void dtrm_common_properties(foil_create_ctxt *ctxt,
+void foil_rdrbox_dtrm_common_properties(foil_create_ctxt *ctxt,
         foil_rdrbox *box)
 {
     uint8_t v;
@@ -1573,7 +1573,7 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     }
 
     /* determine the used values for common properties */
-    dtrm_common_properties(ctxt, box);
+    foil_rdrbox_dtrm_common_properties(ctxt, box);
 
     return box;
 

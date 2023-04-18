@@ -1386,6 +1386,63 @@ static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
     foil_rect_set(&box->ctnt_rect, 0, 0, 0, 0);
 }
 
+static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem, int op)
+{
+    (void)ref_elem;
+    (void)op;
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
+    pcdoc_element *ancestor = rdrbox->owner;
+    css_select_results *result = NULL;
+
+    result = select_element_style(&udom->media,
+            udom->select_ctx, udom, ancestor,
+            rdrbox->parent);
+    if (!result) {
+        goto failed;
+    }
+
+    css_computed_style *style = result->styles[CSS_PSEUDO_ELEMENT_NONE];
+
+    if (css_computed_style_is_equal(style, rdrbox->computed_style)) {
+        r = PCRDR_SC_OK;
+        goto done;
+    }
+    foil_create_ctxt ctxt = { udom,
+        udom->initial_cblock,           /* initial box */
+        NULL,                           /* root box */
+        rdrbox->parent,                     /* parent box */
+        purc_document_root(udom->doc),   /* root element */
+        purc_document_body(udom->doc),   /* body element */
+        NULL,
+        result,                          /* computed */
+        style,                           /* style */
+        NULL };
+    foil_rdrbox_dtrm_common_properties(&ctxt, rdrbox);
+
+    if (rdrbox->computed_style) {
+        css_computed_style_destroy(rdrbox->computed_style);
+    }
+    rdrbox->computed_style = style;
+    result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
+
+
+    //TODO: relayout
+
+done:
+    if (result) {
+        css_select_results_destroy(result);
+    }
+    return r;
+
+failed:
+    if (result) {
+        css_select_results_destroy(result);
+    }
+
+    return PCRDR_SC_SERVICE_UNAVAILABLE;
+}
+
 static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
@@ -1471,7 +1528,10 @@ int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     if (strncasecmp(property, "attr.", 5) == 0) {
         const char *attr = property + 5;
         if (strcasecmp(attr, "style") == 0) {
-            // TODO: the style changed.
+            r = on_update_style(udom, rdrbox, element, op);
+        }
+        else if (strcasecmp(attr, "class") == 0) {
+            r = on_update_style(udom, rdrbox, element, op);
         }
         else if (rdrbox->tailor_ops && rdrbox->tailor_ops->on_attr_changed) {
             foil_update_ctxt ctxt = { udom, element };

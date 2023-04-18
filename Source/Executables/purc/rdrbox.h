@@ -719,6 +719,11 @@ const foil_rdrbox *
 foil_rdrbox_find_container_for_absolute(foil_layout_ctxt *ctxt,
         const foil_rdrbox *box);
 
+/* display, positionn, and float must be determined
+   before calling this function */
+void foil_rdrbox_dtrm_common_properties(foil_create_ctxt *ctxt,
+        foil_rdrbox *box);
+
 #ifdef __cplusplus
 }
 #endif
