@@ -297,10 +297,10 @@ void pcrun_request_handler(pcrdr_conn* conn, const pcrdr_msg *msg)
     else if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
         struct pcinst *inst = pcinst_current();
         if (strcmp(op, PCRDR_OP2INTR_SUPPRESSPAGE) == 0) {
-            pcintr_suppress_crtn_doc(inst, msg->targetValue);
+            pcintr_suppress_crtn_doc(inst, NULL, msg->targetValue);
         }
         else if (strcmp(op, PCRDR_OP2INTR_RELOADPAGE) == 0) {
-            pcintr_reload_crtn_doc(inst, msg->targetValue);
+            pcintr_reload_crtn_doc(inst, NULL, msg->targetValue);
         }
         else if (strcmp(op, PCRDR_OPERATION_CALLMETHOD) == 0) {
             purc_log_warn("Not implemented operation: %s\n", op);

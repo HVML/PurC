@@ -8,16 +8,35 @@
             <li>main</li>
         </ul>
 
+        <!-- observe on $CRTN for 'rdrState:pageLoaded'>
+            <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
+
+            <observe on $childCrtn for 'corState:exited' >
+                <inherit>
+                    $STREAM.stdout.writelines("got corState:exited");
+                </inherit>
+                <exit with $DOC.serialize />
+            </observe>
+        </observe -->
+
         <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
 
         <observe on $childCrtn for 'corState:exited' >
+            <inherit>
+                $STREAM.stdout.writelines("got corState:exited");
+            </inherit>
             <exit with $DOC.serialize />
+        </observe>
+
+        <observe on $CRTN for 'rdrState:pageReloaded' >
+            <exit with 'bad' />
         </observe>
 
     </body>
 
     <body id="theChild">
         <update on '#theList' to 'append' with '<li>child</li>' />
+        <sleep for '1s' />
     </body>
 </hvml>
 

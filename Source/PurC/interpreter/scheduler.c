@@ -333,6 +333,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         if (stack->doc->ldc == 1) {
             /* It's the first time to expose the document */
             pcintr_rdr_page_control_load(inst, stack);
+            purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_LOADED,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            purc_variant_unref(hvml);
         }
         else {
             assert(stack->inherit);
@@ -477,9 +483,9 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* PURCMC-120 */
-    pcintr_revoke_crtn_from_doc(inst, co);
     if (co->target_page_handle != 0) {
-        pcintr_rdr_page_control_register(inst, &co->stack);
+        pcintr_revoke_crtn_from_doc(inst, co);
+        pcintr_rdr_page_control_revoke(inst, &co->stack);
     }
 }
 

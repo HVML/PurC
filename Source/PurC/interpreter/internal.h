@@ -644,10 +644,12 @@ bool
 pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co);
 
 bool
-pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle);
+pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
+        uint64_t ctrn_handle);
 
 bool
-pcintr_reload_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle);
+pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
+        uint64_t ctrn_handle);
 
 PCA_EXTERN_C_END
 

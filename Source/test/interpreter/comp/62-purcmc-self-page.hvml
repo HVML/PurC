@@ -1,17 +1,30 @@
 #!/usr/bin/purc
 
-# RESULT: '<html><head></head><body><p>main</p></body></html>'
+# RESULT: '<html><head></head><body id="main"><p>main</p></body></html>'
 
 <hvml target="html">
     <body>
+        <load from "#main" onto 'main'>
+            <exit with $? />
+        </load>
+    </body>
+
+    <body id="main">
         <p>main</p>
 
         <observe on $CRTN for 'rdrState:pageLoaded' >
+            <inherit>
+                $STREAM.stdout.writelines("got rdrState:pageLoaded");
+            </inherit>
+
             <load from "#theChild" onto 'self:' async />
         </observe>
 
         <observe on $CRTN for 'rdrState:pageSuppressed' >
-            <exit with $DOC.serialize />
+            <inherit>
+                $STREAM.stdout.writelines("got rdrState:pageSuppressed");
+            </inherit>
+
         </observe>
 
         <observe on $CRTN for 'rdrState:pageReloaded' >

@@ -413,7 +413,8 @@ pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
 }
 
 bool
-pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
+pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
+        uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
@@ -424,7 +425,8 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
         assert(co->stack.doc->ldc != 0);
         co->stack.doc->ldc--;
 
-        if (co->stack.doc->ldc == 0) {
+        if ((co_loaded == NULL || co_loaded->stack.doc != doc) &&
+                co->stack.doc->ldc == 0) {
             /* fire rdrState:pageSuppressed event */
             pcintr_coroutine_t p;
             list_for_each_entry(p, &doc->owner_list, doc_node) {
@@ -446,7 +448,8 @@ pcintr_suppress_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
 }
 
 bool
-pcintr_reload_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
+pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
+        uint64_t ctrn_handle)
 {
     pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
     purc_document_t doc;
@@ -455,9 +458,9 @@ pcintr_reload_crtn_doc(struct pcinst *inst, uint64_t ctrn_handle)
                 co, (void **)&doc, NULL)) {
         co->stack.doc->ldc++;
 
-        pcintr_rdr_page_control_load(inst, &co->stack);
+         if (co_revoked == NULL || co_revoked->stack.doc != doc) {
+            pcintr_rdr_page_control_load(inst, &co->stack);
 
-        if (co->stack.doc->ldc == 1) {
             /* fire rdrState:pageReloaded event */
             pcintr_coroutine_t p;
             list_for_each_entry(p, &doc->owner_list, doc_node) {

@@ -283,8 +283,6 @@ widget_ostack_register(struct widget_ostack *ostack, uint64_t owner)
 
     for (size_t i = 0; i < ostack->nr_owners; i++) {
         if (owner == ostack->owners[i]) {
-            purc_log_warn("RDR/HEADLESS: Duplicated owner (%llu) in stack\n",
-                    (unsigned long long)owner);
             return 0;
         }
     }
