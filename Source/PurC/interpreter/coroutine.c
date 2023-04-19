@@ -393,7 +393,26 @@ pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co)
 
     list_add(&co->doc_node, &co->stack.doc->owner_list);
     co->stack.doc->ldc++;
+
     return true;
+}
+
+void
+pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    (void)inst;
+
+    if (co->target_dom_handle) {
+        co->stack.doc->udom = co->target_dom_handle;
+    }
+
+    /* inherit the udom handle to others sharing the document */
+    if (co->stack.doc->udom) {
+        pcintr_coroutine_t p;
+        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+            p->target_dom_handle = co->stack.doc->udom;
+        }
+    }
 }
 
 bool

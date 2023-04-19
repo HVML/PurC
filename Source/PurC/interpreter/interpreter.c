@@ -1958,7 +1958,7 @@ purc_schedule_vdom(purc_vdom_t vdom,
         }
     }
     else if (co->stack.doc->need_rdr && co->stack.doc->refc > 1) {
-        /* Inherited, use same rdr parameters with parent */
+        /* Inherited, use same rdr parameters from parent */
         PC_ASSERT(parent);
 
         co->target_page_type = parent->target_page_type;
@@ -1966,6 +1966,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_page_handle = parent->target_page_handle;
         co->target_dom_handle = parent->target_dom_handle;
     }
+
+    printf("target page/dom handles for co %u: %llu, %llu\n", co->cid,
+            (unsigned long long)co->target_page_handle,
+            (unsigned long long)co->target_dom_handle);
 
     if (body_id && body_id[0] != '\0') {
         set_body_entry(&co->stack, body_id);

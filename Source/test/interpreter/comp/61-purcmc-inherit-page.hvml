@@ -5,7 +5,6 @@
 <hvml target="html">
     <body>
         <ul id='theList'>
-            <li>main</li>
         </ul>
 
         <!-- observe on $CRTN for 'rdrState:pageLoaded'>
@@ -21,11 +20,13 @@
 
         <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
 
+        <update on '#theList' to 'append' with '<li>main</li>' />
+
         <observe on $childCrtn for 'corState:exited' >
             <inherit>
                 $STREAM.stdout.writelines("got corState:exited");
             </inherit>
-            <exit with $DOC.serialize />
+            <exit with { serializedDoc: $DOC.serialize, nrRequestsSent: $RDR.stats.nrRequestsSent } />
         </observe>
 
         <observe on $CRTN for 'rdrState:pageReloaded' >
@@ -35,8 +36,11 @@
     </body>
 
     <body id="theChild">
-        <update on '#theList' to 'append' with '<li>child</li>' />
         <sleep for '1s' />
+        <observe on $CRTN for 'idle'>
+            <update on '#theList' to 'append' with '<li>child</li>' />
+            <exit with true />
+        </observe>
     </body>
 </hvml>
 

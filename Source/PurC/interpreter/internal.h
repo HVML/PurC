@@ -640,6 +640,9 @@ pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v);
 bool
 pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co);
 
+void
+pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co);
+
 bool
 pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co);
 

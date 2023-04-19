@@ -344,6 +344,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
             assert(stack->inherit);
             pcintr_rdr_page_control_register(inst, stack);
         }
+
+        pcintr_inherit_udom_handle(inst, co);
     }
 
     if (one_run) {
