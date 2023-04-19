@@ -697,7 +697,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         frame->pos = pos; // ATTENTION!!
     }
 
-    bool ignore_content = (stack->co->stage != CO_STAGE_FIRST_RUN);
+    bool ignore_content = (frame->handle_event == 1);
     if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame,
                 ignore_content)) {
         return NULL;
@@ -777,7 +777,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    if (stack->co->stage != CO_STAGE_FIRST_RUN) {
+    if (frame->handle_event) {
         purc_clr_error();
         return ctxt;
     }
@@ -840,7 +840,7 @@ on_popping(pcintr_stack_t stack, void* ud)
         goto out;
     }
 
-    if (stack->co->stage != CO_STAGE_FIRST_RUN) {
+    if (frame->handle_event) {
         if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
                 ctxt->msg_type_atom) && stack->co->curator) {
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
@@ -906,13 +906,13 @@ select_child(pcintr_stack_t stack, void* ud)
 {
     UNUSED_PARAM(ud);
 
-    if (stack->co->stage == CO_STAGE_FIRST_RUN) {
-        return NULL;
-    }
-
     pcintr_coroutine_t co = stack->co;
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
+
+    if (!frame->handle_event) {
+        return NULL;
+    }
 
     struct ctxt_for_observe *ctxt;
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
