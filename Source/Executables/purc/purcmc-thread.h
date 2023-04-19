@@ -124,9 +124,15 @@ typedef struct pcmcth_rdr_cbs {
     int (*destroy_widget)(pcmcth_session *, pcmcth_workspace *,
             pcmcth_page *page);
 
-    /* no write method */
+    /* no writeXXX methods */
     pcmcth_udom *(*load_edom)(pcmcth_session *, pcmcth_page *,
-            purc_variant_t edom, int *retv);
+            purc_variant_t edom, uint64_t crtn, char *suppressed, int *retv);
+    /* Since PURMC-120 */
+    uint64_t (*register_crtn)(pcmcth_session *sess, pcmcth_page *,
+            uint64_t crtn, int *retv);
+    /* Since PURMC-120 */
+    uint64_t (*revoke_crtn)(pcmcth_session *sess, pcmcth_page *,
+            uint64_t crtn, int *retv);
 
     int (*update_udom)(pcmcth_session *, pcmcth_udom *, int op,
             uint64_t element_handle, const char* property,
