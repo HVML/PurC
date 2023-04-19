@@ -1117,6 +1117,7 @@ static int on_register(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     pcrdr_msg response = { };
     int retv = PCRDR_SC_OK;
     pcmcth_page *page = 0;
+    uint64_t suppressed = 0;
 
     if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
             msg->target == PCRDR_MSG_TARGET_WIDGET) {
@@ -1140,7 +1141,6 @@ static int on_register(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    uint64_t suppressed;
     suppressed = rdr->cbs.register_crtn(endpoint->session, page, crtn, &retv);
 
 failed:
@@ -1160,6 +1160,7 @@ static int on_revoke(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     pcrdr_msg response = { };
     int retv = PCRDR_SC_OK;
     pcmcth_page *page = 0;
+    uint64_t to_reload = 0;
 
     if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
             msg->target == PCRDR_MSG_TARGET_WIDGET) {
@@ -1183,7 +1184,6 @@ static int on_revoke(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    uint64_t to_reload;
     to_reload = rdr->cbs.revoke_crtn(endpoint->session, page, crtn, &retv);
 
 failed:
