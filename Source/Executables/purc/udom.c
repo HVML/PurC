@@ -1108,6 +1108,10 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
         }
     }
     else if (box->is_block_container) {
+        if (box->nr_inline_level_children > 0) {
+            foil_rdrbox_lay_lines_in_block(ctxt, box);
+        }
+
         foil_rdrbox *child = box->first;
         while (child) {
             if (child->is_block_level) {
@@ -1354,6 +1358,10 @@ static void foil_rdrbox_delete_children(foil_rdrbox *root)
             box = tmp;
         }
     }
+    box->nr_block_level_children = 0;
+    box->nr_inline_level_children = 0;
+    box->nr_floating_children = 0;
+    box->nr_abspos_children = 0;
 }
 
 static int rebuild_children(pcmcth_udom *udom, foil_rdrbox *box)

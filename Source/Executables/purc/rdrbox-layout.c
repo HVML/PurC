@@ -2812,8 +2812,10 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 LOG_DEBUG("Laid the block container to: %d, %d\n",
                         run->box->ctnt_rect.left, run->box->ctnt_rect.top);
 #endif
+#if 0
                 if (run->box->nr_inline_level_children > 0)
                     foil_rdrbox_lay_lines_in_block(ctxt, run->box);
+#endif
             }
             else {
                 line_off_x += foil_rect_width(&run->rc);
