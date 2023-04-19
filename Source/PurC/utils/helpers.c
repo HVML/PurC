@@ -1003,7 +1003,7 @@ purc_page_ostack_register(purc_page_ostack_t ostack,
         struct purc_page_owner owner)
 {
     struct purc_page_owner nil = { };
-    assert(owner != 0);
+    //assert(owner != 0);
 
     for (size_t i = 0; i < ostack->nr_owners; i++) {
         if (owner.sess == ostack->owners[i].sess &&

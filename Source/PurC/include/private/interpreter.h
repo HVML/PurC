@@ -466,6 +466,7 @@ struct pcintr_stack_frame {
 
     unsigned int       silently:1;
     unsigned int       must_yield:1;
+    unsigned int       handle_event:1;
 
     enum pcintr_stack_frame_eval_step eval_step;
     enum pcintr_element_step elem_step;
