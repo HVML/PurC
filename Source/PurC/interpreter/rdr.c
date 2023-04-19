@@ -1494,15 +1494,11 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id
 
     pcintr_coroutine_t co = stack->co;
     if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
-        printf("target page handle for co %u: %llu, %llu\n", co->cid,
-                (unsigned long long)co->target_page_handle,
-                (unsigned long long)co->target_dom_handle);
         /* null page */
         goto out;
     }
 
     if (co->stage != CO_STAGE_OBSERVING || co->stack.doc->ldc == 0) {
-        printf("LOAD COUNT OF DOC: %u\n", co->stack.doc->ldc);
         /* suppressed */
         goto out;
     }

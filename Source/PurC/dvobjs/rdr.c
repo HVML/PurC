@@ -211,8 +211,8 @@ stats_getter(purc_variant_t root,
     }
 
     static const char * keys[] = {
-        "nrRequetsSent",
-        "nrRequetsRecv",
+        "nrRequestsSent",
+        "nrRequestsRecv",
         "nrResponsesSent",
         "nrResponsesRecv",
         "nrEventsSent",

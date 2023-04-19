@@ -24,9 +24,10 @@
 
         <observe on $childCrtn for 'corState:exited' >
             <inherit>
-                $STREAM.stdout.writelines("got corState:exited");
+                $STREAM.stdout.writelines("got corState:exited; The number of requests sent: $RDR.stats.nrRequestsSent");
             </inherit>
-            <exit with { serializedDoc: $DOC.serialize, nrRequestsSent: $RDR.stats.nrRequestsSent } />
+
+            <exit with $DOC.serialize />
         </observe>
 
         <observe on $CRTN for 'rdrState:pageReloaded' >

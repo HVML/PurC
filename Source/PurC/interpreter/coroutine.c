@@ -422,6 +422,14 @@ pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
     if (pcutils_sorted_array_remove(heap->loaded_crtn_handles, co)) {
         list_del(&co->doc_node);
         co->stack.doc->ldc--;
+
+        if (co->stack.doc->ldc == 0) {
+            co->stack.doc->udom = 0;
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+                p->target_dom_handle = 0;
+            }
+        }
     }
     else {
         purc_log_warn("Not a loaded coroutine: %p\n", co);

@@ -1967,10 +1967,6 @@ purc_schedule_vdom(purc_vdom_t vdom,
         co->target_dom_handle = parent->target_dom_handle;
     }
 
-    printf("target page/dom handles for co %u: %llu, %llu\n", co->cid,
-            (unsigned long long)co->target_page_handle,
-            (unsigned long long)co->target_dom_handle);
-
     if (body_id && body_id[0] != '\0') {
         set_body_entry(&co->stack, body_id);
     }
