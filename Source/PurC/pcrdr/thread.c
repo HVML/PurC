@@ -84,13 +84,16 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
         return NULL;
     }
 
+    conn->stats.bytes_recv += sizeof(*msg);
     return msg;
 }
 
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 {
-    if (purc_inst_move_message(conn->prot_data->rdr_atom, msg) > 0)
+    if (purc_inst_move_message(conn->prot_data->rdr_atom, msg) > 0) {
+        conn->stats.bytes_sent += sizeof(*msg);
         return 0;
+    }
 
     return -1;
 }

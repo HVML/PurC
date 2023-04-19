@@ -70,6 +70,8 @@ struct pcrdr_conn {
     const char* app_name;
     const char* runner_name;
 
+    struct pcrdr_conn_stats stats;
+
     char* uri;
 
     void *user_data;

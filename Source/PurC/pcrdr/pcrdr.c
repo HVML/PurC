@@ -146,7 +146,7 @@ static int _init_once(void)
     return 0;
 }
 
-static int _init_instance(struct pcinst *curr_inst,
+static int connect_to_renderer(struct pcinst *curr_inst,
         const purc_instance_extra_info* extra_info)
 {
     struct pcinst *inst = curr_inst;
@@ -173,6 +173,7 @@ static int _init_instance(struct pcinst *curr_inst,
     }
     else {
         // TODO: other protocol
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         return PURC_ERROR_NOT_SUPPORTED;
     }
 
@@ -181,7 +182,9 @@ static int _init_instance(struct pcinst *curr_inst,
         goto failed;
     }
 
-    if (extra_info && extra_info->renderer_uri){
+    inst->conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+
+    if (extra_info && extra_info->renderer_uri) {
         inst->conn_to_rdr->uri = strdup(extra_info->renderer_uri);
     }
     else {
@@ -366,7 +369,29 @@ failed:
     return purc_get_last_error();
 }
 
-static void _cleanup_instance(struct pcinst* inst)
+pcrdr_conn *
+pcrdr_connect(const struct purc_instance_extra_info *extra_info)
+{
+    struct pcinst *inst = pcinst_current();
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        return NULL;
+    }
+
+    if (inst->conn_to_rdr == NULL) {
+        connect_to_renderer(inst, extra_info);
+    }
+
+    return inst->conn_to_rdr;
+}
+
+static int _init_instance(struct pcinst *curr_inst,
+        const purc_instance_extra_info* extra_info)
+{
+    return connect_to_renderer(curr_inst, extra_info);
+}
+
+static void _cleanup_instance(struct pcinst *inst)
 {
     if (inst->rdr_caps) {
         pcrdr_release_renderer_capabilities(inst->rdr_caps);

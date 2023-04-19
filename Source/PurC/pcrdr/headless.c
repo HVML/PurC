@@ -181,12 +181,26 @@ static int my_wait_message(pcrdr_conn* conn, int timeout_ms)
     return 1;
 }
 
-static ssize_t write_to_log(void *ctxt, const void *buf, size_t count)
+static ssize_t write_sent_to_log(void *ctxt, const void *buf, size_t count)
 {
-    FILE *fp = (FILE *)ctxt;
+    pcrdr_conn *conn = (pcrdr_conn *)ctxt;
 
-    if (fwrite(buf, 1, count, fp) == count)
-        return 0;
+    if (fwrite(buf, 1, count, conn->prot_data->fp) == count) {
+        conn->stats.bytes_sent += count;
+        return count;
+    }
+
+    return -1;
+}
+
+static ssize_t write_recv_to_log(void *ctxt, const void *buf, size_t count)
+{
+    pcrdr_conn *conn = (pcrdr_conn *)ctxt;
+
+    if (fwrite(buf, 1, count, conn->prot_data->fp) == count) {
+        conn->stats.bytes_recv += count;
+        return count;
+    }
 
     return -1;
 }
@@ -224,8 +238,7 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
     }
     else {
         fputs("<<<STT\n", conn->prot_data->fp);
-        pcrdr_serialize_message(msg,
-                (pcrdr_cb_write)write_to_log, conn->prot_data->fp);
+        pcrdr_serialize_message(msg, (pcrdr_cb_write)write_recv_to_log, conn);
         fputs("\n<<<END\n\n", conn->prot_data->fp);
         fflush(conn->prot_data->fp);
     }
@@ -1984,8 +1997,8 @@ done:
 static int my_send_message(pcrdr_conn* conn, pcrdr_msg *msg)
 {
     fputs(">>>STT\n", conn->prot_data->fp);
-    if (pcrdr_serialize_message(msg,
-                (pcrdr_cb_write)write_to_log, conn->prot_data->fp) < 0) {
+    if (pcrdr_serialize_message(msg, (pcrdr_cb_write)write_sent_to_log,
+                conn) < 0) {
         goto failed;
     }
     fputs("\n>>>END\n\n", conn->prot_data->fp);
@@ -2094,8 +2107,8 @@ pcrdr_msg *pcrdr_headless_connect(const char* renderer_uri,
     }
     else {
         fputs("<<<STT\n", (*conn)->prot_data->fp);
-        pcrdr_serialize_message(msg,
-                    (pcrdr_cb_write)write_to_log, (*conn)->prot_data->fp);
+        pcrdr_serialize_message(msg, (pcrdr_cb_write)write_recv_to_log,
+                (*conn));
         fputs("\n<<<END\n\n", (*conn)->prot_data->fp);
         fflush((*conn)->prot_data->fp);
     }

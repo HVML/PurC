@@ -104,6 +104,7 @@ static pcrdr_msg *my_read_message (pcrdr_conn* conn)
         goto done;
     }
 
+    conn->stats.bytes_recv += data_len;
     retval = pcrdr_parse_packet (packet, data_len, &msg);
     free (packet);
 
@@ -145,6 +146,7 @@ static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
         goto done;
     }
 
+    conn->stats.bytes_sent += packet_len;
     retv = 0;
 
 done:
@@ -675,6 +677,7 @@ pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
     if (pcrdr_socket_read_packet(*conn, buff, &len) < 0)
         goto failed;
 
+    (*conn)->stats.bytes_recv += len;
     if (pcrdr_parse_packet(buff, len, &msg) < 0)
         goto failed;
 
