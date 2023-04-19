@@ -131,6 +131,27 @@ failed:
     return NULL;
 }
 
+static int on_each_ostack(void *ctxt, const char *name, void *data)
+{
+    pcmcth_session *sess = ctxt;
+    purc_page_ostack_t ostack = *(purc_page_ostack_t *)data;
+
+    struct purc_page_owner to_reload;
+    to_reload = purc_page_ostack_revoke_session(ostack, ctxt);
+    if (to_reload.corh) {
+        assert(to_reload.sess);
+        // TODO: send reloadPage request to another endpoint
+    }
+
+    pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
+        pcmcth_udom *udom = foil_page_delete(page);
+        if (udom) {
+            foil_udom_delete(udom);
+        }
+    }
+}
+
 static int foil_remove_session(pcmcth_session *sess)
 {
     const char *name;
@@ -138,16 +159,9 @@ static int foil_remove_session(pcmcth_session *sess)
 
     LOG_DEBUG("removing session (%p)...\n", sess);
 
-    LOG_DEBUG("destroy all ungrouped plain windows created by this session...\n");
-    kvlist_for_each_safe(&sess->workspace->ug_wins, name, next, data) {
-        pcmcth_page *page = *(pcmcth_page **)data;
-        if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
-            pcmcth_udom *udom = foil_page_delete(page);
-            if (udom) {
-                foil_udom_delete(udom);
-            }
-        }
-    }
+    LOG_DEBUG("destroy all windows/widgets created by this session...\n");
+    pcutils_kvlist_for_each_safe(sess->workspace->page_owners, sess,
+            on_each_ostack);
 
     LOG_DEBUG("destroy sorted array for all handles...\n");
     sorted_array_destroy(sess->all_handles);
@@ -212,9 +226,33 @@ done:
     return;
 }
 
+static pcmcth_page *foil_get_special_plainwin(pcmcth_session *sess,
+        pcmcth_workspace *workspace, const char *group,
+        pcrdr_resname_page_k v)
+{
+    (void)sess;
+
+    return NULL;
+}
+
+static pcmcth_page *foil_find_page(pcmcth_session *sess,
+        pcmcth_workspace *workspace, const char *page_id)
+{
+    (void)sess;
+
+    void *data;
+    data = pcutils_kvlist_get(workspace->page_owners, page_id);
+    if (data != NULL) {
+        struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
+        return purc_page_ostack_get_page(ostack);
+    }
+
+    return NULL;
+}
+
 static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         pcmcth_workspace *workspace,
-        const char *gid, const char *name,
+        const char *page_id, const char *group, const char *name,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
 {
@@ -224,10 +262,10 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
 
     workspace = sess->workspace;
 
-    if (gid == NULL) {
+    if (group == NULL) {
         /* TODO: use workspace to maintain the names of plain windows */
         /* create a ungrouped plain window */
-        if (kvlist_get(&workspace->ug_wins, name)) {
+        if (pcutils_kvlist_get(workspace->page_owners, page_id)) {
             LOG_WARN("Duplicated ungrouped plain window: %s\n", name);
             *retv = PCRDR_SC_CONFLICT;
             goto done;
@@ -259,7 +297,7 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
                     WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
         }
 
-        kvlist_set(&workspace->ug_wins, name, &plain_win);
+        purc_page_ostack_new(workspace->page_owners, page_id, plain_win);
     }
     else if (workspace->layouter == NULL) {
         *retv = PCRDR_SC_PRECONDITION_FAILED;
@@ -267,13 +305,15 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
     }
     else {
         LOG_DEBUG("creating a grouped plain window with name (%s/%s)\n",
-                gid, name);
+                group, name);
 
         /* TODO: create a plain window in the specified group
         plain_win = wsp_layouter_add_plain_window(workspace->layouter, sess,
-                gid, name, class_name, title, layout_style, toolkit_style,
+                group, name, class_name, title, layout_style, toolkit_style,
                 web_view, retv);
         */
+        *retv = PCRDR_SC_NOT_IMPLEMENTED;
+        goto done;
     }
 
     if (plain_win) {
@@ -284,7 +324,7 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         *retv = PCRDR_SC_OK;
     }
     else {
-        LOG_ERROR("Failed to create a plain window: %s/%s\n", gid, name);
+        LOG_ERROR("Failed to create a plain window: %s@%s\n", name, group);
         *retv = PCRDR_SC_INSUFFICIENT_STORAGE;
     }
 
@@ -615,6 +655,9 @@ void pcmcth_set_renderer_callbacks(pcmcth_renderer *rdr)
     rdr->cbs.cleanup = foil_cleanup;
     rdr->cbs.create_session = foil_create_session;
     rdr->cbs.remove_session = foil_remove_session;
+
+    rdr->cbs.find_page = foil_find_page;
+    rdr->cbs.get_special_plainwin = foil_get_special_plainwin;
     rdr->cbs.create_plainwin = foil_create_plainwin;
     rdr->cbs.update_plainwin = foil_update_plainwin;
     rdr->cbs.destroy_plainwin = foil_destroy_plainwin;

@@ -751,8 +751,6 @@ typedef enum purc_cond {
 
 typedef int (*purc_cond_handler)(purc_cond_k event, void *arg, void *data);
 
-#define PURC_INVPTR         ((void *)-1)
-
 /**
  * purc_get_cond_handler:
  *

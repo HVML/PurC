@@ -38,6 +38,8 @@
 #include "purc-variant.h"
 #include "purc-utils.h"
 
+#define PURC_INVPTR                     ((void *)-1)
+
 #define PURC_LEN_HOST_NAME              127
 #define PURC_LEN_APP_NAME               127
 #define PURC_LEN_RUNNER_NAME            63
@@ -547,6 +549,19 @@ purc_page_ostack_revoke(purc_page_ostack_t ostack,
         struct purc_page_owner owner);
 
 /**
+ * Revokes all page owner belonging to the specific session.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: The owner should be reloaded; it's valid only the handle to
+ *      the coroutine is not zero.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_revoke_session(purc_page_ostack_t ostack, void *sess);
+
+/**
  * Retrieves the page identifier from a page owner stack.
  *
  * @param ostack: The pointer to a page owner stack.
@@ -569,6 +584,48 @@ purc_page_ostack_get_id(purc_page_ostack_t ostack);
  */
 PCA_EXPORT void *
 purc_page_ostack_get_page(purc_page_ostack_t ostack);
+
+#define PURC_PREFIX_PLAINWIN         "plainwin:"
+#define PURC_PREFIX_WIDGET           "widget:"
+#define PURC_SEP_GROUP_NAME          '@'
+
+#define PURC_MAX_PLAINWIN_ID     \
+    (sizeof(PURC_PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
+#define PURC_MAX_WIDGET_ID     \
+    (sizeof(PURC_PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
+
+/**
+ * Checks and makes page identifier for a plain window specified by
+ * the pattern 'name[@group]'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for no group part, and
+ *  @PURC_INVPTR for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
+        const char *name_group);
+
+/**
+ * Checks and makes page identifier for a widget specified by
+ * the pattern 'name@group'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
+        const char *name_group);
 
 /**@}*/
 

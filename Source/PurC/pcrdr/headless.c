@@ -105,7 +105,7 @@ struct workspace_info {
     // handles of DOM documents in all plain windows.
     void *domdocs[NR_PLAINWINDOWS];
 
-    // plainwin/widget name (plainwin:hello@main) -> owners;
+    // page identifier (plainwin:hello@main) -> owners;
     struct pcutils_kvlist        widget_owners;
 
     // widget group name (main) -> tabbedwindows;
@@ -248,117 +248,6 @@ static pcrdr_msg *my_read_message(pcrdr_conn* conn)
 
 typedef void (*request_handler)(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result);
-
-#if 0
-#define SZ_INITIAL_OSTACK   2
-
-struct purc_page_ostack {
-    const char *id;
-    void *widget;
-    uint64_t *owners;
-    size_t alloc_size;
-    size_t nr_owners;
-};
-
-static struct purc_page_ostack *create_widget_ostack(
-        struct workspace_info *workspace, const char *id, void *widget)
-{
-    struct purc_page_ostack *ostack;
-    ostack = calloc(1, sizeof(*ostack));
-    if (ostack) {
-        ostack->owners = calloc(SZ_INITIAL_OSTACK, sizeof(uint64_t));
-        if (ostack->owners == NULL)
-            goto failed;
-
-        ostack->widget = widget;
-        ostack->alloc_size = SZ_INITIAL_OSTACK;
-        ostack->nr_owners = 0;
-        ostack->id = pcutils_kvlist_set_ex(&workspace->widget_owners,
-                id, &ostack);
-    }
-
-    return ostack;
-
-failed:
-    free(ostack);
-    return NULL;
-}
-
-static void destroy_widget_ostack(struct purc_page_ostack *ostack)
-{
-    free(ostack->owners);
-    free(ostack);
-}
-
-static uint64_t
-widget_ostack_register(struct purc_page_ostack *ostack, uint64_t owner)
-{
-    assert(owner != 0);
-
-    for (size_t i = 0; i < ostack->nr_owners; i++) {
-        if (owner == ostack->owners[i]) {
-            return 0;
-        }
-    }
-
-    if (ostack->alloc_size < ostack->nr_owners + 1) {
-        size_t new_size;
-        new_size = pcutils_get_next_fibonacci_number(ostack->alloc_size);
-        ostack->owners = realloc(ostack->owners, sizeof(uint64_t) * new_size);
-
-        if (ostack->owners == NULL)
-            goto failed;
-
-        ostack->alloc_size = new_size;
-    }
-
-    ostack->owners[ostack->nr_owners] = owner;
-    ostack->nr_owners++;
-    if (ostack->nr_owners > 1)
-        return ostack->owners[ostack->nr_owners - 2];
-    return 0;
-
-failed:
-    purc_log_error("RDR/HEADLESS: Memory failure in %s\n", __func__);
-    return 0;
-}
-
-static uint64_t
-widget_ostack_revoke(struct purc_page_ostack *ostack, uint64_t owner)
-{
-    if (ostack->nr_owners == 0) {
-        purc_log_warn("RDR/HEADLESS: Empty owner stack\n");
-        return 0;
-    }
-
-    size_t i;
-    for (i = 0; i < ostack->nr_owners; i++) {
-        if (owner == ostack->owners[i]) {
-            break;
-        }
-    }
-
-    if (i == ostack->nr_owners) {
-        purc_log_warn("RDR/HEADLESS: Not registered owner (%llu)\n",
-                (unsigned long long)owner);
-        return 0;
-    }
-
-    ostack->nr_owners--;
-    if (i == ostack->nr_owners) {
-        if (i == 0)
-            return 0;
-
-        return ostack->owners[i - 1];
-    }
-
-    for (; i < ostack->nr_owners; i++) {
-        ostack->owners[i] = ostack->owners[i + 1];
-    }
-
-    return 0;
-}
-#endif
 
 static int create_workspace(struct pcrdr_prot_data *prot_data, size_t slot,
         const char *name)
@@ -635,7 +524,7 @@ static void on_create_workspace(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    /* Since 120: use element for the name of worksapce */
+    /* Since PURCMC-120: use element for the name of worksapce */
     if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_ID) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
@@ -668,7 +557,7 @@ static void on_create_workspace(struct pcrdr_prot_data *prot_data,
     struct workspace_info *workspaces = prot_data->session->workspaces;
     for (i = 0; i < NR_WORKSPACES; i++) {
         if (workspaces[i].handle && strcmp(workspaces[i].name, name) == 0) {
-            /* Since 120, returns the exsiting workspace */
+            /* Since PURCMC-120, returns the exsiting workspace */
             goto done;
         }
     }
@@ -786,78 +675,6 @@ static void on_destroy_workspace(struct pcrdr_prot_data *prot_data,
     result->resultValue = msg->targetValue;
 }
 
-/* plainwin:hello@main */
-#define PREFIX_PLAINWIN         "plainwin:"
-#define PREFIX_WIDGET           "widget:"
-#define SEP_GROUP_NAME          '@'
-
-#define MAX_PLAINWIN_ID     \
-    (sizeof(PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
-#define MAX_WIDGET_ID     \
-    (sizeof(PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
-
-static int check_and_make_plainwin_id(char *id_buf, const char *name_group)
-{
-    const char *name;
-    char *allocated = NULL;
-    const char *group = strchr(name_group, SEP_GROUP_NAME);
-    if (group && !purc_is_valid_identifier(group + 1))
-        goto failed;
-
-    if (group) {
-        size_t n = group - name_group;
-        if (n == 0)
-            goto failed;
-
-        allocated = strndup(name_group, n);
-        name = allocated;
-    }
-    else {
-        name = name_group;
-    }
-
-    if (!purc_is_valid_identifier(name))
-        goto failed;
-
-    strcpy(id_buf, PREFIX_PLAINWIN);
-    strcat(id_buf, name_group);
-
-    if (allocated)
-        free(allocated);
-    return 0;
-
-failed:
-    if (allocated)
-        free(allocated);
-    return -1;
-}
-
-static const char *check_and_make_widget_id(char *id_buf, char *name,
-        const char *name_group)
-{
-    const char *group = strchr(name_group, SEP_GROUP_NAME);
-
-    if (group == NULL || !purc_is_valid_identifier(group + 1))
-        goto failed;
-
-    size_t n = group - name_group;
-    if (n == 0 || n > PURC_LEN_IDENTIFIER)
-        goto failed;
-
-    strncpy(name, name_group, n);
-    name[n] = 0;
-    if (!purc_is_valid_identifier(name))
-        goto failed;
-
-    strcpy(id_buf, PREFIX_WIDGET);
-    strcat(id_buf, name_group);
-
-    return group + 1;
-
-failed:
-    return NULL;
-}
-
 static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
         const pcrdr_msg *msg, unsigned int op_id, struct result_info *result)
 {
@@ -875,15 +692,25 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    /* Since 120, use element to specify the window name and group name:
+    /* Since PURCMC-120, use element to specify the window name and group name:
         <window_name>[@<group_name>]
      */
-    const char *name = NULL;
+    const char *name_group = NULL;
     if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-        name = purc_variant_get_string_const(msg->elementValue);
+        name_group = purc_variant_get_string_const(msg->elementValue);
     }
 
-    if (name == NULL) {
+    if (name_group == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
+        return;
+    }
+
+    char idbuf[PURC_MAX_PLAINWIN_ID];
+    char name[PURC_LEN_IDENTIFIER + 1];
+    const char *group;
+    group = purc_check_and_make_plainwin_id(idbuf, name, name_group);
+    if (group == PURC_INVPTR) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
         return;
@@ -907,7 +734,7 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
         }
     }
 
-    /* Since 120, support the special page name. */
+    /* Since PURCMC-120, support the special page name. */
     if (name[0] == '_') {    // reserved name
         int v = pcrdr_check_reserved_page_name(name);
         if (v < 0) {
@@ -923,15 +750,8 @@ static void on_create_plainwin(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    char idbuf[MAX_PLAINWIN_ID];
-    if (check_and_make_plainwin_id(idbuf, name)) {
-        result->retCode = PCRDR_SC_BAD_REQUEST;
-        result->resultValue = 0;
-        return;
-    }
-
-    /* Since 120, returns the window handle if the window existed */
-    void **data;
+    /* Since PURCMC-120, returns the window handle if the window existed */
+    void *data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
     if (data != NULL) {
         struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
@@ -1276,7 +1096,7 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
     }
 
     const char *name_group = NULL;
-    /* Since 120, use element to specify the widget name and group name:
+    /* Since PURCMC-120, use element to specify the widget name and group name:
             <widget_name>@<group_name>
      */
     name_group = purc_variant_get_string_const(msg->elementValue);
@@ -1286,16 +1106,16 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    char idbuf[MAX_WIDGET_ID];
+    char idbuf[PURC_MAX_WIDGET_ID];
     char name[PURC_LEN_IDENTIFIER + 1];
-    const char *group;
-    if ((group = check_and_make_widget_id(idbuf, name, name_group)) == NULL) {
+    const char *group = purc_check_and_make_widget_id(idbuf, name, name_group);
+    if (group == NULL) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
         return;
     }
 
-    /* Since 120, support the special page name. */
+    /* Since PURCMC-120, support the special page name. */
     if (name[0] == '_') {    // reserved name
         int v = pcrdr_check_reserved_page_name(name);
         if (v < 0) {
@@ -1323,7 +1143,7 @@ static void on_create_widget(struct pcrdr_prot_data *prot_data,
         return;
     }
 
-    /* Since 120, returns the widget handle if the widget existed */
+    /* Since PURCMC-120, returns the widget handle if the widget existed */
     void **data;
     data = pcutils_kvlist_get(&workspaces[i].widget_owners, idbuf);
     if (data != NULL) {
@@ -1589,7 +1409,7 @@ static void on_load(struct pcrdr_prot_data *prot_data,
 
     UNUSED_PARAM(op_id);
 
-    /* Since 120, element must specify the handle of coroutine */
+    /* Since PURCMC-120, element must specify the handle of coroutine */
     if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;
@@ -1630,7 +1450,7 @@ static void on_write_begin(struct pcrdr_prot_data *prot_data,
 
     UNUSED_PARAM(op_id);
 
-    /* Since 120, element must specify the handle of coroutine */
+    /* Since PURCMC-120, element must specify the handle of coroutine */
     if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         result->retCode = PCRDR_SC_BAD_REQUEST;
         result->resultValue = 0;

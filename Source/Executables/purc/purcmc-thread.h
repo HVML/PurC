@@ -64,6 +64,13 @@ typedef struct pcmcth_rdr_cbs {
     pcmcth_session *(*create_session)(pcmcth_renderer *, pcmcth_endpoint *);
     int (*remove_session)(pcmcth_session *);
 
+    /* Since PURMC-120; nullable */
+    pcmcth_workspace *(*find_workspace)(pcmcth_session *sess,
+            const char *name);
+    /* Since PURMC-120; nullable */
+    pcmcth_workspace *(*get_special_workspace)(pcmcth_session *sess,
+            pcrdr_resname_workspace_k v);
+
     /* nullable */
     pcmcth_workspace *(*create_workspace)(pcmcth_session *,
             const char *name, const char *title, purc_variant_t properties,
@@ -84,8 +91,16 @@ typedef struct pcmcth_rdr_cbs {
     int (*remove_page_group)(pcmcth_session *, pcmcth_workspace *,
             const char* gid);
 
+    /* Since PURMC-120 */
+    pcmcth_page *(*find_page)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *page_id);
+
+    /* Since PURMC-120; nullable */
+    pcmcth_page *(*get_special_plainwin)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *group,
+            pcrdr_resname_page_k v);
     pcmcth_page *(*create_plainwin)(pcmcth_session *, pcmcth_workspace *,
-            const char *gid, const char *name,
+            const char *page_id, const char *group, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     int (*update_plainwin)(pcmcth_session *, pcmcth_workspace *,
@@ -93,9 +108,13 @@ typedef struct pcmcth_rdr_cbs {
     int (*destroy_plainwin)(pcmcth_session *, pcmcth_workspace *,
             pcmcth_page *win);
 
+    /* Since PURMC-120; nullable */
+    pcmcth_page *(*get_special_widget)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *group,
+            pcrdr_resname_page_k v);
     /* nullable */
     pcmcth_page *(*create_widget)(pcmcth_session *, pcmcth_workspace *,
-            const char *gid, const char *name,
+            const char *page_id, const char *group, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     /* null if create_widget is null */

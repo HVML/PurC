@@ -1002,7 +1002,7 @@ struct purc_page_owner
 purc_page_ostack_register(purc_page_ostack_t ostack,
         struct purc_page_owner owner)
 {
-    struct purc_page_owner nil = { };
+    static const struct purc_page_owner nil = { };
     assert(owner != 0);
 
     for (size_t i = 0; i < ostack->nr_owners; i++) {
@@ -1037,7 +1037,7 @@ failed:
 struct purc_page_owner
 purc_page_ostack_revoke(purc_page_ostack_t ostack, struct purc_page_owner owner)
 {
-    struct purc_page_owner nil = { };
+    static const struct purc_page_owner nil = { };
 
     if (ostack->nr_owners == 0) {
         purc_log_warn("Empty page owner stack\n");
@@ -1073,6 +1073,44 @@ purc_page_ostack_revoke(purc_page_ostack_t ostack, struct purc_page_owner owner)
     return nil;
 }
 
+struct purc_page_owner
+purc_page_ostack_revoke_session(purc_page_ostack_t ostack, void *sess)
+{
+    static const struct purc_page_owner nil = { };
+
+    if (ostack->nr_owners == 0) {
+        purc_log_warn("Empty page owner stack\n");
+        return nil;
+    }
+
+    size_t revoked = 0;
+    for (size_t i = 0; i < ostack->nr_owners; i++) {
+        if (sess == ostack->owners[i].sess) {
+            ostack->owners[i].corh = 0;
+            revoked++;
+        }
+    }
+
+    if (revoked == ostack->nr_owners) {
+        ostack->nr_owners = 0;
+        return nil;
+    }
+    else {
+        assert(revoked < ostack->nr_owners);
+
+        size_t n = 0;
+        for (size_t i = 0; i < ostack->nr_owners; i++) {
+            if (ostack->owners[i].corh) {
+                ostack->owners[n] = ostack->owners[i];
+                n++;
+            }
+        }
+        ostack->nr_owners -= revoked;
+    }
+
+    return ostack->owners[ostack->nr_owners - 1];
+}
+
 const char *
 purc_page_ostack_get_id(purc_page_ostack_t ostack)
 {
@@ -1084,3 +1122,61 @@ purc_page_ostack_get_page(purc_page_ostack_t ostack)
 {
     return ostack->page;
 }
+
+const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
+        const char *name_group)
+{
+    const char *group = strchr(name_group, PURC_SEP_GROUP_NAME);
+    if (group && !purc_is_valid_identifier(group + 1))
+        goto failed;
+
+    size_t n;
+    if (group) {
+        n = group - name_group;
+    }
+    else {
+        n = strlen(name_group);
+    }
+
+    if (n == 0 || n > PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    strncpy(name_buf, name_group, n);
+    name_buf[n] = 0;
+    if (!purc_is_valid_identifier(name_buf))
+        goto failed;
+
+    strcpy(id_buf, PURC_PREFIX_PLAINWIN);
+    strcat(id_buf, name_group);
+
+    return group ? group + 1 : NULL;
+
+failed:
+    return PURC_INVPTR;
+}
+
+const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
+        const char *name_group)
+{
+    const char *group = strchr(name_group, PURC_SEP_GROUP_NAME);
+    if (group == NULL || !purc_is_valid_identifier(group + 1))
+        goto failed;
+
+    size_t n = group - name_group;
+    if (n == 0 || n > PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    strncpy(name_buf, name_group, n);
+    name_buf[n] = 0;
+    if (!purc_is_valid_identifier(name_buf))
+        goto failed;
+
+    strcpy(id_buf, PURC_PREFIX_WIDGET);
+    strcat(id_buf, name_group);
+
+    return group + 1;
+
+failed:
+    return NULL;
+}
+
