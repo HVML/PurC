@@ -1,9 +1,19 @@
 #!/usr/bin/purc
 
-# RESULT: '<html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>'
+# RESULT: { serializedDoc: '<html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>', nrRequestsSent: 6UL }
+#
+# Note that the value of the filed 'nrRequestsSent' is only valid
+# when running this program by using the test program 'test_comprehensive_programs'.
+# If you run this HVML program by using 'purc', the value should be 7UL.
 
 <hvml target="html">
     <body>
+        <load from '#main' onto 'main' >
+            <exit with $? />
+        </load>
+    </body>
+
+    <body id="main">
         <ul id='theList'>
         </ul>
 
@@ -27,7 +37,7 @@
                 $STREAM.stdout.writelines("got corState:exited; The number of requests sent: $RDR.stats.nrRequestsSent");
             </inherit>
 
-            <exit with $DOC.serialize />
+            <exit with { serializedDoc: $DOC.serialize, nrRequestsSent: $RDR.stats.nrRequestsSent } />
         </observe>
 
         <observe on $CRTN for 'rdrState:pageReloaded' >
