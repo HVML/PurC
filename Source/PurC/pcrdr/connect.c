@@ -141,6 +141,8 @@ purc_rdrcomm_k pcrdr_conn_comm_method(pcrdr_conn* conn)
 
 const struct pcrdr_conn_stats *pcrdr_conn_stats(pcrdr_conn* conn)
 {
+    conn->stats.duration_seconds =
+        (uint64_t)purc_monotonic_time_after(conn->stats.start_time);
     return &conn->stats;
 }
 

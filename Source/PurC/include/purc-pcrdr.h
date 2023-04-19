@@ -611,15 +611,16 @@ PCA_EXPORT purc_rdrcomm_k
 pcrdr_conn_comm_method(pcrdr_conn *conn);
 
 struct pcrdr_conn_stats {
-    unsigned long nr_requests_sent;
-    unsigned long nr_requests_recv;
-    unsigned long nr_responses_sent;
-    unsigned long nr_responses_recv;
-    unsigned long nr_events_sent;
-    unsigned long nr_events_recv;
-    size_t bytes_sent;
-    size_t bytes_recv;
-    time_t start_time;
+    uint64_t nr_requests_sent;
+    uint64_t nr_requests_recv;
+    uint64_t nr_responses_sent;
+    uint64_t nr_responses_recv;
+    uint64_t nr_events_sent;
+    uint64_t nr_events_recv;
+    uint64_t bytes_sent;
+    uint64_t bytes_recv;
+    uint64_t duration_seconds;
+    time_t   start_time;
 };
 
 /**

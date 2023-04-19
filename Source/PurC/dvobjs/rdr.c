@@ -204,12 +204,6 @@ stats_getter(purc_variant_t root,
         goto failed;
     }
 
-    ret = purc_variant_make_object_0();
-    if (ret == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
     static const char * keys[] = {
         "nrRequestsSent",
         "nrRequestsRecv",
@@ -222,23 +216,38 @@ stats_getter(purc_variant_t root,
         "durationSeconds",
     };
 
-    purc_variant_t vals[PCA_TABLESIZE(keys)] = { };
     const struct pcrdr_conn_stats *stats = pcrdr_conn_stats(rdr);
-    vals[0] = purc_variant_make_ulongint(stats->nr_requests_sent);
-    vals[1] = purc_variant_make_ulongint(stats->nr_requests_recv);
-    vals[2] = purc_variant_make_ulongint(stats->nr_responses_sent);
-    vals[3] = purc_variant_make_ulongint(stats->nr_responses_recv);
-    vals[4] = purc_variant_make_ulongint(stats->nr_events_sent);
-    vals[5] = purc_variant_make_ulongint(stats->nr_events_recv);
-    vals[6] = purc_variant_make_ulongint(stats->bytes_sent);
-    vals[7] = purc_variant_make_ulongint(stats->bytes_recv);
-    vals[8] = purc_variant_make_ulongint(
-            purc_monotonic_time_after(stats->start_time));
+    const uint64_t *items = &stats->nr_requests_sent;
+    if (nr_args > 0) {
+        const char *key = purc_variant_get_string_const(argv[0]);
+        if (key == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        for (size_t i = 0; i < PCA_TABLESIZE(keys); i++) {
+            if (strcmp(key, keys[i]) == 0) {
+                ret = purc_variant_make_ulongint(items[i]);
+                if (ret == PURC_VARIANT_INVALID) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto failed;
+                }
+                goto done;
+            }
+        }
+    }
+
+    ret = purc_variant_make_object_0();
+    if (ret == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
 
     for (size_t i = 0; i < PCA_TABLESIZE(keys); i++) {
-        if (vals[i]) {
-            purc_variant_object_set_by_static_ckey(ret, keys[i], vals[i]);
-            purc_variant_unref(vals[i]);
+        purc_variant_t val = purc_variant_make_ulongint(items[i]);
+        if (val) {
+            purc_variant_object_set_by_static_ckey(ret, keys[i], val);
+            purc_variant_unref(val);
         }
         else {
             purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -246,6 +255,7 @@ stats_getter(purc_variant_t root,
         }
     }
 
+done:
     return ret;
 
 failed:
