@@ -85,7 +85,7 @@ static void workspace_delete(pcmcth_workspace *workspace)
 {
     assert(workspace->root);
 
-    LOG_DEBUG("destroy kvlist for ungrouped plain windows...\n");
+    LOG_DEBUG("destroy page owners map...\n");
     pcutils_kvlist_delete(workspace->page_owners);
 
     if (workspace->layouter) {

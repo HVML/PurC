@@ -1080,6 +1080,7 @@ static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
+    /* Since PURCMC-120, pass the coroutine handle */
     if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         retv = PCRDR_SC_BAD_REQUEST;
         goto failed;

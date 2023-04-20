@@ -271,20 +271,18 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
 {
-    (void)layout_style;
-
     pcmcth_page *plain_win = NULL;
 
     workspace = sess->workspace;
+    if (pcutils_kvlist_get(workspace->page_owners, page_id)) {
+        LOG_WARN("Duplicated page identifier: %s\n", page_id);
+        *retv = PCRDR_SC_CONFLICT;
+        goto done;
+    }
 
     if (group == NULL) {
         /* TODO: use workspace to maintain the names of plain windows */
         /* create a ungrouped plain window */
-        if (pcutils_kvlist_get(workspace->page_owners, page_id)) {
-            LOG_WARN("Duplicated ungrouped plain window: %s\n", name);
-            *retv = PCRDR_SC_CONFLICT;
-            goto done;
-        }
 
         if (class_name &&
                 strcmp(class_name, WSP_WIDGET_CLASS_OFF_SCREEN) == 0) {
