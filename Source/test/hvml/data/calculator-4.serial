@@ -11,7 +11,7 @@ PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"bas
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/",getElement(getVariable("SYS"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/",getElement(getElement(getVariable("SYS"),"locale"),"json")) to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
