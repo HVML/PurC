@@ -19,7 +19,7 @@ PCHVML_TOKEN_START_TAG|<base href=callSetter(getElement(getVariable("CRTN"),"bas
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/messages-",getElement(getVariable("SYS"),"locale"),".json") to="merge"/>
+PCHVML_TOKEN_START_TAG|<update on=getElement(getVariable("T"),"map") from=concatString("assets/messages-",getElement(getElement(getVariable("SYS"),"locale"),"json")) to="merge"/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
@@ -143,7 +143,7 @@ PCHVML_TOKEN_END_TAG|</archetype>
 PCHVML_TOKEN_VCM_TREE|"
 
         "
-PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concatString("assets/breaking-news-",getElement(getVariable("SYS"),"locale"),".json") async/>
+PCHVML_TOKEN_START_TAG|<init as="breakingNews" from=concatString("assets/breaking-news-",getElement(getElement(getVariable("SYS"),"locale"),"json")) async/>
 PCHVML_TOKEN_VCM_TREE|"
 
         "

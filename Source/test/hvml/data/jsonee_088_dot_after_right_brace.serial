@@ -1,7 +1,7 @@
 PCHVML_TOKEN_START_TAG|<hvml>
 PCHVML_TOKEN_VCM_TREE|"
     "
-PCHVML_TOKEN_START_TAG|<update from=concatString("assets/",getElement(getVariable("SYS"),"locale"),".json")/>
+PCHVML_TOKEN_START_TAG|<update from=concatString("assets/",getElement(getElement(getVariable("SYS"),"locale"),"json"))/>
 PCHVML_TOKEN_VCM_TREE|"
     "
 PCHVML_TOKEN_START_TAG|<update from=concatString("assets/",getElement(getElement(getVariable("SYS"),"time"),"tm"))/>

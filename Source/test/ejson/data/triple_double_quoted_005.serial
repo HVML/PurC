@@ -4,4 +4,4 @@ make_object("id",1234567890UL,"nickname","David","signature",concatString("
     被'程序'耽误的
 
         "文艺"青年。
-        ",getVariable("ABC"),".C"))
+        ",getElement(getVariable("ABC"),"C"),""))
