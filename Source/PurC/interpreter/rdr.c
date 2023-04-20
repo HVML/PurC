@@ -833,6 +833,12 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
     assert(inst && inst->rdr_caps);
 
     struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
+    if (conn_to_rdr == NULL) {
+        purc_log_error("The connection to renderer lost.\n");
+        purc_set_error(PURC_ERROR_CONNECTION_ABORTED);
+        goto failed;
+    }
+
     struct renderer_capabilities *rdr_caps = inst->rdr_caps;
     uint64_t session_handle = rdr_caps->session_handle;
     uint64_t workspace = 0;
