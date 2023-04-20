@@ -1391,13 +1391,9 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
     }
 
     pcintr_coroutine_t co = stack->co;
-    if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
-        /* null page */
-        return NULL;
-    }
-
-    if (co->stage != CO_STAGE_OBSERVING || co->stack.doc->ldc == 0) {
-        /* suppressed */
+    if (co->target_page_handle == 0 || co->target_dom_handle == 0 ||
+            co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
+        /* null page or suppressed */
         return NULL;
     }
 
@@ -1499,13 +1495,9 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id
     }
 
     pcintr_coroutine_t co = stack->co;
-    if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
-        /* null page */
-        goto out;
-    }
-
-    if (co->stage != CO_STAGE_OBSERVING || co->stack.doc->ldc == 0) {
-        /* suppressed */
+    if (co->target_page_handle == 0 || co->target_dom_handle == 0 ||
+            co->stack.doc->ldc == 0/* || co->stage != CO_STAGE_OBSERVING */) {
+        /* null page or suppressed */
         goto out;
     }
 
