@@ -585,6 +585,18 @@ purc_page_ostack_get_id(purc_page_ostack_t ostack);
 PCA_EXPORT void *
 purc_page_ostack_get_page(purc_page_ostack_t ostack);
 
+/**
+ * Retrieves the birth time of the page.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: A struct timespec representing the birth time of the page.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct timespec
+purc_page_ostack_get_birth(purc_page_ostack_t ostack);
+
 #define PURC_PREFIX_PLAINWIN         "plainwin:"
 #define PURC_PREFIX_WIDGET           "widget:"
 #define PURC_SEP_GROUP_NAME          '@'

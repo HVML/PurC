@@ -963,6 +963,7 @@ struct purc_page_ostack {
     struct purc_page_owner *owners;
     size_t alloc_size;
     size_t nr_owners;
+    struct timespec birth;
 };
 
 #define SZ_INITIAL_OSTACK   2
@@ -980,6 +981,7 @@ purc_page_ostack_new(pcutils_kvlist_t page_map, const char *id, void *page)
         ostack->page = page;
         ostack->alloc_size = SZ_INITIAL_OSTACK;
         ostack->nr_owners = 0;
+        clock_gettime(CLOCK_MONOTONIC, &ostack->birth);
         ostack->id = pcutils_kvlist_set_ex(page_map, id, &ostack);
     }
 
@@ -1120,6 +1122,12 @@ void *
 purc_page_ostack_get_page(purc_page_ostack_t ostack)
 {
     return ostack->page;
+}
+
+struct timespec
+purc_page_ostack_get_birth(purc_page_ostack_t ostack)
+{
+    return ostack->birth;
 }
 
 const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,

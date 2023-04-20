@@ -494,8 +494,9 @@ foil_register_crtn(pcmcth_session *sess, pcmcth_page *page,
         uint64_t crtn, int *retv)
 {
     page = validate_page(sess, page, retv);
-    if (page == NULL)
+    if (page == NULL) {
         return 0;
+    }
 
     struct purc_page_owner owner = { sess, crtn }, suppressed;
     suppressed = purc_page_ostack_register(page->ostack, owner);
@@ -504,6 +505,7 @@ foil_register_crtn(pcmcth_session *sess, pcmcth_page *page,
         /* TODO: send suppressPage request to another endpoint */
     }
 
+    *retv = PCRDR_SC_OK;
     return suppressed.corh;
 }
 
@@ -512,8 +514,9 @@ foil_revoke_crtn(pcmcth_session *sess, pcmcth_page *page,
         uint64_t crtn, int *retv)
 {
     page = validate_page(sess, page, retv);
-    if (page == NULL)
+    if (page == NULL) {
         return 0;
+    }
 
     struct purc_page_owner owner = { sess, crtn }, to_reload;
     to_reload = purc_page_ostack_revoke(page->ostack, owner);
@@ -522,6 +525,7 @@ foil_revoke_crtn(pcmcth_session *sess, pcmcth_page *page,
         /* TODO: send reloadPage request to another endpoint */
     }
 
+    *retv = PCRDR_SC_OK;
     return to_reload.corh;
 }
 
