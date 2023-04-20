@@ -1,0 +1,23 @@
+#!/usr/bin/purc
+
+# RESULT: [ "null:", "true:", "false:", "undefined:"]
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as 'nullColon' with "null:" />
+        <init as 'trueColon' with "true:" />
+        <init as 'falseColon' with "false:" />
+        <init as 'undefinedColon' with "undefined:" />
+
+        <init as 'nullLong' with "this is null:" />
+        <init as 'trueLong' with "this is true:" />
+        <init as 'falseLong' with "this is false:" />
+        <init as 'undefinedLong' with "this is undefined:" />
+        <exit with [$nullColon, $trueColon, $falseColon, $undefinedColon] />
+    </body>
+</hvml>
+
+
