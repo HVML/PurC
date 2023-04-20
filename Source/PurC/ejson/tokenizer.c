@@ -908,7 +908,6 @@ BEGIN_STATE(EJSON_TKZ_STATE_UNQUOTED)
         RETURN_AND_STOP_PARSE();
     }
     if (character == '.') {
-        print_parser_state(parser);
         if (top == NULL) {
 //            SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
 //            RETURN_AND_STOP_PARSE();
