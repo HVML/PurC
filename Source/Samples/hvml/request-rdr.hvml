@@ -28,9 +28,8 @@
 
         <request on="$RDR" to="createPlainWindow">
             {
-                "element":"viewerBodyPanels1",
+                "name":"hello@viewerBodyPanels1",
                 "data": {
-                    "name": "hello",
                     "title": "Hello, world!",
                     "class": "normal",
                     "layoutStyle": "with:200px;height:100px;",
@@ -41,9 +40,8 @@
 
         <request on="$RDR" to="createWidget">
             {
-                "element":"viewerBodyPanels1",
+                "name":"foobar@viewerBodyPanels1",
                 "data": {
-                    "name": "foobar",
                     "title": "Tab One",
                     "class": "normal",
                     "layoutStyle": "with:200px;height:100px;",

@@ -70,6 +70,8 @@ struct pcrdr_conn {
     const char* app_name;
     const char* runner_name;
 
+    struct pcrdr_conn_stats stats;
+
     char* uri;
 
     void *user_data;
@@ -83,9 +85,6 @@ struct pcrdr_conn {
 
     /* the pending requests queue */
     struct list_head pending_requests;
-
-    /* the rdr page handles */
-    struct list_head page_handles;
 
     /* operations */
     int (*wait_message) (pcrdr_conn* conn, int timeout_ms);

@@ -38,6 +38,8 @@
 #include "purc-variant.h"
 #include "purc-utils.h"
 
+#define PURC_INVPTR                     ((void *)-1)
+
 #define PURC_LEN_HOST_NAME              127
 #define PURC_LEN_APP_NAME               127
 #define PURC_LEN_RUNNER_NAME            63
@@ -473,8 +475,169 @@ purc_log_error(const char *msg, ...)
  *
  * Since: 0.9.2
  */
-purc_variant_t
+PCA_EXPORT purc_variant_t
 purc_make_object_from_query_string(const char *query, bool rfc1738);
+
+struct purc_page_ostack;
+typedef struct purc_page_ostack *purc_page_ostack_t;
+
+/** The page owner information to be maintained in the page owner stack. */
+struct purc_page_owner {
+    /* The pointer to the session */
+    void    *sess;
+    /* The handle to the coroutine */
+    uint64_t corh;
+};
+
+/**
+ * Creates a new page owner stack for the specified page identifier.
+ *
+ * @param page_map: The map from the page identifier to the new owner stack.
+ * @param id: The page identifier.
+ * @param page: The pointer to the page.
+ *
+ * Returns: The pointer to a new struct @purc_page_ostack; NULL for failure.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT purc_page_ostack_t
+purc_page_ostack_new(pcutils_kvlist_t page_map, const char *id, void *page);
+
+/**
+ * Destroys a page owner stack.
+ *
+ * @param page_map: The map from the page identifier to the new owner stack.
+ * @param ostack: The page owner stack to destroy.
+ *
+ * Returns: None.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT void
+purc_page_ostack_delete(pcutils_kvlist_t page_map, purc_page_ostack_t ostack);
+
+/**
+ * Registers a new page owner.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ * @param owner: A struct containing the owner to register.
+ *      See @purc_page_owner.
+ *
+ * Returns: The owner should be suppressed; it's valid only the handle to
+ *      the coroutine is not zero.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_register(purc_page_ostack_t ostack,
+        struct purc_page_owner owner);
+
+/**
+ * Revokes a page owner.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ * @param owner: A struct containing the owner to revoke.
+ *      See @purc_page_owner.
+ *
+ * Returns: The owner should be reloaded; it's valid only the handle to
+ *      the coroutine is not zero.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_revoke(purc_page_ostack_t ostack,
+        struct purc_page_owner owner);
+
+/**
+ * Revokes all page owner belonging to the specific session.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: The owner should be reloaded; it's valid only the handle to
+ *      the coroutine is not zero.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct purc_page_owner
+purc_page_ostack_revoke_session(purc_page_ostack_t ostack, void *sess);
+
+/**
+ * Retrieves the page identifier from a page owner stack.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: The pointer to the page identifier.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT const char *
+purc_page_ostack_get_id(purc_page_ostack_t ostack);
+
+/**
+ * Retrieves the pointer to the page from a page owner stack.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: The pointer to the page.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT void *
+purc_page_ostack_get_page(purc_page_ostack_t ostack);
+
+/**
+ * Retrieves the birth time of the page.
+ *
+ * @param ostack: The pointer to a page owner stack.
+ *
+ * Returns: A struct timespec representing the birth time of the page.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT struct timespec
+purc_page_ostack_get_birth(purc_page_ostack_t ostack);
+
+#define PURC_PREFIX_PLAINWIN         "plainwin:"
+#define PURC_PREFIX_WIDGET           "widget:"
+#define PURC_SEP_GROUP_NAME          '@'
+
+#define PURC_MAX_PLAINWIN_ID     \
+    (sizeof(PURC_PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
+#define PURC_MAX_WIDGET_ID     \
+    (sizeof(PURC_PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
+
+/**
+ * Checks and makes page identifier for a plain window specified by
+ * the pattern 'name[@group]'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for no group part, and
+ *  @PURC_INVPTR for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
+        const char *name_group);
+
+/**
+ * Checks and makes page identifier for a widget specified by
+ * the pattern 'name@group'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
+        const char *name_group);
 
 /**@}*/
 

@@ -88,6 +88,7 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     frame->silently = pcintr_is_element_silently(frame->pos) ? 1 : 0;
     frame->edom_element = task->edom_element;
     frame->next_step = NEXT_STEP_AFTER_PUSHED;
+    frame->handle_event = 1;
 
     if (task->payload) {
         pcintr_set_question_var(frame, task->payload);

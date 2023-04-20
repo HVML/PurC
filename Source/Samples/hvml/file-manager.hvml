@@ -98,9 +98,8 @@
 
         <request on="$RDR" to="createWidget">
             {
-                "element":"leftPanel",
+                "name": "leftWindow@leftPanel",
                 "data": {
-                    "name": "leftWindow",
                     "title": "leftList",
                     "class": "col-4",
                     "layoutStyle": "width:20vw;height:100vh;"
@@ -110,9 +109,8 @@
 
         <request on="$RDR" to="createWidget">
             {
-                "element":"rightPanel",
+                "name": "rightWindow@rightPanel",
                 "data": {
-                    "name": "rightWindow",
                     "title": "SubList",
                     "class": "col-8",
                     "layoutStyle": "left:20.2vw;width:82vw;height:100vh;"
@@ -120,9 +118,9 @@
             }
         </request>
 
-        <load from "#leftBody" onto 'leftWindow' as 'leftFileList' async />
+        <load from "#leftBody" onto 'widget:leftWindow@leftPanel' as 'leftFileList' async />
 
-        <load from "#rightBody" onto 'rightWindow' as 'subFileList' async />
+        <load from "#rightBody" onto 'widget:rightWindow@rightPanel' as 'subFileList' async />
 
         <observe on $CRTN for "rdrState:closed">
             <exit with "closed" />

@@ -1,0 +1,57 @@
+#!/usr/bin/purc
+
+# RESULT: { serializedDoc: '<html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>', nrRequestsSent: 6UL }
+#
+# Note that the value of the filed 'nrRequestsSent' is only valid
+# when running this program by using the test program 'test_comprehensive_programs'.
+# If you run this HVML program by using 'purc', the value should be 7UL.
+
+<hvml target="html">
+    <body>
+        <load from '#main' onto 'main' >
+            <exit with $? />
+        </load>
+    </body>
+
+    <body id="main">
+        <ul id='theList'>
+        </ul>
+
+        <!-- observe on $CRTN for 'rdrState:pageLoaded'>
+            <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
+
+            <observe on $childCrtn for 'corState:exited' >
+                <inherit>
+                    $STREAM.stdout.writelines("got corState:exited");
+                </inherit>
+                <exit with $DOC.serialize />
+            </observe>
+        </observe -->
+
+        <load from "#theChild" onto 'inherit:' as 'childCrtn' async />
+
+        <update on '#theList' to 'append' with '<li>main</li>' />
+
+        <observe on $childCrtn for 'corState:exited' >
+            <inherit>
+                $STREAM.stdout.writelines("got corState:exited; The number of requests sent: $RDR.stats.nrRequestsSent");
+            </inherit>
+
+            <exit with { serializedDoc: $DOC.serialize, nrRequestsSent: $RDR.stats.nrRequestsSent } />
+        </observe>
+
+        <observe on $CRTN for 'rdrState:pageReloaded' >
+            <exit with 'bad' />
+        </observe>
+
+    </body>
+
+    <body id="theChild">
+        <sleep for '1s' />
+        <observe on $CRTN for 'idle'>
+            <update on '#theList' to 'append' with '<li>child</li>' />
+            <exit with true />
+        </observe>
+    </body>
+</hvml>
+

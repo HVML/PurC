@@ -2741,6 +2741,7 @@ fatal:
     return PURC_VARIANT_INVALID;
 }
 
+#if 0 /* deprecated */
 static purc_variant_t info_path_getter(purc_variant_t root,
         size_t nr_args, purc_variant_t * argv, unsigned call_flags)
 {
@@ -2791,6 +2792,7 @@ failed:
         return purc_variant_make_boolean(false);
     return PURC_VARIANT_INVALID;
 }
+#endif
 
 static purc_variant_t make_info_object(void)
 {
@@ -2842,6 +2844,7 @@ static purc_variant_t make_info_object(void)
         goto fatal;
     purc_variant_unref(val);
 
+#if 0 /* deprecated */
     val = purc_variant_make_dynamic(info_path_getter, info_path_setter);
     if (val == PURC_VARIANT_INVALID)
         goto fatal;
@@ -2849,6 +2852,7 @@ static purc_variant_t make_info_object(void)
                 PY_INFO_PATH, val))
         goto fatal;
     purc_variant_unref(val);
+#endif
 
     return retv;
 

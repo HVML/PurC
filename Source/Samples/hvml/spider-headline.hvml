@@ -139,7 +139,7 @@
             <clear on $TIMERS />
 
             <update on "#btnRefresh" at "content" with  $DATETIME.fmttime("%Y 年 %m 月 %d 日 %H:%M:%S")/>
-            <load from "#main" onto "_inherit" async />
+            <load from "#main" onto "inherit:" async />
         </observe>
 
     </body>
@@ -151,10 +151,10 @@
             </li>
         </archetype>
 
-        <load from "#n163" onto "_null" as news163 async />
-        <load from "#nSohu" onto "_null" as newsSohu async />
-        <load from "#nSina" onto "_null" as newsSina async />
-        <load from "#nBaidu" onto "_null" as newsBaidu async />
+        <load from "#n163" onto "null:" as news163 async />
+        <load from "#nSohu" onto "null:" as newsSohu async />
+        <load from "#nSina" onto "null:" as newsSina async />
+        <load from "#nBaidu" onto "null:" as newsBaidu async />
 
         <observe on $news163 for="corState:exited">
             <update on "#dest163" at "content" with ' ' />

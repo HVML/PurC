@@ -36,8 +36,8 @@ struct pcmcth_workspace {
     /* the root window in the workspace */
     struct foil_widget *root;
 
-    /* ungrouped plain windows */
-    struct kvlist ug_wins;
+    /* page identifier (plainwin:hello@main) -> owners */
+    pcutils_kvlist_t page_owners;
 
     /* TODO: manager of grouped plain windows and pages */
     void *layouter;

@@ -596,6 +596,39 @@ pcutils_arrlist_get_first(struct pcutils_arrlist *arr);
 PCA_EXPORT void*
 pcutils_arrlist_get_last(struct pcutils_arrlist *arr);
 
+struct pcutils_kvlist;
+typedef struct pcutils_kvlist* pcutils_kvlist_t;
+
+/* get_len can be NULL for pointer */
+PCA_EXPORT pcutils_kvlist_t
+pcutils_kvlist_new(size_t (*get_len)(pcutils_kvlist_t kv, const void *data));
+
+PCA_EXPORT void
+pcutils_kvlist_delete(pcutils_kvlist_t kv);
+
+PCA_EXPORT void *
+pcutils_kvlist_get(pcutils_kvlist_t kv, const char *name);
+
+PCA_EXPORT const char *
+pcutils_kvlist_set_ex(pcutils_kvlist_t kv,
+        const char *name, const void *data);
+
+static inline bool pcutils_kvlist_set(pcutils_kvlist_t kv,
+        const char *name, const void *data) {
+    return pcutils_kvlist_set_ex(kv, name, data) != NULL;
+}
+
+PCA_EXPORT bool
+pcutils_kvlist_remove(pcutils_kvlist_t kv, const char *name);
+
+PCA_EXPORT size_t
+pcutils_kvlist_for_each(pcutils_kvlist_t kv, void *ctxt,
+        int (*on_each)(void *ctxt, const char *name, void *data));
+
+PCA_EXPORT size_t
+pcutils_kvlist_for_each_safe(pcutils_kvlist_t kv, void *ctxt,
+        int (*on_each)(void *ctxt, const char *name, void *data));
+
 /** Portable implementation of `snprintf` */
 PCA_EXPORT char*
 pcutils_snprintf(char *buf, size_t *sz_io, const char *fmt, ...)

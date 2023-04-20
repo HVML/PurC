@@ -147,7 +147,7 @@ handle_rdr_conn_lost(struct pcinst *inst)
     inst->conn_to_rdr = NULL;
 }
 
-bool
+static bool
 is_match_except(purc_variant_t for_var, purc_atom_t except)
 {
     bool match = false;
@@ -161,7 +161,7 @@ is_match_except(purc_variant_t for_var, purc_atom_t except)
     return match;
 }
 
-bool
+static bool
 is_same_level_catched(pcintr_stack_t stack, struct pcvdom_node *node)
 {
     bool catch = false;
@@ -203,7 +203,7 @@ is_same_level_catched(pcintr_stack_t stack, struct pcvdom_node *node)
     return catch;
 }
 
-bool
+static bool
 is_match_catch_tag(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(stack);
@@ -241,7 +241,7 @@ out:
     return catch;
 }
 
-bool
+static bool
 is_match_except_tag(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 {
     bool match = false;
@@ -327,14 +327,26 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     }
 
     /* send doc to rdr */
-    if (!stack->inherit && stack->co->stage == CO_STAGE_FIRST_RUN &&
-            !pcintr_rdr_page_control_load(stack))
-    {
-        // PC_ASSERT(0); VWNOTE: XXX
-        // stack->exited = 1;
-        return;
-    }
+    if (stack->co->target_page_handle != 0 &&
+             stack->co->stage == CO_STAGE_FIRST_RUN) {
+        pcintr_register_crtn_to_doc(inst, stack->co);
+        if (stack->doc->ldc == 1) {
+            /* It's the first time to expose the document */
+            pcintr_rdr_page_control_load(inst, stack);
+            purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
+            pcintr_coroutine_post_event(stack->co->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+                    hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_LOADED,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            purc_variant_unref(hvml);
+        }
+        else {
+            assert(stack->inherit);
+            pcintr_rdr_page_control_register(inst, stack);
+        }
 
+        pcintr_inherit_udom_handle(inst, co);
+    }
 
     if (one_run) {
         // repeat this call when an observing finished.
@@ -470,6 +482,12 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
                 MSG_TYPE_CORSTATE, MSG_SUB_TYPE_EXITED,
                 result, request_id);
         purc_variant_unref(request_id);
+    }
+
+    /* PURCMC-120 */
+    if (co->target_page_handle != 0) {
+        pcintr_revoke_crtn_from_doc(inst, co);
+        pcintr_rdr_page_control_revoke(inst, &co->stack);
     }
 }
 

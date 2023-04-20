@@ -1,7 +1,7 @@
 <hvml target="void">
     <body>
 
-        <load from "#repeater" onto '_null' async />
+        <load from "#repeater" onto 'null:' async />
 
         <inherit>
             {{

@@ -489,6 +489,11 @@ static void _cleanup_instance(struct pcinst* inst)
         heap->token_crtn_map = NULL;
     }
 
+    if (heap->loaded_crtn_handles) {
+        pcutils_sorted_array_destroy(heap->loaded_crtn_handles);
+        heap->loaded_crtn_handles = NULL;
+    }
+
     free(heap);
     inst->intr_heap = NULL;
 }
@@ -552,6 +557,9 @@ static int _init_instance(struct pcinst* inst,
     heap->token_crtn_map =
         pcutils_map_create(copy_key_string, free_key_string, NULL, NULL,
                 comp_key_string, false);
+
+    heap->loaded_crtn_handles =
+        pcutils_sorted_array_create(SAFLAG_DEFAULT, 0, NULL, NULL);
 
     heap->event_timer = pcintr_timer_create(NULL, NULL, event_timer_fire, inst);
     if (!heap->event_timer) {
@@ -1895,7 +1903,9 @@ purc_schedule_vdom(purc_vdom_t vdom,
 {
     pcintr_coroutine_t co;
 
-    struct pcintr_heap* intr = pcintr_get_heap();
+    struct pcinst *inst = pcinst_current();
+    PC_ASSERT(inst);
+    struct pcintr_heap* intr = inst->intr_heap;
     PC_ASSERT(intr);
 
     pcintr_coroutine_t parent = NULL;
@@ -1917,19 +1927,38 @@ purc_schedule_vdom(purc_vdom_t vdom,
 
     /* Attach to rdr only if the document needs rdr,
        the document is newly created, and the page type is not null. */
-    if (co->stack.doc->need_rdr &&
-            purc_document_get_refc(co->stack.doc) == 1
-            ) {
+    if (co->stack.doc->need_rdr && co->stack.doc->refc == 1) {
+        bool ret = true;
 
-        if (!pcintr_attach_to_renderer(co,
+        if (page_type == PCRDR_PAGE_TYPE_SELF) {
+            if (parent) {
+                co->target_page_type = parent->target_page_type;
+                co->target_workspace_handle = parent->target_workspace_handle;
+                co->target_page_handle = parent->target_page_handle;
+            }
+            else {
+                ret = pcintr_attach_to_renderer(co,
+                            PCRDR_PAGE_TYPE_PLAINWIN, target_workspace,
+                            target_group, page_name, extra_info);
+            }
+        }
+        else if (page_type == PCRDR_PAGE_TYPE_NULL) {
+            co->target_page_type = page_type;
+            co->target_workspace_handle = 0;
+            co->target_page_handle = 0;
+        }
+        else {
+            ret = pcintr_attach_to_renderer(co,
                 page_type, target_workspace,
-                target_group, page_name, extra_info)) {
-            purc_log_warn("Failed to attach to renderer\n");
+                target_group, page_name, extra_info);
+        }
+
+        if (!ret) {
+            purc_log_warn("Failed to register/attach to renderer\n");
         }
     }
-    else if (co->stack.doc->need_rdr &&
-            purc_document_get_refc(co->stack.doc) > 1) {
-        /* use same rdr parameters with parent */
+    else if (co->stack.doc->need_rdr && co->stack.doc->refc > 1) {
+        /* Inherited, use same rdr parameters from parent */
         PC_ASSERT(parent);
 
         co->target_page_type = parent->target_page_type;

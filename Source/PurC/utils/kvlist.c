@@ -45,27 +45,38 @@
 #include "private/kvlist.h"
 #include "private/utils.h"
 
-int pcutils_kvlist_strlen(struct kvlist *kv, const void *data)
+struct pcutils_kvlist *pcutils_kvlist_new(
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data))
 {
-    UNUSED_PARAM(kv);
-    return strlen(data) + 1;
+    struct pcutils_kvlist *kv = calloc(1, sizeof(*kv));
+    if (kv) {
+        pcutils_kvlist_init(kv, get_len);
+    }
+
+    return kv;
 }
 
-void pcutils_kvlist_init(struct kvlist *kv, int (*get_len)(struct kvlist *kv,
-            const void *data))
+void pcutils_kvlist_delete(struct pcutils_kvlist *kv)
+{
+    pcutils_kvlist_cleanup(kv);
+    free(kv);
+}
+
+void pcutils_kvlist_init(struct pcutils_kvlist *kv,
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data))
 {
     pcutils_avl_init(&kv->avl, pcutils_avl_strcmp, false, NULL);
     kv->get_len = get_len;
 }
 
-static struct kvlist_node *__kvlist_get(struct kvlist *kv, const char *name)
+static struct kvlist_node *__kvlist_get(struct pcutils_kvlist *kv, const char *name)
 {
     struct kvlist_node *node;
 
     return avl_find_element(&kv->avl, name, node, avl);
 }
 
-void *pcutils_kvlist_get(struct kvlist *kv, const char *name)
+void *pcutils_kvlist_get(struct pcutils_kvlist *kv, const char *name)
 {
     struct kvlist_node *node;
 
@@ -76,7 +87,7 @@ void *pcutils_kvlist_get(struct kvlist *kv, const char *name)
     return node->data;
 }
 
-bool pcutils_kvlist_delete(struct kvlist *kv, const char *name)
+bool pcutils_kvlist_remove(struct pcutils_kvlist *kv, const char *name)
 {
     struct kvlist_node *node;
 
@@ -89,32 +100,66 @@ bool pcutils_kvlist_delete(struct kvlist *kv, const char *name)
     return !!node;
 }
 
-bool pcutils_kvlist_set(struct kvlist *kv, const char *name, const void *data)
+const char *pcutils_kvlist_set_ex(struct pcutils_kvlist *kv,
+        const char *name, const void *data)
 {
     struct kvlist_node *node;
     char *name_buf;
-    int len = kv->get_len ? kv->get_len(kv, data) : (int)(sizeof (void *));
 
+    int len = kv->get_len ? kv->get_len(kv, data) : (int)(sizeof (void *));
     node = calloc_a(sizeof(struct kvlist_node) + len,
         &name_buf, strlen(name) + 1);
     if (!node)
-        return false;
+        return NULL;
 
-    pcutils_kvlist_delete(kv, name);
-
+    pcutils_kvlist_remove(kv, name);
     memcpy(node->data, data, len);
-
     node->avl.key = strcpy(name_buf, name);
     pcutils_avl_insert(&kv->avl, &node->avl);
 
-    return true;
+    return node->avl.key;
 }
 
-void pcutils_kvlist_free(struct kvlist *kv)
+void pcutils_kvlist_cleanup(struct pcutils_kvlist *kv)
 {
     struct kvlist_node *node, *tmp;
 
     avl_remove_all_elements(&kv->avl, node, avl, tmp)
         free(node);
 }
+
+size_t
+pcutils_kvlist_for_each(pcutils_kvlist_t kv, void *ctxt,
+        int (*on_each)(void *ctxt, const char *name, void *data))
+{
+    size_t n = 0;
+    const char *name;
+    void *data;
+
+    kvlist_for_each(kv, name, data) {
+        n++;
+        if (on_each(ctxt, name, data))
+            break;
+    }
+
+    return n;
+}
+
+size_t
+pcutils_kvlist_for_each_safe(pcutils_kvlist_t kv, void *ctxt,
+        int (*on_each)(void *ctxt, const char *name, void *data))
+{
+    size_t n = 0;
+    const char *name;
+    void *next, *data;
+
+    kvlist_for_each_safe(kv, name, next, data) {
+        n++;
+        if (on_each(ctxt, name, data))
+            break;
+    }
+
+    return n;
+}
+
 

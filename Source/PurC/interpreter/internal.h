@@ -1,13 +1,13 @@
 /**
  * @file internal.h
- * @author Xu Xiaohong
+ * @author Xue Shuming, Xu Xiaohong
  * @date 2021/12/18
  * @brief The internal interfaces for interpreter/internal
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021, 2022, 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -256,7 +256,7 @@ uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
         uint64_t session, const char *workspace_name);
 
 uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
-        uint64_t session, const char *name, const char *title);
+        uint64_t session, const char *name, purc_variant_t data);
 
 bool pcintr_rdr_destroy_workspace(struct pcrdr_conn *conn,
         uint64_t session, uint64_t workspace);
@@ -268,8 +268,7 @@ bool pcintr_rdr_update_workspace(struct pcrdr_conn *conn,
 
 uint64_t pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
         pcrdr_page_type_k page_type, const char *target_group,
-        const char *pag_name, const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style);
+        const char *page_name, purc_variant_t data);
 
 bool pcintr_rdr_destroy_page(struct pcrdr_conn *conn, uint64_t workspace,
         pcrdr_page_type_k page_type, uint64_t page_handle);
@@ -281,13 +280,11 @@ pcintr_rdr_update_page(struct pcrdr_conn *conn, uint64_t workspace,
 
 static inline uint64_t
 pcintr_rdr_create_plain_window(struct pcrdr_conn *conn, uint64_t workspace,
-        const char *target_group, const char *pag_name,
-        const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style)
+        const char *target_group, const char *page_name,
+        purc_variant_t data)
 {
     return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_PLAINWIN, target_group, pag_name, title, classes,
-        layout_style, toolkit_style);
+        PCRDR_PAGE_TYPE_PLAINWIN, target_group, page_name, data);
 }
 
 static inline bool
@@ -318,12 +315,10 @@ bool pcintr_rdr_remove_page_group(struct pcrdr_conn *conn,
 static inline uint64_t
 pcintr_rdr_create_widget(struct pcrdr_conn *conn, uint64_t workspace,
         const char *target_group, const char *page_name,
-        const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style)
+        purc_variant_t data)
 {
     return pcintr_rdr_create_page(conn, workspace,
-        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, title, classes,
-        layout_style, toolkit_style);
+        PCRDR_PAGE_TYPE_WIDGET, target_group, page_name, data);
 }
 
 static inline bool
@@ -343,7 +338,13 @@ pcintr_rdr_update_widget(struct pcrdr_conn *conn, uint64_t workspace,
 }
 
 bool
-pcintr_rdr_page_control_load(pcintr_stack_t stack);
+pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack);
+
+bool
+pcintr_rdr_page_control_register(struct pcinst *inst, pcintr_stack_t stack);
+
+bool
+pcintr_rdr_page_control_revoke(struct pcinst *inst, pcintr_stack_t stack);
 
 int
 pcintr_doc_op_to_rdr_op(pcdoc_operation_k op);
@@ -598,6 +599,22 @@ pcintr_crtn_observed_get_cid(purc_variant_t v);
 bool
 pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v);
 
+bool
+pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co);
+
+void
+pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co);
+
+bool
+pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co);
+
+bool
+pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
+        uint64_t ctrn_handle);
+
+bool
+pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
+        uint64_t ctrn_handle);
 
 PCA_EXTERN_C_END
 

@@ -99,8 +99,7 @@ state_getter(purc_variant_t root,
 
     purc_variant_t vs[10] = { NULL };
     struct pcinst* inst = pcinst_current();
-    struct pcrdr_conn *rdr = inst->conn_to_rdr;
-    struct renderer_capabilities *rdr_caps = inst->rdr_caps;
+    struct pcrdr_conn *rdr = inst ? inst->conn_to_rdr : NULL;
     const char *comm = rdr_comm(rdr);
     const char *uri = rdr_uri(rdr);
 
@@ -126,6 +125,7 @@ state_getter(purc_variant_t root,
     vs[2] = purc_variant_make_string_static(KEY_PROT_VERSION, false);
     vs[4] = purc_variant_make_string_static(KEY_PROT_VER_CODE, false);
 
+    struct renderer_capabilities *rdr_caps = inst->rdr_caps;
     if (rdr_caps) {
         char buf[21];
         snprintf(buf, 20, "%ld", rdr_caps->prot_version);
@@ -179,7 +179,92 @@ out:
         purc_variant_unref(data);
         return v;
     }
+
     return data;
+}
+
+static purc_variant_t
+stats_getter(purc_variant_t root,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    purc_variant_t ret = PURC_VARIANT_INVALID;
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL) {
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
+        goto failed;
+    }
+
+    struct pcrdr_conn *rdr = inst->conn_to_rdr;
+    if (rdr == NULL) {
+        purc_set_error(PURC_ERROR_NOT_DESIRED_ENTITY);
+        goto failed;
+    }
+
+    static const char * keys[] = {
+        "nrRequestsSent",
+        "nrRequestsRecv",
+        "nrResponsesSent",
+        "nrResponsesRecv",
+        "nrEventsSent",
+        "nrEventsRecv",
+        "bytesSent",
+        "bytesRecv",
+        "durationSeconds",
+    };
+
+    const struct pcrdr_conn_stats *stats = pcrdr_conn_stats(rdr);
+    const uint64_t *items = &stats->nr_requests_sent;
+    if (nr_args > 0) {
+        const char *key = purc_variant_get_string_const(argv[0]);
+        if (key == NULL) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        for (size_t i = 0; i < PCA_TABLESIZE(keys); i++) {
+            if (strcmp(key, keys[i]) == 0) {
+                ret = purc_variant_make_ulongint(items[i]);
+                if (ret == PURC_VARIANT_INVALID) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto failed;
+                }
+                goto done;
+            }
+        }
+    }
+
+    ret = purc_variant_make_object_0();
+    if (ret == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    for (size_t i = 0; i < PCA_TABLESIZE(keys); i++) {
+        purc_variant_t val = purc_variant_make_ulongint(items[i]);
+        if (val) {
+            purc_variant_object_set_by_static_ckey(ret, keys[i], val);
+            purc_variant_unref(val);
+        }
+        else {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
+done:
+    return ret;
+
+failed:
+    if (ret)
+        purc_variant_unref(ret);
+
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_null();
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
@@ -295,9 +380,10 @@ purc_dvobj_rdr_new(void)
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
     static struct purc_dvobj_method method [] = {
-        { "state",              state_getter,            NULL },
-        { "connect",            connect_getter,         NULL },
-        { "disconnect",         disconnect_getter,      NULL },
+        { "state",          state_getter,       NULL },
+        { "stats",          stats_getter,       NULL },
+        { "connect",        connect_getter,     NULL },
+        { "disconnect",     disconnect_getter,  NULL },
     };
 
     retv = purc_dvobj_make_from_methods(method, PCA_TABLESIZE(method));
