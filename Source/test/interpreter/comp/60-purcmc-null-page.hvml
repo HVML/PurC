@@ -1,0 +1,24 @@
+#!/usr/bin/purc
+
+# RESULT: "<html><head></head><body><p>main</p></body></html>"
+
+<hvml target="html">
+    <body>
+        <p>main</p>
+
+        <load from "#theChild" onto 'null:' as 'childCrtn' async>
+        </load>
+
+        <observe on $childCrtn for 'corState:exited' >
+            <exit with $DOC.serialize />
+        </observe>
+
+    </body>
+
+    <body id="theChild">
+
+        <p>Hello from child coroutine.</p>
+
+    </body>
+</hvml>
+

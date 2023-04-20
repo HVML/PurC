@@ -64,3 +64,8 @@ TEST(comp_hvml, var)
 {
     go_comp_test("comp/5*.hvml");
 }
+
+TEST(comp_hvml, purcmc)
+{
+    go_comp_test("comp/6*.hvml");
+}

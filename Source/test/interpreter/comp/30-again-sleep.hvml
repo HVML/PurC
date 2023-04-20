@@ -18,7 +18,7 @@ COROUTINE-3: 2022-09-01T14:50:46+0800: I am awake.
 <hvml target='void'>
 
     <body>
-        <load from '#repeater' onto '_null' async />
+        <load from '#repeater' onto 'null:' async />
 
         <inherit>
             {{

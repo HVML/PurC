@@ -139,6 +139,13 @@ purc_rdrcomm_k pcrdr_conn_comm_method(pcrdr_conn* conn)
     return (purc_rdrcomm_k)conn->prot;
 }
 
+const struct pcrdr_conn_stats *pcrdr_conn_stats(pcrdr_conn* conn)
+{
+    conn->stats.duration_seconds =
+        (uint64_t)purc_monotonic_time_after(conn->stats.start_time);
+    return &conn->stats;
+}
+
 int pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms)
 {
     if (timeout_ms < 0)
@@ -182,21 +189,6 @@ int pcrdr_free_connection(pcrdr_conn* conn)
         list_del(&pr->list);
         purc_variant_unref(pr->request_id);
         free(pr);
-    }
-
-    struct pcrdr_page_handle *ph, *nh;
-    list_for_each_entry_safe(ph, nh, &conn->page_handles, list) {
-        if (ph->workspace_name) {
-            free(ph->workspace_name);
-        }
-        if (ph->group_name) {
-            free(ph->group_name);
-        }
-        if (ph->page_name) {
-            free(ph->page_name);
-        }
-        list_del(&ph->list);
-        free(ph);
     }
 
     free(conn);
@@ -283,6 +275,7 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
         return -1;
     }
 
+    conn->stats.nr_requests_sent++;
     if (conn->send_message(conn, request_msg) < 0) {
         return -1;
     }
@@ -290,6 +283,23 @@ int pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
     return pcrdr_set_handler_for_response_from_extra_source(conn,
         request_msg->requestId, seconds_expected, context,
         response_handler);
+}
+
+int
+pcrdr_send_event(pcrdr_conn *conn, pcrdr_msg *event_msg)
+{
+    if (event_msg == NULL ||
+            event_msg->type != PCRDR_MSG_TYPE_EVENT) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        return -1;
+    }
+
+    conn->stats.nr_events_sent++;
+    if (conn->send_message(conn, event_msg) < 0) {
+        return -1;
+    }
+
+    return 0;
 }
 
 static inline int
@@ -383,6 +393,7 @@ send_default_response_msg(pcrdr_conn *conn, purc_variant_t request_id)
     msg.dataType = PCRDR_MSG_DATA_TYPE_VOID;
     msg.data = NULL;
 
+    conn->stats.nr_responses_sent++;
     if (conn->send_message(conn, &msg) < 0) {
         retval = -1;
     }
@@ -400,6 +411,7 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TYPE_EVENT:
+        conn->stats.nr_events_recv++;
         if (conn->event_handler) {
             conn->event_handler(conn, msg);
         }
@@ -410,6 +422,7 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TYPE_REQUEST:
+        conn->stats.nr_requests_recv++;
         if (conn->request_handler) {
             conn->request_handler(conn, msg);
         }
@@ -421,6 +434,7 @@ static int dispatch_message(pcrdr_conn *conn, pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TYPE_RESPONSE:
+        conn->stats.nr_responses_recv++;
         retval = handle_response_message(conn, msg);
         break;
 
@@ -607,74 +621,12 @@ int pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
         return -1;
     }
 
+    conn->stats.nr_requests_sent++;
     if (conn->send_message(conn, request_msg) < 0) {
         return -1;
     }
 
     return pcrdr_wait_response_for_specific_request(conn,
             request_msg->requestId, seconds_expected, response_msg);
-}
-
-int
-pcrdr_save_page_handle(struct pcrdr_conn *conn, const char *workspace_name,
-        const char *group_name, const char *page_name, pcrdr_page_type_k page_type,
-        uint64_t page_handle, uint64_t workspace_handle, uint64_t dom_handle)
-{
-    int ret = -1;
-    if (!conn || !page_handle) {
-        goto out;
-    }
-
-    struct pcrdr_page_handle *p = calloc(1, sizeof(*p));
-    if (!p) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    if (workspace_name) {
-        p->workspace_name = strdup(workspace_name);
-        if (!p->workspace_name) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_free_p;
-        }
-    }
-
-    if (group_name) {
-        p->group_name = strdup(group_name);
-        if (!p->group_name) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_free_workspace_name;
-        }
-    }
-
-    if (page_name) {
-        p->page_name = strdup(page_name);
-        if (!p->page_name) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto out_free_group_name;
-        }
-    }
-
-    p->page_type = page_type;
-    p->page_handle = page_handle;
-    p->workspace_handle = workspace_handle;
-    p->dom_handle = dom_handle;
-
-    list_add_tail(&p->list, &conn->page_handles);
-
-    ret = 0;
-    goto out;
-
-out_free_group_name:
-    free(p->group_name);
-
-out_free_workspace_name:
-    free(p->workspace_name);
-
-out_free_p:
-    free(p);
-
-out:
-    return ret;
 }
 

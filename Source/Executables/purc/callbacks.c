@@ -131,23 +131,39 @@ failed:
     return NULL;
 }
 
-static int foil_remove_session(pcmcth_session *sess)
+static int on_each_ostack(void *ctxt, const char *name, void *data)
 {
-    const char *name;
-    void *next, *data;
+    (void)name;
 
-    LOG_DEBUG("removing session (%p)...\n", sess);
+    pcmcth_session *sess = ctxt;
+    purc_page_ostack_t ostack = *(purc_page_ostack_t *)data;
 
-    LOG_DEBUG("destroy all ungrouped plain windows created by this session...\n");
-    kvlist_for_each_safe(&sess->workspace->ug_wins, name, next, data) {
-        pcmcth_page *page = *(pcmcth_page **)data;
-        if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
-            pcmcth_udom *udom = foil_page_delete(page);
-            if (udom) {
-                foil_udom_delete(udom);
-            }
+    struct purc_page_owner to_reload;
+    to_reload = purc_page_ostack_revoke_session(ostack, ctxt);
+    if (to_reload.corh) {
+        assert(to_reload.sess);
+        // TODO: send reloadPage request to another endpoint
+    }
+
+    pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
+        pcmcth_udom *udom = foil_page_delete(page);
+        if (udom) {
+            foil_udom_delete(udom);
         }
     }
+
+    purc_page_ostack_delete(sess->workspace->page_owners, ostack);
+    return 0;
+}
+
+static int foil_remove_session(pcmcth_session *sess)
+{
+    LOG_DEBUG("removing session (%p)...\n", sess);
+
+    LOG_DEBUG("destroy all windows/widgets created by this session...\n");
+    pcutils_kvlist_for_each_safe(sess->workspace->page_owners, sess,
+            on_each_ostack);
 
     LOG_DEBUG("destroy sorted array for all handles...\n");
     sorted_array_destroy(sess->all_handles);
@@ -212,26 +228,61 @@ done:
     return;
 }
 
+/* TODO: always returns the page for 'plainwin:main' currently */
+static pcmcth_page *foil_get_special_plainwin(pcmcth_session *sess,
+        pcmcth_workspace *workspace, const char *group,
+        pcrdr_resname_page_k page_type)
+{
+    (void)group;
+    (void)page_type;
+
+    if (workspace == NULL)
+        workspace = sess->workspace;
+
+    void *data;
+    data = pcutils_kvlist_get(workspace->page_owners, "plainwin:main");
+    if (data != NULL) {
+        struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
+        return purc_page_ostack_get_page(ostack);
+    }
+
+    return NULL;
+}
+
+static pcmcth_page *foil_find_page(pcmcth_session *sess,
+        pcmcth_workspace *workspace, const char *page_id)
+{
+    if (workspace == NULL)
+        workspace = sess->workspace;
+
+    void *data;
+    data = pcutils_kvlist_get(workspace->page_owners, page_id);
+    if (data != NULL) {
+        struct purc_page_ostack *ostack = *(struct purc_page_ostack **)data;
+        return purc_page_ostack_get_page(ostack);
+    }
+
+    return NULL;
+}
+
 static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         pcmcth_workspace *workspace,
-        const char *gid, const char *name,
+        const char *page_id, const char *group, const char *name,
         const char *class_name, const char *title, const char *layout_style,
         purc_variant_t toolkit_style, int *retv)
 {
-    (void)layout_style;
-
     pcmcth_page *plain_win = NULL;
 
     workspace = sess->workspace;
+    if (pcutils_kvlist_get(workspace->page_owners, page_id)) {
+        LOG_WARN("Duplicated page identifier: %s\n", page_id);
+        *retv = PCRDR_SC_CONFLICT;
+        goto done;
+    }
 
-    if (gid == NULL) {
+    if (group == NULL) {
         /* TODO: use workspace to maintain the names of plain windows */
         /* create a ungrouped plain window */
-        if (kvlist_get(&workspace->ug_wins, name)) {
-            LOG_WARN("Duplicated ungrouped plain window: %s\n", name);
-            *retv = PCRDR_SC_CONFLICT;
-            goto done;
-        }
 
         if (class_name &&
                 strcmp(class_name, WSP_WIDGET_CLASS_OFF_SCREEN) == 0) {
@@ -259,21 +310,24 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
                     WSP_WIDGET_TYPE_PLAINWINDOW, NULL, NULL, NULL, &style);
         }
 
-        kvlist_set(&workspace->ug_wins, name, &plain_win);
+        plain_win->ostack =
+            purc_page_ostack_new(workspace->page_owners, page_id, plain_win);
     }
     else if (workspace->layouter == NULL) {
         *retv = PCRDR_SC_PRECONDITION_FAILED;
         goto done;
     }
     else {
-        LOG_DEBUG("creating a grouped plain window with name (%s/%s)\n",
-                gid, name);
+        LOG_DEBUG("creating a grouped plain window with name (%s@%s)\n",
+                name, group);
 
         /* TODO: create a plain window in the specified group
         plain_win = wsp_layouter_add_plain_window(workspace->layouter, sess,
-                gid, name, class_name, title, layout_style, toolkit_style,
+                group, name, class_name, title, layout_style, toolkit_style,
                 web_view, retv);
         */
+        *retv = PCRDR_SC_NOT_IMPLEMENTED;
+        goto done;
     }
 
     if (plain_win) {
@@ -284,7 +338,7 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
         *retv = PCRDR_SC_OK;
     }
     else {
-        LOG_ERROR("Failed to create a plain window: %s/%s\n", gid, name);
+        LOG_ERROR("Failed to create a plain window: %s@%s\n", name, group);
         *retv = PCRDR_SC_INSUFFICIENT_STORAGE;
     }
 
@@ -400,7 +454,7 @@ validate_page(pcmcth_session *sess, pcmcth_page *page, int *retv)
 
 static pcmcth_udom *
 foil_load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
-        int *retv)
+        uint64_t crtn, char *buff, int *retv)
 {
     page = validate_page(sess, page, retv);
     if (page == NULL)
@@ -413,11 +467,66 @@ foil_load_edom(pcmcth_session *sess, pcmcth_page *page, purc_variant_t edom,
         sorted_array_add(sess->all_handles, PTR2U64(udom), INT2PTR(HT_UDOM));
         *retv = PCRDR_SC_OK;
         foil_page_set_udom(page, udom);
+
+        struct purc_page_owner owner = { sess, crtn }, suppressed;
+        suppressed = purc_page_ostack_register(page->ostack, owner);
+        if (suppressed.corh) {
+            if (suppressed.sess == sess) {
+                sprintf(buff,
+                        "%llx", (unsigned long long int)suppressed.corh);
+            }
+            else {
+                /* TODO: send suppressPage request to another endpoint */
+            }
+        }
+        else {
+            buff[0] = 0;
+        }
     }
     else
         *retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
 
     return udom;
+}
+
+static uint64_t
+foil_register_crtn(pcmcth_session *sess, pcmcth_page *page,
+        uint64_t crtn, int *retv)
+{
+    page = validate_page(sess, page, retv);
+    if (page == NULL) {
+        return 0;
+    }
+
+    struct purc_page_owner owner = { sess, crtn }, suppressed;
+    suppressed = purc_page_ostack_register(page->ostack, owner);
+    if (suppressed.corh && suppressed.sess != sess) {
+        suppressed.corh = 0;
+        /* TODO: send suppressPage request to another endpoint */
+    }
+
+    *retv = PCRDR_SC_OK;
+    return suppressed.corh;
+}
+
+static uint64_t
+foil_revoke_crtn(pcmcth_session *sess, pcmcth_page *page,
+        uint64_t crtn, int *retv)
+{
+    page = validate_page(sess, page, retv);
+    if (page == NULL) {
+        return 0;
+    }
+
+    struct purc_page_owner owner = { sess, crtn }, to_reload;
+    to_reload = purc_page_ostack_revoke(page->ostack, owner);
+    if (to_reload.corh && to_reload.sess != sess) {
+        to_reload.corh = 0;
+        /* TODO: send reloadPage request to another endpoint */
+    }
+
+    *retv = PCRDR_SC_OK;
+    return to_reload.corh;
 }
 
 static pcmcth_udom *
@@ -471,7 +580,7 @@ foil_call_method_in_session(pcmcth_session *sess,
 {
     (void)target;
     (void)target_value;
-    (void)element_value;
+    (void)property;
 
     purc_variant_t result = PURC_VARIANT_INVALID;
 
@@ -483,15 +592,14 @@ foil_call_method_in_session(pcmcth_session *sess,
         goto failed;
     }
 
-    /* use element to specify the workspace and
-       use property to specify the widget. */
-    if (element_type != PCRDR_MSG_ELEMENT_TYPE_ID || property == NULL) {
+    /* use element to specify the widget. */
+    if (element_type != PCRDR_MSG_ELEMENT_TYPE_ID || element_value == NULL) {
         *retv = PCRDR_SC_BAD_REQUEST;
         goto failed;
     }
 
     foil_widget *widget;
-    widget = foil_wsp_find_widget(sess->workspace, sess, property);
+    widget = foil_wsp_find_widget(sess->workspace, sess, element_value);
     if (widget == NULL) {
         *retv = PCRDR_SC_NOT_FOUND;
         goto failed;
@@ -616,11 +724,16 @@ void pcmcth_set_renderer_callbacks(pcmcth_renderer *rdr)
     rdr->cbs.cleanup = foil_cleanup;
     rdr->cbs.create_session = foil_create_session;
     rdr->cbs.remove_session = foil_remove_session;
+
+    rdr->cbs.find_page = foil_find_page;
+    rdr->cbs.get_special_plainwin = foil_get_special_plainwin;
     rdr->cbs.create_plainwin = foil_create_plainwin;
     rdr->cbs.update_plainwin = foil_update_plainwin;
     rdr->cbs.destroy_plainwin = foil_destroy_plainwin;
 
     rdr->cbs.load_edom = foil_load_edom;
+    rdr->cbs.register_crtn = foil_register_crtn;
+    rdr->cbs.revoke_crtn = foil_revoke_crtn;
     rdr->cbs.update_udom = foil_update_udom;
     rdr->cbs.call_method_in_udom = foil_call_method_in_udom;
     rdr->cbs.call_method_in_session = foil_call_method_in_session;

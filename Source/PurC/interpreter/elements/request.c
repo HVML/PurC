@@ -380,7 +380,6 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         : NULL;
     purc_variant_t data = PURC_VARIANT_INVALID;
     purc_variant_t arg = ctxt->with;
-    const char *page_name = NULL;
 
     if (!arg) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
@@ -396,7 +395,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     data = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA);
     if (!data) {
         purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "Argument missed for request $RDR");
+                "Argument missed for request to $RDR");
         goto out;
     }
     else if (purc_variant_is_object(data)) {
@@ -408,6 +407,12 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t dt;
         if ((dt = purc_variant_object_get_by_ckey(arg, ARG_KEY_DATA_TYPE))) {
             const char *tmp = purc_variant_get_string_const(dt);
+            if (tmp == NULL) {
+                purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                        "Argument missed for request to $RDR");
+                goto out;
+            }
+
             /* TODO: maybe we can optimize this with atom */
             if (strcasecmp(tmp, PCRDR_MSG_DATA_TYPE_NAME_HTML) == 0) {
                 data_type = PCRDR_MSG_DATA_TYPE_HTML;
@@ -426,7 +431,7 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             }
         }
         else {
-            /* clear no such key */
+            /* clear no such key error */
             purc_clr_error();
         }
     }
@@ -459,55 +464,59 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     /* TODO: maybe we can shorten the name `PCHVML_KEYWORD_ENUM` */
     if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SETPAGEGROUPS)) == method) ||
             (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ADDPAGEGROUPS)) == method)) {
+        /* set/add page groups in the current workspace */
         target = PCRDR_MSG_TARGET_WORKSPACE;
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CALLMETHOD)) == method) {
+        /* to call a method in the current session on a page,
+           we must use `name` to specify the full page name with page type:
+           `plainwin:main`
+         */
         purc_variant_t v;
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
+        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
         if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "Argument missed for request $RDR '%s'", operation);
+                "Argument missed for request to $RDR '%s'", operation);
             goto out;
         }
         element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
         element = purc_variant_get_string_const(v);
-
-        v = purc_variant_object_get_by_ckey(arg, ARG_KEY_PROPERTY);
-        if (v) {
-            property = purc_variant_get_string_const(v);
-        }
     }
     else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW)) == method) {
+        /* to create a plain window in the current session,
+           we must use `name` to specify the page name like
+           `userWin@main/userGroups`
+         */
         target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t n = purc_variant_object_get_by_ckey(data, ARG_KEY_NAME);
-        if (n && purc_variant_is_string(n)) {
-            page_name = purc_variant_get_string_const(n);
-        }
-        else {
-            purc_clr_error();
-        }
-    }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method) {
-        target = PCRDR_MSG_TARGET_WORKSPACE;
-        purc_variant_t elem = purc_variant_object_get_by_ckey(arg, ARG_KEY_ELEMENT);
-        if (!elem || !purc_variant_is_string(elem)) {
+        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        if (!v || !purc_variant_is_string(v)) {
             purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
-                "Argument missed for request $RDR '%s'", operation);
+                "Argument missed for request to $RDR '%s'", operation);
             goto out;
         }
+
         element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
-        element = purc_variant_get_string_const(elem);
-        purc_variant_t n = purc_variant_object_get_by_ckey(data, ARG_KEY_NAME);
-        if (n && purc_variant_is_string(n)) {
-            page_name = purc_variant_get_string_const(n);
+        element = purc_variant_get_string_const(v);
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET)) == method) {
+        /* to create a widget in the current session,
+           use `name` to specify the page name like
+           `userWidget@main/userGroups`
+         */
+        target = PCRDR_MSG_TARGET_WORKSPACE;
+        purc_variant_t v = purc_variant_object_get_by_ckey(arg, ARG_KEY_NAME);
+        if (!v || !purc_variant_is_string(v)) {
+            purc_set_error_with_info(PURC_ERROR_ARGUMENT_MISSED,
+                "Argument missed for request to $RDR '%s'", operation);
+            goto out;
         }
-        else {
-            purc_clr_error();
-        }
+
+        element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
+        element = purc_variant_get_string_const(v);
     }
     else {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "Invalid operation '%s' for $RDR", operation);
+                "Invalid operation '%s' to $RDR", operation);
         goto out;
     }
 
@@ -527,20 +536,6 @@ request_rdr(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         int ret_code = response_msg->retCode;
         PC_DEBUG("request $RDR ret_code=%d\n", ret_code);
         if (ret_code == PCRDR_SC_OK) {
-            uint64_t page_handle = response_msg->resultValue;
-            if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEPLAINWINDOW))
-                    == method) {
-                pcrdr_save_page_handle(inst->conn_to_rdr, NULL,
-                        NULL, page_name, PCRDR_PAGE_TYPE_PLAINWIN,
-                        page_handle, co->target_workspace_handle, 0);
-            }
-            else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, CREATEWIDGET))
-                    == method) {
-                pcrdr_save_page_handle(inst->conn_to_rdr, NULL,
-                        NULL, page_name, PCRDR_PAGE_TYPE_WIDGET,
-                        page_handle, co->target_workspace_handle, 0);
-            }
-
             if (response_msg->data) {
                 v = purc_variant_ref(response_msg->data);
             }

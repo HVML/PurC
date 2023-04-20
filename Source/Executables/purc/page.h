@@ -78,6 +78,9 @@ struct pcmcth_page {
        TODO: use region in the future. */
     foil_rect dirty_rect;
 
+    /* Since PURCMC-120 */
+    purc_page_ostack_t ostack;
+
     pcmcth_udom *udom;
     struct foil_tty_cell **cells;
 };

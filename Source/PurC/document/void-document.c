@@ -41,8 +41,6 @@ static purc_document_t create(const char *content, size_t length)
     doc->have_head = 0;
     doc->have_body = 0;
 
-    doc->refc = 1;
-
     doc->ops = &_pcdoc_void_ops;
     doc->impl = NULL;
 

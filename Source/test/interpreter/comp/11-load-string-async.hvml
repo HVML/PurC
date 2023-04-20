@@ -17,7 +17,7 @@
     </init>
 
     <!-- we use content data instead of `with` attribute -->
-    <load on "$request.hvml" as "newCrtn" onto="_null" async >
+    <load on "$request.hvml" as "newCrtn" onto 'null:' async >
         $request
     </load>
 

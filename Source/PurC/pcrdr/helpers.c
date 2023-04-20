@@ -169,3 +169,49 @@ int pcrdr_errcode_to_retcode (int err_code)
     return PCRDR_SC_INTERNAL_SERVER_ERROR;
 }
 
+static const char *workspace_resnames[] = {
+    PCRDR_RESNAME_WORKSPACE_default,
+    PCRDR_RESNAME_WORKSPACE_active,
+    PCRDR_RESNAME_WORKSPACE_first,
+    PCRDR_RESNAME_WORKSPACE_last,
+};
+
+static const char * page_resnames[] = {
+    PCRDR_RESNAME_PAGE_active,
+    PCRDR_RESNAME_PAGE_first,
+    PCRDR_RESNAME_PAGE_last,
+};
+
+/* make sure number of type_names matches the enums */
+#define _COMPILE_TIME_ASSERT(name, x)           \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(workspace,
+        TABLESIZE(workspace_resnames) == PCRDR_NR_RESNAME_WORKSPACE);
+_COMPILE_TIME_ASSERT(page,
+        TABLESIZE(page_resnames) == PCRDR_NR_RESNAME_PAGE);
+
+#undef _COMPILE_TIME_ASSERT
+
+int pcrdr_check_reserved_workspace_name(const char *name)
+{
+    for (int i = 0; i < (int)TABLESIZE(workspace_resnames); i++) {
+        if (strcmp(name, workspace_resnames[i]) == 0) {
+            return PCRDR_K_RESNAME_WORKSPACE_FIRST + i;
+        }
+    }
+
+    return -1;
+}
+
+int pcrdr_check_reserved_page_name(const char *name)
+{
+    for (int i = 0; i < (int)TABLESIZE(page_resnames); i++) {
+        if (strcmp(name, page_resnames[i]) == 0) {
+            return PCRDR_K_RESNAME_PAGE_FIRST + i;
+        }
+    }
+
+    return -1;
+}
+

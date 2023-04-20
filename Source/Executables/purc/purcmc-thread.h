@@ -74,6 +74,13 @@ typedef struct pcmcth_rdr_cbs {
     /* null if create_workspace is null */
     int (*destroy_workspace)(pcmcth_session *, pcmcth_workspace *);
 
+    /* Since PURMC-120; null if create_workspace is null */
+    pcmcth_workspace *(*find_workspace)(pcmcth_session *sess,
+            const char *name);
+    /* Since PURMC-120; null if create_workspace is null */
+    pcmcth_workspace *(*get_special_workspace)(pcmcth_session *sess,
+            pcrdr_resname_workspace_k v);
+
     /* nullable */
     int (*set_page_groups)(pcmcth_session *, pcmcth_workspace *,
             const char *content, size_t length);
@@ -84,18 +91,26 @@ typedef struct pcmcth_rdr_cbs {
     int (*remove_page_group)(pcmcth_session *, pcmcth_workspace *,
             const char* gid);
 
+    /* Since PURMC-120 */
+    pcmcth_page *(*find_page)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *page_id);
+
     pcmcth_page *(*create_plainwin)(pcmcth_session *, pcmcth_workspace *,
-            const char *gid, const char *name,
+            const char *page_id, const char *group, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     int (*update_plainwin)(pcmcth_session *, pcmcth_workspace *,
             pcmcth_page *win, const char *property, purc_variant_t value);
     int (*destroy_plainwin)(pcmcth_session *, pcmcth_workspace *,
             pcmcth_page *win);
+    /* Since PURMC-120; nullable */
+    pcmcth_page *(*get_special_plainwin)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *group,
+            pcrdr_resname_page_k v);
 
     /* nullable */
     pcmcth_page *(*create_widget)(pcmcth_session *, pcmcth_workspace *,
-            const char *gid, const char *name,
+            const char *page_id, const char *group, const char *name,
             const char *class_name, const char *title, const char *layout_style,
             purc_variant_t toolkit_style, int *retv);
     /* null if create_widget is null */
@@ -104,10 +119,20 @@ typedef struct pcmcth_rdr_cbs {
     /* null if create_widget is null */
     int (*destroy_widget)(pcmcth_session *, pcmcth_workspace *,
             pcmcth_page *page);
+    /* Since PURMC-120; null if create_widget is null */
+    pcmcth_page *(*get_special_widget)(pcmcth_session *sess,
+            pcmcth_workspace *workspace, const char *group,
+            pcrdr_resname_page_k v);
 
-    /* no write method */
+    /* no writeXXX methods */
     pcmcth_udom *(*load_edom)(pcmcth_session *, pcmcth_page *,
-            purc_variant_t edom, int *retv);
+            purc_variant_t edom, uint64_t crtn, char *suppressed, int *retv);
+    /* Since PURMC-120 */
+    uint64_t (*register_crtn)(pcmcth_session *sess, pcmcth_page *,
+            uint64_t crtn, int *retv);
+    /* Since PURMC-120 */
+    uint64_t (*revoke_crtn)(pcmcth_session *sess, pcmcth_page *,
+            uint64_t crtn, int *retv);
 
     int (*update_udom)(pcmcth_session *, pcmcth_udom *, int op,
             uint64_t element_handle, const char* property,

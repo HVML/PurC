@@ -22,6 +22,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#undef NDEBUG
+
 #include "purc.h"
 #include "config.h"
 #include "internal.h"
@@ -167,7 +169,7 @@ failed:
 }
 
 uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
-        uint64_t session, const char *name, const char *title)
+        uint64_t session, const char *name, purc_variant_t data)
 {
     uint64_t workspace = 0;
     pcrdr_msg *response_msg = NULL;
@@ -175,28 +177,16 @@ uint64_t pcintr_rdr_create_workspace(struct pcrdr_conn *conn,
     const char *operation = PCRDR_OPERATION_CREATEWORKSPACE;
     pcrdr_msg_target target = PCRDR_MSG_TARGET_SESSION;
     uint64_t target_value = session;
-    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    purc_variant_t data = PURC_VARIANT_INVALID;
-
-    data = purc_variant_make_object(0, NULL, NULL);
-    if (data == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    if (!object_set(data, NAME_KEY, name)) {
-        goto failed;
-    }
-
-    if (title && !object_set(data, TITLE_KEY, title)) {
-        goto failed;
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    if (data) {
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
+        data = purc_variant_ref(data);
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, NULL, element_type, NULL, NULL, data_type,
-            data, 0);
-
+            target_value, operation, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_ID, name, NULL,
+            data_type, data, 0);
     if (response_msg == NULL) {
         goto failed;
     }
@@ -404,6 +394,7 @@ out:
     return handle;
 }
 
+#if 0
 uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
         uint64_t session, const char *workspace_name)
 {
@@ -453,76 +444,96 @@ done:
 
     return handle;
 }
+#endif
+
+/* Since PURCMC 120, the operation `createWorkspace` returns the handle
+   to the workspace if the workspace which is specified by the name exists. */
+uint64_t pcintr_rdr_retrieve_workspace(struct pcrdr_conn *conn,
+        uint64_t session, const char *workspace_name)
+{
+    uint64_t handle = 0;
+    pcrdr_msg *response_msg = NULL;
+
+    response_msg = pcintr_rdr_send_request_and_wait_response(conn,
+            PCRDR_MSG_TARGET_SESSION, session, PCRDR_OPERATION_CREATEWORKSPACE,
+            NULL, PCRDR_MSG_ELEMENT_TYPE_ID, workspace_name, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+    if (response_msg == NULL) {
+        goto done;
+    }
+
+    if (response_msg->retCode != PCRDR_SC_OK) {
+        purc_log_error("Failed request: %s  (%d)\n",
+                PCRDR_OPERATION_GETPROPERTY, response_msg->retCode);
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto done;
+    }
+
+    handle = response_msg->resultValue;
+
+done:
+    if (response_msg) {
+        pcrdr_release_message(response_msg);
+    }
+
+    return handle;
+}
+
+#define MAX_PAGE_ID             (PURC_LEN_IDENTIFIER * 2 + 2)
+#define SEP_GROUP_NAME          "@"
 
 uint64_t
 pcintr_rdr_create_page(struct pcrdr_conn *conn, uint64_t workspace,
         pcrdr_page_type_k page_type, const char *target_group,
-        const char *page_name, const char *title, const char *classes,
-        const char *layout_style, purc_variant_t toolkit_style)
+        const char *page_name, purc_variant_t data)
 {
     uint64_t page_handle = 0;
     pcrdr_msg *response_msg = NULL;
-    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_JSON;
-    purc_variant_t data = PURC_VARIANT_INVALID;
 
     const char *operation;
     if (page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
         operation = PCRDR_OPERATION_CREATEPLAINWINDOW;
     }
-    else {
+    else if (page_type == PCRDR_PAGE_TYPE_WIDGET) {
         if (target_group == NULL) {
-            purc_log_error("NO target group specified when creating widget!\n");
+            purc_log_error("No target group specified when creating widget!\n");
             purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto out;
         }
         operation = PCRDR_OPERATION_CREATEWIDGET;
     }
-
-    pcrdr_msg_element_type element_type;
-    const char *element = NULL;
-    if (target_group) {
-        element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
-        element = target_group;
-    }
     else {
-        element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+        assert(0);
+    }
+
+    if (!purc_is_valid_identifier(page_name) ||
+            (target_group && !purc_is_valid_identifier(target_group))) {
+        purc_log_error("Bad page name or group name: %s@%s!\n",
+                page_name, target_group);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_ID;
+    char element_value[MAX_PAGE_ID];
+    strcpy(element_value, page_name);
+    if (target_group) {
+        strcat(element_value, SEP_GROUP_NAME);
+        strcat(element_value, target_group);
     }
 
     pcrdr_msg_target target = PCRDR_MSG_TARGET_WORKSPACE;
     uint64_t target_value = workspace;
 
-    data = purc_variant_make_object_0();
-    if (data == PURC_VARIANT_INVALID) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    if (!object_set(data, NAME_KEY, page_name)) {
-        goto out;
-    }
-
-    if (title && !object_set(data, TITLE_KEY, title)) {
-        goto out;
-    }
-
-    if (classes && !object_set(data, CLASS_KEY, classes)) {
-        goto out;
-    }
-
-    if (layout_style && !object_set(data, LAYOUT_STYLE_KEY, layout_style)) {
-        goto out;
-    }
-
-    if (toolkit_style) {
-        if (!purc_variant_object_set_by_static_ckey(data,
-                TOOLKIT_STYLE_KEY, toolkit_style)) {
-            goto out;
-        }
+    pcrdr_msg_data_type data_type = PCRDR_MSG_DATA_TYPE_VOID;
+    if (data) {
+        data = purc_variant_ref(data);
+        data_type = PCRDR_MSG_DATA_TYPE_JSON;
     }
 
     response_msg = pcintr_rdr_send_request_and_wait_response(conn, target,
-            target_value, operation, NULL, element_type, element, NULL, data_type,
-            data, 0);
+            target_value, operation, NULL, element_type, element_value, NULL,
+            data_type, data, 0);
     if (response_msg == NULL) {
         // pcintr_rdr_send_request_and_wait_response unref data
         goto out;
@@ -815,17 +826,21 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
         const char *target_group, const char *page_name,
         purc_renderer_extra_info *extra_info)
 {
-    bool ret = false;
+    assert(page_type == PCRDR_PAGE_TYPE_PLAINWIN ||
+            page_type == PCRDR_PAGE_TYPE_WIDGET);
+
     struct pcinst *inst = pcinst_current();
-    if (inst == NULL || inst->rdr_caps == NULL) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto out;
-    }
+    assert(inst && inst->rdr_caps);
 
     struct pcrdr_conn *conn_to_rdr = inst->conn_to_rdr;
+    if (conn_to_rdr == NULL) {
+        purc_log_error("Lost the connection to renderer.\n");
+        purc_set_error(PURC_ERROR_CONNECTION_ABORTED);
+        goto failed;
+    }
+
     struct renderer_capabilities *rdr_caps = inst->rdr_caps;
     uint64_t session_handle = rdr_caps->session_handle;
-
     uint64_t workspace = 0;
     if (rdr_caps->workspace != 0 && target_workspace) {
         workspace = pcintr_rdr_retrieve_workspace(conn_to_rdr, session_handle,
@@ -834,7 +849,7 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
             purc_log_error("Failed to retrieve workspace: %s.\n",
                     target_workspace);
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            goto out;
+            goto failed;
         }
     }
 
@@ -843,122 +858,107 @@ pcintr_attach_to_renderer(pcintr_coroutine_t cor,
                 extra_info->page_groups)) {
             purc_log_error("Failed to add page groups to renderer.\n");
             purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            goto out;
+            goto failed;
         }
     }
 
-    char buff[16];
+    /* Since PURCMC 120, use `main` as the default page name. */
     if (page_name == NULL) {
-        static unsigned nr_pages;
-        sprintf(buff, "page-%u", nr_pages);
-        nr_pages++;
-        page_name = buff;
+        page_name = PCRDR_DEFAULT_PAGENAME;
     }
 
     uint64_t page = 0;
-    switch (page_type) {
-    case PCRDR_PAGE_TYPE_NULL:
-    {
-        if (!page_name) {
-            /* never reached here!!! */
-            purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-            goto out;
-        }
-        struct pcrdr_page_handle *ph, *nh;
-        list_for_each_entry_safe(ph, nh, &conn_to_rdr->page_handles, list) {
-            if (ph->page_name && (strcmp(ph->page_name, page_name) == 0)) {
-                cor->target_workspace_handle = workspace;
-                cor->target_page_type = ph->page_type;
-                cor->target_page_handle = ph->page_handle;
-                ret = true;
-                goto out;
+    purc_variant_t data = PURC_VARIANT_INVALID;
+    if (extra_info) {
+        int errors = 0;
+
+        data = purc_variant_make_object_0();
+        if (data) {
+            if (extra_info->title) {
+                if (!object_set(data, TITLE_KEY, extra_info->title)) {
+                    errors++;
+                }
+            }
+
+            if (extra_info->klass) {
+                if (!object_set(data, CLASS_KEY, extra_info->klass)) {
+                    errors++;
+                }
+            }
+
+            if (extra_info->layout_style) {
+                if (!object_set(data, LAYOUT_STYLE_KEY,
+                            extra_info->layout_style)) {
+                    errors++;
+                }
+            }
+
+            if (extra_info->toolkit_style) {
+                if (!purc_variant_object_set_by_static_ckey(data,
+                            TOOLKIT_STYLE_KEY,
+                            extra_info->toolkit_style)) {
+                    errors++;
+                }
+                purc_variant_unref(extra_info->toolkit_style);
             }
         }
-        break;
-    }
+        else
+            errors++;
 
-    case PCRDR_PAGE_TYPE_INHERIT:
-        /* never reached here!!! */
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        goto out;
-
-    case PCRDR_PAGE_TYPE_SELF:
-        ret = true;
-        goto out;
-
-    case PCRDR_PAGE_TYPE_FIRST:
-    {
-        struct pcrdr_page_handle *ph = list_first_entry(
-                &conn_to_rdr->page_handles, struct pcrdr_page_handle, list);
-        if (ph) {
-            cor->target_workspace_handle = workspace;
-            cor->target_page_type = ph->page_type;
-            cor->target_page_handle = ph->page_handle;
-            ret = true;
+        if (errors > 0) {
+            purc_log_error("Failed to create data for page.\n");
+            if (data)
+                purc_variant_unref(data);
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
         }
-        break;
     }
 
-    case PCRDR_PAGE_TYPE_LAST:
-    {
-        struct pcrdr_page_handle *ph = list_last_entry(
-                &conn_to_rdr->page_handles, struct pcrdr_page_handle, list);
-        if (ph) {
-            cor->target_workspace_handle = workspace;
-            cor->target_page_type = ph->page_type;
-            cor->target_page_handle = ph->page_handle;
-            ret = true;
+    page = pcintr_rdr_create_page(conn_to_rdr, workspace,
+            page_type, target_group, page_name, data);
+    if (data)
+        purc_variant_unref(data);
+    if (!page) {
+        purc_log_error("Failed to create page: %s.\n", page_name);
+        goto failed;
+    }
+
+    cor->target_page_type = page_type;
+    cor->target_workspace_handle = workspace;
+    cor->target_page_handle = page;
+    return true;
+
+failed:
+    return false;
+}
+
+static void
+check_response_for_suppressed(struct pcinst *inst,
+        pcintr_coroutine_t co_loaded, const pcrdr_msg *response)
+{
+    /* Check the attached data for suppressed coroutine */
+    if (response->dataType == PCRDR_MSG_DATA_TYPE_PLAIN &&
+            response->data != PURC_VARIANT_INVALID) {
+        const char *plain = purc_variant_get_string_const(response->data);
+        uint64_t crtn_handle;
+        if (plain) {
+            crtn_handle = strtoull(plain, NULL, 16);
+            if (crtn_handle) {
+                pcintr_suppress_crtn_doc(inst, co_loaded, crtn_handle);
+            }
         }
-        break;
     }
-
-    case PCRDR_PAGE_TYPE_ACTIVE:
-        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
-        goto out;
-
-    case PCRDR_PAGE_TYPE_PLAINWIN:
-    case PCRDR_PAGE_TYPE_WIDGET:
-    {
-        page = pcintr_rdr_create_page(conn_to_rdr, workspace,
-                page_type, target_group, page_name,
-                extra_info ? extra_info->title : NULL,
-                extra_info ? extra_info->klass : NULL,
-                extra_info ? extra_info->layout_style : NULL,
-                extra_info ? extra_info->toolkit_style : NULL);
-        if (!page) {
-            purc_log_error("Failed to create page: %s.\n", page_name);
-            purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-            goto out;
-        }
-
-        pcrdr_save_page_handle(conn_to_rdr, target_workspace,
-                target_group, page_name, page_type,
-                page, workspace, 0);
-
-        cor->target_workspace_handle = workspace;
-        cor->target_page_type = page_type;
-        cor->target_page_handle = page;
-        ret = true;
-        break;
-    }
-
-    default:
-        break;
-    }
-
-
-out:
-    return ret;
 }
 
 static pcrdr_msg *
 rdr_page_control_load_large_page(struct pcrdr_conn *conn,
-        pcrdr_msg_target target, uint64_t target_value,
+        pcintr_coroutine_t co_loaded,
+        pcrdr_msg_target target, uint64_t target_value, const char *elem,
         pcrdr_msg_data_type data_type,
         const char *doc_content, size_t len_content)
 {
     pcrdr_msg *response_msg = NULL;
-    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
+    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     purc_variant_t data = PURC_VARIANT_INVALID;
     size_t len_wrotten;
     size_t len_to_write = 0;
@@ -980,16 +980,20 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(
             conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN, NULL,
-            element_type, NULL, NULL, data_type, data, len_to_write);
+            element_type, elem, NULL, data_type, data, len_to_write);
     purc_variant_unref(data);
+
     if (response_msg == NULL) {
+        PC_ERROR("Failed to send request to renderer\n");
         goto failed;
     }
 
     if (response_msg->retCode != PCRDR_SC_OK) {
-        PC_ERROR("failed to write content to rdr\n");
+        PC_ERROR("Failed to write content to renderer\n");
         goto failed;
     }
+
+    check_response_for_suppressed(pcinst_current(), co_loaded, response_msg);
 
     if (len_wrotten == len_content) {
         goto done;
@@ -1059,21 +1063,16 @@ failed:
 }
 
 bool
-pcintr_rdr_page_control_load(pcintr_stack_t stack)
+pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
 {
-    if (stack->co->target_page_handle == 0) {
-        return true;
-    }
+    assert(stack->co->target_page_handle);
 
-    int ret_code;
     pcrdr_msg *response_msg = NULL;
 
     purc_document_t doc = stack->doc;
 
-    const char *operation = PCRDR_OPERATION_LOAD;
     pcrdr_msg_target target;
     uint64_t target_value;
-    const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_VOID;
     pcrdr_msg_data_type data_type = doc->def_text_type;// VW
     purc_variant_t req_data = PURC_VARIANT_INVALID;
     purc_rwstream_t out = NULL;
@@ -1097,17 +1096,27 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
     }
     target_value = stack->co->target_page_handle;
 
-    struct pcinst *inst = pcinst_current();
+    const pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
+    char elem[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(elem, sizeof(elem),
+            "%llx", (unsigned long long int)(uint64_t)(uintptr_t)stack->co);
+    assert(n < (int)sizeof(elem));
+    (void)n;
 
     if (pcrdr_conn_type(inst->conn_to_rdr) == CT_MOVE_BUFFER) {
         /* XXX: pass the document entity directly
            when the connection type is move buffer. */
         req_data = purc_variant_make_native(doc, NULL);
         response_msg = pcintr_rdr_send_request_and_wait_response(
-                inst->conn_to_rdr, target, target_value, operation, NULL,
-                element_type, NULL, NULL,
+                inst->conn_to_rdr, target, target_value,
+                PCRDR_OPERATION_LOAD, NULL,
+                element_type, elem, NULL,
                 PCRDR_MSG_DATA_TYPE_JSON, req_data, 0);
         purc_variant_unref(req_data);
+
+        if (response_msg) {
+            check_response_for_suppressed(inst, stack->co, response_msg);
+        }
     }
     else {
         unsigned opt = 0;
@@ -1130,7 +1139,7 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         size_t sz_content = 0;
         size_t sz_buff = 0;
         char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
-                &sz_buff,true);
+                &sz_buff, true);
         req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
         if (req_data == PURC_VARIANT_INVALID) {
             free(p);
@@ -1140,13 +1149,17 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
 
         if (sz_content > DEF_LEN_ONE_WRITE) {
             response_msg = rdr_page_control_load_large_page(inst->conn_to_rdr,
-                        target, target_value, data_type,
-                        p, sz_content);
+                    stack->co, target, target_value, elem,
+                    data_type, p, sz_content);
         }
         else {
             response_msg = pcintr_rdr_send_request_and_wait_response(
-                    inst->conn_to_rdr, target, target_value, operation, NULL,
-                    element_type, NULL, NULL, data_type, req_data, 0);
+                    inst->conn_to_rdr, target, target_value,
+                    PCRDR_OPERATION_LOAD, NULL,
+                    element_type, elem, NULL, data_type, req_data, 0);
+            if (response_msg) {
+                check_response_for_suppressed(inst, stack->co, response_msg);
+            }
         }
         purc_variant_unref(req_data);
 
@@ -1160,14 +1173,14 @@ pcintr_rdr_page_control_load(pcintr_stack_t stack)
         goto failed;
     }
 
-    ret_code = response_msg->retCode;
-    if (ret_code == PCRDR_SC_OK) {
-        stack->co->target_dom_handle = response_msg->resultValue;
-    }
-
+    int ret_code = response_msg->retCode;
+    uint64_t result = response_msg->resultValue;
     pcrdr_release_message(response_msg);
 
-    if (ret_code != PCRDR_SC_OK) {
+    if (ret_code == PCRDR_SC_OK) {
+        stack->co->target_dom_handle = result;
+    }
+    else {
         purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
         goto failed;
     }
@@ -1184,6 +1197,110 @@ failed:
         purc_variant_unref(req_data);
     } */
 
+    return false;
+}
+
+bool
+pcintr_rdr_page_control_register(struct pcinst *inst, pcintr_stack_t stack)
+{
+    pcrdr_msg_target target;
+    switch (stack->co->target_page_type) {
+    case PCRDR_PAGE_TYPE_PLAINWIN:
+        target = PCRDR_MSG_TARGET_PLAINWINDOW;
+        break;
+
+    case PCRDR_PAGE_TYPE_WIDGET:
+        target = PCRDR_MSG_TARGET_WIDGET;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    char elem[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(elem, sizeof(elem),
+            "%llx", (unsigned long long int)(uint64_t)(uintptr_t)stack->co);
+    assert(n < (int)sizeof(elem));
+    (void)n;
+
+    pcrdr_msg *response_msg;
+    response_msg = pcintr_rdr_send_request_and_wait_response(
+            inst->conn_to_rdr, target, stack->co->target_page_handle,
+            PCRDR_OPERATION_REGISTER, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK && response_msg->resultValue != 0) {
+        pcintr_suppress_crtn_doc(inst, stack->co, response_msg->resultValue);
+    }
+
+    pcrdr_release_message(response_msg);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    return true;
+
+failed:
+    return false;
+}
+
+bool
+pcintr_rdr_page_control_revoke(struct pcinst *inst, pcintr_stack_t stack)
+{
+    pcrdr_msg_target target;
+    switch (stack->co->target_page_type) {
+    case PCRDR_PAGE_TYPE_PLAINWIN:
+        target = PCRDR_MSG_TARGET_PLAINWINDOW;
+        break;
+
+    case PCRDR_PAGE_TYPE_WIDGET:
+        target = PCRDR_MSG_TARGET_WIDGET;
+        break;
+
+    default:
+        assert(0);
+        break;
+    }
+
+    char elem[LEN_BUFF_LONGLONGINT];
+    int n = snprintf(elem, sizeof(elem),
+            "%llx", (unsigned long long int)(uint64_t)(uintptr_t)stack->co);
+    assert(n < (int)sizeof(elem));
+    (void)n;
+
+    pcrdr_msg *response_msg;
+    response_msg = pcintr_rdr_send_request_and_wait_response(
+            inst->conn_to_rdr, target, stack->co->target_page_handle,
+            PCRDR_OPERATION_REVOKE, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, PURC_VARIANT_INVALID, 0);
+    if (response_msg == NULL) {
+        goto failed;
+    }
+
+    int ret_code = response_msg->retCode;
+    uint64_t result = response_msg->resultValue;
+    pcrdr_release_message(response_msg);
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+    else if (ret_code == PCRDR_SC_OK && result != 0) {
+        pcintr_reload_crtn_doc(inst, stack->co, result);
+    }
+
+    return true;
+
+failed:
     return false;
 }
 
@@ -1206,6 +1323,8 @@ static const char *rdr_ops[] = {
     PCRDR_OPERATION_WRITEBEGIN,                // "writeBegin"
     PCRDR_OPERATION_WRITEMORE,                 // "writeMore"
     PCRDR_OPERATION_WRITEEND,                  // "writeEnd"
+    PCRDR_OPERATION_REGISTER,                  // "register"
+    PCRDR_OPERATION_REVOKE,                    // "revoke"
     PCRDR_OPERATION_APPEND,                    // "append"
     PCRDR_OPERATION_PREPEND,                   // "prepend"
     PCRDR_OPERATION_INSERTBEFORE,              // "insertBefore"
@@ -1273,33 +1392,18 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
 
     pcintr_coroutine_t co = stack->co;
     if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
-        if (!co->stack.inherit) {
-            return NULL;
-        }
-
-        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
-        if (!parent || parent->stack.doc != co->stack.doc) {
-            return NULL;
-        }
-
-        if (parent->target_page_handle == 0
-                || parent->target_page_handle == 0) {
-            return NULL;
-        }
-
-        co->target_workspace_handle = parent->target_workspace_handle;
-        co->target_page_type = parent->target_page_type;
-        co->target_page_handle = parent->target_page_handle;
-        co->target_dom_handle = parent->target_dom_handle;
+        /* null page */
+        return NULL;
     }
 
-    if (co->stage != CO_STAGE_OBSERVING && !co->stack.inherit) {
+    if (co->stage != CO_STAGE_OBSERVING || co->stack.doc->ldc == 0) {
+        /* suppressed */
         return NULL;
     }
 
     const char *operation = rdr_ops[op];
     if (property && op == PCDOC_OP_DISPLACE) {
-        // VW: use 'update' operation when displace property
+        // VW: use 'update' operation when displacing property
         operation = PCRDR_OPERATION_UPDATE;
     }
 
@@ -1396,27 +1500,12 @@ pcintr_rdr_send_dom_req_raw(pcintr_stack_t stack, int op, const char *request_id
 
     pcintr_coroutine_t co = stack->co;
     if (co->target_page_handle == 0 || co->target_dom_handle == 0) {
-        if (!co->stack.inherit) {
-            goto out;
-        }
-
-        pcintr_coroutine_t parent = pcintr_coroutine_get_by_id(co->curator);
-        if (!parent || parent->stack.doc != co->stack.doc) {
-            goto out;
-        }
-
-        if (parent->target_page_handle == 0
-                || parent->target_page_handle == 0) {
-            goto out;
-        }
-
-        co->target_workspace_handle = parent->target_workspace_handle;
-        co->target_page_type = parent->target_page_type;
-        co->target_page_handle = parent->target_page_handle;
-        co->target_dom_handle = parent->target_dom_handle;
+        /* null page */
+        goto out;
     }
 
-    if (co->stage != CO_STAGE_OBSERVING && !co->stack.inherit) {
+    if (co->stage != CO_STAGE_OBSERVING || co->stack.doc->ldc == 0) {
+        /* suppressed */
         goto out;
     }
 

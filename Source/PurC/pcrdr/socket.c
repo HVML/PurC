@@ -1,10 +1,10 @@
 /*
- * purcmc.c -- The implementation of PurCMC protocol.
+ * socket.c -- The implementation of socket method for PURCMC protocol.
  *
- * Copyright (c) 2021, 2022 FMSoft (http://www.fmsoft.cn)
+ * Copyright (c) 2021, 2022, 2023 FMSoft (http://www.fmsoft.cn)
  *
  * Authors:
- *  Vincent Wei (https://github.com/VincentWei), 2021, 2022
+ *  Vincent Wei (https://github.com/VincentWei), 2021, 2022, 2023
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -104,6 +104,7 @@ static pcrdr_msg *my_read_message (pcrdr_conn* conn)
         goto done;
     }
 
+    conn->stats.bytes_recv += data_len;
     retval = pcrdr_parse_packet (packet, data_len, &msg);
     free (packet);
 
@@ -145,6 +146,7 @@ static int my_send_message (pcrdr_conn* conn, pcrdr_msg *msg)
         goto done;
     }
 
+    conn->stats.bytes_sent += packet_len;
     retv = 0;
 
 done:
@@ -301,8 +303,6 @@ static int purcmc_connect_via_unix_socket (const char* path_to_socket,
     (*conn)->disconnect = my_disconnect;
 
     list_head_init (&(*conn)->pending_requests);
-    list_head_init (&(*conn)->page_handles);
-
     return fd;
 
 error:
@@ -677,6 +677,7 @@ pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
     if (pcrdr_socket_read_packet(*conn, buff, &len) < 0)
         goto failed;
 
+    (*conn)->stats.bytes_recv += len;
     if (pcrdr_parse_packet(buff, len, &msg) < 0)
         goto failed;
 

@@ -32,6 +32,7 @@
 #include "private/vdom.h"
 #include "private/instance.h"
 #include "private/regex.h"
+#include "internal.h"
 
 #define HVML_CRTN_TOKEN_REGEX "^[A-Za-z0-9_]+$"
 
@@ -378,5 +379,132 @@ pcintr_get_crtn_by_token(struct pcinst *inst, const char *token)
         return (pcintr_coroutine_t) entry->val;
     }
     return NULL;
+}
+
+bool
+pcintr_register_crtn_to_doc(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_add(heap->loaded_crtn_handles, co,
+            co->stack.doc, NULL)) {
+        purc_log_warn("Failed to register coroutine as a loaded one: %p\n", co);
+        return false;
+    }
+
+    list_add(&co->doc_node, &co->stack.doc->owner_list);
+    co->stack.doc->ldc++;
+
+    return true;
+}
+
+void
+pcintr_inherit_udom_handle(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    (void)inst;
+
+    if (co->target_dom_handle) {
+        co->stack.doc->udom = co->target_dom_handle;
+    }
+
+    /* inherit the udom handle to others sharing the document */
+    if (co->stack.doc->udom) {
+        pcintr_coroutine_t p;
+        list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+            p->target_dom_handle = co->stack.doc->udom;
+        }
+    }
+}
+
+bool
+pcintr_revoke_crtn_from_doc(struct pcinst *inst, pcintr_coroutine_t co)
+{
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_remove(heap->loaded_crtn_handles, co)) {
+        list_del(&co->doc_node);
+        co->stack.doc->ldc--;
+
+        if (co->stack.doc->ldc == 0) {
+            co->stack.doc->udom = 0;
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &co->stack.doc->owner_list, doc_node) {
+                p->target_dom_handle = 0;
+            }
+        }
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+pcintr_suppress_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_loaded,
+        uint64_t ctrn_handle)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
+    purc_document_t doc;
+
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
+                co, (void **)&doc, NULL)) {
+        assert(co->stack.doc->ldc != 0);
+        co->stack.doc->ldc--;
+
+        if ((co_loaded == NULL || co_loaded->stack.doc != doc) &&
+                co->stack.doc->ldc == 0) {
+            /* fire rdrState:pageSuppressed event */
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &doc->owner_list, doc_node) {
+                purc_variant_t hvml = purc_variant_make_ulongint(p->cid);
+                pcintr_coroutine_post_event(p->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_SUPPRESSED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
+            }
+        }
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
+        uint64_t ctrn_handle)
+{
+    pcintr_coroutine_t co = (pcintr_coroutine_t)(uintptr_t)ctrn_handle;
+    purc_document_t doc;
+    pcintr_heap_t heap = inst->intr_heap;
+    if (pcutils_sorted_array_find(heap->loaded_crtn_handles,
+                co, (void **)&doc, NULL)) {
+        co->stack.doc->ldc++;
+
+         if (co_revoked == NULL || co_revoked->stack.doc != doc) {
+            pcintr_rdr_page_control_load(inst, &co->stack);
+
+            /* fire rdrState:pageReloaded event */
+            pcintr_coroutine_t p;
+            list_for_each_entry(p, &doc->owner_list, doc_node) {
+                purc_variant_t hvml = purc_variant_make_ulongint(p->cid);
+                pcintr_coroutine_post_event(p->cid,
+                        PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                        hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_PAGE_RELOADED,
+                        PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+                purc_variant_unref(hvml);
+            }
+        }
+    }
+    else {
+        purc_log_warn("Not a loaded coroutine: %p\n", co);
+        return false;
+    }
+
+    return true;
 }
 

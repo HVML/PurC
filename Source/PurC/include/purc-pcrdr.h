@@ -42,9 +42,9 @@
 
 /* Constants */
 #define PCRDR_PURCMC_PROTOCOL_NAME              "PURCMC"
-#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "110"
-#define PCRDR_PURCMC_PROTOCOL_VERSION           110
-#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   110
+#define PCRDR_PURCMC_PROTOCOL_VERSION_STRING    "120"
+#define PCRDR_PURCMC_PROTOCOL_VERSION           120
+#define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   120
 
 #define PCRDR_PURCMC_US_PATH                    "/var/tmp/purcmc.sock"
 #define PCRDR_PURCMC_WS_PORT                    "7702"
@@ -67,12 +67,13 @@
 #define PCRDR_SOURCEURI_ANONYMOUS       "-"
 
 #define PCRDR_DEFAULT_WORKSPACE         "main"
+#define PCRDR_DEFAULT_PAGENAME          "main"
 
 #define PCRDR_THREAD_OPERATION_HELLO    "hello"
 #define PCRDR_THREAD_OPERATION_BYE      "bye"
 
-/* operations */
-enum {
+/* operations from interpreter to render */
+typedef enum {
     PCRDR_K_OPERATION_FIRST = 0,
     PCRDR_K_OPERATION_STARTSESSION = PCRDR_K_OPERATION_FIRST,
 #define PCRDR_OPERATION_STARTSESSION        "startSession"
@@ -110,6 +111,10 @@ enum {
 #define PCRDR_OPERATION_WRITEMORE           "writeMore"
     PCRDR_K_OPERATION_WRITEEND,
 #define PCRDR_OPERATION_WRITEEND            "writeEnd"
+    PCRDR_K_OPERATION_REGISTER,
+#define PCRDR_OPERATION_REGISTER            "register"
+    PCRDR_K_OPERATION_REVOKE,
+#define PCRDR_OPERATION_REVOKE              "revoke"
     PCRDR_K_OPERATION_APPEND,
 #define PCRDR_OPERATION_APPEND              "append"
     PCRDR_K_OPERATION_PREPEND,
@@ -135,10 +140,58 @@ enum {
 
     /* XXX: change this when you append a new operation */
     PCRDR_K_OPERATION_LAST = PCRDR_K_OPERATION_SETPROPERTY,
-};
+} pcrdr_operation_k;
 
 #define PCRDR_NR_OPERATIONS \
     (PCRDR_K_OPERATION_LAST - PCRDR_K_OPERATION_FIRST + 1)
+
+/* operations from renderer to interpreter */
+typedef enum {
+    PCRDR_K_OP2INTR_FIRST = 0,
+    PCRDR_K_OP2INTR_SUPPRESSPAGE = PCRDR_K_OP2INTR_FIRST,
+#define PCRDR_OP2INTR_SUPPRESSPAGE   "suppressPage"
+    PCRDR_K_OP2INTR_RELOADPAGE,
+#define PCRDR_OP2INTR_RELOADPAGE     "reloadPage"
+
+    /* XXX: change this when you append a new operation */
+    PCRDR_K_OP2INTR_LAST = PCRDR_K_OP2INTR_RELOADPAGE,
+} pcrdr_op2intr_k;
+
+/* reserved names for workspace */
+typedef enum {
+    PCRDR_K_RESNAME_WORKSPACE_FIRST = 0,
+    PCRDR_K_RESNAME_WORKSPACE_default = PCRDR_K_RESNAME_WORKSPACE_FIRST,
+#define PCRDR_RESNAME_WORKSPACE_default     "_default"
+    PCRDR_K_RESNAME_WORKSPACE_active,
+#define PCRDR_RESNAME_WORKSPACE_active      "_active"
+    PCRDR_K_RESNAME_WORKSPACE_first,
+#define PCRDR_RESNAME_WORKSPACE_first       "_first"
+    PCRDR_K_RESNAME_WORKSPACE_last,
+#define PCRDR_RESNAME_WORKSPACE_last        "_last"
+
+    /* XXX: change this when you append a new name */
+    PCRDR_K_RESNAME_WORKSPACE_LAST = PCRDR_K_RESNAME_WORKSPACE_last,
+} pcrdr_resname_workspace_k;
+
+#define PCRDR_NR_RESNAME_WORKSPACE \
+    (PCRDR_K_RESNAME_WORKSPACE_LAST - PCRDR_K_RESNAME_WORKSPACE_FIRST + 1)
+
+/* reserved names for page */
+typedef enum {
+    PCRDR_K_RESNAME_PAGE_FIRST = 0,
+    PCRDR_K_RESNAME_PAGE_active = PCRDR_K_RESNAME_PAGE_FIRST,
+#define PCRDR_RESNAME_PAGE_active      "_active"
+    PCRDR_K_RESNAME_PAGE_first,
+#define PCRDR_RESNAME_PAGE_first       "_first"
+    PCRDR_K_RESNAME_PAGE_last,
+#define PCRDR_RESNAME_PAGE_last        "_last"
+
+    /* XXX: change this when you append a new name */
+    PCRDR_K_RESNAME_PAGE_LAST = PCRDR_K_RESNAME_PAGE_last,
+} pcrdr_resname_page_k;
+
+#define PCRDR_NR_RESNAME_PAGE \
+    (PCRDR_K_RESNAME_PAGE_LAST - PCRDR_K_RESNAME_PAGE_FIRST + 1)
 
 /* Status Codes */
 #define PCRDR_SC_IOERR                  1
@@ -246,6 +299,8 @@ typedef struct pcrdr_msg pcrdr_msg;
 struct pcrdr_conn;
 typedef struct pcrdr_conn pcrdr_conn;
 
+struct purc_instance_extra_info;
+
 PCA_EXTERN_C_BEGIN
 
 /**
@@ -256,33 +311,19 @@ PCA_EXTERN_C_BEGIN
  */
 
 /**
- * Get the return message of a return code.
+ * Connects to the renderer.
  *
- * @param ret_code: the return code.
+ * @param extra_info: The struct instance extra information.
+ *      See @purc_instance_extra_info.
  *
- * Returns the pointer to the message string of the specific return code.
+ * Connects to the renderer.
  *
- * Returns: a pointer to the message string.
+ * Returns: The pointer to the struct pcrdr_conn. NULL for failure.
  *
- * Since: 0.1.0
+ * Since: 0.9.10
  */
-PCA_EXPORT const char *
-pcrdr_get_ret_message(int ret_code);
-
-/**
- * Convert an error code to a return code.
- *
- * @param err_code: the internal error code.
- *
- * Returns the return code of the PurCMC protocol according to
- * the internal error code.
- *
- * Returns: the return code of PurCMC protocol.
- *
- * Since: 0.1.0
- */
-PCA_EXPORT int
-pcrdr_errcode_to_retcode(int err_code);
+PCA_EXPORT pcrdr_conn *
+pcrdr_connect(const struct purc_instance_extra_info *extra_info);
 
 /**
  * Disconnect from the renderer.
@@ -296,7 +337,7 @@ pcrdr_errcode_to_retcode(int err_code);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_disconnect(pcrdr_conn* conn);
+pcrdr_disconnect(pcrdr_conn *conn);
 
 /**
  * Free a connection.
@@ -310,7 +351,7 @@ pcrdr_disconnect(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_free_connection(pcrdr_conn* conn);
+pcrdr_free_connection(pcrdr_conn *conn);
 
 /**
  * The prototype of an extra message source.
@@ -320,7 +361,7 @@ pcrdr_free_connection(pcrdr_conn* conn);
  *
  * Since: 0.2.0
  */
-typedef pcrdr_msg *(*pcrdr_extra_message_source)(pcrdr_conn* conn, void *ctxt);
+typedef pcrdr_msg *(*pcrdr_extra_message_source)(pcrdr_conn *conn, void *ctxt);
 
 /**
  * pcrdr_conn_get_extra_message_source:
@@ -334,7 +375,7 @@ typedef pcrdr_msg *(*pcrdr_extra_message_source)(pcrdr_conn* conn, void *ctxt);
  * Since: 0.2.0
  */
 PCA_EXPORT pcrdr_extra_message_source
-pcrdr_conn_get_extra_message_source(pcrdr_conn* conn, void **ctxt);
+pcrdr_conn_get_extra_message_source(pcrdr_conn *conn, void **ctxt);
 
 /**
  * Set the extra message source of the connection.
@@ -350,7 +391,7 @@ pcrdr_conn_get_extra_message_source(pcrdr_conn* conn, void **ctxt);
  * Since: 0.2.0
  */
 PCA_EXPORT pcrdr_extra_message_source
-pcrdr_conn_set_extra_message_source(pcrdr_conn* conn,
+pcrdr_conn_set_extra_message_source(pcrdr_conn *conn,
         pcrdr_extra_message_source source_fn, void *ctxt, void **old_ctxt);
 
 /**
@@ -361,7 +402,7 @@ pcrdr_conn_set_extra_message_source(pcrdr_conn* conn,
  *
  * Since: 0.1.0
  */
-typedef void (*pcrdr_request_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
+typedef void (*pcrdr_request_handler)(pcrdr_conn *conn, const pcrdr_msg *msg);
 
 /**
  * pcrdr_conn_get_request_handler:
@@ -372,7 +413,7 @@ typedef void (*pcrdr_request_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_request_handler
-pcrdr_conn_get_request_handler(pcrdr_conn* conn);
+pcrdr_conn_get_request_handler(pcrdr_conn *conn);
 
 /**
  * Set the request handler of the connection.
@@ -385,7 +426,7 @@ pcrdr_conn_get_request_handler(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_request_handler
-pcrdr_conn_set_request_handler(pcrdr_conn* conn,
+pcrdr_conn_set_request_handler(pcrdr_conn *conn,
         pcrdr_request_handler request_handler);
 
 /**
@@ -396,7 +437,7 @@ pcrdr_conn_set_request_handler(pcrdr_conn* conn,
  *
  * Since: 0.1.0
  */
-typedef void (*pcrdr_event_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
+typedef void (*pcrdr_event_handler)(pcrdr_conn *conn, const pcrdr_msg *msg);
 
 /**
  * pcrdr_conn_get_event_handler:
@@ -407,7 +448,7 @@ typedef void (*pcrdr_event_handler)(pcrdr_conn* conn, const pcrdr_msg *msg);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_event_handler
-pcrdr_conn_get_event_handler(pcrdr_conn* conn);
+pcrdr_conn_get_event_handler(pcrdr_conn *conn);
 
 /**
  * Set the event handler of the connection.
@@ -420,7 +461,7 @@ pcrdr_conn_get_event_handler(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT pcrdr_event_handler
-pcrdr_conn_set_event_handler(pcrdr_conn* conn,
+pcrdr_conn_set_event_handler(pcrdr_conn *conn,
         pcrdr_event_handler event_handler);
 
 /**
@@ -433,7 +474,7 @@ pcrdr_conn_set_event_handler(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT void *
-pcrdr_conn_get_user_data(pcrdr_conn* conn);
+pcrdr_conn_get_user_data(pcrdr_conn *conn);
 
 /**
  * Set the user data associated with the connection.
@@ -446,7 +487,7 @@ pcrdr_conn_get_user_data(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT void *
-pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
+pcrdr_conn_set_user_data(pcrdr_conn *conn, void* user_data);
 
 /**
  * Set the default timeout value when polling the connection.
@@ -459,7 +500,7 @@ pcrdr_conn_set_user_data(pcrdr_conn* conn, void* user_data);
  * Since: 0.2.0
  */
 PCA_EXPORT int
-pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms);
+pcrdr_conn_set_poll_timeout(pcrdr_conn *conn, int timeout_ms);
 
 /**
  * Get the number of pending requests.
@@ -471,7 +512,7 @@ pcrdr_conn_set_poll_timeout(pcrdr_conn* conn, int timeout_ms);
  * Since: 0.2.0
  */
 PCA_EXPORT size_t
-pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
+pcrdr_conn_pending_requests_count(pcrdr_conn *conn);
 
 /**
  * Get the server host name of a connection.
@@ -483,7 +524,7 @@ pcrdr_conn_pending_requests_count(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT const char *
-pcrdr_conn_srv_host_name(pcrdr_conn* conn);
+pcrdr_conn_srv_host_name(pcrdr_conn *conn);
 
 /**
  * Get the own host name of a connection.
@@ -495,7 +536,7 @@ pcrdr_conn_srv_host_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT const char *
-pcrdr_conn_own_host_name(pcrdr_conn* conn);
+pcrdr_conn_own_host_name(pcrdr_conn *conn);
 
 /**
  * Get the app name of a connection.
@@ -507,7 +548,7 @@ pcrdr_conn_own_host_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT const char *
-pcrdr_conn_app_name(pcrdr_conn* conn);
+pcrdr_conn_app_name(pcrdr_conn *conn);
 
 /**
  * Get the runner name of a connection.
@@ -519,7 +560,7 @@ pcrdr_conn_app_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT const char *
-pcrdr_conn_runner_name(pcrdr_conn* conn);
+pcrdr_conn_runner_name(pcrdr_conn *conn);
 
 /**
  * Get the file descriptor of the connection.
@@ -533,7 +574,7 @@ pcrdr_conn_runner_name(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_fd(pcrdr_conn* conn);
+pcrdr_conn_fd(pcrdr_conn *conn);
 
 /**
  * Get the connnection type.
@@ -550,7 +591,7 @@ pcrdr_conn_fd(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_conn_type(pcrdr_conn* conn);
+pcrdr_conn_type(pcrdr_conn *conn);
 
 /**
  * Get the communication method of a connection to the renderer.
@@ -567,7 +608,32 @@ pcrdr_conn_type(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT purc_rdrcomm_k
-pcrdr_conn_comm_method(pcrdr_conn* conn);
+pcrdr_conn_comm_method(pcrdr_conn *conn);
+
+struct pcrdr_conn_stats {
+    uint64_t nr_requests_sent;
+    uint64_t nr_requests_recv;
+    uint64_t nr_responses_sent;
+    uint64_t nr_responses_recv;
+    uint64_t nr_events_sent;
+    uint64_t nr_events_recv;
+    uint64_t bytes_sent;
+    uint64_t bytes_recv;
+    uint64_t duration_seconds;
+    time_t   start_time;
+};
+
+/**
+ * Gets the communication statistics of a connection to the renderer.
+ *
+ * @param conn: the pointer to the renderer connection.
+ *
+ * Returns the pointer to struct pcrdr_conn_stats.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT const struct pcrdr_conn_stats *
+pcrdr_conn_stats(pcrdr_conn *conn);
 
 typedef enum {
     PCRDR_MSG_TYPE_FIRST = 0,
@@ -684,7 +750,8 @@ struct pcrdr_msg
     unsigned int            retCode;
     union {
         unsigned int        __data_len; // internal use only
-        unsigned int        textLen;    // set this only if dataType is TEXT
+        unsigned int        textLen;    // set this only if dataType is
+                                        // plain text in a request message.
     };
 
     uint64_t        targetValue;
@@ -733,7 +800,7 @@ struct pcrdr_msg
     purc_variant_t  property;
 
     /**
-     * The attached data for a request or an event message.
+     * The attached data to a request, a response, or an event message.
      * The type of the value depends on `dataType` field.
      */
     purc_variant_t  data;
@@ -965,7 +1032,7 @@ enum {
  *
  * Since: 0.1.0
  */
-typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
+typedef int (*pcrdr_response_handler)(pcrdr_conn *conn,
         const char *request_id, int state,
         void *context, const pcrdr_msg *response_msg);
 
@@ -990,7 +1057,7 @@ typedef int (*pcrdr_response_handler)(pcrdr_conn* conn,
  * Since: 0.2.0
  */
 PCA_EXPORT int
-pcrdr_set_handler_for_response_from_extra_source(pcrdr_conn* conn,
+pcrdr_set_handler_for_response_from_extra_source(pcrdr_conn *conn,
         purc_variant_t request_id, int seconds_expected, void *context,
         pcrdr_response_handler response_handler);
 
@@ -1012,9 +1079,25 @@ pcrdr_set_handler_for_response_from_extra_source(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
+pcrdr_send_request(pcrdr_conn *conn, pcrdr_msg *request_msg,
         int seconds_expected, void *context,
         pcrdr_response_handler response_handler);
+
+/**
+ * Sends an event.
+ *
+ * @param conn: the pointer to the renderer connection.
+ * @param event_msg: the pointer to the event message.
+ *
+ * This function sends an event to the renderer and
+ * returns immediately.
+ *
+ * Returns: -1 for error; zero means everything is ok.
+ *
+ * Since: 0.9.10
+ */
+PCA_EXPORT int
+pcrdr_send_event(pcrdr_conn *conn, pcrdr_msg *event_msg);
 
 /**
  * Read and dispatch the message from the renderer connection.
@@ -1029,7 +1112,7 @@ pcrdr_send_request(pcrdr_conn* conn, pcrdr_msg *request_msg,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_read_and_dispatch_message(pcrdr_conn* conn);
+pcrdr_read_and_dispatch_message(pcrdr_conn *conn);
 
 /**
  * Wait and dispatch the message from the renderer connection.
@@ -1045,7 +1128,7 @@ pcrdr_read_and_dispatch_message(pcrdr_conn* conn);
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
+pcrdr_wait_and_dispatch_message(pcrdr_conn *conn, int timeout_ms);
 
 /**
  * Wait the response for the specified request identifier.
@@ -1062,7 +1145,7 @@ pcrdr_wait_and_dispatch_message(pcrdr_conn* conn, int timeout_ms);
  * Since: 0.2.0
  */
 PCA_EXPORT int
-pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
+pcrdr_wait_response_for_specific_request(pcrdr_conn *conn,
         purc_variant_t request_id, int seconds_expected,
         pcrdr_msg **response_msg);
 
@@ -1081,7 +1164,7 @@ pcrdr_wait_response_for_specific_request(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
+pcrdr_send_request_and_wait_response(pcrdr_conn *conn,
         pcrdr_msg *request_msg,
         int seconds_expected, pcrdr_msg **response_msg);
 
@@ -1101,7 +1184,7 @@ pcrdr_send_request_and_wait_response(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_ping_renderer(pcrdr_conn* conn);
+pcrdr_ping_renderer(pcrdr_conn *conn);
 
 /**
  * Connect to a headless renderer.
@@ -1109,7 +1192,7 @@ pcrdr_ping_renderer(pcrdr_conn* conn);
  * @param renderer_uri: the URI to the renderer.
  * @param app_name: the app name.
  * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
  *
  * Connects to a headless renderer.
  *
@@ -1127,7 +1210,7 @@ pcrdr_headless_connect(const char* renderer_uri,
  * @param renderer_uri: the endpoint name of the thread renderer.
  * @param app_name: the app name.
  * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
  *
  * Connects to a thread renderer.
  *
@@ -1145,7 +1228,7 @@ pcrdr_thread_connect(const char* renderer_uri,
  * @param renderer_uri: the URI of the renderer.
  * @param app_name: the app name.
  * @param runner_name: the runner name.
- * @param conn: the pointer to a pcrdr_conn* to return the renderer connection.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
  *
  * Connects to a socket-based renderer.
  *
@@ -1190,7 +1273,7 @@ pcrdr_socket_connect(const char* renderer_uri,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_socket_read_packet(pcrdr_conn* conn,
+pcrdr_socket_read_packet(pcrdr_conn *conn,
         char* packet_buf, size_t *sz_packet);
 
 /**
@@ -1216,7 +1299,7 @@ pcrdr_socket_read_packet(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_socket_read_packet_alloc(pcrdr_conn* conn,
+pcrdr_socket_read_packet_alloc(pcrdr_conn *conn,
         void **packet, size_t *sz_packet);
 
 /**
@@ -1233,7 +1316,7 @@ pcrdr_socket_read_packet_alloc(pcrdr_conn* conn,
  * Since: 0.1.0
  */
 PCA_EXPORT int
-pcrdr_socket_send_text_packet(pcrdr_conn* conn,
+pcrdr_socket_send_text_packet(pcrdr_conn *conn,
         const char *text, size_t txt_len);
 
 /**@}*/
@@ -1347,6 +1430,73 @@ purc_inst_retrieve_message(size_t index);
 PCA_EXPORT pcrdr_msg *
 purc_inst_take_away_message(size_t index);
 
+/**@}*/
+
+/**
+ * @defgroup purcmcHelpers  Helpers for PURCMC communication
+ *
+ * The helpers for communication between the interpreter and the renderer.
+ * @{
+ */
+
+/**
+ * Get the return message of a return code.
+ *
+ * @param ret_code: the return code.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: a pointer to the message string.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT const char *
+pcrdr_get_ret_message(int ret_code);
+
+/**
+ * Convert an error code to a return code.
+ *
+ * @param err_code: the internal error code.
+ *
+ * Returns the return code of the PurCMC protocol according to
+ * the internal error code.
+ *
+ * Returns: the return code of PurCMC protocol.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_errcode_to_retcode(int err_code);
+
+/**
+ * Checks the reserved name for workspace.
+ *
+ * @param name: the name for workspace.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: -1 for not a valid reserved workspace name, otherwise
+ *  a value of @pcrdr_resname_workspace_k.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_check_reserved_workspace_name(const char *name);
+
+/**
+ * Checks the reserved name for page.
+ *
+ * @param name: the name for page.
+ *
+ * Returns the pointer to the message string of the specific return code.
+ *
+ * Returns: -1 for not a valid reserved page name, otherwise
+ *  a value of @pcrdr_resname_page_k.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT int
+pcrdr_check_reserved_page_name(const char *name);
 
 /**@}*/
 

@@ -25,7 +25,7 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// #undef NDEBUG
+#undef NDEBUG
 
 #include "config.h"
 
@@ -316,25 +316,54 @@ static int on_create_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
     if (rdr->cbs.create_workspace == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
-        goto failed;
+        goto done;
     }
 
-    const char* name = NULL;
+    /* Since PURCMC-120: use element for the name of worksapce */
+    if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_ID) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    const char *name = purc_variant_get_string_const(msg->elementValue);
+    if (name == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_workspace_name(name);
+        if (v < 0) {
+            retv = PCRDR_SC_BAD_REQUEST;
+            goto done;
+        }
+
+        if (rdr->cbs.get_special_workspace == NULL) {
+            retv = PCRDR_SC_NOT_IMPLEMENTED;
+            goto done;
+        }
+
+        retv = PCRDR_SC_OK;
+        workspace = rdr->cbs.get_special_workspace(endpoint->session,
+                (pcrdr_resname_workspace_k)v);
+        goto done;
+    }
+
+    if (rdr->cbs.find_workspace) {
+        workspace = rdr->cbs.find_workspace(endpoint->session, name);
+        if (workspace) {
+            retv = PCRDR_SC_OK;
+            goto done;
+        }
+    }
+
     const char* title = NULL;
     purc_variant_t tmp;
 
     if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON ||
             !purc_variant_is_object(msg->data)) {
         retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
-    }
-
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "name"))) {
-        name = purc_variant_get_string_const(tmp);
-        if (name == NULL || !purc_is_valid_identifier(name)) {
-            retv = PCRDR_SC_BAD_REQUEST;
-            goto failed;
-        }
+        goto done;
     }
 
     if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
@@ -344,7 +373,7 @@ static int on_create_workspace(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     workspace = rdr->cbs.create_workspace(endpoint->session,
             name, title, msg->data, &retv);
 
-failed:
+done:
     response.type = PCRDR_MSG_TYPE_RESPONSE;
     response.requestId = msg->requestId;
     response.sourceURI = PURC_VARIANT_INVALID;
@@ -608,65 +637,89 @@ static int on_create_plain_window(pcmcth_renderer* rdr, pcmcth_endpoint* endpoin
     pcmcth_workspace* workspace = NULL;
     pcmcth_page* win = NULL;
 
-    const char* gid = NULL;
-    const char* name = NULL;
-    const char* class = NULL;
-    const char* title = NULL;
-    const char* layout_style = NULL;
-    purc_variant_t toolkit_style;
-
     if (msg->target == PCRDR_MSG_TARGET_WORKSPACE) {
         workspace = (void *)(uintptr_t)msg->targetValue;
     }
     else {
         retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
+        goto done;
     }
 
-    purc_variant_t tmp;
-
-    if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON ||
-            !purc_variant_is_object(msg->data)) {
-        retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
-    }
-
+    /* Since PURCMC-120, use element to specify the window name and group name:
+        <window_name>[@<group_name>]
+     */
+    const char *name_group = NULL;
     if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-        gid = purc_variant_get_string_const(msg->elementValue);
-        if (gid == NULL) {
+        name_group = purc_variant_get_string_const(msg->elementValue);
+    }
+
+    if (name_group == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    char idbuf[PURC_MAX_WIDGET_ID];
+    char name[PURC_LEN_IDENTIFIER + 1];
+    const char *group;
+    group = purc_check_and_make_plainwin_id(idbuf, name, name_group);
+    if (group == PURC_INVPTR) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    /* Since PURCMC-120, support the special page name. */
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_page_name(name);
+        if (v < 0) {
             retv = PCRDR_SC_BAD_REQUEST;
-            goto failed;
+            goto done;
+        }
+
+        /* support for reserved name */
+        if (rdr->cbs.get_special_plainwin) {
+            win = rdr->cbs.get_special_plainwin(endpoint->session, workspace,
+                    group, (pcrdr_resname_page_k)v);
+            retv = PCRDR_SC_OK;
+            goto done;
         }
     }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "name"))) {
-        name = purc_variant_get_string_const(tmp);
+    win = rdr->cbs.find_page(endpoint->session, workspace, idbuf);
+    if (win) {
+        retv = PCRDR_SC_OK;
+        goto done;
     }
 
-    if (name == NULL || !purc_is_valid_identifier(name)) {
-        retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
-    }
+    purc_variant_t tmp;
+    const char* class = NULL;
+    const char* title = NULL;
+    const char* layout_style = NULL;
+    purc_variant_t toolkit_style = PURC_VARIANT_INVALID;
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "class"))) {
-        class = purc_variant_get_string_const(tmp);
-    }
+    if (msg->dataType == PCRDR_MSG_DATA_TYPE_JSON
+           && purc_variant_is_object(msg->data)) {
+        if ((tmp = purc_variant_object_get_by_ckey(msg->data, "class"))) {
+            class = purc_variant_get_string_const(tmp);
+        }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
-        title = purc_variant_get_string_const(tmp);
-    }
+        if ((tmp = purc_variant_object_get_by_ckey(msg->data, "title"))) {
+            title = purc_variant_get_string_const(tmp);
+        }
 
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "layoutStyle"))) {
-        layout_style = purc_variant_get_string_const(tmp);
-    }
+        if ((tmp = purc_variant_object_get_by_ckey(msg->data,
+                        "layoutStyle"))) {
+            layout_style = purc_variant_get_string_const(tmp);
+        }
 
-    toolkit_style = purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
+        toolkit_style =
+            purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
+    }
 
     win = rdr->cbs.create_plainwin(endpoint->session, workspace,
-            gid, name, class, title, layout_style,
+            idbuf, group, name, class, title, layout_style,
             toolkit_style, &retv);
 
-failed:
+done:
     response.type = PCRDR_MSG_TYPE_RESPONSE;
     response.requestId = msg->requestId;
     response.sourceURI = PURC_VARIANT_INVALID;
@@ -790,7 +843,7 @@ static int on_create_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
 
     if (rdr->cbs.create_widget == NULL) {
         retv = PCRDR_SC_NOT_IMPLEMENTED;
-        goto failed;
+        goto done;
     }
 
     if (msg->target == PCRDR_MSG_TARGET_WORKSPACE) {
@@ -798,39 +851,64 @@ static int on_create_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     }
     else {
         retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
+        goto done;
     }
 
     if (msg->dataType != PCRDR_MSG_DATA_TYPE_JSON ||
             !purc_variant_is_object(msg->data)) {
         retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
+        goto done;
     }
 
-    const char* gid = NULL;
+    const char* name_group = NULL;
+    /* Since PURCMC-120, use element to specify the widget name and group name:
+            <widget_name>@<group_name>
+     */
     if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-        gid = purc_variant_get_string_const(msg->elementValue);
+        name_group = purc_variant_get_string_const(msg->elementValue);
     }
 
-    if (gid == NULL) {
+    if (name_group == NULL) {
         retv = PCRDR_SC_BAD_REQUEST;
-        goto failed;
+        goto done;
     }
 
-    const char* name = NULL;
+    char idbuf[PURC_MAX_WIDGET_ID];
+    char name[PURC_LEN_IDENTIFIER + 1];
+    const char *group = purc_check_and_make_widget_id(idbuf, name, name_group);
+    if (group == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    /* Since PURCMC-120, support the special page name. */
+    if (name[0] == '_') {    // reserved name
+        int v = pcrdr_check_reserved_page_name(name);
+        if (v < 0) {
+            retv = PCRDR_SC_BAD_REQUEST;
+            goto done;
+        }
+
+        if (rdr->cbs.get_special_widget) {
+            page = rdr->cbs.get_special_widget(endpoint->session, workspace,
+                    group, (pcrdr_resname_page_k)v);
+            retv = PCRDR_SC_OK;
+            goto done;
+        }
+    }
+
+    /* Since PURCMC-120, returns the page if it exists already. */
+    page = rdr->cbs.find_page(endpoint->session, workspace, idbuf);
+    if (page) {
+        retv = PCRDR_SC_OK;
+        goto done;
+    }
+
     const char* class = NULL;
     const char* title = NULL;
     const char* layout_style = NULL;
     purc_variant_t toolkit_style;
     purc_variant_t tmp;
-
-    if ((tmp = purc_variant_object_get_by_ckey(msg->data, "name"))) {
-        name = purc_variant_get_string_const(tmp);
-        if (name == NULL || !purc_is_valid_identifier(name)) {
-            retv = PCRDR_SC_BAD_REQUEST;
-            goto failed;
-        }
-    }
 
     if ((tmp = purc_variant_object_get_by_ckey(msg->data, "class"))) {
         class = purc_variant_get_string_const(tmp);
@@ -847,10 +925,10 @@ static int on_create_widget(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     toolkit_style = purc_variant_object_get_by_ckey(msg->data, "toolkitStyle");
 
     page = rdr->cbs.create_widget(endpoint->session, workspace,
-            gid, name, class, title, layout_style,
+            idbuf, group, name, class, title, layout_style,
             toolkit_style, &retv);
 
-failed:
+done:
     response.type = PCRDR_MSG_TYPE_RESPONSE;
     response.requestId = msg->requestId;
     response.sourceURI = PURC_VARIANT_INVALID;
@@ -973,6 +1051,8 @@ failed:
     return send_simple_response(rdr, endpoint, &response);
 }
 
+#define LEN_BUFF_LONGLONGINT 128
+
 static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg)
 {
@@ -980,6 +1060,7 @@ static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
     int retv = PCRDR_SC_OK;
     pcmcth_page *page = NULL;
     pcmcth_udom *dom = NULL;
+    char suppressed[LEN_BUFF_LONGLONGINT] = { };
 
     void *edom;
     if (msg->data == PURC_VARIANT_INVALID ||
@@ -999,7 +1080,20 @@ static int on_load(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         goto failed;
     }
 
-    dom = rdr->cbs.load_edom(endpoint->session, page, msg->data, &retv);
+    /* Since PURCMC-120, pass the coroutine handle */
+    if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    uint64_t crtn = (uint64_t)strtoull(
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
+    if (crtn == 0) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+    dom = rdr->cbs.load_edom(endpoint->session, page, msg->data,
+            crtn, suppressed, &retv);
 
 failed:
     response.type = PCRDR_MSG_TYPE_RESPONSE;
@@ -1007,6 +1101,98 @@ failed:
     response.sourceURI = PURC_VARIANT_INVALID;
     response.retCode = retv;
     response.resultValue = (uint64_t)(uintptr_t)dom;
+    if (suppressed[0]) {
+        response.dataType = PCRDR_MSG_DATA_TYPE_PLAIN;
+        response.data = purc_variant_make_string(suppressed, false);
+    }
+    else {
+        response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+    }
+
+    return send_simple_response(rdr, endpoint, &response);
+}
+
+static int on_register(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
+{
+    pcrdr_msg response = { };
+    int retv = PCRDR_SC_OK;
+    pcmcth_page *page = 0;
+    uint64_t suppressed = 0;
+
+    if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
+            msg->target == PCRDR_MSG_TARGET_WIDGET) {
+        page = (void *)(uintptr_t)msg->targetValue;
+    }
+
+    if (page == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    uint64_t crtn = (uint64_t)strtoull(
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
+    if (crtn == 0) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    suppressed = rdr->cbs.register_crtn(endpoint->session, page, crtn, &retv);
+
+failed:
+    response.type = PCRDR_MSG_TYPE_RESPONSE;
+    response.requestId = msg->requestId;
+    response.sourceURI = PURC_VARIANT_INVALID;
+    response.retCode = retv;
+    response.resultValue = suppressed;
+    response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
+
+    return send_simple_response(rdr, endpoint, &response);
+}
+
+static int on_revoke(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
+        const pcrdr_msg *msg)
+{
+    pcrdr_msg response = { };
+    int retv = PCRDR_SC_OK;
+    pcmcth_page *page = 0;
+    uint64_t to_reload = 0;
+
+    if (msg->target == PCRDR_MSG_TARGET_PLAINWINDOW ||
+            msg->target == PCRDR_MSG_TARGET_WIDGET) {
+        page = (void *)(uintptr_t)msg->targetValue;
+    }
+
+    if (page == NULL) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    uint64_t crtn = (uint64_t)strtoull(
+            purc_variant_get_string_const(msg->elementValue), NULL, 16);
+    if (crtn == 0) {
+        retv = PCRDR_SC_BAD_REQUEST;
+        goto failed;
+    }
+
+    to_reload = rdr->cbs.revoke_crtn(endpoint->session, page, crtn, &retv);
+
+failed:
+    response.type = PCRDR_MSG_TYPE_RESPONSE;
+    response.requestId = msg->requestId;
+    response.sourceURI = PURC_VARIANT_INVALID;
+    response.retCode = retv;
+    response.resultValue = to_reload;
     response.dataType = PCRDR_MSG_DATA_TYPE_VOID;
 
     return send_simple_response(rdr, endpoint, &response);
@@ -1369,6 +1555,8 @@ static struct request_handler {
     { PCRDR_OPERATION_LOAD, on_load },
     { PCRDR_OPERATION_PREPEND, on_prepend },
     { PCRDR_OPERATION_REMOVEPAGEGROUP, on_remove_page_group },
+    { PCRDR_OPERATION_REGISTER, on_register },
+    { PCRDR_OPERATION_REVOKE, on_revoke },
     { PCRDR_OPERATION_SETPAGEGROUPS, on_set_page_groups },
     { PCRDR_OPERATION_SETPROPERTY, on_set_property },
     { PCRDR_OPERATION_STARTSESSION, on_start_session },

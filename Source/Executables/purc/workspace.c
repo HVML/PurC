@@ -51,7 +51,9 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
                     FOIL_DEF_RGNRCHEAP_SZ))
             goto failed;
 
-        kvlist_init(&workspace->ug_wins, NULL);
+        workspace->page_owners = pcutils_kvlist_new(NULL);
+        if (workspace->page_owners == NULL)
+            goto failed;
 
         workspace->rdr = rdr;
         workspace->layouter = NULL;
@@ -83,8 +85,8 @@ static void workspace_delete(pcmcth_workspace *workspace)
 {
     assert(workspace->root);
 
-    LOG_DEBUG("destroy kvlist for ungrouped plain windows...\n");
-    kvlist_free(&workspace->ug_wins);
+    LOG_DEBUG("destroy page owners map...\n");
+    pcutils_kvlist_delete(workspace->page_owners);
 
     if (workspace->layouter) {
         // TODO: ws_layouter_delete(workspace->layouter);
@@ -271,42 +273,21 @@ pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
     return udom;
 }
 
-#define STR_TYPE_SEPARATOR      ":"
-#define STR_GROUP_SEPARATOR     "@"
-
 foil_widget *foil_wsp_find_widget(void *workspace, void *session,
         const char *id)
 {
     (void)session;
 
     foil_widget* widget = NULL;
-    char *cloned = strdup(id);
-    char *type, *name, *group;
-    char *saveptr;
-
-    type = strtok_r(cloned, STR_TYPE_SEPARATOR, &saveptr);
-    name = strtok_r(NULL, STR_GROUP_SEPARATOR, &saveptr);
-    group = strtok_r(NULL, STR_GROUP_SEPARATOR, &saveptr);
-
-    /* TODO: currently, only non-grouped plain window supported */
-    if (strcasecmp(type, "plainwin") || group) {
-        LOG_WARN("Not supported widget identifier: %s\n", id);
-        goto done;
-    }
-    else if (name == NULL) {
-        LOG_WARN("Bad widget identifier: %s\n", id);
-        goto done;
-    }
-
     pcmcth_workspace *wsp = workspace;
-    void *data = kvlist_get(&wsp->ug_wins, name);
+    void *data = pcutils_kvlist_get(wsp->page_owners, id);
     if (data == NULL)
         goto done;
 
-    widget = *(foil_widget **)data;
+    purc_page_ostack_t ostack = *(purc_page_ostack_t *)data;
+    widget = purc_page_ostack_get_page(ostack);
 
 done:
-    free(cloned);
     return widget;
 }
 
