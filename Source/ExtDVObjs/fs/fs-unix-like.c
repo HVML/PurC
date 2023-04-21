@@ -3388,16 +3388,16 @@ failed:
 }
 
 static purc_variant_t
-on_dir_read(void *native_entity, const char *property_name,
+on_dir_stat(void *native_entity, const char *property_name,
         size_t nr_args, purc_variant_t* argv, unsigned call_flags)
 {
     UNUSED_PARAM(property_name);
 
     DIR *dirp = (DIR *)native_entity;
-    struct dirent *dp;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
-    if (NULL == dirp) {
-        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+    if (dirp == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
     }
 
@@ -3406,7 +3406,7 @@ on_dir_read(void *native_entity, const char *property_name,
     if (nr_args > 0) {
         options = purc_variant_get_string_const_ex(argv[0], &options_len);
         if (options == NULL) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
@@ -3417,29 +3417,47 @@ on_dir_read(void *native_entity, const char *property_name,
         }
     }
 
+    int fd = dirfd(dirp);
+    if (fd < 0) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
+
+    struct stat st;
+    if (fstat(fd, &st)) {
+        retv = make_object_from_stat(&st, options, options_len);
+    }
+
+    if (retv == PURC_VARIANT_INVALID)
+        goto failed;
+
+    return retv;
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+on_dir_read(void *native_entity, const char *property_name,
+        size_t nr_args, purc_variant_t* argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+
+    DIR *dirp = (DIR *)native_entity;
     purc_variant_t retv = PURC_VARIANT_INVALID;
-    while ((dp = readdir(dirp)) != NULL) {
-        if ((strcmp(dp->d_name, ".") == 0)
-                || (strcmp(dp->d_name, "..") == 0))
-            continue;
+    if (dirp == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
 
-        if (options == NULL) {
-            retv = purc_variant_make_string(dp->d_name, true);
-        }
-        else {
-            struct stat st;
-            if (fstat(dirfd(dirp), &st)) {
-                purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
-            }
-
-            retv = make_object_from_stat(&st, options, options_len);
-            if (retv) {
-                purc_variant_t val;
-                val = purc_variant_make_string(dp->d_name, true);
-                purc_variant_object_set_by_static_ckey(retv, "name", val);
-                purc_variant_unref(val);
-            }
-        }
+    struct dirent *dp;
+    if ((dp = readdir(dirp)) != NULL) {
+        retv = purc_variant_make_string(dp->d_name, true);
     }
 
     if (retv)
@@ -3459,14 +3477,16 @@ on_dir_rewind (void *native_entity, const char *property_name,
     UNUSED_PARAM(property_name);
     UNUSED_PARAM(nr_args);
     UNUSED_PARAM(argv);
-    UNUSED_PARAM(call_flags);
 
     if (native_entity) {
         rewinddir((DIR *)native_entity);
-        return purc_variant_make_boolean (true);
+        return purc_variant_make_boolean(true);
     }
 
-    return purc_variant_make_boolean (false);
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_boolean(false);
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_nvariant_method
@@ -3482,6 +3502,12 @@ property_getter(void* native_entity, const char* key_name)
             }
             if (strcmp(key_name, "rewind") == 0) {
                 return on_dir_rewind;
+            }
+            break;
+
+        case 's':
+            if (strcmp(key_name, "stat") == 0) {
+                return on_dir_stat;
             }
             break;
 
@@ -3503,46 +3529,29 @@ on_release(void *native_entity)
 }
 
 static purc_variant_t
-opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+opendir_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
-    const char *string_pathname = NULL;
-    DIR *dirp;
-    struct stat dir_stat;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    const char *pathname = NULL;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    // get the file name
-    string_pathname = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_pathname) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+    pathname = purc_variant_get_string_const(argv[0]);
+    if (NULL == pathname) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (access (string_pathname, F_OK | R_OK) != 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
-        goto failed;
-    }
-
-    if (stat (string_pathname, &dir_stat) < 0) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        goto failed;
-    }
-
-    if (S_ISDIR(dir_stat.st_mode)) {
-        dirp = opendir (string_pathname);
-        if (NULL == dirp) {
-            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-            goto failed;
-        }
-    }
-    else {
+    DIR *dirp;
+    dirp = opendir(pathname);
+    if (NULL == dirp) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
 
@@ -3553,28 +3562,28 @@ opendir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         .on_release = on_release,
     };
 
-    ret_var = purc_variant_make_native((void *)dirp, &ops);
-    if (ret_var == PURC_VARIANT_INVALID) {
+    retv = purc_variant_make_native((void *)dirp, &ops);
+    if (retv == PURC_VARIANT_INVALID) {
         goto failed;
     }
 
-    return ret_var;
+    return retv;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
 
 static purc_variant_t
-closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+closedir_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
     DIR *dirp;
-    purc_variant_t ret_var = PURC_VARIANT_INVALID;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -3583,23 +3592,23 @@ closedir_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     dirp = (DIR *)purc_variant_native_get_entity(argv[0]);
     if (NULL == dirp) {
-        purc_set_error (PURC_ERROR_NO_DATA);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
     if (0 == closedir(dirp))
-        ret_var = purc_variant_make_boolean (true);
+        retv = purc_variant_make_boolean(true);
     else {
-        purc_set_error (PURC_ERROR_SYS_FAULT);
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
 
     argv[0]->ptr_ptr[0] = NULL;
-    return ret_var;
+    return retv;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
