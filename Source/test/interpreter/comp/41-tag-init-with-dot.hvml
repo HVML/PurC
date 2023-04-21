@@ -1,0 +1,15 @@
+#!/usr/bin/purc
+
+# RESULT: true
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as 'val' with {{ $REQ.dir || true }} silently />
+        <exit with $val />
+    </body>
+</hvml>
+
+
