@@ -1391,6 +1391,10 @@ static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
     box->is_height_resolved = 0;
     box->width = 0;
     box->height = 0;
+    box->nr_block_level_children = 0;
+    box->nr_inline_level_children = 0;
+    box->nr_floating_children = 0;
+    box->nr_abspos_children = 0;
     foil_rect_set(&box->ctnt_rect, 0, 0, 0, 0);
 }
 
@@ -1662,6 +1666,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     (void)ref_elem;
     (void)op;
     int r = PCRDR_SC_NOT_IMPLEMENTED;
+    foil_rdrbox *render_box = rdrbox;
     pcdoc_element *ancestor = rdrbox->owner;
     css_select_results *result = NULL;
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
@@ -1707,6 +1712,8 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         goto render;
     }
 
+//    rdrbox->cblock_creator;
+
     //TODO: relayout
 #if 0
     rebuild_children(udom, rdrbox);
@@ -1723,7 +1730,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
 #endif
 
 render:
-    foil_udom_invalidate_rdrbox(udom, rdrbox);
+    foil_udom_invalidate_rdrbox(udom, render_box);
     r = PCRDR_SC_OK;
 
 done:
