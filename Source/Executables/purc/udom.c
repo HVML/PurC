@@ -1394,6 +1394,268 @@ static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
     foil_rect_set(&box->ctnt_rect, 0, 0, 0, 0);
 }
 
+#define COMP_AND_UPDATE_CRUX(prop)                                            \
+    if (box->prop != tmpbox->prop) {                                          \
+        box->prop = tmpbox->prop;                                             \
+        *crux_changed = 1;                                                    \
+    }
+
+#define COMP_AND_UPDATE(prop)                                                 \
+    if (box->prop != tmpbox->prop) {                                          \
+        box->prop = tmpbox->prop;                                             \
+    }
+
+#define VERIFY_PROP(prop_auto)                                                \
+    if (value != tmp_value) {                                                 \
+        *crux_changed = true;                                                 \
+    }                                                                         \
+    else if (value != prop_auto) {                                            \
+        v = used_length(ctxt->udom, box, length, unit);                       \
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);           \
+        if (v != tmp_v) {                                                     \
+            *crux_changed = true;                                             \
+        }                                                                     \
+    }
+
+#define FOIL_FPCT_TOFLOAT(v) (FIXTOFLT(FDIV(v, F_100)))
+
+static float used_length(pcmcth_udom *udom, foil_rdrbox *box,
+        css_unit unit, css_fixed length)
+{
+    float v = 0;
+
+    switch (unit) {
+    case CSS_UNIT_PCT:
+        v = foil_rect_width(&box->cblock_creator->ctnt_rect);
+        v = v * FOIL_FPCT_TOFLOAT(length);
+        break;
+
+    case CSS_UNIT_PX:
+        v = FIXTOFLT(length);
+        break;
+
+    /* font-relative lengths */
+    case CSS_UNIT_EX:
+        // The x-height is so called because it is often
+        // equal to the height of the lowercase "x".
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_W;
+        break;
+
+    case CSS_UNIT_EM:
+    case CSS_UNIT_CH:
+    case CSS_UNIT_REM:
+        // Equal to the used advance measure of the "0" glyph
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_H;
+        break;
+
+    /* absolute lengths */
+    case CSS_UNIT_CM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54;
+        break;
+    case CSS_UNIT_IN:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI;
+        break;
+    case CSS_UNIT_MM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10;
+        break;
+    case CSS_UNIT_PC:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/6.0;
+        break;
+    case CSS_UNIT_PT:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/72.0;
+        break;
+    case CSS_UNIT_Q:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40;
+        break;
+
+    /* viewport-relative lengths */
+    case CSS_UNIT_VW:
+        v = FIXTOFLT(length) * udom->vw / 100;
+        break;
+    case CSS_UNIT_VH:
+        v = FIXTOFLT(length) * udom->vh / 100;
+        break;
+    case CSS_UNIT_VMAX:
+        if (udom->vh > udom->vw)
+            v = FIXTOFLT(length) * udom->vh / 100;
+        else
+            v = FIXTOFLT(length) * udom->vw / 100;
+        break;
+    case CSS_UNIT_VMIN:
+        if (udom->vh > udom->vw)
+            v = FIXTOFLT(length) * udom->vw / 100;
+        else
+            v = FIXTOFLT(length) * udom->vh / 100;
+        break;
+
+    default:
+        // TODO: support more unit
+        LOG_WARN("TODO: not supported unit: %d\n", unit);
+        break;
+    }
+
+    return v;
+}
+
+static int compare_and_update_properties(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, int *crux_changed)
+{
+    (void) ctxt;
+    (void) box;
+    (void) crux_changed;
+    foil_rdrbox *tmpbox;
+    if ((tmpbox = foil_rdrbox_create_from_style(ctxt))) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    if (box->type != tmpbox->type) {
+        *crux_changed = 1;
+        if (box->extra_data) {
+            if (box->extra_data_cleaner) {
+                box->extra_data_cleaner(box->extra_data);
+            }
+            free(box->extra_data);
+        }
+        box->extra_data = tmpbox->extra_data;
+        box->extra_data_cleaner = tmpbox->extra_data_cleaner;
+        tmpbox->extra_data = NULL;
+        tmpbox->extra_data_cleaner = NULL;
+    }
+
+    COMP_AND_UPDATE_CRUX(position);
+    COMP_AND_UPDATE_CRUX(is_abs_positioned);
+    COMP_AND_UPDATE_CRUX(floating);
+    COMP_AND_UPDATE_CRUX(clear);
+    COMP_AND_UPDATE_CRUX(is_block_level);
+    COMP_AND_UPDATE_CRUX(is_inline_level);
+
+    /* foil_rdrbox_dtrm_common_properties */
+    COMP_AND_UPDATE_CRUX(direction);
+    COMP_AND_UPDATE_CRUX(visibility);
+    COMP_AND_UPDATE(overflow_x);
+    COMP_AND_UPDATE(overflow_y);
+    COMP_AND_UPDATE(unicode_bidi);
+    COMP_AND_UPDATE(text_transform);
+    COMP_AND_UPDATE(white_space);
+    COMP_AND_UPDATE(text_deco_blink);
+    COMP_AND_UPDATE(text_deco_line_through);
+    COMP_AND_UPDATE(text_deco_overline);
+    COMP_AND_UPDATE(text_deco_underline);
+    COMP_AND_UPDATE(word_break);
+    COMP_AND_UPDATE(line_break);
+    COMP_AND_UPDATE(word_wrap);
+    COMP_AND_UPDATE(list_style_type);
+    COMP_AND_UPDATE(list_style_position);
+    COMP_AND_UPDATE(color.specified);
+    COMP_AND_UPDATE(color.argb);
+    COMP_AND_UPDATE(background_color.specified);
+    COMP_AND_UPDATE(background_color.argb);
+    COMP_AND_UPDATE(quotes);
+
+    uint8_t value, tmp_value;
+    css_fixed length, tmp_length;
+    css_unit unit, tmp_unit;
+    float v, tmp_v;
+    value = css_computed_margin_left(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_left(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_top(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_top(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_right(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_right(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_bottom(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_bottom(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_border_left_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_left_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_top_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_top_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_right_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_right_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_bottom_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_bottom_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_left(box->computed_style, &length, &unit);
+    tmp_value = css_computed_left(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_LEFT_AUTO);
+
+    value = css_computed_top(box->computed_style, &length, &unit);
+    tmp_value = css_computed_top(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_TOP_AUTO);
+
+    value = css_computed_right(box->computed_style, &length, &unit);
+    tmp_value = css_computed_right(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_RIGHT_AUTO);
+
+    value = css_computed_bottom(box->computed_style, &length, &unit);
+    tmp_value = css_computed_bottom(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_BOTTOM_AUTO);
+
+    value = css_computed_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_width(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_WIDTH_AUTO);
+
+    value = css_computed_height(box->computed_style, &length, &unit);
+    tmp_value = css_computed_height(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_HEIGHT_AUTO);
+
+    foil_rdrbox_delete(tmpbox);
+    return 0;
+
+failed:
+    return -1;
+}
+
 static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem, int op)
 {
@@ -1426,7 +1688,11 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         result,                          /* computed */
         style,                           /* style */
         NULL };
-    foil_rdrbox_dtrm_common_properties(&ctxt, rdrbox);
+
+    int crux_changed = 0;
+    if (compare_and_update_properties(&ctxt, rdrbox, &crux_changed)) {
+        goto failed;
+    }
 
     if (rdrbox->computed_style) {
         css_computed_style_destroy(rdrbox->computed_style);
@@ -1434,8 +1700,28 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     rdrbox->computed_style = style;
     result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
 
+    if (!crux_changed) {
+        goto render;
+    }
 
     //TODO: relayout
+#if 0
+    rebuild_children(udom, rdrbox);
+    reset_rdrbox_layout_info(udom, rdrbox);
+
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+    pre_layout_rdrtree(&layout_ctxt, rdrbox);
+    resolve_widths(&layout_ctxt, rdrbox);
+    resolve_heights(&layout_ctxt, rdrbox);
+
+    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
+            orc.left + rdrbox->width, orc.top + rdrbox->height);
+
+    layout_rdrtree(&layout_ctxt, rdrbox);
+#endif
+
+render:
+    foil_udom_invalidate_rdrbox(udom, rdrbox);
 
 done:
     if (result) {
