@@ -235,6 +235,9 @@ eval(struct pcvcm_eval_ctxt *ctxt,
                 GETTER_METHOD, call_flags);
         goto out;
     }
+    else if (purc_variant_is_undefined(caller_var)) {
+        goto out;
+    }
     else {
         char *prev = NULL;
         purc_variant_stringify_alloc(&prev, caller_var);
