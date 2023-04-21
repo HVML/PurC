@@ -1660,6 +1660,37 @@ failed:
     return -1;
 }
 
+static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
+{
+    reset_rdrbox_layout_info(udom, box);
+
+    foil_rdrbox *child = box->first;
+    while (child) {
+        reset_rdrbox_layout_deep(udom, child);
+        child = child->next;
+    }
+}
+
+static int relayout_rdrtree(struct foil_layout_ctxt *ctxt,
+        struct foil_rdrbox *rdrbox)
+{
+    foil_rect orc = rdrbox->ctnt_rect;
+
+    reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
+
+    pre_layout_rdrtree(ctxt, rdrbox);
+    resolve_widths(ctxt, rdrbox);
+    resolve_heights(ctxt, rdrbox);
+
+    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
+            orc.left + rdrbox->width, orc.top + rdrbox->height);
+
+    layout_rdrtree(ctxt, rdrbox);
+
+    return 0;
+}
+
+
 static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem, int op)
 {
@@ -1706,28 +1737,21 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     rdrbox->computed_style = style;
     result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
 
-    if (!crux_changed) {
+    if (0 && crux_changed) {
         /* sizing, border property */
         pre_layout_rdrtree(&layout_ctxt, rdrbox);
         goto render;
     }
 
-//    rdrbox->cblock_creator;
+    while (render_box && render_box != rdrbox->cblock_creator) {
+        render_box = render_box->parent;
+    }
 
-    //TODO: relayout
-#if 0
-    rebuild_children(udom, rdrbox);
-    reset_rdrbox_layout_info(udom, rdrbox);
+    if (!render_box) {
+        render_box = udom->initial_cblock;
+    }
 
-    pre_layout_rdrtree(&layout_ctxt, rdrbox);
-    resolve_widths(&layout_ctxt, rdrbox);
-    resolve_heights(&layout_ctxt, rdrbox);
-
-    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
-            orc.left + rdrbox->width, orc.top + rdrbox->height);
-
-    layout_rdrtree(&layout_ctxt, rdrbox);
-#endif
+    relayout_rdrtree(&layout_ctxt, render_box);
 
 render:
     foil_udom_invalidate_rdrbox(udom, render_box);
