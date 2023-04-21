@@ -598,7 +598,8 @@ make_object_from_stat(const struct stat *st, const char *options,
 
         switch (*opt) {
         case 'd':
-            if (strncasecmp(opt, "dev", 3) == 0) {
+        case 'D':
+            if (opt_len == 3 && strncasecmp(opt, "dev", opt_len) == 0) {
                 // returns ID of device containing the file.
                 // dev_major
                 val = purc_variant_make_ulongint((uint64_t)major(st->st_dev));
@@ -613,7 +614,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'i':
-            if (strncasecmp(opt, "inode", 5) == 0) {
+        case 'I':
+            if (opt_len == 5 && strncasecmp(opt, "inode", opt_len) == 0) {
                 // returns inode number.
                 val = purc_variant_make_ulongint(st->st_ino);
                 purc_variant_object_set_by_static_ckey(retv, "inode", val);
@@ -622,7 +624,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 't':
-            if (strncasecmp (opt, "type", 4) == 0) {
+        case 'T':
+            if (opt_len == 4 && strncasecmp(opt, "type", opt_len) == 0) {
                 // returns file type like 'd', 'b', or 's'.
 
                 const char *string_type = NULL;
@@ -644,17 +647,21 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'm':
-            if (strncasecmp(opt, "mode_digits", 11) == 0) {
+        case 'M':
+            if (opt_len == 11 &&
+                    strncasecmp(opt, "mode_digits", opt_len) == 0) {
                 // returns file mode like '0644'.
                 char string_mode[] = "0000";
                 string_mode[1] += (st->st_mode & 0x01C0) >> 6;
                 string_mode[2] += (st->st_mode & 0x0038) >> 3;
                 string_mode[3] += (st->st_mode & 0x0007);
-                val = purc_variant_make_string (string_mode, true);
-                purc_variant_object_set_by_static_ckey (retv, "type", val);
+                val = purc_variant_make_string(string_mode, false);
+                purc_variant_object_set_by_static_ckey(retv,
+                        "mode_digits", val);
                 purc_variant_unref (val);
             }
-            else if (strncasecmp (opt, "mode_alphas", 11) == 0) {
+            else if (opt_len == 11 &&
+                    strncasecmp (opt, "mode_alphas", opt_len) == 0) {
                 // returns file mode like 'rwxrwxr-x'.
                 char string_mode[] = "---------";
                 if (st->st_mode & S_IRUSR) string_mode[0] = 'r';
@@ -666,11 +673,12 @@ make_object_from_stat(const struct stat *st, const char *options,
                 if (st->st_mode & S_IROTH) string_mode[6] = 'r';
                 if (st->st_mode & S_IWOTH) string_mode[7] = 'w';
                 if (st->st_mode & S_IXOTH) string_mode[8] = 'x';
-                val = purc_variant_make_string (string_mode, true);
-                purc_variant_object_set_by_static_ckey (retv, "type", val);
-                purc_variant_unref (val);
+                val = purc_variant_make_string(string_mode, false);
+                purc_variant_object_set_by_static_ckey(retv,
+                        "mode_alphas", val);
+                purc_variant_unref(val);
             }
-            else if (strncasecmp(opt, "mtime", 5) == 0) {
+            else if (opt_len == 5 && strncasecmp(opt, "mtime", opt_len) == 0) {
                 // returns time of last modification.
 #if OS(LINUX)
                 val = purc_variant_make_ulongint(st->st_mtim.tv_sec);
@@ -695,7 +703,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'n':
-            if (strncasecmp(opt, "nlink", 5) == 0) {
+        case 'N':
+            if (opt_len == 5 && strncasecmp(opt, "nlink", opt_len) == 0) {
                 // returns number of hard links.
                 val = purc_variant_make_ulongint(st->st_nlink);
                 purc_variant_object_set_by_static_ckey(retv, "nlink", val);
@@ -704,7 +713,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'u':
-            if (strncasecmp(opt, "uid", 3) == 0) {
+        case 'U':
+            if (opt_len == 3 && strncasecmp(opt, "uid", opt_len) == 0) {
                 // returns the user ID of owner.
                 val = purc_variant_make_ulongint(st->st_uid);
                 purc_variant_object_set_by_static_ckey(retv, "uid", val);
@@ -713,7 +723,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'g':
-            if (strncasecmp(opt, "gid", 3) == 0) {
+        case 'G':
+            if (opt_len == 3 && strncasecmp(opt, "gid", opt_len) == 0) {
                 // returns the group ID of owner.
                 val = purc_variant_make_ulongint(st->st_gid);
                 purc_variant_object_set_by_static_ckey(retv, "gid", val);
@@ -722,7 +733,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'r':
-            if (strncasecmp(opt, "rdev", 3) == 0) {
+        case 'R':
+            if (opt_len == 4 && strncasecmp(opt, "rdev", opt_len) == 0) {
                 // returns the device ID if it is a special file.
                 // dev_major
                 val = purc_variant_make_ulongint(major(st->st_rdev));
@@ -737,7 +749,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 's':
-            if (strncasecmp (opt, "size", 4) == 0) {
+        case 'S':
+            if (opt_len == 4 && strncasecmp (opt, "size", opt_len) == 0) {
                 // returns total size in bytes.
                 val = purc_variant_make_ulongint(st->st_size);
                 purc_variant_object_set_by_static_ckey(retv, "size", val);
@@ -746,13 +759,15 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'b':
-            if (strncasecmp (opt, "blksize", 7) == 0) {
+        case 'B':
+            if (opt_len == 7 && strncasecmp (opt, "blksize", opt_len) == 0) {
                 // returns block size for filesystem I/O.
                 val = purc_variant_make_ulongint(st->st_blksize);
                 purc_variant_object_set_by_static_ckey(retv, "blksize", val);
                 purc_variant_unref(val);
             }
-            else if (strncasecmp(opt, "blocks", 6) == 0) {
+            else if (opt_len == 6 &&
+                    strncasecmp(opt, "blocks", opt_len) == 0) {
                 // returns number of 512B blocks allocated.
                 val = purc_variant_make_ulongint(st->st_blocks);
                 purc_variant_object_set_by_static_ckey(retv, "blocks", val);
@@ -761,7 +776,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'a':
-            if (strncasecmp (opt, "atime", 5) == 0) {
+        case 'A':
+            if (opt_len == 5 && strncasecmp(opt, "atime", opt_len) == 0) {
                 // returns time of last acces.
 #if OS(LINUX)
                 val = purc_variant_make_ulongint(st->st_atim.tv_sec);
@@ -786,7 +802,8 @@ make_object_from_stat(const struct stat *st, const char *options,
             break;
 
         case 'c':
-            if (strncasecmp(opt, "ctime", 5) == 0) {
+        case 'C':
+            if (opt_len == 5 && strncasecmp(opt, "ctime", opt_len) == 0) {
                 // returns time of last status change.
 #if OS(LINUX)
                 val = purc_variant_make_ulongint(st->st_ctim.tv_sec);
@@ -833,6 +850,7 @@ enum {
     FN_OPTION_STAT,
     FN_OPTION_LSTAT,
 };
+
 static purc_variant_t
 get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -3458,6 +3476,9 @@ on_dir_read(void *native_entity, const char *property_name,
     struct dirent *dp;
     if ((dp = readdir(dirp)) != NULL) {
         retv = purc_variant_make_string(dp->d_name, true);
+    }
+    else {
+        retv = purc_variant_make_boolean(false);
     }
 
     if (retv)

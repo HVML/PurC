@@ -1,0 +1,242 @@
+<!DOCTYPE hvml SYSTEM 'f: MATH FS'>
+<hvml target="html">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+        <!-- import the Bootstrap assets built in the renderer -->
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.8.3/bootstrap-icons.css" />
+        <style hvml:raw>
+            .scrollarea {
+                overflow-y: scroll;
+            }
+
+          .f-divider {
+                height: 3rem;
+                background-color: rgba(0, 0, 0, .1);
+                border: solid rgba(0, 0, 0, .15);
+                border-width: 1px 0;
+                box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+          }
+
+          .f-vr {
+                flex-shrink: 0;
+                width: 0.2rem;
+                height: 100vh;
+          }
+
+          .f-bg-left {
+                background-color: #d1d1d1;
+          }
+
+          .f-bg-path {
+                background-color: #fcfcfc;
+          }
+
+          .f-bg-type {
+                background-color: #fdfdfd;
+          }
+
+          .f-type-txt-color {
+              color: #b1b1b1;
+          }
+
+          .f-bg-item-dark {
+                background-color: #f4f5f5;
+          }
+
+          .f-txt-overflow {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+          }
+
+          .f-cursor-pointer {
+              cursor:pointer;
+          }
+
+          .f-cursor-default {
+              cursor:default;
+          }
+
+          .f-main-item {
+          }
+
+          .f-main-item-active {
+              background-color: #a7a7a7;
+          }
+
+          .f-sub-item {
+          }
+
+          .f-sub-item-active {
+              color: #ffffff;
+              background-color: #0a58ca;
+          }
+        </style>
+    </head>
+
+    <body>
+        <init as 'dataCenter' silently >
+            {
+                "currDir": $SYS.cwd,
+                "dirList" : [],
+                "fileList" : [],
+                "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
+                "activeClass" : "f-main-item f-main-item-active fs-3 rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
+            }
+        </init>
+
+        <define as makeDirObject>
+            <test with $L.and($STR.contains($?.stat.mode_alphas, 'r'), $STR.contains($?.stat.mode_alphas, 'x')) >
+                <init as access at '2' with true temp />
+                <init as iconColor at '2' with 'text-primary' temp />
+                <differ>
+                    <init as access at '3' with false temp />
+                    <init as iconColor at '3' with 'text-secondary' temp />
+                </differ>
+            </test>
+
+            <return with { name: $?.name, sizeText: "$?.stat.nlink Items", access: true, iconColor: $iconColor } />
+        </define>
+
+        <define as getFileType>
+            <test on="$STR.substr($?, -4)">
+                <match for="AS '.pdf'" exclusively>
+                    <return with "bi-file-earmark-pdf" />
+                </match>
+                <match for="AS '.jpg'" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.jpeg'" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.png'" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.gif'" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match for="AS '.mp3'" exclusively>
+                    <return with "bi-file-earmark-music" />
+                </match>
+                <match for="AS '.txt'" exclusively>
+                    <return with "bi-file-earmark-text" />
+                </match>
+                <match for="ANY">
+                    <return with "bi-file-earmark" />
+                </match>
+            </test>
+        </define>
+
+        <define as getFileSize>
+            <test on $?>
+                <match for 'GE 1073741824' exclusively>
+                    <return with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?, 1073741824L), 100)), 100) GB" />
+                </match>
+                <match for 'GE 1048576' exclusively>
+                    <return with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?, 1048576L), 100)), 100) MB" />
+                </match>
+                <match for 'GE 1024' exclusively>
+                    <return with "$MATH.div($MATH.ceil_l($MATH.mul($MATH.div($3?, 1024L), 100)), 100) KB" />
+                </match>
+                <match for 'ANY' exclusively>
+                    <return with "$3? Bytes" />
+                </match>
+            </test>
+        </define>
+
+        <define as makeFileObject >
+
+            <call on $getFileType with $?.name >
+                <init as typeClass at '2' with $? temp />
+            </call>
+
+            <call on $getFileSize with $?.stat.size >
+                <init as sizeText at '2' with $? temp />
+            </call>
+
+            <test with $STR.contains($?.stat.mode_alphas, 'r') >
+                <init as access at '2' with true temp />
+                <differ>
+                    <init as access at '3' with false temp />
+                </differ>
+            </test>
+
+            <return with { name: $?.name, sizeText: $sizeText, access: $access, iconColor: 'text-primary' } />
+
+        </define>
+
+        <choose on $FS.opendir("$dataCenter.currDir") >
+            <iterate with $?.read() >
+                <init as fullPathName with $STR.join($dataCenter.currDir, '/', $?) temp) />
+
+                <choose on $FS.stat($fullPathName, 'type mode_alphas nlink size mtime') >
+                    <test with $DATA.isequal($?.type, 'd') >
+                        <call on $makeDirObject with { name: $3?, stat: $2? } >
+                            <update on $dataCenter.dirList to 'append' with $? />
+                        </call>
+
+                        <differ>
+                            <call on $makeFileObject with { name: $4?, stat: $3? } >
+                                <update on $dataCenter.fileList to 'append' with $? />
+                            </call>
+                        </differ>
+                    </test>
+                </choose>
+            </iterate>
+        </choose>
+
+        <archetype name="mainItem">
+            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$%" value="$?.name">
+                <i class="bi bi-folder pe-none me-2 $?.iconColor"></i>
+                $?.name
+            </div>
+        </archetype>
+
+        <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
+            <div class="row ps-3 pe-3">
+                <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+                    <div class="d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
+                        <div class="f-cursor-pointer">
+                            <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
+                        </div>
+                        <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle"></div>
+                    </div>
+                    <hr/>
+                </a>
+            </div>
+
+            <div class="row ps-3 scrollarea" id="mainList">
+                <iterate on $dataCenter.dirList>
+                    <inherit>
+                        $STREAM.stdout.writelines("got a directry entry: $?.name")
+                    </inherit>
+
+                    <update on $@ to 'append' with $mainItem />
+                </iterate>
+
+                <iterate on $dataCenter.fileList>
+                    <inherit>
+                        $STREAM.stdout.writelines("got a directry entry: $?.name")
+                    </inherit>
+
+                    <update on $@ to 'append' with $mainItem />
+                </iterate>
+            </div>
+        </main>
+
+        <test with $L.streq('caseless', $RDR.state.comm, 'socket') >
+            <observe on $CRTN for "rdrState:pageClosed">
+                <exit with "closed" />
+            </observe>
+        </test>
+
+        <inherit>
+            $STREAM.stdout.writelines("END")
+        </inherit>
+    </body>
+
+</hvml>
