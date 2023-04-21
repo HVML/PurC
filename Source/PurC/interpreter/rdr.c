@@ -940,6 +940,7 @@ check_response_for_suppressed(struct pcinst *inst,
     if (response->dataType == PCRDR_MSG_DATA_TYPE_PLAIN &&
             response->data != PURC_VARIANT_INVALID) {
         const char *plain = purc_variant_get_string_const(response->data);
+
         uint64_t crtn_handle;
         if (plain) {
             crtn_handle = strtoull(plain, NULL, 16);
@@ -958,7 +959,6 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
         const char *doc_content, size_t len_content)
 {
     pcrdr_msg *response_msg = NULL;
-    pcrdr_msg_element_type element_type = PCRDR_MSG_ELEMENT_TYPE_HANDLE;
     purc_variant_t data = PURC_VARIANT_INVALID;
     size_t len_wrotten;
     size_t len_to_write = 0;
@@ -980,7 +980,8 @@ rdr_page_control_load_large_page(struct pcrdr_conn *conn,
 
     response_msg = pcintr_rdr_send_request_and_wait_response(
             conn, target, target_value, PCRDR_OPERATION_WRITEBEGIN, NULL,
-            element_type, elem, NULL, data_type, data, len_to_write);
+            PCRDR_MSG_ELEMENT_TYPE_HANDLE, elem, NULL,
+            data_type, data, len_to_write);
     purc_variant_unref(data);
 
     if (response_msg == NULL) {
@@ -1007,9 +1008,10 @@ writting:
                 false);
         response_msg = pcintr_rdr_send_request_and_wait_response(
                 conn, target, target_value, PCRDR_OPERATION_WRITEEND, NULL,
-                element_type, NULL, NULL, data_type, data, 0);
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL, data_type, data, 0);
         purc_variant_unref(data);
         if (response_msg == NULL) {
+            PC_ERROR("Failed to send request to renderer\n");
             goto failed;
         }
 
@@ -1017,6 +1019,7 @@ writting:
             PC_ERROR("failed to write content to rdr\n");
             goto failed;
         }
+
         goto done;
     }
     else {
@@ -1035,9 +1038,11 @@ writting:
 
         response_msg = pcintr_rdr_send_request_and_wait_response(
                 conn, target, target_value, PCRDR_OPERATION_WRITEMORE, NULL,
-                element_type, NULL, NULL, data_type, data, len_to_write);
+                PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+                data_type, data, len_to_write);
         purc_variant_unref(data);
         if (response_msg == NULL) {
+            PC_ERROR("Failed to send request to renderer\n");
             goto failed;
         }
 

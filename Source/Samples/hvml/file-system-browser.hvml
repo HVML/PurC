@@ -58,7 +58,7 @@
           }
 
           .f-cursor-default {
-              cursor:default;
+              cursor:pointer;
           }
 
           .f-main-item {
@@ -78,10 +78,16 @@
         </style>
     </head>
 
-    <body>
+    <body id="main">
+        <init as 'currDir' with {{ $REQ.dir || $SYS.cwd }}  silently />
+
+        <inherit>
+            $STREAM.stdout.writelines("Start directry: $currDir")
+        </inherit>
+
         <init as 'dataCenter' silently >
             {
-                "currDir": $SYS.cwd,
+                "currDir": $currDir,
                 "dirList" : [],
                 "fileList" : [],
                 "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
@@ -99,7 +105,8 @@
                 </differ>
             </test>
 
-            <return with { name: $?.name, sizeText: "$?.stat.nlink Items", access: true, iconColor: $iconColor } />
+            <return with { name: $?.name, sizeText: "$?.stat.nlink Items", access: true, iconColor: $iconColor,
+                timeText: $DATETIME.fmttime("%Y-%m-%d %H:%M", $?.stat.mtime_sec) } />
         </define>
 
         <define as getFileType>
@@ -165,7 +172,8 @@
                 </differ>
             </test>
 
-            <return with { name: $?.name, sizeText: $sizeText, access: $access, iconColor: 'text-primary' } />
+            <return with { name: $?.name, typeClass: $typeClass, sizeText: $sizeText, access: $access, iconColor: 'text-primary',
+                timeText: $DATETIME.fmttime("%Y-%m-%d %H:%M", $?.stat.mtime_sec) } />
 
         </define>
 
@@ -189,10 +197,22 @@
             </iterate>
         </choose>
 
-        <archetype name="mainItem">
-            <div class="f-main-item nav-link fs-4 link-dark w-100 f-txt-overflow ps-3"  hvml-events="click" id="li-$%" value="$?.name">
-                <i class="bi bi-folder pe-none me-2 $?.iconColor"></i>
-                $?.name
+        <sort on $dataCenter.dirList against 'name' />
+        <sort on $dataCenter.fileList against 'name' />
+
+        <archetype name="dirItem">
+            <div class="row">
+                <div class="col-sm-7 subdir" id="$?.name" hvml-events="click"><i class="bi bi-folder pe-none me-2 $?.iconColor"></i> $?.name</div>
+                <div class="col-sm-2 text-right">$?.sizeText</div>
+                <div class="col-sm-3 text-right">$?.timeText</div>
+            </div>
+        </archetype>
+
+        <archetype name="fileItem">
+            <div class="row">
+                <div class="col-sm-7"><i class="bi $?.typeClass pe-none me-2 $?.iconColor"></i> $?.name</div>
+                <div class="col-sm-2 text-right">$?.sizeText</div>
+                <div class="col-sm-3 text-right">$?.timeText</div>
             </div>
         </archetype>
 
@@ -201,30 +221,31 @@
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
                     <div class="d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
                         <div class="f-cursor-pointer">
-                            <i class="bi bi-chevron-up" id="backButton" hvml-events="click"></i>
+                            <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle">$dataCenter.currDir</div>
                         </div>
-                        <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle"></div>
                     </div>
                     <hr/>
                 </a>
             </div>
 
             <div class="row ps-3 scrollarea" id="mainList">
-                <iterate on $dataCenter.dirList>
-                    <inherit>
-                        $STREAM.stdout.writelines("got a directry entry: $?.name")
-                    </inherit>
+                <div class=".container-fluid">
+                    <iterate on $dataCenter.dirList>
+                        <!-- inherit>
+                            $STREAM.stdout.writelines("got a directry entry: $?.name")
+                        </inherit -->
 
-                    <update on $@ to 'append' with $mainItem />
-                </iterate>
+                        <update on $@ to 'append' with $dirItem />
+                    </iterate>
 
-                <iterate on $dataCenter.fileList>
-                    <inherit>
-                        $STREAM.stdout.writelines("got a directry entry: $?.name")
-                    </inherit>
+                    <iterate on $dataCenter.fileList>
+                        <!-- inherit>
+                            $STREAM.stdout.writelines("got a directry entry: $?.name")
+                        </inherit -->
 
-                    <update on $@ to 'append' with $mainItem />
-                </iterate>
+                        <update on $@ to 'append' with $fileItem />
+                    </iterate>
+                </div>
             </div>
         </main>
 
@@ -232,11 +253,20 @@
             <observe on $CRTN for "rdrState:pageClosed">
                 <exit with "closed" />
             </observe>
-        </test>
 
-        <inherit>
-            $STREAM.stdout.writelines("END")
-        </inherit>
+            <observe on $CRTN for "rdrState:pageSuppressed">
+                <inherit>
+                    $STREAM.stdout.writelines("pageSuppressed")
+                </inherit>
+
+                <exit with "suppressed" />
+            </observe>
+
+            <observe on ".subdir" for "click">
+                <load from '#main' onto 'self:' with { dir: "$currDir/$?.targetId" } async />
+            </observe>
+
+        </test>
     </body>
 
 </hvml>
