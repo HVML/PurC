@@ -1504,7 +1504,7 @@ static int compare_and_update_properties(foil_create_ctxt *ctxt,
     (void) box;
     (void) crux_changed;
     foil_rdrbox *tmpbox;
-    if ((tmpbox = foil_rdrbox_create_from_style(ctxt))) {
+    if ((tmpbox = foil_rdrbox_create_from_style(ctxt)) == NULL) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
@@ -1664,6 +1664,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     int r = PCRDR_SC_NOT_IMPLEMENTED;
     pcdoc_element *ancestor = rdrbox->owner;
     css_select_results *result = NULL;
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
 
     result = select_element_style(&udom->media,
             udom->select_ctx, udom, ancestor,
@@ -1684,7 +1685,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         rdrbox->parent,                     /* parent box */
         purc_document_root(udom->doc),   /* root element */
         purc_document_body(udom->doc),   /* body element */
-        NULL,
+        ancestor,
         result,                          /* computed */
         style,                           /* style */
         NULL };
@@ -1701,6 +1702,8 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
 
     if (!crux_changed) {
+        /* sizing, border property */
+        pre_layout_rdrtree(&layout_ctxt, rdrbox);
         goto render;
     }
 
@@ -1709,7 +1712,6 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     rebuild_children(udom, rdrbox);
     reset_rdrbox_layout_info(udom, rdrbox);
 
-    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     pre_layout_rdrtree(&layout_ctxt, rdrbox);
     resolve_widths(&layout_ctxt, rdrbox);
     resolve_heights(&layout_ctxt, rdrbox);
@@ -1722,6 +1724,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
 
 render:
     foil_udom_invalidate_rdrbox(udom, rdrbox);
+    r = PCRDR_SC_OK;
 
 done:
     if (result) {
