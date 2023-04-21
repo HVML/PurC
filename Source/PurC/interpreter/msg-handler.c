@@ -444,7 +444,8 @@ purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
     crtns = &heap->crtns;
     list_for_each_entry_safe(p, q, crtns, ln) {
         pcintr_coroutine_t co = p;
-        if (handle == co->target_dom_handle) {
+        /* FIXME: work-around */
+        if (handle == co->target_dom_handle && !co->stack.exited) {
             if (pstack) {
                 *pstack = &(co->stack);
             }
