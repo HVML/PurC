@@ -1692,14 +1692,40 @@ static void erase_bg(pcmcth_udom *udom, foil_rdrbox *box, foil_rect origin_rc)
     }
 }
 
+static struct foil_rdrbox *get_rdrbox_container(pcmcth_udom *udom,
+        struct foil_rdrbox *rdrbox)
+{
+    struct foil_rdrbox *container = rdrbox->parent;
+    while (container && container != rdrbox->cblock_creator) {
+        container = container->parent;
+    }
+
+    if (!container) {
+        container = udom->initial_cblock;
+    }
+    return container;
+}
+
 static struct foil_rdrbox *relayout_rdrtree(struct foil_layout_ctxt *ctxt,
         struct foil_rdrbox *rdrbox, foil_rect origin_rc)
 {
+again:
     reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
 
     pre_layout_rdrtree(ctxt, rdrbox);
     resolve_widths(ctxt, rdrbox);
     resolve_heights(ctxt, rdrbox);
+
+    int ow = foil_rect_width(&origin_rc);
+    int oh = foil_rect_height(&origin_rc);
+    int w = rdrbox->width;
+    int h = rdrbox->height;
+
+    if (ow != w || oh != h) {
+        rdrbox = get_rdrbox_container(ctxt->udom, rdrbox);
+        origin_rc = rdrbox->ctnt_rect;
+        goto again;
+    }
 
     foil_rect_set(&rdrbox->ctnt_rect, origin_rc.left, origin_rc.top,
             origin_rc.left + rdrbox->width, origin_rc.top + rdrbox->height);
@@ -1764,13 +1790,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         goto render;
     }
 
-    while (render_box && render_box != rdrbox->cblock_creator) {
-        render_box = render_box->parent;
-    }
-
-    if (!render_box) {
-        render_box = udom->initial_cblock;
-    }
+    render_box = get_rdrbox_container(udom, rdrbox);
 
     render_box = relayout_rdrtree(&layout_ctxt, render_box, render_box->ctnt_rect);
 
