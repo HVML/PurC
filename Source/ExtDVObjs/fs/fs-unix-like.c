@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <grp.h>
 #include <uuid/uuid.h>
+#include <libgen.h>
 
 #if OS(LINUX)
 #include <mntent.h>
@@ -1879,43 +1880,64 @@ failed:
 }
 
 static purc_variant_t
-dirname_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+dirname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
-    const char *string_path = NULL;
-    const char *dir_begin = NULL;
-    uint64_t levels = 1;
-    size_t length;
-    purc_variant_t ret_string = PURC_VARIANT_INVALID;
+    const char *path = NULL;
+    uint32_t levels = 1;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
     // get the parameters
-    string_path = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_path) {
-        ret_string = purc_variant_make_string("", true);
-        return ret_string;
+    path = purc_variant_get_string_const(argv[0]);
+    if (NULL == path) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
+
+    size_t length = strlen(path);
+    if (length == 0 || length >= PATH_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     if (nr_args > 1) {
         // Get the levels
-        if (! purc_variant_cast_to_ulongint (argv[1], &levels, false)) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        if (!purc_variant_cast_to_uint32(argv[1], &levels, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        if (levels == 0) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
 
-    dir_begin = get_dir_path (string_path, levels, &length);
-    ret_string = purc_variant_make_string_ex(dir_begin, length, true);
-    return ret_string;
+    char *cloned = strdup(path);
+    char *dname = cloned;
+    do {
+        dname = dirname(dname);
+        levels--;
+    } while (levels);
+
+    retv = purc_variant_make_string(dname, false);
+    free(cloned);
+
+    if (retv == PURC_VARIANT_INVALID)
+        goto failed;
+
+    return retv;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
