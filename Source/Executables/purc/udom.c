@@ -1395,6 +1395,8 @@ static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
     box->nr_inline_level_children = 0;
     box->nr_floating_children = 0;
     box->nr_abspos_children = 0;
+    box->ml = box->mt = box->mr = box->mb = 0;
+    box->pl = box->pt = box->pr = box->pb = 0;
     foil_rect_set(&box->ctnt_rect, 0, 0, 0, 0);
 }
 
@@ -1662,7 +1664,9 @@ failed:
 
 static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
 {
-    reset_rdrbox_layout_info(udom, box);
+    if (box != udom->initial_cblock) {
+        reset_rdrbox_layout_info(udom, box);
+    }
 
     foil_rdrbox *child = box->first;
     while (child) {
@@ -1716,24 +1720,28 @@ again:
     resolve_widths(ctxt, rdrbox);
     resolve_heights(ctxt, rdrbox);
 
-    int ow = foil_rect_width(&origin_rc);
-    int oh = foil_rect_height(&origin_rc);
-    int w = rdrbox->width;
-    int h = rdrbox->height;
+    if (rdrbox != ctxt->udom->initial_cblock) {
+        int ow = foil_rect_width(&origin_rc);
+        int oh = foil_rect_height(&origin_rc);
+        int w = rdrbox->width;
+        int h = rdrbox->height;
 
-    if (ow != w || oh != h) {
-        rdrbox = get_rdrbox_container(ctxt->udom, rdrbox);
-        origin_rc = rdrbox->ctnt_rect;
-        goto again;
+        if (ow != w || oh != h) {
+            rdrbox = get_rdrbox_container(ctxt->udom, rdrbox);
+            origin_rc = rdrbox->ctnt_rect;
+            goto again;
+        }
+
+        foil_rect_set(&rdrbox->ctnt_rect, origin_rc.left, origin_rc.top,
+                origin_rc.left + rdrbox->width, origin_rc.top + rdrbox->height);
     }
 
-    foil_rect_set(&rdrbox->ctnt_rect, origin_rc.left, origin_rc.top,
-            origin_rc.left + rdrbox->width, origin_rc.top + rdrbox->height);
-
     layout_rdrtree(ctxt, rdrbox);
-
     erase_bg(ctxt->udom, rdrbox, origin_rc);
 
+    if (rdrbox == ctxt->udom->initial_cblock) {
+        rdrbox = ctxt->udom->initial_cblock->first;
+    }
     return rdrbox;
 }
 

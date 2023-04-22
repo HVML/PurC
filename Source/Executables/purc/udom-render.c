@@ -826,8 +826,6 @@ void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, foil_rdrbox *box)
         parent = parent->parent;
     } while (parent);
 
-    assert(stacking_ctxt);
-
     foil_rect invrc;
     foil_rdrbox_border_box(box, &invrc);
 
