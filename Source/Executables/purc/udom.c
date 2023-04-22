@@ -1672,18 +1672,16 @@ static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
 }
 
 static int relayout_rdrtree(struct foil_layout_ctxt *ctxt,
-        struct foil_rdrbox *rdrbox)
+        struct foil_rdrbox *rdrbox, foil_rect origin_rc)
 {
-    foil_rect orc = rdrbox->ctnt_rect;
-
     reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
 
     pre_layout_rdrtree(ctxt, rdrbox);
     resolve_widths(ctxt, rdrbox);
     resolve_heights(ctxt, rdrbox);
 
-    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
-            orc.left + rdrbox->width, orc.top + rdrbox->height);
+    foil_rect_set(&rdrbox->ctnt_rect, origin_rc.left, origin_rc.top,
+            origin_rc.left + rdrbox->width, origin_rc.top + rdrbox->height);
 
     layout_rdrtree(ctxt, rdrbox);
 
@@ -1751,7 +1749,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         render_box = udom->initial_cblock;
     }
 
-    relayout_rdrtree(&layout_ctxt, render_box);
+    relayout_rdrtree(&layout_ctxt, render_box, render_box->ctnt_rect);
 
 render:
     foil_udom_invalidate_rdrbox(udom, render_box);
@@ -1781,14 +1779,7 @@ static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     reset_rdrbox_layout_info(udom, rdrbox);
 
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
-    pre_layout_rdrtree(&layout_ctxt, rdrbox);
-    resolve_widths(&layout_ctxt, rdrbox);
-    resolve_heights(&layout_ctxt, rdrbox);
-
-    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
-            orc.left + rdrbox->width, orc.top + rdrbox->height);
-
-    layout_rdrtree(&layout_ctxt, rdrbox);
+    relayout_rdrtree(&layout_ctxt, rdrbox, orc);
 
     foil_udom_invalidate_rdrbox(udom, rdrbox);
     return PCRDR_SC_OK;
@@ -1817,14 +1808,7 @@ static int on_displace_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     reset_rdrbox_layout_info(udom, rdrbox);
 
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
-    pre_layout_rdrtree(&layout_ctxt, rdrbox);
-    resolve_widths(&layout_ctxt, rdrbox);
-    resolve_heights(&layout_ctxt, rdrbox);
-
-    foil_rect_set(&rdrbox->ctnt_rect, orc.left, orc.top,
-            orc.left + rdrbox->width, orc.top + rdrbox->height);
-
-    layout_rdrtree(&layout_ctxt, rdrbox);
+    relayout_rdrtree(&layout_ctxt, rdrbox, orc);
 
     foil_udom_invalidate_rdrbox(udom, rdrbox);
     return PCRDR_SC_OK;
