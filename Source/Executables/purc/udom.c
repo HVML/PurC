@@ -1671,7 +1671,28 @@ static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
     }
 }
 
-static int relayout_rdrtree(struct foil_layout_ctxt *ctxt,
+static void erase_bg(pcmcth_udom *udom, foil_rdrbox *box, foil_rect origin_rc)
+{
+    foil_render_ctxt ctxt = { .udom = udom, .fp = NULL };
+    if (box->tailor_ops && box->tailor_ops->bgnd_painter) {
+        box->tailor_ops->bgnd_painter(&ctxt, box);
+    }
+    else {
+        foil_rect page_rc;
+        const foil_rect *rc;
+        if (box->is_root) {
+            rc = NULL;
+        }
+        else {
+            foil_rdrbox_map_rect_to_page(&origin_rc, &page_rc);
+            rc = &page_rc;
+        }
+        foil_page_set_bgc(udom->page, box->background_color);
+        foil_page_erase_rect(udom->page, rc);
+    }
+}
+
+static struct foil_rdrbox *relayout_rdrtree(struct foil_layout_ctxt *ctxt,
         struct foil_rdrbox *rdrbox, foil_rect origin_rc)
 {
     reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
@@ -1685,7 +1706,9 @@ static int relayout_rdrtree(struct foil_layout_ctxt *ctxt,
 
     layout_rdrtree(ctxt, rdrbox);
 
-    return 0;
+    erase_bg(ctxt->udom, rdrbox, origin_rc);
+
+    return rdrbox;
 }
 
 
@@ -1749,7 +1772,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         render_box = udom->initial_cblock;
     }
 
-    relayout_rdrtree(&layout_ctxt, render_box, render_box->ctnt_rect);
+    render_box = relayout_rdrtree(&layout_ctxt, render_box, render_box->ctnt_rect);
 
 render:
     foil_udom_invalidate_rdrbox(udom, render_box);
@@ -1779,7 +1802,7 @@ static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     reset_rdrbox_layout_info(udom, rdrbox);
 
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
-    relayout_rdrtree(&layout_ctxt, rdrbox, orc);
+    rdrbox = relayout_rdrtree(&layout_ctxt, rdrbox, orc);
 
     foil_udom_invalidate_rdrbox(udom, rdrbox);
     return PCRDR_SC_OK;
@@ -1808,7 +1831,7 @@ static int on_displace_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     reset_rdrbox_layout_info(udom, rdrbox);
 
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
-    relayout_rdrtree(&layout_ctxt, rdrbox, orc);
+    rdrbox = relayout_rdrtree(&layout_ctxt, rdrbox, orc);
 
     foil_udom_invalidate_rdrbox(udom, rdrbox);
     return PCRDR_SC_OK;
