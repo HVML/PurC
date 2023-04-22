@@ -48,11 +48,47 @@ negative:
 
 negative:
     $FS.basename("", false)
+    InvalidValue
+
+negative:
+    $FS.basename("/usr/lib", false)
     WrongDataType
+
+positive:
+    $FS.basename("/usr/lib")
+    "lib"
+
+positive:
+    $FS.basename("/usr/")
+    "usr"
+
+positive:
+    $FS.basename("usr")
+    "usr"
+
+positive:
+    $FS.basename("/")
+    "/"
+
+positive:
+    $FS.basename(".")
+    "."
+
+positive:
+    $FS.basename("..")
+    ".."
 
 positive:
     $FS.basename("/etc/sudoers.d", ".d")
     "sudoers"
+
+positive:
+    $FS.basename("/etc/sudoers.d", ".txt")
+    "sudoers.d"
+
+positive:
+    $FS.basename("/etc/sudoers.d", ".c")
+    "sudoers.d"
 
 positive:
     $FS.basename("/etc/sudoers.d")
@@ -69,10 +105,6 @@ positive:
 positive:
     $FS.basename(".")
     "."
-
-positive:
-    $FS.basename("/")
-    ""
 
 # test case for $FS.chgrp
 
@@ -210,6 +242,10 @@ negative:
 
 negative:
     $FS.dirname("", false)
+    InvalidValue
+
+negative:
+    $FS.dirname("/usr", false)
     WrongDataType
 
 positive:
@@ -221,6 +257,26 @@ positive:
     "/"
 
 positive:
+    $FS.dirname("/usr/lib")
+    "/usr"
+
+positive:
+    $FS.dirname("/usr/")
+    "/"
+
+positive:
+    $FS.dirname("usr")
+    "."
+
+positive:
+    $FS.dirname(".")
+    "."
+
+positive:
+    $FS.dirname("..")
+    "."
+
+positive:
     $FS.dirname("/etc/passwd")
     "/etc"
 
@@ -230,11 +286,15 @@ positive:
 
 positive:
     $FS.dirname("../hello")
-    "../"
+    ".."
 
 positive:
     $FS.dirname("/usr/local/lib", 2)
     "/usr"
+
+positive:
+    $FS.dirname("/usr/local/lib", 3)
+    "/"
 
 # test case for $FS.disk_usage
 

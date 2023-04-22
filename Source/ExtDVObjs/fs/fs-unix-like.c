@@ -1604,16 +1604,15 @@ failed:
 }
 
 static purc_variant_t
-basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+basename_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
-    const char *string_path = NULL;
-    const char *string_suffix = NULL;
-    const char *base_begin;
-    size_t length;
-    purc_variant_t ret_string = PURC_VARIANT_INVALID;
+    const char *path = NULL;
+    const char *suffix = NULL;
+    size_t length, suffix_len = 0;
+    purc_variant_t retv = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -1621,26 +1620,48 @@ basename_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the parameters
-    string_path = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_path) {
-        ret_string = purc_variant_make_string("", true);
-        return ret_string;
+    path = purc_variant_get_string_const_ex(argv[0], &length);
+    if (NULL == path) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
     }
+
+    if (length == 0 || length >= PATH_MAX) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
     if (nr_args > 1) {
-        string_suffix = purc_variant_get_string_const (argv[1]);
-        if (NULL == string_suffix) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        suffix = purc_variant_get_string_const_ex(argv[1], &suffix_len);
+        if (NULL == suffix) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
     }
 
-    base_begin = get_basename (string_path, string_suffix, &length);
-    ret_string = purc_variant_make_string_ex(base_begin, length, true);
-    return ret_string;
+    char *cloned = strdup(path);
+    char *fname = basename(cloned);
+    if (suffix && suffix_len > 0) {
+        size_t name_len = strlen(fname);
+        if (suffix_len <= name_len) {
+            char *p = fname + name_len - suffix_len;
+            if (strcmp(p, suffix) == 0) {
+                *p = 0;
+            }
+        }
+    }
+
+    retv = purc_variant_make_string(fname, false);
+    free(cloned);
+
+    if (retv == PURC_VARIANT_INVALID)
+        goto failed;
+
+    return retv;
 
 failed:
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
@@ -1886,6 +1907,7 @@ dirname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     const char *path = NULL;
+    size_t length;
     uint32_t levels = 1;
     purc_variant_t retv = PURC_VARIANT_INVALID;
 
@@ -1895,13 +1917,12 @@ dirname_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the parameters
-    path = purc_variant_get_string_const(argv[0]);
+    path = purc_variant_get_string_const_ex(argv[0], &length);
     if (NULL == path) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    size_t length = strlen(path);
     if (length == 0 || length >= PATH_MAX) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
