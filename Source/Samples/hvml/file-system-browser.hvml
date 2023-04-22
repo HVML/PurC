@@ -14,38 +14,8 @@
                 overflow-y: scroll;
             }
 
-          .f-divider {
-                height: 3rem;
-                background-color: rgba(0, 0, 0, .1);
-                border: solid rgba(0, 0, 0, .15);
-                border-width: 1px 0;
-                box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
-          }
-
-          .f-vr {
-                flex-shrink: 0;
-                width: 0.2rem;
-                height: 100vh;
-          }
-
           .f-bg-left {
                 background-color: #d1d1d1;
-          }
-
-          .f-bg-path {
-                background-color: #fcfcfc;
-          }
-
-          .f-bg-type {
-                background-color: #fdfdfd;
-          }
-
-          .f-type-txt-color {
-              color: #b1b1b1;
-          }
-
-          .f-bg-item-dark {
-                background-color: #f4f5f5;
           }
 
           .f-txt-overflow {
@@ -54,27 +24,14 @@
                 white-space: nowrap;
           }
 
-          .f-cursor-pointer {
-              cursor:pointer;
+          div.dir-entry:nth-child(odd) {
+              color: #000;
+              background-color: #ced4da;
           }
 
-          .f-cursor-default {
-              cursor:pointer;
-          }
-
-          .f-main-item {
-          }
-
-          .f-main-item-active {
-              background-color: #a7a7a7;
-          }
-
-          .f-sub-item {
-          }
-
-          .f-sub-item-active {
-              color: #ffffff;
-              background-color: #0a58ca;
+          div.dir-entry:nth-child(even) {
+              color: #000;
+              background-color: #adb5bd;
           }
         </style>
     </head>
@@ -86,8 +43,6 @@
                 "currDir": {{ $REQ.dir || $SYS.cwd }},
                 "dirList" : [],
                 "fileList" : [],
-                "normalClass" : "f-main-item w-100 fs-3 f-txt-overflow ps-3 nav-link link-dark",
-                "activeClass" : "f-main-item f-main-item-active fs-3 rounded w-100 f-txt-overflow ps-3 nav-link link-dark",
             }
         </init>
 
@@ -173,9 +128,11 @@
 
         </define>
 
-        <choose on $FS.opendir($dataCenter.currDir) >
-            <iterate with $?.read() >
-                <init as fullPathName with $STR.join($dataCenter.currDir, '/', $?) temp) />
+        <choose on $FS.opendir($dataCenter.currDir) idd-by 'myAnchor'>
+            <init as totalEntries with 0 temp />
+
+            <iterate onlyif $L.lt($totalEntries, 256) with $?.read() >
+                <init as fullPathName with $STR.join($dataCenter.currDir, '/', $?) temp />
 
                 <choose on $FS.stat($fullPathName, 'type mode_alphas nlink size mtime') >
                     <test with $DATA.isequal($?.type, 'd') >
@@ -190,6 +147,8 @@
                         </differ>
                     </test>
                 </choose>
+
+                <init as totalEntries at '2' with $DATA.arith('+', $totalEntries, 1) temp />
             </iterate>
         </choose>
 
@@ -197,7 +156,7 @@
         <sort on $dataCenter.fileList against 'name' />
 
         <archetype name="dirItem">
-            <div class="row">
+            <div class="row dir-entry">
                 <div class="col-sm-7 subdir" id="$?.name" hvml-events="click"><i class="bi bi-folder pe-none me-2 $?.iconColor"></i> $?.name</div>
                 <div class="col-sm-2 text-right">$?.sizeText</div>
                 <div class="col-sm-3 text-right">$?.timeText</div>
@@ -205,27 +164,25 @@
         </archetype>
 
         <archetype name="fileItem">
-            <div class="row">
+            <div class="row dir-entry">
                 <div class="col-sm-7"><i class="bi $?.typeClass pe-none me-2 $?.iconColor"></i> $?.name</div>
                 <div class="col-sm-2 text-right">$?.sizeText</div>
                 <div class="col-sm-3 text-right">$?.timeText</div>
             </div>
         </archetype>
 
-        <main class="d-flex flex-column flex-nowrap h-100 f-bg-left">
+        <main class="d-flex flex-column flex-nowrap h-100">
             <div class="row ps-3 pe-3">
                 <a lass="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
-                    <div class="d-flex align-items-center fs-1 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
-                        <div class="f-cursor-pointer">
-                            <div class="ps-3 f-txt-overflow text-center f-cursor-default" id="mainHeadTitle">$dataCenter.currDir</div>
-                        </div>
+                    <div class="d-flex align-items-center fs-3 ps-2 pt-4 pb-2 w-100 text-secondary-emphasis  fw-bolder" id="mainHeadTitleContainer">
+                        <div class="ps-3 f-txt-overflow text-center" id="mainHeadTitle">$dataCenter.currDir</div>
                     </div>
                     <hr/>
                 </a>
             </div>
 
             <div class="row ps-3 scrollarea" id="mainList">
-                <div class=".container-fluid">
+                <div class="container-fluid">
                     <iterate on $dataCenter.dirList>
                         <!-- inherit>
                             $STREAM.stdout.writelines("got a directry entry: $?.name")
@@ -247,6 +204,9 @@
 
         <test with $L.streq('caseless', $RDR.state.comm, 'socket') >
             <observe on $CRTN for "rdrState:pageClosed">
+                <inherit>
+                    $STREAM.stdout.writelines("pageClosed")
+                </inherit>
                 <exit with "closed" />
             </observe>
 
@@ -261,21 +221,18 @@
             <observe on ".subdir" for "click">
                 <test on $?.targetId >
                     <match for "AS '..'" exclusively>
-                        <!-- inherit>
-                            $STREAM.stdout.writelines("currDir: ..")
-                        </inherit -->
+                        <inherit>
+                            $STREAM.stdout.writelines("currDir: $dataCenter.currDir")
+                        </inherit>
                         <test with $DATA.isequal($dataCenter.currDir, '/') >
                             <differ>
-                                <test with $STR.ends_with($dataCenter.currDir, '/') >
-                                    <update on $dataCenter at '.currDir' with $STR.substr($dataCenter.currDir, -1) />
-                                </test>
                                 <update on $dataCenter at '.currDir' with $FS.dirname($dataCenter.currDir) />
                             </differ>
                         </test>
 
-                        <!-- inherit>
+                        <inherit>
                             $STREAM.stdout.writelines("currDir: $dataCenter.currDir")
-                        </inherit -->
+                        </inherit>
                         <init as dirName at '3' with '' temp />
                     </match>
                     <match for "AS '.'" exclusively>
