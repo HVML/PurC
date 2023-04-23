@@ -1,0 +1,152 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'f: MATH FS'>
+<hvml target="html" silently >
+    <head>
+        <style hvml:raw>
+            .border_red {
+                border-style: solid;
+                border-width: thick;
+                border-color: red;
+            }
+            .border_green {
+                border-style: solid;
+                border-width: thick;
+                border-color: green;
+            }
+            .border_blue {
+                border-style: solid;
+                border-width: thick;
+                border-color: blue;
+            }
+            .fl {
+                float: left;
+            }
+
+            .fr {
+                float: right;
+            }
+
+            .h100 {
+                height:100px;
+            }
+
+            .h50 {
+                height:50px;
+            }
+
+            .h20 {
+                height:20px;
+            }
+            .h30 {
+                height:30px;
+            }
+
+            .h40 {
+                height:40px;
+            }
+            .w30 {
+                width:30px;
+            }
+
+            .w100 {
+                width:100px;
+            }
+            .w200 {
+                width:200px;
+            }
+            .fixed_lt {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+            }
+            .fixed_rt {
+                position:fixed;
+                right: 10px;
+                top: 10px;
+            }
+            .fixed_lb {
+                position:fixed;
+                left: 10px;
+                bottom: 10px;
+            }
+            .fixed_rb {
+                position:fixed;
+                right: 10px;
+                bottom: 10px;
+            }
+            .fixed_ltrb {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .fixed_ltr {
+                position:fixed;
+                left: 10px;
+                top: 10px;
+                right: 10px;
+            }
+            .fixed_ltb {
+                position:fixed;
+                left: 10px;
+                top: 30px;
+                bottom: 10px;
+            }
+            .fixed_trb {
+                position:fixed;
+                top: 50px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .abs_lt {
+                position:absolute;
+                left: 10px;
+                top: 10px;
+            }
+            .abs_rt {
+                position:absolute;
+                right: 10px;
+                top: 10px;
+            }
+            .abs_lb {
+                position:absolute;
+                left: 10px;
+                bottom: 10px;
+            }
+            .abs_rb {
+                position:absolute;
+                right: 10px;
+                bottom: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="sec" class="border_red">
+            <p>
+                <div id="p4" class="border_red">init</div>
+            </p>
+        </div>
+
+        <update on "$TIMERS" to "unite">
+            [
+                { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+            ]
+        </update>
+
+        <observe on $TIMERS for "expired:gogogo">
+
+            <update on '#p4' at 'content' with "update" />
+            <update on '#p4' at 'attr.class' with "border_blue w30 h20" silently />
+            <forget on $TIMERS for 'expired:*' />
+            <exit with true />
+
+        </observe>
+
+
+    </body>
+
+</hvml>
+
