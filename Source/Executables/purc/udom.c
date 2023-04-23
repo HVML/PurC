@@ -1664,9 +1664,7 @@ failed:
 
 static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
 {
-    if (box != udom->initial_cblock) {
-        reset_rdrbox_layout_info(udom, box);
-    }
+    reset_rdrbox_layout_info(udom, box);
 
     foil_rdrbox *child = box->first;
     while (child) {
@@ -1715,6 +1713,28 @@ static struct foil_rdrbox *relayout_rdrtree(struct foil_layout_ctxt *ctxt,
 {
 again:
     reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
+    if (rdrbox == ctxt->udom->initial_cblock) {
+        int width = ctxt->udom->vw;
+        int height = ctxt->udom->vh;
+        ctxt->udom->initial_cblock->is_initial = 1;
+        ctxt->udom->initial_cblock->is_block_level = 1;
+        ctxt->udom->initial_cblock->is_block_container = 1;
+        ctxt->udom->initial_cblock->is_width_resolved = 1;
+
+        ctxt->udom->initial_cblock->width = width;
+        ctxt->udom->initial_cblock->height = height;
+
+        ctxt->udom->initial_cblock->color.specified = 0;
+        ctxt->udom->initial_cblock->color.argb = FOIL_DEF_FGC;
+        ctxt->udom->initial_cblock->background_color.specified = 0;
+        ctxt->udom->initial_cblock->background_color.argb = FOIL_DEF_BGC;
+
+        ctxt->udom->initial_cblock->ctnt_rect.left = 0;
+        ctxt->udom->initial_cblock->ctnt_rect.top = 0;
+        ctxt->udom->initial_cblock->ctnt_rect.right = width;
+        ctxt->udom->initial_cblock->ctnt_rect.bottom = height;
+        ctxt->udom->initial_cblock->cblock_creator = NULL;
+    }
 
     pre_layout_rdrtree(ctxt, rdrbox);
     resolve_widths(ctxt, rdrbox);
@@ -1740,6 +1760,12 @@ again:
     erase_bg(ctxt->udom, rdrbox, origin_rc);
 
     if (rdrbox == ctxt->udom->initial_cblock) {
+        int cols = ctxt->udom->initial_cblock->width / FOIL_PX_GRID_CELL_W;
+        int rows = ctxt->udom->initial_cblock->height / FOIL_PX_GRID_CELL_H;
+
+        if (rows > ctxt->udom->page->rows || cols > ctxt->udom->page->cols) {
+            foil_page_set_row_col(ctxt->udom->page, cols, rows);
+        }
         rdrbox = ctxt->udom->initial_cblock->first;
     }
     return rdrbox;
