@@ -1,0 +1,29 @@
+            <SECTION id="$caseName">
+                <div id="sec" class="border_red">
+                    <div id="f_0" class="border_red">
+                        div 0 : text
+                    </div>
+                    <div id="f_1" class="border_red">
+                        div 0 : text
+                    </div>
+                    <div id="n_0" class="border_red">
+                        This is a short text 0; This is a short text 1; This is a short text 2; This is a short text 3;
+                    </div>
+                </div>
+                <update on "$TIMERS" to "unite">
+                    [
+                        { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+                    ]
+                </update>
+
+                <observe on $TIMERS for "expired:gogogo">
+
+                    <update on '#f_0' at 'attr.class' with "border_blue fixed_lb" silently />
+                    <update on '#f_1' at 'attr.class' with "border_blue fixed_rb" silently />
+                    <forget on $TIMERS for 'expired:*' />
+                    <exit with true />
+
+                </observe>
+            </SECTION>
+
+
