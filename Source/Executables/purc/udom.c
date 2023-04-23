@@ -1389,8 +1389,15 @@ static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
     (void)udom;
     box->is_width_resolved = 0;
     box->is_height_resolved = 0;
+    box->is_in_normal_flow = 0;
+    box->is_in_flow = 0;
+    box->is_zidx_auto = 0;
     box->width = 0;
     box->height = 0;
+    box->prop_for_width = 0;
+    box->prop_for_height = 0;
+    box->is_width_resolved = 0;
+    box->is_height_resolved = 0;
     box->nr_block_level_children = 0;
     box->nr_inline_level_children = 0;
     box->nr_floating_children = 0;
