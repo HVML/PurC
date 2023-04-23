@@ -1818,7 +1818,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     rdrbox->computed_style = style;
     result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
 
-    if (crux_changed) {
+    if (!crux_changed) {
         /* sizing, border property */
         pre_layout_rdrtree(&layout_ctxt, rdrbox);
         goto render;
