@@ -1364,7 +1364,7 @@ static void foil_rdrbox_delete_children(foil_rdrbox *root)
     box->nr_abspos_children = 0;
 }
 
-static int rebuild_children(pcmcth_udom *udom, foil_rdrbox *box)
+static int rebuild_subtree(pcmcth_udom *udom, foil_rdrbox *box)
 {
     foil_rdrbox_delete_children(box);
     foil_create_ctxt ctxt = { udom,
@@ -1818,7 +1818,7 @@ static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     rdrbox->computed_style = style;
     result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
 
-    if (0 && crux_changed) {
+    if (crux_changed) {
         /* sizing, border property */
         pre_layout_rdrtree(&layout_ctxt, rdrbox);
         goto render;
@@ -1846,20 +1846,62 @@ failed:
     return PCRDR_SC_SERVICE_UNAVAILABLE;
 }
 
-static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
-    pcdoc_element_t ref_elem)
+static int on_rebuild_subtree(pcmcth_udom *udom, foil_rdrbox *rdrbox)
 {
-    (void) ref_elem;
     foil_rect orc = rdrbox->ctnt_rect;
 
-    rebuild_children(udom, rdrbox);
-    reset_rdrbox_layout_info(udom, rdrbox);
+    rebuild_subtree(udom, rdrbox);
 
     foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
     rdrbox = relayout_rdrtree(&layout_ctxt, rdrbox, orc);
 
     foil_udom_invalidate_rdrbox(udom, rdrbox);
     return PCRDR_SC_OK;
+}
+
+static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_erase_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_clear_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_append_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_prepend_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_insert_before_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_insert_after_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
 }
 
 static int on_update_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
@@ -1871,6 +1913,30 @@ static int on_update_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     case PCRDR_K_OPERATION_UPDATE:
         r = on_displace_text_content(udom, rdrbox, ref_elem);
         break;
+
+    case PCRDR_K_OPERATION_ERASE:
+        r = on_erase_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_CLEAR:
+        r = on_clear_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_APPEND:
+        r = on_append_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_PREPEND:
+        r = on_prepend_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTBEFORE:
+        r = on_insert_before_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTAFTER:
+        r = on_insert_after_text_content(udom, rdrbox, ref_elem);
+        break;
     }
     return r;
 }
@@ -1879,16 +1945,49 @@ static int on_displace_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
     (void) ref_elem;
-    foil_rect orc = rdrbox->ctnt_rect;
+    return on_rebuild_subtree(udom, rdrbox);
+}
 
-    rebuild_children(udom, rdrbox);
-    reset_rdrbox_layout_info(udom, rdrbox);
+static int on_erase_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
 
-    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
-    rdrbox = relayout_rdrtree(&layout_ctxt, rdrbox, orc);
+static int on_clear_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
 
-    foil_udom_invalidate_rdrbox(udom, rdrbox);
-    return PCRDR_SC_OK;
+static int on_append_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_prepend_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_insert_before_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_insert_after_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
 }
 
 static int on_update_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
@@ -1900,10 +1999,44 @@ static int on_update_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     case PCRDR_K_OPERATION_UPDATE:
         r = on_displace_content(udom, rdrbox, ref_elem);
         break;
+
+    case PCRDR_K_OPERATION_ERASE:
+        r = on_erase_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_CLEAR:
+        r = on_clear_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_APPEND:
+        r = on_append_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_PREPEND:
+        r = on_prepend_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTBEFORE:
+        r = on_insert_before_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTAFTER:
+        r = on_insert_after_content(udom, rdrbox, ref_elem);
+        break;
     }
     return r;
 }
 
+/*
+  - `append`: the last child element of the target element before this op.
+  - `prepend`: the first child element of the target elment before this op.
+  - `insertBefore`: the previous sibling of the target element before this op.
+  - `insertAfter`: the next sibling of the target element before this op.
+  - `displace`: the target element itself.
+  - `update`: the target element itself.
+  - `erase`: the target element itself.
+  - `clear`: the target element itself.
+*/
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
