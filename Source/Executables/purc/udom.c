@@ -1378,6 +1378,10 @@ static int rebuild_subtree(pcmcth_udom *udom, foil_rdrbox *box)
         goto failed;
     }
 
+    if (normalize_rdrtree(&ctxt, box)) {
+        goto failed;
+    }
+
     return 0;
 
 failed:
@@ -1902,12 +1906,14 @@ static int on_insert_before_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
     (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
     return on_rebuild_subtree(udom, rdrbox);
 }
 static int on_insert_after_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
     (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
     return on_rebuild_subtree(udom, rdrbox);
 }
 
@@ -1987,6 +1993,7 @@ static int on_insert_before_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
     (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
     return on_rebuild_subtree(udom, rdrbox);
 }
 
@@ -1994,6 +2001,7 @@ static int on_insert_after_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     pcdoc_element_t ref_elem)
 {
     (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
     return on_rebuild_subtree(udom, rdrbox);
 }
 
