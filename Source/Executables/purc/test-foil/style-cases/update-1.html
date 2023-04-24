@@ -1,0 +1,23 @@
+            <SECTION id="$caseName">
+                <div class="border_red">
+                    <p>
+                        <div id="p4" class="border_red">before</div>
+                    </p>
+                </div>
+                <update on "$TIMERS" to "unite">
+                    [
+                        { "id" : "gogogo", "interval" : 1000, "active" : "yes" },
+                    ]
+                </update>
+
+                <observe on $TIMERS for "expired:gogogo">
+
+                    <update on '#p4' at 'textContent' with "after" />
+                    <update on '#p4' at 'attr.class' with "border_blue w30 h20" silently />
+                    <forget on $TIMERS for 'expired:*' />
+                    <exit with true />
+
+                </observe>
+            </SECTION>
+
+

@@ -1,0 +1,30 @@
+[49m[39m  [91m│[39mThis is a short text 4; This is a [91m│[39m  
+[49m[39m  [91m│[39mshort text 5; This is a short [91m    │[39m  
+[49m[39m  [91m│[39mtext 6; This is a short text 7; [91m  │[39m  
+[49m[39m  [91m│[39mThis is a short text 8; This is a [91m│[39m  
+[49m[39m  [91m│[39mshort text 9; This is a short [91m    │[39m  
+[49m[39m  [91m│[39mtext 10; [91m                         │[39m  
+[49m[39m  [91m└──────────────────────────────────┘[39m  
+[49m[39m  [94m┌─────────────┐[32m────────────────────┐[39m  
+[49m[39m  [94m│[39mdiv 0 : text [94m│[39m This is a short text [39m 
+[49m[39m  [94m└─────────────┘[39m 0. This is a short [32m│[39m  
+[49m[39m  [94m┌──────────────────────────────────┐[39m  
+[49m[39m  [94m│[39mdiv 1 : long text long text long  [94m│[39m  
+[49m[39m  [94m│[39mtext long text long text long     [94m│[39m  
+[49m[39m  [94m│[39mtext                              [94m│[39m  
+[49m[39m  [94m└──────────────────────────────────┘[39m  
+[49m[39m  [94m┌─────────────┐[39m                    [32m│[39m  
+[49m[39m  [94m│[39mdiv 2 : text [94m│[39m short text 2. This [32m│[39m  
+[49m[39m  [94m└─────────────┘[39m is a short text 3. [32m│[39m  
+[49m[39m  [32m│[39m     [94m┌─────────────┐┌─────────────┐[39m [39m 
+[49m[39m  [32m│[39m4.   [94m│[39mdiv 4 : text [94m││[39mdiv 3 : text [94m│[39m  
+[49m[39m  [32m│[39mThis [94m└─────────────┘│[39m             [94m│[39m  
+[49m[39m  [32m│[39mis a                [94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39mshort text 5. This  [94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39mis a short text 6.  [94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39mThis is a short text[94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39m7. This is a short  [94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39mtext 8. This is a   [94m│[39m             [94m│[39m  
+[49m[39m  [32m│[39mshort text 9.       [94m└─────────────┘[39m  
+[49m[39m  [94m┌──────────────────────────────────┐[39m  
+[49m[39m  [94m│[39mdiv 5 : long text long text long  [94m│[39m  

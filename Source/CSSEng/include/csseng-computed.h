@@ -648,6 +648,9 @@ uint8_t css_computed_text_rendering(const css_computed_style *style);
 
 uint8_t css_computed_appearance(const css_computed_style *style);
 
+bool css_computed_style_is_equal(struct css_computed_style *a,
+        struct css_computed_style *b);
+
 uint8_t css_computed_foil_color_info(
         const css_computed_style *style, css_color *color);
 

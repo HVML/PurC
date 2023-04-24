@@ -167,6 +167,29 @@ void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs)
     page->attrs = attrs;
 }
 
+int foil_page_set_row_col(pcmcth_page *page, int cols, int rows)
+{
+    if (page->cells) {
+        foil_page_content_cleanup(page);
+    }
+
+    page->cells = calloc(rows, sizeof(struct foil_tty_cell *));
+    if (page->cells == NULL) {
+        return -1;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        page->cells[i] = calloc(cols, sizeof(struct foil_tty_cell));
+        if (page->cells[i] == NULL) {
+            foil_page_content_cleanup(page);
+        }
+    }
+
+    page->rows = rows;
+    page->cols = cols;
+    return 0;
+}
+
 /* use the foreground color of the page but reserve the background color */
 int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
         uint32_t uc, size_t count)

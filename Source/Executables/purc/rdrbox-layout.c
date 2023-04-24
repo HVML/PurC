@@ -2212,65 +2212,146 @@ dtrm_width_shrink_to_fit(foil_layout_ctxt *ctxt, foil_rdrbox *box)
     css_fixed width_l;
     css_unit width_u;
 
+    int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
+    int avl_width = cblock_width - box->ml - box->bl - box->pl -
+        box->pr - box->br - box->mr;
+    int shrink_width = 0;
+    int pref_width = 0;
+    int min_width = 0;
     int width = 0;
-    width_v = real_computed_width(box, &width_l, &width_u);
-    assert(width_v != CSS_WIDTH_INHERIT);
-    if (width_v != CSS_WIDTH_AUTO) {
-        width = calc_used_value_width(ctxt, box, width_u, width_l);
+
+    if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
+        int pref_width, min_width;
+        pref_width = foil_rdrbox_inline_calc_preferred_width(box);
+        min_width = foil_rdrbox_inline_calc_preferred_minimum_width(box);
+
+        /* box->floating cblock_width = 0 */
+        if (avl_width > 0) {
+            shrink_width = MIN(MAX(min_width, avl_width), pref_width);
+        }
+        else {
+            shrink_width = pref_width;
+        }
+        width = shrink_width;
+        goto out;
     }
-    else if (box->nr_inline_level_children > 0) {
-        int cblock_width = foil_rect_width(&box->cblock_creator->ctnt_rect);
-        int avl_width = cblock_width - box->ml - box->bl - box->pl -
-            box->pr - box->br - box->mr;
 
-        foil_rdrbox *child = box->first;
-        while (child) {
-            assert(child->is_width_resolved == 0);
+    if (box->computed_style) {
+        width_v = real_computed_width(box, &width_l, &width_u);
+        assert(width_v != CSS_WIDTH_INHERIT);
+        if (width_v != CSS_WIDTH_AUTO) {
+            width = calc_used_value_width(ctxt, box, width_u, width_l);
+            goto out;
+        }
+    }
 
-            int shrink_width = 0;
-            if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
-                int pref_width, min_width;
-                pref_width = foil_rdrbox_inline_calc_preferred_width(child);
-                min_width = foil_rdrbox_inline_calc_preferred_minimum_width(
-                        child);
+    uint32_t last_child_type = FOIL_RDRBOX_TYPE_INLINE;
+    foil_rdrbox *child = box->first;
+    while (child) {
+        if (child->type == FOIL_RDRBOX_TYPE_INLINE) {
+            int child_pref_width = foil_rdrbox_inline_calc_preferred_width(child);
+            int child_min_width = foil_rdrbox_inline_calc_preferred_minimum_width(child);
 
+            if (last_child_type == FOIL_RDRBOX_TYPE_INLINE ||
+                    last_child_type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
+                pref_width += child_pref_width;
+                min_width += child_min_width;
+            }
+            else {
+                if (pref_width < child_pref_width)  {
+                    pref_width = child_pref_width;
+                }
+                if (min_width > child_min_width) {
+                    min_width = child_min_width;
+                }
+            }
+
+            last_child_type = child->type;
+
+            /* box->floating cblock_width = 0 */
+            if (avl_width > 0) {
                 shrink_width = MIN(MAX(min_width, avl_width), pref_width);
             }
-            else if (child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
-                shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
+            else {
+                shrink_width = pref_width;
             }
-            else if (child->type == FOIL_RDRBOX_TYPE_INLINE_TABLE) {
-                // TODO: inline-table
-                shrink_width = FOIL_PX_GRID_CELL_W * 10;
+            width = shrink_width;
+        }
+        else if (child->is_block_level && child->is_in_normal_flow) {
+            int child_width = dtrm_width_shrink_to_fit(ctxt, child);
+            dtrm_margin_left_right(ctxt, child);
+            child_width += child->ml + child->bl + child->pl +
+                child->pr + child->br + child->mr;
+
+            if (pref_width < child_width) {
+                pref_width = child_width;
             }
 
-            if (shrink_width > width)
-                width = shrink_width;
+            if (min_width > child_width) {
+                min_width = child_width;
+            }
 
-            child->width = shrink_width;
-            dtrm_margin_left_right(ctxt, child);
-            child->is_width_resolved = 1;
+            last_child_type = child->type;
 
-            child = child->next;
+            /* box->floating cblock_width = 0 */
+            if (avl_width > 0) {
+                shrink_width = MIN(MAX(min_width, avl_width), pref_width);
+            }
+            else {
+                shrink_width = pref_width;
+            }
+            width = shrink_width;
         }
-    }
-    else if (box->nr_block_level_children > 0) {
-        foil_rdrbox *child = box->first;
-        while (child) {
-            assert(child->is_width_resolved == 0);
-
-            int shrink_width = dtrm_width_shrink_to_fit(ctxt, child);
-            if (shrink_width > width)
-                width = shrink_width;
-
-            child->width = shrink_width;
-            dtrm_margin_left_right(ctxt, child);
-            child->is_width_resolved = 1;
-
+        else if (child->floating != FOIL_RDRBOX_FLOAT_NONE) {
             child = child->next;
+            continue;
         }
+        else if (child->is_abs_positioned) {
+            child = child->next;
+            continue;
+        }
+        else if (child->type == FOIL_RDRBOX_TYPE_INLINE_BLOCK &&
+                child->is_in_normal_flow) {
+            int child_width = dtrm_width_shrink_to_fit(ctxt, child);
+            dtrm_margin_left_right(ctxt, box);
+            child_width += child->ml + child->bl + child->pl +
+                child->pr + child->br + child->mr;
+
+            if (last_child_type == FOIL_RDRBOX_TYPE_INLINE ||
+                    last_child_type == FOIL_RDRBOX_TYPE_INLINE_BLOCK) {
+                pref_width += child_width;
+                min_width += child_width;
+            }
+            else {
+                if (pref_width < child_width)  {
+                    pref_width = child_width;
+                }
+                if (min_width > child_width) {
+                    min_width = child_width;
+                }
+            }
+
+            last_child_type = child->type;
+
+            /* box->floating cblock_width = 0 */
+            if (avl_width > 0) {
+                shrink_width = MIN(MAX(min_width, avl_width), pref_width);
+            }
+            else {
+                shrink_width = pref_width;
+            }
+            width = shrink_width;
+        }
+        else {
+            LOG_ERROR("Should not be here\n");
+            assert(0);
+        }
+
+        child = child->next;
     }
 
+
+out:
     return width;
 }
 
@@ -2468,6 +2549,18 @@ calc_height_for_visible_non_replaced(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             child = child->next;
         }
     }
+    else if (box->nr_floating_children > 0) {
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+            }
+            child = child->next;
+        }
+    }
 
 #ifndef NDEBUG
     LOG_DEBUG("called for box %s, height: %d\n", name, height);
@@ -2499,6 +2592,14 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
         foil_rdrbox *child = box->first;
         while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+                child = child->next;
+                continue;
+            }
             if (child->is_abs_positioned) {
                 child = child->next;
                 continue;
@@ -2517,7 +2618,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
                 int margin_width = child->ml + child->bl + child->pl +
                     child->width + child->mr + child->br + child->pr;
-                if (margin_width < line->left_extent) {
+                if (margin_width > line->left_extent) {
                     line = foil_rdrbox_block_allocate_new_line(ctxt, box);
                     if (line == NULL)
                         goto failed;
@@ -2538,6 +2639,17 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
                 line->left_extent -= margin_width;
             }
 
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - child->mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + child->mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+
             child = child->next;
         }
 
@@ -2551,6 +2663,15 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
         foil_rdrbox *child = box->first;
         foil_rdrbox *prev_sibling = NULL;
         while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+                child = child->next;
+                continue;
+            }
+
             if (child->is_abs_positioned) {
                 child = child->next;
                 continue;
@@ -2561,7 +2682,7 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
             if (prev_sibling) {
                 collapse_margins(ctxt, prev_sibling, &real_mt, &real_mb);
                 foil_rect_offset(&child->ctnt_rect,
-                        0, prev_sibling->ctnt_rect.bottom + real_mb);
+                        0, prev_sibling->ctnt_rect.bottom + prev_sibling->pb + prev_sibling->bb + real_mb);
             }
 
             assert(child->is_height_resolved == 0);
@@ -2570,13 +2691,35 @@ calc_height_for_block_fmt_ctxt_maker(foil_layout_ctxt *ctxt, foil_rdrbox *box)
 
             collapse_margins(ctxt, child, &real_mt, &real_mb);
             foil_rect_offset(&child->ctnt_rect,
-                    child->ml + child->bl + child->pl,
-                    real_mt + child->bt + child->pt);
+                    0, real_mt + child->bt + child->pt);
 
             height += real_mt + child->bt + child->pt
                 + child->height + child->pb + child->bb + real_mb;
 
             prev_sibling = child;
+
+            if (box->nr_floating_children) {
+                foil_rect rc;
+                rc.left = child->ctnt_rect.left - child->ml - child->bl - child->pl;
+                rc.top = child->ctnt_rect.top - real_mt - child->bt - child->pt;
+                rc.right = child->ctnt_rect.right + child->mr + child->br + child->pr;
+                rc.bottom = child->ctnt_rect.bottom + real_mb + child->bb + child->pb;
+                box->block_fmt_ctxt->last_float_top = rc.bottom;
+                foil_region *region = &box->block_fmt_ctxt->region;
+                foil_region_subtract_rect(region, &rc);
+            }
+            child = child->next;
+        }
+    }
+    else if (box->nr_floating_children > 0) {
+        foil_rdrbox *child = box->first;
+        while (child) {
+            if (child->is_in_normal_flow == 0) {
+                if (child->floating) {
+                    foil_rdrbox_resolve_height(ctxt, child);
+                    foil_rdrbox_lay_floating_in_container(ctxt, box, child);
+                }
+            }
             child = child->next;
         }
     }
@@ -2669,8 +2812,10 @@ void foil_rdrbox_lay_lines_in_block(foil_layout_ctxt *ctxt, foil_rdrbox *block)
                 LOG_DEBUG("Laid the block container to: %d, %d\n",
                         run->box->ctnt_rect.left, run->box->ctnt_rect.top);
 #endif
+#if 0
                 if (run->box->nr_inline_level_children > 0)
                     foil_rdrbox_lay_lines_in_block(ctxt, run->box);
+#endif
             }
             else {
                 line_off_x += foil_rect_width(&run->rc);

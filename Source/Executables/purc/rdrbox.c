@@ -942,7 +942,7 @@ generate_content_from_counters(foil_create_ctxt *ctxt, foil_rdrbox *box,
 
 /* display, positionn, and float must be determined
    before calling this function */
-static void dtrm_common_properties(foil_create_ctxt *ctxt,
+void foil_rdrbox_dtrm_common_properties(foil_create_ctxt *ctxt,
         foil_rdrbox *box)
 {
     uint8_t v;
@@ -1425,8 +1425,8 @@ static void tailor_box(foil_create_ctxt *ctxt, struct foil_rdrbox *box)
     }
 }
 
-static foil_rdrbox *
-create_rdrbox_from_style(foil_create_ctxt *ctxt)
+foil_rdrbox *
+foil_rdrbox_create_from_style(foil_create_ctxt *ctxt)
 {
     pcdoc_node node = { PCDOC_NODE_ELEMENT, { ctxt->elem } };
     foil_rdrbox *box = NULL;
@@ -1573,7 +1573,7 @@ create_rdrbox_from_style(foil_create_ctxt *ctxt)
     }
 
     /* determine the used values for common properties */
-    dtrm_common_properties(ctxt, box);
+    foil_rdrbox_dtrm_common_properties(ctxt, box);
 
     return box;
 
@@ -1692,7 +1692,7 @@ foil_rdrbox *foil_rdrbox_create_principal(foil_create_ctxt *ctxt)
     assert(ctxt->tag_name);
 
     ctxt->style = ctxt->computed->styles[CSS_PSEUDO_ELEMENT_NONE];
-    if ((box = create_rdrbox_from_style(ctxt))) {
+    if ((box = foil_rdrbox_create_from_style(ctxt))) {
         box->is_principal = 1;
         box->is_replaced = is_replaced_element(ctxt->elem, ctxt->tag_name);
         if (!box->is_replaced && box->type == FOIL_RDRBOX_TYPE_INLINE)
@@ -1780,7 +1780,7 @@ create_pseudo_box(foil_create_ctxt *ctxt, foil_rdrbox *principal)
 {
     foil_rdrbox *box;
 
-    if ((box = create_rdrbox_from_style(ctxt))) {
+    if ((box = foil_rdrbox_create_from_style(ctxt))) {
         box->principal = principal;
         box->is_pseudo = 1;
         if (box->type == FOIL_RDRBOX_TYPE_INLINE) {
