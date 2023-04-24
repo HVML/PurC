@@ -53,7 +53,6 @@ struct ctxt_for_observe {
 
     char                         *msg_type;
     char                         *sub_type;
-    purc_atom_t                   msg_type_atom;
 };
 
 static void
@@ -125,53 +124,31 @@ bool base_variant_msg_listener(purc_variant_t source, pcvar_op_t msg_type,
 
 
 static inline bool
-is_base_variant_msg(purc_atom_t msg)
+is_mmutable_variant_msg(const char *type)
 {
-    if (msg == pcvariant_atom_grow ||
-            msg == pcvariant_atom_shrink ||
-            msg == pcvariant_atom_change/* ||
-            msg == pcvariant_atom_reference ||
-            msg == pcvariant_atom_unreference*/) {
+    if ((strcmp(type, MSG_TYPE_GROW) == 0) ||
+            (strcmp(type, MSG_TYPE_SHRINK) == 0) ||
+            (strcmp(type, MSG_TYPE_CHANGE) == 0)) {
         return true;
     }
     purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-        "unknown msg: %s", purc_atom_to_string(msg));
-    return false;
-}
-
-static inline bool
-is_mmutable_variant_msg(purc_atom_t msg)
-{
-    return is_base_variant_msg(msg);
-}
-
-UNUSED_FUNCTION static inline bool
-is_immutable_variant_msg(purc_atom_t msg)
-{
-#if 0
-    if (msg == pcvariant_atom_reference ||
-            msg == pcvariant_atom_unreference) {
-        return true;
-    }
-#else
-    UNUSED_PARAM(msg);
-#endif
+        "unknown msg: %s", type);
     return false;
 }
 
 static bool
 regist_variant_listener(pcintr_stack_t stack, purc_variant_t observed,
-        purc_atom_t op, struct pcvar_listener** listener)
+        const char *type, struct pcvar_listener** listener)
 {
-    if (op == pcvariant_atom_grow) {
+    if (strcmp(type, MSG_TYPE_GROW) == 0) {
         *listener = purc_variant_register_post_listener(observed,
                 PCVAR_OPERATION_GROW, base_variant_msg_listener, stack);
     }
-    else if (op == pcvariant_atom_shrink) {
+    else if (strcmp(type, MSG_TYPE_SHRINK) == 0) {
         *listener = purc_variant_register_post_listener(observed,
                 PCVAR_OPERATION_SHRINK, base_variant_msg_listener, stack);
     }
-    else if (op == pcvariant_atom_change) {
+    else if (strcmp(type, MSG_TYPE_CHANGE) == 0) {
         *listener = purc_variant_register_post_listener(observed,
                 PCVAR_OPERATION_CHANGE, base_variant_msg_listener, stack);
     }
@@ -324,15 +301,6 @@ process_attr_for(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    ctxt->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            ctxt->msg_type);
-    if (ctxt->msg_type_atom == 0) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown vdom attribute '%s = %s' for element <%s>",
-                purc_atom_to_string(name), s, element->tag_name);
-        return -1;
-    }
-
     return 0;
 }
 
@@ -458,7 +426,7 @@ register_named_var_observer(pcintr_stack_t stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             observed,
-            ctxt->msg_type_atom, ctxt->sub_type,
+            ctxt->msg_type, ctxt->sub_type,
             frame->pos, edom_element, frame->pos, NULL, NULL, NULL,
             NULL, NULL, false);
     purc_variant_unref(observed);
@@ -481,9 +449,7 @@ register_native_var_observer(pcintr_stack_t stack,
 
     void *native_entity = purc_variant_native_get_entity(observed);
 
-    if(!ops->on_observe(native_entity,
-        purc_atom_to_string(ctxt->msg_type_atom), ctxt->sub_type))
-    {
+    if(!ops->on_observe(native_entity, ctxt->msg_type, ctxt->sub_type)) {
         // TODO: purc_set_error
         return NULL;
     }
@@ -496,7 +462,7 @@ register_native_var_observer(pcintr_stack_t stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             observed,
-            ctxt->msg_type_atom, ctxt->sub_type,
+            ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
 
@@ -526,7 +492,7 @@ register_timer_observer(pcintr_stack_t stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             on,
-            ctxt->msg_type_atom, ctxt->sub_type,
+            ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos, NULL, NULL, NULL, NULL, NULL, false);
 }
@@ -550,7 +516,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
     ctxt = (struct ctxt_for_observe*)frame->ctxt;
 
     struct pcvar_listener *listener = NULL;
-    if (!regist_variant_listener(stack, on, ctxt->msg_type_atom, &listener))
+    if (!regist_variant_listener(stack, on, ctxt->msg_type, &listener))
         return NULL;
 
     purc_variant_t at = pcintr_get_at_var(frame);
@@ -561,7 +527,7 @@ register_mmutable_var_observer(pcintr_stack_t stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             on,
-            ctxt->msg_type_atom, ctxt->sub_type,
+            ctxt->msg_type, ctxt->sub_type,
             frame->pos,
             edom_element, frame->pos,
             on_revoke_mmutable_var_observer, listener, NULL, NULL, NULL, false);
@@ -616,7 +582,7 @@ register_default_observer(pcintr_stack_t stack,
             OBSERVER_SOURCE_HVML,
             CO_STAGE_OBSERVING, CO_STATE_OBSERVING,
             observed,
-            ctxt->msg_type_atom, ctxt->sub_type,
+            ctxt->msg_type, ctxt->sub_type,
             frame->pos, edom_element, frame->pos,
             NULL, NULL, NULL, NULL, NULL, false);
 
@@ -652,7 +618,7 @@ process_variant_observer(pcintr_stack_t stack,
     case PURC_VARIANT_TYPE_OBJECT:
     case PURC_VARIANT_TYPE_ARRAY:
     case PURC_VARIANT_TYPE_SET:
-        if (is_mmutable_variant_msg(ctxt->msg_type_atom) &&
+        if (is_mmutable_variant_msg(ctxt->msg_type) &&
                 (ctxt->sub_type == NULL)) {
             return register_mmutable_var_observer(stack, frame, observed);
         }
@@ -841,8 +807,8 @@ on_popping(pcintr_stack_t stack, void* ud)
     }
 
     if (frame->handle_event) {
-        if ((pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, REQUEST)) ==
-                ctxt->msg_type_atom) && stack->co->curator) {
+        if ((strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
+                stack->co->curator) {
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (exclamation_var) {

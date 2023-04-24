@@ -46,7 +46,6 @@ struct ctxt_for_fire {
 
     char                         *msg_type;
     char                         *sub_type;
-    purc_atom_t                   msg_type_atom;
 };
 
 static void
@@ -159,15 +158,6 @@ process_attr_for(struct pcintr_stack_frame *frame,
     }
 
     if (ctxt->msg_type == NULL) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown vdom attribute '%s = %s' for element <%s>",
-                purc_atom_to_string(name), s, element->tag_name);
-        return -1;
-    }
-
-    ctxt->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            ctxt->msg_type);
-    if (ctxt->msg_type_atom == 0) {
         purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
                 "unknown vdom attribute '%s = %s' for element <%s>",
                 purc_atom_to_string(name), s, element->tag_name);

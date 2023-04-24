@@ -166,12 +166,12 @@ typedef void (*observer_on_revoke_fn)(struct pcintr_observer *observer,
 
 typedef bool
 (*observer_match_fn)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_variant_t observed, purc_atom_t type,
+        pcrdr_msg *msg, purc_variant_t observed, const char *type,
         const char *sub_type);
 
 typedef int
 (*observer_handle_fn)(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data);
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data);
 
 struct pcintr_loaded_var {
     struct rb_node              node;
@@ -507,7 +507,7 @@ struct pcintr_observer {
     purc_variant_t observed;
 
     // the type of the message observed (cloned from the `for` attribute)
-    purc_atom_t msg_type_atom;
+    char* type;
 
     // the sub type of the message observed (cloned from the `for` attribute; nullable).
     char* sub_type;
@@ -697,7 +697,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
         int                         cor_stage,
         int                         cor_state,
         purc_variant_t              observed,
-        purc_atom_t                 msg_type_atom,
+        const char                 *type,
         const char                 *sub_type,
         pcvdom_element_t            scope,
         pcdoc_element_t             edom_element,
@@ -729,7 +729,7 @@ pcintr_revoke_observer(struct pcintr_observer* observer);
 
 void
 pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
-        purc_atom_t msg_type_atom, const char *sub_type);
+        const char *type, const char *sub_type);
 
 bool
 pcintr_load_dynamic_variant(pcintr_coroutine_t cor, const char *so_name,

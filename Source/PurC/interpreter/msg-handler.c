@@ -125,7 +125,7 @@ pcintr_handle_task(struct pcintr_observer_task *task)
 static bool
 is_sub_exit_observer_match(pcintr_coroutine_t co,
         struct pcintr_observer *observer, pcrdr_msg *msg,
-        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(observed);
@@ -133,7 +133,7 @@ is_sub_exit_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(observer);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, SUBEXIT)) == type) {
+    if (strcmp(type, MSG_TYPE_SUB_EXIT) == 0) {
         match = true;
         goto out;
     }
@@ -170,7 +170,7 @@ on_sub_exit_event(pcintr_coroutine_t co, pcrdr_msg *msg)
 
 static int
 sub_exit_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
     UNUSED_PARAM(cor);
     UNUSED_PARAM(observer);
@@ -210,7 +210,7 @@ pcintr_coroutine_add_sub_exit_observer(pcintr_coroutine_t co)
 static bool
 is_last_msg_observer_match(pcintr_coroutine_t co,
         struct pcintr_observer *observer, pcrdr_msg *msg,
-        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(observed);
@@ -218,7 +218,7 @@ is_last_msg_observer_match(pcintr_coroutine_t co,
     UNUSED_PARAM(observer);
     UNUSED_PARAM(sub_type);
     bool match = false;
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, LASTMSG)) == type) {
+    if (strcmp(type, MSG_TYPE_LAST_MSG) == 0) {
         match = true;
         goto out;
     }
@@ -229,7 +229,7 @@ out:
 
 static int
 last_msg_observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
     UNUSED_PARAM(cor);
     UNUSED_PARAM(observer);

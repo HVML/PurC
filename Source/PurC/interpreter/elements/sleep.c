@@ -242,7 +242,7 @@ static void on_sleep_timeout(pcintr_timer_t timer, const char *id, void *data)
 static bool
 is_observer_match(pcintr_coroutine_t co,
         struct pcintr_observer *observer, pcrdr_msg *msg,
-        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(observer);
@@ -260,7 +260,7 @@ is_observer_match(pcintr_coroutine_t co,
 
 static int
 observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
     UNUSED_PARAM(cor);
     UNUSED_PARAM(observer);

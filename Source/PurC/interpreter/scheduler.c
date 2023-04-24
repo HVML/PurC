@@ -602,7 +602,7 @@ check_and_dispatch_event_from_conn(struct pcinst *inst)
 
 static int
 handle_event_by_observer_list(purc_coroutine_t co, struct list_head *list,
-        pcrdr_msg *msg, purc_atom_t event_type,
+        pcrdr_msg *msg, const char *event_type,
         const char *event_sub_type, bool *event_observed, bool *busy)
 {
     int ret = PURC_ERROR_INCOMPLETED;
@@ -682,11 +682,11 @@ again:
     // observer
     if (msg) {
         int handle_by_inner = handle_event_by_observer_list(co,
-                &co->stack.intr_observers, msg, event_type, event_sub_type,
+                &co->stack.intr_observers, msg, type, event_sub_type,
                 &msg_observed, &busy);
 
         int handle_by_hvml = handle_event_by_observer_list(co,
-                    &co->stack.hvml_observers, msg, event_type, event_sub_type,
+                    &co->stack.hvml_observers, msg, type, event_sub_type,
                     &msg_observed, &busy);
 
         if (handle_by_inner == 0 || handle_by_hvml == 0) {

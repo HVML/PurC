@@ -84,7 +84,7 @@ ctxt_destroy(void *ctxt)
 static bool
 is_observer_match(pcintr_coroutine_t co,
         struct pcintr_observer *observer, pcrdr_msg *msg,
-        purc_variant_t observed, purc_atom_t type, const char *sub_type)
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(observer);
@@ -103,7 +103,7 @@ is_observer_match(pcintr_coroutine_t co,
     }
 
 match_observed:
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(MSG, RESPONSE)) == type) {
+    if (type && strcmp(type, MSG_TYPE_RESPONSE) == 0) {
         match = true;
         goto out;
     }
@@ -114,7 +114,7 @@ out:
 
 static int
 observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
     UNUSED_PARAM(cor);
     UNUSED_PARAM(observer);

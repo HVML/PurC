@@ -47,7 +47,6 @@ struct ctxt_for_forget {
 
     char                         *msg_type;
     char                         *sub_type;
-    purc_atom_t                   msg_type_atom;
 };
 
 static void
@@ -165,15 +164,6 @@ process_attr_for(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    ctxt->msg_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            ctxt->msg_type);
-    if (ctxt->msg_type_atom == 0) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown vdom attribute '%s = %s' for element <%s>",
-                purc_atom_to_string(name), s, element->tag_name);
-        return -1;
-    }
-
     return 0;
 }
 
@@ -258,7 +248,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (ctxt->at != PURC_VARIANT_INVALID && purc_variant_is_string(ctxt->at)) {
         const char* name = purc_variant_get_string_const(ctxt->at);
         purc_variant_t v = pcintr_get_named_var_for_event(stack, name, NULL);
-        pcintr_revoke_observer_ex(stack, v, ctxt->msg_type_atom, ctxt->sub_type);
+        pcintr_revoke_observer_ex(stack, v, ctxt->msg_type, ctxt->sub_type);
         purc_variant_unref(v);
     }
     else {
@@ -268,7 +258,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
             // CSS selector used string
             // handle by elements.c did_matched
             pcintr_revoke_observer_ex(stack, on,
-                ctxt->msg_type_atom, ctxt->sub_type);
+                ctxt->msg_type, ctxt->sub_type);
         }
         else
         {
@@ -280,7 +270,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
                 observed = purc_variant_ref(on);
             }
             pcintr_revoke_observer_ex(stack, observed,
-                ctxt->msg_type_atom, ctxt->sub_type);
+                ctxt->msg_type, ctxt->sub_type);
             purc_variant_unref(observed);
         }
     }

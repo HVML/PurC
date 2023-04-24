@@ -55,13 +55,15 @@ release_observer(struct pcintr_observer *observer)
                 void *native_entity = purc_variant_native_get_entity(
                         observer->observed);
                 ops->on_forget(native_entity,
-                        purc_atom_to_string(observer->msg_type_atom),
-                        observer->sub_type);
+                        observer->type, observer->sub_type);
             }
         }
 
         PURC_VARIANT_SAFE_CLEAR(observer->observed);
     }
+
+    free(observer->type);
+    observer->type = NULL;
 
     free(observer->sub_type);
     observer->sub_type = NULL;
@@ -133,13 +135,13 @@ pcintr_destroy_observer_list(struct list_head *observer_list)
 
 static bool
 is_match_default(pcintr_coroutine_t co, struct pcintr_observer *observer,
-        pcrdr_msg *msg, purc_variant_t observed, purc_atom_t type,
+        pcrdr_msg *msg, purc_variant_t observed, const char *type,
         const char *sub_type)
 {
     UNUSED_PARAM(co);
     UNUSED_PARAM(msg);
     if ((is_variant_match_observe(co, observer->observed, observed)) &&
-                (observer->msg_type_atom == type)) {
+                (strcmp(observer->type, type) == 0)) {
         if (observer->sub_type == sub_type ||
                 pcregex_is_match(observer->sub_type, sub_type)) {
             return true;
@@ -150,7 +152,7 @@ is_match_default(pcintr_coroutine_t co, struct pcintr_observer *observer,
 
 static int
 observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
-        pcrdr_msg *msg, purc_atom_t type, const char *sub_type, void *data)
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
     UNUSED_PARAM(type);
     UNUSED_PARAM(sub_type);
@@ -203,7 +205,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
         int                         cor_stage,
         int                         cor_state,
         purc_variant_t              observed,
-        purc_atom_t                 msg_type_atom,
+        const char                 *type,
         const char                 *sub_type,
         pcvdom_element_t            scope,
         pcdoc_element_t             edom_element,
@@ -241,7 +243,7 @@ pcintr_register_observer(pcintr_stack_t  stack,
     observer->scope = scope;
     observer->edom_element = edom_element;
     observer->pos = pos;
-    observer->msg_type_atom = msg_type_atom;
+    observer->type = strdup(type);
     observer->sub_type = sub_type ? strdup(sub_type) : NULL;
     observer->on_revoke = on_revoke;
     observer->on_revoke_data = on_revoke_data;
@@ -253,10 +255,8 @@ pcintr_register_observer(pcintr_stack_t  stack,
     add_observer_into_list(stack, list, observer);
 
     // observe idle
-    purc_atom_t idle_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            MSG_TYPE_IDLE);
     if (pcintr_is_crtn_observed(observed) &&
-            msg_type_atom == idle_atom && sub_type == NULL) {
+            (strcmp(type,  MSG_TYPE_IDLE) == 0) && sub_type == NULL) {
         stack->observe_idle = 1;
     }
 
@@ -277,21 +277,12 @@ pcintr_register_inner_observer(
         bool                      auto_remove
         )
 {
-    struct pcintr_observer *observer = NULL;
-    purc_atom_t event_type_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            event_type);
-    if (event_type_atom == 0) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "unknown event type '%s'", event_type);
-        goto out;
-    }
-
-    observer = pcintr_register_observer(stack,
+    return pcintr_register_observer(stack,
             OBSERVER_SOURCE_INTR,
             cor_stage,
             cor_state,
             observed,
-            event_type_atom,
+            event_type,
             event_sub_type,
             NULL,
             NULL,
@@ -303,9 +294,6 @@ pcintr_register_inner_observer(
             handle_data,
             auto_remove
         );
-
-out:
-    return observer;
 }
 
 void
@@ -322,9 +310,7 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 
     // observe idle
     if (pcintr_is_crtn_observed(observer->observed)) {
-        purc_atom_t idle_atom = purc_atom_try_string_ex(ATOM_BUCKET_MSG,
-            MSG_TYPE_IDLE);
-        if (observer->msg_type_atom == idle_atom) {
+        if (strcmp(observer->type, MSG_TYPE_IDLE) == 0) {
             stack->observe_idle = 0;
         }
     }
@@ -334,11 +320,11 @@ pcintr_revoke_observer(struct pcintr_observer* observer)
 
 static void
 revoke_observer_from_list(pcintr_coroutine_t co, struct list_head *list,
-        purc_variant_t observed, purc_atom_t msg_type_atom, const char *sub_type)
+        purc_variant_t observed, const char *type, const char *sub_type)
 {
     struct pcintr_observer *p, *n;
     list_for_each_entry_safe(p, n, list, node) {
-        if (p->is_match(co, p, NULL, observed, msg_type_atom, sub_type)) {
+        if (p->is_match(co, p, NULL, observed, type, sub_type)) {
             pcintr_revoke_observer(p);
             break;
         }
@@ -347,11 +333,11 @@ revoke_observer_from_list(pcintr_coroutine_t co, struct list_head *list,
 
 void
 pcintr_revoke_observer_ex(pcintr_stack_t stack, purc_variant_t observed,
-        purc_atom_t msg_type_atom, const char *sub_type)
+        const char *type, const char *sub_type)
 {
     revoke_observer_from_list(stack->co, &stack->hvml_observers, observed,
-            msg_type_atom, sub_type);
+            type, sub_type);
     revoke_observer_from_list(stack->co, &stack->intr_observers, observed,
-            msg_type_atom, sub_type);
+            type, sub_type);
 }
 
