@@ -1,5 +1,6 @@
 # Release Notes
 
+- [Version 0.9.10](#version-0910)
 - [Version 0.9.8](#version-098)
 - [Version 0.9.6](#version-096)
 - [Version 0.9.5](#version-095)
@@ -8,6 +9,34 @@
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.10
+
+On Apr. 30, 2023, HVML Community announces the availability of PurC 0.9.10,
+   which is also the nineth alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.10
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - Expose `pcutils_kvslist_xxx` interfaces to applications.
+   - Implement `$CRTN.static` and `$CRTN.temp` to help HVML program to access or operate the static or temporary variables in HEE.
+* ENHANCEMENTS:
+   - Support for PURCMC 120 protocol.
+   - Tune the parsing errors of HVML and HEE.
+   - Support for the daynamic update of document in Foil renderer.
+   - Add new text cases for Foil renderer.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix bugs in implementation of `match` and `back` elements.
+   - Fix bugs in implementation of event name.
+* CLEANUP:
+* SAMPLES:
+   - New sample `file-system-browser.hvml`: using the same renderer page among multiple coroutines.
 
 ## Version 0.9.8
 

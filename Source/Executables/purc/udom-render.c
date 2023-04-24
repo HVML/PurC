@@ -668,48 +668,16 @@ render_normal_boxes_in_tree_order(struct foil_render_ctxt *ctxt,
         render_marker_box(ctxt, box->list_item_data->marker_box);
     }
 
-    bool floating = false;
-    bool abs_positioned = false;
     foil_rdrbox *child = box->first;
     while (child) {
 
         // For all its in-flow, non-positioned, block-level descendants
         // in tree order
         if (child->is_in_flow && !child->position && child->is_block_level) {
-            render_normal_boxes_in_tree_order(ctxt, child);
-        }
-        else if (child->floating) {
-            floating = true;
-        }
-        else if (child->is_abs_positioned) {
-            abs_positioned = true;
+            render_rdrbox_with_stacking_ctxt(ctxt, NULL, child);
         }
 
         child = child->next;
-    }
-
-    if (floating) {
-        child = box->first;
-        while (child) {
-
-            if (child->floating) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
-
-            child = child->next;
-        }
-    }
-
-    if (abs_positioned) {
-        child = box->first;
-        while (child) {
-
-            if (child->is_abs_positioned) {
-                render_normal_boxes_in_tree_order(ctxt, child);
-            }
-
-            child = child->next;
-        }
     }
 }
 
@@ -725,14 +693,6 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
     if (box->is_block_level) {
         if (box->type == FOIL_RDRBOX_TYPE_TABLE) {
             // TODO: table
-        }
-        else {
-            // background color of element unless it is the root element.
-            if (!box->is_root)
-                render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BACKGROUND);
-
-            // border of element.
-            render_rdrbox_part(rdr_ctxt, box, FOIL_BOX_PART_BORDER);
         }
     }
 
@@ -757,34 +717,6 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         }
     }
 
-    foil_rdrbox *child = box->first;
-    while (child) {
-
-        // For all its in-flow, non-positioned, block-level descendants
-        // in tree order
-        if (child->is_in_flow && !child->position && child->is_block_level) {
-            if (child->type == FOIL_RDRBOX_TYPE_TABLE) {
-                // TODO: table
-            }
-            else {
-                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BACKGROUND);
-                render_rdrbox_part(rdr_ctxt, child, FOIL_BOX_PART_BORDER);
-            }
-
-        }
-
-        // All non-positioned floating descendants, in tree order.
-        // For each one of these, treat the element as if it created a new
-        // stacking context, but any positioned descendants and descendants
-        // which actually create a new stacking context should be considered
-        // part of the parent stacking context, not this new one.
-        if (!child->position && child->floating) {
-            render_rdrbox_with_stacking_ctxt(rdr_ctxt, NULL, child);
-        }
-
-        child = child->next;
-    }
-
     // If the element is an inline element that generates a stacking context
     if (box->type == FOIL_RDRBOX_TYPE_INLINE && box->stacking_ctxt) {
         assert(box->parent);
@@ -804,6 +736,30 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
         render_normal_boxes_in_tree_order(rdr_ctxt, box);
     }
 
+    foil_rdrbox *child = box->first;
+    while (child) {
+
+        // For all its in-flow, non-positioned, block-level descendants
+        // in tree order
+        if (child->is_in_flow && !child->position && child->is_block_level) {
+            if (child->type == FOIL_RDRBOX_TYPE_TABLE) {
+                // TODO: table
+            }
+        }
+
+        // All non-positioned floating descendants, in tree order.
+        // For each one of these, treat the element as if it created a new
+        // stacking context, but any positioned descendants and descendants
+        // which actually create a new stacking context should be considered
+        // part of the parent stacking context, not this new one.
+        if (!child->position && child->floating) {
+            render_rdrbox_with_stacking_ctxt(rdr_ctxt, NULL, child);
+        }
+
+        child = child->next;
+    }
+
+
     // All positioned descendants with 'z-index: auto' or 'z-index: 0',
     // in tree order.
     child = box->first;
@@ -814,7 +770,7 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
                 render_rdrbox_with_stacking_ctxt(rdr_ctxt, NULL, child);
             }
             else {
-                assert(child->stacking_ctxt);
+                //assert(child->stacking_ctxt);
                 render_rdrbox_with_stacking_ctxt(rdr_ctxt,
                         child->stacking_ctxt, child);
             }
@@ -869,8 +825,6 @@ void foil_udom_invalidate_rdrbox(pcmcth_udom *udom, foil_rdrbox *box)
 
         parent = parent->parent;
     } while (parent);
-
-    assert(stacking_ctxt);
 
     foil_rect invrc;
     foil_rdrbox_border_box(box, &invrc);

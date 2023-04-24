@@ -1,0 +1,10 @@
+[49m[39m  [91m│[39mfloat left [91m│[39m div 0 : normal text div 1 : normal text div 2 : [91m│[39mfloat right [91m│[39m  
+[49m[39m  [91m└───────────┘[39m normal text div 3 : normal text div 4 : normal  [91m└────────────┘[39m  
+[49m[39m  [94m│[39m             text div 5 : normal text                                     [94m│[39m  
+[49m[39m  [94m└──────────────────────────────────────────────────────────────────────────┘[39m  
+[49m[39m  [91m┌───────────┐[94m─────────────────────────────────────────────────[91m┌────────────┐[39m  
+[49m[39m  [91m│[39mfloat left [91m│[39m div 0 : normal text div 1 : normal text div 2 : [91m│[39mfloat right [91m│[39m  
+[49m[39m  [91m└───────────┘[39m normal text div 3 : normal text div 4 : normal  [91m└────────────┘[39m  
+[49m[39m  [94m│[39m             text div 5 : normal text                                     [94m│[39m  
+[49m[39m  [94m└──────────────────────────────────────────────────────────────────────────┘[39m  
+[49m[39m                                                                                

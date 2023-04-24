@@ -2071,6 +2071,12 @@ uint8_t css_computed_appearance(const css_computed_style *style)
     return get_appearance(style);
 }
 
+bool css_computed_style_is_equal(struct css_computed_style *a,
+        struct css_computed_style *b)
+{
+    return css__arena_style_is_equal(a, b);
+}
+
 uint8_t css_computed_foil_color_info(
         const css_computed_style *style, css_color *color)
 {

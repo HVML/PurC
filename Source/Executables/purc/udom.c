@@ -780,19 +780,87 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
     }
 
 done:
+    if (result) {
+        css_select_results_destroy(result);
+    }
     if (tag_name)
         free(tag_name);
-    if (result)
+    return 0;
+
+failed:
+    if (result) {
         css_select_results_destroy(result);
+    }
+    if (tag_name)
+        free(tag_name);
+    return -1;
+}
+
+static int
+make_rdrbox_subtree(struct foil_create_ctxt *ctxt, foil_rdrbox *box)
+{
+    char *tag_name = NULL;
+
+    pcdoc_element *ancestor = box->owner;
+    pcdoc_node node;
+    if (box->is_replaced || box->is_control) {
+        /* skip contents if the element is a replaced one or a control */
+        node.type = PCDOC_NODE_VOID;
+        node.elem = NULL;
+    }
+    else {
+        /* continue for the children */
+        node = pcdoc_element_first_child(ctxt->udom->doc, ancestor);
+    }
+
+    while (node.type != PCDOC_NODE_VOID) {
+
+        if (node.type == PCDOC_NODE_ELEMENT) {
+            ctxt->parent_box = box;
+            if (make_rdrtree(ctxt, node.elem))
+                goto failed;
+        }
+        else if (node.type == PCDOC_NODE_TEXT) {
+            const char *text = NULL;
+            size_t len = 0;
+            pcdoc_text_content_get_text(ctxt->udom->doc, node.text_node,
+                    &text, &len);
+
+            if (text && len > 0) {
+                if (box->type == FOIL_RDRBOX_TYPE_INLINE &&
+                        box->inline_data->nr_paras == 0) {
+                    if (!foil_rdrbox_init_inline_data(ctxt, box, text, len))
+                        goto done;
+                }
+                else {
+                    foil_rdrbox *my_box;
+                    if ((my_box = foil_rdrbox_create_anonymous_inline(ctxt,
+                                    box)) == NULL)
+                        goto done;
+
+                    if (!foil_rdrbox_init_inline_data(ctxt, my_box, text, len))
+                        goto done;
+                }
+            }
+        }
+        else if (node.type == PCDOC_NODE_CDATA_SECTION) {
+            LOG_WARN("Node type 'PCDOC_NODE_CDATA_SECTION' skipped\n");
+        }
+
+        node = pcdoc_node_next_sibling(ctxt->udom->doc, node);
+    }
+
+done:
+    if (tag_name)
+        free(tag_name);
     return 0;
 
 failed:
     if (tag_name)
         free(tag_name);
-    if (result)
-        css_select_results_destroy(result);
     return -1;
 }
+
 
 static int
 create_anonymous_blocks_for_block_container(struct foil_create_ctxt *ctxt,
@@ -1042,13 +1110,8 @@ layout_rdrtree(struct foil_layout_ctxt *ctxt, struct foil_rdrbox *box)
         }
     }
     else if (box->is_block_container) {
-        if (box->nr_floating_children) {
-            foil_rect rc = box->ctnt_rect;
-            rc.bottom = INT_MAX;
-
-            foil_region_empty(&box->block_fmt_ctxt->region);
-            foil_region_add_rect(&box->block_fmt_ctxt->region, &rc);
-            box->block_fmt_ctxt->last_float_top = box->ctnt_rect.top;
+        if (box->nr_inline_level_children > 0) {
+            foil_rdrbox_lay_lines_in_block(ctxt, box);
         }
 
         foil_rdrbox *child = box->first;
@@ -1272,6 +1335,725 @@ foil_rdrbox *foil_udom_find_rdrbox(pcmcth_udom *udom,
     return data;
 }
 
+static void foil_rdrbox_delete_children(foil_rdrbox *root)
+{
+    foil_rdrbox *tmp;
+    foil_rdrbox *box = root;
+
+    while (box) {
+        if (box->first) {
+            box = box->first;
+        }
+        else {
+            while (box != root && box->next == NULL) {
+                tmp = box->parent;
+                foil_rdrbox_delete(box);
+                box = tmp;
+            }
+
+            if (box == root) {
+                break;
+            }
+
+            tmp = box->next;
+            foil_rdrbox_delete(box);
+            box = tmp;
+        }
+    }
+    box->nr_block_level_children = 0;
+    box->nr_inline_level_children = 0;
+    box->nr_floating_children = 0;
+    box->nr_abspos_children = 0;
+}
+
+static int rebuild_subtree(pcmcth_udom *udom, foil_rdrbox *box)
+{
+    foil_rdrbox_delete_children(box);
+    foil_create_ctxt ctxt = { udom,
+        udom->initial_cblock,           /* initial box */
+        NULL,                           /* root box */
+        box->parent,                     /* parent box */
+        purc_document_root(udom->doc),   /* root element */
+        purc_document_body(udom->doc),   /* body element */
+        NULL, NULL, NULL, NULL };
+    if (make_rdrbox_subtree(&ctxt, box)) {
+        goto failed;
+    }
+
+    if (normalize_rdrtree(&ctxt, box)) {
+        goto failed;
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
+static void reset_rdrbox_layout_info(pcmcth_udom *udom, foil_rdrbox *box)
+{
+    (void)udom;
+    box->is_width_resolved = 0;
+    box->is_height_resolved = 0;
+    box->is_in_normal_flow = 0;
+    box->is_in_flow = 0;
+    box->is_zidx_auto = 0;
+    box->width = 0;
+    box->height = 0;
+    box->prop_for_width = 0;
+    box->prop_for_height = 0;
+    box->is_width_resolved = 0;
+    box->is_height_resolved = 0;
+    box->nr_block_level_children = 0;
+    box->nr_inline_level_children = 0;
+    box->nr_floating_children = 0;
+    box->nr_abspos_children = 0;
+    box->ml = box->mt = box->mr = box->mb = 0;
+    box->pl = box->pt = box->pr = box->pb = 0;
+    foil_rect_set(&box->ctnt_rect, 0, 0, 0, 0);
+}
+
+#define COMP_AND_UPDATE_CRUX(prop)                                            \
+    if (box->prop != tmpbox->prop) {                                          \
+        box->prop = tmpbox->prop;                                             \
+        *crux_changed = 1;                                                    \
+    }
+
+#define COMP_AND_UPDATE(prop)                                                 \
+    if (box->prop != tmpbox->prop) {                                          \
+        box->prop = tmpbox->prop;                                             \
+    }
+
+#define VERIFY_PROP(prop_auto)                                                \
+    if (value != tmp_value) {                                                 \
+        *crux_changed = true;                                                 \
+    }                                                                         \
+    else if (value != prop_auto) {                                            \
+        v = used_length(ctxt->udom, box, length, unit);                       \
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);           \
+        if (v != tmp_v) {                                                     \
+            *crux_changed = true;                                             \
+        }                                                                     \
+    }
+
+#define FOIL_FPCT_TOFLOAT(v) (FIXTOFLT(FDIV(v, F_100)))
+
+static float used_length(pcmcth_udom *udom, foil_rdrbox *box,
+        css_unit unit, css_fixed length)
+{
+    float v = 0;
+
+    switch (unit) {
+    case CSS_UNIT_PCT:
+        v = foil_rect_width(&box->cblock_creator->ctnt_rect);
+        v = v * FOIL_FPCT_TOFLOAT(length);
+        break;
+
+    case CSS_UNIT_PX:
+        v = FIXTOFLT(length);
+        break;
+
+    /* font-relative lengths */
+    case CSS_UNIT_EX:
+        // The x-height is so called because it is often
+        // equal to the height of the lowercase "x".
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_W;
+        break;
+
+    case CSS_UNIT_EM:
+    case CSS_UNIT_CH:
+    case CSS_UNIT_REM:
+        // Equal to the used advance measure of the "0" glyph
+        v = FIXTOFLT(length) * FOIL_PX_GRID_CELL_H;
+        break;
+
+    /* absolute lengths */
+    case CSS_UNIT_CM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54;
+        break;
+    case CSS_UNIT_IN:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI;
+        break;
+    case CSS_UNIT_MM:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/10;
+        break;
+    case CSS_UNIT_PC:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/6.0;
+        break;
+    case CSS_UNIT_PT:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/72.0;
+        break;
+    case CSS_UNIT_Q:
+        v = FIXTOFLT(length) * FOIL_DEF_DPI/2.54/40;
+        break;
+
+    /* viewport-relative lengths */
+    case CSS_UNIT_VW:
+        v = FIXTOFLT(length) * udom->vw / 100;
+        break;
+    case CSS_UNIT_VH:
+        v = FIXTOFLT(length) * udom->vh / 100;
+        break;
+    case CSS_UNIT_VMAX:
+        if (udom->vh > udom->vw)
+            v = FIXTOFLT(length) * udom->vh / 100;
+        else
+            v = FIXTOFLT(length) * udom->vw / 100;
+        break;
+    case CSS_UNIT_VMIN:
+        if (udom->vh > udom->vw)
+            v = FIXTOFLT(length) * udom->vw / 100;
+        else
+            v = FIXTOFLT(length) * udom->vh / 100;
+        break;
+
+    default:
+        // TODO: support more unit
+        LOG_WARN("TODO: not supported unit: %d\n", unit);
+        break;
+    }
+
+    return v;
+}
+
+static int compare_and_update_properties(foil_create_ctxt *ctxt,
+        foil_rdrbox *box, int *crux_changed)
+{
+    (void) ctxt;
+    (void) box;
+    (void) crux_changed;
+    foil_rdrbox *tmpbox;
+    if ((tmpbox = foil_rdrbox_create_from_style(ctxt)) == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    if (box->type != tmpbox->type) {
+        *crux_changed = 1;
+        if (box->extra_data) {
+            if (box->extra_data_cleaner) {
+                box->extra_data_cleaner(box->extra_data);
+            }
+            free(box->extra_data);
+        }
+        box->extra_data = tmpbox->extra_data;
+        box->extra_data_cleaner = tmpbox->extra_data_cleaner;
+        tmpbox->extra_data = NULL;
+        tmpbox->extra_data_cleaner = NULL;
+    }
+
+    COMP_AND_UPDATE_CRUX(position);
+    COMP_AND_UPDATE_CRUX(is_abs_positioned);
+    COMP_AND_UPDATE_CRUX(floating);
+    COMP_AND_UPDATE_CRUX(clear);
+    COMP_AND_UPDATE_CRUX(is_block_level);
+    COMP_AND_UPDATE_CRUX(is_inline_level);
+
+    /* foil_rdrbox_dtrm_common_properties */
+    COMP_AND_UPDATE_CRUX(direction);
+    COMP_AND_UPDATE_CRUX(visibility);
+    COMP_AND_UPDATE(overflow_x);
+    COMP_AND_UPDATE(overflow_y);
+    COMP_AND_UPDATE(unicode_bidi);
+    COMP_AND_UPDATE(text_transform);
+    COMP_AND_UPDATE(white_space);
+    COMP_AND_UPDATE(text_deco_blink);
+    COMP_AND_UPDATE(text_deco_line_through);
+    COMP_AND_UPDATE(text_deco_overline);
+    COMP_AND_UPDATE(text_deco_underline);
+    COMP_AND_UPDATE(word_break);
+    COMP_AND_UPDATE(line_break);
+    COMP_AND_UPDATE(word_wrap);
+    COMP_AND_UPDATE(list_style_type);
+    COMP_AND_UPDATE(list_style_position);
+    COMP_AND_UPDATE(color.specified);
+    COMP_AND_UPDATE(color.argb);
+    COMP_AND_UPDATE(background_color.specified);
+    COMP_AND_UPDATE(background_color.argb);
+    COMP_AND_UPDATE(quotes);
+
+    uint8_t value, tmp_value;
+    css_fixed length, tmp_length;
+    css_unit unit, tmp_unit;
+    float v, tmp_v;
+    value = css_computed_margin_left(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_left(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_top(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_top(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_right(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_right(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_margin_bottom(box->computed_style, &length, &unit);
+    tmp_value = css_computed_margin_bottom(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_MARGIN_AUTO);
+
+    value = css_computed_border_left_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_left_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_top_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_top_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_right_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_right_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_border_bottom_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_border_bottom_width(ctxt->style, &tmp_length, &tmp_unit);
+    if (value != tmp_value) {
+        *crux_changed = true;
+    }
+    else if (value == CSS_BORDER_WIDTH_WIDTH) {
+        v = used_length(ctxt->udom, box, length, unit);
+        tmp_v = used_length(ctxt->udom, box, tmp_length, tmp_unit);
+        if (v != tmp_v) {
+            *crux_changed = true;
+        }
+    }
+
+    value = css_computed_left(box->computed_style, &length, &unit);
+    tmp_value = css_computed_left(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_LEFT_AUTO);
+
+    value = css_computed_top(box->computed_style, &length, &unit);
+    tmp_value = css_computed_top(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_TOP_AUTO);
+
+    value = css_computed_right(box->computed_style, &length, &unit);
+    tmp_value = css_computed_right(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_RIGHT_AUTO);
+
+    value = css_computed_bottom(box->computed_style, &length, &unit);
+    tmp_value = css_computed_bottom(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_BOTTOM_AUTO);
+
+    value = css_computed_width(box->computed_style, &length, &unit);
+    tmp_value = css_computed_width(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_WIDTH_AUTO);
+
+    value = css_computed_height(box->computed_style, &length, &unit);
+    tmp_value = css_computed_height(ctxt->style, &tmp_length, &tmp_unit);
+    VERIFY_PROP(CSS_HEIGHT_AUTO);
+
+    foil_rdrbox_delete(tmpbox);
+    return 0;
+
+failed:
+    return -1;
+}
+
+static void reset_rdrbox_layout_deep(pcmcth_udom *udom, foil_rdrbox *box)
+{
+    reset_rdrbox_layout_info(udom, box);
+
+    foil_rdrbox *child = box->first;
+    while (child) {
+        reset_rdrbox_layout_deep(udom, child);
+        child = child->next;
+    }
+}
+
+static void erase_bg(pcmcth_udom *udom, foil_rdrbox *box, foil_rect origin_rc)
+{
+    foil_render_ctxt ctxt = { .udom = udom, .fp = NULL };
+    if (box->tailor_ops && box->tailor_ops->bgnd_painter) {
+        box->tailor_ops->bgnd_painter(&ctxt, box);
+    }
+    else {
+        foil_rect page_rc;
+        const foil_rect *rc;
+        if (box->is_root) {
+            rc = NULL;
+        }
+        else {
+            foil_rdrbox_map_rect_to_page(&origin_rc, &page_rc);
+            rc = &page_rc;
+        }
+        foil_page_set_bgc(udom->page, box->background_color);
+        foil_page_erase_rect(udom->page, rc);
+    }
+}
+
+static struct foil_rdrbox *get_rdrbox_container(pcmcth_udom *udom,
+        struct foil_rdrbox *rdrbox)
+{
+    struct foil_rdrbox *container = rdrbox->parent;
+    while (container && container != rdrbox->cblock_creator) {
+        container = container->parent;
+    }
+
+    if (!container) {
+        container = udom->initial_cblock;
+    }
+    return container;
+}
+
+static struct foil_rdrbox *relayout_rdrtree(struct foil_layout_ctxt *ctxt,
+        struct foil_rdrbox *rdrbox, foil_rect origin_rc)
+{
+again:
+    reset_rdrbox_layout_deep(ctxt->udom, rdrbox);
+    if (rdrbox == ctxt->udom->initial_cblock) {
+        int width = ctxt->udom->vw;
+        int height = ctxt->udom->vh;
+        ctxt->udom->initial_cblock->is_initial = 1;
+        ctxt->udom->initial_cblock->is_block_level = 1;
+        ctxt->udom->initial_cblock->is_block_container = 1;
+        ctxt->udom->initial_cblock->is_width_resolved = 1;
+
+        ctxt->udom->initial_cblock->width = width;
+        ctxt->udom->initial_cblock->height = height;
+
+        ctxt->udom->initial_cblock->color.specified = 0;
+        ctxt->udom->initial_cblock->color.argb = FOIL_DEF_FGC;
+        ctxt->udom->initial_cblock->background_color.specified = 0;
+        ctxt->udom->initial_cblock->background_color.argb = FOIL_DEF_BGC;
+
+        ctxt->udom->initial_cblock->ctnt_rect.left = 0;
+        ctxt->udom->initial_cblock->ctnt_rect.top = 0;
+        ctxt->udom->initial_cblock->ctnt_rect.right = width;
+        ctxt->udom->initial_cblock->ctnt_rect.bottom = height;
+        ctxt->udom->initial_cblock->cblock_creator = NULL;
+    }
+
+    pre_layout_rdrtree(ctxt, rdrbox);
+    resolve_widths(ctxt, rdrbox);
+    resolve_heights(ctxt, rdrbox);
+
+    if (rdrbox != ctxt->udom->initial_cblock) {
+        int ow = foil_rect_width(&origin_rc);
+        int oh = foil_rect_height(&origin_rc);
+        int w = rdrbox->width;
+        int h = rdrbox->height;
+
+        if (ow != w || oh != h) {
+            rdrbox = get_rdrbox_container(ctxt->udom, rdrbox);
+            origin_rc = rdrbox->ctnt_rect;
+            goto again;
+        }
+
+        foil_rect_set(&rdrbox->ctnt_rect, origin_rc.left, origin_rc.top,
+                origin_rc.left + rdrbox->width, origin_rc.top + rdrbox->height);
+    }
+
+    layout_rdrtree(ctxt, rdrbox);
+    erase_bg(ctxt->udom, rdrbox, origin_rc);
+
+    if (rdrbox == ctxt->udom->initial_cblock) {
+        int cols = ctxt->udom->initial_cblock->width / FOIL_PX_GRID_CELL_W;
+        int rows = ctxt->udom->initial_cblock->height / FOIL_PX_GRID_CELL_H;
+
+        if (rows > ctxt->udom->page->rows || cols > ctxt->udom->page->cols) {
+            foil_page_set_row_col(ctxt->udom->page, cols, rows);
+        }
+        rdrbox = ctxt->udom->initial_cblock->first;
+    }
+    return rdrbox;
+}
+
+
+static int on_update_style(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem, int op)
+{
+    (void)ref_elem;
+    (void)op;
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
+    foil_rdrbox *render_box = rdrbox;
+    pcdoc_element *ancestor = rdrbox->owner;
+    css_select_results *result = NULL;
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+
+    result = select_element_style(&udom->media,
+            udom->select_ctx, udom, ancestor,
+            rdrbox->parent);
+    if (!result) {
+        goto failed;
+    }
+
+    css_computed_style *style = result->styles[CSS_PSEUDO_ELEMENT_NONE];
+
+    if (css_computed_style_is_equal(style, rdrbox->computed_style)) {
+        r = PCRDR_SC_OK;
+        goto done;
+    }
+    foil_create_ctxt ctxt = { udom,
+        udom->initial_cblock,           /* initial box */
+        NULL,                           /* root box */
+        rdrbox->parent,                     /* parent box */
+        purc_document_root(udom->doc),   /* root element */
+        purc_document_body(udom->doc),   /* body element */
+        ancestor,
+        result,                          /* computed */
+        style,                           /* style */
+        NULL };
+
+    int crux_changed = 0;
+    if (compare_and_update_properties(&ctxt, rdrbox, &crux_changed)) {
+        goto failed;
+    }
+
+    if (rdrbox->computed_style) {
+        css_computed_style_destroy(rdrbox->computed_style);
+    }
+    rdrbox->computed_style = style;
+    result->styles[CSS_PSEUDO_ELEMENT_NONE] = NULL;
+
+    if (!crux_changed) {
+        /* sizing, border property */
+        pre_layout_rdrtree(&layout_ctxt, rdrbox);
+        goto render;
+    }
+
+    render_box = get_rdrbox_container(udom, rdrbox);
+
+    render_box = relayout_rdrtree(&layout_ctxt, render_box, render_box->ctnt_rect);
+
+render:
+    foil_udom_invalidate_rdrbox(udom, render_box);
+    r = PCRDR_SC_OK;
+
+done:
+    if (result) {
+        css_select_results_destroy(result);
+    }
+    return r;
+
+failed:
+    if (result) {
+        css_select_results_destroy(result);
+    }
+
+    return PCRDR_SC_SERVICE_UNAVAILABLE;
+}
+
+static int on_rebuild_subtree(pcmcth_udom *udom, foil_rdrbox *rdrbox)
+{
+    foil_rect orc = rdrbox->ctnt_rect;
+
+    rebuild_subtree(udom, rdrbox);
+
+    foil_layout_ctxt layout_ctxt = { udom, udom->initial_cblock };
+    rdrbox = relayout_rdrtree(&layout_ctxt, rdrbox, orc);
+
+    foil_udom_invalidate_rdrbox(udom, rdrbox);
+    return PCRDR_SC_OK;
+}
+
+static int on_displace_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_erase_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_clear_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_append_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_prepend_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_insert_before_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
+    return on_rebuild_subtree(udom, rdrbox);
+}
+static int on_insert_after_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_update_text_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem, int op)
+{
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
+    switch (op) {
+    case PCRDR_K_OPERATION_DISPLACE:
+    case PCRDR_K_OPERATION_UPDATE:
+        r = on_displace_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_ERASE:
+        r = on_erase_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_CLEAR:
+        r = on_clear_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_APPEND:
+        r = on_append_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_PREPEND:
+        r = on_prepend_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTBEFORE:
+        r = on_insert_before_text_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTAFTER:
+        r = on_insert_after_text_content(udom, rdrbox, ref_elem);
+        break;
+    }
+    return r;
+}
+
+static int on_displace_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_erase_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_clear_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_append_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_prepend_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_insert_before_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_insert_after_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem)
+{
+    (void) ref_elem;
+    rdrbox = get_rdrbox_container(udom, rdrbox);
+    return on_rebuild_subtree(udom, rdrbox);
+}
+
+static int on_update_content(pcmcth_udom *udom, foil_rdrbox *rdrbox,
+    pcdoc_element_t ref_elem, int op)
+{
+    int r = PCRDR_SC_NOT_IMPLEMENTED;
+    switch (op) {
+    case PCRDR_K_OPERATION_DISPLACE:
+    case PCRDR_K_OPERATION_UPDATE:
+        r = on_displace_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_ERASE:
+        r = on_erase_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_CLEAR:
+        r = on_clear_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_APPEND:
+        r = on_append_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_PREPEND:
+        r = on_prepend_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTBEFORE:
+        r = on_insert_before_content(udom, rdrbox, ref_elem);
+        break;
+
+    case PCRDR_K_OPERATION_INSERTAFTER:
+        r = on_insert_after_content(udom, rdrbox, ref_elem);
+        break;
+    }
+    return r;
+}
+
+/*
+  - `append`: the last child element of the target element before this op.
+  - `prepend`: the first child element of the target elment before this op.
+  - `insertBefore`: the previous sibling of the target element before this op.
+  - `insertAfter`: the next sibling of the target element before this op.
+  - `displace`: the target element itself.
+  - `update`: the target element itself.
+  - `erase`: the target element itself.
+  - `clear`: the target element itself.
+*/
 int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         int op, const char *property, purc_variant_t ref_info)
 {
@@ -1285,7 +2067,10 @@ int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
     if (strncasecmp(property, "attr.", 5) == 0) {
         const char *attr = property + 5;
         if (strcasecmp(attr, "style") == 0) {
-            // TODO: the style changed.
+            r = on_update_style(udom, rdrbox, element, op);
+        }
+        else if (strcasecmp(attr, "class") == 0) {
+            r = on_update_style(udom, rdrbox, element, op);
         }
         else if (rdrbox->tailor_ops && rdrbox->tailor_ops->on_attr_changed) {
             foil_update_ctxt ctxt = { udom, element };
@@ -1294,10 +2079,10 @@ int foil_udom_update_rdrbox(pcmcth_udom *udom, foil_rdrbox *rdrbox,
         }
     }
     else if (strcasecmp(property, "textContent") == 0) {
-        // TODO:
+        r = on_update_text_content(udom, rdrbox, element, op);
     }
-    else if (strcasecmp(property, "contents") == 0) {
-        // TODO:
+    else if (strcasecmp(property, "content") == 0) {
+        r = on_update_content(udom, rdrbox, element, op);
     }
     else {
         LOG_WARN("Unknown property: %s\n", property);

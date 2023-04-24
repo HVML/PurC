@@ -152,10 +152,17 @@ int foil_rdrbox_inline_calc_preferred_minimum_width(foil_rdrbox *box)
     assert(box->is_inline_box);
 
     const uint32_t render_flags =
+#if 0
         FOIL_GRF_WRITING_MODE_HORIZONTAL_TB |
         FOIL_GRF_TEXT_ORIENTATION_UPRIGHT |
         FOIL_GRF_SPACES_REMOVE_START |
         FOIL_GRF_OVERFLOW_WRAP_ANYWHERE;
+#endif
+
+        FOIL_GRF_WRITING_MODE_HORIZONTAL_TB |
+        FOIL_GRF_TEXT_ORIENTATION_UPRIGHT |
+        FOIL_GRF_SPACES_REMOVE_START;
+
     const int max_extent = FOIL_PX_GRID_CELL_W;
 
     int width = 0;

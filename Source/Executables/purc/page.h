@@ -110,6 +110,7 @@ pcmcth_udom *foil_page_set_udom(pcmcth_page *page, pcmcth_udom *udom);
 void foil_page_set_fgc(pcmcth_page *page, foil_color color);
 void foil_page_set_bgc(pcmcth_page *page, foil_color color);
 void foil_page_set_attrs(pcmcth_page *page, uint8_t attrs);
+int foil_page_set_row_col(pcmcth_page *page, int cols, int rows);
 
 int foil_page_draw_uchar(pcmcth_page *page, int x, int y,
         uint32_t uc, size_t count);

@@ -9,6 +9,8 @@
 #ifndef css_select_arena_h_
 #define css_select_arena_h_
 
+#include <stdbool.h>
+
 struct css_computed_style;
 
 /*
@@ -30,6 +32,9 @@ enum css_error css__arena_intern_style(struct css_computed_style **style);
  * \return CSS_OK on success or appropriate error otherwise.
  */
 enum css_error css__arena_remove_style(struct css_computed_style *style);
+
+bool css__arena_style_is_equal(struct css_computed_style *a,
+        struct css_computed_style *b);
 
 #endif
 
