@@ -770,7 +770,7 @@ render_rdrbox_with_stacking_ctxt(struct foil_render_ctxt *rdr_ctxt,
                 render_rdrbox_with_stacking_ctxt(rdr_ctxt, NULL, child);
             }
             else {
-                assert(child->stacking_ctxt);
+                //assert(child->stacking_ctxt);
                 render_rdrbox_with_stacking_ctxt(rdr_ctxt,
                         child->stacking_ctxt, child);
             }

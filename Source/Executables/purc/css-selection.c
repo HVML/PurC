@@ -1402,6 +1402,14 @@ set_node_data(void *pw, void *n, void *node_data)
 
     /* we save the node data in udom->ele2nodedata in order to manage
        the changes of documment and release the node data when we are done. */
+    void *data = NULL;
+    ssize_t idx = sorted_array_find(udom->elem2nodedata, PTR2U64(n), &data);
+    if (idx >= 0) {
+        extern css_select_handler foil_css_select_handler;
+        css_node_data_handler(&foil_css_select_handler, CSS_NODE_DELETED,
+                udom, INT2PTR(n), NULL, data);
+        sorted_array_remove(udom->elem2nodedata, PTR2U64(n));
+    }
     sorted_array_add(udom->elem2nodedata, PTR2U64(n), node_data);
     return CSS_OK;
 }

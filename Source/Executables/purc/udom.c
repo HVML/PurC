@@ -780,17 +780,19 @@ make_rdrtree(struct foil_create_ctxt *ctxt, pcdoc_element_t ancestor)
     }
 
 done:
+    if (result) {
+        css_select_results_destroy(result);
+    }
     if (tag_name)
         free(tag_name);
-    if (result)
-        css_select_results_destroy(result);
     return 0;
 
 failed:
+    if (result) {
+        css_select_results_destroy(result);
+    }
     if (tag_name)
         free(tag_name);
-    if (result)
-        css_select_results_destroy(result);
     return -1;
 }
 
