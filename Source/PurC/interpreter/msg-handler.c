@@ -353,24 +353,10 @@ purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    struct list_head *crtns;
-    pcintr_coroutine_t p, q;
-
-    crtns = &heap->crtns;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
-        /* FIXME: work-around */
-        if (handle == co->target_dom_handle && !co->stack.exited) {
-            if (pstack) {
-                *pstack = &(co->stack);
-            }
-            return co->stack.vdom;
-        }
-    }
-
-    crtns = &heap->stopped_crtns;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
+    size_t count = pcutils_sorted_array_count(heap->loaded_crtn_handles);
+    for (size_t i = 0; i < count; i++) {
+        pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
+                heap->loaded_crtn_handles, i, NULL);
         if (handle == co->target_dom_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
@@ -378,6 +364,7 @@ purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
             return co->stack.vdom;
         }
     }
+
     return NULL;
 }
 
@@ -389,12 +376,10 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
         return NULL;
     }
 
-    struct list_head *crtns;
-    pcintr_coroutine_t p, q;
-
-    crtns = &heap->crtns;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
+    size_t count = pcutils_sorted_array_count(heap->loaded_crtn_handles);
+    for (size_t i = 0; i < count; i++) {
+        pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
+                heap->loaded_crtn_handles, i, NULL);
         if (handle == co->target_page_handle) {
             if (pstack) {
                 *pstack = &(co->stack);
@@ -403,16 +388,6 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
         }
     }
 
-    crtns = &heap->stopped_crtns;
-    list_for_each_entry_safe(p, q, crtns, ln) {
-        pcintr_coroutine_t co = p;
-        if (handle == co->target_page_handle) {
-            if (pstack) {
-                *pstack = &(co->stack);
-            }
-            return co->stack.vdom;
-        }
-    }
     return NULL;
 }
 
