@@ -344,30 +344,6 @@ out:
     return ret;
 }
 
-
-static
-purc_vdom_t find_vdom_by_target_vdom(uint64_t handle, pcintr_stack_t *pstack)
-{
-    pcintr_heap_t heap = pcintr_get_heap();
-    if (heap == NULL) {
-        return NULL;
-    }
-
-    size_t count = pcutils_sorted_array_count(heap->loaded_crtn_handles);
-    for (size_t i = 0; i < count; i++) {
-        pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
-                heap->loaded_crtn_handles, i, NULL);
-        if (handle == co->target_dom_handle) {
-            if (pstack) {
-                *pstack = &(co->stack);
-            }
-            return co->stack.vdom;
-        }
-    }
-
-    return NULL;
-}
-
 static purc_vdom_t
 find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
 {
@@ -391,11 +367,40 @@ find_vdom_by_target_window(uint64_t handle, pcintr_stack_t *pstack)
     return NULL;
 }
 
-
-static void
-on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg)
+static bool
+is_crtn_observe_event(struct pcinst *inst,
+        pcintr_coroutine_t co, const pcrdr_msg *msg, purc_variant_t source,
+        const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    purc_variant_t observed = source;
+
+    struct pcintr_observer *observer, *next;
+    struct list_head *list = &co->stack.hvml_observers;
+
+again:
+    list_for_each_entry_safe(observer, next, list, node) {
+        if (observer->is_match(co, observer, (pcrdr_msg *)msg, observed,
+                    type, sub_type)) {
+            return true;
+        }
+    }
+
+    if (list != &co->stack.intr_observers) {
+        list = &co->stack.intr_observers;
+        goto again;
+    }
+
+    return false;
+}
+
+static void
+on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg,
+        const char *type, const char *sub_type)
+{
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
@@ -419,11 +424,13 @@ on_plainwindow_event(struct pcinst *inst, const pcrdr_msg *msg)
 }
 
 static void
-on_widget_event(struct pcinst *inst, const pcrdr_msg *msg)
+on_widget_event(struct pcinst *inst, const pcrdr_msg *msg,
+        const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
     pcintr_stack_t stack = NULL;
-    purc_variant_t source = PURC_VARIANT_INVALID;
 
     purc_vdom_t vdom = find_vdom_by_target_window(
             (uint64_t)msg->targetValue, &stack);
@@ -445,33 +452,16 @@ on_widget_event(struct pcinst *inst, const pcrdr_msg *msg)
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         purc_variant_unref(hvml);
     }
-
-    const char *uri = pcintr_coroutine_get_uri(stack->co);
-    if (!uri) {
-        goto out;
-    }
-
-    purc_variant_t source_uri = purc_variant_make_string(uri, false);
-    if (!source_uri) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    pcintr_post_event(0, stack->co->cid, msg->reduceOpt, source_uri, source,
-            msg->eventName, msg->data, PURC_VARIANT_INVALID);
-    purc_variant_unref(source_uri);
-
-out:
-    if (source) {
-        purc_variant_unref(source);
-    }
 }
 
 static void
-on_dom_event(struct pcinst *inst, const pcrdr_msg *msg)
+on_dom_event(struct pcinst *inst, const pcrdr_msg *msg,
+        const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
-    pcintr_stack_t stack = NULL;
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+
     purc_variant_t source = PURC_VARIANT_INVALID;
 
     const char *element = purc_variant_get_string_const(
@@ -482,11 +472,9 @@ on_dom_event(struct pcinst *inst, const pcrdr_msg *msg)
 
     if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_HANDLE) {
         unsigned long long int p = strtoull(element, NULL, 16);
-        find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
         source = purc_variant_make_native((void*)(uint64_t)p, NULL);
     }
     else if (msg->elementType == PCRDR_MSG_ELEMENT_TYPE_ID) {
-        find_vdom_by_target_vdom((uint64_t)msg->targetValue, &stack);
         size_t nr = strlen(element) + 1;
         char *buf = (char*)malloc(nr + 1);
         if (!buf) {
@@ -502,20 +490,34 @@ on_dom_event(struct pcinst *inst, const pcrdr_msg *msg)
         }
     }
 
-    const char *uri = pcintr_coroutine_get_uri(stack->co);
-    if (!uri) {
-        goto out;
-    }
+    struct pcintr_heap *heap = inst->intr_heap;
+    uint64_t handle = (uint64_t)msg->targetValue;
+    size_t count = pcutils_sorted_array_count(heap->loaded_crtn_handles);
+    for (size_t i = 0; i < count; i++) {
+        pcintr_coroutine_t co = (pcintr_coroutine_t)pcutils_sorted_array_get(
+                heap->loaded_crtn_handles, i, NULL);
+        if ((handle != co->target_dom_handle) ||
+                !is_crtn_observe_event(inst, co, msg, source,
+                    type, sub_type)) {
+            continue;
+        }
 
-    purc_variant_t source_uri = purc_variant_make_string(uri, false);
-    if (!source_uri) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
+        const char *uri = pcintr_coroutine_get_uri(co);
+        if (!uri) {
+            goto out;
+        }
 
-    pcintr_post_event(0, stack->co->cid, msg->reduceOpt, source_uri, source,
-            msg->eventName, msg->data, PURC_VARIANT_INVALID);
-    purc_variant_unref(source_uri);
+        purc_variant_t source_uri = purc_variant_make_string(uri, false);
+        if (!source_uri) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto out;
+        }
+
+        pcintr_post_event(0, co->cid, msg->reduceOpt, source_uri, source,
+                msg->eventName, msg->data, PURC_VARIANT_INVALID);
+        purc_variant_unref(source_uri);
+
+    }
 
 out:
     if (source) {
@@ -530,13 +532,32 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     UNUSED_PARAM(msg);
     struct pcinst *inst = pcinst_current();
 
+    char *type = NULL;
+    const char *sub_type = NULL;
+    if (msg && msg->eventName) {
+        const char *event = purc_variant_get_string_const(msg->eventName);
+        const char *separator = strchr(event, MSG_EVENT_SEPARATOR);
+        if (separator) {
+            sub_type = separator + 1;
+        }
+
+        size_t nr_type = separator - event;
+        if (nr_type) {
+            type = strndup(event, separator - event);
+            if (!type) {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto out;
+            }
+        }
+    }
+
     if (msg->target == PCRDR_MSG_TARGET_COROUTINE) {
         dispatch_coroutine_event_from_move_buffer(inst, msg);
-        return;
+        goto out;
     }
     else if (msg->target == PCRDR_MSG_TARGET_INSTANCE) {
         dispatch_inst_event_from_move_buffer(inst, msg);
-        return;
+        goto out;
     }
 
     switch (msg->target) {
@@ -551,15 +572,15 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
-        on_plainwindow_event(inst, msg);
+        on_plainwindow_event(inst, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WIDGET:
-        on_widget_event(inst, msg);
+        on_widget_event(inst, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_DOM:
-        on_dom_event(inst,  msg);
+        on_dom_event(inst,  msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_USER:
@@ -571,6 +592,12 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
     }
+
+out:
+    if (type) {
+        free(type);
+    }
+
 }
 
 int
