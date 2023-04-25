@@ -363,7 +363,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (stack->co->stage != CO_STAGE_OBSERVING) {
         stack->co->stage = CO_STAGE_OBSERVING;
         // POST corState:observing
-        if (co->curator) {
+        if (co->curator && pcintr_is_crtn_exists(co->curator)) {
             purc_variant_t request_id = purc_variant_make_ulongint(co->cid);
             pcintr_coroutine_post_event(co->curator, // target->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
@@ -448,7 +448,7 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     PC_DEBUGX("last msg was processed");
 #endif                          /* } */
 
-    if (co->curator) {
+    if (co->curator && pcintr_is_crtn_exists(co->curator)) {
         purc_variant_t request_id = purc_variant_make_ulongint(co->cid);
         purc_variant_t result = pcintr_coroutine_get_result(co);
         if (co->error_except) {

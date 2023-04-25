@@ -1407,6 +1407,15 @@ bool pcintr_co_is_observed(pcintr_coroutine_t co)
     return false;
 }
 
+bool
+pcintr_is_crtn_exists(purc_atom_t cid)
+{
+    if (purc_atom_to_string(cid)) {
+        return true;
+    }
+    return false;
+}
+
 struct pcintr_stack_frame*
 pcintr_stack_get_bottom_frame(pcintr_stack_t stack)
 {
@@ -1559,7 +1568,7 @@ execute_one_step_for_exiting_co(pcintr_coroutine_t co)
         heap->cond_handler(PURC_COND_COR_EXITED, co, &info);
     }
 
-    if (co->curator) {
+    if (co->curator && pcintr_is_crtn_exists(co->curator)) {
         // XXX: the curator may live in another thread!
         purc_atom_t cid = co->curator;
         co->curator = 0;

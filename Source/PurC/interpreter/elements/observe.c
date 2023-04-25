@@ -808,7 +808,7 @@ on_popping(pcintr_stack_t stack, void* ud)
 
     if (frame->handle_event) {
         if ((strcmp(ctxt->msg_type, MSG_TYPE_REQUEST) == 0) &&
-                stack->co->curator) {
+                stack->co->curator && pcintr_is_crtn_exists(stack->co->curator)) {
             purc_variant_t exclamation_var = pcintr_get_exclamation_var(frame);
             purc_variant_t observed = PURC_VARIANT_INVALID;
             if (exclamation_var) {

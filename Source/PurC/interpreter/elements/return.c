@@ -71,6 +71,7 @@ post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     bool outmost = false;
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     for(; p; p = pcintr_stack_frame_get_parent(p)) {
+        /* FIXME */
         if (co->curator && p->pos->tag_id == PCHVML_TAG_HVML) {
             ctxt->back_anchor = p;
             outmost = true;

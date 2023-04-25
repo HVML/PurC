@@ -428,6 +428,9 @@ pcintr_run_exiting_co(void *ctxt);
 bool
 pcintr_co_is_observed(pcintr_coroutine_t co);
 
+bool
+pcintr_is_crtn_exists(purc_atom_t cid);
+
 void
 pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co);
 
