@@ -357,14 +357,6 @@ coroutine_release(pcintr_coroutine_t co)
         PURC_VARIANT_SAFE_CLEAR(co->doc_contents);
         PURC_VARIANT_SAFE_CLEAR(co->doc_wrotten_len);
 
-        struct list_head *children = &co->children;
-        struct list_head *p, *n;
-        list_for_each_safe(p, n, children) {
-            pcintr_coroutine_child_t child;
-            child = list_entry(p, struct pcintr_coroutine_child, ln);
-            free(child);
-        }
-
         if (co->cid) {
             const char *uri = pcintr_coroutine_get_uri(co);
             purc_atom_remove_string_ex(PURC_ATOM_BUCKET_DEF, uri);
@@ -1814,7 +1806,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     pcvdom_document_ref(vdom);
     co->vdom = vdom;
     pcintr_coroutine_set_state(co, CO_STATE_READY);
-    list_head_init(&co->children);
     list_head_init(&co->ln_stopped);
     list_head_init(&co->registered_cancels);
     list_head_init(&co->tasks);
@@ -1837,7 +1828,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
     list_add_tail(&co->ln, &heap->crtns);
 
     stack_init(stack);
-    pcintr_coroutine_add_sub_exit_observer(co);
     pcintr_coroutine_add_last_msg_observer(co);
 
     if (parent && page_type == PCRDR_PAGE_TYPE_INHERIT) {
@@ -1850,14 +1840,6 @@ coroutine_create(purc_vdom_t vdom, pcintr_coroutine_t parent,
 
     if (parent) {
         co->curator = parent->cid;
-        pcintr_coroutine_child_t child;
-        child = (pcintr_coroutine_child_t)calloc(1, sizeof(*child));
-        if (!child) {
-            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-            goto fail_clr_variables;
-        }
-        child->cid = co->cid;
-        list_add_tail(&child->ln, &parent->children);
     }
     else {
         // set curator in caller

@@ -400,10 +400,6 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
         }
     }
 
-    if (!list_empty(&co->children)) {
-        return;
-    }
-
     if (co->stack.exited) {
         pcintr_revoke_all_hvml_observers(&co->stack);
         PC_ASSERT(list_empty(&co->stack.hvml_observers));

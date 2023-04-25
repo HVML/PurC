@@ -443,9 +443,6 @@ int
 pcintr_coroutine_clear_tasks(pcintr_coroutine_t co);
 
 void
-pcintr_coroutine_add_sub_exit_observer(pcintr_coroutine_t co);
-
-void
 pcintr_coroutine_add_last_msg_observer(pcintr_coroutine_t co);
 
 /* ms */

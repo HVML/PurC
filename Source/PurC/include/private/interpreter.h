@@ -316,8 +316,6 @@ struct pcintr_coroutine {
     struct rb_node              node;     /* heap::coroutines */
     struct list_head            ln;       /* heap::crtns, stopped_crtns */
 
-    struct list_head            children; /* struct pcintr_coroutine_child */
-
     struct list_head            doc_node;   /* doc::owner_list */
 
     const char                 *error_except;
