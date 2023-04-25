@@ -539,56 +539,37 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
         return;
     }
 
-    pcintr_stack_t stack = NULL;
-    purc_variant_t source = PURC_VARIANT_INVALID;
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
         //TODO
-        goto out;
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        break;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
         //TODO
-        goto out;
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
         on_plainwindow_event(inst, msg);
-        return;
+        break;
 
     case PCRDR_MSG_TARGET_WIDGET:
         on_widget_event(inst, msg);
-        return;
+        break;
 
     case PCRDR_MSG_TARGET_DOM:
         on_dom_event(inst,  msg);
-        return;
+        break;
 
     case PCRDR_MSG_TARGET_USER:
         //TODO
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
 
     default:
-        goto out;
-    }
-
-    // FIXME: soure_uri msg->sourcURI or  co->full_name
-    const char *uri = pcintr_coroutine_get_uri(stack->co);
-    if (!uri) {
-        goto out;
-    }
-
-    purc_variant_t source_uri = purc_variant_make_string(uri, false);
-    if (!source_uri) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto out;
-    }
-
-    pcintr_post_event(0, stack->co->cid, msg->reduceOpt, source_uri, source,
-            msg->eventName, msg->data, PURC_VARIANT_INVALID);
-    purc_variant_unref(source_uri);
-
-out:
-    if (source) {
-        purc_variant_unref(source);
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        break;
     }
 }
 
