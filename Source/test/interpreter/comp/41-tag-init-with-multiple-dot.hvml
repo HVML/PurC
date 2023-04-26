@@ -1,0 +1,15 @@
+#!/usr/bin/purc
+
+# RESULT: "The avator is ZhangSan.png ZhangSan.jpg ZhangSan.gif ZhangSan.svg ZhangSan.bmp ZhangSan.webp"
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as 'person' with {"name":"ZhangSan", "age":18}  silently />
+        <exit with "The avator is {$person.name}.png {$person}.name.jpg $person.name.gif {$person.name.svg} ${person}.name.bmp {${person}.name}.webp" />
+    </body>
+</hvml>
+
+
