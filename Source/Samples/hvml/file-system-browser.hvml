@@ -220,6 +220,9 @@
 
             <observe on ".subdir" for "click">
                 <test on $?.targetId >
+                    <match for "AS '.'" exclusively>
+                        <init as dirName at '3' with '' temp />
+                    </match>
                     <match for "AS '..'" exclusively>
                         <inherit>
                             $STREAM.stdout.writelines("currDir: $dataCenter.currDir")
@@ -233,9 +236,6 @@
                         <inherit>
                             $STREAM.stdout.writelines("currDir: $dataCenter.currDir")
                         </inherit>
-                        <init as dirName at '3' with '' temp />
-                    </match>
-                    <match for "AS '.'" exclusively>
                         <init as dirName at '3' with '' temp />
                     </match>
                     <match for 'ANY'>

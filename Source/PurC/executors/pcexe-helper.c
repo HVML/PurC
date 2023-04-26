@@ -931,6 +931,7 @@ literal_expression_eval(struct literal_expression *lexp,
     char *target  = NULL;
     size_t n = 0;
     char buf[BUF_SIZE];
+    bool specified_length = false;
 
     if (MATCHING_FLAGS_IS_SET_WITH(lexp->suffix.matching_flags, MATCHING_FLAG_C)) {
         if (!literal) {
@@ -974,6 +975,7 @@ literal_expression_eval(struct literal_expression *lexp,
 
     if (lexp->suffix.max_matching_length > 0) {
         n = lexp->suffix.max_matching_length;
+        specified_length = true;
     } else {
         if (literal) {
             n = strlen(literal);
@@ -983,14 +985,24 @@ literal_expression_eval(struct literal_expression *lexp,
     }
 
     if (literal && target) {
-        r = cmp(literal, target, n);
+        if (!specified_length && strlen(target) != n) {
+            r = -1;
+        }
+        else {
+            r = cmp(literal, target, n);
+        }
     } else {
         r = purc_variant_stringify_buff(buf, sizeof(buf), val);
         if (r < 0 || (size_t)r >= sizeof(buf)) {
             // FIXME:
             r = -1;
         } else {
-            r = cmp(lexp->literal, buf, n);
+            if (!specified_length && n != (size_t)r) {
+                r = -1;
+            }
+            else {
+                r = cmp(lexp->literal, buf, n);
+            }
         }
     }
 
