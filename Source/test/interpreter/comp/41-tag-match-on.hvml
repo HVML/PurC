@@ -1,0 +1,63 @@
+#!/usr/bin/purc
+
+# RESULT: ["bi-file-earmark-pdf","bi-file-earmark-image","bi-file-earmark-text","bi-file-earmark-image","bi-file-earmark"]
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <define as getFileType>
+            <test on $STR.substr($?, -4) >
+                <match on="$L.streq('case', '.pdf', $?)" exclusively>
+                    <return with "bi-file-earmark-pdf" />
+                </match>
+                <match on="$L.streq('case', '.jpg', $?)" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match on="$L.streq('case', '.jpeg', $?)" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match on="$L.streq('case', '.png', $?)" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match on="$L.streq('case', '.gif', $?)" exclusively>
+                    <return with "bi-file-earmark-image" />
+                </match>
+                <match on="$L.streq('case', '.mp3', $?)" exclusively>
+                    <return with "bi-file-earmark-music" />
+                </match>
+                <match on="$L.streq('case', '.txt', $?)" exclusively>
+                    <return with "bi-file-earmark-text" />
+                </match>
+                <match for="ANY">
+                    <return with "bi-file-earmark" />
+                </match>
+            </test>
+        </define>
+
+        <call on $getFileType with "abc.pdf" >
+            <init as pdfClass at '2' with $? temp />
+        </call>
+
+        <call on $getFileType with "abc.jpg" >
+            <init as jpgClass at '2' with $? temp />
+        </call>
+
+        <call on $getFileType with "abc.txt" >
+            <init as txtClass at '2' with $? temp />
+        </call>
+
+        <call on $getFileType with "abc.gif" >
+            <init as gifClass at '2' with $? temp />
+        </call>
+
+        <call on $getFileType with "abc.xyz" >
+            <init as xyzClass at '2' with $? temp />
+        </call>
+
+        <exit with [$pdfClass, $jpgClass, $txtClass, $gifClass, $xyzClass] />
+    </body>
+</hvml>
+
+
