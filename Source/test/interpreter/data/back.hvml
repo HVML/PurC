@@ -6,14 +6,14 @@
     <body>
         <div class="this shall be overwritten" id="abC">
             <div class="de">
-                <back to=2 />
+                <back to=1 />
                 <update on="$2@" at="attr.classx" to="displace" with="you can NOT see me"/>
             </div>
             <update on="$1@" at="attr.class" to="displace" with="you can see me"/>
         </div>
         <div class="this shall be overwritten" id="abC">
             <div class="de">
-                <back to=_nexttolast />
+                <back to=_last />
                 <update on="$2@" at="attr.classx" to="displace" with="you can NOT see me"/>
             </div>
             <update on="$1@" at="attr.class" to="displace" with="you can see me"/>

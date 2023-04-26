@@ -61,12 +61,25 @@ ctxt_destroy(void *ctxt)
 }
 
 static int
+process_back_level(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, int64_t back_level);
+
+static int
 post_process_data(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
     struct ctxt_for_back *ctxt;
     ctxt = (struct ctxt_for_back*)frame->ctxt;
+
+    struct pcvdom_element *element = frame->pos;
+
+    purc_atom_t name = pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TO));
+
+    if (ctxt->back_anchor == NULL && frame->silently) {
+        process_back_level(frame, element, name, -1);
+    }
 
     if (ctxt->back_anchor == NULL) {
         purc_set_error_with_info(PURC_ERROR_ENTITY_NOT_FOUND,
@@ -96,7 +109,7 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
     return 0;
 }
 
-static int
+int
 process_back_level(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, int64_t back_level)
@@ -104,7 +117,7 @@ process_back_level(struct pcintr_stack_frame *frame,
     struct ctxt_for_back *ctxt;
     ctxt = (struct ctxt_for_back*)frame->ctxt;
 
-    struct pcintr_stack_frame *p = frame;
+    struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     while (p && (back_level == -1 || back_level > 0)) {
         struct pcintr_stack_frame *parent = pcintr_stack_frame_get_parent(p);
         if (back_level != -1) {
