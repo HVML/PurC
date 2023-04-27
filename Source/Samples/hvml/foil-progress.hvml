@@ -80,7 +80,7 @@
                 </p>
                 <p>
                     <label for="progress3">Progress 3: </label>
-                    <progress id="progress3" max="100" style="appearance:progress-bkgnd;width:20em;"> N/A</progress>
+                    <progress id="progress3" max="100" style="appearance:progress-bkgnd;width:20em;color:lightgray;text-align:center;"> N/A</progress>
                 </p>
             </SECTION>
 
@@ -101,6 +101,7 @@
                 <update on '#progress1' at 'attr.value' with "$progress" />
                 <update on '#progress2' at 'attr.value' with "$progress" />
                 <update on '#progress3' at 'attr.value' with "$progress" />
+                <update on '#progress3' at 'textContent' with "$progress%" />
                 <test with $L.ge($progress, 100UL) >
                     <update on $TIMERS to 'subtract' with [ { id: 'gogogo' } ] />
                     <forget on $TIMERS for 'expired:*' />
