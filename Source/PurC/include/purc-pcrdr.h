@@ -55,9 +55,12 @@
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
 #define PCRDR_LOCALHOST                 "localhost"
+#define PCRDR_APP_SELF                  "_self"
 #define PCRDR_APP_RENDERER              "_renderer"
-#define PCRDR_RUNNER_BUILTIN            "_builtin"
 #define PCRDR_APP_SYSTEM                "_system"
+#define PCRDR_RUNNER_BUILTIN            "_builtin"
+#define PCRDR_RUNNER_SELF               "_self"
+#define PCRDR_RUNNER_SHARED             "_shared"
 #define PCRDR_RUNNER_FILESYSTEM         "_filesystem"
 #define PCRDR_GROUP_NULL                "-"
 #define PCRDR_PAGE_NULL                 "-"
