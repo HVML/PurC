@@ -7,7 +7,7 @@
 [//]:# (START OF TOC)
 
 - [介绍](#介绍)
-- [发布状态 PurC](#发布状态-purc)
+- [发布状态](#发布状态)
 - [构建 PurC](#构建-purc)
 - [使用 `purc`](#使用-purc)
 - [参与 PurC 项目](#参与-purc-项目)
@@ -49,7 +49,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 - PurC Fetcher（PurC 的远程数据获取器）
 - DOM Ruler（一个用于维护 DOM 树并使用 CSS 对其进行布局和样式化处理的函数库）
 
-## 发布状态 PurC
+## 发布状态
 
 [![Packaging status purc](https://repology.org/badge/vertical-allrepos/purc.svg)](https://repology.org/project/purc/versions)
 
