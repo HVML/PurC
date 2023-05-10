@@ -649,6 +649,30 @@ PCA_EXTERN_C_END
  */
 
 /**
+ * Convert a string to lowercases in place.
+ *
+ * @param name: the pointer to a name string(not nullable).
+ *
+ * Converts a name string lowercase in place.
+ *
+ * Returns: the length of the name string.
+ *
+ * Since: 1.0
+ */
+static inline int
+purc_name_tolower(char *name)
+{
+    int i = 0;
+
+    while (name [i]) {
+        name [i] = tolower(name[i]);
+        i++;
+    }
+
+    return i;
+}
+
+/**
  * Convert a string to uppercases in place.
  *
  * @param name: the pointer to a name string (not nullable).

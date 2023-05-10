@@ -2378,7 +2378,7 @@ md5_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_rwstream_destroy(stream);
 
-    unsigned char md5[MD5_DIGEST_SIZE];
+    unsigned char md5[PCUTILS_MD5_DIGEST_SIZE];
     pcutils_md5_end(&md5_ctxt, md5);
 
     switch (ret_type) {
@@ -2459,7 +2459,7 @@ sha1_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     purc_rwstream_destroy(stream);
 
-    unsigned char sha1[SHA1_DIGEST_SIZE];
+    unsigned char sha1[PCUTILS_SHA1_DIGEST_SIZE];
     pcutils_sha1_end(&sha1_ctxt, sha1);
 
     switch (ret_type) {

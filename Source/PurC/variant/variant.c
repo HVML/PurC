@@ -3594,11 +3594,11 @@ void pcvariant_md5_ex(char *md5, purc_variant_t val, const char *salt,
     if (salt)
         pcutils_md5_hash(&ud, salt, strlen(salt));
 
-    unsigned char md5_digest[MD5_DIGEST_SIZE];
+    unsigned char md5_digest[PCUTILS_MD5_DIGEST_SIZE];
     pcutils_md5_end(&ud, md5_digest);
 
     bool uppercase = true;
-    pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
+    pcutils_bin2hex(md5_digest, PCUTILS_MD5_DIGEST_SIZE, md5, uppercase);
 }
 
 void
@@ -3643,11 +3643,11 @@ pcvariant_md5_by_set(char *md5, purc_variant_t val, purc_variant_t set)
         stringify_kv(&arg, data->keynames[i], v);
     }
 
-    unsigned char md5_digest[MD5_DIGEST_SIZE];
+    unsigned char md5_digest[PCUTILS_MD5_DIGEST_SIZE];
     pcutils_md5_end(&ud, md5_digest);
 
     bool uppercase = true;
-    pcutils_bin2hex(md5_digest, MD5_DIGEST_SIZE, md5, uppercase);
+    pcutils_bin2hex(md5_digest, PCUTILS_MD5_DIGEST_SIZE, md5, uppercase);
 
     purc_variant_unref(undefined);
 }

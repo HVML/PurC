@@ -106,8 +106,8 @@ struct vdom_entry {
 /* common functions for string key */
 static void* copy_md5_key(const void *key)
 {
-    void *dst = malloc(MD5_DIGEST_SIZE);
-    memcpy(dst, key, MD5_DIGEST_SIZE);
+    void *dst = malloc(PCUTILS_MD5_DIGEST_SIZE);
+    memcpy(dst, key, PCUTILS_MD5_DIGEST_SIZE);
     return dst;
 }
 
@@ -118,7 +118,7 @@ static void free_md5_key(void *key)
 
 static int cmp_md5_keys(const void *key1, const void *key2)
 {
-    return memcmp((const char*)key1, (const char*)key2, MD5_DIGEST_SIZE);
+    return memcmp((const char*)key1, (const char*)key2, PCUTILS_MD5_DIGEST_SIZE);
 }
 
 static void *copy_entry(const void *val)
@@ -217,7 +217,7 @@ purc_vdom_t
 purc_load_hvml_from_string(const char* string)
 {
     purc_vdom_t vdom;
-    unsigned char md5[MD5_DIGEST_SIZE];
+    unsigned char md5[PCUTILS_MD5_DIGEST_SIZE];
     size_t length = strlen(string);
 
     if (length == 0) {
@@ -251,7 +251,7 @@ purc_load_hvml_from_file(const char* file)
 {
     size_t length;
     purc_vdom_t vdom;
-    unsigned char md5[MD5_DIGEST_SIZE];
+    unsigned char md5[PCUTILS_MD5_DIGEST_SIZE];
 
     if (!pcutils_file_md5(file, md5, &length) || length == 0) {
         purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
@@ -283,7 +283,7 @@ purc_load_hvml_from_url(const char* url)
 {
     purc_vdom_t vdom;
     size_t length;
-    unsigned char md5[MD5_DIGEST_SIZE];
+    unsigned char md5[PCUTILS_MD5_DIGEST_SIZE];
 
     length = strlen(url);
     if (length == 0) {

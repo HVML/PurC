@@ -187,6 +187,19 @@ ssize_t pcutils_b64_encode(const void *_src, size_t srclength,
     return (datalength);
 }
 
+char *
+pcutils_b64_encode_alloc(const void *buf, size_t size)
+{
+    size_t len = pcutils_b64_encoded_length(size);
+    char *dst = (char *)malloc(len);
+
+    if (dst) {
+        pcutils_b64_encode(buf, size, dst, len);
+    }
+
+    return dst;
+}
+
 /* skips all whitespace anywhere.
    converts characters, four at a time, starting at (or after)
    src from base - 64 numbers into three 8 bit bytes in the target area.

@@ -29,12 +29,148 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 #include <string.h>
 #include <locale.h>
 #include <sys/types.h>  /* for ssize_t on macOS */
 
 #include "purc-macros.h"
+
+PCA_EXTERN_C_BEGIN
+
+/* hex must be long enough to hold the heximal characters */
+void pcutils_bin2hex(const unsigned char *bin, size_t len, char *hex,
+        bool uppercase);
+
+/* bin must be long enough to hold the bytes.
+   return 0 on success, < 0 for error */
+int pcutils_hex2bin(const char *hex, unsigned char *bin, size_t *converted);
+
+/* convert two heximal characters to a byte.
+   return 0 on success, < 0 for bad input string */
+int pcutils_hex2byte(const char *hex, unsigned char *byte);
+
+static inline size_t pcutils_b64_encoded_length(size_t src_len)
+{
+    return (src_len + 3) * 4 / 3 + 1;
+}
+
+static inline size_t pcutils_b64_decoded_length(size_t src_len)
+{
+    return (src_len + 2) * 3 / 4 + 1;
+}
+
+ssize_t pcutils_b64_encode(const void *src, size_t src_len,
+        void *dst, size_t sz_dst);
+char *pcutils_b64_encode_alloc(const void *src, size_t src_len);
+ssize_t pcutils_b64_decode(const void *src, void *dst, size_t sz_dst);
+
+#define PCUTILS_MD5_DIGEST_SIZE  (16)
+
+typedef struct pcutils_md5_ctxt {
+    uint32_t lo, hi;
+    uint32_t a, b, c, d;
+    unsigned char buffer[64];
+} pcutils_md5_ctxt;
+
+void pcutils_md5_begin(pcutils_md5_ctxt *ctx);
+void pcutils_md5_hash(pcutils_md5_ctxt *ctxt, const void *data, size_t length);
+void pcutils_md5_end(pcutils_md5_ctxt *ctxt, unsigned char *resbuf);
+
+/* digest should be long enough (at least 16) to store the returned digest */
+void pcutils_md5digest(const char *string, unsigned char *digest);
+ssize_t pcutils_md5sum(const char *file, unsigned char *md5_buf);
+FILE *pcutils_md5sum_alt(const char *file, unsigned char *md5_buf, size_t *sz);
+
+typedef struct pcutils_sha1_ctxt {
+  uint32_t      state[5];
+  uint32_t      count[2];
+  uint8_t       buffer[64];
+} pcutils_sha1_ctxt;
+
+#define PCUTILS_SHA1_DIGEST_SIZE    (20)
+
+void pcutils_sha1_begin(pcutils_sha1_ctxt *context);
+void pcutils_sha1_hash(pcutils_sha1_ctxt *context, const void *data, size_t len);
+
+/* digest should be long enough (at least 20) to store the returned digest */
+void pcutils_sha1_end(pcutils_sha1_ctxt *context, uint8_t *digest);
+
+typedef struct {
+    uint64_t    length;
+    uint32_t    state[8];
+    uint32_t    curlen;
+    uint8_t     buf[64];
+} pcutils_sha256_ctxt;
+
+#define PCUTILS_SHA256_DIGEST_SIZE  (256 / 8)
+
+/** Initialises a SHA256 Context. Use this to initialise/reset a context. */
+void pcutils_sha256_begin(pcutils_sha256_ctxt *ctxt);
+
+/**
+ * Adds data to the SHA256 context. This will process the data and update
+ * the internal state of the context. Keep on calling this function until
+ * all the data has been added. Then call sha256_finalize to calculate the hash.
+ */
+void pcutils_sha256_hash(pcutils_sha256_ctxt *ctxt, const void *data,
+        size_t sz);
+
+/**
+ * Performs the final calculation of the hash and returns the digest
+ * (32 byte buffer containing 256bit hash).
+ * After calling this, Sha256Initialised must be used to reuse the context.
+ */
+void pcutils_sha256_end(pcutils_sha256_ctxt *ctxt, unsigned char *digest);
+
+/**
+ * Combines pcutils_sha256_begin, pcutils_sha256_hash,
+ * and pcutils_sha256_end into one function.
+ * Calculates the SHA256 hash of the buffer.
+ */
+void pcutils_sha256_calc_digest(const void *data, uint32_t sz,
+        unsigned char *digest);
+
+typedef struct {
+    uint64_t    length;
+    uint64_t    state[8];
+    uint32_t    curlen;
+    uint8_t     buf[128];
+} pcutils_sha512_ctxt;
+
+#define PCUTILS_SHA512_DIGEST_SIZE  (512/8)
+
+/** Initialises a SHA512 ctxt. Use this to initialise/reset a context. */
+void pcutils_sha512_begin(pcutils_sha512_ctxt *ctxt);
+
+/**
+ * Adds data to the SHA512 context. This will process the data and update
+ * the internal state of the context.
+ * Keep on calling this function until all the data has been added.
+ * Then call pcutils_sha512_end to calculate the hash.
+*/
+void pcutils_sha512_hash(pcutils_sha512_ctxt *ctxt, const void *data,
+        size_t sz);
+
+/**
+ * Performs the final calculation of the hash and returns the digest
+ * (64 byte buffer containing 512bit hash).
+ * After calling this, pcutils_sha512_begin must be used to reuse the context.
+ */
+void pcutils_sha512_end(pcutils_sha512_ctxt *ctxt, unsigned char *digest);
+
+/**
+ * Combines pcutils_sha512_begin, pcutils_sha512_hash, and pcutils_sha512_end
+ * into one function.
+ * Calculates the SHA512 hash of the data in the buffer.
+ */
+void pcutils_sha512_calc_digest(const void* data, size_t sz,
+        unsigned char *digest);
+
+void pcutils_hmac_sha256(unsigned char *out, const void *data, size_t data_len,
+        const unsigned char *key, size_t key_len);
 
 typedef struct {
     unsigned char * data;
@@ -43,8 +179,6 @@ typedef struct {
 
 struct pcutils_mraw;
 typedef struct pcutils_mraw pcutils_mraw_t;
-
-PCA_EXTERN_C_BEGIN
 
 pcutils_mraw_t *
 pcutils_mraw_create(void);

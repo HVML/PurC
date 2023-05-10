@@ -144,7 +144,7 @@ build_const_key(struct pcintr_stack *stack, purc_variant_t args)
 
     purc_rwstream_destroy(stream);
 
-    unsigned char md5[MD5_DIGEST_SIZE];
+    unsigned char md5[PCUTILS_MD5_DIGEST_SIZE];
     pcutils_md5_end(&md5_ctxt, md5);
 
 

@@ -167,63 +167,6 @@ pcutils_crc32_begin_custom(uint32_t poly, uint32_t init, uint32_t xorout,
 void
 pcutils_crc32_end_custom(pcutils_crc32_ctxt *ctxt, uint32_t* crc32);
 
-#define MD5_DIGEST_SIZE          (16)
-
-typedef struct pcutils_md5_ctxt {
-    uint32_t lo, hi;
-    uint32_t a, b, c, d;
-    unsigned char buffer[64];
-} pcutils_md5_ctxt;
-
-void pcutils_md5_begin(pcutils_md5_ctxt *ctx);
-void pcutils_md5_hash(pcutils_md5_ctxt *ctxt, const void *data, size_t length);
-void pcutils_md5_end(pcutils_md5_ctxt *ctxt, unsigned char *resbuf);
-
-/* digest should be long enough (at least 16) to store the returned digest */
-void pcutils_md5digest(const char *string, unsigned char *digest);
-ssize_t pcutils_md5sum(const char *file, unsigned char *md5_buf);
-FILE *pcutils_md5sum_alt(const char *file, unsigned char *md5_buf, size_t *sz);
-
-typedef struct pcutils_sha1_ctxt {
-  uint32_t      state[5];
-  uint32_t      count[2];
-  uint8_t       buffer[64];
-} pcutils_sha1_ctxt;
-
-#define SHA1_DIGEST_SIZE          (20)
-
-void pcutils_sha1_begin(pcutils_sha1_ctxt *context);
-void pcutils_sha1_hash(pcutils_sha1_ctxt *context, const void *data, size_t len);
-
-/* digest should be long enough (at least 20) to store the returned digest */
-void pcutils_sha1_end(pcutils_sha1_ctxt *context, uint8_t *digest);
-
-/* hex must be long enough to hold the heximal characters */
-void pcutils_bin2hex(const unsigned char *bin, size_t len, char *hex,
-        bool uppercase);
-
-/* bin must be long enough to hold the bytes.
-   return 0 on success, < 0 for error */
-int pcutils_hex2bin(const char *hex, unsigned char *bin, size_t *converted);
-
-/* convert two heximal characters to a byte.
-   return 0 on success, < 0 for bad input string */
-int pcutils_hex2byte(const char *hex, unsigned char *byte);
-
-static inline size_t pcutils_b64_encoded_length(size_t src_len)
-{
-    return (src_len + 3) * 4 / 3 + 1;
-}
-
-static inline size_t pcutils_b64_decoded_length(size_t src_len)
-{
-    return (src_len + 2) * 3 / 4 + 1;
-}
-
-ssize_t pcutils_b64_encode(const void *src, size_t src_len,
-        void *dst, size_t sz_dst);
-ssize_t pcutils_b64_decode(const void *src, void *dst, size_t sz_dst);
-
 int pcutils_parse_int32(const char *buf, size_t len, int32_t *retval);
 int pcutils_parse_uint32(const char *buf, size_t len, uint32_t *retval);
 int pcutils_parse_int64(const char *buf, size_t len, int64_t *retval);
