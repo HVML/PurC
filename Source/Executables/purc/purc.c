@@ -502,6 +502,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             opts->verbose = true;
             break;
 
+        case '?':
+            fprintf(stderr, "Run with `-h` option for usage.\n");
+            return -1;
+
         default:
             goto bad_arg;
         }
