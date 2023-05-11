@@ -37,13 +37,15 @@
 
 #include <limits.h>
 
-bool purc_enable_log(bool enable, bool use_syslog)
+bool purc_enable_log_ex(unsigned level_mask, bool use_syslog)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
         return false;
 
-    if (enable) {
+    inst->log_level_mask = level_mask;
+
+    if (level_mask == 0) {
 #if HAVE(VSYSLOG)
         if (use_syslog) {
             if (inst->fp_log && inst->fp_log != LOG_FILE_SYSLOG) {
@@ -83,13 +85,41 @@ bool purc_enable_log(bool enable, bool use_syslog)
     return true;
 }
 
-void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
+static struct {
+    const char *tag;
+    int         sys_level;
+} level_info[] = {
+    { PURC_LOG_LEVEL_EMERG,     LOG_EMERG },
+    { PURC_LOG_LEVEL_ALERT,     LOG_ALERT },
+    { PURC_LOG_LEVEL_CRIT,      LOG_CRIT },
+    { PURC_LOG_LEVEL_ERR,       LOG_ERR },
+    { PURC_LOG_LEVEL_WARNING,   LOG_WARNING },
+    { PURC_LOG_LEVEL_NOTICE,    LOG_NOTICE },
+    { PURC_LOG_LEVEL_INFO,      LOG_INFO },
+    { PURC_LOG_LEVEL_DEBUG,     LOG_DEBUG },
+};
+
+/* Make sure the number of log level tags matches the number of log levels */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(levels,
+        PCA_TABLESIZE(level_info) == PURC_LOG_LEVEL_nr);
+
+#undef _COMPILE_TIME_ASSERT
+
+void purc_log_with_tag(purc_log_level_k level, const char *tag,
+        const char *msg, va_list ap)
 {
     FILE *fp = NULL;
     struct pcinst* inst = pcinst_current();
 
-    if (inst)
+    if (inst) {
         fp = inst->fp_log;
+        if ((inst->log_level_mask & (0x01U << level)) == 0) {
+            return;
+        }
+    }
 
 #if HAVE(VSYSLOG)
     if (fp) {
@@ -98,7 +128,7 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
             // TODO: we may need a lock to make sure the following two calls
             // can finish atomically.
             openlog(ident, LOG_PID, LOG_USER);
-            vsyslog(LOG_INFO, msg, ap);
+            vsyslog(LOG_INFO | level_info[level].sys_level, msg, ap);
         }
         else
 #endif
@@ -119,5 +149,13 @@ void purc_log_with_tag(const char *tag, const char *msg, va_list ap)
         fflush(stderr);
 #endif
     }
+}
+
+void purc_log_with_level(purc_log_level_k level, const char *msg, va_list ap)
+{
+    if (level < PURC_LOG_first)
+        return;
+
+    purc_log_with_tag(level, level_info[level].tag, msg, ap);
 }
 

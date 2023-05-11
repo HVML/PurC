@@ -360,51 +360,107 @@ char *purc_load_file_contents(const char *file, size_t *length);
 // TODO for Windows:
 // #define LOG_FILE_PATH_FORMAT    "C:\\tmp\\purc-%s\\%s.log"
 
+typedef enum {
+    PURC_LOG_first = 0,
+
+#define PURC_LOG_LEVEL_EMERG    "EMERG"
+    PURC_LOG_EMERG = PURC_LOG_first,    /* system is unusable */
+#define PURC_LOG_LEVEL_ALERT    "ALERT"
+    PURC_LOG_ALERT,                     /* action must be taken immediately */
+#define PURC_LOG_LEVEL_CRIT     "CRIT"
+    PURC_LOG_CRIT,                      /* critical conditions */
+#define PURC_LOG_LEVEL_ERR      "ERROR"
+    PURC_LOG_ERR,                       /* error conditions */
+#define PURC_LOG_LEVEL_WARNING  "WARNING"
+    PURC_LOG_WARNING,                   /* warning conditions */
+#define PURC_LOG_LEVEL_NOTICE   "NOTICE"
+    PURC_LOG_NOTICE,                    /* normal, but significant, condition */
+#define PURC_LOG_LEVEL_INFO     "INFO"
+    PURC_LOG_INFO,                      /* informational message */
+#define PURC_LOG_LEVEL_DEBUG    "DEBUG"
+    PURC_LOG_DEBUG,                     /* debug-level message */
+
+    /* XXX: change this if you append a new type. */
+    PURC_LOG_last = PURC_LOG_DEBUG,
+} purc_log_level_k;
+
+#define PURC_LOG_LEVEL_nr   (PURC_LOG_last - PURC_LOG_first + 1)
+
+#define PURC_LOG_MASK_EMERG     (0x01 << PURC_LOG_EMERG)
+#define PURC_LOG_MASK_ALERT     (0x01 << PURC_LOG_ALERT)
+#define PURC_LOG_MASK_CRIT      (0x01 << PURC_LOG_CRIT)
+#define PURC_LOG_MASK_ERR       (0x01 << PURC_LOG_ERR)
+#define PURC_LOG_MASK_WARNING   (0x01 << PURC_LOG_WARNING)
+#define PURC_LOG_MASK_NOTICE    (0x01 << PURC_LOG_NOTICE)
+#define PURC_LOG_MASK_INFO      (0x01 << PURC_LOG_INFO)
+#define PURC_LOG_MASK_DEBUG     (0x01 << PURC_LOG_DEBUG)
+
+#define PURC_LOG_MASK_DEFAULT   (                               \
+                                PURC_LOG_MASK_EMERG     |       \
+                                PURC_LOG_MASK_ALERT     |       \
+                                PURC_LOG_MASK_ERR       |       \
+                                PURC_LOG_MASK_WARNING   |       \
+                                PURC_LOG_MASK_NOTICE    |       \
+                                0)
+
+#define PURC_LOG_MASK_ALL       ((unsigned)-1)
+
 /**
- * Enable or disable the log facility for the current PurC instance.
+ * Sets the log level mask of the log facility for the current PurC instance.
  *
- * @param enable: @true to enable, @false to disable.
+ * @param level_mask: The mask of levels.
  * @param use_syslog: @true to use syslog, @false to use log file.
  *
  * Returns: @true for success, otherwise @false.
  *
- * Since: 0.1.0
+ * Since: 0.9.12
  */
 PCA_EXPORT bool
-purc_enable_log(bool enable, bool use_syslog);
+purc_enable_log_ex(unsigned level_mask, bool use_syslog);
 
 /**
- * Log a message with tag.
+ * Enable or disable the log facility for the current PurC instance.
+ *
+ * @param the_most: The most log level to enable.
+ * @param use_syslog: @true to use syslog, @false to use log file.
+ *
+ * Returns: @true for success, otherwise @false.
+ *
+ * Since: 0.1.0 (changed in 0.9.12)
+ */
+static inline bool
+purc_enable_log(bool enable, bool use_syslog) {
+    return purc_enable_log_ex(enable ? PURC_LOG_MASK_DEFAULT : 0, use_syslog);
+}
+
+/**
+ * Log a message with level.
+ *
+ * @param level: the log level of the message.
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.9.12
+ */
+PCA_EXPORT void
+purc_log_with_level(purc_log_level_k level, const char *msg, va_list ap)
+    PCA_ATTRIBUTE_PRINTF(2, 0);
+
+/**
+ * Log a message with a specified tag.
  *
  * @param tag: the tag of the message.
  * @param msg: the message or the format string.
  *
  * Returns: none.
  *
- * Since: 0.1.0
+ * Since: 0.1.0 (changed in 0.9.12).
  */
 PCA_EXPORT void
-purc_log_with_tag(const char* tag, const char *msg, va_list ap)
-    PCA_ATTRIBUTE_PRINTF(2, 0);
-
-/**
- * Log an information message.
- *
- * @param msg: the message or the format string.
- *
- * Returns: none.
- *
- * Since: 0.1.0
- */
-PCA_ATTRIBUTE_PRINTF(1, 2)
-static inline void
-purc_log_info(const char *msg, ...)
-{
-    va_list ap;
-    va_start(ap, msg);
-    purc_log_with_tag("INFO", msg, ap);
-    va_end(ap);
-}
+purc_log_with_tag(purc_log_level_k level, const char* tag,
+        const char *msg, va_list ap)
+    PCA_ATTRIBUTE_PRINTF(3, 0);
 
 /**
  * Log a debugging message.
@@ -421,7 +477,45 @@ purc_log_debug(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
-    purc_log_with_tag("DEBUG", msg, ap);
+    purc_log_with_level(PURC_LOG_DEBUG, msg, ap);
+    va_end(ap);
+}
+
+/**
+ * Log an information message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.1.0
+ */
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
+purc_log_info(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_level(PURC_LOG_INFO, msg, ap);
+    va_end(ap);
+}
+
+/**
+ * Log a notice message.
+ *
+ * @param msg: the message or the format string.
+ *
+ * Returns: none.
+ *
+ * Since: 0.9.12
+ */
+PCA_ATTRIBUTE_PRINTF(1, 2)
+static inline void
+purc_log_notice(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    purc_log_with_level(PURC_LOG_NOTICE, msg, ap);
     va_end(ap);
 }
 
@@ -440,7 +534,7 @@ purc_log_warn(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
-    purc_log_with_tag("WARN", msg, ap);
+    purc_log_with_level(PURC_LOG_WARNING, msg, ap);
     va_end(ap);
 }
 
@@ -459,7 +553,7 @@ purc_log_error(const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
-    purc_log_with_tag("ERROR", msg, ap);
+    purc_log_with_level(PURC_LOG_ERR, msg, ap);
     va_end(ap);
 }
 

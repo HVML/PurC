@@ -345,18 +345,21 @@ static void enable_log_on_demand(void)
     if (env_value == NULL)
         return;
 
-    bool enable = (*env_value == '1' ||
-            pcutils_strcasecmp(env_value, "true") == 0);
-    if (!enable)
-        return;
+    unsigned log_mask = PURC_LOG_MASK_DEFAULT;
+    if (strcasecmp(env_value, "all") == 0)
+        log_mask = PURC_LOG_MASK_ALL;
+    else if (strcasecmp(env_value, "verbose") == 0)
+        log_mask |= PURC_LOG_MASK_INFO;
+    else if (strcasecmp(env_value, "debug") == 0)
+        log_mask |= PURC_LOG_MASK_INFO | PURC_LOG_MASK_DEBUG;
 
     bool use_syslog = false;
     if ((env_value = getenv(PURC_ENVV_LOG_SYSLOG))) {
         use_syslog = (*env_value == '1' ||
-                pcutils_strcasecmp(env_value, "true") == 0);
+                strcasecmp(env_value, "true") == 0);
     }
 
-    purc_enable_log(true, use_syslog);
+    purc_enable_log_ex(log_mask, use_syslog);
 }
 
 static int init_modules(struct pcinst *curr_inst,

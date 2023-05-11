@@ -73,6 +73,7 @@ extern "C" {
 #define PC_ENABLE_SYSLOG(x) purc_enable_log(x?true:false, x)
 #define PC_ERROR(x, ...)    purc_log_error(x, ##__VA_ARGS__)
 #define PC_WARN(x, ...)     purc_log_warn(x, ##__VA_ARGS__)
+#define PC_NOTICE(x, ...)   purc_log_notice(x, ##__VA_ARGS__)
 #define PC_INFO(x, ...)     purc_log_info(x, ##__VA_ARGS__)
 
 #ifndef NDEBUG
