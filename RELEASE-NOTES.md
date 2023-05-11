@@ -1,5 +1,6 @@
 # Release Notes
 
+- [Version 0.9.12](#version-0912)
 - [Version 0.9.10](#version-0910)
 - [Version 0.9.8](#version-098)
 - [Version 0.9.6](#version-096)
@@ -9,6 +10,29 @@
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.12
+
+On May 31, 2023, HVML Community announces the availability of PurC 0.9.12,
+   which is also the 10th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.12
+
+In this version, we fixed some bugs and made som enhancements:
+
+* CHANGES:
+   - Change API `purc_enable_with_tag()` to specify the log level.
+   - Expose `pcutils_md5_xxx()` and `pcutils_sha1_xxx()` APIs.
+* ENHANCEMENTS:
+   - Add new APIs: `pcutils_sha256_xxx()`, `pcutils_sha512_xxx()`, and `pcutils_hmac_sha256()`.
+   - Add new APIs: `purc_enable_log_ex()` and `purc_log_with_level()`, and use level mask to control the message levels to log ultimately.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.10
 
