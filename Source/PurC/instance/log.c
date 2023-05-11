@@ -37,25 +37,23 @@
 
 #include <limits.h>
 
-bool purc_enable_log_ex(unsigned level_mask, bool use_syslog)
+bool purc_enable_log_ex(unsigned level_mask, purc_log_facility_k facility)
 {
     struct pcinst* inst = pcinst_current();
     if (inst == NULL)
         return false;
 
-    inst->log_level_mask = level_mask;
+    if (inst->fp_log &&
+            (inst->fp_log != LOG_FILE_SYSLOG &&
+             inst->fp_log != stdout && inst->fp_log != stderr)) {
+        fclose(inst->fp_log);
+        inst->fp_log = NULL;
+    }
 
-    if (level_mask == 0) {
-#if HAVE(VSYSLOG)
-        if (use_syslog) {
-            if (inst->fp_log && inst->fp_log != LOG_FILE_SYSLOG) {
-                fclose(inst->fp_log);
-            }
-            inst->fp_log = LOG_FILE_SYSLOG;
-        }
-        else
-#endif
-        if (inst->fp_log == NULL) {
+    inst->log_level_mask = level_mask;
+    if (level_mask) {
+        switch (facility) {
+        case PURC_LOG_FACILITY_FILE: {
             char logfile_path[PATH_MAX + 1];
             int n = snprintf(logfile_path, sizeof(logfile_path),
                     PURC_LOG_FILE_PATH_FORMAT,
@@ -75,9 +73,25 @@ bool purc_enable_log_ex(unsigned level_mask, bool use_syslog)
                 purc_set_error(PURC_ERROR_BAD_STDC_CALL);
                 return false;
             }
+            break;
+        }
+
+        case PURC_LOG_FACILITY_STDOUT:
+            inst->fp_log = stdout;
+            break;
+
+        case PURC_LOG_FACILITY_STDERR:
+            inst->fp_log = stderr;
+            break;
+
+        case PURC_LOG_FACILITY_SYSLOG:
+            inst->fp_log = LOG_FILE_SYSLOG;
+            break;
         }
     }
-    else if (inst->fp_log && inst->fp_log != LOG_FILE_SYSLOG) {
+    else if (inst->fp_log &&
+            (inst->fp_log != LOG_FILE_SYSLOG &&
+             inst->fp_log != stdout && inst->fp_log != stderr)) {
         fclose(inst->fp_log);
         inst->fp_log = NULL;
     }
@@ -111,51 +125,45 @@ _COMPILE_TIME_ASSERT(levels,
 void purc_log_with_tag(purc_log_level_k level, const char *tag,
         const char *msg, va_list ap)
 {
-    FILE *fp = NULL;
+    FILE *fp;
     struct pcinst* inst = pcinst_current();
 
     if (inst) {
-        fp = inst->fp_log;
-        if ((inst->log_level_mask & (0x01U << level)) == 0) {
+        if (inst->fp_log == NULL ||
+                (inst->log_level_mask & (0x01U << level)) == 0) {
             return;
         }
-    }
-
-#if HAVE(VSYSLOG)
-    if (fp) {
-        if (fp == LOG_FILE_SYSLOG) {
-            const char *ident = purc_atom_to_string(inst->endpoint_atom);
-            // TODO: we may need a lock to make sure the following two calls
-            // can finish atomically.
-            openlog(ident, LOG_PID, LOG_USER);
-            vsyslog(LOG_INFO | level_info[level].sys_level, msg, ap);
-        }
-        else
-#endif
-        {
-            fprintf(fp, "%s >> ", tag);
-            vfprintf(fp, msg, ap);
-            fflush(fp);
-        }
+        fp = inst->fp_log;
     }
     else {
-        const char *ident = "[unknown]";
-        if (inst && inst->endpoint_atom)
-            ident = purc_atom_to_string(inst->endpoint_atom);
+        fp = stdout;
+    }
 
-        fprintf(stderr, "%s %s >> ", ident, tag);
-        vfprintf(stderr, msg, ap);
-#ifndef NDEBUG
-        fflush(stderr);
+    if (fp == LOG_FILE_SYSLOG) {
+#if HAVE(VSYSLOG)
+        const char *ident = purc_atom_to_string(inst->endpoint_atom);
+        // TODO: we may need a lock to make sure the following two calls
+        // can finish atomically.
+        openlog(ident, LOG_PID, LOG_USER);
+        vsyslog(LOG_INFO | level_info[level].sys_level, msg, ap);
+        return;
+#else
+        fp = stdout;
 #endif
     }
+
+    const char *ident = "[unknown]";
+    if (inst && inst->endpoint_atom)
+        ident = purc_atom_to_string(inst->endpoint_atom);
+
+    fprintf(fp, "%s %s >> ", ident, tag);
+    vfprintf(fp, msg, ap);
+    if (fp != stderr)
+        fflush(fp);
 }
 
 void purc_log_with_level(purc_log_level_k level, const char *msg, va_list ap)
 {
-    if (level < PURC_LOG_first)
-        return;
-
     purc_log_with_tag(level, level_info[level].tag, msg, ap);
 }
 

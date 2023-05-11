@@ -361,6 +361,13 @@ char *purc_load_file_contents(const char *file, size_t *length);
 // #define LOG_FILE_PATH_FORMAT    "C:\\tmp\\purc-%s\\%s.log"
 
 typedef enum {
+    PURC_LOG_FACILITY_FILE = 0,
+    PURC_LOG_FACILITY_STDOUT,
+    PURC_LOG_FACILITY_STDERR,
+    PURC_LOG_FACILITY_SYSLOG,
+} purc_log_facility_k;
+
+typedef enum {
     PURC_LOG_first = 0,
 
 #define PURC_LOG_LEVEL_EMERG    "EMERG"
@@ -416,7 +423,7 @@ typedef enum {
  * Since: 0.9.12
  */
 PCA_EXPORT bool
-purc_enable_log_ex(unsigned level_mask, bool use_syslog);
+purc_enable_log_ex(unsigned level_mask, purc_log_facility_k facility);
 
 /**
  * Enable or disable the log facility for the current PurC instance.
@@ -430,7 +437,8 @@ purc_enable_log_ex(unsigned level_mask, bool use_syslog);
  */
 static inline bool
 purc_enable_log(bool enable, bool use_syslog) {
-    return purc_enable_log_ex(enable ? PURC_LOG_MASK_DEFAULT : 0, use_syslog);
+    return purc_enable_log_ex(enable ? PURC_LOG_MASK_DEFAULT : 0,
+            use_syslog ? PURC_LOG_FACILITY_SYSLOG : PURC_LOG_FACILITY_FILE);
 }
 
 /**
