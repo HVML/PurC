@@ -401,28 +401,28 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { 0, 0, 0, 0 }
     };
 
-    int o, idx = 0;
     if (argc == 1) {
-        print_usage(stdout);
-        return -1;
+        goto bad_arg;
     }
 
+    int o, idx = 0;
     while ((o = getopt_long(argc, argv, short_options, long_opts, &idx)) >= 0) {
         if (-1 == o || EOF == o)
             break;
+
         switch (o) {
         case 'h':
             print_usage(stdout);
-            return -1;
+            return 1;
 
         case 'V':
             print_version(stdout);
-            return -1;
+            return 1;
 
         case 'C':
             print_version(stdout);
             print_long_copying(stdout);
-            return -1;
+            return 1;
 
         case 'a':
             if (purc_is_valid_app_name(optarg)) {
@@ -453,7 +453,6 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             else {
                 goto bad_arg;
             }
-
             break;
 
         case 'c':
@@ -469,7 +468,6 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             else {
                 goto bad_arg;
             }
-
             break;
 
         case 'u':
@@ -504,11 +502,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             opts->verbose = true;
             break;
 
-        case '?':
-            break;
-
         default:
-            return -1;
+            goto bad_arg;
         }
     }
 
@@ -519,8 +514,8 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         else {
             for (int i = optind; i < argc; i++) {
                 if (!validate_url(opts, argv[i])) {
-                    fprintf(stderr, "Speicified a bad file or URL: %s\n",
-                            argv[i]);
+                    fprintf(stderr, "%s: bad file or URL: %s\n",
+                            argv[0], argv[i]);
                     return -1;
                 }
             }
@@ -530,7 +525,9 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
     return 0;
 
 bad_arg:
-    fprintf(stderr, "Got an unknown argument: %s (%c)\n", optarg, o);
+    fprintf(stderr,
+            "%s: bad option or argument; run with `-h` option for usage.\n",
+            argv[0]);
     return -1;
 }
 
@@ -1391,14 +1388,17 @@ int main(int argc, char** argv)
 #endif
 
     struct my_opts *opts = my_opts_new();
-    if (read_option_args(opts, argc, argv)) {
+    ret = read_option_args(opts, argc, argv);
+    if (ret) {
         my_opts_delete(opts);
+        if (ret > 0)
+            return EXIT_SUCCESS;
         return EXIT_FAILURE;
     }
 
     if (opts->app_info == NULL &&
             (opts->urls == NULL || opts->urls->length == 0)) {
-        fprintf(stderr, "No valid HVML program specified.\n");
+        fprintf(stderr, "%s: no valid HVML program specified.\n", argv[0]);
         if (opts->verbose) {
             print_usage(stdout);
         }
