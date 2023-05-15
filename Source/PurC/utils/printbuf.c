@@ -184,12 +184,14 @@ int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, size_t len)
     return 0;
 }
 
+#define SZ_STACK_BUFF   256
+
 int pcutils_printbuf_format(struct pcutils_printbuf *p, const char *msg, ...)
 {
     va_list ap;
     char *t;
     int size;
-    char buf[128];
+    char buf[SZ_STACK_BUFF];
 
     if (!p->buf)
         return -1;
@@ -203,7 +205,7 @@ int pcutils_printbuf_format(struct pcutils_printbuf *p, const char *msg, ...)
      * if output is truncated whereas some return the number of bytes that
      * would have been written - this code handles both cases.
      */
-    if (size == -1 || size > 127) {
+    if (size == -1 || size >= SZ_STACK_BUFF) {
         va_start(ap, msg);
         if ((size = vasprintf(&t, msg, ap)) < 0) {
             va_end(ap);
@@ -228,12 +230,18 @@ void pcutils_printbuf_reset(struct pcutils_printbuf *p)
     p->bpos = 0;
 }
 
-void pcutils_printbuf_delete(struct pcutils_printbuf *p)
+char *pcutils_printbuf_delete(struct pcutils_printbuf *p, bool keep_buf)
 {
+    char *buf = NULL;
     if (p) {
-        if (p->buf)
+        if (keep_buf)
+            buf = p->buf;
+
+        if (buf == NULL && p->buf)
             free(p->buf);
         free(p);
     }
+
+    return buf;
 }
 

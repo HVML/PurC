@@ -119,8 +119,8 @@ pcutils_printbuf_format(struct pcutils_printbuf *p, const char *msg, ...)
 PCA_EXPORT void
 pcutils_printbuf_reset(struct pcutils_printbuf *p);
 
-PCA_EXPORT void
-pcutils_printbuf_delete(struct pcutils_printbuf *p);
+PCA_EXPORT char *
+pcutils_printbuf_delete(struct pcutils_printbuf *p, bool keep_buf);
 
 PCA_EXPORT bool
 purc_is_valid_host_name(const char *host_name);

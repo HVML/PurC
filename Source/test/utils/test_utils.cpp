@@ -2095,6 +2095,34 @@ TEST(utils, fibonacci_number)
     ASSERT_EQ(fib, 0);
 }
 
+TEST(utils, printbuf)
+{
+    struct pcutils_printbuf *pb;
+
+    pb = pcutils_printbuf_new();
+
+    pcutils_printbuf_strappend(pb, "[");
+    pcutils_printbuf_format(pb, "this is a long text: %s and large integer: %d",
+            "Hello, world", INT_MAX);
+    pcutils_printbuf_strappend(pb, "] ");
+    pcutils_printbuf_shrink(pb, 1);
+
+    char *buf1 = pcutils_printbuf_delete(pb, true);
+    char buf2[512];
+    sprintf(buf2, "[this is a long text: %s and large integer: %d]",
+            "Hello, world", INT_MAX);
+    ASSERT_STREQ(buf1, buf2);
+    free(buf1);
+
+    pb = pcutils_printbuf_new();
+    pcutils_printbuf_strappend(pb, "    ");
+    pcutils_printbuf_memset(pb, 2, '-', 10);
+    pcutils_printbuf_memset(pb, -1, '=', 10);
+
+    ASSERT_STREQ(pb->buf, "  ----------==========");
+    pcutils_printbuf_delete(pb, false);
+}
+
 TEST(utils, build_query_array)
 {
     purc_variant_t v;
