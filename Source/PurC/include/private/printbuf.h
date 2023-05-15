@@ -35,66 +35,15 @@
 #ifndef PURC_PRIVATE_PRINTBUF_H
 #define PURC_PRIVATE_PRINTBUF_H
 
+#include "purc-helpers.h"
+
 #include "config.h"
+
+typedef struct pcutils_printbuf pcutils_printbuf;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct pcutils_printbuf
-{
-    char *buf;
-    int bpos;
-    int size;
-};
-typedef struct pcutils_printbuf pcutils_printbuf;
-
-int pcutils_printbuf_init(struct pcutils_printbuf *pb);
-
-struct pcutils_printbuf * pcutils_printbuf_new(void);
-
-/* As an optimization, printbuf_memappend_fast() is defined as a macro
- * that handles copying data if the buffer is large enough; otherwise
- * it invokes printbuf_memappend() which performs the heavy
- * lifting of realloc()ing the buffer and copying data.
- *
- * Your code should not use printbuf_memappend() directly unless it
- * checks the return code. Use printbuf_memappend_fast() instead.
- */
-int pcutils_printbuf_memappend(struct pcutils_printbuf *p, const char *buf, int size);
-
-#define pcutils_printbuf_memappend_fast(p, bufptr, bufsize)      \
-    do                                                           \
-    {                                                            \
-        if ((p->size - p->bpos) > bufsize)                       \
-        {                                                        \
-            memcpy(p->buf + p->bpos, (bufptr), bufsize);         \
-            p->bpos += bufsize;                                  \
-            p->buf[p->bpos] = '\0';                              \
-        }                                                        \
-        else                                                     \
-        {                                                        \
-            pcutils_printbuf_memappend(p, (bufptr), bufsize);    \
-        }                                                        \
-    } while (0)
-
-#define pcutils_printbuf_length(p) ((p)->bpos)
-
-#define _printbuf_check_literal(mystr) ("" mystr)
-
-#define pcutils_printbuf_strappend(pb, str) \
-    pcutils_printbuf_memappend((pb), _printbuf_check_literal(str), sizeof(str) - 1)
-
-int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset, int charvalue, int len);
-
-int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len);
-
-int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
-    WTF_ATTRIBUTE_PRINTF(2, 3);
-
-void pcutils_printbuf_reset(struct pcutils_printbuf *p);
-
-void pcutils_printbuf_free(struct pcutils_printbuf *p);
 
 #ifdef __cplusplus
 }

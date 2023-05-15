@@ -45,8 +45,6 @@
 #include "private/ports.h"
 #endif
 
-static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
-
 /**
  * Extend the buffer p so it has a size of at least min_size.
  *
@@ -55,27 +53,26 @@ static int printbuf_extend(struct pcutils_printbuf *p, int min_size);
  * Note: this does not check the available space!  The caller
  *  is responsible for performing those calculations.
  */
-static int printbuf_extend(struct pcutils_printbuf *p, int min_size)
+static int printbuf_extend(struct pcutils_printbuf *p, size_t min_size)
 {
     char *t;
-    int new_size;
+    size_t new_size;
 
-    if(p->size >= min_size)
+    if (p->size >= min_size)
         return 0;
 
-    /* Prevent signed integer overflows with large buffers. */
-    if(min_size > INT_MAX - 8)
+    /* Prevent unsigned integer overflows with large buffers. */
+    if (min_size > UINT_MAX - 8)
         return -1;
-    if(p->size > INT_MAX / 2)
+    if (p->size > UINT_MAX / 2)
         new_size = min_size + 8;
-    else 
-    {
+    else {
         new_size = p->size * 2;
-        if(new_size < min_size + 8)
+        if (new_size < min_size + 8)
             new_size = min_size + 8;
     }
-    if(!(t = (char *)realloc(p->buf, new_size))) 
-    {
+
+    if (!(t = (char *)realloc(p->buf, new_size))) {
         p->buf = NULL;
         p->size = 0;
         p->bpos = 0;
@@ -84,7 +81,6 @@ static int printbuf_extend(struct pcutils_printbuf *p, int min_size)
 
     p->size = new_size;
     p->buf = t;
-
     return 0;
 }
 
@@ -92,27 +88,25 @@ int pcutils_printbuf_init(struct pcutils_printbuf *p)
 {
     p->size = 32;
     p->bpos = 0;
-    if(!(p->buf = (char *)malloc(p->size))) 
-    {
+
+    if (!(p->buf = (char *)malloc(p->size))) {
         p->size = 0;
         return -1;
     }
 
     p->buf[0] = '\0';
-
     return 0;
 }
 
-struct pcutils_printbuf * pcutils_printbuf_new(void)
+struct pcutils_printbuf *pcutils_printbuf_new(void)
 {
     struct pcutils_printbuf * p = NULL;
 
     p = (struct pcutils_printbuf *)calloc(1, sizeof(struct pcutils_printbuf));
-    if(!p)
+    if (!p)
         return NULL;
 
-    if(pcutils_printbuf_init(p)) 
-    {
+    if (pcutils_printbuf_init(p)) {
         free(p);
         return NULL;
     }
@@ -121,97 +115,94 @@ struct pcutils_printbuf * pcutils_printbuf_new(void)
 }
 
 int pcutils_printbuf_memappend(struct pcutils_printbuf *p,
-        const char *buf, int size)
+        const char *buf, size_t size)
 {
-    if(!p->buf)
+    if (!p->buf)
         return -1;
 
-    if(size <= 0)
-        size = strlen (buf);
+    if (size == 0)
+        size = strlen(buf);
 
-    /* Prevent signed integer overflows with large buffers. */
-    if(size > INT_MAX - p->bpos - 1)
+    /* Prevent unsigned integer overflows with large buffers. */
+    if (size > UINT_MAX - p->bpos - 1)
         return -1;
-    if(p->size <= p->bpos + size + 1)
-    {
-        if(printbuf_extend(p, p->bpos + size + 1) < 0)
+    if (p->size <= p->bpos + size + 1) {
+        if (printbuf_extend(p, p->bpos + size + 1) < 0)
             return -1;
     }
 
     memcpy(p->buf + p->bpos, buf, size);
     p->bpos += size;
     p->buf[p->bpos] = '\0';
-
     return size;
 }
 
-int pcutils_printbuf_memset(struct pcutils_printbuf *pb, int offset,
-        int charvalue, int len)
+int pcutils_printbuf_memset(struct pcutils_printbuf *pb, ssize_t offset,
+        int charvalue, size_t len)
 {
-    int size_needed;
+    size_t my_off;
+    size_t size_needed;
 
     if (!pb->buf)
         return -1;
 
-    if (offset == -1)
-        offset = pb->bpos;
+    if (offset < 0)
+        my_off = pb->bpos;
+    else
+        my_off = offset;
 
-    /* Prevent signed integer overflows with large buffers. */
-    if (len > INT_MAX - offset)
+    /* Prevent unsigned integer overflows with large buffers. */
+    if (len > UINT_MAX - my_off)
         return -1;
 
-    size_needed = offset + len;
-    if(pb->size < size_needed)
-    {
-        if(printbuf_extend(pb, size_needed) < 0)
+    size_needed = my_off + len;
+    if (pb->size < size_needed) {
+        if (printbuf_extend(pb, size_needed) < 0)
             return -1;
     }
 
-    memset(pb->buf + offset, charvalue, len);
+    memset(pb->buf + my_off, charvalue, len);
     if (pb->bpos < size_needed)
         pb->bpos = size_needed;
 
     return 0;
 }
 
-int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, int len)
+int pcutils_printbuf_shrink(struct pcutils_printbuf *pb, size_t len)
 {
-    if(!pb->buf)
+    if (!pb->buf)
         return -1;
 
-    if(len > pb->bpos)
+    if (len > pb->bpos)
         return -1;
 
     pb->bpos -= len;
-    memset (pb->buf + pb->bpos, '\0', len);
-
+    memset(pb->buf + pb->bpos, '\0', len);
     return 0;
 }
 
-int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
+int pcutils_printbuf_format(struct pcutils_printbuf *p, const char *msg, ...)
 {
     va_list ap;
     char *t;
     int size;
     char buf[128];
 
-    if(!p->buf)
+    if (!p->buf)
         return -1;
 
     /* user stack buffer first */
     va_start(ap, msg);
-    size = vsnprintf(buf, 128, msg, ap);
+    size = vsnprintf(buf, sizeof(buf), msg, ap);
     va_end(ap);
     /* if string is greater than stack buffer, then use dynamic string
      * with vasprintf.  Note: some implementation of vsnprintf return -1
      * if output is truncated whereas some return the number of bytes that
      * would have been written - this code handles both cases.
      */
-    if(size == -1 || size > 127)
-    {
+    if (size == -1 || size > 127) {
         va_start(ap, msg);
-        if((size = vasprintf(&t, msg, ap)) < 0)
-        {
+        if ((size = vasprintf(&t, msg, ap)) < 0) {
             va_end(ap);
             return -1;
         }
@@ -220,27 +211,24 @@ int pcutils_sprintbuf(struct pcutils_printbuf *p, const char *msg, ...)
         free(t);
         return size;
     }
-    else
-    {
-        pcutils_printbuf_memappend(p, buf, size);
-        return size;
-    }
+
+    pcutils_printbuf_memappend(p, buf, size);
+    return size;
 }
 
 void pcutils_printbuf_reset(struct pcutils_printbuf *p)
 {
-    if(!p->buf)
+    if (!p->buf)
         return;
 
     p->buf[0] = '\0';
     p->bpos = 0;
 }
 
-void pcutils_printbuf_free(struct pcutils_printbuf *p)
+void pcutils_printbuf_delete(struct pcutils_printbuf *p)
 {
-    if(p) 
-    {
-        if(p->buf)
+    if (p) {
+        if (p->buf)
             free(p->buf);
         free(p);
     }

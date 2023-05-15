@@ -61,6 +61,67 @@ PCA_EXTERN_C_BEGIN
  * @{
  */
 
+struct pcutils_printbuf {
+    char *buf;
+    size_t bpos;
+    size_t size;
+};
+
+PCA_EXPORT int
+pcutils_printbuf_init(struct pcutils_printbuf *pb);
+
+PCA_EXPORT struct
+pcutils_printbuf *pcutils_printbuf_new(void);
+
+/* As an optimization, printbuf_memappend_fast() is defined as a macro
+ * that handles copying data if the buffer is large enough; otherwise
+ * it invokes printbuf_memappend() which performs the heavy
+ * lifting of realloc()ing the buffer and copying data.
+ *
+ * Your code should not use printbuf_memappend() directly unless it
+ * checks the return code. Use printbuf_memappend_fast() instead.
+ */
+PCA_EXPORT int
+pcutils_printbuf_memappend(struct pcutils_printbuf *p,
+        const char *buf, size_t size);
+
+#define pcutils_printbuf_memappend_fast(p, bufptr, bufsize)         \
+    do {                                                            \
+        if ((p->size - p->bpos) > bufsize)  {                       \
+            memcpy(p->buf + p->bpos, (bufptr), bufsize);            \
+            p->bpos += bufsize;                                     \
+            p->buf[p->bpos] = '\0';                                 \
+        }                                                           \
+        else {                                                      \
+            pcutils_printbuf_memappend(p, (bufptr), bufsize);       \
+        }                                                           \
+    } while (0)
+
+#define pcutils_printbuf_length(p) ((p)->bpos)
+
+#define _printbuf_check_literal(mystr) ("" mystr)
+
+#define pcutils_printbuf_strappend(pb, str)                         \
+    pcutils_printbuf_memappend((pb), _printbuf_check_literal(str),  \
+            sizeof(str) - 1)
+
+PCA_EXPORT int
+pcutils_printbuf_memset(struct pcutils_printbuf *pb,
+        ssize_t offset, int charvalue, size_t len);
+
+PCA_EXPORT int
+pcutils_printbuf_shrink(struct pcutils_printbuf *pb, size_t len);
+
+PCA_EXPORT int
+pcutils_printbuf_format(struct pcutils_printbuf *p, const char *msg, ...)
+    PCA_ATTRIBUTE_PRINTF(2, 3);
+
+PCA_EXPORT void
+pcutils_printbuf_reset(struct pcutils_printbuf *p);
+
+PCA_EXPORT void
+pcutils_printbuf_delete(struct pcutils_printbuf *p);
+
 PCA_EXPORT bool
 purc_is_valid_host_name(const char *host_name);
 
