@@ -1,10 +1,10 @@
 /*
  * @file printbuf.c
- * @author gengyue 
+ * @author gengyue
  * @date 2021/07/02
  * @brief The implementation of print buffer.
  *
- * Copyright (C) 2021 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2021 ~ 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of PurC (short for Purring Cat), an HVML interpreter.
  *
@@ -33,7 +33,9 @@
  */
 
 #define _GNU_SOURCE
+
 #include "private/printbuf.h"
+#include "purc-utils.h"
 
 #include <stdio.h>
 #include <limits.h>
@@ -64,10 +66,11 @@ static int printbuf_extend(struct pcutils_printbuf *p, size_t min_size)
     /* Prevent unsigned integer overflows with large buffers. */
     if (min_size > UINT_MAX - 8)
         return -1;
+
     if (p->size > UINT_MAX / 2)
         new_size = min_size + 8;
     else {
-        new_size = p->size * 2;
+        new_size = pcutils_get_next_fibonacci_number(p->size);
         if (new_size < min_size + 8)
             new_size = min_size + 8;
     }
