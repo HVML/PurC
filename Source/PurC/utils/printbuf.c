@@ -160,13 +160,14 @@ int pcutils_printbuf_memset(struct pcutils_printbuf *pb, ssize_t offset,
 
     size_needed = my_off + len;
     if (pb->size < size_needed) {
-        if (printbuf_extend(pb, size_needed) < 0)
+        if (printbuf_extend(pb, size_needed + 1) < 0)
             return -1;
     }
 
     memset(pb->buf + my_off, charvalue, len);
     if (pb->bpos < size_needed)
         pb->bpos = size_needed;
+    pb->buf[pb->bpos] = '\0';
 
     return 0;
 }
