@@ -431,21 +431,21 @@ typedef enum {
 typedef enum {
     PURC_LOG_first = 0,
 
-#define PURC_LOG_LEVEL_EMERG    "EMERG"
+#define PURC_LOG_LEVEL_EMERG    "EMRG"
     PURC_LOG_EMERG = PURC_LOG_first,    /* system is unusable */
-#define PURC_LOG_LEVEL_ALERT    "ALERT"
+#define PURC_LOG_LEVEL_ALERT    "ALRT"
     PURC_LOG_ALERT,                     /* action must be taken immediately */
 #define PURC_LOG_LEVEL_CRIT     "CRIT"
     PURC_LOG_CRIT,                      /* critical conditions */
-#define PURC_LOG_LEVEL_ERR      "ERROR"
+#define PURC_LOG_LEVEL_ERR      "ERRO"
     PURC_LOG_ERR,                       /* error conditions */
-#define PURC_LOG_LEVEL_WARNING  "WARNING"
+#define PURC_LOG_LEVEL_WARNING  "WARN"
     PURC_LOG_WARNING,                   /* warning conditions */
-#define PURC_LOG_LEVEL_NOTICE   "NOTICE"
+#define PURC_LOG_LEVEL_NOTICE   "NOTI"
     PURC_LOG_NOTICE,                    /* normal, but significant, condition */
 #define PURC_LOG_LEVEL_INFO     "INFO"
     PURC_LOG_INFO,                      /* informational message */
-#define PURC_LOG_LEVEL_DEBUG    "DEBUG"
+#define PURC_LOG_LEVEL_DEBUG    "DEBG"
     PURC_LOG_DEBUG,                     /* debug-level message */
 
     /* XXX: change this if you append a new type. */

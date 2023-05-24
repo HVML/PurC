@@ -40,6 +40,16 @@
 static unsigned global_log_levels = PURC_LOG_MASK_DEFAULT;
 static FILE *global_log_fp = NULL;
 
+unsigned purc_get_log_levels(void)
+{
+    struct pcinst* inst = pcinst_current();
+    if (inst == NULL) {
+        return global_log_levels;
+    }
+
+    return inst->log_levels;
+}
+
 bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
 {
     struct pcinst* inst = pcinst_current();
