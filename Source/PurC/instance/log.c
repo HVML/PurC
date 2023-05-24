@@ -37,11 +37,36 @@
 
 #include <limits.h>
 
-bool purc_enable_log_ex(unsigned level_mask, purc_log_facility_k facility)
+static unsigned global_log_levels = PURC_LOG_MASK_DEFAULT;
+static FILE *global_log_fp = NULL;
+
+bool purc_enable_log_ex(unsigned levels, purc_log_facility_k facility)
 {
     struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
-        return false;
+    if (inst == NULL) {
+        global_log_levels = levels;
+        if (levels) {
+            switch (facility) {
+            case PURC_LOG_FACILITY_FILE:
+                global_log_fp = NULL;
+                break;
+
+            case PURC_LOG_FACILITY_STDOUT:
+                global_log_fp = stdout;
+                break;
+
+            case PURC_LOG_FACILITY_STDERR:
+                global_log_fp = stderr;
+                break;
+
+            case PURC_LOG_FACILITY_SYSLOG:
+                global_log_fp = LOG_FILE_SYSLOG;
+                break;
+            }
+        }
+
+        return true;
+    }
 
     if (inst->fp_log &&
             (inst->fp_log != LOG_FILE_SYSLOG &&
@@ -50,8 +75,8 @@ bool purc_enable_log_ex(unsigned level_mask, purc_log_facility_k facility)
         inst->fp_log = NULL;
     }
 
-    inst->log_level_mask = level_mask;
-    if (level_mask) {
+    inst->log_levels = levels;
+    if (levels) {
         switch (facility) {
         case PURC_LOG_FACILITY_FILE: {
             char logfile_path[PATH_MAX + 1];
@@ -130,13 +155,17 @@ void purc_log_with_tag(purc_log_level_k level, const char *tag,
 
     if (inst) {
         if (inst->fp_log == NULL ||
-                (inst->log_level_mask & (0x01U << level)) == 0) {
+                (inst->log_levels & (0x01U << level)) == 0) {
             return;
         }
         fp = inst->fp_log;
     }
     else {
-        fp = stdout;
+        if ((global_log_levels & (0x01U << level)) == 0) {
+            return;
+        }
+
+        fp = global_log_fp ? global_log_fp : stdout;
     }
 
     if (fp == LOG_FILE_SYSLOG) {

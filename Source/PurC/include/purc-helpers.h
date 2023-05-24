@@ -474,17 +474,27 @@ typedef enum {
 #define PURC_LOG_MASK_ALL       ((unsigned)-1)
 
 /**
- * Sets the log level mask of the log facility for the current PurC instance.
+ * Sets the log levels and the log facility for the current PurC instance.
  *
- * @param level_mask: The mask of levels.
- * @param use_syslog: @true to use syslog, @false to use log file.
+ * @param levels: The log levels enabled for this instance.
+ * @param facility: The log facility.
  *
  * Returns: @true for success, otherwise @false.
  *
  * Since: 0.9.12
  */
 PCA_EXPORT bool
-purc_enable_log_ex(unsigned level_mask, purc_log_facility_k facility);
+purc_enable_log_ex(unsigned levels, purc_log_facility_k facility);
+
+/**
+ * Gets the log levels of the current PurC instance.
+ *
+ * Returns: The log levels.
+ *
+ * Since: 0.9.12
+ */
+PCA_EXPORT unsigned
+purc_get_log_levels(void);
 
 /**
  * Enable or disable the log facility for the current PurC instance.

@@ -69,7 +69,7 @@ struct pcinst {
 
     unsigned int            modules;
     unsigned int            modules_inited;
-    unsigned int            log_level_mask;
+    unsigned int            log_levels;
 
     // flags go here
     unsigned int            enable_remote_fetcher:1;
