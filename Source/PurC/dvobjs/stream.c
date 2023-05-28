@@ -24,6 +24,8 @@
 
 #define _GNU_SOURCE
 #include "config.h"
+#include "stream.h"
+
 #include "purc-variant.h"
 #include "purc-runloop.h"
 #include "purc-dvobjs.h"
@@ -97,12 +99,14 @@ enum {
     K_KW_fifo,
 #define _KW_unix                    "unix"
     K_KW_unix,
-#define _KW_winsock                 "winsock"
-    K_KW_winsock,
-#define _KW_ws                      "ws"
-    K_KW_ws,
-#define _KW_wss                     "wss"
-    K_KW_wss,
+#define _KW_websocket               "websocket"
+    K_KW_websocket,
+#define _KW_secure_websocket        "secure-websocket"
+    K_KW_secure_websocket,
+#define _KW_message                 "message"
+    K_KW_message,
+#define _KW_hbdbus                  "hbdbus"
+    K_KW_hbdbus,
 #define _KW_readstruct              "readstruct"
     K_KW_readstruct,
 #define _KW_writestruct             "writestruct"
@@ -143,9 +147,10 @@ static struct keyword_to_atom {
     { _KW_pipe, 0 },                // "pipe"
     { _KW_fifo, 0 },                // "fifo"
     { _KW_unix, 0 },                // "unix"
-    { _KW_winsock, 0 },             // "winsock"
-    { _KW_ws, 0 },                  // "ws"
-    { _KW_wss, 0 },                 // "wss"
+    { _KW_websocket, 0 },           // "websocket"
+    { _KW_secure_websocket, 0 },    // "secure-websocket"
+    { _KW_message, 0 },             // "message"
+    { _KW_hbdbus, 0 },              // "hbdbus"
     { _KW_readstruct, 0},           // readstruct
     { _KW_writestruct, 0},          // writestruct
     { _KW_readlines, 0},            // readlines
@@ -158,35 +163,8 @@ static struct keyword_to_atom {
     { _KW_close, 0},                // close
 };
 
-enum pcdvobjs_stream_type {
-    STREAM_TYPE_FILE_STDIN,
-    STREAM_TYPE_FILE_STDOUT,
-    STREAM_TYPE_FILE_STDERR,
-    STREAM_TYPE_FILE,
-    STREAM_TYPE_PIPE,
-    STREAM_TYPE_FIFO,
-    STREAM_TYPE_UNIX_SOCK,
-    STREAM_TYPE_WIN_SOCK,
-    STREAM_TYPE_WS,
-    STREAM_TYPE_WSS,
-};
-
-struct pcdvobjs_stream {
-    enum pcdvobjs_stream_type type;
-    struct purc_broken_down_url *url;
-    purc_rwstream_t stm4r;      /* stream for read */
-    purc_rwstream_t stm4w;      /* stream for write */
-    purc_variant_t option;
-    purc_variant_t observed;    /* not inc ref */
-    uintptr_t monitor4r, monitor4w;
-    int fd4r, fd4w;
-
-    pid_t cpid;                 /* only for pipe, the pid of child */
-    purc_atom_t cid;
-};
-
-static
-struct pcdvobjs_stream *dvobjs_stream_create(enum pcdvobjs_stream_type type,
+static struct pcdvobjs_stream *
+dvobjs_stream_new(enum pcdvobjs_stream_type type,
         struct purc_broken_down_url *url, purc_variant_t option)
 {
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)calloc(1,
@@ -265,7 +243,7 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
     }
 }
 
-static void native_stream_destroy(struct pcdvobjs_stream *stream)
+static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
 {
     if (!stream) {
         return;
@@ -646,7 +624,7 @@ readbytes_getter(void *native_entity, const char *property_name,
         goto out;
     }
 
-    if (argv[0] != PURC_VARIANT_INVALID && 
+    if (argv[0] != PURC_VARIANT_INVALID &&
             !purc_variant_cast_to_ulongint(argv[0], &byte_num, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto out;
@@ -723,14 +701,14 @@ writebytes_getter(void *native_entity, const char *property_name,
     size_t bsize = 0;
     const unsigned char *buffer = NULL;
     if (purc_variant_is_bsequence(data)) {
-        buffer = purc_variant_get_bytes_const (data, &bsize);
+        buffer = purc_variant_get_bytes_const(data, &bsize);
     }
     else {
         buffer = (const unsigned char *)purc_variant_get_string_const(data);
         bsize = strlen((const char*)buffer) + 1;
     }
     if (buffer && bsize) {
-        ssize_t nr_write = purc_rwstream_write (rwstream, buffer, bsize);
+        ssize_t nr_write = purc_rwstream_write(rwstream, buffer, bsize);
         return purc_variant_make_ulongint(nr_write);
     }
 
@@ -1076,7 +1054,7 @@ on_forget(void *native_entity, const char *event_name,
 static void
 on_release(void *native_entity)
 {
-    native_stream_destroy((struct pcdvobjs_stream *)native_entity);
+    dvobjs_stream_delete((struct pcdvobjs_stream *)native_entity);
 }
 
 static purc_nvariant_method
@@ -1150,7 +1128,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(type,
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(type,
             NULL, PURC_VARIANT_INVALID);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1168,7 +1146,7 @@ struct pcdvobjs_stream *create_file_std_stream(enum pcdvobjs_stream_type type)
     return stream;
 
 out_free_stream:
-    native_stream_destroy(stream);
+    dvobjs_stream_delete(stream);
 
 out:
     close(fd);
@@ -1327,7 +1305,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FILE,
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_FILE,
             url, option);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1345,7 +1323,7 @@ struct pcdvobjs_stream *create_file_stream(struct purc_broken_down_url *url,
     return stream;
 
 out_free_stream:
-    native_stream_destroy(stream);
+    dvobjs_stream_delete(stream);
 
 out:
     close(fd);
@@ -1488,7 +1466,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     }
 
     struct pcdvobjs_stream* stream;
-    stream = dvobjs_stream_create(STREAM_TYPE_PIPE,
+    stream = dvobjs_stream_new(STREAM_TYPE_PIPE,
             url, option);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1513,7 +1491,7 @@ struct pcdvobjs_stream *create_pipe_stream(struct purc_broken_down_url *url,
     return stream;
 
 out_free_stream:
-    native_stream_destroy(stream);
+    dvobjs_stream_delete(stream);
 
 out_close_fd:
     close(pipefd_stdin[0]);
@@ -1559,7 +1537,7 @@ struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
         return NULL;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_FIFO,
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_FIFO,
             url, option);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1577,7 +1555,7 @@ struct pcdvobjs_stream *create_fifo_stream(struct purc_broken_down_url *url,
     return stream;
 
 out_free_stream:
-    native_stream_destroy(stream);
+    dvobjs_stream_delete(stream);
 
 out_close_fd:
     close(fd);
@@ -1605,12 +1583,12 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
     memset (&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
     strcpy(unix_addr.sun_path, url->path);
-    int len = sizeof (unix_addr.sun_family) + strlen (unix_addr.sun_path);
+    int len = sizeof (unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
         goto out_close_fd;
     }
 
-    struct pcdvobjs_stream* stream = dvobjs_stream_create(STREAM_TYPE_UNIX_SOCK,
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_UNIX,
             url, option);
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -1628,7 +1606,7 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
     return stream;
 
 out_free_stream:
-    native_stream_destroy(stream);
+    dvobjs_stream_delete(stream);
 
 out_close_fd:
     close (fd);
@@ -1676,7 +1654,16 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto out_free_url;
     }
 
-    struct pcdvobjs_stream* stream = NULL;
+    static const struct purc_native_ops basic_ops = {
+        .property_getter = property_getter,
+        .on_observe = on_observe,
+        .on_forget = on_forget,
+        .on_release = on_release,
+    };
+
+    const struct purc_native_ops *ops = &basic_ops;
+    struct pcdvobjs_stream *stream = NULL;
+
     if (atom == keywords2atoms[K_KW_file].atom) {
         stream = create_file_stream(url, option);
     }
@@ -1688,28 +1675,38 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
     else if (atom == keywords2atoms[K_KW_unix].atom) {
         stream = create_unix_sock_stream(url, option);
-    }
-#if 0
-    else if (atom == keywords2atoms[K_KW_winsock].atom) {
-    }
-    else if (atom == keywords2atoms[K_KW_ws].atom) {
-    }
-    else if (atom == keywords2atoms[K_KW_wss].atom) {
-    }
+        if (nr_args > 1 && argv[1]) {
+            const char *prot = purc_variant_get_string_const(argv[1]);
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_message].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
 #endif
+                    ) {
+                ops = dvobjs_extend_stream_by_message(stream, ops,
+                        nr_args > 2 ? argv[2] : NULL);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
+                            nr_args > 2 ? argv[2] : NULL);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
 
     if (!stream) {
         goto out_free_url;
     }
 
     // setup a callback for `on_release` to destroy the stream automatically
-    static const struct purc_native_ops ops = {
-        .property_getter = property_getter,
-        .on_observe = on_observe,
-        .on_forget = on_forget,
-        .on_release = on_release,
-    };
-    ret_var = purc_variant_make_native(stream, &ops);
+    ret_var = purc_variant_make_native(stream, ops);
     if (ret_var) {
         stream->observed = ret_var;
     }

@@ -172,6 +172,60 @@ void pcutils_sha512_calc_digest(const void* data, size_t sz,
 void pcutils_hmac_sha256(unsigned char *out, const void *data, size_t data_len,
         const unsigned char *key, size_t key_len);
 
+#define PURC_PUBLIC_PEM_KEY_FILE        "/etc/public-keys/public-%s.pem"
+#define PURC_PRIVATE_PEM_KEY_FILE       "/app/%s/private/private-%s.pem"
+#define PURC_PRIVATE_HMAC_KEY_FILE      "/app/%s/private/hmac-%s.key"
+#define PURC_LEN_PRIVATE_HMAC_KEY       64
+
+/**
+ * Sign a data.
+ *
+ * @param app_name: the pointer to a string contains the app name.
+ * @param data: the pointer to the data will be signed.
+ * @param data_len: the length of the data in bytes.
+ * @param sig: the pointer to a buffer for returning
+ *      the pointer to the newly allocated signature if success.
+ * @param sig_len: the pointer to an unsigned integer for returning the length
+ *      of the signature.
+ *
+ * Signs the specified data with the private key of a specific app
+ * and returns the signature.
+ * 
+ * Note that the caller is responsible for releasing the buffer of
+ * the signature.
+ *
+ * Returns: zero if success; an error code (<0) otherwise.
+ *
+ * Since: 0.9.12
+ */
+int pcutils_sign_data(const char *app_name,
+        const unsigned char *data, unsigned int data_len,
+        unsigned char **sig, unsigned int *sig_len);
+
+/**
+ * Verify a signature.
+ *
+ * @param app_name: the pointer to a string contains the app name.
+ * @param data: the pointer to the data will be verified.
+ * @param data_len: the length of the data in bytes.
+ * @param sig: the pointer to the signature.
+ * @param sig_len: the length of the signature.
+ *
+ * Signs the specified data with the private key of a specific app
+ * and returns the signature.
+ * 
+ * Note that the caller is responsible for releasing the buffer of
+ * the signature.
+ *
+ * Returns: 1 if verified, 0 if cannot verify the signature; an error code
+ * which is less than 0 means something wrong.
+ *
+ * Since: 0.9.12
+ */
+int pcutils_verify_signature(const char *app_name,
+        const unsigned char *data, unsigned int data_len,
+        const unsigned char *sig, unsigned int sig_len);
+
 typedef struct {
     unsigned char * data;
     size_t          length;
@@ -735,7 +789,14 @@ typedef struct pcutils_kvlist* pcutils_kvlist_t;
 
 /* get_len can be NULL for pointer */
 PCA_EXPORT pcutils_kvlist_t
-pcutils_kvlist_new(size_t (*get_len)(pcutils_kvlist_t kv, const void *data));
+pcutils_kvlist_new_ex(size_t (*get_len)(pcutils_kvlist_t kv, const void *data),
+        bool caseless);
+
+static inline pcutils_kvlist_t
+pcutils_kvlist_new(size_t (*get_len)(pcutils_kvlist_t kv, const void *data))
+{
+    return pcutils_kvlist_new_ex(get_len, false);
+}
 
 PCA_EXPORT void
 pcutils_kvlist_delete(pcutils_kvlist_t kv);

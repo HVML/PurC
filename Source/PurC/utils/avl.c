@@ -88,9 +88,12 @@ static inline int avl_min(int x, int y) {
 }
 
 static struct avl_node *
-avl_find_rec(struct avl_node *node, const void *key, avl_tree_comp comp, void *ptr, int *cmp_result);
-static void avl_insert_before(struct avl_tree *tree, struct avl_node *pos_node, struct avl_node *node);
-static void avl_insert_after(struct avl_tree *tree, struct avl_node *pos_node, struct avl_node *node);
+avl_find_rec(struct avl_node *node, const void *key, avl_tree_comp comp,
+        void *ptr, int *cmp_result);
+static void avl_insert_before(struct avl_tree *tree, struct avl_node *pos_node,
+        struct avl_node *node);
+static void avl_insert_after(struct avl_tree *tree, struct avl_node *pos_node,
+        struct avl_node *node);
 static void post_insert(struct avl_tree *tree, struct avl_node *node);
 static void avl_delete_worker(struct avl_tree *tree, struct avl_node *node);
 static void avl_remove(struct avl_tree *tree, struct avl_node *node);
@@ -104,7 +107,8 @@ static void avl_remove(struct avl_tree *tree, struct avl_node *node);
  * @param ptr custom parameter for comparator
  */
 void
-pcutils_avl_init(struct avl_tree *tree, avl_tree_comp comp, bool allow_dups, void *ptr)
+pcutils_avl_init(struct avl_tree *tree, avl_tree_comp comp,
+        bool allow_dups, void *ptr)
 {
   INIT_LIST_HEAD(&tree->list_head);
   tree->root = NULL;
@@ -749,5 +753,12 @@ pcutils_avl_strcmp(const void *k1, const void *k2, void *ptr)
 {
     UNUSED_PARAM(ptr);
     return strcmp(k1, k2);
+}
+
+int
+pcutils_avl_strcasecmp(const void *k1, const void *k2, void *ptr)
+{
+    UNUSED_PARAM(ptr);
+    return strcasecmp(k1, k2);
 }
 

@@ -27,7 +27,7 @@
 
 #include "private/document.h"
 
-#include "internal.h"
+#include "element.h"
 
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4

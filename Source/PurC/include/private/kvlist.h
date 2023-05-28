@@ -93,8 +93,15 @@ extern "C" {
 #endif
 
 /* internal interfaces */
-void pcutils_kvlist_init(struct pcutils_kvlist *kv,
-        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data));
+void pcutils_kvlist_init_ex(struct pcutils_kvlist *kv,
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data),
+        bool caseless);
+static inline void pcutils_kvlist_init(struct pcutils_kvlist *kv,
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data))
+{
+    pcutils_kvlist_init_ex(kv, get_len, false);
+}
+
 void pcutils_kvlist_cleanup(struct pcutils_kvlist *kv);
 
 #ifdef __cplusplus

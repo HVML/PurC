@@ -92,6 +92,10 @@ if (ENABLE_WEBSOCKET)
     )
 endif ()
 
+if (HAVE_OPENSSL)
+    list(APPEND PurC_LIBRARIES OpenSSL::SSL)
+endif ()
+
 if (ENABLE_SCHEMA_LSQL)
     list(APPEND PurC_LIBRARIES SQLite::SQLite3)
 endif ()

@@ -35,7 +35,6 @@ list(APPEND PurC_LIBRARIES
     -lrt
 )
 
-
 configure_file(ports/linux/purc.pc.in ${PurC_PKGCONFIG_FILE} @ONLY)
 install(FILES "${PurC_PKGCONFIG_FILE}"
         DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"

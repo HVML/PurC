@@ -27,7 +27,7 @@
 #include "private/dvobjs.h"
 #include "purc-variant.h"
 #include "helper.h"
-#include "internal.h"
+#include "element.h"
 
 #include <limits.h>
 #include <errno.h>

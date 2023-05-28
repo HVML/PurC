@@ -30,8 +30,7 @@
 #include "private/avl.h"
 #include "private/dvobjs.h"
 
-#include "internal.h"
-
+#include "element.h"
 
 #define SELECT_TYPE_ID          "id"
 #define SELECT_TYPE_CLASS       "class"

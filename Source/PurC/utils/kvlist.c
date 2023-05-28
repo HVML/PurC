@@ -45,12 +45,13 @@
 #include "private/kvlist.h"
 #include "private/utils.h"
 
-struct pcutils_kvlist *pcutils_kvlist_new(
-        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data))
+struct pcutils_kvlist *pcutils_kvlist_new_ex(
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data),
+        bool caseless)
 {
     struct pcutils_kvlist *kv = calloc(1, sizeof(*kv));
     if (kv) {
-        pcutils_kvlist_init(kv, get_len);
+        pcutils_kvlist_init_ex(kv, get_len, caseless);
     }
 
     return kv;
@@ -62,10 +63,12 @@ void pcutils_kvlist_delete(struct pcutils_kvlist *kv)
     free(kv);
 }
 
-void pcutils_kvlist_init(struct pcutils_kvlist *kv,
-        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data))
+void pcutils_kvlist_init_ex(struct pcutils_kvlist *kv,
+        size_t (*get_len)(struct pcutils_kvlist *kv, const void *data),
+        bool caseless)
 {
-    pcutils_avl_init(&kv->avl, pcutils_avl_strcmp, false, NULL);
+    pcutils_avl_init(&kv->avl,
+            caseless ? pcutils_avl_strcasecmp : pcutils_avl_strcmp, false, NULL);
     kv->get_len = get_len;
 }
 

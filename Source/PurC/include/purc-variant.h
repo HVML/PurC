@@ -733,6 +733,8 @@ struct purc_native_ops {
      * This operation will be called when the variant was released (nullable).
      */
     void (*on_release)(void* native_entity);
+
+    const void *priv_ops;
 };
 
 /**

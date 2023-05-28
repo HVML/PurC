@@ -195,6 +195,9 @@ void pcutils_avl_delete(struct avl_tree *tree, struct avl_node *node);
 /** Compares two keys as they are two null-terminated strings. */
 int pcutils_avl_strcmp(const void *k1, const void *k2, void *ptr);
 
+/** Compares two keys caselessly as they are two null-terminated strings. */
+int pcutils_avl_strcasecmp(const void *k1, const void *k2, void *ptr);
+
 #ifdef __cplusplus
 }
 #endif
