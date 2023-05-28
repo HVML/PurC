@@ -80,9 +80,12 @@ struct stream_messaging_ops {
         unsigned int placeholder;
     };
 
+    /* All operations return:
+       - 0 for whole message read;
+       - 1 for calling again (nonblock).
+       - -1 for errors; */
+
     int (*read_message)(struct pcdvobjs_stream *stream,
-            char *buf, size_t *len, int *type);
-    int (*read_message_alloc)(struct pcdvobjs_stream *stream,
             char **buf, size_t *len, int *type);
     int (*send_text)(struct pcdvobjs_stream *stream,
             const char *text, size_t len);
