@@ -364,12 +364,14 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
         purc_log_error("failed to create thread for built-in renderer: %s\n",
                 strerror(errno));
         sem_close(arg.wait);
+        sem_unlink(SEM_NAME_SYNC_START);
         goto failed;
     }
     pthread_attr_destroy(&attr);
 
     sem_wait(arg.wait);
     sem_close(arg.wait);
+    sem_unlink(SEM_NAME_SYNC_START);
 ALLOW_DEPRECATED_DECLARATIONS_END
 
     return arg.rid;
