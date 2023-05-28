@@ -271,31 +271,6 @@ enum {
     CT_MOVE_BUFFER,
 };
 
-/* The frame operation codes for UnixSocket */
-typedef enum USOpcode_ {
-    US_OPCODE_CONTINUATION = 0x00,
-    US_OPCODE_TEXT = 0x01,
-    US_OPCODE_BIN = 0x02,
-    US_OPCODE_END = 0x03,
-    US_OPCODE_CLOSE = 0x08,
-    US_OPCODE_PING = 0x09,
-    US_OPCODE_PONG = 0x0A,
-} USOpcode;
-
-/* The frame header for UnixSocket */
-typedef struct USFrameHeader_ {
-    int op;
-    unsigned int fragmented;
-    unsigned int sz_payload;
-    unsigned char payload[0];
-} USFrameHeader;
-
-/* packet body types */
-enum {
-    PT_TEXT = 0,
-    PT_BINARY,
-};
-
 struct pcrdr_msg;
 typedef struct pcrdr_msg pcrdr_msg;
 
