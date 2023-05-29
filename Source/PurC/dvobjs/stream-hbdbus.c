@@ -1110,7 +1110,8 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
 {
     (void)extra_opts;
 
-    if (super_ops == NULL || strcmp(stream->ext0.signature, SIGNATURE_MSG)) {
+    if (super_ops == NULL ||
+            strcmp(stream->ext0.signature, STREAM_EXT_SIG_MSG)) {
         PC_ERROR("Layer 0 is not a message extension.\n");
         goto failed;
     }
@@ -1137,6 +1138,7 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     pcutils_kvlist_init_ex(&ext->bubble_list, NULL, true);
     pcutils_kvlist_init_ex(&ext->subscribed_list, NULL, true);
 
+    strcpy(stream->ext1.signature, STREAM_EXT_SIG_HBS);
     stream->ext1.data = ext;
     stream->ext1.super_ops = super_ops;
     stream->ext1.bus_ops = NULL;

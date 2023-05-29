@@ -74,6 +74,9 @@ struct stream_messaging_ops {
             const void *data, size_t len);
 };
 
+#define STREAM_EXT_SIG_MSG          "MSG"
+#define STREAM_EXT_SIG_HBS          "HBS"
+
 struct stream_extended {
     char signature[4];
 
@@ -101,8 +104,6 @@ typedef struct pcdvobjs_stream {
     struct stream_extended ext0;   /* for presentation layer */
     struct stream_extended ext1;   /* for application layer */
 } pcdvobjs_stream;
-
-#define SIGNATURE_MSG       "MSG"
 
 PCA_EXTERN_C_BEGIN
 
