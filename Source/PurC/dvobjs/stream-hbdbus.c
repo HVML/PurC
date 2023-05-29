@@ -124,8 +124,9 @@ enum bus_state {
 
 #define ERR_SYM_AGAIN                   "-"
 #define ERR_SYM_BADMESSAGE              "badMessage"
-#define ERR_SYM_BADMSGCONTENTS          "badMsgContents"
+#define ERR_SYM_BADMSGPAYLOAD           "badMsgPayload"
 #define ERR_SYM_SERVERREFUSED           "serverRefused"
+#define ERR_SYM_SERVERERROR             "serverError"
 #define ERR_SYM_WRONGVERSION            "wrongVersion"
 #define ERR_SYM_OUTOFMEMORY             "outOfMemory"
 #define ERR_SYM_UNEXPECTED              "unexpected"
@@ -133,6 +134,7 @@ enum bus_state {
 #define ERR_SYM_FAILEDWRITE             "failedWrite"
 #define ERR_SYM_FAILEDREAD              "failedRead"
 #define ERR_SYM_AUTHFAILED              "authFailed"
+#define ERR_SYM_INVALIDPARAMS           "invalidParams"
 
 typedef void (*hbdbus_error_handler)(struct pcdvobjs_stream *stream,
         const purc_variant_t jo);
@@ -150,8 +152,10 @@ struct stream_extended_data {
     char *own_host_name;
 
     struct pcutils_kvlist method_list;
+    struct pcutils_kvlist called_list;
+    struct pcutils_kvlist calling_list;
+
     struct pcutils_kvlist bubble_list;
-    struct pcutils_kvlist call_list;
     struct pcutils_kvlist subscribed_list;
 
     hbdbus_error_handler error_handler;
@@ -160,23 +164,6 @@ struct stream_extended_data {
 
 #define set_error(ext, sym)             ext->errsym = sym ""
 #define clr_error(ext)                  ext->errsym = NULL
-
-typedef enum  {
-    MHT_STRING  = 0,
-    MHT_CONST_STRING = 1,
-} method_handler_type;
-
-struct method_handler_info {
-    method_handler_type type;
-    void* handler;
-};
-
-static size_t mhi_get_len(struct pcutils_kvlist *kv, const void *data)
-{
-    (void)kv;
-    (void)data;
-    return sizeof(struct method_handler_info);
-}
 
 #define call_super(stream, method, x, ...)                      \
     ((struct stream_messaging_ops*)stream->ext0.msg_ops)->      \
@@ -246,6 +233,36 @@ static bool on_forget(void *entity, const char *event_name,
     return true;
 }
 
+struct method_called_info {
+    time_t      called_time;
+    const char *method;
+
+    char       *call_id;
+};
+
+static size_t
+get_mci_len(struct pcutils_kvlist *kv, const void *data)
+{
+    (void)kv;
+    (void)data;
+    return sizeof(struct method_called_info);
+}
+
+static int
+free_mci(void *ctxt, const char *name, void *data)
+{
+    (void)ctxt;
+    (void)name;
+
+    struct method_called_info *mci = data;
+    if (mci->call_id) {
+        free(mci->call_id);
+        mci->call_id = NULL;
+    }
+
+    return 0;
+}
+
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
@@ -257,8 +274,12 @@ static void on_release(void *entity)
     free(ext->own_host_name);
 
     pcutils_kvlist_cleanup(&ext->method_list);
+
+    pcutils_kvlist_for_each(&ext->called_list, NULL, free_mci);
+    pcutils_kvlist_cleanup(&ext->called_list);
+
     pcutils_kvlist_cleanup(&ext->bubble_list);
-    pcutils_kvlist_cleanup(&ext->call_list);
+    pcutils_kvlist_cleanup(&ext->calling_list);
     pcutils_kvlist_cleanup(&ext->subscribed_list);
     free(ext);
 
@@ -343,7 +364,7 @@ static int get_challenge_code(pcdvobjs_stream *stream,
 
     jo = purc_variant_make_from_json_string(payload, len);
     if (jo == NULL || !purc_variant_is_object(jo)) {
-        set_error(ext, ERR_SYM_BADMSGCONTENTS);
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
         goto failed;
     }
 
@@ -398,7 +419,7 @@ static int get_challenge_code(pcdvobjs_stream *stream,
 
             if (ch_code == NULL) {
                 PC_WARN("Null challenge code\n");
-                set_error(ext, ERR_SYM_BADMSGCONTENTS);
+                set_error(ext, ERR_SYM_BADMSGPAYLOAD);
                 goto failed;
             }
             else if (strcasecmp(prot_name, HBDBUS_PROTOCOL_NAME) ||
@@ -411,7 +432,7 @@ static int get_challenge_code(pcdvobjs_stream *stream,
     }
     else {
         PC_WARN("No packetType field\n");
-        set_error(ext, ERR_SYM_BADMSGCONTENTS);
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
         goto failed;
     }
 
@@ -606,7 +627,7 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
     }
     else {
         PC_ERROR("Fatal error: no serverHostName in authPassed packet!\n");
-        set_error(ext, ERR_SYM_BADMESSAGE);
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
         goto failed;
     }
 
@@ -619,7 +640,7 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
     }
     else {
         PC_ERROR("Fatal error: no reassignedHostName in authPassed packet!\n");
-        set_error(ext, ERR_SYM_BADMESSAGE);
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
         goto failed;
     }
 
@@ -666,7 +687,7 @@ check_auth_result(pcdvobjs_stream *stream, const char *payload, size_t len)
     ret = hbdbus_json_packet_to_object(payload, len, &jo);
 
     if (ret < 0) {
-        set_error(ext, ERR_SYM_BADMSGCONTENTS);
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
         goto done;
     }
     else if (ret == JPT_AUTH_PASSED) {
@@ -696,6 +717,334 @@ done:
     return retv;
 }
 
+static int
+dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
+{
+    struct stream_extended_data *ext = stream->ext1.data;
+    purc_variant_t jo_tmp;
+    const char *from_endpoint = NULL, *call_id = NULL, *result_id = NULL;
+    const char *to_method;
+    const char *parameter;
+    void *data;
+    char packet_buff[HBDBUS_DEF_PACKET_BUFF_SIZE];
+    int ret_code = PCRDR_SC_OK;
+    double time_consumed = 0.0f;
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint")) &&
+            (from_endpoint = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        ret_code = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "toMethod")) &&
+            (to_method = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        ret_code = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId")) &&
+            (call_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        ret_code = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId")) &&
+            (result_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        ret_code = PCRDR_SC_BAD_REQUEST;
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "parameter")) &&
+            (parameter = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        parameter = "";
+    }
+
+    if ((data = pcutils_kvlist_get(&ext->method_list, to_method)) == NULL) {
+        ret_code = PCRDR_SC_NOT_FOUND;
+        goto done;
+    }
+    else {
+        struct method_called_info mci;
+        mci.called_time = purc_monotonic_time_after(0);
+        mci.method = to_method;
+        mci.call_id = strdup(call_id);
+
+        if (pcutils_kvlist_set(&ext->called_list, result_id, &mci)) {
+            // TODO: fire a `called:<to_method>` event
+        }
+        else {
+            free(mci.call_id);
+            set_error(ext, ERR_SYM_OUTOFMEMORY);
+            ret_code = PCRDR_SC_INSUFFICIENT_STORAGE;
+        }
+    }
+
+done:
+    if (ret_code == PCRDR_SC_OK)
+        return 0;
+
+    int n = snprintf(packet_buff, sizeof(packet_buff),
+            "{"
+            "\"packetType\": \"result\","
+            "\"resultId\": \"%s\","
+            "\"callId\": \"%s\","
+            "\"fromMethod\": \"%s\","
+            "\"timeConsumed\": %.9f,"
+            "\"retCode\": %d,"
+            "\"retMsg\": \"%s\","
+            "\"retValue\": \"\""
+            "}",
+            result_id, call_id,
+            to_method,
+            time_consumed,
+            ret_code,
+            ext->errsym);
+
+    if (n < 0) {
+        set_error(ext, ERR_SYM_UNEXPECTED);
+    }
+    else if ((size_t)n >= sizeof(packet_buff)) {
+        set_error(ext, ERR_SYM_TOOSMALLBUFFER);
+    }
+    else {
+        if (call_super(stream, send_text, stream, packet_buff, n)) {
+            set_error(ext, ERR_SYM_FAILEDWRITE);
+        }
+        else
+            return 0;
+    }
+
+    return -1;
+}
+
+static int
+dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
+{
+    struct stream_extended_data *ext = stream->ext1.data;
+    purc_variant_t jo_tmp;
+    const char* result_id = NULL, *call_id = NULL;
+    const char* from_endpoint = NULL;
+    const char* from_method = NULL;
+    const char* ret_value;
+    void *data;
+    int ret_code;
+    double time_consumed;
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId")) &&
+            (result_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        PC_WARN("No resultId\n");
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId")) &&
+            (call_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    data = pcutils_kvlist_get(&ext->calling_list, call_id);
+    if (data == NULL) {
+        PC_ERROR ("No record for callId: %s\n", call_id);
+        set_error(ext, ERR_SYM_INVALIDPARAMS);
+        goto failed;
+    }
+
+    pcutils_kvlist_remove(&ext->calling_list, call_id);
+
+    if (*(void **)data == NULL) {
+        /* XXX: ignore the result */
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint")) &&
+            (from_endpoint = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromMethod")) &&
+            (from_method = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "timeConsumed")) &&
+            (purc_variant_cast_to_number(jo_tmp, &time_consumed, false))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode")) &&
+            purc_variant_cast_to_int32(jo_tmp, &ret_code, false)) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retValue")) &&
+            (ret_value = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    /* TODO: fire a `result:<from_method>` event */
+
+done:
+    return 0;
+
+failed:
+    return -1;
+}
+
+static int
+dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
+{
+    struct stream_extended_data *ext = stream->ext1.data;
+    purc_variant_t jo_tmp;
+    const char* from_endpoint = NULL;
+    const char* from_bubble = NULL;
+    const char* event_id = NULL;
+    const char* bubble_data;
+    char event_name [HBDBUS_LEN_ENDPOINT_NAME + HBDBUS_LEN_BUBBLE_NAME + 2];
+    int n;
+    void *data;
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromEndpoint")) &&
+            (from_endpoint = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "fromBubble")) &&
+            (from_bubble = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "eventId")) &&
+            (event_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleData")) &&
+            (bubble_data = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        bubble_data = "";
+    }
+
+    n = purc_name_tolower_copy(from_endpoint, event_name,
+            HBDBUS_LEN_ENDPOINT_NAME);
+    event_name[n++] = '/';
+    event_name[n] = '\0';
+    strcpy(event_name + n, from_bubble);
+    data = pcutils_kvlist_get(&ext->subscribed_list, event_name);
+    if (data == NULL) {
+        if (strcmp(event_id, HBDBUS_SYSTEM_EVENT_ID) == 0) {
+            /* TODO: fire a `event:SYSTEM` event */
+        }
+        else {
+            PC_ERROR("Got an unsubscribed event: %s\n", event_name);
+        }
+    }
+    else {
+        /* TODO: fire a `event:<from_bubble>` event */
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
+static int handle_regular_message(struct pcdvobjs_stream *stream,
+            const char *payload, size_t len)
+{
+    struct stream_extended_data *ext = stream->ext1.data;
+    purc_variant_t jo;
+
+    int retval = hbdbus_json_packet_to_object(payload, len, &jo);
+    if (retval < 0) {
+        PC_ERROR("Failed to parse JSON packet; quit...\n");
+        set_error(ext, ERR_SYM_BADMSGPAYLOAD);
+    }
+    else if (retval == JPT_ERROR) {
+        PC_ERROR("The server gives an error packet\n");
+        set_error(ext, ERR_SYM_SERVERERROR);
+        /* TODO: fire an `error` event */
+    }
+    else if (retval == JPT_AUTH) {
+        PC_ERROR("Should not be here for packetType `auth`; quit...\n");
+        set_error(ext, ERR_SYM_UNEXPECTED);
+    }
+    else if (retval == JPT_CALL) {
+        dispatch_call_packet(stream, jo);
+    }
+    else if (retval == JPT_RESULT) {
+        dispatch_result_packet(stream, jo);
+    }
+    else if (retval == JPT_RESULT_SENT) {
+    }
+    else if (retval == JPT_EVENT) {
+        dispatch_event_packet(stream, jo);
+    }
+    else if (retval == JPT_EVENT_SENT) {
+    }
+    else if (retval == JPT_AUTH_PASSED) {
+        PC_ERROR("Unexpected authPassed packet\n");
+        set_error(ext, ERR_SYM_UNEXPECTED);
+    }
+    else if (retval == JPT_AUTH_FAILED) {
+        PC_ERROR("Unexpected authFailed packet\n");
+        set_error(ext, ERR_SYM_UNEXPECTED);
+    }
+    else {
+        PC_ERROR("Unknown packet type; quit...\n");
+        set_error(ext, ERR_SYM_UNEXPECTED);
+    }
+
+    if (jo)
+        purc_variant_unref(jo);
+
+    if (ext->errsym)
+        return -1;
+
+    return 0;
+}
+
 static int on_message(struct pcdvobjs_stream *stream,
             const char *payload, size_t len, int type)
 {
@@ -714,7 +1063,7 @@ static int on_message(struct pcdvobjs_stream *stream,
         int ret;
 
         if (get_challenge_code(stream, payload, len, &ch_code)) {
-            break;
+            goto done;
         }
 
         send_auth_info(stream, ch_code);
@@ -727,16 +1076,21 @@ static int on_message(struct pcdvobjs_stream *stream,
 
     case BS_EXPECT_AUTH_RESULT:
         if (check_auth_result(stream, payload, len)) {
-            break;
+            goto done;
         }
 
         ext->state = BS_EXPECT_REGULAR_MSG;
         break;
 
     case BS_EXPECT_REGULAR_MSG:
+        if (handle_regular_message(stream, payload, len)) {
+            goto done;
+        }
         break;
 
     case BS_UNCERTAIN:
+        set_error(ext, ERR_SYM_UNEXPECTED);
+        goto done;
         break;
     }
 
@@ -776,9 +1130,11 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     ext->inst = inst;
     ext->srv_host_name = NULL;
     ext->own_host_name = strdup(HBDBUS_LOCALHOST);
-    pcutils_kvlist_init_ex(&ext->method_list, mhi_get_len, true);
+    pcutils_kvlist_init_ex(&ext->method_list, NULL, true);
+    pcutils_kvlist_init_ex(&ext->called_list, get_mci_len, false);
+    pcutils_kvlist_init_ex(&ext->calling_list, NULL, false);
+
     pcutils_kvlist_init_ex(&ext->bubble_list, NULL, true);
-    pcutils_kvlist_init_ex(&ext->call_list, NULL, false);
     pcutils_kvlist_init_ex(&ext->subscribed_list, NULL, true);
 
     stream->ext1.data = ext;
