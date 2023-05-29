@@ -372,7 +372,7 @@ call_procedure(pcdvobjs_stream *stream,
 {
     int n, retv;
     char call_id_buf[HBDBUS_LEN_UNIQUE_ID + 1];
-    char buff[HBDBUS_DEF_PACKET_BUFF_SIZE];
+    char *buff;
     char* escaped_param = NULL;
     struct stream_extended_data *ext = stream->ext1.data;
 
@@ -385,7 +385,7 @@ call_procedure(pcdvobjs_stream *stream,
     }
 
     purc_generate_unique_id(call_id_buf, "call");
-    n = snprintf(buff, sizeof(buff),
+    n = asprintf(&buff,
             "{"
             "\"packetType\": \"call\","
             "\"callId\": \"%s\","
@@ -403,15 +403,12 @@ call_procedure(pcdvobjs_stream *stream,
         free(escaped_param);
 
     if (n < 0) {
-        set_error(ext, UNEXPECTED);
-        goto failed;
-    }
-    else if ((size_t)n >= sizeof (buff)) {
-        set_error(ext, TOOSMALLBUFFER);
+        set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
     retv = call_super(stream, send_text, stream, buff, n);
+    free(buff);
     if (retv == 0) {
         struct calling_procedure_info cpi;
         cpi.calling_time = purc_monotonic_time_after(0);
@@ -426,13 +423,8 @@ call_procedure(pcdvobjs_stream *stream,
             goto failed;
         }
     }
-    else if (retv < 0) {
+    else {
         set_error(ext, FAILEDWRITE);
-        goto failed;
-    }
-    else if (retv > 0) {
-        /* TODO */
-        set_error(ext, AGAIN);
         goto failed;
     }
 
@@ -777,25 +769,12 @@ static int fire_event(pcdvobjs_stream *stream,
 {
     struct stream_extended_data *ext = stream->ext1.data;
     char event_id[HBDBUS_LEN_UNIQUE_ID + 1];
-    char buff_in_stack[HBDBUS_DEF_PACKET_BUFF_SIZE];
-    char* packet_buff = buff_in_stack;
-    size_t len_data = strlen(bubble_data) * 2 + 1;
-    size_t sz_packet_buff = sizeof(buff_in_stack);
-    char* escaped_data = NULL;
-    int retv = -1;
+    char *packet_buff;
+    char *escaped_data;
 
     if (!pcutils_kvlist_get(&ext->bubble_list, bubble_name)) {
         set_error(ext, CONFLICT);
         goto failed;
-    }
-
-    if (len_data > HBDBUS_MIN_PACKET_BUFF_SIZE) {
-        sz_packet_buff = HBDBUS_MIN_PACKET_BUFF_SIZE + len_data;
-        packet_buff = malloc(HBDBUS_MIN_PACKET_BUFF_SIZE + len_data);
-        if (packet_buff == NULL) {
-            set_error(ext, OUTOFMEMORY);
-            goto failed;
-        }
     }
 
     if (bubble_data[0]) {
@@ -809,7 +788,7 @@ static int fire_event(pcdvobjs_stream *stream,
         escaped_data = NULL;
 
     purc_generate_unique_id(event_id, "event");
-    int n = snprintf (packet_buff, sz_packet_buff,
+    int n = asprintf(&packet_buff,
             "{"
             "\"packetType\": \"event\","
             "\"eventId\": \"%s\","
@@ -823,28 +802,23 @@ static int fire_event(pcdvobjs_stream *stream,
         free(escaped_data);
 
     if (n < 0) {
-        set_error(ext, UNEXPECTED);
-        goto failed;
-    }
-    else if ((size_t)n >= sz_packet_buff) {
-        set_error(ext, TOOSMALLBUFFER);
+        set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
-    if (call_super(stream, send_text, stream, packet_buff, n)) {
+    int retv = call_super(stream, send_text, stream, packet_buff, n);
+    free(packet_buff);
+
+    if (retv) {
         PC_ERROR("Failed to send text message to HBDBus server.\n");
         set_error(ext, FAILEDWRITE);
         goto failed;
     }
 
-    retv = 0;
+    return 0;
 
 failed:
-    if (packet_buff && packet_buff != buff_in_stack) {
-        free(packet_buff);
-    }
-
-    return retv;
+    return -1;
 }
 
 static purc_variant_t
@@ -900,14 +874,14 @@ static int register_event(pcdvobjs_stream *stream, const char* bubble_name,
 {
     struct stream_extended_data *ext = stream->ext1.data;
     char endpoint_name[HBDBUS_LEN_ENDPOINT_NAME + 1];
-    char param_buff[HBDBUS_MIN_PACKET_BUFF_SIZE];
+    char *param_buff;
 
     if (pcutils_kvlist_get(&ext->bubble_list, bubble_name)) {
         set_error(ext, CONFLICT);
         goto failed;
     }
 
-    int n = snprintf(param_buff, sizeof(param_buff),
+    int n = asprintf(&param_buff,
             "{"
             "\"bubbleName\": \"%s\","
             "\"forHost\": \"%s\","
@@ -917,11 +891,7 @@ static int register_event(pcdvobjs_stream *stream, const char* bubble_name,
             for_host, for_app);
 
     if (n < 0) {
-        set_error(ext, UNEXPECTED);
-        goto failed;
-    }
-    else if ((size_t)n >= sizeof(param_buff)) {
-        set_error(ext, TOOSMALLBUFFER);
+        set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
@@ -929,14 +899,18 @@ static int register_event(pcdvobjs_stream *stream, const char* bubble_name,
             HBDBUS_APP_NAME, HBDBUS_RUN_BUILITIN, endpoint_name);
     char *ctxt;
     if (asprintf(&ctxt, HBDBUS_METHOD_REGISTEREVENT ":%s", bubble_name) < 0) {
+        free(param_buff);
         set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
-    if (call_procedure(stream, endpoint_name,
+    int retv = call_procedure(stream, endpoint_name,
                     HBDBUS_METHOD_REGISTEREVENT, param_buff,
                     HBDBUS_DEF_TIME_EXPECTED,
-                    ctxt, builtin_result_handler)) {
+                    ctxt, builtin_result_handler);
+    free(param_buff);
+
+    if (retv) {
         free(ctxt);
         goto failed;
     }
@@ -1108,14 +1082,14 @@ static int register_procedure(pcdvobjs_stream *stream, const char* method_name,
 {
     struct stream_extended_data *ext = stream->ext1.data;
     char endpoint_name[HBDBUS_LEN_ENDPOINT_NAME + 1];
-    char param_buff[HBDBUS_MIN_PACKET_BUFF_SIZE];
+    char *param_buff;
 
     if (pcutils_kvlist_get(&ext->method_list, method_name)) {
         set_error(ext, CONFLICT);
         goto failed;
     }
 
-    int n = snprintf(param_buff, sizeof(param_buff),
+    int n = asprintf(&param_buff,
             "{"
             "\"methodName\": \"%s\","
             "\"forHost\": \"%s\","
@@ -1125,11 +1099,7 @@ static int register_procedure(pcdvobjs_stream *stream, const char* method_name,
             for_host, for_app);
 
     if (n < 0) {
-        set_error(ext, UNEXPECTED);
-        goto failed;
-    }
-    else if ((size_t)n >= sizeof(param_buff)) {
-        set_error(ext, TOOSMALLBUFFER);
+        set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
@@ -1137,14 +1107,18 @@ static int register_procedure(pcdvobjs_stream *stream, const char* method_name,
             HBDBUS_APP_NAME, HBDBUS_RUN_BUILITIN, endpoint_name);
     char *ctxt;
     if (asprintf(&ctxt, HBDBUS_METHOD_REGISTERPROCEDURE ":%s", method_name) < 0) {
+        free(param_buff);
         set_error(ext, OUTOFMEMORY);
         goto failed;
     }
 
-    if (call_procedure(stream, endpoint_name,
+    int retv = call_procedure(stream, endpoint_name,
                     HBDBUS_METHOD_REGISTERPROCEDURE, param_buff,
                     HBDBUS_DEF_TIME_EXPECTED,
-                    ctxt, builtin_result_handler)) {
+                    ctxt, builtin_result_handler);
+    free(param_buff);
+
+    if (retv) {
         free(ctxt);
         goto failed;
     }
