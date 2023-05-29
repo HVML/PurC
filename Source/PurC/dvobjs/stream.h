@@ -45,7 +45,45 @@ enum pcdvobjs_stream_type {
     STREAM_TYPE_UDP,
 };
 
-struct stream_extended;
+struct pcdvobjs_stream;
+struct stream_extended_data;
+
+enum stream_message_type {
+    MT_UNKNOWN = 0,
+    MT_TEXT,
+    MT_BINARY,
+    MT_PING,
+    MT_PONG,
+    MT_CLOSE
+};
+
+struct stream_messaging_ops {
+    /* this can be overridden by extended protocol */
+    int (*on_message)(struct pcdvobjs_stream *stream,
+            const char *buf, size_t len, int type);
+
+    /* The following operations return:
+       - 0 for whole message read;
+       - 1 for calling again (nonblock).
+       - -1 for errors; */
+    int (*read_message)(struct pcdvobjs_stream *stream,
+            char **buf, size_t *len, int *type);
+    int (*send_text)(struct pcdvobjs_stream *stream,
+            const char *text, size_t len);
+    int (*send_binary)(struct pcdvobjs_stream *stream,
+            const void *data, size_t len);
+};
+
+struct stream_extended {
+    char signature[4];
+
+    struct stream_extended_data    *data;
+    const struct purc_native_ops   *super_ops;
+    union {
+        struct stream_messaging_ops    *msg_ops;
+        struct stream_hbdbus_ops       *bus_ops;
+    };
+};
 
 typedef struct pcdvobjs_stream {
     enum pcdvobjs_stream_type type;
@@ -60,38 +98,11 @@ typedef struct pcdvobjs_stream {
     pid_t cpid;                 /* only for pipe, the pid of child */
     purc_atom_t cid;
 
-    struct stream_extended *ext;
+    struct stream_extended ext0;   /* for presentation layer */
+    struct stream_extended ext1;   /* for application layer */
 } pcdvobjs_stream;
 
-enum {
-    MSG_DATA_TYPE_UNKNOWN = 0,
-    MSG_DATA_TYPE_TEXT,
-    MSG_DATA_TYPE_BINARY,
-    MSG_DATA_TYPE_PING,
-    MSG_DATA_TYPE_PONG,
-    MSG_DATA_TYPE_CLOSE,
-};
-
 #define SIGNATURE_MSG       "MSG"
-
-struct stream_messaging_ops {
-    union {
-        char         signature[0];  // always contains "MSG"
-        unsigned int placeholder;
-    };
-
-    /* All operations return:
-       - 0 for whole message read;
-       - 1 for calling again (nonblock).
-       - -1 for errors; */
-
-    int (*read_message)(struct pcdvobjs_stream *stream,
-            char **buf, size_t *len, int *type);
-    int (*send_text)(struct pcdvobjs_stream *stream,
-            const char *text, size_t len);
-    int (*send_binary)(struct pcdvobjs_stream *stream,
-            const void *data, size_t len);
-};
 
 PCA_EXTERN_C_BEGIN
 
