@@ -58,9 +58,11 @@ enum stream_message_type {
 };
 
 struct stream_messaging_ops {
-    /* this can be overridden by extended protocol */
+    /* these operations can be overridden by extended layer */
     int (*on_message)(struct pcdvobjs_stream *stream,
             const char *buf, size_t len, int type);
+    int (*on_pending)(struct pcdvobjs_stream *stream);
+
 
     /* The following operations return:
        - 0 for whole message read;

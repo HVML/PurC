@@ -46,6 +46,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+/* 1 MiB throttle threshold per client */
+#define SOCK_THROTTLE_THLD  (1024 * 1024)
+
 /* The frame operation codes for UnixSocket */
 typedef enum us_opcode {
     US_OPCODE_CONTINUATION = 0x00,
@@ -87,11 +90,14 @@ typedef struct us_pending_data {
 } us_pending_data;
 
 struct stream_extended_data {
+    /* the status of the client */
+    unsigned            status;
+
     /* time got the first frame of the current packet */
     struct timespec     ts;
 
-    /* the status of the client */
-    us_state            state;
+    size_t              sz_used_mem;
+    size_t              sz_peak_used_mem;
 
     /* fields for pending data to write */
     size_t              sz_pending;
@@ -106,6 +112,169 @@ struct stream_extended_data {
     uint32_t            sz_read_payload;    /* read size of current payload */
     char               *payload;            /* payload data */
 };
+
+static inline void us_update_mem_stats(struct stream_extended_data *ext)
+{
+    ext->sz_used_mem = ext->sz_pending + ext->sz_payload;
+    if (ext->sz_used_mem > ext->sz_peak_used_mem)
+        ext->sz_peak_used_mem = ext->sz_used_mem;
+}
+
+/*
+ * Clear pending data.
+ */
+static void us_clear_pending_data(struct stream_extended_data *ext)
+{
+    struct list_head *p, *n;
+
+    list_for_each_safe(p, n, &ext->pending) {
+        list_del(p);
+        free(p);
+    }
+
+    ext->sz_pending = 0;
+    us_update_mem_stats(ext);
+}
+
+/*
+ * Queue new data.
+ *
+ * On success, true is returned.
+ * On error, false is returned and the connection status is set.
+ */
+static bool us_queue_data(struct pcdvobjs_stream *stream,
+        const char *buf, size_t len)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    us_pending_data *pending_data;
+
+    if ((pending_data = malloc(sizeof(us_pending_data) + len)) == NULL) {
+        us_clear_pending_data(ext);
+        ext->status = US_ERR | US_CLOSE;
+        return false;
+    }
+
+    memcpy(pending_data->data, buf, len);
+    pending_data->szdata = len;
+    pending_data->szsent = 0;
+
+    list_add_tail(&pending_data->list, &ext->pending);
+    ext->sz_pending += len;
+    us_update_mem_stats(ext);
+    ext->status |= US_SENDING;
+
+    /* the connection probably is too slow, so stop queueing until everything
+     * is sent */
+    if (ext->sz_pending >= SOCK_THROTTLE_THLD)
+        ext->status |= US_THROTTLING;
+
+    return true;
+}
+
+/*
+ * Send the given buffer to the given socket.
+ *
+ * On error, -1 is returned and the connection status is set.
+ * On success, the number of bytes sent is returned.
+ */
+static ssize_t us_write_data(struct pcdvobjs_stream *stream,
+        const char *buffer, size_t len)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ssize_t bytes = 0;
+
+    bytes = write(stream->fd4w, buffer, len);
+    if (bytes == -1 && errno == EPIPE) {
+        ext->status = US_ERR | US_CLOSE;
+        return -1;
+    }
+
+    /* did not send all of it... buffer it for a later attempt */
+    if ((bytes > 0 && (size_t)bytes < len) ||
+            (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))) {
+        us_queue_data(stream, buffer + bytes, len - bytes);
+
+        if (ext->status & US_SENDING && stream->ext0.msg_ops->on_pending)
+            stream->ext0.msg_ops->on_pending(stream);
+    }
+
+    return bytes;
+}
+
+/*
+ * Send the queued up data to the given socket.
+ *
+ * On error, -1 is returned and the connection status is set.
+ * On success, the number of bytes sent is returned.
+ */
+static ssize_t us_write_pending(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ssize_t total_bytes = 0;
+    struct list_head *p, *n;
+
+    list_for_each_safe(p, n, &ext->pending) {
+        ssize_t bytes;
+        us_pending_data *pending = (us_pending_data *)p;
+
+        bytes = write(stream->fd4w, pending->data + pending->szsent,
+                pending->szdata - pending->szsent);
+
+        if (bytes > 0) {
+            pending->szsent += bytes;
+            if (pending->szsent >= pending->szdata) {
+                list_del(p);
+                free(p);
+            }
+            else {
+                break;
+            }
+
+            total_bytes += bytes;
+            ext->sz_pending -= bytes;
+            us_update_mem_stats(ext);
+        }
+        else if (bytes == -1 && errno == EPIPE) {
+            ext->status = US_ERR | US_CLOSE;
+            return -1;
+        }
+        else if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            return -1;
+        }
+    }
+
+    return total_bytes;
+}
+
+/*
+ * A wrapper of the system call write or send.
+ *
+ * On error, -1 is returned and the connection status is set as error.
+ * On success, the number of bytes sent is returned.
+ */
+static ssize_t us_write(struct pcdvobjs_stream *stream,
+        const void *buffer, size_t len)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ssize_t bytes = 0;
+
+    /* attempt to send the whole buffer */
+    if (list_empty(&ext->pending)) {
+        bytes = us_write_data(stream, buffer, len);
+    }
+    /* the pending list not empty, just append new data if we're not
+     * throttling the connection */
+    else if (ext->sz_pending < SOCK_THROTTLE_THLD) {
+        if (us_queue_data(stream, buffer, len))
+            return bytes;
+    }
+    /* send from pending buffer */
+    else {
+        bytes = us_write_pending(stream);
+    }
+
+    return bytes;
+}
 
 static int on_message(struct pcdvobjs_stream *stream,
         const char *buf, size_t len, int type)
@@ -195,25 +364,13 @@ static bool on_forget(void *entity, const char *event_name,
     return true;
 }
 
-static void clear_pending_data(struct stream_extended_data *ext)
-{
-    struct list_head *p, *n;
-
-    list_for_each_safe(p, n, &ext->pending) {
-        list_del(p);
-        free(p);
-    }
-
-    ext->sz_pending = 0;
-}
-
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
     struct stream_extended_data *ext = stream->ext0.data;
     const struct purc_native_ops *super_ops = stream->ext0.super_ops;
 
-    clear_pending_data(ext);
+    us_clear_pending_data(ext);
     free(stream->ext0.msg_ops);
     free(stream->ext0.data);
 
