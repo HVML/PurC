@@ -169,7 +169,7 @@ static void us_clear_pending_data(struct stream_extended_data *ext)
 
 static int us_notify_to_close(struct pcdvobjs_stream *stream);
 
-static void us_close(struct pcdvobjs_stream *stream)
+static void cleanup_extension(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
 
@@ -535,7 +535,7 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
         PC_WARN("The peer has no response for 30 seconds (%u times)\n",
                 ext->nr_nores_pings);
         if (ext->nr_nores_pings > MAX_PINGS_TO_FORCE_CLOSING) {
-            us_close(stream);
+            cleanup_extension(stream);
             return true;
         }
         else if (ext->sz_pending == 0) {
@@ -650,7 +650,11 @@ failed:
     stream->ext0.msg_ops->on_error(stream, us_status_to_pcerr(ext));
 
     if (ext->status & US_CLOSING) {
-        us_close(stream);
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
     }
 
     return false;
@@ -674,7 +678,11 @@ us_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
     }
 
     if ((ext->status & US_CLOSING)) {
-        us_close(stream);
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
     }
 
     return true;
@@ -897,7 +905,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
                     PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
                     EVENT_TYPE_CLOSE, NULL,
                     PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-            us_close(stream);
+            cleanup_extension(stream);
             break;
     }
 
@@ -949,6 +957,32 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+static purc_variant_t
+close_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+    cleanup_extension(stream);
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
@@ -961,6 +995,9 @@ property_getter(void *entity, const char *name)
 
     if (strcmp(name, "send") == 0) {
         method = send_getter;
+    }
+    else if (strcmp(name, "close") == 0) {
+        method = close_getter;
     }
     else {
         goto failed;
@@ -999,7 +1036,7 @@ static void on_release(void *entity)
     struct pcdvobjs_stream *stream = entity;
     const struct purc_native_ops *super_ops = stream->ext0.super_ops;
 
-    us_close(stream);
+    cleanup_extension(stream);
 
     if (super_ops->on_release) {
         return super_ops->on_release(entity);
@@ -1043,6 +1080,7 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
         msg_ops->on_message = on_message;
         msg_ops->on_error = on_error;
         msg_ops->send_data = send_data;
+        msg_ops->close = cleanup_extension;
 
         stream->ext0.data = ext;
         stream->ext0.super_ops = super_ops;

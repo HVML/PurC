@@ -65,6 +65,7 @@ struct stream_messaging_ops {
 
     int (*send_data)(struct pcdvobjs_stream *stream,
             bool text_or_bin, const char *text, size_t len);
+    void (*close)(struct pcdvobjs_stream *stream);
 };
 
 #define STREAM_EXT_SIG_MSG          "MSG"

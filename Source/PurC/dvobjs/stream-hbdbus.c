@@ -132,9 +132,9 @@ enum bus_state {
 
 enum {
     ERR_CODE_first = 0,
-#define ERR_SYMB_OK                     " "
+#define ERR_SYMB_OK                     ""
     ERR_CODE_OK = ERR_CODE_first,
-#define ERR_SYMB_AGAIN                  "-"
+#define ERR_SYMB_AGAIN                  "again"
     ERR_CODE_AGAIN,
 #define ERR_SYMB_BADMESSAGE             "badMessage"
     ERR_CODE_BADMESSAGE,
@@ -164,9 +164,23 @@ enum {
     ERR_CODE_CONFLICT,
 #define ERR_SYMB_NOTFOUND               "notFound"
     ERR_CODE_NOTFOUND,
+#define ERR_SYMB_UNKNOWNMESSAGE         "unknownMessage"
+    ERR_CODE_UNKNOWNMESSAGE,
 
     ERR_CODE_last = ERR_CODE_NOTFOUND,
 };
+
+#define EVENT_TYPE_CALL                     "call"
+#define EVENT_TYPE_RESULT                   "result"
+#define EVENT_TYPE_EVENT                    "event"
+#   define EVENT_SUBTYPE_SYSTEM             "SYSTEM"
+#define EVENT_TYPE_STATE                    "state"
+#   define EVENT_SUBTYPE_READY              "ready"
+
+#define EVENT_TYPE_ERROR                    "error"
+#   define EVENT_SUBTYPE_HBDBUS             "hbdbus"
+
+#define EVENT_TYPE_CLOSE                    "close"
 
 typedef int (*hbdbus_result_handler)(struct pcdvobjs_stream *stream,
         const void *ctxt, purc_variant_t jo);
@@ -194,6 +208,7 @@ struct stream_extended_data {
 
     int (*on_message_super)(struct pcdvobjs_stream *stream, int type,
             const char *buf, size_t len);
+    void (*close_super)(struct pcdvobjs_stream *stream);
 };
 
 #define set_error(ext, symb)            \
@@ -307,6 +322,7 @@ struct calling_procedure_info {
     time_t                  calling_time;
     int                     time_expected;
 
+    char                   *method;
     void                   *ctxt;
     hbdbus_result_handler   handler;
 };
@@ -318,6 +334,10 @@ free_cpi(void *ctxt, const char *name, void *data)
     (void)name;
 
     struct calling_procedure_info *cpi = data;
+    if (cpi->method) {
+        free(cpi->method);
+        cpi->method = NULL;
+    }
     if (cpi->ctxt) {
         free(cpi->ctxt);
         cpi->ctxt = NULL;
@@ -416,6 +436,7 @@ call_procedure(pcdvobjs_stream *stream,
         struct calling_procedure_info cpi;
         cpi.calling_time = purc_monotonic_time_after(0);
         cpi.time_expected = time_expected;
+        cpi.method = strdup(method);
         cpi.ctxt = ctxt;
         cpi.handler = result_handler;
 
@@ -488,6 +509,11 @@ call_getter(void *entity, const char *property_name,
         purc_variant_cast_to_int32(argv[3], &time_expected, false);
     }
 
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     clr_error(stream->ext1.data);
     int retv = call_procedure(stream, endpoint, method, param, time_expected,
                 NULL, NULL);
@@ -548,7 +574,24 @@ builtin_result_handler(struct pcdvobjs_stream *stream, const void *ctxt,
         }
     }
     else {
-        /* TODO: fire an `error` event */
+        /* fire an `error:hbdbus` event */
+        purc_variant_t data = purc_variant_make_object_0();
+        if (data) {
+            purc_variant_t tmp;
+
+            tmp = purc_variant_object_get_by_ckey(jo, "retCode");
+            if (tmp)
+                purc_variant_object_set_by_static_ckey(data, "retCode", tmp);
+
+            tmp = purc_variant_object_get_by_ckey(jo, "retMsg");
+            if (tmp)
+                purc_variant_object_set_by_static_ckey(data, "retMsg", tmp);
+        }
+
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_ERROR, EVENT_SUBTYPE_HBDBUS,
+                data, PURC_VARIANT_INVALID);
     }
 
     return 0;
@@ -651,6 +694,11 @@ subscribe_getter(void *entity, const char *property_name,
 
     if (!hbdbus_is_valid_bubble_name(bubble)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
     }
 
@@ -768,6 +816,11 @@ unsubscribe_getter(void *entity, const char *property_name,
         goto failed;
     }
 
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     clr_error(stream->ext1.data);
     int retv = unsubscribe_event(stream, endpoint, bubble);
     if (retv) {
@@ -875,6 +928,11 @@ fire_getter(void *entity, const char *property_name,
 
     if (bubble_data == NULL) {
         bubble_data = "";
+    }
+
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
     }
 
     clr_error(stream->ext1.data);
@@ -1004,6 +1062,11 @@ register_event_getter(void *entity, const char *property_name,
         for_app = "*";
     }
 
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     clr_error(stream->ext1.data);
     int retv = register_event(stream, bubble_name, for_host, for_app);
     if (retv) {
@@ -1095,6 +1158,11 @@ revoke_event_getter(void *entity, const char *property_name,
 
     if (!hbdbus_is_valid_bubble_name(bubble_name)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
     }
 
@@ -1225,6 +1293,11 @@ register_procedure_getter(void *entity, const char *property_name,
         for_app = "*";
     }
 
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     clr_error(stream->ext1.data);
     int retv = register_procedure(stream, method_name, for_host, for_app);
     if (retv) {
@@ -1316,6 +1389,11 @@ revoke_procedure_getter(void *entity, const char *property_name,
 
     if (!hbdbus_is_valid_method_name(method_name)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
         goto failed;
     }
 
@@ -1439,6 +1517,11 @@ send_result_getter(void *entity, const char *property_name,
         purc_variant_cast_to_int32(argv[2], &ret_code, false);
     }
 
+    if (stream->ext1.data == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
     clr_error(stream->ext1.data);
     int retv = send_result(stream, result_id, ret_value, ret_code);
     if (retv) {
@@ -1446,6 +1529,68 @@ send_result_getter(void *entity, const char *property_name,
         goto failed;
     }
 
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
+}
+
+static void cleanup_extension(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext1.data;
+
+    if (ext) {
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+        if (ext->close_super)
+            ext->close_super(stream);
+
+        if (ext->srv_host_name)
+            free(ext->srv_host_name);
+        free(ext->own_host_name);
+
+        pcutils_kvlist_cleanup(&ext->method_list);
+
+        size_t n;
+        n = pcutils_kvlist_for_each(&ext->called_list, NULL, free_mci);
+        PC_INFO("Not handled procedure calls: %u\n", (unsigned)n);
+        pcutils_kvlist_cleanup(&ext->called_list);
+
+        pcutils_kvlist_cleanup(&ext->bubble_list);
+
+        n = pcutils_kvlist_for_each(&ext->calling_list, NULL, free_cpi);
+        PC_INFO("Not returned procedure calls: %u\n", (unsigned)n);
+        pcutils_kvlist_cleanup(&ext->calling_list);
+
+        pcutils_kvlist_cleanup(&ext->subscribed_list);
+        free(ext);
+        stream->ext1.data = NULL;
+    }
+}
+
+static purc_variant_t
+close_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
+{
+    UNUSED_PARAM(property_name);
+    UNUSED_PARAM(nr_args);
+    UNUSED_PARAM(argv);
+    struct pcdvobjs_stream *stream = entity;
+    struct stream_extended_data *ext = stream->ext1.data;
+
+    if (ext == NULL) {
+        purc_set_error(PURC_ERROR_ENTITY_GONE);
+        goto failed;
+    }
+
+    cleanup_extension(stream);
     return purc_variant_make_boolean(true);
 
 failed:
@@ -1470,6 +1615,9 @@ property_getter(void *entity, const char *name)
     case 'c':
         if (strcmp(name, "call") == 0) {
             method = call_getter;
+        }
+        else if (strcmp(name, "close") == 0) {
+            method = close_getter;
         }
         break;
 
@@ -1547,29 +1695,9 @@ static bool on_forget(void *entity, const char *event_name,
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
-    struct stream_extended_data *ext = stream->ext1.data;
     const struct purc_native_ops *super_ops = stream->ext1.super_ops;
 
-    if (ext->srv_host_name)
-        free(ext->srv_host_name);
-    free(ext->own_host_name);
-
-    pcutils_kvlist_cleanup(&ext->method_list);
-
-    size_t n;
-    n = pcutils_kvlist_for_each(&ext->called_list, NULL, free_mci);
-    PC_INFO("Not handled procedure calls: %u\n", (unsigned)n);
-    pcutils_kvlist_cleanup(&ext->called_list);
-
-    pcutils_kvlist_cleanup(&ext->bubble_list);
-
-    n = pcutils_kvlist_for_each(&ext->calling_list, NULL, free_cpi);
-    PC_INFO("Not returned procedure calls: %u\n", (unsigned)n);
-    pcutils_kvlist_cleanup(&ext->calling_list);
-
-    pcutils_kvlist_cleanup(&ext->subscribed_list);
-    free(ext);
-
+    cleanup_extension(stream);
     if (super_ops->on_release) {
         return super_ops->on_release(entity);
     }
@@ -2071,7 +2199,11 @@ dispatch_call_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         mci.call_id = strdup(call_id);
 
         if (pcutils_kvlist_set(&ext->called_list, result_id, &mci)) {
-            // TODO: fire a `called:<to_method>` event
+            /* fire a `call:<to_method>` event */
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_CALL, to_method,
+                    jo, PURC_VARIANT_INVALID);
         }
         else {
             free_mci(NULL, NULL, &mci);
@@ -2158,11 +2290,14 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         retv = cpi.handler(stream, cpi.ctxt, jo);
     }
     else {
-        /* TODO: fire a `result:<from_method>` event */
+        /* fire a `result:<method_name>` event */
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_RESULT, cpi.method,
+                jo, PURC_VARIANT_INVALID);
     }
 
-    if (cpi.ctxt)
-        free(cpi.ctxt);
+    free_cpi(NULL, NULL, &cpi);
 
     if (retv)
         return -1;
@@ -2180,7 +2315,6 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     const char* from_endpoint = NULL;
     const char* from_bubble = NULL;
     const char* event_id = NULL;
-    const char* bubble_data;
     char event_name [HBDBUS_LEN_ENDPOINT_NAME + HBDBUS_LEN_BUBBLE_NAME + 2];
     int n;
     void *data;
@@ -2209,12 +2343,15 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto failed;
     }
 
+#if 0
+    const char* bubble_data;
     if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleData")) &&
             (bubble_data = purc_variant_get_string_const(jo_tmp))) {
     }
     else {
-        bubble_data = "";
+        bubble_data = NULL;
     }
+#endif
 
     n = purc_name_tolower_copy(from_endpoint, event_name,
             HBDBUS_LEN_ENDPOINT_NAME);
@@ -2224,14 +2361,24 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     data = pcutils_kvlist_get(&ext->subscribed_list, event_name);
     if (data == NULL) {
         if (strcmp(event_id, HBDBUS_SYSTEM_EVENT_ID) == 0) {
-            /* TODO: fire a `event:SYSTEM` event */
+            /* fire an `event:SYSTEM` event */
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_EVENT, EVENT_SUBTYPE_SYSTEM,
+                    purc_variant_object_get_by_ckey(jo, "bubbleData"),
+                    PURC_VARIANT_INVALID);
         }
         else {
             PC_ERROR("Got an unsubscribed event: %s\n", event_name);
         }
     }
     else {
-        /* TODO: fire a `event:<from_bubble>` event */
+        /* fire an `event:<from_bubble>` event */
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_EVENT, from_bubble,
+                purc_variant_object_get_by_ckey(jo, "bubbleData"),
+                PURC_VARIANT_INVALID);
     }
 
     return 0;
@@ -2300,16 +2447,19 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
 {
     struct stream_extended_data *ext = stream->ext1.data;
 
+    if (ext == NULL) {
+        return false;
+    }
+
     clr_error(ext);
 
     if (type != MT_TEXT) {
-        // TODO: call the method of Layer 0.
+        /* call the method of Layer 0. */
         if (ext->on_message_super) {
-            ext->on_message_super(stream, type, payload, len);
+            return ext->on_message_super(stream, type, payload, len);
         }
 
-        set_error(ext, BADMESSAGE);
-        goto done;
+        set_error(ext, UNKNOWNMESSAGE);
     }
 
     switch (ext->state) {
@@ -2318,6 +2468,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
         int ret;
 
         if (get_challenge_code(stream, payload, len, &ch_code)) {
+            ext->state = BS_UNCERTAIN;
             goto done;
         }
 
@@ -2331,14 +2482,21 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
 
     case BS_EXPECT_AUTH_RESULT:
         if (check_auth_result(stream, payload, len)) {
+            ext->state = BS_UNCERTAIN;
             goto done;
         }
 
+        /*  fire `state:ready` event */
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_STATE, EVENT_SUBTYPE_READY,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
         ext->state = BS_EXPECT_REGULAR_MSG;
         break;
 
     case BS_EXPECT_REGULAR_MSG:
         if (handle_regular_message(stream, payload, len)) {
+            ext->state = BS_UNCERTAIN;
             goto done;
         }
         break;
@@ -2351,9 +2509,35 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
 
 done:
     if (ext->errsymb) {
-        /* fire error event */
-        ext->state = BS_UNCERTAIN;
-        return -1;
+        /* fire an `error:hbdbus` event */
+        purc_variant_t data = purc_variant_make_object_0();
+        if (data) {
+            purc_variant_t tmp;
+
+            tmp = purc_variant_make_number(ext->errcode);
+            if (tmp) {
+                purc_variant_object_set_by_static_ckey(data, "errCode",
+                        tmp);
+                purc_variant_unref(tmp);
+            }
+
+            tmp = purc_variant_make_string_static(ext->errsymb, false);
+            if (tmp) {
+                purc_variant_object_set_by_static_ckey(data, "errMsg",
+                        tmp);
+                purc_variant_unref(tmp);
+            }
+        }
+
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_ERROR, EVENT_SUBTYPE_HBDBUS,
+                data, PURC_VARIANT_INVALID);
+    }
+
+    if (ext->state == BS_UNCERTAIN) {
+        // close the connection
+        cleanup_extension(stream);
     }
 
     return 0;
@@ -2401,6 +2585,8 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     /* override the `on_message` method of Layer 0 */
     ext->on_message_super = stream->ext0.msg_ops->on_message;
     stream->ext0.msg_ops->on_message = on_message;
+    ext->close_super = stream->ext0.msg_ops->close;
+    stream->ext0.msg_ops->close = cleanup_extension;
     return &hbdbus_ops;
 
 failed:
