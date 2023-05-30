@@ -563,12 +563,12 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
         //TODO
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+//        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
         //TODO
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+//        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
 
     case PCRDR_MSG_TARGET_PLAINWINDOW:
@@ -585,11 +585,11 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     case PCRDR_MSG_TARGET_USER:
         //TODO
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+//        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
 
     default:
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+//        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
         break;
     }
 
