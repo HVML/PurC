@@ -2236,14 +2236,15 @@ static int handle_regular_message(struct pcdvobjs_stream *stream,
     return 0;
 }
 
-static int on_message(struct pcdvobjs_stream *stream,
-            const char *payload, size_t len, int type)
+static int on_message(struct pcdvobjs_stream *stream, int type,
+            const char *payload, size_t len)
 {
     struct stream_extended_data *ext = stream->ext1.data;
 
     clr_error(ext);
 
-    if (type != MT_TEXT || payload == NULL || len == 0) {
+    if (type != MT_TEXT) {
+        // TODO: call the method of Layer 0.
         set_error(ext, BADMESSAGE);
         goto done;
     }
