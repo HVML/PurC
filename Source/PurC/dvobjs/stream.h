@@ -61,19 +61,10 @@ struct stream_messaging_ops {
     /* these operations can be overridden by extended layer */
     int (*on_message)(struct pcdvobjs_stream *stream, int type,
             const char *buf, size_t len);
-    int (*on_pending)(struct pcdvobjs_stream *stream);
     int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
 
-    /* The following operations return:
-       - 0 for whole message read;
-       - 1 for calling again (nonblock).
-       - -1 for errors; */
-    int (*read_message)(struct pcdvobjs_stream *stream,
-            char **buf, size_t *len, int *type);
-    int (*send_text)(struct pcdvobjs_stream *stream,
-            const char *text, size_t len);
-    int (*send_binary)(struct pcdvobjs_stream *stream,
-            const void *data, size_t len);
+    int (*send_data)(struct pcdvobjs_stream *stream,
+            bool text_or_bin, const char *text, size_t len);
 };
 
 #define STREAM_EXT_SIG_MSG          "MSG"
@@ -95,7 +86,6 @@ typedef struct pcdvobjs_stream {
     struct purc_broken_down_url *url;
     purc_rwstream_t stm4r;      /* stream for read */
     purc_rwstream_t stm4w;      /* stream for write */
-    purc_variant_t option;
     purc_variant_t observed;    /* not inc ref */
     uintptr_t monitor4r, monitor4w;
     int fd4r, fd4w;

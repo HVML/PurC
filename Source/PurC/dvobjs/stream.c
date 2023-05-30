@@ -167,19 +167,16 @@ static struct pcdvobjs_stream *
 dvobjs_stream_new(enum pcdvobjs_stream_type type,
         struct purc_broken_down_url *url, purc_variant_t option)
 {
-    struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*)calloc(1,
-            sizeof(struct pcdvobjs_stream));
+    (void)option;
+    struct pcdvobjs_stream *stream;
+
+    stream = calloc(1, sizeof(struct pcdvobjs_stream));
     if (!stream) {
         purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         return NULL;
     }
     stream->type = type;
     stream->url = url;
-    if (option) {
-        stream->option = option;
-        purc_variant_ref(stream->option);
-    }
-
     stream->fd4r = -1;
     stream->fd4w = -1;
     return stream;
@@ -197,11 +194,6 @@ static void native_stream_close(struct pcdvobjs_stream *stream)
 
     stream->stm4w = NULL;
     stream->stm4r = NULL;
-
-    if (stream->option) {
-        purc_variant_unref(stream->option);
-        stream->option = PURC_VARIANT_INVALID;
-    }
 
     if (stream->monitor4r) {
         purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -253,10 +245,6 @@ static void dvobjs_stream_delete(struct pcdvobjs_stream *stream)
 
     if (stream->url) {
         pcutils_broken_down_url_delete(stream->url);
-    }
-
-    if (stream->option) {
-        purc_variant_unref(stream->option);
     }
 
     free(stream);
@@ -946,14 +934,13 @@ static void on_stream_io_callback(struct io_callback_data *data)
     else if (event & PCRUNLOOP_IO_OUT) {
         sub = STREAM_SUB_EVENT_WRITE;
     }
+
     if (sub && stream->cid) {
         pcintr_coroutine_post_event(stream->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_IGNORE,
                 stream->observed, STREAM_EVENT_NAME, sub,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
     }
-
-    free(data);
 }
 
 static bool
@@ -962,16 +949,12 @@ stream_io_callback(int fd, purc_runloop_io_event event, void *ctxt)
     struct pcdvobjs_stream *stream = (struct pcdvobjs_stream*) ctxt;
     PC_ASSERT(stream);
 
-    struct io_callback_data *data;
-    data = (struct io_callback_data*)calloc(1, sizeof(*data));
-    PC_ASSERT(data);
+    struct io_callback_data data;
+    data.fd = fd;
+    data.io_event = event;
+    data.stream = stream;
 
-    data->fd = fd;
-    data->io_event = event;
-    data->stream = stream;
-
-    on_stream_io_callback(data);
-
+    on_stream_io_callback(&data);
     return true;
 }
 

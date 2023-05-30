@@ -47,10 +47,20 @@
 #include <sys/un.h>
 
 #define MAX_FRAME_PAYLOAD_SIZE      (1024 * 4)
-#define MAX_INMEM_MESSAGE_SIZE      (1024 * 40)
+#define MAX_INMEM_MESSAGE_SIZE      (1024 * 64)
 
-/* 1 MiB throttle threshold per client */
-#define SOCK_THROTTLE_THLD          (1024 * 1024)
+/* 512 KiB throttle threshold per stream */
+#define SOCK_THROTTLE_THLD          (1024 * 512)
+
+#define PING_NO_RESPONSE_SECONDS            30
+#define MAX_PINGS_TO_FORCE_CLOSING          3
+
+#define EVENT_TYPE_MESSAGE                  "message"
+#   define EVENT_SUBTYPE_TEXT               "text"
+#   define EVENT_SUBTYPE_BINARY             "binary"
+#define EVENT_TYPE_CLOSE                    "close"
+#define EVENT_TYPE_ERROR                    "error"
+#   define EVENT_SUBTYPE_MESSAGE            "message"
 
 /* The frame operation codes for UnixSocket */
 typedef enum us_opcode {
@@ -71,15 +81,17 @@ typedef struct us_frame_header {
     unsigned char payload[0];
 } us_frame_header;
 
-typedef enum us_state {
-    US_OK = 0,
-    US_ERR = (1 << 0),
-    US_CLOSE = (1 << 1), US_READING = (1 << 2),
-    US_SENDING = (1 << 3),
-    US_THROTTLING = (1 << 4),
-    US_WATING_FOR_HEADER = (1 << 5),
-    US_WATING_FOR_PAYLOAD = (1 << 6),
-} us_state;
+#define US_OK                   0x00000000
+#define US_READING              0x00001000
+#define US_SENDING              0x00002000
+#define US_CLOSING              0x00004000
+#define US_THROTTLING           0x00008000
+#define US_WAITING4PAYLOAD      0x00010000
+
+#define US_ERR_ANY              0x00000FFF
+#define US_ERR_OOM              0x00000101
+#define US_ERR_IO               0x00000102
+#define US_ERR_MSG              0x00000104
 
 typedef struct us_pending_data {
     struct list_head list;
@@ -96,8 +108,8 @@ struct stream_extended_data {
     /* the status of the client */
     unsigned            status;
 
-    /* time got the first frame of the current packet */
-    struct timespec     ts;
+    /* the time last got data from the peer */
+    struct timespec     last_live_ts;
 
     size_t              sz_used_mem;
     size_t              sz_peak_used_mem;
@@ -126,9 +138,22 @@ static inline void us_update_mem_stats(struct stream_extended_data *ext)
         ext->sz_peak_used_mem = ext->sz_used_mem;
 }
 
-/*
- * Clear pending data.
- */
+static int us_status_to_pcerr(struct stream_extended_data *ext)
+{
+    if (ext->status & US_ERR_OOM) {
+        return PURC_ERROR_OUT_OF_MEMORY;
+    }
+    else if (ext->status & US_ERR_IO) {
+        return PURC_ERROR_BROKEN_PIPE;
+    }
+    else if (ext->status & US_ERR_MSG) {
+        return PURC_ERROR_NOT_DESIRED_ENTITY;
+    }
+
+    return PURC_ERROR_OK;
+}
+
+/* Clear pending data. */
 static void us_clear_pending_data(struct stream_extended_data *ext)
 {
     struct list_head *p, *n;
@@ -140,6 +165,56 @@ static void us_clear_pending_data(struct stream_extended_data *ext)
 
     ext->sz_pending = 0;
     us_update_mem_stats(ext);
+}
+
+static int us_notify_to_close(struct pcdvobjs_stream *stream);
+
+static void us_close(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (stream->ext0.data) {
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+
+        if (ext->sz_pending == 0) {
+            us_notify_to_close(stream);
+        }
+
+        if (stream->monitor4r) {
+            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                    stream->monitor4r);
+            stream->monitor4r = 0;
+        }
+
+        if (stream->monitor4w) {
+            purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                    stream->monitor4w);
+            stream->monitor4w = 0;
+        }
+
+        if (stream->fd4r >= 0) {
+            close(stream->fd4r);
+        }
+
+        if (stream->fd4w >= 0 && stream->fd4w != stream->fd4r) {
+            close(stream->fd4w);
+        }
+        stream->fd4r = -1;
+        stream->fd4w = -1;
+
+        us_clear_pending_data(ext);
+        if (ext->message)
+            free(ext->message);
+        free(ext);
+        stream->ext0.data = NULL;
+
+        free(stream->ext0.msg_ops);
+        stream->ext0.msg_ops = NULL;
+    }
+
 }
 
 /*
@@ -156,7 +231,7 @@ static bool us_queue_data(struct pcdvobjs_stream *stream,
 
     if ((pending_data = malloc(sizeof(us_pending_data) + len)) == NULL) {
         us_clear_pending_data(ext);
-        ext->status = US_ERR | US_CLOSE;
+        ext->status = US_ERR_OOM | US_CLOSING;
         return false;
     }
 
@@ -171,8 +246,9 @@ static bool us_queue_data(struct pcdvobjs_stream *stream,
 
     /* the connection probably is too slow, so stop queueing until everything
      * is sent */
-    if (ext->sz_pending >= SOCK_THROTTLE_THLD)
+    if (ext->sz_pending >= SOCK_THROTTLE_THLD) {
         ext->status |= US_THROTTLING;
+    }
 
     return true;
 }
@@ -191,17 +267,18 @@ static ssize_t us_write_data(struct pcdvobjs_stream *stream,
 
     bytes = write(stream->fd4w, buffer, len);
     if (bytes == -1 && errno == EPIPE) {
-        ext->status = US_ERR | US_CLOSE;
+        ext->status = US_ERR_IO | US_CLOSING;
         return -1;
     }
 
     /* did not send all of it... buffer it for a later attempt */
     if ((bytes > 0 && (size_t)bytes < len) ||
             (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))) {
-        us_queue_data(stream, buffer + bytes, len - bytes);
 
-        if (ext->status & US_SENDING && stream->ext0.msg_ops->on_pending)
-            stream->ext0.msg_ops->on_pending(stream);
+        if (bytes == -1)
+            bytes = 0;
+
+        us_queue_data(stream, buffer + bytes, len - bytes);
     }
 
     return bytes;
@@ -211,7 +288,7 @@ static ssize_t us_write_data(struct pcdvobjs_stream *stream,
  * Send the queued up data to the given socket.
  *
  * On error, -1 is returned and the connection status is set.
- * On success, the number of bytes sent is returned.
+ * On success, the number of bytes sent is returned (maybe zero).
  */
 static ssize_t us_write_pending(struct pcdvobjs_stream *stream)
 {
@@ -241,15 +318,18 @@ static ssize_t us_write_pending(struct pcdvobjs_stream *stream)
             us_update_mem_stats(ext);
         }
         else if (bytes == -1 && errno == EPIPE) {
-            ext->status = US_ERR | US_CLOSE;
-            return -1;
+            ext->status = US_ERR_IO | US_CLOSING;
+            goto failed;
         }
         else if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            return -1;
+            break;
         }
     }
 
     return total_bytes;
+
+failed:
+    return -1;
 }
 
 /*
@@ -334,7 +414,7 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
     else if (n < 0) {
         PC_ERROR("Failed to read payload from Unix socket: %s\n",
                 strerror(errno));
-        ext->status = US_ERR | US_CLOSE;
+        ext->status = US_ERR_IO | US_CLOSING;
         return -1;
     }
     else {
@@ -377,7 +457,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         else if (n < 0) {
             PC_ERROR("Failed to read payload from Unix socket: %s\n",
                     strerror(errno));
-            ext->status = US_ERR | US_CLOSE;
+            ext->status = US_ERR_IO | US_CLOSING;
             return -1;
         }
         else {
@@ -389,8 +469,9 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     case US_OPCODE_CONTINUATION:
     case US_OPCODE_END:
         if (ext->message == NULL ||
-                (ext->sz_read_message + ext->header.sz_payload) > ext->sz_message) {
-            ext->status = US_ERR;
+                (ext->sz_read_message + ext->header.sz_payload) >
+                    ext->sz_message) {
+            ext->status = US_ERR_MSG | US_CLOSING;
             return -1;
         }
 
@@ -419,7 +500,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         else if (n < 0) {
             PC_ERROR("Failed to read payload from Unix socket: %s\n",
                     strerror(errno));
-            ext->status = US_ERR | US_CLOSE;
+            ext->status = US_ERR_IO | US_CLOSING;
             return -1;
         }
         else {
@@ -429,20 +510,47 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
         break;
 
     default:
-        ext->status = US_ERR;
+        PC_ERROR("Unknown op code: %d\n", ext->header.op);
+        ext->status = US_ERR_MSG | US_CLOSING;
         return -1;
     }
 
     return 0;
 }
 
-static int us_handle_reads(struct pcdvobjs_stream *stream)
+static bool
+us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
 {
+    (void)fd;
+    (void)event;
+    struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
     int retv;
 
+#if 0
+    double no_response_time = purc_get_elapsed_seconds(&ext->last_live_ts);
+    if (no_response_time > PING_NO_RESPONSE_SECONDS) {
+        ext->nr_nores_pings++;
+
+        PC_WARN("The peer has no response for 30 seconds (%u times)\n",
+                ext->nr_nores_pings);
+        if (ext->nr_nores_pings > MAX_PINGS_TO_FORCE_CLOSING) {
+            us_close(stream);
+            return true;
+        }
+        else if (ext->sz_pending == 0) {
+            us_ping_peer(stream);
+        }
+    }
+    else {
+        ext->nr_nores_pings = 0;
+    }
+#endif
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
     /* if it is not waiting for payload, read a frame header */
-    if (ext->status & US_WATING_FOR_HEADER) {
+    if (!(ext->status & US_WAITING4PAYLOAD)) {
         retv = try_to_read_header(stream);
         if (retv <= 0) {
             goto failed;
@@ -455,7 +563,7 @@ static int us_handle_reads(struct pcdvobjs_stream *stream)
 
         case US_OPCODE_CLOSE:
             retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE, NULL, 0);
-            ext->status = US_CLOSE;
+            ext->status = US_CLOSING;
             break;
 
         case US_OPCODE_TEXT:
@@ -471,7 +579,7 @@ static int us_handle_reads(struct pcdvobjs_stream *stream)
             if (ext->sz_message > MAX_INMEM_MESSAGE_SIZE ||
                     ext->sz_message == 0 ||
                     ext->header.sz_payload == 0) {
-                ext->status = US_ERR | US_CLOSE;
+                ext->status = US_ERR_MSG | US_CLOSING;
                 goto failed;
             }
 
@@ -480,22 +588,22 @@ static int us_handle_reads(struct pcdvobjs_stream *stream)
             if (ext->message == NULL) {
                 PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
                         (unsigned)ext->sz_message);
-                ext->status = US_ERR | US_CLOSE;
+                ext->status = US_ERR_IO | US_CLOSING;
                 goto failed;
             }
 
             us_update_mem_stats(ext);
-            ext->status &= ~US_WATING_FOR_HEADER;
-            ext->status |=  US_WATING_FOR_PAYLOAD;
+            ext->status |= US_WAITING4PAYLOAD;
             break;
         }
 
         case US_OPCODE_CONTINUATION:
         case US_OPCODE_END:
             if (ext->header.sz_payload == 0) {
-                ext->status = US_ERR;
+                ext->status = US_ERR_MSG;
                 goto failed;
             }
+            break;
 
         case US_OPCODE_PONG:
             retv = stream->ext0.msg_ops->on_message(stream, MT_PONG, NULL, 0);
@@ -503,16 +611,16 @@ static int us_handle_reads(struct pcdvobjs_stream *stream)
 
         default:
             PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
-            ext->status = US_ERR;
+            ext->status = US_ERR_MSG;
             goto failed;
+            break;
         }
     }
-    else if (ext->status & US_WATING_FOR_PAYLOAD) {
+    else if (ext->status & US_WAITING4PAYLOAD) {
 
         retv = try_to_read_payload(stream);
         if (retv > 0) {
-            ext->status &= ~US_WATING_FOR_PAYLOAD;
-            ext->status |= US_WATING_FOR_HEADER;
+            ext->status &= ~US_WAITING4PAYLOAD;
 
             if (ext->msg_type == MT_TEXT) {
                 ext->message[ext->sz_message] = 0;
@@ -536,25 +644,24 @@ static int us_handle_reads(struct pcdvobjs_stream *stream)
         }
     }
 
-    return 0;
+    return true;
 
 failed:
-    stream->ext0.msg_ops->on_error(stream, 0);
+    stream->ext0.msg_ops->on_error(stream, us_status_to_pcerr(ext));
 
-    if (ext->status & US_CLOSE) {
-        // TODO: us_cleanup_client(stream);
+    if (ext->status & US_CLOSING) {
+        us_close(stream);
     }
 
-    return -1;
+    return false;
 }
 
-/*
- * Handle write.
- * 0: ok;
- * <0: socket closed
-*/
-static int us_handle_writes(struct pcdvobjs_stream *stream)
+static bool
+us_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
 {
+    (void)fd;
+    (void)event;
+    struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
     us_write_pending(stream);
@@ -562,24 +669,23 @@ static int us_handle_writes(struct pcdvobjs_stream *stream)
         ext->status &= ~US_SENDING;
     }
 
-    if (ext->status & US_ERR) {
-        stream->ext0.msg_ops->on_error(stream, 0);
+    if (ext->status & US_ERR_ANY) {
+        stream->ext0.msg_ops->on_error(stream, us_status_to_pcerr(ext));
     }
 
-    if ((ext->status & US_CLOSE)) {
-        // TODO: us_cleanup_client(stream);
-        return -1;
+    if ((ext->status & US_CLOSING)) {
+        us_close(stream);
     }
 
-    return 0;
+    return true;
 }
 
 /*
- * Send a PING message to the server.
+ * Send a PING message to the peer.
  *
  * return zero on success; none-zero on error.
  */
-static int us_ping_server(struct pcdvobjs_stream *stream)
+static int us_ping_peer(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     us_frame_header header;
@@ -589,17 +695,17 @@ static int us_ping_server(struct pcdvobjs_stream *stream)
     header.sz_payload = 0;
     us_write_sock(stream, &header, sizeof(header));
 
-    if (ext->status & US_ERR)
+    if (ext->status & US_ERR_ANY)
         return -1;
     return 0;
 }
 
 /*
- * Send a PONG message to the server.
+ * Send a PONG message to the peer.
  *
  * return zero on success; none-zero on error.
  */
-static int us_pong_server(struct pcdvobjs_stream *stream)
+static int us_pong_peer(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
     us_frame_header header;
@@ -609,7 +715,7 @@ static int us_pong_server(struct pcdvobjs_stream *stream)
     header.sz_payload = 0;
     us_write_sock(stream, &header, sizeof(header));
 
-    if (ext->status & US_ERR)
+    if (ext->status & US_ERR_ANY)
         return -1;
     return 0;
 }
@@ -629,9 +735,30 @@ static int us_notify_to_close(struct pcdvobjs_stream *stream)
     header.sz_payload = 0;
     us_write_sock(stream, &header, sizeof(header));
 
-    if (ext->status & US_ERR)
+    if (ext->status & US_ERR_ANY)
         return -1;
     return 0;
+}
+
+static int us_can_send_data(struct stream_extended_data *ext, size_t sz)
+{
+    if (sz > MAX_FRAME_PAYLOAD_SIZE) {
+        size_t frames = sz / MAX_FRAME_PAYLOAD_SIZE + 1;
+        if (ext->sz_pending + sz + (frames * ext->sz_header) >=
+                SOCK_THROTTLE_THLD) {
+            goto failed;
+        }
+    }
+    else {
+        if (ext->sz_pending + sz + ext->sz_header >= SOCK_THROTTLE_THLD) {
+            goto failed;
+        }
+    }
+
+    return 0;
+
+failed:
+    return -1;
 }
 
 /*
@@ -639,10 +766,23 @@ static int us_notify_to_close(struct pcdvobjs_stream *stream)
  *
  * return zero on success; none-zero on error.
  */
-static int us_send_data(struct pcdvobjs_stream *stream,
+static int send_data(struct pcdvobjs_stream *stream,
         bool text_or_binary, const char *data, size_t sz)
 {
     struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        return PURC_ERROR_ENTITY_GONE;
+    }
+
+    if (sz > MAX_INMEM_MESSAGE_SIZE) {
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+    }
+
+    if ((ext->status & US_THROTTLING) || us_can_send_data(ext, sz)) {
+        return PURC_ERROR_AGAIN;
+    }
+
     us_frame_header header;
 
     if (sz > MAX_FRAME_PAYLOAD_SIZE) {
@@ -683,40 +823,81 @@ static int us_send_data(struct pcdvobjs_stream *stream,
         us_write_sock(stream, data, sz);
     }
 
-    if (ext->status & US_ERR) {
+    if (ext->status & US_ERR_ANY) {
         PC_ERROR("Error when sending data: %s\n", strerror(errno));
-        return -1;
+        return us_status_to_pcerr(ext);
     }
 
+    return PURC_ERROR_OK;
+}
+
+static int on_error(struct pcdvobjs_stream *stream, int errcode)
+{
+    purc_variant_t data = purc_variant_make_object_0();
+    if (data) {
+        purc_variant_t tmp;
+
+        tmp = purc_variant_make_number(errcode);
+        if (tmp) {
+            purc_variant_object_set_by_static_ckey(data, "errCode",
+                    tmp);
+            purc_variant_unref(tmp);
+        }
+
+        tmp = purc_variant_make_string_static(
+            purc_get_error_message(errcode), false);
+        if (tmp) {
+            purc_variant_object_set_by_static_ckey(data, "errMsg",
+                    tmp);
+            purc_variant_unref(tmp);
+        }
+    }
+
+    pcintr_coroutine_post_event(stream->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+            EVENT_TYPE_ERROR, EVENT_SUBTYPE_MESSAGE,
+            data, PURC_VARIANT_INVALID);
     return 0;
 }
 
-static int on_message(struct pcdvobjs_stream *stream,
-        int type, const char *buf, size_t len)
+static int on_message(struct pcdvobjs_stream *stream, int type,
+        const char *buf, size_t len)
 {
     int retv = 0;
-    (void)buf;
-    (void)len;
+    purc_variant_t data = PURC_VARIANT_INVALID;
 
     switch (type) {
         case MT_TEXT:
-            // TODO: fire a `message` event
+            // fire a `message:text` event
+            data = purc_variant_make_string(buf, true);
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_TEXT,
+                    data, PURC_VARIANT_INVALID);
             break;
 
         case MT_BINARY:
-            // TODO: fire a `message` event
+            // fire a `message:binary` event
+            data = purc_variant_make_byte_sequence(buf, len);
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_MESSAGE, EVENT_SUBTYPE_BINARY,
+                    data, PURC_VARIANT_INVALID);
             break;
 
         case MT_PING:
-            retv = us_pong_server(stream);
+            retv = us_pong_peer(stream);
             break;
 
         case MT_PONG:
             break;
 
         case MT_CLOSE:
-            // TODO: release resource and fire a `close` event
-            // TODO: retv = us_cleanup(stream);
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                    EVENT_TYPE_CLOSE, NULL,
+                    PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+            us_close(stream);
             break;
     }
 
@@ -724,41 +905,54 @@ static int on_message(struct pcdvobjs_stream *stream,
 }
 
 
-static int read_message(struct pcdvobjs_stream *stream,
-        char **buf, size_t *len, int *type)
+static purc_variant_t
+send_getter(void *entity, const char *property_name,
+        size_t nr_args, purc_variant_t *argv, unsigned call_flags)
 {
-    (void)stream;
-    (void)buf;
-    (void)len;
-    (void)type;
+    UNUSED_PARAM(property_name);
+    struct pcdvobjs_stream *stream = entity;
 
-    return 0;
-}
+    if (nr_args < 1) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
 
-static int send_text(struct pcdvobjs_stream *stream,
-            const char *text, size_t len)
-{
-    (void)stream;
-    (void)text;
-    (void)len;
+    bool text_or_binary = true;
+    const void *data = NULL;
+    size_t len;
+    if (purc_variant_is_string(argv[0])) {
+        data = purc_variant_get_string_const_ex(argv[0], &len);
+    }
+    else if (purc_variant_is_bsequence(argv[0])) {
+        text_or_binary = false;
+        data = purc_variant_get_bytes_const(argv[0], &len);
+    }
 
-    return 0;
-}
+    if (data == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
 
-static int send_binary(struct pcdvobjs_stream *stream,
-            const void *data, size_t len)
-{
-    (void)stream;
-    (void)data;
-    (void)len;
+    int retv;
+    if ((retv = send_data(stream, text_or_binary, data, len))) {
+        purc_set_error(retv);
+        goto failed;
+    }
 
-    return 0;
+    return purc_variant_make_boolean(true);
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY) {
+        return purc_variant_make_boolean(false);
+    }
+
+    return PURC_VARIANT_INVALID;
 }
 
 static purc_nvariant_method
 property_getter(void *entity, const char *name)
 {
-    struct pcdvobjs_stream *stream = entity;
+    (void)entity;
     purc_nvariant_method method = NULL;
 
     if (name == NULL) {
@@ -766,13 +960,13 @@ property_getter(void *entity, const char *name)
     }
 
     if (strcmp(name, "send") == 0) {
-        // method = send_getter;
+        method = send_getter;
+    }
+    else {
+        goto failed;
     }
 
-    if (method == NULL && stream->ext0.super_ops->property_getter) {
-        return stream->ext0.super_ops->property_getter(entity, name);
-    }
-
+    /* override the getters of parent */
     return method;
 
 failed:
@@ -803,12 +997,9 @@ static bool on_forget(void *entity, const char *event_name,
 static void on_release(void *entity)
 {
     struct pcdvobjs_stream *stream = entity;
-    struct stream_extended_data *ext = stream->ext0.data;
     const struct purc_native_ops *super_ops = stream->ext0.super_ops;
 
-    us_clear_pending_data(ext);
-    free(stream->ext0.msg_ops);
-    free(stream->ext0.data);
+    us_close(stream);
 
     if (super_ops->on_release) {
         return super_ops->on_release(entity);
@@ -850,9 +1041,8 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
 
     if (msg_ops) {
         msg_ops->on_message = on_message;
-        msg_ops->read_message = read_message;
-        msg_ops->send_text = send_text;
-        msg_ops->send_binary = send_binary;
+        msg_ops->on_error = on_error;
+        msg_ops->send_data = send_data;
 
         stream->ext0.data = ext;
         stream->ext0.super_ops = super_ops;
@@ -862,9 +1052,53 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
         goto failed;
     }
 
+    stream->monitor4r = purc_runloop_add_fd_monitor(
+            purc_runloop_get_current(), stream->fd4r, PCRUNLOOP_IO_IN,
+            us_handle_reads , stream);
+    if (stream->monitor4r) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        if (co) {
+            stream->cid = co->cid;
+        }
+    }
+    else {
+        goto failed;
+    }
+
+    stream->monitor4w = purc_runloop_add_fd_monitor(
+            purc_runloop_get_current(), stream->fd4w, PCRUNLOOP_IO_OUT,
+            us_handle_writes, stream);
+    if (stream->monitor4w) {
+        pcintr_coroutine_t co = pcintr_get_coroutine();
+        if (co) {
+            stream->cid = co->cid;
+        }
+    }
+    else {
+        goto failed;
+    }
+
+    /* destroy rwstreams */
+    if (stream->stm4r) {
+        purc_rwstream_destroy(stream->stm4r);
+    }
+
+    if (stream->stm4w && stream->stm4w != stream->stm4r) {
+        purc_rwstream_destroy(stream->stm4w);
+    }
+
+    stream->stm4w = NULL;
+    stream->stm4r = NULL;
+
     return &msg_entity_ops;
 
 failed:
+    if (stream->monitor4r) {
+        purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
+                stream->monitor4r);
+        stream->monitor4r = 0;
+    }
+
     if (msg_ops)
         free(msg_ops);
     if (ext)
