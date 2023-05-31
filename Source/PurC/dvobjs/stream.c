@@ -30,6 +30,7 @@
 #include "purc-runloop.h"
 #include "purc-dvobjs.h"
 
+#include "private/instance.h"
 #include "private/debug.h"
 #include "private/dvobjs.h"
 #include "private/atom-buckets.h"
@@ -1546,9 +1547,13 @@ out_close_fd:
     return NULL;
 }
 
+#define US_CLI_PATH             "/var/tmp/"
+#define US_CLI_PERM              S_IRWXU
+
 static
-struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url,
-        purc_variant_t option)
+struct pcdvobjs_stream *
+create_unix_sock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option, const char *prot)
 {
     UNUSED_PARAM(option);
 
@@ -1556,18 +1561,56 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         return NULL;
     }
+
     int fd = 0;
-    if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         purc_set_error(PCRDR_ERROR_IO);
         return NULL;
     }
 
+    char peer_name[33];
+    pcutils_md5_ctxt ctx;
+    unsigned char md5_digest[16];
+    struct pcinst* inst = pcinst_current();
+
+    pcutils_md5_begin(&ctx);
+    if (inst) {
+        pcutils_md5_hash(&ctx, inst->app_name, strlen(inst->app_name));
+        pcutils_md5_hash(&ctx, inst->runner_name, strlen(inst->runner_name));
+    }
+    pcutils_md5_hash(&ctx, prot, strlen(prot));
+    pcutils_md5_end(&ctx, md5_digest);
+    pcutils_bin2hex(md5_digest, 16, peer_name, false);
+
+    /* fill socket address structure w/our address */
     struct sockaddr_un unix_addr;
-    memset (&unix_addr, 0, sizeof(unix_addr));
+    memset(&unix_addr, 0, sizeof(unix_addr));
+    unix_addr.sun_family = AF_UNIX;
+    /* On Linux sun_path is 108 bytes in size */
+    sprintf(unix_addr.sun_path, "%s%s-%05d", US_CLI_PATH, peer_name, getpid());
+    size_t len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
+
+    unlink(unix_addr.sun_path);        /* in case it already exists */
+    if (bind(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+        PC_ERROR("Failed to call `bind`: %s\n", strerror(errno));
+        purc_set_error(PURC_ERROR_ACCESS_DENIED);
+        goto out_close_fd;
+    }
+
+    if (chmod(unix_addr.sun_path, US_CLI_PERM) < 0) {
+        PC_ERROR("Failed to call `chmod`: %s\n", strerror(errno));
+        purc_set_error(PURC_ERROR_ACCESS_DENIED);
+        goto out_close_fd;
+    }
+
+    /* fill socket address structure w/server's addr */
+    memset(&unix_addr, 0, sizeof(unix_addr));
     unix_addr.sun_family = AF_UNIX;
     strcpy(unix_addr.sun_path, url->path);
-    int len = sizeof (unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
+    len = sizeof(unix_addr.sun_family) + strlen(unix_addr.sun_path) + 1;
     if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+        PC_ERROR("Failed to call `connect`: %s\n",strerror(errno));
+        purc_set_error(PURC_ERROR_CONNECTION_REFUSED);
         goto out_close_fd;
     }
 
@@ -1580,6 +1623,7 @@ struct pcdvobjs_stream *create_unix_sock_stream(struct purc_broken_down_url *url
 
     stream->stm4r = purc_rwstream_new_from_unix_fd(fd);
     if (stream->stm4r == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto out_free_stream;
     }
     stream->stm4w = stream->stm4r;
@@ -1658,24 +1702,29 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         stream = create_fifo_stream(url, option);
     }
     else if (atom == keywords2atoms[K_KW_unix].atom) {
-        stream = create_unix_sock_stream(url, option);
-        if (nr_args > 1 && argv[1]) {
-            const char *prot = purc_variant_get_string_const(argv[1]);
+        const char *prot = "raw";
+        if (nr_args > 2) {
+            prot = purc_variant_get_string_const(argv[2]);
+        }
+
+        stream = create_unix_sock_stream(url, option, prot);
+
+        if (prot) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
             if (atom == keywords2atoms[K_KW_message].atom
 #if ENABLE(STREAM_HBDBUS)
                     || atom == keywords2atoms[K_KW_hbdbus].atom
 #endif
                     ) {
-                entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw:message";
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":message";
                 ops = dvobjs_extend_stream_by_message(stream, ops,
-                        nr_args > 2 ? argv[2] : NULL);
+                        nr_args > 3 ? argv[3] : NULL);
 
 #if ENABLE(STREAM_HBDBUS)
                 if (atom == keywords2atoms[K_KW_hbdbus].atom) {
-                    entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw:message:hbdbus";
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
                     ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
-                            nr_args > 2 ? argv[2] : NULL);
+                            nr_args > 3 ? argv[3] : NULL);
                 }
 #endif
             }

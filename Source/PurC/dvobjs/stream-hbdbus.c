@@ -2552,17 +2552,20 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     if (super_ops == NULL ||
             strcmp(stream->ext0.signature, STREAM_EXT_SIG_MSG)) {
         PC_ERROR("Layer 0 is not a message extension.\n");
+        purc_set_error(PURC_ERROR_CONFLICT);
         goto failed;
     }
 
     struct pcinst* inst = pcinst_current();
     if (inst == NULL) {
         PC_ERROR("No instance.\n");
+        purc_set_error(PURC_ERROR_NO_INSTANCE);
         goto failed;
     }
 
     struct stream_extended_data *ext = calloc(1, sizeof(*ext));
     if (ext == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
         goto failed;
     }
 
@@ -2587,6 +2590,8 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     stream->ext0.msg_ops->on_message = on_message;
     ext->close_super = stream->ext0.msg_ops->close;
     stream->ext0.msg_ops->close = cleanup_extension;
+
+    PC_INFO("This socket is extended by Layer 1 protocol: hbdbus\n");
     return &hbdbus_ops;
 
 failed:

@@ -1489,7 +1489,13 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    purc_enable_log(true, false);
+    if (opts->verbose) {
+        purc_enable_log_ex(PURC_LOG_MASK_DEFAULT | PURC_LOG_MASK_INFO,
+                PURC_LOG_FACILITY_FILE);
+    }
+    else {
+        purc_enable_log_ex(PURC_LOG_MASK_DEFAULT, PURC_LOG_FACILITY_FILE);
+    }
 
     purc_variant_t request = PURC_VARIANT_INVALID;
     if (opts->request) {
