@@ -1646,6 +1646,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const struct purc_native_ops *ops = &basic_ops;
     struct pcdvobjs_stream *stream = NULL;
+    const char *entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw";
 
     if (atom == keywords2atoms[K_KW_file].atom) {
         stream = create_file_stream(url, option);
@@ -1666,11 +1667,13 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     || atom == keywords2atoms[K_KW_hbdbus].atom
 #endif
                     ) {
+                entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw:message";
                 ops = dvobjs_extend_stream_by_message(stream, ops,
                         nr_args > 2 ? argv[2] : NULL);
 
 #if ENABLE(STREAM_HBDBUS)
                 if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name  = NATIVE_ENTITY_NAME_STREAM ":raw:message:hbdbus";
                     ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
                             nr_args > 2 ? argv[2] : NULL);
                 }
@@ -1689,7 +1692,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // setup a callback for `on_release` to destroy the stream automatically
-    ret_var = purc_variant_make_native(stream, ops);
+    ret_var = purc_variant_make_native_entity(stream, ops, entity_name);
     if (ret_var) {
         stream->observed = ret_var;
     }

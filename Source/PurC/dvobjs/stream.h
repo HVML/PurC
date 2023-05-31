@@ -68,8 +68,9 @@ struct stream_messaging_ops {
     void (*close)(struct pcdvobjs_stream *stream);
 };
 
-#define STREAM_EXT_SIG_MSG          "MSG"
-#define STREAM_EXT_SIG_HBS          "HBS"
+#define NATIVE_ENTITY_NAME_STREAM       "stream"
+#define STREAM_EXT_SIG_MSG              "MSG"
+#define STREAM_EXT_SIG_HBS              "HBS"
 
 struct stream_extended {
     char signature[4];
