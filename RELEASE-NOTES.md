@@ -25,12 +25,15 @@ In this version, we fixed some bugs and made som enhancements:
 * CHANGES:
    - Change API `purc_enable_with_tag()` to specify the log level.
    - Expose `pcutils_md5_xxx()` and `pcutils_sha1_xxx()` APIs.
+   - Expose `pcutils_printbuf_xxx()` APIs.
 * ENHANCEMENTS:
    - Add new APIs: `pcutils_sha256_xxx()`, `pcutils_sha512_xxx()`, and `pcutils_hmac_sha256()`.
    - Add new APIs: `purc_enable_log_ex()` and `purc_log_with_level()`, and use level mask to control the message levels to log ultimately.
+   - Enhance `$STREAM` to support `message` protocol on UNIX-domain socket and `HBDBus` data bas protocol.
 * OPTIMIZATIONS:
 * ADJUSTMENTS:
 * BUGFIXES:
+   - Remove some limitations on event name.
 * CLEANUP:
 * SAMPLES:
 
