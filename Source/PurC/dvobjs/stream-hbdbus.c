@@ -400,7 +400,7 @@ call_procedure(pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext1.data;
 
     if (param[0]) {
-        escaped_param = pcutils_escape_string_for_json(method);
+        escaped_param = pcutils_escape_string_for_json(param);
         if (escaped_param == NULL) {
             set_error(ext, OUTOFMEMORY);
             goto failed;
@@ -592,6 +592,8 @@ builtin_result_handler(struct pcdvobjs_stream *stream, const void *ctxt,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_ERROR, EVENT_SUBTYPE_HBDBUS,
                 data, PURC_VARIANT_INVALID);
+        if (data)
+            purc_variant_unref(data);
     }
 
     return 0;
@@ -1048,8 +1050,8 @@ register_event_getter(void *entity, const char *property_name,
         for_host = "*";
     }
 
-    if (nr_args > 1) {
-        for_app = purc_variant_get_string_const(argv[1]);
+    if (nr_args > 2) {
+        for_app = purc_variant_get_string_const(argv[2]);
         if (for_app) {
             if (!hbdbus_is_valid_wildcard_pattern_list(for_app)) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1279,8 +1281,8 @@ register_procedure_getter(void *entity, const char *property_name,
         for_host = "*";
     }
 
-    if (nr_args > 1) {
-        for_app = purc_variant_get_string_const(argv[1]);
+    if (nr_args > 2) {
+        for_app = purc_variant_get_string_const(argv[2]);
         if (for_app) {
             if (!hbdbus_is_valid_wildcard_pattern_list(for_app)) {
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
@@ -1961,7 +1963,7 @@ static void on_lost_event_generator(pcdvobjs_stream *stream,
     }
     else {
         PC_ERROR("Fatal error: no endpointName field in the packet!\n");
-        return;
+        goto done;
     }
 
     kvlist_for_each_safe(&ext->subscribed_list, event_name, next, data) {
@@ -1975,6 +1977,9 @@ static void on_lost_event_generator(pcdvobjs_stream *stream,
             pcutils_kvlist_remove(&ext->subscribed_list, event_name);
         }
     }
+
+done:
+    purc_variant_unref(jo);
 }
 
 static void on_lost_event_bubble(pcdvobjs_stream *stream,
@@ -2001,7 +2006,7 @@ static void on_lost_event_bubble(pcdvobjs_stream *stream,
     }
     else {
         PC_ERROR("Fatal error: no endpointName in the packet!\n");
-        return;
+        goto done;
     }
 
     if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleName")) &&
@@ -2009,17 +2014,22 @@ static void on_lost_event_bubble(pcdvobjs_stream *stream,
     }
     else {
         PC_ERROR("Fatal error: no bubbleName in the packet!\n");
-        return;
+        goto done;
     }
 
     n = purc_name_tolower_copy(endpoint_name, event_name, HBDBUS_LEN_ENDPOINT_NAME);
-    event_name [n++] = '/';
-    event_name [n] = '\0';
+    event_name[n++] = '/';
+    event_name[n] = '\0';
     strcpy(event_name + n, bubble_name);
-    if (!pcutils_kvlist_get(&ext->subscribed_list, event_name))
-        return;
+    if (!pcutils_kvlist_get(&ext->subscribed_list, event_name)) {
+        PC_WARN("Not subscribed event: %s!\n", event_name);
+        goto done;
+    }
 
     pcutils_kvlist_remove(&ext->subscribed_list, event_name);
+
+done:
+    purc_variant_unref(jo);
 }
 
 /* add systen event handlers here */
@@ -2365,8 +2375,7 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
             pcintr_coroutine_post_event(stream->cid,
                     PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                     EVENT_TYPE_EVENT, EVENT_SUBTYPE_SYSTEM,
-                    purc_variant_object_get_by_ckey(jo, "bubbleData"),
-                    PURC_VARIANT_INVALID);
+                    jo, PURC_VARIANT_INVALID);
         }
         else {
             PC_ERROR("Got an unsubscribed event: %s\n", event_name);
@@ -2377,8 +2386,7 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         pcintr_coroutine_post_event(stream->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_EVENT, from_bubble,
-                purc_variant_object_get_by_ckey(jo, "bubbleData"),
-                PURC_VARIANT_INVALID);
+                jo, PURC_VARIANT_INVALID);
     }
 
     return 0;
@@ -2391,7 +2399,7 @@ static int handle_regular_message(struct pcdvobjs_stream *stream,
             const char *payload, size_t len)
 {
     struct stream_extended_data *ext = stream->ext1.data;
-    purc_variant_t jo;
+    purc_variant_t jo = NULL;
 
     int retval = hbdbus_json_packet_to_object(payload, len, &jo);
     if (retval < 0) {
@@ -2533,6 +2541,8 @@ done:
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_ERROR, EVENT_SUBTYPE_HBDBUS,
                 data, PURC_VARIANT_INVALID);
+        if (data)
+            purc_variant_unref(data);
     }
 
     if (ext->state == BS_UNCERTAIN) {

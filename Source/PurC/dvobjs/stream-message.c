@@ -107,6 +107,7 @@ typedef struct us_pending_data {
 struct stream_extended_data {
     /* the status of the client */
     unsigned            status;
+    int                 msg_type;
 
     /* the time last got data from the peer */
     struct timespec     last_live_ts;
@@ -438,40 +439,10 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     switch (ext->header.op) {
     case US_OPCODE_TEXT:
     case US_OPCODE_BIN:
-        assert(ext->header.sz_payload > ext->sz_read_payload);
-
-        n = us_read_socket(stream,
-                ext->message + ext->sz_read_payload,
-                ext->header.sz_payload - ext->sz_read_payload);
-        if (n > 0) {
-            ext->sz_read_payload += n;
-
-            PC_INFO("Read payload: %u/%u (fragmented: %u)\n",
-                    (unsigned)ext->sz_read_payload,
-                    (unsigned)ext->header.sz_payload,
-                    (unsigned)ext->header.fragmented);
-
-            if (ext->sz_read_payload == ext->header.sz_payload) {
-                ext->sz_read_payload = 0;
-               if (ext->header.fragmented == 0) {
-                   return READ_WHOLE;
-               }
-            }
-        }
-        else if (n < 0) {
-            PC_ERROR("Failed to read payload from Unix socket: %s\n",
-                    strerror(errno));
-            ext->status = US_ERR_IO | US_CLOSING;
-            return READ_ERROR;
-        }
-        else {
-            ext->status |= US_READING;
-            return READ_NONE;
-        }
-        break;
-
     case US_OPCODE_CONTINUATION:
     case US_OPCODE_END:
+        assert(ext->header.sz_payload > ext->sz_read_payload);
+
         if (ext->message == NULL ||
                 (ext->sz_read_message + ext->header.sz_payload) >
                     ext->sz_message) {
@@ -479,26 +450,22 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
             return READ_ERROR;
         }
 
-        assert(ext->header.sz_payload > ext->sz_read_payload);
-
         n = us_read_socket(stream,
                 ext->message + ext->sz_read_message + ext->sz_read_payload,
                 ext->header.sz_payload - ext->sz_read_payload);
         if (n > 0) {
             ext->sz_read_payload += n;
+
+            PC_INFO("Read payload: %u/%u; message (%u/%u)\n",
+                    (unsigned)ext->sz_read_payload,
+                    (unsigned)ext->header.sz_payload,
+                    (unsigned)ext->sz_read_message,
+                    (unsigned)ext->sz_message);
+
             if (ext->sz_read_payload == ext->header.sz_payload) {
-                ext->sz_read_message += ext->header.sz_payload;
                 ext->sz_read_payload = 0;
-
-                if (ext->header.op == US_OPCODE_END) {
-                    assert(ext->sz_read_message <= ext->sz_message);
-
-                    if (ext->sz_read_message != ext->sz_message) {
-                        PC_WARN("Not all data read\n");
-                        ext->sz_message = ext->sz_read_message;
-                    }
-                    return READ_WHOLE;
-                }
+                ext->sz_read_message += ext->header.sz_payload;
+                return READ_WHOLE;
             }
         }
         else if (n < 0) {
@@ -564,22 +531,27 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
                 continue;
             }
             else if (retv == READ_ERROR) {
+                ext->status = US_ERR_IO | US_CLOSING;
                 goto failed;
             }
 
             PC_INFO("Got a header: %d\n", ext->header.op);
             switch (ext->header.op) {
             case US_OPCODE_PING:
+                ext->msg_type = MT_PING;
                 retv = stream->ext0.msg_ops->on_message(stream, MT_PING, NULL, 0);
                 break;
 
             case US_OPCODE_CLOSE:
+                ext->msg_type = MT_CLOSE;
                 retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE, NULL, 0);
                 ext->status = US_CLOSING;
                 break;
 
             case US_OPCODE_TEXT:
             case US_OPCODE_BIN: {
+                ext->msg_type =
+                    (ext->header.op == US_OPCODE_TEXT) ? MT_TEXT : MT_BINARY;
                 if (ext->header.fragmented > 0 &&
                         ext->header.fragmented > ext->header.sz_payload) {
                     ext->sz_message = ext->header.fragmented;
@@ -614,18 +586,20 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
             case US_OPCODE_CONTINUATION:
             case US_OPCODE_END:
                 if (ext->header.sz_payload == 0) {
-                    ext->status = US_ERR_MSG;
+                    ext->status = US_ERR_MSG | US_CLOSING;
                     goto failed;
                 }
+                ext->status |= US_WAITING4PAYLOAD;
                 break;
 
             case US_OPCODE_PONG:
+                ext->msg_type = MT_PONG;
                 retv = stream->ext0.msg_ops->on_message(stream, MT_PONG, NULL, 0);
                 break;
 
             default:
                 PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
-                ext->status = US_ERR_MSG;
+                ext->status = US_ERR_MSG | US_CLOSING;
                 goto failed;
                 break;
             }
@@ -633,25 +607,26 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
         else if (ext->status & US_WAITING4PAYLOAD) {
 
             retv = try_to_read_payload(stream);
-            PC_INFO("Reading payload...%d\n", retv);
+            PC_INFO("Got a new payload: %d\n", retv);
             if (retv == READ_WHOLE) {
                 ext->status &= ~US_WAITING4PAYLOAD;
 
-                if (ext->header.op == US_OPCODE_TEXT) {
-                    ext->message[ext->sz_message] = 0;
-                    ext->sz_message++;
-                    PC_INFO("Got a text payload: %s\n", ext->message);
-                }
+                if (ext->sz_read_message == ext->sz_message) {
+                    if (ext->msg_type == MT_TEXT) {
+                        ext->message[ext->sz_message] = 0;
+                        ext->sz_message++;
+                        PC_INFO("Got a text payload: %s\n", ext->message);
+                    }
 
-                retv = stream->ext0.msg_ops->on_message(stream,
-                       (ext->header.op == US_OPCODE_TEXT) ? MT_TEXT : MT_BINARY,
-                        ext->message, ext->sz_message);
-                free(ext->message);
-                ext->message = NULL;
-                ext->sz_message = 0;
-                ext->sz_read_payload = 0;
-                ext->sz_read_message = 0;
-                us_update_mem_stats(ext);
+                    retv = stream->ext0.msg_ops->on_message(stream,
+                            ext->msg_type, ext->message, ext->sz_message);
+                    free(ext->message);
+                    ext->message = NULL;
+                    ext->sz_message = 0;
+                    ext->sz_read_payload = 0;
+                    ext->sz_read_message = 0;
+                    us_update_mem_stats(ext);
+                }
             }
             else if (retv == READ_NONE) {
                 break;
@@ -660,6 +635,7 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
                 continue;
             }
             else if (retv == READ_ERROR) {
+                ext->status = US_ERR_IO | US_CLOSING;
                 goto failed;
             }
         }
