@@ -259,8 +259,8 @@ typedef enum {
 #define PURC_RDRCOMM_NAME_THREAD        "THREAD"
     PURC_RDRCOMM_SOCKET,
 #define PURC_RDRCOMM_NAME_SOCKET        "SOCKET"
-    PURC_RDRCOMM_HIBUS,
-#define PURC_RDRCOMM_NAME_HIBUS         "HIBUS"
+    PURC_RDRCOMM_HBDBUS,
+#define PURC_RDRCOMM_NAME_HBDBUS         "HBDBUS"
 } purc_rdrcomm_k;
 
 /* Connection types */
@@ -581,7 +581,7 @@ pcrdr_conn_type(pcrdr_conn *conn);
  * Returns: \a PURC_RDRCOMM_SOCKET for using socket,
  *          \a PURC_RDRCOMM_HEADLESS for headless,
  *          \a PURC_RDRCOMM_THREAD for using thread,
- *      and \a PURC_RDRCOMM_HIBUS for using hiBus.
+ *      and \a PURC_RDRCOMM_HBDBUS for using HBDBus.
  *
  * Since: 0.1.0
  */

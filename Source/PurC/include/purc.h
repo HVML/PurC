@@ -61,8 +61,8 @@ typedef struct purc_instance_extra_info {
      *  - PURC_RDRCOMM_SOCKET:
      *      The renderer runs as a server and uses socket
      *      (local socket or WebSocket) as the communication method.
-     *  - PURC_RDRCOMM_HIBUS:
-     *      The renderer runs as a hiBus endpoint and uses hiBus.
+     *  - PURC_RDRCOMM_HBDBUS:
+     *      The renderer runs as a HBDBus endpoint and uses HBDBus.
      */
     purc_rdrcomm_k  renderer_comm;
 

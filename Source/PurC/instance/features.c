@@ -56,12 +56,12 @@ purc_is_feature_enabled(enum purc_feature feature)
             if (PCA_ENABLE_RDRCM_SOCKET)
                 return true;
             break;
-        case PURC_FEATURE_RDRCM_HIBUS:
-            if (PCA_ENABLE_RDRCM_HIBUS)
+        case PURC_FEATURE_RDRCM_HBDBUS:
+            if (PCA_ENABLE_RDRCM_HBDBUS)
                 return true;
             break;
-        case PURC_FEATURE_STREAM_HIBUS:
-            if (PCA_ENABLE_STREAM_HIBUS)
+        case PURC_FEATURE_STREAM_HBDBUS:
+            if (PCA_ENABLE_STREAM_HBDBUS)
                 return true;
             break;
         case PURC_FEATURE_STREAM_MQTT:

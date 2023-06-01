@@ -69,8 +69,8 @@ rdr_comm(struct pcrdr_conn *rdr)
         comm = PURC_RDRCOMM_NAME_SOCKET;
         break;
 
-    case PURC_RDRCOMM_HIBUS:
-        comm = PURC_RDRCOMM_NAME_HIBUS;
+    case PURC_RDRCOMM_HBDBUS:
+        comm = PURC_RDRCOMM_NAME_HBDBUS;
         break;
     }
 
