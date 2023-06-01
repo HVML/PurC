@@ -208,7 +208,7 @@ struct stream_extended_data {
 
     int (*on_message_super)(struct pcdvobjs_stream *stream, int type,
             const char *buf, size_t len);
-    void (*close_super)(struct pcdvobjs_stream *stream);
+    void (*cleanup_super)(struct pcdvobjs_stream *stream);
 };
 
 #define set_error(ext, symb)            \
@@ -448,6 +448,7 @@ call_procedure(pcdvobjs_stream *stream,
         }
     }
     else {
+        PC_ERROR("Failed to send message: %d\n", retv);
         goto failed_sending;
     }
 
@@ -1546,13 +1547,8 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
     struct stream_extended_data *ext = stream->ext1.data;
 
     if (ext) {
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-        if (ext->close_super)
-            ext->close_super(stream);
+        if (ext->cleanup_super)
+            ext->cleanup_super(stream);
 
         if (ext->srv_host_name)
             free(ext->srv_host_name);
@@ -2266,6 +2262,7 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
     struct stream_extended_data *ext = stream->ext1.data;
     purc_variant_t jo_tmp;
     const char* result_id = NULL, *call_id = NULL;
+    int ret_code;
     void *data;
 
     if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "resultId")) &&
@@ -2277,6 +2274,17 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
 
     if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "callId")) &&
             (call_id = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        set_error(ext, BADMSGPAYLOAD);
+        goto failed;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey (jo, "retCode")) &&
+            purc_variant_cast_to_int32(jo_tmp, &ret_code, false)) {
+        if (ret_code == PCRDR_SC_ACCEPTED) {
+            goto done;
+        }
     }
     else {
         set_error(ext, BADMSGPAYLOAD);
@@ -2311,6 +2319,8 @@ dispatch_result_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
 
     if (retv)
         return -1;
+
+done:
     return 0;
 
 failed:
@@ -2407,9 +2417,11 @@ static int handle_regular_message(struct pcdvobjs_stream *stream,
         set_error(ext, BADMSGPAYLOAD);
     }
     else if (retval == JPT_ERROR) {
-        PC_ERROR("The server gives an error packet\n");
-        set_error(ext, SERVERERROR);
-        /* TODO: fire an `error` event */
+        PC_INFO("The server gives an error packet: %s\n", payload);
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                EVENT_TYPE_ERROR, EVENT_SUBTYPE_HBDBUS,
+                jo, PURC_VARIANT_INVALID);
     }
     else if (retval == JPT_AUTH) {
         PC_ERROR("Should not be here for packetType `auth`; quit...\n");
@@ -2547,7 +2559,7 @@ done:
 
     if (ext->state == BS_UNCERTAIN) {
         // close the connection
-        cleanup_extension(stream);
+        call_super(stream, mark_closing, stream);
     }
 
     return 0;
@@ -2598,8 +2610,8 @@ dvobjs_extend_stream_by_hbdbus(struct pcdvobjs_stream *stream,
     /* override the `on_message` method of Layer 0 */
     ext->on_message_super = stream->ext0.msg_ops->on_message;
     stream->ext0.msg_ops->on_message = on_message;
-    ext->close_super = stream->ext0.msg_ops->close;
-    stream->ext0.msg_ops->close = cleanup_extension;
+    ext->cleanup_super = stream->ext0.msg_ops->cleanup;
+    stream->ext0.msg_ops->cleanup = cleanup_extension;
 
     PC_INFO("This socket is extended by Layer 1 protocol: hbdbus\n");
     return &hbdbus_ops;

@@ -167,8 +167,6 @@ static void us_clear_pending_data(struct stream_extended_data *ext)
     us_update_mem_stats(ext);
 }
 
-static int us_notify_to_close(struct pcdvobjs_stream *stream);
-
 static void cleanup_extension(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
@@ -178,10 +176,6 @@ static void cleanup_extension(struct pcdvobjs_stream *stream)
                 PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
                 EVENT_TYPE_CLOSE, NULL,
                 PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-
-        if (ext->sz_pending == 0) {
-            us_notify_to_close(stream);
-        }
 
         if (stream->monitor4r) {
             purc_runloop_remove_fd_monitor(purc_runloop_get_current(),
@@ -521,6 +515,10 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
     clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
 
     do {
+        if (ext->status & US_CLOSING) {
+            goto closing;
+        }
+
         /* if it is not waiting for payload, read a frame header */
         if (!(ext->status & US_WAITING4PAYLOAD)) {
             retv = try_to_read_header(stream);
@@ -535,7 +533,7 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
                 goto failed;
             }
 
-            PC_INFO("Got a header: %d\n", ext->header.op);
+            PC_INFO("Got a frame header: %d\n", ext->header.op);
             switch (ext->header.op) {
             case US_OPCODE_PING:
                 ext->msg_type = MT_PING;
@@ -646,6 +644,7 @@ us_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
 failed:
     stream->ext0.msg_ops->on_error(stream, us_status_to_pcerr(ext));
 
+closing:
     if (ext->status & US_CLOSING) {
         pcintr_coroutine_post_event(stream->cid,
                 PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
@@ -665,6 +664,15 @@ us_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
     struct pcdvobjs_stream *stream = ctxt;
     struct stream_extended_data *ext = stream->ext0.data;
 
+    if (ext->status & US_CLOSING) {
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
+        return false;
+    }
+
     us_write_pending(stream);
     if (list_empty(&ext->pending)) {
         ext->status &= ~US_SENDING;
@@ -672,14 +680,6 @@ us_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
 
     if (ext->status & US_ERR_ANY) {
         stream->ext0.msg_ops->on_error(stream, us_status_to_pcerr(ext));
-    }
-
-    if ((ext->status & US_CLOSING)) {
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
-                EVENT_TYPE_CLOSE, NULL,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        cleanup_extension(stream);
     }
 
     return true;
@@ -745,6 +745,16 @@ static int us_notify_to_close(struct pcdvobjs_stream *stream)
     return 0;
 }
 
+static void mark_closing(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    if (ext->sz_pending == 0) {
+        us_notify_to_close(stream);
+    }
+
+    ext->status = US_CLOSING;
+}
+
 static int us_can_send_data(struct stream_extended_data *ext, size_t sz)
 {
     if (sz > MAX_FRAME_PAYLOAD_SIZE) {
@@ -787,6 +797,8 @@ static int send_data(struct pcdvobjs_stream *stream,
     if ((ext->status & US_THROTTLING) || us_can_send_data(ext, sz)) {
         return PURC_ERROR_AGAIN;
     }
+
+    ext->status = US_OK;
 
     us_frame_header header;
 
@@ -1083,10 +1095,12 @@ dvobjs_extend_stream_by_message(struct pcdvobjs_stream *stream,
     msg_ops = calloc(1, sizeof(*msg_ops));
 
     if (msg_ops) {
-        msg_ops->on_message = on_message;
-        msg_ops->on_error = on_error;
         msg_ops->send_data = send_data;
-        msg_ops->close = cleanup_extension;
+        msg_ops->on_error = on_error;
+        msg_ops->mark_closing = mark_closing;
+
+        msg_ops->on_message = on_message;
+        msg_ops->cleanup = cleanup_extension;
 
         stream->ext0.data = ext;
         stream->ext0.super_ops = super_ops;

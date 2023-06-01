@@ -58,14 +58,15 @@ enum stream_message_type {
 };
 
 struct stream_messaging_ops {
-    /* these operations can be overridden by extended layer */
-    int (*on_message)(struct pcdvobjs_stream *stream, int type,
-            const char *buf, size_t len);
-    int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
-
     int (*send_data)(struct pcdvobjs_stream *stream,
             bool text_or_bin, const char *text, size_t len);
-    void (*close)(struct pcdvobjs_stream *stream);
+    int (*on_error)(struct pcdvobjs_stream *stream, int errcode);
+    void (*mark_closing)(struct pcdvobjs_stream *stream);
+
+    /* the following operations can be overridden by extended layer */
+    int (*on_message)(struct pcdvobjs_stream *stream, int type,
+            const char *buf, size_t len);
+    void (*cleanup)(struct pcdvobjs_stream *stream);
 };
 
 #define NATIVE_ENTITY_NAME_STREAM       "stream"
