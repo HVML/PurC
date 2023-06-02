@@ -105,7 +105,7 @@
 #define HBDBUS_BUBBLE_BROKENENDPOINT        "BrokenEndpoint"
 #define HBDBUS_BUBBLE_LOSTEVENTGENERATOR    "LostEventGenerator"
 #define HBDBUS_BUBBLE_LOSTEVENTBUBBLE       "LostEventBubble"
-#define HBDBUS_BUBBLE_SYSTEMSHUTTINGDOWN    "SystemShuttingdown"
+#define HBDBUS_BUBBLE_SYSTEMSHUTTINGDOWN    "SystemShuttingDown"
 
 /* JSON packet types */
 enum {
@@ -1974,6 +1974,11 @@ static void on_lost_event_generator(pcdvobjs_stream *stream,
         }
     }
 
+    pcintr_coroutine_post_event(stream->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+            EVENT_TYPE_STATE, HBDBUS_BUBBLE_LOSTEVENTGENERATOR,
+            jo, PURC_VARIANT_INVALID);
+
 done:
     purc_variant_unref(jo);
 }
@@ -2024,6 +2029,52 @@ static void on_lost_event_bubble(pcdvobjs_stream *stream,
 
     pcutils_kvlist_remove(&ext->subscribed_list, event_name);
 
+    pcintr_coroutine_post_event(stream->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+            EVENT_TYPE_STATE, HBDBUS_BUBBLE_LOSTEVENTBUBBLE,
+            jo, PURC_VARIANT_INVALID);
+
+done:
+    purc_variant_unref(jo);
+}
+
+static void on_system_shutting_down(pcdvobjs_stream *stream,
+        const char* from_endpoint, const char* from_bubble,
+        const char* bubble_data)
+{
+    (void)from_endpoint;
+    (void)from_bubble;
+    purc_variant_t jo = NULL, jo_tmp;
+    const char *endpoint_name = NULL;
+    uint64_t shutdown_time;
+
+    jo = purc_variant_make_from_json_string(bubble_data, strlen(bubble_data));
+    if (jo == NULL) {
+        PC_ERROR("Failed to parse bubble data for bubble `LostEventBubble`\n");
+        return;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "endpointName")) &&
+            (endpoint_name = purc_variant_get_string_const(jo_tmp))) {
+    }
+    else {
+        PC_ERROR("Fatal error: no endpointName in the packet!\n");
+        goto done;
+    }
+
+    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "shutdownTime")) &&
+            purc_variant_cast_to_ulongint(jo_tmp, &shutdown_time, true)) {
+    }
+    else {
+        PC_ERROR("Fatal error: no shutdownTime or bad value in the packet!\n");
+        goto done;
+    }
+
+    pcintr_coroutine_post_event(stream->cid,
+            PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+            EVENT_TYPE_STATE, HBDBUS_BUBBLE_SYSTEMSHUTTINGDOWN,
+            jo, PURC_VARIANT_INVALID);
+
 done:
     purc_variant_unref(jo);
 }
@@ -2067,9 +2118,9 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
 
     n = purc_assemble_endpoint_name(srv_host_name,
             HBDBUS_APP_NAME, HBDBUS_RUN_BUILITIN, event_name);
-    event_name [n++] = '/';
-    event_name [n] = '\0';
-    strcat (event_name, HBDBUS_BUBBLE_LOSTEVENTGENERATOR);
+    event_name[n++] = '/';
+    event_name[n] = '\0';
+    strcat(event_name, HBDBUS_BUBBLE_LOSTEVENTGENERATOR);
 
     event_handler = on_lost_event_generator;
     if (!pcutils_kvlist_set(&ext->subscribed_list, event_name,
@@ -2081,14 +2132,28 @@ static int on_auth_passed(pcdvobjs_stream *stream, const purc_variant_t jo)
 
     n = purc_assemble_endpoint_name(srv_host_name,
             HBDBUS_APP_NAME, HBDBUS_RUN_BUILITIN, event_name);
-    event_name [n++] = '/';
-    event_name [n] = '\0';
-    strcat (event_name, HBDBUS_BUBBLE_LOSTEVENTBUBBLE);
+    event_name[n++] = '/';
+    event_name[n] = '\0';
+    strcat(event_name, HBDBUS_BUBBLE_LOSTEVENTBUBBLE);
 
     event_handler = on_lost_event_bubble;
     if (!pcutils_kvlist_set(&ext->subscribed_list, event_name,
                 &event_handler)) {
         PC_ERROR("Failed to register cb for sys-evt `LostEventBubble`!\n");
+        set_error(ext, OUTOFMEMORY);
+        goto failed;
+    }
+
+    n = purc_assemble_endpoint_name(srv_host_name,
+            HBDBUS_APP_NAME, HBDBUS_RUN_BUILITIN, event_name);
+    event_name[n++] = '/';
+    event_name[n] = '\0';
+    strcat(event_name, HBDBUS_BUBBLE_SYSTEMSHUTTINGDOWN);
+
+    event_handler = on_system_shutting_down;
+    if (!pcutils_kvlist_set(&ext->subscribed_list, event_name,
+                &event_handler)) {
+        PC_ERROR("Failed to register cb for sys-evt `SystemShuttingDown`!\n");
         set_error(ext, OUTOFMEMORY);
         goto failed;
     }
