@@ -2428,16 +2428,6 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         goto failed;
     }
 
-#if 0
-    const char* bubble_data;
-    if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleData")) &&
-            (bubble_data = purc_variant_get_string_const(jo_tmp))) {
-    }
-    else {
-        bubble_data = NULL;
-    }
-#endif
-
     n = purc_name_tolower_copy(from_endpoint, event_name,
             HBDBUS_LEN_ENDPOINT_NAME);
     event_name[n++] = '/';
@@ -2457,11 +2447,31 @@ dispatch_event_packet(struct pcdvobjs_stream *stream, purc_variant_t jo)
         }
     }
     else {
-        /* fire an `event:<from_bubble>` event */
-        pcintr_coroutine_post_event(stream->cid,
-                PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
-                EVENT_TYPE_EVENT, from_bubble,
-                jo, PURC_VARIANT_INVALID);
+        hbdbus_event_handler event_handler;
+        event_handler = *(hbdbus_event_handler *)data;
+        if (event_handler) {
+            const char* bubble_data;
+            if ((jo_tmp = purc_variant_object_get_by_ckey(jo, "bubbleData")) &&
+                    (bubble_data = purc_variant_get_string_const(jo_tmp))) {
+            }
+            else {
+                bubble_data = NULL;
+            }
+
+            if (bubble_data == NULL) {
+                set_error(ext, BADMSGPAYLOAD);
+                goto failed;
+            }
+
+            event_handler(stream, from_endpoint, from_bubble, bubble_data);
+        }
+        else {
+            /* fire an `event:<from_bubble>` event */
+            pcintr_coroutine_post_event(stream->cid,
+                    PCRDR_MSG_EVENT_REDUCE_OPT_KEEP, stream->observed,
+                    EVENT_TYPE_EVENT, from_bubble,
+                    jo, PURC_VARIANT_INVALID);
+        }
     }
 
     return 0;
