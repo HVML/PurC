@@ -1962,6 +1962,10 @@ purc_schedule_vdom(purc_vdom_t vdom,
         set_body_entry(&co->stack, body_id);
     }
 
+    if (request == PURC_VARIANT_INVALID) {
+        request = purc_variant_make_object_0();
+    }
+
     if (!bind_builtin_coroutine_variables(co, request)) {
         goto failed;
     }
