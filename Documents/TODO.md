@@ -95,11 +95,12 @@
 1. [0.9.14] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
    - The default result data of a foreign element: inheriting from the proceeding operation.
    - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
-   - Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
+   - Tune the manners of `back` and `update` elements and fix known bugs.
+   - Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
    - The result data of a `catch` elmenet, should be defined as an object to describe the exception.
-   - Enhance `update` element to support non-array source data: treating it as an array contains only one member.
-   - Enhance `request` element to support `RAW-HEADER` when issuing an HTTP request.
-   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the handle.
+   - Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
+   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the HVML handle of the element.
+   - Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
 1. [0.9.16] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
