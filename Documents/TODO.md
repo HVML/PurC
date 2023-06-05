@@ -33,14 +33,6 @@
 
 ### 1.2) Predefined Variables
 
-1. Support for the following URI schemas for `$STREAM`:
-   - `tcp`
-1. Support for the following filters for `$STREAM`:
-   - `http`
-   - `ssl`
-   - `websocket`
-   - `mqtt`
-
 ### 1.3) HVML Debugger
 
 ## 2) Features Planned for Version 1.0
@@ -56,7 +48,7 @@
 
 ### 2.2) HEE and HVML Parsing and Evaluating
 
-1. [0.9.a] Optimize the HVML and HEE parsing error messages.
+1. [0.9.10; Resolved] Optimize the HVML and HEE parsing error messages.
 1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
 1. [0.9.2; Resolved] Support line comments in CHEE.
@@ -73,16 +65,17 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.a] Implementation of `$CRTN.static` and `$CRTN.temp`.
-1. [0.9.c] Basic support for `$SOCK`.
-1. [0.9.c] Support for the following URI schemas for `$STREAM`:
+1. [0.9.14] Support for the following URI schemas for `$STREAM`:
+   - `tcp`
    - `fifo`
-1. [0.9.c] Support for the following filters for `$STREAM` and `$SOCKET`:
-   - `http`
-1. [0.9.c] Complete the implementation of the following predefined variables:
+1. [0.9.14] Support for the following extension protocols for `$STREAM`:
+   - `websocket`
+1. [0.9.14] Basic support for `$SOCK`.
+1. [0.9.16] Complete the implementation of the following predefined variables:
    - `$URL`
    - `$STR`
    - `$DATA`
+1. [0.9.10; Resolved] Implementation of `$CRTN.static` and `$CRTN.temp`.
 1. [0.9.8; Resolved] Basic support for `$PY`.
 1. [0.9.6; Resolved] Complete the implementation of the following predefined variables:
    - `$DOC` (including the document entity and the element collection entity).
@@ -99,12 +92,20 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.a] Tune the implementation related to PURCMC protocol to support plainwin/widget management.
-1. [0.9.e] The generation and handling mechanism of uncatchable errors:
+1. [0.9.14] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
+   - The default result data of a foreign element: inheriting from the proceeding operation.
+   - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
+   - Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
+   - The result data of a `catch` elmenet, should be defined as an object to describe the exception.
+   - Enhance `update` element to support non-array source data: treating it as an array contains only one member.
+   - Enhance `request` element to support `RAW-HEADER` when issuing an HTTP request.
+   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the handle.
+1. [0.9.16] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.9.e] Review the implementation of all elements.
-1. [0.9.e] Review all uses of exception names.
+1. [0.9.16] Review all uses of exception names.
+1. [0.9.16] Review the implementation of all elements.
+1. [0.9.10; Resolved] Tune the implementation related to PURCMC protocol to support plainwin/widget management.
 1. [0.9.6; Resolved] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.6; Resolved] Improve `init` to load content with MIME type `text/html` as a document entity.
 1. [0.9.4; Resolved] Improve the implementation of the element `update`:
@@ -142,10 +143,10 @@
 
 ### 2.6) `purc`
 
-1. [0.9.a] Enhance Foil to support dynamic change of element styles and contents.
-1. [0.9.a] Enhance Foil to support table.
-1. [0.9.c] Enhance Foil to support flex and grid layout.
-1. [0.9.c] Enhance Foil to support full-screen, controls, and multiple-page rendering.
+1. [0.9.10; Resolved] Enhance Foil to support dynamic change of element styles and contents.
+1. [0.9.16] Enhance Foil to support table.
+1. [0.9.16] Enhance Foil to support flex and grid layout.
+1. [0.9.16] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.8; Resolved] Enhance Foil to render borders.
 1. [0.9.8; Resolved] Enhance Foil to support floats and absolute positioning.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
@@ -154,15 +155,15 @@
 
 ### 2.7) More Platforms
 
-1. [0.9.c] Windows
+1. [0.9.16] Windows
 
 ### 2.8) Others
 
-1. [0.9.c] Clean up all unnecessary calls of `PC_ASSERT`.
-1. [0.9.c] Normalize the typedef names.
-1. [0.9.c] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
+1. [0.9.16] Clean up all unnecessary calls of `PC_ASSERT`.
+1. [0.9.16] Normalize the typedef names.
+1. [0.9.16] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
-1. [0.9.c] Tune API description.
+1. [0.9.16] Tune API description.
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
 1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
