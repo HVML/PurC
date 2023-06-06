@@ -521,7 +521,7 @@ serialize_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         do {
 
-            if (length > 0 || length <= MAX_LEN_KEYWORD) {
+            if (length > 0 && length <= MAX_LEN_KEYWORD) {
                 purc_atom_t atom;
 
 #if 0
@@ -2731,6 +2731,11 @@ isdivisible_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
+    if (r_operand == 0) {
+        purc_set_error(PURC_ERROR_DIVBYZERO);
+        goto failed;
+    }
+
     bool ret = (l_operand % r_operand == 0);
     return purc_variant_make_boolean(ret);
 
@@ -2741,6 +2746,229 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
+enum {
+    RETURNS_INDEXES = 0,
+    RETURNS_VALUES,
+    RETURNS_KEYS,
+    RETURNS_KV_PAIRS
+};
+
+enum {
+    MATCHING_EXACT = PCVRNT_COMPARE_METHOD_CASELESS + 1,
+    MATCHING_WILDCARD,
+    MATCHING_REGEXP,
+};
+
+static purc_variant_t
+match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const char *options = NULL;
+    size_t options_len;
+    int matching = MATCHING_EXACT;
+    int returns = RETURNS_INDEXES;
+    size_t sz;
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_linear_container_size(argv[0], &sz)) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (nr_args >= 3) {
+        options = purc_variant_get_string_const_ex(argv[2], &options_len);
+        if (options) {
+            options = pcutils_trim_spaces(options, &options_len);
+            if (options_len == 0) {
+                options = NULL;
+            }
+        }
+    }
+
+    if (options) {
+        size_t opt_len = 0;
+        const char *option = pcutils_get_next_token_len(options, options_len,
+                _KW_DELIMITERS, &opt_len);
+
+        do {
+
+            if (opt_len == 0 || opt_len > MAX_LEN_KEYWORD) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            int cmp_id = pcdvobjs_global_keyword_id(option, opt_len);
+            switch (cmp_id) {
+            case PURC_K_KW_exact:
+                matching = MATCHING_EXACT;
+                break;
+
+            case PURC_K_KW_auto:
+                matching = PCVRNT_COMPARE_METHOD_AUTO;
+                break;
+
+            case PURC_K_KW_number:
+                matching = PCVRNT_COMPARE_METHOD_NUMBER;
+                break;
+
+            case PURC_K_KW_caseless:
+                matching = PCVRNT_COMPARE_METHOD_CASELESS;
+                break;
+
+            case PURC_K_KW_wildcard:
+                matching = MATCHING_WILDCARD;
+                break;
+
+            case PURC_K_KW_regexp:
+                matching = MATCHING_REGEXP;
+                break;
+
+            case PURC_K_KW_indexes:
+                returns = RETURNS_INDEXES;
+                break;
+
+            case PURC_K_KW_values:
+                returns = RETURNS_VALUES;
+                break;
+
+            default:
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+                break;
+            }
+
+            if (options_len <= opt_len)
+                break;
+
+            options_len -= opt_len;
+            option = pcutils_get_next_token_len(option + opt_len, options_len,
+                    _KW_DELIMITERS, &opt_len);
+        } while (option);
+    }
+
+    return purc_variant_make_array_0();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
+match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
+        unsigned call_flags)
+{
+    UNUSED_PARAM(root);
+
+    const char *options = NULL;
+    size_t options_len;
+    int matching = MATCHING_EXACT;
+    int returns = RETURNS_KEYS;
+
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
+        goto failed;
+    }
+
+    if (!purc_variant_is_object(argv[0])) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+#if 0
+    struct pcvrnt_object_iterator *it;
+    it = pcvrnt_object_iterator_create_begin(argv[0]);
+#endif
+
+    if (nr_args >= 3) {
+        options = purc_variant_get_string_const_ex(argv[2], &options_len);
+        if (options) {
+            options = pcutils_trim_spaces(options, &options_len);
+            if (options_len == 0) {
+                options = NULL;
+            }
+        }
+    }
+
+    if (options) {
+        size_t opt_len = 0;
+        const char *option = pcutils_get_next_token_len(options, options_len,
+                _KW_DELIMITERS, &opt_len);
+
+        do {
+
+            if (opt_len == 0 || opt_len > MAX_LEN_KEYWORD) {
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+            }
+
+            int cmp_id = pcdvobjs_global_keyword_id(option, opt_len);
+            switch (cmp_id) {
+            case PURC_K_KW_exact:
+                matching = MATCHING_EXACT;
+                break;
+
+            case PURC_K_KW_auto:
+                matching = PCVRNT_COMPARE_METHOD_AUTO;
+                break;
+
+            case PURC_K_KW_number:
+                matching = PCVRNT_COMPARE_METHOD_NUMBER;
+                break;
+
+            case PURC_K_KW_caseless:
+                matching = PCVRNT_COMPARE_METHOD_CASELESS;
+                break;
+
+            case PURC_K_KW_wildcard:
+                matching = MATCHING_WILDCARD;
+                break;
+
+            case PURC_K_KW_regexp:
+                matching = MATCHING_REGEXP;
+                break;
+
+            case PURC_K_KW_keys:
+                returns = RETURNS_KEYS;
+                break;
+
+            case PURC_K_KW_values:
+                returns = RETURNS_VALUES;
+                break;
+
+            case PURC_K_KW_kv_pairs:
+                returns = RETURNS_KV_PAIRS;
+                break;
+
+            default:
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+                goto failed;
+                break;
+            }
+
+            if (options_len <= opt_len)
+                break;
+
+            options_len -= opt_len;
+            option = pcutils_get_next_token_len(option + opt_len, options_len,
+                    _KW_DELIMITERS, &opt_len);
+        } while (option);
+    }
+
+    return purc_variant_make_array_0();
+
+failed:
+    if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
+        return purc_variant_make_undefined();
+    return PURC_VARIANT_INVALID;
+}
+
 purc_variant_t purc_dvobj_data_new(void)
 {
     static struct purc_dvobj_method method [] = {
@@ -2748,7 +2976,7 @@ purc_variant_t purc_dvobj_data_new(void)
         { "count",      count_getter, NULL },
         { "arith",      arith_getter, NULL },
         { "bitwise",    bitwise_getter, NULL },
-        { "numerify",  numerify_getter, NULL },
+        { "numerify",   numerify_getter, NULL },
         { "booleanize", booleanize_getter, NULL },
         { "stringify",  stringify_getter, NULL },
         { "serialize",  serialize_getter, NULL },
@@ -2766,9 +2994,11 @@ purc_variant_t purc_dvobj_data_new(void)
         { "sha1",       sha1_getter, NULL },
         { "bin2hex",    bin2hex_getter, NULL },
         { "hex2bin",    hex2bin_getter, NULL },
-        { "base64_encode", base64_encode_getter, NULL },
-        { "base64_decode", base64_decode_getter, NULL },
-        { "isdivisible",  isdivisible_getter, NULL },
+        { "base64_encode",  base64_encode_getter, NULL },
+        { "base64_decode",  base64_decode_getter, NULL },
+        { "isdivisible",    isdivisible_getter, NULL },
+        { "match_members",      match_members_getter, NULL },
+        { "match_properties",   match_properties_getter, NULL },
     };
 
     if (keywords2atoms[0].atom == 0) {

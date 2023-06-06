@@ -70,12 +70,22 @@ enum {
     PURC_K_KW_wildcard,
 #define PURC_KW_number      "number"
     PURC_K_KW_number,
+#define PURC_KW_exact       "exact"
+    PURC_K_KW_exact,
 #define PURC_KW_auto        "auto"
     PURC_K_KW_auto,
 #define PURC_KW_asc         "asc"
     PURC_K_KW_asc,
 #define PURC_KW_desc        "desc"
     PURC_K_KW_desc,
+#define PURC_KW_indexes     "indexes"
+    PURC_K_KW_indexes,
+#define PURC_KW_values      "values"
+    PURC_K_KW_values,
+#define PURC_KW_keys        "keys"
+    PURC_K_KW_keys,
+#define PURC_KW_kv_pairs    "kv-pairs"
+    PURC_K_KW_kv_pairs,
 #define PURC_KW_i8          "i8"
     PURC_K_KW_i8,
 #define PURC_KW_i16         "i16"
