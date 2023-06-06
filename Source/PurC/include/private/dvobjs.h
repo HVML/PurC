@@ -55,6 +55,8 @@
 #define MAX_LEN_TIMEZONE    128
 #define MAX_LEN_KEYWORD     64
 
+#define LEN_STRINGIFY_BUF   1024
+
 #define PURC_KEYWORD_true   "true"
 #define PURC_KEYWORD_false  "false"
 

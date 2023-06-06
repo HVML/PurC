@@ -37,6 +37,8 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <glib.h>
+#include <regex.h>
 
 static purc_variant_t
 type_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
@@ -2759,16 +2761,79 @@ enum {
     MATCHING_REGEXP,
 };
 
+static int
+variant_matches_pattern(GPatternSpec *glib_pattern, purc_variant_t val,
+        bool *matched)
+{
+    const char *str;
+    char buf[LEN_STRINGIFY_BUF];
+    if ((str = purc_variant_get_string_const(val)) == NULL) {
+        ssize_t n = purc_variant_stringify_buff(buf, sizeof(buf), val);
+        if (n < 0 || (size_t)n >= sizeof(buf)) {
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto failed;
+        }
+
+        str = buf;
+    }
+
+#if GLIB_CHECK_VERSION(2, 70, 0)
+    *matched = g_pattern_spec_match_string(glib_pattern, str);
+#else
+    *matched = g_pattern_match_string(glib_pattern, str);
+#endif
+
+    return 0;
+
+failed:
+    return -1;
+}
+
+static int
+variant_matches_regexp(const regex_t *reg_matcher, purc_variant_t val,
+        bool *matched)
+{
+    const char *str;
+    char buf[LEN_STRINGIFY_BUF];
+    if ((str = purc_variant_get_string_const(val)) == NULL) {
+        ssize_t n = purc_variant_stringify_buff(buf, sizeof(buf), val);
+        if (n < 0 || (size_t)n >= sizeof(buf)) {
+            purc_set_error(PURC_ERROR_TOO_LONG);
+            goto failed;
+        }
+
+        str = buf;
+    }
+
+    int ret = regexec(reg_matcher, str, 0, NULL, REG_NOSUB);
+    if (ret == 0) {
+        *matched = true;
+    }
+    else if (ret == REG_NOMATCH) {
+        *matched = false;
+    }
+
+    return 0;
+
+failed:
+    return -1;
+}
+
 static purc_variant_t
 match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
     UNUSED_PARAM(root);
 
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    GPatternSpec *glib_pattern = NULL;
+    regex_t reg_matcher;
+    bool reg_compiled = false;
+
     const char *options = NULL;
     size_t options_len;
-    int matching = MATCHING_EXACT;
-    int returns = RETURNS_INDEXES;
+    unsigned method = MATCHING_EXACT;
+    unsigned returns = RETURNS_INDEXES;
     size_t sz;
 
     if (nr_args < 2) {
@@ -2806,27 +2871,31 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             int cmp_id = pcdvobjs_global_keyword_id(option, opt_len);
             switch (cmp_id) {
             case PURC_K_KW_exact:
-                matching = MATCHING_EXACT;
+                method = MATCHING_EXACT;
                 break;
 
             case PURC_K_KW_auto:
-                matching = PCVRNT_COMPARE_METHOD_AUTO;
+                method = PCVRNT_COMPARE_METHOD_AUTO;
                 break;
 
             case PURC_K_KW_number:
-                matching = PCVRNT_COMPARE_METHOD_NUMBER;
+                method = PCVRNT_COMPARE_METHOD_NUMBER;
+                break;
+
+            case PURC_K_KW_case:
+                method = PCVRNT_COMPARE_METHOD_CASE;
                 break;
 
             case PURC_K_KW_caseless:
-                matching = PCVRNT_COMPARE_METHOD_CASELESS;
+                method = PCVRNT_COMPARE_METHOD_CASELESS;
                 break;
 
             case PURC_K_KW_wildcard:
-                matching = MATCHING_WILDCARD;
+                method = MATCHING_WILDCARD;
                 break;
 
             case PURC_K_KW_regexp:
-                matching = MATCHING_REGEXP;
+                method = MATCHING_REGEXP;
                 break;
 
             case PURC_K_KW_indexes:
@@ -2852,9 +2921,118 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         } while (option);
     }
 
-    return purc_variant_make_array_0();
+    if (method == MATCHING_WILDCARD) {
+        const char *wildcard = purc_variant_get_string_const(argv[1]);
+        if (wildcard == NULL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        glib_pattern = g_pattern_spec_new(wildcard);
+        if (glib_pattern == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+    else if (method == MATCHING_REGEXP) {
+        const char *regexp = purc_variant_get_string_const(argv[1]);
+        if (regexp == NULL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        /* TODO: flags */
+        int ret;
+        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED))) {
+            if (ret == REG_ESPACE)
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            else
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        reg_compiled = true;
+    }
+
+    retv = purc_variant_make_array_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    purc_variant_t needle = argv[1];
+    for (size_t i = 0; i < sz; i++) {
+        purc_variant_t member = purc_variant_linear_container_get(argv[0], i);
+
+        bool matched = false;
+        switch (method) {
+        case MATCHING_EXACT:
+            matched = purc_variant_is_equal_to(needle, member);
+            break;
+
+        case PCVRNT_COMPARE_METHOD_AUTO:
+        case PCVRNT_COMPARE_METHOD_NUMBER:
+        case PCVRNT_COMPARE_METHOD_CASE:
+        case PCVRNT_COMPARE_METHOD_CASELESS:
+            matched = purc_variant_compare_ex(needle, member, method) == 0;
+            break;
+
+        case MATCHING_WILDCARD:
+            if (variant_matches_pattern(glib_pattern, member, &matched)) {
+                goto failed;
+            }
+            break;
+
+        case MATCHING_REGEXP:
+            if (variant_matches_regexp(&reg_matcher, member, &matched)) {
+                goto failed;
+            }
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (matched) {
+            purc_variant_t v = PURC_VARIANT_INVALID;
+            if (returns == RETURNS_INDEXES) {
+                v = purc_variant_make_number(i);
+            }
+            else {
+                assert(returns == RETURNS_VALUES);
+
+                v = purc_variant_ref(member);
+            }
+
+            if (v) {
+                if (!purc_variant_array_append(retv, v)) {
+                    purc_variant_unref(v);
+                    goto failed;
+                }
+                purc_variant_unref(v);
+            }
+            else {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
+            }
+        }
+    }
+
+    if (glib_pattern)
+        g_pattern_spec_free(glib_pattern);
+    if (reg_compiled)
+        regfree(&reg_matcher);
+
+    return retv;
 
 failed:
+    if (glib_pattern)
+        g_pattern_spec_free(glib_pattern);
+    if (reg_compiled)
+        regfree(&reg_matcher);
+    if (retv)
+        purc_variant_unref(retv);
+
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;
@@ -2866,10 +3044,15 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
 {
     UNUSED_PARAM(root);
 
+    purc_variant_t retv = PURC_VARIANT_INVALID;
+    GPatternSpec *glib_pattern = NULL;
+    regex_t reg_matcher;
+    bool reg_compiled = false;
+
     const char *options = NULL;
     size_t options_len;
-    int matching = MATCHING_EXACT;
-    int returns = RETURNS_KEYS;
+    unsigned method = MATCHING_EXACT;
+    unsigned returns = RETURNS_KEYS;
 
     if (nr_args < 2) {
         purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
@@ -2880,11 +3063,6 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
-
-#if 0
-    struct pcvrnt_object_iterator *it;
-    it = pcvrnt_object_iterator_create_begin(argv[0]);
-#endif
 
     if (nr_args >= 3) {
         options = purc_variant_get_string_const_ex(argv[2], &options_len);
@@ -2911,27 +3089,27 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
             int cmp_id = pcdvobjs_global_keyword_id(option, opt_len);
             switch (cmp_id) {
             case PURC_K_KW_exact:
-                matching = MATCHING_EXACT;
+                method = MATCHING_EXACT;
                 break;
 
             case PURC_K_KW_auto:
-                matching = PCVRNT_COMPARE_METHOD_AUTO;
+                method = PCVRNT_COMPARE_METHOD_AUTO;
                 break;
 
             case PURC_K_KW_number:
-                matching = PCVRNT_COMPARE_METHOD_NUMBER;
+                method = PCVRNT_COMPARE_METHOD_NUMBER;
                 break;
 
             case PURC_K_KW_caseless:
-                matching = PCVRNT_COMPARE_METHOD_CASELESS;
+                method = PCVRNT_COMPARE_METHOD_CASELESS;
                 break;
 
             case PURC_K_KW_wildcard:
-                matching = MATCHING_WILDCARD;
+                method = MATCHING_WILDCARD;
                 break;
 
             case PURC_K_KW_regexp:
-                matching = MATCHING_REGEXP;
+                method = MATCHING_REGEXP;
                 break;
 
             case PURC_K_KW_keys:
@@ -2961,9 +3139,139 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
         } while (option);
     }
 
-    return purc_variant_make_array_0();
+    if (method == MATCHING_WILDCARD) {
+        const char *wildcard = purc_variant_get_string_const(argv[1]);
+        if (wildcard == NULL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        glib_pattern = g_pattern_spec_new(wildcard);
+        if (glib_pattern == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+    else if (method == MATCHING_REGEXP) {
+        const char *regexp = purc_variant_get_string_const(argv[1]);
+        if (regexp == NULL) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        /* TODO: flags */
+        int ret;
+        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED))) {
+            if (ret == REG_ESPACE)
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            else
+                purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto failed;
+        }
+
+        reg_compiled = true;
+    }
+
+    retv = purc_variant_make_array_0();
+    if (retv == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    purc_variant_t needle = argv[1];
+    struct pcvrnt_object_iterator *it = NULL;
+    it = pcvrnt_object_iterator_create_begin(argv[0]);
+    while (it) {
+        purc_variant_t key = pcvrnt_object_iterator_get_key(it);
+        purc_variant_t val = pcvrnt_object_iterator_get_value(it);
+
+        bool matched = false;
+        switch (method) {
+        case MATCHING_EXACT:
+            matched = purc_variant_is_equal_to(needle, key);
+            break;
+
+        case PCVRNT_COMPARE_METHOD_AUTO:
+        case PCVRNT_COMPARE_METHOD_NUMBER:
+        case PCVRNT_COMPARE_METHOD_CASE:
+        case PCVRNT_COMPARE_METHOD_CASELESS:
+            matched = purc_variant_compare_ex(needle, key, method) == 0;
+            break;
+
+        case MATCHING_WILDCARD:
+            if (variant_matches_pattern(glib_pattern, key, &matched)) {
+                goto failed;
+            }
+            break;
+
+        case MATCHING_REGEXP:
+            if (variant_matches_regexp(&reg_matcher, key, &matched)) {
+                goto failed;
+            }
+            break;
+
+        default:
+            assert(0);
+            break;
+        }
+
+        if (matched) {
+            purc_variant_t v = PURC_VARIANT_INVALID;
+            if (returns == RETURNS_KEYS) {
+                v = purc_variant_ref(key);
+            }
+            else if (returns == RETURNS_VALUES) {
+                v = purc_variant_ref(val);
+            }
+            else {
+                assert(returns == RETURNS_KV_PAIRS);
+
+                v = purc_variant_make_object_0();
+                if (v) {
+                    purc_variant_object_set_by_static_ckey(v, "k", key);
+                    purc_variant_unref(key);
+
+                    purc_variant_object_set_by_static_ckey(v, "v", val);
+                    purc_variant_unref(val);
+                }
+            }
+
+            if (v) {
+                if (!purc_variant_array_append(retv, v)) {
+                    purc_variant_unref(v);
+                    goto failed;
+                }
+                purc_variant_unref(v);
+            }
+            else {
+                purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                goto failed;
+            }
+        }
+
+        if (!pcvrnt_object_iterator_next(it)) {
+            break;
+        }
+    }
+
+    if (it)
+        pcvrnt_object_iterator_release(it);
+
+
+    if (glib_pattern)
+        g_pattern_spec_free(glib_pattern);
+    if (reg_compiled)
+        regfree(&reg_matcher);
+
+    return retv;
 
 failed:
+    if (glib_pattern)
+        g_pattern_spec_free(glib_pattern);
+    if (reg_compiled)
+        regfree(&reg_matcher);
+    if (retv)
+        purc_variant_unref(retv);
+
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_undefined();
     return PURC_VARIANT_INVALID;

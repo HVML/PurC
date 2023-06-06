@@ -213,6 +213,8 @@ vcm_again_variant_create()
         .on_observe             = NULL,
         .on_forget              = NULL,
         .on_release             = on_release,
+
+        .priv_ops               = NULL,
     };
 
     struct vcm_again *va = (struct vcm_again*)calloc(1,

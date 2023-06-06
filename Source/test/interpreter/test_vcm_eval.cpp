@@ -356,6 +356,8 @@ struct purc_native_ops native_ops = {
     .on_observe                 = NULL,
     .on_forget                  = NULL,
     .on_release                 = NULL,
+
+    .priv_ops                   = NULL,
 };
 
 purc_variant_t find_var(void* ctxt, const char* name)

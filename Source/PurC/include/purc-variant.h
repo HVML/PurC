@@ -1390,10 +1390,10 @@ purc_variant_object_overwrite(purc_variant_t dst, purc_variant_t src,
  *
  * purc_variant_t obj;
  * ...
- * pcvrnt_object_iterator* it;
+ * struct pcvrnt_object_iterator *it;
  * it = pcvrnt_object_iterator_create_begin(obj);
  * while (it) {
- *     const char     *key = pcvrnt_object_iterator_get_key(it);
+ *     const char     *key = pcvrnt_object_iterator_get_ckey(it);
  *     purc_variant_t  val = pcvrnt_object_iterator_get_value(it);
  *     ...
  *     bool having = pcvrnt_object_iterator_next(it);

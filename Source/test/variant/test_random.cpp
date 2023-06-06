@@ -232,6 +232,8 @@ static struct purc_native_ops _dummy_ops = {
     .on_observe             = NULL,
     .on_forget              = NULL,
     .on_release             = _dummy_releaser,
+
+    .priv_ops               = NULL,
 };
 
 static purc_variant_t _make_native(int lvl)

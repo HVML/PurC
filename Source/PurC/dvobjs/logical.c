@@ -35,32 +35,22 @@
 static bool reg_cmp(const char *buf1, const char *buf2)
 {
     regex_t reg;
-    int err = 0;
-    int number = 10;
-    regmatch_t pmatch[number];
+    int ret = 0;
 
-    if ((buf1 == NULL) || (buf2 == NULL))
-        return false;
+    assert(buf1);
+    assert(buf2);
 
     if (regcomp(&reg, buf1, REG_EXTENDED) < 0) {
         goto error;
     }
 
-    err = regexec(&reg, buf2, number, pmatch, 0);
+    ret = regexec(&reg, buf2, 0, NULL, REG_NOSUB);
 
-    if (err == REG_NOMATCH) {
-        goto error_free;
-    }
-    else if (err) {
-        goto error_free;
-    }
-
-    if (pmatch[0].rm_so == -1) {
+    if (ret == REG_NOMATCH) {
         goto error_free;
     }
 
     regfree(&reg);
-
     return true;
 
 error_free:
