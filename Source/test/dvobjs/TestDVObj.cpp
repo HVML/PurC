@@ -44,6 +44,8 @@ TestDVObj::TestDVObj(bool hvml)
         exit(1);
     }
 
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDERR);
+
     const struct purc_variant_stat *stat;
     stat = purc_variant_usage_stat();
     m_init_stat = *stat;

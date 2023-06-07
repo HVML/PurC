@@ -88,6 +88,8 @@ enum {
     PURC_K_KW_keys,
 #define PURC_KW_kv_pairs    "kv-pairs"
     PURC_K_KW_kv_pairs,
+#define PURC_KW_iv_pairs    "iv-pairs"
+    PURC_K_KW_iv_pairs,
 #define PURC_KW_i8          "i8"
     PURC_K_KW_i8,
 #define PURC_KW_i16         "i16"

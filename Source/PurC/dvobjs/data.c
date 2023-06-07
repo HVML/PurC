@@ -2727,8 +2727,8 @@ isdivisible_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     int64_t l_operand, r_operand;
-    if (!purc_variant_cast_to_longint(argv[0], &l_operand, true) ||
-            !purc_variant_cast_to_longint(argv[1], &r_operand, true)) {
+    if (!purc_variant_cast_to_longint(argv[0], &l_operand, false) ||
+            !purc_variant_cast_to_longint(argv[1], &r_operand, false)) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
@@ -2751,8 +2751,9 @@ failed:
 enum {
     RETURNS_INDEXES = 0,
     RETURNS_VALUES,
+    RETURNS_IV_PAIRS,
     RETURNS_KEYS,
-    RETURNS_KV_PAIRS
+    RETURNS_KV_PAIRS,
 };
 
 enum {
@@ -2805,7 +2806,7 @@ variant_matches_regexp(const regex_t *reg_matcher, purc_variant_t val,
         str = buf;
     }
 
-    int ret = regexec(reg_matcher, str, 0, NULL, REG_NOSUB);
+    int ret = regexec(reg_matcher, str, 0, NULL, 0);
     if (ret == 0) {
         *matched = true;
     }
@@ -2906,6 +2907,10 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 returns = RETURNS_VALUES;
                 break;
 
+            case PURC_K_KW_iv_pairs:
+                returns = RETURNS_IV_PAIRS;
+                break;
+
             default:
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 goto failed;
@@ -2924,7 +2929,7 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (method == MATCHING_WILDCARD) {
         const char *wildcard = purc_variant_get_string_const(argv[1]);
         if (wildcard == NULL) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
@@ -2937,13 +2942,12 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     else if (method == MATCHING_REGEXP) {
         const char *regexp = purc_variant_get_string_const(argv[1]);
         if (regexp == NULL) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
-        /* TODO: flags */
         int ret;
-        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED))) {
+        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED | REG_NOSUB))) {
             if (ret == REG_ESPACE)
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             else
@@ -2998,18 +3002,37 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             if (returns == RETURNS_INDEXES) {
                 v = purc_variant_make_number(i);
             }
-            else {
-                assert(returns == RETURNS_VALUES);
+            else if (returns == RETURNS_VALUES) {
 
-                v = purc_variant_ref(member);
+                v = member;
+            }
+            else {
+                assert(returns == RETURNS_KV_PAIRS);
+
+                purc_variant_t idx = purc_variant_make_number(i);
+                if (!idx) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto failed;
+                }
+
+                purc_variant_t kv[2] = { idx, member };
+                v = purc_variant_make_tuple(2, kv);
+                purc_variant_unref(idx);
+                if (!v) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto failed;
+                }
             }
 
             if (v) {
-                if (!purc_variant_array_append(retv, v)) {
+                bool success = purc_variant_array_append(retv, v);
+                if (returns == RETURNS_INDEXES || returns == RETURNS_IV_PAIRS)
                     purc_variant_unref(v);
+
+                if (!success) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     goto failed;
                 }
-                purc_variant_unref(v);
             }
             else {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
@@ -3098,6 +3121,10 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
 
             case PURC_K_KW_number:
                 method = PCVRNT_COMPARE_METHOD_NUMBER;
+                break;
+
+            case PURC_K_KW_case:
+                method = PCVRNT_COMPARE_METHOD_CASE;
                 break;
 
             case PURC_K_KW_caseless:
@@ -3217,30 +3244,31 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
         if (matched) {
             purc_variant_t v = PURC_VARIANT_INVALID;
             if (returns == RETURNS_KEYS) {
-                v = purc_variant_ref(key);
+                v = key;
             }
             else if (returns == RETURNS_VALUES) {
-                v = purc_variant_ref(val);
+                v = val;
             }
             else {
                 assert(returns == RETURNS_KV_PAIRS);
 
-                v = purc_variant_make_object_0();
-                if (v) {
-                    purc_variant_object_set_by_static_ckey(v, "k", key);
-                    purc_variant_unref(key);
-
-                    purc_variant_object_set_by_static_ckey(v, "v", val);
-                    purc_variant_unref(val);
+                purc_variant_t kv[2] = { key, val };
+                v = purc_variant_make_tuple(2, kv);
+                if (!v) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+                    goto failed;
                 }
             }
 
             if (v) {
-                if (!purc_variant_array_append(retv, v)) {
+                bool success = purc_variant_array_append(retv, v);
+                if (returns == RETURNS_KV_PAIRS)
                     purc_variant_unref(v);
+
+                if (!success) {
+                    purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
                     goto failed;
                 }
-                purc_variant_unref(v);
             }
             else {
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);

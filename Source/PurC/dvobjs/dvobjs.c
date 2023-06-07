@@ -71,6 +71,7 @@ static struct keyword_to_atom {
     { PURC_KW_values,   0 },    // "values"
     { PURC_KW_keys,     0 },    // "keys"
     { PURC_KW_kv_pairs, 0 },    // "kv-pairs"
+    { PURC_KW_iv_pairs, 0 },    // "iv-pairs"
     { PURC_KW_i8,       0 },    // "i8"
     { PURC_KW_i16,      0 },    // "i16"
     { PURC_KW_i32,      0 },    // "i32"
