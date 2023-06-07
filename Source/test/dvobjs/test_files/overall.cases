@@ -1129,6 +1129,6 @@ positive:
     [ [! 'a1', 1 ], [! 'a2',  2 ] ]
 
 positive:
-    $DATA.match_properties({ "a134": 1, "a23": 2, "a34s3": 3}, "^a[123]3", 'regexp kv-pairs')
-    [ [! 'a134',  1 ], [! 'a23',  2 ] ]
+    $DATA.match_properties({ "a134": 1, "a23": 2, "a34s3": 3}, '^a[123]3$', 'regexp kv-pairs')
+    [ [! 'a23',  2 ] ]
 

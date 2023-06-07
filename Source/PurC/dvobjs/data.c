@@ -3188,7 +3188,7 @@ match_properties_getter(purc_variant_t root, size_t nr_args, purc_variant_t *arg
 
         /* TODO: flags */
         int ret;
-        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED))) {
+        if ((ret = regcomp(&reg_matcher, regexp, REG_EXTENDED | REG_NOSUB))) {
             if (ret == REG_ESPACE)
                 purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
             else
