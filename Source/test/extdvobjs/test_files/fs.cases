@@ -800,6 +800,30 @@ positive:
     $FS.file_contents("/abcdefg/123", "string", 25, 20)
     false
 
+positive:
+    {{ $RUNNER.user(! "tmpFile", $FS.tempname('/tmp', 'hvml')) && $FS.file_contents(! $RUNNER.myObj.tmpFile, '0123456789') }}
+    10UL
+
+negative:
+    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210', null)
+    WrongDataType
+
+positive:
+    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210', 'append lock')
+    10UL
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, 'string')
+    '01234567899876543210'
+
+positive:
+    $FS.file_contents(! $RUNNER.myObj.tmpFile, '', 'sdafasdf')
+    0UL
+
+#positive:
+#    $FS.file_contents($RUNNER.myObj.tmpFile, 'string')
+#    ''
+
 # test case for $FS.open_dir
 
 #negative:

@@ -1,5 +1,5 @@
 /*
- * @file fs-posix.c
+ * @file fs-unix-like.c
  * @author Vincent Wei, LIU Xin, GENG Yue
  * @date 2022/07/31
  * @brief The implementation of file system dynamic variant object for POSIX.
@@ -3317,8 +3317,8 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *filename = NULL;
     const void *contents = NULL;
-    size_t      sz_contents;
-    size_t      sz_wrotten = 0;
+    size_t      sz_contents = 0;
+    ssize_t     sz_wrotten = 0;
     int         fd = -1;
 
     if (nr_args < 2) {
@@ -3340,10 +3340,6 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (contents == NULL) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
-    }
-
-    if (sz_contents == 0) {
-        goto done;
     }
 
     bool opt_append = false;
@@ -3369,7 +3365,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         }
     }
 
-    int flags = O_CREAT;
+    int flags = O_CREAT | O_WRONLY;
     if (opt_append)
         flags |= O_APPEND;
     else
@@ -3377,6 +3373,7 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     fd = open(filename, flags, S_IRUSR | S_IWUSR | S_IRGRP);
     if (fd < 0) {
+        PC_ERROR("Failed to open file %s: %s\n", filename, strerror(errno));
         purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
@@ -3397,6 +3394,12 @@ again:
     }
 
     sz_wrotten = write(fd, contents, sz_contents);
+    if (sz_wrotten < 0) {
+        PC_ERROR("Failed to write contents with length %u to file %s (%d): %s\n",
+            (unsigned)sz_contents, filename, fd, strerror(errno));
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
 
     if (opt_lock) {
         flock(fd, LOCK_UN);
@@ -3404,7 +3407,6 @@ again:
 
     close(fd);
 
-done:
     return purc_variant_make_ulongint(sz_wrotten);
 
 failed:
