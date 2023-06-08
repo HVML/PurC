@@ -856,7 +856,7 @@ static purc_variant_t
 get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
 {
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     const char *string_flags = NULL;
     size_t flags_len = 0;
     struct stat st;
@@ -869,8 +869,8 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv,
 
     // get the file name
     size_t len = 0;
-    string_filename = purc_variant_get_string_const_ex(argv[0], &len);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const_ex(argv[0], &len);
+    if (NULL == filename) {
         purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
@@ -907,14 +907,14 @@ get_stat_result (int nr_fn_option, size_t nr_args, purc_variant_t *argv,
 
     switch (nr_fn_option) {
         case FN_OPTION_STAT:
-            if (lstat(string_filename, &st) == -1) {
+            if (lstat(filename, &st) == -1) {
                 purc_set_error(PURC_ERROR_WRONG_STAGE);
                 goto failed;
             }
             break;
 
         case FN_OPTION_LSTAT:
-            if (lstat(string_filename, &st) == -1) {
+            if (lstat(filename, &st) == -1) {
                 purc_set_error(PURC_ERROR_WRONG_STAGE);
                 goto failed;
             }
@@ -944,8 +944,8 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     char dir_name[PATH_MAX + 1];
-    char filename[PATH_MAX + NAME_MAX + 1];
-    const char *string_filename = NULL;
+    char full_path[PATH_MAX + NAME_MAX + 1];
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     purc_variant_t val = PURC_VARIANT_INVALID;
     const char *filter = NULL;
@@ -960,12 +960,12 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
-    strncpy (dir_name, string_filename, sizeof(dir_name)-1);
+    strncpy (dir_name, filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -1044,11 +1044,11 @@ list_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         obj_var = purc_variant_make_object (0, PURC_VARIANT_INVALID,
                 PURC_VARIANT_INVALID);
 
-        strncpy (filename, dir_name, sizeof(filename)-1);
-        strcat (filename, "/");
-        strcat (filename, ptr->d_name);
+        strncpy (full_path, dir_name, sizeof(full_path) - 1);
+        strcat (full_path, "/");
+        strcat (full_path, ptr->d_name);
 
-        if (stat(filename, &file_stat) < 0)
+        if (stat(full_path, &file_stat) < 0)
             continue;
 
         // name
@@ -1255,8 +1255,8 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         DISPLAY_MAX
     };
     char dir_name[PATH_MAX + 1];
-    char filename[PATH_MAX + NAME_MAX + 1];
-    const char *string_filename = NULL;
+    char full_path[PATH_MAX + NAME_MAX + 1];
+    const char *filename = NULL;
     const char *filter = NULL;
     struct wildcard_list *wildcard = NULL;
     struct wildcard_list *temp_wildcard = NULL;
@@ -1272,12 +1272,12 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
-    strncpy (dir_name, string_filename, sizeof(dir_name)-1);
+    strncpy (dir_name, filename, sizeof(dir_name)-1);
 
     if (access(dir_name, F_OK | R_OK) != 0) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -1479,11 +1479,11 @@ list_prt_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         if (wildcard && (temp_wildcard == NULL))
             continue;
 
-        strncpy (filename, dir_name, sizeof(filename)-1);
-        strcat (filename, "/");
-        strcat (filename, ptr->d_name);
+        strncpy (full_path, dir_name, sizeof(full_path)-1);
+        strcat (full_path, "/");
+        strcat (full_path, ptr->d_name);
 
-        if (stat(filename, &file_stat) < 0)
+        if (stat(full_path, &file_stat) < 0)
             continue;
 
         char info[NAME_MAX + 256] = {0};
@@ -1674,7 +1674,7 @@ chgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *filename = NULL;
     const char *string_group = NULL;
-    uint64_t uint_gid; 
+    uint64_t uint_gid;
     gid_t gid;
     char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -2063,7 +2063,7 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
     if (nr_args < 1) {
@@ -2072,13 +2072,13 @@ file_exists_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name or dir name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (access(string_filename, F_OK | R_OK) == 0)  {
+    if (access(filename, F_OK | R_OK) == 0)  {
         ret_var = purc_variant_make_boolean (true);
     }
     else {
@@ -2408,7 +2408,7 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     struct stat st;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
 
@@ -2418,13 +2418,13 @@ linkinfo_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (lstat(string_filename, &st) == -1) {
+    if (lstat(filename, &st) == -1) {
         set_purc_error_by_errno ();
         goto failed;
     }
@@ -3155,7 +3155,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
+    const char *filename = NULL;
     const char *string_flags = "";
     const char *flag;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -3175,8 +3175,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
+    filename = purc_variant_get_string_const (argv[0]);
+    if (NULL == filename) {
         purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
@@ -3242,7 +3242,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     // Get whole file size
-    if (stat(string_filename, &filestat) < 0) {
+    if (stat(filename, &filestat) < 0) {
         purc_set_error (PURC_ERROR_NOT_EXISTS);
         goto failed;
     }
@@ -3268,9 +3268,9 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     bsequence[length] = 0x0;
 
     if (flag_binary)
-        fp = fopen (string_filename, "rb");
+        fp = fopen (filename, "rb");
     else
-        fp = fopen (string_filename, "r");
+        fp = fopen (filename, "r");
 
     if (NULL == fp) {
         purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
@@ -3315,135 +3315,104 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 {
     UNUSED_PARAM(root);
 
-    const char *string_filename = NULL;
-    const char *string_flags = "";
-    const char *flag;
-    const char *string_content;
-    FILE       *fp = NULL;
-    const uint8_t *bsequence = NULL;
-    size_t      sz_bseq;
-    size_t      writesize;
-    bool        flag_lock = false;
-    bool        flag_append = false;
-    bool        flag_binary = false;
+    const char *filename = NULL;
+    const void *contents = NULL;
+    size_t      sz_contents;
+    size_t      sz_wrotten = 0;
+    int         fd = -1;
 
-    if (nr_args < 1) {
-        purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
+    if (nr_args < 2) {
+        purc_set_error(PURC_ERROR_ARGUMENT_MISSED);
         goto failed;
     }
 
-    // get the file name
-    string_filename = purc_variant_get_string_const (argv[0]);
-    if (NULL == string_filename) {
-        purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+    filename = purc_variant_get_string_const(argv[0]);
+    if (NULL == filename) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
         goto failed;
     }
 
-    if (nr_args > 1) {
-        string_content = purc_variant_get_string_const (argv[1]);
+    contents = purc_variant_get_string_const_ex(argv[1], &sz_contents);
+    if (NULL == contents) {
+        contents = purc_variant_get_bytes_const(argv[1], &sz_contents);
+    }
 
-        if (NULL == string_content) {
-            if (! purc_variant_cast_to_byte_sequence(argv[1],
-                    (const void **)&bsequence, &sz_bseq))
-            {
-                purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+    if (contents == NULL) {
+        purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+        goto failed;
+    }
+
+    if (sz_contents == 0) {
+        goto done;
+    }
+
+    bool opt_append = false;
+    bool opt_lock   = false;
+    if (nr_args > 2) {
+        const char *options;
+        size_t total_len;
+        options = purc_variant_get_string_const_ex(argv[2], &total_len);
+        if (NULL == options) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
+            goto failed;
+        }
+
+        const char *keyword;
+        size_t kwlen;
+        for_each_keyword(options, total_len, keyword, kwlen) {
+            if (strncmp2ltr(keyword, "append", kwlen) == 0) {
+                opt_append = true;
+            }
+            else if (strncmp2ltr(keyword, "lock", kwlen) == 0) {
+                opt_lock   = true;
+            }
+        }
+    }
+
+    int flags = O_CREAT;
+    if (opt_append)
+        flags |= O_APPEND;
+    else
+        flags |= O_TRUNC;
+
+    fd = open(filename, flags, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (fd < 0) {
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+        goto failed;
+    }
+
+    if (opt_lock) {
+again:
+        int ret = flock(fd, LOCK_EX);
+        if (ret == -1) {
+            if (errno == EINTR) {
+                goto again;
+            }
+            else {
+                /* TODO: Again for EWOULDBLOCK */
+                purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
                 goto failed;
             }
-
-            flag_binary = true;
         }
     }
 
-    if (nr_args > 2) {
-        string_flags = purc_variant_get_string_const (argv[2]);
-        if (NULL == string_flags) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
-            goto failed;
-        }
+    sz_wrotten = write(fd, contents, sz_contents);
+
+    if (opt_lock) {
+        flock(fd, LOCK_UN);
     }
 
-    // Parse flags
-    flag = string_flags;
-    while (*flag)
-    {
-        size_t flag_len = 0;
+    close(fd);
 
-        while (purc_isspace(*flag))
-            flag ++;
-
-        if (strcmp_len (flag, "lock", &flag_len) == 0) {
-            flag_lock = true;
-        }
-        else if (strcmp_len (flag, "append", &flag_len) == 0) {
-            flag_append = true;
-        }
-        if (strcmp_len (flag, "binary", &flag_len) == 0) {
-            flag_binary = true;
-        }
-        else if (strcmp_len (flag, "string", &flag_len) == 0) {
-            flag_binary = false;
-        }
-        else {
-            purc_set_error (PURC_ERROR_WRONG_STAGE);
-            goto failed;
-        }
-
-        if (0 == flag_len)
-            break;
-
-        flag += flag_len;
-    }
-
-    if (flag_binary) {
-        if (flag_append)
-            fp = fopen (string_filename, "ab");
-        else
-            fp = fopen (string_filename, "wb");
-    }
-    else {
-        if (flag_append)
-            fp = fopen (string_filename, "a");
-        else
-            fp = fopen (string_filename, "w");
-    }
-
-    if (NULL == fp) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-        goto failed;
-    }
-
-    if (-1 == flock (fileno(fp), LOCK_SH | LOCK_NB)) {
-        // File locked.
-        purc_set_error (PURC_ERROR_ACCESS_DENIED);
-        goto failed;
-    }
-
-    flock(fileno(fp), LOCK_UN);
-
-    if (flag_lock) {
-        if (flock (fileno(fp), LOCK_EX) != 0) {
-            purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
-            goto failed;
-        }
-    }
-
-    if (flag_binary)
-        writesize = fwrite (string_content, 1, strlen(string_content), fp);
-    else
-        writesize = fwrite (bsequence, 1, sz_bseq, fp);
-
-    if (flag_lock) {
-        flock (fileno(fp), LOCK_UN);
-    }
-    fclose (fp);
-    return purc_variant_make_ulongint (writesize);
+done:
+    return purc_variant_make_ulongint(sz_wrotten);
 
 failed:
-    if (fp)
-        fclose (fp);
+    if (fd >= 0)
+        close(fd);
 
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
