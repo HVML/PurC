@@ -209,6 +209,31 @@ enum {
 
 #define PURC_GLOBAL_KEYWORD_NR  (PURC_K_KW_LAST - PURC_K_KW_FIRST + 1)
 
+#define PURC_KW_DELIMITERS  " \t\n\v\f\r"
+
+#define for_each_keyword(options, total_len, kw, kw_len)                    \
+    for (kw_len = 0, kw = pcutils_get_next_token_len(options, total_len,    \
+                PURC_KW_DELIMITERS, &kw_len);                               \
+            (kw != NULL && kw_len > 0 && kw_len < MAX_LEN_KEYWORD);         \
+            total_len -= kw_len,                                            \
+            kw = pcutils_get_next_token_len(kw + kw_len,                    \
+                total_len, PURC_KW_DELIMITERS, &kw_len))
+
+#define strncmp2ltr(str, literal, len)          \
+    ((len > (sizeof(literal "") - 1)) ? 1 :     \
+        (len < (sizeof(literal "") - 1) ? -1 : strncmp(str, literal, len)))
+
+#define strncasecmp2ltr(str, literal, len)      \
+    ((len > (sizeof(literal "") - 1)) ? 1 :     \
+        (len < (sizeof(literal "") - 1) ? -1 : strncasecmp(str, literal, len)))
+
+#define retry_syscall_for_eintr(expression)             \
+   (__extension__                                       \
+     ({ long int __result;                              \
+        do __result = (long int) (expression);          \
+        while (__result == -1L && errno == EINTR);      \
+        __result; }))
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
