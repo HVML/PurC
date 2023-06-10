@@ -814,7 +814,7 @@ Except for the HVML interpreter, PurC also provides many fundamental features fo
 
 1. PurC provides the APIs for variant management, here variant is the way HVML manages data.
 1. PurC provides the APIs for parsing JSON and extended JSON.
-1. PurC provides the APIs for parsing and evaluating a parameterized eJSON expression.
+1. PurC provides the APIs for parsing and evaluating a parameterized Hybrid Evalution Expression (HEE).
 1. PurC provides the APIs for parsing an HTML document.
 1. PurC provides the APIs for creating multiple HVML runners.
 1. PurC provides the APIs for parsing an HVML program and scheduling to run it.
@@ -877,8 +877,8 @@ Note that
 
 ### TODO List
 
-1. HVML 1.0 Features not implemented yet.
-1. HVML 1.0 Predefined Variables not implemented yet.
+1. The HVML 1.0 features not implemented yet.
+1. The HVML 1.0 predefined variables not implemented yet.
 1. More tests or test cases.
 1. More samples.
 1. Port PurC to Windows.
@@ -1068,6 +1068,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [React.js]: https://reactjs.org
 [Vue.js]: https://vuejs.org
 
-[HVML Specifiction V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md
+[HVML Specification V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-v1.0-zh.md
 [HVML Predefined Variables V1.0]: https://github.com/HVML/hvml-docs/blob/master/zh/hvml-spec-predefined-variables-v1.0-zh.md
 
