@@ -2281,7 +2281,7 @@ lchgrp_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     const char *filename = NULL;
     const char *string_group = NULL;
-    uint64_t uint_gid; 
+    uint64_t uint_gid;
     gid_t gid;
     char *endptr;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
@@ -3379,14 +3379,15 @@ file_contents_setter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (opt_lock) {
+        int ret;
 again:
-        int ret = flock(fd, LOCK_EX);
+        ret = flock(fd, LOCK_EX);
         if (ret == -1) {
             if (errno == EINTR) {
                 goto again;
             }
             else {
-                /* TODO: Again for EWOULDBLOCK */
+                /* TODO: Again for EWOULDBLOCK? */
                 purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
                 goto failed;
             }

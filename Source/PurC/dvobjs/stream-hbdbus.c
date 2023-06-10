@@ -2562,7 +2562,7 @@ static int on_message(struct pcdvobjs_stream *stream, int type,
         char *ch_code;
         int ret;
 
-        if (get_challenge_code(stream, payload, len, &ch_code)) {
+        if ((ret = get_challenge_code(stream, payload, len, &ch_code))) {
             ext->state = BS_UNCERTAIN;
             goto done;
         }
