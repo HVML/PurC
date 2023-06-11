@@ -3156,18 +3156,18 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     UNUSED_PARAM(root);
 
     const char *filename = NULL;
-    const char *string_flags = "";
-    const char *flag;
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
-    bool        flag_binary = false;
-    bool        flag_strict = false;
-    int64_t     offset = 0;
-    size_t      length = SIZE_MAX;
+    bool        opt_binary = false;
+    bool        opt_check_encoding = false;
+    
     struct stat filestat;
     size_t      filesize;
-    size_t      readsize;
-    FILE       *fp = NULL;
-    uint8_t    *bsequence = NULL;
+
+    int64_t     offset = 0;
+    size_t      sz_contents = SIZE_MAX;    
+    ssize_t     sz_read;
+    int         fd = -1;
+    uint8_t    *contents = NULL;
 
     if (nr_args < 1) {
         purc_set_error (PURC_ERROR_ARGUMENT_MISSED);
@@ -3182,10 +3182,23 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (nr_args > 1) {
-        string_flags = purc_variant_get_string_const (argv[1]);
-        if (NULL == string_flags) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        const char *options;
+        size_t total_len;
+        options = purc_variant_get_string_const_ex(argv[1], &total_len);
+        if (NULL == options) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
+        }
+
+        const char *keyword;
+        size_t kwlen;
+        for_each_keyword(options, total_len, keyword, kwlen) {
+            if (strncmp2ltr(keyword, "binary", kwlen) == 0) {
+                opt_binary = true;
+            }
+            else if (strncmp2ltr(keyword, "strict", kwlen) == 0) {
+                opt_check_encoding = true;
+            }
         }
     }
 
@@ -3205,40 +3218,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             goto failed;
         }
 
-        length = len;
-    }
-
-    // Parse flags
-    flag = string_flags;
-    while (*flag)
-    {
-        size_t flag_len = 0;
-
-        while (purc_isspace(*flag))
-            flag ++;
-
-        if (strcmp_len (flag, "binary", &flag_len) == 0) {
-            flag_binary = true;
-        }
-        else if (strcmp_len (flag, "string", &flag_len) == 0) {
-            flag_binary = false;
-        }
-        else if (strcmp_len (flag, "strict", &flag_len) == 0) {
-            flag_strict = true;
-        }
-        else if (strcmp_len (flag, "silent", &flag_len) == 0) {
-            flag_strict = false;
-        }
-        else {
-            purc_variant_unref (ret_var);
-            purc_set_error (PURC_ERROR_WRONG_STAGE);
-            goto failed;
-        }
-
-        if (0 == flag_len)
-            break;
-
-        flag += flag_len;
+        sz_contents = len;
     }
 
     // Get whole file size
@@ -3256,52 +3236,56 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if ((filesize - offset) < length)
-        length = filesize - offset;
+    if ((filesize - offset) < sz_contents)
+        sz_contents = filesize - offset;
 
-    if (length <= 0) {
+    if (sz_contents <= 0) {
         purc_set_error (PURC_ERROR_WRONG_STAGE);
         goto failed;
     }
 
-    bsequence = malloc (length + 1);
-    bsequence[length] = 0x0;
+    contents = malloc (sz_contents + 1);
+    contents[sz_contents] = 0x0;
 
-    if (flag_binary)
-        fp = fopen (filename, "rb");
-    else
-        fp = fopen (filename, "r");
-
-    if (NULL == fp) {
-        purc_set_error (PURC_ERROR_BAD_SYSTEM_CALL);
+    fd = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (fd < 0) {
+        PC_ERROR("Failed to open file %s: %s\n", filename, strerror(errno));
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
 
-    if (offset > 0)
-        fseek (fp, offset, SEEK_SET);
+    if (offset > 0) {
+        if (lseek (fd, offset, SEEK_SET) == -1) {
+           PC_ERROR("Failed to seek %ld to file %s (%d): %s\n",
+                offset, filename, fd, strerror(errno));
+            purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
+            goto failed;
+        }
+    }
 
-    readsize = fread (bsequence, 1, length, fp);
-    if (readsize != length && flag_strict) {
-        // throw `BadEncoding` exception
-        purc_set_error (PURC_ERROR_BAD_ENCODING);
+    sz_read = read(fd, contents, sz_contents);
+    if (sz_read < 0) {
+        PC_ERROR("Failed to read contents with length %u to file %s (%d): %s\n",
+            (unsigned)sz_contents, filename, fd, strerror(errno));
+        purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
         goto failed;
     }
 
-    if (flag_binary)
-        ret_var = purc_variant_make_byte_sequence(bsequence, readsize);
+    if (opt_binary)
+        ret_var = purc_variant_make_byte_sequence(contents, sz_read);
     else
-        ret_var = purc_variant_make_string_ex((const char *)bsequence, readsize, true);
+        ret_var = purc_variant_make_string_ex((const char *)contents, sz_read, opt_check_encoding);
 
-    free (bsequence);
-    fclose (fp);
+    free (contents);
+    close (fd);
     return ret_var;
 
 failed:
-    if (bsequence)
-        free (bsequence);
+    if (contents)
+        free (contents);
 
-    if (fp)
-        fclose (fp);
+    if (fd >= 0)
+        close(fd);
 
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
         return purc_variant_make_boolean (false);
