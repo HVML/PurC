@@ -3192,13 +3192,52 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         const char *keyword;
         size_t kwlen;
+        bool set_binary = false;
+        bool set_string = false;
+        bool set_strict = false;
+        bool set_silent = false;
         for_each_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "binary", kwlen) == 0) {
+                if (set_string) {
+                    //Conflicted setting
+                    purc_set_error (PURC_ERROR_CONFLICT);
+                    goto failed;
+                }
+                set_binary = true;
                 opt_binary = true;
+                continue;
             }
-            else if (strncmp2ltr(keyword, "strict", kwlen) == 0) {
+            if (strncmp2ltr(keyword, "strict", kwlen) == 0) {
+                if (set_silent) {
+                    //Conflicted setting
+                    purc_set_error (PURC_ERROR_CONFLICT);
+                    goto failed;
+                }
+                set_strict = true;
                 opt_check_encoding = true;
+                continue;
             }
+            if (strncmp2ltr(keyword, "string", kwlen) == 0) {
+                if (set_binary) {
+                    //Conflicted setting
+                    purc_set_error (PURC_ERROR_CONFLICT);
+                    goto failed;
+                }
+                set_string = true;
+                continue;
+            }
+            if (strncmp2ltr(keyword, "silent", kwlen) == 0) {
+                if (set_strict) {
+                    //Conflicted setting
+                    purc_set_error (PURC_ERROR_CONFLICT);
+                    goto failed;
+                }
+                set_silent = true;
+                continue;
+            }
+            // Unknown options
+            purc_set_error (PURC_ERROR_NOT_SUPPORTED);
+            goto failed;
         }
     }
 
@@ -3247,7 +3286,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     contents = malloc (sz_contents + 1);
     contents[sz_contents] = 0x0;
 
-    fd = open(filename, O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+    fd = open(filename, O_RDONLY);
     if (fd < 0) {
         PC_ERROR("Failed to open file %s: %s\n", filename, strerror(errno));
         purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
