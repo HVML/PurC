@@ -2800,13 +2800,73 @@ TEST(dvobjs, dvobjs_fs_file_contents)
     ASSERT_EQ(ret_var, nullptr);
     printf("\t\tReturn PURC_VARIANT_INVALID\n");
 
-    // param: filename, flag, offset, length
-    printf ("TEST file_contents: nr_args = 2, param[0] = path, param[1] = flag, \
-param[2] = offset, param[3] = length:\n");
+    // param: filename
+    printf ("TEST file_contents: nr_args=1, param[0]=path:\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    // param: filename, normal flag
+    printf ("TEST file_contents: nr_args=2, param[0]=path, param[1]=\"binary strict\":\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("binary strict", false);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    size_t sz_bytes;
+    const unsigned char *sequence = purc_variant_get_bytes_const (ret_var, &sz_bytes);
+    ASSERT_NE(sequence, nullptr);
+    char ret_string[128];
+    size_t ret_str_len = sz_bytes > 127 ? 127 : sz_bytes;
+    memcpy(ret_string, sequence, ret_str_len);
+    ret_string[ret_str_len] = 0x0;
+    printf ("return: %s\n", ret_string);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    // param: filename, conflict flag
+    printf ("TEST file_contents: nr_args=2, param[0]=path, param[1]=\"binary string\":\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("binary string", false);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    ASSERT_EQ(PURC_ERROR_CONFLICT, purc_get_last_error());
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+
+    // param: filename, conflict flag
+    printf ("TEST file_contents: nr_args=2, param[0]=path, param[1]=\"string strict silent\":\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("string strict silent", false);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_EQ(ret_var, nullptr);
+    ASSERT_EQ(PURC_ERROR_CONFLICT, purc_get_last_error());
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+
+    // param: filename, flag, offset
+    printf ("TEST file_contents: nr_args=3, param[0]=path, param[1]=flag, param[2]=offset:\n");
     param[0] = purc_variant_make_string (data_path, false);
     param[1] = purc_variant_make_string ("string", false);
-    param[2] = purc_variant_make_longint (25);
-    param[3] = purc_variant_make_ulongint (20);
+    param[2] = purc_variant_make_longint (55);
+    ret_var = func (NULL, 3, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
+    purc_variant_unref(ret_var);
+
+    // param: filename, flag, offset, length
+    printf ("TEST file_contents: nr_args=4, param[0]=path, param[1]=flag, \
+param[2]=offset, param[3]=length:\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("string", false);
+    param[2] = purc_variant_make_longint (55);
+    param[3] = purc_variant_make_ulongint (10);
     ret_var = func (NULL, 4, param, false);
     ASSERT_NE(ret_var, nullptr);
     printf ("return: %s\n", purc_variant_get_string_const (ret_var));
@@ -2817,8 +2877,8 @@ param[2] = offset, param[3] = length:\n");
     purc_variant_unref(ret_var);
 
     // File that does not exist
-    printf ("TEST file_contents: nr_args = 2, param[0] = NOT_EXIST_FILE, \
-param[1] = flag, param[2] = offset, param[3] = length:\n");
+    printf ("TEST file_contents: nr_args=4, param[0]=NOT_EXIST_FILE, \
+param[1]=flag, param[2]=offset, param[3]=length:\n");
     param[0] = purc_variant_make_string ("/abcdefg/123", false);
     param[1] = purc_variant_make_string ("string", false);
     param[2] = purc_variant_make_longint (25);
@@ -2829,6 +2889,66 @@ param[1] = flag, param[2] = offset, param[3] = length:\n");
     purc_variant_unref(param[1]);
     purc_variant_unref(param[2]);
     purc_variant_unref(param[3]);
+
+
+    // Test the setter
+    func = purc_variant_dynamic_get_setter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    // Setter param: filename, content
+    printf ("TEST file_contents_setter: nr_args=2, param[0]=path, param[1]=\"Hello-\":\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("Hello-", false);
+    ret_var = func (NULL, 2, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    uint64_t ret_value;
+    purc_variant_cast_to_ulongint (ret_var, &ret_value, false);
+    printf ("return: %lu\n", ret_value);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(ret_var);
+
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    // Getter param: filename
+    printf ("TEST file_contents: nr_args=1, param[0]=path:\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
+
+    func = purc_variant_dynamic_get_setter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    // Setter param: filename, content, flag
+    printf ("TEST file_contents_setter: nr_args=3, param[0]=path, param[1]=\"World!\",\
+param[2]=\"append\":\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    param[1] = purc_variant_make_string ("World!", false);
+    param[2] = purc_variant_make_string ("append", false);
+    ret_var = func (NULL, 3, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    purc_variant_cast_to_ulongint (ret_var, &ret_value, false);
+    printf ("return: %lu\n", ret_value);
+    purc_variant_unref(param[0]);
+    purc_variant_unref(param[1]);
+    purc_variant_unref(param[2]);
+    purc_variant_unref(ret_var);
+
+    func = purc_variant_dynamic_get_getter (dynamic);
+    ASSERT_NE(func, nullptr);
+
+    // Getter param: filename
+    printf ("TEST file_contents: nr_args=1, param[0]=path:\n");
+    param[0] = purc_variant_make_string (data_path, false);
+    ret_var = func (NULL, 1, param, false);
+    ASSERT_NE(ret_var, nullptr);
+    printf ("return: %s\n", purc_variant_get_string_const (ret_var));
+    purc_variant_unref(param[0]);
+    purc_variant_unref(ret_var);
 
     // Clean up
     remove (data_path);
