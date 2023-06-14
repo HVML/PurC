@@ -800,6 +800,12 @@ did_matched(void *native_entity, purc_variant_t val)
     if (mgr == comp) {
         return true;
     }
+
+    mgr = pcinst_get_variables();
+    if (mgr == comp) {
+        return true;
+    }
+
     return false;
 }
 
