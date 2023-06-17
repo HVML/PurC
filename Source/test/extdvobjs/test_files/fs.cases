@@ -816,6 +816,22 @@ positive:
     $FS.file_contents($RUNNER.myObj.tmpFile, 'string')
     '01234567899876543210'
 
+positive
+    $FS.file_contents($RUNNER.myObj.tmpFile, "strint")
+    Unsupported
+
+positive
+    $FS.file_contents($RUNNER.myObj.tmpFile, "string binarg")
+    Unsupported
+
+positive
+    $FS.file_contents($RUNNER.myObj.tmpFile, "string binary")
+    Conflict
+
+positive
+    $FS.file_contents($RUNNER.myObj.tmpFile, "string strict silent")
+    Conflict
+
 positive:
     $FS.file_contents(! $RUNNER.myObj.tmpFile, '', 'sdafasdf')
     0UL
