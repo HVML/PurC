@@ -818,19 +818,19 @@ positive:
 
 negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "strint")
-    WrongDataType
+    InvalidValue
 
 negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string binarg")
-    WrongDataType
+    InvalidValue
 
 negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string binary")
-    Conflict
+    InvalidValue
 
 negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string strict silent")
-    Conflict
+    InvalidValue
 
 positive:
     $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210')

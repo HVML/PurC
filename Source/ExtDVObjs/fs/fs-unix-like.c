@@ -3159,7 +3159,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     purc_variant_t ret_var = PURC_VARIANT_INVALID;
     bool        opt_binary = false;
     bool        opt_check_encoding = false;
-    
+
     struct stat filestat;
     size_t      filesize;
 
@@ -3199,8 +3199,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         for_each_keyword(options, total_len, keyword, kwlen) {
             if (strncmp2ltr(keyword, "binary", kwlen) == 0) {
                 if (set_string) {
-                    //Conflicted setting
-                    purc_set_error (PURC_ERROR_CONFLICT);
+                    // invalid option
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
                 set_binary = true;
@@ -3209,8 +3209,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
             if (strncmp2ltr(keyword, "strict", kwlen) == 0) {
                 if (set_silent) {
-                    //Conflicted setting
-                    purc_set_error (PURC_ERROR_CONFLICT);
+                    // invalid option
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
                 set_strict = true;
@@ -3219,8 +3219,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
             if (strncmp2ltr(keyword, "string", kwlen) == 0) {
                 if (set_binary) {
-                    //Conflicted setting
-                    purc_set_error (PURC_ERROR_CONFLICT);
+                    // invalid option
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
                 set_string = true;
@@ -3228,23 +3228,24 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
             }
             if (strncmp2ltr(keyword, "silent", kwlen) == 0) {
                 if (set_strict) {
-                    //Conflicted setting
-                    purc_set_error (PURC_ERROR_CONFLICT);
+                    // invalid option
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
                     goto failed;
                 }
                 set_silent = true;
                 continue;
             }
+
             // Unknown options
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
             goto failed;
         }
     }
 
     if (nr_args > 2) {
         // Get the offset
-        if (! purc_variant_cast_to_longint (argv[2], &offset, false)) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        if (!purc_variant_cast_to_longint(argv[2], &offset, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
     }
@@ -3252,8 +3253,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     if (nr_args > 3) {
         // Get the length
         uint64_t len;
-        if (! purc_variant_cast_to_ulongint (argv[3], &len, false)) {
-            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
+        if (!purc_variant_cast_to_ulongint(argv[3], &len, false)) {
+            purc_set_error(PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
 
@@ -3262,16 +3263,16 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     // Get whole file size
     if (stat(filename, &filestat) < 0) {
-        purc_set_error (PURC_ERROR_NOT_EXISTS);
+        purc_set_error(PURC_ERROR_NOT_EXISTS);
         goto failed;
     }
     filesize = filestat.st_size;
 
     if (offset < 0) {
-        offset = filesize + offset;// offset < 0 !!!
+        offset = filesize + offset;
     }
     if (offset < 0 || (size_t)offset >= filesize) {
-        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
@@ -3279,12 +3280,22 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         sz_contents = filesize - offset;
 
     if (sz_contents <= 0) {
-        purc_set_error (PURC_ERROR_WRONG_STAGE);
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
 
-    contents = malloc (sz_contents + 1);
-    contents[sz_contents] = 0x0;
+    if (opt_binary) {
+        contents = malloc(sz_contents);
+    }
+    else {
+        contents = malloc(sz_contents + 1);
+        contents[sz_contents] = 0x0;
+    }
+
+    if (contents == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
 
     fd = open(filename, O_RDONLY);
     if (fd < 0) {
@@ -3294,7 +3305,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
     }
 
     if (offset > 0) {
-        if (lseek (fd, offset, SEEK_SET) == -1) {
+        if (lseek(fd, offset, SEEK_SET) == -1) {
            PC_ERROR("Failed to seek %ld to file %s (%d): %s\n",
                 offset, filename, fd, strerror(errno));
             purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
@@ -3310,24 +3321,28 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         goto failed;
     }
 
-    if (opt_binary)
-        ret_var = purc_variant_make_byte_sequence(contents, sz_read);
-    else
-        ret_var = purc_variant_make_string_ex((const char *)contents, sz_read, opt_check_encoding);
+    if (opt_binary) {
+        ret_var = purc_variant_make_byte_sequence_reuse_buff(contents,
+                sz_read, sz_contents);
+    }
+    else {
+        ret_var = purc_variant_make_string_ex((const char *)contents,
+                sz_read, opt_check_encoding);
+        free(contents);
+    }
 
-    free (contents);
-    close (fd);
+    close(fd);
     return ret_var;
 
 failed:
     if (contents)
-        free (contents);
+        free(contents);
 
     if (fd >= 0)
         close(fd);
 
     if (call_flags & PCVRT_CALL_FLAG_SILENTLY)
-        return purc_variant_make_boolean (false);
+        return purc_variant_make_boolean(false);
 
     return PURC_VARIANT_INVALID;
 }
