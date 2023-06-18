@@ -816,25 +816,77 @@ positive:
     $FS.file_contents($RUNNER.myObj.tmpFile, 'string')
     '01234567899876543210'
 
-positive
+negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "strint")
-    Unsupported
+    WrongDataType
 
-positive
+negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string binarg")
-    Unsupported
+    WrongDataType
 
-positive
+negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string binary")
     Conflict
 
-positive
+negative:
     $FS.file_contents($RUNNER.myObj.tmpFile, "string strict silent")
     Conflict
 
 positive:
+    $FS.file_contents(! $RUNNER.myObj.tmpFile, '9876543210')
+    10UL
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', 1, 3)
+    '876'
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', 2)
+    '76543210'
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', -2)
+    '10'
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', -3)
+    '210'
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', -4, 3)
+    '321'
+
+positive:
     $FS.file_contents(! $RUNNER.myObj.tmpFile, '', 'sdafasdf')
     0UL
+
+positive:
+    $FS.file_contents(! $RUNNER.myObj.tmpFile, 'Hello人类的World!')
+    20UL
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', 5, 6)
+    '人类'
+
+negative:
+    $FS.file_contents($RUNNER.myObj.tmpFile, 'strict', 6)
+    BadEncoding
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, 'binary', 6, 4)
+    bxBABAE7B1
+
+negative:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', 6)
+    OK
+
+positive:
+    $FS.file_contents($RUNNER.myObj.tmpFile, '', -12, 8)
+    '类的Wo'
+
+negative:
+    $FS.file_contents($RUNNER.myObj.tmpFile, 'strict', -13, 8)
+    BadEncoding
 
 #positive:
 #    $FS.file_contents($RUNNER.myObj.tmpFile, 'string')
