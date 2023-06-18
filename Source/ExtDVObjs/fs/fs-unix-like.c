@@ -3236,7 +3236,7 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 continue;
             }
             // Unknown options
-            purc_set_error (PURC_ERROR_NOT_SUPPORTED);
+            purc_set_error (PURC_ERROR_WRONG_DATA_TYPE);
             goto failed;
         }
     }
