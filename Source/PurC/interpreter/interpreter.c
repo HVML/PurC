@@ -3380,9 +3380,46 @@ pcintr_util_new_element(purc_document_t doc, pcdoc_element_t elem,
 
     new_elem = pcdoc_element_new_element(doc, elem, op, tag, self_close);
     if (new_elem && sync_to_rdr) {
-        // TODO check stage and send message to rdr
+        unsigned opt = 0;
+        purc_rwstream_t out = NULL;
+        out = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+        if (out == NULL) {
+            goto out;
+        }
+
+        opt |= PCDOC_SERIALIZE_OPT_UNDEF;
+        opt |= PCDOC_SERIALIZE_OPT_SKIP_WS_NODES;
+        opt |= PCDOC_SERIALIZE_OPT_WITHOUT_TEXT_INDENT;
+        opt |= PCDOC_SERIALIZE_OPT_FULL_DOCTYPE;
+        opt |= PCDOC_SERIALIZE_OPT_WITH_HVML_HANDLE;
+        int sret = pcdoc_serialize_descendants_to_stream(doc, new_elem,
+        opt, out);
+        if (0 != sret) {
+            purc_rwstream_destroy(out);
+            goto out;
+        }
+
+        size_t sz_content = 0;
+        char *p = (char*)purc_rwstream_get_mem_buffer(out, &sz_content);
+        /* Reference element
+         * `append`: the last child element of the target element before this op.
+         */
+        pcdoc_element_t ref_elem = elem;
+        pcdoc_node last_child = pcdoc_element_last_child(doc, elem);
+        if (last_child.type == PCDOC_NODE_ELEMENT) {
+            ref_elem = last_child.elem;
+        }
+
+        pcintr_stack_t stack = pcintr_get_stack();
+
+        pcrdr_msg_data_type type = doc->def_text_type;
+        const char *request_id = NULL;
+        pcintr_rdr_send_dom_req_simple_raw(stack, pcintr_doc_op_to_rdr_op(op),
+                request_id, elem, ref_elem, "content", type, p, sz_content);
+        purc_rwstream_destroy(out);
     }
 
+out:
     return new_elem;
 }
 
