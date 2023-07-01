@@ -397,7 +397,7 @@ $ purc hello-10.hvml hello-10.hvml
 9) Hello, world! -- from COROUTINE-4
 ```
 
-### Connecting to HVML renderer
+### Connecting to an HVML renderer
 
 One of the important differences between HVML and other programming languages is that HVML can generate documents described in markup languages like HTML,
     not just output data to a file or your terminal.
@@ -690,7 +690,7 @@ Here is an example:
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
@@ -703,7 +703,7 @@ Here is an example:
         },
         {
             "runner": "Customers",
-            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
@@ -750,7 +750,7 @@ Then use the option specified by `--app` in `my_app.ejson`:
     "runners": [
         {
             "runner": "Products",
-            "renderer": { "protocol": "socket", "uri": "unix:///var/tmp/purcmc.sock",
+            "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},

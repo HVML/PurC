@@ -423,6 +423,7 @@ static mode_t str_to_mode (const char *input, mode_t mode)
     return INVALID_MODE; // Incomplete statement
 }
 
+#if 0
 static const char *get_basename (const char *string_path,
         const char *string_suffix, size_t *length)
 {
@@ -456,6 +457,7 @@ static const char *get_basename (const char *string_path,
     (*length) = (base_end - base_begin);
     return base_begin;
 }
+#endif
 
 static const char *get_basename_ex (const char *string_path,
         const char **ext_begin,
@@ -3306,8 +3308,8 @@ file_contents_getter (purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
     if (offset > 0) {
         if (lseek(fd, offset, SEEK_SET) == -1) {
-           PC_ERROR("Failed to seek %ld to file %s (%d): %s\n",
-                offset, filename, fd, strerror(errno));
+           PC_ERROR("Failed to seek %lld to file %s (%d): %s\n",
+                (long long)offset, filename, fd, strerror(errno));
             purc_set_error(PURC_ERROR_BAD_SYSTEM_CALL);
             goto failed;
         }
