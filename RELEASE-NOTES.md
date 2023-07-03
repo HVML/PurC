@@ -1,5 +1,6 @@
 # Release Notes
 
+- [Version 0.9.13](#version-0913)
 - [Version 0.9.12](#version-0912)
 - [Version 0.9.10](#version-0910)
 - [Version 0.9.8](#version-098)
@@ -11,6 +12,28 @@
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
 
+## Version 0.9.13
+
+On June 30, 2023, HVML Community announces the availability of PurC 0.9.13,
+   which is also the 11th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.13
+
+In this version, we fixed a few bugs and made some minor enhancements:
+
+* CHANGES:
+   - If `$REQ` is not defined, make it as an empty object.
+* ENHANCEMENTS:
+   - Implement `$DATA.is_divisible`, `$DATA.match_members`, and `$DATA.match_properties`.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix bugs in `$FS.file_contents` getter and setter.
+* CLEANUP:
+* SAMPLES:
+
 ## Version 0.9.12
 
 On May 31, 2023, HVML Community announces the availability of PurC 0.9.12,
@@ -20,7 +43,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.12
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - Change API `purc_enable_with_tag()` to specify the log level.
@@ -46,7 +69,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.10
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - Expose `pcutils_kvslist_xxx` interfaces to applications.
@@ -74,7 +97,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.8
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - Rename `purc_variant_is_mutable()` to `purc_variant_is_container()`.
@@ -117,7 +140,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.6
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - (N/A).
@@ -146,7 +169,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.5
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - (N/A).
@@ -169,7 +192,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.4
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - Rename some APIs.
@@ -197,7 +220,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.2
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    - Rename some APIs.
@@ -229,7 +252,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.9.0
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * CHANGES:
    * Rename type `purc_rdrprot_t` to `purc_rdrcomm_t`.
@@ -280,7 +303,7 @@ For bugs, incompatibilities, and issues, please report to <https://github.com/HV
 
 ### What's new in version 0.8.2
 
-In this version, we fixed some bugs and made som enhancements:
+In this version, we fixed some bugs and made some enhancements:
 
 * BUGFIXES:
    - The content of an `iterate` element may be evaluated twice.
