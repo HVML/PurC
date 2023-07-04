@@ -3007,7 +3007,6 @@ match_members_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                 v = member;
             }
             else {
-                assert(returns == RETURNS_KV_PAIRS);
 
                 purc_variant_t idx = purc_variant_make_number(i);
                 if (!idx) {
