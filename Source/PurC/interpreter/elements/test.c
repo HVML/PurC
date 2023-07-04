@@ -350,9 +350,18 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    if (ctxt->on == PURC_VARIANT_INVALID
-            && ctxt->with != PURC_VARIANT_INVALID) {
+    if (ctxt->with != PURC_VARIANT_INVALID) {
         ctxt->handle_differ = !purc_variant_booleanize(ctxt->with);
+        if (ctxt->on) {
+            pcintr_set_question_var(frame, ctxt->on);
+        }
+        else {
+            struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
+            if (p) {
+                purc_variant_t v = pcintr_get_question_var(p);
+                pcintr_set_question_var(frame, v);
+            }
+        }
     }
     else {
         r = post_process(stack->co, frame);
