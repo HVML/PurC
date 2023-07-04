@@ -1,0 +1,33 @@
+#!/usr/bin/purc
+
+# RESULT: ["test", 13UL, 100UL, 50UL]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as result with [] />
+    </head>
+    <body>
+        <choose on={"name":"test", "length":13UL, "width":100UL, "weight":50UL} >
+            <div>
+                <update on $result to 'append' with $2?.name />
+            </div>
+            <div>
+                <update on $result to 'append' with $?.length />
+            </div>
+            <div>
+                <div>
+                    <update on $result to 'append' with $?.width />
+                </div>
+            </div>
+            <div>
+                <div>
+                    <update on $result to 'append' with $3?.weight />
+                </div>
+            </div>
+        </choose>
+        <exit with $result />
+    </body>
+</hvml>
+
+

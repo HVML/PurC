@@ -172,6 +172,13 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
+    struct pcintr_stack_frame *parent_frame = pcintr_stack_frame_get_parent(
+            frame);
+    if (parent_frame) {
+        purc_variant_t v = pcintr_get_question_var(parent_frame);
+        pcintr_set_question_var(frame, v);
+    }
+
     struct ctxt_for_undefined *ctxt = frame->ctxt;
     if (!ctxt) {
         ctxt = (struct ctxt_for_undefined*)calloc(1, sizeof(*ctxt));
