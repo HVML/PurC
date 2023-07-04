@@ -13,7 +13,7 @@
         <section>
             <test on=$FS.file_is($REQ.dir, 'dir readable')>
 
-                <match on="$?" exclusively>
+                <match with="$?" exclusively>
                     <init as="count" with=0 temporarily />
 
                     <ol>

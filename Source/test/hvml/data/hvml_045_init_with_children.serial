@@ -7,7 +7,7 @@ PCHVML_TOKEN_VCM_TREE|"
 PCHVML_TOKEN_START_TAG|<test on=getVariable("?")>
 PCHVML_TOKEN_VCM_TREE|"
             "
-PCHVML_TOKEN_START_TAG|<match on=callGetter(getElement(getVariable("L"),"gt"),getVariable("?"),100) exclusively>
+PCHVML_TOKEN_START_TAG|<match with=callGetter(getElement(getVariable("L"),"gt"),getVariable("?"),100) exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                 "
 PCHVML_TOKEN_START_TAG|<back to=4/>

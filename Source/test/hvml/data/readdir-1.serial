@@ -45,7 +45,7 @@ PCHVML_TOKEN_START_TAG|<test on=callGetter(getElement(getVariable("FS"),"file_is
 PCHVML_TOKEN_VCM_TREE|"
 
                 "
-PCHVML_TOKEN_START_TAG|<match on=getVariable("?") exclusively>
+PCHVML_TOKEN_START_TAG|<match with=getVariable("?") exclusively>
 PCHVML_TOKEN_VCM_TREE|"
                     "
 PCHVML_TOKEN_START_TAG|<init as="count" with=0 temporarily/>

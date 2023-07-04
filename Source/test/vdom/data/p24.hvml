@@ -1,7 +1,7 @@
 <!DOCTYPE hvml>
 <hvml target="html">
     <body>
-        <match on="$L.streq('case', 'zh_CN', $?)" to="displace" with="#footer-cn" exclusively />
+        <match with="$L.streq('case', 'zh_CN', $?)" to="displace" with="#footer-cn" exclusively />
     </body>
 </hvml>
 

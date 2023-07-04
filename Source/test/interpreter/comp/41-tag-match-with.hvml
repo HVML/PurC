@@ -9,25 +9,25 @@
     <body>
         <define as getFileType>
             <test on $STR.substr($?, -4) >
-                <match on="$L.streq('case', '.pdf', $?)" exclusively>
+                <match with="$L.streq('case', '.pdf', $?)" exclusively>
                     <return with "bi-file-earmark-pdf" />
                 </match>
-                <match on="$L.streq('case', '.jpg', $?)" exclusively>
+                <match with="$L.streq('case', '.jpg', $?)" exclusively>
                     <return with "bi-file-earmark-image" />
                 </match>
-                <match on="$L.streq('case', '.jpeg', $?)" exclusively>
+                <match with="$L.streq('case', '.jpeg', $?)" exclusively>
                     <return with "bi-file-earmark-image" />
                 </match>
-                <match on="$L.streq('case', '.png', $?)" exclusively>
+                <match with="$L.streq('case', '.png', $?)" exclusively>
                     <return with "bi-file-earmark-image" />
                 </match>
-                <match on="$L.streq('case', '.gif', $?)" exclusively>
+                <match with="$L.streq('case', '.gif', $?)" exclusively>
                     <return with "bi-file-earmark-image" />
                 </match>
-                <match on="$L.streq('case', '.mp3', $?)" exclusively>
+                <match with="$L.streq('case', '.mp3', $?)" exclusively>
                     <return with "bi-file-earmark-music" />
                 </match>
-                <match on="$L.streq('case', '.txt', $?)" exclusively>
+                <match with="$L.streq('case', '.txt', $?)" exclusively>
                     <return with "bi-file-earmark-text" />
                 </match>
                 <match for="ANY">

@@ -1,7 +1,7 @@
 <init as="evenNumbers" with=[0,] >
     <iterate on=$?[0] with=$MATH.add($0<,2) nosetotail>
         <test on=$?>
-            <match on=$L.gt($?,100) exclusively>
+            <match with=$L.gt($?,100) exclusively>
                 <back to="4" />
             </match>
             <match>
