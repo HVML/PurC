@@ -1,0 +1,23 @@
+#!/usr/bin/purc
+
+# RESULT: ["test", "foil"]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as result with [] />
+    </head>
+    <body>
+        <choose on={"name":"test", "length":13UL, "width":100UL, "weight":50UL} >
+            <inherit>
+                <update on $result to 'append' with $?.name />
+            </inherit>
+            <inherit on={"name":"foil"} >
+                <update on $result to 'append' with $?.name />
+            </inherit>
+        </choose>
+        <exit with $result />
+    </body>
+</hvml>
+
+
