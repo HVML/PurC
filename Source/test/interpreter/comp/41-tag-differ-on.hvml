@@ -1,0 +1,30 @@
+#!/usr/bin/purc
+
+# RESULT: ["differ", "dddd"]
+
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as result with [] />
+    </head>
+    <body>
+        <choose on={"name":"test", "length":13UL, "width":100UL, "weight":50UL} >
+            <test with $L.eq($?.width, 200) >
+                <update on $result to 'append' with $?.name />
+                <differ on={"name":"differ"}>
+                    <update on $result to 'append' with $?.name />
+                </differ>
+            </test>
+
+            <test with $L.eq($?.width, 200) on={"name":"foil", "width":200UL}>
+                <update on $result to 'append' with $?.name />
+                <differ on={"name":"dddd"}>
+                    <update on $result to 'append' with $?.name/>
+                </differ>
+            </test>
+        </choose>
+        <exit with $result />
+    </body>
+</hvml>
+
+
