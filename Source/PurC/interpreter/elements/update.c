@@ -558,6 +558,31 @@ out:
     return ret;
 }
 
+static int
+array_prepend(purc_variant_t dst, purc_variant_t src, bool silently, bool wholly)
+{
+    UNUSED_PARAM(silently);
+    int ret = -1;
+    if (wholly || !pcvariant_is_linear_container(src)) {
+        if (purc_variant_array_prepend(dst, src)) {
+            ret = 0;
+        }
+        goto out;
+    }
+
+    size_t nr_items = purc_variant_linear_container_get_size(src);
+    for (size_t i = nr_items; i > 0; i--) {
+        purc_variant_t v = purc_variant_linear_container_get(src, i - 1);
+        if (!purc_variant_array_prepend(dst, v)) {
+            goto out;
+        }
+    }
+    ret = 0;
+
+out:
+    return ret;
+}
+
 static UNUSED_FUNCTION int
 update_variant_array(purc_variant_t dst, purc_variant_t src,
         int idx, enum hvml_update_op op,
@@ -616,9 +641,7 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
                 purc_set_error(PURC_ERROR_INVALID_VALUE);
                 break;
             }
-            if (purc_variant_array_prepend(dst, src)) {
-                ret = 0;
-            }
+            ret = array_prepend(dst, src, silently, wholly);
         }
         break;
 

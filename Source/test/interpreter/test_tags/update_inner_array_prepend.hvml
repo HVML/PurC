@@ -2,7 +2,7 @@
 
 # update inner array : prepend
 
-# RESULT: [["en","en_US","en_CA"],["en","en_US","en_AU"],["en","en_US","en_GB"],["en","en_US"],"zh","zh_CN","zh_HK","zh_Hans"]
+# RESULT: ["en","en_US","en_CA",["en","en_US","en_CA"],"en","en_US","en_AU",["en","en_US","en_AU"],"en","en_US","en_GB",["en","en_US","en_GB"],"en","en_US",["en","en_US"],"zh","zh_CN","zh_HK","zh_Hans"]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -28,6 +28,7 @@
             {"type":"object", "locales":$locales}
         </init>
 
+        <update on="$wrap_object" at=".locales" to="prepend" with=["en", "en_US"] wholly/>
         <update on="$wrap_object" at=".locales" to="prepend" with=["en", "en_US"] />
 
         <catch for=`NotAllowed`>
@@ -39,6 +40,7 @@
             ["array", $locales]
         </init>
 
+        <update on="$wrap_array" at="[1]" to="prepend" with=["en", "en_US", "en_GB"] wholly/>
         <update on="$wrap_array" at="[1]" to="prepend" with=["en", "en_US", "en_GB"] />
 
         <catch for=`NotAllowed`>
@@ -50,6 +52,7 @@
             ["set", $locales]
         </init>
 
+        <update on="$wrap_set" at="[1]" to="prepend" with=["en", "en_US", "en_AU"] wholly/>
         <update on="$wrap_set" at="[1]" to="prepend" with=["en", "en_US", "en_AU"] />
 
         <catch for=`NotAllowed`>
@@ -61,6 +64,7 @@
             [!"tuple", $locales]
         </init>
 
+        <update on="$wrap_tuple" at="[1]" to="prepend" with=["en", "en_US", "en_CA"] wholly/>
         <update on="$wrap_tuple" at="[1]" to="prepend" with=["en", "en_US", "en_CA"] />
 
         <catch for=`NotAllowed`>
