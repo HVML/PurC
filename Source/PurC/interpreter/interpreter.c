@@ -84,7 +84,6 @@ stack_frame_release(struct pcintr_stack_frame *frame)
         PURC_VARIANT_SAFE_CLEAR(frame->symbol_vars[i]);
     }
 
-    PURC_VARIANT_SAFE_CLEAR(frame->attr_vars);
     PURC_VARIANT_SAFE_CLEAR(frame->ctnt_var);
     PURC_VARIANT_SAFE_CLEAR(frame->result_from_child);
     PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
@@ -1031,73 +1030,6 @@ pcintr_set_edom_attribute(pcintr_stack_t stack, struct pcvdom_attr *attr,
     PC_ASSERT(r == 0);
 
     return r ? -1 : 0;
-}
-
-struct pcintr_walk_attrs_ud {
-    struct pcintr_stack_frame       *frame;
-    struct pcvdom_element           *element;
-    void                            *ud;
-    pcintr_attr_f                    cb;
-};
-
-static int
-walk_attr(void *key, void *val, void *ud)
-{
-    PC_ASSERT(key);
-    PC_ASSERT(val);
-    PC_ASSERT(ud);
-
-    struct pcintr_walk_attrs_ud *data = (struct pcintr_walk_attrs_ud*)ud;
-
-    struct pcintr_stack_frame *frame = data->frame;
-    PC_ASSERT(frame);
-
-    struct pcvdom_attr *attr = (struct pcvdom_attr*)val;
-    PC_ASSERT(attr->key);
-    PC_ASSERT(attr->key == key);
-
-    struct pcvdom_element *element = data->element;
-    PC_ASSERT(element);
-
-    purc_atom_t atom = PCHVML_KEYWORD_ATOM(HVML, attr->key);
-    // NOTE: we only dispatch those keyworded-attr to caller
-    return data->cb(frame, element, atom, attr, data->ud);
-}
-
-int
-pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, void *ud, pcintr_attr_f cb)
-{
-    pcutils_array_t *attrs = element->attrs;
-    if (!attrs)
-        return 0;
-
-    PC_ASSERT(frame->pos == element);
-
-    if (frame->attr_vars == PURC_VARIANT_INVALID) {
-        frame->attr_vars = purc_variant_make_object(0,
-                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
-        if (frame->attr_vars == PURC_VARIANT_INVALID)
-            return -1;
-    }
-
-    struct pcintr_walk_attrs_ud data = {
-        .frame        = frame,
-        .element      = element,
-        .ud           = ud,
-        .cb           = cb,
-    };
-
-    size_t nr = pcutils_array_length(element->attrs);
-    for (size_t i = 0; i < nr; i++) {
-        struct pcvdom_attr *attr = pcutils_array_get(element->attrs, i);
-        int r = walk_attr(attr->key, attr, &data);
-        if (r) {
-            return r;
-        }
-    }
-
-    return 0;
 }
 
 bool

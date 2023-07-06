@@ -435,9 +435,6 @@ struct pcintr_stack_frame {
     // the symbolized variables for this frame, $0?/$0@/...
     purc_variant_t symbol_vars[PURC_SYMBOL_VAR_MAX];
 
-    // all attribute variants are managed by a map (attribute name -> variant).
-    purc_variant_t attr_vars;
-
     // the evaluated content variant
     purc_variant_t ctnt_var;
 

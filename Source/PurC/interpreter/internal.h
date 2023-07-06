@@ -142,15 +142,6 @@ pcintr_synchronize(void *ctxt, void (*routine)(void *ctxt));
 void
 pcintr_check_insertion_mode_for_normal_element(pcintr_stack_t stack);
 
-typedef int (*pcintr_attr_f)(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name,
-        struct pcvdom_attr *attr,
-        void *ud);
-int
-pcintr_vdom_walk_attrs(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element, void *ud, pcintr_attr_f cb);
-
 bool
 pcintr_is_element_silently(struct pcvdom_element *element);
 
