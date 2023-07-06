@@ -2,7 +2,7 @@
 
 # update array : insertAfter
 
-# RESULT: 'zh'
+# RESULT: ["zh_CN","zh","en",["zh","en"],"zh_Hans" ]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -17,14 +17,15 @@
         <div id="msg">
         </div>
 
-        <update on="$locales" to="insertAfter" at=[0] with="zh" />
+        <update on="$locales" to="insertAfter" at=[0] with=["zh","en"] wholly />
+        <update on="$locales" to="insertAfter" at=[0] with=["zh","en"] />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with $locales[1] />
+        <exit with $locales />
     </body>
 </hvml>
 
