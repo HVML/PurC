@@ -172,14 +172,25 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
         task->request_id = purc_variant_ref(msg->requestId);
     }
 
-    if (msg->eventName) {
-        task->event_name = msg->eventName;
-        purc_variant_ref(task->event_name);
+    if (type) {
+        task->event_name = purc_variant_make_string(type, false);
+    }
+
+    if (sub_type) {
+        task->event_sub_name  = purc_variant_make_string(sub_type, false);
+    }
+    else {
+        // TODO
+        task->event_sub_name  = purc_variant_make_string("", false);
     }
 
     if (msg->sourceURI) {
         task->source = msg->sourceURI;
         purc_variant_ref(task->source);
+    }
+    else {
+        // TODO
+        task->source  = purc_variant_make_string("", false);
     }
 
     if (msg->data) {

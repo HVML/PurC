@@ -15,10 +15,12 @@
 
             <div id="c_title">
                 <h2 id="c_title">Test Observe<br/>
-                    <span id="clock">00:00</span>
+                    <span id="type">type</span>
+                    <span id="subtype">subtype</span>
                 </h2>
                 <observe on="$TIMERS" for="expired:clock">
-                    <update on="#clock" at="textContent" with="$!._eventName" />
+                    <update on="#type" at="textContent" with="$!._eventName" />
+                    <update on="#subtype" at="textContent" with="$!._eventSubName" />
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>

@@ -53,6 +53,10 @@ destroy_task(struct pcintr_observer_task *task)
         purc_variant_unref(task->event_name);
     }
 
+    if (task->event_sub_name) {
+        purc_variant_unref(task->event_sub_name);
+    }
+
     if (task->source) {
         purc_variant_unref(task->source);
     }
@@ -102,6 +106,12 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     if (task->event_name) {
         purc_variant_object_set_by_static_ckey(exclamation_var,
                 PCINTR_EXCLAMATION_EVENT_NAME, task->event_name);
+    }
+
+    // set $! _eventSubName
+    if (task->event_sub_name) {
+        purc_variant_object_set_by_static_ckey(exclamation_var,
+                PCINTR_EXCLAMATION_EVENT_SUB_NAME, task->event_sub_name);
     }
 
     // set $! _eventSource

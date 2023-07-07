@@ -18,7 +18,7 @@
                     <span id="clock">00:00</span>
                 </h2>
                 <observe on="$TIMERS" for="expired:clock">
-                    <update on="$@" at="textContent" with="$!._eventName" />
+                    <update on="$@" at="textContent" with="$!._eventName:$!._eventSubName" />
                     <update on="$TIMERS" to="overwrite">
                        { "id" : "clock", "active" : "no" }
                     </update>

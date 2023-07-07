@@ -59,6 +59,7 @@
 #define PCINTR_RDR_NORETURN_REQUEST_ID        "-"
 
 #define PCINTR_EXCLAMATION_EVENT_NAME         "_eventName"
+#define PCINTR_EXCLAMATION_EVENT_SUB_NAME     "_eventSubName"
 #define PCINTR_EXCLAMATION_EVENT_SOURCE       "_eventSource"
 #define PCINTR_EXCLAMATION_EVENT_REQUEST_ID   "_eventRequestId"
 
@@ -78,6 +79,7 @@ struct pcintr_observer_task {
     pcdoc_element_t               edom_element;
     purc_variant_t                payload;
     purc_variant_t                event_name;
+    purc_variant_t                event_sub_name;
     purc_variant_t                source;
     purc_variant_t                request_id;
 };
