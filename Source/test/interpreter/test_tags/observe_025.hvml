@@ -3,10 +3,8 @@
     <head>
         <link rel="stylesheet" type="text/css" href="calculator.css" />
 
-        <update on="$TIMERS" to="displace">
-            [
-                { "id" : "clock", "interval" : 1000, "active" : "yes" },
-            ]
+        <update on="$TIMERS" to="add">
+            { "id" : "clock", "interval" : 1000, "active" : "yes" }
         </update>
     </head>
 
@@ -19,7 +17,7 @@
                 </h2>
                 <observe on="$TIMERS" for="expired:clock" in="#info">
                     <update on="$@" at="textContent" with="hello" />
-                    <update on="$TIMERS" to="overwrite">
+                    <update on="$TIMERS" to="remove">
                        { "id" : "clock", "active" : "no" }
                     </update>
                     <forget on="$TIMERS" for="expired:clock"/>
