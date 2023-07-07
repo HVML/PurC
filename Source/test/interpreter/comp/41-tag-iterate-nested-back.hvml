@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: ["before0",0L,1L,2L,3L,4L,"before1",0L,1L,2L,3L,4L]
+
+<!DOCTYPE hvml>
+<hvml target="void">
+
+    <body>
+        <init as result with [] />
+
+        <iterate on 0L onlyif $L.lt($0<, 2L) with $DATA.arith('+', $0<, 1) nosetotail >
+            <update on $result to 'append' with "before$?" />
+            <iterate on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
+                <test with $L.eq($?, 5)>
+                    <back to="2"/>
+                </test>
+                <update on $result to 'append' with $? />
+            </iterate>
+            <update on $result to 'append' with "after$?" />
+        </iterate>
+
+        <exit with $result />
+    </body>
+</hvml>
+

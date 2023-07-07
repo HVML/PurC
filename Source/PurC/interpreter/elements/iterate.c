@@ -1392,8 +1392,16 @@ select_child(pcintr_stack_t stack, void* ud)
     struct pcintr_stack_frame *frame;
     frame = pcintr_stack_get_bottom_frame(stack);
 
-    if (stack->back_anchor == frame)
+    if (stack->back_anchor == frame) {
         stack->back_anchor = NULL;
+        /* back operation in iterate is handled as continue */
+        if (frame->ctxt) {
+            struct ctxt_for_iterate *ctxt;
+            ctxt = (struct ctxt_for_iterate*)frame->ctxt;
+            ctxt->curr = NULL;
+        }
+        return NULL;
+    }
 
     if (frame->ctxt == NULL)
         return NULL;
