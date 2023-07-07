@@ -753,6 +753,33 @@ update_variant_array(purc_variant_t dst, purc_variant_t src,
     return ret;
 }
 
+static int
+set_add(purc_variant_t dst, purc_variant_t src, bool silently, bool wholly)
+{
+    UNUSED_PARAM(silently);
+    int ret = -1;
+    if (wholly || !pcvariant_is_linear_container(src)) {
+        if (-1 != purc_variant_set_add(dst, src,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+            ret = 0;
+        }
+        goto out;
+    }
+
+    size_t nr_items = purc_variant_linear_container_get_size(src);
+    for (size_t i = 0; i < nr_items; i++) {
+        purc_variant_t v = purc_variant_linear_container_get(src, i);
+        if (-1 == purc_variant_set_add(dst, v,
+                        PCVRNT_CR_METHOD_OVERWRITE)) {
+            goto out;
+        }
+    }
+    ret = 0;
+
+out:
+    return ret;
+}
+
 static UNUSED_FUNCTION int
 update_variant_set(purc_variant_t dst, purc_variant_t src,
         int idx, enum hvml_update_op op,
@@ -798,10 +825,7 @@ update_variant_set(purc_variant_t dst, purc_variant_t src,
 
     case UPDATE_OP_ADD:
         {
-            if (-1 != purc_variant_set_add(dst, src,
-                        PCVRNT_CR_METHOD_OVERWRITE)) {
-                ret = 0;
-            }
+            ret = set_add(dst, src, silently, wholly);
         }
         break;
 

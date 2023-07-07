@@ -2,7 +2,7 @@
 
 # update set : add
 
-# RESULT: ["zh_CN",zh_Hans"","zh"]
+# RESULT: ["zh_CN","zh_Hans",["zh","en"],"zh","en"]
 
 <!DOCTYPE hvml SYSTEM 'v: MATH'>
 <hvml target="html" lang="en">
@@ -17,14 +17,15 @@
         <div id="msg">
         </div>
 
-        <update on="$locales" to="add" with="zh" />
+        <update on="$locales" to="add" with=["zh", "en"] wholly />
+        <update on="$locales" to="add" with=["zh", "en"] />
 
         <catch for=`NotAllowed`>
             <update on="#msg" at="textContent" with="NotAllowed" />
             <exit with "NotAllowed" />
         </catch>
 
-        <exit with [$locales[0], $locales[1], $locales[2]] />
+        <exit with [$locales[0], $locales[1], $locales[2], $locales[3], $locales[4]] />
     </body>
 </hvml>
 
