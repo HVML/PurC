@@ -43,7 +43,6 @@
 struct ctxt_for_match {
     struct pcvdom_node *curr;
     purc_variant_t for_var;
-    purc_variant_t exclusively;
     purc_variant_t on;
     purc_variant_t with;
 
@@ -57,7 +56,6 @@ ctxt_for_match_destroy(struct ctxt_for_match *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->exclusively);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
@@ -104,11 +102,6 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 
     ctxt->matched = matched;
 
-    purc_variant_t exclusively = ctxt->exclusively;
-    if (exclusively != PURC_VARIANT_INVALID) {
-        ctxt->is_exclusively = true;
-    }
-
     if (matched) {
         if (ctxt->on) {
             r = pcintr_set_question_var(frame, ctxt->on);
@@ -146,31 +139,6 @@ process_attr_for(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->for_var = val;
-    purc_variant_ref(val);
-
-    return 0;
-}
-
-static int
-process_attr_exclusively(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_match *ctxt;
-    ctxt = (struct ctxt_for_match*)frame->ctxt;
-    if (ctxt->exclusively != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->exclusively = val;
     purc_variant_ref(val);
 
     return 0;
@@ -239,11 +207,11 @@ attr_found_val(struct pcintr_stack_frame *frame,
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, FOR)) == name) {
         return process_attr_for(frame, element, name, val);
     }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCLUSIVELY)) == name) {
-        return process_attr_exclusively(frame, element, name, val);
-    }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCL)) == name) {
-        return process_attr_exclusively(frame, element, name, val);
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCLUSIVELY)) == name ||
+            pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, EXCL)) == name) {
+        struct ctxt_for_match *ctxt = (struct ctxt_for_match*)frame->ctxt;
+        ctxt->is_exclusively = true;
+        return 0;
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
