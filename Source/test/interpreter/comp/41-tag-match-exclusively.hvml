@@ -1,0 +1,69 @@
+#!/usr/bin/purc
+
+# RESULT: ["first","second","third","c1","any","c1","c2"]
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as result with [] />
+        <test on "abc.pdf" >
+            <match with=true on="first">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="second">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="third" exclusively>
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="fourth">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match on="any">
+                <update on=$result to="append" with=$? />
+            </match>
+        </test>
+
+        <test on "def.pdf" >
+            <match with=true on="c1" exclusively>
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c2">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c3">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c4">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match on="any">
+                <update on=$result to="append" with=$? />
+            </match>
+        </test>
+
+        <test on "def.pdf" >
+            <match on="any">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c1">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c2" exclusively>
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c3">
+                <update on=$result to="append" with=$? />
+            </match>
+            <match with=true on="c4">
+                <update on=$result to="append" with=$? />
+            </match>
+        </test>
+
+        <exit with $result />
+    </body>
+</hvml>
+
+
