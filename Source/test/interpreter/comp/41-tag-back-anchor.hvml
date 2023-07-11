@@ -1,0 +1,31 @@
+#!/usr/bin/purc
+
+# RESULT: ["idxBegin", "xyzBegin", 0L,1L,2L,3L,4L, "idxEnd"]
+
+<!DOCTYPE hvml>
+<hvml target="html">
+
+    <body>
+        <init as result with [] />
+
+        <div id="idx">
+            <update on $result to 'append' with 'idxBegin' />
+
+            <div id="xyz">
+                <update on $result to 'append' with 'xyzBegin' />
+                <iterate idd-by="ida" on 0L onlyif $L.lt($0<, 10L) with $DATA.arith('+', $0<, 1) nosetotail >
+                    <test idd-by="idb" with $L.eq($?, 5)>
+                        <back to="#idx"/>
+                    </test>
+                    <update on $result to 'append' with $? />
+                </iterate>
+                <update on $result to 'append' with 'xyzEnd' />
+            </div>
+
+            <update on $result to 'append' with 'idxEnd' />
+        </div>
+
+        <exit with $result />
+    </body>
+</hvml>
+

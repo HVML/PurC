@@ -152,13 +152,9 @@ post_process_to_by_id(struct pcintr_stack_frame *frame,
 
     struct pcintr_stack_frame *p = pcintr_stack_frame_get_parent(frame);
     while (p) {
-        pcdoc_element *edom_element;
-        edom_element = p->edom_element;
-        if (edom_element) {
-            const char *s;
-            size_t len;
-            s = pcdoc_element_id(frame->owner->doc, edom_element, &len);
-            if (s && strncmp(s, id, len)==0 && id[len] == '\0') {
+        if (p->elem_id) {
+            const char *s = purc_variant_get_string_const(p->elem_id);
+            if (s && strcmp(s, id)==0) {
                 break;
             }
         }
