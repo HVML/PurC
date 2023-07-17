@@ -1,0 +1,16 @@
+<hvml target="html">
+    <head>
+    </head>
+    <body>
+        <div id="the-user-stats">
+            <h2 id="the-id-to-erase" class="text-info">User regions (totally <span class="none"></span> users):</h2>
+        </div>
+
+        <div id="dest">
+        </div>
+
+        <erase on="#the-id-to-erase" in="#dest">
+            <div>eraser content with in attr</div>
+        </erase>
+    </body>
+</hvml>
