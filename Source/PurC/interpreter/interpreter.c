@@ -61,6 +61,7 @@
 #define HVML_VARIABLE_REGEX "^[A-Za-z_][A-Za-z0-9_]*$"
 #define ATTR_NAME_ID        "id"
 #define ATTR_NAME_IDD_BY    "idd-by"
+#define ATTR_NAME_IN        "in"
 #define BUFF_MIN            1024
 #define BUFF_MAX            1024 * 1024 * 4
 
@@ -89,6 +90,7 @@ stack_frame_release(struct pcintr_stack_frame *frame)
     PURC_VARIANT_SAFE_CLEAR(frame->except_templates);
     PURC_VARIANT_SAFE_CLEAR(frame->error_templates);
     PURC_VARIANT_SAFE_CLEAR(frame->elem_id);
+    PURC_VARIANT_SAFE_CLEAR(frame->attr_in);
 
     if (frame->attrs_result) {
         size_t nr_result = pcutils_array_length(frame->attrs_result);
@@ -3636,6 +3638,9 @@ pcintr_stack_frame_eval_attr_and_content_full(pcintr_stack_t stack,
                     if (strcmp(attr->key, ATTR_NAME_ID) == 0) {
                         frame->elem_id = purc_variant_ref(val);
                     }
+                }
+                if (strcmp(attr->key, ATTR_NAME_IN) == 0) {
+                    frame->attr_in = purc_variant_ref(val);
                 }
                 pcutils_array_set(frame->attrs_result, frame->eval_attr_pos,
                         val);

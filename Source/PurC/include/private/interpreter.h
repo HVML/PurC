@@ -458,6 +458,7 @@ struct pcintr_stack_frame {
     purc_variant_t     error_templates;
     /* element id attr value */
     purc_variant_t    elem_id;
+    purc_variant_t    attr_in;
 
     unsigned int       silently:1;
     unsigned int       must_yield:1;
