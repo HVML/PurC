@@ -1,0 +1,25 @@
+#!/usr/bin/purc
+
+# RESULT: "var with in"
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+
+        <init as 'vn' with "var without in">
+            <div>content tag in init without in</div>
+        </init>
+
+        <init as 'vin' with "var with in" in="#dest">
+            <div>content tag in init with in</div>
+        </init>
+
+        <exit with $vin />
+    </body>
+</hvml>
+
+
