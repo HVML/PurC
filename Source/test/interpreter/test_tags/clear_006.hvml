@@ -1,0 +1,20 @@
+<hvml target="html">
+    <head>
+    </head>
+    <body>
+        <div id="the-user-stats">
+            <h2>User regions (totally <span class="none"></span> users):</h2>
+            <dl id="the-id-to-clear">
+                <dt>zh_CN</dt>
+                <dd>1</dd>
+                <dt>en_US</dt>
+                <dd>2</dd>
+            </dl>
+        </div>
+        <div id="dest">
+        </div>
+        <clear on="#the-id-to-clear" in="#dest">
+            <div>this is content</div>
+        </clear>
+    </body>
+</hvml>
