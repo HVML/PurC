@@ -42,7 +42,6 @@ struct ctxt_for_reduce {
     struct pcvdom_node *curr;
     purc_variant_t on;
     purc_variant_t by;
-    purc_variant_t in;
     purc_variant_t with;
 };
 
@@ -52,7 +51,6 @@ ctxt_for_reduce_destroy(struct ctxt_for_reduce *ctxt)
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->by);
         PURC_VARIANT_SAFE_CLEAR(ctxt->on);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
 
         free(ctxt);
@@ -167,33 +165,13 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
-    struct ctxt_for_reduce *ctxt;
-    ctxt = (struct ctxt_for_reduce*)frame->ctxt;
+    if (pcintr_common_handle_attr_in(co, frame)) {
+        return -1;
+    }
 
     int r = post_process_dest_data(co, frame);
     if (r)
         return r;
-
-    purc_variant_t in;
-    in = ctxt->in;
-    if (in != PURC_VARIANT_INVALID) {
-        if (!purc_variant_is_string(in)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-
-        purc_variant_t elements = pcintr_doc_query(co,
-                purc_variant_get_string_const(in), frame->silently);
-        if (elements == PURC_VARIANT_INVALID) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            return -1;
-        }
-
-        r = pcintr_set_at_var(frame, elements);
-        purc_variant_unref(elements);
-        if (r)
-            return -1;
-    }
 
     return 0;
 }
@@ -218,31 +196,6 @@ process_attr_on(struct pcintr_stack_frame *frame,
         return -1;
     }
     ctxt->on = val;
-    purc_variant_ref(val);
-
-    return 0;
-}
-
-static int
-process_attr_in(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_reduce *ctxt;
-    ctxt = (struct ctxt_for_reduce*)frame->ctxt;
-    if (ctxt->in != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->in = val;
     purc_variant_ref(val);
 
     return 0;
@@ -309,9 +262,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
 
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, ON)) == name) {
         return process_attr_on(frame, element, name, val);
-    }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
-        return process_attr_in(frame, element, name, val);
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, BY)) == name) {
         return process_attr_by(frame, element, name, val);
