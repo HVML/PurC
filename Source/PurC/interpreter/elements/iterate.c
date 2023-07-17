@@ -607,6 +607,12 @@ attr_found_val(struct pcintr_stack_frame *frame,
         return 0;
     }
 
+    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
+        frame->attr_in = pcintr_eval_vcm((pcintr_stack_t)ud, attr->val,
+                frame->silently);
+        return pcintr_common_handle_attr_in(((pcintr_stack_t)ud)->co, frame);
+    }
+
     /* ignore other attr */
     return 0;
 }

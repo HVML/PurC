@@ -43,7 +43,6 @@ struct ctxt_for_fire {
     purc_variant_t                for_var;
     purc_variant_t                at;
     purc_variant_t                with;
-    purc_variant_t                in;
 
     char                         *msg_type;
     char                         *sub_type;
@@ -57,7 +56,6 @@ ctxt_for_fire_destroy(struct ctxt_for_fire *ctxt)
         PURC_VARIANT_SAFE_CLEAR(ctxt->for_var);
         PURC_VARIANT_SAFE_CLEAR(ctxt->at);
         PURC_VARIANT_SAFE_CLEAR(ctxt->with);
-        PURC_VARIANT_SAFE_CLEAR(ctxt->in);
 
         if (ctxt->msg_type) {
             free(ctxt->msg_type);
@@ -195,31 +193,6 @@ process_attr_with(struct pcintr_stack_frame *frame,
 }
 
 static int
-process_attr_in(struct pcintr_stack_frame *frame,
-        struct pcvdom_element *element,
-        purc_atom_t name, purc_variant_t val)
-{
-    struct ctxt_for_fire *ctxt;
-    ctxt = (struct ctxt_for_fire*)frame->ctxt;
-    if (ctxt->in != PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
-                "vdom attribute '%s' for element <%s>",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    if (val == PURC_VARIANT_INVALID) {
-        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
-                "vdom attribute '%s' for element <%s> undefined",
-                purc_atom_to_string(name), element->tag_name);
-        return -1;
-    }
-    ctxt->in = val;
-    purc_variant_ref(val);
-
-    return 0;
-}
-
-static int
 attr_found_val(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val,
@@ -244,9 +217,6 @@ attr_found_val(struct pcintr_stack_frame *frame,
     }
     if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, SILENTLY)) == name) {
         return 0;
-    }
-    if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, IN)) == name) {
-        return process_attr_in(frame, element, name, val);
     }
 
     /* ignore other attr */
@@ -280,6 +250,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     }
 
     if (0 != pcintr_stack_frame_eval_attr_and_content(stack, frame, false)) {
+        return NULL;
+    }
+
+    if (pcintr_common_handle_attr_in(stack->co, frame)) {
         return NULL;
     }
 
