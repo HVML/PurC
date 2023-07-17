@@ -609,6 +609,10 @@ bool
 pcintr_reload_crtn_doc(struct pcinst *inst, pcintr_coroutine_t co_revoked,
         uint64_t ctrn_handle);
 
+int
+pcintr_common_handle_attr_in(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_INTERPRETER_INTERNAL_H */

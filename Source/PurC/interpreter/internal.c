@@ -1792,3 +1792,33 @@ pcintr_crtn_observed_is_match(purc_variant_t observed, purc_variant_t v)
 #endif
 }
 
+int
+pcintr_common_handle_attr_in(pcintr_coroutine_t co,
+        struct pcintr_stack_frame *frame)
+{
+    int ret = -1;
+    if (!frame->attr_in) {
+        ret = 0;
+        goto out;
+    }
+
+    if (!purc_variant_is_string(frame->attr_in)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    purc_variant_t elements = pcintr_doc_query(co,
+            purc_variant_get_string_const(frame->attr_in), frame->silently);
+    if (elements == PURC_VARIANT_INVALID) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+
+    pcintr_set_at_var(frame, elements);
+    purc_variant_unref(elements);
+    ret = 0;
+
+out:
+    return ret;
+}
+
