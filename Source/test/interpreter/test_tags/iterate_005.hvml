@@ -1,0 +1,22 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+        <div id="calculator">
+            <div id="c_value">
+                <ul>
+                    <iterate on="foo" by="CLASS:fibonacci@FUNC_DEMO" with=20>
+                        <div>$?</div>
+                    </iterate>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
