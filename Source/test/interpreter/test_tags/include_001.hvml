@@ -1,0 +1,23 @@
+<!-- Execute in Place -->
+
+<hvml target="html">
+
+    <body>
+        <define as "tmpl_a">
+            <h1>HVML</h1>
+            <p>$?</p>
+        </define>
+
+        <div>
+           this is div before include
+        </div>
+
+        <include with $tmpl_a on 'Hello, world!' />
+
+        <div>
+           this is div after include
+        </div>
+
+    </body>
+
+</hvml>
