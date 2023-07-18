@@ -135,15 +135,12 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
 {
     UNUSED_PARAM(co);
 
-    struct ctxt_for_test *ctxt;
-    ctxt = (struct ctxt_for_test*)frame->ctxt;
-
     int r = post_process_dest_data(co, frame);
     if (r)
         return r;
 
     if (pcintr_common_handle_attr_in(co, frame)) {
-        return ctxt;
+        return -1;
     }
 
     return 0;
