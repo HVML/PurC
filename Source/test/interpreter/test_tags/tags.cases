@@ -428,3 +428,6 @@ include_002
 
 sleep_001
 sleep_002
+
+inherit_001
+inherit_002

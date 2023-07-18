@@ -466,7 +466,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    // NOTE: no element to process if succeeds
     return ctxt;
 }
 

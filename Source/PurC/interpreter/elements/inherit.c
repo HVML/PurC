@@ -135,10 +135,6 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
-    if (pcintr_common_handle_attr_in(stack->co, frame)) {
-        return NULL;
-    }
-
     struct pcvdom_element *element = frame->pos;
 
     int r;
@@ -153,6 +149,10 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     r = pcintr_refresh_at_var(frame);
     if (r)
         return ctxt;
+
+    if (pcintr_common_handle_attr_in(stack->co, frame)) {
+        return NULL;
+    }
 
     purc_clr_error();
 
