@@ -200,9 +200,11 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         return NULL;
     }
 
+#if 0
     if (pcintr_common_handle_attr_in(stack->co, frame)) {
         return NULL;
     }
+#endif
 
     struct pcvdom_element *element = frame->pos;
 

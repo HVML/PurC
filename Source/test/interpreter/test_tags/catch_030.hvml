@@ -1,0 +1,31 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as="strs">
+            [ "foo", "bar", "foobar" ]
+        </init>
+        <div id="dest">
+            <div>this is div</div>
+        </div>
+        <div>
+            <iterate>
+                <catch for=`ArgumentMissed`>
+                    <update on="$@" to="append" with="1" />
+                </catch>
+            </iterate>
+            <iterate on>
+                <catch for=`InvalidValue` in="#dest">
+                    <div>catched by second catch</div>
+                </catch>
+            </iterate>
+        </div>
+        <catch for=`InvalidValue`>
+            <update on="$@" at="attr.invalid_value" to="displace" with="matched" />
+        </catch>
+    </body>
+</hvml>
+
+

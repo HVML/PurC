@@ -281,8 +281,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 
     purc_clr_error();
 
-    // NOTE: no element to process if succeeds
-    return NULL;
+    return ctxt;
 }
 
 static bool
@@ -318,7 +317,7 @@ on_element(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     if (stack->except)
         return 0;
 
-    return -1;
+    return 0;
 }
 
 static int

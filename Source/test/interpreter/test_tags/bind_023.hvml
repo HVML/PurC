@@ -1,0 +1,35 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="buttons">
+            [
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "7", "class": "number" },
+                { "letters": "8", "class": "number" },
+                { "letters": "9", "class": "number" },
+            ]
+        </init>
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+        <div id="grandparent">
+            <div id="temp">
+                <bind on="$buttons" as="btns" at="_root" in="#dest" silently>
+                    <div>content</div>
+                </bind>
+                <div>
+                    $DATA.count($btns.eval)
+                </div>
+            </div>
+        </div>
+        <div>
+            $DATA.count($btns.eval)
+        </div>
+    </body>
+
+</hvml>
+
+

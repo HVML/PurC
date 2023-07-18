@@ -1,0 +1,31 @@
+# RESULT: 15
+
+<!-- Call Concurrently -->
+<!DOCTYPE hvml SYSTEM "v: MATH">
+<hvml target="html">
+
+    <body>
+    <div id="dest">
+    </div>
+
+    <define as "aTimeConsumingTask">
+        <sleep for "1s" />
+        <return with $MATH.eval($?) />
+    </define>
+
+    <call on $aTimeConsumingTask as "myTask" within "newRunner" with "5 * 3" in "#dest" concurrently asynchronously>
+        <div>content</div>
+    </call>
+
+    <observe on $CRTN for "idle">
+
+        <inherit>
+            $STREAM.stdout.writelines($DATETIME.fmttime('%H:%M:%S'))
+        </inherit>
+    </observe>
+
+    <observe on $myTask for "callState:success">
+        <exit with $? />
+    </observe>
+    </body>
+</hvml>

@@ -1,0 +1,34 @@
+<!DOCTYPE hvml>
+<hvml target="html" lang="en">
+    <head>
+        <init as="set">
+            [
+                {"id":"foo"},
+                {"id":"bar"},
+                {"id":"foobar"},
+            ]
+        </init>
+
+
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+        <div>
+            <div id="c_value">
+                <ul>
+                    <sort on=$set ascendingly against="id" by="FILTER: ALL" in="#dest">
+                        <!-- FIXME: sort target is $set -->
+                        <update on="$@" to="append" with="$?" />
+                        <div>content</div>
+                    </sort>
+                </ul>
+            </div>
+        </div>
+    </body>
+
+</hvml>
+
+
+

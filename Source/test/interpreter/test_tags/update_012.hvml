@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="dest">
+        </div>
+
+        <p id="p_0">p0 content</p>
+
+        <update on="#p_0" at="textContent" with="content by update" >
+            <div>content</div>
+        </update>
+
+    </body>
+</hvml>
+
+
+

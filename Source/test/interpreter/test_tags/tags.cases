@@ -116,6 +116,8 @@ differ_002
 differ_003
 differ_004
 differ_005
+differ_006
+differ_007
 
 # sort
 sort_001
@@ -145,6 +147,8 @@ sort_024
 sort_025
 sort_026
 sort_027
+sort_028
+sort_029
 
 # choose
 choose_001
@@ -196,6 +200,8 @@ bind_018
 #####bind_019
 bind_020
 bind_021
+bind_022
+bind_023
 
 observe_001
 observe_002
@@ -227,6 +233,8 @@ observe_026
 fire_001
 fire_002
 fire_003
+fire_004
+fire_005
 
 # catch
 catch_001
@@ -257,6 +265,8 @@ catch_025
 catch_026
 catch_027
 catch_028
+catch_029
+catch_030
 
 # iterate
 iterate_001
@@ -279,6 +289,8 @@ update_008
 update_009
 update_010
 update_011
+update_012
+update_013
 
 update_set_displace
 update_set_append
@@ -417,6 +429,8 @@ doctype_001
 
 # request
 request_001
+request_002
+request_003
 
 # style
 style_001
@@ -431,3 +445,15 @@ sleep_002
 
 inherit_001
 inherit_002
+
+load_001
+load_002
+
+call_001
+call_002
+
+forget_001
+forget_002
+
+match_001
+match_002

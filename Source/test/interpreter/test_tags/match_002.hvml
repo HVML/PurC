@@ -1,0 +1,41 @@
+<hvml target="html">
+    <head>
+        <init as="regionStats">
+            [ "zh_CN", 100, "zh_TW", 90, "zh_HK", 90, "zh_SG", 90, "zh_MO", 80, "en_US", 30, "en_UK", 20 ]
+        </init>
+    </head>
+    <body>
+        <archetype name="footer_cn">
+            <p><a href="http://www.baidu.com" title="百度">Baidu</a></p>
+        </archetype>
+
+        <archetype name="footer_tw">
+            <p><a href="http://www.bing.com" title="必應">Bing</a></p>
+        </archetype>
+
+        <archetype name="footer_en">
+            <p><a href="http://www.google.com" title="Google">Google</a></p>
+        </archetype>
+
+        <archetype name="footer_def">
+            <p><a href="http://www.google.com" title="Google">Google</a></p>
+        </archetype>
+        <div id="dest">
+        </div>
+
+        <footer id="the-footer">
+            <test on="$regionStats" in='#the-footer' by="RANGE: FROM 2 TO 2">
+                <match for="AS 'zh_CN'" exclusively>
+                    <update on="$@" to="displace" with="$footer_cn" />
+                </match>
+                <match for="AS 'zh_TW'" in="#dest" exclusively>
+                    <update on="$@" to="displace" with="$footer_tw" />
+                    <div>content</div>
+                </match>
+                <match for="LIKE '*'" exclusively>
+                    <update on="$@" to="displace" with="$footer_def" />
+                </match>
+            </test>
+        </footer>
+    </body>
+</hvml>
