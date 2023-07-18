@@ -1,0 +1,29 @@
+<!-- Execute in Place -->
+
+<hvml target="html">
+
+    <body>
+        <define as "tmpl_a">
+            <h1>HVML</h1>
+            <p>$?</p>
+        </define>
+
+        <div id="dest">
+            <div>this is dest div</div>
+        </div>
+
+        <div>
+           this is div before
+        </div>
+
+        <sleep for '50ms' in="#dest">
+           <div>sleep content</div>
+        </sleep>
+
+        <div>
+           this is div after
+        </div>
+
+    </body>
+
+</hvml>
