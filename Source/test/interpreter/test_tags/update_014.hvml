@@ -1,0 +1,19 @@
+#!/usr/bin/purc
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <div id="dest" value="originValue" title="originTitle">
+            this is origin content
+        </div>
+
+        <update on="#dest" at="textContent attr.value attr.title" with=["new content by update", "newValue", "newTitle"] />
+
+    </body>
+</hvml>
+
+
+

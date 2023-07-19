@@ -1742,14 +1742,56 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     purc_variant_t to  = ctxt->to;
     purc_variant_t at  = ctxt->at;
     purc_variant_t template_data_type  = ctxt->template_data_type;
+    purc_variant_t at_array = PURC_VARIANT_INVALID;
+    size_t nr_array = 0;
     int ret = -1;
+
+    if (at && purc_variant_is_string(at)) {
+        at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+        if (!at_array) {
+            goto out;
+        }
+
+        const char *s_at = purc_variant_get_string_const(at);
+        size_t length = 0;
+
+        const char *dest = pcutils_get_next_token(s_at, " \t\n", &length);
+        while (dest) {
+            purc_variant_t new_at = purc_variant_make_string_ex(dest, length, false);
+            purc_variant_array_append(at_array, new_at);
+            purc_variant_unref(new_at);
+
+            dest = pcutils_get_next_token(dest + length, " \t\n", &length);
+        }
+        nr_array = purc_variant_array_get_size(at_array);
+    }
 
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         if (pcdvobjs_is_elements(on)) {
-            ret = update_elements(&co->stack, on, at, to, src, with_eval,
-                template_data_type, ctxt->op);
+            if (nr_array <= 1) {
+                ret = update_elements(&co->stack, on, at, to, src, with_eval,
+                        template_data_type, ctxt->op);
+            }
+            else {
+                bool src_is_array = src ? purc_variant_is_array(src) : false;
+                size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
+                for (size_t i = 0; i < nr_array; i++) {
+                    purc_variant_t new_at = purc_variant_array_get(at_array, i);
+                    purc_variant_t new_src = src;
+                    if (src_is_array) {
+                        if (i < nr_src_array) {
+                            new_src = purc_variant_array_get(src, i);
+                        }
+                        else {
+                            new_src = purc_variant_array_get(src, nr_src_array - 1);
+                        }
+                    }
+                    ret = update_elements(&co->stack, on, new_at, to, new_src, with_eval,
+                            template_data_type, ctxt->op);
+                }
+            }
             goto out;
         }
     }
@@ -1776,64 +1818,57 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             pcdoc_element_t elem;
             elem = pcdvobjs_get_element_from_elements(elems, 0);
             if (elem) {
-                ret = update_elements(&co->stack, elems, at, to, src, with_eval,
-                        template_data_type, ctxt->op);
+                if (nr_array <= 1) {
+                    ret = update_elements(&co->stack, elems, at, to, src,
+                            with_eval, template_data_type, ctxt->op);
+                }
+                else {
+                    bool src_is_array = src ? purc_variant_is_array(src) : false;
+                    size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
+                    for (size_t i = 0; i < nr_array; i++) {
+                        purc_variant_t new_at = purc_variant_array_get(at_array, i);
+                        purc_variant_t new_src = src;
+                        if (src_is_array) {
+                            if (i < nr_src_array) {
+                                new_src = purc_variant_array_get(src, i);
+                            }
+                            else {
+                                new_src = purc_variant_array_get(src, nr_src_array - 1);
+                            }
+                        }
+                        ret = update_elements(&co->stack, elems, new_at, to, new_src,
+                            with_eval, template_data_type, ctxt->op);
+                    }
+                }
             }
             purc_variant_unref(elems);
             goto out;
         }
     }
 
-    if (at && purc_variant_is_string(at)) {
-        purc_variant_t at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-        if (!at_array) {
-            goto out;
-        }
-
-        const char *s_at = purc_variant_get_string_const(at);
-        size_t length = 0;
-
-        const char *dest = pcutils_get_next_token(s_at, " \t\n", &length);
-        while (dest) {
-            purc_variant_t new_at = purc_variant_make_string_ex(dest, length, false);
-            purc_variant_array_append(at_array, new_at);
-            purc_variant_unref(new_at);
-
-            dest = pcutils_get_next_token(dest + length, " \t\n", &length);
-        }
-
-        size_t nr_array = purc_variant_array_get_size(at_array);
-        if (nr_array == 1) {
-            ret = update_dest(co, frame, on, at, to, src, with_eval,
-                    ctxt->individually, ctxt->wholly);
-        }
-        else {
-            bool is_array = src ? purc_variant_is_array(src) : false;
-            nr_array = is_array ? purc_variant_array_get_size(src) : 0;
-            for (size_t i = 0; i < nr_array; i++) {
-                purc_variant_t new_at = purc_variant_array_get(at_array, i);
-                purc_variant_t new_src = src;
-                if (is_array) {
-                    if (i < nr_array) {
-                        new_src = purc_variant_array_get(src, i);
-                    }
-                    else {
-                        new_src = purc_variant_array_get(src, nr_array - 1);
-                    }
-                }
-
-                ret = update_dest(co, frame, on, new_at, to, new_src, with_eval, ctxt->individually,
-                        ctxt->wholly);
-            }
-        }
-
-        purc_variant_unref(at_array);
+    if (nr_array <= 1) {
+        ret = update_dest(co, frame, on, at, to, src, with_eval,
+                ctxt->individually, ctxt->wholly);
     }
     else {
-        ret = update_dest(co, frame, on, at, to, src, with_eval, ctxt->individually,
-            ctxt->wholly);
-    }
+        bool src_is_array = src ? purc_variant_is_array(src) : false;
+        size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
+        for (size_t i = 0; i < nr_array; i++) {
+            purc_variant_t new_at = purc_variant_array_get(at_array, i);
+            purc_variant_t new_src = src;
+            if (src_is_array) {
+                if (i < nr_src_array) {
+                    new_src = purc_variant_array_get(src, i);
+                }
+                else {
+                    new_src = purc_variant_array_get(src, nr_src_array - 1);
+                }
+            }
 
+            ret = update_dest(co, frame, on, new_at, to, new_src, with_eval,
+                    ctxt->individually, ctxt->wholly);
+        }
+    }
 
 out:
     if (ret == 0) {
@@ -1849,6 +1884,10 @@ out:
             purc_clr_error();
             ret = 0;
         }
+    }
+
+    if (at_array) {
+        purc_variant_unref(at_array);
     }
     return ret;
 }
