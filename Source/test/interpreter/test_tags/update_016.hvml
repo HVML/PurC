@@ -1,0 +1,22 @@
+#!/usr/bin/purc
+
+# RESULT: ["newName", "new Title", 99L]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as 'dest'>
+        ["originName", "originTitle", 20L]
+        </init>
+
+        <update on="$dest" at='[0] [1] [2]' with=["newName", "new Title", 99L] />
+
+        <exit with $dest />
+    </body>
+</hvml>
+
+
+

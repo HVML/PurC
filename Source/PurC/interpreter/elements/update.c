@@ -1757,7 +1757,13 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
         const char *dest = pcutils_get_next_token(s_at, " \t\n", &length);
         while (dest) {
-            purc_variant_t new_at = purc_variant_make_string_ex(dest, length, false);
+            purc_variant_t new_at;
+            if (dest[0] == '[' && dest[length - 1] == ']') {
+                new_at = purc_variant_make_string_ex(dest + 1, length - 2, false);
+            }
+            else {
+                new_at = purc_variant_make_string_ex(dest, length, false);
+            }
             purc_variant_array_append(at_array, new_at);
             purc_variant_unref(new_at);
 

@@ -1,0 +1,26 @@
+#!/usr/bin/purc
+
+# RESULT: ["newName", "new Title", 99L]
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+    </head>
+
+    <body>
+        <init as 'obj'>
+        {
+            "name":"originName",
+            "title":"originTitle",
+            "value":20L
+        }
+        </init>
+
+        <update on="$obj" at=".name .title .value" with=["newName", "new Title", 99L] />
+
+        <exit with [$obj.name, $obj.title, $obj.value] />
+    </body>
+</hvml>
+
+
+
