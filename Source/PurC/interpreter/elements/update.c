@@ -1554,7 +1554,7 @@ update_elem_content(pcintr_stack_t stack, pcdoc_element_t target,
 }
 
 static int
-displace_target_attr(pcintr_stack_t stack, pcdoc_element_t target,
+displace_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
         const char *pos, purc_variant_t src,
         pcintr_attribute_op attr_op_eval)
 {
@@ -1614,7 +1614,8 @@ update_elem_attr(pcintr_stack_t stack, pcdoc_element_t target,
     UNUSED_PARAM(stack);
     if (purc_variant_is_string(src) || pcvariant_is_of_number(src)) {
         if (action == UPDATE_ACTION_DISPLACE) {
-            return displace_target_attr(stack, target, pos, src, attr_op_eval);
+            // +=, -=, *=, /=, %=, ~=, ^=, $=
+            return displace_elem_attr(stack, target, pos, src, attr_op_eval);
         }
         return -1;
     }
@@ -2266,7 +2267,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
         }
     }
 
-    // +=, -=, *= ... only support displace
+    // +=, -=, *=, /=, %=, ~=, ^=, $= only support displace
     if (ctxt->attr_op != PCHVML_ATTRIBUTE_OPERATOR
             && ctxt->action != UPDATE_ACTION_DISPLACE) {
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
