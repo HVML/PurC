@@ -1774,11 +1774,15 @@ process_elem_coll(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
             ret = update_elements(&co->stack, dst, new_pos, action, new_src, attr_op,
                 template_data_type, ctxt->op);
+            if (ret) {
+                goto out;
+            }
         }
         break;
     }
     }
 
+out:
     return ret;
 }
 
@@ -1824,11 +1828,15 @@ process_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
             ret = update_dest(co, frame, dst, new_pos, action, new_src, attr_op,
                     individually, wholly);
+            if (ret) {
+                goto out;
+            }
         }
         break;
     }
     }
 
+out:
     return ret;
 }
 
