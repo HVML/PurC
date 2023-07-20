@@ -1731,6 +1731,108 @@ out:
 }
 
 static int
+process_elem_coll(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t dst, purc_variant_t src, purc_variant_t dst_pos,
+        purc_variant_t action, pcintr_attribute_op attr_op,
+        purc_variant_t template_data_type, bool individually, bool wholly)
+{
+    UNUSED_PARAM(individually);
+    UNUSED_PARAM(wholly);
+
+    int ret = -1;
+    purc_variant_t pos = PURC_VARIANT_INVALID;
+    size_t nr_dst_pos = dst_pos ? purc_variant_array_get_size(dst_pos) : 0;
+    struct ctxt_for_update *ctxt = (struct ctxt_for_update*)frame->ctxt;
+
+    switch (nr_dst_pos) {
+    case 0:
+        ret = update_elements(&co->stack, dst, pos, action, src, attr_op,
+                template_data_type, ctxt->op);
+        break;
+
+    case 1:
+        pos = purc_variant_array_get(dst_pos, 0);
+        ret = update_elements(&co->stack, dst, pos, action, src, attr_op,
+                template_data_type, ctxt->op);
+        break;
+
+    default:
+    {
+        bool is_array = src ? purc_variant_is_array(src) : false;
+        size_t nr_array = is_array ? purc_variant_array_get_size(src) : 0;
+        for (size_t i = 0; i < nr_dst_pos; i++) {
+            purc_variant_t new_pos = purc_variant_array_get(dst_pos, i);
+            purc_variant_t new_src = src;
+            if (is_array) {
+                if (i < nr_array) {
+                    new_src = purc_variant_array_get(src, i);
+                }
+                else {
+                    new_src = purc_variant_array_get(src, nr_array - 1);
+                }
+            }
+
+            ret = update_elements(&co->stack, dst, new_pos, action, new_src, attr_op,
+                template_data_type, ctxt->op);
+        }
+        break;
+    }
+    }
+
+    return ret;
+}
+
+static int
+process_container(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
+        purc_variant_t dst, purc_variant_t src, purc_variant_t dst_pos,
+        purc_variant_t action, pcintr_attribute_op attr_op,
+        purc_variant_t template_data_type, bool individually, bool wholly)
+{
+    UNUSED_PARAM(template_data_type);
+
+    int ret = -1;
+    purc_variant_t pos = PURC_VARIANT_INVALID;
+    size_t nr_dst_pos = dst_pos ? purc_variant_array_get_size(dst_pos) : 0;
+
+    switch (nr_dst_pos) {
+    case 0:
+        ret = update_dest(co, frame, dst, pos, action, src, attr_op,
+                individually, wholly);
+        break;
+
+    case 1:
+        pos = purc_variant_array_get(dst_pos, 0);
+        ret = update_dest(co, frame, dst, pos, action, src, attr_op,
+                individually, wholly);
+        break;
+
+    default:
+    {
+        bool is_array = src ? purc_variant_is_array(src) : false;
+        size_t nr_array = is_array ? purc_variant_array_get_size(src) : 0;
+        for (size_t i = 0; i < nr_dst_pos; i++) {
+            purc_variant_t new_pos = purc_variant_array_get(dst_pos, i);
+            purc_variant_t new_src = src;
+            if (is_array) {
+                if (i < nr_array) {
+                    new_src = purc_variant_array_get(src, i);
+                }
+                else {
+                    new_src = purc_variant_array_get(src, nr_array - 1);
+                }
+            }
+
+            ret = update_dest(co, frame, dst, new_pos, action, new_src, attr_op,
+                    individually, wholly);
+        }
+        break;
+    }
+    }
+
+    return ret;
+}
+
+static int
 process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         purc_variant_t src,
         pcintr_attribute_op with_eval)
@@ -1746,12 +1848,12 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
     size_t nr_array = 0;
     int ret = -1;
 
-    if (at && purc_variant_is_string(at)) {
-        at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
-        if (!at_array) {
-            goto out;
-        }
+    at_array = purc_variant_make_array(0, PURC_VARIANT_INVALID);
+    if (!at_array) {
+        goto out;
+    }
 
+    if (at && purc_variant_is_string(at)) {
         const char *s_at = purc_variant_get_string_const(at);
         size_t length = 0;
 
@@ -1772,32 +1874,16 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         nr_array = purc_variant_array_get_size(at_array);
     }
 
+    if (nr_array == 0 && at) {
+        purc_variant_array_append(at_array, at);
+    }
+
     /* FIXME: what if array of elements? */
     enum purc_variant_type type = purc_variant_get_type(on);
     if (type == PURC_VARIANT_TYPE_NATIVE) {
         if (pcdvobjs_is_elements(on)) {
-            if (nr_array <= 1) {
-                ret = update_elements(&co->stack, on, at, to, src, with_eval,
-                        template_data_type, ctxt->op);
-            }
-            else {
-                bool src_is_array = src ? purc_variant_is_array(src) : false;
-                size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
-                for (size_t i = 0; i < nr_array; i++) {
-                    purc_variant_t new_at = purc_variant_array_get(at_array, i);
-                    purc_variant_t new_src = src;
-                    if (src_is_array) {
-                        if (i < nr_src_array) {
-                            new_src = purc_variant_array_get(src, i);
-                        }
-                        else {
-                            new_src = purc_variant_array_get(src, nr_src_array - 1);
-                        }
-                    }
-                    ret = update_elements(&co->stack, on, new_at, to, new_src, with_eval,
-                            template_data_type, ctxt->op);
-                }
-            }
+            ret =  process_elem_coll(co, frame, on, src, at_array, to, with_eval,
+                    template_data_type, ctxt->individually, ctxt->wholly);
             goto out;
         }
     }
@@ -1824,57 +1910,17 @@ process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
             pcdoc_element_t elem;
             elem = pcdvobjs_get_element_from_elements(elems, 0);
             if (elem) {
-                if (nr_array <= 1) {
-                    ret = update_elements(&co->stack, elems, at, to, src,
-                            with_eval, template_data_type, ctxt->op);
-                }
-                else {
-                    bool src_is_array = src ? purc_variant_is_array(src) : false;
-                    size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
-                    for (size_t i = 0; i < nr_array; i++) {
-                        purc_variant_t new_at = purc_variant_array_get(at_array, i);
-                        purc_variant_t new_src = src;
-                        if (src_is_array) {
-                            if (i < nr_src_array) {
-                                new_src = purc_variant_array_get(src, i);
-                            }
-                            else {
-                                new_src = purc_variant_array_get(src, nr_src_array - 1);
-                            }
-                        }
-                        ret = update_elements(&co->stack, elems, new_at, to, new_src,
-                            with_eval, template_data_type, ctxt->op);
-                    }
-                }
+                ret =  process_elem_coll(co, frame, elems, src, at_array, to,
+                        with_eval, template_data_type, ctxt->individually,
+                        ctxt->wholly);
             }
             purc_variant_unref(elems);
             goto out;
         }
     }
 
-    if (nr_array <= 1) {
-        ret = update_dest(co, frame, on, at, to, src, with_eval,
-                ctxt->individually, ctxt->wholly);
-    }
-    else {
-        bool src_is_array = src ? purc_variant_is_array(src) : false;
-        size_t nr_src_array = src_is_array ? purc_variant_array_get_size(src) : 0;
-        for (size_t i = 0; i < nr_array; i++) {
-            purc_variant_t new_at = purc_variant_array_get(at_array, i);
-            purc_variant_t new_src = src;
-            if (src_is_array) {
-                if (i < nr_src_array) {
-                    new_src = purc_variant_array_get(src, i);
-                }
-                else {
-                    new_src = purc_variant_array_get(src, nr_src_array - 1);
-                }
-            }
-
-            ret = update_dest(co, frame, on, new_at, to, new_src, with_eval,
-                    ctxt->individually, ctxt->wholly);
-        }
-    }
+    ret = process_container(co, frame, on, src, at_array, to, with_eval,
+            template_data_type, ctxt->individually, ctxt->wholly);
 
 out:
     if (ret == 0) {
