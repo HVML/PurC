@@ -95,7 +95,7 @@
 1. [0.9.14] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
    - [0.9.14; Resolved] The default result data of a foreign element: inheriting from the proceeding operation.
    - [0.9.14; Resolved] Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
-   - Tune the manners of `back` and `update` elements and fix known bugs.
+   - [0.9.14; Resolved] Tune the manners of `back` and `update` elements and fix known bugs.
    - [0.9.14; Resolved] Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
    - [0.9.14; Resolved] The result data of a `catch` elmenet, should be defined as an object to describe the exception.
    - Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
