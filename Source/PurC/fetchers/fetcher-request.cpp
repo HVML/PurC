@@ -111,6 +111,69 @@ static const char* transMethod(enum pcfetcher_request_method method)
 
 String pcfetcher_build_uri(const char *base_url,  const char *url);
 
+
+static int fill_request_param(
+        std::unique_ptr<PurCWTF::URL> &url,
+        enum pcfetcher_request_method method,
+        ResourceRequest* request,
+        purc_variant_t params)
+{
+    int ret = -1;
+    bool raw_header = false;
+    const char *encode_p = NULL;
+
+    if (!params) {
+        goto out;
+    }
+
+    if (purc_variant_is_object(params)) {
+        purc_variant_t raw = purc_variant_object_get_by_ckey(params,
+                FETCHER_PARAM_RAW_HEADER);
+        if (raw && purc_variant_booleanize(raw)) {
+            raw_header = 1;
+            params = purc_variant_object_get_by_ckey(params,
+                    FETCHER_PARAM_DATA);
+        }
+    }
+
+    if (!params) {
+        goto out;
+    }
+
+    if (raw_header) {
+        if (!purc_variant_is_string(params)) {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            goto out;
+        }
+        encode_p = purc_variant_get_string_const(params);
+    }
+    else {
+        purc_variant_t encode_val = pcutils_url_build_query(params, NULL, '&', 0);
+        if (!encode_val) {
+            goto out;
+        }
+
+        encode_p = purc_variant_get_string_const(encode_val);
+    }
+
+    if (encode_p && encode_p[0]) {
+        if (raw_header) {
+            request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+        }
+        else if (method == PCFETCHER_REQUEST_METHOD_GET) {
+            url->setQuery(encode_p);
+        }
+        else {
+            request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+            request->setHTTPContentType("application/x-www-form-urlencoded");
+        }
+    }
+
+    ret = 0;
+out:
+    return ret;
+}
+
 purc_variant_t PcFetcherRequest::requestAsync(
         const char* base_uri,
         const char* url,
@@ -132,39 +195,6 @@ purc_variant_t PcFetcherRequest::requestAsync(
     m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
 
-    bool raw_header = false;
-    const char *encode_p = NULL;
-    purc_variant_t encode_val = PURC_VARIANT_INVALID;
-    if (params) {
-        if (purc_variant_is_object(params)) {
-            purc_variant_t raw = purc_variant_object_get_by_ckey(params,
-                    FETCHER_PARAM_RAW_HEADER);
-            if (raw && purc_variant_booleanize(raw)) {
-                raw_header = 1;
-                params = purc_variant_object_get_by_ckey(params,
-                        FETCHER_PARAM_DATA);
-            }
-        }
-
-        if (params) {
-            if (raw_header) {
-                if (!purc_variant_is_string(params)) {
-                    purc_set_error(PURC_ERROR_INVALID_VALUE);
-                    return NULL;
-                }
-                encode_p = purc_variant_get_string_const(params);
-            }
-            else {
-                encode_val = pcutils_url_build_query(params, NULL, '&', 0);
-                if (!encode_val) {
-                    return NULL;
-                }
-
-                encode_p = purc_variant_get_string_const(encode_val);
-            }
-        }
-    }
-
     String uri;
     if (base_uri) {
         uri = pcfetcher_build_uri(base_uri, url);
@@ -175,25 +205,12 @@ purc_variant_t PcFetcherRequest::requestAsync(
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
-    if (encode_p && encode_p[0]) {
-        if (raw_header) {
-            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
-        }
-        else if (method == PCFETCHER_REQUEST_METHOD_GET) {
-            wurl->setQuery(encode_p);
-        }
-        else {
-            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
-            request.setHTTPContentType("application/x-www-form-urlencoded");
-        }
-    }
-
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
 
-    if (encode_val) {
-        purc_variant_unref(encode_val);
+    if (fill_request_param(wurl, method, &request, params)) {
+        return NULL;
     }
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
@@ -226,20 +243,8 @@ purc_rwstream_t PcFetcherRequest::requestSync(
 
     m_is_async = false;
 
-    const char *encode_p = NULL;
-    purc_variant_t encode_val = PURC_VARIANT_INVALID;
-    if (params) {
-        encode_val = pcutils_url_build_query(params, NULL, '&', 0);
-        if (!encode_val) {
-            return NULL;
-        }
-
-        encode_p = purc_variant_get_string_const(encode_val);
-    }
-
-    URL tmp(URL(), url);
-
     String uri;
+    URL tmp(URL(), url);
     if (base_uri && !tmp.isValid() &&
             strncmp(url, base_uri, strlen(base_uri)) != 0) {
         uri.append(base_uri);
@@ -247,23 +252,13 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     uri.append(url);
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
-
     ResourceRequest request;
-    if (encode_p && encode_p[0]) {
-        if (method == PCFETCHER_REQUEST_METHOD_GET) {
-            wurl->setQuery(encode_p);
-        }
-        else {
-            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
-            request.setHTTPContentType("application/x-www-form-urlencoded");
-        }
-    }
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
 
-    if (encode_val) {
-        purc_variant_unref(encode_val);
+    if (fill_request_param(wurl, method, &request, params)) {
+        return NULL;
     }
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
