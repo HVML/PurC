@@ -111,6 +111,56 @@ static const char* transMethod(enum pcfetcher_request_method method)
 
 String pcfetcher_build_uri(const char *base_url,  const char *url);
 
+static int fill_raw_header(
+        ResourceRequest* request,
+        purc_variant_t params)
+{
+    int ret = -1;
+    const char *encode_p = NULL;
+    if (!purc_variant_is_string(params)) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto out;
+    }
+    encode_p = purc_variant_get_string_const(params);
+    if (encode_p && encode_p[0]) {
+        request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+    }
+
+    ret = 0;
+out:
+    return ret;
+}
+
+static int fill_normal_params(
+        std::unique_ptr<PurCWTF::URL> &url,
+        enum pcfetcher_request_method method,
+        ResourceRequest* request,
+        purc_variant_t params)
+{
+    int ret = -1;
+    const char *encode_p = NULL;
+
+    purc_variant_t encode_val = pcutils_url_build_query(params, NULL, '&', 0);
+    if (!encode_val) {
+        goto out;
+    }
+
+    encode_p = purc_variant_get_string_const(encode_val);
+
+    if (encode_p && encode_p[0]) {
+        if (method == PCFETCHER_REQUEST_METHOD_GET) {
+            url->setQuery(encode_p);
+        }
+        else {
+            request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+            request->setHTTPContentType("application/x-www-form-urlencoded");
+        }
+    }
+
+    ret = 0;
+out:
+    return ret;
+}
 
 static int fill_request_param(
         std::unique_ptr<PurCWTF::URL> &url,
@@ -120,7 +170,6 @@ static int fill_request_param(
 {
     int ret = -1;
     bool raw_header = false;
-    const char *encode_p = NULL;
 
     if (!params) {
         goto out;
@@ -130,7 +179,7 @@ static int fill_request_param(
         purc_variant_t raw = purc_variant_object_get_by_ckey(params,
                 FETCHER_PARAM_RAW_HEADER);
         if (raw && purc_variant_booleanize(raw)) {
-            raw_header = 1;
+            raw_header = true;
             params = purc_variant_object_get_by_ckey(params,
                     FETCHER_PARAM_DATA);
         }
@@ -141,35 +190,12 @@ static int fill_request_param(
     }
 
     if (raw_header) {
-        if (!purc_variant_is_string(params)) {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            goto out;
-        }
-        encode_p = purc_variant_get_string_const(params);
+        ret = fill_raw_header(request, params);
     }
     else {
-        purc_variant_t encode_val = pcutils_url_build_query(params, NULL, '&', 0);
-        if (!encode_val) {
-            goto out;
-        }
-
-        encode_p = purc_variant_get_string_const(encode_val);
+        ret = fill_normal_params(url, method, request, params);
     }
 
-    if (encode_p && encode_p[0]) {
-        if (raw_header) {
-            request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
-        }
-        else if (method == PCFETCHER_REQUEST_METHOD_GET) {
-            url->setQuery(encode_p);
-        }
-        else {
-            request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
-            request->setHTTPContentType("application/x-www-form-urlencoded");
-        }
-    }
-
-    ret = 0;
 out:
     return ret;
 }
