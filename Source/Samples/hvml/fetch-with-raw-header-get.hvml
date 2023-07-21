@@ -1,0 +1,16 @@
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <init as="res" from="http://ws.fmsoft.cn/tools/raw.php" via="GET RAW-HEADERS">
+'''
+access-token: 0bee89b07a248e27c83fc3d5951213c1
+
+'''
+        </init>
+    </head>
+
+    <body>
+        <exit with $res.serialize />
+    </body>
+</hvml>
+
