@@ -111,19 +111,182 @@ static const char* transMethod(enum pcfetcher_request_method method)
 
 String pcfetcher_build_uri(const char *base_url,  const char *url);
 
+static inline bool isValidHeaderNameCharacter(const char* character)
+{
+    // https://tools.ietf.org/html/rfc7230#section-3.2
+    // A header name should only contain one or more of
+    // alphanumeric or ! # $ % & ' * + - . ^ _ ` | ~
+    if (isASCIIAlphanumeric(*character))
+        return true;
+    switch (*character) {
+    case '!':
+    case '#':
+    case '$':
+    case '%':
+    case '&':
+    case '\'':
+    case '*':
+    case '+':
+    case '-':
+    case '.':
+    case '^':
+    case '_':
+    case '`':
+    case '|':
+    case '~':
+        return true;
+    default:
+        return false;
+    }
+}
+
+const UChar horizontalEllipsis = 0x2026;
+static const size_t maxInputSampleSize = 128;
+static String trimInputSample(const char* p, size_t length)
+{
+    String s = String(p, std::min<size_t>(length, maxInputSampleSize));
+    if (length > maxInputSampleSize)
+        s.append(horizontalEllipsis);
+    return s;
+}
+
+static size_t parseHTTPHeader(const char* start, size_t length, String& failureReason,
+        StringView& nameStr, String& valueStr, bool strict)
+{
+    const char* p = start;
+    const char* end = start + length;
+
+    Vector<char> name;
+    Vector<char> value;
+
+    bool foundFirstNameChar = false;
+    const char* namePtr = nullptr;
+    size_t nameSize = 0;
+
+    nameStr = StringView();
+    valueStr = String();
+
+    for (; p < end; p++) {
+        switch (*p) {
+        case '\r':
+            if (name.isEmpty()) {
+                if (p + 1 < end && *(p + 1) == '\n')
+                    return (p + 2) - start;
+                failureReason = makeString("CR doesn't follow LF in header name at ", trimInputSample(p, end - p));
+                return 0;
+            }
+            failureReason = makeString("Unexpected CR in header name at ", trimInputSample(name.data(), name.size()));
+            return 0;
+        case '\n':
+            failureReason = makeString("Unexpected LF in header name at ", trimInputSample(name.data(), name.size()));
+            return 0;
+        case ':':
+            break;
+        default:
+            if (!isValidHeaderNameCharacter(p)) {
+                if (name.size() < 1)
+                    failureReason = "Unexpected start character in header name";
+                else
+                    failureReason = makeString("Unexpected character in header name at ", trimInputSample(name.data(), name.size()));
+                return 0;
+            }
+            name.append(*p);
+            if (!foundFirstNameChar) {
+                namePtr = p;
+                foundFirstNameChar = true;
+            }
+            continue;
+        }
+        if (*p == ':') {
+            ++p;
+            break;
+        }
+    }
+
+    nameSize = name.size();
+    nameStr = StringView(namePtr, nameSize);
+
+    for (; p < end && *p == 0x20; p++) { }
+
+    for (; p < end; p++) {
+        switch (*p) {
+        case '\r':
+            break;
+        case '\n':
+            if (strict) {
+                failureReason = makeString("Unexpected LF in header value at ", trimInputSample(value.data(), value.size()));
+                return 0;
+            }
+            break;
+        default:
+            value.append(*p);
+        }
+        if (*p == '\r' || (!strict && *p == '\n')) {
+            ++p;
+            break;
+        }
+    }
+    if (p >= end || (strict && *p != '\n')) {
+        failureReason = makeString("CR doesn't follow LF after header value at ", trimInputSample(p, end - p));
+        return 0;
+    }
+    valueStr = String::fromUTF8(value.data(), value.size());
+    if (valueStr.isNull()) {
+        failureReason = "Invalid UTF-8 sequence in header value"_s;
+        return 0;
+    }
+    return p - start;
+}
+
+
 static int fill_raw_header(
         ResourceRequest* request,
         purc_variant_t params)
 {
     int ret = -1;
-    const char *encode_p = NULL;
+    size_t nr_buf = 0;
+    const char *buf = NULL;
+    const char *p;
+    const char *end;
+    size_t nr_consumed = 0;
+    String value;
+    StringView name;
+
     if (!purc_variant_is_string(params)) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto out;
     }
-    encode_p = purc_variant_get_string_const(params);
-    if (encode_p && encode_p[0]) {
-        request->setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+
+    buf = purc_variant_get_string_const_ex(params, &nr_buf);
+    if (!buf || buf[0] == '\0') {
+        ret = 0;
+        goto out;
+    }
+
+    p = buf;
+    end = buf + nr_buf;
+    for (; p < end && (*p == 0x20 || *p == '\n' || *p == '\r'); p++) { }
+
+    for (; p < end; ++p) {
+        String failureReason;
+        size_t consumedLength = parseHTTPHeader(p, end - p, failureReason,
+                name, value, false);
+        if (!consumedLength)
+            break; // No more header to parse.
+
+        p += consumedLength;
+        nr_consumed += consumedLength;
+
+        // The name should not be empty, but the value could be empty.
+        if (name.isEmpty()) {
+            break;
+        }
+
+        request->setHTTPHeaderField(name.toString(), value);
+    }
+
+    if (end - p) {
+        request->setHTTPBody(FormData::create(p, end - p));
     }
 
     ret = 0;
@@ -183,9 +346,11 @@ static int fill_request_param(
             params = purc_variant_object_get_by_ckey(params,
                     FETCHER_PARAM_DATA);
         }
+        purc_clr_error();
     }
 
     if (!params) {
+        ret = 0;
         goto out;
     }
 

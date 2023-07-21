@@ -748,9 +748,13 @@ out:
 }
 
 static purc_variant_t
-params_from_with(struct ctxt_for_init *ctxt)
+params_from_with(struct ctxt_for_init *ctxt, pcintr_stack_frame_t frame)
 {
     purc_variant_t with = ctxt->with;
+
+    if (!with) {
+        with = pcintr_get_symbol_var(frame, PURC_SYMBOL_VAR_CARET);
+    }
 
     purc_variant_t params;
     if (ctxt->raw_header) {
@@ -794,7 +798,7 @@ process_from_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
-    params = params_from_with(ctxt);
+    params = params_from_with(ctxt, frame);
 
     ctxt->co = co;
     purc_variant_t v = pcintr_load_from_uri_async(stack, ctxt->from_uri,
@@ -1041,7 +1045,7 @@ process_from_async(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
     method = pcintr_method_from_via(ctxt->via);
 
     purc_variant_t params;
-    params = params_from_with(ctxt);
+    params = params_from_with(ctxt, frame);
 
     pcvarmgr_t mgr = pcintr_get_named_variable_mgr_by_at(stack, frame, ctxt->at,
         ctxt->temporarily, true);
