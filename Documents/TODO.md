@@ -98,7 +98,7 @@
    - [0.9.14; Resolved] Tune the manners of `back` and `update` elements and fix known bugs.
    - [0.9.14; Resolved] Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
    - [0.9.14; Resolved] The result data of a `catch` elmenet, should be defined as an object to describe the exception.
-   - Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
+   - [0.9.14; Resolved] Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
    - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the HVML handle of the element.
    - Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
 1. [0.9.16] The generation and handling mechanism of uncatchable errors:
