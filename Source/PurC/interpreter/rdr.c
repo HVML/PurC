@@ -1583,9 +1583,18 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
         goto out;
     }
 
-    pcrdr_msg *response_msg = pcintr_rdr_send_dom_req(stack,
+    pcrdr_msg *response_msg;
+    if (css_selector[0] == '#') {
+        response_msg = pcintr_rdr_send_dom_req(stack,
             PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
-            css_selector, NULL, NULL, NULL, data_type, data);
+            css_selector + 1, NULL, NULL, NULL, data_type, data);
+    }
+    else {
+        response_msg = pcintr_rdr_send_dom_req(stack,
+                PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_CSS,
+                css_selector, NULL, NULL, NULL, data_type, data);
+    }
+
     if (response_msg != NULL) {
         ret = purc_variant_ref(response_msg->data);
         pcrdr_release_message(response_msg);
