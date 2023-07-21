@@ -87,6 +87,7 @@ struct ctxt_for_init {
     unsigned int                  async:1;
     unsigned int                  casesensitively:1;
     unsigned int                  uniquely:1;
+    unsigned int                  raw_header:1;
 };
 
 struct fetcher_for_init {
@@ -416,23 +417,36 @@ process_attr_via(struct pcintr_stack_frame *frame,
     if (!s_val)
         return -1;
 
-    if (strcmp(s_val, "LOAD") == 0) {
-        ctxt->via = VIA_LOAD;
-        return 0;
+    size_t idx = 0;
+    size_t length = 0;
+    const char *dest = pcutils_get_next_token(s_val, " \t\n", &length);
+    while (dest) {
+
+        if (length == 4 && strncmp(dest, "LOAD", length) == 0) {
+            ctxt->via = VIA_LOAD;
+        }
+        else if (length == 3 && strncmp(dest, "GET", length) == 0) {
+            ctxt->via = VIA_GET;
+        }
+        else if (length == 4 && strncmp(dest, "POST", length) == 0) {
+            ctxt->via = VIA_POST;
+        }
+        else if (length == 6 && strncmp(dest, "DELETE", length) == 0) {
+            ctxt->via = VIA_DELETE;
+        }
+        else if (length == 11 && strncmp(dest, "RAW-HEADERS", length) == 0) {
+            ctxt->raw_header = 1;
+        }
+
+        idx++;
+        if (idx == 2) {
+            break;
+        }
+
+        dest = pcutils_get_next_token(dest + length, " \t\n", &length);
     }
 
-    if (strcmp(s_val, "GET") == 0) {
-        ctxt->via = VIA_GET;
-        return 0;
-    }
-
-    if (strcmp(s_val, "POST") == 0) {
-        ctxt->via = VIA_POST;
-        return 0;
-    }
-
-    if (strcmp(s_val, "DELETE") == 0) {
-        ctxt->via = VIA_DELETE;
+    if (ctxt->via != VIA_UNDEFINED) {
         return 0;
     }
 
@@ -739,7 +753,19 @@ params_from_with(struct ctxt_for_init *ctxt)
     purc_variant_t with = ctxt->with;
 
     purc_variant_t params;
-    if (with == PURC_VARIANT_INVALID) {
+    if (ctxt->raw_header) {
+        params = purc_variant_make_object_0();
+        purc_variant_t v = purc_variant_make_boolean(true);
+        purc_variant_object_set_by_static_ckey(params,
+                FETCHER_PARAM_RAW_HEADER, v);
+        purc_variant_unref(v);
+
+        if (with) {
+            purc_variant_object_set_by_static_ckey(params,
+                    FETCHER_PARAM_DATA, with);
+        }
+    }
+    else if (with == PURC_VARIANT_INVALID) {
         params = purc_variant_make_object_0();
     }
     else if (purc_variant_is_object(with)) {

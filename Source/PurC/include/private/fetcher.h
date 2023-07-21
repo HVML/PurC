@@ -33,6 +33,9 @@
 
 #include <time.h>
 
+#define FETCHER_PARAM_RAW_HEADER    "__fetcher_param_raw_header"
+#define FETCHER_PARAM_DATA          "__fetcher_param_data"
+
 enum pcfetcher_request_method {
     PCFETCHER_REQUEST_METHOD_GET = 0,
     PCFETCHER_REQUEST_METHOD_POST,

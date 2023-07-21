@@ -132,15 +132,37 @@ purc_variant_t PcFetcherRequest::requestAsync(
     m_callback->tracker_ctxt = tracker_ctxt;
     m_is_async = true;
 
+    bool raw_header = false;
     const char *encode_p = NULL;
     purc_variant_t encode_val = PURC_VARIANT_INVALID;
     if (params) {
-        encode_val = pcutils_url_build_query(params, NULL, '&', 0);
-        if (!encode_val) {
-            return NULL;
+        if (purc_variant_is_object(params)) {
+            purc_variant_t raw = purc_variant_object_get_by_ckey(params,
+                    FETCHER_PARAM_RAW_HEADER);
+            if (raw && purc_variant_booleanize(raw)) {
+                raw_header = 1;
+                params = purc_variant_object_get_by_ckey(params,
+                        FETCHER_PARAM_DATA);
+            }
         }
 
-        encode_p = purc_variant_get_string_const(encode_val);
+        if (params) {
+            if (raw_header) {
+                if (!purc_variant_is_string(params)) {
+                    purc_set_error(PURC_ERROR_INVALID_VALUE);
+                    return NULL;
+                }
+                encode_p = purc_variant_get_string_const(params);
+            }
+            else {
+                encode_val = pcutils_url_build_query(params, NULL, '&', 0);
+                if (!encode_val) {
+                    return NULL;
+                }
+
+                encode_p = purc_variant_get_string_const(encode_val);
+            }
+        }
     }
 
     String uri;
@@ -154,7 +176,10 @@ purc_variant_t PcFetcherRequest::requestAsync(
 
     ResourceRequest request;
     if (encode_p && encode_p[0]) {
-        if (method == PCFETCHER_REQUEST_METHOD_GET) {
+        if (raw_header) {
+            request.setHTTPBody(FormData::create(encode_p, strlen(encode_p)));
+        }
+        else if (method == PCFETCHER_REQUEST_METHOD_GET) {
             wurl->setQuery(encode_p);
         }
         else {
