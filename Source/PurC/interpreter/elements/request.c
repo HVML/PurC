@@ -137,15 +137,6 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 }
 
 static bool
-is_css_selector(const char *s)
-{
-    if (s && (s[0] == '.' || s[0] == '#')) {
-        return true;
-    }
-    return false;
-}
-
-static bool
 is_rdr(purc_variant_t v)
 {
     purc_variant_t rdr = purc_get_runner_variable(PURC_PREDEF_VARNAME_RDR);
@@ -594,19 +585,20 @@ post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
         char res_name[PURC_LEN_IDENTIFIER + 1];
         enum HVML_RUN_RES_TYPE res_type = HVML_RUN_RES_TYPE_INVALID;
 
-        if (is_css_selector(s_on)) {
-            ret = request_elements(co, frame, s_on);
+        if (!s_on || s_on[0] == '\0') {
+            purc_set_error(PURC_ERROR_INVALID_VALUE);
+            ret = -1;
+            PC_WARN("not implemented on '%s' for request.\n",
+                    purc_variant_get_string_const(on));
         }
-        else if (pcintr_parse_hvml_run_uri(s_on, host_name, app_name,
+        else if ((s_on[0] == '/' || s_on[0] == 'H' || s_on[0] == 'h') &&
+                    pcintr_parse_hvml_run_uri(s_on, host_name, app_name,
                     runner_name, &res_type, res_name)) {
             ret = request_crtn_by_uri(co, frame, s_on, host_name, app_name,
                     runner_name, res_type, res_name);
         }
         else {
-            purc_set_error(PURC_ERROR_INVALID_VALUE);
-            ret = -1;
-            PC_WARN("not implemented on '%s' for request.\n",
-                    purc_variant_get_string_const(on));
+            ret = request_elements(co, frame, s_on);
         }
     }
     else if (is_rdr(on)) {
