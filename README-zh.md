@@ -1,3 +1,12 @@
+![GitHub Repo stars](https://img.shields.io/github/stars/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub](https://img.shields.io/github/license/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub top language](https://img.shields.io/github/languages/top/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub tag (with filter)](https://img.shields.io/github/v/tag/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub repo size](https://img.shields.io/github/repo-size/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+
+[English](README.md)
+[简体中文](README-zh.md)
+
 # PurC
 
 `PurC` 是首个针对 C/C++ 语言的 HVML 解释器。
@@ -826,6 +835,10 @@ PurC 的源代码树包含以下模块：
 - 刘新：开发者，外部动态变量对象 `FILE` 和 `FS` 的维护者。
 - 徐晓宏：早期开发者，实现了变量的大部分功能和 HVML 解释器的大部分功能。
 - 耿岳：早期开发者，实现了一些内置动态变量对象。
+
+<a href="https://github.com/hvml/purc/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hvml/purc" />
+</a>
 
 ## 版权信息
 

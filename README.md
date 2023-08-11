@@ -1,4 +1,11 @@
-[中文版](README-zh.md)
+![GitHub Repo stars](https://img.shields.io/github/stars/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub](https://img.shields.io/github/license/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub top language](https://img.shields.io/github/languages/top/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub tag (with filter)](https://img.shields.io/github/v/tag/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub repo size](https://img.shields.io/github/repo-size/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+
+[English](README.md)
+[简体中文](README-zh.md)
 
 # PurC
 
@@ -900,6 +907,10 @@ For the coding convention, please refer to [Coding Convention](Documents/CODING_
 - LIU Xin: A developer, the maintainer of the external dynamic variant object `FILE`.
 - XU Xiaohong: An early developer, who implemented most features of the variant module and most features of the HVML interperter.
 - GENG Yue: An early developer, who implemented some built-in dynamic variant objects.
+
+<a href="https://github.com/hvml/purc/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hvml/purc" />
+</a>
 
 ## Copying
 
