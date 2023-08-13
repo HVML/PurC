@@ -433,6 +433,28 @@ again:
 }
 
 static purc_variant_t
+_find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,
+        const char* name)
+{
+    purc_variant_t v = PURC_VARIANT_INVALID;
+
+    if (cor && cor->vdom) {
+        struct pcvdom_element *p = pcvdom_document_get_root(cor->vdom);
+        if (p) {
+            v = pcintr_get_scope_variable(cor, p, name);
+        }
+    }
+
+
+    if (v) {
+        return v;
+    }
+
+    purc_set_error_with_info(PCVRNT_ERROR_NOT_FOUND, "name:%s", name);
+    return PURC_VARIANT_INVALID;
+}
+
+static purc_variant_t
 find_cor_level_var(purc_coroutine_t cor, const char* name)
 {
     PC_ASSERT(name);
@@ -528,6 +550,12 @@ pcintr_find_named_var(pcintr_stack_t stack, const char* name)
     }
 
     v = _find_named_scope_var(stack->co, frame, name, NULL);
+    if (v) {
+        purc_clr_error();
+        return v;
+    }
+
+    v = _find_named_root(stack->co, frame, name);
     if (v) {
         purc_clr_error();
         return v;

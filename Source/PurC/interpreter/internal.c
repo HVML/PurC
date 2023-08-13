@@ -269,9 +269,7 @@ bind_by_level(pcintr_stack_t stack, struct pcintr_stack_frame *frame,
     struct pcvdom_element *p = frame->pos;
 
     if (level == (uint64_t)-1) {
-        while (p && p->tag_id != PCHVML_TAG_HVML) {
-            p = pcvdom_element_parent(p);
-        }
+        p = pcvdom_document_get_root(stack->vdom);
     }
     else {
         for (uint64_t i = 0; i < level; ++i) {
@@ -1434,11 +1432,13 @@ out:
 bool
 pcintr_is_request_id(purc_variant_t v)
 {
+    int last = purc_get_last_error();
     if (purc_variant_is_object(v) &&
             purc_variant_object_get_by_ckey(v, REQUEST_ID_KEY_HANDLE)) {
         return true;
     }
-    purc_clr_error();
+//    purc_clr_error();
+    purc_set_error(last);
     return false;
 }
 
