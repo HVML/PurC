@@ -1709,7 +1709,7 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
 
         stream = create_unix_sock_stream(url, option, prot);
 
-        if (prot) {
+        if (prot && stream) {
             atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
             if (atom == keywords2atoms[K_KW_message].atom
 #if ENABLE(STREAM_HBDBUS)
