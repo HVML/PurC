@@ -330,7 +330,8 @@ pcintr_check_after_execution_full(struct pcinst *inst, pcintr_coroutine_t co)
     if (stack->co->target_page_handle != 0 &&
              stack->co->stage == CO_STAGE_FIRST_RUN) {
         pcintr_register_crtn_to_doc(inst, stack->co);
-        if (stack->doc->ldc == 1) {
+        /* load with inherit FIRST RUN stack->doc->ldc > 1 and  stack->inherit */
+        if (stack->doc->ldc == 1 || stack->inherit) {
             /* It's the first time to expose the document */
             pcintr_rdr_page_control_load(inst, stack);
             purc_variant_t hvml = purc_variant_make_ulongint(stack->co->cid);
