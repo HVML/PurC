@@ -147,7 +147,7 @@ pcutils_map_it_prev(struct pcutils_map_iterator *it);
 void
 pcutils_map_it_end(struct pcutils_map_iterator *it);
 
-/* pcutils_uomap_xxx: interfaces for ordered map based on red-black tree */
+/* pcutils_uomap_xxx: interfaces for un-ordered map based on hash table */
 
 typedef struct pchash_table pcutils_uomap;
 typedef struct pchash_entry pcutils_uomap_entry;

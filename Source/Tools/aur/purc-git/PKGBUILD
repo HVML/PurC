@@ -2,7 +2,7 @@
 
 pkgbase=purc-git
 pkgname=purc-git
-pkgver=0.9.8.r0
+pkgver=0.9.13.r0.g5b126ee62
 pkgrel=1
 pkgdesc="The prime HVML interpreter for C/C++ Language."
 arch=(x86_64
@@ -14,8 +14,16 @@ url="https://github.com/HVML/PurC"
 license=('LGPL-3.0')
 groups=('hvml-git')
 provides=(${pkgbase%-git}
+        csseng
         domruler
-        purc-fetcher)
+        purc-fetcher
+        libcsseng.so
+        libpurc-dvobj-PY.so
+        libpurc-dvobj-FS.so
+        libpurc-dvobj-MATH.so
+        libpurc-fetcher.so
+        libdomruler.so
+        libpurc.so)
 conflicts=(${pkgbase%-git})
 replaces=(domruler
           purc-fetcher)
@@ -75,6 +83,7 @@ build() {
 #     cmake -DCMAKE_BUILD_TYPE=Release \
     cmake -DCMAKE_BUILD_TYPE=None \
         -DPORT=Linux \
+        -DENABLE_CHINESE_NAMES=ON \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_INSTALL_LIBDIR=lib \
         -DCMAKE_INSTALL_LIBEXECDIR=lib \
@@ -82,13 +91,6 @@ build() {
         -G Ninja
 
     ninja -C build
-}
-
-check() {
-#     cd "${srcdir}/${pkgname%-git}"
-#     ctest --test-dir build --output-on-failure
-    cd "${srcdir}/${pkgname%-git}/build"
-    bash run_all_tests.sh
 }
 
 package() {

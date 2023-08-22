@@ -1,3 +1,12 @@
+![GitHub Repo stars](https://img.shields.io/github/stars/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub](https://img.shields.io/github/license/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub top language](https://img.shields.io/github/languages/top/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub tag (with filter)](https://img.shields.io/github/v/tag/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+![GitHub repo size](https://img.shields.io/github/repo-size/hvml/purc?style=for-the-badge&labelColor=%2300B0F0)
+
+[English](README.md)
+[简体中文](README-zh.md)
+
 # PurC
 
 `PurC` 是首个针对 C/C++ 语言的 HVML 解释器。
@@ -29,7 +38,7 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 
 我们在 LGPLv3 许可证下发布 PurC 函数库，而可执行程序使用 GPLv3 发布。因此，如果你遵循 LGPLv3/GPLv3 的条件和条款，你可以将 PurC 以及 `purc` 工具免费用于商业用途。
 
-这是 PurC 的 0.9.10 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
+这是 PurC 的 0.9.14 版本。到目前为止，PurC 提供对 Linux 和 macOS 的支持。对 Windows 的支持正在开发中。我们欢迎任何人将 PurC 移植到其他平台。
 
 要了解有关 HVML 编程的基本概念，请参考以下教程或文章：
 
@@ -214,7 +223,7 @@ $ echo $?
 
 ```bash
 $ purc -v error.hvml
-purc 0.9.10
+purc 0.9.14
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -244,7 +253,7 @@ Parse file:///srv/devel/hvml/purc/build/error.hvml failed : line=7, column=1, ch
 
 ```
 $ purc -v exception.hvml
-purc 0.9.10
+purc 0.9.14
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -389,7 +398,7 @@ $ purc -v hvml/fibonacci-html-temp.hvml
 以上命令行的输出内容如下：
 
 ```
-purc 0.9.10
+purc 0.9.14
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -467,7 +476,7 @@ $ purc -c thread hvml/fibonacci-html-temp.hvml
 
 ![Fibonacci Numbers in Foil](https://files.fmsoft.cn/hvml/screenshots/fibonacci-html-temp-foil.png)
 
-请注意，在当前版本（0.9.10）中，Foil 功能还不完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器在字符终端上获得类似网页浏览器一样的体验。
+请注意，在当前版本（0.9.14）中，Foil 功能还不完整。在不久的将来，Foil 将支持 CSS 2.2 的大多数属性以及 CSS Level 3 的某些属性，这样你可以通过 Foil 渲染器在字符终端上获得类似网页浏览器一样的体验。
 
 你还可以直接将 `purc` 连接到图形渲染器，例如 `xGUI Pro`。`xGUI Pro` 是一种基于 WebKit 的高级 HVML 渲染器。
 
@@ -554,7 +563,7 @@ $ purc -c socket hvml/embedded-python-animated-3d-random-walk.hvml
 
 ```bash
 $ purc -h
-purc (0.9.10) - a standalone HVML interpreter/debugger based-on PurC.
+purc (0.9.14) - a standalone HVML interpreter/debugger based-on PurC.
 Copyright (C) 2022 FMSoft Technologies.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
@@ -736,7 +745,7 @@ $ purc --data-fetcher=remote https://gitlab.fmsoft.cn/hvml/hvml-docs/-/raw/maste
 
 ### 当前状态
 
-该项目于 2021 年 6 月启动，并于 2022 年 7 月公开了此代码仓库。PurC 的当前版本是 0.9.10。
+该项目于 2021 年 6 月启动，并于 2022 年 7 月公开了此代码仓库。PurC 的当前版本是 0.9.14。
 
 PurC 的主要目的是为开发者提供一个函数库来编写自己的 HVML 解释器，同时也包含有一个完整的 HVML 解释器实现（即 `purc` 命令行程序）。截止目前，当前版本实现了 HVML 规范 V1.0 定义的几乎所有功能，还实现了由 HVML 预定义变量 V1.0 定义的几乎所有预定义动态变量。我们预计将在 2023 年 6 月底发布 PurC 1.0 正式版。
 
@@ -826,6 +835,10 @@ PurC 的源代码树包含以下模块：
 - 刘新：开发者，外部动态变量对象 `FILE` 和 `FS` 的维护者。
 - 徐晓宏：早期开发者，实现了变量的大部分功能和 HVML 解释器的大部分功能。
 - 耿岳：早期开发者，实现了一些内置动态变量对象。
+
+<a href="https://github.com/hvml/purc/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hvml/purc" />
+</a>
 
 ## 版权信息
 

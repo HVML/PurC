@@ -48,6 +48,7 @@
 
 ### 2.2) HEE and HVML Parsing and Evaluating
 
+1. [0.9.16] Support for inherent methods for variants.
 1. [0.9.10; Resolved] Optimize the HVML and HEE parsing error messages.
 1. [0.9.6; Resolved] Optimize the evaluation of a VCM tree to decrease uses of `malloc()` and `free()`.
 1. [0.9.2; Resolved] Provide support for triple-single-qutoe syntax and make sure the HEEs which are embedded in a string enclosed by two triple-double-quotes be evaluated.
@@ -65,13 +66,13 @@
 
 ### 2.3) Predefined Variables
 
-1. [0.9.14] Support for the following URI schemas for `$STREAM`:
+1. [0.9.16] Support for the following URI schemas for `$STREAM`:
    - `tcp`
    - `fifo`
-1. [0.9.14] Support for the following extension protocols for `$STREAM`:
+1. [0.9.16] Support for the following extension protocols for `$STREAM`:
    - `websocket`
-1. [0.9.14] Basic support for `$SOCK`.
-1. [0.9.16] Complete the implementation of the following predefined variables:
+1. [0.9.16] Basic support for `$SOCK`.
+1. [0.9.18] Complete the implementation of the following predefined variables:
    - `$URL`
    - `$STR`
    - `$DATA`
@@ -92,20 +93,20 @@
 
 ### 2.5) Interpreter
 
-1. [0.9.14] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
-   - [0.9.14; Resolved] The default result data of a foreign element: inheriting from the proceeding operation.
-   - [0.9.14; Resolved] Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
-   - [0.9.14; Resolved] Tune the manners of `back` and `update` elements and fix known bugs.
-   - [0.9.14; Resolved] Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
-   - [0.9.14; Resolved] The result data of a `catch` elmenet, should be defined as an object to describe the exception.
-   - [0.9.14; Resolved] Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
-   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the HVML handle of the element.
-   - Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
-1. [0.9.16] The generation and handling mechanism of uncatchable errors:
+1. [0.9.16] Support for new renderer events: `rdrState:pageActivated` and `rdrState:pageDeactivated`.
+1. [0.9.18] The generation and handling mechanism of uncatchable errors:
    - Support for the element `error`.
    - The element `error`: support for `src`, `param`, and `method` attributes.
-1. [0.9.16] Review all uses of exception names.
-1. [0.9.16] Review the implementation of all elements.
+1. [0.9.18] Review all uses of exception names.
+1. [0.9.18] Review the implementation of all elements.
+1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
+   - The default result data of a foreign element: inheriting from the proceeding operation.
+   - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
+   - Tune the manners of `back` and `update` elements and fix known bugs.
+   - Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
+   - The result data of a `catch` elmenet, should be defined as an object to describe the exception.
+   - Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
+   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the HVML handle of the element.
 1. [0.9.10; Resolved] Tune the implementation related to PURCMC protocol to support plainwin/widget management.
 1. [0.9.6; Resolved] Improve support for the attribute `in`, so we can use a value like `> p` to specify an descendant as the current document position.
 1. [0.9.6; Resolved] Improve `init` to load content with MIME type `text/html` as a document entity.
@@ -144,10 +145,10 @@
 
 ### 2.6) `purc`
 
+1. [0.9.18] Enhance Foil to support table.
+1. [0.9.18] Enhance Foil to support flex and grid layout.
+1. [0.9.18] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.10; Resolved] Enhance Foil to support dynamic change of element styles and contents.
-1. [0.9.16] Enhance Foil to support table.
-1. [0.9.16] Enhance Foil to support flex and grid layout.
-1. [0.9.16] Enhance Foil to support full-screen, controls, and multiple-page rendering.
 1. [0.9.8; Resolved] Enhance Foil to render borders.
 1. [0.9.8; Resolved] Enhance Foil to support floats and absolute positioning.
 1. [0.9.6; Resolved] Enhance Foil to support `meter` and `progress` elements.
@@ -156,15 +157,15 @@
 
 ### 2.7) More Platforms
 
-1. [0.9.16] Windows
+1. [0.9.20] Windows
 
 ### 2.8) Others
 
-1. [0.9.16] Clean up all unnecessary calls of `PC_ASSERT`.
-1. [0.9.16] Normalize the typedef names.
-1. [0.9.16] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
+1. [0.9.18] Clean up all unnecessary calls of `PC_ASSERT`.
+1. [0.9.18] Normalize the typedef names.
+1. [0.9.18] Rewrite the code fragments in coding pattern `do { if (...) break; } while (0)` in source files:
     We should only use this pattern when defining macros or just creating a temp. variable scope, because this coding pattern seriously reduces code readability.
-1. [0.9.16] Tune API description.
+1. [0.9.18] Tune API description.
 1. [0.9.0; Resolved] Merge repo of `DOM Ruler` to `PurC` (under `Source/CSSEng` and `Source/DOMRuler`).
 1. [0.9.0; Resolved] Merge repo of `PurC Fetcher` to `PurC` (under `Source/RemoteFetcher`).
 1. [0.8.1; Resolved] Tune `PC_ASSERT` to suppress any code when building for release.
