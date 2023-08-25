@@ -8,6 +8,8 @@
 # ctest.  You can select which tests to run using 'ctest -R regex'.
 # For more options, run 'ctest --help'.
 
+# cmake_minimum_required(VERSION 2.8.12)
+
 option(gmock_build_tests "Build all of Google Mock's own tests." OFF)
 
 # A directory to find Google Test sources.
@@ -42,7 +44,6 @@ else()
   cmake_policy(SET CMP0048 NEW)
   project(gmock VERSION ${GOOGLETEST_VERSION} LANGUAGES CXX C)
 endif()
-cmake_minimum_required(VERSION 2.8.12)
 
 if (COMMAND set_up_hermetic_build)
   set_up_hermetic_build()

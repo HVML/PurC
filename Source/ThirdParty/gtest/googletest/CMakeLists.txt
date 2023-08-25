@@ -10,6 +10,7 @@
 
 # When other libraries are using a shared version of runtime libraries,
 # Google Test also has to use one.
+# cmake_minimum_required(VERSION 2.8.12)
 option(
   gtest_force_shared_crt
   "Use shared (DLL) run-time lib even when Google Test is built as static lib."
@@ -53,7 +54,6 @@ else()
   cmake_policy(SET CMP0048 NEW)
   project(gtest VERSION ${GOOGLETEST_VERSION} LANGUAGES CXX C)
 endif()
-cmake_minimum_required(VERSION 2.8.12)
 
 if (POLICY CMP0063) # Visibility
   cmake_policy(SET CMP0063 NEW)
