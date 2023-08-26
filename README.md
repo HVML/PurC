@@ -131,6 +131,14 @@ $ make -j4
 $ sudo make install
 ```
 
+If you'd like to use `clang` `llvm` instead of `make` to build PurC,
+   you can use the following commands:
+
+```bash
+$ cd <path/to/the/root/of/the/source/tree/of/PurC>
+$ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPORT=Linux -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -Bbuild -GNinja &&  ninja -Cbuild && sudo ninja -Cbuild install
+```
+
 If you'd like to use `ninja` instead of `make` to build PurC,
    you can use the following commands:
 
