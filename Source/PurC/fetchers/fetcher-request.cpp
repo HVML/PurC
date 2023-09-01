@@ -396,13 +396,13 @@ purc_variant_t PcFetcherRequest::requestAsync(
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
-    request.setURL(*wurl);
-    request.setHTTPMethod(transMethod(method));
-    request.setTimeoutInterval(timeout);
-
     if (fill_request_param(wurl, method, &request, params)) {
         return NULL;
     }
+
+    request.setURL(*wurl);
+    request.setHTTPMethod(transMethod(method));
+    request.setTimeoutInterval(timeout);
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
     NetworkResourceLoadParameters loadParameters;
@@ -444,13 +444,14 @@ purc_rwstream_t PcFetcherRequest::requestSync(
     std::unique_ptr<PurCWTF::URL> wurl = makeUnique<URL>(URL(), uri);
 
     ResourceRequest request;
+    if (fill_request_param(wurl, method, &request, params)) {
+        return NULL;
+    }
+
     request.setURL(*wurl);
     request.setHTTPMethod(transMethod(method));
     request.setTimeoutInterval(timeout);
 
-    if (fill_request_param(wurl, method, &request, params)) {
-        return NULL;
-    }
 
     m_req_id = ProcessIdentifier::generate().toUInt64();
     NetworkResourceLoadParameters loadParameters;
