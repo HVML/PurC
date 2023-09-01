@@ -18,11 +18,13 @@ gantt
     ver-0.9.12           :a12, 2023-04-26, 2023-06-01
     ver-0.9.13           :a13, 2023-06-01, 2023-06-29
     ver-0.9.14           :a14, 2023-06-29, 2023-07-28
-
+    ver-0.9.15           :a15, 2023-07-28, 2023-09-01
 ```
 
 # Release Notes
 
+- [Version 0.9.15](#version-0915)
+- [Version 0.9.14](#version-0914)
 - [Version 0.9.13](#version-0913)
 - [Version 0.9.12](#version-0912)
 - [Version 0.9.10](#version-0910)
@@ -34,6 +36,59 @@ gantt
 - [Version 0.9.0](#version-090)
 - [Version 0.8.2](#version-082)
 - [Version 0.8.0](#version-080)
+
+## Version 0.9.15
+
+On Sept. 1, 2023, HVML Community announces the availability of PurC 0.9.15,
+   which is also the 13th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.15
+
+In this version, we fixed a few bugs and made some minor enhancements:
+
+* CHANGES:
+* ENHANCEMENTS:
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+   - Call `pcintr_rdr_page_control_load` for inherit page;
+* BUGFIXES:
+   - Support for `at` attribute value `_topmost` in `init`.
+   - Fix the request parameters are not passed (HTTP GET).
+   - Other minor bugs.
+* CLEANUP:
+   - Cleanup cmake files for deprecated usage.
+   - Add executable permission to .py files.
+   - Merge some modifications from @taotieren.
+* SAMPLES:
+
+## Version 0.9.14
+
+On July 31, 2023, HVML Community announces the availability of PurC 0.9.14,
+   which is also the 12th alpha release of PurC 1.0.x.
+
+For bugs, incompatibilities, and issues, please report to <https://github.com/HVML/PurC/issues>.
+
+### What's new in version 0.9.14
+
+In this version, we fixed a few bugs and made some minor enhancements:
+
+* CHANGES:
+* ENHANCEMENTS: Tune or enhance the implementation according to the revisions from RC9 to RCd of HVML Spec V1.0:
+   - The default result data of a foreign element: inheriting from the proceeding operation.
+   - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
+   - Tune the manners of `back` and `update` elements and fix known bugs.
+   - Tune the manners of `update` elements to reflect the `wholly` adverb attribute.
+   - The result data of a `catch` elmenet, should be defined as an object to describe the exception.
+   - Enhance `init` element to support `RAW-HEADERS` when issuing an HTTP request to get data from a remote URL.
+   - Enhance `request` element to pass CSS selector directly to the renderer instead of passing the HVML handle of the element.
+* OPTIMIZATIONS:
+* ADJUSTMENTS:
+* BUGFIXES:
+   - Fix bugs in `$FS.file_contents` getter and setter.
+* CLEANUP:
+* SAMPLES:
 
 ## Version 0.9.13
 

@@ -99,7 +99,7 @@
    - The element `error`: support for `src`, `param`, and `method` attributes.
 1. [0.9.18] Review all uses of exception names.
 1. [0.9.18] Review the implementation of all elements.
-1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to  RCd of HVML Spec V1.0:
+1. [0.9.14; Resolved] Tune or enhance the implementation according to the revisions from RC9 to RCd of HVML Spec V1.0:
    - The default result data of a foreign element: inheriting from the proceeding operation.
    - Tune the manners of `test`, `match`, `differ` elements and fix known bugs.
    - Tune the manners of `back` and `update` elements and fix known bugs.
