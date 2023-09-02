@@ -14,7 +14,7 @@ if (NOT HAS_RUN_PURC_COMMON)
     endif ()
 
     set(Python_ADDITIONAL_VERSIONS 3)
-    find_package(Python2 2.7.0 REQUIRED)
+    find_package(Python3 3.9.0 REQUIRED)
 
     # -----------------------------------------------------------------------------
     # Helper macros and feature defines
