@@ -335,6 +335,7 @@ static int fill_request_param(
     bool raw_header = false;
 
     if (!params) {
+        ret = 0;
         goto out;
     }
 
