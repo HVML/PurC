@@ -7,7 +7,7 @@
 
         <!-- import the Bootstrap assets built in the renderer -->
         <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-5.3.1-dist/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.10.5/bootstrap-icons.css" />
+        <link rel="stylesheet" href="//localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.10.5/font/bootstrap-icons.css" />
         <style hvml:raw>
             .scrollarea {
                 overflow-y: scroll;
