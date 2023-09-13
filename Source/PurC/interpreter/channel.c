@@ -342,7 +342,7 @@ recv_getter(void *native_entity, const char *property_name,
 
         if (crtn) {
             struct list_head *p, *n;
-            list_for_each_safe(p, n, &chan->send_crtns) {
+            list_for_each_safe(p, n, &chan->recv_crtns) {
                 struct pcintr_coroutine *_crtn;
                 _crtn = list_entry(p, struct pcintr_coroutine, ln_stopped);
                 if (_crtn == crtn) {
