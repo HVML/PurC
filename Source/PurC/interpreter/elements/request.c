@@ -47,6 +47,8 @@
 #define ARG_KEY_PROPERTY        "property"
 #define ARG_KEY_NAME            "name"
 
+#define TARGET_PLAIN_WINDOW     "plainwindow"
+
 struct ctxt_for_request {
     struct pcvdom_node           *curr;
 
@@ -330,8 +332,16 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
         goto out;
     }
 
-    purc_variant_t v = pcintr_rdr_call_method(&co->stack, request_id,
-            s_on, s_to, ctxt->with);
+    purc_variant_t v;
+    if (strcmp(TARGET_PLAIN_WINDOW, s_on) == 0) {
+        v = pcintr_rdr_call_plain_window_method(&co->stack, request_id,
+                s_to, ctxt->with);
+    }
+    else {
+        v = pcintr_rdr_call_method(&co->stack, request_id,
+                s_on, s_to, ctxt->with);
+    }
+
     if (!v && ctxt->is_noreturn) {
         v = purc_variant_make_null();
     }
