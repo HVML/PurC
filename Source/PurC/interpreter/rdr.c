@@ -1596,7 +1596,9 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
     }
 
     if (response_msg != NULL) {
-        ret = purc_variant_ref(response_msg->data);
+        if ((response_msg->retCode == PCRDR_SC_OK) && response_msg->data) {
+            ret = purc_variant_ref(response_msg->data);
+        }
         pcrdr_release_message(response_msg);
     }
 
