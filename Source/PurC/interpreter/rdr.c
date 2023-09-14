@@ -1420,7 +1420,7 @@ pcintr_rdr_send_dom_req(pcintr_stack_t stack, int op, const char *request_id,
                 "%llx", (unsigned long long int)(uint64_t)element);
     }
     else if (element_type == PCRDR_MSG_ELEMENT_TYPE_ID
-            || element_type == PCRDR_MSG_ELEMENT_TYPE_ID){
+            || element_type == PCRDR_MSG_ELEMENT_TYPE_CSS){
         n = snprintf(elem, sizeof(elem), "%s", css_selector);
     }
     else {

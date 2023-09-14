@@ -332,6 +332,7 @@ request_elements(pcintr_coroutine_t co, struct pcintr_stack_frame *frame,
 
     purc_variant_t v = pcintr_rdr_call_method(&co->stack, request_id,
             s_on, s_to, ctxt->with);
+
     if (!v && ctxt->is_noreturn) {
         v = purc_variant_make_null();
     }
