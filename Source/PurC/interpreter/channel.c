@@ -35,6 +35,84 @@
 #include <assert.h>
 #include <errno.h>
 
+#define MSG_TYPE_SENDABLE       "sendable"
+#define MSG_TYPE_RECEIVABLE     "receivable"
+#define MSG_TYPE_CLOSED         "closed"
+
+#define KEY_FLAG                "__chan_observe"
+#define KEY_NAME                "name"
+
+static purc_variant_t
+build_event_observed(const char *name)
+{
+    purc_variant_t v = purc_variant_make_object(0, PURC_VARIANT_INVALID,
+            PURC_VARIANT_INVALID);
+    if (!v) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        return PURC_VARIANT_INVALID;
+    }
+
+    purc_variant_t flag = purc_variant_make_boolean(true);
+    if (!v) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_FLAG, flag)) {
+        purc_variant_unref(flag);
+        goto failed;
+    }
+    purc_variant_unref(flag);
+
+    purc_variant_t name_val = purc_variant_make_string(name, true);
+    if (!name_val) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    if (!purc_variant_object_set_by_static_ckey(v, KEY_NAME, name_val)) {
+        goto failed;
+    }
+    purc_variant_unref(name_val);
+
+    return v;
+
+failed:
+    purc_variant_unref(v);
+
+    return PURC_VARIANT_INVALID;
+}
+
+static int
+post_event(pcchan_t chan, const char *type, const char *sub_type,
+        purc_variant_t data)
+{
+    int ret = -1;
+    struct pcinst* inst = pcinst_current();
+    purc_variant_t source_uri = purc_variant_make_string(
+            inst->endpoint_name, false);
+    if (!source_uri) {
+        goto out;
+    }
+
+    purc_variant_t source = build_event_observed(chan->name);
+    if (!source) {
+        purc_variant_unref(source_uri);
+        goto out;
+    }
+
+    pcintr_post_event_by_ctype(0, PURC_EVENT_TARGET_BROADCAST,
+            PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, source_uri,
+            source, type, sub_type, data,
+            PURC_VARIANT_INVALID);
+
+    purc_variant_unref(source);
+    purc_variant_unref(source_uri);
+
+    ret = 0;
+out:
+    return ret;
+}
+
 void
 pcchan_destroy(pcchan_t chan)
 {
@@ -298,6 +376,8 @@ send_getter(void *native_entity, const char *property_name,
             chan->sendx = 0;
         chan->qcount++;
 
+        post_event(chan, MSG_TYPE_RECEIVABLE, NULL, PURC_VARIANT_INVALID);
+
         // if there is any coroutine waiting to receive, resume the first one.
         if (!list_empty(&chan->recv_crtns)) {
             pcintr_coroutine_t crtn = list_first_entry(&chan->recv_crtns,
@@ -369,6 +449,8 @@ recv_getter(void *native_entity, const char *property_name,
         if (chan->recvx == chan->qsize)
             chan->recvx = 0;
         chan->qcount--;
+
+        post_event(chan, MSG_TYPE_SENDABLE, NULL, PURC_VARIANT_INVALID);
 
         // if there is any coroutine waiting to send, resume the first one.
         if (!list_empty(&chan->send_crtns)) {
@@ -506,12 +588,60 @@ on_release(void *native_entity)
     }
 }
 
+static bool
+on_observe(void *native_entity,
+        const char *event_name, const char *event_subname)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(event_name);
+    UNUSED_PARAM(event_subname);
+    return true;
+}
+
+static bool
+did_matched(void *native_entity, purc_variant_t val)
+{
+    UNUSED_PARAM(native_entity);
+    UNUSED_PARAM(val);
+
+    if (purc_variant_is_native(val)) {
+        void *comp = purc_variant_native_get_entity(val);
+        if (comp == native_entity) {
+            return true;
+        }
+
+        purc_clr_error();
+        return false;
+    }
+    else if (purc_variant_is_object(val)) {
+        purc_variant_t flag = purc_variant_object_get_by_ckey(val, KEY_FLAG);
+        if (!flag) {
+            purc_clr_error();
+            return false;
+        }
+
+        purc_variant_t name_val = purc_variant_object_get_by_ckey(val, KEY_NAME);
+        if (!name_val) {
+            purc_clr_error();
+            return false;
+        }
+
+        pcchan_t chan = native_entity;
+        if (strcmp(chan->name, purc_variant_get_string_const(name_val)) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 purc_variant_t
 pcchan_make_entity(pcchan_t chan)
 {
     static const struct purc_native_ops ops = {
         .property_getter = property_getter,
-        .on_observe = NULL,
+        .did_matched = did_matched,
+        .on_observe = on_observe,
         .on_forget = NULL,
         .on_release = on_release,
     };
