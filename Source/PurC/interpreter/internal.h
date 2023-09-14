@@ -381,10 +381,6 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
         const char *css_selector, const char *method, purc_variant_t arg);
 
 purc_variant_t
-pcintr_rdr_call_plain_window_method(pcintr_stack_t stack, const char *request_id,
-        const char *method, purc_variant_t arg);
-
-purc_variant_t
 pcintr_wrap_vdom(pcvdom_element_t vdom);
 
 pcvdom_element_t
