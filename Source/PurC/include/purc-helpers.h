@@ -966,6 +966,11 @@ purc_is_valid_identifier(const char *id)
     return purc_is_valid_loose_token(id, PURC_LEN_IDENTIFIER);
 }
 
+
+PCA_EXPORT bool
+purc_is_valid_css_identifier(const char *id);
+
+
 /**@}*/
 
 #endif /* !PURC_PURC_HELPERS_H */

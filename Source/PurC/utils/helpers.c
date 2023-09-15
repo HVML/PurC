@@ -1187,3 +1187,37 @@ failed:
     return NULL;
 }
 
+// ISO 10646 characters U+0080 and higher
+bool
+purc_is_valid_css_identifier(const char *id)
+{
+    int i;
+
+    if (!id[0] || purc_isdigit(id[0])) {
+        goto failed;
+    }
+
+    if (id[0] != '-' && id[0] != '_' && !purc_isalpha(id[0])) {
+        goto failed;
+    }
+
+    i = 1;
+    while (id[i]) {
+
+        if (id[i] != '-' && id[i] != '_' && !purc_isalnum(id[i])) {
+            goto failed;
+        }
+
+        if (i == 1 && id[0] == '-' &&
+                ( id[1] == '-' || purc_isdigit(id[1]))) {
+            goto failed;
+        }
+
+        i++;
+    }
+
+    return true;
+
+failed:
+    return false;
+}

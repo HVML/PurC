@@ -1584,7 +1584,7 @@ pcintr_rdr_call_method(pcintr_stack_t stack, const char *request_id,
     }
 
     pcrdr_msg *response_msg;
-    if (css_selector[0] == '#') {
+    if (css_selector[0] == '#' && purc_is_valid_identifier(css_selector + 1)) {
         response_msg = pcintr_rdr_send_dom_req(stack,
             PCRDR_K_OPERATION_CALLMETHOD, request_id, PCRDR_MSG_ELEMENT_TYPE_ID,
             css_selector + 1, NULL, NULL, NULL, data_type, data);
