@@ -436,6 +436,7 @@ static purc_variant_t
 _find_named_root(purc_coroutine_t cor, struct pcintr_stack_frame *frame,
         const char* name)
 {
+    (void)frame;
     purc_variant_t v = PURC_VARIANT_INVALID;
 
     if (cor && cor->vdom) {
