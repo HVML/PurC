@@ -1187,7 +1187,13 @@ failed:
     return NULL;
 }
 
-// ISO 10646 characters U+0080 and higher
+/*
+ * https://www.w3.org/TR/CSS22/syndata.html#characters
+ * In CSS, identifiers (including element names, classes, and IDs in selectors)
+ * can contain only the characters [a-zA-Z0-9] and ISO 10646 characters U+0080
+ * and higher, plus the hyphen (-) and the underscore (_); they cannot start
+ * with a digit, two hyphens, or a hyphen followed by a digit.
+ */
 bool
 purc_is_valid_css_identifier(const char *id)
 {
@@ -1216,6 +1222,18 @@ purc_is_valid_css_identifier(const char *id)
         }
 
         i++;
+    }
+
+    /*
+     * https://www.w3.org/TR/CSS22/syndata.html#tokenization
+     * ident    [-]?{nmstart}{nmchar}*
+     * {nmstart} is represented by [_a-z]|{nonascii}|{escape} and is mandatory
+     * in an ident. The preceding hyphen is optional, but as the hyphen does
+     * not appear in {nmstart}, this would imply that a single hyphen is not
+     * a valid CSS identifier
+     */
+    if (!id[1] && id[0] == '-') {
+        goto failed;
     }
 
     return true;

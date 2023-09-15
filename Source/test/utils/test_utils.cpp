@@ -2248,7 +2248,7 @@ TEST(valid_css_identifier, normal)
 
     id = "-";
     r = purc_is_valid_css_identifier(id);
-    ASSERT_EQ(r, true);
+    ASSERT_EQ(r, false);
 
     id = "_";
     r = purc_is_valid_css_identifier(id);
