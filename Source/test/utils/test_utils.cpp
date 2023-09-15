@@ -2238,3 +2238,79 @@ TEST_P(test_build_query, build_query)
 
 INSTANTIATE_TEST_SUITE_P(build_query, test_build_query,
         testing::ValuesIn(test_cases));
+
+
+TEST(valid_css_identifier, normal)
+{
+    const char *id = "3";
+    bool r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, false);
+
+    id = "-";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "_";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "a";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "Z";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "你好";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "-你";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "a你9";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "a你b";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "a1好";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "ab好";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "-a";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "-_";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "-2";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, false);
+
+    id = "--";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, false);
+
+    id = "__";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, true);
+
+    id = "a ";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, false);
+
+    id = "a b";
+    r = purc_is_valid_css_identifier(id);
+    ASSERT_EQ(r, false);
+}
