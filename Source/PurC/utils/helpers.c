@@ -1197,14 +1197,16 @@ purc_is_valid_css_identifier(const char *id)
         goto failed;
     }
 
-    if (id[0] != '-' && id[0] != '_' && !purc_isalpha(id[0])) {
+    if (id[0] != '-' && id[0] != '_' && !purc_isalpha(id[0])
+                && !((unsigned char)id[0] >= 0x80)) {
         goto failed;
     }
 
     i = 1;
     while (id[i]) {
 
-        if (id[i] != '-' && id[i] != '_' && !purc_isalnum(id[i])) {
+        if (id[i] != '-' && id[i] != '_' && !purc_isalnum(id[i])
+                && !((unsigned char)id[i] >= 0x80)) {
             goto failed;
         }
 
