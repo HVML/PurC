@@ -812,6 +812,9 @@ const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
 const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
         const char *name_group);
 
+PCA_EXPORT bool
+purc_is_valid_css_identifier(const char *id);
+
 /**@}*/
 
 PCA_EXTERN_C_END
@@ -965,10 +968,6 @@ purc_is_valid_identifier(const char *id)
 {
     return purc_is_valid_loose_token(id, PURC_LEN_IDENTIFIER);
 }
-
-
-PCA_EXPORT bool
-purc_is_valid_css_identifier(const char *id);
 
 
 /**@}*/
