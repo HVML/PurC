@@ -1215,6 +1215,25 @@ out:
 }
 
 int
+elem_coll_update_doc_select(pcdoc_elem_coll_t elem_coll)
+{
+    pcdoc_element_t elem  = pcdoc_get_element_by_id_in_descendants(elem_coll->doc,
+            elem_coll->ancestor, elem_coll->selector->id + 1);
+    if (elem) {
+        size_t nr = pcutils_arrlist_length(elem_coll->elems);
+        if (nr >= 1) {
+            pcutils_arrlist_put_idx(elem_coll->elems, 0, elem);
+        }
+        else {
+            pcutils_arrlist_append(elem_coll->elems, elem);
+            elem_coll->nr_elems++;
+            elem_coll->select_begin = 0;
+        }
+    }
+    return 0;
+}
+
+int
 pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
 {
     int ret = -1;
@@ -1240,6 +1259,9 @@ pcdoc_elem_coll_update(pcdoc_elem_coll_t elem_coll)
         break;
 
     case PCDOC_ELEM_COLL_TYPE_DOC_SELECT:
+        ret = elem_coll_update_doc_select(elem_coll);
+        break;
+
     case PCDOC_ELEM_COLL_TYPE_COLL_FILTER:
     case PCDOC_ELEM_COLL_TYPE_FROM_ELEM:
     default:
