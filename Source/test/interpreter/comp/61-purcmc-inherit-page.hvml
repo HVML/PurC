@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: { serializedDoc: '<html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>', nrRequestsSent: 6UL }
+# RESULT: { serializedDoc: '<!DOCTYPE html><html><head></head><body id="theChild"><ul id="theList"><li>main</li><li>child</li></ul></body></html>', nrRequestsSent: 6UL }
 #
 # Note that the value of the filed 'nrRequestsSent' is only valid
 # when running this program by using the test program 'test_comprehensive_programs'.

@@ -241,7 +241,7 @@ static const char *hello_hvml = ""
 "</hvml>";
 
 static const char *html_template = ""
-"\"<html>"
+"\"<!DOCTYPE html><html>"
     "<head>"
         "<title>Hello, world!</title>"
         "<title>Hello, world!</title>"

@@ -194,7 +194,7 @@ TEST(samples, basic)
 
     struct sample_data sample = {
         .input_hvml = "<hvml target=\"html\"><head></head><body>hello</body></hvml>",
-        .expected_html = "<html><head></head><body>hello</body></html>",
+        .expected_html = "<!DOCTYPE html><html><head></head><body>hello</body></html>",
     };
 
     add_sample(&sample);
@@ -325,7 +325,7 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using named array variable ($fibonacci), $MATH, and $DATA</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
+            "<!DOCTYPE html><html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using named array variable ($fibonacci), $MATH, and $DATA</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
         {
             "<!DOCTYPE hvml>"
@@ -362,7 +362,7 @@ TEST(samples, samples)
             "    </body>"
             ""
             "</hvml>",
-            "<html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using local array variable ($!) and negative index</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
+            "<!DOCTYPE html><html lang=\"en\"><head><title>Fibonacci Numbers</title></head><body><header><h1>Fibonacci Numbers less than 2000</h1><p>Using local array variable ($!) and negative index</p></header><section><ol><li>0</li><li>1</li><li>1</li><li>2</li><li>3</li><li>5</li><li>8</li><li>13</li><li>21</li><li>34</li><li>55</li><li>89</li><li>144</li><li>233</li><li>377</li><li>610</li><li>987</li><li>1597</li></ol></section><footer><p>Totally 18 numbers.</p></footer></body></html>",
         },
         {
             "<!DOCTYPE hvml>"
@@ -427,7 +427,7 @@ TEST(samples, samples)
             ""
             "</hvml>",
 
-            "<html lang=\"en\">"
+            "<!DOCTYPE html><html lang=\"en\">"
             "    <head>"
             "        <title>计算器</title>"
             "        <link rel=\"stylesheet\" type=\"text/css\" href=\"calculator.css\" />"
@@ -472,7 +472,7 @@ TEST(samples, samples)
         },
         {
             "<hvml target=\"html\"><body><div id='owner'></div><update on='#owner' at='textContent' to='append' with='hello' /><update on='#owner' at='textContent' to='displace' with='world' /></body></hvml>",
-            "<html><head></head><body><div id=\"owner\">world</div></body></html>",
+            "<!DOCTYPE html><html><head></head><body><div id=\"owner\">world</div></body></html>",
         },
     };
 

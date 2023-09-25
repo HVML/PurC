@@ -504,7 +504,7 @@ end:
     if (g_test_cases.empty()) {
         add_test_case(g_test_cases, g_test_cases_name, "base",
                 "<hvml></hvml>",
-                "<html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>",
+                "<!DOCTYPE html><html>\n  <head>\n  </head>\n  <body>\n  </body>\n</html>",
                 NULL
                 );
     }

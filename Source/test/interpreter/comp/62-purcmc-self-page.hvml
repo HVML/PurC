@@ -1,6 +1,6 @@
 #!/usr/bin/purc
 
-# RESULT: '<html><head></head><body id="main"><p>main</p></body></html>'
+# RESULT: '<!DOCTYPE html><html><head></head><body id="main"><p>main</p></body></html>'
 
 <hvml target="html">
     <body>
