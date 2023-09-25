@@ -76,7 +76,14 @@ purc_document_new(purc_document_type_k type)
         return NULL;
     }
 
-    purc_document_t doc = ops->create(NULL, 0);
+    const char *content = NULL;
+    size_t nr_content = 0;
+    if (type == PCDOC_K_TYPE_HTML) {
+        content = "<!DOCTYPE html><html></html>";
+        nr_content = strlen(content);
+    }
+
+    purc_document_t doc = ops->create(content, nr_content);
     if (doc) {
         doc->refc = 1;
         doc->ldc = 0;
