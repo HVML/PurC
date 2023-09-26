@@ -512,6 +512,8 @@ static const char *element_type_names[] = {
     "handle",
     "handles",
     "id",
+    "class",
+    "tag",
     "variant",
 };
 
@@ -905,7 +907,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle | handles>/<elementValue> */
+            /* element: <css | xpath | handle | handles |...>/<elementValue> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
             fn(ctxt, element_type_names[msg->elementType],
@@ -1023,7 +1025,7 @@ int pcrdr_serialize_message(const pcrdr_msg *msg, pcrdr_cb_write fn, void *ctxt)
         fn(ctxt, STR_LINE_SEPARATOR, sizeof(STR_LINE_SEPARATOR) - 1);
 
         if (msg->elementType != PCRDR_MSG_ELEMENT_TYPE_VOID) {
-            /* element: <css | xpath | handle | handles>/<elementValue> */
+            /* element: <css | xpath | handle | handles |...>/<elementValue> */
             fn(ctxt, STR_KEY_ELEMENT, sizeof(STR_KEY_ELEMENT) - 1);
             fn(ctxt, STR_PAIR_SEPARATOR, sizeof(STR_PAIR_SEPARATOR) - 1);
             fn(ctxt, element_type_names[msg->elementType],
