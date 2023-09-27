@@ -152,21 +152,17 @@
         </archetype>
 
         <load from "#n163" onto "null:" as news163 async />
-        <load from "#nSohu" onto "null:" as newsSohu async />
         <load from "#nSina" onto "null:" as newsSina async />
         <load from "#nBaidu" onto "null:" as newsBaidu async />
+
+        <!--
+        <load from "#nSohu" onto "null:" as newsSohu async />
+        -->
 
         <observe on $news163 for="corState:exited">
             <update on "#dest163" at "content" with ' ' />
             <iterate on $? >
                 <update on "#dest163" to "append" with $mainItem />
-            </iterate>
-        </observe>
-
-        <observe on $newsSohu for="corState:exited">
-            <update on "#destSohu" at "content" with ' ' />
-            <iterate on $? >
-                <update on "#destSohu" to "append" with $mainItem />
             </iterate>
         </observe>
 
@@ -183,6 +179,15 @@
                 <update on "#destBaidu" to "append" with $mainItem />
             </iterate>
         </observe>
+
+        <!--
+        <observe on $newsSohu for="corState:exited">
+            <update on "#destSohu" at "content" with ' ' />
+            <iterate on $? >
+                <update on "#destSohu" to "append" with $mainItem />
+            </iterate>
+        </observe>
+        -->
     </body>
 
     <body id="n163">
@@ -215,6 +220,11 @@
                 <init as data with {"href":"https://www.sohu.com$elem.attr('href')", "title":$elem.textContent()} temp />
                 <update on "$result" to "append" with $data />
             </iterate>
+            <catch for=`NoSuchKey`>
+                <inherit>
+                    $STREAM.stdout.writelines($DATA.stringify($news))
+                </inherit>
+            </catch>
             <exit with $result />
         </observe>
     </body>

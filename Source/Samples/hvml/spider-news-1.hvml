@@ -32,6 +32,11 @@
                     <update on "#dest" to "append" with $mainItem />
                 </choose>
             </iterate>
+            <catch for=`NoSuchKey`>
+                <inherit>
+                    $STREAM.stdout.writelines($DATA.stringify($news))
+                </inherit>
+            </catch>
         </observe>
     </body>
 </hvml>
