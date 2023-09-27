@@ -168,6 +168,10 @@ observer_handle_default(pcintr_coroutine_t co, struct pcintr_observer *p,
     task->edom_element = p->edom_element;
     task->stack = &co->stack;
 
+    if (msg->elementValue && purc_variant_is_native(msg->elementValue)) {
+        task->observed = purc_variant_ref(msg->elementValue);
+    }
+
     if (msg->requestId) {
         task->request_id = purc_variant_ref(msg->requestId);
     }

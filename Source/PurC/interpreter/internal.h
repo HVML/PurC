@@ -82,6 +82,7 @@ struct pcintr_observer_task {
     purc_variant_t                event_sub_name;
     purc_variant_t                source;
     purc_variant_t                request_id;
+    purc_variant_t                observed;   /* msg->elementValue && native */
 };
 
 enum VIA {

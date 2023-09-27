@@ -45,6 +45,10 @@ destroy_task(struct pcintr_observer_task *task)
         return;
     }
 
+    if (task->observed) {
+        purc_variant_unref(task->observed);
+    }
+
     if (task->payload) {
         purc_variant_unref(task->payload);
     }
