@@ -146,11 +146,9 @@ pcintr_handle_task(struct pcintr_observer_task *task)
     if (task->observed && purc_variant_is_native(task->observed)) {
         void *p = purc_variant_native_get_entity(task->observed);
         pcdoc_element_t e = find_element_by_pointer(stack->doc, p);
-#if 0
         if (e) {
             frame->edom_element = e;
         }
-#endif
     }
 
     PC_ASSERT(frame->edom_element);

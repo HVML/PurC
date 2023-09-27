@@ -1,0 +1,35 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" href="hvml://localhost/_renderer/_builtin/-/assets/bootstrap-5.3.1-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="hvml://localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.10.5/font/bootstrap-icons.min.css" />
+    </head>
+
+    <body>
+        <div id="dest" hvml-events="click">
+            click here will update by 'in' attr
+        </div>
+
+        <div id="id_dest_2" hvml-events="click">
+            click here will update by dom event
+        </div>
+
+        <div class="text-primary">
+            this is container include first observe
+            <observe on="#dest" for="click" in="#dest">
+                <update on $@ at 'content' with 'update by "update $@" (observe with "in" attr) '/>
+            </observe>
+        </div>
+
+        <div class="text-success">
+            this is container include second observe
+            <observe on="#id_dest_2" for="click">
+                <update on $@ at 'content' with 'update by "update $@" (observe without "in" attr) '/>
+            </observe>
+        </div>
+
+    </body>
+</hvml>
+
