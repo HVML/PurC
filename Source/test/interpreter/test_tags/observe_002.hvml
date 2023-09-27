@@ -3,7 +3,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="calculator.css" />
 
-        <init as="vs" with="vs string"/>
+        <init as="vs" with=["vs string"]/>
 
         <update on="$TIMERS" to="displace">
             [
