@@ -506,10 +506,24 @@ register_mmutable_var_observer(pcintr_stack_t stack,
 static bool
 is_css_select(const char *s)
 {
-    if (s && strlen(s) && (s[0] == '.' || s[0] == '#')) {
-        return true;
+    bool match = false;
+    if (!(s && s[0])) {
+        goto out;
     }
-    return false;
+
+    if (s[0] == '.' || s[0] == '#' || purc_is_valid_css_identifier(s)) {
+        match = true;
+    }
+    else {
+        pcdoc_selector_t selector =  pcdoc_selector_new(s);
+        if (selector) {
+            pcdoc_selector_delete(selector);
+            match = true;
+        }
+    }
+
+out:
+    return match;
 }
 
 static struct pcintr_observer *

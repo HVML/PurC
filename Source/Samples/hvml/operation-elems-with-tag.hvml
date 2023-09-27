@@ -1,0 +1,22 @@
+# RESULT: "html"
+
+<!DOCTYPE hvml SYSTEM 'v: MATH'>
+<hvml target="html" lang="en">
+    <head>
+        <link rel="stylesheet" href="hvml://localhost/_renderer/_builtin/-/assets/bootstrap-5.3.1-dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="hvml://localhost/_renderer/_builtin/-/assets/bootstrap-icons-1.10.5/font/bootstrap-icons.min.css" />
+    </head>
+
+    <body>
+        <div id="dest" hvml-events="click">
+            click here
+        </div>
+
+        <observe on="div" for="click">
+            <update on 'div' at 'content' with 'update by "observe tag, update tag, request tag"'/>
+            <request on 'body' to 'call:ELEMENT.classList.add(ARG)' with 'bg-dark' />
+            <request on 'div' to 'call:ELEMENT.classList.add(ARG)' with 'text-primary' />
+        </observe>
+    </body>
+</hvml>
+
