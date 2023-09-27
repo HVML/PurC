@@ -72,6 +72,47 @@ destroy_task(struct pcintr_observer_task *task)
     free(task);
 }
 
+struct travel_elem_pointer {
+    pcdoc_element_t elem;
+    void *p;
+};
+
+static int
+travel_elem_pointer_cb(purc_document_t doc, pcdoc_element_t element, void *ctxt)
+{
+    UNUSED_PARAM(doc);
+    struct travel_elem_pointer *args = (struct travel_elem_pointer*)ctxt;
+
+    if (element == args->p) {
+        args->elem = element;
+        return PCDOC_TRAVEL_STOP;
+    }
+
+    return PCDOC_TRAVEL_GOON;
+}
+
+static pcdoc_element_t
+find_element_by_pointer(purc_document_t doc, void *p)
+{
+    pcdoc_element_t elem = NULL;
+    if (!doc || !p) {
+        goto out;
+    }
+
+    struct travel_elem_pointer data = {
+        .elem = NULL,
+        .p = p
+    };
+
+    pcdoc_travel_descendant_elements(doc, NULL, travel_elem_pointer_cb,
+            &data, NULL);
+
+    elem = data.elem;
+out:
+    return elem;
+}
+
+
 void
 pcintr_handle_task(struct pcintr_observer_task *task)
 {
@@ -100,6 +141,16 @@ pcintr_handle_task(struct pcintr_observer_task *task)
 
     if (task->payload) {
         pcintr_set_question_var(frame, task->payload);
+    }
+
+    if (task->observed && purc_variant_is_native(task->observed)) {
+        void *p = purc_variant_native_get_entity(task->observed);
+        pcdoc_element_t e = find_element_by_pointer(stack->doc, p);
+#if 0
+        if (e) {
+            frame->edom_element = e;
+        }
+#endif
     }
 
     PC_ASSERT(frame->edom_element);
