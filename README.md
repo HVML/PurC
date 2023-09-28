@@ -66,6 +66,10 @@ For documents, specifications, and open-source software related to HVML, please 
 - PurC (the Prime hVml inteRpreter for C language): <https://github.com/HVML/PurC>.
 - xGUI Pro (an advanced HVML renderer based on WebKit): <https://github.com/HVML/xGUI-Pro>.
 
+For sample applications wrotten by using HVML, please refer to the following repository:
+
+- HybridOS Samples: <https://github.com/HybridOS2/HBDSamples>.
+
 ## Release Status
 
 [![Packaging status purc](https://repology.org/badge/vertical-allrepos/purc.svg)](https://repology.org/project/purc/versions)

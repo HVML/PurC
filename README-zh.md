@@ -53,6 +53,10 @@ PurC 的目标是使用 C 语言实现 [HVML 规范 V1.0] 中定义的所有功�
 - xGUI Pro（基于 WebKit 的高级 HVML 渲染器）：<https://github.com/HVML/xGUI-Pro>。
 - PurC Midnight Commander（HVML 字符渲染器）：<https://github.com/HVML/PurC-Midnight-Commander>。
 
+使用 HVML 开发的一些示例应用，可访问如下仓库获得：
+
+- HybridOS 示例应用：<https://github.com/HybridOS2/HBDSamples>。
+
 请注意，自 PurC 0.9.0 以来，我们将 DOM Ruler 和 PurC Fetcher 的代码仓库合并到了 PurC 仓库中。因此，以下仓库不再使用：
 
 - PurC Fetcher（PurC 的远程数据获取器）

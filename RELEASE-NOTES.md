@@ -52,8 +52,9 @@ In this version, we fixed a few bugs and made some minor enhancements:
 * CHANGES:
 * ENHANCEMENTS:
    - Support two new element types in PURCMC message: `PCRDR_MSG_ELEMENT_TYPE_CLASS` and `PCRDR_MSG_ELEMENT_TYPE_TAG`.
+   - Support `.class-name` and `tag-name` in `request` and `observe` elements.
    - Create HTML document with explicit DOCTYPE.
-   - Implement `receivable` event on a channel.
+   - Implement `receivable` event on channels.
 * OPTIMIZATIONS:
 * ADJUSTMENTS:
    - Update HVML samples to use bootstrap 5.3.1 and bootstrap-icons 1.10.5.
