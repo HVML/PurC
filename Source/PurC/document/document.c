@@ -725,7 +725,7 @@ pcdoc_selector_new(const char *selector)
         goto out;
     }
 
-    if (selector[0] == '#') {
+    if (selector[0] == '#' && purc_is_valid_css_identifier(selector + 1)) {
         ret->id = strdup(selector);
     }
     else {
