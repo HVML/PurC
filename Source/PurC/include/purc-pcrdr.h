@@ -261,6 +261,8 @@ typedef enum {
 #define PURC_RDRCOMM_NAME_SOCKET        "SOCKET"
     PURC_RDRCOMM_HBDBUS,
 #define PURC_RDRCOMM_NAME_HBDBUS         "HBDBUS"
+    PURC_RDRCOMM_WEBSOCKET,
+#define PURC_RDRCOMM_NAME_WEBSOCKET      "WEBSOCKET"
 } purc_rdrcomm_k;
 
 /* Connection types */

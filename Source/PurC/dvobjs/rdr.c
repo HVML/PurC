@@ -72,6 +72,10 @@ rdr_comm(struct pcrdr_conn *rdr)
     case PURC_RDRCOMM_HBDBUS:
         comm = PURC_RDRCOMM_NAME_HBDBUS;
         break;
+
+    case PURC_RDRCOMM_WEBSOCKET:
+        comm = PURC_RDRCOMM_NAME_WEBSOCKET;
+        break;
     }
 
 out:

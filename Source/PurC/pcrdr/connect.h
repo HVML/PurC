@@ -80,6 +80,10 @@ struct pcrdr_conn {
     pcrdr_extra_message_source source_fn;
     void *source_ctxt; /* context for extra message source */
 
+    char *sticky;       /* websocket sticky package after receive handshake */
+    char *sticky_pos;
+    size_t nr_sticky;
+
     pcrdr_request_handler request_handler;
     pcrdr_event_handler event_handler;
 

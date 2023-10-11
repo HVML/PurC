@@ -47,9 +47,14 @@
 #include <sys/fcntl.h>
 #include <sys/un.h>
 #include <sys/time.h>
+#include <netdb.h>
 
 #define CLI_PATH    "/var/tmp/"
 #define CLI_PERM    S_IRWXU
+
+#define WS_MAGIC_STR        "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+#define WS_KEY_LEN          16
+#define SHA_DIGEST_LEN      20
 
 /* The frame operation codes for UnixSocket */
 typedef enum USOpcode_ {
@@ -69,6 +74,26 @@ typedef struct USFrameHeader_ {
     unsigned int sz_payload;
     unsigned char payload[0];
 } USFrameHeader;
+
+/* The frame operation codes for WebSocket */
+typedef enum WSOpcode_ {
+    WS_OPCODE_CONTINUATION = 0x00,
+    WS_OPCODE_TEXT = 0x01,
+    WS_OPCODE_BIN = 0x02,
+    WS_OPCODE_END = 0x03,
+    WS_OPCODE_CLOSE = 0x08,
+    WS_OPCODE_PING = 0x09,
+    WS_OPCODE_PONG = 0x0A,
+} WSOpcode;
+
+/* The frame header for WebSocket */
+typedef struct WSFrameHeader_ {
+    unsigned int fin;
+    unsigned int rsv;
+    unsigned int op;
+    unsigned int mask;
+    unsigned int sz_payload;
+} WSFrameHeader;
 
 /* packet body types */
 enum {
@@ -92,6 +117,256 @@ static inline int conn_write (int fd, const void *data, ssize_t sz)
     }
 
     return PCRDR_ERROR_IO;
+}
+
+static ssize_t ws_write(int fd, const void *buf, size_t length)
+{
+    /* TODO : ssl support */
+    return send(fd, buf, length, 0);
+}
+
+static ssize_t ws_read(int fd, void *buf, size_t length)
+{
+    /* TODO : ssl support */
+    return recv(fd, buf, length, 0);
+}
+
+#if 0
+static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
+{
+    if (conn->sticky) {
+        size_t nr_last = 0;
+        nr_last = conn->nr_sticky - (conn->sticky_pos - conn->sticky);
+        if (nr_last > length) {
+            memcpy(buf, conn->sticky_pos, length);
+            conn->sticky_pos += length;
+            return length;
+        }
+
+        memcpy(buf, conn->sticky_pos, nr_last);
+
+        free (conn->sticky);
+        conn->sticky = NULL;
+        conn->sticky_pos = NULL;
+        conn->nr_sticky = 0;
+
+        if (nr_last == length) {
+            return length;
+        }
+
+        return nr_last + ws_read(conn->fd, (char *)buf + nr_last, length - nr_last);
+    }
+    return ws_read(conn->fd, buf, length);
+}
+#endif
+
+static int ws_send_ctrl_frame(int fd, char code)
+{
+    char data[6];
+    int mask_int;
+
+    srand(time(NULL));
+    mask_int = rand();
+    memcpy(data + 2, &mask_int, 4);
+
+    data[0] = 0x80 | code;
+    data[1] = 0x80;
+
+    if (6 != ws_write(fd, data, 6)) {
+        return -1;
+    }
+    return 0;
+}
+
+static int ws_send_data_frame(int fd, int fin, int opcode,
+        const void *data, ssize_t sz)
+{
+    int ret = PCRDR_ERROR_IO;
+    int mask_int = 0;
+    size_t size = sz;
+    char *buf = NULL;
+    char *p = NULL;
+    size_t nr_buf = 0;
+    WSFrameHeader header;
+    unsigned char mask[4] = { 0 };
+
+    if (sz <= 0) {
+        PC_DEBUG ("Invalid data size %ld.\n", sz);
+        goto out;
+    }
+
+    header.fin = fin;
+    header.rsv = 0;
+    header.op = opcode;
+    header.mask = 1; /* client must 1 */
+
+    srand(time(NULL));
+    mask_int = rand();
+    memcpy(mask, &mask_int, 4);
+
+    size = sz;
+    if (size > 0xffff) {
+        /* header(16b) + Extended payload length(64b) + mask(32b) + data */
+        nr_buf = 2 + 8 + 4 + sz;
+        header.sz_payload = 127;
+    }
+    else if (size > 125) {
+        /* header(16b) + Extended payload length(16b) + mask(32b) + data */
+        nr_buf = 2 + 2 + 4 + sz;
+        header.sz_payload = 126;
+    }
+    else {
+        /* header(16b) + data + mask(32b) */
+        nr_buf = 2 + 4 + sz;
+        header.sz_payload = sz;
+    }
+
+    buf = malloc(nr_buf + 1);
+    buf[0] = 0;
+    buf[1] = 0;
+    if (fin) {
+        buf[0] |= 0x80;
+    }
+    buf[0] |= (0xff & opcode);
+    buf[1] = 0x80 | header.sz_payload;
+
+    p = buf + 2;
+    if (header.sz_payload == 127) {
+        uint64_t *q = (uint64_t *)p;
+        *q = htobe64(sz);
+        p = p + 8;
+    }
+    else if (header.sz_payload == 126) {
+        uint16_t *q = (uint16_t *)p;
+        *q = htobe16(sz);
+        p = p + 2;
+    }
+
+    /* mask */
+    memcpy(p, &mask, 4);
+
+    /* payload */
+    p = p + 4;
+    memcpy(p, data, sz);
+
+    /* mask payload */
+    for (ssize_t i = 0; i < sz; i++) {
+        p[i] ^= mask[i % 4] & 0xff;
+    }
+
+    if (ws_write(fd, buf, nr_buf) == (ssize_t)nr_buf) {
+        ret = 0;
+    }
+
+out:
+    if (buf) {
+        free(buf);
+    }
+    return ret;
+}
+
+static int ws_read_data_frame(int fd, WSFrameHeader *header,
+        char **packet_buf, unsigned int *packet_len)
+{
+    int ret = -1;
+    unsigned char mask[4] = { 0 };
+    char *payload = NULL;
+    size_t nr_payload = 0;
+
+    if (header->sz_payload == 127) {
+        uint64_t v = 0;
+        if (ws_read(fd, &v, sizeof(v)) != sizeof(v)) {
+            PC_DEBUG ("read websocket extended payload length failed.\n");
+            goto out;
+        }
+        nr_payload = be64toh(v);
+    }
+    else if (header->sz_payload == 126) {
+        uint16_t v = 0;
+        if (ws_read(fd, &v, sizeof(v)) != sizeof(v)) {
+            PC_DEBUG ("read websocket extended payload length failed.\n");
+            goto out;
+        }
+        nr_payload = be16toh(v);
+    }
+    else {
+        nr_payload = header->sz_payload;
+    }
+
+    /* Server to Client may be 0 */
+    if (header->mask) {
+        if (ws_read(fd, mask, sizeof(mask)) != sizeof(mask)) {
+            PC_DEBUG ("read websocket mask failed.\n");
+            goto out;
+        }
+    }
+
+    if (nr_payload == 0) {
+        goto succ;
+    }
+
+    payload = malloc(nr_payload + 1);
+    if (payload == NULL) {
+        PC_DEBUG ("Failed to allocate memory for payload.\n");
+        goto out;
+    }
+
+    if (ws_read(fd, payload, nr_payload) != (ssize_t)nr_payload) {
+        PC_DEBUG ("read websocket payload failed.\n");
+        goto out;
+    }
+
+    /* Server to Client may be 0 */
+    /* unmask data */
+    if (header->mask) {
+        for (size_t i = 0, j = 0; i < nr_payload; ++i, ++j) {
+            payload[i] ^= mask[j % 4];
+        }
+    }
+
+succ:
+    *packet_buf = payload;
+    *packet_len = nr_payload;
+    ret = 0;
+    return ret;
+
+out:
+    if (ret != 0 && payload) {
+        free(payload);
+    }
+    return ret;
+}
+
+static int ws_read_frame_header(int fd, WSFrameHeader *header)
+{
+    char buf[2] = { 0 };
+    ssize_t n = ws_read(fd, &buf, 2);
+    if (n != 2) {
+        return -1;
+    }
+
+    header->fin = buf[0] & 0x80 ? 1 : 0;
+    header->rsv = buf[0] & 0x70;
+    header->op = buf[0] & 0x0F;
+    header->mask = buf[1] & 0x80;
+    header->sz_payload = buf[1] & 0x7F;
+
+    return 0;
+}
+
+static int ws_close(int fd)
+{
+    return ws_send_ctrl_frame(fd, WS_OPCODE_CLOSE);
+}
+
+static int ws_ping(int fd)
+{
+    return ws_send_ctrl_frame(fd, WS_OPCODE_PING);
+}
+
+int ws_pong(int fd)
+{
+    return ws_send_ctrl_frame(fd, WS_OPCODE_PONG);
 }
 
 static int my_wait_message (pcrdr_conn* conn, int timeout_ms)
@@ -197,8 +472,10 @@ static int my_ping_peer (pcrdr_conn* conn)
         }
     }
     else if (conn->type == CT_WEB_SOCKET) {
-        /* TODO */
-        err_code = PCRDR_ERROR_NOT_IMPLEMENTED;
+        if (ws_ping(conn->fd) != 0) {
+            PC_DEBUG ("Error when ping WebSocket: %s\n", strerror (errno));
+            err_code = PCRDR_ERROR_IO;
+        }
     }
     else {
         err_code = PCRDR_ERROR_INVALID_VALUE;
@@ -228,8 +505,10 @@ static int my_disconnect (pcrdr_conn* conn)
         }
     }
     else if (conn->type == CT_WEB_SOCKET) {
-        /* TODO */
-        err_code = PCRDR_ERROR_NOT_IMPLEMENTED;
+        if (ws_close(conn->fd) != 0) {
+            PC_DEBUG ("Error when close WebSocket: %s\n", strerror (errno));
+            err_code = PCRDR_ERROR_IO;
+        }
     }
     else {
         err_code = PCRDR_ERROR_INVALID_VALUE;
@@ -342,6 +621,257 @@ error:
     return -1;
 }
 
+static int ws_open_connection(const char *host, const char *port)
+{
+    int fd = -1;
+    struct addrinfo *addrinfo;
+    struct addrinfo *p;
+    struct addrinfo hints = { 0 };
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if (0 != getaddrinfo(host, port, &hints, &addrinfo)) {
+        PC_DEBUG ("Error while getting address info (%s:%s)\n",
+                host, port);
+        goto out;
+    }
+
+    for (p = addrinfo; p != NULL; p = p->ai_next) {
+        if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            continue;
+        }
+
+        if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(fd);
+            continue;
+        }
+        break;
+    }
+    freeaddrinfo(addrinfo);
+
+    if (p == NULL) {
+        PC_DEBUG ("Connect to websocket server failed! (%s:%s)\n",
+                host, port);
+        goto out;
+    }
+
+out:
+    return fd;
+}
+
+static void ws_sha1_digest(const char *s, int len, unsigned char *digest)
+{
+  pcutils_sha1_ctxt sha;
+
+  pcutils_sha1_begin(&sha);
+  pcutils_sha1_hash(&sha, (uint8_t *) s, len);
+  pcutils_sha1_end(&sha, digest);
+}
+
+static int ws_verify_handshake(const char *ws_key, char *header)
+{
+    (void) header;
+    int ret = -1;
+
+    size_t klen = strlen(ws_key);
+    size_t mlen = strlen(WS_MAGIC_STR);
+    size_t len = klen + mlen;
+    char *s = malloc (klen + mlen + 1);
+    uint8_t digest[SHA_DIGEST_LEN] = { 0 };
+
+    memset(digest, 0, sizeof *digest);
+    memcpy(s, ws_key, klen);
+    memcpy(s + klen, WS_MAGIC_STR, mlen + 1);
+    ws_sha1_digest(s, len, digest);
+
+    char *encode = pcutils_b64_encode_alloc((unsigned char *)digest,
+            sizeof(digest));
+
+    char *tmp = NULL;
+    const char *line = header, *next = NULL;
+    bool valid_status = false;
+    bool valid_accept = false;
+    bool valid_upgrade = false;
+    bool valid_connection = false;
+
+    while (line) {
+        if ((next = strstr (line, "\r\n")) != NULL) {
+            len = (next - line);
+        }
+        else {
+            len = strlen (line);
+        }
+
+        if (len <= 0) {
+            PC_DEBUG ("Bad http header during handshake\n");
+            goto out;
+        }
+
+        tmp = malloc(len + 1);
+        memcpy (tmp, line, len);
+        tmp[len] = '\0';
+
+        if(tmp[0] == 'H' && tmp[1] == 'T' && tmp[2] == 'T'
+                && tmp[3] == 'P') {
+            if(strcmp(tmp, "HTTP/1.1 101 Switching Protocols") != 0 &&
+                    strcmp(tmp, "HTTP/1.0 101 Switching Protocols") != 0) {
+                PC_DEBUG ("Peer protocol invalid : %s\n", tmp);
+                goto out;
+            }
+            valid_status = true;
+        }
+        else {
+            char *p = strchr(tmp, ' ');
+            if (p) {
+                *p = '\0';
+            }
+
+            if (strcmp(tmp, "Upgrade:") == 0 &&
+                    strcasecmp(p + 1, "websocket") == 0) {
+                valid_upgrade = true;
+            }
+            else if (strcmp(tmp, "Connection:") == 0 &&
+                    strcasecmp(p + 1, "upgrade") == 0) {
+                valid_connection = true;
+            }
+            else if (strcmp(tmp, "Sec-WebSocket-Accept:") == 0 &&
+                    strcmp(p + 1, encode) == 0) {
+                    valid_accept = true;
+            }
+        }
+
+        free (tmp);
+        tmp = NULL;
+
+        line = next ? (next + 2) : NULL;
+        if (strcmp(next, "\r\n\r\n") == 0) {
+            break;
+        }
+    }
+
+    if (!valid_status) {
+        PC_DEBUG ("Bad http status during handshake\n");
+        goto out;
+    }
+
+    if (!valid_accept) {
+        PC_DEBUG ("Verify Sec-WebSocket-Accept failed during handshake\n");
+        goto out;
+    }
+
+    if (!valid_upgrade) {
+        PC_DEBUG ("Not found upgrade header during handshake\n");
+        goto out;
+    }
+
+    if (!valid_connection) {
+        PC_DEBUG ("Not found connection header during handshake\n");
+        goto out;
+    }
+
+    ret = 0;
+out:
+    if (tmp) {
+        free(tmp);
+    }
+
+    if (s) {
+        free(s);
+    }
+
+    if (encode) {
+        free(encode);
+    }
+    return ret;
+}
+
+static int ws_handshake(pcrdr_conn *conn, const char *host_name, const char *port,
+        const char* app_name, const char* runner_name)
+{
+    (void)app_name;
+    (void)runner_name;
+    int ret = -1;
+
+    /* generate Sec-WebSocket-Key */
+    srand(time(NULL));
+    char key[WS_KEY_LEN];
+    for (int i = 0; i < WS_KEY_LEN; i++) {
+        key[i] = rand() & 0xff;
+    }
+    char *ws_key =  pcutils_b64_encode_alloc ((unsigned char *) key, WS_KEY_LEN);
+    char req_headers[1024] = { 0 };
+
+    snprintf(req_headers, 1024,
+            "GET / HTTP/1.1\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            "Host: %s:%s\r\n"
+            "Sec-WebSocket-Key: %s\r\n"
+            "Sec-WebSocket-Version: 13\r\n\r\n",
+            host_name, port, ws_key);
+
+    /* send to server */
+    ws_write(conn->fd, req_headers, strlen(req_headers));
+
+    char buf[1024] = { 0 };
+#if 0
+    char *p = buf;
+    while (true) {
+        if (ws_read(fd, p, 1) != 1) {
+            PC_DEBUG ("Error receiving data during handshake\n");
+            goto out;
+        }
+        p++;
+        if (p - buf >= 4 && strcmp(p - 4, "\r\n\r\n") == 0) {
+            break;
+        }
+    }
+#else
+
+    char *p = NULL;
+    ssize_t n = ws_read(conn->fd, buf, 1024);
+    if (n == 0) {
+        PC_DEBUG ("Peer closed during handshake\n");
+        goto out;
+    }
+
+    if (n < 0) {
+        PC_DEBUG ("Error receiving data during handshake\n");
+        goto out;
+    }
+
+    p = strstr(buf, "\r\n\r\n");
+    if (p == NULL) {
+        PC_DEBUG ("Received invalid data during handshake (%s)\n", buf);
+        goto out;
+    }
+
+    p += 4;
+    if (*p != 0) {
+        int sz = n - (p - buf);
+        conn->sticky = malloc(sz + 1);
+        if (conn->sticky == NULL) {
+            PC_DEBUG ("Failed to allocate memory.\n");
+            ret = PCRDR_ERROR_NOMEM;
+            goto out;
+        }
+
+        memcpy(conn->sticky, p, sz);
+        conn->sticky_pos = conn->sticky;
+        conn->nr_sticky = sz;
+        *p = 0;
+    }
+#endif
+
+    ret = ws_verify_handshake(ws_key, buf);
+
+out:
+    if (ws_key) {
+        free(ws_key);
+    }
+    return ret;
+}
+
 int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
         const char* app_name, const char* runner_name, pcrdr_conn** conn)
 {
@@ -351,7 +881,65 @@ int pcrdr_socket_connect_via_web_socket (const char* host_name, int port,
     UNUSED_PARAM(runner_name);
     UNUSED_PARAM(conn);
 
-    purc_set_error (PCRDR_ERROR_NOT_IMPLEMENTED);
+    int fd, err_code = PCRDR_ERROR_BAD_CONNECTION;
+
+    if (!purc_is_valid_app_name(app_name) ||
+            !purc_is_valid_runner_name(runner_name)) {
+        purc_set_error(PURC_EXCEPT_INVALID_VALUE);
+        return -1;
+    }
+
+    if ((*conn = calloc (1, sizeof (pcrdr_conn))) == NULL) {
+        PC_DEBUG ("Failed to callocate space for connection: %s\n",
+                strerror (errno));
+        purc_set_error(PCRDR_ERROR_NOMEM);
+        return -1;
+    }
+
+    char s_port[11];
+    sprintf(s_port, "%d", port);
+    if ((fd = ws_open_connection(host_name, s_port)) < 0) {
+        goto error;
+    }
+
+    (*conn)->prot = PURC_RDRCOMM_WEBSOCKET;
+    (*conn)->type = CT_WEB_SOCKET;
+    (*conn)->fd = fd;
+
+    if (ws_handshake(*conn, host_name, s_port, app_name,
+                runner_name) != 0) {
+        goto error;
+    }
+
+    (*conn)->timeout_ms = 10;   /* 10 milliseconds */
+    (*conn)->srv_host_name = NULL;
+    (*conn)->own_host_name = strdup (PCRDR_LOCALHOST);
+    (*conn)->app_name = app_name;
+    (*conn)->runner_name = runner_name;
+
+    (*conn)->wait_message = my_wait_message;
+    (*conn)->read_message = my_read_message;
+    (*conn)->send_message = my_send_message;
+    (*conn)->ping_peer = my_ping_peer;
+    (*conn)->disconnect = my_disconnect;
+
+    list_head_init (&(*conn)->pending_requests);
+    return fd;
+
+error:
+    close (fd);
+
+    if ((*conn)->own_host_name) {
+       free((*conn)->own_host_name);
+    }
+
+    if ((*conn)->sticky) {
+       free ((*conn)->sticky);
+    }
+    free(*conn);
+    *conn = NULL;
+
+    purc_set_error(err_code);
     return -1;
 }
 
@@ -460,8 +1048,111 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
         }
     }
     else if (conn->type == CT_WEB_SOCKET) {
-        /* TODO */
-        err_code = PCRDR_ERROR_NOT_IMPLEMENTED;
+        WSFrameHeader header;
+
+        if (ws_read_frame_header(conn->fd, &header) != 0) {
+            PC_DEBUG ("Failed to read frame header from websocket\n");
+            err_code = PCRDR_ERROR_IO;
+            goto done;
+        }
+
+        if (header.op == WS_OPCODE_PONG) {
+            // TODO
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+            *sz_packet = 0;
+            PC_DEBUG ("Receive PONG message from websocket\n");
+            return 0;
+        }
+        else if (header.op == WS_OPCODE_PING) {
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+
+            if (ws_pong(conn->fd) != 0) {
+                err_code = PCRDR_ERROR_IO;
+                goto done;
+            }
+            *sz_packet = 0;
+            return 0;
+        }
+        else if (header.op == WS_OPCODE_CLOSE) {
+            PC_DEBUG ("Peer closed\n");
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+
+            err_code = PCRDR_ERROR_PEER_CLOSED;
+            goto done;
+        }
+        else if (header.op == WS_OPCODE_TEXT ||
+                header.op == WS_OPCODE_BIN) {
+            char *p = packet_buf;
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            unsigned int offset;
+            int is_text;
+
+            offset = 0;
+
+            if (header.op == US_OPCODE_TEXT) {
+                is_text = 1;
+            }
+            else {
+                is_text = 0;
+            }
+            do {
+                if (ws_read_data_frame(conn->fd, &header, &buf, &nr_buf) != 0) {
+                    PC_DEBUG ("Failed to read packet from WebSocket\n");
+                    err_code = PCRDR_ERROR_IO;
+                    goto done;
+                }
+
+                memcpy(p, buf, nr_buf);
+                free(buf);
+
+                p += nr_buf;
+                offset += nr_buf;
+
+                if (header.fin == 1) {
+                    break;
+                }
+
+                if (ws_read_frame_header(conn->fd, &header) != 0) {
+                    PC_DEBUG ("Failed to read frame header from WebSocket\n");
+                    err_code = PCRDR_ERROR_IO;
+                    goto done;
+                }
+
+                if (header.op != WS_OPCODE_CONTINUATION) {
+                    PC_DEBUG ("Not a continuation frame\n");
+                    err_code = PCRDR_ERROR_PROTOCOL;
+                    goto done;
+                }
+            } while(true);
+
+            if (is_text) {
+                ((char *)packet_buf) [offset] = '\0';
+                *sz_packet = offset + 1;
+            }
+            else {
+                *sz_packet = offset;
+            }
+        }
+        else {
+            PC_DEBUG ("Bad packet op code a: %d\n", header.op);
+            err_code = PCRDR_ERROR_PROTOCOL;
+        }
     }
     else {
         err_code = PCRDR_ERROR_INVALID_VALUE;
@@ -597,9 +1288,121 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
         }
     }
     else if (conn->type == CT_WEB_SOCKET) {
-        /* TODO */
-        err_code = PCRDR_ERROR_NOT_IMPLEMENTED;
-        goto done;
+        WSFrameHeader header;
+
+        if (ws_read_frame_header(conn->fd, &header) != 0) {
+            PC_DEBUG ("Failed to read frame header from websocket\n");
+            err_code = PCRDR_ERROR_IO;
+            goto done;
+        }
+
+        if (header.op == WS_OPCODE_PONG) {
+            // TODO
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+            *sz_packet = 0;
+            PC_DEBUG ("Receive PONG message from websocket\n");
+            return 0;
+        }
+        else if (header.op == WS_OPCODE_PING) {
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+
+            if (ws_pong(conn->fd) != 0) {
+                err_code = PCRDR_ERROR_IO;
+                goto done;
+            }
+            *sz_packet = 0;
+            return 0;
+        }
+        else if (header.op == WS_OPCODE_CLOSE) {
+            PC_DEBUG ("Peer closed\n");
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            if (buf) {
+                free(buf);
+            }
+
+            err_code = PCRDR_ERROR_PEER_CLOSED;
+            goto done;
+        }
+        else if (header.op == WS_OPCODE_TEXT ||
+                header.op == WS_OPCODE_BIN) {
+            unsigned int offset = 0;
+            char *p = NULL;
+            char *buf = NULL;
+            unsigned int nr_buf = 0;
+            int is_text;
+
+            if (header.op == US_OPCODE_TEXT) {
+                is_text = 1;
+            }
+            else {
+                is_text = 0;
+            }
+            do {
+                if (ws_read_data_frame(conn->fd, &header, &buf, &nr_buf) != 0) {
+                    PC_DEBUG ("Failed to read packet from WebSocket\n");
+                    err_code = PCRDR_ERROR_IO;
+                    goto done;
+                }
+
+                if (packet_buf == NULL) {
+                    packet_buf = malloc(nr_buf + 1);
+                    p = packet_buf;
+                }
+                else {
+                    packet_buf = realloc(packet_buf, offset + nr_buf + 1);
+                    p = packet_buf + offset;
+                }
+
+                if (packet_buf == NULL) {
+                    err_code = PCRDR_ERROR_NOMEM;
+                    goto done;
+                }
+
+                memcpy(p, buf, nr_buf);
+                free(buf);
+                offset += nr_buf;
+
+                if (header.fin == 1) {
+                    break;
+                }
+
+                if (ws_read_frame_header(conn->fd, &header) != 0) {
+                    PC_DEBUG ("Failed to read frame header from WebSocket\n");
+                    err_code = PCRDR_ERROR_IO;
+                    goto done;
+                }
+
+                if (header.op != WS_OPCODE_CONTINUATION) {
+                    PC_DEBUG ("Not a continuation frame\n");
+                    err_code = PCRDR_ERROR_PROTOCOL;
+                    goto done;
+                }
+            } while(true);
+
+            if (is_text) {
+                ((char *)packet_buf) [offset] = '\0';
+                *sz_packet = offset + 1;
+            }
+            else {
+                *sz_packet = offset;
+            }
+        }
+        else {
+            PC_DEBUG ("Bad packet op code b: %d\n", header.op);
+            err_code = PCRDR_ERROR_PROTOCOL;
+        }
     }
     else {
         assert (0);
@@ -667,8 +1470,44 @@ int pcrdr_socket_send_text_packet (pcrdr_conn* conn, const char* text, size_t le
         }
     }
     else if (conn->type == CT_WEB_SOCKET) {
-        /* TODO */
-        retv = PCRDR_ERROR_NOT_IMPLEMENTED;
+        if (len > PCRDR_MAX_INMEM_PAYLOAD_SIZE) {
+            PC_DEBUG("Sending a too large packet, size: %lu\n", len);
+            retv = PCRDR_ERROR_TOO_LARGE;
+        }
+        else if (len > PCRDR_MAX_FRAME_PAYLOAD_SIZE) {
+            unsigned int left = len;
+            int fin;
+            int opcode;
+            size_t sz_payload;
+
+            do {
+                if (left == len) {
+                    fin = 0;
+                    opcode = WS_OPCODE_TEXT;
+                    sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                    left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                }
+                else if (left > PCRDR_MAX_FRAME_PAYLOAD_SIZE) {
+                    fin = 0;
+                    opcode = WS_OPCODE_CONTINUATION;
+                    sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                    left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                }
+                else {
+                    fin = 1;
+                    opcode = WS_OPCODE_CONTINUATION;
+                    sz_payload = left;
+                    left = 0;
+                }
+
+                if(ws_send_data_frame(conn->fd, fin, opcode, text, sz_payload) == 0) {
+                    text += sz_payload;
+                }
+            } while (left > 0 && retv == 0);
+        }
+        else {
+            retv = ws_send_data_frame(conn->fd, 1, WS_OPCODE_TEXT, text, len);
+        }
     }
     else
         retv = PCRDR_ERROR_INVALID_VALUE;
