@@ -55,6 +55,7 @@
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
 #define DEF_RDR_URI_THREAD      PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 #define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
+#define DEF_RDR_URI_WEBSOCKET   "tcp://localhost:" PCRDR_PURCMC_WS_PORT
 
 #define KEY_FLAG_REQUEST        "request"
 
@@ -138,11 +139,12 @@ static void print_usage(FILE *fp)
         "            - `remote`: use the remote data fetcher to support more URL schemas,\n"
         "               such as `http`, `https`, `ftp` and so on.\n"
         "\n"
-        "  -c --rdr-comm=< headless | thread | socket >\n"
+        "  -c --rdr-comm=< headless | thread | socket | websocket>\n"
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
         "            - `headless`: use the built-in headless renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
         "            - `socket`: use the remote socket-based renderer;\n"
+        "            - `websocket`: use the remote websocket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
         "  -u --rdr-uri=< renderer_uri >\n"
@@ -153,6 +155,8 @@ static void print_usage(FILE *fp)
         "              the default value is `" DEF_RDR_URI_THREAD "`.\n"
         "            - For the renderer comm method `socket`,\n"
         "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
+        "            - For the renderer comm method `websocket`,\n"
+        "              the default value is `tcp:///localhost:7702`.\n"
         "\n"
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
@@ -464,6 +468,9 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             }
             else if (strcmp(optarg, "socket") == 0) {
                 opts->rdr_prot = "socket";
+            }
+            else if (strcmp(optarg, "websocket") == 0) {
+                opts->rdr_prot = "websocket";
             }
             else {
                 goto bad_arg;
@@ -852,6 +859,8 @@ fill_run_rdr_info(struct my_opts *opts,
                 rdr_info->renderer_comm = PURC_RDRCOMM_THREAD;
             else if (strcmp(str, "socket") == 0)
                 rdr_info->renderer_comm = PURC_RDRCOMM_SOCKET;
+            else if (strcmp(str, "websocket") == 0)
+                rdr_info->renderer_comm = PURC_RDRCOMM_WEBSOCKET;
         }
     }
 
@@ -1459,6 +1468,12 @@ int main(int argc, char** argv)
         fprintf(stderr, "The built-in Foil renderer is not enabled.\n");
         return EXIT_FAILURE;
 #endif
+    }
+    else if (strcmp(opts->rdr_prot, "websocket") == 0) {
+        extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
+        if (opts->rdr_uri == NULL) {
+            opts->rdr_uri = strdup(DEF_RDR_URI_WEBSOCKET);
+        }
     }
     else {
         if (strcmp(opts->rdr_prot, "socket")) {

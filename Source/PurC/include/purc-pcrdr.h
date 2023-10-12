@@ -1222,6 +1222,24 @@ PCA_EXPORT pcrdr_msg *
 pcrdr_socket_connect(const char* renderer_uri,
         const char* app_name, const char* runner_name, pcrdr_conn** conn);
 
+/**
+ * Connect to a websocket-based renderer.
+ *
+ * @param renderer_uri: the URI of the renderer.
+ * @param app_name: the app name.
+ * @param runner_name: the runner name.
+ * @param conn: the pointer to a pcrdr_conn *to return the renderer connection.
+ *
+ * Connects to a socket-based renderer.
+ *
+ * Returns: The initial response message; NULL on error.
+ *
+ * Since: 0.1.0
+ */
+PCA_EXPORT pcrdr_msg *
+pcrdr_websocket_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn);
+
 /**@}*/
 
 /**

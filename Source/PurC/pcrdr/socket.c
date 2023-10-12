@@ -1568,3 +1568,81 @@ pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
 }
 
 #endif
+
+#define SCHEMA_WEBSOCKET  "tcp://"
+
+pcrdr_msg *
+pcrdr_websocket_connect(const char* renderer_uri,
+        const char* app_name, const char* runner_name, pcrdr_conn** conn)
+{
+    pcrdr_msg *msg = NULL;
+    char *host_name = NULL;
+    int port;
+
+    if (strncasecmp (SCHEMA_WEBSOCKET, renderer_uri,
+            sizeof(SCHEMA_WEBSOCKET) - 1)) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        return NULL;
+    }
+
+    const char *s_port;
+    const char *p = renderer_uri + sizeof(SCHEMA_WEBSOCKET) - 1;
+    char *q = strstr(p, ":");
+    if (q == NULL) {
+        s_port = PCRDR_PURCMC_WS_PORT;
+        host_name = strdup(p);
+    }
+    else {
+        s_port = q + 1;
+        host_name = strndup(p, q - p);
+    }
+
+    if (!s_port[0]) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    port = atoi(s_port);
+    if (port <=0 || port > 65535) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if (pcrdr_socket_connect_via_web_socket(
+            host_name, port,
+            app_name, runner_name, conn) < 0) {
+        goto failed;
+    }
+
+    /* read the initial response from the server */
+    char buff[PCRDR_DEF_PACKET_BUFF_SIZE];
+    size_t len = sizeof(buff);
+
+    if (pcrdr_socket_read_packet(*conn, buff, &len) < 0)
+        goto failed;
+
+    (*conn)->stats.bytes_recv += len;
+    if (pcrdr_parse_packet(buff, len, &msg) < 0)
+        goto failed;
+
+    if (host_name) {
+        free(host_name);
+    }
+
+    return msg;
+
+failed:
+    if (msg)
+        pcrdr_release_message(msg);
+
+    if (*conn) {
+        pcrdr_disconnect(*conn);
+    }
+
+    if (host_name) {
+        free(host_name);
+    }
+
+    return NULL;
+}
+

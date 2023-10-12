@@ -171,6 +171,11 @@ static int connect_to_renderer(struct pcinst *curr_inst,
         msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
+    else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
+        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        msg = pcrdr_websocket_connect(extra_info->renderer_uri,
+            inst->app_name, inst->runner_name, &inst->conn_to_rdr);
+    }
     else {
         // TODO: other protocol
         purc_set_error(PURC_ERROR_NOT_SUPPORTED);
