@@ -256,13 +256,13 @@ static bool ws_queue_data(struct pcdvobjs_stream *stream,
 static ssize_t ws_write(int fd, const void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return send(fd, buf, length, 0);
+    return write(fd, buf, length);
 }
 
 static ssize_t ws_read(int fd, void *buf, size_t length)
 {
     /* TODO : ssl support */
-    return recv(fd, buf, length, 0);
+    return read(fd, buf, length);
 }
 
 /*
@@ -277,7 +277,7 @@ static ssize_t ws_write_data(struct pcdvobjs_stream *stream,
     struct stream_extended_data *ext = stream->ext0.data;
     ssize_t bytes = 0;
 
-    bytes = write(stream->fd4w, buffer, len);
+    bytes = ws_write(stream->fd4w, buffer, len);
     if (bytes == -1 && errno == EPIPE) {
         ext->status = WS_ERR_IO | WS_CLOSING;
         return -1;
@@ -312,7 +312,7 @@ static ssize_t ws_write_pending(struct pcdvobjs_stream *stream)
         ssize_t bytes;
         ws_pending_data *pending = (ws_pending_data *)p;
 
-        bytes = write(stream->fd4w, pending->data + pending->szsent,
+        bytes = ws_write(stream->fd4w, pending->data + pending->szsent,
                 pending->szdata - pending->szsent);
 
         if (bytes > 0) {
@@ -387,7 +387,7 @@ static ssize_t ws_read_socket(struct pcdvobjs_stream *stream,
     ssize_t bytes;
 
 again:
-    bytes = read(stream->fd4r, buff, sz);
+    bytes = ws_read(stream->fd4r, buff, sz);
     if (bytes == -1) {
         if (errno == EINTR) {
             goto again;
@@ -463,6 +463,24 @@ ws_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
     return true;
 }
 
+static int ws_send_ctrl_frame(struct pcdvobjs_stream *stream, char code)
+{
+    char data[6];
+    int mask_int;
+
+    srand(time(NULL));
+    mask_int = rand();
+    memcpy(data + 2, &mask_int, 4);
+
+    data[0] = 0x80 | code;
+    data[1] = 0x80;
+
+    if (6 != ws_write_sock(stream, data, 6)) {
+        return -1;
+    }
+    return 0;
+}
+
 /*
  * Send a PING message to the peer.
  *
@@ -470,9 +488,7 @@ ws_handle_writes(int fd, purc_runloop_io_event event, void *ctxt)
  */
 static int ws_ping_peer(struct pcdvobjs_stream *stream)
 {
-    (void) stream;
-    /* TODO */
-    return -1;
+    return ws_send_ctrl_frame(stream, WS_OPCODE_PING);
 }
 
 /*
@@ -482,9 +498,7 @@ static int ws_ping_peer(struct pcdvobjs_stream *stream)
  */
 static int ws_pong_peer(struct pcdvobjs_stream *stream)
 {
-    (void) stream;
-    /* TODO */
-    return -1;
+    return ws_send_ctrl_frame(stream, WS_OPCODE_PONG);
 }
 
 /*
@@ -494,9 +508,7 @@ static int ws_pong_peer(struct pcdvobjs_stream *stream)
  */
 static int ws_notify_to_close(struct pcdvobjs_stream *stream)
 {
-    (void) stream;
-    /* TODO */
-    return -1;
+    return ws_send_ctrl_frame(stream, WS_OPCODE_CLOSE);
 }
 
 static void mark_closing(struct pcdvobjs_stream *stream)
@@ -538,6 +550,7 @@ failed:
 static int send_data(struct pcdvobjs_stream *stream,
         bool text_or_binary, const char *data, size_t sz)
 {
+    /* TODO */
     (void) stream;
     (void) text_or_binary;
     (void) data;
