@@ -45,6 +45,11 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netdb.h>
+
+#define WS_MAGIC_STR        "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+#define WS_KEY_LEN          16
+#define SHA_DIGEST_LEN      20
 
 #define MAX_FRAME_PAYLOAD_SIZE      (1024 * 4)
 #define MAX_INMEM_MESSAGE_SIZE      (1024 * 64)
@@ -246,6 +251,18 @@ static bool ws_queue_data(struct pcdvobjs_stream *stream,
     }
 
     return true;
+}
+
+static ssize_t ws_write(int fd, const void *buf, size_t length)
+{
+    /* TODO : ssl support */
+    return send(fd, buf, length, 0);
+}
+
+static ssize_t ws_read(int fd, void *buf, size_t length)
+{
+    /* TODO : ssl support */
+    return recv(fd, buf, length, 0);
 }
 
 /*
@@ -846,5 +863,271 @@ failed:
         free(ext);
 
     return NULL;
+}
+
+static int ws_open_connection(const char *host, const char *port)
+{
+    int fd = -1;
+    struct addrinfo *addrinfo;
+    struct addrinfo *p;
+    struct addrinfo hints = { 0 };
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if (0 != getaddrinfo(host, port, &hints, &addrinfo)) {
+        PC_DEBUG ("Error while getting address info (%s:%s)\n",
+                host, port);
+        goto out;
+    }
+
+    for (p = addrinfo; p != NULL; p = p->ai_next) {
+        if((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+            continue;
+        }
+
+        if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(fd);
+            continue;
+        }
+        break;
+    }
+    freeaddrinfo(addrinfo);
+
+    if (p == NULL) {
+        PC_DEBUG ("Connect to websocket server failed! (%s:%s)\n",
+                host, port);
+        goto out;
+    }
+
+out:
+    return fd;
+}
+
+static void ws_sha1_digest(const char *s, int len, unsigned char *digest)
+{
+  pcutils_sha1_ctxt sha;
+
+  pcutils_sha1_begin(&sha);
+  pcutils_sha1_hash(&sha, (uint8_t *) s, len);
+  pcutils_sha1_end(&sha, digest);
+}
+
+static int ws_verify_handshake(const char *ws_key, char *header)
+{
+    (void) header;
+    int ret = -1;
+
+    size_t klen = strlen(ws_key);
+    size_t mlen = strlen(WS_MAGIC_STR);
+    size_t len = klen + mlen;
+    char *s = malloc (klen + mlen + 1);
+    uint8_t digest[SHA_DIGEST_LEN] = { 0 };
+
+    memset(digest, 0, sizeof *digest);
+    memcpy(s, ws_key, klen);
+    memcpy(s + klen, WS_MAGIC_STR, mlen + 1);
+    ws_sha1_digest(s, len, digest);
+
+    char *encode = pcutils_b64_encode_alloc((unsigned char *)digest,
+            sizeof(digest));
+
+    char *tmp = NULL;
+    const char *line = header, *next = NULL;
+    bool valid_status = false;
+    bool valid_accept = false;
+    bool valid_upgrade = false;
+    bool valid_connection = false;
+
+    while (line) {
+        if ((next = strstr (line, "\r\n")) != NULL) {
+            len = (next - line);
+        }
+        else {
+            len = strlen (line);
+        }
+
+        if (len <= 0) {
+            PC_DEBUG ("Bad http header during handshake\n");
+            goto out;
+        }
+
+        tmp = malloc(len + 1);
+        memcpy (tmp, line, len);
+        tmp[len] = '\0';
+
+        if(tmp[0] == 'H' && tmp[1] == 'T' && tmp[2] == 'T'
+                && tmp[3] == 'P') {
+            if(strcmp(tmp, "HTTP/1.1 101 Switching Protocols") != 0 &&
+                    strcmp(tmp, "HTTP/1.0 101 Switching Protocols") != 0) {
+                PC_DEBUG ("Peer protocol invalid : %s\n", tmp);
+                goto out;
+            }
+            valid_status = true;
+        }
+        else {
+            char *p = strchr(tmp, ' ');
+            if (p) {
+                *p = '\0';
+            }
+
+            if (strcmp(tmp, "Upgrade:") == 0 &&
+                    strcasecmp(p + 1, "websocket") == 0) {
+                valid_upgrade = true;
+            }
+            else if (strcmp(tmp, "Connection:") == 0 &&
+                    strcasecmp(p + 1, "upgrade") == 0) {
+                valid_connection = true;
+            }
+            else if (strcmp(tmp, "Sec-WebSocket-Accept:") == 0 &&
+                    strcmp(p + 1, encode) == 0) {
+                    valid_accept = true;
+            }
+        }
+
+        free (tmp);
+        tmp = NULL;
+
+        line = next ? (next + 2) : NULL;
+        if (strcmp(next, "\r\n\r\n") == 0) {
+            break;
+        }
+    }
+
+    if (!valid_status) {
+        PC_DEBUG ("Bad http status during handshake\n");
+        goto out;
+    }
+
+    if (!valid_accept) {
+        PC_DEBUG ("Verify Sec-WebSocket-Accept failed during handshake\n");
+        goto out;
+    }
+
+    if (!valid_upgrade) {
+        PC_DEBUG ("Not found upgrade header during handshake\n");
+        goto out;
+    }
+
+    if (!valid_connection) {
+        PC_DEBUG ("Not found connection header during handshake\n");
+        goto out;
+    }
+
+    ret = 0;
+out:
+    if (tmp) {
+        free(tmp);
+    }
+
+    if (s) {
+        free(s);
+    }
+
+    if (encode) {
+        free(encode);
+    }
+    return ret;
+}
+
+static int ws_handshake(int fd, const char *host_name, const char *port )
+{
+    int ret = -1;
+
+    /* generate Sec-WebSocket-Key */
+    srand(time(NULL));
+    char key[WS_KEY_LEN];
+    for (int i = 0; i < WS_KEY_LEN; i++) {
+        key[i] = rand() & 0xff;
+    }
+    char *ws_key =  pcutils_b64_encode_alloc ((unsigned char *) key, WS_KEY_LEN);
+    char req_headers[1024] = { 0 };
+
+    snprintf(req_headers, 1024,
+            "GET / HTTP/1.1\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            "Host: %s:%s\r\n"
+            "Sec-WebSocket-Key: %s\r\n"
+            "Sec-WebSocket-Version: 13\r\n\r\n",
+            host_name, port, ws_key);
+
+    /* send to server */
+    ws_write(fd, req_headers, strlen(req_headers));
+
+    char buf[1024] = { 0 };
+
+    char *p = buf;
+    while (true) {
+        if (ws_read(fd, p, 1) != 1) {
+            PC_DEBUG ("Error receiving data during handshake\n");
+            goto out;
+        }
+        p++;
+        if (p - buf >= 4 && strcmp(p - 4, "\r\n\r\n") == 0) {
+            break;
+        }
+    }
+
+    ret = ws_verify_handshake(ws_key, buf);
+
+out:
+    if (ws_key) {
+        free(ws_key);
+    }
+    return ret;
+}
+
+#define SCHEMA_WEBSOCKET  "tcp://"
+int dvobjs_extend_stream_websocket_connect(const char *uri)
+{
+    char *host_name = NULL;
+    int port;
+    int fd;
+
+    if (strncasecmp (SCHEMA_WEBSOCKET, uri,
+            sizeof(SCHEMA_WEBSOCKET) - 1)) {
+        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        goto failed;
+    }
+
+    const char *s_port;
+    const char *p = uri + sizeof(SCHEMA_WEBSOCKET) - 1;
+    char *q = strstr(p, ":");
+    if (q == NULL) {
+        s_port = PCRDR_PURCMC_WS_PORT;
+        host_name = strdup(p);
+    }
+    else {
+        s_port = q + 1;
+        host_name = strndup(p, q - p);
+    }
+
+    if (!s_port[0]) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    port = atoi(s_port);
+    if (port <=0 || port > 65535) {
+        purc_set_error(PURC_ERROR_INVALID_VALUE);
+        goto failed;
+    }
+
+    if ((fd = ws_open_connection(host_name, s_port)) < 0) {
+        goto failed;
+    }
+
+    if (ws_handshake(fd, host_name, s_port) != 0) {
+        goto failed;
+    }
+
+    free(host_name);
+    return fd;
+
+failed:
+    if (host_name) {
+        free(host_name);
+    }
+    return -1;
 }
 

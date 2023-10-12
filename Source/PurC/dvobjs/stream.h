@@ -117,6 +117,9 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
         const struct purc_native_ops *super_ops, purc_variant_t extra_opts)
     WTF_INTERNAL;
 
+
+int dvobjs_extend_stream_websocket_connect(const char *uri);
+
 PCA_EXTERN_C_END
 
 #endif  /* PURC_DVOBJS_STREAM_H */
