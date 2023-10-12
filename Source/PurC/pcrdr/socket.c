@@ -131,7 +131,6 @@ static ssize_t ws_read(int fd, void *buf, size_t length)
     return recv(fd, buf, length, 0);
 }
 
-#if 0
 static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
 {
     if (conn->sticky) {
@@ -158,7 +157,6 @@ static ssize_t ws_conn_read(pcrdr_conn *conn, void *buf, size_t length)
     }
     return ws_read(conn->fd, buf, length);
 }
-#endif
 
 static int ws_send_ctrl_frame(int fd, char code)
 {
@@ -265,7 +263,7 @@ out:
     return ret;
 }
 
-static int ws_read_data_frame(int fd, WSFrameHeader *header,
+static int ws_read_data_frame(pcrdr_conn *conn, WSFrameHeader *header,
         char **packet_buf, unsigned int *packet_len)
 {
     int ret = -1;
@@ -275,7 +273,7 @@ static int ws_read_data_frame(int fd, WSFrameHeader *header,
 
     if (header->sz_payload == 127) {
         uint64_t v = 0;
-        if (ws_read(fd, &v, sizeof(v)) != sizeof(v)) {
+        if (ws_conn_read(conn, &v, sizeof(v)) != sizeof(v)) {
             PC_DEBUG ("read websocket extended payload length failed.\n");
             goto out;
         }
@@ -283,7 +281,7 @@ static int ws_read_data_frame(int fd, WSFrameHeader *header,
     }
     else if (header->sz_payload == 126) {
         uint16_t v = 0;
-        if (ws_read(fd, &v, sizeof(v)) != sizeof(v)) {
+        if (ws_conn_read(conn, &v, sizeof(v)) != sizeof(v)) {
             PC_DEBUG ("read websocket extended payload length failed.\n");
             goto out;
         }
@@ -295,7 +293,7 @@ static int ws_read_data_frame(int fd, WSFrameHeader *header,
 
     /* Server to Client may be 0 */
     if (header->mask) {
-        if (ws_read(fd, mask, sizeof(mask)) != sizeof(mask)) {
+        if (ws_conn_read(conn, mask, sizeof(mask)) != sizeof(mask)) {
             PC_DEBUG ("read websocket mask failed.\n");
             goto out;
         }
@@ -311,7 +309,7 @@ static int ws_read_data_frame(int fd, WSFrameHeader *header,
         goto out;
     }
 
-    if (ws_read(fd, payload, nr_payload) != (ssize_t)nr_payload) {
+    if (ws_conn_read(conn, payload, nr_payload) != (ssize_t)nr_payload) {
         PC_DEBUG ("read websocket payload failed.\n");
         goto out;
     }
@@ -337,10 +335,10 @@ out:
     return ret;
 }
 
-static int ws_read_frame_header(int fd, WSFrameHeader *header)
+static int ws_read_frame_header(pcrdr_conn *conn, WSFrameHeader *header)
 {
     char buf[2] = { 0 };
-    ssize_t n = ws_read(fd, &buf, 2);
+    ssize_t n = ws_conn_read(conn, &buf, 2);
     if (n != 2) {
         return -1;
     }
@@ -1050,7 +1048,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
     else if (conn->type == CT_WEB_SOCKET) {
         WSFrameHeader header;
 
-        if (ws_read_frame_header(conn->fd, &header) != 0) {
+        if (ws_read_frame_header(conn, &header) != 0) {
             PC_DEBUG ("Failed to read frame header from websocket\n");
             err_code = PCRDR_ERROR_IO;
             goto done;
@@ -1060,7 +1058,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
             // TODO
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1071,7 +1069,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
         else if (header.op == WS_OPCODE_PING) {
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1087,7 +1085,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
             PC_DEBUG ("Peer closed\n");
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1112,7 +1110,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
                 is_text = 0;
             }
             do {
-                if (ws_read_data_frame(conn->fd, &header, &buf, &nr_buf) != 0) {
+                if (ws_read_data_frame(conn, &header, &buf, &nr_buf) != 0) {
                     PC_DEBUG ("Failed to read packet from WebSocket\n");
                     err_code = PCRDR_ERROR_IO;
                     goto done;
@@ -1128,7 +1126,7 @@ int pcrdr_socket_read_packet (pcrdr_conn* conn, char* packet_buf, size_t *sz_pac
                     break;
                 }
 
-                if (ws_read_frame_header(conn->fd, &header) != 0) {
+                if (ws_read_frame_header(conn, &header) != 0) {
                     PC_DEBUG ("Failed to read frame header from WebSocket\n");
                     err_code = PCRDR_ERROR_IO;
                     goto done;
@@ -1290,7 +1288,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
     else if (conn->type == CT_WEB_SOCKET) {
         WSFrameHeader header;
 
-        if (ws_read_frame_header(conn->fd, &header) != 0) {
+        if (ws_read_frame_header(conn, &header) != 0) {
             PC_DEBUG ("Failed to read frame header from websocket\n");
             err_code = PCRDR_ERROR_IO;
             goto done;
@@ -1300,7 +1298,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
             // TODO
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1311,7 +1309,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
         else if (header.op == WS_OPCODE_PING) {
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1327,7 +1325,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
             PC_DEBUG ("Peer closed\n");
             char *buf = NULL;
             unsigned int nr_buf = 0;
-            ws_read_data_frame(conn->fd, &header, &buf, &nr_buf);
+            ws_read_data_frame(conn, &header, &buf, &nr_buf);
             if (buf) {
                 free(buf);
             }
@@ -1350,7 +1348,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
                 is_text = 0;
             }
             do {
-                if (ws_read_data_frame(conn->fd, &header, &buf, &nr_buf) != 0) {
+                if (ws_read_data_frame(conn, &header, &buf, &nr_buf) != 0) {
                     PC_DEBUG ("Failed to read packet from WebSocket\n");
                     err_code = PCRDR_ERROR_IO;
                     goto done;
@@ -1378,7 +1376,7 @@ int pcrdr_socket_read_packet_alloc (pcrdr_conn* conn, void **packet, size_t *sz_
                     break;
                 }
 
-                if (ws_read_frame_header(conn->fd, &header) != 0) {
+                if (ws_read_frame_header(conn, &header) != 0) {
                     PC_DEBUG ("Failed to read frame header from WebSocket\n");
                     err_code = PCRDR_ERROR_IO;
                     goto done;
