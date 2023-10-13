@@ -414,6 +414,92 @@ again:
     return bytes;
 }
 
+static int ws_send_data_frame(struct pcdvobjs_stream *stream, int fin, int opcode,
+        const void *data, ssize_t sz)
+{
+    int ret = PCRDR_ERROR_IO;
+    int mask_int = 0;
+    size_t size = sz;
+    char *buf = NULL;
+    char *p = NULL;
+    size_t nr_buf = 0;
+    ws_frame_header header;
+    unsigned char mask[4] = { 0 };
+
+    if (sz <= 0) {
+        PC_DEBUG ("Invalid data size %ld.\n", sz);
+        goto out;
+    }
+
+    header.fin = fin;
+    header.rsv = 0;
+    header.op = opcode;
+    header.mask = 1; /* client must 1 */
+
+    srand(time(NULL));
+    mask_int = rand();
+    memcpy(mask, &mask_int, 4);
+
+    size = sz;
+    if (size > 0xffff) {
+        /* header(16b) + Extended payload length(64b) + mask(32b) + data */
+        nr_buf = 2 + 8 + 4 + sz;
+        header.sz_payload = 127;
+    }
+    else if (size > 125) {
+        /* header(16b) + Extended payload length(16b) + mask(32b) + data */
+        nr_buf = 2 + 2 + 4 + sz;
+        header.sz_payload = 126;
+    }
+    else {
+        /* header(16b) + data + mask(32b) */
+        nr_buf = 2 + 4 + sz;
+        header.sz_payload = sz;
+    }
+
+    buf = malloc(nr_buf + 1);
+    buf[0] = 0;
+    buf[1] = 0;
+    if (fin) {
+        buf[0] |= 0x80;
+    }
+    buf[0] |= (0xff & opcode);
+    buf[1] = 0x80 | header.sz_payload;
+
+    p = buf + 2;
+    if (header.sz_payload == 127) {
+        uint64_t *q = (uint64_t *)p;
+        *q = htobe64(sz);
+        p = p + 8;
+    }
+    else if (header.sz_payload == 126) {
+        uint16_t *q = (uint16_t *)p;
+        *q = htobe16(sz);
+        p = p + 2;
+    }
+
+    /* mask */
+    memcpy(p, &mask, 4);
+
+    /* payload */
+    p = p + 4;
+    memcpy(p, data, sz);
+
+    /* mask payload */
+    for (ssize_t i = 0; i < sz; i++) {
+        p[i] ^= mask[i % 4] & 0xff;
+    }
+
+    ws_write_sock(stream, buf, nr_buf);
+    ret = 0;
+
+out:
+    if (buf) {
+        free(buf);
+    }
+    return ret;
+}
+
 enum {
     READ_ERROR = -1,
     READ_NONE,
@@ -927,6 +1013,61 @@ static int send_data(struct pcdvobjs_stream *stream,
     (void) text_or_binary;
     (void) data;
     (void) sz;
+    struct stream_extended_data *ext = stream->ext0.data;
+
+    if (ext == NULL) {
+        return PURC_ERROR_ENTITY_GONE;
+    }
+
+    if (sz > MAX_INMEM_MESSAGE_SIZE) {
+        return PURC_ERROR_TOO_LARGE_ENTITY;
+    }
+
+    if ((ext->status & WS_THROTTLING) || ws_can_send_data(ext, sz)) {
+        return PURC_ERROR_AGAIN;
+    }
+
+    ext->status = WS_OK;
+
+    if (sz > MAX_FRAME_PAYLOAD_SIZE) {
+        unsigned int left = sz;
+        int fin;
+        int opcode;
+        size_t sz_payload;
+
+        do {
+            if (left == sz) {
+                fin = 0;
+                opcode = WS_OPCODE_TEXT;
+                sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+            }
+            else if (left > PCRDR_MAX_FRAME_PAYLOAD_SIZE) {
+                fin = 0;
+                opcode = WS_OPCODE_CONTINUATION;
+                sz_payload = PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+                left -= PCRDR_MAX_FRAME_PAYLOAD_SIZE;
+            }
+            else {
+                fin = 1;
+                opcode = WS_OPCODE_CONTINUATION;
+                sz_payload = left;
+                left = 0;
+            }
+
+            ws_send_data_frame(stream, fin, opcode, data, sz_payload);
+            data += sz_payload;
+        } while (left > 0);
+    }
+    else {
+        ws_send_data_frame(stream, 1, WS_OPCODE_TEXT, data, sz);
+    }
+
+    if (ext->status & WS_ERR_ANY) {
+        PC_ERROR("Error when sending data: %s\n", strerror(errno));
+        return ws_status_to_pcerr(ext);
+    }
+
     return PURC_ERROR_OK;
 }
 
