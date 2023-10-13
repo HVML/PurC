@@ -164,6 +164,7 @@ static struct keyword_to_atom {
     { _KW_status, 0},               // status
     { _KW_seek, 0},                 // seek
     { _KW_close, 0},                // close
+    { _KW_tcp, 0},                // tcp
 };
 
 static struct pcdvobjs_stream *
@@ -1651,7 +1652,6 @@ create_websock_stream(struct purc_broken_down_url *url,
     (void) prot;
     int fd = dvobjs_extend_stream_websocket_connect(url->host, url->port);
     if (fd  < 0) {
-        purc_set_error(PCRDR_ERROR_IO);
         return NULL;
     }
 

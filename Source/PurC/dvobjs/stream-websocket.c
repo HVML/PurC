@@ -544,6 +544,15 @@ static int try_to_read_header(struct pcdvobjs_stream *stream)
                 break;
             default:
                 header->sz_ext_payload = header->sz_payload;
+                ext->sz_payload = header->sz_ext_payload;
+                ext->payload = malloc(ext->sz_payload + 1);
+                if (ext->payload == NULL) {
+                    PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
+                            (unsigned)ext->sz_payload);
+                    ext->status = WS_ERR_IO | WS_CLOSING;
+                    return READ_ERROR;
+                }
+                ext->sz_read_payload = 0;
                 break;
             }
             return READ_WHOLE;
@@ -871,6 +880,7 @@ ws_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
                     goto failed;
                     break;
                 }
+                break;
             }
         }
     } while (true);
