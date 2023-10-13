@@ -118,7 +118,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     WTF_INTERNAL;
 
 
-int dvobjs_extend_stream_websocket_connect(const char *uri);
+int dvobjs_extend_stream_websocket_connect(const char *host_name, int port)
+    WTF_INTERNAL;
 
 PCA_EXTERN_C_END
 

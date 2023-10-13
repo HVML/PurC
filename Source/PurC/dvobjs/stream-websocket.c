@@ -1604,41 +1604,16 @@ out:
     return ret;
 }
 
-#define SCHEMA_WEBSOCKET  "tcp://"
-int dvobjs_extend_stream_websocket_connect(const char *uri)
+int dvobjs_extend_stream_websocket_connect(const char *host_name, int port)
 {
-    char *host_name = NULL;
-    int port;
     int fd;
-
-    if (strncasecmp (SCHEMA_WEBSOCKET, uri,
-            sizeof(SCHEMA_WEBSOCKET) - 1)) {
-        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
-        goto failed;
-    }
-
-    const char *s_port;
-    const char *p = uri + sizeof(SCHEMA_WEBSOCKET) - 1;
-    char *q = strstr(p, ":");
-    if (q == NULL) {
-        s_port = PCRDR_PURCMC_WS_PORT;
-        host_name = strdup(p);
-    }
-    else {
-        s_port = q + 1;
-        host_name = strndup(p, q - p);
-    }
-
-    if (!s_port[0]) {
-        purc_set_error(PURC_ERROR_INVALID_VALUE);
-        goto failed;
-    }
-
-    port = atoi(s_port);
+    char s_port[10] = {0};
     if (port <=0 || port > 65535) {
         purc_set_error(PURC_ERROR_INVALID_VALUE);
         goto failed;
     }
+
+    sprintf(s_port, "%d", port);
 
     if ((fd = ws_open_connection(host_name, s_port)) < 0) {
         goto failed;
@@ -1648,13 +1623,9 @@ int dvobjs_extend_stream_websocket_connect(const char *uri)
         goto failed;
     }
 
-    free(host_name);
     return fd;
 
 failed:
-    if (host_name) {
-        free(host_name);
-    }
     return -1;
 }
 

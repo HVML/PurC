@@ -128,6 +128,8 @@ enum {
     K_KW_seek,
 #define _KW_close                   "close"
     K_KW_close,
+#define _KW_tcp                     "tcp"
+    K_KW_tcp,
 };
 
 static struct keyword_to_atom {
@@ -1641,6 +1643,45 @@ out_close_fd:
     return NULL;
 }
 
+static
+struct pcdvobjs_stream *
+create_websock_stream(struct purc_broken_down_url *url,
+        purc_variant_t option, const char *prot)
+{
+    (void) prot;
+    int fd = dvobjs_extend_stream_websocket_connect(url->host, url->port);
+    if (fd  < 0) {
+        purc_set_error(PCRDR_ERROR_IO);
+        return NULL;
+    }
+
+    struct pcdvobjs_stream* stream = dvobjs_stream_new(STREAM_TYPE_UNIX,
+            url, option);
+    if (!stream) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_close_fd;
+    }
+
+    stream->stm4r = purc_rwstream_new_from_unix_fd(fd);
+    if (stream->stm4r == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto out_free_stream;
+    }
+    stream->stm4w = stream->stm4r;
+    stream->fd4r = fd;
+    stream->fd4w = fd;
+
+    return stream;
+
+out_free_stream:
+    dvobjs_stream_delete(stream);
+
+out_close_fd:
+    close (fd);
+
+    return NULL;
+}
+
 static purc_variant_t
 stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
         unsigned call_flags)
@@ -1718,6 +1759,41 @@ stream_open_getter(purc_variant_t root, size_t nr_args, purc_variant_t *argv,
                     ) {
                 entity_name = NATIVE_ENTITY_NAME_STREAM ":message";
                 ops = dvobjs_extend_stream_by_message(stream, ops,
+                        nr_args > 3 ? argv[3] : NULL);
+
+#if ENABLE(STREAM_HBDBUS)
+                if (atom == keywords2atoms[K_KW_hbdbus].atom) {
+                    entity_name = NATIVE_ENTITY_NAME_STREAM ":hbdbus";
+                    ops = dvobjs_extend_stream_by_hbdbus(stream, ops,
+                            nr_args > 3 ? argv[3] : NULL);
+                }
+#endif
+            }
+
+            if (ops == NULL) {
+                dvobjs_stream_delete(stream);
+                stream = NULL;
+            }
+        }
+    }
+    else if (atom == keywords2atoms[K_KW_tcp].atom) {
+        const char *prot = "websocket";
+        if (nr_args > 2) {
+            prot = purc_variant_get_string_const(argv[2]);
+        }
+        /* TODO: raw socket */
+
+        stream = create_websock_stream(url, option, prot);
+
+        if (prot && stream) {
+            atom = purc_atom_try_string_ex(STREAM_ATOM_BUCKET, prot);
+            if (atom == keywords2atoms[K_KW_websocket].atom
+#if ENABLE(STREAM_HBDBUS)
+                    || atom == keywords2atoms[K_KW_hbdbus].atom
+#endif
+                    ) {
+                entity_name = NATIVE_ENTITY_NAME_STREAM ":websocket";
+                ops = dvobjs_extend_stream_by_websocket(stream, ops,
                         nr_args > 3 ? argv[3] : NULL);
 
 #if ENABLE(STREAM_HBDBUS)
