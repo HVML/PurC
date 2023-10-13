@@ -85,6 +85,7 @@ typedef struct ws_frame_header {
     unsigned int op;
     unsigned int mask;
     unsigned int sz_payload;
+    uint64_t sz_ext_payload;
 } ws_frame_header;
 
 #define WS_OK                   0x00000000
@@ -127,8 +128,18 @@ struct stream_extended_data {
 
     /* current frame header */
     ws_frame_header     header;
+    char                header_buf[2];
     size_t              sz_header;
     size_t              sz_read_header;
+
+    char                ext_payload_buf[9];
+    size_t              sz_ext_payload;
+    size_t              sz_read_ext_payload;
+
+    char                mask[4];
+    size_t              sz_mask;
+    size_t              sz_read_mask;
+    bool                read_mask_done;
 
     /* fields for current reading message */
     size_t              sz_message;         /* total size of current message */
@@ -410,9 +421,167 @@ enum {
 /* Tries to read a frame header. */
 static int try_to_read_header(struct pcdvobjs_stream *stream)
 {
-    /* TODO */
-    (void) stream;
-    return READ_ERROR;
+    struct stream_extended_data *ext = stream->ext0.data;
+    ws_frame_header *header = &ext->header;
+    char *buf = ext->header_buf;
+    ssize_t n;
+
+    assert(ext->sz_header > ext->sz_read_header);
+
+    n = ws_read_socket(stream, buf + ext->sz_read_header,
+            ext->sz_header - ext->sz_read_header);
+    if (n > 0) {
+        ext->sz_read_header += n;
+        if (ext->sz_read_header == ext->sz_header) {
+            ext->sz_read_header = 0;
+
+            header->fin = buf[0] & 0x80 ? 1 : 0;
+            header->rsv = buf[0] & 0x70;
+            header->op = buf[0] & 0x0F;
+            header->mask = buf[1] & 0x80;
+            header->sz_payload = buf[1] & 0x7F;
+            ext->read_mask_done = false;
+
+            switch (header->sz_payload) {
+            case 127:
+                memset(ext->ext_payload_buf, 0, sizeof(ext->ext_payload_buf));
+                ext->sz_ext_payload = sizeof(uint64_t);
+                ext->sz_read_ext_payload = 0;
+                break;
+            case 126:
+                memset(ext->ext_payload_buf, 0, sizeof(ext->ext_payload_buf));
+                ext->sz_ext_payload = sizeof(uint16_t);
+                ext->sz_read_ext_payload = 0;
+                break;
+            default:
+                header->sz_ext_payload = header->sz_payload;
+                break;
+            }
+            return READ_WHOLE;
+        }
+        ext->status |= WS_READING;
+    }
+    else if (n < 0) {
+        PC_ERROR("Failed to read frame header from WebSocket: %s\n",
+                strerror(errno));
+        ext->status = WS_ERR_IO | WS_CLOSING;
+        return READ_ERROR;
+    }
+    else {
+        /* no data */
+        ext->status |= WS_READING;
+        return READ_NONE;
+    }
+
+    return READ_SOME;
+}
+
+static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ws_frame_header *header = &ext->header;
+    ssize_t n;
+
+    char *buf = (char *)ext->ext_payload_buf;
+    assert(ext->sz_ext_payload > ext->sz_read_ext_payload);
+
+    n = ws_read_socket(stream, buf + ext->sz_read_ext_payload,
+            ext->sz_ext_payload - ext->sz_read_ext_payload);
+    if (n > 0) {
+        ext->sz_read_ext_payload += n;
+        if (ext->sz_read_ext_payload == ext->sz_ext_payload) {
+            ext->sz_read_ext_payload = 0;
+            if (ext->sz_ext_payload == sizeof(uint64_t)) {
+                uint16_t *p = (uint16_t *) ext->ext_payload_buf;
+                header->sz_ext_payload = be16toh(*p);
+            }
+            else if (ext->sz_ext_payload == sizeof(uint64_t)) {
+                uint64_t *p = (uint64_t *) ext->ext_payload_buf;
+                header->sz_ext_payload = be64toh(*p);
+            }
+            return READ_WHOLE;
+        }
+        ext->status |= WS_READING;
+    }
+    else if (n < 0) {
+        PC_ERROR("Failed to read frame ext_payload from WebSocket: %s\n",
+                strerror(errno));
+        ext->status = WS_ERR_IO | WS_CLOSING;
+        return READ_ERROR;
+    }
+    else {
+        /* no data */
+        ext->status |= WS_READING;
+        return READ_NONE;
+    }
+    return READ_SOME;
+}
+
+static int try_to_read_mask(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ws_frame_header *header = &ext->header;
+    ssize_t n;
+
+    char *buf = (char *)ext->mask;
+    assert(ext->sz_mask > ext->sz_read_mask);
+
+    n = ws_read_socket(stream, buf + ext->sz_read_mask,
+            ext->sz_mask - ext->sz_read_mask);
+    if (n > 0) {
+        ext->sz_read_mask += n;
+        if (ext->sz_read_mask == ext->sz_mask) {
+            ext->sz_read_mask = 0;
+            ext->read_mask_done = true;
+            return READ_WHOLE;
+        }
+        ext->status |= WS_READING;
+    }
+    else if (n < 0) {
+        PC_ERROR("Failed to read frame mask from WebSocket: %s\n",
+                strerror(errno));
+        ext->status = WS_ERR_IO | WS_CLOSING;
+        return READ_ERROR;
+    }
+    else {
+        /* no data */
+        ext->status |= WS_READING;
+        return READ_NONE;
+    }
+    return READ_SOME;
+}
+
+static int try_to_read_payload_data(struct pcdvobjs_stream *stream)
+{
+    struct stream_extended_data *ext = stream->ext0.data;
+    ws_frame_header *header = &ext->header;
+    ssize_t n;
+
+    char *buf = (char *)ext->message;
+    assert(ext->sz_message > ext->sz_read_message);
+
+    n = ws_read_socket(stream, buf + ext->sz_read_message,
+            ext->sz_message - ext->sz_read_message);
+    if (n > 0) {
+        ext->sz_read_message += n;
+        if (ext->sz_read_message == ext->sz_message) {
+            ext->sz_read_message = 0;
+            return READ_WHOLE;
+        }
+        ext->status |= WS_READING;
+    }
+    else if (n < 0) {
+        PC_ERROR("Failed to read frame message from WebSocket: %s\n",
+                strerror(errno));
+        ext->status = WS_ERR_IO | WS_CLOSING;
+        return READ_ERROR;
+    }
+    else {
+        /* no data */
+        ext->status |= WS_READING;
+        return READ_NONE;
+    }
+    return READ_SOME;
 }
 
 /*
@@ -421,7 +590,41 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
 {
     /* TODO */
     (void) stream;
-    return READ_ERROR;
+    struct stream_extended_data *ext = stream->ext0.data;
+    ws_frame_header *header = &ext->header;
+    ssize_t n;
+    int retv;
+
+    /* read extended payload length */
+    if (header->sz_ext_payload == 0) {
+        retv = try_to_read_ext_payload_length(stream);
+        if (retv != READ_WHOLE) {
+            return retv;
+        }
+
+        ext->sz_message = header->sz_ext_payload;
+        ext->message = malloc(ext->sz_message + 1);
+        if (ext->message == NULL) {
+            PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
+                    (unsigned)ext->sz_message);
+            ext->status = WS_ERR_IO | WS_CLOSING;
+            return READ_ERROR;
+        }
+
+        ext->sz_read_payload = 0;
+        ext->sz_read_message = 0;
+    }
+
+    /* read mask */
+    if (header->mask && !ext->read_mask_done) {
+        retv = try_to_read_mask(stream);
+        if (retv != READ_WHOLE) {
+            return retv;
+        }
+    }
+
+    /* read websocket payload */
+    return try_to_read_payload_data(stream);
 }
 
 static bool
@@ -797,7 +1000,8 @@ dvobjs_extend_stream_by_websocket(struct pcdvobjs_stream *stream,
     }
 
     list_head_init(&ext->pending);
-    ext->sz_header = sizeof(ext->header);
+    ext->sz_header = sizeof(ext->header_buf);
+    memset(ext->header_buf, 0, ext->sz_header);
 
     strcpy(stream->ext0.signature, STREAM_EXT_SIG_MSG);
 
