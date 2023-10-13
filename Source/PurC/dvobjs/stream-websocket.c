@@ -589,7 +589,7 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
         ext->sz_read_ext_payload += n;
         if (ext->sz_read_ext_payload == ext->sz_ext_payload) {
             ext->sz_read_ext_payload = 0;
-            if (ext->sz_ext_payload == sizeof(uint64_t)) {
+            if (ext->sz_ext_payload == sizeof(uint16_t)) {
                 uint16_t *p = (uint16_t *) ext->ext_payload_buf;
                 header->sz_ext_payload = be16toh(*p);
             }
