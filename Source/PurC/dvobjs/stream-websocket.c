@@ -143,9 +143,12 @@ struct stream_extended_data {
 
     /* fields for current reading message */
     size_t              sz_message;         /* total size of current message */
-    size_t              sz_read_payload;    /* read size of current payload */
     size_t              sz_read_message;    /* read size of current message */
     char               *message;            /* message data */
+
+    size_t              sz_payload;         /* total size of current payload */
+    size_t              sz_read_payload;    /* read size of current payload */
+    char               *payload;            /* payload data */
 };
 
 static inline void ws_update_mem_stats(struct stream_extended_data *ext)
@@ -520,7 +523,6 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
 static int try_to_read_mask(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    ws_frame_header *header = &ext->header;
     ssize_t n;
 
     char *buf = (char *)ext->mask;
@@ -551,27 +553,26 @@ static int try_to_read_mask(struct pcdvobjs_stream *stream)
     return READ_SOME;
 }
 
-static int try_to_read_payload_data(struct pcdvobjs_stream *stream)
+static int try_to_read_payload(struct pcdvobjs_stream *stream)
 {
     struct stream_extended_data *ext = stream->ext0.data;
-    ws_frame_header *header = &ext->header;
     ssize_t n;
 
-    char *buf = (char *)ext->message;
-    assert(ext->sz_message > ext->sz_read_message);
+    char *buf = (char *)ext->payload;
+    assert(ext->sz_payload > ext->sz_read_payload);
 
-    n = ws_read_socket(stream, buf + ext->sz_read_message,
-            ext->sz_message - ext->sz_read_message);
+    n = ws_read_socket(stream, buf + ext->sz_read_payload,
+            ext->sz_payload - ext->sz_read_payload);
     if (n > 0) {
-        ext->sz_read_message += n;
-        if (ext->sz_read_message == ext->sz_message) {
-            ext->sz_read_message = 0;
+        ext->sz_read_payload += n;
+        if (ext->sz_read_payload == ext->sz_payload) {
+            ext->sz_read_payload = 0;
             return READ_WHOLE;
         }
         ext->status |= WS_READING;
     }
     else if (n < 0) {
-        PC_ERROR("Failed to read frame message from WebSocket: %s\n",
+        PC_ERROR("Failed to read frame payload from WebSocket: %s\n",
                 strerror(errno));
         ext->status = WS_ERR_IO | WS_CLOSING;
         return READ_ERROR;
@@ -585,14 +586,12 @@ static int try_to_read_payload_data(struct pcdvobjs_stream *stream)
 }
 
 /*
- * Tries to read a payload. */
-static int try_to_read_payload(struct pcdvobjs_stream *stream)
+ * Tries to read a frame. */
+static int try_to_read_frame(struct pcdvobjs_stream *stream)
 {
-    /* TODO */
     (void) stream;
     struct stream_extended_data *ext = stream->ext0.data;
     ws_frame_header *header = &ext->header;
-    ssize_t n;
     int retv;
 
     /* read extended payload length */
@@ -602,17 +601,16 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
             return retv;
         }
 
-        ext->sz_message = header->sz_ext_payload;
-        ext->message = malloc(ext->sz_message + 1);
-        if (ext->message == NULL) {
+        ext->sz_payload = header->sz_ext_payload;
+        ext->payload = malloc(ext->sz_payload + 1);
+        if (ext->payload == NULL) {
             PC_ERROR("Failed to allocate memory for packet (size: %u)\n",
-                    (unsigned)ext->sz_message);
+                    (unsigned)ext->sz_payload);
             ext->status = WS_ERR_IO | WS_CLOSING;
             return READ_ERROR;
         }
 
         ext->sz_read_payload = 0;
-        ext->sz_read_message = 0;
     }
 
     /* read mask */
@@ -624,7 +622,7 @@ static int try_to_read_payload(struct pcdvobjs_stream *stream)
     }
 
     /* read websocket payload */
-    return try_to_read_payload_data(stream);
+    return try_to_read_payload(stream);
 }
 
 static bool
@@ -632,8 +630,179 @@ ws_handle_reads(int fd, purc_runloop_io_event event, void *ctxt)
 {
     (void)fd;
     (void)event;
-    (void)ctxt;
-    /* TODO */
+    struct pcdvobjs_stream *stream = ctxt;
+    struct stream_extended_data *ext = stream->ext0.data;
+    int retv;
+
+    clock_gettime(CLOCK_MONOTONIC, &ext->last_live_ts);
+
+    do {
+        if (ext->status & WS_CLOSING) {
+            goto closing;
+        }
+
+        if (!(ext->status & WS_WAITING4PAYLOAD)) {
+            retv = try_to_read_header(stream);
+            if (retv == READ_NONE) {
+                break;
+            }
+            else if (retv == READ_SOME) {
+                continue;
+            }
+            else if (retv == READ_ERROR) {
+                ext->status = WS_ERR_IO | WS_CLOSING;
+                goto failed;
+            }
+
+            switch (ext->header.op) {
+            case WS_OPCODE_PING:
+                ext->msg_type = MT_PING;
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            case WS_OPCODE_PONG:
+                ext->msg_type = MT_PONG;
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            case WS_OPCODE_CLOSE:
+                ext->msg_type = MT_CLOSE;
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            case WS_OPCODE_TEXT:
+                ext->msg_type = MT_TEXT;
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            case WS_OPCODE_BIN:
+                ext->msg_type = MT_BINARY;
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            case WS_OPCODE_CONTINUATION:
+                ext->status |= WS_WAITING4PAYLOAD;
+                break;
+
+            default:
+                PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
+                ext->status = WS_ERR_MSG | WS_CLOSING;
+                goto failed;
+                break;
+            }
+
+            PC_INFO("Got a frame header: %d\n", ext->header.op);
+        }
+        else if (ext->status & WS_WAITING4PAYLOAD) {
+            retv = try_to_read_frame(stream);
+            if (retv == READ_NONE) {
+                break;
+            }
+            else if (retv == READ_SOME) {
+                continue;
+            }
+            else if (retv == READ_ERROR) {
+                ext->status = WS_ERR_IO | WS_CLOSING;
+                goto failed;
+            }
+            else if (retv == READ_WHOLE) {
+                if (!ext->message) {
+                    ext->sz_message = ext->sz_payload;
+                    ext->message = malloc(ext->sz_message + 1);
+                    ext->sz_read_message = 0;
+                }
+                else {
+                    ext->sz_message += ext->sz_payload;
+                    ext->message = realloc(ext->message, ext->sz_message + 1);
+                }
+
+                if (ext->message == NULL) {
+                    PC_ERROR("failed to allocate memory for packet (size: %u)\n",
+                            (unsigned)ext->sz_message);
+                    ext->status = WS_ERR_IO | WS_CLOSING;
+                    goto failed;
+                }
+
+                memcpy(ext->message + ext->sz_read_message, ext->payload,
+                        ext->sz_payload);
+                ext->sz_read_message += ext->sz_payload;
+                free(ext->payload);
+
+                ext->payload = NULL;
+                ext->sz_payload = 0;
+                ext->sz_read_payload = 0;
+
+                if (ext->header.fin == 0) {
+                    ext->status &= ~WS_WAITING4PAYLOAD;
+                    continue;
+                }
+
+                /* whole message */
+                switch (ext->header.op) {
+                case WS_OPCODE_PING:
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_PING, NULL, 0);
+                    break;
+
+                case WS_OPCODE_PONG:
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_PONG, NULL, 0);
+                    break;
+
+                case WS_OPCODE_CLOSE:
+                    retv = stream->ext0.msg_ops->on_message(stream, MT_CLOSE, NULL, 0);
+                    ext->status = WS_CLOSING;
+                    break;
+
+                case WS_OPCODE_TEXT:
+                    ext->message[ext->sz_message] = 0;
+                    ext->sz_message++;
+                    PC_INFO("Got a text payload: %s\n", ext->message);
+
+                    retv = stream->ext0.msg_ops->on_message(stream,
+                            ext->msg_type, ext->message, ext->sz_message);
+                    free(ext->message);
+                    ext->message = NULL;
+                    ext->sz_message = 0;
+                    ext->sz_read_payload = 0;
+                    ext->sz_read_message = 0;
+                    ws_update_mem_stats(ext);
+                    break;
+
+                case WS_OPCODE_BIN:
+                    retv = stream->ext0.msg_ops->on_message(stream,
+                            ext->msg_type, ext->message, ext->sz_message);
+                    free(ext->message);
+                    ext->message = NULL;
+                    ext->sz_message = 0;
+                    ext->sz_read_payload = 0;
+                    ext->sz_read_message = 0;
+                    ws_update_mem_stats(ext);
+                    break;
+
+                default:
+                    /* never reach here */
+                    PC_ERROR("Unknown frame opcode: %d\n", ext->header.op);
+                    ext->status = WS_ERR_MSG | WS_CLOSING;
+                    goto failed;
+                    break;
+                }
+            }
+        }
+    } while (true);
+
+    return true;
+
+failed:
+    stream->ext0.msg_ops->on_error(stream, ws_status_to_pcerr(ext));
+
+closing:
+    if (ext->status & WS_CLOSING) {
+        pcintr_coroutine_post_event(stream->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY, stream->observed,
+                EVENT_TYPE_CLOSE, NULL,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        cleanup_extension(stream);
+    }
+
     return false;
 }
 
