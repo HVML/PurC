@@ -1567,7 +1567,7 @@ pcrdr_msg *pcrdr_socket_connect(const char* renderer_uri,
 
 #endif
 
-#define SCHEMA_WEBSOCKET  "tcp://"
+#define SCHEMA_WEBSOCKET  "ws://"
 
 pcrdr_msg *
 pcrdr_websocket_connect(const char* renderer_uri,

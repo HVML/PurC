@@ -55,7 +55,7 @@
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
 #define DEF_RDR_URI_THREAD      PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 #define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
-#define DEF_RDR_URI_WEBSOCKET   "tcp://localhost:" PCRDR_PURCMC_WS_PORT
+#define DEF_RDR_URI_WEBSOCKET   "ws://localhost:" PCRDR_PURCMC_WS_PORT
 
 #define KEY_FLAG_REQUEST        "request"
 
@@ -156,7 +156,7 @@ static void print_usage(FILE *fp)
         "            - For the renderer comm method `socket`,\n"
         "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
         "            - For the renderer comm method `websocket`,\n"
-        "              the default value is `tcp://localhost:7702`.\n"
+        "              the default value is `ws://localhost:7702`.\n"
         "\n"
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
