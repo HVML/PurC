@@ -273,8 +273,14 @@ post_process_by_internal_rule(struct ctxt_for_iterate *ctxt,
     purc_exec_iter_t it;
     it = ops->it_begin(exec_inst, rule);
     if (!it) {
-        if (purc_get_last_error())
+        int err = purc_get_last_error();
+        if (err) {
+            if (err == PURC_ERROR_NOT_EXISTS) {
+                ctxt->stop = true;
+                purc_clr_error();
+            }
             return ctxt;
+        }
         return NULL;
     }
 
@@ -1019,6 +1025,11 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 
     err = purc_get_last_error();
 out:
+    if (err != PURC_ERROR_OK && err != PURC_ERROR_OUT_OF_MEMORY &&
+            frame->silently) {
+        purc_clr_error();
+        ctxt->stop = true;
+    }
     return err;
 }
 
