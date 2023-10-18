@@ -59,9 +59,13 @@
  *      The listener on MQTT.
  * @PURC_FEATURE_SSL:
  *      The support for secure socket connection.
+ * @PURC_FEATURE_APP_AUTH:
+ *      The support for app authentication.
  */
 enum purc_feature {
-    PURC_FEATURE_SOCKET_STREAM,
+    PURC_FEATURE_FIRST = 0,
+
+    PURC_FEATURE_SOCKET_STREAM = PURC_FEATURE_FIRST,
     PURC_FEATURE_DOCTYPE_HTML,
     PURC_FEATURE_DOCTYPE_XML,
     PURC_FEATURE_DOCTYPE_XGML,
@@ -73,7 +77,13 @@ enum purc_feature {
     PURC_FEATURE_STREAM_MQTT,
     PURC_FEATURE_STREAM_WEB_SOCKET,
     PURC_FEATURE_SSL,
+    PURC_FEATURE_APP_AUTH,
+
+    /* XXX: change this if you append a new type. */
+    PURC_FEATURE_LAST = PURC_FEATURE_APP_AUTH,
 };
+
+#define PURC_FEATURE_NR (PURC_FEATURE_LAST - PURC_FEATURE_FIRST + 1)
 
 #define _PURC_ON      1
 #define _PURC_OFF     0
@@ -90,6 +100,7 @@ enum purc_feature {
 #define PCA_ENABLE_STREAM_MQTT          _PURC_@ENABLE_STREAM_MQTT@
 #define PCA_ENABLE_STREAM_WEB_SOCKET    _PURC_@ENABLE_STREAM_WEB_SOCKET@
 #define PCA_ENABLE_SSL                  _PURC_@ENABLE_SSL@
+#define PCA_ENABLE_APP_AUTH             _PURC_@ENABLE_APP_AUTH@
 
 PCA_EXTERN_C_BEGIN
 

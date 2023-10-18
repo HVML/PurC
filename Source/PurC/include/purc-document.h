@@ -182,6 +182,22 @@ PCA_EXPORT purc_document_t
 purc_document_new(purc_document_type_k type);
 
 /**
+ * purc_document_type:
+ *
+ * Gets the document type of a given document.
+ *
+ * @doc: the document.
+ *
+ * This function returns the document type for a specific document.
+ *
+ * Returns: The document type of the given document.
+ *
+ * Since: 0.9.17
+ */
+PCA_EXPORT purc_document_type_k
+purc_document_type(purc_document_t doc);
+
+/**
  * purc_document_get_refc:
  *
  * Gets the reference count of an existing document.

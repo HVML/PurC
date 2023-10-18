@@ -23,61 +23,36 @@
  */
 
 #include "purc-features.h"
+#include "purc-macros.h"
+
+static bool features[] = {
+    PCA_ENABLE_SOCKET_STREAM,
+    PCA_ENABLE_DOCTYPE_HTML,
+    PCA_ENABLE_DOCTYPE_XML,
+    PCA_ENABLE_DOCTYPE_XGML,
+    PCA_ENABLE_REMOTE_FETCHER,
+    PCA_ENABLE_RDRCM_THREAD,
+    PCA_ENABLE_RDRCM_SOCKET,
+    PCA_ENABLE_RDRCM_HBDBUS,
+    PCA_ENABLE_STREAM_HBDBUS,
+    PCA_ENABLE_STREAM_MQTT,
+    PCA_ENABLE_STREAM_WEB_SOCKET,
+    PCA_ENABLE_SSL,
+    PCA_ENABLE_APP_AUTH,
+};
+
+/* Make sure the number of error messages matches the number of error codes */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(features,
+        PCA_TABLESIZE(features) == PURC_FEATURE_NR);
+
+#undef _COMPILE_TIME_ASSERT
 
 bool
 purc_is_feature_enabled(enum purc_feature feature)
 {
-    switch (feature) {
-        case PURC_FEATURE_SOCKET_STREAM:
-            if (PCA_ENABLE_SOCKET_STREAM)
-                return true;
-            break;
-        case PURC_FEATURE_DOCTYPE_HTML:
-            if (PCA_ENABLE_DOCTYPE_HTML)
-                return true;
-            break;
-        case PURC_FEATURE_DOCTYPE_XML:
-            if (PCA_ENABLE_DOCTYPE_XML)
-                return true;
-            break;
-        case PURC_FEATURE_DOCTYPE_XGML:
-            if (PCA_ENABLE_DOCTYPE_XGML)
-                return true;
-            break;
-        case PURC_FEATURE_REMOTE_FETCHER:
-            if (PCA_ENABLE_REMOTE_FETCHER)
-                return true;
-            break;
-        case PURC_FEATURE_RDRCM_THREAD:
-            if (PCA_ENABLE_RDRCM_THREAD)
-                return true;
-            break;
-        case PURC_FEATURE_RDRCM_SOCKET:
-            if (PCA_ENABLE_RDRCM_SOCKET)
-                return true;
-            break;
-        case PURC_FEATURE_RDRCM_HBDBUS:
-            if (PCA_ENABLE_RDRCM_HBDBUS)
-                return true;
-            break;
-        case PURC_FEATURE_STREAM_HBDBUS:
-            if (PCA_ENABLE_STREAM_HBDBUS)
-                return true;
-            break;
-        case PURC_FEATURE_STREAM_MQTT:
-            if (PCA_ENABLE_STREAM_MQTT)
-                return true;
-            break;
-        case PURC_FEATURE_STREAM_WEB_SOCKET:
-            if (PCA_ENABLE_STREAM_WEB_SOCKET)
-                return true;
-            break;
-        case PURC_FEATURE_SSL:
-            if (PCA_ENABLE_SSL)
-                return true;
-            break;
-    }
-
-    return false;
+    return features[feature];
 }
 

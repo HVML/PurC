@@ -93,6 +93,11 @@ purc_document_new(purc_document_type_k type)
     return doc;
 }
 
+purc_document_type_k
+purc_document_type(purc_document_t doc)
+{
+    return doc->type;
+}
 
 purc_document_t
 purc_document_load(purc_document_type_k type, const char *content, size_t len)
