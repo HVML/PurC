@@ -55,6 +55,7 @@
 #define PCRDR_NOT_AVAILABLE             "<N/A>"
 
 #define PCRDR_LOCALHOST                 "localhost"
+#define PCRDR_ORIGINHOST                "_originhost"
 #define PCRDR_APP_SELF                  "_self"
 #define PCRDR_APP_RENDERER              "_renderer"
 #define PCRDR_APP_SYSTEM                "_system"
@@ -62,8 +63,16 @@
 #define PCRDR_RUNNER_SELF               "_self"
 #define PCRDR_RUNNER_SHARED             "_shared"
 #define PCRDR_RUNNER_FILESYSTEM         "_filesystem"
+#define PCRDR_RUNNER_HTTP               "_http"
+#define PCRDR_RUNNER_HTTPS              "_https"
+#define PCRDR_RUNNER_FTP                "_ftp"
+#define PCRDR_RUNNER_FTPS               "_ftps"
 #define PCRDR_GROUP_NULL                "-"
+#define PCRDR_GROUP_STATIC              "_static"
+#define PCRDR_GROUP_DYNAMIC             "_dynamic"
 #define PCRDR_PAGE_NULL                 "-"
+
+#define PCRDR_PATH_EXPORTED             "exported"
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"
