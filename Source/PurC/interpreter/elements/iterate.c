@@ -1025,10 +1025,10 @@ logic(pcintr_stack_t stack, struct pcintr_stack_frame *frame)
 
     err = purc_get_last_error();
 out:
-    if (err != PURC_ERROR_OK && err != PURC_ERROR_OUT_OF_MEMORY &&
-            frame->silently) {
+    if (err != PURC_ERROR_OK && err != PURC_ERROR_OUT_OF_MEMORY
+            && err != PURC_ERROR_AGAIN
+            && frame->silently) {
         purc_clr_error();
-        ctxt->stop = true;
     }
     return err;
 }
