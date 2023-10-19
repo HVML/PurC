@@ -1334,8 +1334,8 @@ pcrdr_parse_renderer_capabilities(const char *data)
                 PC_WARN("windowLevels does not match windowLevel\n");
                 rdr_caps->windowLevel = 0;
             }
-#endif
             break;
+#endif
         }
 
         line_no++;
