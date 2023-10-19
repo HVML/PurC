@@ -1,0 +1,70 @@
+#!/usr/bin/purc
+
+# RESULT: ['a', 'b', 'c', 'd', 'e', 'f']
+
+<!DOCTYPE hvml>
+<hvml target="html">
+    <head>
+        <init as 'result' with [] />
+    </head>
+    <body>
+        <init as 'emptyObj' with {} >
+        </init>
+
+        <init as 'nonEmptyObj' with {"a":1, "b":2} >
+        </init>
+
+        <iterate on $emptyObj by 'KEY:ALL FOR KEY' >
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <iterate on $nonEmptyObj by 'KEY:ALL FOR KEY' >
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <init as 'emptyArr' with [] >
+        </init>
+
+        <init as 'nonEmptyArr' with ["c", "d"] >
+        </init>
+
+        <iterate on $emptyArr>
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <iterate on $nonEmptyArr>
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <init as 'emptySet' with [] uniquely>
+        </init>
+
+        <init as 'nonEmptySet' with ["e", "f"] uniquely>
+        </init>
+
+        <iterate on $emptySet>
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <iterate on $nonEmptySet>
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <!--
+        <init as 'emptyTuple' with [! ] >
+
+        <init as 'nonEmptyTuple' with [! "g", "h"] >
+        </init>
+
+        <iterate on $emptyTuple>
+            <update on $result to 'append' with $? />
+        </iterate>
+
+        <iterate on $nonEmptyTuple>
+            <update on $result to 'append' with $? />
+        </iterate>
+        -->
+
+        <exit with $result />
+    </body>
+</hvml>
