@@ -1745,6 +1745,7 @@ static void on_set_property(struct pcrdr_prot_data *prot_data,
 static request_handler handlers[] = {
     on_start_session,
     on_end_session,
+    NULL,
     on_create_workspace,
     on_update_workspace,
     on_destroy_workspace,
@@ -1801,6 +1802,8 @@ static int evaluate_result(struct pcrdr_prot_data *prot_data,
 
     unsigned int op_id;
     if (pcrdr_operation_from_atom(op_atom, &op_id) == NULL) {
+        result->retCode = PCRDR_SC_BAD_REQUEST;
+        result->resultValue = 0;
         goto done;
     }
 

@@ -221,7 +221,7 @@ const char *pchtml_get_character_entity(uint32_t uc)
         return "&gt;";
 
     case 0xA0:
-        /* U+00A0NO-BREAK SPACE */
+        /* U+00A0 NO-BREAK SPACE */
         return "&nbsp;";
 
     case 0x200B:

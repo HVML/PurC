@@ -59,6 +59,7 @@ static struct pcrdr_opatom {
 } pcrdr_opatoms[] = {
     { PCRDR_OPERATION_STARTSESSION,         0 }, // "startSession"
     { PCRDR_OPERATION_ENDSESSION,           0 }, // "endSession"
+    { PCRDR_OPERATION_AUTHENTICATE,         0 }, // "authenticate"
     { PCRDR_OPERATION_CREATEWORKSPACE,      0 }, // "createWorkspace"
     { PCRDR_OPERATION_UPDATEWORKSPACE,      0 }, // "updateWorkspace"
     { PCRDR_OPERATION_DESTROYWORKSPACE,     0 }, // "destroyWorkspace"

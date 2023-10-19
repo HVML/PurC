@@ -1538,6 +1538,7 @@ static struct request_handler {
 } handlers[] = {
     { PCRDR_OPERATION_ADDPAGEGROUPS, on_add_page_groups },
     { PCRDR_OPERATION_APPEND, on_append },
+    { PCRDR_OPERATION_AUTHENTICATE, NULL },
     { PCRDR_OPERATION_CALLMETHOD, on_call_method },
     { PCRDR_OPERATION_CLEAR, on_clear },
     { PCRDR_OPERATION_CREATEPLAINWINDOW, on_create_plain_window },
