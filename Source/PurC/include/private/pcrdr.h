@@ -31,6 +31,7 @@
 #include "atom-buckets.h"
 
 #define PCRDR_TIME_DEF_EXPECTED         5
+#define PCRDR_TIME_AUTH_EXPECTED        10
 
 enum {
 #define PCRDR_SELECTOR_ID       "id"
@@ -47,6 +48,9 @@ enum {
 
 /* the capabilities of a renderer */
 struct renderer_capabilities {
+#define NR_RDRCAP_STRINGS   9
+    char   *_strings[0];
+
     /* the protocol name */
     char   *prot_name;
 
@@ -61,6 +65,11 @@ struct renderer_capabilities {
     char   *xgml_version;
     /* the XML version if supported, else NULL */
     char   *xml_version;
+
+    /* Since v160 for authentication */
+    char   *challenge_code;
+    char   *locale;
+    char   *display_density;
 
     /* the protocol version number */
     long int    prot_version;

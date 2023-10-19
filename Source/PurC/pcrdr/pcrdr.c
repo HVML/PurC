@@ -147,10 +147,128 @@ static int _init_once(void)
     return 0;
 }
 
-static int connect_to_renderer(struct pcinst *curr_inst,
+static purc_variant_t make_signature(struct pcinst *inst)
+{
+    unsigned char *sig = NULL;
+    unsigned int sig_len;
+    char *enc_sig = NULL;
+    unsigned int enc_sig_len;
+
+    int err_code = pcutils_sign_data(inst->app_name,
+            (const unsigned char *)inst->rdr_caps->challenge_code,
+            strlen(inst->rdr_caps->challenge_code),
+            &sig, &sig_len);
+    if (err_code) {
+        purc_set_error(err_code);
+        goto failed;
+    }
+
+    enc_sig_len = pcutils_b64_encoded_length(sig_len);
+    enc_sig = malloc(enc_sig_len);
+    if (enc_sig == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    // When encode the signature in base64 or exadecimal notation,
+    // there will be no any '"' and '\' charecters.
+    pcutils_b64_encode(sig, sig_len, enc_sig, enc_sig_len);
+    free(sig);
+
+    return purc_variant_make_string_reuse_buff(enc_sig, enc_sig_len, false);
+
+failed:
+    if (sig)
+        free(sig);
+    return PURC_VARIANT_INVALID;
+}
+
+static int authenticate_app(struct pcinst *inst)
+{
+    pcrdr_msg *msg = NULL, *response_msg = NULL;
+    /* send authenticate request and wait for the response */
+    msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
+            PCRDR_OPERATION_AUTHENTICATE, NULL, NULL,
+            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
+            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
+    if (msg == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+
+    int n = 0;
+    purc_variant_t vs[16] = { NULL };
+    vs[n++] = purc_variant_make_string_static("hostName", false);
+    vs[n++] = purc_variant_make_string_static(inst->conn_to_rdr->own_host_name,
+            false);
+    vs[n++] = purc_variant_make_string_static("appName", false);
+    vs[n++] = purc_variant_make_string_static(inst->app_name, false);
+
+    /* TODO: real label, description, and icon */
+    vs[n++] = purc_variant_make_string_static("appLabel", false);
+    vs[n++] = purc_variant_make_string_static("HVML App", false);
+    vs[n++] = purc_variant_make_string_static("appDesc", false);
+    vs[n++] = purc_variant_make_string_static("", false);
+    vs[n++] = purc_variant_make_string_static("appIcon", false);
+    vs[n++] = purc_variant_make_string_static("hvml://_originhost/_self/_http/_static/assets/icons/appicon144.png", false);
+
+    vs[n++] = purc_variant_make_string_static("signature", false);
+    vs[n++] = make_signature(inst);
+    vs[n++] = purc_variant_make_string_static("encodedIn", false);
+    vs[n++] = purc_variant_make_string_static("base64", false);
+    vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
+    vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
+
+    purc_variant_t auth_data = purc_variant_make_object_0();
+    if (auth_data == PURC_VARIANT_INVALID || vs[n - 1] == NULL) {
+        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+        goto failed;
+    }
+    for (int i = 0; i < n >> 1; i++) {
+        purc_variant_object_set(auth_data, vs[i * 2], vs[i * 2 + 1]);
+        purc_variant_unref(vs[i * 2]);
+        purc_variant_unref(vs[i * 2 + 1]);
+    }
+
+    msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
+    msg->data = auth_data;
+
+    int ret;
+    if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
+            msg, PCRDR_TIME_AUTH_EXPECTED + 2, &response_msg)) < 0) {
+        goto failed;
+    }
+    pcrdr_release_message(msg);
+    msg = NULL;
+
+    int ret_code = response_msg->retCode;
+    if (ret_code == PCRDR_SC_OK) {
+        inst->rdr_caps->session_handle = response_msg->resultValue;
+    }
+
+    pcrdr_release_message(response_msg);
+    response_msg = NULL;
+
+    if (ret_code != PCRDR_SC_OK) {
+        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
+        goto failed;
+    }
+
+    return 0;
+
+failed:
+    if (response_msg)
+        pcrdr_release_message(response_msg);
+
+    if (msg)
+        pcrdr_release_message(msg);
+
+    return -1;
+}
+
+static int connect_to_renderer(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
-    struct pcinst *inst = curr_inst;
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
     // purc_rdrcomm_k rdr_comm;
@@ -168,12 +286,12 @@ static int connect_to_renderer(struct pcinst *curr_inst,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_THREAD) {
-        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        // rdr_comm = PURC_RDRCOMM_THREAD;
         msg = pcrdr_thread_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
     else if (extra_info->renderer_comm == PURC_RDRCOMM_WEBSOCKET) {
-        // rdr_comm = PURC_RDRCOMM_SOCKET;
+        // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(extra_info->renderer_uri,
             inst->app_name, inst->runner_name, &inst->conn_to_rdr);
     }
@@ -203,6 +321,13 @@ static int connect_to_renderer(struct pcinst *curr_inst,
                     purc_variant_get_string_const(msg->data));
         if (inst->rdr_caps == NULL) {
             goto failed;
+        }
+
+        /* Since v160, if the renderer needs authentication */
+        if (inst->rdr_caps->challenge_code) {
+            if (authenticate_app(inst)) {
+                goto failed;
+            }
         }
     }
     pcrdr_release_message(msg);
@@ -391,10 +516,10 @@ pcrdr_connect(const struct purc_instance_extra_info *extra_info)
     return inst->conn_to_rdr;
 }
 
-static int _init_instance(struct pcinst *curr_inst,
+static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
-    return connect_to_renderer(curr_inst, extra_info);
+    return connect_to_renderer(inst, extra_info);
 }
 
 static void _cleanup_instance(struct pcinst *inst)

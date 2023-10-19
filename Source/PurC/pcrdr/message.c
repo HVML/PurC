@@ -1281,6 +1281,15 @@ pcrdr_parse_renderer_capabilities(const char *data)
                     }
                 }
             }
+            else if (strcasecmp(cap, "challengeCode") == 0) {   // Since v160
+                rdr_caps->challenge_code = strdup(value);
+            }
+            else if (strcasecmp(cap, "locale") == 0) {          // Since 160
+                rdr_caps->locale = strdup(value);
+            }
+            else if (strcasecmp(cap, "displayDensity") == 0) {  // Since 160
+                rdr_caps->display_density = strdup(value);
+            }
             else {
                 PC_WARN("Unknown renderer capability: %s\n", cap);
                 break;
@@ -1345,11 +1354,14 @@ failed:
 void pcrdr_release_renderer_capabilities(
         struct renderer_capabilities *rdr_caps)
 {
-    assert (rdr_caps != NULL);
+    assert(rdr_caps != NULL);
 
-    if (rdr_caps->prot_name)
-        free(rdr_caps->prot_name);
+    for (size_t i = 0; i < NR_RDRCAP_STRINGS; i++) {
+        if (rdr_caps->_strings[i])
+            free(rdr_caps->_strings[i]);
+    }
 
+#if 0
     if (rdr_caps->html_version)
         free(rdr_caps->html_version);
 
@@ -1365,7 +1377,15 @@ void pcrdr_release_renderer_capabilities(
     if (rdr_caps->rdr_version)
         free(rdr_caps->rdr_version);
 
-#if 0
+    if (rdr_caps->challenge_code)
+        free(rdr_caps->challenge_code);
+
+    if (rdr_caps->locale)
+        free(rdr_caps->locale);
+
+    if (rdr_caps->display_density)
+        free(rdr_caps->display_density);
+
     if (rdr_caps->windowLevel > 0) {
         assert(rdr_caps->window_levels);
 
