@@ -216,9 +216,12 @@ static int authenticate_app(struct pcinst *inst)
     vs[n++] = purc_variant_ref(purc_get_app_label(inst->rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appDesc", false);
     vs[n++] = purc_variant_ref(purc_get_app_description(inst->rdr_caps->locale));
+#if 0
+    /* ICON too large (PCRDR_MAX_INMEM_PAYLOAD_SIZE) */
     vs[n++] = purc_variant_make_string_static("appIcon", false);
     vs[n++] = purc_get_app_icon_content(inst->rdr_caps->display_density,
             inst->rdr_caps->locale);
+#endif
 
     vs[n++] = purc_variant_make_string_static("signature", false);
     vs[n++] = make_signature(inst);
