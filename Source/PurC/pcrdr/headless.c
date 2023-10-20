@@ -45,10 +45,10 @@
 
 #define LEN_BUFF_LONGLONGINT    128
 
-#define NR_WORKSPACES           8
+#define NR_WORKSPACES           4
 #define NR_TABBEDWINDOWS        8
-#define NR_WIDGETS              32
-#define NR_PLAINWINDOWS         256
+#define NR_WIDGETS              16
+#define NR_PLAINWINDOWS         64
 
 #define __STRING(x) #x
 
@@ -135,7 +135,7 @@ struct pcrdr_prot_data {
     // requestId -> results;
     struct pcutils_kvlist        results;
 
-    // FILE pointer to serialize the message.
+    // pointer to the session.
     struct session_info *session;
 };
 
