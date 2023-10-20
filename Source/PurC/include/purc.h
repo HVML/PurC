@@ -826,7 +826,7 @@ purc_get_instmgr_rid(void);
  * Gets the app manifest of the current instance.
  *
  * Returns: a variant of the manifest.
- * This function only returns NULL if there is no any PurC instance.
+ * This function returns PURC_VARIANT_INVALID if there is no any PurC instance.
  *
  * Since 0.9.17
  */
@@ -842,7 +842,7 @@ purc_get_app_manifest(void);
  *      The locale must have format like `zh_CN`. If it is NULL, or has a bad
  *      format, this function will use `en_US` as the default locale.
  *
- * Returns: A string variant which contains the app label. This function only
+ * Returns: A string variant which contains the app label. This function
  *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
  * Since 0.9.17
@@ -860,7 +860,7 @@ purc_get_app_label(const char *locale);
  *      format, this function will use `en_US` as the default locale.
  *
  * Returns: A string variant which contains the app description. This function
- *  only returns PURC_VARIANT_INVALID if there is no PurC instance.
+ *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
  * Since 0.9.17
  */
@@ -882,7 +882,7 @@ purc_get_app_description(const char *locale);
  *      format, this function will use `en_US` as the default locale.
  *
  * Returns: A string variant which contains the URL of the app icon. This
- *  function only returns PURC_VARIANT_INVALID if there is no PurC instance.
+ *  function returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
  * Note: you must call purc_variant_unref() after using the returned variant.
  *

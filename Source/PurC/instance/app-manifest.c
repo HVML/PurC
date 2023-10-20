@@ -164,6 +164,10 @@ purc_get_app_manifest(void)
     if (inst == NULL)
         return PURC_VARIANT_INVALID;
 
+    if (inst->app_manifest) {
+        inst->app_manifest = pcinst_load_app_manifest(inst->app_name);
+    }
+
     return inst->app_manifest;
 }
 
@@ -196,12 +200,13 @@ static bool split_locale(const char *locale, char *lang, char *country_region)
 static purc_variant_t get_app_manifest_via_key(const char *key,
         const char *prefix, const char *locale)
 {
-    purc_variant_t v;
-    struct pcinst* inst = pcinst_current();
-    if (inst == NULL)
+    purc_variant_t manifest, v;
+
+    manifest = purc_get_app_manifest();
+    if (manifest == PURC_VARIANT_INVALID)
         return PURC_VARIANT_INVALID;
 
-    v = purc_variant_object_get_by_ckey(inst->app_manifest, key);
+    v = purc_variant_object_get_by_ckey(manifest, key);
     assert(v);
     if (purc_variant_is_string(v))
         return v;
