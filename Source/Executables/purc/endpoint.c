@@ -238,8 +238,7 @@ int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint)
 
     msg = pcrdr_make_response_message(PCRDR_REQUESTID_INITIAL, NULL,
             PCRDR_SC_OK, 0,
-            PCRDR_MSG_DATA_TYPE_PLAIN, FOIL_RDR_FEATURES,
-            sizeof (FOIL_RDR_FEATURES) - 1);
+            PCRDR_MSG_DATA_TYPE_PLAIN, rdr->features, rdr->len_features);
     if (msg == NULL) {
         retv = PCRDR_SC_INTERNAL_SERVER_ERROR;
         goto failed;

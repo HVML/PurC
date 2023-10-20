@@ -43,6 +43,8 @@ static int init_renderer(pcmcth_renderer *rdr)
 {
     foil_set_renderer_callbacks(rdr);
 
+    rdr->features = FOIL_RDR_FEATURES;
+    rdr->len_features = sizeof(FOIL_RDR_FEATURES) - 1;
     rdr->master_rid = 0;
     rdr->nr_endpoints = 0;
     rdr->t_start = purc_get_monotoic_time();

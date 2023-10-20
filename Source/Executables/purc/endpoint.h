@@ -23,14 +23,14 @@
 ** along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef purc_foil_endpoint_h_
-#define purc_foil_endpoint_h_
+#ifndef purc_endpoint_h_
+#define purc_endpoint_h_
 
 #include <time.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "foil.h"
+#include "purcmc-thread.h"
 
 /* causes to delete endpoint */
 enum {
@@ -60,5 +60,5 @@ int send_initial_response(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint);
 int on_endpoint_message(pcmcth_renderer* rdr, pcmcth_endpoint* endpoint,
         const pcrdr_msg *msg);
 
-#endif /* !purc_foil_endpoint_h_ */
+#endif /* !purc_endpoint_h_ */
 

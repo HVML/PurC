@@ -42,8 +42,10 @@ static int init_renderer(pcmcth_renderer *rdr)
 {
     seeker_set_renderer_callbacks(rdr);
 
-    rdr->master_rid = 0;
+    rdr->features = SEEKER_RDR_FEATURES;
+    rdr->len_features = sizeof(SEEKER_RDR_FEATURES) - 1;
     rdr->nr_endpoints = 0;
+    rdr->master_rid = 0;
     rdr->t_start = purc_get_monotoic_time();
     rdr->t_elapsed = rdr->t_elapsed_last = 0;
 
