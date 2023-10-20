@@ -92,7 +92,7 @@ pcinst_load_app_manifest(const char *app_name)
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(label_for_unlabeled_app,
-                sizeof(label_for_unlabeled_app) - 1);
+                strlen(label_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
@@ -101,7 +101,7 @@ pcinst_load_app_manifest(const char *app_name)
     }
     else if (purc_variant_is_object(v)) {
         fallback = purc_variant_make_from_json_string(label_for_unlabeled_app,
-                sizeof(label_for_unlabeled_app) - 1);
+                strlen(label_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
@@ -113,7 +113,7 @@ pcinst_load_app_manifest(const char *app_name)
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(desc_for_unlabeled_app,
-                sizeof(desc_for_unlabeled_app) - 1);
+                strlen(desc_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
@@ -122,7 +122,7 @@ pcinst_load_app_manifest(const char *app_name)
     }
     else if (purc_variant_is_object(v)) {
         fallback = purc_variant_make_from_json_string(desc_for_unlabeled_app,
-                sizeof(desc_for_unlabeled_app) - 1);
+                strlen(desc_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
@@ -134,7 +134,7 @@ pcinst_load_app_manifest(const char *app_name)
     if (v == PURC_VARIANT_INVALID ||
             (!purc_variant_is_string(v) && !purc_variant_is_object(v))) {
         fallback = purc_variant_make_from_json_string(icon_for_unlabeled_app,
-                sizeof(icon_for_unlabeled_app) - 1);
+                strlen(icon_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
@@ -143,7 +143,7 @@ pcinst_load_app_manifest(const char *app_name)
     }
     else if (purc_variant_is_object(v)) {
         fallback = purc_variant_make_from_json_string(icon_for_unlabeled_app,
-                sizeof(icon_for_unlabeled_app) - 1);
+                strlen(icon_for_unlabeled_app));
         if (fallback == PURC_VARIANT_INVALID) {
             goto failed;
         }
