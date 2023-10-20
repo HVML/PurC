@@ -23,46 +23,29 @@ list(APPEND purc_PRIVATE_INCLUDE_DIRECTORIES
 PURC_EXECUTABLE(purc)
 
 # TODO: List the directorires which do not contain any platform-dependent C source files
-set(purc_PLATFORM_INDEPENDENT_DIRS )
+set(purc_PLATFORM_INDEPENDENT_DIRS
+    "seeker/"
+    "util/"
+)
 
 if (ENABLE_RENDERER_FOIL)
     list(APPEND purc_PLATFORM_INDEPENDENT_DIRS
-        "tty/"
-        "strutil/"
-        "util/"
-        "unicode/"
-        "region/"
+        "foil/"
     )
-    PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
 endif ()
+
+PURC_APPEND_ALL_SOURCE_FILES_IN_DIRLIST(purc_SOURCES "${purc_PLATFORM_INDEPENDENT_DIRS}")
 
 list(APPEND purc_SOURCES
     purc.c
+    seeker.c
+    timer.c
+    endpoint.c
 )
 
 if (ENABLE_RENDERER_FOIL)
     list(APPEND purc_SOURCES
         foil.c
-        helpers.c
-        screen.c
-        endpoint.c
-        callbacks.c
-        workspace.c
-        css-selection.c
-        udom.c
-        page.c
-        stacking-context.c
-        rdrbox.c
-        rdrbox-marker.c
-        rdrbox-inline.c
-        rdrbox-layout.c
-        rdrbox-layout-helpers.c
-        rdrbox-replaced.c
-        rdrbox-progress.c
-        rdrbox-meter.c
-        udom-render.c
-        widget.c
-        timer.c
     )
 endif ()
 

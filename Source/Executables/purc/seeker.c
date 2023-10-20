@@ -1,10 +1,11 @@
 /*
- * @file foil.c
+ * @file seeker.c
  * @author Vincent Wei
- * @date 2022/10/02
- * @brief The built-in text-mode renderer.
+ * @date 2023/10/20
+ * @brief The built-in renderer which seeks for another available
+ * socket-based renderer.
  *
- * Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+ * Copyright (C) 2023 FMSoft <https://www.fmsoft.cn>
  *
  * This file is a part of purc, which is an HVML interpreter with
  * a command line interface (CLI).
@@ -23,8 +24,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// #undef NDEBUG
-
 #include "config.h"
 
 #include <assert.h>
@@ -35,13 +34,13 @@
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/stat.h>        /* For mode constants */
 
-#include "foil.h"
+#include "seeker.h"
 #include "endpoint.h"
 #include "timer.h"
 
 static int init_renderer(pcmcth_renderer *rdr)
 {
-    foil_set_renderer_callbacks(rdr);
+    seeker_set_renderer_callbacks(rdr);
 
     rdr->master_rid = 0;
     rdr->nr_endpoints = 0;
@@ -82,7 +81,7 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     kvlist_free(&rdr->endpoint_list);
 }
 
-pcmcth_renderer *foil_get_renderer(void)
+pcmcth_renderer *seeker_get_renderer(void)
 {
     uintptr_t v;
     if (purc_get_local_data(LDNAME_RENDERER, &v, NULL) == 1)
@@ -139,68 +138,6 @@ no_any_endpoints:
     return false;
 }
 
-#ifndef NDEBUG
-
-#define IDT_REGULAR         0
-#define IDT_ONCE            1
-#define MAX_TIMES_FIRED     20
-
-static unsigned nr_timer_fired;
-static int on_regular_timer(const char *name, void *ctxt)
-{
-    assert(strcmp(name, "regular") == 0);
-
-    pcmcth_renderer *rdr = ctxt;
-    pcmcth_timer_t timer = pcmcth_timer_find(rdr, name, on_regular_timer, ctxt);
-    assert(timer);
-
-    const char* id = pcmcth_timer_id(rdr, timer);
-    printf("Timer %s with id (%s) fired: %d\n", name, id, nr_timer_fired);
-    nr_timer_fired++;
-    if (nr_timer_fired == MAX_TIMES_FIRED)
-        return 100;
-    return 0;
-}
-
-static int on_once_timer(const char *name, void *ctxt)
-{
-    assert(strcmp(name, "once") == 0);
-
-    pcmcth_renderer *rdr = ctxt;
-    pcmcth_timer_t timer;
-    timer = pcmcth_timer_find(rdr, name, on_regular_timer, ctxt);
-    assert(timer == NULL);
-
-    timer = pcmcth_timer_find(rdr, name, on_once_timer, ctxt);
-    assert(timer);
-
-    const char* id = pcmcth_timer_id(rdr, timer);
-    printf("Timer %s with identifier (%s) fired\n", name, id);
-    return -1;
-}
-
-static void test_timer(pcmcth_renderer *rdr)
-{
-    pcmcth_timer_new(rdr, "regular", on_regular_timer, 10, rdr);
-    pcmcth_timer_new(rdr, "once", on_once_timer, 100, rdr);
-
-    while (rdr->t_elapsed < 2) {
-        if (rdr->cbs.handle_event(rdr, 10000))
-            break;
-
-        rdr->t_elapsed = purc_get_monotoic_time() - rdr->t_start;
-        if (UNLIKELY(rdr->t_elapsed != rdr->t_elapsed_last)) {
-            rdr->t_elapsed_last = rdr->t_elapsed;
-        }
-
-        pcmcth_timer_check_expired(rdr);
-    }
-
-    unsigned n;
-    n = pcmcth_timer_delete_all(rdr);
-    assert(n == 1);
-}
-#endif /* not defined NDEBUG */
 
 static void event_loop(pcmcth_renderer *rdr)
 {
@@ -282,7 +219,7 @@ struct thread_arg {
     purc_atom_t     rid;
 };
 
-static void* foil_thread_entry(void* arg)
+static void* seeker_thread_entry(void* arg)
 {
     struct thread_arg *my_arg = (struct thread_arg *)arg;
     sem_t *sw = my_arg->wait;
@@ -305,9 +242,6 @@ static void* foil_thread_entry(void* arg)
 
         if (init_renderer(&rdr) == 0) {
             purc_set_local_data(LDNAME_RENDERER, (uintptr_t)&rdr, NULL);
-#ifndef NDEBUG
-            test_timer(&rdr);
-#endif
             event_loop(&rdr);
             purc_remove_local_data(LDNAME_RENDERER);
             deinit_renderer(&rdr);
@@ -323,10 +257,10 @@ static void* foil_thread_entry(void* arg)
     return NULL;
 }
 
-#define SEM_NAME_SYNC_START     "sync-foil-start"
+#define SEM_NAME_SYNC_START     "sync-seeker-start"
 
-static pthread_t foil_th;
-purc_atom_t foil_start(const char *rdr_uri)
+static pthread_t seeker_th;
+purc_atom_t seeker_start(const char *rdr_uri)
 {
     int ret;
     struct thread_arg arg;
@@ -357,7 +291,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
 
     arg.app_name = app_name;
     arg.run_name = run_name;
-    ret = pthread_create(&foil_th, &attr, foil_thread_entry, &arg);
+    ret = pthread_create(&seeker_th, &attr, seeker_thread_entry, &arg);
     if (ret) {
         purc_log_error("failed to create thread for built-in renderer: %s\n",
                 strerror(errno));
@@ -379,8 +313,8 @@ failed:
     return 0;
 }
 
-void foil_sync_exit(void)
+void seeker_sync_exit(void)
 {
-    pthread_join(foil_th, NULL);
+    pthread_join(seeker_th, NULL);
 }
 

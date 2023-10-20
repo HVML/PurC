@@ -32,6 +32,8 @@
 
 #include "util/kvlist.h"
 
+#define LDNAME_RENDERER   "renderer"
+
 /* The renderer */
 struct pcmcth_renderer;
 typedef struct pcmcth_renderer pcmcth_renderer;
@@ -208,8 +210,6 @@ struct pcmcth_renderer {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void pcmcth_set_renderer_callbacks(pcmcth_renderer *rdr);
 
 #ifdef __cplusplus
 }
