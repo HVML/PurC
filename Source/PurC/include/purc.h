@@ -821,6 +821,77 @@ PCA_EXPORT purc_atom_t
 purc_get_instmgr_rid(void);
 
 /**
+ * purc_get_app_manifest:
+ *
+ * Gets the app manifest of the current instance.
+ *
+ * Returns: a variant of the manifest.
+ * This function only returns NULL if there is no any PurC instance.
+ *
+ * Since 0.9.17
+ */
+PCA_EXPORT purc_variant_t
+purc_get_app_manifest(void);
+
+/**
+ * purc_get_app_label:
+ *
+ * Gets the app label for a specific locale of the current instance.
+ *
+ * @locale (nullable): A pointer to the string contains the desired locale.
+ *      The locale must have format like `zh_CN`. If it is NULL, or has a bad
+ *      format, this function will use `en_US` as the default locale.
+ *
+ * Returns: A string variant which contains the app label. This function only
+ *  returns PURC_VARIANT_INVALID if there is no PurC instance.
+ *
+ * Since 0.9.17
+ */
+PCA_EXPORT purc_variant_t
+purc_get_app_label(const char *locale);
+
+/**
+ * purc_get_app_description:
+ *
+ * Gets the app description for a specific locale of the current instance.
+ *
+ * @locale (nullable): A pointer to the string contains the desired locale.
+ *      The locale must have format like `zh_CN`. If it is NULL, or has a bad
+ *      format, this function will use `en_US` as the default locale.
+ *
+ * Returns: A string variant which contains the app description. This function
+ *  only returns PURC_VARIANT_INVALID if there is no PurC instance.
+ *
+ * Since 0.9.17
+ */
+PCA_EXPORT purc_variant_t
+purc_get_app_description(const char *locale);
+
+/**
+ * purc_get_app_icon_url:
+ *
+ * Gets the URL of the app icon for specific display density and locale of
+ * the current instance.
+ *
+ * @display_density (nullable): A pointer to the string contains the desired
+ *      display (screen) density. The display density must be one of `ldpi`,
+ *      `mdpi`, `hdpi`, `xhdpi`, or `xxhdpi`. If it is NULL or not one of the
+ *      available ones, this function will use `hdpi` as the default value.
+ * @locale (nullable): A pointer to the string contains the desired locale.
+ *      The locale must have format like `zh_CN`. If it is NULL, or has a bad
+ *      format, this function will use `en_US` as the default locale.
+ *
+ * Returns: A string variant which contains the URL of the app icon. This
+ *  function only returns PURC_VARIANT_INVALID if there is no PurC instance.
+ *
+ * Note: you must call purc_variant_unref() after using the returned variant.
+ *
+ * Since 0.9.17
+ */
+PCA_EXPORT purc_variant_t
+purc_get_app_icon_url(const char *display_density, const char *locale);
+
+/**
  * purc_inst_create_or_get:
  *
  * @app_name (nullable): A pointer to the string contains the app name.

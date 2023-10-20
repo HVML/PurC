@@ -185,6 +185,14 @@ failed:
 
 static int authenticate_app(struct pcinst *inst)
 {
+    if (inst->app_manifest == PURC_VARIANT_INVALID) {
+        inst->app_manifest = pcinst_load_app_manifest(inst->app_name);
+        if (inst->app_manifest == NULL) {
+            purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+            goto failed;
+        }
+    }
+
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     /* send authenticate request and wait for the response */
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
@@ -204,13 +212,13 @@ static int authenticate_app(struct pcinst *inst)
     vs[n++] = purc_variant_make_string_static("appName", false);
     vs[n++] = purc_variant_make_string_static(inst->app_name, false);
 
-    /* TODO: real label, description, and icon */
     vs[n++] = purc_variant_make_string_static("appLabel", false);
-    vs[n++] = purc_variant_make_string_static("HVML App", false);
+    vs[n++] = purc_variant_ref(purc_get_app_label(inst->rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appDesc", false);
-    vs[n++] = purc_variant_make_string_static("", false);
+    vs[n++] = purc_variant_ref(purc_get_app_description(inst->rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appIcon", false);
-    vs[n++] = purc_variant_make_string_static("hvml://_originhost/_self/_http/_static/assets/icons/appicon144.png", false);
+    vs[n++] = purc_get_app_icon_url(inst->rdr_caps->display_density,
+            inst->rdr_caps->locale);
 
     vs[n++] = purc_variant_make_string_static("signature", false);
     vs[n++] = make_signature(inst);

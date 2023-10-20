@@ -413,6 +413,9 @@ static void cleanup_instance(struct pcinst *curr_inst)
         curr_inst->local_data_map = NULL;
     }
 
+    if (curr_inst->app_manifest)
+        purc_variant_unref(curr_inst->app_manifest);
+
     if (curr_inst->fp_log && curr_inst->fp_log != LOG_FILE_SYSLOG) {
         fclose(curr_inst->fp_log);
         curr_inst->fp_log = NULL;
