@@ -27,9 +27,11 @@
 
 #include "seeker.h"
 #include "endpoint.h"
+#include "util/sorted-array.h"
 
 #include <purc/purc-utils.h>
 #include <assert.h>
+#include <unistd.h>
 
 struct tabbedwin_info {
     // the group identifier of the tabbedwin
@@ -52,29 +54,13 @@ struct tabbedwin_info {
 };
 
 struct pcmcth_workspace {
-    // handle of this workspace; NULL for not used slot
-    void *handle;
-
-    // name of the workspace
-    char *name;
+    const char *name;
 
     // number of tabbed windows in this workspace
     int nr_tabbedwins;
 
     // number of plain windows in this workspace
     int nr_plainwins;
-
-    // index of the active plain window in this workspace
-    int active_plainwin;
-
-    // information of all tabbed windows in this workspace.
-    struct tabbedwin_info tabbedwins[SEEKER_NR_TABBEDWINDOWS];
-
-    // handles of all plain windows in this workspace.
-    void *plainwins[SEEKER_NR_PLAINWINDOWS];
-
-    // handles of DOM documents in all plain windows.
-    void *domdocs[SEEKER_NR_PLAINWINDOWS];
 
     // page identifier (plainwin:hello@main) -> owners;
     struct pcutils_kvlist   *page_owners;
@@ -85,7 +71,6 @@ struct pcmcth_workspace {
 
 struct pcmcth_rdr_data {
     // all available workspaces
-    struct pcmcth_workspace workspaces[SEEKER_NR_WORKSPACES];
     int nr_workspaces;
     int active_workspace;
 };
@@ -93,18 +78,22 @@ struct pcmcth_rdr_data {
 struct pcmcth_session {
     pcmcth_renderer *rdr;
     pcmcth_endpoint *edpt;
+
+    /* the sorted array of all valid handles */
+    struct sorted_array *all_handles;
 };
 
-static int create_workspace(pcmcth_renderer *rdr, size_t slot,
-        const char *name)
+static int create_workspace(pcmcth_renderer *rdr, const char *name)
 {
-    struct pcmcth_workspace *workspace = rdr->impl->workspaces + slot;
-    workspace->handle = &workspace->handle;
-    workspace->name = strdup(name);
+    pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
+    if (workspace) {
+        workspace->page_owners = pcutils_kvlist_new(NULL);
+        workspace->group_tabbedwin = pcutils_kvlist_new(NULL);
+        workspace->name = kvlist_set_ex(&rdr->workspace_list, name, &workspace);
+        return 0;
+    }
 
-    workspace->page_owners = pcutils_kvlist_new(NULL);
-    workspace->group_tabbedwin = pcutils_kvlist_new(NULL);
-    return 0;
+    return -1;
 }
 
 static int delete_each_ostack(void *ctxt, const char *name, void *data)
@@ -117,11 +106,9 @@ static int delete_each_ostack(void *ctxt, const char *name, void *data)
     return 0;
 }
 
-static void destroy_workspace(pcmcth_renderer *rdr, size_t slot)
+static void destroy_workspace(pcmcth_renderer *rdr,
+        struct pcmcth_workspace *workspace)
 {
-    struct pcmcth_workspace *workspace = rdr->impl->workspaces + slot;
-    assert(workspace->handle);
-
     /* TODO: generate window and/or widget destroyed events */
     pcutils_kvlist_for_each_safe(workspace->page_owners, workspace,
             delete_each_ostack);
@@ -129,8 +116,7 @@ static void destroy_workspace(pcmcth_renderer *rdr, size_t slot)
     pcutils_kvlist_delete(workspace->page_owners);
     pcutils_kvlist_delete(workspace->group_tabbedwin);
 
-    free(workspace->name);
-    memset(workspace, 0, sizeof(struct pcmcth_workspace));
+    kvlist_delete(&rdr->workspace_list, workspace->name);
 }
 
 static int seeker_prepare(pcmcth_renderer *rdr)
@@ -138,12 +124,91 @@ static int seeker_prepare(pcmcth_renderer *rdr)
     rdr->impl = calloc(1, sizeof(*rdr->impl));
     if (rdr->impl) {
         /* create the default workspace */
-        create_workspace(rdr, 0, PCRDR_DEFAULT_WORKSPACE);
+        create_workspace(rdr, PCRDR_DEFAULT_WORKSPACE);
         rdr->impl->nr_workspaces = 1;
-        rdr->impl->active_workspace = 0;
     }
 
-    return -1;
+    return 0;
+}
+
+static int
+seeker_handle_event(pcmcth_renderer *rdr, unsigned long long timeout_usec)
+{
+    (void)rdr;
+    usleep(timeout_usec);
+    return 0;
+}
+
+static void seeker_cleanup(pcmcth_renderer *rdr)
+{
+    const char *name;
+    void *next, *data;
+    kvlist_for_each_safe(&rdr->workspace_list, name, next, data) {
+        pcmcth_workspace *workspace = *(pcmcth_workspace **)data;
+        destroy_workspace(rdr, workspace);
+    }
+
+    kvlist_free(&rdr->workspace_list);
+    free(rdr->impl);
+}
+
+static pcmcth_session *
+seeker_create_session(pcmcth_renderer *rdr, pcmcth_endpoint *edpt)
+{
+    pcmcth_session* sess = calloc(1, sizeof(pcmcth_session));
+    if (sess) {
+        sess->rdr = rdr;
+        sess->edpt = edpt;
+    }
+
+    sess->all_handles = sorted_array_create(SAFLAG_DEFAULT, 8, NULL, NULL);
+    if (sess->all_handles == NULL) {
+        goto failed;
+    }
+
+    return sess;
+
+failed:
+    free(sess);
+    return NULL;
+}
+
+static int delete_ostack_of_session(void *ctxt, const char *name, void *data)
+{
+    (void)name;
+
+    pcmcth_session *sess = ctxt;
+    purc_page_ostack_t ostack = *(purc_page_ostack_t *)data;
+
+    struct purc_page_owner to_reload;
+    to_reload = purc_page_ostack_revoke_session(ostack, ctxt);
+    if (to_reload.corh) {
+        assert(to_reload.sess);
+        // TODO: send reloadPage request to another endpoint
+    }
+
+    pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >= 0) {
+        /* TODO: delete page */
+    }
+
+    return 0;
+}
+
+static int seeker_remove_session(pcmcth_session *sess)
+{
+    const char *name;
+    void *data;
+
+    kvlist_for_each(&sess->rdr->workspace_list, name,  data) {
+        pcmcth_workspace *workspace = *(pcmcth_workspace **)data;
+        pcutils_kvlist_for_each_safe(workspace->page_owners,
+                sess, delete_ostack_of_session);
+    }
+
+    sorted_array_destroy(sess->all_handles);
+    free(sess);
+    return PCRDR_SC_OK;
 }
 
 void seeker_set_renderer_callbacks(pcmcth_renderer *rdr)
@@ -151,12 +216,12 @@ void seeker_set_renderer_callbacks(pcmcth_renderer *rdr)
     memset(&rdr->cbs, 0, sizeof(rdr->cbs));
 
     rdr->cbs.prepare = seeker_prepare;
-#if 0
     rdr->cbs.handle_event = seeker_handle_event;
     rdr->cbs.cleanup = seeker_cleanup;
     rdr->cbs.create_session = seeker_create_session;
     rdr->cbs.remove_session = seeker_remove_session;
 
+#if 0
     rdr->cbs.find_page = seeker_find_page;
     rdr->cbs.get_special_plainwin = seeker_get_special_plainwin;
     rdr->cbs.create_plainwin = seeker_create_plainwin;

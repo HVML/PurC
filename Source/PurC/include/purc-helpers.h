@@ -725,7 +725,7 @@ purc_page_ostack_revoke(purc_page_ostack_t ostack,
         struct purc_page_owner owner);
 
 /**
- * Revokes all page owner belonging to the specific session.
+ * Revokes all page owners belonging to the specific session.
  *
  * @param ostack: The pointer to a page owner stack.
  *

@@ -146,7 +146,7 @@ static int on_each_ostack(void *ctxt, const char *name, void *data)
     }
 
     pcmcth_page *page = purc_page_ostack_get_page(ostack);
-    if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >=0 ) {
+    if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >= 0) {
         pcmcth_udom *udom = foil_page_delete(page);
         if (udom) {
             foil_udom_delete(udom);

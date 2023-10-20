@@ -64,8 +64,6 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     void *next, *data;
     pcmcth_endpoint *endpoint;
 
-    rdr->cbs.cleanup(rdr);
-
     pcmcth_timer_module_cleanup(rdr);
 
     remove_all_living_endpoints(&rdr->living_avl);
@@ -82,6 +80,8 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     }
 
     kvlist_free(&rdr->endpoint_list);
+
+    rdr->cbs.cleanup(rdr);
 }
 
 pcmcth_renderer *foil_get_renderer(void)

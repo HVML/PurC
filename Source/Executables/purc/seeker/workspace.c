@@ -1,10 +1,10 @@
 /*
 ** @file workspace.c
 ** @author Vincent Wei
-** @date 2022/10/05
-** @brief The implementation of workspace of Foil.
+** @date 2023/10/20
+** @brief The implementation of workspace of Seeker.
 **
-** Copyright (C) 2022 FMSoft <https://www.fmsoft.cn>
+** Copyright (C) 2023 FMSoft <https://www.fmsoft.cn>
 **
 ** This file is a part of purc, which is an HVML interpreter with
 ** a command line interface (CLI).
@@ -28,59 +28,46 @@
 #include "workspace.h"
 #include "purcmc-thread.h"
 #include "endpoint.h"
-#include "udom.h"
 #include "page.h"
+#include "udom.h"
 #include "util/sorted-array.h"
 
 #include <assert.h>
 
-int foil_wsp_module_init(pcmcth_renderer *rdr)
+int seeker_wsp_module_init(pcmcth_renderer *rdr)
 {
     kvlist_init(&rdr->workspace_list, NULL);
 
-    return foil_page_module_init(rdr);
+    return seeker_page_module_init(rdr);
 }
 
 static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
-        const char *app_key)
+        const char *name)
 {
     pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
-        /* initialize the block heap for region rectangles */
-        if (!foil_region_rect_heap_init(&workspace->rgnrc_heap,
-                    FOIL_DEF_RGNRCHEAP_SZ))
-            goto failed;
-
         workspace->page_owners = pcutils_kvlist_new(NULL);
-        if (workspace->page_owners == NULL) {
+        if (workspace->page_owners == NULL)
             goto failed;
-        }
 
         workspace->rdr = rdr;
-        workspace->layouter = NULL;
-        foil_rect rc;
-        foil_rect_set(&rc, 0, 0, rdr->impl->cols, rdr->impl->rows);
-        workspace->root = foil_widget_new(
-                WSP_WIDGET_TYPE_ROOT, WSP_WIDGET_BORDER_NONE,
-                "root", NULL, &rc);
-        if (workspace->root == NULL) {
+        workspace->root = seeker_widget_new(WSP_WIDGET_TYPE_ROOT,
+                "root", NULL);
+        if (workspace->root == NULL)
             goto failed;
-        }
 
         /* we use user_data of root to store the pointer to the workspace */
         workspace->root->user_data = workspace;
-        kvlist_set(&rdr->workspace_list, app_key, &workspace);
+        workspace->name = kvlist_set_ex(&rdr->workspace_list, name, &workspace);
     }
 
     return workspace;
 
 failed:
     if (workspace->root)
-        foil_widget_delete(workspace->root);
+        seeker_widget_delete(workspace->root);
     if (workspace->page_owners)
         pcutils_kvlist_delete(workspace->page_owners);
-    if (workspace->rgnrc_heap.heap)
-        foil_region_rect_heap_cleanup(&workspace->rgnrc_heap);
     free(workspace);
     return NULL;
 }
@@ -92,18 +79,12 @@ static void workspace_delete(pcmcth_workspace *workspace)
     LOG_DEBUG("destroy page owners map...\n");
     pcutils_kvlist_delete(workspace->page_owners);
 
-    if (workspace->layouter) {
-        // TODO: ws_layouter_delete(workspace->layouter);
-    }
-
-    foil_widget_delete_deep(workspace->root);
-
-    foil_region_rect_heap_cleanup(&workspace->rgnrc_heap);
+    seeker_widget_delete_deep(workspace->root);
 
     free(workspace);
 }
 
-void foil_wsp_module_cleanup(pcmcth_renderer *rdr)
+void seeker_wsp_module_cleanup(pcmcth_renderer *rdr)
 {
     (void)rdr;
     const char *name;
@@ -115,10 +96,10 @@ void foil_wsp_module_cleanup(pcmcth_renderer *rdr)
     }
 
     kvlist_free(&rdr->workspace_list);
-    foil_page_module_cleanup(rdr);
+    seeker_page_module_cleanup(rdr);
 }
 
-pcmcth_workspace *foil_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
+pcmcth_workspace *seeker_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
         pcmcth_endpoint* endpoint)
 {
     char host[PURC_LEN_HOST_NAME + 1];
@@ -146,8 +127,8 @@ pcmcth_workspace *foil_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
     return workspace;
 }
 
-void foil_wsp_convert_style(void *workspace, void *session,
-        struct foil_widget_info *style, purc_variant_t toolkit_style)
+void seeker_wsp_convert_style(void *workspace, void *session,
+        struct seeker_widget_info *style, purc_variant_t toolkit_style)
 {
     (void)workspace;
     (void)session;
@@ -185,29 +166,25 @@ void foil_wsp_convert_style(void *workspace, void *session,
 
 static pcmcth_page *
 create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
-        void *init_arg, const struct foil_widget_info *style)
+        void *init_arg, const struct seeker_widget_info *style)
 {
     (void)sess;
     (void)init_arg;
 
-    struct foil_widget *plainwin;
-    foil_rect rc;
-    foil_rect_set(&rc, 0, 0,
-            workspace->rdr->impl->cols, workspace->rdr->impl->rows);
-    plainwin = foil_widget_new(
-            WSP_WIDGET_TYPE_PLAINWINDOW, WSP_WIDGET_BORDER_NONE,
-            style->name, style->title, &rc);
+    struct seeker_widget *plainwin;
+    plainwin = seeker_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
+            style->name, style->title);
     if (plainwin) {
-        foil_widget_append_child(workspace->root, plainwin);
+        seeker_widget_append_child(workspace->root, plainwin);
         return &plainwin->page;
     }
 
     return NULL;
 }
 
-void *foil_wsp_create_widget(void *workspace, void *session,
-        foil_widget_type_k type, void *window,
-        void *parent, void *init_arg, const struct foil_widget_info *style)
+void *seeker_wsp_create_widget(void *workspace, void *session,
+        seeker_widget_type_k type, void *window,
+        void *parent, void *init_arg, const struct seeker_widget_info *style)
 {
     (void)window;
     (void)parent;
@@ -226,17 +203,17 @@ void *foil_wsp_create_widget(void *workspace, void *session,
 
 static int
 destroy_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
-        foil_widget *plainwin)
+        seeker_widget *plainwin)
 {
     (void)workspace;
     (void)sess;
 
-    foil_widget_delete(plainwin);
+    seeker_widget_delete(plainwin);
     return PCRDR_SC_OK;
 }
 
-int foil_wsp_destroy_widget(void *workspace, void *session,
-        void *window, void *widget, foil_widget_type_k type)
+int seeker_wsp_destroy_widget(void *workspace, void *session,
+        void *window, void *widget, seeker_widget_type_k type)
 {
     (void)window;
     switch (type) {
@@ -251,9 +228,9 @@ int foil_wsp_destroy_widget(void *workspace, void *session,
     return PCRDR_SC_BAD_REQUEST;
 }
 
-void foil_wsp_update_widget(void *workspace, void *session,
-        void *widget, foil_widget_type_k type,
-        const struct foil_widget_info *style)
+void seeker_wsp_update_widget(void *workspace, void *session,
+        void *widget, seeker_widget_type_k type,
+        const struct seeker_widget_info *style)
 {
     (void)workspace;
     (void)session;
@@ -262,27 +239,26 @@ void foil_wsp_update_widget(void *workspace, void *session,
     (void)style;
 }
 
-pcmcth_udom *foil_wsp_load_edom_in_page(void *workspace, void *session,
+pcmcth_udom *seeker_wsp_load_edom_in_page(void *workspace, void *session,
         pcmcth_page *page, purc_variant_t edom, int *retv)
 {
     (void)workspace;
     (void)session;
 
     if (page->udom) {
-        foil_udom_delete(page->udom);
         page->udom = NULL;
     }
 
-    pcmcth_udom *udom = foil_udom_load_edom(page, edom, retv);
+    pcmcth_udom *udom = seeker_udom_load_edom(page, edom, retv);
     return udom;
 }
 
-foil_widget *foil_wsp_find_widget(void *workspace, void *session,
+seeker_widget *seeker_wsp_find_widget(void *workspace, void *session,
         const char *id)
 {
     (void)session;
 
-    foil_widget* widget = NULL;
+    seeker_widget* widget = NULL;
     pcmcth_workspace *wsp = workspace;
     void *data = pcutils_kvlist_get(wsp->page_owners, id);
     if (data == NULL)
