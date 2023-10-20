@@ -244,16 +244,13 @@ static int authenticate_app(struct pcinst *inst)
     int ret;
     if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
             msg, PCRDR_TIME_AUTH_EXPECTED + 2, &response_msg)) < 0) {
+        purc_set_error(PURC_ERROR_TIMEOUT);
         goto failed;
     }
     pcrdr_release_message(msg);
     msg = NULL;
 
     int ret_code = response_msg->retCode;
-    if (ret_code == PCRDR_SC_OK) {
-        inst->rdr_caps->session_handle = response_msg->resultValue;
-    }
-
     pcrdr_release_message(response_msg);
     response_msg = NULL;
 
