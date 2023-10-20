@@ -55,8 +55,7 @@
 #define PURC_LEN_PROPERTY_NAME         255
 
 #define PURC_PATH_APP_MANIFEST          "/app/%s/manifest.json"
-#define PURC_LEN_APP_MANIFEST           \
-    (sizeof(PURC_PATH_APP_MANIFEST) + PURC_LEN_APP_NAME)
+#define PURC_PATH_APP_FILE              "/app/%s/%s"
 
 PCA_EXTERN_C_BEGIN
 

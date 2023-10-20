@@ -53,7 +53,7 @@ static const char *desc_for_unlabeled_app =
 
 static const char *icon_for_unlabeled_app =
     "{"
-        "hdpi: 'hvml://localhost/_renderer/_builtin/-/assets/hvml-v.png'"
+        "hdpi: null"
     "}";
 
 purc_variant_t
@@ -253,6 +253,8 @@ static purc_variant_t get_app_manifest_via_key(const char *key,
     /* fallback */
     if (prefix) {
         value = purc_variant_object_get_by_ckey(v, prefix);
+        if (value == PURC_VARIANT_INVALID)
+            value = purc_variant_object_get_by_ckey(v, FALLBACK_DENSITY);
     }
     else {
         value = purc_variant_object_get_by_ckey(v, "en");
@@ -274,46 +276,49 @@ purc_get_app_description(const char *locale)
     return get_app_manifest_via_key(KEY_DESC, NULL, locale);
 }
 
+#include "hvml_v_png.inc"
+
 purc_variant_t
-purc_get_app_icon_url(const char *display_density, const char *locale)
+purc_get_app_icon_content(const char *display_density, const char *locale)
 {
-    purc_variant_t url;
-    url = get_app_manifest_via_key(KEY_ICON, display_density, locale);
+    purc_variant_t v;
+    v = get_app_manifest_via_key(KEY_ICON, display_density, locale);
+    if (v == PURC_VARIANT_INVALID) {
+        return v;
+    }
 
-    if (url) {
-        const char *string = purc_variant_get_string_const(url);
-        assert(string);
+    if (purc_variant_is_null(v)) {
+        goto fallback;
+    }
+    else {
+        const char *file = purc_variant_get_string_const(v);
+        assert(file);
 
-        if (strchr(string, ':')) {
-            return purc_variant_ref(url);
-        }
-
-        /* convert from `exported/xxx` to HVML schema
-            hvml://_originhost/_self/_http/_static/xxx */
-        if (strncmp(string, PCRDR_PATH_EXPORTED,
-                    sizeof(PCRDR_PATH_EXPORTED) - 1) == 0) {
-            string = string + sizeof(PCRDR_PATH_EXPORTED);
-
-            /* TODO: determine the schema for fetching the asset */
-            char *strp;
-            int n = asprintf(&strp, PCRDR_HVML_URI_STATIC, "http", string);
-            if (n > 0) {
-                return purc_variant_make_string_reuse_buff(strp, n + 1, false);
-            }
-        }
-        else {
+        char *strp = NULL;
+        if (file[0] != '/') {
             struct pcinst* inst = pcinst_current();
             assert(inst);
 
-            char *strp;
-            int n = asprintf(&strp, PCRDR_FILE_URI_PATTERN,
-                    inst->app_name, string);
+            int n = asprintf(&strp, PURC_PATH_APP_FILE, inst->app_name, file);
             if (n > 0) {
-                return purc_variant_make_string_reuse_buff(strp, n + 1, false);
+                file = strp;
             }
+            else
+                goto fallback;
         }
+
+        char *content;
+        size_t sz;
+        content = purc_load_file_contents(file, &sz);
+        if (strp)
+            free(strp);
+
+        if (content)
+            return purc_variant_make_byte_sequence_reuse_buff(content, sz, sz);
     }
 
-    return PURC_VARIANT_INVALID;
+fallback:
+    return purc_variant_make_byte_sequence_static(hvml_v_png_data,
+                sizeof(hvml_v_png_data));
 }
 
