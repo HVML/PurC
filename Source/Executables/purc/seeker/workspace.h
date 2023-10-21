@@ -35,29 +35,32 @@ struct pcmcth_workspace {
     /* the workspace name */
     const char *name;
 
+    /* the workspace title */
+    char *title;
+
     /* the root window in the workspace */
     struct seeker_widget *root;
 
-    /* page identifier (plainwin:hello@main) -> owners */
-    pcutils_kvlist_t page_owners;
+    /* page identifier (<app_name>/plainwin:main@group) -> owners */
+    pcutils_kvlist_t        page_owners;
+
+    /* widget group name (<app_name>/group) -> tabbedwindow */
+    pcutils_kvlist_t        group_tabbedwin;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Initialize workspace module */
-int seeker_wsp_module_init(pcmcth_renderer *rdr);
+/* Initialize workspace module and return the default workspace. */
+pcmcth_workspace *seeker_wsp_module_init(pcmcth_renderer *rdr);
 
 /* Clean up the workspace module */
 void seeker_wsp_module_cleanup(pcmcth_renderer *rdr);
 
-/* Create or get a workspace for an endpoint */
-pcmcth_workspace *seeker_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
-        pcmcth_endpoint* endpoint);
-
-void seeker_wsp_convert_style(void *workspace, void *session,
-        struct seeker_widget_info *style, purc_variant_t toolkit_style);
+pcmcth_workspace *seeker_wsp_new(pcmcth_renderer *rdr,
+        const char *name, const char *title);
+void seeker_wsp_delete(pcmcth_renderer *rdr, pcmcth_workspace *workspace);
 
 void *seeker_wsp_create_widget(void *workspace, void *session,
         seeker_widget_type_k type, void *window,
@@ -70,11 +73,11 @@ void seeker_wsp_update_widget(void *workspace, void *session,
         void *widget, seeker_widget_type_k type,
         const struct seeker_widget_info *style);
 
-pcmcth_udom *seeker_wsp_load_edom_in_page(void *workspace, void *session,
-        pcmcth_page *page, purc_variant_t edom, int *retv);
+pcmcth_udom *seeker_wsp_load_edom_in_page(pcmcth_page *page,
+        purc_variant_t edom, int *retv);
 
-seeker_widget *seeker_wsp_find_widget(void *workspace, void *session,
-        const char *id);
+seeker_widget *seeker_wsp_find_widget(pcmcth_workspace *workspace,
+        pcmcth_session *session, const char *page_id);
 
 #ifdef __cplusplus
 }

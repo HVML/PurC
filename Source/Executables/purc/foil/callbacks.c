@@ -98,9 +98,8 @@ static void foil_cleanup(pcmcth_renderer *rdr)
         tty_linemode_shutdown();
     }
 
-    free(rdr->impl);
-
     foil_wsp_module_cleanup(rdr);
+    free(rdr->impl);
 }
 
 static pcmcth_session *

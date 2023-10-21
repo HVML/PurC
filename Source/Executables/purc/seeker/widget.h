@@ -79,12 +79,6 @@ struct seeker_widget_info {
     /* geometry */
     int         x, y;
     int         w, h;
-
-    /* other styles */
-    const char *backgroundColor;
-    bool        darkMode;
-    bool        fullScreen;
-    bool        withToolbar;
 };
 
 #ifndef container_of

@@ -30,24 +30,22 @@
 #include "endpoint.h"
 #include "page.h"
 #include "udom.h"
+#include "session.h"
 #include "util/sorted-array.h"
 
 #include <assert.h>
 
-int seeker_wsp_module_init(pcmcth_renderer *rdr)
-{
-    kvlist_init(&rdr->workspace_list, NULL);
-
-    return seeker_page_module_init(rdr);
-}
-
-static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
-        const char *name)
+pcmcth_workspace *seeker_wsp_new(pcmcth_renderer *rdr, const char *name,
+        const char *title)
 {
     pcmcth_workspace *workspace = calloc(1, sizeof(pcmcth_workspace));
     if (workspace) {
         workspace->page_owners = pcutils_kvlist_new(NULL);
         if (workspace->page_owners == NULL)
+            goto failed;
+
+        workspace->group_tabbedwin = pcutils_kvlist_new(NULL);
+        if (workspace->group_tabbedwin == NULL)
             goto failed;
 
         workspace->rdr = rdr;
@@ -59,6 +57,7 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
         /* we use user_data of root to store the pointer to the workspace */
         workspace->root->user_data = workspace;
         workspace->name = kvlist_set_ex(&rdr->workspace_list, name, &workspace);
+        workspace->title = strdup(title ? title : "Untitled");
     }
 
     return workspace;
@@ -66,22 +65,38 @@ static pcmcth_workspace *workspace_new(pcmcth_renderer *rdr,
 failed:
     if (workspace->root)
         seeker_widget_delete(workspace->root);
+    if (workspace->group_tabbedwin)
+        pcutils_kvlist_delete(workspace->group_tabbedwin);
     if (workspace->page_owners)
         pcutils_kvlist_delete(workspace->page_owners);
     free(workspace);
     return NULL;
 }
 
-static void workspace_delete(pcmcth_workspace *workspace)
+void seeker_wsp_delete(pcmcth_renderer *rdr, pcmcth_workspace *workspace)
 {
     assert(workspace->root);
 
-    LOG_DEBUG("destroy page owners map...\n");
-    pcutils_kvlist_delete(workspace->page_owners);
-
     seeker_widget_delete_deep(workspace->root);
 
+    pcutils_kvlist_delete(workspace->page_owners);
+    pcutils_kvlist_delete(workspace->group_tabbedwin);
+
+    kvlist_delete(&rdr->workspace_list, workspace->name);
+
+    free(workspace->title);
     free(workspace);
+}
+
+pcmcth_workspace *seeker_wsp_module_init(pcmcth_renderer *rdr)
+{
+    if (seeker_page_module_init(rdr))
+        return NULL;
+
+    kvlist_init(&rdr->workspace_list, NULL);
+
+    /* create and return the default workspace */
+    return seeker_wsp_new(rdr, PCRDR_DEFAULT_WORKSPACE, NULL);
 }
 
 void seeker_wsp_module_cleanup(pcmcth_renderer *rdr)
@@ -92,91 +107,45 @@ void seeker_wsp_module_cleanup(pcmcth_renderer *rdr)
 
     kvlist_for_each_safe(&rdr->workspace_list, name, next, data) {
         pcmcth_workspace *workspace = *(pcmcth_workspace **)data;
-        workspace_delete(workspace);
+        seeker_wsp_delete(rdr, workspace);
     }
 
     kvlist_free(&rdr->workspace_list);
     seeker_page_module_cleanup(rdr);
 }
 
-pcmcth_workspace *seeker_wsp_create_or_get_workspace(pcmcth_renderer *rdr,
-        pcmcth_endpoint* endpoint)
-{
-    char host[PURC_LEN_HOST_NAME + 1];
-    char app[PURC_LEN_APP_NAME + 1];
-    const char *edpt_uri = get_endpoint_uri(endpoint);
-
-    purc_extract_host_name(edpt_uri, host);
-    purc_extract_app_name(edpt_uri, app);
-
-    char app_key[PURC_LEN_ENDPOINT_NAME + 1];
-    strcpy(app_key, host);
-    strcat(app_key, "-");
-    strcat(app_key, app);
-
-    void *data;
-    pcmcth_workspace *workspace;
-    if ((data = kvlist_get(&rdr->workspace_list, app_key))) {
-        workspace = *(pcmcth_workspace **)data;
-        assert(workspace);
-    }
-    else {
-        workspace = workspace_new(rdr, app_key);
-    }
-
-    return workspace;
-}
-
-void seeker_wsp_convert_style(void *workspace, void *session,
-        struct seeker_widget_info *style, purc_variant_t toolkit_style)
-{
-    (void)workspace;
-    (void)session;
-    style->backgroundColor = NULL;
-
-    if (toolkit_style == PURC_VARIANT_INVALID)
-        return;
-
-    purc_variant_t tmp;
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "darkMode")) &&
-            purc_variant_is_true(tmp)) {
-        style->darkMode = true;
-    }
-
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "fullScreen")) &&
-            purc_variant_is_true(tmp)) {
-        style->fullScreen = true;
-    }
-
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style, "withToolbar")) &&
-            purc_variant_is_true(tmp)) {
-        style->withToolbar = true;
-    }
-
-    if ((tmp = purc_variant_object_get_by_ckey(toolkit_style,
-                    "backgroundColor"))) {
-        const char *value = purc_variant_get_string_const(tmp);
-        if (value) {
-            style->backgroundColor = value;
-        }
-    }
-
-    style->flags |= WSP_WIDGET_FLAG_TOOLKIT;
-}
-
 static pcmcth_page *
-create_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
+create_window(pcmcth_workspace *workspace, pcmcth_session *sess,
+        seeker_widget_type_k type,
         void *init_arg, const struct seeker_widget_info *style)
 {
     (void)sess;
     (void)init_arg;
 
-    struct seeker_widget *plainwin;
-    plainwin = seeker_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
-            style->name, style->title);
-    if (plainwin) {
-        seeker_widget_append_child(workspace->root, plainwin);
-        return &plainwin->page;
+    struct seeker_widget *window;
+    window = seeker_widget_new(type, style->name, style->title);
+    if (window) {
+        seeker_widget_append_child(workspace->root, window);
+        return &window->page;
+    }
+
+    return NULL;
+}
+
+static pcmcth_page *
+create_widget(pcmcth_workspace *workspace, pcmcth_session *sess,
+        seeker_widget *parent, seeker_widget_type_k type,
+        void *init_arg, const struct seeker_widget_info *style)
+{
+    (void)workspace;
+    (void)sess;
+    (void)init_arg;
+
+    struct seeker_widget *widget;
+    widget = seeker_widget_new(type, style->name, style->title);
+    if (widget) {
+        seeker_widget_append_child(parent, widget);
+        return &widget->page;
     }
 
     return NULL;
@@ -191,10 +160,15 @@ void *seeker_wsp_create_widget(void *workspace, void *session,
 
     switch (type) {
     case WSP_WIDGET_TYPE_PLAINWINDOW:
-        return create_plainwin(workspace, session, init_arg, style);
+    case WSP_WIDGET_TYPE_TABBEDWINDOW:
+        return create_window(workspace, session, type, init_arg, style);
+
+    case WSP_WIDGET_TYPE_ROOT:
+        break;
 
     default:
-        /* TODO */
+        assert(parent);
+        return create_widget(workspace, session, parent, type, init_arg, style);
         break;
     }
 
@@ -202,13 +176,25 @@ void *seeker_wsp_create_widget(void *workspace, void *session,
 }
 
 static int
-destroy_plainwin(pcmcth_workspace *workspace, pcmcth_session *sess,
-        seeker_widget *plainwin)
+destroy_window(pcmcth_workspace *workspace, pcmcth_session *sess,
+        seeker_widget *window)
 {
     (void)workspace;
     (void)sess;
 
-    seeker_widget_delete(plainwin);
+    seeker_widget_delete_deep(window);
+    return PCRDR_SC_OK;
+}
+
+static int
+destroy_widget(pcmcth_workspace *workspace, pcmcth_session *sess,
+        seeker_widget *window, seeker_widget *widget)
+{
+    (void)workspace;
+    (void)sess;
+    (void)window;
+
+    seeker_widget_delete_deep(widget);
     return PCRDR_SC_OK;
 }
 
@@ -218,10 +204,16 @@ int seeker_wsp_destroy_widget(void *workspace, void *session,
     (void)window;
     switch (type) {
     case WSP_WIDGET_TYPE_PLAINWINDOW:
-        return destroy_plainwin(workspace, session, widget);
+    case WSP_WIDGET_TYPE_TABBEDWINDOW:
+        return destroy_window(workspace, session, widget);
+
+    case WSP_WIDGET_TYPE_ROOT:
+        break;
 
     default:
-        /* TODO */
+        if (((seeker_widget *)widget)->parent == window) {
+            return destroy_widget(workspace, session, window, widget);
+        }
         break;
     }
 
@@ -239,33 +231,31 @@ void seeker_wsp_update_widget(void *workspace, void *session,
     (void)style;
 }
 
-pcmcth_udom *seeker_wsp_load_edom_in_page(void *workspace, void *session,
-        pcmcth_page *page, purc_variant_t edom, int *retv)
+pcmcth_udom *seeker_wsp_load_edom_in_page(pcmcth_page *page,
+        purc_variant_t edom, int *retv)
 {
-    (void)workspace;
-    (void)session;
-
-    if (page->udom) {
-        page->udom = NULL;
-    }
-
     pcmcth_udom *udom = seeker_udom_load_edom(page, edom, retv);
     return udom;
 }
 
-seeker_widget *seeker_wsp_find_widget(void *workspace, void *session,
-        const char *id)
+seeker_widget *seeker_wsp_find_widget(pcmcth_workspace *workspace,
+        pcmcth_session *session, const char *page_id)
 {
-    (void)session;
+    seeker_widget *widget = NULL;
 
-    seeker_widget* widget = NULL;
-    pcmcth_workspace *wsp = workspace;
-    void *data = pcutils_kvlist_get(wsp->page_owners, id);
+    char my_pageid[PURC_LEN_APP_NAME + strlen(page_id) + 2];
+    const char *edpt = get_endpoint_uri(session->edpt);
+    purc_extract_app_name(edpt, my_pageid);
+    strcat(my_pageid, "/");
+    strcat(my_pageid, page_id);
+
+    void *data = pcutils_kvlist_get(workspace->page_owners, my_pageid);
     if (data == NULL)
         goto done;
 
     purc_page_ostack_t ostack = *(purc_page_ostack_t *)data;
-    widget = purc_page_ostack_get_page(ostack);
+    pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    widget = seeker_widget_from_page(page);
 
 done:
     return widget;
