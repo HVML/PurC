@@ -29,6 +29,8 @@
 #include "endpoint.h"
 #include "workspace.h"
 #include "session.h"
+#include "timer.h"
+#include "finder.h"
 #include "util/sorted-array.h"
 
 #include <purc/purc-utils.h>
@@ -62,6 +64,8 @@ static int prepare(pcmcth_renderer *rdr)
         }
     }
 
+    pcmcth_timer_new(rdr, "finder",
+            seeker_look_for_renderer, SEEKER_FINDER_INTERVAL, rdr);
     return 0;
 }
 
