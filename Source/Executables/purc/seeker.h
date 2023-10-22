@@ -35,22 +35,16 @@
 #define SEEKER_APP_NAME           "cn.fmsoft.hvml.renderer"
 #define SEEKER_RUN_NAME           "seeker"
 #define SEEKER_RDR_NAME           "Seeker"
-
-#define SEEKER_NR_WORKSPACES            4
-#define SEEKER_NR_TABBEDWINDOWS         8
-#define SEEKER_NR_WIDGETS               16
-#define SEEKER_NR_PLAINWINDOWS          32
+#define SEEKER_RDR_URI            \
+    PURC_EDPT_SCHEMA "localhost/" SEEKER_APP_NAME "/" SEEKER_RUN_NAME
 
 #define __STRING(x) #x
 
 #define SEEKER_RDR_FEATURES \
     PCRDR_PURCMC_PROTOCOL_NAME ":" PCRDR_PURCMC_PROTOCOL_VERSION_STRING "\n" \
-    SEEKER_RDR_NAME ":" PURC_VERSION_STRING "\n"            \
-    "HTML:5.3\n"                                            \
-    "workspace:" __STRING(4)                                \
-    "/tabbedWindow:" __STRING(8)                            \
-    "/widgetInTabbedWindow:" __STRING(16)                   \
-    "/plainWindow:" __STRING(32)                            \
+    SEEKER_RDR_NAME ":" PURC_VERSION_STRING "\n"                             \
+    "HTML:5.3\n"                                                             \
+    "workspace:-1/tabbedWindow:-1/widgetInTabbedWindow:-1/plainWindow:-1"    \
     "DOMElementSelectors:handle"
 
 #ifdef __cplusplus

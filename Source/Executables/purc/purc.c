@@ -38,6 +38,7 @@
 
 #include "config.h"
 #include "foil.h"
+#include "seeker.h"
 
 #define KEY_APP_NAME            "app"
 #define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
@@ -53,7 +54,6 @@
 
 #define KEY_RDR_URI             "rdrUri"
 #define DEF_RDR_URI_HEADLESS    "file:///dev/null"
-#define DEF_RDR_URI_THREAD      PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 #define DEF_RDR_URI_SOCKET      "unix://" PCRDR_PURCMC_US_PATH
 #define DEF_RDR_URI_WEBSOCKET   "ws://localhost:" PCRDR_PURCMC_WS_PORT
 
@@ -148,11 +148,12 @@ static void print_usage(FILE *fp)
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
         "  -u --rdr-uri=< renderer_uri >\n"
-        "        The renderer uri:\n"
+        "        The renderer uri or shortname:\n"
         "            - For the renderer comm method `headless`,\n"
         "              the default value is `file:///dev/null`.\n"
         "            - For the renderer comm method `thread`,\n"
-        "              the default value is `" DEF_RDR_URI_THREAD "`.\n"
+        "              the default value is the first available one:\n"
+        "              `foil` if Foil is enabled, otherwise `seeker`.\n"
         "            - For the renderer comm method `socket`,\n"
         "              the default value is `unix:///var/tmp/purcmc.sock`.\n"
         "            - For the renderer comm method `websocket`,\n"
@@ -478,7 +479,10 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
             break;
 
         case 'u':
-            if (pcutils_url_is_valid(optarg)) {
+            if (strcmp(opts->rdr_prot, "thread") == 0) {
+                opts->rdr_uri = strdup(optarg);
+            }
+            else if (pcutils_url_is_valid(optarg)) {
                 opts->rdr_uri = strdup(optarg);
             }
             else {
@@ -1390,10 +1394,25 @@ static void test_unistring(void)
 }
 #endif
 
+static struct thread_renderer {
+    purc_atom_t atom;
+
+    const char *shortname;
+    const char *uri;
+    purc_atom_t (*start)(const char *rdr_uri);
+    void (*exit)(void);
+} thrdrs[] = {
+#if ENABLE(RENDERER_FOIL)
+    { 0, FOIL_RUN_NAME, FOIL_RDR_URI,
+        foil_start, foil_sync_exit },
+#endif
+    { 0, SEEKER_RUN_NAME, SEEKER_RDR_URI,
+        seeker_start, seeker_sync_exit },
+};
+
 int main(int argc, char** argv)
 {
     int ret;
-    purc_atom_t foil_atom = 0;
     bool success = true;
 
 #ifndef NDEBUG
@@ -1450,24 +1469,51 @@ int main(int argc, char** argv)
 
     }
     else if (strcmp(opts->rdr_prot, "thread") == 0) {
-#if ENABLE(RENDERER_FOIL)
         opts->rdr_prot = "thread";
-
         extra_info.renderer_comm = PURC_RDRCOMM_THREAD;
+
+        ssize_t thrdr_idx = -1;
         if (opts->rdr_uri == NULL) {
-            opts->rdr_uri = strdup(DEF_RDR_URI_THREAD);
+            opts->rdr_uri = strdup(thrdrs[0].uri);
+            thrdr_idx = 0;
+        }
+        else {
+            for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+                if (strncasecmp(opts->rdr_uri, PURC_EDPT_SCHEMA,
+                            sizeof(PURC_EDPT_SCHEMA) - 1) == 0) {
+                    if (strcasecmp(thrdrs[i].uri, opts->rdr_uri) == 0) {
+                        thrdr_idx = i;
+                        break;
+                    }
+                }
+                else if (strcasecmp(thrdrs[i].shortname, opts->rdr_uri) == 0) {
+                    free(opts->rdr_uri);
+                    opts->rdr_uri = strdup(thrdrs[i].uri);
+                    thrdr_idx = i;
+                    break;
+                }
+            }
         }
 
-        if ((foil_atom = foil_start(opts->rdr_uri)) == 0) {
+        if (thrdr_idx < 0) {
+            if (opts->verbose) {
+                fprintf(stdout,
+                        "Not found given thread renderer (%s), use %s insead.\n",
+                        opts->rdr_uri, thrdrs[0].uri);
+            }
+
+            thrdr_idx = 0;
+            free(opts->rdr_uri);
+            opts->rdr_uri = strdup(thrdrs[0].uri);
+        }
+
+        thrdrs[thrdr_idx].atom = thrdrs[thrdr_idx].start(thrdrs[thrdr_idx].uri);
+        if (thrdrs[thrdr_idx].atom == 0) {
             fprintf(stderr,
-                    "Failed to initialize the built-in Foil renderer: %s\n",
-                    opts->rdr_prot);
+                    "Failed to initialize the built-in thread renderer: %s\n",
+                    thrdrs[thrdr_idx].uri);
             return EXIT_FAILURE;
         }
-#else
-        fprintf(stderr, "The built-in Foil renderer is not enabled.\n");
-        return EXIT_FAILURE;
-#endif
     }
     else if (strcmp(opts->rdr_prot, "websocket") == 0) {
         extra_info.renderer_comm = PURC_RDRCOMM_WEBSOCKET;
@@ -1577,8 +1623,11 @@ failed:
 
     purc_cleanup();
 
-    if (foil_atom)
-        foil_sync_exit();
+    for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
+        if (thrdrs[i].atom) {
+            thrdrs[i].exit();
+        }
+    }
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

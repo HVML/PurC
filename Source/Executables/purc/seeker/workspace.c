@@ -50,9 +50,11 @@ pcmcth_workspace *seeker_wsp_new(pcmcth_renderer *rdr, const char *name,
 
         workspace->rdr = rdr;
         workspace->root = seeker_widget_new(WSP_WIDGET_TYPE_ROOT,
-                "root", NULL);
-        if (workspace->root == NULL)
+                "root", "The root window");
+        if (workspace->root == NULL) {
+            LOG_ERROR("Failed to create root widget for workspace: %s\n", name);
             goto failed;
+        }
 
         /* we use user_data of root to store the pointer to the workspace */
         workspace->root->user_data = workspace;

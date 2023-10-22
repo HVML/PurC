@@ -43,7 +43,7 @@ seeker_widget *seeker_widget_new(seeker_widget_type_k type,
         widget->name = name ? strdup(name) : NULL;
         widget->title = title ? strdup(title) : NULL;
 
-        if (widget->name == NULL || widget->title == NULL)
+        if (widget->name == NULL)
             goto failed;
     }
 

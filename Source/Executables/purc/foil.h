@@ -34,8 +34,10 @@
 
 #define FOIL_APP_NAME           "cn.fmsoft.hvml.renderer"
 #define FOIL_RUN_NAME           "foil"
-
 #define FOIL_RDR_NAME           "Foil"
+
+#define FOIL_RDR_URI            \
+    PURC_EDPT_SCHEMA "localhost/" FOIL_APP_NAME "/" FOIL_RUN_NAME
 
 #define FOIL_DEF_CHARSET        "UTF-8"
 #define FOIL_DEF_DPI            96.0

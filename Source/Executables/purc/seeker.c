@@ -72,7 +72,7 @@ static void deinit_renderer(pcmcth_renderer *rdr)
     kvlist_for_each_safe(&rdr->endpoint_list, name, next, data) {
         endpoint = *(pcmcth_endpoint **)data;
 
-        purc_log_info("Deleting endpoint: %s (%p) in %s\n",
+        LOG_INFO("Deleting endpoint: %s (%p) in %s\n",
                 name, endpoint, __func__);
 
         del_endpoint(rdr, endpoint, CDE_EXITING);
@@ -98,7 +98,7 @@ static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
     const char *origin_edpt = purc_atom_to_string(msg->__origin);
 
     if (UNLIKELY(operation == NULL || origin_edpt == NULL)) {
-        purc_log_error("Bad operation or source URI in message: %s, %s\n",
+        LOG_ERROR("Bad operation or source URI in message: %s, %s\n",
                 operation, origin_edpt);
         purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
     }
@@ -112,7 +112,7 @@ static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
                 }
             }
             else {
-                purc_log_warn("Cannot create endpoint for %s.\n", origin_edpt);
+                LOG_ERROR("Cannot create endpoint for %s.\n", origin_edpt);
             }
         }
         else if (strcmp(operation, PCRDR_THREAD_OPERATION_BYE) == 0) {
@@ -125,7 +125,7 @@ static bool handle_instance_request(pcmcth_renderer *rdr, pcrdr_msg *msg)
             }
             else {
                 purc_set_error(PCRDR_ERROR_PROTOCOL);
-                purc_log_warn("Bye request from unknown endpoint: %s.\n",
+                LOG_ERROR("Bye request from unknown endpoint: %s.\n",
                         origin_edpt);
             }
         }
@@ -151,7 +151,7 @@ static void event_loop(pcmcth_renderer *rdr)
         ret = purc_inst_holding_messages_count(&n);
 
         if (ret) {
-            purc_log_error("purc_inst_holding_messages_count failed: %d\n", ret);
+            LOG_ERROR("purc_inst_holding_messages_count failed: %d\n", ret);
         }
         else if (n == 0) {
             if (rdr->cbs.handle_event(rdr, 10000))  // timeout value: 10ms
@@ -178,7 +178,7 @@ static void event_loop(pcmcth_renderer *rdr)
                 msg->target == PCRDR_MSG_TARGET_INSTANCE) {
             if (!handle_instance_request(rdr, msg)) {
                 pcrdr_release_message(msg);
-                purc_log_warn("No any living endpoints, quiting...\n");
+                LOG_WARN("No any living endpoints, quiting...\n");
                 break;
             }
         }
@@ -187,7 +187,7 @@ static void event_loop(pcmcth_renderer *rdr)
             if (origin_edpt == NULL) {
                 const char *operation =
                     purc_variant_get_string_const(msg->operation);
-                purc_log_error("Bad endpoint in message: %d (%s)\n",
+                LOG_ERROR("Bad endpoint in message: %d (%s)\n",
                         msg->type, operation);
                 purc_set_error(PCRDR_ERROR_BAD_MESSAGE);
             }
@@ -207,7 +207,7 @@ static void event_loop(pcmcth_renderer *rdr)
 
         int last_error = purc_get_last_error();
         if (UNLIKELY(last_error)) {
-            purc_log_warn("Encounter error when handle message: %s\n",
+            LOG_ERROR("Encounter error when handle message: %s\n",
                     purc_get_error_message(last_error));
         }
 
@@ -248,11 +248,15 @@ static void* seeker_thread_entry(void* arg)
             purc_remove_local_data(LDNAME_RENDERER);
             deinit_renderer(&rdr);
         }
+        else {
+            LOG_ERROR("Failed to init renderer.\n");
+        }
+
         purc_inst_destroy_move_buffer();
     }
 
     if (ret == PURC_ERROR_OK) {
-        LOG_INFO("Foil is going to be cleaned up and the thread is exiting.\n");
+        LOG_INFO("Seeker is going to be cleaned up and the thread is exiting.\n");
         purc_cleanup();
     }
 
@@ -269,13 +273,13 @@ purc_atom_t seeker_start(const char *rdr_uri)
 
     char app_name[PURC_LEN_APP_NAME + 1];
     if (purc_extract_app_name(rdr_uri, app_name) == 0) {
-        purc_log_error("bad renderer URI: %s\n", rdr_uri);
+        LOG_ERROR("bad renderer URI: %s\n", rdr_uri);
         return 0;
     }
 
     char run_name[PURC_LEN_RUNNER_NAME + 1];
     if (purc_extract_runner_name(rdr_uri, run_name) == 0) {
-        purc_log_error("bad renderer URI: %s\n", rdr_uri);
+        LOG_ERROR("bad renderer URI: %s\n", rdr_uri);
         return 0;
     }
 
@@ -287,7 +291,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     sem_unlink(SEM_NAME_SYNC_START);
     arg.wait = sem_open(SEM_NAME_SYNC_START, O_CREAT | O_EXCL, 0644, 0);
     if (arg.wait == SEM_FAILED) {
-        purc_log_error("failed to create semaphore: %s\n", strerror(errno));
+        LOG_ERROR("failed to create semaphore: %s\n", strerror(errno));
         goto failed;
     }
 
@@ -295,7 +299,7 @@ ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     arg.run_name = run_name;
     ret = pthread_create(&seeker_th, &attr, seeker_thread_entry, &arg);
     if (ret) {
-        purc_log_error("failed to create thread for built-in renderer: %s\n",
+        LOG_ERROR("failed to create thread for built-in renderer: %s\n",
                 strerror(errno));
         sem_close(arg.wait);
         sem_unlink(SEM_NAME_SYNC_START);
