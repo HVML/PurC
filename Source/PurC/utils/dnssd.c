@@ -254,6 +254,7 @@ static void resolve_cb(DNSServiceRef sdref,
         const char *fullname, const char *hosttarget, uint16_t opaqueport,
         uint16_t txt_len, const unsigned char *txt, void *context)
 {
+    struct purc_dnssd_conn *dnssd = (struct purc_dnssd_conn *)context;
     union { uint16_t s; u_char b[2]; } port = { opaqueport };
     uint16_t u_port = ((uint16_t)port.b[0]) << 8 | port.b[1];
     const char *p = fullname;
@@ -283,7 +284,6 @@ static void resolve_cb(DNSServiceRef sdref,
     }
 
 done:
-    struct purc_dnssd_conn *dnssd = (struct purc_dnssd_conn *)context;
     dnssd->service_discovered_cb(dnssd, sdref, flags, if_index, error_code,
         fullname, t, hosttarget, u_port, txt_len,
         (const char *)txt, dnssd->ctxt);
