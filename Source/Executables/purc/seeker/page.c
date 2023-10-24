@@ -25,6 +25,7 @@
 
 #include "page.h"
 #include "widget.h"
+#include "udom.h"
 
 #include <assert.h>
 
@@ -47,12 +48,15 @@ bool seeker_page_content_init(pcmcth_page *page)
 
 void seeker_page_content_cleanup(pcmcth_page *page)
 {
-    (void)page;
+    if (page->udom)
+        seeker_udom_delete(page->udom);
+    page->udom = NULL;
 }
 
 pcmcth_udom *seeker_page_set_udom(pcmcth_page *page, pcmcth_udom *udom)
 {
     pcmcth_udom *old_udom = page->udom;
+    seeker_udom_delete(page->udom);
     page->udom = udom;
 
     return old_udom;

@@ -30,11 +30,41 @@
 
 #include <assert.h>
 
-int seeker_look_for_renderer(const char *name, void *ctxt)
+int seeker_look_for_local_renderer(const char *name, void *ctxt)
 {
     pcmcth_renderer *rdr = ctxt;
-    LOG_WARN("It is time to find a new renderer: %s for rdr: %p\n",
+    LOG_WARN("It is time to find a new local renderer: %s for rdr: %p\n",
             name, rdr);
     return 0;
 }
+
+#if PCA_ENABLE_DNSSD
+void seeker_dnssd_on_service_discovered(struct purc_dnssd_conn *dnssd,
+        void *browsing_handle,
+        unsigned int flags, uint32_t if_index, int error_code,
+        const char *service_name, const char *reg_type, const char *hostname,
+        uint16_t port, uint16_t len_txt_record, const char *txt_record,
+        void *ctxt)
+{
+    pcmcth_renderer *rdr = ctxt;
+    (void)dnssd;
+    (void)rdr;
+    (void)browsing_handle;
+    (void)flags;
+
+    if (error_code == 0) {
+        LOG_WARN("Find a service `%s` with type `%s` on `%s` at port (%u)\n",
+                service_name, reg_type, hostname, (unsigned)port);
+        LOG_WARN("    The interface index: %u\n", if_index);
+        if (len_txt_record) {
+            LOG_WARN("    The TXT record: %s\n", txt_record);
+        }
+
+        // TODO: emit a `newRenderer` event here
+    }
+    else {
+        LOG_WARN("Error occurred when browsing service: %d.\n", error_code);
+    }
+}
+#endif
 

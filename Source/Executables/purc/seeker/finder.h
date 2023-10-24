@@ -27,6 +27,7 @@
 #define purc_seeker_finder_h
 
 #include "seeker.h"
+#include <purc/purc-helpers.h>
 
 #define SEEKER_FINDER_INTERVAL  1000
 
@@ -34,7 +35,16 @@
 extern "C" {
 #endif
 
-int seeker_look_for_renderer(const char *name, void *ctxt);
+int seeker_look_for_local_renderer(const char *name, void *ctxt);
+
+#if PCA_ENABLE_DNSSD
+void seeker_dnssd_on_service_discovered(struct purc_dnssd_conn *dnssd,
+        void *service_handle,
+        unsigned int flags, uint32_t if_index, int error_code,
+        const char *service_name, const char *reg_type, const char *hostname,
+        uint16_t port, uint16_t len_txt_record, const char *txt_record,
+        void *ctxt);
+#endif
 
 #ifdef __cplusplus
 }

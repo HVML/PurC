@@ -34,6 +34,7 @@
 #include "util/sorted-array.h"
 
 #include <purc/purc-utils.h>
+#include <purc/purc-helpers.h>
 #include <assert.h>
 #include <unistd.h>
 
@@ -50,6 +51,11 @@ enum {
 struct pcmcth_rdr_data {
     /* the default workspace */
     pcmcth_workspace *def_wsp;
+
+#if PCA_ENABLE_DNSSD
+    struct purc_dnssd_conn *dnssd;
+    void                   *browsing_handle;
+#endif
 };
 
 static int prepare(pcmcth_renderer *rdr)
@@ -65,20 +71,68 @@ static int prepare(pcmcth_renderer *rdr)
     }
 
     pcmcth_timer_new(rdr, "finder",
-            seeker_look_for_renderer, SEEKER_FINDER_INTERVAL, rdr);
+            seeker_look_for_local_renderer, SEEKER_FINDER_INTERVAL, rdr);
+
+#if PCA_ENABLE_DNSSD
+    rdr->impl->dnssd = purc_dnssd_connect(NULL,
+            seeker_dnssd_on_service_discovered, rdr);
+    if (rdr->impl->dnssd == NULL) {
+        LOG_WARN("Failed to connect to mDNS Responder\n");
+    }
+    else {
+        rdr->impl->browsing_handle = purc_dnssd_start_browsing(rdr->impl->dnssd,
+                "_purcmc._tcp", NULL);
+        if (rdr->impl->browsing_handle == NULL) {
+            LOG_WARN("Failed to start browsing\n");
+            purc_dnssd_disconnect(rdr->impl->dnssd);
+            rdr->impl->dnssd = NULL;
+        }
+    }
+#endif
     return 0;
 }
 
 static int
 handle_event(pcmcth_renderer *rdr, unsigned long long timeout_usec)
 {
+#if PCA_ENABLE_DNSSD
+    if (rdr->impl->dnssd) {
+        int fd = purc_dnssd_fd(rdr->impl->dnssd);
+        assert(fd >= 0);
+
+        fd_set select_set;
+        FD_ZERO(&select_set);
+        FD_SET(fd, &select_set); /* Add stdin */
+
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = timeout_usec;
+        int v = select(fd + 1, &select_set, NULL, NULL, &timeout);
+
+        if (v > 0 && FD_ISSET(fd, &select_set)) {
+            purc_dnssd_process_result(rdr->impl->dnssd);
+        }
+    }
+    else {
+        usleep(timeout_usec);
+    }
+#else
     (void)rdr;
     usleep(timeout_usec);
+#endif
     return 0;
 }
 
 static void cleanup(pcmcth_renderer *rdr)
 {
+#if PCA_ENABLE_DNSSD
+    if (rdr->impl->browsing_handle) {
+        purc_dnssd_stop_browsing(rdr->impl->dnssd,
+                rdr->impl->browsing_handle);
+        purc_dnssd_disconnect(rdr->impl->dnssd);
+    }
+#endif
+
     seeker_wsp_module_cleanup(rdr);
     free(rdr->impl);
 }
