@@ -36,6 +36,12 @@
 #include <stdio.h>
 #include <limits.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #define UNIX_SOCKET_URI_PREFIX      "unix://"
 
@@ -103,7 +109,7 @@ failed:
         pcrdr_release_message(msg);
 }
 
-static void seek_renderer_on_unix_socket(pcmcth_renderer *rdr)
+static int seek_renderer_on_unix_socket(pcmcth_renderer *rdr)
 {
 #if HAVE(LINUX_MEMFD_H)
     FILE *fp = fopen("/proc/net/unix", "r");
@@ -131,12 +137,40 @@ static void seek_renderer_on_unix_socket(pcmcth_renderer *rdr)
         }
 
         fclose(fp);
+        return 0;
     }
     else {
-        LOG_WARN("Cannot open /proc/net/unix for read; finder disabled.\n");
+        LOG_ERROR("Cannot open /proc/net/unix for read; finder disabled.\n");
+        return -1;
     }
 #else  /* HAVE(LINUX_MEMFD_H) */
+    /* try the default socket */
+    if (access(PCRDR_PURCMC_US_PATH, R_OK | W_OK) == 0) {
+        int fd;
+        if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+            LOG_ERROR("Cannot create a socket; finder disabled.\n");
+            return -1;
+        }
+
+        /* fill socket address structure w/server's addr */
+        struct sockaddr_un unix_addr;
+        memset(&unix_addr, 0, sizeof(unix_addr));
+        unix_addr.sun_family = AF_UNIX;
+        strcpy(unix_addr.sun_path, PCRDR_PURCMC_US_PATH);
+        size_t len = sizeof(unix_addr.sun_family) + sizeof(PCRDR_PURCMC_US_PATH);
+        if (connect(fd, (struct sockaddr *) &unix_addr, len) < 0) {
+            LOG_WARN("Cannot connect to the renderer.\n");
+        }
+        else {
+            LOG_WARN("Find one renderer at %s.\n", PCRDR_PURCMC_US_PATH);
+            notify_endpoint_about_new_renderer(rdr,
+                    "socket", PCRDR_PURCMC_US_PATH);
+        }
+        close(fd);
+    }
 #endif /* !HAVE(LINUX_MEMFD_H) */
+
+    return 0;
 }
 
 int seeker_look_for_local_renderer(const char *name, void *ctxt)
@@ -146,7 +180,7 @@ int seeker_look_for_local_renderer(const char *name, void *ctxt)
             name, rdr);
 
     if (strcmp(name, SEEKER_UNIX_FINDER_NAME) == 0) {
-        seek_renderer_on_unix_socket(rdr);
+        return seek_renderer_on_unix_socket(rdr);
     }
 #if PCA_ENABLE_DNSSD
     else if (strcmp(name, SEEKER_NET_FINDER_NAME) == 0) {
@@ -155,7 +189,7 @@ int seeker_look_for_local_renderer(const char *name, void *ctxt)
                 rdr->impl->browsing_handle);
 
         rdr->impl->browsing_handle = purc_dnssd_start_browsing(rdr->impl->dnssd,
-                "_purcmc._tcp", NULL);
+                PCRDR_PURCMC_DNSSD_TYPE, NULL);
         if (rdr->impl->browsing_handle == NULL) {
             LOG_WARN("Failed to start browsing; finder disabled.\n");
             purc_dnssd_disconnect(rdr->impl->dnssd);

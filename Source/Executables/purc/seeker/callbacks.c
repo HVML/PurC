@@ -71,7 +71,7 @@ static int prepare(pcmcth_renderer *rdr)
     }
     else {
         rdr->impl->browsing_handle = purc_dnssd_start_browsing(rdr->impl->dnssd,
-                "_purcmc._tcp", NULL);
+                PCRDR_PURCMC_DNSSD_TYPE, NULL);
         if (rdr->impl->browsing_handle == NULL) {
             LOG_WARN("Failed to start browsing\n");
             purc_dnssd_disconnect(rdr->impl->dnssd);
