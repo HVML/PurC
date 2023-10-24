@@ -103,11 +103,8 @@ failed:
         pcrdr_release_message(msg);
 }
 
-int seeker_look_for_local_renderer(const char *name, void *ctxt)
+static void seek_renderer_on_unix_socket(pcmcth_renderer *rdr)
 {
-    pcmcth_renderer *rdr = ctxt;
-    LOG_DEBUG("It is time to find a new local renderer: %s for rdr: %p\n",
-            name, rdr);
 #if HAVE(LINUX_MEMFD_H)
     FILE *fp = fopen("/proc/net/unix", "r");
     if (fp) {
@@ -137,9 +134,36 @@ int seeker_look_for_local_renderer(const char *name, void *ctxt)
     }
     else {
         LOG_WARN("Cannot open /proc/net/unix for read; finder disabled.\n");
-        return -1;
     }
-#endif /* HAVE(LINUX_MEMFD_H) */
+#else  /* HAVE(LINUX_MEMFD_H) */
+#endif /* !HAVE(LINUX_MEMFD_H) */
+}
+
+int seeker_look_for_local_renderer(const char *name, void *ctxt)
+{
+    pcmcth_renderer *rdr = ctxt;
+    LOG_DEBUG("It is time to find a new local renderer: %s for rdr: %p\n",
+            name, rdr);
+
+    if (strcmp(name, SEEKER_UNIX_FINDER_NAME) == 0) {
+        seek_renderer_on_unix_socket(rdr);
+    }
+#if PCA_ENABLE_DNSSD
+    else if (strcmp(name, SEEKER_NET_FINDER_NAME) == 0) {
+        assert(rdr->impl->browsing_handle);
+        purc_dnssd_stop_browsing(rdr->impl->dnssd,
+                rdr->impl->browsing_handle);
+
+        rdr->impl->browsing_handle = purc_dnssd_start_browsing(rdr->impl->dnssd,
+                "_purcmc._tcp", NULL);
+        if (rdr->impl->browsing_handle == NULL) {
+            LOG_WARN("Failed to start browsing; finder disabled.\n");
+            purc_dnssd_disconnect(rdr->impl->dnssd);
+            rdr->impl->dnssd = NULL;
+            return -1;
+        }
+    }
+#endif
 
     return 0;
 }
