@@ -551,8 +551,8 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     struct pcrdr_conn *n_conn_to_rdr = NULL;
     struct renderer_capabilities *n_rdr_caps = NULL;
 
-#if 1
-    /* only for test */
+#if 0
+    /* only for test: change app_name */
     inst->app_name[0] = 'x';
 #endif
 
