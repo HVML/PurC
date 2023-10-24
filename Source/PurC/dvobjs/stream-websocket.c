@@ -47,6 +47,53 @@
 #include <sys/un.h>
 #include <netdb.h>
 
+#if defined(__linux__) || defined(__CYGWIN__)
+#  include <endian.h>
+#if ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 9))
+#if defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)
+#  include <arpa/inet.h>
+#  define htobe16(x) htons(x)
+#  define htobe64(x) (((uint64_t)htonl(((uint32_t)(((uint64_t)(x)) >> 32)))) | \
+   (((uint64_t)htonl(((uint32_t)(x)))) << 32))
+#  define be16toh(x) ntohs(x)
+#  define be32toh(x) ntohl(x)
+#  define be64toh(x) (((uint64_t)ntohl(((uint32_t)(((uint64_t)(x)) >> 32)))) | \
+   (((uint64_t)ntohl(((uint32_t)(x)))) << 32))
+#else
+#  error Byte Order not supported!
+#endif
+#endif
+#elif defined(__sun__)
+#  include <sys/byteorder.h>
+#  define htobe16(x) BE_16(x)
+#  define htobe64(x) BE_64(x)
+#  define be16toh(x) BE_IN16(x)
+#  define be32toh(x) BE_IN32(x)
+#  define be64toh(x) BE_IN64(x)
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#  include <sys/endian.h>
+#elif defined(__OpenBSD__)
+#  include <sys/types.h>
+#  if !defined(be16toh)
+#    define be16toh(x) betoh16(x)
+#  endif
+#  if !defined(be32toh)
+#    define be32toh(x) betoh32(x)
+#  endif
+#  if !defined(be64toh)
+#    define be64toh(x) betoh64(x)
+#  endif
+#elif defined(__APPLE__)
+#  include <libkern/OSByteOrder.h>
+#  define htobe16(x) OSSwapHostToBigInt16(x)
+#  define htobe64(x) OSSwapHostToBigInt64(x)
+#  define be16toh(x) OSSwapBigToHostInt16(x)
+#  define be32toh(x) OSSwapBigToHostInt32(x)
+#  define be64toh(x) OSSwapBigToHostInt64(x)
+#else
+#  error Platform not supported!
+#endif
+
 #define WS_MAGIC_STR        "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 #define WS_KEY_LEN          16
 #define SHA_DIGEST_LEN      20
