@@ -637,12 +637,14 @@ static int try_to_read_ext_payload_length(struct pcdvobjs_stream *stream)
         if (ext->sz_read_ext_payload == ext->sz_ext_payload) {
             ext->sz_read_ext_payload = 0;
             if (ext->sz_ext_payload == sizeof(uint16_t)) {
-                uint16_t *p = (uint16_t *) ext->ext_payload_buf;
-                header->sz_ext_payload = be16toh(*p);
+                uint16_t v;
+                memcpy(&v, ext->ext_payload_buf, 2);
+                header->sz_ext_payload = be16toh(v);
             }
             else if (ext->sz_ext_payload == sizeof(uint64_t)) {
-                uint64_t *p = (uint64_t *) ext->ext_payload_buf;
-                header->sz_ext_payload = be64toh(*p);
+                uint64_t v;
+                memcpy(&v, ext->ext_payload_buf, 8);
+                header->sz_ext_payload = be64toh(v);
             }
             return READ_WHOLE;
         }
