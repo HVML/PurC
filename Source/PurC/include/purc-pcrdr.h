@@ -46,9 +46,10 @@
 #define PCRDR_PURCMC_PROTOCOL_VERSION           160
 #define PCRDR_PURCMC_MINIMAL_PROTOCOL_VERSION   160
 
-#define PCRDR_PURCMC_US_PATH                    "/var/tmp/purcmc.sock"
-#define PCRDR_PURCMC_WS_PORT                    "7702"
-#define PCRDR_PURCMC_WS_PORT_RESERVED           "7703"
+#define PCRDR_PURCMC_US_NAME                "purcmc.sock"
+#define PCRDR_PURCMC_US_PATH                "/var/tmp/" PCRDR_PURCMC_US_NAME
+#define PCRDR_PURCMC_WS_PORT                "7702"
+#define PCRDR_PURCMC_WS_PORT_RESERVED       "7703"
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
@@ -86,6 +87,9 @@
 
 #define PCRDR_THREAD_OPERATION_HELLO    "hello"
 #define PCRDR_THREAD_OPERATION_BYE      "bye"
+
+#define PCRDR_EVENT_NEW_RENDERER                "newRenderer"
+#define PCRDR_EVENT_FAILED_SWITCHING_RENDERER   "failedSwitchingRenderer"
 
 /* operations from interpreter to render */
 typedef enum {
