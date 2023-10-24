@@ -26,6 +26,7 @@
 #define _GNU_SOURCE
 #include "config.h"
 
+#undef NDEBUG
 #include "seeker.h"
 #include "finder.h"
 #include "purcmc-thread.h"
@@ -105,7 +106,7 @@ failed:
 int seeker_look_for_local_renderer(const char *name, void *ctxt)
 {
     pcmcth_renderer *rdr = ctxt;
-    LOG_WARN("It is time to find a new local renderer: %s for rdr: %p\n",
+    LOG_DEBUG("It is time to find a new local renderer: %s for rdr: %p\n",
             name, rdr);
 #if HAVE(LINUX_MEMFD_H)
     FILE *fp = fopen("/proc/net/unix", "r");
@@ -113,15 +114,21 @@ int seeker_look_for_local_renderer(const char *name, void *ctxt)
         char buf[PATH_MAX + 128];
         while (fgets(buf, sizeof(buf), fp)) {
             char *matched = strstr(buf, PCRDR_PURCMC_US_NAME);
-            if (matched && matched[sizeof(PCRDR_PURCMC_US_NAME) - 1] == 0) {
-                char *path = strchr(buf, '/');
-                if (access(path, R_OK | W_OK) == 0) {
-                    LOG_DEBUG("Find one renderer at %s.\n", path);
-                    char *uri = path - sizeof(UNIX_SOCKET_URI_PREFIX) + 1;
-                    memcpy(uri, UNIX_SOCKET_URI_PREFIX,
-                            sizeof(UNIX_SOCKET_URI_PREFIX) - 1);
-                    notify_endpoint_about_new_renderer(rdr, "socket", uri);
-                    break;
+            if (matched) {
+                if (matched[sizeof(PCRDR_PURCMC_US_NAME) - 1] == '\n')
+                    matched[sizeof(PCRDR_PURCMC_US_NAME) - 1] = 0;
+
+                if (matched[sizeof(PCRDR_PURCMC_US_NAME) - 1] == 0) {
+                    char *path = strchr(buf, '/');
+                    if (access(path, R_OK | W_OK) == 0) {
+                        char *uri = path - sizeof(UNIX_SOCKET_URI_PREFIX) + 1;
+                        memcpy(uri, UNIX_SOCKET_URI_PREFIX,
+                                sizeof(UNIX_SOCKET_URI_PREFIX) - 1);
+
+                        LOG_DEBUG("Find one renderer at %s.\n", uri);
+                        notify_endpoint_about_new_renderer(rdr, "socket", uri);
+                        break;
+                    }
                 }
             }
         }
