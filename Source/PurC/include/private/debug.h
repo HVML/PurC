@@ -28,7 +28,7 @@
 
 #include "config.h"
 
-#include "purc-helpers.h"
+#include "purc/purc-helpers.h"
 
 #include <stdlib.h>
 #include <assert.h>

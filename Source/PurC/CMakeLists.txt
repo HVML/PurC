@@ -78,7 +78,17 @@ list(APPEND PurC_UNIFIED_SOURCE_LIST_FILES
     "Sources.txt"
 )
 
-set(PurC_LIBRARIES)
+set(PurC_LIBRARIES
+    PurC::WTF
+    PurC::CSSEng
+)
+
+if (ENABLE_DNSSD)
+    list(APPEND PurC_LIBRARIES
+        ${DNSSD_LIBRARIES}
+    )
+endif ()
+
 set(PurC_DEPENDENCIES)
 
 # TODO: the source files and libraries for optional features.

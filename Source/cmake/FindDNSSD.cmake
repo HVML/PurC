@@ -21,25 +21,26 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-find_path(DNSSD_INCLUDE_DIR NAMES dns_sd.h
-    PATHS
-    ${PC_DNSSD_INCLUDEDIR}
-    ${PC_DNSSD_INCLUDE_DIRS}
-)
+message(STATUS "")
 
-find_library(DNSSD_LIBRARIES NAMES dns_sd
-    PATHS
-    ${PC_DNSSD_LIBDIR}
-    ${PC_DNSSD_LIBRARY_DIRS}
-)
+find_path(DNSSD_INCLUDE_DIR NAMES dns_sd.h)
+
+if (NOT ${DNSSD_INCLUDE_DIR} STREQUAL "DNSSD_INCLUDE_DIR-NOTFOUND")
+    find_library(DNSSD_LIBRARIES NAMES dns_sd)
+        if (NOT ${DNSSD_LIBRARIES} STREQUAL "DNSSD_LIBRARIES-NOTFOUND")
+            set(DNSSD_FOUND ON)
+        endif ()
+endif ()
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(DNSSD
         REQUIRED_VARS DNSSD_INCLUDE_DIR DNSSD_LIBRARIES
         VERSION_VAR   DNSSD_VERSION)
 
+if (DNSSD_FOUND)
 # show the DNSSD_INCLUDE_DIR and DNSSD_LIBRARIES variables only in the advanced view
-mark_as_advanced(
-    DNSSD_INCLUDE_DIR
-    DNSSD_LIBRARIES
-)
+    mark_as_advanced(
+        DNSSD_INCLUDE_DIR
+        DNSSD_LIBRARIES
+    )
+endif ()
