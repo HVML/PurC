@@ -64,6 +64,7 @@
 #define MSG_TYPE_RESPONSE             "response"
 #define MSG_TYPE_FETCHER_STATE        "fetcherState"
 #define MSG_TYPE_REQUEST_CHAN         "requestChan"
+#define MSG_TYPE_NEW_RENDERER         "newRenderer"
 
 
 #define MSG_SUB_TYPE_ASTERISK         "*"
