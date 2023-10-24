@@ -3732,3 +3732,57 @@ pcintr_walk_attrs(struct pcintr_stack_frame *frame,
     return 0;
 }
 
+int
+pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
+{
+    int ret = 0;
+
+    /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
+
+    /* TODO: real target_workspace, target_groud, page_name   */
+    bool r = pcintr_attach_to_renderer(cor,
+            cor->target_page_type, NULL,
+            NULL, NULL, NULL);
+
+    if (!r) {
+        ret = -1;
+        goto out;
+    }
+
+    r = pcintr_rdr_page_control_load(inst, &cor->stack);
+    if (!r) {
+        ret = -1;
+        goto out;
+    }
+
+    r = 0;
+out:
+    return ret;
+}
+
+int
+pcintr_switch_new_renderer(struct pcinst *inst)
+{
+    int ret = 0;
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_switch_renderer(inst, p);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        ret = pcintr_coroutine_switch_renderer(inst, p);
+        if (ret != 0) {
+            goto out;
+        }
+    }
+
+out:
+    return ret;
+}
+

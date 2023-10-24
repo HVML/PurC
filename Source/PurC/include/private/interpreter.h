@@ -891,6 +891,8 @@ pcintr_get_named_variable(pcintr_stack_t stack,
         struct pcintr_stack_frame *frame, const char *name, purc_variant_t at,
         bool temporarily, bool runner_level_enable);
 
+int
+pcintr_switch_new_renderer(struct pcinst *inst);
 
 PCA_EXTERN_C_END
 

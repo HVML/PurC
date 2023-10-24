@@ -769,6 +769,8 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         response_msg = NULL;
     }
 
+    pcintr_switch_new_renderer(inst);
+
     /* broadcase event */
     broadcast_new_renderer_event(inst);
 
