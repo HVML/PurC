@@ -31,6 +31,7 @@
 #include "private/msg-queue.h"
 #include "private/interpreter.h"
 #include "private/regex.h"
+#include "private/pcrdr.h"
 
 #include <sys/time.h>
 
@@ -588,15 +589,34 @@ out:
     }
 }
 
+#define KEY_COMM        "comm"
+#define KEY_URI         "uri"
+
 static void
 on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
         const char *type, const char *sub_type)
 {
     UNUSED_PARAM(inst);
-    UNUSED_PARAM(msg);
+    UNUSED_PARAM(sub_type);
     if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
-        // TODO: switch renderer
-        fprintf(stderr, "#####> prepare to switch renderer\n", type);
+        purc_variant_t data = msg->data;
+        purc_variant_t comm = purc_variant_object_get_by_ckey(data, KEY_COMM);
+        if (!comm) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_COMM);
+            return;
+        }
+
+        purc_variant_t uri = purc_variant_object_get_by_ckey(data, KEY_URI);
+        if (!uri) {
+            PC_WARN("Invalid '%s' event, '%s' not found.", MSG_TYPE_NEW_RENDERER,
+                    KEY_URI);
+            return;
+        }
+
+        const char *s_comm = purc_variant_get_string_const(comm);
+        const char *s_uri = purc_variant_get_string_const(uri);
+        pcrdr_switch_renderer(inst, s_comm, s_uri);
     }
     else {
         // TODO: other event
