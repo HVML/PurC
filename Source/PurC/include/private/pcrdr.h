@@ -114,6 +114,9 @@ pcrdr_check_operation(const char *op)
     return purc_atom_try_string_ex(ATOM_BUCKET_RDROP, op);
 }
 
+int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
+        const char *uri);
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

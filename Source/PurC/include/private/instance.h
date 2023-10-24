@@ -102,6 +102,9 @@ struct pcinst {
     struct pcrdr_conn      *conn_to_rdr;
     struct renderer_capabilities *rdr_caps;
 
+    struct pcrdr_conn      *n_conn_to_rdr;
+    struct renderer_capabilities *n_rdr_caps;
+
     struct pcexecutor_heap *executor_heap;
     struct pcintr_heap     *intr_heap;
     purc_runloop_t          running_loop;
