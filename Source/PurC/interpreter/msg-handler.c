@@ -588,6 +588,21 @@ out:
     }
 }
 
+static void
+on_session_event(struct pcinst *inst, const pcrdr_msg *msg,
+        const char *type, const char *sub_type)
+{
+    UNUSED_PARAM(inst);
+    UNUSED_PARAM(msg);
+    if (strcmp(type, MSG_TYPE_NEW_RENDERER) == 0) {
+        // TODO: switch renderer
+        fprintf(stderr, "#####> prepare to switch renderer\n", type);
+    }
+    else {
+        // TODO: other event
+    }
+}
+
 void
 pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 {
@@ -625,8 +640,7 @@ pcintr_conn_event_handler(pcrdr_conn *conn, const pcrdr_msg *msg)
 
     switch (msg->target) {
     case PCRDR_MSG_TARGET_SESSION:
-        //TODO
-//        purc_set_error(PURC_ERROR_NOT_SUPPORTED);
+        on_session_event(inst, msg, type, sub_type);
         break;
 
     case PCRDR_MSG_TARGET_WORKSPACE:
