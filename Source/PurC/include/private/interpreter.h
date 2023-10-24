@@ -83,6 +83,7 @@
 #define MSG_SUB_TYPE_CONN_LOST        "connLost"
 #define MSG_SUB_TYPE_OBSERVING        "observing"
 #define MSG_SUB_TYPE_PROGRESS         "progress"
+#define MSG_SUB_TYPE_NEW_RENDERER     "newRenderer"
 
 #define CRTN_TOKEN_MAIN               "_main"
 #define CRTN_TOKEN_FIRST              "_first"

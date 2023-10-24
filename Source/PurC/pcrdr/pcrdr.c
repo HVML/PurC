@@ -510,13 +510,48 @@ failed:
     return purc_get_last_error();
 }
 
+purc_variant_t pcintr_crtn_observed_create(purc_atom_t cid);
+
+static void
+broadcast_new_renderer_event(struct pcinst *inst)
+{
+    struct pcintr_heap *heap = inst->intr_heap;
+    struct list_head *crtns = &heap->crtns;
+    pcintr_coroutine_t p, q;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+
+    crtns = &heap->stopped_crtns;
+    list_for_each_entry_safe(p, q, crtns, ln) {
+        pcintr_coroutine_t co = p;
+        pcintr_stack_t stack = &co->stack;
+        purc_variant_t hvml = pcintr_crtn_observed_create(co->cid);
+        pcintr_coroutine_post_event(stack->co->cid,
+                PCRDR_MSG_EVENT_REDUCE_OPT_OVERLAY,
+                hvml, MSG_TYPE_RDR_STATE, MSG_SUB_TYPE_NEW_RENDERER,
+                PURC_VARIANT_INVALID, PURC_VARIANT_INVALID);
+        purc_variant_unref(hvml);
+    }
+}
+
+
 int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         const char *uri)
 {
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
+    struct pcrdr_conn *n_conn_to_rdr = NULL;
+    struct renderer_capabilities *n_rdr_caps = NULL;
 
-#if 0
+#if 1
     /* only for test */
     inst->app_name[0] = 'x';
 #endif
@@ -527,12 +562,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     if (strcasecmp(comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
         msg = pcrdr_socket_connect(uri,
-            inst->app_name, inst->runner_name, &inst->n_conn_to_rdr);
+            inst->app_name, inst->runner_name, &n_conn_to_rdr);
     }
     else if (strcasecmp(comm, PURC_RDRCOMM_NAME_WEBSOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_WEBSOCKET;
         msg = pcrdr_websocket_connect(uri,
-            inst->app_name, inst->runner_name, &inst->n_conn_to_rdr);
+            inst->app_name, inst->runner_name, &n_conn_to_rdr);
     }
     else {
         // TODO: other protocol
@@ -541,30 +576,29 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     }
 
     if (msg == NULL) {
-        inst->n_conn_to_rdr = NULL;
+        n_conn_to_rdr = NULL;
         goto failed;
     }
 
-    inst->n_conn_to_rdr->stats.start_time = purc_get_monotoic_time();
+    n_conn_to_rdr->stats.start_time = purc_get_monotoic_time();
 
     if (uri) {
-        inst->n_conn_to_rdr->uri = strdup(uri);
+        n_conn_to_rdr->uri = strdup(uri);
     }
     else {
-        inst->n_conn_to_rdr->uri = NULL;
+        n_conn_to_rdr->uri = NULL;
     }
 
     if (msg->type == PCRDR_MSG_TYPE_RESPONSE && msg->retCode == PCRDR_SC_OK) {
-        inst->n_rdr_caps =
-            pcrdr_parse_renderer_capabilities(
+        n_rdr_caps = pcrdr_parse_renderer_capabilities(
                     purc_variant_get_string_const(msg->data));
-        if (inst->n_rdr_caps == NULL) {
+        if (n_rdr_caps == NULL) {
             goto failed;
         }
 
         /* Since v160, if the renderer needs authentication */
-        if (inst->n_rdr_caps->challenge_code) {
-            if (authenticate_app(inst, inst->n_conn_to_rdr, inst->n_rdr_caps)) {
+        if (n_rdr_caps->challenge_code) {
+            if (authenticate_app(inst, n_conn_to_rdr, n_rdr_caps)) {
                 goto failed;
             }
         }
@@ -587,7 +621,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     vs[2] = purc_variant_make_string_static("protocolVersion", false);
     vs[3] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
     vs[4] = purc_variant_make_string_static("hostName", false);
-    vs[5] = purc_variant_make_string_static(inst->n_conn_to_rdr->own_host_name,
+    vs[5] = purc_variant_make_string_static(n_conn_to_rdr->own_host_name,
             false);
     vs[6] = purc_variant_make_string_static("appName", false);
     vs[7] = purc_variant_make_string_static(inst->app_name, false);
@@ -609,7 +643,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     msg->data = session_data;
 
     int ret;
-    if ((ret = pcrdr_send_request_and_wait_response(inst->n_conn_to_rdr,
+    if ((ret = pcrdr_send_request_and_wait_response(n_conn_to_rdr,
             msg, PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
         goto failed;
     }
@@ -618,7 +652,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
     int ret_code = response_msg->retCode;
     if (ret_code == PCRDR_SC_OK) {
-        inst->n_rdr_caps->session_handle = response_msg->resultValue;
+        n_rdr_caps->session_handle = response_msg->resultValue;
     }
 
     pcrdr_release_message(response_msg);
@@ -629,9 +663,22 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         goto failed;
     }
 
-    bool set_page_groups = (inst->n_rdr_caps->workspace == 0);
+    /* end origin session */
+    if (inst->rdr_caps) {
+        pcrdr_release_renderer_capabilities(inst->rdr_caps);
+    }
+
+    if (inst->conn_to_rdr) {
+        pcrdr_disconnect(inst->conn_to_rdr);
+    }
+
+    inst->rdr_caps = n_rdr_caps;
+    inst->conn_to_rdr = n_conn_to_rdr;
+
+    /* TODO: send origin workspace, pagegroup */
+    bool set_page_groups = (n_rdr_caps->workspace == 0);
     if (extra_info && extra_info->workspace_name &&
-            inst->n_rdr_caps->workspace != 0) {
+            n_rdr_caps->workspace != 0) {
         /* send `createWorkspace` */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
                 PCRDR_OPERATION_CREATEWORKSPACE, NULL, NULL,
@@ -663,7 +710,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
         msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
 
-        if (pcrdr_send_request_and_wait_response(inst->n_conn_to_rdr,
+        if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
         }
@@ -672,7 +719,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
 
         if (response_msg->retCode == PCRDR_SC_OK ||
                 response_msg->retCode == PCRDR_SC_CONFLICT) {
-            inst->n_rdr_caps->workspace_handle = response_msg->resultValue;
+            n_rdr_caps->workspace_handle = response_msg->resultValue;
             if (response_msg->retCode == PCRDR_SC_OK)
                 set_page_groups = true;
         }
@@ -684,13 +731,13 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         response_msg = NULL;
     }
     else {
-        inst->n_rdr_caps->workspace_handle = 0;   /* default workspace */
+        n_rdr_caps->workspace_handle = 0;   /* default workspace */
     }
 
     if (set_page_groups && extra_info && extra_info->workspace_layout) {
         /* send `setPageGroups` request */
         msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_WORKSPACE,
-                inst->n_rdr_caps->workspace_handle,
+                n_rdr_caps->workspace_handle,
                 PCRDR_OPERATION_SETPAGEGROUPS, NULL, NULL,
                 PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
                 PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
@@ -706,7 +753,7 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         }
         msg->dataType = PCRDR_MSG_DATA_TYPE_HTML;
 
-        if (pcrdr_send_request_and_wait_response(inst->n_conn_to_rdr,
+        if (pcrdr_send_request_and_wait_response(n_conn_to_rdr,
                 msg, PCRDR_TIME_DEF_EXPECTED, &response_msg) < 0) {
             goto failed;
         }
@@ -722,6 +769,9 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         response_msg = NULL;
     }
 
+    /* broadcase event */
+    broadcast_new_renderer_event(inst);
+
     PC_WARN("switch renderer comm=%s|uri=%s success!\n", comm, uri);
     return PURC_ERROR_OK;
 
@@ -734,9 +784,9 @@ failed:
     if (msg)
         pcrdr_release_message(msg);
 
-    if (inst->n_conn_to_rdr) {
-        pcrdr_disconnect(inst->n_conn_to_rdr);
-        inst->n_conn_to_rdr = NULL;
+    if (n_conn_to_rdr) {
+        pcrdr_disconnect(n_conn_to_rdr);
+        n_conn_to_rdr = NULL;
     }
 
     return purc_get_last_error();
@@ -761,8 +811,6 @@ pcrdr_connect(const struct purc_instance_extra_info *extra_info)
 static int _init_instance(struct pcinst *inst,
         const purc_instance_extra_info* extra_info)
 {
-    inst->n_rdr_caps = NULL;
-    inst->n_conn_to_rdr = NULL;
     return connect_to_renderer(inst, extra_info);
 }
 
@@ -776,16 +824,6 @@ static void _cleanup_instance(struct pcinst *inst)
     if (inst->conn_to_rdr) {
         pcrdr_disconnect(inst->conn_to_rdr);
         inst->conn_to_rdr = NULL;
-    }
-
-    if (inst->n_rdr_caps) {
-        pcrdr_release_renderer_capabilities(inst->n_rdr_caps);
-        inst->n_rdr_caps = NULL;
-    }
-
-    if (inst->n_conn_to_rdr) {
-        pcrdr_disconnect(inst->n_conn_to_rdr);
-        inst->n_conn_to_rdr = NULL;
     }
 }
 
