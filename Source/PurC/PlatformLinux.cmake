@@ -33,6 +33,12 @@ list(APPEND PurC_LIBRARIES
     -lrt
 )
 
+if (ENABLE_DNSSD)
+    list(APPEND PurC_LIBRARIES
+        ${DNSSD_LIBRARIES}
+    )
+endif ()
+
 configure_file(ports/linux/purc.pc.in ${PurC_PKGCONFIG_FILE} @ONLY)
 install(FILES "${PurC_PKGCONFIG_FILE}"
         DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"

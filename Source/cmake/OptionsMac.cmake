@@ -47,7 +47,6 @@ find_package(ZLIB 1.2.0 REQUIRED)
 find_package(GLIB 2.44.0 REQUIRED COMPONENTS gio gio-unix gmodule gobject)
 find_package(Python3 3.9.0 COMPONENTS Interpreter REQUIRED)
 find_package(Python3 3.9.0 COMPONENTS Development)
-find_package(DNSSD)
 find_package(Ncurses 5.0)
 find_package(LibXml2 2.8.0)
 find_package(OpenSSL 1.1.1)
@@ -58,11 +57,8 @@ find_package(MySQLClient 20.0.0)
 
 PURC_OPTION_BEGIN()
 
-if (NOT DNSSD_FOUND)
-    set(ENABLE_DNSSD_DEFAULT OFF)
-else ()
-    set(ENABLE_DNSSD_DEFAULT ON)
-endif ()
+# Mac always has DNSSD
+set(ENABLE_DNSSD_DEFAULT ON)
 
 set(ENABLE_EXTDVOBJ_FS_DEFAULT ON)
 set(ENABLE_EXTDVOBJ_MATH_DEFAULT ON)

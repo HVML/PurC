@@ -83,12 +83,6 @@ set(PurC_LIBRARIES
     PurC::CSSEng
 )
 
-if (ENABLE_DNSSD)
-    list(APPEND PurC_LIBRARIES
-        ${DNSSD_LIBRARIES}
-    )
-endif ()
-
 set(PurC_DEPENDENCIES)
 
 # TODO: the source files and libraries for optional features.
