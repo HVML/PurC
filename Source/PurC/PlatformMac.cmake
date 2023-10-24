@@ -34,7 +34,6 @@ list(APPEND PurC_LIBRARIES
     ${GLIB_GOBJECT_LIBRARIES}
     ${GLIB_LIBRARIES}
     ${GLIB_GMODULE_LIBRARIES}
-    -lpthread
     -lm
     -ldl
 )

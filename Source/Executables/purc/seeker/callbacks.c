@@ -79,7 +79,8 @@ static int prepare(pcmcth_renderer *rdr)
         }
         else {
             pcmcth_timer_new(rdr, SEEKER_NET_FINDER_NAME,
-                    seeker_look_for_local_renderer, SEEKER_FINDER_INTERVAL, rdr);
+                    seeker_look_for_local_renderer,
+                    SEEKER_NET_FINDER_INTERVAL, rdr);
         }
     }
 #endif
