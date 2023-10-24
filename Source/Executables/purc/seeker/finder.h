@@ -29,7 +29,21 @@
 #include "seeker.h"
 #include <purc/purc-helpers.h>
 
-#define SEEKER_FINDER_INTERVAL  1000
+#define SEEKER_UNIX_FINDER_NAME         "unix-finder"
+#define SEEKER_UNIX_FINDER_INTERVAL     1000
+
+#define SEEKER_NET_FINDER_NAME         "net-finder"
+#define SEEKER_NET_FINDER_INTERVAL      5000
+
+struct pcmcth_rdr_data {
+    /* the default workspace */
+    pcmcth_workspace *def_wsp;
+
+#if PCA_ENABLE_DNSSD
+    struct purc_dnssd_conn *dnssd;
+    void                   *browsing_handle;
+#endif
+};
 
 #ifdef __cplusplus
 extern "C" {

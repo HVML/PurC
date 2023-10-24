@@ -48,16 +48,6 @@ enum {
     HT_UDOM,
 };
 
-struct pcmcth_rdr_data {
-    /* the default workspace */
-    pcmcth_workspace *def_wsp;
-
-#if PCA_ENABLE_DNSSD
-    struct purc_dnssd_conn *dnssd;
-    void                   *browsing_handle;
-#endif
-};
-
 static int prepare(pcmcth_renderer *rdr)
 {
     rdr->impl = calloc(1, sizeof(*rdr->impl));
@@ -70,8 +60,8 @@ static int prepare(pcmcth_renderer *rdr)
         }
     }
 
-    pcmcth_timer_new(rdr, "finder",
-            seeker_look_for_local_renderer, SEEKER_FINDER_INTERVAL, rdr);
+    pcmcth_timer_new(rdr, SEEKER_UNIX_FINDER_NAME,
+            seeker_look_for_local_renderer, SEEKER_UNIX_FINDER_INTERVAL, rdr);
 
 #if PCA_ENABLE_DNSSD
     rdr->impl->dnssd = purc_dnssd_connect(NULL,
@@ -86,6 +76,10 @@ static int prepare(pcmcth_renderer *rdr)
             LOG_WARN("Failed to start browsing\n");
             purc_dnssd_disconnect(rdr->impl->dnssd);
             rdr->impl->dnssd = NULL;
+        }
+        else {
+            pcmcth_timer_new(rdr, SEEKER_NET_FINDER_NAME,
+                    seeker_look_for_local_renderer, SEEKER_FINDER_INTERVAL, rdr);
         }
     }
 #endif
