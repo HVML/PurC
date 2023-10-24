@@ -230,13 +230,13 @@ static int ws_send_data_frame(int fd, int fin, int opcode,
 
     p = buf + 2;
     if (header.sz_payload == 127) {
-        uint64_t *q = (uint64_t *)p;
-        *q = htobe64(sz);
+        uint64_t v = htobe64(sz);
+        memcpy(p, &v, 8);
         p = p + 8;
     }
     else if (header.sz_payload == 126) {
-        uint16_t *q = (uint16_t *)p;
-        *q = htobe16(sz);
+        uint16_t v = htobe16(sz);
+        memcpy(p, &v, 2);
         p = p + 2;
     }
 
