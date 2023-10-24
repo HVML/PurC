@@ -516,10 +516,14 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     pcrdr_msg *msg = NULL, *response_msg = NULL;
     purc_variant_t session_data;
 
+#if 0
+    /* only for test */
+    inst->app_name[0] = 'x';
+#endif
+
     /* TODO: get workspace, group info from keep info */
     purc_instance_extra_info* extra_info = NULL;
 
-    PC_WARN("switch renderer comm=%s|uri=%s\n", comm, uri);
     if (strcasecmp(comm, PURC_RDRCOMM_NAME_SOCKET) == 0) {
         // rdr_comm = PURC_RDRCOMM_SOCKET;
         msg = pcrdr_socket_connect(uri,
@@ -718,9 +722,12 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         response_msg = NULL;
     }
 
+    PC_WARN("switch renderer comm=%s|uri=%s success!\n", comm, uri);
     return PURC_ERROR_OK;
 
 failed:
+    PC_WARN("switch renderer comm=%s|uri=%s failed! errcode=%d\n", comm, uri,
+            purc_get_last_error());
     if (response_msg)
         pcrdr_release_message(response_msg);
 
