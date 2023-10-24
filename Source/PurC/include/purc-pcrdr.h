@@ -50,6 +50,7 @@
 #define PCRDR_PURCMC_US_PATH                "/var/tmp/" PCRDR_PURCMC_US_NAME
 #define PCRDR_PURCMC_WS_PORT                "7702"
 #define PCRDR_PURCMC_WS_PORT_RESERVED       "7703"
+#define PCRDR_PURCMC_DNSSD_TYPE             "_purcmc._tcp"
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
