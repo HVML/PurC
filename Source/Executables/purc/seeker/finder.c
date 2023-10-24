@@ -132,7 +132,7 @@ int seeker_look_for_local_renderer(const char *name, void *ctxt)
         LOG_WARN("Cannot open /proc/net/unix for read; finder disabled.\n");
         return -1;
     }
-#endif
+#endif /* HAVE(LINUX_MEMFD_H) */
 
     return 0;
 }
@@ -172,5 +172,5 @@ void seeker_dnssd_on_service_discovered(struct purc_dnssd_conn *dnssd,
         LOG_WARN("Error occurred when browsing service: %d.\n", error_code);
     }
 }
-#endif
+#endif /* PCA_ENABLE_DNSSD */
 
