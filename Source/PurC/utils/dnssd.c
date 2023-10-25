@@ -61,7 +61,7 @@ char *purc_get_local_hostname(char *hostname)
     }
 
     hostname[0] = 0;
-    for(p = info; p != NULL; p = p->ai_next) {
+    for (p = info; p != NULL; p = p->ai_next) {
         strcpy(hostname, p->ai_canonname);
         strcat(hostname, HOST_NAME_SUFFIX);
     }

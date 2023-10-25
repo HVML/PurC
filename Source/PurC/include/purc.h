@@ -868,9 +868,9 @@ PCA_EXPORT purc_variant_t
 purc_get_app_description(const char *locale);
 
 /**
- * purc_get_app_icon_content:
+ * purc_get_app_icon_url:
  *
- * Gets the content of the app icon for the specific display density and
+ * Gets the URL of the app icon for the specific display density and
  * locale of the current instance.
  *
  * @display_density (nullable): A pointer to the string contains the desired
@@ -881,7 +881,7 @@ purc_get_app_description(const char *locale);
  *      The locale must have format like `zh_CN`. If it is NULL, or has a bad
  *      format, this function will use `en_US` as the default locale.
  *
- * Returns: A bytesequece variant which contains the content of the app icon.
+ * Returns: A string variant which contains the URL of the app icon.
  *  This function returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
  * Note: you must call purc_variant_unref() after using the returned variant.
@@ -889,7 +889,7 @@ purc_get_app_description(const char *locale);
  * Since 0.9.17
  */
 PCA_EXPORT purc_variant_t
-purc_get_app_icon_content(const char *display_density, const char *locale);
+purc_get_app_icon_url(const char *display_density, const char *locale);
 
 /**
  * purc_inst_create_or_get:

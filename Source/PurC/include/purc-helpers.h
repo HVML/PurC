@@ -55,8 +55,9 @@
 #define PURC_LEN_UNIQUE_ID             63
 #define PURC_LEN_PROPERTY_NAME         255
 
-#define PURC_PATH_APP_MANIFEST          "/app/%s/manifest.json"
-#define PURC_PATH_APP_FILE              "/app/%s/%s"
+#define PURC_PATH_APP_MANIFEST      "/app/%s/manifest.json"
+#define PURC_URL_APP_FILE           "hvml://_originhost/%s/_http/_static/%s"
+#define PURC_PATH_APP_FILE          "/app/%s/%s"
 
 PCA_EXTERN_C_BEGIN
 

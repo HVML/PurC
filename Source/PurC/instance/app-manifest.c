@@ -276,10 +276,8 @@ purc_get_app_description(const char *locale)
     return get_app_manifest_via_key(KEY_DESC, NULL, locale);
 }
 
-#include "hvml_v_png.inc"
-
 purc_variant_t
-purc_get_app_icon_content(const char *display_density, const char *locale)
+purc_get_app_icon_url(const char *display_density, const char *locale)
 {
     purc_variant_t v;
     v = get_app_manifest_via_key(KEY_ICON, display_density, locale);
@@ -295,30 +293,25 @@ purc_get_app_icon_content(const char *display_density, const char *locale)
         assert(file);
 
         char *strp = NULL;
-        if (file[0] != '/') {
+        if (file[0]) {
             struct pcinst* inst = pcinst_current();
             assert(inst);
 
-            int n = asprintf(&strp, PURC_PATH_APP_FILE, inst->app_name, file);
-            if (n > 0) {
-                file = strp;
-            }
-            else
+            int n = asprintf(&strp, PURC_URL_APP_FILE, inst->app_name, file);
+            if (n < 0) {
                 goto fallback;
+            }
+        }
+        else {
+            goto fallback;
         }
 
-        char *content;
-        size_t sz;
-        content = purc_load_file_contents(file, &sz);
-        if (strp)
-            free(strp);
-
-        if (content)
-            return purc_variant_make_byte_sequence_reuse_buff(content, sz, sz);
+        assert(strp);
+        size_t sz = strlen(strp) + 1;
+        return purc_variant_make_string_reuse_buff(strp, sz, false);
     }
 
 fallback:
-    return purc_variant_make_byte_sequence_static(hvml_v_png_data,
-                sizeof(hvml_v_png_data));
+    return purc_variant_make_null();
 }
 
