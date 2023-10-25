@@ -1,6 +1,8 @@
 include(PurCCommon)
 include(target/PurC)
 
+configure_file(manifest.json.in ${CMAKE_BINARY_DIR}/manifest.json @ONLY)
+
 # purc
 PURC_EXECUTABLE_DECLARE(purc)
 

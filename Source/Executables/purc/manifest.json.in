@@ -1,0 +1,28 @@
+{
+  "name": "cn.fmsoft.hvml.purc",
+  "group": "cn.fmsoft.hvml",
+  "type": "app",
+  "versionCode": @HVML_PLATFORM_VERSION@,
+  "versionName": "@PROJECT_VERSION@",
+  "minPlatformVersion": 0,
+  "label": {
+      "en": "PurC",
+      "zh_CN": "破壳",
+      "zh": "破殼"
+  },
+  "description": {
+      "en": "The fallback app for any annoymous HVML program.",
+      "zh_CN": "匿名 HVML 程序的垫底应用。",
+      "zh": "匿名 HVML 程序的墊底應用。"
+  },
+  "icon": {
+      "ldpi": "_static/assets/images/appicon-72.png",
+      "mdpi": "_static/assets/images/appicon-96.png",
+      "hdpi": "_static/assets/images/appicon-144.png",
+      "xhdpi": "_static/assets/images/appicon-192.png",
+      "xxhdpi": "_static/assets/images/appicon-288.png"
+  },
+  "services": {
+      "hvml-fpm": { "nrChildren": 5 }
+  }
+}

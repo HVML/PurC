@@ -1,0 +1,83 @@
+<!DOCTYPE hvml>
+<hvml target="html">
+  <head>
+    <title>Test for HVML-FPM (ECHO)</title>
+  </head>
+  <body>
+    <h1>Test for HVML-FPM (ECHO)</h1>
+
+    <p>The key-value pairs in _SERVER:</p>
+    <ul>
+        <test with $DATA.count($_SERVER) >
+            <iterate on $_SERVER by 'KEY:ALL FOR KEY'>
+                <li>$?: $_SERVER[$?]</li>
+            </iterate>
+            <differ>
+                <li>&lt;EMPTY&gt;</li>
+            </differ>
+        </test>
+    </ul>
+
+    <p>The key-value pairs in _GET:</p>
+    <ul>
+        <test with $DATA.count($_GET) >
+            <iterate on $_GET by 'KEY:ALL FOR KEY'>
+                <li>$?: $_GET[$?]</li>
+            </iterate>
+            <differ>
+                <li>&lt;EMPTY&gt;</li>
+            </differ>
+        </test>
+    </ul>
+
+    <p>The key-value pairs in _COOKIE:</p>
+    <ul>
+        <test with $DATA.count($_COOKIE) >
+            <iterate on $_COOKIE by 'KEY:ALL FOR KEY'>
+                <li>$?: $_COOKIE[$?]</li>
+            </iterate>
+            <differ>
+                <li>&lt;EMPTY&gt;</li>
+            </differ>
+        </test>
+    </ul>
+
+    <p>The key-value pairs in _POST:</p>
+    <test with $L.and($L.streq('caseless', $DATA.type($_POST), 'object'), $DATA.count($_POST)) >
+        <ul>
+            <iterate on $_POST by 'KEY:ALL FOR KEY'>
+                <li>$?: $_POST[$?]</li>
+            </iterate>
+        </ul>
+        <differ>
+            <p>$DATA.serialize($_POST)</p>
+        </differ>
+    </test>
+
+    <p>The key-value pairs in _FILES:</p>
+    <ul>
+        <test with $DATA.count($_FILES) >
+            <iterate on $_FILES by 'KEY:ALL FOR KEY'>
+                <li>$?: $DATA.serialize($_FILES[$?])</li>
+            </iterate>
+            <differ>
+                <li>&lt;EMPTY&gt;</li>
+            </differ>
+        </test>
+    </ul>
+
+    <p>The key-value pairs in REQ:</p>
+    <ul>
+        <test with $DATA.count($REQ) >
+            <iterate on $REQ by 'KEY:ALL FOR KEY'>
+                <li>$?: $REQ[$?]</li>
+            </iterate>
+            <differ>
+                <li>&lt;EMPTY&gt;</li>
+            </differ>
+        </test>
+    </ul>
+
+  </body>
+</hvml>
+
