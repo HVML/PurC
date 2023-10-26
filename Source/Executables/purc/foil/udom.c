@@ -363,7 +363,7 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
     char *css = NULL;
     size_t length;
 
-    if (href[0] == '/' && href[1] != '/' && udom->base &&
+    if (href[0] == '/' && href[1] != '/' && udom->base && udom->base->schema &&
             strcasecmp(udom->base->schema, "file") == 0) {
 
         LOG_DEBUG("Try to load CSS from file (absolute path): %s\n", href);
@@ -389,7 +389,8 @@ static void load_css(struct pcmcth_udom *udom, const char *href)
 
         pcutils_broken_down_url_clear(&broken_down);
     }
-    else if (udom->base && strcasecmp(udom->base->schema, "file") == 0) {
+    else if (udom->base && udom->base->schema &&
+            strcasecmp(udom->base->schema, "file") == 0) {
         /* href contains a relative URL */
         char path[strlen(udom->base->path) + strlen(href) + 4];
 

@@ -52,10 +52,21 @@ static struct special_tag_info {
         NULL },
 };
 
+static struct foil_rdrbox_tailor_ops *
+not_impl_tailor_ops(struct foil_create_ctxt *ctxt,
+        struct foil_rdrbox *box)
+{
+    (void)ctxt;
+    (void)box;
+    return NULL;
+}
+
 int foil_rdrbox_module_init(pcmcth_renderer *rdr)
 {
     (void)rdr;
 
+    special_tags_html[0].get_tailor_ops = not_impl_tailor_ops;
+    special_tags_html[1].get_tailor_ops = not_impl_tailor_ops;
     special_tags_html[2].get_tailor_ops = foil_rdrbox_meter_tailor_ops;
     special_tags_html[3].get_tailor_ops = foil_rdrbox_progress_tailor_ops;
     return 0;
