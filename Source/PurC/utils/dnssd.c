@@ -213,7 +213,7 @@ void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
     Opaque16 registerPort = { { port >> 8, port & 0xFF } };
 
     DNSServiceErrorType error = DNSServiceRegister(&regref, flags,
-            kDNSServiceInterfaceIndexLocalOnly,
+            kDNSServiceInterfaceIndexAny,
             service_name, reg_type, domain, hostname,
             registerPort.NotAnInteger, txt_len, txt, register_reply, dnssd);
     if (error)
