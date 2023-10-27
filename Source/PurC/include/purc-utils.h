@@ -40,7 +40,8 @@
 
 PCA_EXTERN_C_BEGIN
 
-/* hex must be long enough to hold the heximal characters */
+/* hex must be long enough to hold the heximal characters and
+   the terminating null byte. */
 void pcutils_bin2hex(const unsigned char *bin, size_t len, char *hex,
         bool uppercase);
 

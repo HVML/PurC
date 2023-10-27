@@ -48,7 +48,7 @@ PCA_EXTERN_C_BEGIN
                         t == PURC_VARIANT_TYPE_TUPLE)
 
 #ifndef NDEBUG
-// VW (NOTE): use 0 for debug for easy finding memory leaks.
+// VW (NOTE): use 0 for easy finding memory leaks.
 #define MAX_RESERVED_VARIANTS   0
 #else
 #define MAX_RESERVED_VARIANTS   32

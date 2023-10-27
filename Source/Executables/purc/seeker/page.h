@@ -44,6 +44,11 @@ extern "C" {
 int seeker_page_module_init(pcmcth_renderer *rdr);
 void seeker_page_module_cleanup(pcmcth_renderer *rdr);
 
+/* Allocates an anonymous page. */
+pcmcth_page *seeker_page_new(pcmcth_workspace *workspace);
+/* Deletes an anonymous page and returns the uDOM set for it. */
+void seeker_page_delete(pcmcth_page *page);
+
 bool seeker_page_content_init(pcmcth_page *page);
 void seeker_page_content_cleanup(pcmcth_page *page);
 

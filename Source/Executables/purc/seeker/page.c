@@ -46,6 +46,27 @@ bool seeker_page_content_init(pcmcth_page *page)
     return true;
 }
 
+/* An anonymous page resides in an orphan widget */
+pcmcth_page *seeker_page_new(pcmcth_workspace *workspace)
+{
+    struct seeker_widget *orphan;
+    orphan = seeker_widget_new(WSP_WIDGET_TYPE_PLAINWINDOW,
+            "orphan", "An orphan widget");
+
+    if (orphan) {
+        orphan->user_data = workspace;
+        return &orphan->page;
+    }
+    return NULL;
+}
+
+void seeker_page_delete(pcmcth_page *page)
+{
+    struct seeker_widget *orphan = seeker_widget_from_page(page);
+    seeker_page_content_cleanup(page);
+    seeker_widget_delete(orphan);
+}
+
 void seeker_page_content_cleanup(pcmcth_page *page)
 {
     if (page->udom)

@@ -1896,9 +1896,12 @@ purc_schedule_vdom(purc_vdom_t vdom,
         set_body_entry(&co->stack, body_id);
     }
 
+    /* XXX: this will result in memory leak.
+       It is the caller's responsibility to make an empty object as
+       the default request.
     if (request == PURC_VARIANT_INVALID) {
         request = purc_variant_make_object_0();
-    }
+    } */
 
     if (!bind_builtin_coroutine_variables(co, request)) {
         goto failed;

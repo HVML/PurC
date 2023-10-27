@@ -29,6 +29,7 @@
 #include "endpoint.h"
 #include "workspace.h"
 #include "session.h"
+#include "udom.h"
 #include "timer.h"
 #include "finder.h"
 #include "util/sorted-array.h"
@@ -168,8 +169,11 @@ static int delete_ostack_of_session(void *ctxt, const char *name, void *data)
     }
 
     pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    pcmcth_workspace *wsp = seeker_page_get_workspace(page);
+    purc_page_ostack_delete(wsp->page_owners, ostack);
+
     if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >= 0) {
-        /* TODO: delete page */
+        seeker_page_delete(page);
     }
 
     return 0;

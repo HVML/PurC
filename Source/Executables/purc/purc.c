@@ -44,7 +44,6 @@
 #define DEF_APP_NAME            "cn.fmsoft.hvml.purc"
 
 #define KEY_RUN_NAME            "runner"
-#define DEF_RUN_NAME            "main"
 
 #define KEY_DATA_FETCHER        "dataFetcher"
 #define DEF_DATA_FETCHER        "local"
@@ -127,10 +126,10 @@ static void print_usage(FILE *fp)
         "The following options can be supplied to the command:\n"
         "\n"
         "  -a --app=< app_name >\n"
-        "        Run with the specified app name (default value is `cn.fmsoft.hvml.purc`).\n"
+        "        Run with the specified app name (default: `cn.fmsoft.hvml.purc`).\n"
         "\n"
         "  -r --runner=< runner_name >\n"
-        "        Run with the specified runner name (default value is `main`).\n"
+        "        Run with the specified runner name (default: the md5sum of the URL of first HVML program).\n"
         "\n"
         "  -d --data-fetcher=< local | remote >\n"
         "        The data fetcher; use `local` or `remote`.\n"
@@ -143,7 +142,7 @@ static void print_usage(FILE *fp)
         "        The renderer commnunication method; use `headless` (default), `thread`, or `socket`.\n"
         "            - `headless`: use the built-in headless renderer.\n"
         "            - `thread`: use the built-in thread-based renderer.\n"
-        "            - `socket`: use the remote socket-based renderer;\n"
+        "            - `socket`: use the remote UNIX domain socket-based renderer;\n"
         "            - `websocket`: use the remote websocket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
 
@@ -565,14 +564,8 @@ transfer_opts_to_variant(struct my_opts *opts, purc_variant_t request)
             KEY_APP_NAME, tmp);
     purc_variant_unref(tmp);
 
-    if (opts->run) {
-        tmp = purc_variant_make_string_reuse_buff(opts->run,
-                strlen(opts->run) + 1, false);
-        opts->run = NULL;
-    }
-    else {
-        tmp = purc_variant_make_string_static(DEF_RUN_NAME, false);
-    }
+    assert(opts->run);
+    tmp = purc_variant_make_string_static(opts->run, false);
     purc_variant_object_set_by_static_ckey(run_info.opts,
             KEY_RUN_NAME, tmp);
     purc_variant_unref(tmp);
@@ -1439,6 +1432,25 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    /* Since 0.9.17: use md5sum of the first URL of HVML programs
+       as the runner name if not specified. */
+    if (opts->run == NULL) {
+        unsigned char digest[PCUTILS_MD5_DIGEST_SIZE];
+        char md5sum[PCUTILS_MD5_DIGEST_SIZE * 2 + 1];
+
+        pcutils_md5digest(opts->urls->list[0], digest);
+        pcutils_bin2hex(digest, PCUTILS_MD5_DIGEST_SIZE, md5sum, false);
+        /* we use the first 6 characters only */
+        md5sum[6] = 0;
+        opts->run = strdup(md5sum);
+        if (opts->run == NULL) {
+            fprintf(stderr, "%s: failed to allocate space for "
+                    "the default runner name.\n", argv[0]);
+            my_opts_delete(opts);
+            return EXIT_FAILURE;
+        }
+    }
+
     if (opts->verbose) {
         print_version(stdout);
         print_short_copying(stdout);
@@ -1496,11 +1508,9 @@ int main(int argc, char** argv)
         }
 
         if (thrdr_idx < 0) {
-            if (opts->verbose) {
-                fprintf(stdout,
-                        "Not found given thread renderer (%s), use %s insead.\n",
-                        opts->rdr_uri, thrdrs[0].uri);
-            }
+            fprintf(stdout,
+                    "Not found given thread renderer (%s), use %s instead.\n",
+                    opts->rdr_uri, thrdrs[0].uri);
 
             thrdr_idx = 0;
             free(opts->rdr_uri);
@@ -1542,7 +1552,7 @@ int main(int argc, char** argv)
     extra_info.renderer_uri = opts->rdr_uri;
 
     ret = purc_init_ex(modules, opts->app ? opts->app : DEF_APP_NAME,
-            opts->run ? opts->run : DEF_RUN_NAME, &extra_info);
+            opts->run, &extra_info);
     if (ret != PURC_ERROR_OK) {
         fprintf(stderr, "Failed to initialize the PurC instance: %s\n",
             purc_get_error_message(ret));
@@ -1571,6 +1581,13 @@ int main(int argc, char** argv)
         if ((request = parse_query_string(opts)) == PURC_VARIANT_INVALID) {
             fprintf(stderr, "Failed to parse the query string: %s\n",
                 opts->query);
+            my_opts_delete(opts);
+            goto failed;
+        }
+    }
+    else {
+        if ((request = purc_variant_make_object_0()) == PURC_VARIANT_INVALID) {
+            fprintf(stderr, "Failed to make an empty object as the request\n");
             my_opts_delete(opts);
             goto failed;
         }
@@ -1608,8 +1625,6 @@ int main(int argc, char** argv)
 
     }
 
-    my_opts_delete(opts);
-
 failed:
     if (request) {
         purc_variant_unref(request);
@@ -1622,6 +1637,8 @@ failed:
         purc_rwstream_destroy(run_info.dump_stm);
 
     purc_cleanup();
+
+    my_opts_delete(opts);
 
     for (size_t i = 0; i < PCA_TABLESIZE(thrdrs); i++) {
         if (thrdrs[i].atom) {
