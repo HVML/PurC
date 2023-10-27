@@ -102,6 +102,11 @@ typedef struct purc_instance_extra_info {
      */
     const char      *workspace_layout;
 
+    /**
+     * Whether allow switching the renderer.
+     */
+    unsigned int    allow_switching_rdr:1;
+
 } purc_instance_extra_info;
 
 PCA_EXTERN_C_BEGIN

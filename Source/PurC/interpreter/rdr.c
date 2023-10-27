@@ -1312,7 +1312,6 @@ failed:
 static const char *rdr_ops[] = {
     PCRDR_OPERATION_STARTSESSION,              // "startSession"
     PCRDR_OPERATION_ENDSESSION,                // "endSession"
-    PCRDR_OPERATION_AUTHENTICATE,              // "authenticate"
     PCRDR_OPERATION_CREATEWORKSPACE,           // "createWorkspace"
     PCRDR_OPERATION_UPDATEWORKSPACE,           // "updateWorkspace"
     PCRDR_OPERATION_DESTROYWORKSPACE,          // "destroyWorkspace"

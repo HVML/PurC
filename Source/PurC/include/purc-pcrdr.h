@@ -51,6 +51,8 @@
 #define PCRDR_PURCMC_WS_PORT                "7702"
 #define PCRDR_PURCMC_WS_PORT_RESERVED       "7703"
 #define PCRDR_PURCMC_DNSSD_TYPE             "_purcmc._tcp"
+#define PCRDR_PURCMC_DNSSD_TYPE_WS          "_purcmc._tcp,ws"
+#define PCRDR_PURCMC_DNSSD_TYPE_WSS         "_purcmc._tcp,wss"
 
 #define PCRDR_HEADLESS_LOGFILE_PATH_FORMAT      "/var/tmp/purc-%s-%s-msg.log"
 
@@ -99,8 +101,6 @@ typedef enum {
 #define PCRDR_OPERATION_STARTSESSION        "startSession"
     PCRDR_K_OPERATION_ENDSESSION,
 #define PCRDR_OPERATION_ENDSESSION          "endSession"
-    PCRDR_K_OPERATION_AUTHENTICATE,
-#define PCRDR_OPERATION_AUTHENTICATE        "authenticate"
     PCRDR_K_OPERATION_CREATEWORKSPACE,
 #define PCRDR_OPERATION_CREATEWORKSPACE     "createWorkspace"
     PCRDR_K_OPERATION_UPDATEWORKSPACE,

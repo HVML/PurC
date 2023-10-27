@@ -74,6 +74,7 @@ struct pcinst {
     // flags go here
     unsigned int            enable_remote_fetcher:1;
     unsigned int            is_instmgr:1;
+    unsigned int            allow_switching_rdr:1;
 
     char                   *app_name;
     char                   *runner_name;

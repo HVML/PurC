@@ -59,7 +59,6 @@ static struct pcrdr_opatom {
 } pcrdr_opatoms[] = {
     { PCRDR_OPERATION_STARTSESSION,         0 }, // "startSession"
     { PCRDR_OPERATION_ENDSESSION,           0 }, // "endSession"
-    { PCRDR_OPERATION_AUTHENTICATE,         0 }, // "authenticate"
     { PCRDR_OPERATION_CREATEWORKSPACE,      0 }, // "createWorkspace"
     { PCRDR_OPERATION_UPDATEWORKSPACE,      0 }, // "updateWorkspace"
     { PCRDR_OPERATION_DESTROYWORKSPACE,     0 }, // "destroyWorkspace"
@@ -184,9 +183,59 @@ failed:
     return PURC_VARIANT_INVALID;
 }
 
-static int authenticate_app(struct pcinst *inst,
-    struct pcrdr_conn *conn_to_rdr, struct renderer_capabilities *rdr_caps)
+static int set_session_args(struct pcinst *inst,
+        purc_variant_t session_data, struct pcrdr_conn *conn_to_rdr)
 {
+    purc_variant_t vs[10] = { NULL };
+    int n = 0;
+
+    vs[n++] = purc_variant_make_string_static("protocolName", false);
+    vs[n++] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME,
+            false);
+    vs[n++] = purc_variant_make_string_static("protocolVersion", false);
+    vs[n++] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
+    vs[n++] = purc_variant_make_string_static("hostName", false);
+    vs[n++] = purc_variant_make_string_static(conn_to_rdr->own_host_name,
+            false);
+    vs[n++] = purc_variant_make_string_static("appName", false);
+    vs[n++] = purc_variant_make_string_static(inst->app_name, false);
+    vs[n++] = purc_variant_make_string_static("runnerName", false);
+    vs[n++] = purc_variant_make_string_static(inst->runner_name, false);
+
+    if (vs[n - 1] == NULL) {
+        goto failed;
+    }
+
+    for (int i = 0; i < n >> 1; i++) {
+        bool success = purc_variant_object_set(session_data,
+                vs[i * 2], vs[i * 2 + 1]);
+        if (!success) {
+            goto failed;
+        }
+
+        purc_variant_unref(vs[i * 2]);
+        purc_variant_unref(vs[i * 2 + 1]);
+        vs[i * 2] = NULL;
+        vs[i * 2 + 1] = NULL;
+    }
+
+    return 0;
+
+failed:
+    for (int i = 0; i < n; i++) {
+        if (vs[i])
+            purc_variant_unref(vs[i]);
+    }
+
+    return -1;
+}
+
+static int append_authenticate_args(struct pcinst *inst,
+        purc_variant_t session_data, struct renderer_capabilities *rdr_caps)
+{
+    purc_variant_t vs[14] = { NULL };
+    int n = 0;
+
     if (inst->app_manifest == PURC_VARIANT_INVALID) {
         inst->app_manifest = pcinst_load_app_manifest(inst->app_name);
         if (inst->app_manifest == NULL) {
@@ -195,25 +244,6 @@ static int authenticate_app(struct pcinst *inst,
         }
     }
 
-    pcrdr_msg *msg = NULL, *response_msg = NULL;
-    /* send authenticate request and wait for the response */
-    msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
-            PCRDR_OPERATION_AUTHENTICATE, NULL, NULL,
-            PCRDR_MSG_ELEMENT_TYPE_VOID, NULL, NULL,
-            PCRDR_MSG_DATA_TYPE_VOID, NULL, 0);
-    if (msg == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
-        goto failed;
-    }
-
-    int n = 0;
-    purc_variant_t vs[16] = { NULL };
-    vs[n++] = purc_variant_make_string_static("hostName", false);
-    vs[n++] = purc_variant_make_string_static(conn_to_rdr->own_host_name,
-            false);
-    vs[n++] = purc_variant_make_string_static("appName", false);
-    vs[n++] = purc_variant_make_string_static(inst->app_name, false);
-
     vs[n++] = purc_variant_make_string_static("appLabel", false);
     vs[n++] = purc_variant_ref(purc_get_app_label(rdr_caps->locale));
     vs[n++] = purc_variant_make_string_static("appDesc", false);
@@ -221,54 +251,39 @@ static int authenticate_app(struct pcinst *inst,
     vs[n++] = purc_variant_make_string_static("appIcon", false);
     vs[n++] = purc_get_app_icon_url(rdr_caps->display_density,
             rdr_caps->locale);
-
     vs[n++] = purc_variant_make_string_static("signature", false);
     vs[n++] = make_signature(inst, rdr_caps);
     vs[n++] = purc_variant_make_string_static("encodedIn", false);
     vs[n++] = purc_variant_make_string_static("base64", false);
     vs[n++] = purc_variant_make_string_static("timeoutSeconds", false);
     vs[n++] = purc_variant_make_ulongint(PCRDR_TIME_AUTH_EXPECTED);
+    vs[n++] = purc_variant_make_string_static("alllowSwitchingRdr", false);
+    vs[n++] = purc_variant_make_boolean(inst->allow_switching_rdr);
 
-    purc_variant_t auth_data = purc_variant_make_object_0();
-    if (auth_data == PURC_VARIANT_INVALID || vs[n - 1] == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (vs[n - 1] == NULL) {
         goto failed;
     }
+
     for (int i = 0; i < n >> 1; i++) {
-        purc_variant_object_set(auth_data, vs[i * 2], vs[i * 2 + 1]);
+        bool success = purc_variant_object_set(session_data,
+                vs[i * 2], vs[i * 2 + 1]);
+        if (!success) {
+            goto failed;
+        }
+
         purc_variant_unref(vs[i * 2]);
         purc_variant_unref(vs[i * 2 + 1]);
-    }
-
-    msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
-    msg->data = auth_data;
-
-    int ret;
-    if ((ret = pcrdr_send_request_and_wait_response(conn_to_rdr,
-            msg, PCRDR_TIME_AUTH_EXPECTED + 2, &response_msg)) < 0) {
-        purc_set_error(PURC_ERROR_TIMEOUT);
-        goto failed;
-    }
-    pcrdr_release_message(msg);
-    msg = NULL;
-
-    int ret_code = response_msg->retCode;
-    pcrdr_release_message(response_msg);
-    response_msg = NULL;
-
-    if (ret_code != PCRDR_SC_OK) {
-        purc_set_error(PCRDR_ERROR_SERVER_REFUSED);
-        goto failed;
+        vs[i * 2] = NULL;
+        vs[i * 2 + 1] = NULL;
     }
 
     return 0;
 
 failed:
-    if (response_msg)
-        pcrdr_release_message(response_msg);
-
-    if (msg)
-        pcrdr_release_message(msg);
+    for (int i = 0; i < n; i++) {
+        if (vs[i])
+            purc_variant_unref(vs[i]);
+    }
 
     return -1;
 }
@@ -329,16 +344,18 @@ static int connect_to_renderer(struct pcinst *inst,
         if (inst->rdr_caps == NULL) {
             goto failed;
         }
-
-        /* Since v160, if the renderer needs authentication */
-        if (inst->rdr_caps->challenge_code) {
-            if (authenticate_app(inst, inst->conn_to_rdr, inst->rdr_caps)) {
-                goto failed;
-            }
-        }
     }
     pcrdr_release_message(msg);
 
+    /* Since 0.9.17 */
+    if (extra_info) {
+        inst->allow_switching_rdr = extra_info->allow_switching_rdr;
+    }
+    else {
+        inst->allow_switching_rdr = 1;
+    }
+
+    inst->conn_to_rdr->stats.start_time = purc_get_monotoic_time();
     /* send startSession request and wait for the response */
     msg = pcrdr_make_request_message(PCRDR_MSG_TARGET_SESSION, 0,
             PCRDR_OPERATION_STARTSESSION, NULL, NULL,
@@ -349,36 +366,29 @@ static int connect_to_renderer(struct pcinst *inst,
         goto failed;
     }
 
-    purc_variant_t vs[10] = { NULL };
-    vs[0] = purc_variant_make_string_static("protocolName", false);
-    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
-    vs[2] = purc_variant_make_string_static("protocolVersion", false);
-    vs[3] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
-    vs[4] = purc_variant_make_string_static("hostName", false);
-    vs[5] = purc_variant_make_string_static(inst->conn_to_rdr->own_host_name,
-            false);
-    vs[6] = purc_variant_make_string_static("appName", false);
-    vs[7] = purc_variant_make_string_static(inst->app_name, false);
-    vs[8] = purc_variant_make_string_static("runnerName", false);
-    vs[9] = purc_variant_make_string_static(inst->runner_name, false);
-
     session_data = purc_variant_make_object(0, NULL, NULL);
-    if (session_data == PURC_VARIANT_INVALID || vs[9] == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (session_data == NULL) {
         goto failed;
     }
-    for (int i = 0; i < 5; i++) {
-        purc_variant_object_set(session_data, vs[i * 2], vs[i * 2 + 1]);
-        purc_variant_unref(vs[i * 2]);
-        purc_variant_unref(vs[i * 2 + 1]);
+
+    if (set_session_args(inst, session_data, inst->conn_to_rdr)) {
+        goto failed;
+    }
+
+    /* Since v160, if the renderer needs authentication */
+    if (inst->rdr_caps->challenge_code) {
+        if (append_authenticate_args(inst, session_data, inst->rdr_caps)) {
+            goto failed;
+        }
     }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;
     msg->data = session_data;
 
     int ret;
-    if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
+    if ((ret = pcrdr_send_request_and_wait_response(inst->conn_to_rdr, msg,
+            inst->rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
+            PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
         goto failed;
     }
     pcrdr_release_message(msg);
@@ -592,13 +602,6 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         if (n_rdr_caps == NULL) {
             goto failed;
         }
-
-        /* Since v160, if the renderer needs authentication */
-        if (n_rdr_caps->challenge_code) {
-            if (authenticate_app(inst, n_conn_to_rdr, n_rdr_caps)) {
-                goto failed;
-            }
-        }
     }
     pcrdr_release_message(msg);
 
@@ -612,28 +615,20 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
         goto failed;
     }
 
-    purc_variant_t vs[10] = { NULL };
-    vs[0] = purc_variant_make_string_static("protocolName", false);
-    vs[1] = purc_variant_make_string_static(PCRDR_PURCMC_PROTOCOL_NAME, false);
-    vs[2] = purc_variant_make_string_static("protocolVersion", false);
-    vs[3] = purc_variant_make_ulongint(PCRDR_PURCMC_PROTOCOL_VERSION);
-    vs[4] = purc_variant_make_string_static("hostName", false);
-    vs[5] = purc_variant_make_string_static(n_conn_to_rdr->own_host_name,
-            false);
-    vs[6] = purc_variant_make_string_static("appName", false);
-    vs[7] = purc_variant_make_string_static(inst->app_name, false);
-    vs[8] = purc_variant_make_string_static("runnerName", false);
-    vs[9] = purc_variant_make_string_static(inst->runner_name, false);
-
     session_data = purc_variant_make_object(0, NULL, NULL);
-    if (session_data == PURC_VARIANT_INVALID || vs[9] == NULL) {
-        purc_set_error(PURC_ERROR_OUT_OF_MEMORY);
+    if (session_data == NULL) {
         goto failed;
     }
-    for (int i = 0; i < 5; i++) {
-        purc_variant_object_set(session_data, vs[i * 2], vs[i * 2 + 1]);
-        purc_variant_unref(vs[i * 2]);
-        purc_variant_unref(vs[i * 2 + 1]);
+
+    if (set_session_args(inst, session_data, n_conn_to_rdr)) {
+        goto failed;
+    }
+
+    /* Since v160, if the renderer needs authentication */
+    if (n_rdr_caps->challenge_code) {
+        if (append_authenticate_args(inst, session_data, n_rdr_caps)) {
+            goto failed;
+        }
     }
 
     msg->dataType = PCRDR_MSG_DATA_TYPE_JSON;

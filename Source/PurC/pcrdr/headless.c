@@ -1745,7 +1745,6 @@ static void on_set_property(struct pcrdr_prot_data *prot_data,
 static request_handler handlers[] = {
     on_start_session,
     on_end_session,
-    NULL,
     on_create_workspace,
     on_update_workspace,
     on_destroy_workspace,
