@@ -221,7 +221,7 @@ void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
     return regref;
 }
 
-void purc_dnssd_revoke_local_service(struct purc_dnssd_conn *dnssd,
+void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
         void *service_handle)
 {
     (void)dnssd;
