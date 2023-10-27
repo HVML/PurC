@@ -3037,7 +3037,7 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         if (top && (top->node == NULL) && (top->type == ETT_VALUE)) {
             struct pcejson_token *prev = tkz_prev_token();
             if (prev && prev->type == ETT_GET_VARIABLE) {
-                SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                SET_ERR(PCEJSON_ERROR_UNEXPECTED_CHARACTER);
                 RETURN_AND_STOP_PARSE();
             }
         }

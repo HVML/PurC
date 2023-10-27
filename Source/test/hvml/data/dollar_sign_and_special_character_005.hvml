@@ -1,0 +1,6 @@
+<!-- Version 0 -->
+<hvml target="html">
+    <body>
+        ${STREAM.stdout.writelines("test")
+    </body>
+</hvml>
