@@ -3033,6 +3033,14 @@ BEGIN_STATE(EJSON_TKZ_STATE_AFTER_VARIABLE)
         RECONSUME_IN(EJSON_TKZ_STATE_CONTROL);
     }
     else if (character == '.' || character == '(' || character == '[') {
+        top = tkz_stack_top();
+        if (top && (top->node == NULL) && (top->type == ETT_VALUE)) {
+            struct pcejson_token *prev = tkz_prev_token();
+            if (prev && prev->type == ETT_GET_VARIABLE) {
+                SET_ERR(PCEJSON_ERROR_BAD_JSONEE_VARIABLE_NAME);
+                RETURN_AND_STOP_PARSE();
+            }
+        }
         update_tkz_stack_with_level(parser, 1);
     }
     else if (character == '$' && (parser->flags & PCEJSON_FLAG_GET_VARIABLE)) {
