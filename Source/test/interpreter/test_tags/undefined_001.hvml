@@ -1,0 +1,17 @@
+<!-- Version 0 -->
+<hvml target="html">
+    <body>
+
+        <li>&lt;abc&gt;</li>
+        <li>&lt;abc&lt;</li>
+        <li>&gt;abc&lt;</li>
+        <li>&gt;abc&gt;</li>
+        <li> &lt;abc&gt;</li>
+        <li> &lt; abc&gt;</li>
+        <li> &lt;abc &gt;</li>
+        <li> &lt;abc&gt; </li>
+
+        <div to=4/>
+
+    </body>
+</hvml>

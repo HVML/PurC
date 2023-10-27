@@ -691,6 +691,7 @@ BEGIN_STATE(TKZ_STATE_DATA)
         ADVANCE_TO(TKZ_STATE_CHARACTER_REFERENCE);
     }
     if (character == '<') {
+        RESET_TEMP_BUFFER();
         if (parser->token) {
             RETURN_AND_SWITCH_TO(TKZ_STATE_TAG_OPEN);
         }
@@ -699,7 +700,6 @@ BEGIN_STATE(TKZ_STATE_DATA)
     if (is_eof(character)) {
         RETURN_NEW_EOF_TOKEN();
     }
-    RESET_TEMP_BUFFER();
     parser->nr_whitespace = 0;
     RECONSUME_IN(TKZ_STATE_TAG_CONTENT);
 END_STATE()
@@ -808,6 +808,7 @@ BEGIN_STATE(TKZ_STATE_TAG_NAME)
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
     if (character == '>') {
@@ -899,6 +900,7 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_NAME)
     }
     if (character == '/') {
         END_TOKEN_ATTR();
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
     END_TOKEN_ATTR();
@@ -943,6 +945,7 @@ BEGIN_STATE(TKZ_STATE_AFTER_ATTRIBUTE_VALUE)
         ADVANCE_TO(TKZ_STATE_BEFORE_ATTRIBUTE_NAME);
     }
     if (character == '/') {
+        RESET_TEMP_BUFFER();
         ADVANCE_TO(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
     if (character == '>') {
@@ -1757,6 +1760,7 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_IN_ATTRIBUTE_NAME)
     if (character == '>'
         &&  tkz_buffer_equal_to(parser->temp_buffer, "/", 1)) {
         END_TOKEN_ATTR();
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
     APPEND_TEMP_BUFFER_TO_TOKEN_ATTR_NAME();
@@ -1831,6 +1835,7 @@ BEGIN_STATE(TKZ_STATE_SPECIAL_ATTRIBUTE_OPERATOR_AFTER_ATTRIBUTE_NAME)
     if (character == '>'
         &&  tkz_buffer_equal_to(parser->temp_buffer, "/", 1)) {
         END_TOKEN_ATTR();
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_SELF_CLOSING_START_TAG);
     }
     BEGIN_TOKEN_ATTR();
@@ -1977,6 +1982,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_DOUBLE_QUOTED)
     if (node) {
         pchvml_token_append_vcm_to_attr(parser->token, node);
         END_TOKEN_ATTR();
+        RESET_TEMP_BUFFER();
         RECONSUME_IN(TKZ_STATE_AFTER_ATTRIBUTE_VALUE);
     }
     RETURN_AND_STOP_PARSE();
@@ -2012,6 +2018,7 @@ BEGIN_STATE(TKZ_STATE_ATTRIBUTE_VALUE_SINGLE_QUOTED)
     }
     APPEND_BUFFER_TO_TOKEN_ATTR_VALUE(parser->temp_buffer);
     END_TOKEN_ATTR();
+    RESET_TEMP_BUFFER();
     RECONSUME_IN(TKZ_STATE_AFTER_ATTRIBUTE_VALUE);
 END_STATE()
 
