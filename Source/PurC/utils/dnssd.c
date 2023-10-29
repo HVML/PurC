@@ -140,7 +140,7 @@ static void report_error(DNSServiceErrorType error)
 
 static uint16_t
 make_txt_record_body(const char *txt_record_values[],
-        size_t nr_txt_record_values, unsigned char *txt)
+        size_t nr_txt_record_values, unsigned char *txt, size_t nr_txt_buf)
 {
     DNSServiceErrorType error = kDNSServiceErr_NoError;
     unsigned char *ptr = txt;
@@ -148,14 +148,14 @@ make_txt_record_body(const char *txt_record_values[],
     if (txt_record_values && nr_txt_record_values) {
         for (size_t i = 0; i < nr_txt_record_values; i++) {
             const char *p = txt_record_values[i];
-            if (ptr >= txt + sizeof(txt)) {
+            if (ptr >= txt + nr_txt_buf) {
                 error = kDNSServiceErr_BadParam;
                 goto failed;
             }
 
             *ptr = 0;
             while (*p && *ptr < 255) {
-                if (ptr + 1 + *ptr >= txt + sizeof(txt)) {
+                if (ptr + 1 + *ptr >= txt + nr_txt_buf) {
                     error = kDNSServiceErr_BadParam;
                     goto failed;
                 }
@@ -203,7 +203,7 @@ void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
     unsigned char txt[MAX_TXT_RECORD_SIZE] = { 0 };
     uint16_t txt_len;
     txt_len = make_txt_record_body(txt_record_values, nr_txt_record_values,
-            txt);
+            txt, sizeof(txt));
 
     DNSServiceRef regref = dnssd->shared_ref;
     DNSServiceFlags flags = kDNSServiceFlagsShareConnection;
