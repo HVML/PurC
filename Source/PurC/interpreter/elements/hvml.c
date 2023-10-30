@@ -36,11 +36,23 @@
 #include <unistd.h>
 
 #define ATTR_KEY_ID         "id"
+#define BUFF_MIN                        1024
+#define BUFF_MAX                        1024 * 1024 * 4
 
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
     pcvdom_element_t              body;
+
     purc_variant_t                init;
+
+    pcintr_coroutine_t            co;
+    purc_variant_t                sync_id;
+    purc_variant_t                params;
+
+    int                           ret_code;
+    int                           err;
+    purc_rwstream_t               resp;
+    char                         *mime_type;
 };
 
 static void
@@ -48,6 +60,19 @@ ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 {
     if (ctxt) {
         PURC_VARIANT_SAFE_CLEAR(ctxt->init);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->params);
+
+        if (ctxt->resp) {
+            purc_rwstream_destroy(ctxt->resp);
+            ctxt->resp = NULL;
+        }
+
+        if (ctxt->mime_type) {
+            free(ctxt->mime_type);
+            ctxt->mime_type = NULL;
+        }
+
         free(ctxt);
     }
 }
@@ -186,6 +211,178 @@ out:
     return ret;
 }
 
+static int
+post_process(pcintr_coroutine_t co, struct pcintr_stack_frame *frame)
+{
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+
+    ctxt->body = find_body(&co->stack);
+    purc_clr_error();
+
+    return 0;
+}
+
+static int
+observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
+        pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
+{
+    UNUSED_PARAM(cor);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    UNUSED_PARAM(data);
+    UNUSED_PARAM(msg);
+
+    pcintr_set_current_co(cor);
+
+    int r;
+    struct pcintr_stack_frame *frame;
+    frame = (struct pcintr_stack_frame*)data;
+
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+
+    if (ctxt->ret_code == RESP_CODE_USER_STOP) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        goto out;
+    }
+
+    if (!ctxt->resp || ctxt->ret_code != 200) {
+        if (frame->silently) {
+            frame->next_step = NEXT_STEP_ON_POPPING;
+            goto out;
+        }
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        // FIXME: what error to set
+        purc_set_error_with_info(PURC_ERROR_REQUEST_FAILED, "%d",
+                ctxt->ret_code);
+        goto out;
+    }
+
+    /* TODO: parse html doc */
+
+    purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
+    purc_rwstream_dump_to_another(ctxt->resp, stream, -1);
+
+    size_t sz_content = 0;
+    char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+
+    fprintf(stderr, "#####> load init=%s\n", content);
+    purc_rwstream_destroy(stream);
+
+    r = post_process(cor, frame);
+    if (r) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+    }
+
+out:
+    pcintr_resume(cor, msg);
+    pcintr_set_current_co(NULL);
+    return 0;
+}
+
+static void on_sync_complete(purc_variant_t request_id, void *ud,
+        const struct pcfetcher_resp_header *resp_header,
+        purc_rwstream_t resp)
+{
+    UNUSED_PARAM(request_id);
+    UNUSED_PARAM(ud);
+    UNUSED_PARAM(resp_header);
+    UNUSED_PARAM(resp);
+
+    pcintr_stack_frame_t frame;
+    frame = (pcintr_stack_frame_t)ud;
+    struct ctxt_for_hvml *ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+
+    PC_DEBUG("load_async|callback|ret_code=%d\n", resp_header->ret_code);
+    PC_DEBUG("load_async|callback|mime_type=%s\n", resp_header->mime_type);
+    PC_DEBUG("load_async|callback|sz_resp=%ld\n", resp_header->sz_resp);
+
+    ctxt->ret_code = resp_header->ret_code;
+    ctxt->resp = resp;
+    if (resp_header->mime_type) {
+        ctxt->mime_type = strdup(resp_header->mime_type);
+    }
+
+    if (ctxt->co->stack.exited) {
+        return;
+    }
+
+    pcintr_coroutine_post_event(ctxt->co->cid,
+        PCRDR_MSG_EVENT_REDUCE_OPT_KEEP,
+        ctxt->sync_id, MSG_TYPE_FETCHER_STATE, MSG_SUB_TYPE_SUCCESS,
+        PURC_VARIANT_INVALID, ctxt->sync_id);
+}
+
+static bool
+is_observer_match(pcintr_coroutine_t co,
+        struct pcintr_observer *observer, pcrdr_msg *msg,
+        purc_variant_t observed, const char *type, const char *sub_type)
+{
+    UNUSED_PARAM(co);
+    UNUSED_PARAM(observer);
+    UNUSED_PARAM(msg);
+    UNUSED_PARAM(observed);
+    UNUSED_PARAM(type);
+    UNUSED_PARAM(sub_type);
+    bool match = false;
+    if (!purc_variant_is_equal_to(observer->observed, msg->elementValue)) {
+        goto out;
+    }
+
+    if (type && strcmp(type, MSG_TYPE_FETCHER_STATE) == 0) {
+        match = true;
+        goto out;
+    }
+
+out:
+    return match;
+}
+
+
+static int
+process_init_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
+{
+    int ret = -1;
+
+    pcintr_stack_t stack = &co->stack;
+    struct ctxt_for_hvml *ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+    ctxt->co = co;
+
+    enum pcfetcher_request_method method = PCFETCHER_REQUEST_METHOD_GET;
+    ctxt->params = purc_variant_make_object_0();
+    const char *uri = purc_variant_get_string_const(ctxt->init);
+
+    purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
+            method, ctxt->params, on_sync_complete, frame, PURC_VARIANT_INVALID);
+    if (v == PURC_VARIANT_INVALID) {
+        goto failed;
+    }
+
+    ctxt->sync_id = purc_variant_ref(v);
+
+    pcintr_yield(
+            CO_STAGE_FIRST_RUN | CO_STAGE_OBSERVING,
+            CO_STATE_STOPPED,
+            ctxt->sync_id,
+            MSG_TYPE_FETCHER_STATE,
+            MSG_SUB_TYPE_ASTERISK,
+            is_observer_match,
+            observer_handle,
+            frame,
+            true
+            );
+
+    purc_clr_error();
+
+    ret = 0;
+
+failed:
+    return ret;
+}
+
 static void*
 after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
 {
@@ -227,9 +424,12 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    ctxt->body = find_body(stack);
+    if (ctxt->init) {
+        r = process_init_sync(stack->co, frame);
+        return ctxt;
+    }
 
-    purc_clr_error();
+    post_process(stack->co, frame);
 
     return ctxt;
 }
