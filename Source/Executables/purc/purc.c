@@ -1440,9 +1440,10 @@ int main(int argc, char** argv)
 
         pcutils_md5digest(opts->urls->list[0], digest);
         pcutils_bin2hex(digest, PCUTILS_MD5_DIGEST_SIZE, md5sum, false);
-        /* we use the first 6 characters only */
-        md5sum[6] = 0;
-        opts->run = strdup(md5sum);
+        /* R + md5sum[0-5](we use the first 6 characters only)*/
+        opts->run = malloc(8);
+        opts->run[0] = 'R';
+        strncpy(opts->run + 1, md5sum, 6);
         if (opts->run == NULL) {
             fprintf(stderr, "%s: failed to allocate space for "
                     "the default runner name.\n", argv[0]);
