@@ -3741,6 +3741,9 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
     int ret = 0;
 
     /* TODO: page_type:  PCRDR_PAGE_TYPE_SELF, PCRDR_PAGE_TYPE_NULL, PCRDR_PAGE_TYPE_INHERIT*/
+    if (cor->target_page_type == PCRDR_PAGE_TYPE_NULL) {
+        goto out;
+    }
 
     /* TODO: real target_workspace, target_groud, page_name   */
     bool r = pcintr_attach_to_renderer(cor,

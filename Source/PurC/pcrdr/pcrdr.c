@@ -635,8 +635,9 @@ int pcrdr_switch_renderer(struct pcinst *inst, const char *comm,
     msg->data = session_data;
 
     int ret;
-    if ((ret = pcrdr_send_request_and_wait_response(n_conn_to_rdr,
-            msg, PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
+    if ((ret = pcrdr_send_request_and_wait_response(n_conn_to_rdr, msg,
+            n_rdr_caps->challenge_code ? (PCRDR_TIME_AUTH_EXPECTED + 2) :
+            PCRDR_TIME_DEF_EXPECTED, &response_msg)) < 0) {
         goto failed;
     }
     pcrdr_release_message(msg);
