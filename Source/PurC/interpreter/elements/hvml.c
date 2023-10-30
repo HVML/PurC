@@ -40,12 +40,14 @@
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
     pcvdom_element_t              body;
+    purc_variant_t                init;
 };
 
 static void
 ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 {
     if (ctxt) {
+        PURC_VARIANT_SAFE_CLEAR(ctxt->init);
         free(ctxt);
     }
 }
@@ -54,6 +56,37 @@ static void
 ctxt_destroy(void *ctxt)
 {
     ctxt_for_hvml_destroy((struct ctxt_for_hvml*)ctxt);
+}
+
+static int
+process_attr_init(struct pcintr_stack_frame *frame,
+        struct pcvdom_element *element,
+        purc_atom_t name, purc_variant_t val)
+{
+    struct ctxt_for_hvml *ctxt;
+    ctxt = (struct ctxt_for_hvml*)frame->ctxt;
+    if (ctxt->init != PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_DUPLICATED,
+                "vdom attribute '%s' for element <%s>",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    if (val == PURC_VARIANT_INVALID) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> undefined",
+                purc_atom_to_string(name), element->tag_name);
+        return -1;
+    }
+    else if (!purc_variant_is_string(val)) {
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE,
+                "vdom attribute '%s' for element <%s> type '%s' invalid",
+                purc_atom_to_string(name), element->tag_name, pcvariant_typename(val));
+        return -1;
+    }
+
+    ctxt->init = purc_variant_ref(val);
+
+    return 0;
 }
 
 static int
@@ -80,6 +113,9 @@ attr_found_val(struct pcintr_stack_frame *frame,
             free(stack->co->target);
             stack->co->target = target;
         }
+    }
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INIT)) == name) {
+        return process_attr_init(frame, element, name, val);
     }
     else {
         /* VW: only set attributes other than `target` to
