@@ -43,7 +43,7 @@ struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
     pcvdom_element_t              body;
 
-    purc_variant_t                init;
+    purc_variant_t                template;
 
     pcintr_coroutine_t            co;
     purc_variant_t                sync_id;
@@ -59,7 +59,7 @@ static void
 ctxt_for_hvml_destroy(struct ctxt_for_hvml *ctxt)
 {
     if (ctxt) {
-        PURC_VARIANT_SAFE_CLEAR(ctxt->init);
+        PURC_VARIANT_SAFE_CLEAR(ctxt->template);
         PURC_VARIANT_SAFE_CLEAR(ctxt->sync_id);
         PURC_VARIANT_SAFE_CLEAR(ctxt->params);
 
@@ -84,13 +84,13 @@ ctxt_destroy(void *ctxt)
 }
 
 static int
-process_attr_init(struct pcintr_stack_frame *frame,
+process_attr_template(struct pcintr_stack_frame *frame,
         struct pcvdom_element *element,
         purc_atom_t name, purc_variant_t val)
 {
     struct ctxt_for_hvml *ctxt;
     ctxt = (struct ctxt_for_hvml*)frame->ctxt;
-    if (ctxt->init != PURC_VARIANT_INVALID) {
+    if (ctxt->template != PURC_VARIANT_INVALID) {
         purc_set_error_with_info(PURC_ERROR_DUPLICATED,
                 "vdom attribute '%s' for element <%s>",
                 purc_atom_to_string(name), element->tag_name);
@@ -109,7 +109,7 @@ process_attr_init(struct pcintr_stack_frame *frame,
         return -1;
     }
 
-    ctxt->init = purc_variant_ref(val);
+    ctxt->template = purc_variant_ref(val);
 
     return 0;
 }
@@ -139,8 +139,8 @@ attr_found_val(struct pcintr_stack_frame *frame,
             stack->co->target = target;
         }
     }
-    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, INIT)) == name) {
-        return process_attr_init(frame, element, name, val);
+    else if (pchvml_keyword(PCHVML_KEYWORD_ENUM(HVML, TEMPLATE)) == name) {
+        return process_attr_template(frame, element, name, val);
     }
     else {
         /* VW: only set attributes other than `target` to
@@ -268,6 +268,10 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
 
     size_t sz_content = 0;
     char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
+    pcintr_util_new_content(cor->stack.doc, frame->edom_element,
+        PCDOC_OP_APPEND, content, sz_content,
+        purc_variant_make_string_static(PCRDR_MSG_DATA_TYPE_NAME_HTML, false),
+        false, true);
 
     fprintf(stderr, "#####> load init=%s\n", content);
     purc_rwstream_destroy(stream);
@@ -353,7 +357,7 @@ process_init_sync(pcintr_coroutine_t co, pcintr_stack_frame_t frame)
 
     enum pcfetcher_request_method method = PCFETCHER_REQUEST_METHOD_GET;
     ctxt->params = purc_variant_make_object_0();
-    const char *uri = purc_variant_get_string_const(ctxt->init);
+    const char *uri = purc_variant_get_string_const(ctxt->template);
 
     purc_variant_t v = pcintr_load_from_uri_async(stack, uri,
             method, ctxt->params, on_sync_complete, frame, PURC_VARIANT_INVALID);
@@ -424,7 +428,7 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    if (ctxt->init) {
+    if (ctxt->template) {
         r = process_init_sync(stack->co, frame);
         return ctxt;
     }

@@ -137,5 +137,5 @@ temp
 wholly
     type: adverb
 
-init
+template
     type: prep
