@@ -64,6 +64,10 @@ struct mime_type  mime_types[] = {
 static const char* get_mime(const char* name)
 {
     const char* ext = strrchr(name, '.');
+    if (!ext) {
+        return mime_types[0].mime;
+    }
+
     size_t sz = sizeof(mime_types) / sizeof(struct mime_type);
     for (size_t i = 1; i < sz; i++) {
         if (strcmp(ext, mime_types[i].ext) == 0) {
@@ -276,6 +280,7 @@ purc_rwstream_t pcfetcher_local_request_sync(
     else {
         uri.append(url);
     }
+
     PurCWTF::URL wurl(URL(), uri);
     if (!wurl.isLocalFile()) {
         resp_header->ret_code = 404;

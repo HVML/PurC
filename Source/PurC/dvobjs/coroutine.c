@@ -33,7 +33,7 @@
 
 #include <limits.h>
 
-#define DEFAULT_HVML_BASE           "file:///"
+#define DEFAULT_HVML_BASE           "file://"
 #define DEFAULT_HVML_TARGET         "void"
 #define DEFAULT_HVML_TIMEOUT        10.0
 #define DVOBJ_HVML_DATA_NAME        "__handle_ctrl_props"
