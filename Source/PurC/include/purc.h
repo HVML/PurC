@@ -103,7 +103,7 @@ typedef struct purc_instance_extra_info {
     const char      *workspace_layout;
 
     /**
-     * Whether allow switching the renderer.
+     * Whether allow switching the renderer (Since 0.9.18).
      */
     unsigned int    allow_switching_rdr:1;
 
@@ -449,11 +449,27 @@ purc_get_conn_to_renderer(void);
 typedef struct purc_renderer_extra_info {
     /** The class for layout of the widget */
     const char *klass;
+
     /** The title of the widget */
     const char *title;
-    /** The layout style of the page (like `width:100px`) */
+
+    /**
+     * The layout styles of the page. For a standalone (not-grouped) page
+     * (a plain window), we can use `window-size` and `window-position` to
+     * specify the size and the position like `background-size` and
+     * `background-position` in CSS:
+     *
+     * `window-size:50% 480px;window-position:center;`
+     *
+     * For a grouped page (a plain window or a widget), we use the standard
+     * CSS styles for example: `width:200px; height:auto;`.
+     */
     const char *layout_style;
-    /** The toolkit style of the page (an object variant) */
+
+    /**
+     * The toolkit style of the page (an object variant).
+     * The definition of this field depends on the renderer.
+     */
     purc_variant_t toolkit_style;
 
     /** The page groups to add to the layout DOM */
@@ -466,9 +482,11 @@ typedef struct purc_renderer_extra_info {
  * The rendere page type.
  */
 typedef enum pcrdr_page_type {
+    PCRDR_PAGE_TYPE_first = 0,
+
 #define PCRDR_PAGE_TYPE_NAME_NULL       "null"
     /** Do not create or use any page for the HVML coroutine. */
-    PCRDR_PAGE_TYPE_NULL = 0,
+    PCRDR_PAGE_TYPE_NULL = PCRDR_PAGE_TYPE_first,
 
 #define PCRDR_PAGE_TYPE_NAME_INHERIT    "inherit"
     /** Use the document and page of curator. */
@@ -485,7 +503,12 @@ typedef enum pcrdr_page_type {
 #define PCRDR_PAGE_TYPE_NAME_WIDGET     "widget"
     /** Create a new widget in the specified page group. */
     PCRDR_PAGE_TYPE_WIDGET,
+
+    PCRDR_PAGE_TYPE_last = PCRDR_PAGE_TYPE_WIDGET,
 } pcrdr_page_type_k;
+
+#define PCRDR_PAGE_TYPE_nr \
+    (PCRDR_PAGE_TYPE_last - PCRDR_PAGE_TYPE_first + 1)
 
 struct pcintr_coroutine;
 typedef struct pcintr_coroutine *purc_coroutine_t;
@@ -833,7 +856,7 @@ purc_get_instmgr_rid(void);
  * Returns: a variant of the manifest.
  * This function returns PURC_VARIANT_INVALID if there is no any PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_manifest(void);
@@ -850,7 +873,7 @@ purc_get_app_manifest(void);
  * Returns: A string variant which contains the app label. This function
  *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_label(const char *locale);
@@ -867,7 +890,7 @@ purc_get_app_label(const char *locale);
  * Returns: A string variant which contains the app description. This function
  *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_description(const char *locale);
@@ -891,7 +914,7 @@ purc_get_app_description(const char *locale);
  *
  * Note: you must call purc_variant_unref() after using the returned variant.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_icon_url(const char *display_density, const char *locale);

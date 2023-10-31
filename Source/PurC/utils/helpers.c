@@ -23,7 +23,7 @@
  */
 
 #include "config.h"
-#include "purc-helpers.h"
+#include "purc/purc.h"
 #include "private/dvobjs.h"
 #include "private/utils.h"
 #include "private/kvlist.h"
@@ -1241,3 +1241,118 @@ purc_is_valid_css_identifier(const char *id)
 failed:
     return false;
 }
+
+static const char *page_types[] = {
+    PCRDR_PAGE_TYPE_NAME_NULL,
+    PCRDR_PAGE_TYPE_NAME_INHERIT,
+    PCRDR_PAGE_TYPE_NAME_SELF,
+    PCRDR_PAGE_TYPE_NAME_PLAINWIN,
+    PCRDR_PAGE_TYPE_NAME_WIDGET,
+};
+
+/* Make sure the number of page_types matches the number of page types */
+#define _COMPILE_TIME_ASSERT(name, x)               \
+       typedef int _dummy_ ## name[(x) * 2 - 1]
+
+_COMPILE_TIME_ASSERT(page_types,
+        PCA_TABLESIZE(page_types) == PCRDR_PAGE_TYPE_nr);
+
+#undef _COMPILE_TIME_ASSERT
+
+static int check_page_type(const char *page_type)
+{
+    if (!purc_is_valid_token(page_type, PURC_LEN_IDENTIFIER))
+        return -1;
+
+    for (int i = 0; i < (int)PCA_TABLESIZE(page_types); i++) {
+        if (strcmp(page_type, page_types[i]) == 0)
+            return i;
+    }
+
+    return -1;
+}
+
+/*
+ * The pattern of a page identifier:
+ *      '<type>:[<name>[@[<workspace>/]<group>]]'
+ */
+int purc_split_page_identifier(const char *page_id, char *type_buf,
+        char *name_buf, char *workspace_buf, char *group_buf)
+{
+    int ret = PCRDR_PAGE_TYPE_first;
+    char part[PURC_LEN_IDENTIFIER + 1];
+    const char *p = page_id;
+    size_t part_len;
+    char *tmp;
+
+    tmp = strchr(p, PURC_SEP_PAGE_TYPE);
+    if (tmp == NULL)
+        goto failed;
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+
+    if ((ret = check_page_type(part)) < 0)
+        goto failed;
+
+    if (type_buf)
+        strcpy(type_buf, part);
+
+    p = tmp + 1;
+    tmp = strchr(p, PURC_SEP_GROUP_NAME);
+    if (tmp == NULL) {
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+            goto failed;
+
+        if (name_buf)
+            strcpy(name_buf, p);
+
+        goto done;
+    }
+
+    p = tmp + 1;
+    tmp = strchr(p, PURC_SEP_WORKSPACE_NAME);
+    if (tmp == NULL) {
+        /* not workspace specified */
+        if (workspace_buf)
+            workspace_buf[0] = 0;
+
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+            goto failed;
+
+        if (group_buf)
+            strcpy(group_buf, p);
+
+        goto done;
+    }
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER)
+        goto failed;
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+    if (!purc_is_valid_token(tmp, PURC_LEN_IDENTIFIER))
+        goto failed;
+
+    if (workspace_buf)
+        strcpy(workspace_buf, part);
+
+    p = tmp + 1;
+    if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+        goto failed;
+
+    if (group_buf)
+        strcpy(group_buf, p);
+
+done:
+    return ret;
+
+failed:
+    return -1;
+}
+

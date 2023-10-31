@@ -777,12 +777,31 @@ purc_page_ostack_get_birth(purc_page_ostack_t ostack);
 
 #define PURC_PREFIX_PLAINWIN         "plainwin:"
 #define PURC_PREFIX_WIDGET           "widget:"
+#define PURC_SEP_PAGE_TYPE           ':'
 #define PURC_SEP_GROUP_NAME          '@'
+#define PURC_SEP_WORKSPACE_NAME      '/'
 
 #define PURC_MAX_PLAINWIN_ID     \
     (sizeof(PURC_PREFIX_PLAINWIN) + PURC_LEN_IDENTIFIER * 2 + 2)
 #define PURC_MAX_WIDGET_ID     \
     (sizeof(PURC_PREFIX_WIDGET) + PURC_LEN_IDENTIFIER * 2 + 2)
+
+/**
+ * Checks and makes page identifier for a plain window specified by
+ * the pattern 'name[@group]'.
+ *
+ * @param id_buf: The pointer to a buffer to store the page identifier.
+ * @param name_buf: The pointer to a buffer to store the page name.
+ * @param name_group: The pointer to a string contains the name and group
+ *  in the pattern 'name[@group]'.
+ *
+ * Returns: The pointer to the group part; NULL for no group part, and
+ *  @PURC_INVPTR for bad name or group.
+ *
+ * Since: 0.9.10
+ */
+const char *purc_check_and_make_plainwin_id(char *id_buf, char *name_buf,
+        const char *name_group);
 
 /**
  * Checks and makes page identifier for a plain window specified by
@@ -829,6 +848,66 @@ const char *purc_check_and_make_widget_id(char *id_buf, char *name_buf,
 PCA_EXPORT bool
 purc_is_valid_css_identifier(const char *id);
 
+/**
+ * Splits a page identifier in pattern
+ *      '<type>:[<name>[@[<workspace>/]<group>]]'
+ * to name, workspace, and page group identifier, and returns the page type.
+ *
+ * @param page_id: The pointer to a string which contains the page identifier.
+ * @param type_buf: The pointer to a buffer to store the page type; nullable.
+ * @param name_buf: The pointer to a buffer to store the page name; nullable.
+ * @param workspace_buf: The pointer to a buffer to store the workspace;
+ *      nullable.
+ * @param group_buf: The pointer to a buffer to store the page group
+ *      identifier; nullable.
+ *
+ * Returns: 0 for success; a value less than 0 for bad page identifier.
+ *
+ * Since: 0.9.18
+ */
+int
+purc_split_page_identifier(const char *page_id, char *type_buf,
+        char *name_buf, char *worspace_buf, char *group_buf);
+
+struct purc_screen_info {
+    /** The number of horinzontal physical pixels (dots) of screen. */
+    unsigned width;
+
+    /** The number of vertial physical pixels (dots) of screen. */
+    unsigned height;
+
+    /** The number of dots per inch. */
+    float dpi;
+
+    /** The ratio of logical pixels to physical pixels. */
+    float density;
+};
+
+struct purc_window_geometry {
+    /* the x and y coordinates of the window in dots. */
+    int x, y;
+
+    /* the width and height of the window in dots. */
+    unsigned width, height;
+};
+
+/**
+ * Evaluates the geometry of a standalone window from the styles.
+ *
+ * @param styles: The styles like `window-size:50%;window-position:center;`.
+ * @param screen_info: The screen parameters (width, height, and density).
+ * @param geometry: The pointer to a buffer to store the evaluted window
+ *  geometry.
+ *
+ * Returns: `true` for success, otherwise `false`.
+ *
+ * Since: 0.9.18
+ */
+PCA_EXPORT bool
+purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
+        const struct purc_screen_info *screen_info,
+        struct purc_window_geometry *geometry);
+
 #define PURC_MAX_LEN_HOSTNAME       1023
 
 /**
@@ -839,7 +918,7 @@ purc_is_valid_css_identifier(const char *id);
  *
  * Returns: The pointer to the buffer.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT char *
 purc_get_local_hostname(char *name_buf);
@@ -852,7 +931,7 @@ purc_get_local_hostname(char *name_buf);
  *  NULL for failure.
  *  Note that the caller should free the buffer by calling `free()`.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT char *
 purc_get_local_hostname_alloc(void);
@@ -879,7 +958,7 @@ typedef void (*dnssd_on_service_discovered)(struct purc_dnssd_conn *dnssd,
  * Returns: A pointer to `struct purc_dnssd_conn` representing the connection
  * to the mDNS Responder daemon; NULL for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 struct purc_dnssd_conn *
 purc_dnssd_connect(dnssd_on_register_reply register_reply_cb,
@@ -888,7 +967,7 @@ purc_dnssd_connect(dnssd_on_register_reply register_reply_cb,
 /**
  * Disconnects from the mDNS responder daemon.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void
 purc_dnssd_disconnect(struct purc_dnssd_conn *dnssd);
@@ -896,7 +975,7 @@ purc_dnssd_disconnect(struct purc_dnssd_conn *dnssd);
 /**
  * Returns the file descriptor of the connection to the mDNS responder daemon.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 int purc_dnssd_fd(struct purc_dnssd_conn *dnssd);
 
@@ -925,7 +1004,7 @@ int purc_dnssd_fd(struct purc_dnssd_conn *dnssd);
  *
  * Returns: The handle of the registered service; NULL for error.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
         const char *service_name, const char *reg_type,
@@ -941,7 +1020,7 @@ void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
  *
  * Returns: 0 for success and -1 for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
         void *service_handle);
@@ -955,7 +1034,7 @@ void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
  *
  * Returns: A handle of the browsing; NULL for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void *purc_dnssd_start_browsing(struct purc_dnssd_conn *dnssd,
         const char *reg_type, const char *domain);
@@ -967,7 +1046,7 @@ void *purc_dnssd_start_browsing(struct purc_dnssd_conn *dnssd,
  * @param browsing_handle: A browsing handle returned by
  *  purc_dnssd_start_browsing().
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void purc_dnssd_stop_browsing(struct purc_dnssd_conn *dnssd,
         void *browsing_handle);
@@ -986,7 +1065,7 @@ void purc_dnssd_stop_browsing(struct purc_dnssd_conn *dnssd,
  *
  * Returns: 0 for success and -1 for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 int purc_dnssd_process_result(struct purc_dnssd_conn *dnssd);
 
