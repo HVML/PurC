@@ -1,0 +1,19 @@
+<!DOCTYPE hvml>
+<hvml target="html" template="hvml/tpl.html">
+    <head>
+        <meta charset="utf-8" />
+    </head>
+    <body>
+        <div>本内容由 HVML 定义, 应该可以看到由初始文档定义的按钮，点击该按钮，控制台有输出。</div>
+
+        <observe on="#tplBtn" for="click">
+            <inherit>
+                $STREAM.stdout.writelines('tpl btn click')
+            </inherit>
+        </observe>
+
+        <observe on $CRTN for "rdrState:pageClosed">
+            <exit with 'Ok' />
+        </observe>
+    </body>
+</hvml>

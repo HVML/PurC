@@ -67,6 +67,27 @@ fallback:
     return PCDOC_K_TYPE_VOID;   // fallback
 }
 
+
+purc_document_t
+pcdoc_document_new(purc_document_type_k type,
+        const char *content, size_t nr_content)
+{
+    struct purc_document_ops *ops = doc_types[type].ops;
+    if (ops == NULL) {
+        purc_set_error(PURC_ERROR_NOT_IMPLEMENTED);
+        return NULL;
+    }
+
+    purc_document_t doc = ops->create(content, nr_content);
+    if (doc) {
+        doc->refc = 1;
+        doc->ldc = 0;
+        list_head_init(&doc->owner_list);
+    }
+
+    return doc;
+}
+
 purc_document_t
 purc_document_new(purc_document_type_k type)
 {

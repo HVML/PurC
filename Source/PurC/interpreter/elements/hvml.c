@@ -38,6 +38,7 @@
 #define ATTR_KEY_ID         "id"
 #define BUFF_MIN                        1024
 #define BUFF_MAX                        1024 * 1024 * 4
+#define MIME_TYPE_TEXT_HTML             "text/html"
 
 struct ctxt_for_hvml {
     struct pcvdom_node           *curr;
@@ -227,7 +228,6 @@ static int
 observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         pcrdr_msg *msg, const char *type, const char *sub_type, void *data)
 {
-    UNUSED_PARAM(cor);
     UNUSED_PARAM(observer);
     UNUSED_PARAM(msg);
     UNUSED_PARAM(type);
@@ -261,19 +261,33 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
         goto out;
     }
 
-    /* TODO: parse html doc */
+    if (strcmp(MIME_TYPE_TEXT_HTML, ctxt->mime_type) != 0) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        purc_set_error_with_info(PURC_ERROR_NOT_IMPLEMENTED,
+                "template type '%s' not implemented", ctxt->mime_type);
+        goto out;
+    }
 
     purc_rwstream_t stream = purc_rwstream_new_buffer(BUFF_MIN, BUFF_MAX);
     purc_rwstream_dump_to_another(ctxt->resp, stream, -1);
 
     size_t sz_content = 0;
     char *content = purc_rwstream_get_mem_buffer(stream, &sz_content);
-    pcintr_util_new_content(cor->stack.doc, frame->edom_element,
-        PCDOC_OP_APPEND, content, sz_content,
-        purc_variant_make_string_static(PCRDR_MSG_DATA_TYPE_NAME_HTML, false),
-        false, true);
+    purc_document_t doc = pcdoc_document_new(PCDOC_K_TYPE_HTML,
+            content, sz_content);
+    if (!doc) {
+        frame->next_step = NEXT_STEP_ON_POPPING;
+        // FIXME: what error to set
+        purc_set_error_with_info(PURC_ERROR_INVALID_VALUE, "invalid template");
+        goto out;
+    }
 
-    fprintf(stderr, "#####> load init=%s\n", content);
+    if (cor->stack.doc) {
+        purc_document_unref(cor->stack.doc);
+        cor->stack.doc = NULL;
+    }
+    cor->stack.doc = doc;
+
     purc_rwstream_destroy(stream);
 
     r = post_process(cor, frame);
@@ -428,7 +442,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    if (ctxt->template) {
+    if (ctxt->template &&
+            (purc_document_type(stack->doc) != PCDOC_K_TYPE_VOID)) {
         r = process_init_sync(stack->co, frame);
         return ctxt;
     }
@@ -558,6 +573,10 @@ again:
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
+    }
+
+    if (curr) {
+        pcvdom_element_t elemc = PCVDOM_ELEMENT_FROM_NODE(curr);
     }
 
     ctxt->curr = curr;
