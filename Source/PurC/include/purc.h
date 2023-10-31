@@ -103,7 +103,7 @@ typedef struct purc_instance_extra_info {
     const char      *workspace_layout;
 
     /**
-     * Whether allow switching the renderer.
+     * Whether allow switching the renderer (Since 0.9.18).
      */
     unsigned int    allow_switching_rdr:1;
 
@@ -856,7 +856,7 @@ purc_get_instmgr_rid(void);
  * Returns: a variant of the manifest.
  * This function returns PURC_VARIANT_INVALID if there is no any PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_manifest(void);
@@ -873,7 +873,7 @@ purc_get_app_manifest(void);
  * Returns: A string variant which contains the app label. This function
  *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_label(const char *locale);
@@ -890,7 +890,7 @@ purc_get_app_label(const char *locale);
  * Returns: A string variant which contains the app description. This function
  *  returns PURC_VARIANT_INVALID if there is no PurC instance.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_description(const char *locale);
@@ -914,7 +914,7 @@ purc_get_app_description(const char *locale);
  *
  * Note: you must call purc_variant_unref() after using the returned variant.
  *
- * Since 0.9.17
+ * Since 0.9.18
  */
 PCA_EXPORT purc_variant_t
 purc_get_app_icon_url(const char *display_density, const char *locale);

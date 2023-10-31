@@ -863,7 +863,7 @@ purc_is_valid_css_identifier(const char *id);
  *
  * Returns: 0 for success; a value less than 0 for bad page identifier.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 int
 purc_split_page_identifier(const char *page_id, char *type_buf,
@@ -901,7 +901,7 @@ struct purc_window_geometry {
  *
  * Returns: `true` for success, otherwise `false`.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT bool
 purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
@@ -918,7 +918,7 @@ purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
  *
  * Returns: The pointer to the buffer.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT char *
 purc_get_local_hostname(char *name_buf);
@@ -931,7 +931,7 @@ purc_get_local_hostname(char *name_buf);
  *  NULL for failure.
  *  Note that the caller should free the buffer by calling `free()`.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT char *
 purc_get_local_hostname_alloc(void);
@@ -958,7 +958,7 @@ typedef void (*dnssd_on_service_discovered)(struct purc_dnssd_conn *dnssd,
  * Returns: A pointer to `struct purc_dnssd_conn` representing the connection
  * to the mDNS Responder daemon; NULL for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 struct purc_dnssd_conn *
 purc_dnssd_connect(dnssd_on_register_reply register_reply_cb,
@@ -967,7 +967,7 @@ purc_dnssd_connect(dnssd_on_register_reply register_reply_cb,
 /**
  * Disconnects from the mDNS responder daemon.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void
 purc_dnssd_disconnect(struct purc_dnssd_conn *dnssd);
@@ -975,7 +975,7 @@ purc_dnssd_disconnect(struct purc_dnssd_conn *dnssd);
 /**
  * Returns the file descriptor of the connection to the mDNS responder daemon.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 int purc_dnssd_fd(struct purc_dnssd_conn *dnssd);
 
@@ -1004,7 +1004,7 @@ int purc_dnssd_fd(struct purc_dnssd_conn *dnssd);
  *
  * Returns: The handle of the registered service; NULL for error.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
         const char *service_name, const char *reg_type,
@@ -1020,7 +1020,7 @@ void *purc_dnssd_register_service(struct purc_dnssd_conn *dnssd,
  *
  * Returns: 0 for success and -1 for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
         void *service_handle);
@@ -1034,7 +1034,7 @@ void purc_dnssd_revoke_service(struct purc_dnssd_conn *dnssd,
  *
  * Returns: A handle of the browsing; NULL for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void *purc_dnssd_start_browsing(struct purc_dnssd_conn *dnssd,
         const char *reg_type, const char *domain);
@@ -1046,7 +1046,7 @@ void *purc_dnssd_start_browsing(struct purc_dnssd_conn *dnssd,
  * @param browsing_handle: A browsing handle returned by
  *  purc_dnssd_start_browsing().
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 void purc_dnssd_stop_browsing(struct purc_dnssd_conn *dnssd,
         void *browsing_handle);
@@ -1065,7 +1065,7 @@ void purc_dnssd_stop_browsing(struct purc_dnssd_conn *dnssd,
  *
  * Returns: 0 for success and -1 for failure.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 int purc_dnssd_process_result(struct purc_dnssd_conn *dnssd);
 

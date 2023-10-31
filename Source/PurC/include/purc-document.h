@@ -192,7 +192,7 @@ purc_document_new(purc_document_type_k type);
  *
  * Returns: The document type of the given document.
  *
- * Since: 0.9.17
+ * Since: 0.9.18
  */
 PCA_EXPORT purc_document_type_k
 purc_document_type(purc_document_t doc);
