@@ -698,7 +698,7 @@ The following options can be supplied to the command:
 PurC supports running an app within multiple runners.
 Here one `runner` is one thread in the `purc` process.
 
-For this purpose, you can prepare a JSON file or an eJSON file that defines the app, the runners,
+For this purpose, you can prepare a JSON file or an eJSON file that defines the app, the workspaces, the runners,
     and the initial HVML programs to run as coroutines in different runners.
 
 Here is an example:
@@ -708,33 +708,33 @@ Here is an example:
     "app": "cn.fmsoft.hvml.sample",
     "runners": [
         {
-            "runner": "Products",
+            "name": "Products",
             "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
-                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageId": "widget:productlist@default/theProductsArea" }
                 },
                 { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
-                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageId": "widget:productinfo@default/theProductsArea" }
                 }
             ]
         },
         {
-            "runner": "Customers",
+            "name": "Customers",
             "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
-                   "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
+                   "renderer": { "pageId": "widget:customerlist@default/theCustomersArea" }
                 },
                 { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
-                   "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
+                   "renderer": { "pageId": "widget:customerinfo@default/theCustomersArea" }
                 }
             ]
         },
         {
-            "runner": "Daemons",
+            "name": "Daemons",
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
                 { "url": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
@@ -768,15 +768,15 @@ Then use the option specified by `--app` in `my_app.ejson`:
     "app": "$OPTS.app",
     "runners": [
         {
-            "runner": "Products",
+            "name": "Products",
             "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
-                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageId": "widget:productlist@default/theProductsArea" }
                 },
                 { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
-                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
+                   "renderer": { "pageId": "widget:productinfo@default/theProductsArea" }
                 },
             ]
         },

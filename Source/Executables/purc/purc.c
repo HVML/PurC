@@ -145,7 +145,7 @@ static void print_usage(FILE *fp)
         "            - `socket`: use the remote UNIX domain socket-based renderer;\n"
         "            - `websocket`: use the remote websocket-based renderer;\n"
         "              `purc` will connect to the renderer via Unix Socket or WebSocket.\n"
-
+        "\n"
         "  -u --rdr-uri=< renderer_uri >\n"
         "        The renderer uri or shortname:\n"
         "            - For the renderer comm method `headless`,\n"
@@ -180,7 +180,21 @@ static void print_usage(FILE *fp)
         "        Display version information and exit.\n"
         "\n"
         "  -h --help\n"
-        "        This help.\n",
+        "        This help.\n"
+        "\n"
+        "(root only options)\n"
+        "  --chroot <directory>\n"
+        "       Change root to the specified directory\n"
+        "       (default is the `/app/<app_name>/`)\n"
+        "\n"
+        "   --setuser <user>\n"
+        "      Set user identity to the user specified\n"
+        "       (default is the user named <app_name> if it exists).\n"
+        "\n"
+        "   --setgroup <group>\n"
+        "      Set group identity to the group specified\n"
+        "       (default is the group named <app_name> if it exists>).\n"
+        "\n",
         fp);
 }
 
@@ -215,7 +229,7 @@ static const char *archedata_header =
 static const char *archedata_coroutine =
                 "{ 'url': $OPTS.urls[%u], 'bodyId': $OPTS.bodyIds[%u],"
                     "'request': $OPTS.request,"
-                    "'renderer': { 'pageType': 'plainwin' }"
+                    "'renderer': { 'pageId': 'plainwin:win%u' }"
                 "},";
 
 static const char *archedata_footer =
@@ -240,7 +254,7 @@ static bool construct_app_info(struct my_opts *opts)
     for (size_t i = 0; i < opts->urls->length; i++) {
         char buff[256];
         int n = snprintf(buff, sizeof(buff), archedata_coroutine,
-                (unsigned)i, (unsigned)i);
+                (unsigned)i, (unsigned)i, (unsigned)i);
         if (n < 0 || (size_t)n > sizeof(buff)) {
             return false;
         }
@@ -1441,9 +1455,9 @@ int main(int argc, char** argv)
         pcutils_md5digest(opts->urls->list[0], digest);
         pcutils_bin2hex(digest, PCUTILS_MD5_DIGEST_SIZE, md5sum, false);
         /* R + md5sum[0-5](we use the first 6 characters only)*/
-        opts->run = malloc(8);
+        opts->run = calloc(1, 8);
         opts->run[0] = 'R';
-        strncpy(opts->run + 1, md5sum, 6);
+        memcpy(opts->run + 1, md5sum, 6);
         if (opts->run == NULL) {
             fprintf(stderr, "%s: failed to allocate space for "
                     "the default runner name.\n", argv[0]);

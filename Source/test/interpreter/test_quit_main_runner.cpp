@@ -43,7 +43,8 @@ static struct purc_instance_extra_info worker_info = {
     "sslKey",
     "workspaceName",
     "workspaceTitle",
-    "<html></html>",            // workspaceLayout
+    "<html></html>",            // workspace_layout
+    0,                          // allow_switching_rdr (since 0.9.18)
 };
 
 static const char *cond_names[] = {
