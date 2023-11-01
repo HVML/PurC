@@ -462,7 +462,7 @@ typedef struct purc_renderer_extra_info {
      * `window-size:50% 480px;window-position:center;`
      *
      * For a grouped page (a plain window or a widget), we use the standard
-     * CSS styles for example: `width:200px; height:auto;`.
+     * CSS styles, for example: `width:200px; height:auto;`.
      */
     const char *layout_style;
 

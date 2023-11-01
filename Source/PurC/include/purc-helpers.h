@@ -39,26 +39,6 @@
 #include "purc-utils.h"
 #include "purc-features.h"
 
-#define PURC_INVPTR                     ((void *)-1)
-
-#define PURC_LEN_HOST_NAME              127
-#define PURC_LEN_APP_NAME               127
-#define PURC_LEN_RUNNER_NAME            63
-#define PURC_LEN_IDENTIFIER             63
-
-#define PURC_EDPT_SCHEMA                "edpt://"
-#define PURC_LEN_EDPT_SCHEMA            7
-
-#define PURC_LEN_ENDPOINT_NAME         \
-    (PURC_LEN_EDPT_SCHEMA + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
-     PURC_LEN_RUNNER_NAME + 2)
-#define PURC_LEN_UNIQUE_ID             63
-#define PURC_LEN_PROPERTY_NAME         255
-
-#define PURC_PATH_APP_MANIFEST      "/app/%s/manifest.json"
-#define PURC_URL_APP_FILE           "hvml://_originhost/%s/_http/%s"
-#define PURC_PATH_APP_FILE          "/app/%s/%s"
-
 PCA_EXTERN_C_BEGIN
 
 /**

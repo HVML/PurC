@@ -79,7 +79,7 @@
 #define PCRDR_PATH_EXPORTED         "exported"
 #define PCRDR_HVML_URI_STATIC       "hvml://_originhost/_self/_%s/_static/%s"
 #define PCRDR_HVML_URI_DYNAMIC      "hvml://_originhost/_self/_%s/_dynamic/%s"
-#define PCRDR_FILE_URI_PATTERN      "file:///app/%s/%s"
+#define PCRDR_FILE_URI_PATTERN      "file://" PURC_HVML_APP_PREFIX  "%s/%s"
 
 #define PCRDR_REQUESTID_INITIAL         "0"
 #define PCRDR_REQUESTID_NORETURN        "-"

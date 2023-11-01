@@ -25,6 +25,28 @@
 #ifndef PURC_PURC_MACROS_H
 #define PURC_PURC_MACROS_H
 
+#define PURC_INVPTR                     ((void *)-1)
+
+#define PURC_LEN_HOST_NAME              127
+#define PURC_LEN_APP_NAME               127
+#define PURC_LEN_RUNNER_NAME            63
+#define PURC_LEN_IDENTIFIER             63
+
+#define PURC_EDPT_SCHEMA                "edpt://"
+#define PURC_LEN_EDPT_SCHEMA            7
+
+#define PURC_LEN_ENDPOINT_NAME         \
+    (PURC_LEN_EDPT_SCHEMA + PURC_LEN_HOST_NAME + PURC_LEN_APP_NAME + \
+     PURC_LEN_RUNNER_NAME + 2)
+#define PURC_LEN_UNIQUE_ID             63
+#define PURC_LEN_PROPERTY_NAME         255
+
+#define PURC_HVML_APP_PREFIX        "/app/"
+#define PURC_PATH_APP_MANIFEST      PURC_HVML_APP_PREFIX "%s/manifest.json"
+#define PURC_URL_APP_FILE           "hvml://_originhost/%s/_http/%s"
+#define PURC_PATH_APP_FILE          PURC_HVML_APP_PREFIX "%s/%s"
+#define PURC_PATH_APP_TOP_DIR       PURC_HVML_APP_PREFIX "%s"
+
 #ifndef __has_declspec_attribute
 #define __has_declspec_attribute(x) 0
 #endif

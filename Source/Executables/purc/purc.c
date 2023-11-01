@@ -34,7 +34,11 @@
 #include <getopt.h>
 #include <limits.h>
 #include <assert.h>
+#include <errno.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "config.h"
 #include "foil.h"
@@ -161,11 +165,22 @@ static void print_usage(FILE *fp)
         "  -j --request=< json_file | - >\n"
         "        The JSON file contains the request data which will be passed to\n"
         "        the HVML programs; use `-` if the JSON data will be given through\n"
-        "        STDIN stream. (Ctrl+D for end of input if you input the JSON data in a terminal.)\n"
+        "        STDIN stream. (Ctrl+D for end of input after you input the JSON data in a terminal.)\n"
         "\n"
         "  -q --query=< query_string >\n"
         "        Use a URL query string (in RFC 3986) for the request data which will be passed to \n"
         "        the HVML programs; e.g., --query='case=displayBlock&lang=zh'.\n"
+        "\n"
+        "  -P --pageid\n"
+        "        The page identifier for the HVML program if only one HVML program was given.\n"
+        "\n"
+        "  -L --layout-style\n"
+        "        The layout style will be passed to the renderer for the HVML program.\n"
+        "        This option is only valid if the page type is plainwin.\n"
+        "\n"
+        "  -T --toolkit-style\n"
+        "        The toolkit style will be passed to the renderer for the HVML program.\n"
+        "        This optioni is only valid if the page type is plainwin.\n"
         "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
@@ -183,15 +198,15 @@ static void print_usage(FILE *fp)
         "        This help.\n"
         "\n"
         "(root only options)\n"
-        "  --chroot <directory>\n"
+        "  -R --chroot <directory>\n"
         "       Change root to the specified directory\n"
         "       (default is the `/app/<app_name>/`)\n"
         "\n"
-        "   --setuser <user>\n"
+        "  -U --setuser <user>\n"
         "      Set user identity to the user specified\n"
         "       (default is the user named <app_name> if it exists).\n"
         "\n"
-        "   --setgroup <group>\n"
+        "  -G --setgroup <group>\n"
         "      Set group identity to the group specified\n"
         "       (default is the group named <app_name> if it exists>).\n"
         "\n",
@@ -203,6 +218,13 @@ struct my_opts {
     char *run;
     const char *data_fetcher;
     const char *rdr_prot;
+    const char *pageid;
+    const char *layout_style;
+    const char *toolkit_style;
+    const char *chroot;
+    const char *setuser;
+    const char *setgroup;
+
     char *rdr_uri;
     char *request;
     char *query;
@@ -402,7 +424,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:lvCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:lL:T:R:U:G:vCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -411,6 +433,12 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
         { "rdr-uri"        , required_argument , NULL , 'u' },
         { "request"        , required_argument , NULL , 'j' },
         { "query"          , required_argument , NULL , 'q' },
+        { "pageid"         , required_argument , NULL , 'P' },
+        { "layout-style"   , required_argument , NULL , 'L' },
+        { "toolkit-style"  , required_argument , NULL , 'T' },
+        { "chroot"         , required_argument , NULL , 'R' },
+        { "setuser"        , required_argument , NULL , 'U' },
+        { "setgroup"       , required_argument , NULL , 'G' },
         { "parallel"       , no_argument       , NULL , 'l' },
         { "verbose"        , no_argument       , NULL , 'v' },
         { "copying"        , no_argument       , NULL , 'C' },
@@ -516,6 +544,32 @@ static int read_option_args(struct my_opts *opts, int argc, char **argv)
 
         case 'q':
             opts->query = strdup(optarg);
+            break;
+
+        case 'P':
+            if (purc_split_page_identifier(optarg, NULL, NULL, NULL, NULL) < 0)
+                goto bad_arg;
+            opts->pageid = optarg;
+            break;
+
+        case 'L':
+            opts->layout_style = optarg;
+            break;
+
+        case 'T':
+            opts->toolkit_style = optarg;
+            break;
+
+        case 'R':
+            opts->chroot = optarg;
+            break;
+
+        case 'U':
+            opts->setuser = optarg;
+            break;
+
+        case 'G':
+            opts->setuser = optarg;
             break;
 
         case 'l':
@@ -1247,6 +1301,79 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 }
 
 static bool
+run_single_program(struct my_opts *opts, purc_variant_t request)
+{
+    bool success = false;
+    char name[PURC_LEN_IDENTIFIER + 1] = "";
+    char workspace[PURC_LEN_IDENTIFIER + 1] = "";
+    char group[PURC_LEN_IDENTIFIER + 1] = "";
+    int ret;
+
+    if (opts->pageid) {
+        ret = purc_split_page_identifier(opts->pageid,
+                NULL, name, workspace, group);
+    }
+    else
+        ret = PCRDR_PAGE_TYPE_PLAINWIN;
+
+    /* we have validated the pageid */
+    assert(ret >= 0);
+
+    struct runr_info runr_info = { opts, &run_info };
+    purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
+
+    const char *url = opts->urls->list[0];
+    purc_vdom_t vdom = load_hvml(url);
+    if (vdom) {
+        if (opts->verbose)
+            fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
+
+        purc_renderer_extra_info ex_rdr_info = {};
+        ex_rdr_info.layout_style = opts->layout_style;
+
+        if (opts->toolkit_style) {
+            ex_rdr_info.toolkit_style = purc_variant_make_from_json_string(
+                    opts->toolkit_style,
+                    strlen(opts->toolkit_style));
+            if (!ex_rdr_info.toolkit_style && opts->verbose) {
+                fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
+                        opts->toolkit_style);
+            }
+        }
+
+        struct crtn_info crtn_info = { url };
+        purc_schedule_vdom(vdom, 0, request,
+                (pcrdr_page_type_k)ret, workspace, group, name,
+                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style) ?
+                &ex_rdr_info : NULL, opts->body_ids->list[0], &crtn_info);
+        purc_run((purc_cond_handler)prog_cond_handler);
+        if (ex_rdr_info.toolkit_style)
+            purc_variant_unref(ex_rdr_info.toolkit_style);
+        success = true;
+    }
+    else {
+        fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
+                purc_get_error_message(purc_get_last_error()));
+
+        if (opts->verbose) {
+            struct purc_parse_error_info *parse_error = NULL;
+            purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
+                    (uintptr_t *)(void *)&parse_error, NULL);
+            if (parse_error) {
+                fprintf(stderr,
+                        "Parse %s failed : line=%d, column=%d, character=0x%x\n",
+                        url, parse_error->line, parse_error->column,
+                        parse_error->character);
+            }
+        }
+    }
+
+    purc_remove_local_data(RUNR_INFO_NAME);
+    return success;
+}
+
+
+static bool
 run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 {
     size_t nr_executed = 0;
@@ -1417,6 +1544,163 @@ static struct thread_renderer {
         seeker_start, seeker_sync_exit },
 };
 
+static int find_user_group(const char *user, const char *group,
+        uid_t *uid, gid_t *gid, const char **username)
+{
+    uid_t my_uid = 0;
+    gid_t my_gid = 0;
+    struct passwd *my_pwd = NULL;
+    struct group *my_grp = NULL;
+    char *endptr = NULL;
+    *uid = 0; *gid = 0;
+
+    if (username)
+        *username = NULL;
+
+    if (user) {
+        my_uid = strtol(user, &endptr, 10);
+
+        if (my_uid <= 0 || *endptr) {
+            if (NULL == (my_pwd = getpwnam(user))) {
+                fprintf(stderr, "hvml-fpm: can't find user name %s\n", user);
+                return -1;
+            }
+            my_uid = my_pwd->pw_uid;
+
+            if (my_uid == 0) {
+                fprintf(stderr, "hvml-fpm: I will not set uid to 0\n");
+                return -1;
+            }
+
+            if (username) *username = user;
+        }
+        else {
+            my_pwd = getpwuid(my_uid);
+            if (username && my_pwd)
+                *username = my_pwd->pw_name;
+        }
+    }
+
+    if (group) {
+        my_gid = strtol(group, &endptr, 10);
+
+        if (my_gid <= 0 || *endptr) {
+            if (NULL == (my_grp = getgrnam(group))) {
+                fprintf(stderr, "hvml-fpm: can't find group name %s\n", group);
+                return -1;
+            }
+            my_gid = my_grp->gr_gid;
+
+            if (my_gid == 0) {
+                fprintf(stderr, "hvml-fpm: I will not set gid to 0\n");
+                return -1;
+            }
+        }
+    }
+    else if (my_pwd) {
+        my_gid = my_pwd->pw_gid;
+
+        if (my_gid == 0) {
+            fprintf(stderr, "hvml-fpm: I will not set gid to 0\n");
+            return -1;
+        }
+    }
+
+    *uid = my_uid;
+    *gid = my_gid;
+    return 0;
+}
+
+static int drop_root_privilege(const struct my_opts *opts)
+{
+    const char *username;
+    const char *groupname;
+
+    if (opts->setuser) {
+        username = opts->setuser;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        username = opts->app;
+    }
+    else {
+        username = NULL;
+    }
+
+    if (opts->setgroup) {
+        groupname = opts->setgroup;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        groupname = opts->app;
+    }
+    else {
+        groupname = NULL;
+    }
+
+    uid_t uid;
+    gid_t gid;
+    const char* real_username;
+
+    if (find_user_group(username, groupname, &uid, &gid, &real_username) < 0)
+        return -1;
+
+    if (uid != 0 && gid == 0) {
+        fprintf(stderr, "Failed to find the user for uid %d and no group was "
+                "specified, so only the user privileges will be dropped\n",
+                (int)uid);
+    }
+
+    /* Change group before chroot, when we have access to /etc/group */
+    if (gid != 0) {
+        if (-1 == setgid(gid)) {
+            fprintf(stderr, "Failed setgid(%d): %s\n", (int)gid, strerror(errno));
+            return -1;
+        }
+
+        if (-1 == setgroups(0, NULL)) {
+            fprintf(stderr, "Failed setgroups(0, NULL): %s\n", strerror(errno));
+            return -1;
+        }
+
+        if (real_username) {
+            if (-1 == initgroups(real_username, gid)) {
+                fprintf(stderr, "Failed initgroups('%s', %d): %s\n",
+                        real_username, (int)gid, strerror(errno));
+                return -1;
+            }
+        }
+    }
+
+    const char *changeroot;
+    char app_top_dir[sizeof(PURC_HVML_APP_PREFIX) + PURC_LEN_APP_NAME] =
+        PURC_HVML_APP_PREFIX;
+
+    if (opts->chroot) {
+        changeroot = opts->chroot;
+    }
+    else if (purc_is_feature_enabled(PURC_FEATURE_APP_AUTH)) {
+        strcat(app_top_dir, opts->app);
+        changeroot = app_top_dir;
+    }
+    else {
+        changeroot = NULL;
+    }
+
+    if (changeroot) {
+        if (-1 == chroot(changeroot)) {
+            fprintf(stderr, "Failed chroot('%s'): %s\n",
+                    changeroot, strerror(errno));
+            return -1;
+        }
+
+        if (-1 == chdir("/")) {
+            fprintf(stderr, "Failed: chdir('/'): %s\n", strerror(errno));
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
     int ret;
@@ -1464,6 +1748,12 @@ int main(int argc, char** argv)
             my_opts_delete(opts);
             return EXIT_FAILURE;
         }
+    }
+
+    if (geteuid() == 0 && drop_root_privilege(opts) != 0) {
+        fprintf(stderr, "%s: failed to drop root privilege", argv[0]);
+        my_opts_delete(opts);
+        return EXIT_FAILURE;
     }
 
     if (opts->verbose) {
@@ -1634,10 +1924,12 @@ int main(int argc, char** argv)
     else {
         assert(!opts->parallel);
 
-        if (!run_programs_sequentially(opts, request)) {
-            success = false;
+        if (opts->urls->length > 0) {
+            success = run_programs_sequentially(opts, request);
         }
-
+        else {
+            success = run_single_program(opts, request);
+        }
     }
 
 failed:

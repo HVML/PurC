@@ -712,10 +712,10 @@ Here is an example:
             "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
+                { "url": "hvml/productlist.hvml", "request": {},
                    "renderer": { "pageId": "widget:productlist@default/theProductsArea" }
                 },
-                { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
+                { "url": "hvml/productinfo.hvml", "request": { "productId": 0 },
                    "renderer": { "pageId": "widget:productinfo@default/theProductsArea" }
                 }
             ]
@@ -725,10 +725,10 @@ Here is an example:
             "renderer": { "comm": "socket", "uri": "unix:///var/tmp/purcmc.sock",
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
-                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": {},
+                { "url": "hvml/customerlist.hvml", "request": {},
                    "renderer": { "pageId": "widget:customerlist@default/theCustomersArea" }
                 },
-                { "url": "cn.fmsoft.hvml.sample/customerlist.hvml", "request": { "customerId": 0 },
+                { "url": "hvml/customerlist.hvml", "request": { "customerId": 0 },
                    "renderer": { "pageId": "widget:customerinfo@default/theCustomersArea" }
                 }
             ]
@@ -736,8 +736,8 @@ Here is an example:
         {
             "name": "Daemons",
             "coroutines": [
-                { "url": "cn.fmsoft.hvml.sample/check-customers.hvml", "request": { "interval": 10 } },
-                { "url": "cn.fmsoft.hvml.sample/check-products.hvml", "request": { "interval": 30 } }
+                { "url": "hvml/check-customers.hvml", "request": { "interval": 10 } },
+                { "url": "hvml/check-products.hvml", "request": { "interval": 30 } }
             ]
         },
     ]

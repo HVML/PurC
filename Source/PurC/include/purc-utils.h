@@ -174,8 +174,10 @@ void pcutils_hmac_sha256(unsigned char *out, const void *data, size_t data_len,
         const unsigned char *key, size_t key_len);
 
 #define PURC_PUBLIC_PEM_KEY_FILE        "/etc/public-keys/public-%s.pem"
-#define PURC_PRIVATE_PEM_KEY_FILE       "/app/%s/private/private-%s.pem"
-#define PURC_PRIVATE_HMAC_KEY_FILE      "/app/%s/private/hmac-%s.key"
+#define PURC_PRIVATE_PEM_KEY_FILE       \
+    PURC_HVML_APP_PREFIX "%s/private/private-%s.pem"
+#define PURC_PRIVATE_HMAC_KEY_FILE      \
+    PURC_HVML_APP_PREFIX "%s/private/hmac-%s.key"
 #define PURC_LEN_PRIVATE_HMAC_KEY       64
 
 /**
