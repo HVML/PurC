@@ -1072,6 +1072,8 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
 {
     assert(stack->co->target_page_handle);
 
+    PC_INFO("rdr page control load, tickcount is %ld\n", pcintr_tick_count());
+
     pcrdr_msg *response_msg = NULL;
 
     purc_document_t doc = stack->doc;
@@ -1145,6 +1147,11 @@ pcintr_rdr_page_control_load(struct pcinst *inst, pcintr_stack_t stack)
         size_t sz_buff = 0;
         char *p = (char*)purc_rwstream_get_mem_buffer_ex(out, &sz_content,
                 &sz_buff, true);
+#if 0
+        FILE *fp = fopen("/tmp/renderer.html", "w");
+        fwrite(p, 1, sz_content, fp);
+        fclose(fp);
+#endif
         req_data = purc_variant_make_string_reuse_buff(p, sz_content, false);
         if (req_data == PURC_VARIANT_INVALID) {
             free(p);

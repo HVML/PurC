@@ -3773,6 +3773,7 @@ out:
 int
 pcintr_switch_new_renderer(struct pcinst *inst)
 {
+    PC_INFO("switch new render, tickcount is %ld\n", pcintr_tick_count());
     int ret = 0;
     struct pcintr_heap *heap = inst->intr_heap;
     struct list_head *crtns = &heap->crtns;
