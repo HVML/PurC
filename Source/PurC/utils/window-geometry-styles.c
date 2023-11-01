@@ -25,11 +25,13 @@
 #include "config.h"
 #include "purc/purc-helpers.h"
 #include "private/utils.h"
+#include "private/debug.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
+#include <math.h>
 
 #define MAX_NR_SIZE_LENGTHES    2
 #define MAX_NR_POS_VALUES       4
@@ -75,6 +77,7 @@ enum window_position_x_type {
     WPX_center,
     WPX_left_offset,
     WPX_right_offset,
+    WPX_center_offset,
     WPX_length,
 };
 
@@ -84,6 +87,7 @@ enum window_position_y_type {
     WPY_center,
     WPY_top_offset,
     WPY_bottom_offset,
+    WPY_center_offset,
     WPY_length,
 };
 
@@ -141,6 +145,8 @@ parse_length_value(const char *token, size_t token_len,
     assert(digits_len <= token_len);
 
     size_t unit_len = token_len - digits_len;
+    PC_DEBUG("token: %s (%f), unit length: %u\n", token, f, (unsigned)unit_len);
+
     if (unit_len == 0) {
         length->type = WLV_number;
         length->value = f;
@@ -200,6 +206,19 @@ parse_length_value(const char *token, size_t token_len,
     return true;
 }
 
+static bool
+like_a_nonnegative_real_number(const char *token, size_t token_len)
+{
+    if (token[0] >= '0' && token[0] <= '9')
+        return true;
+
+    if (token_len > 1 && token[0] == '+' &&
+            token[1] >= '0' && token[1] <= '9')
+        return true;
+
+    return false;
+}
+
 /*
  * The syntax for window-size:
  *
@@ -237,10 +256,11 @@ parse_window_size(const char *value, size_t value_len,
     }
 
     for_each_token(value, value_len, token, token_len) {
+        PC_DEBUG("token: %s, token_len: %u\n", token, (unsigned)token_len);
         if (strncasecmp2ltr(token, "auto", token_len) == 0) {
             size->values[size->nr_lengthes].type = WLV_auto;
         }
-        else if (token[0] >= '0' && token[9] <= '9') {
+        else if (like_a_nonnegative_real_number(token, token_len)) {
             if (!parse_length_value(token, token_len,
                         size->values + size->nr_lengthes))
                 goto failed;
@@ -254,10 +274,33 @@ parse_window_size(const char *value, size_t value_len,
             break;
     }
 
+    if (size->nr_lengthes == 1) {
+        if (size->type == WSV_aspect_ratio) {
+            size->values[size->nr_lengthes].type = WLV_number;
+            size->values[size->nr_lengthes].value = 1.0;
+        }
+        else {
+            size->values[size->nr_lengthes].type = WLV_auto;
+        }
+    }
+
 done:
     return true;
 
 failed:
+    return false;
+}
+
+static bool
+like_a_real_number(const char *token, size_t token_len)
+{
+    if (token[0] >= '0' && token[0] <= '9')
+        return true;
+
+    if (token_len > 1 && (token[0] == '+' || token[0] == '-') &&
+            token[1] >= '0' && token[1] <= '9')
+        return true;
+
     return false;
 }
 
@@ -296,7 +339,8 @@ parse_window_position(const char *value, size_t value_len,
         else if (strncasecmp2ltr(token, "center", token_len) == 0) {
             pos_values->types[pos_values->nr_values] = WPV_center;
         }
-        else if (token[0] >= '0' && token[9] <= '9') {
+        else if (like_a_real_number(token, token_len)) {
+            pos_values->types[pos_values->nr_values] = WPV_length;
             if (!parse_length_value(token, token_len,
                         pos_values->values + pos_values->nr_values))
                 goto failed;
@@ -357,7 +401,7 @@ normalize_window_position_1(const struct window_position_values *values,
         case WPV_length:
             position->x_type = WPX_length;
             position->x_value.type = values->values[0].type;
-            position->x_value.type = values->values[0].type;
+            position->x_value.value = values->values[0].value;
             position->y_type = WPY_length;
             position->y_value.type = WLV_percentage;
             position->y_value.value = 50;
@@ -376,6 +420,8 @@ normalize_window_position_2(const struct window_position_values *values,
 
     position->x_type = WPX_left;
     position->y_type = WPY_top;
+
+    PC_DEBUG("First position value type: %d\n", values->types[0]);
 
     switch (values->types[0]) {
         case WPV_left:
@@ -401,7 +447,7 @@ normalize_window_position_2(const struct window_position_values *values,
         case WPV_length:
             position->x_type = WPX_length;
             position->x_value.type = values->values[0].type;
-            position->x_value.type = values->values[0].type;
+            position->x_value.value = values->values[0].value;
             x_defined = true;
             break;
 
@@ -409,6 +455,7 @@ normalize_window_position_2(const struct window_position_values *values,
             goto failed;
     }
 
+    PC_DEBUG("First position value type: %d\n", values->types[1]);
     switch (values->types[1]) {
         case WPV_left:
             if (x_defined)
@@ -442,13 +489,13 @@ normalize_window_position_2(const struct window_position_values *values,
             if (!x_defined) {
                 position->x_type = WPX_length;
                 position->x_value.type = values->values[1].type;
-                position->x_value.type = values->values[1].type;
+                position->x_value.value = values->values[1].value;
                 x_defined = true;
             }
             else if (!y_defined) {
                 position->y_type = WPY_length;
                 position->y_value.type = values->values[1].type;
-                position->y_value.type = values->values[1].type;
+                position->y_value.value = values->values[1].value;
                 y_defined = true;
             }
             break;
@@ -495,6 +542,10 @@ normalize_window_position_3(const struct window_position_values *values,
             procedings[0] = PP_Y;
             break;
 
+        case WPV_center:
+            procedings[0] = PP_X;
+            break;
+
         default:
             goto failed;
             break;
@@ -525,18 +576,25 @@ normalize_window_position_3(const struct window_position_values *values,
             procedings[1] = PP_Y;
             break;
 
+        case WPV_center:
+            if (procedings[0] == PP_X)
+                procedings[1] = PP_Y;
+            else
+                procedings[1] = PP_X;
+            break;
+
         case WPV_length:
             if (procedings[0] == PP_X) {
                 position->x_type = WPX_left_offset;
                 position->x_type += (values->types[0] - WPV_left);
                 position->x_value.type = values->values[1].type;
-                position->x_value.type = values->values[1].type;
+                position->x_value.value = values->values[1].value;
             }
             else if (procedings[0] == PP_Y) {
                 position->y_type = WPY_top_offset;
                 position->y_type += (values->types[0] - WPV_top);
                 position->y_value.type = values->values[1].type;
-                position->y_value.type = values->values[1].type;
+                position->y_value.value = values->values[1].value;
             }
             else {
                 assert(0);
@@ -547,36 +605,80 @@ normalize_window_position_3(const struct window_position_values *values,
             goto failed;
     }
 
-    assert(procedings[0] != PP_INV && procedings[1] != PP_INV &&
-            procedings[0] != procedings[1]);
-
-    if (values->types[2] != WPV_length) {
+    if (procedings[0] != PP_INV && procedings[1] != PP_INV &&
+            values->types[2] != WPV_length) {
         goto failed;
     }
 
-    if (procedings[0] == PP_X) {
-        /* left top 20px */
-        position->x_type = WPX_left_offset;
-        position->x_type += (values->types[0] - WPV_left);
-        position->x_value.type = values->values[2].type;
-        position->x_value.type = values->values[2].type;
+    switch (values->types[2]) {
+        case WPV_left:
+            if (procedings[0] == PP_X)
+                goto failed;
+            position->x_type =  WPX_left;
+            procedings[1] = PP_X;
+            break;
 
-        position->y_type = WPY_top_offset;
-        position->y_type += (values->types[1] - WPV_top);
-        position->y_value.type = values->values[2].type;
-        position->y_value.type = values->values[2].type;
-    }
-    else {
-        /* top left 20px */
-        position->x_type = WPX_left_offset;
-        position->x_type += (values->types[1] - WPV_left);
-        position->x_value.type = values->values[2].type;
-        position->x_value.type = values->values[2].type;
+        case WPV_right:
+            if (procedings[0] == PP_X)
+                goto failed;
+            position->x_type =  WPX_right;
+            procedings[1] = PP_X;
+            break;
 
-        position->y_type = WPY_top_offset;
-        position->y_type += (values->types[0] - WPV_top);
-        position->y_value.type = values->values[2].type;
-        position->y_value.type = values->values[2].type;
+        case WPV_top:
+            if (procedings[0] == PP_Y)
+                goto failed;
+            position->y_type =  WPY_top;
+            procedings[1] = PP_Y;
+            break;
+
+        case WPV_bottom:
+            if (procedings[0] == PP_Y)
+                goto failed;
+            position->y_type =  WPY_bottom;
+            procedings[1] = PP_Y;
+            break;
+
+        case WPV_center:
+            if (procedings[0] == PP_X) {
+                position->y_type =  WPY_center;
+                procedings[1] = PP_Y;
+            }
+            else {
+                position->x_type =  WPX_center;
+                procedings[1] = PP_X;
+            }
+            break;
+
+        case WPV_length:
+            if (procedings[0] == PP_X) {
+                /* left top 20px */
+                position->x_type = WPX_left_offset;
+                position->x_type += (values->types[0] - WPV_left);
+                position->x_value.type = values->values[2].type;
+                position->x_value.value = values->values[2].value;
+
+                position->y_type = WPY_top_offset;
+                position->y_type += (values->types[1] - WPV_top);
+                position->y_value.type = values->values[2].type;
+                position->y_value.value = values->values[2].value;
+            }
+            else {
+                /* top left 20px */
+                position->x_type = WPX_left_offset;
+                position->x_type += (values->types[1] - WPV_left);
+                position->x_value.type = values->values[2].type;
+                position->x_value.value = values->values[2].value;
+
+                position->y_type = WPY_top_offset;
+                position->y_type += (values->types[0] - WPV_top);
+                position->y_value.type = values->values[2].type;
+                position->y_value.value = values->values[2].value;
+            }
+            break;
+
+        default:
+            goto failed;
     }
 
     return true;
@@ -603,6 +705,11 @@ normalize_window_position_4(const struct window_position_values *values,
             x_defined = true;
             break;
 
+        case WPV_center:
+            position->x_type = WPX_center_offset;
+            x_defined = true;
+            break;
+
         case WPV_top:
             position->y_type = WPY_top_offset;
             y_defined = true;
@@ -622,11 +729,11 @@ normalize_window_position_4(const struct window_position_values *values,
 
     if (x_defined) {
         position->x_value.type = values->values[1].type;
-        position->x_value.type = values->values[1].type;
+        position->x_value.value = values->values[1].value;
     }
     else if (y_defined) {
         position->y_value.type = values->values[1].type;
-        position->y_value.type = values->values[1].type;
+        position->y_value.value = values->values[1].value;
     }
 
     bool second_is_x = y_defined;
@@ -659,6 +766,17 @@ normalize_window_position_4(const struct window_position_values *values,
             y_defined = true;
             break;
 
+        case WPV_center:
+            if (x_defined) {
+                position->y_type = WPY_center_offset;
+                y_defined = true;
+            }
+            else {
+                position->x_type = WPX_center_offset;
+                x_defined = true;
+            }
+            break;
+
         default:
             goto failed;
     }
@@ -671,11 +789,11 @@ normalize_window_position_4(const struct window_position_values *values,
 
     if (second_is_x) {
         position->x_value.type = values->values[3].type;
-        position->x_value.type = values->values[3].type;
+        position->x_value.value = values->values[3].value;
     }
     else {
         position->y_value.type = values->values[3].type;
-        position->y_value.type = values->values[3].type;
+        position->y_value.value = values->values[3].value;
     }
 
     return true;
@@ -689,6 +807,8 @@ normalize_window_position(const struct window_position_values *values,
         struct window_position *position)
 {
     bool ret = false;
+
+    PC_DEBUG("position value: %d\n", values->nr_values);
 
     switch (values->nr_values) {
         case 1:
@@ -715,26 +835,28 @@ calc_size_for_aspect_ratio(const struct purc_screen_info *screen_info,
         const struct window_size *size,
         struct purc_window_geometry *geometry)
 {
-    float ratio_x, ratio_y;
+    float ratio_expected, ratio_screen;
 
     if (size->values[0].type != WLV_number ||
             size->values[1].type != WLV_number)
         return false;
 
-    ratio_x = size->values[0].value;
-    ratio_y = size->values[1].value;
-    if (ratio_x <= 0 || ratio_y <= 0)
+    if (size->values[0].value <= 0 || size->values[0].value <= 0)
         return false;
 
-    if (ratio_x >= ratio_y) {
-        /* landscape */
+    ratio_expected = size->values[0].value / size->values[1].value;
+    ratio_screen = screen_info->width * 1.0f / screen_info->height;
+
+    PC_DEBUG("ratio_expected: %f, ratio_screen: %f\n",
+            ratio_expected, ratio_screen);
+
+    if (ratio_expected >= ratio_screen) {
         geometry->width = screen_info->width;
-        geometry->height = (unsigned)(geometry->width * ratio_y / ratio_x);
+        geometry->height = (int)roundf(geometry->width / ratio_expected);
     }
     else {
-        /* portrait */
         geometry->height = screen_info->height;
-        geometry->width = (unsigned)(geometry->height * ratio_x / ratio_y);
+        geometry->width = (int)roundf(geometry->height * ratio_expected);
     }
 
     return true;
@@ -748,57 +870,58 @@ calc_dots_for_length(const struct purc_screen_info *screen_info,
 
     switch (length->type) {
     case WLV_auto:
-        v = 0;
+        v = for_x ? screen_info->width : screen_info->height;
         break;
     case WLV_number:
-        assert(0);
+        /* assume as px */
+        v = length->value;
         break;
     case WLV_percentage:
         if (for_x)
-            v = length->value * screen_info->width/100;
+            v = length->value * screen_info->width/100.f;
         else
-            v = length->value * screen_info->height/100;
+            v = length->value * screen_info->height/100.f;
         break;
     case WLV_unit_px:
         v = length->value;
         break;
     case WLV_unit_cm:
-        v = length->value * screen_info->dpi/2.54;
+        v = length->value * screen_info->dpi/2.54f;
         break;
     case WLV_unit_mm:
-        v = length->value * screen_info->dpi/2.54/10;
+        v = length->value * screen_info->dpi/2.54f/10;
         break;
     case WLV_unit_q:
-        v = length->value * screen_info->dpi/2.54/40;
+        v = length->value * screen_info->dpi/2.54f/40;
         break;
     case WLV_unit_in:
         v = length->value * screen_info->dpi;
         break;
     case WLV_unit_pc:
-        v = length->value * screen_info->dpi/6.0;
+        v = length->value * screen_info->dpi/6.0f;
         break;
     case WLV_unit_pt:
-        v = length->value * screen_info->dpi/72.0;
+        v = length->value * screen_info->dpi/72.0f;
         break;
 
     case WLV_unit_vw:
-        v = length->value * screen_info->width/100;
+        v = length->value * screen_info->width/100.f;
         break;
     case WLV_unit_vh:
-        v = length->value * screen_info->height/100;
+        v = length->value * screen_info->height/100.f;
         break;
     case WLV_unit_vmax:
         if (screen_info->width > screen_info->height)
-            v = length->value * screen_info->width/100;
+            v = length->value * screen_info->width/100.f;
         else
-            v = length->value * screen_info->height/100;
+            v = length->value * screen_info->height/100.f;
         break;
 
     case WLV_unit_vmin:
         if (screen_info->width < screen_info->height)
-            v = length->value * screen_info->width/100;
+            v = length->value * screen_info->width/100.f;
         else
-            v = length->value * screen_info->height/100;
+            v = length->value * screen_info->height/100.f;
         break;
     }
 
@@ -821,12 +944,46 @@ calc_size_for_lengthes(const struct purc_screen_info *screen_info,
     if (w < 0 || h < 0)
         return false;
 
-    geometry->width = (unsigned)w;
-    geometry->height = (unsigned)h;
+    geometry->width = (int)roundf(w);
+    geometry->height = (int)roundf(h);
     return true;
 }
 
-static bool
+static int
+calc_window_position(const struct purc_screen_info *screen_info,
+        struct purc_window_geometry *geometry,
+        const struct window_length_value *length, bool for_x)
+{
+    int pos;
+
+    PC_DEBUG("%s length type: %d, value: %f\n",
+            for_x ? "X" : "Y", length->type, length->value);
+
+    if (length->type == WLV_auto) {
+        if (for_x)
+            pos =
+                (int)roundf((screen_info->width - geometry->width) * 0.5f);
+        else
+            pos =
+                (int)roundf((screen_info->height - geometry->height) * 0.5f);
+    }
+    else if (length->type == WLV_percentage) {
+
+        if (for_x)
+            pos = (int)roundf((screen_info->width - geometry->width) *
+                    length->value / 100.f);
+        else
+            pos = (int)roundf((screen_info->height - geometry->height) *
+                    length->value / 100.f);
+    }
+    else {
+        pos = (int)roundf(calc_dots_for_length(screen_info, length, for_x));
+    }
+
+    return pos;
+}
+
+static int
 evaluate_window_geometry(const struct purc_screen_info *screen_info,
         const struct window_size *size, const struct window_position *position,
         struct purc_window_geometry *geometry)
@@ -858,6 +1015,8 @@ evaluate_window_geometry(const struct purc_screen_info *screen_info,
     geometry->y = 0;
 
     int dots;
+
+    PC_DEBUG("X position type: %d\n", position->x_type);
     switch (position->x_type) {
         case WPX_left:
             geometry->x = 0;
@@ -868,28 +1027,39 @@ evaluate_window_geometry(const struct purc_screen_info *screen_info,
             break;
 
         case WPX_center:
-            geometry->x = (screen_info->width - geometry->width) >> 1;
+            geometry->x =
+                (int)roundf((screen_info->width - geometry->width) * 0.5f);
             break;
 
         case WPX_left_offset:
-            dots = (int)calc_dots_for_length(screen_info,
-                    &position->x_value, true);
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->x_value, true));
+            PC_DEBUG("left offset: %d\n", dots);
             geometry->x = dots;
             break;
 
         case WPX_right_offset:
-            dots = (int)calc_dots_for_length(screen_info,
-                    &position->x_value, true);
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->x_value, true));
             geometry->x = screen_info->width - dots - geometry->width;
             break;
 
+        case WPX_center_offset:
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->x_value, true));
+            geometry->x =
+                (int)roundf((screen_info->width - geometry->width) * 0.5f);
+            geometry->x += dots;
+            break;
+
         case WPX_length:
-            dots = (int)calc_dots_for_length(screen_info,
+            dots = calc_window_position(screen_info, geometry,
                     &position->x_value, true);
             geometry->x = dots;
             break;
     }
 
+    PC_DEBUG("Y position type: %d\n", position->y_type);
     switch (position->y_type) {
         case WPY_top:
             geometry->y = 0;
@@ -900,35 +1070,44 @@ evaluate_window_geometry(const struct purc_screen_info *screen_info,
             break;
 
         case WPY_center:
-            geometry->y = (screen_info->height - geometry->height) >> 1;
+            geometry->y =
+                (int)roundf((screen_info->height - geometry->height) * 0.5f);
             break;
 
         case WPY_top_offset:
-            dots = (int)calc_dots_for_length(screen_info,
-                    &position->y_value, false);
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->y_value, false));
             geometry->y = dots;
             break;
 
         case WPY_bottom_offset:
-            dots = (int)calc_dots_for_length(screen_info,
-                    &position->x_value, false);
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->x_value, false));
             geometry->y = screen_info->height - dots - geometry->height;
             break;
 
+        case WPY_center_offset:
+            dots = (int)roundf(calc_dots_for_length(screen_info,
+                    &position->y_value, false));
+            geometry->y =
+                (int)roundf((screen_info->height - geometry->height) * 0.5f);
+            geometry->y += dots;
+            break;
+
         case WPY_length:
-            dots = (int)calc_dots_for_length(screen_info,
+            dots = calc_window_position(screen_info, geometry,
                     &position->y_value, false);
             geometry->y = dots;
             break;
     }
 
-    return true;
+    return 0;
 
 failed:
-    return false;
+    return -1;
 }
 
-bool
+int
 purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
         const struct purc_screen_info *screen_info,
         struct purc_window_geometry *geometry)

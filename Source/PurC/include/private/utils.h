@@ -49,6 +49,14 @@
 
 #define IS_PATH_SEP(c) ((c) == PATH_SEP)
 
+#ifndef MIN
+#   define MIN(x, y)   (((x) > (y)) ? (y) : (x))
+#endif
+
+#ifndef MAX
+#   define MAX(x, y)   (((x) < (y)) ? (y) : (x))
+#endif
+
 #define pcutils_html_whitespace(onechar, action, logic)   \
     (onechar action ' '  logic                            \
      onechar action '\t' logic                            \

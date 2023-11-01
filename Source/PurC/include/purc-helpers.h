@@ -861,7 +861,8 @@ purc_is_valid_css_identifier(const char *id);
  * @param group_buf: The pointer to a buffer to store the page group
  *      identifier; nullable.
  *
- * Returns: 0 for success; a value less than 0 for bad page identifier.
+ * Returns: a value (the page type identifier) greater than or equal to 0
+ *      for success; a value less than 0 for bad page identifier.
  *
  * Since: 0.9.18
  */
@@ -871,10 +872,10 @@ purc_split_page_identifier(const char *page_id, char *type_buf,
 
 struct purc_screen_info {
     /** The number of horinzontal physical pixels (dots) of screen. */
-    unsigned width;
+    int width;
 
     /** The number of vertial physical pixels (dots) of screen. */
-    unsigned height;
+    int height;
 
     /** The number of dots per inch. */
     float dpi;
@@ -888,7 +889,7 @@ struct purc_window_geometry {
     int x, y;
 
     /* the width and height of the window in dots. */
-    unsigned width, height;
+    int width, height;
 };
 
 /**
@@ -899,11 +900,11 @@ struct purc_window_geometry {
  * @param geometry: The pointer to a buffer to store the evaluted window
  *  geometry.
  *
- * Returns: `true` for success, otherwise `false`.
+ * Returns: 0 for success; a value less than 0 for bad styles.
  *
  * Since: 0.9.18
  */
-PCA_EXPORT bool
+PCA_EXPORT int
 purc_evaluate_standalone_window_geometry_from_styles(const char *styles,
         const struct purc_screen_info *screen_info,
         struct purc_window_geometry *geometry);

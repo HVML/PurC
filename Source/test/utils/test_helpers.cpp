@@ -54,10 +54,10 @@ TEST(test_split_page_identifier, split_page_identifier)
     };
 
     for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        std::cout << "testing: " << positive_cases[i].page_id << std::endl;
+
         int ret = purc_split_page_identifier(positive_cases[i].page_id,
                 type, name, workspace, group);
-
-        std::cout << "testing: " << positive_cases[i].page_id << std::endl;
 
         ASSERT_GE(ret, 0);
         ASSERT_STREQ(type, positive_cases[i].type);
@@ -79,6 +79,61 @@ TEST(test_split_page_identifier, split_page_identifier)
         int ret = purc_split_page_identifier(negative_cases[i],
                 type, name, workspace, group);
         ASSERT_LT(ret, 0);
+    }
+}
+
+TEST(test_window_styles, window_styles)
+{
+    purc_enable_log_ex(PURC_LOG_MASK_ALL, PURC_LOG_FACILITY_STDOUT);
+
+    static const struct purc_screen_info screen = { 1920, 1280, 96, 1 };
+
+    static struct positvie_case {
+        const char *styles;
+        struct purc_window_geometry geometry;
+    } positive_cases[] = {
+        { "", { 0, 0, 1920, 1280 } },   // default geometry: full-screen.
+        { "window-size:screen", { 0, 0, 1920, 1280 } },
+        { "window-size:square", { 0, 0, 1280, 1280 } },
+        { "window-size:50\% auto", { 0, 0, 960, 1280 } },
+        { "window-size:50\% 50%", { 0, 0, 960, 640 } },
+        { "window-size:50\%", { 0, 0, 960, 1280 } },
+        { "window-size:50\% 450px", { 0, 0, 960, 450 } },
+        { "window-size:aspect-ratio 1 1", { 0, 0, 1280, 1280 } },
+        { "window-size:aspect-ratio 4 3", { 0, 0, 1707, 1280 } },
+        { "window-size:aspect-ratio 3 4", { 0, 0, 960, 1280 } },
+        { "window-size:aspect-ratio 2 1", { 0, 0, 1920, 960 } },
+        { "window-size:50% 50%; window-position:top", { 480, 0, 960, 640 } },
+        { "window-size:50% 50%; window-position:left", { 0, 320, 960, 640 } },
+        { "window-size:200% 200%; window-position:center", { -960, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:right", { -1920, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:bottom", { -960, -1280, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:50% 50%", { -960, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:0 0;", { 0, 0, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:left 50%", { 0, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position:right 50%", { -1920, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: top 50%", { -960, 0, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: 50\% bottom", { -960, -1280, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: left top 50px", { 50, 50, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: left 50px center", { 50, -640, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: left 10px top 20px", { 10, 20, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: left -10px top -20px", { -10, -20, 3840, 2560 } },
+        { "window-size:200% 200%; window-position: center -10px center -20px", { -970, -660, 3840, 2560 } },
+    };
+
+    for (size_t i = 0; i < sizeof(positive_cases)/sizeof(positive_cases[0]); i++) {
+        struct purc_window_geometry geometry;
+
+        std::cout << "testing: " << positive_cases[i].styles << std::endl;
+
+        int ret = purc_evaluate_standalone_window_geometry_from_styles(
+                positive_cases[i].styles, &screen, &geometry);
+
+        ASSERT_EQ(ret, 0);
+        ASSERT_EQ(geometry.x, positive_cases[i].geometry.x);
+        ASSERT_EQ(geometry.y, positive_cases[i].geometry.y);
+        ASSERT_EQ(geometry.width, positive_cases[i].geometry.width);
+        ASSERT_EQ(geometry.height, positive_cases[i].geometry.height);
     }
 }
 
