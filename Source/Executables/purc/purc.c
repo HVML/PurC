@@ -176,11 +176,11 @@ static void print_usage(FILE *fp)
         "\n"
         "  -L --layout-style\n"
         "        The layout style will be passed to the renderer for the HVML program.\n"
-        "        This option is only valid if the page type is plainwin.\n"
+        "        This option is only valid if only one HVML program was given and the page type is plainwin.\n"
         "\n"
         "  -T --toolkit-style\n"
         "        The toolkit style will be passed to the renderer for the HVML program.\n"
-        "        This optioni is only valid if the page type is plainwin.\n"
+        "        This option is only valid if only one HVML program was given and the page type is plainwin.\n"
         "\n"
         "  -l --parallel\n"
         "        Execute multiple programs in parallel.\n"
@@ -1307,17 +1307,17 @@ run_single_program(struct my_opts *opts, purc_variant_t request)
     char name[PURC_LEN_IDENTIFIER + 1] = "";
     char workspace[PURC_LEN_IDENTIFIER + 1] = "";
     char group[PURC_LEN_IDENTIFIER + 1] = "";
-    int ret;
+    int page_type;
 
     if (opts->pageid) {
-        ret = purc_split_page_identifier(opts->pageid,
+        page_type = purc_split_page_identifier(opts->pageid,
                 NULL, name, workspace, group);
     }
     else
-        ret = PCRDR_PAGE_TYPE_PLAINWIN;
+        page_type = PCRDR_PAGE_TYPE_PLAINWIN;
 
     /* we have validated the pageid */
-    assert(ret >= 0);
+    assert(page_type >= 0);
 
     struct runr_info runr_info = { opts, &run_info };
     purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
@@ -1329,21 +1329,23 @@ run_single_program(struct my_opts *opts, purc_variant_t request)
             fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
 
         purc_renderer_extra_info ex_rdr_info = {};
-        ex_rdr_info.layout_style = opts->layout_style;
+        if (page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
+            ex_rdr_info.layout_style = opts->layout_style;
 
-        if (opts->toolkit_style) {
-            ex_rdr_info.toolkit_style = purc_variant_make_from_json_string(
-                    opts->toolkit_style,
-                    strlen(opts->toolkit_style));
-            if (!ex_rdr_info.toolkit_style && opts->verbose) {
-                fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
-                        opts->toolkit_style);
+            if (opts->toolkit_style) {
+                ex_rdr_info.toolkit_style = purc_variant_make_from_json_string(
+                        opts->toolkit_style,
+                        strlen(opts->toolkit_style));
+                if (!ex_rdr_info.toolkit_style && opts->verbose) {
+                    fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
+                            opts->toolkit_style);
+                }
             }
         }
 
         struct crtn_info crtn_info = { url };
         purc_schedule_vdom(vdom, 0, request,
-                (pcrdr_page_type_k)ret, workspace, group, name,
+                (pcrdr_page_type_k)page_type, workspace, group, name,
                 (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style) ?
                 &ex_rdr_info : NULL, opts->body_ids->list[0], &crtn_info);
         purc_run((purc_cond_handler)prog_cond_handler);
