@@ -424,7 +424,7 @@ static bool validate_url(struct my_opts *opts, const char *url)
 
 static int read_option_args(struct my_opts *opts, int argc, char **argv)
 {
-    static const char short_options[] = "a:r:d:c:u:j:q:lL:T:R:U:G:vCVh";
+    static const char short_options[] = "a:r:d:c:u:j:q:P:L:T:R:U:G:lvCVh";
     static const struct option long_opts[] = {
         { "app"            , required_argument , NULL , 'a' },
         { "runner"         , required_argument , NULL , 'r' },
@@ -1324,13 +1324,9 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         toolkit_style = purc_variant_make_from_json_string(
                 opts->toolkit_style,
                 strlen(opts->toolkit_style));
-        if (!toolkit_style) {
-            if (opts->verbose) {
-                fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
-                        opts->toolkit_style);
-            }
-
-            goto failed;
+        if (!toolkit_style && opts->verbose) {
+            fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
+                    opts->toolkit_style);
         }
     }
 
@@ -1385,8 +1381,6 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         purc_variant_unref(toolkit_style);
 
     purc_remove_local_data(RUNR_INFO_NAME);
-
-failed:
     return nr_executed > 0;
 }
 
