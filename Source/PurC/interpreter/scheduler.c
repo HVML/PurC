@@ -786,6 +786,11 @@ pcintr_schedule(void *ctxt)
 
 again:
 
+    if (inst->conn_to_rdr_origin) {
+        pcrdr_disconnect(inst->conn_to_rdr_origin);
+        inst->conn_to_rdr_origin = NULL;
+    }
+
     // 1. exec one step for all ready coroutines and
     // return whether step is busy
     step_is_busy = execute_one_step(inst);
