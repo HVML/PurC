@@ -867,7 +867,7 @@ purc_is_valid_css_identifier(const char *id);
  */
 int
 purc_split_page_identifier(const char *page_id, char *type_buf,
-        char *name_buf, char *worspace_buf, char *group_buf);
+        char *name_buf, char *workspace_buf, char *group_buf);
 
 struct purc_screen_info {
     /** The number of horinzontal physical pixels (dots) of screen. */

@@ -1286,33 +1286,67 @@ int purc_split_page_identifier(const char *page_id, char *type_buf,
     char *tmp;
 
     tmp = strchr(p, PURC_SEP_PAGE_TYPE);
-    if (tmp == NULL)
+    if (tmp == NULL) {
+        PC_DEBUG("no semicolon\n");
         goto failed;
+    }
 
     part_len = tmp - p;
-    if (part_len >= PURC_LEN_IDENTIFIER)
+    if (part_len >= PURC_LEN_IDENTIFIER) {
+        PC_DEBUG("too long type\n");
         goto failed;
+    }
 
     memcpy(part, p, part_len);
     part[part_len] = 0;
 
-    if ((ret = check_page_type(part)) < 0)
+    if ((ret = check_page_type(part)) < 0) {
+        PC_DEBUG("bad page type\n");
         goto failed;
+    }
 
     if (type_buf)
         strcpy(type_buf, part);
 
+    if (name_buf)
+        name_buf[0] = 0;
+    if (workspace_buf)
+        workspace_buf[0] = 0;
+    if (group_buf)
+        group_buf[0] = 0;
+
+    if (ret < PCRDR_PAGE_TYPE_PLAINWIN)
+        goto done;
+
     p = tmp + 1;
     tmp = strchr(p, PURC_SEP_GROUP_NAME);
     if (tmp == NULL) {
-        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+            PC_DEBUG("bad page name\n");
             goto failed;
+        }
 
         if (name_buf)
             strcpy(name_buf, p);
 
         goto done;
     }
+
+    part_len = tmp - p;
+    if (part_len >= PURC_LEN_IDENTIFIER) {
+        PC_DEBUG("bad page name\n");
+        goto failed;
+    }
+
+    memcpy(part, p, part_len);
+    part[part_len] = 0;
+    if (!purc_is_valid_token(part, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad page name\n");
+        goto failed;
+    }
+
+    if (name_buf)
+        strcpy(name_buf, part);
 
     p = tmp + 1;
     tmp = strchr(p, PURC_SEP_WORKSPACE_NAME);
@@ -1321,8 +1355,10 @@ int purc_split_page_identifier(const char *page_id, char *type_buf,
         if (workspace_buf)
             workspace_buf[0] = 0;
 
-        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+        if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+            PC_DEBUG("bad group name\n");
             goto failed;
+        }
 
         if (group_buf)
             strcpy(group_buf, p);
@@ -1336,15 +1372,19 @@ int purc_split_page_identifier(const char *page_id, char *type_buf,
 
     memcpy(part, p, part_len);
     part[part_len] = 0;
-    if (!purc_is_valid_token(tmp, PURC_LEN_IDENTIFIER))
+    if (!purc_is_valid_token(part, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad workspace name\n");
         goto failed;
+    }
 
     if (workspace_buf)
         strcpy(workspace_buf, part);
 
     p = tmp + 1;
-    if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER))
+    if (!purc_is_valid_token(p, PURC_LEN_IDENTIFIER)) {
+        PC_DEBUG("bad group name\n");
         goto failed;
+    }
 
     if (group_buf)
         strcpy(group_buf, p);

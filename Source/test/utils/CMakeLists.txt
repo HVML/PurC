@@ -88,3 +88,30 @@ PURC_COMPUTE_SOURCES(test_runloop)
 PURC_FRAMEWORK(test_runloop)
 GTEST_DISCOVER_TESTS(test_runloop DISCOVERY_TIMEOUT 10)
 
+# test_helpers
+PURC_EXECUTABLE_DECLARE(test_helpers)
+
+list(APPEND test_helpers_PRIVATE_INCLUDE_DIRECTORIES
+    ${FORWARDING_HEADERS_DIR}
+    ${PURC_DIR} ${PURC_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${GLIB_INCLUDE_DIRS}
+)
+
+PURC_EXECUTABLE(test_helpers)
+
+set(test_helpers_SOURCES
+    test_helpers.cpp
+)
+
+set(test_helpers_LIBRARIES
+    PurC::PurC
+    gtest_main
+    gtest
+    pthread
+)
+
+PURC_COMPUTE_SOURCES(test_helpers)
+PURC_FRAMEWORK(test_helpers)
+GTEST_DISCOVER_TESTS(test_helpers DISCOVERY_TIMEOUT 10)
+
