@@ -251,7 +251,7 @@ static const char *archedata_header =
 static const char *archedata_coroutine =
                 "{ 'url': $OPTS.urls[%u], 'bodyId': $OPTS.bodyIds[%u],"
                     "'request': $OPTS.request,"
-                    "'renderer': { 'pageId': 'plainwin:win%u' }"
+                    "'renderer': { 'pageType': 'plainwin', 'pageName': 'win%u' }"
                 "},";
 
 static const char *archedata_footer =
@@ -1301,9 +1301,9 @@ static int prog_cond_handler(purc_cond_k event, purc_coroutine_t cor,
 }
 
 static bool
-run_single_program(struct my_opts *opts, purc_variant_t request)
+run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
 {
-    bool success = false;
+    size_t nr_executed = 0;
     char name[PURC_LEN_IDENTIFIER + 1] = "";
     char workspace[PURC_LEN_IDENTIFIER + 1] = "";
     char group[PURC_LEN_IDENTIFIER + 1] = "";
@@ -1319,66 +1319,20 @@ run_single_program(struct my_opts *opts, purc_variant_t request)
     /* we have validated the pageid */
     assert(page_type >= 0);
 
-    struct runr_info runr_info = { opts, &run_info };
-    purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
-
-    const char *url = opts->urls->list[0];
-    purc_vdom_t vdom = load_hvml(url);
-    if (vdom) {
-        if (opts->verbose)
-            fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
-
-        purc_renderer_extra_info ex_rdr_info = {};
-        if (page_type == PCRDR_PAGE_TYPE_PLAINWIN) {
-            ex_rdr_info.layout_style = opts->layout_style;
-
-            if (opts->toolkit_style) {
-                ex_rdr_info.toolkit_style = purc_variant_make_from_json_string(
-                        opts->toolkit_style,
-                        strlen(opts->toolkit_style));
-                if (!ex_rdr_info.toolkit_style && opts->verbose) {
-                    fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
-                            opts->toolkit_style);
-                }
+    purc_variant_t toolkit_style = PURC_VARIANT_INVALID;
+    if (opts->toolkit_style) {
+        toolkit_style = purc_variant_make_from_json_string(
+                opts->toolkit_style,
+                strlen(opts->toolkit_style));
+        if (!toolkit_style) {
+            if (opts->verbose) {
+                fprintf(stdout, "Bad toolkit style `%s`, ignored\n",
+                        opts->toolkit_style);
             }
-        }
 
-        struct crtn_info crtn_info = { url };
-        purc_schedule_vdom(vdom, 0, request,
-                (pcrdr_page_type_k)page_type, workspace, group, name,
-                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style) ?
-                &ex_rdr_info : NULL, opts->body_ids->list[0], &crtn_info);
-        purc_run((purc_cond_handler)prog_cond_handler);
-        if (ex_rdr_info.toolkit_style)
-            purc_variant_unref(ex_rdr_info.toolkit_style);
-        success = true;
-    }
-    else {
-        fprintf(stderr, "Failed to load HVML from %s: %s\n", url,
-                purc_get_error_message(purc_get_last_error()));
-
-        if (opts->verbose) {
-            struct purc_parse_error_info *parse_error = NULL;
-            purc_get_local_data(PURC_LDNAME_PARSE_ERROR,
-                    (uintptr_t *)(void *)&parse_error, NULL);
-            if (parse_error) {
-                fprintf(stderr,
-                        "Parse %s failed : line=%d, column=%d, character=0x%x\n",
-                        url, parse_error->line, parse_error->column,
-                        parse_error->character);
-            }
+            goto failed;
         }
     }
-
-    purc_remove_local_data(RUNR_INFO_NAME);
-    return success;
-}
-
-
-static bool
-run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
-{
-    size_t nr_executed = 0;
 
     struct runr_info runr_info = { opts, &run_info };
     purc_set_local_data(RUNR_INFO_NAME, (uintptr_t)&runr_info, NULL);
@@ -1390,10 +1344,21 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
             if (opts->verbose)
                 fprintf(stdout, "\nExecuting HVML program from `%s`...\n", url);
 
+            purc_renderer_extra_info ex_rdr_info = {};
+            if (page_type == PCRDR_PAGE_TYPE_PLAINWIN ||
+                    page_type == PCRDR_PAGE_TYPE_WIDGET) {
+                ex_rdr_info.layout_style = opts->layout_style;
+                ex_rdr_info.toolkit_style = toolkit_style;
+            }
+
             struct crtn_info crtn_info = { url };
             purc_schedule_vdom(vdom, 0, request,
-                    PCRDR_PAGE_TYPE_PLAINWIN, NULL, NULL, NULL,
-                    NULL, opts->body_ids->list[i], &crtn_info);
+                (pcrdr_page_type_k)page_type,
+                workspace[0] ? workspace : NULL,
+                group[0] ? group : NULL,
+                name[0] ? name : NULL,
+                (ex_rdr_info.layout_style || ex_rdr_info.toolkit_style) ?
+                &ex_rdr_info : NULL, opts->body_ids->list[i], &crtn_info);
             purc_run((purc_cond_handler)prog_cond_handler);
 
             nr_executed++;
@@ -1416,7 +1381,12 @@ run_programs_sequentially(struct my_opts *opts, purc_variant_t request)
         }
     }
 
+    if (toolkit_style)
+        purc_variant_unref(toolkit_style);
+
     purc_remove_local_data(RUNR_INFO_NAME);
+
+failed:
     return nr_executed > 0;
 }
 
@@ -1925,13 +1895,7 @@ int main(int argc, char** argv)
     }
     else {
         assert(!opts->parallel);
-
-        if (opts->urls->length > 0) {
-            success = run_programs_sequentially(opts, request);
-        }
-        else {
-            success = run_single_program(opts, request);
-        }
+        success = run_programs_sequentially(opts, request);
     }
 
 failed:

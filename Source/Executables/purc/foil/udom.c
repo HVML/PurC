@@ -1322,6 +1322,7 @@ foil_udom_load_edom(pcmcth_page *page, purc_variant_t edom, int *retv)
 failed:
     if (udom)
         foil_udom_delete(udom);
+    page->udom = NULL;
     return NULL;
 }
 

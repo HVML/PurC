@@ -262,7 +262,7 @@ found:
         return foil_quotes_ref(found->quotes);
 
     found->quotes = foil_quotes_new(found->nr_strings, found->strings);
-    return found->quotes;
+    return foil_quotes_ref(found->quotes);
 }
 
 void foil_quotes_delete(foil_quotes *quotes)

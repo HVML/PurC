@@ -145,11 +145,15 @@ static int on_each_ostack(void *ctxt, const char *name, void *data)
     }
 
     pcmcth_page *page = purc_page_ostack_get_page(ostack);
+    LOG_DEBUG("removing page %p\n", page);
     if (sorted_array_find(sess->all_handles, PTR2U64(page), NULL) >= 0) {
         pcmcth_udom *udom = foil_page_delete(page);
         if (udom) {
             foil_udom_delete(udom);
         }
+
+        sorted_array_remove(sess->all_handles, PTR2U64(page));
+        LOG_DEBUG("page %p removed\n", page);
     }
 
     purc_page_ostack_delete(sess->workspace->page_owners, ostack);
@@ -332,8 +336,6 @@ static pcmcth_page *foil_create_plainwin(pcmcth_session *sess,
     if (plain_win) {
         sorted_array_add(sess->all_handles, PTR2U64(plain_win),
                 INT2PTR(HT_PLAINWIN));
-        /* TODO sorted_array_add(sess->all_handles, PTR2U64(web_view),
-                INT2PTR(HT_PAGE)); */
         *retv = PCRDR_SC_OK;
     }
     else {
@@ -404,9 +406,16 @@ static int
 foil_destroy_plainwin(pcmcth_session *sess, pcmcth_workspace *workspace,
         pcmcth_page *plain_win)
 {
-    workspace = sess->workspace;
-    return foil_wsp_destroy_widget(workspace, sess, plain_win, plain_win,
-        WSP_WIDGET_TYPE_PLAINWINDOW);
+    void *data;
+    if (sorted_array_find(sess->all_handles, PTR2U64(plain_win), &data) < 0) {
+        sorted_array_remove(sess->all_handles, PTR2U64(plain_win));
+
+        workspace = sess->workspace;
+        return foil_wsp_destroy_widget(workspace, sess, plain_win, plain_win,
+            WSP_WIDGET_TYPE_PLAINWINDOW);
+    }
+
+    return PCRDR_SC_BAD_REQUEST;
 }
 
 #if 0
