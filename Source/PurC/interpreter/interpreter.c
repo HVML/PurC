@@ -3755,10 +3755,12 @@ pcintr_coroutine_switch_renderer(struct pcinst *inst, pcintr_coroutine_t cor)
         goto out;
     }
 
-    r = pcintr_rdr_page_control_load(inst, &cor->stack);
-    if (!r) {
-        ret = -1;
-        goto out;
+    if (cor->stage == CO_STAGE_OBSERVING) {
+        r = pcintr_rdr_page_control_load(inst, &cor->stack);
+        if (!r) {
+            ret = -1;
+            goto out;
+        }
     }
 
     r = 0;
