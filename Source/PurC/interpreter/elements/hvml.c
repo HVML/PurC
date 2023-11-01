@@ -442,7 +442,8 @@ after_pushed(pcintr_stack_t stack, pcvdom_element_t pos)
     if (r)
         return ctxt;
 
-    if (ctxt->template &&
+    if (ctxt->template && !stack->inherit &&
+            (stack->co->target_page_type != PCRDR_PAGE_TYPE_NULL) &&
             (purc_document_type(stack->doc) != PCDOC_K_TYPE_VOID)) {
         r = process_init_sync(stack->co, frame);
         return ctxt;
@@ -573,10 +574,6 @@ again:
     }
     else {
         curr = pcvdom_node_next_sibling(curr);
-    }
-
-    if (curr) {
-        pcvdom_element_t elemc = PCVDOM_ELEMENT_FROM_NODE(curr);
     }
 
     ctxt->curr = curr;
