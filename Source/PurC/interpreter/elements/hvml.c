@@ -288,6 +288,12 @@ observer_handle(pcintr_coroutine_t cor, struct pcintr_observer *observer,
     }
     cor->stack.doc = doc;
 
+    /* FIXME: clear origin $DOC, bind new $DOC */
+    purc_variant_t n_doc = purc_dvobj_doc_new(cor->stack.doc);
+    pcintr_unbind_coroutine_variable(cor, PURC_PREDEF_VARNAME_DOC);
+    pcintr_bind_coroutine_variable(cor, PURC_PREDEF_VARNAME_DOC, n_doc);
+    purc_variant_unref(n_doc);
+
     purc_rwstream_destroy(stream);
 
     r = post_process(cor, frame);
