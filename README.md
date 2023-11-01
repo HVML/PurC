@@ -713,10 +713,10 @@ Here is an example:
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "hvml/productlist.hvml", "request": {},
-                   "renderer": { "pageId": "widget:productlist@default/theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
                 { "url": "hvml/productinfo.hvml", "request": { "productId": 0 },
-                   "renderer": { "pageId": "widget:productinfo@default/theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 }
             ]
         },
@@ -726,10 +726,10 @@ Here is an example:
                 "workspaceName": "default", "workspaceLayout": "cn.fmsoft.hvml.sample/layout.html" },
             "coroutines": [
                 { "url": "hvml/customerlist.hvml", "request": {},
-                   "renderer": { "pageId": "widget:customerlist@default/theCustomersArea" }
+                   "renderer": { "pageType": "widget", "pageName": "customerlist", "pageGroupId": "theCustomersArea" }
                 },
                 { "url": "hvml/customerlist.hvml", "request": { "customerId": 0 },
-                   "renderer": { "pageId": "widget:customerinfo@default/theCustomersArea" }
+                   "renderer": { "pageType": "widget", "pageName": "customerinfo", "pageGroupId": "theCustomersArea" }
                 }
             ]
         },
@@ -773,10 +773,10 @@ Then use the option specified by `--app` in `my_app.ejson`:
                 "workspaceName": "default", "workspaceLayout": "$OPTS.app/layout.html" },
             "coroutines": [
                 { "url": "cn.fmsoft.hvml.sample/productlist.hvml", "request": {},
-                   "renderer": { "pageId": "widget:productlist@default/theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productlist", "pageGroupId": "theProductsArea" }
                 },
                 { "url": "cn.fmsoft.hvml.sample/productinfo.hvml", "request": { "productId": 0 },
-                   "renderer": { "pageId": "widget:productinfo@default/theProductsArea" }
+                   "renderer": { "pageType": "widget", "pageName": "productinfo", "pageGroupId": "theProductsArea" }
                 },
             ]
         },
